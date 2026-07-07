@@ -8008,6 +8008,9 @@
         "heading": "Delivering",
         "mine": "{{count}} for you to deliver",
         "available": "{{count}} available nearby",
+        "today": "{{count}} scheduled today",
+        "awaitingAccept": "{{count}} awaiting acceptance",
+        "enRoute": "{{count}} en route",
         "dashboard": "Open delivery dashboard"
       },
       "view": {
@@ -8015,12 +8018,23 @@
         "list": "List",
         "agenda": "Agenda"
       },
+      "cockpit": {
+        "nextAgreement": "Next agreement",
+        "nextAction": "Next action",
+        "allClear": "Nothing pending"
+      },
+      "sections": {
+        "actionRequired": "Action required",
+        "other": "Other agreements"
+      },
       "agenda": {
         "today": "Today",
+        "tomorrow": "Tomorrow",
         "thisWeek": "This week",
+        "nextWeek": "Next week",
         "later": "Later",
         "unscheduled": "To be scheduled",
-        "completed": "Completed"
+        "completed": "History"
       },
       "calendar": {
         "title": "{title} · {counterpart}",

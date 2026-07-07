@@ -16,10 +16,17 @@ function uniqueFacets(
   return [...new Set(facets)];
 }
 
+/** EXPIRED / REJECTED / CANCELLED proposals are terminal → grouped under history. */
+const TERMINAL_PROPOSAL_STATUSES = new Set(['EXPIRED', 'REJECTED', 'CANCELLED']);
+
 export function classifyProposalFacets(
   item: Pick<AgreementHubProposalItem, 'proposal' | 'canRespond'>,
   userId: string,
 ): AgreementsHubFilter[] {
+  if (TERMINAL_PROPOSAL_STATUSES.has(item.proposal.status)) {
+    return ['CANCELLED'];
+  }
+
   const facets: AgreementsHubFilter[] = ['OPEN'];
   if (proposalNeedsUserResponse(item.proposal, userId)) {
     facets.push('ACTION_REQUIRED');

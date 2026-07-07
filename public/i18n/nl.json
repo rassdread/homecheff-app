@@ -8008,6 +8008,9 @@
         "heading": "Bezorgen",
         "mine": "{{count}} door jou te bezorgen",
         "available": "{{count}} beschikbaar in de buurt",
+        "today": "{{count}} vandaag gepland",
+        "awaitingAccept": "{{count}} wacht op acceptatie",
+        "enRoute": "{{count}} onderweg",
         "dashboard": "Open bezorgdashboard"
       },
       "view": {
@@ -8015,12 +8018,23 @@
         "list": "Lijst",
         "agenda": "Agenda"
       },
+      "cockpit": {
+        "nextAgreement": "Volgende afspraak",
+        "nextAction": "Eerstvolgende actie",
+        "allClear": "Niets openstaand"
+      },
+      "sections": {
+        "actionRequired": "Actie vereist",
+        "other": "Overige afspraken"
+      },
       "agenda": {
         "today": "Vandaag",
+        "tomorrow": "Morgen",
         "thisWeek": "Deze week",
+        "nextWeek": "Volgende week",
         "later": "Later",
         "unscheduled": "Nog te plannen",
-        "completed": "Afgerond"
+        "completed": "Historie"
       },
       "calendar": {
         "title": "{title} · {counterpart}",

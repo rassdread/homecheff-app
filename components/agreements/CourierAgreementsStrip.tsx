@@ -1,19 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Truck } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 
-type CourierRequests = {
-  available: unknown[];
-  mine: unknown[];
+type CourierJob = {
+  status?: string | null;
+  needsAccept?: boolean | null;
+  deliveryDate?: string | null;
+  activeAssignment?: { status?: string | null } | null;
 };
 
+type CourierRequests = {
+  available: unknown[];
+  mine: CourierJob[];
+};
+
+function isToday(iso: string | null | undefined): boolean {
+  if (!iso) return false;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return false;
+  const now = new Date();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
+}
+
 /**
- * CE-2A.8 — light courier perspective inside the agreements hub. Shows the
- * courier's own active jobs + nearby availability and links to the full
- * delivery dashboard. Renders nothing for non-couriers (403) or on error.
+ * CE-2A.8 / CE-2B.5 — courier perspective inside the agreements hub. Surfaces the
+ * courier's own jobs by state (today / awaiting acceptance / en route) plus nearby
+ * availability, and links to the full delivery dashboard (no second dashboard).
+ * Renders nothing for non-couriers (403) or on error.
  */
 export default function CourierAgreementsStrip() {
   const { t } = useTranslation();
@@ -37,9 +57,48 @@ export default function CourierAgreementsStrip() {
     };
   }, []);
 
-  const mineCount = data?.mine?.length ?? 0;
+  const mine = useMemo(() => data?.mine ?? [], [data]);
   const availableCount = data?.available?.length ?? 0;
+
+  const stateCounts = useMemo(() => {
+    let today = 0;
+    let awaitingAccept = 0;
+    let enRoute = 0;
+    for (const job of mine) {
+      if (job.needsAccept || job.activeAssignment?.status === 'PENDING') {
+        awaitingAccept += 1;
+      } else if (job.status === 'ASSIGNED' || job.activeAssignment?.status === 'ACCEPTED') {
+        enRoute += 1;
+      }
+      if (isToday(job.deliveryDate)) today += 1;
+    }
+    return { today, awaitingAccept, enRoute };
+  }, [mine]);
+
+  const mineCount = mine.length;
   if (!data || (mineCount === 0 && availableCount === 0)) return null;
+
+  const parts: string[] = [];
+  if (stateCounts.today > 0) {
+    parts.push(t('marketplace.agreements.courier.today', { count: stateCounts.today }));
+  }
+  if (stateCounts.awaitingAccept > 0) {
+    parts.push(
+      t('marketplace.agreements.courier.awaitingAccept', {
+        count: stateCounts.awaitingAccept,
+      }),
+    );
+  }
+  if (stateCounts.enRoute > 0) {
+    parts.push(t('marketplace.agreements.courier.enRoute', { count: stateCounts.enRoute }));
+  }
+  if (parts.length === 0) {
+    parts.push(
+      mineCount > 0
+        ? t('marketplace.agreements.courier.mine', { count: mineCount })
+        : t('marketplace.agreements.courier.available', { count: availableCount }),
+    );
+  }
 
   return (
     <Link
@@ -54,11 +113,7 @@ export default function CourierAgreementsStrip() {
           {t('marketplace.agreements.courier.heading')}
         </span>
         <span className="block text-xs text-sky-900">
-          {mineCount > 0
-            ? t('marketplace.agreements.courier.mine', { count: mineCount })
-            : t('marketplace.agreements.courier.available', {
-                count: availableCount,
-              })}
+          {parts.join(' \u00b7 ')}
         </span>
       </span>
       <span className="shrink-0 text-xs font-semibold text-sky-800 underline">

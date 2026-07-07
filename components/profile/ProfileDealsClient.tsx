@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { CalendarClock, List, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertCircle, CalendarClock, List, Loader2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import type {
   AgreementAgendaBucket,
@@ -33,7 +33,9 @@ const FILTER_LABEL_KEYS: Record<AgreementsHubFilter, string> = {
 
 const AGENDA_LABEL_KEYS: Record<AgreementAgendaBucket, string> = {
   today: 'marketplace.agreements.agenda.today',
+  tomorrow: 'marketplace.agreements.agenda.tomorrow',
   thisWeek: 'marketplace.agreements.agenda.thisWeek',
+  nextWeek: 'marketplace.agreements.agenda.nextWeek',
   later: 'marketplace.agreements.agenda.later',
   unscheduled: 'marketplace.agreements.agenda.unscheduled',
   completed: 'marketplace.agreements.agenda.completed',
@@ -52,7 +54,9 @@ const EMPTY_COUNTS: AgreementsHubResponse['counts'] = {
 
 const EMPTY_AGENDA: AgreementsHubAgenda = {
   today: [],
+  tomorrow: [],
   thisWeek: [],
+  nextWeek: [],
   later: [],
   unscheduled: [],
   completed: [],
@@ -60,6 +64,7 @@ const EMPTY_AGENDA: AgreementsHubAgenda = {
 
 const EMPTY_SUMMARY: AgreementsHubSummary = {
   nextAgreement: null,
+  nextAction: null,
   plannedTodayCount: 0,
   openActionCount: 0,
   activeDeliveryCount: 0,
@@ -69,10 +74,29 @@ const EMPTY_SUMMARY: AgreementsHubSummary = {
 
 type HubView = 'list' | 'agenda';
 
+function itemTitle(item: AgreementHubItem): string {
+  return item.kind === 'proposal'
+    ? item.proposal.title
+    : item.deal.proposalTitle || item.deal.title;
+}
+
+function itemCounterpart(item: AgreementHubItem): string | null {
+  return item.kind === 'proposal'
+    ? item.counterpartName
+    : item.deal.counterpartName;
+}
+
+function itemActionLabelKey(item: AgreementHubItem): string {
+  return item.kind === 'proposal'
+    ? item.primaryCtaLabelKey
+    : item.deal.dealUx.primaryCta.labelKey;
+}
+
 /**
- * Unified operational hub "Mijn Afspraken" (CE-2A). Aggregates pending/countered
- * proposals and community-order deals with filters, an agenda/planning view,
- * timeline, next-action and chat CTA — the central cockpit at /profile/deals.
+ * Unified operational cockpit "Mijn Afspraken" (CE-2A + CE-2B). One screen to
+ * manage proposals, deals, payments, deliveries, actions, completion and history:
+ * a next-up cockpit strip, an "action required" section, filters, and an
+ * agenda/planning view grouped by today → history.
  */
 export default function ProfileDealsClient() {
   const { t } = useTranslation();
@@ -82,10 +106,11 @@ export default function ProfileDealsClient() {
   const [counts, setCounts] =
     useState<AgreementsHubResponse['counts']>(EMPTY_COUNTS);
   const [agenda, setAgenda] = useState<AgreementsHubAgenda>(EMPTY_AGENDA);
-  // Sidebar-ready quick insights (data only — no sidebar redesign here).
-  const [, setSummary] = useState<AgreementsHubSummary>(EMPTY_SUMMARY);
+  const [summary, setSummary] = useState<AgreementsHubSummary>(EMPTY_SUMMARY);
   const [loading, setLoading] = useState(true);
 
+  // Single refresh path (CE-2B.7): every mutation re-runs loadHub, which refreshes
+  // items + counts + agenda + summary together — no divergent cache updates.
   const loadHub = useCallback(async (activeFilter: AgreementsHubFilter) => {
     setLoading(true);
     const qs = activeFilter ? `?filter=${activeFilter}` : '';
@@ -142,9 +167,32 @@ export default function ProfileDealsClient() {
       />
     );
 
+  const { actionItems, restItems } = useMemo(() => {
+    const action: AgreementHubItem[] = [];
+    const rest: AgreementHubItem[] = [];
+    for (const item of items) {
+      if (item.facets.includes('ACTION_REQUIRED')) action.push(item);
+      else rest.push(item);
+    }
+    return { actionItems: action, restItems: rest };
+  }, [items]);
+
   const agendaIsEmpty = AGREEMENT_AGENDA_BUCKETS.every(
     (bucket) => agenda[bucket].length === 0,
   );
+
+  const nextAgreementLabel = summary.nextAgreement
+    ? [
+        itemTitle(summary.nextAgreement),
+        summary.nextAgreement.agenda.timeLabel,
+      ]
+        .filter(Boolean)
+        .join(' \u00b7 ')
+    : t('marketplace.agreements.cockpit.allClear');
+
+  const nextActionLabel = summary.nextAction
+    ? `${t(itemActionLabelKey(summary.nextAction))} \u00b7 ${itemTitle(summary.nextAction)}`
+    : t('marketplace.agreements.cockpit.allClear');
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 px-4 py-6">
@@ -188,6 +236,26 @@ export default function ProfileDealsClient() {
           </button>
         </div>
       </header>
+
+      {/* Cockpit strip — always shows next agreement + next action (CE-2B.4). */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            {t('marketplace.agreements.cockpit.nextAgreement')}
+          </p>
+          <p className="mt-0.5 truncate text-sm font-medium text-emerald-950">
+            {nextAgreementLabel}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+            {t('marketplace.agreements.cockpit.nextAction')}
+          </p>
+          <p className="mt-0.5 truncate text-sm font-medium text-amber-950">
+            {nextActionLabel}
+          </p>
+        </div>
+      </div>
 
       <CourierAgreementsStrip />
 
@@ -252,6 +320,31 @@ export default function ProfileDealsClient() {
         <p className="text-sm text-gray-600">
           {t('marketplace.agreements.empty')}
         </p>
+      ) : filter === '' && actionItems.length > 0 ? (
+        <div className="space-y-5">
+          <section className="space-y-2">
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-700">
+              <AlertCircle className="h-3.5 w-3.5" aria-hidden />
+              {t('marketplace.agreements.sections.actionRequired')}
+              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                {actionItems.length}
+              </span>
+            </h2>
+            <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-amber-200 bg-white">
+              {actionItems.map(renderItem)}
+            </ul>
+          </section>
+          {restItems.length > 0 ? (
+            <section className="space-y-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t('marketplace.agreements.sections.other')}
+              </h2>
+              <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+                {restItems.map(renderItem)}
+              </ul>
+            </section>
+          ) : null}
+        </div>
       ) : (
         <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
           {items.map(renderItem)}

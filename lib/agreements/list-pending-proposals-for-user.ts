@@ -14,16 +14,37 @@ import { buildProposalAgenda } from './agreement-agenda';
 import { attachProposalFacets } from './agreements-hub-filters';
 import type { AgreementHubProposalItem } from './agreements-hub-types';
 
+/** Terminal proposal history is bounded to the last ~90 days to stay light. */
+const HISTORY_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
+
+/**
+ * Proposals for the agreements hub (CE-2B.1) — surfaces open voorstellen outside
+ * chat: PENDING + COUNTERED (active) plus recent EXPIRED / REJECTED / CANCELLED
+ * for unified history. Proposals that became agreements are represented by their
+ * deal, so those are excluded (`Agreement: null`). Reuses `serializeProposal`.
+ */
 export async function listPendingProposalsForUser(
   userId: string,
 ): Promise<AgreementHubProposalItem[]> {
+  const historyCutoff = new Date(Date.now() - HISTORY_WINDOW_MS);
   const rows = await prisma.proposal.findMany({
     where: {
-      OR: [{ buyerId: userId }, { sellerId: userId }],
-      status: 'PENDING',
       Agreement: { is: null },
+      AND: [
+        { OR: [{ buyerId: userId }, { sellerId: userId }] },
+        {
+          OR: [
+            { status: { in: ['PENDING', 'COUNTERED'] } },
+            {
+              status: { in: ['EXPIRED', 'REJECTED', 'CANCELLED'] },
+              updatedAt: { gte: historyCutoff },
+            },
+          ],
+        },
+      ],
     },
     orderBy: { updatedAt: 'desc' },
+    take: 100,
     include: {
       Buyer: { select: { name: true, username: true } },
       Seller: { select: { name: true, username: true } },

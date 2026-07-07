@@ -34,10 +34,12 @@ export type AgreementTimelineStep = {
   state: AgreementTimelineStepState;
 };
 
-/** Agenda / planning grouping (CE-2A agenda add-on). */
+/** Agenda / planning grouping (CE-2A agenda add-on; CE-2B timeline polish). */
 export type AgreementAgendaBucket =
   | 'today'
+  | 'tomorrow'
   | 'thisWeek'
+  | 'nextWeek'
   | 'later'
   | 'unscheduled'
   | 'completed';
@@ -84,7 +86,9 @@ export type AgreementHubItem = AgreementHubProposalItem | AgreementHubDealItem;
 
 export const AGREEMENT_AGENDA_BUCKETS = [
   'today',
+  'tomorrow',
   'thisWeek',
+  'nextWeek',
   'later',
   'unscheduled',
   'completed',
@@ -98,6 +102,8 @@ export type AgreementsHubAgenda = Record<
 /** Sidebar-ready quick-insight summary (data only — no sidebar redesign). */
 export type AgreementsHubSummary = {
   nextAgreement: AgreementHubItem | null;
+  /** First item that requires the user to act (ACTION_REQUIRED), if any. */
+  nextAction: AgreementHubItem | null;
   plannedTodayCount: number;
   openActionCount: number;
   activeDeliveryCount: number;
