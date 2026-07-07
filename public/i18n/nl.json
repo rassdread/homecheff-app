@@ -7768,11 +7768,11 @@
         "actionBlock": "Acties"
       },
       "trust": {
-        "productReviews": "Productreviews",
-        "dealReviews": "Dealreviews",
-        "completedDeals": "Afgeronde afspraken",
-        "deliveries": "Bezorgingen voltooid",
-        "repeatCustomers": "Terugkerende klanten",
+        "productReviews": "{{count}} productbeoordelingen",
+        "dealReviews": "{{count}} afspraakbeoordelingen",
+        "completedDeals": "{{count}} afgeronde afspraken",
+        "deliveries": "{{count}} bezorgingen voltooid",
+        "repeatCustomers": "{{count}} terugkerende klanten",
         "badge": "Vertrouwensbadge",
         "establishedMaker": "Gevestigde maker"
       },
@@ -7788,6 +7788,18 @@
       },
       "valueExchange": {
         "title": "Betaling & ruil"
+      },
+      "acceptedValues": {
+        "title": "Geaccepteerde tegenwaarden"
+      },
+      "conditions": {
+        "title": "Voorwaarden",
+        "pickupAvailable": "Ophalen mogelijk",
+        "deliveryAvailable": "Bezorgen mogelijk",
+        "deliveryRadius": "Bezorging binnen {{km}} km",
+        "region": "Regio: {{label}}",
+        "outOfStock": "Momenteel niet beschikbaar",
+        "stockLow": "Nog {{count}} beschikbaar"
       }
     },
     "exchange": {
@@ -7859,6 +7871,34 @@
       },
       "modifier": {
         "local": "{{distance}} km verderop"
+      }
+    },
+    "discovery": {
+      "requests": {
+        "chip": "Gezocht",
+        "sectionTitle": "Gezocht",
+        "sectionSubtitle": "Open verzoeken bij jou in de buurt",
+        "emptyTitle": "Nog geen open verzoeken gevonden",
+        "emptyBody": "Bekijk het aanbod of plaats zelf een verzoek — misschien kan iemand je helpen.",
+        "searchHints": {
+          "gezocht": "Gezocht",
+          "help": "Hulp gevraagd",
+          "request": "Verzoeken"
+        }
+      }
+    },
+    "request": {
+      "actions": {
+        "view": "Bekijk verzoek",
+        "help": "Help mee",
+        "proposal": "Voorstel doen",
+        "create": "Verzoek plaatsen"
+      },
+      "detail": {
+        "badge": "Gezocht",
+        "helpBadge": "Hulp gevraagd",
+        "soughtHeading": "Gezocht",
+        "intro": "Iemand zoekt hulp of iets specifieks — reageer met een voorstel."
       }
     },
     "deals": {

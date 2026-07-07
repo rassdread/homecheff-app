@@ -64,4 +64,37 @@ export type {
 export {
   buildDetailValueExchangeBlock,
   valueExchangeSectionTitleKey,
+  buildDesiredExchangesForDetail,
 } from './detail-value-exchange-block';
+
+export type {
+  DetailUiSectionId,
+  DetailUiSectionPlan,
+} from './detail-ui-section-order';
+
+export {
+  DETAIL_UI_SECTION_IDS,
+  buildDetailUiSectionPlan,
+  isDetailUiSectionVisible,
+} from './detail-ui-section-order';
+
+export type {
+  AcceptedValueSubcategoryLine,
+  AcceptedValueCategoryGroup,
+  DetailAcceptedValuesPresentation,
+} from './detail-accepted-values-presentation';
+
+export { buildDetailAcceptedValuesPresentation } from './detail-accepted-values-presentation';
+
+export type {
+  DetailConditionLineKind,
+  DetailConditionLine,
+} from './detail-conditions-block';
+
+export {
+  buildDetailConditionsBlock,
+  detailConditionsHasContent,
+} from './detail-conditions-block';
+
+export type { ResolvedDetailPageActions } from './resolve-detail-actions';
+export { resolveDetailPageActions } from './resolve-detail-actions';

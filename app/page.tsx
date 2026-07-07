@@ -1,7 +1,7 @@
 import { getInspiratieItems } from '@/lib/getInspiratieItems';
 import HomePageClient from '@/components/home/HomePageClient';
 
-type HomeFeedChip = 'all' | 'sale' | 'inspiration';
+type HomeFeedChip = 'all' | 'sale' | 'inspiration' | 'gezocht';
 export const revalidate = 60;
 
 function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefined {
@@ -16,6 +16,15 @@ function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefine
     v === 'inspire'
   ) {
     return 'inspiration';
+  }
+  if (
+    v === 'gezocht' ||
+    v === 'request' ||
+    v === 'requests' ||
+    v === 'help' ||
+    v === 'hulp'
+  ) {
+    return 'gezocht';
   }
   return undefined;
 }

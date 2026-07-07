@@ -24,6 +24,8 @@ import {
   type InspirationCategory,
 } from '@/lib/inspiratie/instruction-content';
 import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
+import { fetchSellerTrustBundles } from '@/lib/discovery/trust/batch-enrichment';
+import { buildDiscoveryTrust } from '@/lib/discovery/trust/build-discovery-trust';
 import type { MarketplaceCategory } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
@@ -284,6 +286,17 @@ export async function GET(
       : false;
     const checkoutBlockedReason = paymentStatus.reason;
 
+    const trustBundles = sellerUserId
+      ? await fetchSellerTrustBundles([sellerUserId])
+      : new Map();
+    const trustBundle = sellerUserId ? trustBundles.get(sellerUserId) : undefined;
+    const discoveryTrust = buildDiscoveryTrust({
+      listingProductReviewCount: reviewStats.reviewCount,
+      listingIsActive: Boolean((product as { isActive?: boolean }).isActive ?? true),
+      sellerSnapshot: trustBundle?.snapshot,
+      trustBadges: trustBundle?.trustBadges,
+    });
+
     let linkedInspiration: {
       href: string;
       category: InspirationCategory;
@@ -355,7 +368,8 @@ export async function GET(
         orderCount,
         favoriteCount,
         ...reviewStats
-      }
+      },
+      discoveryTrust,
     });
   } catch (error) {
     console.error('Error fetching product:', error);

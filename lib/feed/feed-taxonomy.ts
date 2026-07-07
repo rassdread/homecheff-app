@@ -39,7 +39,8 @@ export type FeedTaxonomy = {
 export type FeedViewFilterId =
   | 'all'
   | 'sale'
-  | 'inspiration';
+  | 'inspiration'
+  | 'gezocht';
 
 /**
  * Future chips (documented, not active in UI):

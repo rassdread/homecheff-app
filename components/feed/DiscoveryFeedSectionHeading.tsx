@@ -1,10 +1,8 @@
 "use client";
 
-import type { DiscoverySectionId } from "@/lib/discovery/sections";
-
 type DiscoveryFeedSectionHeadingProps = {
   titleKey: string;
-  sectionId: DiscoverySectionId;
+  sectionId: string;
   t: (key: string) => string;
 };
 

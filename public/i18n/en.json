@@ -7768,11 +7768,11 @@
         "actionBlock": "Actions"
       },
       "trust": {
-        "productReviews": "Product reviews",
-        "dealReviews": "Deal reviews",
-        "completedDeals": "Completed agreements",
-        "deliveries": "Deliveries completed",
-        "repeatCustomers": "Repeat customers",
+        "productReviews": "{{count}} product reviews",
+        "dealReviews": "{{count}} deal reviews",
+        "completedDeals": "{{count}} completed agreements",
+        "deliveries": "{{count}} deliveries completed",
+        "repeatCustomers": "{{count}} repeat customers",
         "badge": "Trust badge",
         "establishedMaker": "Established maker"
       },
@@ -7788,6 +7788,18 @@
       },
       "valueExchange": {
         "title": "Payment & exchange"
+      },
+      "acceptedValues": {
+        "title": "Accepted counter-values"
+      },
+      "conditions": {
+        "title": "Conditions & logistics",
+        "pickupAvailable": "Pickup available",
+        "deliveryAvailable": "Delivery available",
+        "deliveryRadius": "Delivery within {{km}} km",
+        "region": "Region: {{label}}",
+        "outOfStock": "Currently unavailable",
+        "stockLow": "Only {{count}} left"
       }
     },
     "exchange": {
@@ -7859,6 +7871,34 @@
       },
       "modifier": {
         "local": "{{distance}} km away"
+      }
+    },
+    "discovery": {
+      "requests": {
+        "chip": "Wanted",
+        "sectionTitle": "Wanted",
+        "sectionSubtitle": "Open requests near you",
+        "emptyTitle": "No open requests found yet",
+        "emptyBody": "Browse offers or post your own request — someone nearby might help.",
+        "searchHints": {
+          "gezocht": "Wanted",
+          "help": "Help needed",
+          "request": "Requests"
+        }
+      }
+    },
+    "request": {
+      "actions": {
+        "view": "View request",
+        "help": "Help out",
+        "proposal": "Make a proposal",
+        "create": "Post a request"
+      },
+      "detail": {
+        "badge": "Wanted",
+        "helpBadge": "Help needed",
+        "soughtHeading": "Wanted",
+        "intro": "Someone is looking for help or something specific — respond with a proposal."
       }
     },
     "deals": {

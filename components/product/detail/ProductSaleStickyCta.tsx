@@ -15,6 +15,8 @@ import {
   formatCommercePriceLabel,
   resolveProductCommerceActions,
 } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { resolveDetailPageActions } from '@/lib/marketplace/detail/resolve-detail-actions';
+import { deriveListingKind } from '@/lib/marketplace/listing-kind/derive-listing-kind';
 import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
@@ -28,6 +30,8 @@ type ProductShape = {
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
   barterOpenness?: string | null;
+  listingIntent?: string | null;
+  specializations?: string[] | null;
   priceModel?: string | null;
   acceptedSpecializations?: string[];
   delivery?: string | null;
@@ -67,11 +71,19 @@ export default function ProductSaleStickyCta({
   if (hidden || isOwner) return null;
 
   const commerceActions = resolveProductCommerceActions(product.barterOpenness);
+  const { listingKind } = deriveListingKind({
+    listingIntent: product.listingIntent,
+    specializations: product.specializations,
+  });
+  const detailActions = resolveDetailPageActions({
+    listingKind,
+    barterOpenness: product.barterOpenness,
+  });
   const sellerId = product.seller?.User?.id ?? '';
   const hasChat = publicContactChannels.some((c) => c.id === 'chat');
   const isProposalFirstSticky =
-    !commerceActions.showOrderCheckout &&
-    commerceActions.showProposalCta &&
+    detailActions.proposalPrimary &&
+    detailActions.showProposal &&
     hasChat &&
     !!sellerId;
   const isOutOfStock = availableStock !== null && availableStock === 0;

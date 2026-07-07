@@ -12,6 +12,8 @@ import {
 } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 import { resolveProductCommerceActions } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { resolveDetailPageActions } from '@/lib/marketplace/detail/resolve-detail-actions';
+import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { ExchangeFunnelListingInput } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 import {
   getBuyerPaymentWarningKey,
@@ -42,6 +44,7 @@ type ProductShape = {
 
 type Props = {
   product: ProductShape;
+  listingKind: ListingKind;
   carouselImageUrl?: string | null;
   sellerName: string;
   quantity: number;
@@ -57,6 +60,7 @@ type Props = {
 
 export default function ProductSalePrimaryActions({
   product,
+  listingKind,
   carouselImageUrl,
   sellerName,
   quantity,
@@ -71,7 +75,13 @@ export default function ProductSalePrimaryActions({
 }: Props) {
   const { t, tOr } = useTranslation();
   const isOutOfStock = availableStock !== null && availableStock === 0;
+  const detailActions = resolveDetailPageActions({
+    listingKind,
+    barterOpenness: product.barterOpenness,
+  });
   const commerceActions = resolveProductCommerceActions(product.barterOpenness);
+  const showOrder = detailActions.showOrder;
+  const showProposal = detailActions.showProposal;
   const sellerId = product.seller?.User?.id;
   const exchangeFunnelListing: ExchangeFunnelListingInput = {
     listingId: product.id,
@@ -186,7 +196,7 @@ export default function ProductSalePrimaryActions({
     );
   }
 
-  if (!commerceActions.showOrderCheckout && commerceActions.showProposalCta) {
+  if (!showOrder && showProposal) {
     return (
       <div id="commerce-cta" className={cn(className)}>
         {sellerId ? (
@@ -195,7 +205,7 @@ export default function ProductSalePrimaryActions({
             sellerId={sellerId}
             sellerName={sellerName}
             publicContactChannels={publicContactChannels}
-            primary
+            primary={detailActions.proposalPrimary}
             exchangeFunnelListing={exchangeFunnelListing}
           />
         ) : null}
@@ -205,7 +215,7 @@ export default function ProductSalePrimaryActions({
 
   return (
     <div id="commerce-cta" className={cn('space-y-3', className)}>
-      {commerceActions.showOrderCheckout ? (
+      {showOrder ? (
         <>
           <p className="rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-xs font-medium leading-relaxed text-emerald-900">
             {t('productDetail.commercePathCheckout')}
@@ -236,12 +246,13 @@ export default function ProductSalePrimaryActions({
           />
         </>
       ) : null}
-      {commerceActions.showProposalCta && sellerId ? (
+      {showProposal && sellerId ? (
         <ProductSaleProposalAction
           productId={product.id}
           sellerId={sellerId}
           sellerName={sellerName}
           publicContactChannels={publicContactChannels}
+          primary={detailActions.proposalPrimary && !showOrder}
           exchangeFunnelListing={exchangeFunnelListing}
         />
       ) : null}

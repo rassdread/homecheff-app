@@ -81,6 +81,13 @@ export default function FeedMobileToolbar({
         >
           {t('feed.chipInspiration')}
         </button>
+        <button
+          type="button"
+          className={chipClass(feedChip === 'gezocht')}
+          onClick={() => onFeedChipChange('gezocht')}
+        >
+          {t('marketplace.discovery.requests.chip')}
+        </button>
       </div>
 
       <div className="flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

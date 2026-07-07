@@ -13,6 +13,10 @@ import {
   isBareProductUuidParam,
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
+import {
+  buildListingDetailPath,
+} from '@/lib/seo/listing-routes';
+import { isRequestListing } from '@/lib/marketplace/product-visibility';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 
 const BREADCRUMB_HOME_NL = 'Home';
@@ -214,6 +218,17 @@ export default async function ProductLayout({
       },
     },
   });
+
+  if (productForLayout?.isActive && isRequestListing(productForLayout)) {
+    redirect(
+      buildListingDetailPath(
+        'request',
+        productForLayout.title,
+        productForLayout.seller?.User?.place,
+        productForLayout.id,
+      ),
+    );
+  }
 
   if (productForLayout?.isActive && isBareProductUuidParam(routeParam)) {
     redirect(

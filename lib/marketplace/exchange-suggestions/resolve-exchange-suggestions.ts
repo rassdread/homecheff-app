@@ -176,6 +176,8 @@ function buildSuggestionCard(
     counterpartyTitle: meta.title,
     counterpartyUsername: meta.username,
     counterpartyUserId: meta.userId,
+    counterpartyListingIntent: counterparty.listingIntent,
+    counterpartyListingKind: counterparty.offer.listingKind,
     distanceKm: distanceKm ?? null,
     mainCategory,
     allowedCtas: [...ALL_CTAS],

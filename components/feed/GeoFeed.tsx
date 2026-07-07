@@ -66,11 +66,11 @@ import {
 } from "@/components/feed/feedSaleRanking";
 import DiscoveryFeedSectionHeading from "@/components/feed/DiscoveryFeedSectionHeading";
 import type { DiscoveryFeedPayload } from "@/lib/feed/discovery-feed-contract";
-import type { DiscoverySectionId } from "@/lib/discovery/sections";
 import {
   buildDiscoverySectionSaleRows,
   discoveryFeedActive,
   interleaveDiscoverySectionsWithInspiration,
+  prependGezochtDiscoverySection,
   orderItemsFromDiscoveryFeed,
 } from "@/lib/feed/discovery-feed-client";
 import { getActivityCardsFromDiscovery,
@@ -182,6 +182,8 @@ import {
 import { partitionSaleItemsByRadius } from "@/lib/geo/feed-radius-filter";
 import {
   countMarketplaceSaleItems,
+  countMarketplaceRequestItems,
+  isMarketplaceRequestItem,
   isMarketplaceSaleItem,
 } from "@/lib/feed/marketplace-sale";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
@@ -1111,7 +1113,7 @@ export default function GeoFeed({
       setAppliedScope(migrated.scope);
       if (!urlLocksChip) {
         const fc = migrated.feedChip;
-        if (fc === "all" || fc === "sale" || fc === "inspiration") {
+        if (fc === "all" || fc === "sale" || fc === "inspiration" || fc === "gezocht") {
           setFeedChip(fc);
         }
       }
@@ -1743,11 +1745,17 @@ export default function GeoFeed({
     [activeFeedItems]
   );
 
+  const requestCandidates = useMemo(
+    () => activeFeedItems.filter((item) => isMarketplaceRequestItem(item)),
+    [activeFeedItems]
+  );
+
   const feedOnlyInspiration = useMemo(
     () =>
       activeFeedItems.filter(
         (item) =>
           !isMarketplaceSaleItem(item) &&
+          !isMarketplaceRequestItem(item) &&
           !apiInspirationIds.has(item.id)
       ),
     [activeFeedItems, apiInspirationIds]
@@ -1790,6 +1798,18 @@ export default function GeoFeed({
         : null,
     [appliedCategory]
   );
+
+  const filteredRequestBase = useMemo(() => {
+    const qn = appliedSearchQuery.trim();
+    return requestCandidates.filter((item) => {
+      if (!matchesSearch(item, qn)) return false;
+      if (categoryEnum) {
+        const itemCat = getDiscoveryLegacyVerticalCategory(item);
+        if (itemCat !== categoryEnum) return false;
+      }
+      return true;
+    });
+  }, [requestCandidates, appliedSearchQuery, categoryEnum]);
 
   const filteredSaleBase = useMemo(() => {
     const qn = appliedSearchQuery.trim();
@@ -1960,25 +1980,36 @@ export default function GeoFeed({
   }, [sortedSales, feedChip, t]);
 
   const mixedRows = useMemo(() => {
+    let rows:
+      | ReturnType<typeof interleaveDiscoverySectionsWithInspiration>
+      | ReturnType<typeof interleaveSalesAndInspiration>
+      | ReturnType<typeof interleaveWithSmartPrefix>;
+
     if (useDiscoverySections && rankingResult.discoverySectionRows) {
-      return interleaveDiscoverySectionsWithInspiration(
+      rows = interleaveDiscoverySectionsWithInspiration(
         rankingResult.discoverySectionRows,
         inspirationSlots,
         discoveryFeed?.insertion.itemsBetweenSections ?? 4,
       );
-    }
-    if (!useSmartRanking) {
-      return interleaveSalesAndInspiration(
+    } else if (!useSmartRanking) {
+      rows = interleaveSalesAndInspiration(
         rankingResult.orderedForMix,
         inspirationSlots
       );
+    } else {
+      rows = interleaveWithSmartPrefix(
+        rankingResult.orderedForMix,
+        inspirationSlots,
+        rankingResult.topForMix
+      );
     }
-    return interleaveWithSmartPrefix(
-      rankingResult.orderedForMix,
-      inspirationSlots,
-      rankingResult.topForMix
-    );
+
+    if (feedChip === "all") {
+      return prependGezochtDiscoverySection(rows, filteredRequestBase);
+    }
+    return rows;
   }, [
+    feedChip,
     useDiscoverySections,
     useSmartRanking,
     rankingResult.orderedForMix,
@@ -1986,6 +2017,7 @@ export default function GeoFeed({
     rankingResult.discoverySectionRows,
     inspirationSlots,
     discoveryFeed?.insertion.itemsBetweenSections,
+    filteredRequestBase,
   ]);
 
   const activityCardsFromFeed = useMemo(
@@ -2025,11 +2057,16 @@ export default function GeoFeed({
         row: "insp" as const,
         slot,
       }));
+    } else if (feedChip === "gezocht") {
+      return filteredRequestBase.map((item) => ({
+        row: "sale" as const,
+        item,
+      }));
     } else {
       rows = mixedRows;
     }
 
-    if (!session?.user || feedChip === "inspiration") {
+    if (!session?.user || feedChip === "inspiration" || feedChip === "gezocht") {
       return rows;
     }
 
@@ -2095,6 +2132,7 @@ export default function GeoFeed({
     isMobileFeedUi,
     surfacePlan,
     exchangeFeedInsertCards,
+    filteredRequestBase,
   ]);
 
   const displayCount = displayRows.length;
@@ -2532,6 +2570,11 @@ export default function GeoFeed({
     !loading &&
     feedHydrated &&
     inspirationSlots.length === 0;
+  const emptyGezocht =
+    feedChip === "gezocht" &&
+    !loading &&
+    feedHydrated &&
+    filteredRequestBase.length === 0;
   const emptyAll =
     !emptyRadiusNoLocal &&
     feedChip === "all" &&
@@ -2614,6 +2657,13 @@ export default function GeoFeed({
           onClick={() => setFeedChip("inspiration")}
         >
           {t("feed.chipInspiration")}
+        </button>
+        <button
+          type="button"
+          className={chipBtn(feedChip === "gezocht")}
+          onClick={() => setFeedChip("gezocht")}
+        >
+          {t("marketplace.discovery.requests.chip")}
         </button>
       </div>
     </>
@@ -3262,6 +3312,33 @@ export default function GeoFeed({
             </button>
           </div>
         </div>
+      ) : emptyGezocht ? (
+        <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
+          <p className="text-base font-semibold text-gray-900">
+            {t("marketplace.discovery.requests.emptyTitle")}
+          </p>
+          <p className="mt-1">{t("marketplace.discovery.requests.emptyBody")}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setFeedChip("sale")}
+              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              {t("feed.chipSale")}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                createFlow.openCreateFlowWithIntent(
+                  createIntentForSaleOrInspiration(category, "sale")
+                )
+              }
+              className="inline-flex items-center rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+            >
+              {t("marketplace.request.actions.create")}
+            </button>
+          </div>
+        </div>
       ) : emptyAll ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">
@@ -3378,7 +3455,7 @@ export default function GeoFeed({
                 nodes.push(
                   <DiscoveryFeedSectionHeading
                     key={`section-${row.sectionId}-${idx}`}
-                    sectionId={row.sectionId as DiscoverySectionId}
+                    sectionId={row.sectionId}
                     titleKey={row.titleKey}
                     t={t}
                   />

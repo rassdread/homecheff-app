@@ -2,16 +2,15 @@
 
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 import ShareButton from '@/components/ui/ShareButton';
-import ProductDetailLocality from '@/components/product/detail/ProductDetailLocality';
-import ProductDetailDelivery from '@/components/product/detail/ProductDetailDelivery';
-import ProductMakerTrustStrip from '@/components/product/detail/ProductMakerTrustStrip';
 import ProductDetailTags from '@/components/product/detail/ProductDetailTags';
 import ProductSalePrimaryActions from '@/components/product/detail/ProductSalePrimaryActions';
-import ProductSaleCommerceTrustLine from '@/components/product/detail/ProductSaleCommerceTrustLine';
 import ProductSaleSecondaryContact from '@/components/product/detail/ProductSaleSecondaryContact';
-import { useProductStoryCopy } from '@/components/product/detail/ProductSaleAboutSection';
+import ProductValueExchangeSection from '@/components/product/detail/ProductValueExchangeSection';
+import ProductDetailTrustBlock from '@/components/product/detail/ProductDetailTrustBlock';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
-import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
+import type { DiscoveryTrustContract } from '@/lib/discovery/contracts/discovery-trust-contract';
+import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
+import type { MarketplaceCategory } from '@prisma/client';
 import {
   hasPublicDisplayPrice,
   isContactOnlyProduct,
@@ -35,8 +34,11 @@ type ProductShape = {
   barterOpenness?: string | null;
   priceModel?: string | null;
   acceptedSpecializations?: string[];
+  listingIntent?: string | null;
+  specializations?: string[] | null;
+  marketplaceCategory?: MarketplaceCategory | null;
+  subcategory?: string | null;
   category?: string;
-  subcategory?: string;
   tags?: string[];
   delivery?: 'PICKUP' | 'DELIVERY' | 'BOTH';
   pickupAddress?: string | null;
@@ -75,16 +77,8 @@ type Props = {
     gradient: string;
   };
   categoryIcon: LucideIcon;
-  stats: {
-    reviewCount: number;
-    averageRating: number;
-    orderCount: number;
-    favoriteCount: number;
-  };
-  sellerBadges: UserBadgeChipItem[];
-  isBusiness: boolean;
-  companyName: string | null;
-  profileViewerCoords: { lat?: number | null; lng?: number | null } | null;
+  trust: DiscoveryTrustContract;
+  listingKind: ListingKind;
   sellerName: string;
   quantity: number;
   availableStock: number | null;
@@ -94,7 +88,6 @@ type Props = {
   publicContactChannels: PublicContactChannel[];
   carouselImageUrl?: string | null;
   shareUrl: string;
-  sellerBadgeCount?: number;
   onQuantityChange: (n: number) => void;
   onAddedToCart?: () => void;
   className?: string;
@@ -104,11 +97,8 @@ export default function ProductSaleCommerceZone({
   product,
   theme,
   categoryIcon: CategoryIcon,
-  stats,
-  sellerBadges,
-  isBusiness,
-  companyName,
-  profileViewerCoords,
+  trust,
+  listingKind,
   sellerName,
   quantity,
   availableStock,
@@ -118,22 +108,11 @@ export default function ProductSaleCommerceZone({
   publicContactChannels,
   carouselImageUrl,
   shareUrl,
-  sellerBadgeCount = 0,
   onQuantityChange,
   onAddedToCart,
   className,
 }: Props) {
   const { t } = useTranslation();
-  const { summary, makerLine } = useProductStoryCopy({
-    product,
-    sellerName,
-    categoryLabel: theme.label,
-    stats,
-    checkoutAvailable,
-    isBusiness,
-    companyName,
-    sellerBadgeCount,
-  });
 
   const commerceActions = resolveProductCommerceActions(product.barterOpenness);
 
@@ -187,15 +166,10 @@ export default function ProductSaleCommerceZone({
         {stockBadge}
       </div>
 
-      <div>
+      <div data-detail-section="person_row">
         <h1 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
           {product.title}
         </h1>
-        {summary ? (
-          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-gray-600">
-            {summary}
-          </p>
-        ) : null}
       </div>
 
       <div>
@@ -245,45 +219,43 @@ export default function ProductSaleCommerceZone({
         </div>
       ) : null}
 
-      <ProductDetailLocality
-        pickupAddress={product.pickupAddress}
-        pickupLat={product.pickupLat}
-        pickupLng={product.pickupLng}
-        seller={product.seller}
-        profileViewerCoords={profileViewerCoords}
+      <div className="hidden lg:block">
+        <ProductValueExchangeSection
+          barterOpenness={product.barterOpenness}
+          priceModel={product.priceModel}
+          acceptedSpecializations={product.acceptedSpecializations}
+          specializations={product.specializations ?? undefined}
+          marketplaceCategory={product.marketplaceCategory}
+          subcategory={product.subcategory}
+          listingIntent={product.listingIntent}
+          category={product.category}
+          listingTitle={product.title}
+          className="!border-0 !bg-transparent !p-0 !shadow-none"
+        />
+      </div>
+
+      <ProductDetailTrustBlock
+        trust={trust}
+        listingKind={listingKind}
+        compact
+        className="hidden lg:block !border-0 !bg-transparent !p-0 !shadow-none"
       />
 
-      <ProductDetailDelivery
-        delivery={product.delivery}
-        sellerCanDeliver={product.sellerCanDeliver}
-        deliveryRadiusKm={product.deliveryRadiusKm}
-        orderMethod={product.orderMethod}
-        className="!mt-0 space-y-1.5"
-      />
-
-      <ProductSaleCommerceTrustLine
-        product={product}
-        sellerName={sellerName}
-        stats={stats}
-        checkoutAvailable={checkoutAvailable}
-        isBusiness={isBusiness}
-        companyName={companyName}
-        sellerBadgeCount={sellerBadges.length}
-        sellerUserId={product.seller?.User?.id ?? null}
-      />
-
-      <ProductSalePrimaryActions
-        product={product}
-        carouselImageUrl={carouselImageUrl}
-        sellerName={sellerName}
-        quantity={quantity}
-        availableStock={availableStock}
-        isOwner={isOwner}
-        checkoutAvailable={checkoutAvailable}
-        paymentStatus={paymentStatus}
-        publicContactChannels={publicContactChannels}
-        onAdded={onAddedToCart}
-      />
+      <div className="hidden lg:block" data-detail-section="action_block">
+        <ProductSalePrimaryActions
+          product={product}
+          listingKind={listingKind}
+          carouselImageUrl={carouselImageUrl}
+          sellerName={sellerName}
+          quantity={quantity}
+          availableStock={availableStock}
+          isOwner={isOwner}
+          checkoutAvailable={checkoutAvailable}
+          paymentStatus={paymentStatus}
+          publicContactChannels={publicContactChannels}
+          onAdded={onAddedToCart}
+        />
+      </div>
 
       {!commerceActions.showProposalCta && !isContactOnlyProduct(product) ? (
         <ProductSaleSecondaryContact
@@ -293,19 +265,21 @@ export default function ProductSaleCommerceZone({
         />
       ) : null}
 
-      <ProductMakerTrustStrip
-        sellerUser={product.seller?.User}
-        sellerBadges={sellerBadges}
-        isBusiness={isBusiness}
-        companyName={companyName}
-        makerLine={makerLine}
-        productStats={{
-          reviewCount: stats.reviewCount,
-          averageRating: stats.averageRating,
-          orderCount: stats.orderCount,
-          favoriteCount: stats.favoriteCount,
-        }}
-      />
+      <div className="flex flex-col gap-3 border-t border-gray-100 pt-3 lg:hidden" data-detail-section="action_block">
+        <ProductSalePrimaryActions
+          product={product}
+          listingKind={listingKind}
+          carouselImageUrl={carouselImageUrl}
+          sellerName={sellerName}
+          quantity={quantity}
+          availableStock={availableStock}
+          isOwner={isOwner}
+          checkoutAvailable={checkoutAvailable}
+          paymentStatus={paymentStatus}
+          publicContactChannels={publicContactChannels}
+          onAdded={onAddedToCart}
+        />
+      </div>
 
       <div className="flex flex-col gap-3 border-t border-gray-100 pt-3">
         <ProductDetailTags tags={product.tags} subcategory={product.subcategory} />

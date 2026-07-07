@@ -97,15 +97,11 @@ export default function ProductValueExchangeSection({
   );
 
   const openness = String(barterOpenness ?? 'MONEY').toUpperCase();
-  const acceptedSubcategoryLines =
-    block?.lines.filter((line) => line.kind === 'accepted_subcategory') ?? [];
   const desiredLines = block?.lines.filter((line) => line.kind === 'desired') ?? [];
 
   const showSection =
     block !== null &&
-    (acceptedSpecializations.length > 0 ||
-      openness !== 'MONEY' ||
-      desiredLines.length > 0);
+    (openness !== 'MONEY' || desiredLines.length > 0);
 
   if (!showSection || !block) return null;
 
@@ -115,6 +111,7 @@ export default function ProductValueExchangeSection({
         'rounded-xl border border-gray-100 bg-white px-4 py-4 shadow-sm',
         className,
       )}
+      data-detail-section="value_exchange"
     >
       <h2 className="mb-3 text-sm font-semibold text-gray-900">
         {t(valueExchangeSectionTitleKey())}
@@ -131,7 +128,7 @@ export default function ProductValueExchangeSection({
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
               {t('marketplace.valueExchange.barter.seeks')}
             </p>
-            <ul className="flex flex-wrap gap-2">
+            <ul className="space-y-2">
               {desiredLines.map((line) => {
                 const item = line.taxonomyId
                   ? getMarketplaceTaxonomyItem(line.taxonomyId)
@@ -139,45 +136,28 @@ export default function ProductValueExchangeSection({
                 const label = line.taxonomyId
                   ? t(taxonomyLabelKey(line.taxonomyId))
                   : t(line.labelKey);
+                const note = line.description?.trim();
+                const showNote =
+                  note &&
+                  note !== (listingTitle ?? '').trim() &&
+                  note.length > 0;
                 return (
                   <li
                     key={line.taxonomyId ?? line.labelKey}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-950 ring-1 ring-amber-100"
+                    className="rounded-lg bg-amber-50 px-3 py-2 ring-1 ring-amber-100"
                   >
-                    <TaxonomyLucideIcon
-                      name={item?.icon ?? 'Tag'}
-                      className="h-3.5 w-3.5 shrink-0"
-                    />
-                    {label}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
-        {acceptedSubcategoryLines.length > 0 ? (
-          <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-              {t('marketplace.valueExchange.barter.accepts')}
-            </p>
-            <ul className="flex flex-wrap gap-2">
-              {acceptedSubcategoryLines.map((line) => {
-                const item = line.taxonomyId
-                  ? getMarketplaceTaxonomyItem(line.taxonomyId)
-                  : null;
-                const label = line.taxonomyId
-                  ? t(taxonomyLabelKey(line.taxonomyId))
-                  : t(line.labelKey);
-                return (
-                  <li
-                    key={line.taxonomyId ?? line.labelKey}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-900 ring-1 ring-emerald-100"
-                  >
-                    <TaxonomyLucideIcon
-                      name={item?.icon ?? 'Tag'}
-                      className="h-3.5 w-3.5 shrink-0"
-                    />
-                    {label}
+                    <div className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-950">
+                      <TaxonomyLucideIcon
+                        name={item?.icon ?? 'Tag'}
+                        className="h-3.5 w-3.5 shrink-0"
+                      />
+                      {label}
+                    </div>
+                    {showNote ? (
+                      <p className="mt-1 text-xs italic text-amber-900/80">
+                        &ldquo;{note}&rdquo;
+                      </p>
+                    ) : null}
                   </li>
                 );
               })}

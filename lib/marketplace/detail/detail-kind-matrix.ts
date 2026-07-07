@@ -85,8 +85,8 @@ export const DETAIL_KIND_BEHAVIORS: Record<DetailPageKind, DetailKindBehavior> =
   REQUEST: {
     kind: 'REQUEST',
     personRole: 'requester',
-    routePattern: '/request/[slug] (planned)',
-    currentImplementation: 'app/product/[id]/page.tsx (incorrect)',
+    routePattern: '/request/[slug]',
+    currentImplementation: 'app/request/[slug]/page.tsx',
     reviewChannel: 'deal',
     availabilityType: 'needed_by',
     valueExchangeFull: true,

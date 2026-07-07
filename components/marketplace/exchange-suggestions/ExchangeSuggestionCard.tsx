@@ -15,7 +15,7 @@ import {
   trackExchangeSuggestionImpression,
 } from '@/lib/marketplace/exchange-suggestions';
 import { proposalPrefillFromSuggestionCard } from '@/lib/proposals/proposal-prefill';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import { buildListingDetailHref } from '@/lib/seo/listing-routes';
 
 export type ExchangeSuggestionCardProps = {
   card: ExchangeSuggestionCard;
@@ -37,7 +37,13 @@ export default function ExchangeSuggestionCardView({
   listingId,
 }: ExchangeSuggestionCardProps) {
   const tracked = useRef(false);
-  const listingHref = `/product/${buildProductSlugPath(card.counterpartyTitle, null, card.counterpartyListingId)}`;
+  const listingHref = buildListingDetailHref({
+    listingKind: card.counterpartyListingKind,
+    listingIntent: card.counterpartyListingIntent,
+    title: card.counterpartyTitle,
+    place: null,
+    id: card.counterpartyListingId,
+  });
   const profileHref = card.counterpartyUsername
     ? `/user/${card.counterpartyUsername}`
     : listingHref;

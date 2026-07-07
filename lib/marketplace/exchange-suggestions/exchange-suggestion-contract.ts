@@ -3,6 +3,7 @@
  * @see docs/architecture/MARKETPLACE_EXCHANGE_SUGGESTIONS.md
  */
 
+import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { ExchangeMatchType } from '@/lib/marketplace/exchange/exchange-match-types';
 import type { ExchangeSignalKind } from '@/lib/marketplace/exchange/exchange-signals';
 import { FORBIDDEN_EXCHANGE_SCORE_SIGNALS } from '@/lib/marketplace/exchange/exchange-contract';
@@ -76,6 +77,8 @@ export type ExchangeSuggestionCard = {
   counterpartyTitle: string;
   counterpartyUsername: string | null;
   counterpartyUserId: string;
+  counterpartyListingIntent: 'OFFER' | 'REQUEST';
+  counterpartyListingKind: ListingKind;
   distanceKm: number | null;
   mainCategory: ValueExchangeMainCategory;
   allowedCtas: ExchangeSuggestionCta[];

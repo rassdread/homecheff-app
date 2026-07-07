@@ -1,6 +1,6 @@
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import { deriveListingKind } from '@/lib/marketplace/listing-kind/derive-listing-kind';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import { buildListingDetailHref } from '@/lib/seo/listing-routes';
 import type {
   DiscoveryEntityType,
   DiscoveryListingIntent,
@@ -97,7 +97,13 @@ export function mapProductToDiscoveryReadModel(
 
   const listingIntent = resolveListingIntent(source.listingIntent, listingKind);
   const title = String(source.title ?? '').trim() || 'Untitled';
-  const slug = buildProductSlugPath(title, place, source.id);
+  const slug = buildListingDetailHref({
+    listingKind,
+    listingIntent,
+    title,
+    place,
+    id: source.id,
+  });
 
   const sellerRoles = enrichment?.sellerRoles ?? source.seller?.User?.sellerRoles ?? [];
   const buyerRoles = enrichment?.buyerRoles ?? source.seller?.User?.buyerRoles ?? [];

@@ -93,6 +93,38 @@ export function buildDiscoverySectionSaleRows<T extends { id: string }>(
 
 export type { FeedDisplayRow };
 
+export const GEZOCHT_DISCOVERY_SECTION_ID = 'gezocht';
+export const GEZOCHT_DISCOVERY_TITLE_KEY =
+  'marketplace.discovery.requests.sectionTitle';
+
+const DEFAULT_GEZOCHT_SECTION_LIMIT = 8;
+
+type SaleOrInspRow<T, S> =
+  | { row: 'section'; sectionId: string; titleKey: string }
+  | { row: 'sale'; item: T }
+  | { row: 'insp'; slot: S };
+
+/**
+ * Prepend a Gezocht band with open REQUEST listings (ADR Phase 2.3).
+ */
+export function prependGezochtDiscoverySection<T, S>(
+  rows: SaleOrInspRow<T, S>[],
+  requestItems: T[],
+  limit = DEFAULT_GEZOCHT_SECTION_LIMIT,
+): SaleOrInspRow<T, S>[] {
+  const slice = requestItems.slice(0, limit);
+  if (slice.length === 0) return rows;
+  return [
+    {
+      row: 'section',
+      sectionId: GEZOCHT_DISCOVERY_SECTION_ID,
+      titleKey: GEZOCHT_DISCOVERY_TITLE_KEY,
+    },
+    ...slice.map((item) => ({ row: 'sale' as const, item })),
+    ...rows,
+  ];
+}
+
 /**
  * Interleave inspiration slots between discovery section sale cards.
  * Section headers stay in place; inspiration inserts after every N sale cards.

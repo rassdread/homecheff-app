@@ -116,6 +116,24 @@ export function countMarketplaceSaleItems(
   return items.filter(isMarketplaceSaleItem).length;
 }
 
+/**
+ * True when item is an open REQUEST listing (Gezocht bucket).
+ */
+export function isMarketplaceRequestItem(item: MarketplaceSaleInput): boolean {
+  if (item.discovery?.listingKind === 'REQUEST') return true;
+  if (item.discovery?.listingIntent === 'REQUEST') return true;
+  if (item.listingKind === 'REQUEST') return true;
+  if (isRequestListing(item)) return true;
+  if (item.taxonomy?.direction === 'REQUEST') return true;
+  return false;
+}
+
+export function countMarketplaceRequestItems(
+  items: MarketplaceSaleInput[]
+): number {
+  return items.filter(isMarketplaceRequestItem).length;
+}
+
 export function marketplaceSaleAuditSample(
   items: MarketplaceSaleInput[],
   limit = 5

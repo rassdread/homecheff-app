@@ -4,21 +4,34 @@
  */
 
 import type { FeedClassifiable } from '@/lib/feed/feed-types';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import { buildListingDetailHref } from '@/lib/seo/listing-routes';
 import {
   deriveFeedTaxonomy,
   type FeedTaxonomy,
   type FeedTaxonomyInput,
 } from '@/lib/feed/feed-taxonomy';
+import { getDiscoveryListingIntent, getDiscoveryListingKind } from '@/lib/discovery/consumer-accessors';
 
-function productHrefFromFeedItem(
-  item: Pick<FeedClassifiable, 'id' | 'title' | 'place'>
+function listingHrefFromFeedItem(
+  item: Pick<FeedClassifiable, 'id' | 'title' | 'place' | 'listingIntent' | 'listingKind' | 'discovery'>
 ): string {
   const t = item.title?.trim();
+  const listingKind =
+    getDiscoveryListingKind(item) ?? (item as { listingKind?: string }).listingKind ?? null;
+  const listingIntent =
+    getDiscoveryListingIntent(item) ?? item.listingIntent ?? null;
+
   if (t) {
-    return `/product/${buildProductSlugPath(t, item.place, item.id)}`;
+    return buildListingDetailHref({
+      listingKind,
+      listingIntent,
+      title: t,
+      place: item.place,
+      id: item.id,
+    });
   }
-  return `/product/${item.id}`;
+  const prefix = listingKind === 'REQUEST' || listingIntent === 'REQUEST' ? 'request' : 'product';
+  return `/${prefix}/${item.id}`;
 }
 
 function inspirationHrefFromLegacyFields(item: FeedClassifiable): string {
@@ -40,7 +53,7 @@ function inspirationHrefFromLegacyFields(item: FeedClassifiable): string {
   }
 
   if (kind === 'product') {
-    return productHrefFromFeedItem(item);
+    return listingHrefFromFeedItem(item);
   }
 
   if (cat === 'GROWN') return `/garden/${id}`;
@@ -48,17 +61,16 @@ function inspirationHrefFromLegacyFields(item: FeedClassifiable): string {
   if (cat === 'CHEFF') return `/recipe/${id}`;
 
   if (item.ownerId != null && String(item.ownerId).trim() !== '') {
-    return productHrefFromFeedItem(item);
+    return listingHrefFromFeedItem(item);
   }
   if (cat === 'HOMECHEFF' || !cat) {
-    return productHrefFromFeedItem(item);
+    return listingHrefFromFeedItem(item);
   }
   return `/inspiratie/${id}`;
 }
 
 /**
  * Resolves detail href from taxonomy + item fields.
- * REQUEST · TASK · BARTER routes — TODO when request detail pages exist.
  */
 export function resolveFeedItemHref(
   item: FeedClassifiable,
@@ -67,20 +79,19 @@ export function resolveFeedItemHref(
   const tax = taxonomy ?? deriveFeedTaxonomy(item as FeedTaxonomyInput);
 
   if (tax.direction === 'REQUEST') {
-    return productHrefFromFeedItem(item);
+    return listingHrefFromFeedItem(item);
   }
 
   switch (tax.kind) {
     case 'PRODUCT':
     case 'SERVICE':
-      // TODO(Fase 5E+): dedicated /service/[id] when service listings exist
-      return productHrefFromFeedItem(item);
+      return listingHrefFromFeedItem(item);
     case 'INSPIRATION':
       return inspirationHrefFromLegacyFields(item);
     case 'TASK':
-      return productHrefFromFeedItem(item);
+      return listingHrefFromFeedItem(item);
     case 'BARTER':
-      return productHrefFromFeedItem(item);
+      return listingHrefFromFeedItem(item);
     default:
       return inspirationHrefFromLegacyFields(item);
   }
