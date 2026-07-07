@@ -7,7 +7,7 @@ import AcceptedValuesPicker from "@/components/products/marketplace/AcceptedValu
 import { useTranslation } from "@/hooks/useTranslation";
 import { deriveSettlementModeFromProduct } from "@/lib/proposals/proposal-settlement";
 import { allowedSettlementModesForBarterOpenness } from "@/lib/marketplace/commerce/barter-commerce-alignment";
-import { PROPOSAL_I18N } from "@/lib/proposals/proposal-i18n-keys";
+import { PROPOSAL_I18N, DEAL_COMMITMENT_I18N } from "@/lib/proposals/proposal-i18n-keys";
 import { resolveProposalSendLabelKey } from "@/lib/proposals/proposal-send-label";
 import type { ResolvedConversationHeader } from "@/lib/communication/resolveConversationHeader";
 import type { ProposalPaymentPath } from "@/lib/proposals/proposal-product-binding";
@@ -165,6 +165,22 @@ export default function CreateProposalSheet({
     if (!product) return ["PICKUP", "DELIVERY"] as const;
     return allowedFulfillmentTypes(product.fulfillmentOptions);
   }, [product]);
+
+  const availablePaymentPaths = useMemo(() => {
+    if (!showPaymentPath || !product) return [] as ProposalPaymentPath[];
+    return PAYMENT_PATHS.filter((path) => {
+      if (path === "HOMECHEFF_CHECKOUT") return product.acceptHomeCheffPayment;
+      if (path === "DIRECT_CONTACT") return product.acceptDirectContact;
+      return false;
+    }).sort((a, b) => {
+      if (a === "HOMECHEFF_CHECKOUT") return -1;
+      if (b === "HOMECHEFF_CHECKOUT") return 1;
+      return 0;
+    });
+  }, [showPaymentPath, product]);
+
+  const showHomecheffRecommended =
+    product?.canHomeCheffCheckout && product?.acceptHomeCheffPayment;
 
   const maxQuantity = product?.availableStock ?? undefined;
   const sendLabelKey = resolveProposalSendLabelKey(product?.marketplaceCategory);
@@ -334,19 +350,18 @@ export default function CreateProposalSheet({
               <p className="text-xs font-semibold text-gray-900 mb-2">
                 {t("deal.paymentHeading")}
               </p>
+              {showHomecheffRecommended ? (
+                <p className="text-[11px] text-indigo-700 mb-2">
+                  {t(DEAL_COMMITMENT_I18N.homecheffHint)}
+                </p>
+              ) : null}
               <div className="flex flex-col gap-2">
-                {PAYMENT_PATHS.filter((path) => {
-                  if (path === "HOMECHEFF_CHECKOUT") {
-                    return product?.acceptHomeCheffPayment;
-                  }
-                  if (path === "DIRECT_CONTACT") {
-                    return product?.acceptDirectContact;
-                  }
-                  return false;
-                }).map((path) => {
+                {availablePaymentPaths.map((path) => {
                   const disabled =
                     path === "HOMECHEFF_CHECKOUT" &&
                     !product?.canHomeCheffCheckout;
+                  const isRecommended =
+                    path === "HOMECHEFF_CHECKOUT" && showHomecheffRecommended;
                   return (
                     <button
                       key={path}
@@ -358,10 +373,19 @@ export default function CreateProposalSheet({
                       className={`rounded-lg border px-3 py-2 text-left text-xs ${
                         form.paymentPath === path
                           ? "border-indigo-500 bg-indigo-50 text-indigo-900"
-                          : "border-gray-200 text-gray-700"
+                          : isRecommended
+                            ? "border-indigo-300 bg-indigo-50/40 text-indigo-900"
+                            : "border-gray-200 text-gray-700"
                       } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
-                      {t(PROPOSAL_I18N.paymentPath[path])}
+                      <span className="flex items-center gap-2 flex-wrap">
+                        <span>{t(PROPOSAL_I18N.paymentPath[path])}</span>
+                        {isRecommended ? (
+                          <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            {t(PROPOSAL_I18N.payment.homecheffRecommended)}
+                          </span>
+                        ) : null}
+                      </span>
                       {disabled && product?.homeCheffCheckoutBlockedReason ? (
                         <span className="mt-0.5 block text-[10px] text-amber-700">
                           {t(product.homeCheffCheckoutBlockedReason)}

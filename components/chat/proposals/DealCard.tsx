@@ -14,7 +14,7 @@ import MarketplaceBadgeList from '@/components/marketplace/MarketplaceBadgeList'
 import { useTranslation } from '@/hooks/useTranslation';
 import { resolveDealUxState, type DealPrimaryCtaKind } from '@/lib/proposals/deal-ux-state';
 import { paymentPathFromSummary } from '@/lib/proposals/proposal-accept-routing';
-import { DEAL_I18N, PROPOSAL_I18N } from '@/lib/proposals/proposal-i18n-keys';
+import { DEAL_I18N, DEAL_COMMITMENT_I18N, PROPOSAL_I18N } from '@/lib/proposals/proposal-i18n-keys';
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
 import type { CommunityOrderDTO, ProposalDTO } from '@/lib/proposals/proposal-types';
@@ -227,6 +227,18 @@ export default function DealCard({
         <p className="text-[11px] text-emerald-800">
           <span className="font-medium">{t(DEAL_I18N.paymentHeading)}: </span>
           {t(DEAL_I18N.paymentPath[paymentPath])}
+        </p>
+      ) : null}
+
+      {paymentPath === 'DIRECT_CONTACT' ? (
+        <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2">
+          {t(DEAL_COMMITMENT_I18N.directRisk)}
+        </p>
+      ) : null}
+
+      {paymentPath === 'HOMECHEFF_CHECKOUT' && deal.showPaymentRequired ? (
+        <p className="text-[11px] text-indigo-800">
+          {t(DEAL_COMMITMENT_I18N.homecheffHint)}
         </p>
       ) : null}
 

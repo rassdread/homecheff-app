@@ -35,6 +35,10 @@ export const PROPOSAL_I18N = {
     moneyAmountRequired: 'proposal.errors.moneyAmountRequired',
     valueRequired: 'proposal.errors.valueRequired',
     quantityRequired: 'proposal.errors.quantityRequired',
+    commitmentRequired: 'proposal.errors.commitmentRequired',
+  },
+  payment: {
+    homecheffRecommended: 'proposal.payment.homecheffRecommended',
   },
   nextAction: {
     NONE: 'proposal.nextAction.none',
@@ -60,6 +64,13 @@ export const PROPOSAL_I18N = {
 } as const;
 
 /** User-facing "Jullie afspraak" deal card — hides CommunityOrder terminology */
+export const DEAL_COMMITMENT_I18N = {
+  acceptLabel: 'deal.commitment.acceptLabel',
+  homecheffHint: 'deal.commitment.homecheffHint',
+  directRisk: 'deal.commitment.directRisk',
+  requiredError: 'deal.commitment.requiredError',
+} as const;
+
 export const DEAL_I18N = {
   heading: 'deal.heading',
   paymentHeading: 'deal.paymentHeading',

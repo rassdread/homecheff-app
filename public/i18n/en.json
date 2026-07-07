@@ -8456,7 +8456,11 @@
       "valueRequired": "Select at least one value.",
       "quantityRequired": "Enter a valid quantity.",
       "barterNotAllowedOnMoneyListing": "This listing is for sale only — barter proposals are not allowed here.",
-      "moneyNotAllowedOnBarterListing": "This listing is barter only — money proposals are not allowed here."
+      "moneyNotAllowedOnBarterListing": "This listing is barter only — money proposals are not allowed here.",
+      "commitmentRequired": "Confirm that you will honour this deal before accepting."
+    },
+    "payment": {
+      "homecheffRecommended": "Recommended"
     },
     "productBinding": {
       "summaryHeading": "Linked listing",
@@ -8529,6 +8533,12 @@
   "deal": {
     "heading": "Your deal",
     "paymentHeading": "How will you pay?",
+    "commitment": {
+      "acceptLabel": "I understand that I must honour this deal.",
+      "homecheffHint": "Pay via HomeCheff for extra peace of mind.",
+      "directRisk": "Arranging payment outside HomeCheff? You settle payment between yourselves — at your own risk.",
+      "requiredError": "Confirm that you will honour this deal before accepting."
+    },
     "paymentPath": {
       "homecheff": "Pay via HomeCheff",
       "direct": "Direct contact / arrangement",

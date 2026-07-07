@@ -15,7 +15,7 @@ import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
 } from "@/lib/marketplace/exchange/exchange-funnel-analytics";
-import { PROPOSAL_I18N } from "@/lib/proposals/proposal-i18n-keys";
+import { PROPOSAL_I18N, DEAL_COMMITMENT_I18N } from "@/lib/proposals/proposal-i18n-keys";
 import type { SettlementMode } from "@prisma/client";
 import DealCard from "./DealCard";
 
@@ -84,6 +84,7 @@ export default function ProposalCard({
   );
   const [counterTitle, setCounterTitle] = useState(proposal.title);
   const [error, setError] = useState<string | null>(null);
+  const [commitmentAccepted, setCommitmentAccepted] = useState(false);
 
   const isCreator = proposal.createdById === currentUserId;
   const canAct = proposal.status === "PENDING" && !isCreator;
@@ -157,6 +158,14 @@ export default function ProposalCard({
     } finally {
       setBusy(null);
     }
+  };
+
+  const handleAccept = () => {
+    if (!commitmentAccepted) {
+      setError(t(DEAL_COMMITMENT_I18N.requiredError));
+      return;
+    }
+    void runAction("accept", { commitmentAccepted: true });
   };
 
   const handleCounter = () => {
@@ -283,6 +292,12 @@ export default function ProposalCard({
             <p className="text-xs text-gray-600">{proposal.requestedTimeWindow}</p>
           ) : null}
 
+          {paymentPath === "DIRECT_CONTACT" ? (
+            <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2">
+              {t(DEAL_COMMITMENT_I18N.directRisk)}
+            </p>
+          ) : null}
+
           {proposal.status === "ACCEPTED" && communityOrder ? (
             <DealCard
               communityOrder={communityOrder}
@@ -348,11 +363,26 @@ export default function ProposalCard({
           ) : null}
 
           {canAct && !showCounter ? (
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="space-y-2 pt-1">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={commitmentAccepted}
+                  onChange={(e) => {
+                    setCommitmentAccepted(e.target.checked);
+                    if (e.target.checked) setError(null);
+                  }}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <span className="text-xs text-gray-700">
+                  {t(DEAL_COMMITMENT_I18N.acceptLabel)}
+                </span>
+              </label>
+              <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                disabled={busy !== null}
-                onClick={() => void runAction("accept")}
+                disabled={busy !== null || !commitmentAccepted}
+                onClick={handleAccept}
                 className="flex-1 min-w-[5rem] rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
               >
                 {busy === "accept" ? (
@@ -381,6 +411,7 @@ export default function ProposalCard({
                   t(PROPOSAL_I18N.actions.reject)
                 )}
               </button>
+            </div>
             </div>
           ) : null}
 

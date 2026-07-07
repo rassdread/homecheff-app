@@ -23,6 +23,8 @@ export type AgreementSummarySnapshot = ProposalSummarySnapshot & {
   acceptedById: string;
   acceptedAt: string;
   proposalId: string;
+  commitmentAcceptedAt?: string;
+  commitmentAcceptedById?: string;
 };
 
 const VALID_SETTLEMENT: SettlementMode[] = [

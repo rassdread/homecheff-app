@@ -8456,7 +8456,11 @@
       "valueRequired": "Selecteer minstens één waarde.",
       "quantityRequired": "Voer een geldig aantal in.",
       "barterNotAllowedOnMoneyListing": "Dit aanbod is alleen te koop — ruilvoorstellen zijn hier niet toegestaan.",
-      "moneyNotAllowedOnBarterListing": "Dit aanbod is alleen te ruil — geldbod is hier niet toegestaan."
+      "moneyNotAllowedOnBarterListing": "Dit aanbod is alleen te ruil — geldbod is hier niet toegestaan.",
+      "commitmentRequired": "Bevestig dat je deze afspraak wilt nakomen voordat je accepteert."
+    },
+    "payment": {
+      "homecheffRecommended": "Aanbevolen"
     },
     "productBinding": {
       "summaryHeading": "Gekoppeld aanbod",
@@ -8529,6 +8533,12 @@
   "deal": {
     "heading": "Jullie afspraak",
     "paymentHeading": "Hoe betaal je?",
+    "commitment": {
+      "acceptLabel": "Ik begrijp dat ik deze afspraak moet nakomen.",
+      "homecheffHint": "Betaal via HomeCheff voor extra zekerheid.",
+      "directRisk": "Spreek je buiten HomeCheff af? Dan regel je betaling onderling — op eigen risico.",
+      "requiredError": "Bevestig dat je deze afspraak wilt nakomen voordat je accepteert."
+    },
     "paymentPath": {
       "homecheff": "Via HomeCheff betalen",
       "direct": "Direct contact / regeling",

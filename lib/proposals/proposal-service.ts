@@ -364,6 +364,7 @@ export class ProposalService {
   static async acceptProposal(
     userId: string,
     proposalId: string,
+    options?: { commitmentAccepted?: boolean },
   ): Promise<ProposalActionResult> {
     const existing = await prisma.proposal.findUnique({
       where: { id: proposalId },
@@ -379,6 +380,9 @@ export class ProposalService {
     }
     if (existing.createdById === userId) {
       throw new ProposalServiceError('Cannot accept your own proposal', 403);
+    }
+    if (options?.commitmentAccepted !== true) {
+      throw new ProposalServiceError('proposal.errors.commitmentRequired', 400);
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -414,6 +418,8 @@ export class ProposalService {
         acceptedById: userId,
         acceptedAt: new Date().toISOString(),
         proposalId: proposal.id,
+        commitmentAcceptedAt: new Date().toISOString(),
+        commitmentAcceptedById: userId,
       };
 
       if (
