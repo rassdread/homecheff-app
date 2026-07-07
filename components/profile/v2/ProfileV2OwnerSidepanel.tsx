@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Circle,
   ExternalLink,
+  Handshake,
   Heart,
   ImagePlus,
   Package,
@@ -41,6 +42,7 @@ import {
   type QuickActionId,
 } from '@/lib/profile/profile-v2/owner-sidepanel-data';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
+import { PROFILE_DEALS_NAV } from '@/lib/profile/deals-navigation';
 import type {
   ProfileV2AanbodFilter,
   ProfileV2Context,
@@ -537,6 +539,15 @@ function CommunityBlock() {
           description={t('profileV2.sidepanel.community.reviewsDesc')}
           onClick={() => onTabChange('community')}
         />
+        {PROFILE_DEALS_NAV.enabled ? (
+          <SidepanelActionCard
+            icon={<Handshake className="h-4 w-4" />}
+            title={t(PROFILE_DEALS_NAV.labelKey)}
+            description={t('profileV2.sidepanel.community.dealsDesc')}
+            href={PROFILE_DEALS_NAV.href}
+            trailing={<ArrowRight className="mt-1 h-4 w-4 shrink-0 text-gray-400" aria-hidden />}
+          />
+        ) : null}
         {publicProfileHref ? (
           <SidepanelActionCard
             icon={<Heart className="h-4 w-4" />}

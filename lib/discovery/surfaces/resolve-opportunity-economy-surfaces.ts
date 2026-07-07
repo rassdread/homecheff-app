@@ -72,25 +72,30 @@ function mapToSurfaceContract(
   input: ReturnType<typeof buildOpportunityEligibilityFromSurface>,
   cooldownState: OpportunityCooldownState | undefined,
 ): EconomyOpportunitySurfaceContract {
-  const helperVariant =
+  const helperContract =
     resolved.type === 'COMMUNITY_HELPER'
-      ? resolveCommunityHelperVariant(input)?.id
-      : undefined;
+      ? resolveCommunityHelperVariant(input)
+      : null;
 
   const titleKey =
-    resolved.type === 'COMMUNITY_HELPER' && helperVariant
-      ? `opportunities.economy.communityHelper.variants.${camelFromVariant(helperVariant)}.title`
+    resolved.type === 'COMMUNITY_HELPER' && helperContract
+      ? `opportunities.economy.communityHelper.variants.${camelFromVariant(helperContract.id)}.title`
       : resolved.titleKey;
 
   const descriptionKey =
-    resolved.type === 'COMMUNITY_HELPER' && helperVariant
-      ? `opportunities.economy.communityHelper.variants.${camelFromVariant(helperVariant)}.description`
+    resolved.type === 'COMMUNITY_HELPER' && helperContract
+      ? `opportunities.economy.communityHelper.variants.${camelFromVariant(helperContract.id)}.description`
       : resolved.descriptionKey;
 
   const actionLabelKey =
-    resolved.type === 'COMMUNITY_HELPER' && helperVariant
-      ? `opportunities.economy.communityHelper.variants.${camelFromVariant(helperVariant)}.action`
+    resolved.type === 'COMMUNITY_HELPER' && helperContract
+      ? `opportunities.economy.communityHelper.variants.${camelFromVariant(helperContract.id)}.action`
       : resolved.actionLabelKey;
+
+  const actionHref =
+    resolved.type === 'COMMUNITY_HELPER' && helperContract
+      ? helperContract.actionHref
+      : resolved.actionHref;
 
   return {
     id: resolved.id,
@@ -101,7 +106,7 @@ function mapToSurfaceContract(
     descriptionKey,
     icon: resolved.icon,
     actionLabelKey,
-    actionHref: resolved.actionHref,
+    actionHref,
     dismissible: resolved.dismissible,
     cooldownDays: resolved.cooldowns.showCooldownDays,
     ctaKind: resolved.ctaKind,
@@ -109,7 +114,7 @@ function mapToSurfaceContract(
     requirements: resolved.requirements,
     rewardTypes: resolved.rewardTypes,
     progress: buildOpportunityProgress(resolved, cooldownState),
-    helperVariant,
+    helperVariant: helperContract?.id,
     effectivePriority: resolved.effectivePriority,
   };
 }

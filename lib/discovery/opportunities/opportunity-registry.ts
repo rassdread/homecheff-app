@@ -157,7 +157,7 @@ export const OPPORTUNITY_REGISTRY: Record<OpportunityType, OpportunityDefinition
       titleKey: `${KEY_PREFIX}.communityHelper.title`,
       descriptionKey: `${KEY_PREFIX}.communityHelper.description`,
       actionLabelKey: `${KEY_PREFIX}.communityHelper.action`,
-      actionHref: '/?chip=sale',
+      actionHref: '/?chip=gezocht#homecheff-feed',
       icon: 'HandHeart',
       dismissible: true,
       ctaKind: 'navigate',
