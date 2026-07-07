@@ -7978,6 +7978,19 @@
       }
     },
     "tile": {
+      "valueRow": {
+        "onRequest": "Price on request",
+        "barterOpen": "Trade possible",
+        "voluntary": "Voluntary contribution",
+        "proposalWelcome": "Proposals welcome",
+        "requestBudget": "Budget {{price}}",
+        "moneyIndicator": "Money accepted",
+        "barterIndicator": "Trade possible"
+      },
+      "acceptedValues": {
+        "aria": "Accepts: {{name}}",
+        "overflow": "+{{count}} more"
+      },
       "badge": {
         "request": "Wanted"
       },

@@ -14,6 +14,8 @@ import {
   TILE_BADGE_MAX,
   buildTileBadges,
   buildTilePriceLine,
+  buildTileValueRow,
+  buildTileAcceptedValueIcons,
   buildTileTrustCue,
   mapGeoFeedCardToTileModel,
   usesProductTrustChannel,
@@ -177,8 +179,9 @@ for (const kind of TILE_FIXTURE_LISTING_KINDS) {
       compactBadges.badges.some((b) => b.kind === 'request'),
       'REQUEST Gezocht badge',
     );
-    const price = buildTilePriceLine(model, t);
-    assert(!price.includes('€12'), 'REQUEST no checkout price');
+    const valueRow = buildTileValueRow(model, t);
+    assert(valueRow != null, 'REQUEST value row present');
+    assert(!valueRow?.priceLabel.includes('€12'), 'REQUEST no checkout price');
   }
 
   if (kind === 'WORKSHOP') {
@@ -204,10 +207,9 @@ const bbqModel = mapGeoFeedCardToTileModel(
   { href: '/product/bbq', mode: 'sale' },
 );
 const bbqBadges = buildTileBadges(bbqModel, t, 'compact');
-const specBadge = bbqBadges.badges.find((b) => b.kind === 'specialization');
-assert(!!specBadge?.icon, 'BBQ specialization badge has icon');
-assert(specBadge?.icon === 'Flame', 'BBQ uses Flame taxonomy icon');
-assert(specBadge?.taxonomyId === 'create.bbq', 'BBQ badge uses canonical taxonomy id');
+const categoryBadge = bbqBadges.badges.find((b) => b.kind === 'offer_category');
+assert(!!categoryBadge?.icon, 'BBQ offer category badge has icon');
+assert(categoryBadge?.icon === '🍳', 'BBQ uses HomeCheff main category emoji');
 
 const acceptedModel = mapGeoFeedCardToTileModel(
   {
@@ -220,12 +222,21 @@ const acceptedModel = mapGeoFeedCardToTileModel(
   },
   { href: '/product/plants', mode: 'sale' },
 );
-const acceptedBadges = buildTileBadges(acceptedModel, t, 'standard');
-const acceptedBadge = acceptedBadges.badges.find((b) => b.kind === 'accepted_value');
-assert(!!acceptedBadge?.icon, 'accepted value badge has icon');
+const acceptedIcons = buildTileAcceptedValueIcons(acceptedModel, t, 'standard');
+assert(!!acceptedIcons?.icons[0]?.icon, 'accepted value icon row has icon');
 assert(
-  acceptedBadge?.taxonomyId === 'grow.houseplants',
-  'accepted badge uses taxonomy id',
+  acceptedIcons?.icons[0]?.taxonomyId === 'grow.houseplants',
+  'accepted icon uses taxonomy id',
+);
+assert(
+  acceptedIcons?.icons[0]?.ariaLabel.includes('grow.houseplants') ||
+    acceptedIcons?.icons[0]?.ariaLabel.includes('acceptedValues'),
+  'accepted icon aria-label wired',
+);
+const acceptedBadges = buildTileBadges(acceptedModel, t, 'standard');
+assert(
+  !acceptedBadges.badges.some((b) => b.kind === 'accepted_value'),
+  'accepted values not on media badges (5B-C)',
 );
 assert(!!acceptedBadges.barterSlot?.reserved, 'barter slot reserved when accepted values');
 
@@ -246,6 +257,9 @@ const primitiveFiles = [
   'TileBadgeRow.tsx',
   'TileTrustCue.tsx',
   'TilePriceLine.tsx',
+  'TileValueRow.tsx',
+  'TileAcceptedValueIcons.tsx',
+  'TileValueExchangeBlock.tsx',
 ];
 for (const file of primitiveFiles) {
   assert(
@@ -259,6 +273,10 @@ for (const file of variantFiles) {
   assert(
     src.includes('primitives'),
     `${file} uses shared primitives`,
+  );
+  assert(
+    src.includes('TileValueExchangeBlock') || src.includes('TileValueRow'),
+    `${file} uses value exchange block`,
   );
   assert(!src.includes('UserStatsTile'), `${file} no UserStatsTile`);
   assert(!src.includes('averageRating'), `${file} no averageRating`);

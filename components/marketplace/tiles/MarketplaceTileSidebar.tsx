@@ -3,11 +3,10 @@
 import Link from 'next/link';
 import {
   buildTileBadges,
-  buildTilePriceLine,
   type MarketplaceTileModel,
   type TranslateFn,
 } from '@/lib/marketplace/tiles';
-import { TileBadgeRow, TilePriceLine } from '@/components/marketplace/tiles/primitives';
+import { TileBadgeRow, TileValueExchangeBlock } from '@/components/marketplace/tiles/primitives';
 import TileMedia from '@/components/marketplace/tiles/primitives/TileMedia';
 
 export type MarketplaceTileSidebarProps = {
@@ -26,7 +25,6 @@ export default function MarketplaceTileSidebar({
   locale = 'nl-NL',
 }: MarketplaceTileSidebarProps) {
   const { badges } = buildTileBadges(model, t, 'sidebar', locale);
-  const priceLine = buildTilePriceLine(model, t);
   const title = model.title || t('common.dish');
 
   return (
@@ -50,10 +48,7 @@ export default function MarketplaceTileSidebar({
             {title}
           </h3>
         </Link>
-        <TilePriceLine
-          line={priceLine}
-          className="truncate text-xs font-semibold text-primary-brand"
-        />
+        <TileValueExchangeBlock model={model} t={t} variant="sidebar" />
         <Link
           href={model.href}
           prefetch

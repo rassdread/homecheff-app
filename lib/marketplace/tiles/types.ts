@@ -93,7 +93,7 @@ export type MarketplaceTileModel = {
   mode: MarketplaceTileMode;
   inspirationCategoryLabel?: string;
 
-  /** Phase 5B-A — derived for future tile icon surfaces (not rendered yet). */
+  /** Phase 5B-A — derived value-exchange presentation fields. */
   offerMainCategory?: ValueExchangeMainCategory | null;
   offerSubCategory?: string | null;
   offerSubCategoryIcon?: string | null;
@@ -108,6 +108,7 @@ export type TileBadgeKind =
   | 'request'
   | 'workshop_date'
   | 'listing_kind'
+  | 'offer_category'
   | 'specialization'
   | 'accepted_value'
   | 'trust_badge';

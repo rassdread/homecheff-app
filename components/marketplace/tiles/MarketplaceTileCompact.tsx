@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import {
   buildTileBadges,
-  buildTilePriceLine,
   buildTileTrustCue,
   type MarketplaceTileMediaRatio,
   type MarketplaceTileModel,
@@ -13,8 +12,8 @@ import { MarketplacePreviewShell } from '@/components/marketplace/previews';
 import {
   TileMedia,
   TilePersonRow,
-  TilePriceLine,
   TileTrustCue,
+  TileValueExchangeBlock,
 } from '@/components/marketplace/tiles/primitives';
 
 export type MarketplaceTileCompactProps = {
@@ -33,8 +32,7 @@ export default function MarketplaceTileCompact({
   enablePreview = true,
 }: MarketplaceTileCompactProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'compact', locale);
-  const priceLine = buildTilePriceLine(model, t);
-  const trustCue = buildTileTrustCue(model, t, 1);
+  const trustCue = buildTileTrustCue(model, t, 2);
   const title = model.title || t('common.dish');
 
   return (
@@ -66,7 +64,7 @@ export default function MarketplaceTileCompact({
             {title}
           </h3>
         </Link>
-        <TilePriceLine line={priceLine} />
+        <TileValueExchangeBlock model={model} t={t} variant="compact" />
         <TileTrustCue trustCue={trustCue} />
       </div>
     </article>

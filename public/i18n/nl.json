@@ -7978,6 +7978,19 @@
       }
     },
     "tile": {
+      "valueRow": {
+        "onRequest": "Prijs op aanvraag",
+        "barterOpen": "Ruil mogelijk",
+        "voluntary": "Vrijwillige bijdrage",
+        "proposalWelcome": "Voorstel welkom",
+        "requestBudget": "Budget {{price}}",
+        "moneyIndicator": "Geld mogelijk",
+        "barterIndicator": "Ruil mogelijk"
+      },
+      "acceptedValues": {
+        "aria": "Accepteert: {{name}}",
+        "overflow": "+{{count}} meer"
+      },
       "badge": {
         "request": "Gezocht"
       },

@@ -3,4 +3,7 @@ export { default as TilePersonRow } from './TilePersonRow';
 export { default as TileBadgeRow } from './TileBadgeRow';
 export { default as TileTrustCue } from './TileTrustCue';
 export { default as TilePriceLine } from './TilePriceLine';
+export { default as TileValueRow } from './TileValueRow';
+export { default as TileAcceptedValueIcons } from './TileAcceptedValueIcons';
+export { default as TileValueExchangeBlock } from './TileValueExchangeBlock';
 export { default as TileFavoriteAction } from './TileFavoriteAction';

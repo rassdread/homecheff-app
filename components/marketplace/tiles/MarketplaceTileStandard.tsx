@@ -4,7 +4,6 @@ import Link from 'next/link';
 import ShareButton from '@/components/ui/ShareButton';
 import {
   buildTileBadges,
-  buildTilePriceLine,
   buildTileTrustCue,
   type MarketplaceTileModel,
   type TranslateFn,
@@ -13,8 +12,8 @@ import { MarketplacePreviewShell } from '@/components/marketplace/previews';
 import {
   TileMedia,
   TilePersonRow,
-  TilePriceLine,
   TileTrustCue,
+  TileValueExchangeBlock,
 } from '@/components/marketplace/tiles/primitives';
 
 export type MarketplaceTileStandardProps = {
@@ -33,8 +32,7 @@ export default function MarketplaceTileStandard({
   enablePreview = true,
 }: MarketplaceTileStandardProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'standard', locale);
-  const priceLine = buildTilePriceLine(model, t);
-  const trustCue = buildTileTrustCue(model, t, 2);
+  const trustCue = buildTileTrustCue(model, t, 3);
   const title = model.title || t('common.dish');
 
   return (
@@ -74,7 +72,12 @@ export default function MarketplaceTileStandard({
             className="shrink-0 p-1 text-gray-400 hover:text-secondary-brand"
           />
         </div>
-        <TilePriceLine line={priceLine} />
+        <TileValueExchangeBlock
+          model={model}
+          t={t}
+          variant="standard"
+          device="desktop"
+        />
         <TileTrustCue
           trustCue={trustCue}
           className="truncate text-xs font-medium text-gray-500"

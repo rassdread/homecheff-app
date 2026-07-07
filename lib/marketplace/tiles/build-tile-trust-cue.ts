@@ -87,7 +87,7 @@ export const TILE_TRUST_CHANNEL_BY_KIND: Record<
 export function buildTileTrustCue(
   model: MarketplaceTileModel,
   t: TranslateFn,
-  maxSegments: 1 | 2 = 1,
+  maxSegments: 1 | 2 | 3 = 1,
 ): TileTrustCue | null {
   if (!shouldShowTrustCue(model.listingKind)) return null;
 

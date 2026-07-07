@@ -35,6 +35,22 @@ export {
   TILE_TRUST_CHANNEL_BY_KIND,
 } from './build-tile-trust-cue';
 export { buildTilePriceLine } from './build-tile-price-line';
+export { buildTileValueRow } from './build-tile-value-row';
+export type { TileValueRowData } from './build-tile-value-row';
+export {
+  buildTileAcceptedValueIcons,
+  ACCEPTED_VALUE_ICON_MAX,
+} from './build-tile-accepted-value-icons';
+export type {
+  TileAcceptedValueIcon,
+  TileAcceptedValueIconsResult,
+} from './build-tile-accepted-value-icons';
+export { resolveTileOfferCategoryBadge } from './resolve-tile-offer-category-badge';
+export type { TileOfferCategoryBadge } from './resolve-tile-offer-category-badge';
+export {
+  trackMarketplaceTileValueRowSeen,
+  tileValueAnalyticsFromModel,
+} from './tile-value-analytics';
 export { formatWorkshopDateCompact } from './format-workshop-date';
 
 export { mapGeoFeedCardToTileModel } from './map-to-tile-model';
