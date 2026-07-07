@@ -42,6 +42,7 @@ const ALL_CTAS: ExchangeSuggestionCta[] = [
   'view_listing',
   'view_profile',
   'start_conversation',
+  'start_proposal',
 ];
 
 export type ResolveExchangeSuggestionsInput = {
@@ -147,6 +148,13 @@ function buildSuggestionCard(
 
   const id = `${exchangeMatchId(viewerListing.listingId, counterparty.listingId)}:${primary}`;
 
+  const overlapTaxonomyIds = [
+    ...new Set([
+      ...resolved.overlap.sharedSubcategoryIds,
+      ...resolved.overlap.offerMatchesDesired.map((row) => row.subcategoryId),
+    ]),
+  ];
+
   return {
     id,
     suggestionType: primary,
@@ -172,6 +180,7 @@ function buildSuggestionCard(
     mainCategory,
     allowedCtas: [...ALL_CTAS],
     signalKinds: resolved.signals.map((s) => s.kind),
+    overlapTaxonomyIds,
   };
 }
 

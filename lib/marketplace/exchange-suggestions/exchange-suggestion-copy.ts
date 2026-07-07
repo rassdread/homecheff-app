@@ -35,6 +35,7 @@ export function suggestionCtaLabelKey(cta: ExchangeSuggestionCta): string {
     view_listing: 'viewListing',
     view_profile: 'viewProfile',
     start_conversation: 'startConversation',
+    start_proposal: 'startProposal',
   };
   return `${ROOT}.ctas.${map[cta]}`;
 }
@@ -85,6 +86,7 @@ export const EXCHANGE_SUGGESTION_I18N_KEYS = [
   `${ROOT}.ctas.viewListing`,
   `${ROOT}.ctas.viewProfile`,
   `${ROOT}.ctas.startConversation`,
+  `${ROOT}.ctas.startProposal`,
   `${ROOT}.profile.tabs.outbound`,
   `${ROOT}.profile.tabs.inbound`,
   `${ROOT}.empty`,

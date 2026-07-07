@@ -10,6 +10,8 @@ import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 import { buildMessagesWithProposalOpenUrl, buildMessagesConversationUrl } from '@/lib/proposals/proposal-deep-link';
+import { storeProposalPrefill } from '@/lib/proposals/proposal-prefill-storage';
+import type { ProposalPrefillInput } from '@/lib/proposals/proposal-prefill';
 import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
@@ -34,6 +36,8 @@ interface StartChatButtonProps {
   funnelListing?: ExchangeFunnelListingInput;
   funnelSurface?: ExchangeFunnelSurface;
   funnelEntrypoint?: string;
+  /** Stored before proposal deep-link navigation (5E-C exchange prefill). */
+  proposalPrefill?: ProposalPrefillInput;
 }
 
 export default function StartChatButton({
@@ -50,6 +54,7 @@ export default function StartChatButton({
   funnelListing,
   funnelSurface = 'chat',
   funnelEntrypoint = 'proposal_deep_link',
+  proposalPrefill,
 }: StartChatButtonProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -131,6 +136,9 @@ export default function StartChatButton({
     onMessageSent?.(convId);
 
     if (openProposalAfterStart && productId) {
+      if (proposalPrefill) {
+        storeProposalPrefill(proposalPrefill);
+      }
       if (funnelListing) {
         trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.proposalDeepLinkClick, {
           ...funnelListing,

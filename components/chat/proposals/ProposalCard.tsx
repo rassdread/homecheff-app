@@ -18,6 +18,11 @@ import {
 import { PROPOSAL_I18N, DEAL_COMMITMENT_I18N } from "@/lib/proposals/proposal-i18n-keys";
 import type { SettlementMode } from "@prisma/client";
 import DealCard from "./DealCard";
+import CounterProposalForm from "./CounterProposalForm";
+import {
+  PROPOSAL_FLOW_EVENTS,
+  trackProposalFlowEvent,
+} from "@/lib/proposals/proposal-analytics";
 
 type Props = {
   proposal: ProposalDTO;
@@ -79,10 +84,6 @@ export default function ProposalCard({
     null,
   );
   const [showCounter, setShowCounter] = useState(false);
-  const [counterAmount, setCounterAmount] = useState(
-    proposal.amountCents != null ? String(proposal.amountCents / 100) : "",
-  );
-  const [counterTitle, setCounterTitle] = useState(proposal.title);
   const [error, setError] = useState<string | null>(null);
   const [commitmentAccepted, setCommitmentAccepted] = useState(false);
 
@@ -146,6 +147,22 @@ export default function ProposalCard({
             proposalId: proposal.id,
             hasAcceptedValues: proposal.acceptedValueTaxonomyIds.length > 0,
           });
+          trackProposalFlowEvent(PROPOSAL_FLOW_EVENTS.accepted, {
+            source: "chat",
+            listingId: proposal.productId,
+            settlementType: proposal.settlementMode,
+            proposalId: proposal.id,
+            surface: "chat",
+          });
+        }
+        if (action === "reject") {
+          trackProposalFlowEvent(PROPOSAL_FLOW_EVENTS.rejected, {
+            source: "chat",
+            listingId: proposal.productId,
+            settlementType: proposal.settlementMode,
+            proposalId: proposal.id,
+            surface: "chat",
+          });
         }
         onUpdated?.(data.proposal, {
           communityOrder: data.communityOrder ?? undefined,
@@ -168,18 +185,9 @@ export default function ProposalCard({
     void runAction("accept", { commitmentAccepted: true });
   };
 
-  const handleCounter = () => {
-    const euros = parseFloat(counterAmount.replace(",", "."));
-    const amountCents = Number.isFinite(euros)
-      ? Math.round(euros * 100)
-      : undefined;
-    void runAction("counter", {
-      title: counterTitle.trim() || proposal.title,
-      amountCents,
-      settlementMode: proposal.settlementMode,
-      requestedValueTaxonomyIds: proposal.requestedValueTaxonomyIds,
-      acceptedValueTaxonomyIds: proposal.acceptedValueTaxonomyIds,
-    });
+  const handleCountered = (child: ProposalDTO) => {
+    onUpdated?.(child);
+    setShowCounter(false);
   };
 
   const dateLabel = formatRequestedDate(proposal.requestedDate);
@@ -319,47 +327,11 @@ export default function ProposalCard({
           ) : null}
 
           {showCounter ? (
-            <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-2">
-              <input
-                type="text"
-                value={counterTitle}
-                onChange={(e) => setCounterTitle(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
-                placeholder={t("marketplace.form.titleLabel")}
-              />
-              {(proposal.settlementMode === "MONEY" ||
-                proposal.settlementMode === "MONEY_AND_VALUE") && (
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={counterAmount}
-                  onChange={(e) => setCounterAmount(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
-                  placeholder="€"
-                />
-              )}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => void handleCounter()}
-                  className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {busy === "counter" ? (
-                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                  ) : (
-                    t(PROPOSAL_I18N.actions.sendCounter)
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCounter(false)}
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700"
-                >
-                  {t("common.cancel")}
-                </button>
-              </div>
-            </div>
+            <CounterProposalForm
+              proposal={proposal}
+              onCancel={() => setShowCounter(false)}
+              onCountered={handleCountered}
+            />
           ) : null}
 
           {canAct && !showCounter ? (

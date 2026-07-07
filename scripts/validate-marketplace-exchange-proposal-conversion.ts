@@ -74,7 +74,15 @@ assert(suggestionCard.includes('pickDisplaySignalLabelKeys'), 'suggestion card s
 assert(suggestionCard.includes('start_conversation'), 'suggestion card retains start_conversation CTA');
 assert(
   suggestionCard.includes('StartChatButton') && suggestionCard.includes('counterpartyListingId'),
-  'suggestion start_conversation uses product-bound StartChatButton',
+  'suggestion CTAs use product-bound StartChatButton',
+);
+assert(
+  suggestionCard.includes('start_proposal') && suggestionCard.includes('openProposalAfterStart'),
+  'suggestion card supports start_proposal → ProposalSheet',
+);
+assert(
+  suggestionCard.includes('proposalPrefillFromSuggestionCard'),
+  'suggestion start_proposal passes exchange prefill',
 );
 assert(!suggestionCard.includes('messages?user='), 'suggestion no longer uses broken messages?user link');
 
@@ -133,10 +141,10 @@ const hint = String(
 assert(!hint.includes('discovery-ranking'), 'NL hint has no discovery-ranking');
 
 console.log('\nProposal form copy');
-const createSheet = readRepoFile('components/chat/proposals/CreateProposalSheet.tsx');
+const fieldsSection = readRepoFile('components/chat/proposals/ProposalFieldsSection.tsx');
 assert(
-  createSheet.includes('offeredInReturnHeading'),
-  'CreateProposalSheet uses offered-in-return heading for value picker',
+  fieldsSection.includes('offeredInReturnHeading'),
+  'ProposalFieldsSection uses offered-in-return heading for value picker',
 );
 
 console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);

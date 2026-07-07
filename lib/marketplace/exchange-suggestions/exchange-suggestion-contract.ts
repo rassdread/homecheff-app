@@ -56,6 +56,7 @@ export const EXCHANGE_SUGGESTION_CTAS = [
   'view_listing',
   'view_profile',
   'start_conversation',
+  'start_proposal',
 ] as const;
 
 export type ExchangeSuggestionCta = (typeof EXCHANGE_SUGGESTION_CTAS)[number];
@@ -79,6 +80,8 @@ export type ExchangeSuggestionCard = {
   mainCategory: ValueExchangeMainCategory;
   allowedCtas: ExchangeSuggestionCta[];
   signalKinds: ExchangeSignalKind[];
+  /** Canonical taxonomy ids shared between listings — for proposal prefill (5E-C). */
+  overlapTaxonomyIds: string[];
 };
 
 export type ExchangeSuggestionSurfacePlan = {

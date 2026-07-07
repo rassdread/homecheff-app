@@ -14,6 +14,7 @@ import {
   trackExchangeSuggestionCtaClick,
   trackExchangeSuggestionImpression,
 } from '@/lib/marketplace/exchange-suggestions';
+import { proposalPrefillFromSuggestionCard } from '@/lib/proposals/proposal-prefill';
 import { buildProductSlugPath } from '@/lib/seo/productSlug';
 
 export type ExchangeSuggestionCardProps = {
@@ -143,6 +144,27 @@ export default function ExchangeSuggestionCardView({
               >
                 {t(suggestionCtaLabelKey('view_profile'))}
               </Link>
+            ) : null}
+            {card.allowedCtas.includes('start_proposal') ? (
+              <StartChatButton
+                productId={card.counterpartyListingId}
+                sellerId={card.counterpartyUserId}
+                sellerName={card.counterpartyTitle}
+                skipModal
+                openProposalAfterStart
+                label={t(suggestionCtaLabelKey('start_proposal'))}
+                funnelListing={{
+                  listingId: card.sourceListingId,
+                }}
+                funnelSurface="suggestion"
+                funnelEntrypoint="exchange_suggestion_start_proposal"
+                proposalPrefill={{
+                  source: 'exchange_suggestion',
+                  exchangeSuggestion: proposalPrefillFromSuggestionCard(card),
+                }}
+                onConversationStarted={() => trackCta('start_proposal')}
+                className="inline-flex min-h-8 !w-auto items-center rounded-lg bg-indigo-700 px-3 !py-0 text-xs font-semibold text-white shadow-none hover:bg-indigo-800 !from-indigo-700 !to-indigo-700 hover:!from-indigo-800 hover:!to-indigo-800"
+              />
             ) : null}
             {card.allowedCtas.includes('start_conversation') ? (
               <StartChatButton

@@ -7848,7 +7848,8 @@
       "ctas": {
         "viewListing": "View listing",
         "viewProfile": "View profile",
-        "startConversation": "Start conversation"
+        "startConversation": "Start conversation",
+        "startProposal": "Make a proposal"
       },
       "profile": {
         "tabs": {
@@ -7916,6 +7917,24 @@
         "exchange": "Trade",
         "delivery": "Delivery",
         "nextAction": "Next step"
+      }
+    },
+    "proposals": {
+      "summary": {
+        "heading": "Proposal summary",
+        "offer": "Offer",
+        "counterOffer": "Counter-offer",
+        "payment": "Payment method",
+        "conditions": "Conditions"
+      },
+      "counter": {
+        "heading": "Adjust counter-proposal",
+        "settlementHint": "Adjust amount, trade, conditions, and description."
+      },
+      "prefill": {
+        "fromExchange": "Proposal pre-filled from an exchange opportunity.",
+        "fromListing": "Proposal pre-filled from the listing.",
+        "overlapApplied": "{{count}} overlapping categor(ies) applied"
       }
     },
     "tile": {
@@ -8529,6 +8548,12 @@
       "moneyAmountRequired": "Enter an amount for a money proposal.",
       "valueRequired": "Select at least one value.",
       "quantityRequired": "Enter a valid quantity.",
+      "authRequired": "Sign in to send a proposal.",
+      "listingInactive": "This listing is no longer active.",
+      "settlementNotAllowed": "This payment method is not allowed for this listing.",
+      "invalidAcceptedValues": "One or more accepted values are invalid.",
+      "invalidRequestedValues": "One or more requested values are invalid.",
+      "checkoutNotAvailable": "HomeCheff checkout is not available for this listing.",
       "barterNotAllowedOnMoneyListing": "This listing is for sale only — barter proposals are not allowed here.",
       "moneyNotAllowedOnBarterListing": "This listing is barter only — money proposals are not allowed here.",
       "commitmentRequired": "Confirm that you will honour this deal before accepting."

@@ -7848,7 +7848,8 @@
       "ctas": {
         "viewListing": "Bekijk aanbod",
         "viewProfile": "Bekijk profiel",
-        "startConversation": "Start gesprek"
+        "startConversation": "Start gesprek",
+        "startProposal": "Voorstel doen"
       },
       "profile": {
         "tabs": {
@@ -7916,6 +7917,24 @@
         "exchange": "Ruil",
         "delivery": "Bezorging",
         "nextAction": "Volgende stap"
+      }
+    },
+    "proposals": {
+      "summary": {
+        "heading": "Samenvatting van je voorstel",
+        "offer": "Aanbod",
+        "counterOffer": "Tegenprestatie",
+        "payment": "Betaalwijze",
+        "conditions": "Voorwaarden"
+      },
+      "counter": {
+        "heading": "Tegenvoorstel aanpassen",
+        "settlementHint": "Pas bedrag, ruil, voorwaarden en omschrijving aan."
+      },
+      "prefill": {
+        "fromExchange": "Voorstel vooraf ingevuld vanuit een ruilkans.",
+        "fromListing": "Voorstel ingevuld vanuit het aanbod.",
+        "overlapApplied": "{{count}} overlappende categorie(ën) toegepast"
       }
     },
     "tile": {
@@ -8529,6 +8548,12 @@
       "moneyAmountRequired": "Voer een bedrag in voor een geldvoorstel.",
       "valueRequired": "Selecteer minstens één waarde.",
       "quantityRequired": "Voer een geldig aantal in.",
+      "authRequired": "Log in om een voorstel te versturen.",
+      "listingInactive": "Dit aanbod is niet meer actief.",
+      "settlementNotAllowed": "Deze betaalwijze past niet bij het aanbod.",
+      "invalidAcceptedValues": "Eén of meer geaccepteerde waarden zijn ongeldig.",
+      "invalidRequestedValues": "Eén of meer gevraagde waarden zijn ongeldig.",
+      "checkoutNotAvailable": "Betalen via HomeCheff is voor dit aanbod niet beschikbaar.",
       "barterNotAllowedOnMoneyListing": "Dit aanbod is alleen te koop — ruilvoorstellen zijn hier niet toegestaan.",
       "moneyNotAllowedOnBarterListing": "Dit aanbod is alleen te ruil — geldbod is hier niet toegestaan.",
       "commitmentRequired": "Bevestig dat je deze afspraak wilt nakomen voordat je accepteert."

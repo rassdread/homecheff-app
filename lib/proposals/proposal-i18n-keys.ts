@@ -129,6 +129,25 @@ export const AGREEMENT_I18N = {
   snapshotHeading: 'agreement.snapshot.heading',
 } as const;
 
+export const PROPOSAL_POLISH_I18N = {
+  summary: {
+    heading: 'marketplace.proposals.summary.heading',
+    offer: 'marketplace.proposals.summary.offer',
+    counterOffer: 'marketplace.proposals.summary.counterOffer',
+    payment: 'marketplace.proposals.summary.payment',
+    conditions: 'marketplace.proposals.summary.conditions',
+  },
+  counter: {
+    heading: 'marketplace.proposals.counter.heading',
+    settlementHint: 'marketplace.proposals.counter.settlementHint',
+  },
+  prefill: {
+    fromExchange: 'marketplace.proposals.prefill.fromExchange',
+    fromListing: 'marketplace.proposals.prefill.fromListing',
+    overlapApplied: 'marketplace.proposals.prefill.overlapApplied',
+  },
+} as const;
+
 /** Profile deals dashboard — Phase 5G-D operations parity */
 export const PROFILE_DEALS_I18N = {
   status: {
