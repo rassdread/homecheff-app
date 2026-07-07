@@ -3646,6 +3646,7 @@
     "askMaker": "Ask the maker a question",
     "commercePathCheckout": "Order directly via HomeCheff — secure payment and order tracking.",
     "commercePathChat": "Make arrangements first via chat — send a proposal or quote.",
+    "commercePathContact": "Ask your question via chat before you order.",
     "commercePathProposal": "Send an exchange proposal via chat — agree on what you will trade.",
     "outOfStock": "Sold out",
     "contactNotConfigured": "This maker has not set up contact options yet.",
@@ -7721,7 +7722,8 @@
       },
       "barter": {
         "accepts": "Accepts",
-        "desired": "Desired exchange"
+        "desired": "Desired exchange",
+        "seeks": "Looking for"
       },
       "fulfillment": {
         "pickup": "Pickup",
@@ -7760,7 +7762,7 @@
       },
       "actions": {
         "order": "Order",
-        "requestProposal": "Send proposal",
+        "requestProposal": "Make a proposal",
         "message": "Message",
         "save": "Save",
         "share": "Share",
@@ -7774,15 +7776,16 @@
     },
     "exchange": {
       "signals": {
-        "exactDesiredMatch": "Exact match for what you want",
-        "strongCategoryOverlap": "Strong category overlap",
-        "potentialBarter": "Potential barter opportunity",
-        "mutualReadiness": "Mutual exchange readiness",
-        "futureRecommendationReady": "Ready for exchange suggestions"
+        "exactDesiredMatch": "Matches what you're looking for",
+        "strongCategoryOverlap": "Same category",
+        "potentialBarter": "Open to trade",
+        "mutualReadiness": "You can both trade",
+        "futureRecommendationReady": "Fits your listing"
       }
     },
     "exchangeSuggestions": {
-      "hint": "Optional exchange opportunities — they do not affect discovery ranking.",
+      "hint": "Optional trade opportunities — just for you, not for feed order.",
+      "matchReasons": "Why this suggestion",
       "empty": "No exchange opportunities right now.",
       "dismiss": "Dismiss",
       "surfaces": {
@@ -7940,7 +7943,8 @@
     "acceptedValues": {
       "heading": "What would you also accept as value?",
       "description": "Optional — indicate which other products or services you would also accept as trade or alternative value.",
-      "searchPlaceholder": "Search taxonomy…",
+      "searchPlaceholder": "Search by category or item…",
+      "offeredInReturnHeading": "What do you offer in return?",
       "filterAll": "All",
       "emptySearch": "No results for this search."
     },

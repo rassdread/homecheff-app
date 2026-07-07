@@ -4,6 +4,11 @@ import { useRouter } from 'next/navigation';
 import { ShoppingCart, Check, ArrowRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { blocksHomecheffCartCheckout } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import {
+  EXCHANGE_FUNNEL_EVENTS,
+  trackExchangeFunnelEvent,
+  type ExchangeFunnelListingInput,
+} from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface AddToCartButtonProps {
@@ -25,6 +30,8 @@ interface AddToCartButtonProps {
   onAdded?: () => void;
   /** light = white commerce card; dark = gradient sidebar (legacy) */
   surface?: 'light' | 'dark';
+  /** Exchange funnel context for commerce-zone checkout clicks. */
+  exchangeFunnelListing?: ExchangeFunnelListingInput;
 }
 
 export default function AddToCartButton({
@@ -34,6 +41,7 @@ export default function AddToCartButton({
   quantity = 1,
   onAdded,
   surface = 'dark',
+  exchangeFunnelListing,
 }: AddToCartButtonProps) {
   const { t, tOr } = useTranslation();
   const { addItem, items } = useCart();
@@ -47,6 +55,19 @@ export default function AddToCartButton({
     (item) => item.productId === product.id || item.id === product.id,
   );
   const showCheckout = (isAdded || productInCart) && !blocksHomecheffCartCheckout(product.barterOpenness);
+
+  const trackCommerceCheckout = (entrypoint: string) => {
+    if (!exchangeFunnelListing) return;
+    trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.commerceCheckoutClick, {
+      ...exchangeFunnelListing,
+      listingId: exchangeFunnelListing.listingId || product.id,
+      barterOpenness:
+        exchangeFunnelListing.barterOpenness ?? product.barterOpenness,
+      orderMethod: exchangeFunnelListing.orderMethod,
+      surface: 'commerce_zone',
+      entrypoint,
+    });
+  };
 
   const handleAddToCart = async () => {
     setErrorMessage(null);
@@ -93,6 +114,7 @@ export default function AddToCartButton({
     }
 
     setIsAdded(true);
+    trackCommerceCheckout('commerce_add_to_cart');
 
     if (
       !result.success &&
@@ -125,6 +147,7 @@ export default function AddToCartButton({
   const sz = sizeStyles[size];
 
   const goToCheckout = () => {
+    trackCommerceCheckout('commerce_go_to_checkout');
     router.push('/checkout');
   };
 

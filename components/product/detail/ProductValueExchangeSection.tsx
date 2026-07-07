@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import type { MarketplaceCategory } from '@prisma/client';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
+  buildDesiredExchangesForDetail,
   buildDetailValueExchangeBlock,
   valueExchangeSectionTitleKey,
 } from '@/lib/marketplace/detail/detail-value-exchange-block';
@@ -22,6 +23,7 @@ type Props = {
   subcategory?: string | null;
   listingIntent?: string | null;
   category?: string | null;
+  listingTitle?: string | null;
   className?: string;
 };
 
@@ -34,6 +36,7 @@ export default function ProductValueExchangeSection({
   subcategory,
   listingIntent,
   category,
+  listingTitle,
   className,
 }: Props) {
   const { t } = useTranslation();
@@ -50,6 +53,26 @@ export default function ProductValueExchangeSection({
     [listingIntent, marketplaceCategory, specializations, subcategory, category],
   );
 
+  const desiredExchanges = useMemo(
+    () =>
+      buildDesiredExchangesForDetail({
+        listingIntent,
+        marketplaceCategory,
+        specializations,
+        subcategory,
+        category,
+        listingTitle,
+      }),
+    [
+      listingIntent,
+      marketplaceCategory,
+      specializations,
+      subcategory,
+      category,
+      listingTitle,
+    ],
+  );
+
   const block = useMemo(
     () =>
       buildDetailValueExchangeBlock({
@@ -59,6 +82,7 @@ export default function ProductValueExchangeSection({
         barterOpenness,
         priceModel,
         acceptedTaxonomyIds: acceptedSpecializations,
+        desiredExchanges,
       }),
     [
       listingKind,
@@ -68,22 +92,22 @@ export default function ProductValueExchangeSection({
       barterOpenness,
       priceModel,
       acceptedSpecializations,
+      desiredExchanges,
     ],
   );
 
   const openness = String(barterOpenness ?? 'MONEY').toUpperCase();
+  const acceptedSubcategoryLines =
+    block?.lines.filter((line) => line.kind === 'accepted_subcategory') ?? [];
+  const desiredLines = block?.lines.filter((line) => line.kind === 'desired') ?? [];
+
   const showSection =
     block !== null &&
-    (acceptedSpecializations.length > 0 || openness !== 'MONEY');
+    (acceptedSpecializations.length > 0 ||
+      openness !== 'MONEY' ||
+      desiredLines.length > 0);
 
   if (!showSection || !block) return null;
-
-  const acceptedLines = block.lines.filter(
-    (line) =>
-      line.kind === 'accepted_subcategory' ||
-      line.kind === 'accepted_category' ||
-      line.kind === 'desired',
-  );
 
   return (
     <section
@@ -102,34 +126,61 @@ export default function ProductValueExchangeSection({
           </span>
           <span className="font-medium">{t(block.paymentLabelKey)}</span>
         </div>
-        {acceptedLines.length > 0 ? (
+        {desiredLines.length > 0 ? (
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+              {t('marketplace.valueExchange.barter.seeks')}
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {desiredLines.map((line) => {
+                const item = line.taxonomyId
+                  ? getMarketplaceTaxonomyItem(line.taxonomyId)
+                  : null;
+                const label = line.taxonomyId
+                  ? t(taxonomyLabelKey(line.taxonomyId))
+                  : t(line.labelKey);
+                return (
+                  <li
+                    key={line.taxonomyId ?? line.labelKey}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-950 ring-1 ring-amber-100"
+                  >
+                    <TaxonomyLucideIcon
+                      name={item?.icon ?? 'Tag'}
+                      className="h-3.5 w-3.5 shrink-0"
+                    />
+                    {label}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
+        {acceptedSubcategoryLines.length > 0 ? (
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
               {t('marketplace.valueExchange.barter.accepts')}
             </p>
             <ul className="flex flex-wrap gap-2">
-              {acceptedLines
-                .filter((line) => line.kind === 'accepted_subcategory')
-                .map((line) => {
-                  const item = line.taxonomyId
-                    ? getMarketplaceTaxonomyItem(line.taxonomyId)
-                    : null;
-                  const label = line.taxonomyId
-                    ? t(taxonomyLabelKey(line.taxonomyId))
-                    : t(line.labelKey);
-                  return (
-                    <li
-                      key={line.taxonomyId ?? line.labelKey}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-900 ring-1 ring-emerald-100"
-                    >
-                      <TaxonomyLucideIcon
-                        name={item?.icon ?? 'Tag'}
-                        className="h-3.5 w-3.5 shrink-0"
-                      />
-                      {label}
-                    </li>
-                  );
-                })}
+              {acceptedSubcategoryLines.map((line) => {
+                const item = line.taxonomyId
+                  ? getMarketplaceTaxonomyItem(line.taxonomyId)
+                  : null;
+                const label = line.taxonomyId
+                  ? t(taxonomyLabelKey(line.taxonomyId))
+                  : t(line.labelKey);
+                return (
+                  <li
+                    key={line.taxonomyId ?? line.labelKey}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-900 ring-1 ring-emerald-100"
+                  >
+                    <TaxonomyLucideIcon
+                      name={item?.icon ?? 'Tag'}
+                      className="h-3.5 w-3.5 shrink-0"
+                    />
+                    {label}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ) : null}

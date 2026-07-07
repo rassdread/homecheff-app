@@ -20,9 +20,15 @@ import {
 type Props = {
   value: string[];
   onChange: (ids: string[]) => void;
+  /** Override default seller-facing heading (e.g. proposal “what you offer back”). */
+  headingKey?: string;
 };
 
-export default function AcceptedValuesPicker({ value, onChange }: Props) {
+export default function AcceptedValuesPicker({
+  value,
+  onChange,
+  headingKey = 'marketplace.acceptedValues.heading',
+}: Props) {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<
@@ -95,7 +101,7 @@ export default function AcceptedValuesPicker({ value, onChange }: Props) {
     <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4 space-y-4">
       <div>
         <h3 className="text-sm font-semibold text-gray-900">
-          {t('marketplace.acceptedValues.heading')}
+          {t(headingKey)}
         </h3>
         <p className="mt-1 text-xs text-gray-600">
           {t('marketplace.acceptedValues.description')}

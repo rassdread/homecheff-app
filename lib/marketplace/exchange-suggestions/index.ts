@@ -79,4 +79,6 @@ export {
   trackExchangeSuggestionOpen,
 } from './exchange-suggestion-analytics';
 
+export { pickDisplaySignalLabelKeys } from './exchange-suggestion-signal-display';
+
 export type { ExchangeSuggestionSidebarVariant } from './exchange-suggestion-contract';

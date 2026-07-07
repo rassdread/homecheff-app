@@ -73,6 +73,10 @@ export interface ChatBoxProps {
   } | null;
   /** Context-first header (product/order/general). */
   contextHeader?: ResolvedConversationHeader | null;
+  /** Open CreateProposalSheet once when landing from a proposal CTA deep-link. */
+  initialOpenProposal?: boolean;
+  /** Called after proposal sheet was auto-opened (e.g. to clear URL param). */
+  onProposalSheetAutoOpened?: () => void;
 }
 
 export default function ChatBox({
@@ -83,6 +87,8 @@ export default function ChatBox({
   showBackOnDesktop = false,
   relationshipContext = null,
   contextHeader = null,
+  initialOpenProposal = false,
+  onProposalSheetAutoOpened,
 }: ChatBoxProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatThreadMessage[]>([]);
@@ -104,6 +110,7 @@ export default function ChatBox({
     Record<string, import('@/lib/delivery/delivery-marketplace-types').DeliveryRequestDTO>
   >({});
   const [showCreateProposal, setShowCreateProposal] = useState(false);
+  const proposalAutoOpenedRef = useRef(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
@@ -156,6 +163,15 @@ export default function ChatBox({
       /* non-fatal */
     }
   }, [conversationId]);
+
+  useEffect(() => {
+    if (!initialOpenProposal || proposalAutoOpenedRef.current || isLoading) {
+      return;
+    }
+    proposalAutoOpenedRef.current = true;
+    setShowCreateProposal(true);
+    onProposalSheetAutoOpened?.();
+  }, [initialOpenProposal, isLoading, onProposalSheetAutoOpened]);
 
   const handleProposalUpdated = useCallback(
     (

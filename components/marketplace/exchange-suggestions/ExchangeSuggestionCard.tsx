@@ -3,9 +3,11 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { MapPin, X } from 'lucide-react';
+import StartChatButton from '@/components/chat/StartChatButton';
 import type { ExchangeSuggestionCard } from '@/lib/marketplace/exchange-suggestions';
 import {
   mainCategoryEmoji,
+  pickDisplaySignalLabelKeys,
   suggestionCtaLabelKey,
   suggestionSummaryKey,
   suggestionTypeLabelKey,
@@ -38,9 +40,6 @@ export default function ExchangeSuggestionCardView({
   const profileHref = card.counterpartyUsername
     ? `/user/${card.counterpartyUsername}`
     : listingHref;
-  const messageHref = card.counterpartyUsername
-    ? `/messages?user=${encodeURIComponent(card.counterpartyUsername)}`
-    : '/messages';
 
   useEffect(() => {
     if (tracked.current) return;
@@ -64,6 +63,8 @@ export default function ExchangeSuggestionCardView({
       cta,
     });
   };
+
+  const signalLabelKeys = pickDisplaySignalLabelKeys(card.signalKinds, 2);
 
   return (
     <article
@@ -112,6 +113,18 @@ export default function ExchangeSuggestionCardView({
           <p className="mt-0.5 text-xs text-gray-600 line-clamp-2">
             {t(suggestionSummaryKey(card.suggestionType), card.summaryParams)}
           </p>
+          {signalLabelKeys.length > 0 ? (
+            <ul className="mt-2 flex flex-wrap gap-1.5" aria-label={t('marketplace.exchangeSuggestions.matchReasons')}>
+              {signalLabelKeys.map((key) => (
+                <li
+                  key={key}
+                  className="inline-flex rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-medium text-teal-900 ring-1 ring-teal-200/80"
+                >
+                  {t(key)}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           <div className="mt-3 flex flex-wrap gap-2">
             {card.allowedCtas.includes('view_listing') ? (
               <Link
@@ -132,13 +145,15 @@ export default function ExchangeSuggestionCardView({
               </Link>
             ) : null}
             {card.allowedCtas.includes('start_conversation') ? (
-              <Link
-                href={messageHref}
-                onClick={() => trackCta('start_conversation')}
-                className="inline-flex min-h-8 items-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-              >
-                {t(suggestionCtaLabelKey('start_conversation'))}
-              </Link>
+              <StartChatButton
+                productId={card.counterpartyListingId}
+                sellerId={card.counterpartyUserId}
+                sellerName={card.counterpartyTitle}
+                skipModal
+                label={t(suggestionCtaLabelKey('start_conversation'))}
+                onConversationStarted={() => trackCta('start_conversation')}
+                className="inline-flex min-h-8 !w-auto items-center rounded-lg border border-gray-200 bg-white px-3 !py-0 text-xs font-semibold text-gray-700 shadow-none hover:bg-gray-50 !from-white !to-white hover:!from-gray-50 hover:!to-gray-50"
+              />
             ) : null}
           </div>
         </div>

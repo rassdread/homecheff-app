@@ -9,6 +9,13 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
+import { buildMessagesWithProposalOpenUrl, buildMessagesConversationUrl } from '@/lib/proposals/proposal-deep-link';
+import {
+  EXCHANGE_FUNNEL_EVENTS,
+  trackExchangeFunnelEvent,
+  type ExchangeFunnelListingInput,
+  type ExchangeFunnelSurface,
+} from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 
 interface StartChatButtonProps {
   productId?: string;
@@ -20,6 +27,13 @@ interface StartChatButtonProps {
   showSuccessMessage?: boolean;
   /** Override default button label (e.g. marketplace preview). */
   label?: string;
+  /** Skip chat modal and start conversation immediately (requires productId). */
+  skipModal?: boolean;
+  /** After start: open messages with proposal sheet (product-bound flows). */
+  openProposalAfterStart?: boolean;
+  funnelListing?: ExchangeFunnelListingInput;
+  funnelSurface?: ExchangeFunnelSurface;
+  funnelEntrypoint?: string;
 }
 
 export default function StartChatButton({
@@ -31,6 +45,11 @@ export default function StartChatButton({
   className = '',
   showSuccessMessage = false,
   label,
+  skipModal = false,
+  openProposalAfterStart = false,
+  funnelListing,
+  funnelSurface = 'chat',
+  funnelEntrypoint = 'proposal_deep_link',
 }: StartChatButtonProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -111,12 +130,32 @@ export default function StartChatButton({
     onConversationStarted?.(convId);
     onMessageSent?.(convId);
 
+    if (openProposalAfterStart && productId) {
+      if (funnelListing) {
+        trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.proposalDeepLinkClick, {
+          ...funnelListing,
+          listingId: funnelListing.listingId || productId,
+          surface: funnelSurface,
+          entrypoint: funnelEntrypoint,
+        });
+      }
+      router.push(buildMessagesWithProposalOpenUrl(convId));
+      window.dispatchEvent(
+        new CustomEvent('conversationUpdated', {
+          detail: { conversationId: convId },
+        })
+      );
+      setShowModal(false);
+      setInitialMessage('');
+      return;
+    }
+
     if (showSuccessMessage) {
       setSuccessConversationId(convId);
       setShowModal(false);
       setInitialMessage('');
     } else {
-      router.push(`/messages?conversation=${encodeURIComponent(convId)}`);
+      router.push(buildMessagesConversationUrl(convId));
       window.dispatchEvent(
         new CustomEvent('conversationUpdated', {
           detail: { conversationId: convId },
@@ -160,6 +199,43 @@ export default function StartChatButton({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDirectStart = async () => {
+    if (!session?.user) {
+      goToLoginForChat();
+      return;
+    }
+    if (!productId) {
+      setShowModal(true);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await submitConversation(null);
+    } catch (error) {
+      alert(
+        `Fout bij starten van gesprek: ${error instanceof Error ? error.message : 'Onbekende fout'}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMainClick = () => {
+    if (status === 'loading') {
+      openModalAfterSessionRef.current = true;
+      return;
+    }
+    if (skipModal && productId) {
+      void handleDirectStart();
+      return;
+    }
+    if (openProposalAfterStart && productId) {
+      void handleDirectStart();
+      return;
+    }
+    setShowModal(true);
   };
 
   const buttonLabel = label ?? t('common.startChat');
@@ -229,13 +305,7 @@ export default function StartChatButton({
 
       <button
         type="button"
-        onClick={() => {
-          if (status === 'loading') {
-            openModalAfterSessionRef.current = true;
-            return;
-          }
-          setShowModal(true);
-        }}
+        onClick={handleMainClick}
         disabled={isLoading}
         title={isLoading ? undefined : t('common.startChat')}
         aria-busy={status === 'loading'}

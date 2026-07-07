@@ -12,6 +12,7 @@ import {
 } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 import { resolveProductCommerceActions } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import type { ExchangeFunnelListingInput } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 import {
   getBuyerPaymentWarningKey,
   type PublicPaymentStatus,
@@ -26,6 +27,9 @@ type ProductShape = {
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
   barterOpenness?: string | null;
+  acceptedSpecializations?: string[] | null;
+  listingIntent?: string | null;
+  specializations?: string[] | null;
   delivery?: string | null;
   image?: string | null;
   seller?: {
@@ -69,6 +73,14 @@ export default function ProductSalePrimaryActions({
   const isOutOfStock = availableStock !== null && availableStock === 0;
   const commerceActions = resolveProductCommerceActions(product.barterOpenness);
   const sellerId = product.seller?.User?.id;
+  const exchangeFunnelListing: ExchangeFunnelListingInput = {
+    listingId: product.id,
+    barterOpenness: product.barterOpenness,
+    acceptedSpecializations: product.acceptedSpecializations,
+    listingIntent: product.listingIntent,
+    specializations: product.specializations,
+    orderMethod: product.orderMethod,
+  };
 
   if (isContactOnlyProduct(product) && !isOwner) {
     if (sellerId && publicContactChannels.length > 0) {
@@ -184,6 +196,7 @@ export default function ProductSalePrimaryActions({
             sellerName={sellerName}
             publicContactChannels={publicContactChannels}
             primary
+            exchangeFunnelListing={exchangeFunnelListing}
           />
         ) : null}
       </div>
@@ -219,6 +232,7 @@ export default function ProductSalePrimaryActions({
             quantity={quantity}
             onAdded={onAdded}
             surface="light"
+            exchangeFunnelListing={exchangeFunnelListing}
           />
         </>
       ) : null}
@@ -228,6 +242,7 @@ export default function ProductSalePrimaryActions({
           sellerId={sellerId}
           sellerName={sellerName}
           publicContactChannels={publicContactChannels}
+          exchangeFunnelListing={exchangeFunnelListing}
         />
       ) : null}
     </div>

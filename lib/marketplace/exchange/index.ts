@@ -104,3 +104,19 @@ export {
   buildExchangeGraphFromMatches,
   exchangeProfileSummary,
 } from './exchange-resolver';
+
+export {
+  EXCHANGE_FUNNEL_EVENTS,
+  buildExchangeFunnelPayload,
+  getExchangeFunnelDevice,
+  trackExchangeFunnelEvent,
+  validateExchangeFunnelAnalyticsRegistry,
+} from './exchange-funnel-analytics';
+
+export type {
+  ExchangeFunnelEventName,
+  ExchangeFunnelSurface,
+  ExchangeFunnelDevice,
+  ExchangeFunnelTrackInput,
+  ExchangeFunnelListingInput,
+} from './exchange-funnel-analytics';

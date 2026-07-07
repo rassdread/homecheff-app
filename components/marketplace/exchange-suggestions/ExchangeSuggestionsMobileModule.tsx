@@ -1,21 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { ExchangeSuggestionSurfacePlan } from '@/lib/marketplace/exchange-suggestions';
 import {
   EXCHANGE_SUGGESTION_CAPS,
-  mainCategoryEmoji,
   readExchangeSuggestionCapState,
+  recordExchangeSuggestionDismissed,
   recordExchangeSuggestionImpression,
-  suggestionSummaryKey,
-  trackExchangeSuggestionCtaClick,
-  trackExchangeSuggestionImpression,
-  trackExchangeSuggestionOpen,
 } from '@/lib/marketplace/exchange-suggestions';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import ExchangeSuggestionCardView from './ExchangeSuggestionCard';
 
 export type ExchangeSuggestionsMobileContext = 'profile' | 'detail' | 'discovery';
 
@@ -26,7 +21,7 @@ export type ExchangeSuggestionsMobileModuleProps = {
 };
 
 /**
- * Compact mobile exchange suggestions — max 2 visible.
+ * Compact mobile exchange suggestions — max 2 visible, full CTA parity with desktop.
  */
 export default function ExchangeSuggestionsMobileModule({
   context,
@@ -36,7 +31,6 @@ export default function ExchangeSuggestionsMobileModule({
   const { status } = useSession();
   const { t } = useTranslation();
   const [plan, setPlan] = useState<ExchangeSuggestionSurfacePlan | null>(null);
-  const trackedIds = useRef(new Set<string>());
 
   const load = useCallback(async () => {
     if (status !== 'authenticated') {
@@ -71,28 +65,32 @@ export default function ExchangeSuggestionsMobileModule({
     void load();
   }, [load]);
 
+  const handleDismiss = (id: string) => {
+    recordExchangeSuggestionDismissed(id);
+    setPlan((prev) =>
+      prev
+        ? {
+            ...prev,
+            suggestions: prev.suggestions.filter((s) => s.id !== id),
+            showModule: prev.suggestions.filter((s) => s.id !== id).length > 0,
+          }
+        : prev,
+    );
+  };
+
   const suggestions = (plan?.suggestions ?? []).slice(
     0,
     EXCHANGE_SUGGESTION_CAPS.perPageMobile,
   );
 
-  useEffect(() => {
-    for (const [index, card] of suggestions.entries()) {
-      if (trackedIds.current.has(card.id)) continue;
-      trackedIds.current.add(card.id);
-      trackExchangeSuggestionImpression({
-        surface: 'mobile',
-        listingId: listingId ?? card.sourceListingId,
-        suggestedListingId: card.counterpartyListingId,
-        category: card.mainCategory,
-        position: index,
-      });
-    }
-  }, [listingId, suggestions]);
-
   if (!plan?.showModule || suggestions.length === 0) {
     return null;
   }
+
+  const titleKey =
+    context === 'detail'
+      ? 'marketplace.exchangeSuggestions.surfaces.detail.title'
+      : plan.titleKey;
 
   return (
     <section
@@ -100,58 +98,25 @@ export default function ExchangeSuggestionsMobileModule({
       data-surface="exchange_suggestions_mobile"
       data-surface-module="exchange_suggestion"
       data-mobile-context={context}
+      aria-label={t(titleKey)}
     >
-      <h3 className="text-sm font-bold text-gray-900 mb-3">
-        {t('marketplace.exchangeSuggestions.mobile.title')}
-      </h3>
+      <h3 className="text-sm font-bold text-gray-900 mb-1">{t(titleKey)}</h3>
+      <p className="text-xs text-gray-500 mb-3">
+        {t('marketplace.exchangeSuggestions.hint')}
+      </p>
       <div className="flex flex-col gap-2">
-        {suggestions.map((card, index) => {
-          const href = `/product/${buildProductSlugPath(
-            card.counterpartyTitle,
-            null,
-            card.counterpartyListingId,
-          )}`;
-          return (
-            <Link
-              key={card.id}
-              href={href}
-              onClick={() => {
-                trackExchangeSuggestionOpen({
-                  surface: 'mobile',
-                  listingId: listingId ?? card.sourceListingId,
-                  suggestedListingId: card.counterpartyListingId,
-                  category: card.mainCategory,
-                  position: index,
-                });
-                trackExchangeSuggestionCtaClick({
-                  surface: 'mobile',
-                  listingId: listingId ?? card.sourceListingId,
-                  suggestedListingId: card.counterpartyListingId,
-                  category: card.mainCategory,
-                  position: index,
-                  cta: 'view_exchange',
-                });
-              }}
-              className="flex items-start gap-3 rounded-xl border border-teal-100 bg-teal-50/40 px-3 py-2.5 hover:bg-teal-50"
-              data-exchange-suggestion={card.id}
-            >
-              <span className="text-xl leading-none" aria-hidden>
-                {mainCategoryEmoji(card.mainCategory)}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-gray-900 line-clamp-1">
-                  {card.counterpartyTitle}
-                </span>
-                <span className="block text-xs text-gray-600 line-clamp-2">
-                  {t(suggestionSummaryKey(card.suggestionType), card.summaryParams)}
-                </span>
-                <span className="mt-1 inline-block text-xs font-semibold text-teal-800">
-                  {t('marketplace.exchangeSuggestions.mobile.cta')}
-                </span>
-              </span>
-            </Link>
-          );
-        })}
+        {suggestions.map((card, index) => (
+          <ExchangeSuggestionCardView
+            key={card.id}
+            card={card}
+            t={t}
+            compact
+            onDismiss={handleDismiss}
+            surface="mobile"
+            listingId={listingId ?? card.sourceListingId}
+            position={index}
+          />
+        ))}
       </div>
     </section>
   );

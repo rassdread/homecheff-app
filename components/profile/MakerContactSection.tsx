@@ -11,6 +11,10 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
+import type {
+  ExchangeFunnelListingInput,
+  ExchangeFunnelSurface,
+} from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 
 type ContactVariant = 'profile' | 'product' | 'inspiration';
 
@@ -21,6 +25,13 @@ type Props = {
   className?: string;
   variant?: ContactVariant;
   productId?: string;
+  /** Custom label for the chat / proposal button. */
+  chatButtonLabel?: string;
+  /** Navigate to chat with proposal sheet open (product flows). */
+  openProposalAfterStart?: boolean;
+  funnelListing?: ExchangeFunnelListingInput;
+  funnelSurface?: ExchangeFunnelSurface;
+  funnelEntrypoint?: string;
 };
 
 const HEADING_KEYS: Record<ContactVariant, string> = {
@@ -78,6 +89,11 @@ export default function MakerContactSection({
   className = '',
   variant = 'profile',
   productId,
+  chatButtonLabel,
+  openProposalAfterStart = false,
+  funnelListing,
+  funnelSurface,
+  funnelEntrypoint,
 }: Props) {
   const { t } = useTranslation();
 
@@ -107,7 +123,13 @@ export default function MakerContactSection({
             productId={productId}
             sellerId={makerId}
             sellerName={makerName}
-            showSuccessMessage
+            showSuccessMessage={!openProposalAfterStart}
+            openProposalAfterStart={openProposalAfterStart}
+            skipModal={openProposalAfterStart}
+            funnelListing={funnelListing}
+            funnelSurface={funnelSurface}
+            funnelEntrypoint={funnelEntrypoint}
+            label={chatButtonLabel}
             className={`w-full sm:w-auto ${buttonSizeClass} bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2`}
           />
         ) : null}

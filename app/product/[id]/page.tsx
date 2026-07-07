@@ -28,6 +28,10 @@ import ProductSaleAboutSection from '@/components/product/detail/ProductSaleAbou
 import ProductOfferedBadgesSection from '@/components/product/detail/ProductOfferedBadgesSection';
 import ProductValueExchangeSection from '@/components/product/detail/ProductValueExchangeSection';
 import { ExchangeSuggestionsDetailBlock, ExchangeSuggestionsMobileModule } from '@/components/marketplace/exchange-suggestions';
+import {
+  EXCHANGE_FUNNEL_EVENTS,
+  trackExchangeFunnelEvent,
+} from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
 import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
@@ -352,6 +356,16 @@ export default function ProductPage() {
         };
         
         setProduct(transformedProduct);
+        trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.detailView, {
+          listingId: transformedProduct.id,
+          barterOpenness: transformedProduct.barterOpenness,
+          acceptedSpecializations: transformedProduct.acceptedSpecializations,
+          listingIntent: transformedProduct.listingIntent,
+          specializations: transformedProduct.specializations,
+          orderMethod: transformedProduct.orderMethod,
+          surface: 'detail',
+          entrypoint: 'product_detail_load',
+        });
         setSellerBadges(Array.isArray(data.sellerBadges) ? data.sellerBadges : []);
         setIsBusiness(Boolean(data.isBusiness));
         setCompanyName(data.companyName ?? data.product.seller?.companyName ?? null);
@@ -791,6 +805,7 @@ export default function ProductPage() {
                 subcategory={product.subcategory}
                 listingIntent={product.listingIntent}
                 category={product.category}
+                listingTitle={product.title}
               />
 
               <div className="lg:hidden">

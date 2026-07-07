@@ -27,6 +27,10 @@ import {
 import { reportMessagingDiagnostic } from '@/lib/chat/messagingDiagnostics';
 import { MessagesLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 import type { ResolvedConversationHeader } from '@/lib/communication/resolveConversationHeader';
+import {
+  parseOpenProposalFromSearchParams,
+  stripOpenProposalFromSearchParams,
+} from '@/lib/proposals/proposal-deep-link';
 
 type Conversation = NormalizedConversationListItem;
 
@@ -40,6 +44,13 @@ function MessagesPageContent() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [contextHeader, setContextHeader] = useState<ResolvedConversationHeader | null>(null);
   const searchParams = useSearchParams();
+  const initialOpenProposal = parseOpenProposalFromSearchParams(searchParams);
+
+  const clearProposalOpenParam = useCallback(() => {
+    if (!searchParams?.get('conversation')) return;
+    const next = stripOpenProposalFromSearchParams(searchParams);
+    router.replace(`${messagesPath}${next}`);
+  }, [messagesPath, router, searchParams]);
 
   useEffect(() => {
     if (sessionStatus === 'loading') return;
@@ -283,6 +294,8 @@ function MessagesPageContent() {
                 relationshipContext={selectedConversation.relationshipContext ?? null}
                 contextHeader={contextHeader}
                 onBack={handleBackToList}
+                initialOpenProposal={initialOpenProposal}
+                onProposalSheetAutoOpened={clearProposalOpenParam}
               />
             </ChatShell>
           </div>

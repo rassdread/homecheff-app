@@ -4,8 +4,29 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle, ArrowLeft, Package, CreditCard, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
+import {
+  EXCHANGE_FUNNEL_EVENTS,
+  trackExchangeFunnelEvent,
+} from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 
 type ViewState = 'loading' | 'missing' | 'error' | 'success';
+
+function firstListingIdFromStripeMetadata(
+  metadata: Record<string, string> | null | undefined,
+): string | null {
+  if (!metadata) return null;
+  const compactKeys = Object.keys(metadata)
+    .filter((key) => key.startsWith('items_compact_'))
+    .sort();
+  for (const key of compactKeys) {
+    const chunk = metadata[key];
+    const firstEntry = chunk.split(';')[0];
+    const productId = firstEntry?.split('|')[0]?.trim();
+    if (productId) return productId;
+  }
+  const direct = metadata.productId?.trim();
+  return direct || null;
+}
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
@@ -22,6 +43,7 @@ function PaymentSuccessContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [isPollingOrder, setIsPollingOrder] = useState(false);
+  const checkoutCompletedTracked = useRef(false);
 
   useEffect(() => {
     if (!sessionId) {
@@ -48,6 +70,19 @@ function PaymentSuccessContent() {
         setSession(payload);
         setViewState('success');
         clearCartRef.current?.();
+
+        if (!checkoutCompletedTracked.current) {
+          const listingId = firstListingIdFromStripeMetadata(payload?.metadata);
+          if (listingId) {
+            checkoutCompletedTracked.current = true;
+            trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.checkoutCompleted, {
+              listingId,
+              surface: payload?.metadata?.communityOrderId ? 'chat' : 'commerce_zone',
+              entrypoint: 'stripe_payment_success',
+              communityOrderId: payload?.metadata?.communityOrderId,
+            });
+          }
+        }
         
         // Poll for order creation (webhook is async)
         if (payload.id) {

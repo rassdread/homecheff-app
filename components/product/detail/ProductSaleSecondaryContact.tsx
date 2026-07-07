@@ -42,9 +42,9 @@ export default function ProductSaleSecondaryContact({
     <div id="commerce-secondary-contact" className={cn('space-y-2', className)}>
       <p className="rounded-xl border border-indigo-100 bg-indigo-50/80 px-3 py-2 text-xs font-medium leading-relaxed text-indigo-900">
         {tOr(
-          'productDetail.commercePathChat',
-          'Make arrangements first via chat — send a proposal or quote.',
-          'Maak eerst afspraken via de chat — stuur een voorstel of offerte.',
+          'productDetail.commercePathContact',
+          'Ask your question via chat before you order.',
+          'Stel je vraag via de chat voordat je bestelt.',
         )}
       </p>
       {!expanded ? (

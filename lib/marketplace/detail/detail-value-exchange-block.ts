@@ -3,10 +3,14 @@
  * Wires Phase 4A contracts to detail surface tier.
  */
 
+import type { MarketplaceCategory } from '@prisma/client';
 import type { MarketplaceTileModel } from '@/lib/marketplace/tiles/types';
 import type { DesiredExchangeDetail } from '@/lib/marketplace/value-exchange/value-exchange-contract';
+import { deriveListingKind } from '@/lib/marketplace/listing-kind/derive-listing-kind';
 import {
   buildBarterAcceptanceModel,
+  buildDesiredExchangeDetail,
+  marketplaceCategoryToMainCategory,
   resolvePaymentMethod,
 } from '@/lib/marketplace/value-exchange';
 import { PAYMENT_METHOD_REGISTRY } from '@/lib/marketplace/value-exchange/payment-methods';
@@ -109,4 +113,44 @@ export function buildDetailValueExchangeBlock(input: {
 
 export function valueExchangeSectionTitleKey(): string {
   return `${KEY}.title`;
+}
+
+/** REQUEST listings: map specializations → desired exchange lines (same as suggestion mapper). */
+export function buildDesiredExchangesForDetail(input: {
+  listingIntent?: string | null;
+  marketplaceCategory?: MarketplaceCategory | string | null;
+  specializations?: string[];
+  subcategory?: string | null;
+  category?: string | null;
+  listingTitle?: string | null;
+}): DesiredExchangeDetail[] {
+  if (String(input.listingIntent ?? '').toUpperCase() !== 'REQUEST') {
+    return [];
+  }
+
+  const { listingKind } = deriveListingKind({
+    listingIntent: input.listingIntent,
+    marketplaceCategory: input.marketplaceCategory as MarketplaceCategory | null,
+    specializations: input.specializations,
+    category: input.category,
+    subcategory: input.subcategory,
+  });
+
+  const description = (input.listingTitle ?? '').trim();
+  const specs = input.specializations ?? [];
+
+  return specs
+    .map((subcategoryId) => {
+      const mainCategory = marketplaceCategoryToMainCategory(
+        (input.marketplaceCategory ?? 'CREATE') as MarketplaceCategory,
+        subcategoryId,
+        listingKind,
+      );
+      return buildDesiredExchangeDetail({
+        mainCategory,
+        subcategoryId,
+        description,
+      });
+    })
+    .filter((d): d is DesiredExchangeDetail => d !== null);
 }

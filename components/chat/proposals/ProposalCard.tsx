@@ -11,6 +11,10 @@ import type {
 } from "@/lib/proposals/proposal-types";
 import type { DeliveryRequestDTO } from "@/lib/delivery/delivery-marketplace-types";
 import { paymentPathFromSummary } from "@/lib/proposals/proposal-accept-routing";
+import {
+  EXCHANGE_FUNNEL_EVENTS,
+  trackExchangeFunnelEvent,
+} from "@/lib/marketplace/exchange/exchange-funnel-analytics";
 import { PROPOSAL_I18N } from "@/lib/proposals/proposal-i18n-keys";
 import type { SettlementMode } from "@prisma/client";
 import DealCard from "./DealCard";
@@ -131,6 +135,17 @@ export default function ProposalCard({
         return;
       }
       if (data.proposal) {
+        if (action === "accept" && data.communityOrder && proposal.productId) {
+          trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.communityOrderCreated, {
+            listingId: proposal.productId,
+            settlementMode: proposal.settlementMode,
+            surface: "chat",
+            entrypoint: "proposal_accept",
+            communityOrderId: data.communityOrder.id,
+            proposalId: proposal.id,
+            hasAcceptedValues: proposal.acceptedValueTaxonomyIds.length > 0,
+          });
+        }
         onUpdated?.(data.proposal, {
           communityOrder: data.communityOrder ?? undefined,
           deliveryRequest: data.deliveryRequest ?? undefined,

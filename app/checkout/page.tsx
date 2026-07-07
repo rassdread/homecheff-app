@@ -16,6 +16,10 @@ import { getActiveCartIdentifier } from '@/lib/cart';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
+import {
+  EXCHANGE_FUNNEL_EVENTS,
+  trackExchangeFunnelEvent,
+} from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 
 type DeliveryOption = {
   id: string;
@@ -620,6 +624,16 @@ export default function CheckoutPage() {
     if (isTeenDeliveryUnavailable) {
       alert(t('checkout.teenDeliveryUnavailable'));
       return;
+    }
+
+    const primaryItem = checkoutItems[0];
+    if (primaryItem?.productId) {
+      trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.checkoutStarted, {
+        listingId: primaryItem.productId,
+        barterOpenness: primaryItem.barterOpenness,
+        surface: isDealCheckout ? 'chat' : 'commerce_zone',
+        entrypoint: isDealCheckout ? 'deal_checkout_submit' : 'cart_checkout_submit',
+      });
     }
 
     setIsProcessing(true);

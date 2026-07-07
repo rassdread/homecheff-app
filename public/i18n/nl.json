@@ -3108,6 +3108,7 @@
     "askMaker": "Vraag iets aan maker",
     "commercePathCheckout": "Bestel direct via HomeCheff — veilig betalen en bestelling volgen.",
     "commercePathChat": "Maak eerst afspraken via de chat — stuur een voorstel of offerte.",
+    "commercePathContact": "Stel je vraag via de chat voordat je bestelt.",
     "commercePathProposal": "Stuur een ruilvoorstel via de chat — spreek af wat jullie uitwisselen.",
     "outOfStock": "Uitverkocht",
     "contactNotConfigured": "Deze maker heeft nog geen contactopties ingesteld.",
@@ -7721,7 +7722,8 @@
       },
       "barter": {
         "accepts": "Accepteert",
-        "desired": "Gewenste ruil"
+        "desired": "Gewenste ruil",
+        "seeks": "Zoekt"
       },
       "fulfillment": {
         "pickup": "Ophalen",
@@ -7760,7 +7762,7 @@
       },
       "actions": {
         "order": "Bestellen",
-        "requestProposal": "Voorstel sturen",
+        "requestProposal": "Voorstel doen",
         "message": "Bericht",
         "save": "Opslaan",
         "share": "Delen",
@@ -7774,15 +7776,16 @@
     },
     "exchange": {
       "signals": {
-        "exactDesiredMatch": "Exacte match voor wat je zoekt",
-        "strongCategoryOverlap": "Sterke categorie-overlap",
-        "potentialBarter": "Mogelijke ruilkans",
-        "mutualReadiness": "Wederzijdse ruilbereidheid",
-        "futureRecommendationReady": "Klaar voor ruilsuggesties"
+        "exactDesiredMatch": "Past bij wat je zoekt",
+        "strongCategoryOverlap": "Zelfde categorie",
+        "potentialBarter": "Open voor ruil",
+        "mutualReadiness": "Jullie kunnen allebei ruilen",
+        "futureRecommendationReady": "Past bij jouw aanbod"
       }
     },
     "exchangeSuggestions": {
-      "hint": "Optionele ruilkansen — ze beïnvloeden de discovery-ranking niet.",
+      "hint": "Optionele ruilkansen — alleen voor jou, niet voor de volgorde in de feed.",
+      "matchReasons": "Waarom deze suggestie",
       "empty": "Geen ruilkansen op dit moment.",
       "dismiss": "Sluiten",
       "surfaces": {
@@ -7940,7 +7943,8 @@
     "acceptedValues": {
       "heading": "Wat accepteer je eventueel ook als waarde?",
       "description": "Optioneel — geef aan welke andere producten of diensten je ook zou accepteren als ruil of alternatieve waarde.",
-      "searchPlaceholder": "Zoek in taxonomy…",
+      "searchPlaceholder": "Zoek op categorie of product…",
+      "offeredInReturnHeading": "Wat bied je terug?",
       "filterAll": "Alles",
       "emptySearch": "Geen resultaten voor deze zoekopdracht."
     },

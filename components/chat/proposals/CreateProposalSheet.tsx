@@ -13,6 +13,10 @@ import type { ResolvedConversationHeader } from "@/lib/communication/resolveConv
 import type { ProposalPaymentPath } from "@/lib/proposals/proposal-product-binding";
 import { allowedFulfillmentTypes } from "@/lib/proposals/proposal-fulfillment-utils";
 import ProposalProductSummary from "./ProposalProductSummary";
+import {
+  EXCHANGE_FUNNEL_EVENTS,
+  trackExchangeFunnelEvent,
+} from "@/lib/marketplace/exchange/exchange-funnel-analytics";
 
 export type CreateProposalFormValues = {
   title: string;
@@ -124,6 +128,17 @@ export default function CreateProposalSheet({
       }
       setForm(next);
       setError(null);
+      if (contextHeader?.kind === "PRODUCT") {
+        const p = contextHeader.product;
+        trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.proposalSheetOpened, {
+          listingId: p.id,
+          barterOpenness: p.barterOpenness,
+          acceptedSpecializations: p.acceptedSpecializations,
+          orderMethod: p.orderMethod,
+          surface: "chat",
+          entrypoint: "create_proposal_sheet_open",
+        });
+      }
     }
   }, [open, contextHeader]);
 
@@ -233,6 +248,18 @@ export default function CreateProposalSheet({
               : null;
         setError(errKey ? t(errKey) : data.error || t("common.error"));
         return;
+      }
+      if (product) {
+        trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.proposalSubmitted, {
+          listingId: product.id,
+          barterOpenness: product.barterOpenness,
+          acceptedSpecializations: product.acceptedSpecializations,
+          orderMethod: product.orderMethod,
+          settlementMode: form.settlementMode,
+          surface: "chat",
+          entrypoint: "create_proposal_submit",
+          hasAcceptedValues: form.acceptedValueTaxonomyIds.length > 0,
+        });
       }
       onCreated();
       onClose();
@@ -412,6 +439,7 @@ export default function CreateProposalSheet({
               onChange={(ids) =>
                 setForm((prev) => ({ ...prev, requestedValueTaxonomyIds: ids }))
               }
+              headingKey="marketplace.acceptedValues.offeredInReturnHeading"
             />
           ) : null}
 
