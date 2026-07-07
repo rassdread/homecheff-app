@@ -1,9 +1,9 @@
 # Route Ownership Matrix
 
-**Version:** V1 (Phase 0)  
-**Last updated:** 2026-07-06
+**Version:** V2 (UX Finalization Phase 2)  
+**Last updated:** 2026-07-07
 
-Defines canonical ownership for marketplace-related routes. Discovery Phase 1 must not introduce competing URLs for the same entity type.
+Defines canonical ownership for marketplace-related routes. Discovery Phase 1 must not introduce competing URLs for the same entity type. UX Finalization Phase 2 corrected the canonical/alias status for the agreements hub and the feed/inspiration hubs (both now redirect to `/`).
 
 ## Legend
 
@@ -22,11 +22,12 @@ Defines canonical ownership for marketplace-related routes. Discovery Phase 1 mu
 
 | Route | Entity | Status | SEO | Discovery | Notes |
 |-------|--------|--------|-----|-----------|-------|
-| `/user/[username]` | User identity + capabilities | **Canonical** | ✅ | ✅ (profile as surface) | Profile V2; SEO metadata present |
+| `/user/[username]` | User identity + capabilities | **Canonical (public profile)** | ✅ | ✅ (profile as surface) | Profile V2; canonical intent for any public profile link |
 | `/seller/[sellerId]` | SellerProfile | **Legacy** | ✅ | ✅ | Redirect candidate → `/user/[username]` |
 | `/bezorger/[username]` | DeliveryProfile | **Legacy** | ✅ | ⚠️ | Redirect candidate → `/user/[username]#bezorgingen` |
-| `/profile` | Own profile (private) | **Private** | ❌ | ❌ | Authenticated owner |
-| `/profile/deals` | CommunityOrders | **Private** | ❌ | ❌ | Owner deals list |
+| `/profile` | Own profile (private) | **Private** | ❌ | ❌ | Authenticated owner; public equivalent is `/user/[username]` |
+| `/profile/deals` | Agreements Hub ("Mijn Afspraken") | **Canonical (private hub)** | ❌ | ❌ | Unified operations cockpit: proposals, deals, payments, delivery, history, agenda |
+| `/agreements` | — | **Redirect (alias)** | ❌ | ❌ | 308 → `/profile/deals` (`app/agreements/page.tsx`). Do not link directly; use `DEALS_PROFILE_PATH` |
 
 ---
 
@@ -49,7 +50,7 @@ Defines canonical ownership for marketplace-related routes. Discovery Phase 1 mu
 | `/recipe/[id]` | Dish (chef) | **Canonical** | ✅ | ✅ inspiration | Vertical-specific SEO |
 | `/garden/[id]` | Dish (garden) | **Canonical** | ✅ | ✅ inspiration | |
 | `/design/[id]` | Dish (design) | **Canonical** | ✅ | ✅ inspiration | |
-| `/inspiratie` | Inspiration browse | **Canonical hub** | ✅ | ✅ | Listing page |
+| `/inspiratie` | Inspiration browse | **Redirect** | ❌ | ❌ | Redirects to `/` (single Discover surface); `?bron=dorpsplein` → `/?chip=sale` |
 | `/inspiratie/[id]` | Dish (generic) | **Canonical fallback** | ✅ | ✅ | Used when vertical unknown |
 
 ---
@@ -58,8 +59,8 @@ Defines canonical ownership for marketplace-related routes. Discovery Phase 1 mu
 
 | Route | Entity | Status | SEO | Discovery | Notes |
 |-------|--------|--------|-----|-----------|-------|
-| `/dorpsplein` | GeoFeed | **Canonical feed** | ✅ | ✅ | Primary marketplace discovery UX |
-| `/` (home) | Mixed | **Canonical entry** | ✅ | ✅ | May embed feed sections |
+| `/dorpsplein` | GeoFeed | **Redirect** | ❌ | ❌ | Redirects to `/?chip=sale`; the feed lives on `/` |
+| `/` (home) | Mixed + GeoFeed | **Canonical entry & feed** | ✅ | ✅ | Single Discover surface (`#homecheff-feed`); `/dorpsplein` and `/inspiratie` redirect here |
 | `/favorites` | Favorite items | **Private** | ❌ | ❌ | Saved products/dishes |
 | `/place` | Location picker | **Utility** | ❌ | ❌ | Geo context |
 
@@ -126,6 +127,22 @@ flowchart LR
   request_feed -.->|today placeholder| insp["/inspiratie"]
   legacy_listing["Legacy Listing detail"] -->|migrate| product["/product/[slug]"]
 ```
+
+---
+
+## Navigation canonicals & aliases (UX Finalization Phase 2)
+
+| Canonical route | Label (NL / EN) | Aliases / redirects | Reachable via nav |
+|-----------------|-----------------|---------------------|-------------------|
+| `/profile/deals` | Mijn Afspraken / My Agreements | `/agreements` → `/profile/deals` | NavBar dropdown, mobile menu, profile sidepanel, role quick links |
+| `/orders` | Bestellingen / Orders | — | NavBar dropdown, mobile menu (buyer-reachable) |
+| `/favorites` | Favorieten / Favorites | — | NavBar dropdown, mobile menu |
+| `/notifications` | Meldingen / Notifications | — | Desktop `NotificationBell` + mobile menu |
+| `/` | Ontdekken / Discover | `/dorpsplein` → `/?chip=sale`, `/inspiratie` → `/` | Header, bottom nav |
+| `/user/[username]` | Publiek profiel / Public profile | `/seller/[sellerId]`, `/bezorger/[username]` (redirect candidates) | Profile surfaces |
+
+- **Never hardcode** `/profile/deals`; import `DEALS_PROFILE_PATH` / `PROFILE_DEALS_NAV` from `lib/profile/deals-navigation.ts`.
+- `/agreements` stays as a redirect alias only — do not add content to it.
 
 ---
 

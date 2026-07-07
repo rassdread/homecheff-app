@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone, Download, Plus, Award } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone, Download, Plus, Award, CalendarClock, Bell } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -35,6 +35,7 @@ import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLink
 import { useCommsUnread } from '@/hooks/useCommsUnread';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
+import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
 
 function resolveNavDashboardHref(user: Record<string, unknown> | null | undefined): string | null {
   if (!user) return null;
@@ -523,6 +524,39 @@ export default function NavBar() {
                         )}
                       </Link>
 
+                      {/* Mijn Afspraken — unified operations hub (UX-FIN-2.1) */}
+                      <Link
+                        href={DEALS_PROFILE_PATH}
+                        prefetch={false}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <CalendarClock className="w-4 h-4" />
+                        <span>{t('navbar.agreements')}</span>
+                      </Link>
+
+                      {/* Bestellingen — buyer orders (UX-FIN-2.3) */}
+                      <Link
+                        href="/orders"
+                        prefetch={false}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <Package className="w-4 h-4" />
+                        <span>{t('navbar.orders')}</span>
+                      </Link>
+
+                      {/* Favorieten (UX-FIN-2.2) */}
+                      <Link
+                        href="/favorites"
+                        prefetch={false}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <Heart className="w-4 h-4" />
+                        <span>{t('navbar.favorites')}</span>
+                      </Link>
+
                       <Link
                         href="/mijn-hcp"
                         prefetch={false}
@@ -815,6 +849,62 @@ export default function NavBar() {
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
+                  </Link>
+
+                  {/* Mijn Afspraken — unified operations hub (UX-FIN-2.1) */}
+                  <Link
+                    href={DEALS_PROFILE_PATH}
+                    prefetch={false}
+                    className={mobileNavRowClass}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: DEALS_PROFILE_PATH });
+                    }}
+                  >
+                    <CalendarClock className="w-4 h-4 shrink-0" />
+                    <span>{t('navbar.agreements')}</span>
+                  </Link>
+
+                  {/* Bestellingen — buyer orders (UX-FIN-2.3) */}
+                  <Link
+                    href="/orders"
+                    prefetch={false}
+                    className={mobileNavRowClass}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/orders' });
+                    }}
+                  >
+                    <Package className="w-4 h-4 shrink-0" />
+                    <span>{t('navbar.orders')}</span>
+                  </Link>
+
+                  {/* Favorieten (UX-FIN-2.2) */}
+                  <Link
+                    href="/favorites"
+                    prefetch={false}
+                    className={mobileNavRowClass}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/favorites' });
+                    }}
+                  >
+                    <Heart className="w-4 h-4 shrink-0" />
+                    <span>{t('navbar.favorites')}</span>
+                  </Link>
+
+                  {/* Meldingen — mobile access (desktop uses NotificationBell) (UX-FIN-2.4) */}
+                  <Link
+                    href="/notifications"
+                    prefetch={false}
+                    className={mobileNavRowClass}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/notifications' });
+                    }}
+                  >
+                    <Bell className="w-4 h-4 shrink-0" />
+                    <span>{t('navbar.notifications')}</span>
                   </Link>
 
                   {dashboardHref ? (

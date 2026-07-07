@@ -169,7 +169,12 @@ assert(
 );
 assert(
   exists('app/agreements/page.tsx'),
-  '/agreements unified hub exists',
+  '/agreements alias page exists (redirects to canonical hub)',
+);
+const agreementsAlias = read('app/agreements/page.tsx');
+assert(
+  agreementsAlias.includes('redirect') && agreementsAlias.includes('/profile/deals'),
+  '/agreements redirects to /profile/deals (alias, not canonical)',
 );
 const sidepanel = read('components/profile/v2/ProfileV2OwnerSidepanel.tsx');
 assert(
@@ -178,8 +183,8 @@ assert(
   'profile sidepanel links to agreements hub via PROFILE_DEALS_NAV',
 );
 assert(
-  PROFILE_DEALS_NAV.href === '/agreements',
-  'PROFILE_DEALS_NAV points to /agreements',
+  PROFILE_DEALS_NAV.href === '/profile/deals',
+  'PROFILE_DEALS_NAV points to canonical /profile/deals',
 );
 const deliveryDash = read('components/delivery/DeliveryDashboard.tsx');
 assert(deliveryDash.includes('CommunityDeliveryPanel'), 'delivery dashboard has community tab');
