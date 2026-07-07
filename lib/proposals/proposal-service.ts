@@ -884,6 +884,11 @@ export class ProposalService {
           where: { status: { in: ['PENDING', 'ACCEPTED'] } },
           orderBy: { createdAt: 'desc' },
           take: 1,
+          include: {
+            Courier: {
+              select: { id: true, name: true, username: true },
+            },
+          },
         },
       },
     });
@@ -895,6 +900,7 @@ export class ProposalService {
       byProposal[proposalId] = serializeDeliveryRequest(
         row,
         row.Assignments[0] ?? null,
+        row.Assignments[0]?.Courier ?? null,
       );
     }
     return byProposal;

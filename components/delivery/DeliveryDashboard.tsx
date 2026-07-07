@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import DeliveryNotificationListener from './DeliveryNotificationListener';
+import CommunityDeliveryPanel from './CommunityDeliveryPanel';
+import { useTranslation } from '@/hooks/useTranslation';
 import { 
   MapPin, 
   Clock, 
@@ -105,6 +107,7 @@ export default function DeliveryDashboard() {
   const [shippingOrders, setShippingOrders] = useState<any[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'delivery' | 'orders'>('delivery');
+  const [courierTab, setCourierTab] = useState<'platform' | 'community'>('platform');
 
   useEffect(() => {
     fetchDeliveryData();
@@ -729,6 +732,43 @@ export default function DeliveryDashboard() {
           </div>
         )}
 
+        {/* Courier tabs — platform (Stripe) vs community deals */}
+        {!isSeller && (
+          <div className="mb-6 bg-white rounded-xl shadow-sm border p-1 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setCourierTab('platform')}
+              className={`flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                courierTab === 'platform'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Truck className="w-4 h-4 inline mr-2" />
+              {t('delivery.community.platformTab')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setCourierTab('community')}
+              className={`flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                courierTab === 'community'
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Package className="w-4 h-4 inline mr-2" />
+              {t('delivery.community.tab')}
+            </button>
+          </div>
+        )}
+
+        {courierTab === 'community' && !isSeller ? (
+          <div className="mb-6">
+            <CommunityDeliveryPanel isOnline={isOnline} />
+          </div>
+        ) : null}
+
+        {(isSeller || courierTab === 'platform') ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Available Orders Section - Only for ambassadors, not sellers */}
           {!isSeller && !currentOrder && availableOrders.length > 0 && isOnline && (
@@ -1387,6 +1427,7 @@ export default function DeliveryDashboard() {
             </div>
           </div>
         </div>
+        ) : null}
       </div>
     </OperationsShell>
   );

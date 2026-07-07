@@ -7,6 +7,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
+  PREVIEW_DESKTOP_HOVER_ENABLED,
   PREVIEW_HOVER_DELAY_MS,
   PREVIEW_LONG_PRESS_MS,
   PREVIEW_LONG_PRESS_MOVE_THRESHOLD_PX,
@@ -47,6 +48,7 @@ function getNested(obj: Record<string, unknown>, keyPath: string): unknown {
 console.log('=== Marketplace Preview UX Validation (Phase 5A) ===\n');
 
 console.log('Timing constants');
+assert(PREVIEW_DESKTOP_HOVER_ENABLED === false, 'desktop hover preview disabled');
 assert(PREVIEW_HOVER_DELAY_MS === 600, 'hover delay 600ms');
 assert(PREVIEW_SCROLL_COOLDOWN_MS === 500, 'scroll cooldown 500ms');
 assert(PREVIEW_LONG_PRESS_MS === 700, 'long press 700ms');
@@ -99,8 +101,12 @@ assert(
 assert(shellSrc.includes('IntersectionObserver'), 'tile visibility guard');
 assert(!shellSrc.includes('tabIndex={0}'), 'no shell tab trap');
 assert(
-  shellSrc.includes('scheduleDesktopOpen') && shellSrc.includes('!narrow'),
-  'desktop hover only on non-narrow',
+  shellSrc.includes('PREVIEW_DESKTOP_HOVER_ENABLED'),
+  'shell gates desktop hover via PREVIEW_DESKTOP_HOVER_ENABLED',
+);
+assert(
+  shellSrc.includes('scheduleDesktopOpen') && shellSrc.includes('PREVIEW_DESKTOP_HOVER_ENABLED'),
+  'desktop hover path gated by PREVIEW_DESKTOP_HOVER_ENABLED',
 );
 
 console.log('\nInfo button');

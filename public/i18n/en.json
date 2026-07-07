@@ -1653,7 +1653,23 @@
       "activeAssignmentExists": "An active assignment already exists.",
       "noPendingAssignment": "No pending assignment.",
       "courierOnly": "Only the assigned courier can accept.",
-      "noAcceptedAssignment": "No accepted assignment."
+      "noAcceptedAssignment": "No accepted assignment.",
+      "notOpenForClaim": "This delivery request can no longer be claimed."
+    },
+    "community": {
+      "tab": "Community deliveries",
+      "platformTab": "Platform deliveries",
+      "available": "Open community deliveries",
+      "myJobs": "My community deliveries",
+      "empty": "No open community deliveries in your area.",
+      "pickup": "Pickup",
+      "dropoff": "Drop-off",
+      "distance": "± {{km}} km",
+      "claim": "Claim delivery",
+      "accept": "Accept job",
+      "complete": "Mark as completed",
+      "goOnlineHint": "Go online to claim community deliveries.",
+      "youAreCourier": "You are delivering this deal"
     }
   },
   "products": {
@@ -8584,6 +8600,8 @@
       "statusPending": "Delivery not yet requested",
       "statusActive": "Delivery requested",
       "courierAssigned": "Courier assigned",
+      "courierName": "Courier: {{name}}",
+      "inProgress": "Delivery in progress",
       "detailsHeading": "Delivery"
     }
   },

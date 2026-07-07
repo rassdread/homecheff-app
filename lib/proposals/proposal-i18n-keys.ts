@@ -90,6 +90,8 @@ export const DEAL_I18N = {
     statusPending: 'deal.delivery.statusPending',
     statusActive: 'deal.delivery.statusActive',
     courierAssigned: 'deal.delivery.courierAssigned',
+    courierName: 'deal.delivery.courierName',
+    inProgress: 'deal.delivery.inProgress',
     detailsHeading: 'deal.delivery.detailsHeading',
   },
 } as const;

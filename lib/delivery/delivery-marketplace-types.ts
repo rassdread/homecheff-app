@@ -19,6 +19,8 @@ export type DeliveryRequestDTO = {
   createdAt: string;
   updatedAt: string;
   activeAssignment?: CourierAssignmentDTO | null;
+  courierId?: string | null;
+  courierName?: string | null;
 };
 
 export type CourierAssignmentDTO = {
@@ -90,4 +92,13 @@ export type DeliveryRequestActionResult = {
   deliveryRequest: DeliveryRequestDTO;
   assignment?: CourierAssignmentDTO;
   communityOrder?: { id: string; deliveryAssigned: boolean };
+};
+
+/** Courier dashboard list row — community DeliveryRequest + deal context. */
+export type CommunityDeliveryRequestListItem = DeliveryRequestDTO & {
+  title: string;
+  distanceKm: number | null;
+  needsAccept: boolean;
+  canComplete: boolean;
+  canClaim: boolean;
 };

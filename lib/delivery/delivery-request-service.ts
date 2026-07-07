@@ -12,10 +12,13 @@ import {
 } from './serialize-delivery-marketplace';
 import type {
   AssignCourierInput,
+  CommunityDeliveryRequestListItem,
   CreateDeliveryRequestInput,
   DeliveryRequestActionResult,
   DeliveryRequestDTO,
 } from './delivery-marketplace-types';
+import { assertDelivererCanAccept } from './delivery-eligibility';
+import { calculateDistance } from '@/lib/geocoding';
 
 const ACTIVE_REQUEST_STATUSES: DeliveryRequestStatus[] = [
   'OPEN',
@@ -209,7 +212,16 @@ export class DeliveryRequestService {
     }
 
     const { buyerId, sellerId } = row.CommunityOrder;
-    const active = await getActiveAssignment(row.id);
+    const active = await prisma.courierAssignment.findFirst({
+      where: {
+        deliveryRequestId: row.id,
+        status: { in: ACTIVE_ASSIGNMENT_STATUSES },
+      },
+      orderBy: { assignedAt: 'desc' },
+      include: {
+        Courier: { select: { id: true, name: true, username: true } },
+      },
+    });
     const isCourier = active?.courierId === userId;
 
     if (userId !== buyerId && userId !== sellerId && !isCourier) {
@@ -220,7 +232,7 @@ export class DeliveryRequestService {
       );
     }
 
-    return serializeDeliveryRequest(row, active);
+    return serializeDeliveryRequest(row, active, active?.Courier ?? null);
   }
 
   static async assignCourier(
@@ -611,5 +623,228 @@ export class DeliveryRequestService {
     } catch {
       return { deliveryRequest: null, readyWithoutCreate: true };
     }
+  }
+
+  static async listForCourier(userId: string): Promise<{
+    available: CommunityDeliveryRequestListItem[];
+    mine: CommunityDeliveryRequestListItem[];
+  }> {
+    const profile = await prisma.deliveryProfile.findUnique({
+      where: { userId },
+      select: { id: true, isActive: true, isVerified: true, age: true, maxDistance: true },
+    });
+    const gate = assertDelivererCanAccept(profile);
+    if (!gate.ok) {
+      throw new DeliveryMarketplaceServiceError(
+        gate.error,
+        gate.status,
+        gate.code === 'DELIVERY_NOT_VERIFIED'
+          ? 'delivery.errors.courierNotActive'
+          : 'delivery.errors.courierNotActive',
+      );
+    }
+
+    const courierUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { lat: true, lng: true, country: true },
+    });
+
+    const rows = await prisma.deliveryRequest.findMany({
+      where: {
+        status: { in: ['OPEN', 'CLAIMED', 'ASSIGNED'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        Assignments: {
+          where: { status: { in: ACTIVE_ASSIGNMENT_STATUSES } },
+          orderBy: { assignedAt: 'desc' },
+          take: 1,
+          include: {
+            Courier: {
+              select: { id: true, name: true, username: true },
+            },
+          },
+        },
+        CommunityOrder: {
+          include: {
+            Proposal: { select: { title: true } },
+            Seller: {
+              select: {
+                SellerProfile: { select: { lat: true, lng: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const maxKm = profile?.maxDistance ?? 25;
+    const available: CommunityDeliveryRequestListItem[] = [];
+    const mine: CommunityDeliveryRequestListItem[] = [];
+
+    for (const row of rows) {
+      const active = row.Assignments[0] ?? null;
+      const courierUserForRow = active?.Courier ?? null;
+      const dto = serializeDeliveryRequest(row, active, courierUserForRow);
+      const sellerLat = row.CommunityOrder.Seller.SellerProfile?.lat;
+      const sellerLng = row.CommunityOrder.Seller.SellerProfile?.lng;
+      let distanceKm: number | null = null;
+      if (
+        courierUser?.lat != null &&
+        courierUser.lng != null &&
+        sellerLat != null &&
+        sellerLng != null
+      ) {
+        distanceKm =
+          Math.round(
+            calculateDistance(
+              courierUser.lat,
+              courierUser.lng,
+              sellerLat,
+              sellerLng,
+            ) * 10,
+          ) / 10;
+      }
+
+      const item: CommunityDeliveryRequestListItem = {
+        ...dto,
+        title: row.CommunityOrder.Proposal.title,
+        distanceKm,
+        canClaim: row.status === 'OPEN' && !active,
+        needsAccept: active?.status === 'PENDING' && active.courierId === userId,
+        canComplete:
+          active?.status === 'ACCEPTED' && active.courierId === userId,
+      };
+
+      if (active?.courierId === userId) {
+        mine.push(item);
+        continue;
+      }
+
+      if (item.canClaim) {
+        if (distanceKm != null && distanceKm > maxKm) continue;
+        available.push(item);
+      }
+    }
+
+    return { available, mine };
+  }
+
+  /**
+   * Courier self-claim — assign + accept in one step (teen-delivery parity).
+   */
+  static async claimByCourier(
+    userId: string,
+    deliveryRequestId: string,
+  ): Promise<DeliveryRequestActionResult> {
+    const profile = await prisma.deliveryProfile.findUnique({
+      where: { userId },
+      select: { id: true, isActive: true, isVerified: true, age: true },
+    });
+    const gate = assertDelivererCanAccept(profile);
+    if (!gate.ok) {
+      throw new DeliveryMarketplaceServiceError(
+        gate.error,
+        gate.status,
+        'delivery.errors.courierNotActive',
+      );
+    }
+
+    const row = await prisma.deliveryRequest.findUnique({
+      where: { id: deliveryRequestId },
+      include: {
+        CommunityOrder: {
+          select: {
+            id: true,
+            buyerId: true,
+            sellerId: true,
+            conversationId: true,
+          },
+        },
+      },
+    });
+    if (!row) {
+      throw new DeliveryMarketplaceServiceError(
+        'Delivery request not found',
+        404,
+        'delivery.errors.requestNotFound',
+      );
+    }
+
+    if (row.status !== 'OPEN') {
+      throw new DeliveryMarketplaceServiceError(
+        `Delivery request is ${row.status}`,
+        409,
+        'delivery.errors.notOpenForClaim',
+      );
+    }
+
+    const existingAssignment = await getActiveAssignment(deliveryRequestId);
+    if (existingAssignment) {
+      throw new DeliveryMarketplaceServiceError(
+        'Active assignment already exists',
+        409,
+        'delivery.errors.activeAssignmentExists',
+      );
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const assignment = await tx.courierAssignment.create({
+        data: {
+          deliveryRequestId,
+          courierId: userId,
+          status: 'ACCEPTED',
+          acceptedAt: new Date(),
+        },
+      });
+
+      const updatedRequest = await tx.deliveryRequest.update({
+        where: { id: deliveryRequestId },
+        data: { status: 'ASSIGNED' },
+      });
+
+      const updatedOrder = await tx.communityOrder.update({
+        where: { id: row.communityOrderId },
+        data: { deliveryAssigned: true },
+      });
+
+      return { assignment, updatedRequest, updatedOrder };
+    });
+
+    const courierUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, username: true },
+    });
+
+    const dto = serializeDeliveryRequest(
+      result.updatedRequest,
+      result.assignment,
+      courierUser,
+    );
+
+    await notifyDeliveryRequestAssigned(
+      userId,
+      userId,
+      dto,
+      row.CommunityOrder.conversationId,
+    );
+
+    await notifyDeliveryRequestAccepted(
+      row.CommunityOrder.buyerId,
+      row.CommunityOrder.sellerId,
+      userId,
+      dto,
+      row.CommunityOrder.conversationId,
+    );
+
+    return {
+      deliveryRequest: dto,
+      assignment: serializeCourierAssignment(result.assignment),
+      communityOrder: {
+        id: result.updatedOrder.id,
+        deliveryAssigned: result.updatedOrder.deliveryAssigned,
+      },
+    };
   }
 }

@@ -251,11 +251,17 @@ export default function DealCard({
       {order.deliveryRequested ? (
         <p className="text-[10px] text-emerald-700">
           {deliveryRequest
-            ? t(DEAL_I18N.delivery.statusActive)
+            ? deliveryRequest.status === 'COMPLETED'
+              ? t(`delivery.request.status.${deliveryRequest.status.toLowerCase()}`)
+              : deliveryRequest.activeAssignment?.status === 'ACCEPTED'
+                ? t(DEAL_I18N.delivery.inProgress)
+                : t(DEAL_I18N.delivery.statusActive)
             : t(DEAL_I18N.delivery.statusPending)}
-          {order.deliveryAssigned
-            ? ` · ${t(DEAL_I18N.delivery.courierAssigned)}`
-            : ''}
+          {deliveryRequest?.courierName
+            ? ` · ${t(DEAL_I18N.delivery.courierName, { name: deliveryRequest.courierName })}`
+            : order.deliveryAssigned || deliveryRequest?.activeAssignment
+              ? ` · ${t(DEAL_I18N.delivery.courierAssigned)}`
+              : ''}
         </p>
       ) : null}
 
@@ -299,7 +305,13 @@ export default function DealCard({
             <p>{deliveryRequest.deliveryAddress}</p>
           ) : null}
           {deliveryRequest.activeAssignment ? (
-            <p>{t(DEAL_I18N.delivery.courierAssigned)}</p>
+            <p>
+              {deliveryRequest.courierName
+                ? t(DEAL_I18N.delivery.courierName, {
+                    name: deliveryRequest.courierName,
+                  })
+                : t(DEAL_I18N.delivery.courierAssigned)}
+            </p>
           ) : null}
         </div>
       ) : null}

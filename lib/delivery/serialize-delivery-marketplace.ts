@@ -5,10 +5,24 @@ import type {
   DeliveryRequestDTO,
 } from './delivery-marketplace-types';
 
+function courierDisplayName(user: {
+  name: string | null;
+  username: string | null;
+}): string | null {
+  return user.name?.trim() || user.username?.trim() || null;
+}
+
 export function serializeDeliveryRequest(
   row: DeliveryRequest,
   activeAssignment?: CourierAssignment | null,
+  courierUser?: { id: string; name: string | null; username: string | null } | null,
 ): DeliveryRequestDTO {
+  const courierId =
+    courierUser?.id ?? activeAssignment?.courierId ?? null;
+  const courierName = courierUser
+    ? courierDisplayName(courierUser)
+    : null;
+
   return {
     id: row.id,
     communityOrderId: row.communityOrderId,
@@ -25,6 +39,8 @@ export function serializeDeliveryRequest(
     activeAssignment: activeAssignment
       ? serializeCourierAssignment(activeAssignment)
       : null,
+    courierId,
+    courierName,
   };
 }
 

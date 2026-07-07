@@ -10,6 +10,7 @@ import {
 import { useNarrowViewport } from '@/hooks/useNarrowViewport';
 import type { MarketplaceTileModel, TranslateFn } from '@/lib/marketplace/tiles/types';
 import {
+  PREVIEW_DESKTOP_HOVER_ENABLED,
   PREVIEW_HOVER_DELAY_MS,
   PREVIEW_LONG_PRESS_MS,
   PREVIEW_LONG_PRESS_MOVE_THRESHOLD_PX,
@@ -149,7 +150,7 @@ export default function MarketplacePreviewShell({
   );
 
   const scheduleDesktopOpen = useCallback(() => {
-    if (narrow) return;
+    if (!PREVIEW_DESKTOP_HOVER_ENABLED || narrow) return;
     clearOpenTimer();
     openTimerRef.current = setTimeout(() => {
       if (
@@ -165,7 +166,7 @@ export default function MarketplacePreviewShell({
   }, [clearOpenTimer, narrow, openPreview]);
 
   const handleTileEnter = useCallback(() => {
-    if (!enabled || narrow) return;
+    if (!PREVIEW_DESKTOP_HOVER_ENABLED || !enabled || narrow) return;
     overTileRef.current = true;
     scheduleDesktopOpen();
   }, [enabled, narrow, scheduleDesktopOpen]);
@@ -285,8 +286,12 @@ export default function MarketplacePreviewShell({
       <div
         ref={shellRef}
         className="relative h-full"
-        onMouseEnter={handleTileEnter}
-        onMouseLeave={handleTileLeave}
+        {...(PREVIEW_DESKTOP_HOVER_ENABLED
+          ? {
+              onMouseEnter: handleTileEnter,
+              onMouseLeave: handleTileLeave,
+            }
+          : {})}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchMove={handleTouchMove}

@@ -5720,7 +5720,23 @@
       "activeAssignmentExists": "Er is al een actieve toewijzing.",
       "noPendingAssignment": "Geen openstaande toewijzing.",
       "courierOnly": "Alleen de toegewezen bezorger kan accepteren.",
-      "noAcceptedAssignment": "Geen geaccepteerde toewijzing."
+      "noAcceptedAssignment": "Geen geaccepteerde toewijzing.",
+      "notOpenForClaim": "Dit bezorgverzoek kan niet meer geclaimd worden."
+    },
+    "community": {
+      "tab": "Community bezorgingen",
+      "platformTab": "Platform bezorgingen",
+      "available": "Open community bezorgingen",
+      "myJobs": "Mijn community bezorgingen",
+      "empty": "Geen open community bezorgingen in jouw gebied.",
+      "pickup": "Ophalen",
+      "dropoff": "Afleveren",
+      "distance": "± {{km}} km",
+      "claim": "Claim bezorging",
+      "accept": "Accepteer opdracht",
+      "complete": "Markeer als afgerond",
+      "goOnlineHint": "Ga online om community bezorgingen te claimen.",
+      "youAreCourier": "Jij bezorgt deze afspraak"
     }
   },
   "chat": {
@@ -8584,6 +8600,8 @@
       "statusPending": "Bezorging nog niet aangevraagd",
       "statusActive": "Bezorging aangevraagd",
       "courierAssigned": "Bezorger toegewezen",
+      "courierName": "Bezorger: {{name}}",
+      "inProgress": "Bezorging onderweg",
       "detailsHeading": "Bezorging"
     }
   },
