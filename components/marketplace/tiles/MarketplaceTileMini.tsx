@@ -33,7 +33,7 @@ export default function MarketplaceTileMini({
   const title = model.title || t('common.dish');
 
   return (
-    <article className="hc-dorpsplein-card flex flex-col overflow-hidden rounded-xl border border-primary-brand/10 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <article className="hc-dorpsplein-card flex h-auto flex-col self-start overflow-hidden rounded-xl border border-primary-brand/10 bg-white shadow-sm transition-shadow hover:shadow-md">
       <TileMedia
         href={model.href}
         alt={model.imageAlt}

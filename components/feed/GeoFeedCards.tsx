@@ -11,6 +11,9 @@ export type GeoFeedCardItem = {
   description: string | null;
   priceCents: number | null;
   orderMethod?: ProductOrderMethodValue | string | null;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
+  sellerStripeConnectReady?: boolean | null;
   listingIntent?: string | null;
   priceModel?: string | null;
   type?: string | null;

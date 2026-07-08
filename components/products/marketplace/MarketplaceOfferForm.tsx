@@ -30,6 +30,7 @@ import BarterOpennessSelector from '@/components/products/marketplace/BarterOpen
 import TaxonomySpecializationPicker from '@/components/products/marketplace/TaxonomySpecializationPicker';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
+import SettlementConnectGuidance from '@/components/products/marketplace/SettlementConnectGuidance';
 import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
 import { fulfillmentOptionsToApiString } from '@/lib/marketplace/fulfillment';
@@ -552,6 +553,8 @@ export default function MarketplaceOfferForm({
       {acceptHomeCheffPayment && priceModel !== 'ON_REQUEST' && priceModel !== 'VOLUNTARY' ? (
         <StripeConnectPaymentsBanner />
       ) : null}
+
+      <SettlementConnectGuidance active={acceptHomeCheffPayment} />
 
       <div>
         <label className="block text-sm font-semibold text-gray-900 mb-2">

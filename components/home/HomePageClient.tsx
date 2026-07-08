@@ -23,7 +23,9 @@ import {
 import { useVisibleHomePromotionIds } from "@/hooks/useVisibleHomePromotions";
 import { useNarrowViewportResolved } from "@/hooks/useNarrowViewport";
 
-type HomeFeedChip = 'all' | 'sale' | 'inspiration' | 'gezocht' | 'services';
+import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
+
+type HomeFeedChip = FeedViewFilterId;
 
 function pickFirstName(
   user: { name?: string | null; email?: string | null } | undefined

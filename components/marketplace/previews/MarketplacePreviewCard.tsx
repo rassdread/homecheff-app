@@ -1,11 +1,73 @@
 'use client';
 
 import { useMemo, type ReactNode } from 'react';
+import { ShieldCheck, Banknote, Handshake, ArrowLeftRight } from 'lucide-react';
 import { buildMarketplacePreviewContent } from '@/lib/marketplace/previews';
 import type { MarketplacePreviewContent } from '@/lib/marketplace/previews/types';
 import type { MarketplaceTileModel, TranslateFn } from '@/lib/marketplace/tiles/types';
+import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 import { PreviewFulfillmentIcon } from './preview-fulfillment-icons';
 import MarketplacePreviewActions from './MarketplacePreviewActions';
+
+/** Phase 7C.7 — plain-language settlement explanation for the preview. */
+function PreviewSettlement({
+  model,
+  t,
+}: {
+  model: MarketplaceTileModel;
+  t: TranslateFn;
+}) {
+  if (model.mode === 'inspiration') return null;
+
+  const options = resolveSettlementOptions({
+    acceptHomeCheffPayment:
+      typeof model.acceptsHomeCheffCheckout === 'boolean' ? model.acceptsHomeCheffCheckout : undefined,
+    acceptDirectContact:
+      typeof model.acceptsDirectContact === 'boolean' ? model.acceptsDirectContact : undefined,
+    orderMethod: model.orderMethod,
+    barterOpenness: model.barterOpenness,
+    acceptedSpecializations: model.acceptedSpecializations,
+    acceptedValueSubcategories: model.acceptedValueSubcategories,
+    priceCents: model.priceCents,
+    priceModel: model.priceModel,
+    listingIntent: model.listingIntent,
+    stripeConnectReady: model.homeCheffCheckoutConfigured === false ? false : undefined,
+  });
+
+  const rows: { key: string; icon: ReactNode; label: string }[] = [];
+  if (options.canCheckoutNow) {
+    rows.push({ key: 'homecheff', icon: <ShieldCheck className="h-3.5 w-3.5 text-primary-brand" aria-hidden />, label: t('marketplace.preview.settlement.homeCheffCheckout') });
+  }
+  if (options.acceptsDirectContact) {
+    rows.push({ key: 'direct', icon: <Banknote className="h-3.5 w-3.5 text-gray-600" aria-hidden />, label: t('marketplace.preview.settlement.directContact') });
+  }
+  if (options.allowsBarter) {
+    rows.push({ key: 'barter', icon: <Handshake className="h-3.5 w-3.5 text-amber-600" aria-hidden />, label: t('marketplace.preview.settlement.barter') });
+  }
+  if (options.hasAcceptedValues) {
+    rows.push({ key: 'value', icon: <ArrowLeftRight className="h-3.5 w-3.5 text-secondary-brand" aria-hidden />, label: t('marketplace.preview.settlement.acceptedValues') });
+  }
+
+  if (rows.length === 0) return null;
+
+  const isRequest = String(model.listingIntent ?? '').toUpperCase() === 'REQUEST';
+  const heading = isRequest
+    ? t('marketplace.preview.settlement.requestHeading')
+    : t('marketplace.preview.settlement.heading');
+
+  return (
+    <PreviewSection title={heading}>
+      <ul className="space-y-1">
+        {rows.map((row) => (
+          <li key={row.key} className="flex items-center gap-2 text-sm text-gray-700">
+            {row.icon}
+            <span>{row.label}</span>
+          </li>
+        ))}
+      </ul>
+    </PreviewSection>
+  );
+}
 
 function PreviewMetaRow({
   label,
@@ -183,6 +245,8 @@ export default function MarketplacePreviewCard({
             </div>
           </PreviewSection>
         ) : null}
+
+        <PreviewSettlement model={model} t={t} />
 
         {content.fulfillment.length > 0 ? (
           <PreviewSection title={t('marketplace.preview.sections.fulfillment')}>

@@ -539,6 +539,19 @@ html.hc-pwa-standalone:has([data-hc-bottom-nav][data-play-migration-strip="true"
   animation: hc-feed-layout-in 0.28s ease-out;
 }
 
+.hc-feed-cards-column .feed-card-geo,
+.hc-discover-feed-grid .feed-card-geo {
+  height: auto;
+  align-self: start;
+}
+
+.hc-feed-cards-column .feed-card-geo > .relative.aspect-\[4\/5\],
+.hc-discover-feed-grid .feed-card-geo > .relative.aspect-\[4\/5\],
+.hc-feed-cards-column .feed-card-geo > .relative.aspect-square,
+.hc-discover-feed-grid .feed-card-geo > .relative.aspect-square {
+  flex-shrink: 0;
+}
+
 @keyframes hc-feed-layout-in {
   from {
     opacity: 0;

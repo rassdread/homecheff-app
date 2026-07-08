@@ -7991,6 +7991,19 @@
       "acceptedValues": {
         "title": "Accepted counter-values"
       },
+      "settlement": {
+        "title": "Settlement & agreements",
+        "intro": "Here's how you can finalize this agreement:",
+        "homeCheffCheckout": "Secure via HomeCheff",
+        "homeCheffCheckoutDesc": "Pay securely online. HomeCheff handles the payment and you're protected.",
+        "directContact": "Directly with the provider",
+        "directContactDesc": "Arrange payment or pickup together via a conversation.",
+        "barter": "Barter",
+        "barterDesc": "The provider is open to bartering instead of money.",
+        "acceptedValues": "Alternative values",
+        "acceptedValuesDesc": "The provider also accepts other value, such as help or a creation.",
+        "needsConnect": "Secure checkout via HomeCheff becomes available once the provider completes their payout profile."
+      },
       "conditions": {
         "title": "Conditions & logistics",
         "pickupAvailable": "Pickup available",
@@ -8371,6 +8384,39 @@
       "inspiration": {
         "creator": "Creator",
         "category": "Category"
+      },
+      "settlement": {
+        "heading": "Settlement",
+        "homeCheffCheckout": "Secure via HomeCheff",
+        "directContact": "Directly with the provider",
+        "barter": "Barter possible",
+        "acceptedValues": "Alternative value negotiable",
+        "requestHeading": "Seeker is open to",
+        "requestProposal": "You can propose to help"
+      }
+    },
+    "settlement": {
+      "homeCheffCheckout": "Secure checkout via HomeCheff",
+      "directContact": "Arrange directly / cash with the provider",
+      "barter": "Barter allowed",
+      "acceptedValues": "Alternative values allowed",
+      "needsConnect": "Secure checkout via HomeCheff is available once your payout profile is ready. Complete Stripe Connect to receive payments via HomeCheff.",
+      "connectReady": "Your payout profile is ready. Buyers can check out securely via HomeCheff.",
+      "setupConnectCta": "Set up payout profile",
+      "connectError": "Something went wrong. Please try again."
+    },
+    "canonical": {
+      "view": {
+        "all": "All",
+        "offered": "Offered",
+        "wanted": "Wanted",
+        "inspiration": "Inspiration"
+      },
+      "category": {
+        "food": "Food",
+        "garden": "Garden",
+        "creations": "Creations",
+        "services": "Services"
       }
     },
     "acceptedValues": {

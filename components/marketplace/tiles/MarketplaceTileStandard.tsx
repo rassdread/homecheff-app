@@ -4,6 +4,7 @@ import Link from 'next/link';
 import ShareButton from '@/components/ui/ShareButton';
 import {
   buildTileBadges,
+  buildTileSettlementRow,
   buildTileTrustCue,
   type MarketplaceTileModel,
   type TranslateFn,
@@ -12,6 +13,7 @@ import { MarketplacePreviewShell } from '@/components/marketplace/previews';
 import {
   TileMedia,
   TilePersonRow,
+  TileSettlementRow,
   TileTrustCue,
   TileValueExchangeBlock,
 } from '@/components/marketplace/tiles/primitives';
@@ -33,6 +35,7 @@ export default function MarketplaceTileStandard({
 }: MarketplaceTileStandardProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'standard', locale);
   const trustCue = buildTileTrustCue(model, t, 3);
+  const settlement = buildTileSettlementRow(model);
   const title = model.title || t('common.dish');
 
   return (
@@ -42,7 +45,7 @@ export default function MarketplaceTileStandard({
       locale={locale}
       enabled={enablePreview}
     >
-      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex flex-col overflow-hidden border-primary-brand/15">
+      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden border-primary-brand/15">
       <TileMedia
         href={model.href}
         alt={model.imageAlt}
@@ -57,7 +60,7 @@ export default function MarketplaceTileStandard({
         mode={model.mode}
         showPreviewInfo={enablePreview}
       />
-      <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-3 sm:p-3.5">
+      <div className="flex shrink-0 flex-col gap-1.5 p-3 sm:p-3.5">
         <TilePersonRow model={model} t={t} />
         <div className="flex items-start justify-between gap-2">
           <Link href={model.href} prefetch className="min-w-0 flex-1">
@@ -77,11 +80,13 @@ export default function MarketplaceTileStandard({
           t={t}
           variant="standard"
           device="desktop"
+          showSettlement={false}
         />
         <TileTrustCue
           trustCue={trustCue}
           className="truncate text-xs font-medium text-gray-500"
         />
+        {settlement ? <TileSettlementRow row={settlement} t={t} /> : null}
       </div>
     </article>
     </MarketplacePreviewShell>

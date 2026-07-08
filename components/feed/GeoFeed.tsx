@@ -152,7 +152,6 @@ import {
 import {
   compareFeedSaleItems,
   feedItemCategoryEnum,
-  feedVerticalSlugToCategoryEnum,
   matchesFeedClientPriceRange,
   sortFeedSaleItems,
   isDiscoverySmartFeedSort,
@@ -186,8 +185,15 @@ import {
   countMarketplaceRequestItems,
   isMarketplaceRequestItem,
   isMarketplaceSaleItem,
-  isMarketplaceServiceItem,
 } from "@/lib/feed/marketplace-sale";
+import {
+  DISCOVERY_CATEGORY_CHIP_OPTIONS,
+  DISCOVERY_VIEW_CHIP_OPTIONS,
+  itemMatchesDiscoveryCategorySlug,
+  isServicesCategorySlug,
+  migrateLegacyServicesViewChip,
+  normalizeDiscoveryCategorySlug,
+} from "@/lib/marketplace/canonical-model";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
 import { computeViewerDistanceKm, resolveFeedItemCoordsFromRaw } from "@/lib/geo/item-location";
@@ -230,6 +236,9 @@ type FeedItem = {
   description: string | null;
   priceCents: number | null;
   orderMethod?: string | null;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
+  sellerStripeConnectReady?: boolean | null;
   listingIntent?: string | null;
   priceModel?: string | null;
   type?: string | null;
@@ -446,6 +455,12 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     priceCents,
     orderMethod:
       raw.orderMethod != null ? String(raw.orderMethod) : null,
+    acceptHomeCheffPayment:
+      typeof raw.acceptHomeCheffPayment === 'boolean' ? raw.acceptHomeCheffPayment : null,
+    acceptDirectContact:
+      typeof raw.acceptDirectContact === 'boolean' ? raw.acceptDirectContact : null,
+    sellerStripeConnectReady:
+      typeof raw.sellerStripeConnectReady === 'boolean' ? raw.sellerStripeConnectReady : null,
     priceModel: raw.priceModel != null ? String(raw.priceModel) : null,
     ownerId,
     category,
@@ -729,6 +744,9 @@ function toCardItem(
     description: it.description,
     priceCents: it.priceCents,
     orderMethod: it.orderMethod,
+    acceptHomeCheffPayment: it.acceptHomeCheffPayment,
+    acceptDirectContact: it.acceptDirectContact,
+    sellerStripeConnectReady: it.sellerStripeConnectReady,
     listingIntent: getDiscoveryListingIntent(it),
     priceModel: it.priceModel,
     type: it.type,
@@ -760,13 +778,35 @@ function toCardItem(
   };
 }
 
-function initialDorpspleinCategoryFromServer(raw?: string): string {
-  if (!raw?.trim()) return "all";
-  const v = raw.toLowerCase().trim();
-  if (v === "cheff" || v === "chef" || v === "keuken") return "cheff";
-  if (v === "grown" || v === "garden" || v === "tuin") return "garden";
-  if (v === "designer" || v === "design" || v === "studio") return "designer";
+function normalizeFeedChipState(chip: unknown): FeedChip {
+  if (chip === "services") return "sale";
+  if (
+    chip === "all" ||
+    chip === "sale" ||
+    chip === "inspiration" ||
+    chip === "gezocht"
+  ) {
+    return chip;
+  }
   return "all";
+}
+
+function migratePersistedFeedFilters(raw: {
+  feedChip?: unknown;
+  category?: string;
+}): { feedChip: FeedChip; category: string } {
+  const legacy = migrateLegacyServicesViewChip(
+    typeof raw.feedChip === "string" ? raw.feedChip : null,
+    raw.category,
+  );
+  return {
+    feedChip: legacy?.chip ?? normalizeFeedChipState(raw.feedChip),
+    category: legacy?.category ?? normalizeDiscoveryCategorySlug(raw.category),
+  };
+}
+
+function initialDorpspleinCategoryFromServer(raw?: string): string {
+  return normalizeDiscoveryCategorySlug(raw);
 }
 
 type GeoFeedProps = {
@@ -819,13 +859,8 @@ export function useHomeSurfacePlan() {
   return ctx?.surfacePlan ?? null;
 }
 
-/** Vertical discovery axis — mirrors the category select (slugs map via feedVerticalSlugToCategoryEnum). */
-const VERTICAL_CHIP_OPTIONS = [
-  { slug: "all", labelKey: "filters.all" },
-  { slug: "cheff", labelKey: "feed.verticalFood" },
-  { slug: "garden", labelKey: "feed.verticalGarden" },
-  { slug: "designer", labelKey: "feed.verticalCreations" },
-] as const;
+/** Category discovery axis — Phase 7E canonical model (services is category-only). */
+const CATEGORY_CHIP_OPTIONS = DISCOVERY_CATEGORY_CHIP_OPTIONS;
 
 export default function GeoFeed({
   initialInspiratieItems = [],
@@ -1120,12 +1155,10 @@ export default function GeoFeed({
     const persisted = loadFeedSurfaceState<HomePersist>("home");
     if (persisted && typeof persisted === "object") {
       const migrated = migrateHomeFeedPersist(persisted);
+      const feedFilters = migratePersistedFeedFilters(migrated);
       setAppliedScope(migrated.scope);
       if (!urlLocksChip) {
-        const fc = migrated.feedChip;
-        if (fc === "all" || fc === "sale" || fc === "inspiration" || fc === "gezocht") {
-          setFeedChip(fc);
-        }
+        setFeedChip(feedFilters.feedChip);
       }
       const r = migrated.radius;
       if (typeof r === "number" && r >= 0 && r <= 500) {
@@ -1133,13 +1166,8 @@ export default function GeoFeed({
         setAppliedRadius(r);
       }
       if (!urlLocksCategory) {
-        if (
-          typeof migrated.category === "string" &&
-          migrated.category.length < 80
-        ) {
-          setCategory(migrated.category);
-          setAppliedCategory(migrated.category);
-        }
+        setCategory(feedFilters.category);
+        setAppliedCategory(feedFilters.category);
       }
       const sb = migrated.sortBy;
       if (sb === "newest" || sb === "price" || sb === "views" || sb === "distance") {
@@ -1204,7 +1232,9 @@ export default function GeoFeed({
 
     const uid = (session?.user as { id?: string } | undefined)?.id ?? null;
     const p = readNativeFeedPrefs(uid);
-    if (!urlLocksChip && p?.feedChip) setFeedChip(p.feedChip);
+    if (!urlLocksChip && p?.feedChip) {
+      setFeedChip(normalizeFeedChipState(p.feedChip));
+    }
     if (p?.sortBy) setSortBy(p.sortBy);
     if (p?.sortOrder) setSortOrder(p.sortOrder);
     queueMicrotask(() => {
@@ -1817,33 +1847,30 @@ export default function GeoFeed({
     [saleCandidates, appliedSearchQuery]
   );
 
-  const categoryEnum = useMemo(
-    () =>
-      appliedCategory !== "all"
-        ? feedVerticalSlugToCategoryEnum(appliedCategory)
-        : null,
-    [appliedCategory]
-  );
-
   const filteredRequestBase = useMemo(() => {
     const qn = appliedSearchQuery.trim();
     return requestCandidates.filter((item) => {
       if (!matchesSearch(item, qn)) return false;
-      if (categoryEnum) {
-        const itemCat = getDiscoveryLegacyVerticalCategory(item);
-        if (itemCat !== categoryEnum) return false;
-      }
-      return true;
+      return itemMatchesDiscoveryCategorySlug(
+        item,
+        appliedCategory,
+        getDiscoveryLegacyVerticalCategory,
+      );
     });
-  }, [requestCandidates, appliedSearchQuery, categoryEnum]);
+  }, [requestCandidates, appliedSearchQuery, appliedCategory]);
 
   const filteredSaleBase = useMemo(() => {
     const qn = appliedSearchQuery.trim();
     return saleCandidates.filter((item) => {
       if (!matchesSearch(item, qn)) return false;
-      if (categoryEnum) {
-        const itemCat = getDiscoveryLegacyVerticalCategory(item);
-        if (itemCat !== categoryEnum) return false;
+      if (
+        !itemMatchesDiscoveryCategorySlug(
+          item,
+          appliedCategory,
+          getDiscoveryLegacyVerticalCategory,
+        )
+      ) {
+        return false;
       }
       return matchesFeedClientPriceRange(
         item,
@@ -1851,7 +1878,7 @@ export default function GeoFeed({
         appliedPriceRange.max
       );
     });
-  }, [saleCandidates, appliedSearchQuery, appliedPriceRange, categoryEnum]);
+  }, [saleCandidates, appliedSearchQuery, appliedPriceRange, appliedCategory]);
 
   const hasViewerCoordsForSort = effectiveViewerForDistance != null;
 
@@ -1891,24 +1918,34 @@ export default function GeoFeed({
   const filteredApiInspiration = useMemo(() => {
     const qn = appliedSearchQuery.trim();
     return inspiratiePool.filter((item) => {
-      if (categoryEnum) {
-        const itemCat = getDiscoveryLegacyVerticalCategory(item);
-        if (itemCat !== categoryEnum) return false;
+      if (
+        !itemMatchesDiscoveryCategorySlug(
+          item,
+          appliedCategory,
+          getDiscoveryLegacyVerticalCategory,
+        )
+      ) {
+        return false;
       }
       return matchesSearchTextQuery(toSearchableListingRecord(item), qn);
     });
-  }, [inspiratiePool, appliedSearchQuery, categoryEnum]);
+  }, [inspiratiePool, appliedSearchQuery, appliedCategory]);
 
   const filteredFeedInspiration = useMemo(() => {
     const qn = appliedSearchQuery.trim();
     return feedOnlyInspiration.filter((item) => {
-      if (categoryEnum) {
-        const itemCat = getDiscoveryLegacyVerticalCategory(item);
-        if (itemCat !== categoryEnum) return false;
+      if (
+        !itemMatchesDiscoveryCategorySlug(
+          item,
+          appliedCategory,
+          getDiscoveryLegacyVerticalCategory,
+        )
+      ) {
+        return false;
       }
       return matchesSearch(item, qn);
     });
-  }, [feedOnlyInspiration, appliedSearchQuery, categoryEnum]);
+  }, [feedOnlyInspiration, appliedSearchQuery, appliedCategory]);
 
   const inspirationSlots = useMemo(() => {
     const built = buildInspSlots(filteredApiInspiration, filteredFeedInspiration);
@@ -1991,12 +2028,6 @@ export default function GeoFeed({
   ]);
 
   const sortedSales = rankingResult.orderedSaleOnly;
-
-  /** Diensten pillar — client-side subset of the sale pool (no extra fetch). */
-  const sortedServices = useMemo(
-    () => sortedSales.filter(isMarketplaceServiceItem),
-    [sortedSales]
-  );
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
@@ -2094,11 +2125,6 @@ export default function GeoFeed({
         row: "sale" as const,
         item,
       }));
-    } else if (feedChip === "services") {
-      return sortedServices.map((item) => ({
-        row: "sale" as const,
-        item,
-      }));
     } else {
       rows = mixedRows;
     }
@@ -2106,8 +2132,7 @@ export default function GeoFeed({
     if (
       !session?.user ||
       feedChip === "inspiration" ||
-      feedChip === "gezocht" ||
-      feedChip === "services"
+      feedChip === "gezocht"
     ) {
       return rows;
     }
@@ -2164,7 +2189,6 @@ export default function GeoFeed({
   }, [
     feedChip,
     sortedSales,
-    sortedServices,
     inspirationSlots,
     mixedRows,
     useDiscoverySections,
@@ -2625,10 +2649,12 @@ export default function GeoFeed({
     feedHydrated &&
     filteredRequestBase.length === 0;
   const emptyServices =
-    feedChip === "services" &&
+    isServicesCategorySlug(appliedCategory) &&
+    feedChip !== "inspiration" &&
+    feedChip !== "gezocht" &&
     !loading &&
     feedHydrated &&
-    sortedServices.length === 0;
+    sortedSales.length === 0;
   const emptyAll =
     !emptyRadiusNoLocal &&
     feedChip === "all" &&
@@ -2691,41 +2717,16 @@ export default function GeoFeed({
         {t("feed.viewModeLabel")}
       </p>
       <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
-        <button
-          type="button"
-          className={chipBtn(feedChip === "all")}
-          onClick={() => setFeedChip("all")}
-        >
-          {t("filters.all")}
-        </button>
-        <button
-          type="button"
-          className={chipBtn(feedChip === "sale")}
-          onClick={() => setFeedChip("sale")}
-        >
-          {t("feed.chipSale")}
-        </button>
-        <button
-          type="button"
-          className={chipBtn(feedChip === "gezocht")}
-          onClick={() => setFeedChip("gezocht")}
-        >
-          {t("marketplace.discovery.requests.chip")}
-        </button>
-        <button
-          type="button"
-          className={chipBtn(feedChip === "services")}
-          onClick={() => setFeedChip("services")}
-        >
-          {t("feed.chipServices")}
-        </button>
-        <button
-          type="button"
-          className={chipBtn(feedChip === "inspiration")}
-          onClick={() => setFeedChip("inspiration")}
-        >
-          {t("feed.chipInspiration")}
-        </button>
+        {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
+          <button
+            key={legacyChip}
+            type="button"
+            className={chipBtn(feedChip === legacyChip)}
+            onClick={() => setFeedChip(legacyChip)}
+          >
+            {t(labelKey)}
+          </button>
+        ))}
       </div>
       <p
         className={
@@ -2737,7 +2738,7 @@ export default function GeoFeed({
         {t("feed.verticalAxisLabel")}
       </p>
       <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
-        {VERTICAL_CHIP_OPTIONS.map(({ slug, labelKey }) => (
+        {CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
           <button
             key={slug}
             type="button"
@@ -2913,15 +2914,13 @@ export default function GeoFeed({
                       className={filterInputClass}
                     >
                       <option value="all">{t("common.allCategories")}</option>
-                      <option value="cheff">
-                        {t("feed.categoryVerticalCheff")}
-                      </option>
-                      <option value="garden">
-                        {t("feed.categoryVerticalGarden")}
-                      </option>
-                      <option value="designer">
-                        {t("feed.categoryVerticalDesigner")}
-                      </option>
+                      {CATEGORY_CHIP_OPTIONS.filter((o) => o.slug !== "all").map(
+                        ({ slug, labelKey }) => (
+                          <option key={slug} value={slug}>
+                            {t(labelKey)}
+                          </option>
+                        ),
+                      )}
                     </select>
                   </div>
                 </div>
@@ -3210,6 +3209,8 @@ export default function GeoFeed({
         t={t}
         feedChip={feedChip}
         onFeedChipChange={setFeedChip}
+        appliedCategory={appliedCategory}
+        onCategoryChange={selectVerticalChip}
         appliedScope={appliedScope}
         onScopeChange={handleScopeChange}
         sortBy={sortBy}
@@ -3430,7 +3431,7 @@ export default function GeoFeed({
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setFeedChip("all")}
+              onClick={() => selectVerticalChip("all")}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               {t("filters.all")}

@@ -1,23 +1,22 @@
 import { getInspiratieItems } from '@/lib/getInspiratieItems';
 import HomePageClient from '@/components/home/HomePageClient';
+import {
+  isLegacyServicesViewChip,
+  migrateLegacyServicesViewChip,
+  normalizeDiscoveryCategorySlug,
+} from '@/lib/marketplace/canonical-model';
+import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
 
-type HomeFeedChip = 'all' | 'sale' | 'inspiration' | 'gezocht' | 'services';
 export const revalidate = 60;
 
-function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefined {
+function normalizeHomeFeedChip(raw: string | undefined): FeedViewFilterId | undefined {
   if (!raw) return undefined;
+  if (isLegacyServicesViewChip(raw)) return undefined;
   const v = raw.toLowerCase().trim();
-  if (v === 'sale' || v === 'shop' || v === 'koop' || v === 'dorpsplein') return 'sale';
-  if (v === 'all' || v === 'mixed' || v === 'everything') return 'all';
-  if (
-    v === 'services' ||
-    v === 'service' ||
-    v === 'diensten' ||
-    v === 'dienst' ||
-    v === 'klussen'
-  ) {
-    return 'services';
+  if (v === 'sale' || v === 'shop' || v === 'koop' || v === 'dorpsplein' || v === 'offered' || v === 'aanbod' || v === 'aangeboden') {
+    return 'sale';
   }
+  if (v === 'all' || v === 'mixed' || v === 'everything' || v === 'alles') return 'all';
   if (
     v === 'inspiration' ||
     v === 'inspiratie' ||
@@ -30,8 +29,7 @@ function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefine
     v === 'gezocht' ||
     v === 'request' ||
     v === 'requests' ||
-    v === 'help' ||
-    v === 'hulp'
+    v === 'wanted'
   ) {
     return 'gezocht';
   }
@@ -39,13 +37,21 @@ function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefine
 }
 
 function normalizeHomeFeedVertical(raw: string | undefined): string | undefined {
-  if (!raw) return undefined;
-  const v = raw.toLowerCase().trim();
-  if (v === 'cheff' || v === 'chef' || v === 'keuken') return 'cheff';
-  if (v === 'grown' || v === 'garden' || v === 'tuin') return 'garden';
-  if (v === 'designer' || v === 'design' || v === 'studio') return 'designer';
-  if (v === 'all') return 'all';
-  return undefined;
+  const slug = normalizeDiscoveryCategorySlug(raw);
+  return slug === 'all' ? undefined : slug;
+}
+
+function resolveHomeFeedDeepLink(
+  chipRaw: string | undefined,
+  verticalRaw: string | undefined,
+): { initialFeedChip?: FeedViewFilterId; initialFeedCategory?: string } {
+  const legacy = migrateLegacyServicesViewChip(chipRaw, verticalRaw);
+  if (legacy) {
+    return { initialFeedChip: legacy.chip, initialFeedCategory: legacy.category };
+  }
+  const initialFeedChip = normalizeHomeFeedChip(chipRaw);
+  const initialFeedCategory = normalizeHomeFeedVertical(verticalRaw);
+  return { initialFeedChip, initialFeedCategory };
 }
 
 /**
@@ -65,8 +71,10 @@ export default async function HomePage({
   }
 
   const raw = searchParams?.chip;
-  const initialFeedChip = normalizeHomeFeedChip(raw);
-  const initialFeedCategory = normalizeHomeFeedVertical(searchParams?.vertical);
+  const { initialFeedChip, initialFeedCategory } = resolveHomeFeedDeepLink(
+    raw,
+    searchParams?.vertical,
+  );
   const initialFeedPlace = searchParams?.place?.trim().slice(0, 200) || undefined;
   const stickyTestMode = searchParams?.stickyTest != null && searchParams.stickyTest !== '0';
 

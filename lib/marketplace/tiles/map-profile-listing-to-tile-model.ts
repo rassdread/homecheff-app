@@ -16,6 +16,7 @@ import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-ki
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 import { resolveTileValueExchangeFields } from './resolve-tile-value-exchange';
+import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 import type {
   MarketplaceTileMode,
   MarketplaceTileModel,
@@ -30,6 +31,9 @@ export type ProfileListingInput = {
   priceCents?: number | null;
   priceModel?: string | null;
   orderMethod?: string | null;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
+  sellerStripeConnectReady?: boolean | null;
   listingIntent?: string | null;
   listingKind?: ListingKind | null;
   category?: string | null;
@@ -90,6 +94,19 @@ export function mapProfileListingToTileModel(
     listingIntent,
   });
 
+  const settlement = resolveSettlementOptions({
+    acceptHomeCheffPayment: item.acceptHomeCheffPayment,
+    acceptDirectContact: item.acceptDirectContact,
+    orderMethod: item.orderMethod,
+    barterOpenness: d?.barterOpenness != null ? String(d.barterOpenness) : null,
+    acceptedSpecializations,
+    acceptedValueSubcategories: valueExchange.acceptedValueSubcategories,
+    priceCents: item.priceCents ?? null,
+    priceModel: item.priceModel ?? null,
+    listingIntent,
+    stripeConnectReady: item.sellerStripeConnectReady,
+  });
+
   return {
     id: item.id,
     href: options.href,
@@ -114,6 +131,10 @@ export function mapProfileListingToTileModel(
     priceCents: item.priceCents ?? null,
     priceModel: item.priceModel ?? null,
     orderMethod: item.orderMethod ?? null,
+
+    acceptsHomeCheffCheckout: settlement.acceptsHomeCheffCheckout,
+    acceptsDirectContact: settlement.acceptsDirectContact,
+    homeCheffCheckoutConfigured: settlement.homeCheffCheckoutConfigured,
 
     person: options.owner,
     place: d?.city ?? item.place ?? null,

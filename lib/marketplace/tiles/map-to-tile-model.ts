@@ -23,6 +23,7 @@ import type {
 import { mapDiscoveryTrustToTileTrust } from './map-trust';
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 import { resolveTileValueExchangeFields } from './resolve-tile-value-exchange';
+import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 
 let legacyWarned = false;
 
@@ -109,6 +110,19 @@ export function mapGeoFeedCardToTileModel(
       (getDiscoveryListingIntent(item) as 'OFFER' | 'REQUEST' | null) ?? null,
   });
 
+  const settlement = resolveSettlementOptions({
+    acceptHomeCheffPayment: item.acceptHomeCheffPayment,
+    acceptDirectContact: item.acceptDirectContact,
+    orderMethod: item.orderMethod,
+    barterOpenness: d?.barterOpenness != null ? String(d.barterOpenness) : null,
+    acceptedSpecializations,
+    acceptedValueSubcategories: valueExchange.acceptedValueSubcategories,
+    priceCents: item.priceCents ?? null,
+    priceModel: item.priceModel ?? null,
+    listingIntent,
+    stripeConnectReady: item.sellerStripeConnectReady,
+  });
+
   return {
     id: item.id,
     href,
@@ -132,6 +146,10 @@ export function mapGeoFeedCardToTileModel(
     priceCents: item.priceCents ?? null,
     priceModel: item.priceModel ?? null,
     orderMethod: item.orderMethod ?? null,
+
+    acceptsHomeCheffCheckout: settlement.acceptsHomeCheffCheckout,
+    acceptsDirectContact: settlement.acceptsDirectContact,
+    homeCheffCheckoutConfigured: settlement.homeCheffCheckoutConfigured,
 
     person: item.sellerUserId
       ? {

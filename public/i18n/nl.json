@@ -7991,6 +7991,19 @@
       "acceptedValues": {
         "title": "Geaccepteerde tegenwaarden"
       },
+      "settlement": {
+        "title": "Afrekenen & afspraken",
+        "intro": "Zo kun je deze afspraak afronden:",
+        "homeCheffCheckout": "Veilig via HomeCheff",
+        "homeCheffCheckoutDesc": "Betaal veilig online. HomeCheff regelt de betaling en je bent beschermd.",
+        "directContact": "Direct met aanbieder",
+        "directContactDesc": "Regel betaling of ophalen onderling via een gesprek.",
+        "barter": "Ruilen",
+        "barterDesc": "De aanbieder staat open voor ruilen in plaats van geld.",
+        "acceptedValues": "Alternatieve tegenwaarden",
+        "acceptedValuesDesc": "De aanbieder accepteert ook andere waarde, zoals hulp of een creatie.",
+        "needsConnect": "Veilig afrekenen via HomeCheff komt beschikbaar zodra de aanbieder het uitbetalingsprofiel heeft afgerond."
+      },
       "conditions": {
         "title": "Voorwaarden",
         "pickupAvailable": "Ophalen mogelijk",
@@ -8371,6 +8384,39 @@
       "inspiration": {
         "creator": "Maker",
         "category": "Categorie"
+      },
+      "settlement": {
+        "heading": "Afrekenen",
+        "homeCheffCheckout": "Veilig via HomeCheff",
+        "directContact": "Direct met aanbieder",
+        "barter": "Ruil mogelijk",
+        "acceptedValues": "Alternatieve waarde bespreekbaar",
+        "requestHeading": "Zoeker staat open voor",
+        "requestProposal": "Je kunt voorstellen om te helpen"
+      }
+    },
+    "settlement": {
+      "homeCheffCheckout": "Veilig afrekenen via HomeCheff",
+      "directContact": "Direct / contant met aanbieder regelen",
+      "barter": "Ruilen toegestaan",
+      "acceptedValues": "Alternatieve tegenwaarden toegestaan",
+      "needsConnect": "Veilig afrekenen via HomeCheff is beschikbaar zodra je uitbetalingsprofiel klaar is. Rond Stripe Connect af om betalingen via HomeCheff te ontvangen.",
+      "connectReady": "Je uitbetalingsprofiel is klaar. Kopers kunnen veilig via HomeCheff afrekenen.",
+      "setupConnectCta": "Uitbetalingsprofiel instellen",
+      "connectError": "Er ging iets mis. Probeer het opnieuw."
+    },
+    "canonical": {
+      "view": {
+        "all": "Alles",
+        "offered": "Aangeboden",
+        "wanted": "Gezocht",
+        "inspiration": "Inspiratie"
+      },
+      "category": {
+        "food": "Eten",
+        "garden": "Tuin",
+        "creations": "Creaties",
+        "services": "Diensten"
       }
     },
     "acceptedValues": {

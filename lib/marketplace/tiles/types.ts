@@ -76,6 +76,12 @@ export type MarketplaceTileModel = {
   priceModel: string | null;
   orderMethod: string | null;
 
+  /** Phase 7C — real settlement booleans (preferred over orderMethod). */
+  acceptsHomeCheffCheckout: boolean;
+  acceptsDirectContact: boolean;
+  /** Seller's Stripe Connect payout profile is ready (public checkout gate). */
+  homeCheffCheckoutConfigured: boolean;
+
   person: MarketplaceTilePerson | null;
   place: string | null;
   distanceKm: number | null;

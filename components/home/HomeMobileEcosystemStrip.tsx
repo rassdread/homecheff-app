@@ -22,7 +22,7 @@ const PILLS: EcosystemPill[] = [
   { key: 'garden', labelKey: 'home.ecosystem.garden', href: '/?vertical=garden#homecheff-feed', emoji: '🌱' },
   { key: 'creations', labelKey: 'home.ecosystem.creations', href: '/?vertical=designer#homecheff-feed', emoji: '🎨' },
   { key: 'gezocht', labelKey: 'home.ecosystem.gezocht', href: '/?chip=gezocht#homecheff-feed', emoji: '🙋' },
-  { key: 'services', labelKey: 'home.ecosystem.services', href: '/?chip=services#homecheff-feed', emoji: '🛠️' },
+  { key: 'services', labelKey: 'home.ecosystem.services', href: '/?chip=sale&vertical=services#homecheff-feed', emoji: '🛠️' },
 ];
 
 export default function HomeMobileEcosystemStrip({

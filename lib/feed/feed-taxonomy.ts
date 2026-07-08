@@ -35,13 +35,18 @@ export type FeedTaxonomy = {
   exchange: FeedExchange;
 };
 
-/** UI view filters — decoupled from item identity (Fase 5D). */
+/** UI view filters — decoupled from item identity (Fase 5D). Phase 7E: services removed (category-only). */
 export type FeedViewFilterId =
   | 'all'
   | 'sale'
   | 'gezocht'
-  | 'services'
   | 'inspiration';
+
+/**
+ * @deprecated Phase 7E — `services` was a legacy view chip. Migrated to
+ * `sale` + category `services` via `migrateLegacyServicesViewChip`.
+ */
+export type LegacyFeedViewFilterId = FeedViewFilterId | 'services';
 
 /**
  * Future chips (documented, not active in UI):
@@ -280,10 +285,6 @@ export function matchesFeedViewFilter(
   const tax = deriveFeedTaxonomy(item);
   if (filter === 'inspiration') {
     return tax.direction === 'OFFER' && tax.kind === 'INSPIRATION';
-  }
-  if (filter === 'services') {
-    // Diensten pillar — SERVICE/WORKSHOP/COACHING map to SERVICE, klussen to TASK.
-    return tax.direction === 'OFFER' && (tax.kind === 'SERVICE' || tax.kind === 'TASK');
   }
   return true;
 }

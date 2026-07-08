@@ -245,6 +245,8 @@ export async function GET(req: NextRequest) {
         description: true,
         priceCents: true,
         orderMethod: true,
+        acceptHomeCheffPayment: true,
+        acceptDirectContact: true,
         listingIntent: true,
         priceModel: true,
         delivery: true,
@@ -274,6 +276,7 @@ export async function GET(req: NextRequest) {
                 displayFullName: true, 
                 displayNameOption: true,
                 stripeConnectAccountId: true,
+                stripeConnectOnboardingCompleted: true,
                 lat: true,
                 lng: true,
                 place: true,
@@ -490,6 +493,12 @@ export async function GET(req: NextRequest) {
     description: product.description || "",
     priceCents: product.priceCents || 0,
     orderMethod: product.orderMethod ?? 'HOMECHEFF_PAYMENT',
+    acceptHomeCheffPayment: product.acceptHomeCheffPayment ?? null,
+    acceptDirectContact: product.acceptDirectContact ?? null,
+    sellerStripeConnectReady: !!(
+      product.seller?.User?.stripeConnectAccountId &&
+      product.seller?.User?.stripeConnectOnboardingCompleted
+    ),
     listingIntent: product.listingIntent ?? 'OFFER',
     priceModel: product.priceModel ?? 'FIXED',
     category: product.category || "HOMECHEFF",

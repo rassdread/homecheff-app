@@ -102,8 +102,8 @@ assert(exists('lib/marketplace/tiles/build-tile-settlement-row.ts'), 'settlement
 for (const flag of ['homecheffCheckout', 'directContact', 'barter', 'acceptedValues']) {
   assert(settlementBuilder.includes(flag), `settlement builder exposes ${flag}`);
 }
-assert(settlementBuilder.includes("HOMECHEFF_PAYMENT") && settlementBuilder.includes("'CONTACT'"),
-  'HomeCheff checkout vs direct contact derived from orderMethod (distinct)');
+assert(settlementBuilder.includes('canCheckoutNow') && settlementBuilder.includes('acceptsDirectContact'),
+  'HomeCheff checkout vs direct contact resolved distinctly (canonical settlement options — Phase 7C)');
 const settlementRow = read('components/marketplace/tiles/primitives/TileSettlementRow.tsx');
 assert(exists('components/marketplace/tiles/primitives/TileSettlementRow.tsx'), 'settlement-row primitive present');
 assert(settlementRow.includes('ShieldCheck'), 'HomeCheff checkout uses a shield/checkout icon (not a money bill)');

@@ -12,6 +12,7 @@ import {
 import { deriveListingKind } from '@/lib/marketplace/listing-kind/derive-listing-kind';
 import ProductSaleAboutSection from '@/components/product/detail/ProductSaleAboutSection';
 import ProductValueExchangeSection from '@/components/product/detail/ProductValueExchangeSection';
+import ProductDetailSettlementSection from '@/components/product/detail/ProductDetailSettlementSection';
 import ProductDetailAcceptedValuesSection from '@/components/product/detail/ProductDetailAcceptedValuesSection';
 import ProductDetailConditionsSection from '@/components/product/detail/ProductDetailConditionsSection';
 import ProductDetailTrustBlock from '@/components/product/detail/ProductDetailTrustBlock';
@@ -29,6 +30,8 @@ type ProductShape = {
   description?: string | null;
   priceCents: number;
   orderMethod?: string;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
   barterOpenness?: string | null;
   priceModel?: string | null;
   acceptedSpecializations?: string[];
@@ -142,6 +145,19 @@ export default function ProductDetailMainSections({
           listingTitle={product.title}
         />
       ) : null}
+
+      <ProductDetailSettlementSection
+        className={hideOnDesktopSidebar}
+        orderMethod={product.orderMethod}
+        acceptHomeCheffPayment={product.acceptHomeCheffPayment}
+        acceptDirectContact={product.acceptDirectContact}
+        barterOpenness={product.barterOpenness}
+        acceptedSpecializations={product.acceptedSpecializations}
+        priceCents={product.priceCents}
+        priceModel={product.priceModel}
+        listingIntent={product.listingIntent}
+        checkoutAvailable={checkoutAvailable}
+      />
 
       {show('accepted_values') ? (
         <ProductDetailAcceptedValuesSection
