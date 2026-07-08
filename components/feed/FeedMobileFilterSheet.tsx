@@ -4,6 +4,10 @@ import { Loader2, MapPin, Search, X } from 'lucide-react';
 import { RADIUS_PRESET_OPTIONS } from '@/lib/geo/local-discovery';
 import type { FeedScope } from '@/lib/feed/feed-scope';
 import { FEED_SCOPE_NEARBY } from '@/lib/feed/feed-scope';
+import AcceptedValuesDiscoveryFilter from '@/components/feed/AcceptedValuesDiscoveryFilter';
+import DiscoveryDirectionToggle, {
+  type DiscoveryDirection,
+} from '@/components/feed/DiscoveryDirectionToggle';
 
 type Props = {
   open: boolean;
@@ -33,6 +37,10 @@ type Props = {
   filtersDirty: boolean;
   onApply: () => void;
   onClear: () => void;
+  appliedAcceptedValues: string[];
+  onAcceptedValuesChange: (ids: string[]) => void;
+  discoveryDirection: DiscoveryDirection;
+  onDiscoveryDirectionChange: (direction: DiscoveryDirection) => void;
 };
 
 const inputClass =
@@ -66,6 +74,10 @@ export default function FeedMobileFilterSheet({
   filtersDirty,
   onApply,
   onClear,
+  appliedAcceptedValues,
+  onAcceptedValuesChange,
+  discoveryDirection,
+  onDiscoveryDirectionChange,
 }: Props) {
   if (!open) return null;
 
@@ -95,6 +107,21 @@ export default function FeedMobileFilterSheet({
         </div>
 
         <div className="space-y-4 px-4 py-4">
+          <DiscoveryDirectionToggle
+            value={discoveryDirection}
+            onChange={onDiscoveryDirectionChange}
+            compact
+          />
+
+          {discoveryDirection === 'offer' ? (
+            <AcceptedValuesDiscoveryFilter
+              value={appliedAcceptedValues}
+              onChange={onAcceptedValuesChange}
+              compact
+              offerMode
+            />
+          ) : null}
+
           {showLocationHint ? (
             <p className="text-xs text-gray-600 rounded-lg border border-primary-brand/10 bg-primary-50/40 px-3 py-2">
               {t('feed.viewerLocationHint')}
@@ -244,6 +271,13 @@ export default function FeedMobileFilterSheet({
                 className={inputClass}
               />
             </div>
+            {discoveryDirection === 'want' ? (
+              <AcceptedValuesDiscoveryFilter
+                value={appliedAcceptedValues}
+                onChange={onAcceptedValuesChange}
+                compact
+              />
+            ) : null}
           </div>
 
           {filtersDirty ? (

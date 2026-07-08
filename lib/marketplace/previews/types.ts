@@ -18,6 +18,7 @@ export type PreviewFulfillmentItem = {
 export type PreviewAcceptedValue = {
   id: string;
   label: string;
+  icon?: string;
 };
 
 export type PreviewTrustLine = {

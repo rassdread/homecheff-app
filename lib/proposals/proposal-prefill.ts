@@ -16,7 +16,8 @@ export type ProposalPrefillSource =
   | 'listing'
   | 'exchange_suggestion'
   | 'counter'
-  | 'conversation';
+  | 'conversation'
+  | 'reverse_discovery';
 
 export type ProposalPrefillExchangeSuggestion = {
   sourceListingId: string;
@@ -32,11 +33,14 @@ export type ProposalPrefillInput = {
   contextHeader?: ResolvedConversationHeader | null;
   exchangeSuggestion?: ProposalPrefillExchangeSuggestion;
   parentProposal?: ProposalDTO;
+  /** Phase 8C — values the viewer selected in reverse discovery (“I can offer”). */
+  reverseDiscoveryOfferIds?: string[];
 };
 
 export type ProposalPrefillMeta = {
   source: ProposalPrefillSource;
   exchangeSuggestionUsed: boolean;
+  reverseDiscoveryUsed: boolean;
   taxonomyOverlapCount: number;
   listingId: string | null;
   sourceListingId: string | null;
@@ -120,6 +124,26 @@ function fromParentProposal(proposal: ProposalDTO): ProposalFormValues {
   };
 }
 
+function applyReverseDiscoveryOffers(
+  form: ProposalFormValues,
+  offerIds: string[],
+): ProposalFormValues {
+  const ids = offerIds.filter(Boolean);
+  if (ids.length === 0) return form;
+  const next: ProposalFormValues = {
+    ...form,
+    requestedValueTaxonomyIds: [
+      ...new Set([...form.requestedValueTaxonomyIds, ...ids]),
+    ],
+  };
+  if (next.settlementMode === 'MONEY') {
+    next.settlementMode = 'MONEY_AND_VALUE';
+  } else if (next.settlementMode === 'FREE' || next.settlementMode === 'VOLUNTARY') {
+    next.settlementMode = 'VALUE_ONLY';
+  }
+  return next;
+}
+
 function applyExchangeSuggestion(
   form: ProposalFormValues,
   suggestion: ProposalPrefillExchangeSuggestion,
@@ -157,6 +181,7 @@ export function resolveProposalPrefill(input: ProposalPrefillInput): ProposalPre
   }
 
   let exchangeSuggestionUsed = false;
+  let reverseDiscoveryUsed = false;
   let taxonomyOverlapCount = 0;
   let sourceListingId: string | null = null;
 
@@ -166,6 +191,16 @@ export function resolveProposalPrefill(input: ProposalPrefillInput): ProposalPre
     taxonomyOverlapCount = input.exchangeSuggestion.overlapTaxonomyIds.length;
     sourceListingId = input.exchangeSuggestion.sourceListingId;
     form = applyExchangeSuggestion(form, input.exchangeSuggestion);
+  }
+
+  if (input.reverseDiscoveryOfferIds && input.reverseDiscoveryOfferIds.length > 0) {
+    if (!exchangeSuggestionUsed) source = 'reverse_discovery';
+    reverseDiscoveryUsed = true;
+    taxonomyOverlapCount = Math.max(
+      taxonomyOverlapCount,
+      input.reverseDiscoveryOfferIds.length,
+    );
+    form = applyReverseDiscoveryOffers(form, input.reverseDiscoveryOfferIds);
   }
 
   const listingId =
@@ -180,6 +215,7 @@ export function resolveProposalPrefill(input: ProposalPrefillInput): ProposalPre
     meta: {
       source,
       exchangeSuggestionUsed,
+      reverseDiscoveryUsed,
       taxonomyOverlapCount,
       listingId,
       sourceListingId,

@@ -1,6 +1,7 @@
 import type { MarketplaceCategory } from '@prisma/client';
 import { MARKETPLACE_ENTRY_CATEGORY_KEY } from './i18n-keys';
 import { normalizeAcceptedTaxonomyIds, normalizeTaxonomyIds } from './taxonomy-normalize';
+import { resolveAcceptedValueEntry } from './pending-accepted-values/resolve-pending-display';
 import {
   getMarketplaceTaxonomyItem,
 } from './taxonomy-resolve';
@@ -10,6 +11,8 @@ export type ResolvedOfferBadge = {
   kind: 'taxonomy' | 'category';
   id: string;
   labelKey: string;
+  /** Literal label for pending proposals (bypasses i18n). */
+  displayLabel?: string;
   icon: string;
   tone: TaxonomyTone;
 };
@@ -119,10 +122,36 @@ export function resolveOfferBadgeByTaxonomyId(
   };
 }
 
-/** Resolve accepted-value taxonomy badges (no category fallback). */
-export function resolveAcceptedBadges(raw: unknown): ResolvedOfferBadge[] {
+/** Resolve accepted-value taxonomy badges (official + pending; no category fallback). */
+export function resolveAcceptedBadges(
+  raw: unknown,
+  pendingRegistry?: ReadonlyMap<
+    string,
+    import('./pending-accepted-values/types').PendingAcceptedValueRecord
+  > | null,
+): ResolvedOfferBadge[] {
   const ids = normalizeAcceptedTaxonomyIds(raw);
   return ids
-    .map((id) => resolveOfferBadgeByTaxonomyId(id))
+    .map((id) => {
+      const entry = resolveAcceptedValueEntry(id, pendingRegistry);
+      if (!entry) return null;
+      if (entry.kind === 'official') {
+        return {
+          kind: 'taxonomy' as const,
+          id: entry.id,
+          labelKey: entry.labelKey,
+          icon: entry.icon,
+          tone: entry.tone,
+        };
+      }
+      return {
+        kind: 'taxonomy' as const,
+        id: entry.id,
+        labelKey: entry.categoryLabelKey,
+        displayLabel: entry.label,
+        icon: entry.icon,
+        tone: entry.tone,
+      };
+    })
     .filter((badge): badge is ResolvedOfferBadge => badge != null);
 }

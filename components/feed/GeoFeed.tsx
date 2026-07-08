@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, createContext, type ReactNode } from "react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useSession } from "next-auth/react";
 import {
   Filter,
@@ -18,6 +19,11 @@ import {
   feedLocationLine,
 } from "@/components/feed/GeoFeedCards";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
+import AcceptedValuesDiscoveryFilter from "@/components/feed/AcceptedValuesDiscoveryFilter";
+import DiscoveryDirectionToggle, {
+  type DiscoveryDirection,
+} from "@/components/feed/DiscoveryDirectionToggle";
+import AcceptedValueChip from "@/components/marketplace/AcceptedValueChip";
 import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
 import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
@@ -194,6 +200,15 @@ import {
   migrateLegacyServicesViewChip,
   normalizeDiscoveryCategorySlug,
 } from "@/lib/marketplace/canonical-model";
+import { itemMatchesAcceptedValuesDiscoveryFilter } from "@/lib/marketplace/discovery/accepted-values-discovery";
+import {
+  suggestAcceptedValueAlternatives,
+  suggestNearbyDiscoveryCategories,
+} from "@/lib/marketplace/discovery/suggest-accepted-value-alternatives";
+import { syncReverseDiscoveryOfferIds } from "@/lib/marketplace/discovery/reverse-discovery-session";
+import { taxonomyLabelKey } from "@/lib/marketplace/taxonomy-i18n";
+import { getMarketplaceTaxonomyItem } from "@/lib/marketplace/taxonomy-resolve";
+import { TaxonomyLucideIcon } from "@/components/products/marketplace/TaxonomyLucideIcon";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
 import { computeViewerDistanceKm, resolveFeedItemCoordsFromRaw } from "@/lib/geo/item-location";
@@ -903,6 +918,8 @@ export default function GeoFeed({
    * Na de eerste fetch schakelt `feedInteractionStartedRef` en blijft gedrag bij filterwijzigingen zoals voorheen.
    */
   const [loading, setLoading] = useState(true);
+  /** Warm filter refresh — keep prior results visible (Phase 7G). */
+  const [feedRefreshing, setFeedRefreshing] = useState(false);
   const feedInteractionStartedRef = useRef(false);
   const feedRestoredFromCacheRef = useRef(false);
   const [feedHydrated, setFeedHydrated] = useState(false);
@@ -935,6 +952,7 @@ export default function GeoFeed({
     initialFeedChip ?? "all"
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
   const [sortBy, setSortBy] = useState<
     "newest" | "price" | "views" | "distance"
   >("newest");
@@ -967,6 +985,13 @@ export default function GeoFeed({
     min: "",
     max: "",
   });
+  /** Phase 8B — reverse discovery on accepted counter-values (client-side). */
+  const [appliedAcceptedValues, setAppliedAcceptedValues] = useState<string[]>(
+    [],
+  );
+  /** Phase 8C — bidirectional discovery (“Ik zoek” vs “Ik bied”). */
+  const [discoveryDirection, setDiscoveryDirection] =
+    useState<DiscoveryDirection>("want");
   /** Capacitor: standaard ingeklapt zodat chips + sorteren boven de vouw blijven. */
   const [nativeFeedExtraOpen, setNativeFeedExtraOpen] = useState(false);
   const [mobileFilterSheetOpen, setMobileFilterSheetOpen] = useState(false);
@@ -1585,7 +1610,11 @@ export default function GeoFeed({
     }
 
     if (feedInteractionStartedRef.current && !backgroundRefresh) {
-      setLoading(true);
+      if (itemsRef.current.length > 0 || feedHydrated) {
+        setFeedRefreshing(true);
+      } else {
+        setLoading(true);
+      }
     }
 
     const feedUrl = `/api/feed?${params.toString()}`;
@@ -1748,6 +1777,7 @@ export default function GeoFeed({
       } finally {
         if (!cancelled) {
           setLoading(false);
+          setFeedRefreshing(false);
           feedInteractionStartedRef.current = true;
           setFeedHydrated(true);
         }
@@ -1851,13 +1881,21 @@ export default function GeoFeed({
     const qn = appliedSearchQuery.trim();
     return requestCandidates.filter((item) => {
       if (!matchesSearch(item, qn)) return false;
-      return itemMatchesDiscoveryCategorySlug(
+      if (
+        !itemMatchesDiscoveryCategorySlug(
+          item,
+          appliedCategory,
+          getDiscoveryLegacyVerticalCategory,
+        )
+      ) {
+        return false;
+      }
+      return itemMatchesAcceptedValuesDiscoveryFilter(
         item,
-        appliedCategory,
-        getDiscoveryLegacyVerticalCategory,
+        appliedAcceptedValues,
       );
     });
-  }, [requestCandidates, appliedSearchQuery, appliedCategory]);
+  }, [requestCandidates, appliedSearchQuery, appliedCategory, appliedAcceptedValues]);
 
   const filteredSaleBase = useMemo(() => {
     const qn = appliedSearchQuery.trim();
@@ -1872,13 +1910,27 @@ export default function GeoFeed({
       ) {
         return false;
       }
-      return matchesFeedClientPriceRange(
+      if (
+        !matchesFeedClientPriceRange(
+          item,
+          appliedPriceRange.min,
+          appliedPriceRange.max
+        )
+      ) {
+        return false;
+      }
+      return itemMatchesAcceptedValuesDiscoveryFilter(
         item,
-        appliedPriceRange.min,
-        appliedPriceRange.max
+        appliedAcceptedValues,
       );
     });
-  }, [saleCandidates, appliedSearchQuery, appliedPriceRange, appliedCategory]);
+  }, [
+    saleCandidates,
+    appliedSearchQuery,
+    appliedPriceRange,
+    appliedCategory,
+    appliedAcceptedValues,
+  ]);
 
   const hasViewerCoordsForSort = effectiveViewerForDistance != null;
 
@@ -2367,6 +2419,12 @@ export default function GeoFeed({
     setAppliedCategory(slug);
   }, []);
 
+  /** Client-side refine search — debounced apply (no API fetch). */
+  useEffect(() => {
+    if (debouncedSearchQuery === appliedSearchQuery) return;
+    setAppliedSearchQuery(debouncedSearchQuery);
+  }, [debouncedSearchQuery, appliedSearchQuery]);
+
   const resetDraftFilters = useCallback(() => {
     setRadius(appliedRadius);
     setPlace(appliedPlace);
@@ -2439,8 +2497,17 @@ export default function GeoFeed({
     setAppliedSortOrder(nextOrder);
   };
 
+  const clearAcceptedValuesFilter = useCallback(() => {
+    setAppliedAcceptedValues([]);
+  }, []);
+
+  useEffect(() => {
+    syncReverseDiscoveryOfferIds(appliedAcceptedValues);
+  }, [appliedAcceptedValues]);
+
   const clearFilters = () => {
     resetDraftFilters();
+    clearAcceptedValuesFilter();
   };
 
   const effectiveLocationSource = useMemo((): "manual" | "gps" | "profile" | null => {
@@ -2521,6 +2588,7 @@ export default function GeoFeed({
       appliedSearchQuery.trim() !== "" ||
       appliedPriceRange.min !== "" ||
       appliedPriceRange.max !== "" ||
+      appliedAcceptedValues.length > 0 ||
       showFilters,
     [
       appliedPlace,
@@ -2540,7 +2608,8 @@ export default function GeoFeed({
       appliedCategory !== "all" ||
       appliedSearchQuery.trim() !== "" ||
       appliedPriceRange.min !== "" ||
-      appliedPriceRange.max !== "",
+      appliedPriceRange.max !== "" ||
+      appliedAcceptedValues.length > 0,
     [
       appliedPlace,
       appliedQ,
@@ -2548,6 +2617,7 @@ export default function GeoFeed({
       appliedSearchQuery,
       appliedPriceRange.min,
       appliedPriceRange.max,
+      appliedAcceptedValues.length,
     ]
   );
 
@@ -2605,6 +2675,48 @@ export default function GeoFeed({
     ? "w-full min-w-0 px-3 py-2 rounded-xl border border-primary/40 text-sm placeholder-gray-400"
     : "w-full min-w-0 px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400";
 
+  const acceptedValuesFilterActive = appliedAcceptedValues.length > 0;
+
+  const acceptedValueAlternatives = useMemo(
+    () => suggestAcceptedValueAlternatives(appliedAcceptedValues),
+    [appliedAcceptedValues],
+  );
+  const nearbyCategorySuggestions = useMemo(
+    () => suggestNearbyDiscoveryCategories(appliedCategory),
+    [appliedCategory],
+  );
+
+  const acceptedValuesFilterChipsEl =
+    acceptedValuesFilterActive ? (
+      <div
+        className="flex flex-wrap items-center gap-1.5 mt-2"
+        role="list"
+        aria-label={t(
+          discoveryDirection === 'offer'
+            ? 'marketplace.discovery.acceptedValuesFilter.activeShoppingLabel'
+            : 'marketplace.discovery.acceptedValuesFilter.activeLabel',
+        )}
+      >
+        {discoveryDirection === 'offer' ? (
+          <span className="text-[11px] font-medium text-emerald-800/90 w-full sm:w-auto">
+            {t('marketplace.discovery.acceptedValuesFilter.shoppingWithPrefix')}
+          </span>
+        ) : null}
+        {appliedAcceptedValues.map((id) => (
+          <AcceptedValueChip
+            key={id}
+            id={id}
+            compact
+            onRemove={() =>
+              setAppliedAcceptedValues((prev) =>
+                prev.filter((value) => value !== id),
+              )
+            }
+          />
+        ))}
+      </div>
+    ) : null;
+
   const resultCountEl = (
     <div
       className={
@@ -2620,6 +2732,7 @@ export default function GeoFeed({
       {appliedSearchQuery
         ? t("feed.filteredByQuery", { query: appliedSearchQuery })
         : ""}
+      {acceptedValuesFilterChipsEl}
     </div>
   );
 
@@ -2632,8 +2745,16 @@ export default function GeoFeed({
     sortedSales.length === 0 &&
     filteredSaleBase.length > 0;
 
+  const emptyAcceptedValues =
+    acceptedValuesFilterActive &&
+    !loading &&
+    !feedRefreshing &&
+    feedHydrated &&
+    displayCount === 0 &&
+    !emptyRadiusNoLocal;
   const emptySale =
     !emptyRadiusNoLocal &&
+    !emptyAcceptedValues &&
     feedChip === "sale" &&
     !loading &&
     feedHydrated &&
@@ -2644,6 +2765,7 @@ export default function GeoFeed({
     feedHydrated &&
     inspirationSlots.length === 0;
   const emptyGezocht =
+    !emptyAcceptedValues &&
     feedChip === "gezocht" &&
     !loading &&
     feedHydrated &&
@@ -2657,6 +2779,7 @@ export default function GeoFeed({
     sortedSales.length === 0;
   const emptyAll =
     !emptyRadiusNoLocal &&
+    !emptyAcceptedValues &&
     feedChip === "all" &&
     !loading &&
     feedHydrated &&
@@ -2754,6 +2877,22 @@ export default function GeoFeed({
 
   const filterPanelBodyEl = showGeoFilters ? (
           <>
+            <DiscoveryDirectionToggle
+              value={discoveryDirection}
+              onChange={setDiscoveryDirection}
+              compact={feedCompactChrome}
+              className={feedSectionBorder}
+            />
+            {discoveryDirection === 'offer' ? (
+              <div className={feedSectionBorder}>
+                <AcceptedValuesDiscoveryFilter
+                  value={appliedAcceptedValues}
+                  onChange={setAppliedAcceptedValues}
+                  compact={feedCompactChrome}
+                  offerMode
+                />
+              </div>
+            ) : null}
             <div className={feedSectionBorder}>
               <p
                 className={
@@ -3118,6 +3257,12 @@ export default function GeoFeed({
                       </button>
                     </div>
                   </div>
+                  {discoveryDirection === 'want' ? (
+                    <AcceptedValuesDiscoveryFilter
+                      value={appliedAcceptedValues}
+                      onChange={setAppliedAcceptedValues}
+                    />
+                  ) : null}
                 </div>
               )}
             </div>
@@ -3160,6 +3305,10 @@ export default function GeoFeed({
           clearFilters();
           setMobileFilterSheetOpen(false);
         }}
+        appliedAcceptedValues={appliedAcceptedValues}
+        onAcceptedValuesChange={setAppliedAcceptedValues}
+        discoveryDirection={discoveryDirection}
+        onDiscoveryDirectionChange={setDiscoveryDirection}
       />
     ) : null;
 
@@ -3199,6 +3348,10 @@ export default function GeoFeed({
         filtersDirty={filtersDirty}
         onApply={applyFilters}
         onResetDraft={resetDraftFilters}
+        appliedAcceptedValues={appliedAcceptedValues}
+        onAcceptedValuesChange={setAppliedAcceptedValues}
+        discoveryDirection={discoveryDirection}
+        onDiscoveryDirectionChange={setDiscoveryDirection}
         hideHeading
       />
     ) : (
@@ -3239,6 +3392,10 @@ export default function GeoFeed({
         filtersDirty={filtersDirty}
         onApply={applyFilters}
         onResetDraft={resetDraftFilters}
+        appliedAcceptedValues={appliedAcceptedValues}
+        onAcceptedValuesChange={setAppliedAcceptedValues}
+        discoveryDirection={discoveryDirection}
+        onDiscoveryDirectionChange={setDiscoveryDirection}
       />
     </div>
     )
@@ -3322,7 +3479,11 @@ export default function GeoFeed({
     </div>
   ) : null;
 
-  const feedResultsBlock = loading ? (
+  const showFeedSkeleton = loading && !feedHydrated;
+  const showStaleFeedWhileRefreshing =
+    feedRefreshing && feedHydrated && displayRows.length > 0;
+
+  const feedResultsBlock = showFeedSkeleton ? (
         <div className="space-y-4" aria-hidden>
           <div className="h-48 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
           <div className="h-32 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
@@ -3349,6 +3510,82 @@ export default function GeoFeed({
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               {t("feed.emptyRadiusViewAll")}
+            </button>
+          </div>
+        </div>
+      ) : emptyAcceptedValues ? (
+        <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
+          <p className="text-base font-semibold text-gray-900">
+            {t("marketplace.discovery.acceptedValuesFilter.emptyTitle")}
+          </p>
+          <p className="mt-1">
+            {t("marketplace.discovery.acceptedValuesFilter.emptyBody")}
+          </p>
+          {acceptedValueAlternatives.length > 0 ? (
+            <div className="mt-3">
+              <p className="text-xs font-semibold text-gray-700">
+                {t("marketplace.discovery.acceptedValuesFilter.similarValues")}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {acceptedValueAlternatives.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() =>
+                      setAppliedAcceptedValues((prev) =>
+                        prev.includes(id) ? prev : [...prev, id],
+                      )
+                    }
+                    className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-800 hover:bg-gray-100"
+                  >
+                    {t(taxonomyLabelKey(id))}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {nearbyCategorySuggestions.length > 0 ? (
+            <div className="mt-3">
+              <p className="text-xs font-semibold text-gray-700">
+                {t("marketplace.discovery.acceptedValuesFilter.nearbyCategories")}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {nearbyCategorySuggestions.map((slug) => (
+                  <button
+                    key={slug}
+                    type="button"
+                    onClick={() => selectVerticalChip(slug)}
+                    className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-800 hover:bg-gray-100"
+                  >
+                    {t(
+                      CATEGORY_CHIP_OPTIONS.find((o) => o.slug === slug)
+                        ?.labelKey ?? "common.allCategories",
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={clearAcceptedValuesFilter}
+              className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              {t("marketplace.discovery.acceptedValuesFilter.clearFilter")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (feedCompactChrome && !isDesktopSplit) {
+                  setMobileFilterSheetOpen(true);
+                } else {
+                  setSidebarRefineOpen(true);
+                }
+              }}
+              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              {t("marketplace.discovery.acceptedValuesFilter.chooseOther")}
             </button>
           </div>
         </div>
@@ -3519,6 +3756,17 @@ export default function GeoFeed({
           </div>
         </div>
       ) : (
+        <div className="space-y-3">
+          {showStaleFeedWhileRefreshing ? (
+            <p
+              className="flex items-center gap-2 text-xs font-medium text-gray-500"
+              role="status"
+              aria-live="polite"
+            >
+              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+              {t("feed.updating")}
+            </p>
+          ) : null}
         <div
           key={isMobileFeedUi ? effectiveFeedLayoutMode : "desktop"}
           className={feedResultsContainerClass}
@@ -3671,6 +3919,7 @@ export default function GeoFeed({
 
             return nodes;
           })()}
+        </div>
         </div>
       );
 

@@ -45,7 +45,7 @@ export default function MarketplaceTileMini({
         favoriteTitle={title}
         mode={model.mode}
       />
-      <div className="flex flex-col gap-1 p-2.5">
+      <div className="flex shrink-0 flex-col gap-1 p-2.5">
         <TilePersonRow model={model} t={t} />
         <Link href={model.href} prefetch className="min-w-0">
           <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">

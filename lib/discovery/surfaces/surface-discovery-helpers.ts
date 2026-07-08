@@ -26,7 +26,7 @@ export function getSurfacePlanOrEmpty(
 export function getSidebarActivityModules(
   plan: ResolvedSurfacePlan | null,
 ): import('./surface-contract').ResolvedActivityModule[] {
-  if (!plan) return [];
+  if (!plan?.desktopRightSidebar) return [];
   return plan.desktopRightSidebar.filter(
     (m): m is import('./surface-contract').ResolvedActivityModule =>
       m.kind === 'ACTIVITY',
@@ -39,7 +39,7 @@ export function getSidebarOpportunityModules(
   | import('./surface-contract').ResolvedOpportunityModule
   | import('./surface-contract').ResolvedPartnerModule
 > {
-  if (!plan) return [];
+  if (!plan?.desktopRightSidebar) return [];
   return plan.desktopRightSidebar.filter(
     (
       m,

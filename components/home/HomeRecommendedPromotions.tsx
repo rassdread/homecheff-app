@@ -9,6 +9,7 @@ import {
   getVisibleHomePromotions,
   type HomePromotion,
   type HomePromotionIcon,
+  type HomePromotionId,
 } from '@/lib/promotions/home-promotions';
 import { cn } from '@/lib/utils';
 
@@ -120,13 +121,21 @@ function PromotionTile({
 }
 
 type Props =
-  | { variant: 'sidebar'; className?: string }
+  | {
+      variant: 'sidebar';
+      className?: string;
+      /** Phase 7G — hide promos when the same CTA is already in the sidebar stack. */
+      suppressedPromotionIds?: HomePromotionId[];
+    }
   | { variant: 'feedInsert'; promotionId: string; className?: string };
 
 export default function HomeRecommendedPromotions(props: Props) {
   const { t } = useTranslation();
   const visibility = useHomePromotionVisibility();
-  const visible = getVisibleHomePromotions(visibility);
+  const suppressed = props.variant === 'sidebar' ? props.suppressedPromotionIds ?? [] : [];
+  const visible = getVisibleHomePromotions(visibility).filter(
+    (p) => !suppressed.includes(p.id),
+  );
 
   if (props.variant === 'feedInsert') {
     const promo = getHomePromotionById(props.promotionId);

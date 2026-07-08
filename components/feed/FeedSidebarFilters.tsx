@@ -22,6 +22,10 @@ import {
 } from "@/lib/feed/feed-scope";
 import type { FeedClientSortField } from "@/lib/feed/feed-client-sort";
 import { DISCOVERY_CATEGORY_CHIP_OPTIONS } from "@/lib/marketplace/canonical-model";
+import AcceptedValuesDiscoveryFilter from '@/components/feed/AcceptedValuesDiscoveryFilter';
+import DiscoveryDirectionToggle, {
+  type DiscoveryDirection,
+} from '@/components/feed/DiscoveryDirectionToggle';
 
 type SortId = "newest" | "price" | "views" | "distance";
 
@@ -60,6 +64,12 @@ export type FeedSidebarFiltersProps = {
   filtersDirty: boolean;
   onApply: () => void;
   onResetDraft: () => void;
+  /** Phase 8B — reverse discovery on accepted counter-values (client-side). */
+  appliedAcceptedValues: string[];
+  onAcceptedValuesChange: (ids: string[]) => void;
+  /** Phase 8C — bidirectional discovery direction. */
+  discoveryDirection: DiscoveryDirection;
+  onDiscoveryDirectionChange: (direction: DiscoveryDirection) => void;
   /** Phase 7F — parent provides section title in composed homepage sidebar. */
   hideHeading?: boolean;
 };
@@ -110,6 +120,10 @@ export default function FeedSidebarFilters({
   filtersDirty,
   onApply,
   onResetDraft,
+  appliedAcceptedValues,
+  onAcceptedValuesChange,
+  discoveryDirection,
+  onDiscoveryDirectionChange,
   hideHeading = false,
 }: FeedSidebarFiltersProps) {
   return (
@@ -119,6 +133,23 @@ export default function FeedSidebarFilters({
           {t("feed.discoverFiltersHeading")}
         </h2>
       )}
+
+      <DiscoveryDirectionToggle
+        value={discoveryDirection}
+        onChange={onDiscoveryDirectionChange}
+        compact
+      />
+
+      {discoveryDirection === 'offer' ? (
+        <section className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-2.5">
+          <AcceptedValuesDiscoveryFilter
+            value={appliedAcceptedValues}
+            onChange={onAcceptedValuesChange}
+            compact
+            offerMode
+          />
+        </section>
+      ) : null}
 
       {/* Scope */}
       <section>
@@ -362,6 +393,13 @@ export default function FeedSidebarFilters({
                 className={inputClass}
               />
             </div>
+            {discoveryDirection === 'want' ? (
+              <AcceptedValuesDiscoveryFilter
+                value={appliedAcceptedValues}
+                onChange={onAcceptedValuesChange}
+                compact
+              />
+            ) : null}
           </div>
         ) : null}
       </section>

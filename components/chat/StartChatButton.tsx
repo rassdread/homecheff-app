@@ -13,6 +13,7 @@ import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-acco
 import { buildMessagesWithProposalOpenUrl, buildMessagesConversationUrl } from '@/lib/proposals/proposal-deep-link';
 import { storeProposalPrefill } from '@/lib/proposals/proposal-prefill-storage';
 import type { ProposalPrefillInput } from '@/lib/proposals/proposal-prefill';
+import { peekReverseDiscoveryOfferIds } from '@/lib/marketplace/discovery/reverse-discovery-session';
 import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
@@ -39,6 +40,23 @@ interface StartChatButtonProps {
   funnelEntrypoint?: string;
   /** Stored before proposal deep-link navigation (5E-C exchange prefill). */
   proposalPrefill?: ProposalPrefillInput;
+}
+
+function mergeProposalPrefillForStorage(
+  proposalPrefill?: ProposalPrefillInput,
+): ProposalPrefillInput | null {
+  const reverseDiscoveryOfferIds = peekReverseDiscoveryOfferIds();
+  if (!proposalPrefill && reverseDiscoveryOfferIds.length === 0) return null;
+  return {
+    source:
+      proposalPrefill?.source ??
+      (reverseDiscoveryOfferIds.length > 0 ? 'reverse_discovery' : 'listing'),
+    ...proposalPrefill,
+    reverseDiscoveryOfferIds:
+      reverseDiscoveryOfferIds.length > 0
+        ? reverseDiscoveryOfferIds
+        : proposalPrefill?.reverseDiscoveryOfferIds,
+  };
 }
 
 export default function StartChatButton({
@@ -137,8 +155,9 @@ export default function StartChatButton({
     onMessageSent?.(convId);
 
     if (openProposalAfterStart && productId) {
-      if (proposalPrefill) {
-        storeProposalPrefill(proposalPrefill);
+      const merged = mergeProposalPrefillForStorage(proposalPrefill);
+      if (merged) {
+        storeProposalPrefill(merged);
       }
       if (funnelListing) {
         trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.proposalDeepLinkClick, {

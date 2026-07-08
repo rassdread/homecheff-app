@@ -7,6 +7,7 @@ import type { MarketplacePreviewContent } from '@/lib/marketplace/previews/types
 import type { MarketplaceTileModel, TranslateFn } from '@/lib/marketplace/tiles/types';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 import { PreviewFulfillmentIcon } from './preview-fulfillment-icons';
+import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import MarketplacePreviewActions from './MarketplacePreviewActions';
 
 /** Phase 7C.7 — plain-language settlement explanation for the preview. */
@@ -271,8 +272,11 @@ export default function MarketplacePreviewCard({
               {content.acceptedValues.map((v) => (
                 <li
                   key={v.id}
-                  className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800"
+                  className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800"
                 >
+                  {v.icon ? (
+                    <TaxonomyLucideIcon name={v.icon} className="h-3 w-3 shrink-0" />
+                  ) : null}
                   {v.label}
                 </li>
               ))}

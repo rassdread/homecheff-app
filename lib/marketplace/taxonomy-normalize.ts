@@ -13,6 +13,7 @@ import {
   getMarketplaceTaxonomyRegistryMap,
   isMarketplaceTaxonomyItemAllowedAsAcceptedValue,
 } from './taxonomy-resolve';
+import { isPendingAcceptedValueId } from './pending-accepted-values/constants';
 
 function parseRawSpecializationList(raw: unknown): string[] {
   if (Array.isArray(raw)) {
@@ -79,8 +80,15 @@ export function normalizeSpecializationSlug(slug: string): string {
   return canonical ?? slug.trim().toLowerCase();
 }
 
-/** Normalize accepted-value taxonomy ids (allowedAsAcceptedValue only). */
+/** Normalize accepted-value taxonomy ids (official + pending proposals). */
 export function normalizeAcceptedTaxonomyIds(raw: unknown): string[] {
-  const ids = normalizeTaxonomyIds(raw, null);
-  return ids.filter((id) => isMarketplaceTaxonomyItemAllowedAsAcceptedValue(id));
+  const parsed = parseRawSpecializationList(raw);
+  const pending = [
+    ...new Set(parsed.filter((id) => isPendingAcceptedValueId(id.trim()))),
+  ];
+  const official = normalizeTaxonomyIds(
+    parsed.filter((id) => !isPendingAcceptedValueId(id.trim())),
+    null,
+  ).filter((id) => isMarketplaceTaxonomyItemAllowedAsAcceptedValue(id));
+  return [...new Set([...official, ...pending])];
 }

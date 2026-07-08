@@ -71,6 +71,7 @@ export default function CreateProposalSheet({
       contextHeader,
       exchangeSuggestion: stored?.exchangeSuggestion,
       parentProposal: stored?.parentProposal,
+      reverseDiscoveryOfferIds: stored?.reverseDiscoveryOfferIds,
     });
 
     if (product) {
@@ -95,7 +96,7 @@ export default function CreateProposalSheet({
       surface: "chat",
     });
 
-    if (result.meta.exchangeSuggestionUsed || result.meta.source !== "listing") {
+    if (result.meta.exchangeSuggestionUsed || result.meta.reverseDiscoveryUsed || result.meta.source !== "listing") {
       trackProposalFlowEvent(PROPOSAL_FLOW_EVENTS.prefilled, {
         source: result.meta.source,
         listingId: result.meta.listingId,

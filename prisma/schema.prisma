@@ -460,6 +460,44 @@ model Product {
   @@index([acceptedSpecializations], type: Gin)
 }
 
+enum PendingAcceptedValueStatus {
+  PENDING
+  APPROVED
+  MERGED
+  REJECTED
+}
+
+/// Community-proposed accepted values — promoted to official taxonomy after review (Phase 8C).
+model PendingAcceptedValueProposal {
+  id                 String                     @id @default(cuid())
+  canonicalKey       String                     @unique
+  label              String
+  category           MarketplaceCategory
+  language           String                     @default("nl")
+  listingCount       Int                        @default(0)
+  userCount          Int                        @default(0)
+  firstUsedAt        DateTime                   @default(now())
+  lastUsedAt         DateTime                   @updatedAt
+  status             PendingAcceptedValueStatus @default(PENDING)
+  approvedTaxonomyId String?
+  users              PendingAcceptedValueProposalUser[]
+
+  @@index([status])
+  @@index([listingCount(sort: Desc)])
+  @@index([category])
+  @@index([language])
+}
+
+model PendingAcceptedValueProposalUser {
+  proposalId String
+  userId     String
+  createdAt  DateTime @default(now())
+  proposal   PendingAcceptedValueProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@id([proposalId, userId])
+  @@index([userId])
+}
+
 enum ListingIntent {
   OFFER
   REQUEST

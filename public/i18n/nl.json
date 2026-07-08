@@ -6736,6 +6736,7 @@
     "unknownDistance": "afstand onbekend",
     "filtersPendingHint": "Filters aangepast — pas toe om de resultaten te vernieuwen.",
     "applyFilters": "Toepassen",
+    "updating": "Bijwerken…",
     "resetFiltersDraft": "Reset",
     "sidebarSectionLocation": "Locatie",
     "sidebarSectionView": "Weergave",
@@ -7994,7 +7995,9 @@
         "title": "Betaling & ruil"
       },
       "acceptedValues": {
-        "title": "Geaccepteerde tegenwaarden"
+        "title": "Geaccepteerde tegenwaarden",
+        "sellerAcceptsHeading": "Deze aanbieder accepteert",
+        "description": "De aanbieder accepteert ook deze waarde als (deel van de) tegenprestatie."
       },
       "settlement": {
         "title": "Afrekenen & afspraken",
@@ -8091,6 +8094,31 @@
       }
     },
     "discovery": {
+      "direction": {
+        "label": "Ontdekken",
+        "want": "Ik zoek",
+        "wantHint": "Wat wil ik vinden?",
+        "offer": "Ik bied",
+        "offerHint": "Wat kan ik aanbieden?",
+        "offerEducation": "Kies wat jij kunt aanbieden — we tonen aanbiedingen en verzoeken die dat accepteren."
+      },
+      "acceptedValuesFilter": {
+        "heading": "Geaccepteerde tegenwaarden",
+        "description": "Wat kun jij aanbieden? Toon aanbiedingen en verzoeken die deze tegenwaarde accepteren.",
+        "offerHeading": "Ik kan aanbieden…",
+        "offerDescription": "Kies wat jij hebt of kunt doen. We tonen alles dat dit accepteert.",
+        "offerExamples": "Bijv. fruit, fotografie, nagels stylen, taart bakken of gitaarles.",
+        "itemsLabel": "Tegenwaarden",
+        "activeLabel": "Actieve tegenwaarde-filters",
+        "activeShoppingLabel": "Actieve waarden waarmee je shopt",
+        "shoppingWithPrefix": "Ik shop met:",
+        "emptyTitle": "Geen matches voor deze tegenwaarde",
+        "emptyBody": "Er zijn momenteel geen aanbiedingen die deze tegenwaarde accepteren.",
+        "similarValues": "Vergelijkbare tegenwaarden",
+        "nearbyCategories": "Probeer een nabije categorie",
+        "clearFilter": "Filter wissen",
+        "chooseOther": "Andere tegenwaarde kiezen"
+      },
       "requests": {
         "chip": "Gezocht",
         "sectionTitle": "Gezocht",
@@ -8431,6 +8459,17 @@
       "offeredInReturnHeading": "Wat bied je terug?",
       "filterAll": "Alles",
       "emptySearch": "Geen resultaten voor deze zoekopdracht."
+    },
+    "pendingAcceptedValue": {
+      "proposeCta": "Staat jouw tegenwaarde er niet tussen? Voeg zelf een voorstel toe",
+      "proposeHeading": "Eigen tegenwaarde voorstellen",
+      "proposeDescription": "Kies de dichtstbijzijnde hoofdcategorie en beschrijf wat je aanbiedt. Dit wordt eerst als voorstel opgeslagen.",
+      "categoryLabel": "Categorie",
+      "customLabel": "Jouw tegenwaarde",
+      "customPlaceholder": "Bijv. zelfgemaakte kimchi of drones inspecteren",
+      "submit": "Voorstel toevoegen",
+      "errorTooShort": "Beschrijf je tegenwaarde in minstens 2 tekens.",
+      "errorGeneric": "Kon voorstel niet opslaan. Probeer het opnieuw."
     },
     "stripeRecommendation": {
       "message": "Koppel Stripe om veilig via HomeCheff betalingen te ontvangen.",

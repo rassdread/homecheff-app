@@ -20,12 +20,16 @@ import { ExchangeSuggestionsSidebarModule } from '@/components/marketplace/excha
 import WorkshopModuleCard from './WorkshopModuleCard';
 import OpportunityModuleCard from './OpportunityModuleCard';
 import { Calendar, X } from 'lucide-react';
+import type { SidebarDeliveryCtaSuppression } from '@/lib/home/sidebar-cta-priority';
+import { resolveSidebarDeliveryCtaSuppression } from '@/lib/home/sidebar-cta-priority';
 
 export type DesktopRightSidebarSurfaceStackProps = {
   plan: ResolvedSurfacePlan | null;
   className?: string;
   /** Phase 7F — activity-only slice for community cockpit (growth/community rendered upstream). */
   mode?: 'full' | 'activity-modules';
+  /** Phase 7G — suppress duplicate delivery CTAs across modules. */
+  deliveryCtaSuppression?: SidebarDeliveryCtaSuppression | null;
 };
 
 function EventModuleCard({
@@ -92,6 +96,7 @@ export default function DesktopRightSidebarSurfaceStack({
   plan,
   className = '',
   mode = 'full',
+  deliveryCtaSuppression = null,
 }: DesktopRightSidebarSurfaceStackProps) {
   const { t } = useTranslation();
   const [dismissedCommunity, setDismissedCommunity] = useState(false);
@@ -119,20 +124,35 @@ export default function DesktopRightSidebarSurfaceStack({
     [plan],
   );
 
+  const resolvedDeliverySuppression = useMemo(
+    () =>
+      deliveryCtaSuppression ??
+      resolveSidebarDeliveryCtaSuppression(plan, {
+        activityModulesMode: mode === 'activity-modules',
+      }),
+    [deliveryCtaSuppression, plan, mode],
+  );
+
   const activityModules = useMemo(
     () => getSidebarActivityModules(plan),
     [plan],
   );
 
-  const activityCards = useMemo(
-    () =>
-      filterCardsForSession(
-        activityModules.map((m) => m.contract),
-        ACTIVITY_CARD_SESSION_MAX,
-        plan?.meta.activitySidebarMaxStacked ?? 3,
-      ),
-    [activityModules, plan?.meta.activitySidebarMaxStacked],
-  );
+  const activityCards = useMemo(() => {
+    const cards = filterCardsForSession(
+      activityModules.map((m) => m.contract),
+      ACTIVITY_CARD_SESSION_MAX,
+      plan?.meta.activitySidebarMaxStacked ?? 3,
+    );
+    if (resolvedDeliverySuppression.suppressActivityBecomeCourier) {
+      return cards.filter((c) => c.type !== 'BECOME_COURIER');
+    }
+    return cards;
+  }, [
+    activityModules,
+    plan?.meta.activitySidebarMaxStacked,
+    resolvedDeliverySuppression.suppressActivityBecomeCourier,
+  ]);
 
   const collapseThreshold = plan?.meta.activitySidebarCollapseThreshold ?? 2;
   const activityCollapsed =
@@ -203,7 +223,12 @@ export default function DesktopRightSidebarSurfaceStack({
         </button>
       ) : null}
 
-      <OpportunitySurfaceStack plan={plan} />
+      <OpportunitySurfaceStack
+        plan={plan}
+        suppressEconomyCourier={
+          resolvedDeliverySuppression.suppressOpportunityStackEconomy
+        }
+      />
 
       <ExchangeSuggestionsSidebarModule />
 

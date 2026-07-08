@@ -321,6 +321,8 @@ export async function GET(req: NextRequest) {
             city: true,
             lat: true,
             lng: true,
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true,
           },
         },
         ListingMedia: { 
@@ -355,6 +357,8 @@ export async function GET(req: NextRequest) {
             city: true,
             lat: true,
             lng: true,
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true,
           },
         },
         photos: { 
@@ -401,6 +405,15 @@ export async function GET(req: NextRequest) {
     title: dish.title || "",
     description: dish.description || "",
     priceCents: dish.priceCents || 0,
+    orderMethod: 'HOMECHEFF_PAYMENT',
+    acceptHomeCheffPayment: null,
+    acceptDirectContact: null,
+    sellerStripeConnectReady: !!(
+      dish.user?.stripeConnectAccountId &&
+      dish.user?.stripeConnectOnboardingCompleted
+    ),
+    listingIntent: 'OFFER' as const,
+    priceModel: 'FIXED' as const,
     delivery: dish.deliveryMode || "PICKUP",
     category: dish.category || "CHEFF",
     createdAt: dish.createdAt,
@@ -453,6 +466,15 @@ export async function GET(req: NextRequest) {
     title: listing.title || "",
     description: listing.description || "",
     priceCents: listing.priceCents || 0,
+    orderMethod: 'HOMECHEFF_PAYMENT',
+    acceptHomeCheffPayment: null,
+    acceptDirectContact: null,
+    sellerStripeConnectReady: !!(
+      listing.User?.stripeConnectAccountId &&
+      listing.User?.stripeConnectOnboardingCompleted
+    ),
+    listingIntent: 'OFFER' as const,
+    priceModel: 'FIXED' as const,
         category: (listing as any).vertical || "HOMECHEFF",
     status: "ACTIVE" as const,
     place: listingPlace,

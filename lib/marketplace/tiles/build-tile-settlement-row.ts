@@ -58,8 +58,11 @@ export function buildTileSettlementRow(
     priceCents: model.priceCents,
     priceModel: model.priceModel,
     listingIntent: model.listingIntent,
-    // Only gate publicly when we explicitly know Connect is NOT configured.
-    stripeConnectReady: model.homeCheffCheckoutConfigured === false ? false : undefined,
+    stripeConnectReady: model.homeCheffCheckoutConfigured === false
+      ? false
+      : model.homeCheffCheckoutConfigured === true
+        ? true
+        : undefined,
   });
 
   const homecheffCheckout = options.canCheckoutNow;

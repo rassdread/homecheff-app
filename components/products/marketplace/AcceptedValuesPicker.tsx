@@ -16,6 +16,9 @@ import {
   taxonomyGroupLabelKey,
   taxonomyLabelKey,
 } from '@/lib/marketplace/taxonomy-i18n';
+import PendingAcceptedValueProposalForm from '@/components/marketplace/PendingAcceptedValueProposalForm';
+import { resolveAcceptedValueEntry } from '@/lib/marketplace/pending-accepted-values/resolve-pending-display';
+import { usePendingAcceptedValueRegistry } from '@/hooks/usePendingAcceptedValueRegistry';
 
 type Props = {
   value: string[];
@@ -30,6 +33,7 @@ export default function AcceptedValuesPicker({
   headingKey = 'marketplace.acceptedValues.heading',
 }: Props) {
   const { t } = useTranslation();
+  const { registry } = usePendingAcceptedValueRegistry();
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<
     MarketplaceCategory | 'ALL'
@@ -143,6 +147,15 @@ export default function AcceptedValuesPicker({
         <div className="flex flex-wrap gap-2">
           {value.map((id) => {
             const item = allItems.find((entry) => entry.id === id);
+            const pending = resolveAcceptedValueEntry(id, registry);
+            const label =
+              pending?.kind === 'pending'
+                ? pending.label
+                : item
+                  ? t(taxonomyLabelKey(id))
+                  : t(taxonomyLabelKey(id));
+            const icon =
+              pending?.icon ?? item?.icon;
             return (
               <button
                 key={id}
@@ -150,10 +163,10 @@ export default function AcceptedValuesPicker({
                 onClick={() => toggle(id)}
                 className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-sm text-emerald-900"
               >
-                {item ? (
-                  <TaxonomyLucideIcon name={item.icon} className="h-3.5 w-3.5" />
+                {icon ? (
+                  <TaxonomyLucideIcon name={icon} className="h-3.5 w-3.5" />
                 ) : null}
-                {t(taxonomyLabelKey(id))}
+                {label}
                 <span aria-hidden>×</span>
               </button>
             );
@@ -196,6 +209,12 @@ export default function AcceptedValuesPicker({
           ))
         )}
       </div>
+
+      <PendingAcceptedValueProposalForm
+        onCreated={(taxonomyId) => {
+          if (!value.includes(taxonomyId)) onChange([...value, taxonomyId]);
+        }}
+      />
     </div>
   );
 }

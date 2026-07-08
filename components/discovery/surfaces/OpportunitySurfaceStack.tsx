@@ -4,12 +4,15 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { ResolvedSurfacePlan } from '@/lib/discovery/surfaces/surface-contract';
 import { isSidebarSlotRenderable } from '@/lib/discovery/surfaces/resolve-sidebar-visibility';
+import { isDeliveryEconomyOpportunity } from '@/lib/home/sidebar-cta-priority';
 import OpportunityEconomyCard from './OpportunityEconomyCard';
 import OpportunityModuleCard from './OpportunityModuleCard';
 
 export type OpportunitySurfaceStackProps = {
   plan: ResolvedSurfacePlan | null;
   className?: string;
+  /** Phase 7G — skip economy COURIER when GrowthActionStack already shows it. */
+  suppressEconomyCourier?: boolean;
 };
 
 /**
@@ -19,6 +22,7 @@ export type OpportunitySurfaceStackProps = {
 export default function OpportunitySurfaceStack({
   plan,
   className = '',
+  suppressEconomyCourier = false,
 }: OpportunitySurfaceStackProps) {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(false);
@@ -32,7 +36,10 @@ export default function OpportunitySurfaceStack({
 
   if (dismissed) return null;
 
-  if (economyContract) {
+  if (
+    economyContract &&
+    !(suppressEconomyCourier && isDeliveryEconomyOpportunity(economyContract))
+  ) {
     return (
       <div className={className} data-surface-stack="opportunity-economy">
         <OpportunityEconomyCard

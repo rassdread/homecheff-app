@@ -77,17 +77,50 @@ function opennessAllowsBarter(barterOpenness?: string | null): boolean {
   return o === 'MONEY_AND_BARTER' || o === 'BARTER_ONLY';
 }
 
+function hasExplicitSettlementBooleans(input: SettlementOptionsInput): boolean {
+  return (
+    input.acceptHomeCheffPayment != null || input.acceptDirectContact != null
+  );
+}
+
+/**
+ * Phase 7G legacy fallback — priced marketplace rows created before settlement
+ * booleans existed. Explicit booleans always win; this only applies when both are
+ * absent/null in the payload.
+ */
+export function isLegacyPricedCheckoutEligible(
+  input: SettlementOptionsInput,
+): boolean {
+  if (String(input.listingIntent ?? '').toUpperCase() === 'REQUEST') {
+    return false;
+  }
+  const order = String(input.orderMethod ?? '').toUpperCase();
+  if (order === 'CONTACT') return false;
+
+  const priceCents = input.priceCents ?? 0;
+  if (priceCents > 0) return true;
+
+  const priceModel = String(input.priceModel ?? '').toUpperCase();
+  return (
+    priceModel === 'FIXED' ||
+    priceModel === 'ON_REQUEST' ||
+    priceModel === 'VOLUNTARY'
+  );
+}
+
 export function resolveSettlementOptions(
   input: SettlementOptionsInput,
 ): SettlementOptions {
-  const hasBooleans =
-    input.acceptHomeCheffPayment != null || input.acceptDirectContact != null;
+  const hasBooleans = hasExplicitSettlementBooleans(input);
+  const legacyPricedCheckout =
+    !hasBooleans && isLegacyPricedCheckoutEligible(input);
 
   const order = String(input.orderMethod ?? '').toUpperCase();
 
   const acceptsHomeCheffCheckout = hasBooleans
     ? !!input.acceptHomeCheffPayment
-    : order !== 'CONTACT'; // legacy default = HOMECHEFF_PAYMENT
+    : legacyPricedCheckout ||
+      (order !== '' && order !== 'CONTACT');
 
   const acceptsDirectContact = hasBooleans
     ? !!input.acceptDirectContact
@@ -100,7 +133,7 @@ export function resolveSettlementOptions(
     : (input.acceptedSpecializations ?? []);
   const hasAcceptedValues = acceptedValueTaxonomyIds.length > 0;
 
-  // Unknown Connect status (legacy) → assume configured (non-regression).
+  // Unknown Connect status (legacy) → assume configured only for legacy-priced rows.
   const homeCheffCheckoutConfigured = input.stripeConnectReady !== false;
 
   const homeCheffCheckoutSelectable = acceptsHomeCheffCheckout;
@@ -108,7 +141,9 @@ export function resolveSettlementOptions(
     acceptsHomeCheffCheckout && !homeCheffCheckoutConfigured;
 
   const canCheckoutNow =
-    acceptsHomeCheffCheckout && homeCheffCheckoutConfigured;
+    acceptsHomeCheffCheckout &&
+    homeCheffCheckoutConfigured &&
+    (hasBooleans || legacyPricedCheckout || input.stripeConnectReady === true);
 
   const canDiscussDirectly = acceptsDirectContact || allowsBarter || hasAcceptedValues;
 

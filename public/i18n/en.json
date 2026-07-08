@@ -5558,6 +5558,7 @@
     "unknownDistance": "distance unknown",
     "filtersPendingHint": "Filters changed — apply to refresh results.",
     "applyFilters": "Apply",
+    "updating": "Updating…",
     "resetFiltersDraft": "Reset",
     "sidebarSectionLocation": "Location",
     "sidebarSectionView": "View",
@@ -7994,7 +7995,9 @@
         "title": "Payment & exchange"
       },
       "acceptedValues": {
-        "title": "Accepted counter-values"
+        "title": "Accepted counter-values",
+        "sellerAcceptsHeading": "This seller accepts",
+        "description": "The seller also accepts this value as (part of) the counter-performance."
       },
       "settlement": {
         "title": "Settlement & agreements",
@@ -8091,6 +8094,31 @@
       }
     },
     "discovery": {
+      "direction": {
+        "label": "Discover",
+        "want": "I want",
+        "wantHint": "What am I looking for?",
+        "offer": "I offer",
+        "offerHint": "What can I offer?",
+        "offerEducation": "Choose what you can offer — we show listings and requests that accept it."
+      },
+      "acceptedValuesFilter": {
+        "heading": "Accepted counter-values",
+        "description": "What can you offer? Show listings and requests that accept this value.",
+        "offerHeading": "I can offer…",
+        "offerDescription": "Choose what you have or can do. We show everything that accepts it.",
+        "offerExamples": "E.g. fruit, photography, nail styling, baking cakes or guitar lessons.",
+        "itemsLabel": "Counter-values",
+        "activeLabel": "Active counter-value filters",
+        "activeShoppingLabel": "Active values you're shopping with",
+        "shoppingWithPrefix": "I'm shopping with:",
+        "emptyTitle": "No matches for this counter-value",
+        "emptyBody": "There are currently no listings that accept this counter-value.",
+        "similarValues": "Similar counter-values",
+        "nearbyCategories": "Try a nearby category",
+        "clearFilter": "Clear filter",
+        "chooseOther": "Choose another counter-value"
+      },
       "requests": {
         "chip": "Wanted",
         "sectionTitle": "Wanted",
@@ -8431,6 +8459,17 @@
       "offeredInReturnHeading": "What do you offer in return?",
       "filterAll": "All",
       "emptySearch": "No results for this search."
+    },
+    "pendingAcceptedValue": {
+      "proposeCta": "Can't find your counter-value? Add your own proposal",
+      "proposeHeading": "Propose a custom counter-value",
+      "proposeDescription": "Pick the closest main category and describe what you offer. It is stored as a pending proposal first.",
+      "categoryLabel": "Category",
+      "customLabel": "Your counter-value",
+      "customPlaceholder": "E.g. homemade kimchi or drone inspections",
+      "submit": "Add proposal",
+      "errorTooShort": "Describe your counter-value in at least 2 characters.",
+      "errorGeneric": "Could not save proposal. Please try again."
     },
     "stripeRecommendation": {
       "message": "Connect Stripe to receive secure HomeCheff payments.",

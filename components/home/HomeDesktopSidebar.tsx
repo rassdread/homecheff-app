@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -15,6 +16,7 @@ import ReturnBelongingStrip from '@/components/home/ReturnBelongingStrip';
 import HomeProfileProgressCard from '@/components/home/HomeProfileProgressCard';
 import HomeRecommendedPromotions from '@/components/home/HomeRecommendedPromotions';
 import UserActionCenter from '@/components/home/UserActionCenter';
+import { resolveSidebarDeliveryCtaSuppression } from '@/lib/home/sidebar-cta-priority';
 
 type Props = {
   welcomeLine?: string | null;
@@ -28,6 +30,13 @@ type Props = {
 export default function HomeDesktopSidebar({ welcomeLine }: Props) {
   const { t } = useTranslation();
   const surfacePlan = useHomeSurfacePlan();
+  const deliveryCtaSuppression = useMemo(
+    () =>
+      resolveSidebarDeliveryCtaSuppression(surfacePlan, {
+        activityModulesMode: true,
+      }),
+    [surfacePlan],
+  );
   const { data: session } = useSession();
   const {
     handleGuestReputationClick,
@@ -80,11 +89,15 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
             <DesktopRightSidebarSurfaceStack
               plan={surfacePlan}
               mode="activity-modules"
+              deliveryCtaSuppression={deliveryCtaSuppression}
             />
           </>
         ) : null}
 
-        <HomeRecommendedPromotions variant="sidebar" />
+        <HomeRecommendedPromotions
+          variant="sidebar"
+          suppressedPromotionIds={deliveryCtaSuppression.suppressedPromotionIds}
+        />
       </div>
       {guestBottomNavPanelEl}
     </>

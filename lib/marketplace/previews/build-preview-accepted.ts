@@ -10,7 +10,8 @@ export function buildPreviewAcceptedValues(
   const badges = resolveAcceptedBadges(model.acceptedSpecializations);
   const mapped = badges.map((b) => ({
     id: b.id,
-    label: t(b.labelKey),
+    label: b.displayLabel ?? t(b.labelKey),
+    icon: b.icon,
   }));
   return {
     values: mapped.slice(0, PREVIEW_ACCEPTED_MAX),

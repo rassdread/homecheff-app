@@ -1,8 +1,7 @@
 'use client';
 
-import MarketplaceBadgeList from '@/components/marketplace/MarketplaceBadgeList';
-import { resolveAcceptedValueHeadingKey } from '@/lib/marketplace/accepted-value-heading';
-import { resolveAcceptedBadges } from '@/lib/marketplace/taxonomy-badges';
+import AcceptedValuesGroupedList from '@/components/marketplace/AcceptedValuesGroupedList';
+import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 
@@ -20,10 +19,10 @@ export default function ProductAcceptedBadgesSection({
   className,
 }: Props) {
   const { t } = useTranslation();
-  const badges = resolveAcceptedBadges(acceptedSpecializations);
-  if (badges.length === 0) return null;
+  const normalized = normalizeAcceptedTaxonomyIds(acceptedSpecializations);
+  if (normalized.length === 0) return null;
 
-  const headingKey = resolveAcceptedValueHeadingKey({ priceCents, priceModel });
+  const headingKey = 'marketplace.detail.acceptedValues.sellerAcceptsHeading';
 
   return (
     <section
@@ -33,12 +32,10 @@ export default function ProductAcceptedBadgesSection({
       )}
     >
       <h2 className="mb-2 text-sm font-semibold text-gray-900">{t(headingKey)}</h2>
-      <MarketplaceBadgeList
-        specializations={acceptedSpecializations}
-        variant="accepted"
-        size="md"
-        showIcon
-      />
+      <p className="mb-3 text-xs text-gray-600 leading-relaxed">
+        {t('marketplace.detail.acceptedValues.description')}
+      </p>
+      <AcceptedValuesGroupedList ids={normalized} />
     </section>
   );
 }

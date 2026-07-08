@@ -48,7 +48,7 @@ export function MarketplaceBadgeResolved({
       {showIcon ? (
         <TaxonomyLucideIcon name={badge.icon} className={sizeClasses.icon} />
       ) : null}
-      <span className="truncate">{t(badge.labelKey)}</span>
+      <span className="truncate">{badge.displayLabel ?? t(badge.labelKey)}</span>
     </span>
   );
 }
