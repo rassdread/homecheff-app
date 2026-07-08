@@ -4,7 +4,11 @@ import { useEffect, useRef } from 'react';
 import { Loader2, MapPin, Search, X } from 'lucide-react';
 import { RADIUS_PRESET_OPTIONS } from '@/lib/geo/local-discovery';
 import type { FeedScope } from '@/lib/feed/feed-scope';
-import { FEED_SCOPE_NEARBY } from '@/lib/feed/feed-scope';
+import {
+  FEED_SCOPE_INTERNATIONAL,
+  FEED_SCOPE_NATIONAL,
+  FEED_SCOPE_NEARBY,
+} from '@/lib/feed/feed-scope';
 import AcceptedValuesDiscoveryFilter from '@/components/feed/AcceptedValuesDiscoveryFilter';
 import DiscoveryDirectionToggle, {
   type DiscoveryDirection,
@@ -25,6 +29,7 @@ type Props = {
   showLocationHint: boolean;
   profileNeedsCoords: boolean;
   appliedScope: FeedScope;
+  onScopeChange: (scope: FeedScope) => void;
   radius: number;
   onRadiusChange: (value: number) => void;
   q: string;
@@ -62,6 +67,7 @@ export default function FeedMobileFilterSheet({
   showLocationHint,
   profileNeedsCoords,
   appliedScope,
+  onScopeChange,
   radius,
   onRadiusChange,
   q,
@@ -134,16 +140,17 @@ export default function FeedMobileFilterSheet({
             value={discoveryDirection}
             onChange={onDiscoveryDirectionChange}
             compact
+            showTagline
           />
 
-          {discoveryDirection === 'offer' ? (
+          <section className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-2.5">
             <AcceptedValuesDiscoveryFilter
               value={appliedAcceptedValues}
               onChange={onAcceptedValuesChange}
               compact
-              offerMode
+              offerMode={discoveryDirection === 'offer'}
             />
-          ) : null}
+          </section>
 
           {showLocationHint ? (
             <p className="text-xs text-gray-600 rounded-lg border border-primary-brand/10 bg-primary-50/40 px-3 py-2">
@@ -155,6 +162,35 @@ export default function FeedMobileFilterSheet({
               {t('feed.completeProfileLocationHint')}
             </p>
           ) : null}
+
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+              {t('feed.scopeLabel')}
+            </label>
+            <div className="grid grid-cols-1 gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
+              {(
+                [
+                  [FEED_SCOPE_NEARBY, 'feed.scopeNearby'],
+                  [FEED_SCOPE_NATIONAL, 'feed.scopeNational'],
+                  [FEED_SCOPE_INTERNATIONAL, 'feed.scopeInternational'],
+                ] as const
+              ).map(([id, labelKey]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => onScopeChange(id)}
+                  className={`rounded-lg px-2.5 py-2 text-xs font-semibold text-left transition-colors touch-manipulation ${
+                    appliedScope === id
+                      ? 'bg-white text-emerald-800 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  aria-pressed={appliedScope === id}
+                >
+                  {t(labelKey)}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
@@ -294,13 +330,6 @@ export default function FeedMobileFilterSheet({
                 className={inputClass}
               />
             </div>
-            {discoveryDirection === 'want' ? (
-              <AcceptedValuesDiscoveryFilter
-                value={appliedAcceptedValues}
-                onChange={onAcceptedValuesChange}
-                compact
-              />
-            ) : null}
           </div>
 
           {filtersDirty ? (

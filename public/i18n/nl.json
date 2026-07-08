@@ -6513,7 +6513,7 @@
     "fansDesc": "Zodra mensen jouw fan worden, verschijnen ze hier.",
     "followsTitle": "Je bent nog niemands fan",
     "followsDesc": "Zodra je iemands fan wordt, verschijnt die hier.",
-    "noResultsHint": "Probeer andere filters of een grotere zoekstraal."
+    "noResultsHint": "Probeer andere filters, een grotere straal — of gebruik Ik bied om te shoppen met wat jij kunt aanbieden."
   },
   "notFound": {
     "title": "Pagina niet gevonden",
@@ -6765,7 +6765,7 @@
     "desktopColumns3Hint": "Drie kolommen — marketplace raster",
     "locationSectionLabel": "Locatie en zoeken in de feed",
     "refineSectionLabel": "Verfijn deze resultaten (zoeken, sorteren, prijs)",
-    "chipSectionIntro": "Alles, aangeboden, gezocht of inspiratie: één plek. Hieronder stel je locatie, categorie en filters in voor de hele feed.",
+    "chipSectionIntro": "Alles, aangeboden, gezocht of inspiratie — één plek. Shop ook met wat jij kunt aanbieden via Ik zoek / Ik bied. Stel hieronder locatie, categorie en filters in.",
     "locationErrorShort": "Locatie kon niet worden bepaald",
     "locationUsingGps": "Jouw locatie wordt gebruikt",
     "locationUsingProfile": "Profiel locatie wordt gebruikt",
@@ -7640,6 +7640,7 @@
     "heroTitleHighlight": "dichtbij",
     "heroTitleAfter": " maken, koken en creëren",
     "heroSubtitle": "Ontdek, koop, verkoop of ruil huisgemaakte maaltijden, tuinoogst en creaties. Plaats een oproep, deel inspiratie of vind hulp in je buurt.",
+    "heroValueExchange": "Shop niet alleen met geld. Ontdek wat je kunt krijgen met wat jij kunt aanbieden.",
     "heroDefinition": "HomeCheff is een lokaal platform waar buurtgenoten eten, oogst, creaties, diensten en hulp kunnen kopen, verkopen, ruilen en afspreken.",
     "howItWorksTitle": "Zo werkt het",
     "howItWorksStep1": "Ontdek of plaats iets in je buurt",
@@ -7688,10 +7689,10 @@
     "ctaLogin": "Inloggen",
     "discover": {
       "title": "Ontdek wat er leeft in jouw buurt",
-      "body": "HomeCheff is een lokaal platform waar buurtgenoten eten, oogst, creaties, diensten en hulp kopen, verkopen, ruilen en afspreken. Lokaal, met een echte community en duidelijke afspraken.",
-      "bullet1": "1. Ontdek of plaats iets in je buurt",
+      "body": "HomeCheff is een lokaal platform waar buurtgenoten eten, oogst, creaties, diensten en hulp kopen, verkopen, ruilen en afspreken. Shop niet alleen met geld — ontdek ook wie jouw skills, hulp of creaties als waarde accepteert.",
+      "bullet1": "1. Zoek wat je wilt — of shop met wat jij kunt aanbieden",
       "bullet2": "2. Maak een afspraak of doe een voorstel",
-      "bullet3": "3. Betaal, ruil of help elkaar lokaal"
+      "bullet3": "3. Betaal veilig via HomeCheff Checkout of spreek iets anders af"
     },
     "share": {
       "title": "Deel wat jij maakt of aanbiedt",
@@ -8049,7 +8050,7 @@
       },
       "settlement": {
         "title": "Afrekenen & afspraken",
-        "intro": "Zo kun je deze afspraak afronden:",
+        "intro": "Betaal veilig via HomeCheff Checkout of spreek samen iets anders af:",
         "homeCheffCheckout": "Veilig via HomeCheff",
         "homeCheffCheckoutDesc": "Betaal veilig online. HomeCheff regelt de betaling en je bent beschermd.",
         "directContact": "Direct met aanbieder",
@@ -8149,17 +8150,23 @@
       }
     },
     "discovery": {
+      "usp": {
+        "tagline": "Shop niet alleen met geld. Ontdek wat je kunt krijgen met wat jij kunt aanbieden.",
+        "reverseDiscovery": "Heb je fruit, skills, hulp of creaties? Bekijk wie dat als waarde accepteert.",
+        "settlement": "Betaal veilig via HomeCheff Checkout of spreek samen iets anders af."
+      },
       "direction": {
         "label": "Ontdekken",
         "want": "Ik zoek",
         "wantHint": "Wat wil ik vinden?",
         "offer": "Ik bied",
         "offerHint": "Wat kan ik aanbieden?",
-        "offerEducation": "Kies wat jij kunt aanbieden — we tonen aanbiedingen en verzoeken die dat accepteren."
+        "wantEducation": "Zoek wat je wilt in je buurt — eten, hulp, creaties of diensten.",
+        "offerEducation": "Heb je fruit, skills, hulp of creaties? Kies wat jij kunt aanbieden — we tonen wie dat als waarde accepteert."
       },
       "acceptedValuesFilter": {
         "heading": "Geaccepteerde waarden",
-        "description": "Wat kun jij aanbieden? Toon aanbiedingen en verzoeken die deze tegenwaarde accepteren.",
+        "description": "Heb je fruit, skills, hulp of creaties? Bekijk wie dat als waarde accepteert.",
         "offerHeading": "Ik kan aanbieden…",
         "offerDescription": "Kies wat jij hebt of kunt doen. We tonen alles dat dit accepteert.",
         "offerExamples": "Bijv. fruit, fotografie, nagels stylen, taart bakken of gitaarles.",
@@ -8168,7 +8175,7 @@
         "activeShoppingLabel": "Actieve waarden waarmee je shopt",
         "shoppingWithPrefix": "Ik shop met:",
         "emptyTitle": "Geen matches voor deze tegenwaarde",
-        "emptyBody": "Er zijn momenteel geen aanbiedingen of verzoeken die deze tegenwaarde accepteren.",
+        "emptyBody": "Er zijn momenteel geen aanbiedingen of verzoeken die deze tegenwaarde accepteren. Probeer een andere waarde of schakel naar Ik bied om te shoppen met wat jij hebt.",
         "similarValues": "Vergelijkbare tegenwaarden",
         "nearbyCategories": "Probeer een nabije categorie",
         "clearFilter": "Filter wissen",
@@ -8565,7 +8572,8 @@
       "publishLive": "Direct zichtbaar op het dorpsplein",
       "cancel": "Annuleren",
       "save": "Opslaan",
-      "submit": "Aanbod plaatsen"
+      "submit": "Aanbod plaatsen",
+      "settlementIntro": "Kies hoe kopers kunnen afrekenen. HomeCheff Checkout is de veilige route; direct contact, ruil en geaccepteerde waarden zijn volwaardige alternatieven."
     },
     "errors": {
       "paymentMethodRequired": "Kies minimaal één betaalmethode.",

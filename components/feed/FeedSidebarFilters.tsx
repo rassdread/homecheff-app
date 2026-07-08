@@ -138,18 +138,17 @@ export default function FeedSidebarFilters({
         value={discoveryDirection}
         onChange={onDiscoveryDirectionChange}
         compact
+        showTagline
       />
 
-      {discoveryDirection === 'offer' ? (
-        <section className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-2.5">
-          <AcceptedValuesDiscoveryFilter
-            value={appliedAcceptedValues}
-            onChange={onAcceptedValuesChange}
-            compact
-            offerMode
-          />
-        </section>
-      ) : null}
+      <section className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-2.5">
+        <AcceptedValuesDiscoveryFilter
+          value={appliedAcceptedValues}
+          onChange={onAcceptedValuesChange}
+          compact
+          offerMode={discoveryDirection === 'offer'}
+        />
+      </section>
 
       {/* Scope */}
       <section>
@@ -393,13 +392,6 @@ export default function FeedSidebarFilters({
                 className={inputClass}
               />
             </div>
-            {discoveryDirection === 'want' ? (
-              <AcceptedValuesDiscoveryFilter
-                value={appliedAcceptedValues}
-                onChange={onAcceptedValuesChange}
-                compact
-              />
-            ) : null}
           </div>
         ) : null}
       </section>

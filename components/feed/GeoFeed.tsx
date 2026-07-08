@@ -178,6 +178,11 @@ import {
   type FeedScope,
 } from "@/lib/feed/feed-scope";
 import {
+  migrateHomeFilterPersist,
+  normalizeHomeFeedChip,
+  snapshotHomeFilterPersist,
+} from "@/lib/feed/home-filter-persist";
+import {
   countSaleAfterSearch,
   logFeedSaleVisibilityAudit,
 } from "@/lib/feed/feed-sale-visibility-audit";
@@ -197,7 +202,6 @@ import {
   DISCOVERY_VIEW_CHIP_OPTIONS,
   itemMatchesDiscoveryCategorySlug,
   isServicesCategorySlug,
-  migrateLegacyServicesViewChip,
   normalizeDiscoveryCategorySlug,
 } from "@/lib/marketplace/canonical-model";
 import { itemMatchesAcceptedValuesDiscoveryFilter } from "@/lib/marketplace/discovery/accepted-values-discovery";
@@ -794,30 +798,15 @@ function toCardItem(
 }
 
 function normalizeFeedChipState(chip: unknown): FeedChip {
-  if (chip === "services") return "sale";
-  if (
-    chip === "all" ||
-    chip === "sale" ||
-    chip === "inspiration" ||
-    chip === "gezocht"
-  ) {
-    return chip;
-  }
-  return "all";
+  return normalizeHomeFeedChip(chip) as FeedChip;
 }
 
 function migratePersistedFeedFilters(raw: {
   feedChip?: unknown;
   category?: string;
 }): { feedChip: FeedChip; category: string } {
-  const legacy = migrateLegacyServicesViewChip(
-    typeof raw.feedChip === "string" ? raw.feedChip : null,
-    raw.category,
-  );
-  return {
-    feedChip: legacy?.chip ?? normalizeFeedChipState(raw.feedChip),
-    category: legacy?.category ?? normalizeDiscoveryCategorySlug(raw.category),
-  };
+  const migrated = migrateHomeFilterPersist(raw);
+  return { feedChip: migrated.feedChip as FeedChip, category: migrated.category };
 }
 
 function initialDorpspleinCategoryFromServer(raw?: string): string {
@@ -1169,6 +1158,8 @@ export default function GeoFeed({
       priceMin?: string;
       priceMax?: string;
       showFilters?: boolean;
+      discoveryDirection?: string;
+      acceptedValues?: string[];
     };
 
     const urlLocksChip = initialFeedChip != null;
@@ -1179,7 +1170,7 @@ export default function GeoFeed({
 
     const persisted = loadFeedSurfaceState<HomePersist>("home");
     if (persisted && typeof persisted === "object") {
-      const migrated = migrateHomeFeedPersist(persisted);
+      const migrated = migrateHomeFilterPersist(persisted);
       const feedFilters = migratePersistedFeedFilters(migrated);
       setAppliedScope(migrated.scope);
       if (!urlLocksChip) {
@@ -1241,6 +1232,8 @@ export default function GeoFeed({
       if (typeof migrated.showFilters === "boolean") {
         setShowFilters(migrated.showFilters);
       }
+      setDiscoveryDirection(migrated.discoveryDirection);
+      setAppliedAcceptedValues(migrated.acceptedValues);
       trackOnboardingEvent("FEED_STATE_RESTORED", { surface: "home" });
       queueMicrotask(() => {
         nativeFeedPrefsBootRef.current = false;
@@ -1327,20 +1320,23 @@ export default function GeoFeed({
     const t = window.setTimeout(() => {
       saveFeedSurfaceState(
         "home",
-        migrateHomeFeedPersist({
-          feedChip,
-          radius: appliedRadius,
-          scope: appliedScope,
-          category: appliedCategory,
-          sortBy: appliedSortBy,
-          sortOrder: appliedSortOrder,
-          searchQuery: appliedSearchQuery,
-          q: appliedQ.trim(),
-          place: appliedPlace.trim().slice(0, 200),
-          priceMin: appliedPriceRange.min,
-          priceMax: appliedPriceRange.max,
-          showFilters,
-        })
+        migrateHomeFeedPersist(
+          snapshotHomeFilterPersist({
+            feedChip,
+            appliedRadius,
+            appliedScope,
+            appliedCategory,
+            appliedSortBy,
+            appliedSortOrder,
+            appliedSearchQuery,
+            appliedQ,
+            appliedPlace,
+            appliedPriceRange,
+            showFilters,
+            discoveryDirection,
+            appliedAcceptedValues,
+          }),
+        ),
       );
     }, 380);
     return () => window.clearTimeout(t);
@@ -1358,6 +1354,8 @@ export default function GeoFeed({
     appliedPriceRange.min,
     appliedPriceRange.max,
     showFilters,
+    discoveryDirection,
+    appliedAcceptedValues,
   ]);
 
   const loadProfileLocation = useCallback(async () => {
@@ -2508,6 +2506,7 @@ export default function GeoFeed({
   const clearFilters = () => {
     resetDraftFilters();
     clearAcceptedValuesFilter();
+    setDiscoveryDirection('want');
   };
 
   const effectiveLocationSource = useMemo((): "manual" | "gps" | "profile" | null => {
@@ -2881,18 +2880,17 @@ export default function GeoFeed({
               value={discoveryDirection}
               onChange={setDiscoveryDirection}
               compact={feedCompactChrome}
+              showTagline
               className={feedSectionBorder}
             />
-            {discoveryDirection === 'offer' ? (
-              <div className={feedSectionBorder}>
-                <AcceptedValuesDiscoveryFilter
-                  value={appliedAcceptedValues}
-                  onChange={setAppliedAcceptedValues}
-                  compact={feedCompactChrome}
-                  offerMode
-                />
-              </div>
-            ) : null}
+            <div className={feedSectionBorder}>
+              <AcceptedValuesDiscoveryFilter
+                value={appliedAcceptedValues}
+                onChange={setAppliedAcceptedValues}
+                compact={feedCompactChrome}
+                offerMode={discoveryDirection === 'offer'}
+              />
+            </div>
             <div className={feedSectionBorder}>
               <p
                 className={
@@ -3257,12 +3255,6 @@ export default function GeoFeed({
                       </button>
                     </div>
                   </div>
-                  {discoveryDirection === 'want' ? (
-                    <AcceptedValuesDiscoveryFilter
-                      value={appliedAcceptedValues}
-                      onChange={setAppliedAcceptedValues}
-                    />
-                  ) : null}
                 </div>
               )}
             </div>
@@ -3286,6 +3278,7 @@ export default function GeoFeed({
         showLocationHint={showViewerLocationHint}
         profileNeedsCoords={profileNeedsCoords}
         appliedScope={appliedScope}
+        onScopeChange={handleScopeChange}
         radius={radius}
         onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
         q={q}

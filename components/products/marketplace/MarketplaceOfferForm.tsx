@@ -553,6 +553,10 @@ export default function MarketplaceOfferForm({
         />
       </div>
 
+      <p className="text-xs text-gray-600 leading-relaxed">
+        {t('marketplace.form.settlementIntro')}
+      </p>
+
       <PaymentMethodCheckboxes
         acceptHomeCheffPayment={acceptHomeCheffPayment}
         acceptDirectContact={acceptDirectContact}

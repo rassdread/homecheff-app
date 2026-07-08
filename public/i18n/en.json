@@ -5564,7 +5564,7 @@
     "desktopColumns3Hint": "Three columns — marketplace grid",
     "locationSectionLabel": "Location and feed search",
     "refineSectionLabel": "Refine these results (search, sort, price)",
-    "chipSectionIntro": "All, offered, wanted, or inspiration — one place. Below you set location, category and filters for the whole feed.",
+    "chipSectionIntro": "All, offered, wanted or inspiration — one place. Also shop with what you can offer via I want / I offer. Set location, category and filters below.",
     "locationErrorShort": "Could not determine location",
     "locationUsingGps": "Your location is being used",
     "locationUsingProfile": "Profile location is being used",
@@ -5929,7 +5929,7 @@
     "fansDesc": "As soon as people become your fan, they appear here.",
     "followsTitle": "You're not a fan of anyone yet",
     "followsDesc": "As soon as you become someone's fan, they appear here.",
-    "noResultsHint": "Try different filters or a larger search radius."
+    "noResultsHint": "Try different filters, a larger radius — or use I offer to shop with what you can offer."
   },
   "notFound": {
     "title": "Page not found",
@@ -7640,6 +7640,7 @@
     "heroTitleHighlight": "nearby",
     "heroTitleAfter": " make, cook and create",
     "heroSubtitle": "Discover, buy, sell or barter homemade meals, garden harvest and creations. Post a request, share inspiration or find help in your neighborhood.",
+    "heroValueExchange": "Don't only shop with money. Discover what you can get with what you can offer.",
     "heroDefinition": "HomeCheff is a local platform where neighbours can buy, sell, barter and arrange food, harvest, creations, services and help.",
     "howItWorksTitle": "How it works",
     "howItWorksStep1": "Discover or post something in your neighbourhood",
@@ -7688,10 +7689,10 @@
     "ctaLogin": "Log in",
     "discover": {
       "title": "Discover what's happening nearby",
-      "body": "HomeCheff is a local platform where neighbours buy, sell, barter and arrange food, harvest, creations, services and help. Local, with a real community and clear arrangements.",
-      "bullet1": "1. Discover or post something in your neighbourhood",
+      "body": "HomeCheff is a local platform where neighbours buy, sell, barter and arrange food, harvest, creations, services and help. Don't only shop with money — discover who accepts your skills, help or creations as value.",
+      "bullet1": "1. Search for what you want — or shop with what you can offer",
       "bullet2": "2. Make an arrangement or send a proposal",
-      "bullet3": "3. Pay, barter or help each other locally"
+      "bullet3": "3. Pay securely via HomeCheff Checkout or arrange something else together"
     },
     "share": {
       "title": "Share what you make or offer",
@@ -8049,7 +8050,7 @@
       },
       "settlement": {
         "title": "Settlement & agreements",
-        "intro": "Here's how you can finalize this agreement:",
+        "intro": "Pay securely via HomeCheff Checkout or arrange another value exchange together:",
         "homeCheffCheckout": "Secure via HomeCheff",
         "homeCheffCheckoutDesc": "Pay securely online. HomeCheff handles the payment and you're protected.",
         "directContact": "Directly with the provider",
@@ -8149,17 +8150,23 @@
       }
     },
     "discovery": {
+      "usp": {
+        "tagline": "Don't only shop with money. Discover what you can get with what you can offer.",
+        "reverseDiscovery": "Have fruit, skills, help or creations? See who accepts them as value.",
+        "settlement": "Pay securely via HomeCheff Checkout or arrange another value exchange together."
+      },
       "direction": {
         "label": "Discover",
         "want": "I want",
         "wantHint": "What am I looking for?",
         "offer": "I offer",
         "offerHint": "What can I offer?",
-        "offerEducation": "Choose what you can offer — we show listings and requests that accept it."
+        "wantEducation": "Search for what you want nearby — food, help, creations or services.",
+        "offerEducation": "Have fruit, skills, help or creations? Choose what you can offer — we'll show who accepts it as value."
       },
       "acceptedValuesFilter": {
         "heading": "Accepted values",
-        "description": "What can you offer? Show listings and requests that accept this value.",
+        "description": "Have fruit, skills, help or creations? See who accepts them as value.",
         "offerHeading": "I can offer…",
         "offerDescription": "Choose what you have or can do. We show everything that accepts it.",
         "offerExamples": "E.g. fruit, photography, nail styling, baking cakes or guitar lessons.",
@@ -8168,7 +8175,7 @@
         "activeShoppingLabel": "Active values you're shopping with",
         "shoppingWithPrefix": "I'm shopping with:",
         "emptyTitle": "No matches for this counter-value",
-        "emptyBody": "There are currently no offers or requests that accept this counter-value.",
+        "emptyBody": "There are currently no offers or requests that accept this counter-value. Try another value or switch to I offer to shop with what you have.",
         "similarValues": "Similar counter-values",
         "nearbyCategories": "Try a nearby category",
         "clearFilter": "Clear filter",
@@ -8565,7 +8572,8 @@
       "publishLive": "Visible on the marketplace immediately",
       "cancel": "Cancel",
       "save": "Save",
-      "submit": "Publish offer"
+      "submit": "Publish offer",
+      "settlementIntro": "Choose how buyers can settle. HomeCheff Checkout is the secure route; direct contact, barter and accepted values are full alternatives."
     },
     "errors": {
       "paymentMethodRequired": "Choose at least one payment method.",

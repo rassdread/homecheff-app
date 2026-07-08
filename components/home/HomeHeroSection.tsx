@@ -186,7 +186,10 @@ export default function HomeHeroSection() {
               {t('homePhase1.heroTitleHighlight')}
               {t('homePhase1.heroTitleAfter')}
             </h1>
-            <p className="hidden min-[380px]:block text-[11px] text-white/85 line-clamp-1 mt-0.5">
+              <p className="hidden min-[380px]:block text-[11px] text-white/90 line-clamp-2 mt-0.5 font-medium">
+              {t('homePhase1.heroValueExchange')}
+            </p>
+            <p className="hidden min-[380px]:block text-[11px] text-white/75 line-clamp-1 mt-0.5">
               {t('homePhase1.heroSubtitle')}
             </p>
           </div>
@@ -236,6 +239,9 @@ export default function HomeHeroSection() {
 
               <p className="text-sm sm:text-[0.9375rem] lg:text-[0.975rem] text-white/90 mb-1 sm:mb-1.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug font-medium">
                 {t('homePhase1.heroSubtitle')}
+              </p>
+              <p className="text-xs sm:text-sm text-white/95 mb-1 sm:mb-1.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug font-semibold">
+                {t('homePhase1.heroValueExchange')}
               </p>
               <p className="text-[11px] sm:text-xs text-white/70 mb-2 sm:mb-2.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug">
                 {t('homePhase1.heroDefinition')}

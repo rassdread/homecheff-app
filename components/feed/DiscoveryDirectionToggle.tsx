@@ -10,6 +10,8 @@ type Props = {
   onChange: (value: DiscoveryDirection) => void;
   compact?: boolean;
   className?: string;
+  /** Phase 10C.13 — show value-exchange USP above the toggle (discovery filters). */
+  showTagline?: boolean;
 };
 
 /** Bidirectional discovery toggle — Phase 8C. */
@@ -18,6 +20,7 @@ export default function DiscoveryDirectionToggle({
   onChange,
   compact = false,
   className,
+  showTagline = false,
 }: Props) {
   const { t } = useTranslation();
 
@@ -32,6 +35,16 @@ export default function DiscoveryDirectionToggle({
 
   return (
     <section className={className} data-discovery-direction={value}>
+      {showTagline ? (
+        <p
+          className={cn(
+            'mb-2 rounded-lg border border-emerald-100 bg-emerald-50/60 px-2.5 py-2 font-medium text-emerald-900 leading-snug',
+            compact ? 'text-[10px]' : 'text-xs',
+          )}
+        >
+          {t('marketplace.discovery.usp.tagline')}
+        </p>
+      ) : null}
       <p
         className={cn(
           'font-semibold uppercase tracking-wide text-gray-500 mb-2',
@@ -87,7 +100,16 @@ export default function DiscoveryDirectionToggle({
         >
           {t('marketplace.discovery.direction.offerEducation')}
         </p>
-      ) : null}
+      ) : (
+        <p
+          className={cn(
+            'mt-2 text-gray-600 leading-snug rounded-lg border border-gray-100 bg-gray-50/80 px-2.5 py-2',
+            compact ? 'text-[10px]' : 'text-xs',
+          )}
+        >
+          {t('marketplace.discovery.direction.wantEducation')}
+        </p>
+      )}
     </section>
   );
 }

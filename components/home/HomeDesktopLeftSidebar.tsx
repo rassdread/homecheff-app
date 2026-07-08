@@ -114,6 +114,9 @@ export default function HomeDesktopLeftSidebar() {
           </button>
           {filtersOpen ? (
             <div className="border-t border-gray-100 px-1 pb-2 pt-1">
+              <p className="mx-2 mb-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-2.5 py-2 text-[11px] font-medium leading-snug text-emerald-900">
+                {t('marketplace.discovery.usp.tagline')}
+              </p>
               <FeedFiltersPanel />
             </div>
           ) : null}
