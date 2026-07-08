@@ -1,7 +1,7 @@
 {
   "name": "HomeCheff",
   "short_name": "HomeCheff",
-  "description": "Thuisgemaakt. Thuisgebracht.",
+  "description": "Lokaal dorpsplein voor eten, tuin, creaties, diensten, gezocht en ruil in je buurt.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -28,7 +28,7 @@
     }
   ],
   "screenshots": [],
-  "categories": ["food", "shopping", "lifestyle"],
+  "categories": ["lifestyle", "shopping", "social"],
   "shortcuts": [
     {
       "name": "Berichten",
@@ -39,7 +39,3 @@
     }
   ]
 }
-
-
-
-

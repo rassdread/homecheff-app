@@ -22,8 +22,8 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
     "@type": "WebPage",
     name: isNl ? "Onderwerpen en gidsen | HomeCheff" : "Guides and topics | HomeCheff",
     description: isNl
-      ? "Overzicht van HomeCheff-gidsen: eten kopen, verkopen, uitleg en lokale pagina’s."
-      : "Overview of HomeCheff guides: buying, selling, explainers, and local pages.",
+      ? "Overzicht van HomeCheff-gidsen: lokaal ontdekken, aanbieden, eten (één categorie), tuin, creaties, diensten en community."
+      : "Overview of HomeCheff guides: local discovery, offering, food (one category), garden, creations, services and community.",
     url: canonical,
     inLanguage: isNl ? "nl-NL" : "en-US",
     isPartOf: { "@type": "WebSite", name: "HomeCheff", url: MAIN_DOMAIN },
@@ -51,11 +51,48 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
           </h1>
           <p className="mt-4 text-lg text-gray-700">
             {isNl
-              ? "Kies een onderwerp om meer te lezen over kopen, verkopen en lokaal eten op HomeCheff."
-              : "Pick a topic to read more about buying, selling, and local food on HomeCheff."}
+              ? "HomeCheff is een lokaal platform voor producten, diensten, vakmanschap en waarde-uitwisseling. Kies een onderwerp — eten is één categorie naast tuin, creaties en diensten."
+              : "HomeCheff is a local platform for products, services, craftsmanship and value exchange. Pick a topic — food is one category alongside garden, creations and services."}
           </p>
 
           <div className="mt-10 space-y-12">
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {isNl ? "Ecosysteem op HomeCheff" : "HomeCheff ecosystem"}
+              </h2>
+              <ul className="mt-4 space-y-2 text-emerald-800">
+                <li>
+                  <Link href="/gemeenschap/keuken" className="hover:underline">
+                    {isNl ? "Keuken & eten" : "Kitchen & food"}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/gemeenschap/tuin" className="hover:underline">
+                    {isNl ? "Tuin & oogst" : "Garden & harvest"}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/gemeenschap/studio" className="hover:underline">
+                    {isNl ? "Studio & creaties" : "Studio & creations"}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/gemeenschap/inspiratie" className="hover:underline">
+                    {isNl ? "Inspiratie" : "Inspiration"}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/gemeenschap/community" className="hover:underline">
+                    {isNl ? "Community & HCP" : "Community & HCP"}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/faq" className="hover:underline">
+                    {isNl ? "Veelgestelde vragen" : "FAQ"}
+                  </Link>
+                </li>
+              </ul>
+            </section>
             {HOMECHEFF_SEO_HUB_SECTIONS.map((section) => (
               <section key={section.id}>
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -108,8 +145,17 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
               <Link href="/?chip=sale#homecheff-feed" className="text-emerald-700 hover:underline">
                 {isNl ? "Dorpsplein" : "Village square"}
               </Link>
+              <Link href="/?chip=gezocht#homecheff-feed" className="text-emerald-700 hover:underline">
+                {isNl ? "Gezocht" : "Wanted"}
+              </Link>
               <Link href="/sell" className="text-emerald-700 hover:underline">
-                {isNl ? "Verkopen" : "Sell"}
+                {isNl ? "Aanbieden" : "Offer"}
+              </Link>
+              <Link href="/faq" className="text-emerald-700 hover:underline">
+                FAQ
+              </Link>
+              <Link href="/over-ons" className="text-emerald-700 hover:underline">
+                {isNl ? "Over ons" : "About"}
               </Link>
               <Link href="/contact" className="text-emerald-700 hover:underline">
                 Contact

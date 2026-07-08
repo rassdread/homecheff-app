@@ -5,44 +5,48 @@ import { MAIN_DOMAIN } from "./metadata";
 export type { SeoHubSection, SeoLocaleBlock, SeoPageDefinition } from "./homecheffSeoTypes";
 export { HOMECHEFF_SEO_PAGE_DEFS } from "./homecheffSeoPages.data";
 
-/** Secties op /seo-hub en /en/seo-hub */
+/** Secties op /seo-hub en /en/seo-hub — food long-tail blijft, maar niet meer food-first als hub. */
 export const HOMECHEFF_SEO_HUB_SECTIONS: SeoHubSection[] = [
   {
-    id: "buy",
-    titleNl: "Eten kopen",
-    titleEn: "Buying food",
+    id: "discover-local",
+    titleNl: "Lokaal ontdekken & kopen",
+    titleEn: "Discover & buy locally",
     pageIds: [
+      "lokale-producten",
+      "alternatief-thuisbezorgd",
       "thuisgekookt-kopen",
       "eten-bij-particulieren",
       "maaltijden-aan-huis",
+    ],
+  },
+  {
+    id: "food",
+    titleNl: "Eten & keuken (één categorie)",
+    titleEn: "Food & kitchen (one category)",
+    pageIds: [
       "wat-eten-vandaag",
       "gezonde-maaltijden",
-      "lokale-producten",
-      "alternatief-thuisbezorgd",
+      "wat-is-thuisgekookt",
     ],
   },
   {
     id: "sell",
-    titleNl: "Verkopen vanuit huis",
-    titleEn: "Selling from home",
+    titleNl: "Lokaal aanbieden & verdienen",
+    titleEn: "Offer locally & earn",
     pageIds: [
-      "geld-koken",
       "verkopen-huis",
+      "geld-koken",
       "begin-thuiskok",
       "koken-voor-anderen",
       "hobby-koken",
+      "platform-thuiskoks",
+      "regels-verkopen",
     ],
   },
   {
-    id: "explain",
-    titleNl: "Uitleg en regels",
-    titleEn: "Guides and rules",
-    pageIds: ["platform-thuiskoks", "wat-is-thuisgekookt", "regels-verkopen"],
-  },
-  {
     id: "local",
-    titleNl: "Lokale pagina’s",
-    titleEn: "Local pages",
+    titleNl: "Lokaal in jouw stad",
+    titleEn: "Local in your city",
     pageIds: [
       "meals-rotterdam",
       "meals-amsterdam",

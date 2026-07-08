@@ -5,55 +5,52 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
       ? [
           {
             q: 'What is HomeCheff?',
-            a: 'HomeCheff connects local makers with people nearby: homemade food, garden harvest, and handmade creations, with safe payments and chat on one platform.',
+            a: 'HomeCheff is a local craft, exchange and community platform. Neighbours offer and discover food, garden harvest, creations, services and help — with secure checkout, direct contact, barter or proposals.',
           },
           {
             q: 'What is the Village Square (Dorpsplein)?',
-            a: 'The Village Square is your local marketplace feed to discover what makers near you sell today, with filters and profiles for trust and transparency.',
+            a: 'The Village Square is your local marketplace feed to discover what makers and neighbours offer nearby — products, services and help — with filters and profiles for trust and transparency.',
           },
           {
             q: 'What are HomeCheff Points (HCP)?',
             a: 'HCP reward constructive participation such as quality listings, orders, reviews, and community activity. They also power friendly leaderboards.',
           },
           {
-            q: 'How do I sell from home on HomeCheff?',
-            a: 'Create a seller profile, choose a role (kitchen, garden, or studio), add listings with clear photos and allergens, and receive payouts via Stripe Connect.',
+            q: 'How do I offer from home on HomeCheff?',
+            a: 'Create a seller profile, choose a category (food, garden, creations or services), add listings with clear photos, and receive payouts via Stripe Connect when you use HomeCheff Checkout.',
           },
           {
-            q: 'How do payouts and delivery work?',
-            a: 'Buyers pay through Stripe; sellers ship or offer pickup as agreed in the listing. Payout timing depends on your account history and Stripe rules.',
+            q: 'How do payouts and agreements work?',
+            a: 'Buyers can pay via HomeCheff Checkout when available, or arrange directly, barter or make a proposal. Payout timing for checkout depends on your account history and Stripe rules.',
           },
         ]
       : [
           {
             q: 'Wat is HomeCheff?',
-            a: 'HomeCheff verbindt lokale makers met mensen in de buurt: thuisgemaakt eten, tuinoogst en creaties, met veilige betaling en chat op één platform.',
+            a: 'HomeCheff is een lokaal platform voor vakmanschap, waarde-uitwisseling en community. Buurtgenoten bieden en ontdekken eten, tuinoogst, creaties, diensten en hulp — met veilig afrekenen, direct contact, ruil of voorstellen.',
           },
           {
             q: 'Wat is het Dorpsplein?',
-            a: 'Het Dorpsplein is je lokale marktplaats-feed om te zien wat makers bij jou in de buurt vandaag aanbieden, met filters en profielen voor vertrouwen.',
+            a: 'Het Dorpsplein is je lokale marktplaats-feed om te zien wat makers en buren bij jou in de buurt aanbieden — producten, diensten en hulp — met filters en profielen voor vertrouwen.',
           },
           {
             q: 'Wat zijn HomeCheff Points (HCP)?',
             a: 'HCP belonen constructieve deelname zoals duidelijke aanbiedingen, bestellingen, reviews en community-activiteit. Ze voeden ook vriendelijke ranglijsten.',
           },
           {
-            q: 'Hoe verkopen vanuit huis?',
-            a: 'Maak een verkopersprofiel, kies een rol (keuken, tuin of atelier), voeg aanbiedingen met foto’s en allergenen toe, en ontvang uitbetalingen via Stripe Connect.',
+            q: 'Hoe bied ik iets aan op HomeCheff?',
+            a: 'Maak een verkopersprofiel, kies een categorie (eten, tuin, creaties of diensten), voeg aanbiedingen met foto’s toe, en ontvang uitbetalingen via Stripe Connect bij HomeCheff Checkout.',
           },
           {
-            q: 'Hoe werken uitbetalingen en levering?',
-            a: 'Kopers betalen via Stripe; verkopers bezorgen of halen af volgens de afspraak in de aanbieding. Uitbetalingstermijn hangt af van je accountgeschiedenis en Stripe-regels.',
+            q: 'Hoe werken uitbetalingen en afspraken?',
+            a: 'Kopers kunnen via HomeCheff Checkout betalen waar beschikbaar, of direct afspreken, ruilen of een voorstel doen. Uitbetalingstermijn bij checkout hangt af van je accountgeschiedenis en Stripe-regels.',
           },
         ];
 
   const mainEntity = pairs.map(({ q, a }) => ({
     '@type': 'Question',
     name: q,
-    acceptedAnswer: {
-      '@type': 'Answer',
-      text: a,
-    },
+    acceptedAnswer: { '@type': 'Answer', text: a },
   }));
 
   return {

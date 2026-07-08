@@ -8,7 +8,7 @@ import { MAIN_DOMAIN } from "@/lib/seo/metadata";
 
 const title = "Onderwerpen en gidsen | HomeCheff";
 const description =
-  "Gidsen over thuisgekookt eten kopen, verkopen vanuit huis, lokale makers en regels — alle onderwerpen op een rij op HomeCheff.";
+  "Gidsen over lokaal aanbieden en ontdekken: eten, tuin, creaties, diensten, ruil en community — alle onderwerpen op HomeCheff.";
 
 export const metadata: Metadata = {
   title,

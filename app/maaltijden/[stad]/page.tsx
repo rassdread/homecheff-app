@@ -24,8 +24,8 @@ export async function generateMetadata({
     return { title: "Maaltijden | HomeCheff", robots: { index: false } };
   }
   const currentDomain = await getCurrentDomain();
-  const title = `Maaltijden in ${city.label} | HomeCheff`;
-  const description = `Ontdek thuisgemaakte maaltijden en lokaal aanbod in ${city.label} via HomeCheff.`;
+  const title = `Lokaal aanbod in ${city.label} | HomeCheff`;
+  const description = `Ontdek lokale producten, diensten en makers in ${city.label} via HomeCheff — eten, tuin, creaties en hulp in je buurt.`;
   return {
     title,
     description,
@@ -59,8 +59,8 @@ export default async function MaaltijdenStadPage({
     ({
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      name: `Maaltijden in ${city.label} | HomeCheff`,
-      description: `Lokaal ecosysteem rond ${city.label} op HomeCheff — makers, momentum en dorpsplein.`,
+      name: `Lokaal aanbod in ${city.label} | HomeCheff`,
+      description: `Lokaal ecosysteem rond ${city.label} op HomeCheff — producten, diensten, makers en dorpsplein.`,
       url: pageUrl,
       isPartOf: { '@type': 'WebSite', name: 'HomeCheff', url: currentDomain },
       mainEntity: {
@@ -89,11 +89,11 @@ export default async function MaaltijdenStadPage({
           <EcosystemBackLink />
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
-          Maaltijden in {city.label}
+          Lokaal aanbod in {city.label}
         </h1>
         <p className="mt-4 text-lg text-neutral-600">
-          Op het dorpsplein vind je lokale makers, gerechten en meer — filter op jouw
-          regio om het aanbod bij jou in de buurt te zien.
+          Op het dorpsplein vind je lokale makers, producten, diensten en hulp — eten is
+          één categorie naast tuin, creaties en meer. Filter op jouw regio.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link

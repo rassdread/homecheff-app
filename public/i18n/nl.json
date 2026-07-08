@@ -1308,7 +1308,7 @@
     "greeting": "Hey {firstName},",
     "greetingQuestion": "wat gaat het worden vandaag?",
     "welcome": "Welkom op het Dorpsplein",
-    "subtitle": "Ontdek wat jouw buurt te bieden heeft: verse oogst, huisgemaakte gerechten en unieke creaties van mensen om je heen",
+    "subtitle": "Ontdek wat jouw buurt te bieden heeft: eten, tuinoogst, creaties, diensten en hulp van mensen om je heen",
     "description": "Word onderdeel van je lokale community — deel je passie of ontdek wat er om je heen gebeurt",
     "welcomeBack": "Welkom terug!",
     "locationFound": "Locatie gevonden",
@@ -1352,7 +1352,7 @@
   },
   "discover": {
     "hubTitle": "Ontdekken",
-    "hubSubtitle": "Inspiratie uit de community en te koop op het dorpsplein — wissel met de tabs hieronder. Uitgeklapte filters helpen je snel verfijnen.",
+    "hubSubtitle": "Inspiratie uit de community en aangeboden op het dorpsplein — wissel met de tabs hieronder. Uitgeklapte filters helpen je snel verfijnen.",
     "listingTypeLabel": "Toon",
     "listingTabsAria": "Kies inspiratie of dorpsplein"
   },
@@ -3288,11 +3288,11 @@
     "general": {
       "0": {
         "question": "Wat is HomeCheff?",
-        "answer": "HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen. We richten ons op thuisgemaakte gerechten, verse producten uit eigen tuin en handgemaakte creaties. Het platform verbindt lokale makers met consumenten in hun buurt.\n\n🎯 Onze missie: Het tegengaan van voedselverspilling door het delen van overtollige maaltijden en producten. Als je voor jezelf kookt en er teveel van hebt, kun je dat delen met anderen in je buurt. Dit draagt bij aan een duurzamere en socialere gemeenschap.\n\n💰 PRAKTISCHE VOORDELEN:\n• Extra inkomen voor je hobby bekostigen\n• Uitgaven aftrekken van je omzet\n• Jaarlijks een leuke vakantie (max €2000)\n• Maandelijkse aanvulling op uitkering mogelijk\n• Verbouwing of extraatjes bekostigen"
+        "answer": "HomeCheff is een lokaal platform voor producten, diensten, vakmanschap, creativiteit en hulp in je buurt. Buurtgenoten kunnen aanbieden op het Dorpsplein, een oproep plaatsen in Gezocht, inspiratie delen, een voorstel doen of veilig afrekenen via HomeCheff Checkout.\n\n🎯 Voor wie: makers, tuiniers, ontwerpers, dienstverleners, buren die willen helpen en iedereen die lokaal wil ontdekken of ruilen.\n\n💡 Waarde-uitwisseling: niet alleen met geld — ook direct contact, ruil en alternatieve tegenwaarden zijn mogelijk als de aanbieder dat toestaat.\n\n🏘️ Lokaal & community: vertrouwen, reputatie (HCP) en transparante afspraken staan centraal — niet alleen commerce."
       },
       "1": {
         "question": "Hoe werkt HomeCheff?",
-        "answer": "Voor particuliere verkopers is het platform volledig gratis! Je betaalt alleen transactiekosten zodat de app kan blijven bestaan. Bedrijven met een KVK nummer kunnen kiezen voor een abonnement. Kopers kunnen zoeken, filteren en lokale producten kopen.\n\n🤝 GEMEENSCHAP:\n• Lokale makers en kopers verbinden\n• Verspilling tegengaan door delen\n• Handgemaakte producten ondersteunen\n• Bewuste consumptie stimuleren"
+        "answer": "1️⃣ Ontdek of plaats iets op het Dorpsplein (Aangeboden), in Gezocht of als Inspiratie.\n2️⃣ Kies hoe je afspreekt: veilig via HomeCheff Checkout, direct contact, ruil of een voorstel met alternatieve waarde.\n3️⃣ Chat, maak een deal en bouw reputatie in je buurt.\n\nVoor particuliere verkopers is het platform gratis — je betaalt alleen transactiekosten bij HomeCheff Checkout. Bedrijven met een KVK-nummer kunnen een abonnement kiezen."
       },
       "2": {
         "question": "Is HomeCheff gratis te gebruiken?",
@@ -3650,7 +3650,7 @@
     "localCommunity": {
       "0": {
         "question": "Wat is het Dorpsplein op HomeCheff?",
-        "answer": "Het Dorpsplein is jouw lokale marktplaats-feed: hier vind je zelfgemaakt eten, oogst en creaties van makers bij jou in de buurt. Je kunt swipen naar Inspiratie voor ideeën zonder directe verkoop, en via het profiel van een maker zie je wat er te koop is versus wat als inspiratie wordt gedeeld.\n\nZo zie je wat er lokaal leeft, steun je makers dichtbij en ontdek je producten die je niet in de supermarkt vindt."
+        "answer": "Het Dorpsplein is jouw lokale marktplaats-feed: hier vind je aangeboden eten, oogst, creaties, diensten en hulp van makers bij jou in de buurt. Je kunt swipen naar Inspiratie voor ideeën zonder directe verkoop, en via het profiel van een maker zie je wat er aangeboden wordt versus wat als inspiratie wordt gedeeld.\n\nZo zie je wat er lokaal leeft, steun je makers dichtbij en ontdek je meer dan alleen de supermarkt — inclusief ruil en gezocht."
       },
       "1": {
         "question": "Wat is Inspiratie en hoe verschilt dat van verkopen?",
@@ -3690,8 +3690,8 @@
     "accountCreatedMessage": "Account succesvol aangemaakt! Je kunt nu inloggen.",
     "accountCreatedRedirect": "Je account is succesvol aangemaakt. Je wordt doorgestuurd naar je profiel.",
     "redirectingToProfile": "Je wordt nu doorgestuurd naar je profiel pagina...",
-    "recipesAndDishes": "Recepten & Gerechten",
-    "recipesAndDishesDesc": "Vertel je verhaal, deel je recepten en laat anderen genieten van wat jij maakt — op jouw manier",
+    "recipesAndDishes": "Creaties & aanbod",
+    "recipesAndDishesDesc": "Deel wat je maakt — eten, tuin, design of een dienst — op jouw manier",
     "growingAndHarvesting": "Kweken & Oogsten",
     "growingAndHarvestingDesc": "Deel wat je kweekt en verbind je met andere tuiniers in je buurt — van verse oogst tot stekjes",
     "designsAndHandwork": "Designs & Handwerk",
@@ -4788,6 +4788,29 @@
     "validUntil": "Geldig tot",
     "noSubscription": "Geen actief abonnement. Premium geeft extra zichtbaarheid en contactopties.",
     "viewPlans": "Abonnementen bekijken"
+  },
+  "onboardingBranch": {
+    "buyerStep": "Stap 1 van 4",
+    "buyerTitle": "Wat wil je doen?",
+    "buyerSubtitle": "Kies je startpunt. Je kunt later altijd wisselen.",
+    "earnTitle": "Aanbieden & verdienen",
+    "earnSubtitle": "Start met iets aanbieden in je buurt — eten, tuin, creaties of een dienst.",
+    "discoverTitle": "Ontdekken",
+    "discoverSubtitle": "Bekijk wat er aangeboden wordt op het dorpsplein bij jou in de buurt.",
+    "skip": "Nu overslaan",
+    "sellerStep": "Stap 2 van 3",
+    "sellerTitle": "Wat wil je als eerste aanbieden?",
+    "sellerSubtitle": "Kies een categorie. Eten is één optie — naast tuin, creaties en meer.",
+    "categoryFood": "Eten",
+    "categoryFoodDesc": "Gerechten en keuken — als jij kookt of bakt.",
+    "categoryGarden": "Tuin & oogst",
+    "categoryGardenDesc": "Groente, fruit, planten of honing uit je tuin.",
+    "categoryCreations": "Creaties",
+    "categoryCreationsDesc": "Design, kunst en handgemaakt werk.",
+    "categoryServices": "Diensten & hulp",
+    "categoryServicesDesc": "Klusjes, workshops, coaching of buurthulp.",
+    "prev": "Vorige stap",
+    "nextSell": "Stap 3: Start met aanbieden"
   },
   "onboardingFlow": {
     "interestsTitle": "Waar ben je in geïnteresseerd?",
@@ -6114,7 +6137,7 @@
     "categoryDesignDescription": "Maak je iets creatiefs? Vind direct klanten.",
     "feedSectionTitle": "HomeCheff feed",
     "affiliateButtonFallback": "Affiliate 12-12",
-    "schemaOrganizationDescription": "HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen.",
+    "schemaOrganizationDescription": "HomeCheff is een lokaal platform voor producten, diensten, vakmanschap, waarde-uitwisseling en community — waar buurtgenoten kunnen aanbieden, ontdekken, ruilen en afspreken.",
     "schemaWebsiteDescription": "HomeCheff - Ontdek digitale ateliers, tuinen en keukens in jouw buurt.",
     "schemaContactCustomerService": "Klantenservice",
     "schemaAreaServedCountry": "Nederland",
@@ -6403,17 +6426,17 @@
     "title": "Over ons",
     "subtitle": "Wie we zijn, wat we doen en hoe je ons bereikt.",
     "whoWeAreTitle": "Wie we zijn",
-    "whoWeAre1": "HomeCheff is het platform waar je buurt samenkomt: makers, koks, tuiniers en ontwerpers delen hun creaties, recepten en oogst. Wij geloven dat de beste smaken en ideeën vaak om de hoek te vinden zijn — en dat iedereen iets te delen heeft.",
-    "whoWeAre2": "We bouwen een plek waar je inspiratie opdoet op ons Inspiratie-plein en waar je lokaal kunt kopen en verkopen op het Dorpsplein. Alles draait om eerlijke handel, directe uitbetalingen en een community die elkaar versterkt.",
-    "whoWeAre3": "Of je nu thuis kookt, in de tuin kweekt of met je handen ontwerpt: op HomeCheff geef je je creaties een plek en bereik je mensen in je eigen regio.",
+    "whoWeAre1": "HomeCheff is het digitale dorpsplein van je buurt: makers, dienstverleners en buren bieden producten, vaardigheden, creativiteit en hulp aan. Eten is één categorie — naast tuin, creaties en diensten.",
+    "whoWeAre2": "We bouwen een plek waar je inspiratie opdoet, lokaal ontdekt wat er aangeboden wordt, een oproep plaatst in Gezocht, ruilt of veilig afrekent. Alles draait om eerlijke handel, flexibele afspraken en een community die elkaar versterkt.",
+    "whoWeAre3": "Of je nu kookt, kweekt, ontwerpt, klusjes doet of kennis deelt: op HomeCheff bereik je mensen in je eigen regio en bouw je reputatie op.",
     "missionTitle": "Onze missie",
-    "mission1": "We willen lokaal maken en kopen weer vanzelfsprekend maken. Door verkopers en kopers direct met elkaar te verbinden, houden we transacties eenvoudig en eerlijk. Verkopers ontvangen hun uitbetaling snel en transparant; kopers ontdekken unieke producten van mensen uit de buurt.",
-    "mission2": "Daarnaast willen we een plek bieden waar je ideeën en recepten deelt zonder meteen te hoeven verkopen — ons Inspiratie-gedeelte is er voor iedereen die wil inspireren en geïnspireerd worden.",
+    "mission1": "We willen lokaal aanbieden, ontdekken en afspreken weer vanzelfsprekend maken — met geld, ruil of persoonlijke afspraken. Verkopers en kopers verbinden we direct; waar mogelijk met veilige uitbetaling via HomeCheff Checkout.",
+    "mission2": "Daarnaast bieden we Inspiratie voor ideeën zonder verkoop, Gezocht voor wat je zoekt, en ruimte voor diensten en buurthulp — één ecosysteem, geen losse apps.",
     "whatWeDoTitle": "Wat we doen",
-    "whatWeDo1": "Inspiratie: recepten, kweektips en ontwerpen delen met de community.",
-    "whatWeDo2": "Dorpsplein: producten lokaal aanbieden en kopen, met veilige betalingen en duidelijke afspraken.",
-    "whatWeDo3": "Directe uitbetalingen voor verkopers, zonder onnodige tussenlagen.",
-    "whatWeDo4": "Een platform dat zowel voor hobbyisten als voor kleine ondernemers werkt.",
+    "whatWeDo1": "Inspiratie: deel ideeën, recepten en maakprocessen met de community.",
+    "whatWeDo2": "Dorpsplein: ontdek aangeboden producten, diensten en hulp — met veilige checkout of flexibele afspraken.",
+    "whatWeDo3": "Gezocht & voorstellen: plaats wat je zoekt of doe een voorstel met geld, ruil of andere waarde.",
+    "whatWeDo4": "Community & reputatie: HCP, vertrouwen en lokale makers zichtbaar maken.",
     "reachabilityTitle": "Bereikbaarheid — voor wie naar waar",
     "reachabilityIntro": "We willen graag dat je op de juiste plek terechtkomt. Gebruik onderstaande e-mailadressen zodat je bericht snel bij het juiste team landt.",
     "tableFor": "Voor",
@@ -7619,7 +7642,7 @@
     "heroStripCommunityHint": "Voor makers. Door de buurt.",
     "ctaDiscover": "Ontdek in je buurt",
     "ctaShare": "Verkoop of deel",
-    "schemaWebsiteDescription": "HomeCheff — het digitale dorpsplein om lokaal eten, oogst en creaties te ontdekken en te delen.",
+    "schemaWebsiteDescription": "HomeCheff — het digitale dorpsplein voor lokaal eten, tuin, creaties, diensten, gezocht, inspiratie en waarde-uitwisseling in je buurt.",
     "verticals": {
       "cheff": {
         "title": "HomeCheff",

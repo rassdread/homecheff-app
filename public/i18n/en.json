@@ -2457,7 +2457,7 @@
   },
   "discover": {
     "hubTitle": "Discover",
-    "hubSubtitle": "Community inspiration and items for sale on the village square — switch with the tabs below. Expanded filters help you refine quickly.",
+    "hubSubtitle": "Community inspiration and offered listings on the village square — switch with the tabs below. Expanded filters help you refine quickly.",
     "listingTypeLabel": "Show",
     "listingTabsAria": "Choose inspiration or village square"
   },
@@ -2753,11 +2753,11 @@
     "general": {
       "0": {
         "question": "What is HomeCheff?",
-        "answer": "HomeCheff is a local platform where individuals can sell their handmade products. We focus on homemade dishes, fresh products from your own garden, and handmade creations. The platform connects local makers with consumers in their neighborhood.\n\n🎯 Our mission: Reducing food waste by sharing surplus meals and products. If you cook for yourself and have too much, you can share it with others in your neighborhood. This contributes to a more sustainable and social community.\n\n💰 PRACTICAL BENEFITS:\n• Extra income to fund your hobby\n• Deduct expenses from your revenue\n• Annual vacation (max €2000)\n• Monthly supplement to benefits possible\n• Fund renovations or extras"
+        "answer": "HomeCheff is a local platform for products, services, craftsmanship, creativity and help in your neighbourhood. Neighbours can list on the Village Square (Offered), post in Wanted, share inspiration, make a proposal or pay securely via HomeCheff Checkout.\n\n🎯 Who it's for: makers, gardeners, designers, service providers, neighbours who want to help, and anyone who wants to discover or barter locally.\n\n💡 Value exchange: not only money — direct contact, barter and alternative counter-values are possible when the provider allows it.\n\n🏘️ Local & community: trust, reputation (HCP) and transparent agreements matter — not commerce alone."
       },
       "1": {
         "question": "How does HomeCheff work?",
-        "answer": "For private sellers, the platform is completely free! You only pay transaction fees so the app can continue to exist. Companies with a KVK number can choose a subscription. Buyers can search, filter, and buy local products.\n\n🤝 COMMUNITY:\n• Connect local makers and buyers\n• Reduce waste through sharing\n• Support handmade products\n• Stimulate conscious consumption"
+        "answer": "1️⃣ Discover or post on the Village Square (Offered), in Wanted or as Inspiration.\n2️⃣ Choose how you agree: securely via HomeCheff Checkout, direct contact, barter or a proposal with alternative value.\n3️⃣ Chat, make a deal and build reputation locally.\n\nFor private sellers the platform is free — you only pay transaction fees on HomeCheff Checkout. Companies with a KVK number can choose a subscription."
       },
       "2": {
         "question": "Is HomeCheff free to use?",
@@ -3085,7 +3085,7 @@
     "localCommunity": {
       "0": {
         "question": "What is the Village Square (Dorpsplein) on HomeCheff?",
-        "answer": "The Village Square is your local marketplace feed: homemade food, harvest, and creations from makers near you. You can swipe to Inspiration for ideas without immediate sales, and from a maker's profile you can see what is for sale versus what is shared as inspiration.\n\nThat way you see what is alive locally, support nearby makers, and discover products you will not find in the supermarket."
+        "answer": "The Village Square is your local marketplace feed: offered food, harvest, creations, services and help from makers near you. Swipe to Inspiration for ideas without immediate sales; on a maker's profile you see what is offered versus shared as inspiration.\n\nYou see what is alive locally, support nearby makers, and discover more than the supermarket — including barter and Wanted."
       },
       "1": {
         "question": "What is Inspiration and how is it different from selling?",
@@ -3737,8 +3737,8 @@
     "accountCreatedMessage": "Account successfully created! You can now log in.",
     "accountCreatedRedirect": "Your account has been successfully created. You will be redirected to your profile.",
     "redirectingToProfile": "You are now being redirected to your profile page...",
-    "recipesAndDishes": "Recipes & Dishes",
-    "recipesAndDishesDesc": "Tell your story, share your recipes and let others enjoy what you make — your way",
+    "recipesAndDishes": "Creations & listings",
+    "recipesAndDishesDesc": "Share what you make — food, garden, design or a service — your way",
     "growingAndHarvesting": "Growing & Harvesting",
     "growingAndHarvestingDesc": "Share what you grow and connect with other gardeners in your neighborhood — from fresh harvest to cuttings",
     "designsAndHandwork": "Designs & Handwork",
@@ -4135,7 +4135,7 @@
     "greeting": "Hey {firstName},",
     "greetingQuestion": "What will it be today?",
     "welcome": "Welcome to the Village Square",
-    "subtitle": "Discover what your neighborhood has to offer: fresh harvest, homemade dishes and unique creations from people around you",
+    "subtitle": "Discover what your neighborhood offers: food, garden harvest, creations, services and help from people around you",
     "description": "Become part of your local community — share your passion or discover what's happening around you",
     "welcomeBack": "Welcome back!",
     "locationFound": "Location found",
@@ -4393,7 +4393,7 @@
     "categoryDesignDescription": "Make something creative? Find customers directly.",
     "feedSectionTitle": "HomeCheff feed",
     "affiliateButtonFallback": "Affiliate 12-12",
-    "schemaOrganizationDescription": "HomeCheff is a local platform where individuals can sell their handmade products.",
+    "schemaOrganizationDescription": "HomeCheff is a local platform for products, services, craftsmanship, value exchange and community — where neighbours can offer, discover, barter and arrange agreements.",
     "schemaWebsiteDescription": "HomeCheff — discover digital studios, gardens, and kitchens in your neighborhood.",
     "schemaContactCustomerService": "Customer service",
     "schemaAreaServedCountry": "Netherlands",
@@ -5842,17 +5842,17 @@
     "title": "About us",
     "subtitle": "Who we are, what we do and how to reach us.",
     "whoWeAreTitle": "Who we are",
-    "whoWeAre1": "HomeCheff is the platform where your neighborhood comes together: makers, cooks, gardeners and designers share their creations, recipes and harvest. We believe the best flavours and ideas are often right around the corner — and that everyone has something to share.",
-    "whoWeAre2": "We're building a place where you get inspiration on our Inspiration square and where you can buy and sell locally on the Village Square. It's all about fair trade, direct payouts and a community that supports each other.",
-    "whoWeAre3": "Whether you cook at home, grow in the garden or design with your hands: on HomeCheff your creations have a place and you reach people in your own region.",
+    "whoWeAre1": "HomeCheff is your neighbourhood's digital village square: makers, service providers and neighbours offer products, skills, creativity and help. Food is one category — alongside garden, creations and services.",
+    "whoWeAre2": "We build a place to get inspiration, discover local offerings, post in Wanted, barter or pay securely. It's about fair trade, flexible agreements and a community that supports each other.",
+    "whoWeAre3": "Whether you cook, grow, design, do chores or share knowledge: on HomeCheff you reach people in your region and build reputation.",
     "missionTitle": "Our mission",
-    "mission1": "We want to make local making and buying natural again. By connecting sellers and buyers directly, we keep transactions simple and fair. Sellers receive their payouts quickly and transparently; buyers discover unique products from people nearby.",
-    "mission2": "We also want to offer a place where you share ideas and recipes without having to sell — our Inspiration section is for everyone who wants to inspire and be inspired.",
+    "mission1": "We want local offering, discovery and agreements to feel natural again — with money, barter or personal deals. We connect sellers and buyers directly; with secure payouts via HomeCheff Checkout where available.",
+    "mission2": "We also offer Inspiration for ideas without selling, Wanted for what you're looking for, and space for services and neighbour help — one ecosystem, not separate products.",
     "whatWeDoTitle": "What we do",
-    "whatWeDo1": "Inspiration: sharing recipes, growing tips and designs with the community.",
-    "whatWeDo2": "Village Square: offering and buying products locally, with secure payments and clear agreements.",
-    "whatWeDo3": "Direct payouts for sellers, without unnecessary middlemen.",
-    "whatWeDo4": "A platform that works for both hobbyists and small businesses.",
+    "whatWeDo1": "Inspiration: share ideas, recipes and making processes with the community.",
+    "whatWeDo2": "Village Square: discover offered products, services and help — with secure checkout or flexible agreements.",
+    "whatWeDo3": "Wanted & proposals: post what you need or make a proposal with money, barter or other value.",
+    "whatWeDo4": "Community & reputation: HCP, trust and making local makers visible.",
     "reachabilityTitle": "Reachability — who to contact for what",
     "reachabilityIntro": "We want you to reach the right place. Use the email addresses below so your message gets to the right team quickly.",
     "tableFor": "For",
@@ -6236,6 +6236,29 @@
     "validUntil": "Valid until",
     "noSubscription": "No active subscription. Premium adds visibility and contact options.",
     "viewPlans": "View plans"
+  },
+  "onboardingBranch": {
+    "buyerStep": "Step 1 of 4",
+    "buyerTitle": "What would you like to do?",
+    "buyerSubtitle": "Choose your starting point. You can always switch later.",
+    "earnTitle": "Offer & earn",
+    "earnSubtitle": "Start offering something nearby — food, garden, creations or a service.",
+    "discoverTitle": "Discover",
+    "discoverSubtitle": "See what's offered on the village square in your neighbourhood.",
+    "skip": "Skip for now",
+    "sellerStep": "Step 2 of 3",
+    "sellerTitle": "What would you like to offer first?",
+    "sellerSubtitle": "Pick a category. Food is one option — alongside garden, creations and more.",
+    "categoryFood": "Food",
+    "categoryFoodDesc": "Dishes and kitchen — if you cook or bake.",
+    "categoryGarden": "Garden & harvest",
+    "categoryGardenDesc": "Vegetables, fruit, plants or honey from your garden.",
+    "categoryCreations": "Creations",
+    "categoryCreationsDesc": "Design, art and handmade work.",
+    "categoryServices": "Services & help",
+    "categoryServicesDesc": "Chores, workshops, coaching or neighbour help.",
+    "prev": "Previous step",
+    "nextSell": "Step 3: Start offering"
   },
   "onboardingFlow": {
     "interestsTitle": "What are you interested in?",
@@ -7438,7 +7461,7 @@
   "sell": {
     "pageTitle": "Selling on HomeCheff",
     "freeTitle": "As an individual you list and sell for free",
-    "freeBody": "List your meals, harvest, creations or a service — or post a request in Gezocht — without a subscription. You only pay a small fee per sale; buying never requires a subscription.",
+    "freeBody": "List your food, harvest, creations or a service — or post a request in Wanted — without a subscription. You only pay a small fee per sale; buying never requires a subscription.",
     "freeCta": "Post something for free",
     "businessSectionTitle": "Optional: business subscription (registered business)",
     "businessSectionSubtitle": "Selling as a business or with a business registration? A monthly subscription gives you a lower platform fee. This is an upgrade, not a requirement to sell.",
@@ -7619,7 +7642,7 @@
     "heroStripCommunityHint": "For makers. By the neighborhood.",
     "ctaDiscover": "Discover nearby",
     "ctaShare": "Sell or share",
-    "schemaWebsiteDescription": "HomeCheff — the digital village square to discover and share local food, harvest and crafts.",
+    "schemaWebsiteDescription": "HomeCheff — the digital village square for local food, garden, creations, services, wanted, inspiration and value exchange in your neighbourhood.",
     "verticals": {
       "cheff": {
         "title": "HomeCheff",
