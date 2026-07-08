@@ -24,6 +24,8 @@ const EXTRA_STATIC_PATHS: readonly string[] = [
   "/bijverdienen-vanuit-huis",
   "/zelfgemaakt-eten-verkopen",
   "/lokaal-eten-verkopen",
+  "/faq",
+  "/over-ons",
 ] as const;
 
 function absoluteLoc(path: string): string {

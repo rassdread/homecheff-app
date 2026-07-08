@@ -2852,9 +2852,9 @@
       "viewMoreOrders": "+{count} more new orders to view →",
       "views": "views"
     },
-    "putForSale": "Te koop aanbieden",
-    "putGardenForSale": "Kweek te koop aanbieden",
-    "putDesignForSale": "Design te koop aanbieden",
+    "putForSale": "Aanbod plaatsen",
+    "putGardenForSale": "Kweek als aanbod plaatsen",
+    "putDesignForSale": "Design als aanbod plaatsen",
     "putOnSale": "In verkoop zetten",
     "sendEmail": "E-mail sturen",
     "viewProfile": "Bekijk profiel",
@@ -4093,6 +4093,7 @@
     "cta": "Start met verdienen"
   },
   "bottomNav": {
+    "mainNavAria": "Hoofdnavigatie",
     "discoverTab": "Ontdekken",
     "dorpsplein": "Dorpsplein",
     "inspiratie": "Inspiratie",
@@ -4884,7 +4885,7 @@
         "share": "Inspiratie delen",
         "edit": "Inspiratie bewerken",
         "addToOffer": "Toevoegen aan aanbod",
-        "putForSale": "Te koop zetten"
+        "putForSale": "Als aanbod plaatsen"
       },
       "aanbod": {
         "add": "Nieuw aanbod plaatsen",
@@ -5681,7 +5682,14 @@
     "badgeFollowing": "Jij volgt",
     "badgeFan": "Fan van jou",
     "followingSince": "Volgend sinds {date}",
-    "fanSince": "Fan sinds {date}"
+    "fanSince": "Fan sinds {date}",
+    "guestLoginTitle": "Log in om favorieten te bewaren",
+    "guestLoginWhy": "Met een account sla je aanbod op dat je later wilt bekijken of bestellen.",
+    "guestBenefitSave": "Bewaar interessant aanbod op één plek",
+    "guestBenefitReturn": "Ga verder waar je gebleven was na inloggen",
+    "guestBenefitNotify": "Volg makers en zie updates in je profiel",
+    "guestLoginCta": "Inloggen",
+    "guestContinueBrowsing": "Verder ontdekken"
   },
   "paymentSuccess": {
     "processing": "We verwerken je betaling...",
@@ -6004,7 +6012,24 @@
   },
   "orders": {
     "updateError": "Fout bij bijwerken van bestelling",
-    "saveError": "Er is een fout opgetreden bij het opslaan"
+    "saveError": "Er is een fout opgetreden bij het opslaan",
+    "loginTitle": "Inloggen vereist",
+    "loginCta": "Inloggen om je aankopen te bekijken",
+    "title": "Mijn Aankopen",
+    "subtitle": "Overzicht van producten die je hebt besteld",
+    "filterAll": "Alle",
+    "filterHint": "Filter uitleg",
+    "emptyTitle": "Geen aankopen gevonden",
+    "emptyAll": "Je hebt nog geen aankopen gedaan",
+    "emptyFiltered": "Geen aankopen met status \"{status}\"",
+    "continueShopping": "Verder winkelen",
+    "quantity": "Aantal: {quantity} × €{price}",
+    "fromSeller": "van {seller}",
+    "pickupAddress": "Afhaaladres:",
+    "deliveryAddress": "Bezorgadres:",
+    "pickupDate": "Afhaaldatum:",
+    "deliveryDate": "Bezorgdatum:",
+    "writeReview": "Review schrijven"
   },
   "order": {
     "statusPending": "In behandeling",
@@ -6715,7 +6740,7 @@
     "sortDistanceFirst": "Dichtbij eerst",
     "sortViews": "Meest bekeken",
     "sortDistance": "Afstand",
-    "chipSale": "Te koop",
+    "chipSale": "Aangeboden",
     "chipInspiration": "Inspiratie",
     "chipServices": "Diensten",
     "verticalAxisLabel": "Categorie",
@@ -6753,7 +6778,7 @@
     "inspirationCategoryDefault": "Inspiratie",
     "altInspiration": "Inspiratie",
     "saleSeeOffer": "Zie aanbod",
-    "saleViewOffer": "Te koop",
+    "saleViewOffer": "Aangeboden",
     "inspirationViewCta": "Bekijk",
     "unknownPlace": "Locatie onbekend",
     "unknownDistance": "afstand onbekend",
@@ -8018,7 +8043,7 @@
         "title": "Betaling & ruil"
       },
       "acceptedValues": {
-        "title": "Geaccepteerde tegenwaarden",
+        "title": "Geaccepteerde waarden",
         "sellerAcceptsHeading": "Deze aanbieder accepteert",
         "description": "De aanbieder accepteert ook deze waarde als (deel van de) tegenprestatie."
       },
@@ -8031,7 +8056,7 @@
         "directContactDesc": "Regel betaling of ophalen onderling via een gesprek.",
         "barter": "Ruilen",
         "barterDesc": "De aanbieder staat open voor ruilen in plaats van geld.",
-        "acceptedValues": "Alternatieve tegenwaarden",
+        "acceptedValues": "Geaccepteerde waarden",
         "acceptedValuesDesc": "De aanbieder accepteert ook andere waarde, zoals hulp of een creatie.",
         "needsConnect": "Veilig afrekenen via HomeCheff komt beschikbaar zodra de aanbieder het uitbetalingsprofiel heeft afgerond."
       },
@@ -8133,7 +8158,7 @@
         "offerEducation": "Kies wat jij kunt aanbieden — we tonen aanbiedingen en verzoeken die dat accepteren."
       },
       "acceptedValuesFilter": {
-        "heading": "Geaccepteerde tegenwaarden",
+        "heading": "Geaccepteerde waarden",
         "description": "Wat kun jij aanbieden? Toon aanbiedingen en verzoeken die deze tegenwaarde accepteren.",
         "offerHeading": "Ik kan aanbieden…",
         "offerDescription": "Kies wat jij hebt of kunt doen. We tonen alles dat dit accepteert.",
@@ -8352,7 +8377,7 @@
         "homecheff": "Veilig betalen via HomeCheff",
         "direct": "Contant of direct contact",
         "barter": "Ruil mogelijk",
-        "acceptedValues": "Alternatieve tegenwaarden welkom"
+        "acceptedValues": "Geaccepteerde waarden welkom"
       },
       "badge": {
         "request": "Gezocht"
@@ -8453,7 +8478,7 @@
         "homeCheffCheckout": "Veilig via HomeCheff",
         "directContact": "Direct met aanbieder",
         "barter": "Ruil mogelijk",
-        "acceptedValues": "Alternatieve waarde bespreekbaar",
+        "acceptedValues": "Geaccepteerde waarden bespreekbaar",
         "requestHeading": "Zoeker staat open voor",
         "requestProposal": "Je kunt voorstellen om te helpen"
       }
@@ -8462,7 +8487,7 @@
       "homeCheffCheckout": "Veilig afrekenen via HomeCheff",
       "directContact": "Direct / contant met aanbieder regelen",
       "barter": "Ruilen toegestaan",
-      "acceptedValues": "Alternatieve tegenwaarden toegestaan",
+      "acceptedValues": "Geaccepteerde waarden toegestaan",
       "needsConnect": "Veilig afrekenen via HomeCheff is beschikbaar zodra je uitbetalingsprofiel klaar is. Rond Stripe Connect af om betalingen via HomeCheff te ontvangen.",
       "connectReady": "Je uitbetalingsprofiel is klaar. Kopers kunnen veilig via HomeCheff afrekenen.",
       "setupConnectCta": "Uitbetalingsprofiel instellen",

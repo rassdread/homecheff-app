@@ -278,22 +278,6 @@ export default function ProductSaleCommerceZone({
         />
       ) : null}
 
-      <div className="flex flex-col gap-3 border-t border-gray-100 pt-3 lg:hidden" data-detail-section="action_block">
-        <ProductSalePrimaryActions
-          product={product}
-          listingKind={listingKind}
-          carouselImageUrl={carouselImageUrl}
-          sellerName={sellerName}
-          quantity={quantity}
-          availableStock={availableStock}
-          isOwner={isOwner}
-          checkoutAvailable={checkoutAvailable}
-          paymentStatus={paymentStatus}
-          publicContactChannels={publicContactChannels}
-          onAdded={onAddedToCart}
-        />
-      </div>
-
       <div className="flex flex-col gap-3 border-t border-gray-100 pt-3">
         <ProductDetailTags tags={product.tags} subcategory={product.subcategory} />
         {!isOwner ? (

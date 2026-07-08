@@ -80,8 +80,8 @@ export default function DiscoverHubClient() {
   const hubSubtitle =
     t('discover.hubSubtitle') ||
     (language === 'en'
-      ? 'Inspiration from the community and items for sale on the village square — switch with the tabs below.'
-      : 'Inspiratie uit de community en te koop op het dorpsplein — wissel met de tabs hieronder.');
+      ? 'Inspiration from the community and local offers on the village square — switch with the tabs below.'
+      : 'Inspiratie uit de community en lokaal aanbod op het dorpsplein — wissel met de tabs hieronder.');
 
   const tabInspiratie = t('bottomNav.inspiratie') || 'Inspiratie';
   const tabDorpsplein = t('bottomNav.dorpsplein') || 'Dorpsplein';

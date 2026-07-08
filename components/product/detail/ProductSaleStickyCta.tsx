@@ -85,7 +85,7 @@ export default function ProductSaleStickyCta({
   );
   const checkoutMode = cta.showCheckout && (productInCart || justAdded);
 
-  const scrollToCta = (targetId = 'commerce-cta') => {
+  const scrollToCta = (targetId = 'detail-settlement') => {
     document.getElementById(targetId)?.scrollIntoView({
       behavior: 'smooth',
       block: 'center',

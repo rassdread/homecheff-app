@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { ArrowLeft, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import CategoryFormSelector from '@/components/products/CategoryFormSelector';
-import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
 import { getProfileHrefAfterProductEdit } from '@/lib/profileProductTab';
 import { buildProductSlugPath } from '@/lib/seo/productSlug';
 
@@ -67,6 +66,9 @@ export default function EditProductPage() {
           deliveryRadiusKm: data.product.deliveryRadiusKm,
           Video: data.product.Video || null,
           tags: data.product.tags || [],
+          acceptHomeCheffPayment: data.product.acceptHomeCheffPayment ?? null,
+          acceptDirectContact: data.product.acceptDirectContact ?? null,
+          orderMethod: data.product.orderMethod ?? null,
         };
         
         setProduct(transformedProduct);
@@ -197,8 +199,6 @@ export default function EditProductPage() {
             </div>
           </div>
         )}
-
-        {product && product.priceCents > 0 && <StripeConnectPaymentsBanner />}
 
         {/* Use CategoryFormSelector with correct category */}
         {product && (

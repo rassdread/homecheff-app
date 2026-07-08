@@ -10,6 +10,7 @@ import TourTrigger from '@/components/onboarding/TourTrigger';
 import InfoIcon from '@/components/onboarding/InfoIcon';
 import { getHintsForPage } from '@/lib/onboarding/hints';
 import { getDisplayName } from '@/lib/displayName';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface OrderItem {
   id: string;
@@ -54,12 +55,13 @@ interface Order {
 
 export default function OrdersPage() {
   const { data: session } = useSession();
+  const { t, language } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   
-  // Load hints for this page
   const pageHints = getHintsForPage('orders');
+  const dateLocale = language === 'en' ? 'en-GB' : 'nl-NL';
 
   useEffect(() => {
     if (session?.user) {
@@ -75,23 +77,19 @@ export default function OrdersPage() {
       });
       if (response.ok) {
         const data = await response.json();
-        // Sort orders consistently (newest first)
-        const sortedOrders = (data.orders || []).sort((a, b) => {
-          // First by creation date (newest first)
+        const sortedOrders = (data.orders || []).sort((a: Order, b: Order) => {
           const dateCompare = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           if (dateCompare !== 0) return dateCompare;
-          
-          // Then by order number (newest first)
           return (b.orderNumber || '').localeCompare(a.orderNumber || '');
         });
         
         setOrders(sortedOrders);
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('❌ Mijn Aankopen: Error fetching orders:', response.status, errorData);
+        console.error('Orders: error fetching orders:', response.status, errorData);
       }
     } catch (error) {
-      console.error('❌ Mijn Aankopen: Error fetching orders:', error);
+      console.error('Orders: error fetching orders:', error);
     } finally {
       setIsLoading(false);
     }
@@ -119,17 +117,17 @@ export default function OrdersPage() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return 'Wachtend';
+        return t('order.statusPending');
       case 'CONFIRMED':
-        return 'Bevestigd';
+        return t('order.statusConfirmed');
       case 'PROCESSING':
-        return 'In behandeling';
+        return t('order.statusProcessing');
       case 'SHIPPED':
-        return 'Onderweg';
+        return t('order.statusShipped');
       case 'DELIVERED':
-        return 'Bezorgd';
+        return t('order.statusDelivered');
       case 'CANCELLED':
-        return 'Geannuleerd';
+        return t('order.statusCancelled');
       default:
         return status;
     }
@@ -139,9 +137,9 @@ export default function OrdersPage() {
     return (
       <main className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-4">Inloggen vereist</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-4">{t('orders.loginTitle')}</h1>
           <Link href="/login" className="text-primary-600 hover:text-primary-700">
-            Inloggen om je aankopen te bekijken
+            {t('orders.loginCta')}
           </Link>
         </div>
       </main>
@@ -150,22 +148,19 @@ export default function OrdersPage() {
 
   return (
     <main className="min-h-screen bg-neutral-50">
-      {/* Onboarding Tour */}
       <OnboardingTour pageId="orders" autoStart={false} />
       
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">Mijn Aankopen</h1>
-              <p className="text-neutral-600 mt-2 text-sm sm:text-base">Overzicht van producten die je hebt besteld</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">{t('orders.title')}</h1>
+              <p className="text-neutral-600 mt-2 text-sm sm:text-base">{t('orders.subtitle')}</p>
             </div>
             <TourTrigger pageId="orders" variant="button" />
           </div>
         </div>
 
-        {/* Status Filter */}
         <div className="mb-6" data-tour="order-filter">
           <div className="flex gap-2 flex-wrap">
             {['all', 'PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((status) => (
@@ -178,19 +173,18 @@ export default function OrdersPage() {
                     : 'bg-white text-neutral-700 hover:bg-neutral-50 border border-neutral-200'
                 }`}
               >
-                {status === 'all' ? 'Alle' : getStatusText(status)}
+                {status === 'all' ? t('orders.filterAll') : getStatusText(status)}
               </button>
             ))}
           </div>
           {pageHints?.hints.filterStatus && (
             <div className="mt-2 flex items-center gap-2">
               <InfoIcon hint={pageHints.hints.filterStatus} pageId="orders" size="sm" />
-              <span className="text-xs text-gray-500">Filter uitleg</span>
+              <span className="text-xs text-gray-500">{t('orders.filterHint')}</span>
             </div>
           )}
         </div>
 
-        {/* Orders */}
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -204,18 +198,18 @@ export default function OrdersPage() {
         ) : orders.length === 0 ? (
           <div className="text-center py-16">
             <Package className="w-16 h-16 text-neutral-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-neutral-900 mb-2">Geen aankopen gevonden</h3>
+            <h3 className="text-xl font-semibold text-neutral-900 mb-2">{t('orders.emptyTitle')}</h3>
             <p className="text-neutral-600 mb-6">
               {statusFilter === 'all' 
-                ? "Je hebt nog geen aankopen gedaan"
-                : `Geen aankopen met status "${getStatusText(statusFilter)}"`
+                ? t('orders.emptyAll')
+                : t('orders.emptyFiltered', { status: getStatusText(statusFilter) })
               }
             </p>
             <Link
               href="/?chip=sale#homecheff-feed"
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold"
             >
-              Verder winkelen
+              {t('orders.continueShopping')}
             </Link>
           </div>
         ) : (
@@ -226,7 +220,6 @@ export default function OrdersPage() {
                 data-tour={index === 0 ? "order-card" : undefined}
                 className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-200"
               >
-                {/* Order Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     {getStatusIcon(order.status)}
@@ -235,7 +228,7 @@ export default function OrdersPage() {
                         🛍️ {order.orderNumber || `HC-${order.id.slice(-6).toUpperCase()}`}
                       </h3>
                       <p className="text-sm text-neutral-600">
-                        {new Date(order.createdAt).toLocaleDateString('nl-NL', {
+                        {new Date(order.createdAt).toLocaleDateString(dateLocale, {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
@@ -251,7 +244,6 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Order Items */}
                 <div className="space-y-3 mb-4">
                   {order.items.map((item) => (
                     <div key={item.id} className="flex gap-4 p-3 bg-neutral-50 rounded-xl">
@@ -271,10 +263,13 @@ export default function OrdersPage() {
                       <div className="flex-1">
                         <h4 className="font-medium text-neutral-900">{item.product.title}</h4>
                         <p className="text-sm text-neutral-600">
-                          Aantal: {item.quantity} × €{(item.priceCents / 100).toFixed(2)}
+                          {t('orders.quantity', {
+                            quantity: item.quantity,
+                            price: (item.priceCents / 100).toFixed(2),
+                          })}
                         </p>
                         <p className="text-sm text-neutral-600">
-                          van {getDisplayName(item.product.seller)}
+                          {t('orders.fromSeller', { seller: getDisplayName(item.product.seller) })}
                         </p>
                       </div>
                       <div className="text-right">
@@ -286,28 +281,26 @@ export default function OrdersPage() {
                   ))}
                 </div>
 
-                {/* Delivery Info */}
                 {(order.pickupAddress || order.deliveryAddress) && (
                   <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-xl mb-4">
                     <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
                       <p className="font-medium text-blue-900">
-                        {order.deliveryMode === 'PICKUP' ? 'Afhaaladres:' : 'Bezorgadres:'}
+                        {order.deliveryMode === 'PICKUP' ? t('orders.pickupAddress') : t('orders.deliveryAddress')}
                       </p>
                       <p className="text-blue-700">
                         {order.deliveryMode === 'PICKUP' ? order.pickupAddress : order.deliveryAddress}
                       </p>
                       {(order.pickupDate || order.deliveryDate) && (
                         <p className="text-blue-700 mt-1">
-                          {order.deliveryMode === 'PICKUP' ? 'Afhaaldatum:' : 'Bezorgdatum:'}{' '}
-                          {new Date(order.pickupDate || order.deliveryDate!).toLocaleDateString('nl-NL')}
+                          {order.deliveryMode === 'PICKUP' ? t('orders.pickupDate') : t('orders.deliveryDate')}{' '}
+                          {new Date(order.pickupDate || order.deliveryDate!).toLocaleDateString(dateLocale)}
                         </p>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* Last Message */}
                 {order.lastMessage && (
                   <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl mb-4">
                     <MessageCircle className={`w-5 h-5 ${order.hasUnreadMessages ? 'text-green-600' : 'text-green-500'} flex-shrink-0`} />
@@ -317,7 +310,7 @@ export default function OrdersPage() {
                         {order.lastMessage.text}
                       </p>
                       <p className="text-green-700 text-xs">
-                        {new Date(order.lastMessage.createdAt).toLocaleString('nl-NL')}
+                        {new Date(order.lastMessage.createdAt).toLocaleString(dateLocale)}
                       </p>
                     </div>
                     {order.hasUnreadMessages && (
@@ -326,7 +319,6 @@ export default function OrdersPage() {
                   </div>
                 )}
 
-                {/* Actions */}
                 <div className="flex gap-3">
                   <OrderMessageButton 
                     orderId={order.id}
@@ -338,7 +330,7 @@ export default function OrdersPage() {
                       href={`/product/${order.items[0].product.id}`}
                       className="flex items-center gap-2 px-4 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors text-sm font-medium"
                     >
-                      Review schrijven
+                      {t('orders.writeReview')}
                     </Link>
                   )}
                 </div>
@@ -350,4 +342,3 @@ export default function OrdersPage() {
     </main>
   );
 }
-

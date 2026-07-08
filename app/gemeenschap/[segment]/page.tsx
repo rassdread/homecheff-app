@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Script from 'next/script';
+import { cookies, headers } from 'next/headers';
 import {
   CATEGORY_ECOSYSTEM_SLUGS,
   getCategoryEcosystem,
@@ -51,6 +52,21 @@ const META: Record<
   },
 };
 
+async function resolvePageLanguage(): Promise<'nl' | 'en'> {
+  const headersList = await headers();
+  const languageHeader = headersList.get('X-HomeCheff-Language');
+  const cookieStore = await cookies();
+  const languageCookie = cookieStore.get('homecheff-language');
+
+  if (languageHeader === 'nl' || languageHeader === 'en') {
+    return languageHeader;
+  }
+  if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
+    return languageCookie.value as 'nl' | 'en';
+  }
+  return 'nl';
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -61,14 +77,17 @@ export async function generateMetadata({
     return { title: 'HomeCheff', robots: { index: false } };
   }
   const m = META[slug];
+  const lang = await resolvePageLanguage();
+  const title = lang === 'en' ? m.titleEn : m.titleNl;
+  const description = lang === 'en' ? m.descEn : m.descNl;
   const currentDomain = await getCurrentDomain();
   const path = `/gemeenschap/${slug}`;
   return {
-    title: m.titleNl,
-    description: m.descNl,
+    title,
+    description,
     openGraph: {
-      title: m.titleNl,
-      description: m.descNl,
+      title,
+      description,
       url: `${currentDomain}${path}`,
       siteName: 'HomeCheff',
     },

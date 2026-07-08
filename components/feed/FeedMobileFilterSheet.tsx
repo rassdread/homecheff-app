@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Loader2, MapPin, Search, X } from 'lucide-react';
 import { RADIUS_PRESET_OPTIONS } from '@/lib/geo/local-discovery';
 import type { FeedScope } from '@/lib/feed/feed-scope';
@@ -79,6 +80,27 @@ export default function FeedMobileFilterSheet({
   discoveryDirection,
   onDiscoveryDirectionChange,
 }: Props) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      previousFocus?.focus?.();
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
@@ -97,6 +119,7 @@ export default function FeedMobileFilterSheet({
             {t('common.filters')}
           </h2>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             className="rounded-full p-2 text-gray-600 hover:bg-gray-100"

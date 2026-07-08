@@ -1618,7 +1618,24 @@
   },
   "orders": {
     "updateError": "Error updating order",
-    "saveError": "An error occurred while saving"
+    "saveError": "An error occurred while saving",
+    "loginTitle": "Login required",
+    "loginCta": "Log in to view your purchases",
+    "title": "My purchases",
+    "subtitle": "Overview of products you have ordered",
+    "filterAll": "All",
+    "filterHint": "Filter help",
+    "emptyTitle": "No purchases found",
+    "emptyAll": "You have not made any purchases yet",
+    "emptyFiltered": "No purchases with status \"{status}\"",
+    "continueShopping": "Continue shopping",
+    "quantity": "Qty: {quantity} × €{price}",
+    "fromSeller": "from {seller}",
+    "pickupAddress": "Pickup address:",
+    "deliveryAddress": "Delivery address:",
+    "pickupDate": "Pickup date:",
+    "deliveryDate": "Delivery date:",
+    "writeReview": "Write review"
   },
   "order": {
     "statusPending": "Pending",
@@ -3517,9 +3534,9 @@
       "sellFromFixedLocation": "You sell from one fixed location",
       "sellInMultipleRegions": "You sell in multiple regions"
     },
-    "putForSale": "Put for sale",
-    "putGardenForSale": "Put garden for sale",
-    "putDesignForSale": "Put design for sale",
+    "putForSale": "Publish offer",
+    "putGardenForSale": "Publish garden offer",
+    "putDesignForSale": "Publish design offer",
     "putOnSale": "Put on sale",
     "sendEmail": "E-mail sturen",
     "viewProfile": "View profile",
@@ -4275,7 +4292,14 @@
     "badgeFollowing": "You follow",
     "badgeFan": "Your fan",
     "followingSince": "Following since {date}",
-    "fanSince": "Fan since {date}"
+    "fanSince": "Fan since {date}",
+    "guestLoginTitle": "Log in to save favourites",
+    "guestLoginWhy": "With an account you can save offers to review or order later.",
+    "guestBenefitSave": "Keep interesting offers in one place",
+    "guestBenefitReturn": "Continue where you left off after logging in",
+    "guestBenefitNotify": "Follow makers and see updates in your profile",
+    "guestLoginCta": "Log in",
+    "guestContinueBrowsing": "Continue browsing"
   },
   "paymentSuccess": {
     "processing": "We're processing your payment...",
@@ -4778,6 +4802,7 @@
     "cta": "Start earning"
   },
   "bottomNav": {
+    "mainNavAria": "Main navigation",
     "discoverTab": "Discover",
     "dorpsplein": "Village Square",
     "inspiratie": "Inspiration",
@@ -5514,7 +5539,7 @@
     "sortDistanceFirst": "Nearest first",
     "sortViews": "Most viewed",
     "sortDistance": "Distance",
-    "chipSale": "For sale",
+    "chipSale": "Offered",
     "chipInspiration": "Inspiration",
     "chipServices": "Services",
     "verticalAxisLabel": "Category",
@@ -5552,7 +5577,7 @@
     "inspirationCategoryDefault": "Inspiration",
     "altInspiration": "Inspiration",
     "saleSeeOffer": "See listing",
-    "saleViewOffer": "Shop",
+    "saleViewOffer": "Offered",
     "inspirationViewCta": "View",
     "unknownPlace": "Location unknown",
     "unknownDistance": "distance unknown",
@@ -6332,7 +6357,7 @@
         "share": "Share inspiration",
         "edit": "Edit inspiration",
         "addToOffer": "Add to offerings",
-        "putForSale": "Put up for sale"
+        "putForSale": "Publish as offer"
       },
       "aanbod": {
         "add": "Add new offering",
@@ -8018,7 +8043,7 @@
         "title": "Payment & exchange"
       },
       "acceptedValues": {
-        "title": "Accepted counter-values",
+        "title": "Accepted values",
         "sellerAcceptsHeading": "This seller accepts",
         "description": "The seller also accepts this value as (part of) the counter-performance."
       },
@@ -8031,7 +8056,7 @@
         "directContactDesc": "Arrange payment or pickup together via a conversation.",
         "barter": "Barter",
         "barterDesc": "The provider is open to bartering instead of money.",
-        "acceptedValues": "Alternative values",
+        "acceptedValues": "Accepted values",
         "acceptedValuesDesc": "The provider also accepts other value, such as help or a creation.",
         "needsConnect": "Secure checkout via HomeCheff becomes available once the provider completes their payout profile."
       },
@@ -8133,7 +8158,7 @@
         "offerEducation": "Choose what you can offer — we show listings and requests that accept it."
       },
       "acceptedValuesFilter": {
-        "heading": "Accepted counter-values",
+        "heading": "Accepted values",
         "description": "What can you offer? Show listings and requests that accept this value.",
         "offerHeading": "I can offer…",
         "offerDescription": "Choose what you have or can do. We show everything that accepts it.",
@@ -8352,7 +8377,7 @@
         "homecheff": "Secure checkout via HomeCheff",
         "direct": "Cash or direct contact",
         "barter": "Barter possible",
-        "acceptedValues": "Alternative values welcome"
+        "acceptedValues": "Accepted values welcome"
       },
       "badge": {
         "request": "Wanted"
@@ -8453,7 +8478,7 @@
         "homeCheffCheckout": "Secure via HomeCheff",
         "directContact": "Directly with the provider",
         "barter": "Barter possible",
-        "acceptedValues": "Alternative value negotiable",
+        "acceptedValues": "Accepted values negotiable",
         "requestHeading": "Seeker is open to",
         "requestProposal": "You can propose to help"
       }
@@ -8462,7 +8487,7 @@
       "homeCheffCheckout": "Secure checkout via HomeCheff",
       "directContact": "Arrange directly / cash with the provider",
       "barter": "Barter allowed",
-      "acceptedValues": "Alternative values allowed",
+      "acceptedValues": "Accepted values allowed",
       "needsConnect": "Secure checkout via HomeCheff is available once your payout profile is ready. Complete Stripe Connect to receive payments via HomeCheff.",
       "connectReady": "Your payout profile is ready. Buyers can check out securely via HomeCheff.",
       "setupConnectCta": "Set up payout profile",

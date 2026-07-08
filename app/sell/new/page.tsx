@@ -16,7 +16,6 @@ import CategoryFormSelector from "@/components/products/CategoryFormSelector";
 import InspiratieFormHandler from "@/components/products/InspiratieFormHandler";
 import { compressDataUrl } from "@/lib/imageOptimization";
 import { useTranslation } from "@/hooks/useTranslation";
-import StripeConnectPaymentsBanner from "@/components/seller/StripeConnectPaymentsBanner";
 import SellerActivationGate from "@/components/seller/SellerActivationGate";
 import { getProfileHrefAfterProductSave } from "@/lib/profileProductTab";
 import { parseCreateIntentSearchParams } from "@/lib/createFlowIntent";
@@ -455,7 +454,6 @@ function HomeCheffProductNieuwPageContent() {
       />
 
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 max-lg:pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] lg:pb-8">
-        <StripeConnectPaymentsBanner />
         <SellerActivationGate />
         {phase === "wizard-1" && (
           <>

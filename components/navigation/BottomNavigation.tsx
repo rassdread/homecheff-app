@@ -1693,7 +1693,8 @@ export default function BottomNavigation() {
             </button>
           </div>
         ) : null}
-        <div
+        <nav
+          aria-label={t('bottomNav.mainNavAria')}
           className={cn(
             'flex w-full min-w-0 items-center mx-auto',
             'gap-x-1 sm:gap-x-2',
@@ -1705,6 +1706,7 @@ export default function BottomNavigation() {
             <Link
               href="/#homecheff-feed"
               prefetch={false}
+              aria-current={isFeedDiscoverActive ? 'page' : undefined}
               className={navTabClasses(isFeedDiscoverActive, isNativeShell)}
               onClick={(e) => {
                 navDebug('bottom-nav:tap', { tab: 'discover', href: '/#homecheff-feed', path: pathname });
@@ -1936,7 +1938,7 @@ export default function BottomNavigation() {
               </div>
             )}
           </div>
-        </div>
+        </nav>
       </div>
       </div>
 

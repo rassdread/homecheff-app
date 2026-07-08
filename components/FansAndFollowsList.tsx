@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { UserPlus, Users, Heart } from "lucide-react";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { UserPlus, Users, Heart, LogIn } from 'lucide-react';
 import ClickableName from '@/components/ui/ClickableName';
 import SafeImage from '@/components/ui/SafeImage';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
@@ -75,6 +76,7 @@ interface FansAndFollowsListProps {
 
 export default function FansAndFollowsList({ userId, initialTab = 'follows' }: FansAndFollowsListProps) {
   const { t, language } = useTranslation();
+  const { data: session } = useSession();
   const locale = language === 'en' ? 'en-GB' : 'nl-NL';
   const [follows, setFollows] = useState<Follow[]>([]);
   const [fans, setFans] = useState<Follow[]>([]);
@@ -201,8 +203,39 @@ export default function FansAndFollowsList({ userId, initialTab = 'follows' }: F
 
       {/* Content */}
       {activeTab === 'favorites' ? (
-        // Favorieten Tab Content
-        !favorites.length ? (
+        !session?.user ? (
+          <div className="bg-white rounded-b-xl border border-t-0 border-gray-200 p-8 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+              <Heart className="w-10 h-10 text-pink-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              {t('favoritesHub.guestLoginTitle')}
+            </h3>
+            <p className="text-gray-600 text-sm max-w-md mx-auto leading-relaxed mb-4">
+              {t('favoritesHub.guestLoginWhy')}
+            </p>
+            <ul className="text-sm text-gray-600 max-w-md mx-auto text-left space-y-2 mb-6">
+              <li>• {t('favoritesHub.guestBenefitSave')}</li>
+              <li>• {t('favoritesHub.guestBenefitReturn')}</li>
+              <li>• {t('favoritesHub.guestBenefitNotify')}</li>
+            </ul>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/login?callbackUrl=/favorites"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold"
+              >
+                <LogIn className="w-4 h-4" aria-hidden />
+                {t('favoritesHub.guestLoginCta')}
+              </Link>
+              <Link
+                href="/?chip=sale#homecheff-feed"
+                className="inline-flex items-center justify-center px-6 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
+              >
+                {t('favoritesHub.guestContinueBrowsing')}
+              </Link>
+            </div>
+          </div>
+        ) : !favorites.length ? (
           <div className="bg-white rounded-b-xl border border-t-0 border-gray-200 p-8 text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
               <Heart className="w-10 h-10 text-gray-400" />

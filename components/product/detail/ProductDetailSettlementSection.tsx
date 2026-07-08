@@ -98,6 +98,7 @@ export default function ProductDetailSettlementSection({
 
   return (
     <section
+      id="detail-settlement"
       className={cn(
         'rounded-xl border border-gray-100 bg-white px-4 py-4 shadow-sm',
         className,

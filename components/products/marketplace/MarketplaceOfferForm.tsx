@@ -54,6 +54,7 @@ import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-acco
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { useTranslation } from '@/hooks/useTranslation';
+import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 
 type Uploaded = { url: string; uploading?: boolean; error?: string };
 
@@ -194,6 +195,18 @@ export default function MarketplaceOfferForm({
         normalizedAccepted,
       ),
     );
+    const settlementPrefill = resolveSettlementOptions({
+      acceptHomeCheffPayment:
+        existingProduct.acceptHomeCheffPayment as boolean | null | undefined,
+      acceptDirectContact:
+        existingProduct.acceptDirectContact as boolean | null | undefined,
+      orderMethod: existingProduct.orderMethod as string | null | undefined,
+      priceCents: existingProduct.priceCents as number | null | undefined,
+      priceModel: existingProduct.priceModel as string | null | undefined,
+      listingIntent: existingProduct.listingIntent as string | null | undefined,
+    });
+    setAcceptHomeCheffPayment(settlementPrefill.acceptsHomeCheffCheckout);
+    setAcceptDirectContact(settlementPrefill.acceptsDirectContact);
     if (existingProduct.listingIntent) {
       setListingIntent(existingProduct.listingIntent as ListingIntentValue);
     }
