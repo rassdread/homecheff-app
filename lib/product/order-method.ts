@@ -13,15 +13,37 @@ export function parseProductOrderMethod(
   return raw === 'CONTACT' ? 'CONTACT' : 'HOMECHEFF_PAYMENT';
 }
 
+function hasExplicitSettlementBooleans(product: {
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
+}): boolean {
+  return (
+    product.acceptHomeCheffPayment != null ||
+    product.acceptDirectContact != null
+  );
+}
+
 export function isContactOnlyProduct(product: {
   orderMethod?: ProductOrderMethodValue | string | null;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
 }): boolean {
+  if (hasExplicitSettlementBooleans(product)) {
+    const acceptsHomeCheff = product.acceptHomeCheffPayment !== false;
+    const acceptsDirect = product.acceptDirectContact === true;
+    return !acceptsHomeCheff && acceptsDirect;
+  }
   return product.orderMethod === 'CONTACT';
 }
 
 export function isHomecheffCheckoutProduct(product: {
   orderMethod?: ProductOrderMethodValue | string | null;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
 }): boolean {
+  if (hasExplicitSettlementBooleans(product)) {
+    return product.acceptHomeCheffPayment !== false;
+  }
   return !isContactOnlyProduct(product);
 }
 
@@ -60,6 +82,8 @@ export type SellerPaymentsUser = {
 /** Stripe verplicht alleen bij HomeCheff-betaling met prijs > 0. */
 export function requiresStripeForHomecheffCheckout(product: {
   orderMethod?: ProductOrderMethodValue | string | null;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
   priceCents?: number | null;
 }): boolean {
   return isHomecheffCheckoutProduct(product) && hasPublicDisplayPrice(product);

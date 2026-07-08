@@ -20,6 +20,7 @@ type Props = {
   /** Primary CTA styling (barter-only listings). */
   primary?: boolean;
   className?: string;
+  chatButtonLabel?: string;
   exchangeFunnelListing?: ExchangeFunnelListingInput;
 };
 
@@ -30,6 +31,7 @@ export default function ProductSaleProposalAction({
   publicContactChannels,
   primary = false,
   className,
+  chatButtonLabel,
   exchangeFunnelListing,
 }: Props) {
   const { t } = useTranslation();
@@ -48,7 +50,7 @@ export default function ProductSaleProposalAction({
     );
   }
 
-  const label = t('marketplace.detail.actions.requestProposal');
+  const label = chatButtonLabel ?? t('marketplace.detail.actions.requestProposal');
 
   if (!primary && !expanded) {
     return (

@@ -169,7 +169,7 @@ assert(geo.includes('suggestAcceptedValueAlternatives'), 'GeoFeed uses taxonomy 
 console.log('\n8C.6 Chips & detail copy');
 assert(exists('components/marketplace/AcceptedValueChip.tsx'), 'AcceptedValueChip component');
 assert(geo.includes('shoppingWithPrefix'), 'GeoFeed shopping-with chip framing');
-const detail = read('components/product/detail/ProductAcceptedBadgesSection.tsx');
+const detail = read('components/product/detail/ProductDetailAcceptedValuesSection.tsx');
 assert(detail.includes('sellerAcceptsHeading'), 'detail uses seller accepts heading');
 
 // --- 8C.7 i18n parity ---------------------------------------------------------

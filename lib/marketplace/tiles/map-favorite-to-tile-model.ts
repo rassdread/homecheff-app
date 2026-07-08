@@ -5,6 +5,7 @@
 import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
 import { deriveListingKind } from '@/lib/marketplace/listing-kind';
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
+import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 import type { MarketplaceTileModel, MarketplaceTilePerson } from './types';
 import { EMPTY_TILE_TRUST } from './map-trust';
 
@@ -14,8 +15,41 @@ type FavoriteProduct = {
   priceCents?: number | null;
   priceModel?: string | null;
   category?: string | null;
+  orderMethod?: string | null;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
+  barterOpenness?: string | null;
+  acceptedSpecializations?: string[];
+  listingIntent?: string | null;
   Image?: Array<{ fileUrl?: string | null }>;
 };
+
+function favoriteSettlementFlags(input: {
+  orderMethod?: string | null;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
+  barterOpenness?: string | null;
+  acceptedSpecializations?: string[];
+  priceCents?: number | null;
+  priceModel?: string | null;
+  listingIntent?: string | null;
+}) {
+  const settlement = resolveSettlementOptions({
+    acceptHomeCheffPayment: input.acceptHomeCheffPayment,
+    acceptDirectContact: input.acceptDirectContact,
+    orderMethod: input.orderMethod,
+    barterOpenness: input.barterOpenness,
+    acceptedSpecializations: input.acceptedSpecializations,
+    priceCents: input.priceCents,
+    priceModel: input.priceModel,
+    listingIntent: input.listingIntent,
+  });
+  return {
+    acceptsHomeCheffCheckout: settlement.acceptsHomeCheffCheckout,
+    acceptsDirectContact: settlement.acceptsDirectContact,
+    homeCheffCheckoutConfigured: settlement.homeCheffCheckoutConfigured,
+  };
+}
 
 type FavoriteDish = {
   id: string;
@@ -57,6 +91,16 @@ export function mapFavoriteRecordToTileModel(
       category: p.category,
       specializations: [],
     }).listingKind;
+    const settlement = favoriteSettlementFlags({
+      orderMethod: p.orderMethod,
+      acceptHomeCheffPayment: p.acceptHomeCheffPayment,
+      acceptDirectContact: p.acceptDirectContact,
+      barterOpenness: p.barterOpenness,
+      acceptedSpecializations: p.acceptedSpecializations,
+      priceCents: p.priceCents,
+      priceModel: p.priceModel,
+      listingIntent: p.listingIntent ?? 'OFFER',
+    });
     return {
       id: p.id,
       href,
@@ -71,15 +115,15 @@ export function mapFavoriteRecordToTileModel(
       listingIntent: 'OFFER',
       marketplaceCategory: null,
       specializations: [],
-      acceptedSpecializations: [],
-      barterOpenness: null,
+      acceptedSpecializations: p.acceptedSpecializations ?? [],
+      barterOpenness: p.barterOpenness ?? null,
       availabilityDate: null,
       priceCents: p.priceCents ?? null,
       priceModel: p.priceModel ?? null,
-      orderMethod: null,
-      acceptsHomeCheffCheckout: true,
-      acceptsDirectContact: false,
-      homeCheffCheckoutConfigured: true,
+      orderMethod: p.orderMethod ?? null,
+      acceptsHomeCheffCheckout: settlement.acceptsHomeCheffCheckout,
+      acceptsDirectContact: settlement.acceptsDirectContact,
+      homeCheffCheckoutConfigured: settlement.homeCheffCheckoutConfigured,
       person: owner,
       place: null,
       distanceKm: null,
@@ -95,6 +139,11 @@ export function mapFavoriteRecordToTileModel(
 
   if (record.Dish) {
     const d = record.Dish;
+    const dishKind = INSPIRATION_LISTING_KIND;
+    const dishSettlement = favoriteSettlementFlags({
+      orderMethod: null,
+      listingIntent: null,
+    });
     return {
       id: d.id,
       href: dishHref(d),
@@ -115,16 +164,16 @@ export function mapFavoriteRecordToTileModel(
       priceCents: null,
       priceModel: null,
       orderMethod: null,
-      acceptsHomeCheffCheckout: true,
-      acceptsDirectContact: false,
-      homeCheffCheckoutConfigured: true,
+      acceptsHomeCheffCheckout: dishSettlement.acceptsHomeCheffCheckout,
+      acceptsDirectContact: dishSettlement.acceptsDirectContact,
+      homeCheffCheckoutConfigured: dishSettlement.homeCheffCheckoutConfigured,
       person: owner,
       place: null,
       distanceKm: null,
       trust: { ...EMPTY_TILE_TRUST },
       favoriteCount: 0,
       fulfillmentMode: null,
-      fulfillmentFlags: resolveFulfillmentFlags({ listingKind: kind }),
+      fulfillmentFlags: resolveFulfillmentFlags({ listingKind: dishKind }),
       capacityRemaining: null,
       neededBy: null,
       mode: 'inspiration',
@@ -134,6 +183,12 @@ export function mapFavoriteRecordToTileModel(
 
   if (record.Listing) {
     const l = record.Listing;
+    const listingKind = 'PRODUCT' as const;
+    const listingSettlement = favoriteSettlementFlags({
+      orderMethod: null,
+      priceCents: l.priceCents,
+      listingIntent: 'OFFER',
+    });
     return {
       id: l.id,
       href: `/product/${l.id}`,
@@ -154,16 +209,16 @@ export function mapFavoriteRecordToTileModel(
       priceCents: l.priceCents ?? null,
       priceModel: null,
       orderMethod: null,
-      acceptsHomeCheffCheckout: true,
-      acceptsDirectContact: false,
-      homeCheffCheckoutConfigured: true,
+      acceptsHomeCheffCheckout: listingSettlement.acceptsHomeCheffCheckout,
+      acceptsDirectContact: listingSettlement.acceptsDirectContact,
+      homeCheffCheckoutConfigured: listingSettlement.homeCheffCheckoutConfigured,
       person: owner,
       place: l.place ?? null,
       distanceKm: null,
       trust: { ...EMPTY_TILE_TRUST },
       favoriteCount: 0,
       fulfillmentMode: null,
-      fulfillmentFlags: resolveFulfillmentFlags({ listingKind: kind }),
+      fulfillmentFlags: resolveFulfillmentFlags({ listingKind }),
       capacityRemaining: null,
       neededBy: null,
       mode: 'sale',

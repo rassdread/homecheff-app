@@ -5539,7 +5539,7 @@
     "desktopColumns3Hint": "Three columns — marketplace grid",
     "locationSectionLabel": "Location and feed search",
     "refineSectionLabel": "Refine these results (search, sort, price)",
-    "chipSectionIntro": "All, for sale, or inspiration — one place. Below you set location, category and filters for the whole feed.",
+    "chipSectionIntro": "All, offered, wanted, or inspiration — one place. Below you set location, category and filters for the whole feed.",
     "locationErrorShort": "Could not determine location",
     "locationUsingGps": "Your location is being used",
     "locationUsingProfile": "Profile location is being used",
@@ -5578,8 +5578,8 @@
     "resultSingular": "result",
     "resultPlural": "results",
     "filteredByQuery": " · Filtered by: \"{query}\"",
-    "emptySaleTitle": "No listings found near you yet",
-    "emptySaleBody": "Be the first to offer something or browse inspiration.",
+    "emptySaleTitle": "No offers found near you yet",
+    "emptySaleBody": "Widen your area, browse inspiration, or post something — product, service, help or counter-value.",
     "emptyNationalTitle": "No listings found yet.",
     "emptyNationalBody": "No products match your current filters.",
     "emptyInternationalTitle": "International listings coming soon.",
@@ -8022,6 +8022,13 @@
         "stockLow": "Only {{count}} left"
       }
     },
+    "cta": {
+      "checkoutHomeCheff": "Pay securely via HomeCheff",
+      "startConversation": "Start conversation",
+      "makeProposal": "Make a proposal",
+      "discussBarter": "Discuss barter",
+      "arrangeDirect": "Arrange directly with provider"
+    },
     "exchange": {
       "signals": {
         "exactDesiredMatch": "Matches what you're looking for",
@@ -8113,7 +8120,7 @@
         "activeShoppingLabel": "Active values you're shopping with",
         "shoppingWithPrefix": "I'm shopping with:",
         "emptyTitle": "No matches for this counter-value",
-        "emptyBody": "There are currently no listings that accept this counter-value.",
+        "emptyBody": "There are currently no offers or requests that accept this counter-value.",
         "similarValues": "Similar counter-values",
         "nearbyCategories": "Try a nearby category",
         "clearFilter": "Clear filter",
@@ -8124,7 +8131,7 @@
         "sectionTitle": "Wanted",
         "sectionSubtitle": "See what neighbours are looking for — or post your own request for a product, service, help or something to be made, delivered or repaired.",
         "emptyTitle": "No open requests found yet",
-        "emptyBody": "Browse offers or post your own request — someone nearby might help.",
+        "emptyBody": "Browse what's offered or post your own request — someone nearby might help.",
         "searchHints": {
           "gezocht": "Wanted",
           "help": "Help needed",

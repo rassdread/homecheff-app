@@ -3683,7 +3683,7 @@ export default function GeoFeed({
               onClick={() => setFeedChip("sale")}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
-              {t("feed.chipSale")}
+              {t("marketplace.canonical.view.offered")}
             </button>
             <button
               type="button"

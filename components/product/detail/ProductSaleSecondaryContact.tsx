@@ -4,8 +4,11 @@ import { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import MakerContactSection from '@/components/profile/MakerContactSection';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
-import { isContactOnlyProduct } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import {
+  resolveMarketplaceCtaActions,
+  toMarketplaceCtaContext,
+} from '@/lib/marketplace/settlement/settlement-router';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 
@@ -13,10 +16,16 @@ type Props = {
   product: {
     id: string;
     orderMethod?: ProductOrderMethodValue;
+    acceptHomeCheffPayment?: boolean | null;
+    acceptDirectContact?: boolean | null;
+    barterOpenness?: string | null;
+    acceptedSpecializations?: string[] | null;
+    listingIntent?: string | null;
     seller?: { User?: { id?: string } } | null;
   };
   sellerName: string;
   publicContactChannels: PublicContactChannel[];
+  checkoutAvailable?: boolean;
   className?: string;
 };
 
@@ -24,19 +33,23 @@ export default function ProductSaleSecondaryContact({
   product,
   sellerName,
   publicContactChannels,
+  checkoutAvailable = true,
   className,
 }: Props) {
-  const { tOr } = useTranslation();
+  const { t, tOr } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
-  if (isContactOnlyProduct(product)) return null;
+  const cta = resolveMarketplaceCtaActions(
+    toMarketplaceCtaContext(product, {
+      stripeConnectReady: checkoutAvailable,
+      hasContactChannels: publicContactChannels.length > 0,
+    }),
+  );
+
+  if (!cta.showCheckout || cta.showContactOnly) return null;
   if (!product.seller?.User?.id || publicContactChannels.length === 0) return null;
 
-  const askLabel = tOr(
-    'productDetail.askMaker',
-    'Ask the maker a question',
-    'Vraag iets aan maker',
-  );
+  const askLabel = t('marketplace.cta.startConversation');
 
   return (
     <div id="commerce-secondary-contact" className={cn('space-y-2', className)}>

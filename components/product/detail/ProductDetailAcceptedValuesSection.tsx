@@ -62,9 +62,12 @@ export default function ProductDetailAcceptedValuesSection({
       )}
       data-detail-section="accepted_values"
     >
-      <h2 className="mb-3 text-sm font-semibold text-gray-900">
-        {t('marketplace.detail.acceptedValues.title')}
+      <h2 className="mb-1 text-sm font-semibold text-gray-900">
+        {t('marketplace.detail.acceptedValues.sellerAcceptsHeading')}
       </h2>
+      <p className="mb-3 text-xs text-gray-600 leading-relaxed">
+        {t('marketplace.detail.acceptedValues.description')}
+      </p>
       <div className="space-y-4">
         {presentation.groups.map((group) => (
           <div key={group.mainCategory}>

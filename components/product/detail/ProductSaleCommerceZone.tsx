@@ -12,14 +12,13 @@ import type { DiscoveryTrustContract } from '@/lib/discovery/contracts/discovery
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { MarketplaceCategory } from '@prisma/client';
 import {
-  hasPublicDisplayPrice,
-  isContactOnlyProduct,
-} from '@/lib/product/order-method';
-import type { ProductOrderMethodValue } from '@/lib/product/order-method';
-import {
   formatCommercePriceLabel,
-  resolveProductCommerceActions,
 } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import {
+  resolveMarketplaceCtaActions,
+  toMarketplaceCtaContext,
+} from '@/lib/marketplace/settlement/settlement-router';
+import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
@@ -31,6 +30,8 @@ type ProductShape = {
   description?: string | null;
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
   barterOpenness?: string | null;
   priceModel?: string | null;
   acceptedSpecializations?: string[];
@@ -117,12 +118,18 @@ export default function ProductSaleCommerceZone({
   // A request is a help/wanted post, not a sale — hide stock/quantity/VAT chrome.
   const isRequest = listingKind === 'REQUEST';
 
-  const commerceActions = resolveProductCommerceActions(product.barterOpenness);
+  const cta = resolveMarketplaceCtaActions(
+    toMarketplaceCtaContext(product, {
+      stripeConnectReady: checkoutAvailable,
+      hasContactChannels: publicContactChannels.length > 0,
+      inStock: availableStock === null || availableStock > 0,
+      isOwner,
+    }),
+  );
 
   const showQuantity =
     !isRequest &&
-    commerceActions.showOrderCheckout &&
-    !isContactOnlyProduct(product) &&
+    cta.showCheckout &&
     !isOwner &&
     availableStock !== null &&
     availableStock > 0;
@@ -190,15 +197,15 @@ export default function ProductSaleCommerceZone({
           >
             {formatCommercePriceLabel(product, t)}
           </div>
-          {isContactOnlyProduct(product) ? (
+          {cta.showContactOnly ? (
             <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
               {t('productOrder.badgeContactOnly')}
             </span>
           ) : null}
         </div>
-        {!isRequest && !isContactOnlyProduct(product) && commerceActions.showOrderCheckout ? (
+        {!isRequest && cta.showCheckout ? (
           <p className="mt-0.5 text-xs text-gray-500">{t('productOrder.priceIncludesVat')}</p>
-        ) : isContactOnlyProduct(product) ? (
+        ) : cta.showContactOnly ? (
           <p className="mt-1 text-sm text-gray-600">{t('productOrder.buyerContactIntro')}</p>
         ) : null}
       </div>
@@ -262,11 +269,12 @@ export default function ProductSaleCommerceZone({
         />
       </div>
 
-      {!commerceActions.showProposalCta && !isContactOnlyProduct(product) ? (
+      {!cta.showProposal && !cta.showContactOnly ? (
         <ProductSaleSecondaryContact
           product={product}
           sellerName={sellerName}
           publicContactChannels={publicContactChannels}
+          checkoutAvailable={checkoutAvailable}
         />
       ) : null}
 

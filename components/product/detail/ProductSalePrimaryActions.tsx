@@ -6,15 +6,13 @@ import AddToCartButton from '@/components/cart/AddToCartButton';
 import MakerContactSection from '@/components/profile/MakerContactSection';
 import ProductSaleProposalAction from '@/components/product/detail/ProductSaleProposalAction';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
-import {
-  isContactOnlyProduct,
-  requiresStripeForHomecheffCheckout,
-} from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
-import { resolveProductCommerceActions } from '@/lib/marketplace/commerce/barter-commerce-alignment';
-import { resolveDetailPageActions } from '@/lib/marketplace/detail/resolve-detail-actions';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { ExchangeFunnelListingInput } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
+import {
+  resolveMarketplaceCtaActions,
+  toMarketplaceCtaContext,
+} from '@/lib/marketplace/settlement/settlement-router';
 import {
   getBuyerPaymentWarningKey,
   type PublicPaymentStatus,
@@ -28,7 +26,10 @@ type ProductShape = {
   title: string;
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
   barterOpenness?: string | null;
+  priceModel?: string | null;
   acceptedSpecializations?: string[] | null;
   listingIntent?: string | null;
   specializations?: string[] | null;
@@ -60,7 +61,6 @@ type Props = {
 
 export default function ProductSalePrimaryActions({
   product,
-  listingKind,
   carouselImageUrl,
   sellerName,
   quantity,
@@ -75,14 +75,18 @@ export default function ProductSalePrimaryActions({
 }: Props) {
   const { t, tOr } = useTranslation();
   const isOutOfStock = availableStock !== null && availableStock === 0;
-  const detailActions = resolveDetailPageActions({
-    listingKind,
-    barterOpenness: product.barterOpenness,
-  });
-  const commerceActions = resolveProductCommerceActions(product.barterOpenness);
-  const showOrder = detailActions.showOrder;
-  const showProposal = detailActions.showProposal;
   const sellerId = product.seller?.User?.id;
+  const hasContactChannels = publicContactChannels.length > 0;
+
+  const cta = resolveMarketplaceCtaActions(
+    toMarketplaceCtaContext(product, {
+      stripeConnectReady: checkoutAvailable,
+      hasContactChannels,
+      inStock: !isOutOfStock,
+      isOwner,
+    }),
+  );
+
   const exchangeFunnelListing: ExchangeFunnelListingInput = {
     listingId: product.id,
     barterOpenness: product.barterOpenness,
@@ -92,8 +96,8 @@ export default function ProductSalePrimaryActions({
     orderMethod: product.orderMethod,
   };
 
-  if (isContactOnlyProduct(product) && !isOwner) {
-    if (sellerId && publicContactChannels.length > 0) {
+  if (cta.showContactOnly && !isOwner) {
+    if (sellerId && hasContactChannels) {
       return (
         <div id="commerce-cta" className={cn(className)}>
           <MakerContactSection
@@ -102,6 +106,7 @@ export default function ProductSalePrimaryActions({
             makerName={sellerName}
             channels={publicContactChannels}
             productId={product.id}
+            chatButtonLabel={t(cta.proposalLabelKey)}
             className={compact ? '!p-3' : '!border-gray-200 !bg-gray-50 text-gray-900 shadow-sm'}
           />
         </div>
@@ -125,32 +130,23 @@ export default function ProductSalePrimaryActions({
     );
   }
 
-  if (
-    !isOwner &&
-    commerceActions.showOrderCheckout &&
-    requiresStripeForHomecheffCheckout(product) &&
-    !checkoutAvailable
-  ) {
+  if (cta.checkoutNeedsConnect && !isOwner) {
     const warningKey = getBuyerPaymentWarningKey(paymentStatus);
-    const hasContactChannels = publicContactChannels.length > 0;
 
     return (
       <div id="commerce-cta" className={cn('space-y-3', className)}>
-        <div
-          className={cn(
-            'rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-950 leading-relaxed',
-          )}
-        >
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-950 leading-relaxed">
           {t(warningKey)}
         </div>
-        {sellerId && hasContactChannels ? (
-          <MakerContactSection
-            variant="product"
-            makerId={sellerId}
-            makerName={sellerName}
-            channels={publicContactChannels}
+        {sellerId && hasContactChannels && cta.showProposal ? (
+          <ProductSaleProposalAction
             productId={product.id}
-            className={compact ? '!p-3' : '!border-gray-200 !bg-gray-50 text-gray-900 shadow-sm'}
+            sellerId={sellerId}
+            sellerName={sellerName}
+            publicContactChannels={publicContactChannels}
+            primary
+            chatButtonLabel={t(cta.proposalLabelKey)}
+            exchangeFunnelListing={exchangeFunnelListing}
           />
         ) : !hasContactChannels ? (
           <p className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
@@ -196,7 +192,7 @@ export default function ProductSalePrimaryActions({
     );
   }
 
-  if (!showOrder && showProposal) {
+  if (!cta.showCheckout && cta.showProposal) {
     return (
       <div id="commerce-cta" className={cn(className)}>
         {sellerId ? (
@@ -205,7 +201,8 @@ export default function ProductSalePrimaryActions({
             sellerId={sellerId}
             sellerName={sellerName}
             publicContactChannels={publicContactChannels}
-            primary={detailActions.proposalPrimary}
+            primary
+            chatButtonLabel={t(cta.proposalLabelKey)}
             exchangeFunnelListing={exchangeFunnelListing}
           />
         ) : null}
@@ -215,10 +212,10 @@ export default function ProductSalePrimaryActions({
 
   return (
     <div id="commerce-cta" className={cn('space-y-3', className)}>
-      {showOrder ? (
+      {cta.showCheckout ? (
         <>
           <p className="rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-xs font-medium leading-relaxed text-emerald-900">
-            {t('productDetail.commercePathCheckout')}
+            {t(cta.checkoutLabelKey)}
           </p>
           <AddToCartButton
             product={{
@@ -246,13 +243,14 @@ export default function ProductSalePrimaryActions({
           />
         </>
       ) : null}
-      {showProposal && sellerId ? (
+      {cta.showProposal && sellerId ? (
         <ProductSaleProposalAction
           productId={product.id}
           sellerId={sellerId}
           sellerName={sellerName}
           publicContactChannels={publicContactChannels}
-          primary={detailActions.proposalPrimary && !showOrder}
+          primary={!cta.showCheckout}
+          chatButtonLabel={t(cta.proposalLabelKey)}
           exchangeFunnelListing={exchangeFunnelListing}
         />
       ) : null}

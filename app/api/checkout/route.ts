@@ -11,9 +11,9 @@ import { auth } from '@/lib/auth';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
-import { blocksHomecheffCartCheckout } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/community-order-checkout';
-import { isContactOnlyProduct, requiresStripeForHomecheffCheckout, sellerPaymentsReady } from '@/lib/product/order-method';
+import { resolveCheckoutBlockReason } from '@/lib/marketplace/settlement/settlement-router';
+import { sellerPaymentsReady } from '@/lib/product/order-method';
 
 const prisma = new PrismaClient();
 
@@ -123,7 +123,20 @@ export async function POST(req: NextRequest) {
         return { error: 'Some products not found', products: null };
       }
 
-      const contactOnlyProducts = products.filter((p) => isContactOnlyProduct(p));
+      const contactOnlyProducts = products.filter(
+        (p) =>
+          resolveCheckoutBlockReason({
+            acceptHomeCheffPayment: p.acceptHomeCheffPayment,
+            acceptDirectContact: p.acceptDirectContact,
+            orderMethod: p.orderMethod,
+            barterOpenness: p.barterOpenness,
+            acceptedSpecializations: p.acceptedSpecializations,
+            priceCents: p.priceCents,
+            priceModel: p.priceModel,
+            listingIntent: p.listingIntent,
+            sellerStripeReady: sellerPaymentsReady(p.seller?.User),
+          }) === 'CONTACT_ONLY',
+      );
       if (contactOnlyProducts.length > 0) {
         return {
           error: 'CONTACT_ONLY_NOT_CHECKOUT',
@@ -133,8 +146,19 @@ export async function POST(req: NextRequest) {
         };
       }
 
-      const barterOnlyProducts = products.filter((p) =>
-        blocksHomecheffCartCheckout(p.barterOpenness),
+      const barterOnlyProducts = products.filter(
+        (p) =>
+          resolveCheckoutBlockReason({
+            acceptHomeCheffPayment: p.acceptHomeCheffPayment,
+            acceptDirectContact: p.acceptDirectContact,
+            orderMethod: p.orderMethod,
+            barterOpenness: p.barterOpenness,
+            acceptedSpecializations: p.acceptedSpecializations,
+            priceCents: p.priceCents,
+            priceModel: p.priceModel,
+            listingIntent: p.listingIntent,
+            sellerStripeReady: sellerPaymentsReady(p.seller?.User),
+          }) === 'BARTER_ONLY',
       );
       if (barterOnlyProducts.length > 0) {
         return {
@@ -146,9 +170,19 @@ export async function POST(req: NextRequest) {
       }
 
       const sellersWithoutPayments = products.filter((product) => {
-        if (!requiresStripeForHomecheffCheckout(product)) return false;
-        const seller = product.seller?.User;
-        return !sellerPaymentsReady(seller);
+        return (
+          resolveCheckoutBlockReason({
+            acceptHomeCheffPayment: product.acceptHomeCheffPayment,
+            acceptDirectContact: product.acceptDirectContact,
+            orderMethod: product.orderMethod,
+            barterOpenness: product.barterOpenness,
+            acceptedSpecializations: product.acceptedSpecializations,
+            priceCents: product.priceCents,
+            priceModel: product.priceModel,
+            listingIntent: product.listingIntent,
+            sellerStripeReady: sellerPaymentsReady(product.seller?.User),
+          }) === 'PAYMENTS_NOT_READY'
+        );
       });
       if (sellersWithoutPayments.length > 0) {
         return {

@@ -45,6 +45,8 @@ type Product = {
   description?: string | null;
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
+  acceptHomeCheffPayment?: boolean | null;
+  acceptDirectContact?: boolean | null;
   image?: string | null;
   photos?: { id: string; url: string; idx: number }[];
   stock?: number | null;
@@ -307,7 +309,9 @@ export default function ListingDetailPage() {
           title: data.product.title,
           description: data.product.description,
           priceCents: data.product.priceCents,
-          orderMethod: data.product.orderMethod === 'CONTACT' ? 'CONTACT' : 'HOMECHEFF_PAYMENT',
+          orderMethod: data.product.orderMethod ?? 'HOMECHEFF_PAYMENT',
+          acceptHomeCheffPayment: data.product.acceptHomeCheffPayment ?? null,
+          acceptDirectContact: data.product.acceptDirectContact ?? null,
           image: data.product.photos?.[0]?.url || data.product.ListingMedia?.[0]?.url || data.product.Image?.[0]?.fileUrl || null,
           photos: data.product.photos || data.product.ListingMedia?.map((media: any) => ({
             id: media.id,

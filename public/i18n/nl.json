@@ -6717,7 +6717,7 @@
     "desktopColumns3Hint": "Drie kolommen — marketplace raster",
     "locationSectionLabel": "Locatie en zoeken in de feed",
     "refineSectionLabel": "Verfijn deze resultaten (zoeken, sorteren, prijs)",
-    "chipSectionIntro": "Alles, te koop of inspiratie: één plek. Hieronder stel je locatie, categorie en filters in voor de hele feed.",
+    "chipSectionIntro": "Alles, aangeboden, gezocht of inspiratie: één plek. Hieronder stel je locatie, categorie en filters in voor de hele feed.",
     "locationErrorShort": "Locatie kon niet worden bepaald",
     "locationUsingGps": "Jouw locatie wordt gebruikt",
     "locationUsingProfile": "Profiel locatie wordt gebruikt",
@@ -6756,8 +6756,8 @@
     "resultSingular": "resultaat",
     "resultPlural": "resultaten",
     "filteredByQuery": " · Gefilterd op: \"{query}\"",
-    "emptySaleTitle": "Nog geen aanbod gevonden in jouw buurt",
-    "emptySaleBody": "Wees de eerste die iets aanbiedt of bekijk inspiratie.",
+    "emptySaleTitle": "Nog geen aanbiedingen gevonden in jouw buurt",
+    "emptySaleBody": "Verruim je zoekgebied, bekijk inspiratie of plaats zelf iets — product, dienst, hulp of tegenwaarde.",
     "emptyNationalTitle": "Nog geen aanbod gevonden.",
     "emptyNationalBody": "Er zijn nog geen producten geplaatst die aan je filters voldoen.",
     "emptyInternationalTitle": "Internationaal aanbod komt eraan.",
@@ -8022,6 +8022,13 @@
         "stockLow": "Nog {{count}} beschikbaar"
       }
     },
+    "cta": {
+      "checkoutHomeCheff": "Veilig afrekenen via HomeCheff",
+      "startConversation": "Start gesprek",
+      "makeProposal": "Doe een voorstel",
+      "discussBarter": "Bespreek ruil",
+      "arrangeDirect": "Regel direct met aanbieder"
+    },
     "exchange": {
       "signals": {
         "exactDesiredMatch": "Past bij wat je zoekt",
@@ -8113,7 +8120,7 @@
         "activeShoppingLabel": "Actieve waarden waarmee je shopt",
         "shoppingWithPrefix": "Ik shop met:",
         "emptyTitle": "Geen matches voor deze tegenwaarde",
-        "emptyBody": "Er zijn momenteel geen aanbiedingen die deze tegenwaarde accepteren.",
+        "emptyBody": "Er zijn momenteel geen aanbiedingen of verzoeken die deze tegenwaarde accepteren.",
         "similarValues": "Vergelijkbare tegenwaarden",
         "nearbyCategories": "Probeer een nabije categorie",
         "clearFilter": "Filter wissen",
@@ -8124,7 +8131,7 @@
         "sectionTitle": "Gezocht",
         "sectionSubtitle": "Bekijk wat buurtgenoten zoeken — of plaats zelf een oproep voor een product, dienst, hulp of iets dat gemaakt, bezorgd of gerepareerd moet worden.",
         "emptyTitle": "Nog geen open verzoeken gevonden",
-        "emptyBody": "Bekijk het aanbod of plaats zelf een verzoek — misschien kan iemand je helpen.",
+        "emptyBody": "Bekijk aangeboden items of plaats zelf een verzoek — misschien kan iemand je helpen.",
         "searchHints": {
           "gezocht": "Gezocht",
           "help": "Hulp gevraagd",

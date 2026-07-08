@@ -29,7 +29,6 @@ import AcceptedValuesPicker from '@/components/products/marketplace/AcceptedValu
 import BarterOpennessSelector from '@/components/products/marketplace/BarterOpennessSelector';
 import TaxonomySpecializationPicker from '@/components/products/marketplace/TaxonomySpecializationPicker';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
-import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
 import SettlementConnectGuidance from '@/components/products/marketplace/SettlementConnectGuidance';
 import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
@@ -549,10 +548,6 @@ export default function MarketplaceOfferForm({
           setAcceptDirectContact(dc);
         }}
       />
-
-      {acceptHomeCheffPayment && priceModel !== 'ON_REQUEST' && priceModel !== 'VOLUNTARY' ? (
-        <StripeConnectPaymentsBanner />
-      ) : null}
 
       <SettlementConnectGuidance active={acceptHomeCheffPayment} />
 
