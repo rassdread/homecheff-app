@@ -3457,6 +3457,10 @@
       "productViews": "Product Views",
       "avgViewsPerSale": "Average {views} views per sale",
       "averageRatingLabel": "Average Rating",
+      "favoritesLabel": "Favorites",
+      "messagesLabel": "Messages",
+      "popularListingsTitle": "Top listings by revenue",
+      "salesUnit": "sales",
       "sellerSettings": "Seller Settings",
       "manageSellerProfile": "Manage your seller profile and settings",
       "tellAboutCompany": "Tell us about your company...",
@@ -6997,6 +7001,12 @@
       "welcomeMessage": "Invite friends and earn together",
       "welcomeDesc": "Your account is active. Start sharing your referral link!",
       "overview": "Overview",
+      "attributionPolicyTitle": "How attribution works",
+      "attributionPolicyFirstTouch": "First-touch: the first valid affiliate link you share sets a {days}-day cookie. Later affiliate links do not replace it until the cookie expires.",
+      "attributionPolicyCookie": "Cookie: {name} ({days} days). Sign-up or social onboarding must happen in the same browser/device while the cookie is active.",
+      "attributionPolicyCrossDevice": "Cross-device: not supported yet. A desktop click does not follow someone who registers on mobile.",
+      "attributionPolicyCommission": "Commission: pending after payment, available after the hold period, then paid via Stripe Connect when you request a payout.",
+      "attributionPolicySubscription": "Business subscriptions: commission applies when the referred business subscribes — via your promo code or your ref link at sign-up.",
       "earnings": "Earnings",
       "referrals": "Sign-ups via link",
       "subAffiliates": "Direct partners",
@@ -7297,7 +7307,7 @@
       "timelineY710Body": "Partners who grow with the mission could sit inside a much larger international network of businesses, creators, and neighbourhoods—if strategy, regulation, and adoption align.",
       "narrativeFutureDisclaimer": "Illustrative storyline only. No guaranteed income, tenure, timing, or lifetime commissions.",
       "commissionDetailsToggle": "How transaction commission works",
-      "commissionDetailsBody": "You earn 25% of HomeCheff's platform fee per referred transaction side (50% when you refer both buyer and seller). Buyers count too. Example stacks often use about 12% platform fee for private sellers and about 4% for Pro business transactions—actual fees depend on plans and live activity.",
+      "commissionDetailsBody": "You earn 25% of HomeCheff's platform fee per referred transaction side (50% when you refer both buyer and seller). Buyers count too. Example stacks often use about 12% platform fee for private sellers and about 7% for Pro business transactions—actual fees depend on plans and live activity.",
       "calculatePotential": "Your inputs",
       "subscriptionsPerMonth": "Subscriptions per month",
       "avgPricePerSubscription": "Average price per subscription (€/month)",
@@ -7483,6 +7493,201 @@
     "markAllRead": "Mark all as read",
     "defaultTitle": "Notification"
   },
+  "business": {
+    "plan": {
+      "badge": {
+        "business": "Business",
+        "pro": "Pro",
+        "premium": "Premium"
+      },
+      "analyticsUpgrade": "Upgrade to Basic or higher for expanded business analytics in your seller dashboard."
+    },
+    "dna": {
+      "growthTitle": "Grow faster with a business subscription",
+      "growthSubtitle": "Choose visibility, trust, and reach — not just a lower fee. Every plan helps your business grow locally.",
+      "growthPitch": "HomeCheff subscriptions are growth packages: more feed visibility, stronger buyer trust, better analytics, and access to future promotion modules.",
+      "pillar": {
+        "visibility": "More visibility in feed and search",
+        "trust": "Business badge and verified profile",
+        "customers": "Reach more local customers",
+        "automation": "Automatic activation after payment"
+      },
+      "perMonth": "per month",
+      "commissionNote": "Platform fee on sales: {{percent}}% — secondary to growth and visibility.",
+      "unavailable": "Unavailable",
+      "choosePlan": "Choose {{plan}}",
+      "plan": {
+        "individual": "Individual",
+        "basic": "Basic",
+        "pro": "Pro",
+        "premium": "Premium"
+      },
+      "purpose": {
+        "individual": "Starting entrepreneur",
+        "basic": "Growing local business",
+        "pro": "Professional company",
+        "premium": "Maximum growth with HomeCheff"
+      },
+      "analytics": {
+        "basic": "Basic",
+        "business": "Business",
+        "advanced": "Advanced",
+        "premium": "Premium"
+      },
+      "support": {
+        "standard": "Standard",
+        "business": "Business",
+        "priority": "Priority",
+        "premium": "Premium"
+      },
+      "status": {
+        "none": "—",
+        "ready": "Ready",
+        "optional": "Optional",
+        "future": "Coming soon",
+        "included": "Included"
+      },
+      "benefit": {
+        "verified": "Appears as a verified business",
+        "badge": "Business badge on profile and listings",
+        "discoveryBoost": "Light to strong local discovery boost",
+        "localSearch": "Priority in local search results",
+        "categoryFeatured": "Featured in your category",
+        "regional": "Regional discovery and campaigns",
+        "homepageEligible": "Eligible for homepage modules",
+        "homepageSpotlight": "Homepage spotlight eligible",
+        "campaigns": "Campaign modules (future)",
+        "websiteReady": "Website promotion ready",
+        "socialReady": "Social promotion ready",
+        "premiumAnalytics": "Premium analytics and export",
+        "multiLocation": "Multiple locations"
+      },
+      "preview": {
+        "liveTitle": "Live preview — how you'll appear",
+        "liveSubtitle": "Switch plans and see what changes instantly. Everything comes from your Business DNA profile.",
+        "badge": "Business badge",
+        "noBadge": "No badge",
+        "visibilityLevel": "Visibility level",
+        "discoveryLevel": "Discovery level",
+        "searchPriority": "Search priority",
+        "analytics": "Analytics",
+        "visibilityScore": "Visibility score",
+        "homepage": "Homepage",
+        "regional": "Regional",
+        "websitePromotion": "Website promotion",
+        "socialPromotion": "Social promotion",
+        "locations": "Max. locations",
+        "aiMarketing": "AI marketing",
+        "discovery": {
+          "1": "Standard",
+          "2": "Slightly boosted",
+          "3": "Strongly boosted",
+          "4": "Maximum"
+        },
+        "whatChangesTitle": "After upgrading you immediately get",
+        "whatChangesSubtitle": "This activates automatically after payment — no manual steps.",
+        "deltaFrom": "From {{from}} to {{to}}",
+        "upgradeDeltaTitle": "{{from}} → {{to}}: what's added",
+        "comingSoonTitle": "Coming soon",
+        "individualNote": "As an individual you have standard visibility. Choose a business plan to grow.",
+        "noChanges": "No extra changes compared to your current plan.",
+        "productTitle": "How you appear on HomeCheff",
+        "productSubtitle": "Real tile and trust components — not a mockup.",
+        "sampleSeller": "Your business",
+        "surface": {
+          "tile": "Feed tile",
+          "profile": "Profile",
+          "detail": "Detail page"
+        }
+      },
+      "delta": {
+        "badge": "Business badge on profile and listings",
+        "visibility": "Better nearby visibility",
+        "searchPriority": "Higher search priority",
+        "discoveryPriority": "Higher discovery priority",
+        "analytics": "More analytics",
+        "verified": "Verified business profile",
+        "nearbyVisibility": "Better nearby visibility",
+        "regional": "Regional discovery",
+        "homepageEligible": "Homepage eligibility",
+        "homepageSpotlight": "Homepage spotlight",
+        "locations": "Additional location(s)",
+        "websiteReady": "Website promotion (coming soon)",
+        "socialReady": "Social promotion (coming soon)",
+        "aiMarketing": "AI marketing (coming soon)",
+        "campaignBuilder": "Campaign builder (coming soon)",
+        "regionalCampaigns": "Regional campaigns (coming soon)",
+        "commission": "Lower platform fee on sales"
+      },
+      "unlocked": {
+        "badge": "Business badge active",
+        "discoveryBoost": "Discovery boost active",
+        "localSearch": "Local search priority",
+        "verified": "Verified business",
+        "category": "Category feature",
+        "regional": "Regional discovery",
+        "homepage": "Homepage eligibility",
+        "spotlight": "Homepage spotlight",
+        "premiumAnalytics": "Premium analytics",
+        "multiLocation": "Multiple locations"
+      },
+      "locked": {
+        "campaignBuilder": "Campaign builder",
+        "regionalCampaigns": "Regional campaigns",
+        "website": "Website promotion",
+        "social": "Social promotion",
+        "aiMarketing": "AI marketing"
+      },
+      "coming": {
+        "website": "Website promotion",
+        "social": "Social promotion",
+        "aiMarketing": "AI marketing",
+        "campaignBuilder": "Campaign builder",
+        "regionalCampaigns": "Regional campaigns",
+        "marketplaceCampaigns": "Marketplace campaigns",
+        "businessTools": "Business tools"
+      },
+      "growthStatus": {
+        "starter": "Starter",
+        "growing": "Growing",
+        "strong": "Strong growth",
+        "max": "Maximum growth"
+      },
+      "widget": {
+        "title": "Business DNA",
+        "subtitle": "Your current growth and visibility profile on HomeCheff.",
+        "currentPlan": "Current plan",
+        "visibilityScore": "Visibility score",
+        "commission": "Platform fee",
+        "growthStatus": "Growth status",
+        "unlocked": "Unlocked",
+        "locked": "Not yet active",
+        "unlockedEmpty": "Upgrade for business benefits.",
+        "lockedEmpty": "You have all features available on this plan.",
+        "upgradeCta": "Grow further with {{plan}}",
+        "upgradeButton": "View plans"
+      },
+      "compare": {
+        "title": "Compare growth and visibility",
+        "subtitle": "Choose based on what helps your business grow — commission is one row, not the whole story.",
+        "feature": "Feature",
+        "commission": "Platform fee on sales",
+        "badge": "Business badge",
+        "localVisibility": "Local visibility",
+        "searchPriority": "Search priority",
+        "analytics": "Analytics",
+        "verifiedBusiness": "Verified business",
+        "regionalVisibility": "Regional visibility",
+        "homepageSpotlight": "Homepage spotlight",
+        "websitePromotion": "Website promotion",
+        "socialPromotion": "Social promotion",
+        "aiMarketing": "AI marketing",
+        "locations": "Locations",
+        "locationsUnlimited": "Unlimited",
+        "support": "Support"
+      }
+    }
+  },
   "sell": {
     "pageTitle": "Selling on HomeCheff",
     "freeTitle": "As an individual you list and sell for free",
@@ -7493,7 +7698,7 @@
     "title": "Put your business on the map — grow with your local community",
     "subtitle": "Choose the subscription that fits your business. Transparent prices, cancelable monthly and without hidden costs.",
     "introWho": "This page is for sellers with a business registration: you choose a monthly subscription with a lower HomeCheff platform fee on your sales.",
-    "feeSummary": "Plans: Basic €39/month + 7% platform fee · Pro €99/month + 4% · Premium €199/month + 2%.",
+    "feeSummary": "Plans: Basic €39/month + 9% platform fee · Pro €99/month + 7% · Premium €199/month + 5%.",
     "buyersNoSubscription": "Buyers do not need a HomeCheff subscription; they only pay for their order (and any payment fees via the payment provider).",
     "confirmationFailed": "Confirmation failed",
     "cannotConfirmSubscription": "Could not confirm subscription. Please contact support.",

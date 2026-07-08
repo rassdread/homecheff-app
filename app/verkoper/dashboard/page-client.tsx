@@ -38,6 +38,8 @@ import OperationsShell from '@/components/operations/OperationsShell';
 import OrderStatusChip from '@/components/orders/OrderStatusChip';
 import SellerActionCenter from '@/components/seller/SellerActionCenter';
 import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
+import BusinessDnaDashboardWidget from '@/components/business/BusinessDnaDashboardWidget';
+import type { BusinessPlanId } from '@/lib/business/visibility-profile';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import {
@@ -62,6 +64,8 @@ interface DashboardStats {
   customersChange: number;
   ratingChange: number;
   viewsChange: number;
+  businessPlan?: BusinessPlanId;
+  analyticsLevel?: string;
 }
 
 interface RecentOrder {
@@ -111,6 +115,7 @@ export default function SellerDashboardClient() {
   const periodDropdownRef = useRef<HTMLDivElement>(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'deliveries'>('dashboard');
+  const [sellerCompanyName, setSellerCompanyName] = useState<string | null>(null);
   
   // Deliveries tab state
   const [deliveryOrders, setDeliveryOrders] = useState<any[]>([]);
@@ -188,11 +193,17 @@ export default function SellerDashboardClient() {
       }
 
       // Load dashboard stats, recent orders, and top products in parallel (UX-FIN-4B.10).
-      const [statsResponse, ordersResponse, productsResponse] = await Promise.all([
+      const [statsResponse, ordersResponse, productsResponse, profileResponse] = await Promise.all([
         fetch(`/api/seller/dashboard/stats?period=${selectedPeriod}`),
         fetch(`/api/seller/dashboard/orders?period=${selectedPeriod}&limit=10`),
         fetch(`/api/seller/dashboard/products?period=${selectedPeriod}&limit=5`),
+        fetch('/api/seller/profile'),
       ]);
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        setSellerCompanyName(profileData.profile?.companyName ?? null);
+      }
+
       let nextStats: DashboardStats | null = null;
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
@@ -415,6 +426,12 @@ export default function SellerDashboardClient() {
         <div className="mb-6 sm:mb-8">
           <SellerActionCenter variant="dashboard" />
           <BusinessUpgradeCallout />
+          <BusinessDnaDashboardWidget
+            className="mt-4"
+            plan={stats?.businessPlan ?? 'individual'}
+            companyName={sellerCompanyName}
+            sellerName={session?.user?.name ?? null}
+          />
 
           {/* Regel 2: Periode + Instellingen op eigen rij eronder, visueel gescheiden */}
           <div className="w-full pt-3 border-t border-gray-200 flex flex-wrap items-center gap-3 sm:gap-4">

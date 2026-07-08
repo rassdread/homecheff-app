@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { stripe, matchesCurrentMode } from '@/lib/stripe';
 import { getSellerRequestablePayout, MIN_PAYOUT_CENTS } from '@/lib/sellerPayouts';
 import { getCombinedRequestablePayout } from '@/lib/combinedPayouts';
+import { getBusinessVisibilityProfile } from '@/lib/business/visibility-profile';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,10 +48,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 });
     }
 
-    let platformFeePercentage = 12;
-    if (sellerProfile.Subscription) {
-      platformFeePercentage = sellerProfile.Subscription.feeBps / 100;
-    }
+    const visibility = getBusinessVisibilityProfile({
+      subscriptionId: sellerProfile.subscriptionId,
+      subscriptionValidUntil: sellerProfile.subscriptionValidUntil,
+      Subscription: sellerProfile.Subscription,
+    });
+    const platformFeePercentage = visibility.feePercent;
 
     const hasDeliveryProfile = await prisma.deliveryProfile.findUnique({
       where: { userId: user.id },

@@ -32,3 +32,6 @@ export {
   combinedReviewCount,
   maxChannelReviewCount,
 } from './ranking-utils';
+
+export { boundedBusinessVisibilityRankBoost } from './business-visibility-boost';
+export { BUSINESS_VISIBILITY_RANK_CAP } from '@/lib/business/visibility-profile';

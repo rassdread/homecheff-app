@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-07-08T17:14:46.371Z",
+  "totals": {
+    "products": 7,
+    "dishes": 22,
+    "legacyListings": 0,
+    "fullyCanonical": 1,
+    "needsBackfill": 0,
+    "auditOnlyIssues": 6
+  },
+  "issueCounts": {
+    "unmapped_specializations": 1,
+    "checkout_needs_stripe_connect": 6
+  },
+  "unmappedSpecializations": [
+    "CHEFF"
+  ],
+  "unmappedAcceptedValues": [],
+  "sampleProposals": []
+}

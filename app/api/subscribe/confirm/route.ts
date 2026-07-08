@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { normalizeSubscriptionName } from "@/lib/stripe";
+import { auth } from "@/lib/auth";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim();
 
@@ -23,6 +24,11 @@ const stripe = STRIPE_SECRET_KEY
 export async function POST(req: NextRequest) {
   if (!stripe) {
     return NextResponse.json({ error: "Stripe is niet geconfigureerd" }, { status: 500 });
+  }
+
+  const authSession = await auth();
+  if (!authSession?.user?.id) {
+    return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
   }
 
   const { sessionId } = await req.json();
@@ -46,6 +52,9 @@ export async function POST(req: NextRequest) {
 
     if (!metadataPlan || !metadataUserId) {
       return NextResponse.json({ error: "Kon plan of gebruiker niet bepalen uit de sessie" }, { status: 400 });
+    }
+    if (metadataUserId !== authSession.user.id) {
+      return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
     }
 
     const planKey = metadataPlan.toString().toUpperCase();

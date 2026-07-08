@@ -9,6 +9,7 @@ import { NotificationService } from "@/lib/notifications/notification-service";
 import { calculateDistance } from "@/lib/geocoding";
 import { createShippingLabel, EctaroShipLabelRequest } from "@/lib/ectaroship";
 import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
+import { getBusinessVisibilityProfile } from "@/lib/business/visibility-profile";
 import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
 import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
 import {
@@ -201,8 +202,8 @@ export async function POST(req: NextRequest) {
         });
 
         if (sellerProfile) {
-          if (subscription.status !== 'active') {
-            // Clear subscription if not active
+          const revokeStatuses = new Set(['canceled', 'unpaid', 'incomplete_expired']);
+          if (revokeStatuses.has(subscription.status)) {
             await prisma.sellerProfile.update({
               where: { userId },
               data: {
@@ -212,8 +213,8 @@ export async function POST(req: NextRequest) {
               }
             });
 
-            console.log(`✅ Subscription cleared for user ${userId}`);
-          } else {
+            console.log(`✅ Subscription cleared for user ${userId} (${subscription.status})`);
+          } else if (subscription.status === 'active' || subscription.status === 'trialing') {
             const subscriptionItem = subscription.items.data[0];
             const priceId = subscriptionItem?.price?.id;
             let planKey: string | undefined;
@@ -1232,10 +1233,12 @@ export async function POST(req: NextRequest) {
             }
           });
           
-          if (sellerProfile?.Subscription) {
-            // Use subscription fee (stored in basis points)
-            platformFeePercentage = sellerProfile.Subscription.feeBps / 100;
-          }
+          const visibility = getBusinessVisibilityProfile({
+            subscriptionId: sellerProfile?.subscriptionId,
+            subscriptionValidUntil: sellerProfile?.subscriptionValidUntil,
+            Subscription: sellerProfile?.Subscription,
+          });
+          platformFeePercentage = visibility.feePercent;
           
           const platformFeeCents = Math.round(itemTotal * platformFeePercentage / 100);
           
@@ -1662,28 +1665,6 @@ export async function POST(req: NextRequest) {
           : `Order processing failed (non-retriable): ${orderError.message}`;
         
         return new NextResponse(errorMessage, { status: statusCode });
-      }
-      
-      // Handle subscription updates (existing code)
-      const plan = session.metadata?.plan;
-      const userId = session.metadata?.userId;
-      if (plan && userId) {
-        await prisma.subscription.upsert({
-          where: { id: userId },
-          update: {
-            name: plan as any,
-            isActive: true,
-          },
-          create: {
-            id: userId,
-            name: plan as any,
-            isActive: true,
-            priceCents: 0,
-            feeBps: 0,
-            durationDays: 0,
-            updatedAt: new Date(),
-          },
-        });
       }
     }
   } catch (e) {

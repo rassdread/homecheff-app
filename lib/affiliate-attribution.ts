@@ -1,15 +1,19 @@
 /**
  * Affiliate Attribution Logic
- * 
- * Handles referral link tracking via cookies and attribution creation
+ *
+ * Handles referral link tracking via cookies and attribution creation.
+ * Policy: see lib/affiliate-attribution-contract.ts (first-touch, 30d cookie).
  */
 
 import { prisma } from '@/lib/prisma';
-import { ATTRIBUTION_WINDOW_DAYS } from './affiliate-config';
+import { ATTRIBUTION_WINDOW_DAYS, COOKIE_TTL_DAYS } from './affiliate-config';
+import {
+  AFFILIATE_ATTRIBUTION_CONTRACT,
+  REFERRAL_COOKIE_NAME,
+} from './affiliate-attribution-contract';
 import { AttributionType, AttributionSource } from '@prisma/client';
 
-const COOKIE_NAME = 'hc_ref';
-const COOKIE_TTL_DAYS = 30;
+export { REFERRAL_COOKIE_NAME, AFFILIATE_ATTRIBUTION_CONTRACT };
 
 /** Landing /app: signup-attributiebron ANDROID_BETA_DOWNLOAD als deze cookie gezet is. */
 export const HC_BETA_SRC_COOKIE = 'hc_beta_src';
@@ -37,6 +41,13 @@ function parseCookieHeader(cookieHeader: string): Record<string, string> {
   return out;
 }
 
+/** Cookie expiry aligned with affiliate-config COOKIE_TTL_DAYS. */
+export function referralCookieExpiryDate(from: Date = new Date()): Date {
+  const expires = new Date(from);
+  expires.setDate(expires.getDate() + COOKIE_TTL_DAYS);
+  return expires;
+}
+
 /**
  * Get affiliate ID from referral code
  */
@@ -62,7 +73,6 @@ export async function getAffiliateIdFromCode(code: string): Promise<string | nul
       return null;
     }
 
-    // Check if affiliate is active
     if (referralLink.affiliate.status !== 'ACTIVE') {
       return null;
     }
@@ -81,7 +91,7 @@ export async function createAttribution(
   userId: string,
   affiliateId: string,
   type: AttributionType,
-  source: AttributionSource
+  source: AttributionSource,
 ): Promise<void> {
   try {
     const now = new Date();
@@ -99,15 +109,13 @@ export async function createAttribution(
     });
   } catch (error) {
     console.error('Error creating attribution:', error);
-    // Don't throw - attribution failure shouldn't break signup
   }
 }
 
-/**
- * Get affiliate ID from cookie (for server-side)
- * Note: In Next.js App Router, cookies are handled via headers
- */
-export function getCookieFromHeader(cookieHeader: string | null | undefined, name: string): string | null {
+export function getCookieFromHeader(
+  cookieHeader: string | null | undefined,
+  name: string,
+): string | null {
   if (!cookieHeader) return null;
   const cookies = parseCookieHeader(cookieHeader);
   const v = cookies[name]?.trim();
@@ -116,7 +124,7 @@ export function getCookieFromHeader(cookieHeader: string | null | undefined, nam
 
 /** Waarde van hc_ref (referralcode), niet affiliate-ID — historische functienaam. */
 export function getAffiliateIdFromCookie(cookieHeader: string | null): string | null {
-  return getCookieFromHeader(cookieHeader, COOKIE_NAME);
+  return getCookieFromHeader(cookieHeader, REFERRAL_COOKIE_NAME);
 }
 
 export function hasAndroidBetaDownloadCookie(cookieHeader: string | null | undefined): boolean {
@@ -124,30 +132,33 @@ export function hasAndroidBetaDownloadCookie(cookieHeader: string | null | undef
 }
 
 /**
- * Set referral cookie (client-side helper)
- * This should be called from the frontend when a referral link is clicked
+ * First-touch client cookie (matches server referral route).
+ * Returns true if cookie was set, false if existing hc_ref prevented overwrite.
  */
-export function setReferralCookie(code: string): void {
-  if (typeof window === 'undefined') return;
+export function setReferralCookie(code: string): boolean {
+  if (typeof window === 'undefined') return false;
 
-  const expires = new Date();
-  expires.setDate(expires.getDate() + COOKIE_TTL_DAYS);
-  const secure =
-    window.location.protocol === 'https:' ? '; Secure' : '';
+  const existing = getReferralCodeFromCookie();
+  if (existing) {
+    return false;
+  }
+
+  const expires = referralCookieExpiryDate();
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   const value = encodeURIComponent(code.trim());
 
-  document.cookie = `${COOKIE_NAME}=${value}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secure}`;
+  document.cookie = `${REFERRAL_COOKIE_NAME}=${value}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secure}`;
+  return true;
 }
 
 /**
- * Voegt een tracking-URL toe aan vrij te kiezen uitgaande tekst.
  * @deprecated Niet gebruiken voor chat of gebruikersberichten — alleen voor expliciete
  * marketing-/deel-UI waar de gebruiker verwacht dat een link wordt toegevoegd.
  */
 export function appendAffiliateReferralToOutgoingText(
   text: string,
   referralCode: string | null | undefined,
-  origin?: string
+  origin?: string,
 ): string {
   const raw = text ?? '';
   const trimmed = raw.trim();
@@ -162,24 +173,40 @@ export function appendAffiliateReferralToOutgoingText(
   return `${trimmed}\n\n—\n${o}/?ref=${encodeURIComponent(c)}`;
 }
 
-/**
- * Get referral code from cookie (client-side helper)
- */
 export function getReferralCodeFromCookie(): string | null {
   if (typeof window === 'undefined') return null;
 
   const cookies = parseCookieHeader(document.cookie);
-  return cookies[COOKIE_NAME] || null;
+  return cookies[REFERRAL_COOKIE_NAME] || null;
+}
+
+/**
+ * Resolve attribution id for BusinessSubscription / Stripe checkout metadata.
+ * Uses existing signup attribution (ref link or promo) within revenue window.
+ */
+export async function resolveSubscriptionAttributionId(userId: string): Promise<string | null> {
+  const now = new Date();
+  const attribution = await prisma.attribution.findFirst({
+    where: {
+      userId,
+      type: {
+        in: [AttributionType.USER_SIGNUP, AttributionType.BUSINESS_SIGNUP],
+      },
+      endsAt: { gt: now },
+    },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true },
+  });
+  return attribution?.id ?? null;
 }
 
 /**
  * Process attribution on user signup
- * This should be called after user creation in registration endpoints
  */
 export async function processAttributionOnSignup(
   userId: string,
   cookieHeader: string | null,
-  isBusiness: boolean = false
+  isBusiness: boolean = false,
 ): Promise<void> {
   try {
     const already = await prisma.attribution.findFirst({
@@ -195,19 +222,16 @@ export async function processAttributionOnSignup(
       return;
     }
 
-    // Get affiliate code from cookie
     const affiliateCode = getAffiliateIdFromCookie(cookieHeader);
     if (!affiliateCode) {
-      return; // No referral cookie found
+      return;
     }
 
-    // Resolve affiliate ID from code
     const affiliateId = await getAffiliateIdFromCode(affiliateCode);
     if (!affiliateId) {
-      return; // Invalid or inactive affiliate
+      return;
     }
 
-    // Check for self-referral (user cannot refer themselves)
     const affiliate = await prisma.affiliate.findUnique({
       where: { id: affiliateId },
       select: { userId: true },
@@ -218,7 +242,6 @@ export async function processAttributionOnSignup(
       return;
     }
 
-    // Create attribution record
     const type = isBusiness ? AttributionType.BUSINESS_SIGNUP : AttributionType.USER_SIGNUP;
     const source = hasAndroidBetaDownloadCookie(cookieHeader)
       ? AttributionSource.ANDROID_BETA_DOWNLOAD
@@ -226,7 +249,5 @@ export async function processAttributionOnSignup(
     await createAttribution(userId, affiliateId, type, source);
   } catch (error) {
     console.error('Error processing attribution on signup:', error);
-    // Don't throw - attribution failure shouldn't break signup
   }
 }
-

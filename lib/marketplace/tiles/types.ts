@@ -31,6 +31,8 @@ export type MarketplaceTilePerson = {
   displayNameOption?: string | null;
 };
 
+import type { BusinessPlanId } from '@/lib/business/visibility-profile';
+
 export type MarketplaceTileTrust = {
   productReviewCount: number;
   dealReviewCount: number;
@@ -40,6 +42,7 @@ export type MarketplaceTileTrust = {
   repeatCustomers: number;
   trustBadges: DiscoveryTrustBadge[];
   sellerTier: number;
+  businessPlan?: BusinessPlanId;
 };
 
 export type MarketplaceTileFulfillmentFlags = {

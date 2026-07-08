@@ -36,6 +36,7 @@ import {
   hasListingLocation,
   isListingCreatedWithinDays,
 } from './ranking-utils';
+import { boundedBusinessVisibilityRankBoost } from './business-visibility-boost';
 
 const BASELINE_WEIGHTS = {
   distance: 0.35,
@@ -55,6 +56,7 @@ const baselineProfile: DiscoveryRankingProfile = {
     'trust_tier_seller',
     'favorite_count_limited',
     'completed_deals',
+    'business_visibility_boost',
   ],
   forbiddenSignals: [
     'view_count',
@@ -82,12 +84,14 @@ const baselineProfile: DiscoveryRankingProfile = {
     const tier = input.trust.sellerTier / 5;
     const favs = cappedFavoriteCount(input) / 5;
     const deals = cappedCompletedDeals(input) / 20;
+    const businessBoost = boundedBusinessVisibilityRankBoost(input);
     return (
       dist * BASELINE_WEIGHTS.distance +
       rec * BASELINE_WEIGHTS.recency +
       tier * BASELINE_WEIGHTS.sellerTier +
       favs * BASELINE_WEIGHTS.favorites +
-      deals * BASELINE_WEIGHTS.completedDeals
+      deals * BASELINE_WEIGHTS.completedDeals +
+      businessBoost
     );
   },
 };

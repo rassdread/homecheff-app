@@ -1,6 +1,11 @@
 'use client';
 
 import { Building2, Sparkles } from 'lucide-react';
+import {
+  getBusinessVisibilityProfile,
+  stripePlanKeyToBusinessPlanId,
+  type BusinessPlanId,
+} from '@/lib/business/visibility-profile';
 
 interface BusinessBadgeProps {
   companyName?: string | null;
@@ -9,35 +14,18 @@ interface BusinessBadgeProps {
   variant?: 'default' | 'compact' | 'product';
 }
 
-const PLAN_DETAILS: Record<string, {
-  label: string;
-  emoji: string;
-  gradient: string;
-  tier: string;
-  description: string;
-}> = {
-  basic: {
-    label: 'Gilde Lid',
-    emoji: '🥉',
-    gradient: 'from-primary-brand via-emerald-400 to-teal-400',
-    tier: 'Basic',
-    description: 'Het fundament van het gilde – deelt zijn creaties met trots en bouwt warm aan de community.',
-  },
-  pro: {
-    label: 'Meester van ’t Gilde',
-    emoji: '🥈',
-    gradient: 'from-emerald-600 via-primary-brand to-cyan-500',
-    tier: 'Pro',
-    description: 'De ervaren vakman: een voorbeeld voor anderen, professioneel en vol ambachtelijke trots.',
-  },
-  premium: {
-    label: 'Eer van ’t Gilde',
-    emoji: '🥇',
-    gradient: 'from-primary-brand via-emerald-700 to-lime-400',
-    tier: 'Premium',
-    description: 'De hoogste eer binnen het gilde – vertegenwoordigt HomeCheff naar buiten toe met uitzonderlijke kwaliteit.',
-  },
+const PLAN_GRADIENT: Record<Exclude<BusinessPlanId, 'individual'>, string> = {
+  basic: 'from-primary-brand via-emerald-400 to-teal-400',
+  pro: 'from-emerald-600 via-primary-brand to-cyan-500',
+  premium: 'from-primary-brand via-emerald-700 to-lime-400',
 };
+
+function resolvePlanFromSubscriptionName(
+  subscriptionName?: string | null,
+): BusinessPlanId | null {
+  if (!subscriptionName) return null;
+  return stripePlanKeyToBusinessPlanId(subscriptionName);
+}
 
 export default function BusinessBadge({ 
   companyName, 
@@ -68,35 +56,31 @@ export default function BusinessBadge({
     lg: 'w-6 h-6'
   };
 
-  const planKey = subscriptionName?.toLowerCase() ?? '';
-  const planDetail = PLAN_DETAILS[planKey];
+  const planId = resolvePlanFromSubscriptionName(subscriptionName);
+  const dna = planId ? getBusinessVisibilityProfile(planId) : null;
 
-  if (planDetail) {
-    const gradientClasses = planDetail.gradient;
-    const descriptionEnabled = size === 'lg' && planDetail.description;
+  if (dna && dna.plan !== 'individual') {
+    const gradientClasses = PLAN_GRADIENT[dna.plan];
+    const tier = dna.plan.charAt(0).toUpperCase() + dna.plan.slice(1);
 
     return (
       <div
         className={`inline-flex flex-col gap-1 ${sizeClasses[size]} bg-gradient-to-r ${gradientClasses} text-white rounded-xl shadow-lg border-2 border-white/20 max-w-full`}
-        title={planDetail.description}
       >
         <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1 font-bold text-sm sm:text-base">
-            <span className="text-lg sm:text-xl">{planDetail.emoji}</span>
-            {planDetail.label}
+            <Building2 className={iconSizes[size]} />
+            {tier}
           </span>
           {companyName && (
             <span className="opacity-90 font-medium truncate">• {companyName}</span>
           )}
-          <span className="opacity-80 text-xs bg-white/25 px-2 py-0.5 rounded-full font-semibold tracking-wide uppercase">
-            {planDetail.tier}
-          </span>
+          {dna.verifiedBusiness ? (
+            <span className="opacity-80 text-xs bg-white/25 px-2 py-0.5 rounded-full font-semibold tracking-wide uppercase">
+              Verified
+            </span>
+          ) : null}
         </div>
-        {descriptionEnabled && (
-          <p className="text-xs font-medium text-white/90 leading-snug">
-            {planDetail.description}
-          </p>
-        )}
       </div>
     );
   }

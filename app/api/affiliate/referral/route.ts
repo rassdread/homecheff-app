@@ -1,12 +1,18 @@
 /**
  * Referral Link Handler
- * 
- * Handles referral link clicks and sets cookie
+ *
+ * Handles referral link clicks and sets cookie (first-touch).
  * GET /api/affiliate/referral?code=REFCODE
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getAffiliateIdFromCode } from "@/lib/affiliate-attribution";
+import { NextRequest, NextResponse } from 'next/server';
+import {
+  getAffiliateIdFromCode,
+  HC_BETA_SRC_COOKIE,
+  HC_BETA_SRC_VALUE,
+  REFERRAL_COOKIE_NAME,
+  referralCookieExpiryDate,
+} from '@/lib/affiliate-attribution';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,54 +27,36 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL(redirect, req.url));
     }
 
-    // Validate referral code
     const affiliateId = await getAffiliateIdFromCode(code);
     if (!affiliateId) {
-      // Invalid code, redirect anyway but don't set cookie
       return NextResponse.redirect(new URL(redirect, req.url));
     }
 
-    // Create response with redirect
     const response = NextResponse.redirect(new URL(redirect, req.url));
+    const expires = referralCookieExpiryDate();
 
-    // Eerste aanraking: alleen hc_ref zetten als er nog geen referral-cookie is (niet overschrijven).
-    const existingRef = req.cookies.get("hc_ref")?.value?.trim();
+    const cookieOptions = {
+      expires,
+      path: '/',
+      sameSite: 'lax' as const,
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+    };
+
+    // First-touch: only set hc_ref when not already present.
+    const existingRef = req.cookies.get(REFERRAL_COOKIE_NAME)?.value?.trim();
     if (!existingRef) {
-      const expires = new Date();
-      expires.setDate(expires.getDate() + 30);
-
-      response.cookies.set("hc_ref", code, {
-        expires,
-        path: "/",
-        sameSite: "lax",
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-      });
+      response.cookies.set(REFERRAL_COOKIE_NAME, code, cookieOptions);
     }
 
     if (androidBeta) {
-      response.cookies.set("hc_beta_src", "android_beta_download", {
-        expires,
-        path: "/",
-        sameSite: "lax",
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-      });
+      response.cookies.set(HC_BETA_SRC_COOKIE, HC_BETA_SRC_VALUE, cookieOptions);
     }
 
     return response;
   } catch (error) {
     console.error('Error processing referral link:', error);
-    // On error, just redirect without setting cookie
     const redirect = new URL(req.nextUrl.searchParams.get('redirect') || '/', req.url);
     return NextResponse.redirect(redirect);
   }
 }
-
-
-
-
-
-
-
-

@@ -6,6 +6,8 @@ import { stripe, PLAN_TO_PRICE, normalizeSubscriptionName } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { calculateSubscriptionPrice } from "@/lib/affiliate-config";
 import { ATTRIBUTION_WINDOW_DAYS } from "@/lib/affiliate-config";
+import { resolveSubscriptionAttributionId } from "@/lib/affiliate-attribution";
+import { auth } from "@/lib/auth";
 
 function getBaseUrl(req: NextRequest) {
   const envUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.BASE_URL;
@@ -17,6 +19,11 @@ function getBaseUrl(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const authSession = await auth();
+    if (!authSession?.user?.id) {
+      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+    }
+
     const { plan, userId, promoCode } = await req.json();
 
     if (!plan) {
@@ -31,6 +38,9 @@ export async function POST(req: NextRequest) {
     }
     if (!userId) {
       return NextResponse.json({ error: "userId ontbreekt" }, { status: 400 });
+    }
+    if (userId !== authSession.user.id) {
+      return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
     }
 
     if (!stripe) {
@@ -251,6 +261,11 @@ export async function POST(req: NextRequest) {
           }
         }
       }
+    }
+
+    // Ref-link signup attribution (no promo): link existing USER_SIGNUP / BUSINESS_SIGNUP row.
+    if (!attributionId) {
+      attributionId = await resolveSubscriptionAttributionId(userId);
     }
 
     const baseUrl = getBaseUrl(req);

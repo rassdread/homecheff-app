@@ -12,6 +12,7 @@ export type LocalSeoCity = {
 };
 
 export const LOCAL_SEO_CITIES: ReadonlyArray<LocalSeoCity> = [
+  { slug: 'vlaardingen', label: 'Vlaardingen', lat: 51.912, lng: 4.3417 },
   { slug: 'rotterdam', label: 'Rotterdam', lat: 51.9244, lng: 4.4777 },
   { slug: 'amsterdam', label: 'Amsterdam', lat: 52.3676, lng: 4.9041 },
   { slug: 'den-haag', label: 'Den Haag', lat: 52.0705, lng: 4.3007 },

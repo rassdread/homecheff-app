@@ -8,6 +8,7 @@
  */
 
 import type { DiscoveryTrustBadge } from './discovery-read-model';
+import type { BusinessPlanId } from '@/lib/business/visibility-profile';
 
 /** Trust tier levels 0–5 — see TRUST_TIER_SPEC.md */
 export type TrustTierLevel = 0 | 1 | 2 | 3 | 4 | 5;
@@ -57,6 +58,9 @@ export type DiscoveryTrustContract = {
   sellerTier: TrustTierLevel;
   buyerTier: TrustTierLevel;
   courierTier: TrustTierLevel;
+
+  /** Business subscription plan — visibility/ranking only (Phase 12A SSOT). */
+  businessPlan?: BusinessPlanId;
 };
 
 export const EMPTY_TRUST_CHANNEL: DiscoveryTrustChannelBlock = {

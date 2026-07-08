@@ -1,0 +1,95 @@
+{
+  "generatedAt": "2026-07-08T16:42:56.608Z",
+  "data": {
+    "products": 7,
+    "dishes": 22,
+    "legacyListings": 0,
+    "fullyCanonical": 0,
+    "needsBackfill": 5,
+    "auditOnlyIssues": 2,
+    "issueCounts": {
+      "unmapped_specializations": 1,
+      "checkout_needs_stripe_connect": 6,
+      "missing_specializations_array": 4,
+      "subcategory_out_of_sync": 5,
+      "stale_specializations": 1
+    },
+    "unmappedSpecializations": [
+      "CHEFF"
+    ],
+    "unmappedAcceptedValues": [],
+    "derivedListingKinds": {
+      "PRODUCT": 5,
+      "SERVICE": 2
+    }
+  },
+  "reverseDiscovery": [
+    {
+      "scenario": "fruit",
+      "taxonomyId": "grow.fruit",
+      "taxonomyExists": true,
+      "productsAccepting": 0
+    },
+    {
+      "scenario": "photography",
+      "taxonomyId": "design.photo",
+      "taxonomyExists": true,
+      "productsAccepting": 0
+    },
+    {
+      "scenario": "nail styling",
+      "taxonomyId": "artistic.nails",
+      "taxonomyExists": true,
+      "productsAccepting": 0
+    },
+    {
+      "scenario": "transport",
+      "taxonomyId": "practical.movinghelp",
+      "taxonomyExists": true,
+      "productsAccepting": 0
+    },
+    {
+      "scenario": "coaching",
+      "taxonomyId": "knowledge.coaching",
+      "taxonomyExists": true,
+      "productsAccepting": 0
+    },
+    {
+      "scenario": "gardening",
+      "taxonomyId": "practical.gardenwork",
+      "taxonomyExists": true,
+      "productsAccepting": 0
+    },
+    {
+      "scenario": "labour",
+      "taxonomyId": "practical.handyman",
+      "taxonomyExists": true,
+      "productsAccepting": 0
+    }
+  ],
+  "filterPersistence": {
+    "homeSurfaceKey": "hc_feed_surfaces_v2",
+    "persistedFields": [
+      "feedChip",
+      "category",
+      "scope",
+      "radius",
+      "sortBy",
+      "sortOrder",
+      "searchQuery",
+      "q",
+      "place",
+      "priceMin",
+      "priceMax",
+      "showFilters",
+      "discoveryDirection",
+      "acceptedValues"
+    ],
+    "ssot": "lib/feed/home-filter-persist.ts"
+  },
+  "deferred": [
+    "Dorpsplein/Inspiratie parallel filter stacks (separate surfaces)",
+    "Server-side vertical=services Prisma filter",
+    "URL params for accepted values / discovery direction"
+  ]
+}

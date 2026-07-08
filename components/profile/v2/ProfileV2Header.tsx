@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';
 import BusinessBadge from '@/components/ui/BusinessBadge';
+import BusinessPlanBadge from '@/components/business/BusinessPlanBadge';
+import { resolveBusinessPlanId } from '@/lib/business/visibility-profile';
 import FollowButton from '@/components/follow/FollowButton';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 import MakerContactSection from '@/components/profile/MakerContactSection';
@@ -125,6 +127,13 @@ export default function ProfileV2Header({
   const showContactSection =
     !viewerIsOwner && !isOwnPublicView && publicContact && publicContact.length > 0;
   const memberSince = formatMemberSince(user.createdAt, language);
+  const businessPlan = user.SellerProfile
+    ? resolveBusinessPlanId({
+        subscriptionId: user.SellerProfile.subscriptionId,
+        subscriptionValidUntil: user.SellerProfile.subscriptionValidUntil,
+        Subscription: user.SellerProfile.Subscription,
+      })
+    : 'individual';
 
   return (
     <header className="hc-profile-v2-hero hc-dorpsplein-card w-full overflow-visible border-primary-brand/15 shadow-md">
@@ -175,6 +184,11 @@ export default function ProfileV2Header({
                 <p className="text-sm text-gray-500">@{user.username}</p>
               ) : null}
               <ProfileV2RolePills labels={roleLabels} />
+              {businessPlan !== 'individual' ? (
+                <div className="flex justify-center lg:justify-start">
+                  <BusinessPlanBadge plan={businessPlan} t={t} size="md" />
+                </div>
+              ) : null}
               {user.place ? (
                 <p className="inline-flex items-center justify-center gap-1.5 text-sm text-gray-600 lg:justify-start">
                   <MapPin className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />

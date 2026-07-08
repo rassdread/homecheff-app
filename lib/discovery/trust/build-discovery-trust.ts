@@ -77,6 +77,7 @@ export function buildDiscoveryTrust(
     sellerTier: deriveSellerTier(snapshot, listingIsActive),
     buyerTier: deriveBuyerTier(snapshot),
     courierTier: deriveCourierTier(snapshot),
+    businessPlan: snapshot.businessPlan,
   };
 }
 

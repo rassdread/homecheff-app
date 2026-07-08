@@ -24,6 +24,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import OperationsShell from '@/components/operations/OperationsShell';
 import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
+import { AFFILIATE_ATTRIBUTION_CONTRACT } from '@/lib/affiliate-attribution-contract';
 import { 
   SUB_AFFILIATE_USER_COMMISSION_PCT, 
   SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
@@ -605,6 +606,24 @@ export default function AffiliateDashboardClient() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5 text-sm text-gray-700 space-y-2">
+              <h3 className="font-semibold text-gray-900">{t('affiliate.dashboard.attributionPolicyTitle')}</h3>
+              <p>
+                {t('affiliate.dashboard.attributionPolicyFirstTouch', {
+                  days: AFFILIATE_ATTRIBUTION_CONTRACT.cookieTtlDays,
+                })}
+              </p>
+              <p>
+                {t('affiliate.dashboard.attributionPolicyCookie', {
+                  name: AFFILIATE_ATTRIBUTION_CONTRACT.cookieName,
+                  days: AFFILIATE_ATTRIBUTION_CONTRACT.cookieTtlDays,
+                })}
+              </p>
+              <p>{t('affiliate.dashboard.attributionPolicyCrossDevice')}</p>
+              <p>{t('affiliate.dashboard.attributionPolicyCommission')}</p>
+              <p>{t('affiliate.dashboard.attributionPolicySubscription')}</p>
             </div>
 
             {/* Referral Link & QR Code */}

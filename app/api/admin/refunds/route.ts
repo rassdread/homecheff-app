@@ -167,8 +167,16 @@ export async function POST(req: NextRequest) {
     let stripeRefundId: string | null = null;
     if (transaction.providerRef) {
       try {
+        let paymentIntentId = transaction.providerRef;
+        if (paymentIntentId.startsWith('cs_')) {
+          const checkoutSession = await stripe.checkout.sessions.retrieve(paymentIntentId);
+          const pi = checkoutSession.payment_intent;
+          paymentIntentId =
+            typeof pi === 'string' ? pi : pi?.id ?? paymentIntentId;
+        }
+
         const refund = await stripe.refunds.create({
-          payment_intent: transaction.providerRef,
+          payment_intent: paymentIntentId,
           amount: amountCents,
           reason: 'requested_by_customer',
           metadata: {

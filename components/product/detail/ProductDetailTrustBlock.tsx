@@ -3,6 +3,7 @@
 import type { DiscoveryTrustContract } from '@/lib/discovery/contracts/discovery-trust-contract';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import { buildDetailTrustBlock } from '@/lib/marketplace/detail/detail-trust-block';
+import BusinessPlanBadge from '@/components/business/BusinessPlanBadge';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 
@@ -32,14 +33,19 @@ export default function ProductDetailTrustBlock({
       )}
       data-detail-section="trust_block"
     >
-      <h2
-        className={cn(
-          'font-semibold text-gray-900',
-          compact ? 'mb-2 text-xs uppercase tracking-wide text-gray-500' : 'mb-3 text-sm',
-        )}
-      >
-        {t('marketplace.detail.sections.trustBlock')}
-      </h2>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <h2
+          className={cn(
+            'font-semibold text-gray-900',
+            compact ? 'text-xs uppercase tracking-wide text-gray-500' : 'text-sm',
+          )}
+        >
+          {t('marketplace.detail.sections.trustBlock')}
+        </h2>
+        {trust.businessPlan && trust.businessPlan !== 'individual' ? (
+          <BusinessPlanBadge plan={trust.businessPlan} t={t} />
+        ) : null}
+      </div>
       <ul className={cn('space-y-1.5', compact ? 'text-xs' : 'text-sm')}>
         {plan.lines.map((line) => (
           <li key={`${line.kind}-${line.badgeId ?? line.labelKey}`} className="text-gray-700">

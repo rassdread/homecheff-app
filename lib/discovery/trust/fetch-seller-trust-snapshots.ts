@@ -7,6 +7,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { resolveBusinessPlanId } from '@/lib/business/visibility-profile';
 import { filterTrustBadgeSlugs } from './trust-badge-utils';
 import { emptySellerTrustSnapshot, type SellerTrustSnapshot } from './types';
 
@@ -55,7 +56,13 @@ export async function fetchSellerTrustSnapshots(
     const [sellerProfiles, deliveryProfiles] = await Promise.all([
       prisma.sellerProfile.findMany({
         where: { userId: { in: unique } },
-        select: { id: true, userId: true },
+        select: {
+          id: true,
+          userId: true,
+          subscriptionId: true,
+          subscriptionValidUntil: true,
+          Subscription: { select: { name: true, feeBps: true } },
+        },
       }),
       prisma.deliveryProfile.findMany({
         where: { userId: { in: unique } },
@@ -174,6 +181,11 @@ export async function fetchSellerTrustSnapshots(
       sellerIdToUserId.set(sp.id, sp.userId);
       const row = out.get(sp.userId)!;
       row.hasSellerProfile = true;
+      row.businessPlan = resolveBusinessPlanId({
+        subscriptionId: sp.subscriptionId,
+        subscriptionValidUntil: sp.subscriptionValidUntil,
+        Subscription: sp.Subscription,
+      });
     }
 
     const deliveryProfileToUser = new Map<string, string>();

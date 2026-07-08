@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { stripe, matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 import { getSellerRequestablePayout } from '@/lib/sellerPayouts';
 import { getCombinedRequestablePayout } from '@/lib/combinedPayouts';
+import { getBusinessVisibilityProfile } from '@/lib/business/visibility-profile';
 
 export const dynamic = 'force-dynamic';
 
@@ -123,13 +124,12 @@ export async function GET(req: NextRequest) {
       }, 0);
     }, 0);
 
-    // Calculate platform fees (12% default for individuals, or subscription fee if applicable)
-    let platformFeePercentage = 12; // Default for individuals
-    
-    if (sellerProfile?.Subscription) {
-      // Use subscription fee (stored in basis points)
-      platformFeePercentage = sellerProfile.Subscription.feeBps / 100;
-    }
+    const visibility = getBusinessVisibilityProfile({
+      subscriptionId: sellerProfile?.subscriptionId,
+      subscriptionValidUntil: sellerProfile?.subscriptionValidUntil,
+      Subscription: sellerProfile?.Subscription,
+    });
+    const platformFeePercentage = visibility.commissionPercent;
     
     const platformFee = Math.round((totalEarnings * platformFeePercentage) / 100);
     

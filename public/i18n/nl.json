@@ -2746,6 +2746,10 @@
       "analyticsSubtitle": "Inzicht in je verkoop",
       "analyticsTitle": "Analytics",
       "averageRatingLabel": "Gemiddelde beoordeling",
+      "favoritesLabel": "Favorieten",
+      "messagesLabel": "Berichten",
+      "popularListingsTitle": "Top listings op omzet",
+      "salesUnit": "verkopen",
       "avgViewsPerSale": "Gemiddeld {views} weergaven per verkoop",
       "back": "Terug",
       "backToDashboard": "Terug naar dashboard",
@@ -6992,6 +6996,12 @@
       "welcomeMessage": "Nodig vrienden uit en verdien samen",
       "welcomeDesc": "Je account is actief. Deel je partnerlink om nieuwe aanmeldingen te genereren.",
       "overview": "Overview",
+      "attributionPolicyTitle": "Hoe attributie werkt",
+      "attributionPolicyFirstTouch": "First-touch: de eerste geldige partnerlink die je deelt zet een cookie van {days} dagen. Latere partnerlinks vervangen die niet tot de cookie verloopt.",
+      "attributionPolicyCookie": "Cookie: {name} ({days} dagen). Aanmelding of social onboarding moet in dezelfde browser/apparaat gebeuren zolang de cookie actief is.",
+      "attributionPolicyCrossDevice": "Cross-device: nog niet ondersteund. Een klik op desktop volgt iemand niet die op mobiel registreert.",
+      "attributionPolicyCommission": "Commissie: pending na betaling, beschikbaar na de wachttijd, daarna uitbetaald via Stripe Connect wanneer je een uitbetaling aanvraagt.",
+      "attributionPolicySubscription": "Zakelijke abonnementen: commissie geldt wanneer het doorverwezen bedrijf abonneert — via jouw promocode of jouw ref-link bij aanmelding.",
       "earnings": "Earnings",
       "referrals": "Aanmeldingen via link",
       "subAffiliates": "Directe partners",
@@ -7292,7 +7302,7 @@
       "timelineY710Body": "Partners die lang meebouwen aan de missie, kunnen onderdeel worden van een veel groter internationaal netwerk van bedrijven, makers en buurten — als strategie, regelgeving en adoptie dat toelaten.",
       "narrativeFutureDisclaimer": "Alleen een illustratief verhaal. Geen gegarandeerd inkomen, duur, timing of lifetime-commissies.",
       "commissionDetailsToggle": "Zo werkt transactiecommissie",
-      "commissionDetailsBody": "Je verdient 25% van de HomeCheff-platformfee per aangebrachte transactiekant (50% als je koper én verkoper aanbrengt). Kopers tellen mee. In voorbeelden gebruiken particuliere verkopers vaak rond 12% platformfee en Pro-bedrijven rond 4% op orders — echte fees hangen van plannen en live activiteit af.",
+      "commissionDetailsBody": "Je verdient 25% van de HomeCheff-platformfee per aangebrachte transactiekant (50% als je koper én verkoper aanbrengt). Kopers tellen mee. In voorbeelden gebruiken particuliere verkopers vaak rond 12% platformfee en Pro-bedrijven rond 7% op orders — echte fees hangen van plannen en live activiteit af.",
       "calculatePotential": "Jouw invoer",
       "subscriptionsPerMonth": "Abonnementen per maand",
       "avgPricePerSubscription": "Gemiddelde prijs per abonnement (€/maand)",
@@ -7483,6 +7493,201 @@
     "markAllRead": "Alles als gelezen markeren",
     "defaultTitle": "Melding"
   },
+  "business": {
+    "plan": {
+      "badge": {
+        "business": "Business",
+        "pro": "Pro",
+        "premium": "Premium"
+      },
+      "analyticsUpgrade": "Upgrade naar Basic of hoger voor uitgebreide business analytics in je verkopersdashboard."
+    },
+    "dna": {
+      "growthTitle": "Groei sneller met een zakelijk abonnement",
+      "growthSubtitle": "Kies zichtbaarheid, vertrouwen en bereik — niet alleen een lagere fee. Elk plan helpt je bedrijf groeien in de buurt.",
+      "growthPitch": "HomeCheff abonnementen zijn groeipakketten: meer zichtbaarheid in de feed, sterker vertrouwen bij kopers, betere analytics en toegang tot toekomstige promotiemodules.",
+      "pillar": {
+        "visibility": "Meer zichtbaarheid in feed en zoeken",
+        "trust": "Business badge en geverifieerd profiel",
+        "customers": "Bereik meer lokale klanten",
+        "automation": "Automatische activatie na betaling"
+      },
+      "perMonth": "per maand",
+      "commissionNote": "Platformfee op verkopen: {{percent}}% — secundair aan groei en zichtbaarheid.",
+      "unavailable": "Niet beschikbaar",
+      "choosePlan": "Kies {{plan}}",
+      "plan": {
+        "individual": "Particulier",
+        "basic": "Basic",
+        "pro": "Pro",
+        "premium": "Premium"
+      },
+      "purpose": {
+        "individual": "Startende ondernemer",
+        "basic": "Groeiend lokaal bedrijf",
+        "pro": "Professioneel bedrijf",
+        "premium": "Maximale groei met HomeCheff"
+      },
+      "analytics": {
+        "basic": "Basis",
+        "business": "Business",
+        "advanced": "Geavanceerd",
+        "premium": "Premium"
+      },
+      "support": {
+        "standard": "Standaard",
+        "business": "Business",
+        "priority": "Prioriteit",
+        "premium": "Premium"
+      },
+      "status": {
+        "none": "—",
+        "ready": "Klaar",
+        "optional": "Optioneel",
+        "future": "Binnenkort",
+        "included": "Inbegrepen"
+      },
+      "benefit": {
+        "verified": "Verschijnt als geverifieerd bedrijf",
+        "badge": "Business badge op profiel en listings",
+        "discoveryBoost": "Lichte tot sterke discovery-boost in de buurt",
+        "localSearch": "Prioriteit in lokale zoekresultaten",
+        "categoryFeatured": "Uitgelicht in je categorie",
+        "regional": "Regionale discovery en campagnes",
+        "homepageEligible": "In aanmerking voor homepage-modules",
+        "homepageSpotlight": "Homepage spotlight eligible",
+        "campaigns": "Campagne-modules (toekomst)",
+        "websiteReady": "Website-promotie klaar",
+        "socialReady": "Social-promotie klaar",
+        "premiumAnalytics": "Premium analytics en export",
+        "multiLocation": "Meerdere vestigingen"
+      },
+      "preview": {
+        "liveTitle": "Live preview — zo zie je eruit",
+        "liveSubtitle": "Wissel tussen plannen en zie direct wat verandert. Alles komt uit je Business DNA-profiel.",
+        "badge": "Business badge",
+        "noBadge": "Geen badge",
+        "visibilityLevel": "Zichtbaarheidsniveau",
+        "discoveryLevel": "Discovery-niveau",
+        "searchPriority": "Zoekprioriteit",
+        "analytics": "Analytics",
+        "visibilityScore": "Zichtbaarheidsscore",
+        "homepage": "Homepage",
+        "regional": "Regionaal",
+        "websitePromotion": "Website-promotie",
+        "socialPromotion": "Social-promotie",
+        "locations": "Max. vestigingen",
+        "aiMarketing": "AI marketing",
+        "discovery": {
+          "1": "Standaard",
+          "2": "Licht verhoogd",
+          "3": "Sterk verhoogd",
+          "4": "Maximaal"
+        },
+        "whatChangesTitle": "Na upgraden ontvang je direct",
+        "whatChangesSubtitle": "Dit activeert automatisch na betaling — geen handmatige actie.",
+        "deltaFrom": "Van {{from}} naar {{to}}",
+        "upgradeDeltaTitle": "{{from}} → {{to}}: wat erbij komt",
+        "comingSoonTitle": "Binnenkort beschikbaar",
+        "individualNote": "Als particulier heb je standaard zichtbaarheid. Kies een zakelijk plan voor groei.",
+        "noChanges": "Geen extra wijzigingen ten opzichte van je huidige plan.",
+        "productTitle": "Zo verschijn je op HomeCheff",
+        "productSubtitle": "Echte tile- en trust-componenten — geen mockup.",
+        "sampleSeller": "Jouw bedrijf",
+        "surface": {
+          "tile": "Feed-tegel",
+          "profile": "Profiel",
+          "detail": "Detailpagina"
+        }
+      },
+      "delta": {
+        "badge": "Business badge op profiel en listings",
+        "visibility": "Betere zichtbaarheid in de buurt",
+        "searchPriority": "Hogere zoekprioriteit",
+        "discoveryPriority": "Hogere discovery-prioriteit",
+        "analytics": "Meer analytics",
+        "verified": "Geverifieerd bedrijfsprofiel",
+        "nearbyVisibility": "Betere zichtbaarheid nearby",
+        "regional": "Regionale discovery",
+        "homepageEligible": "Homepage eligibility",
+        "homepageSpotlight": "Homepage spotlight",
+        "locations": "Extra vestiging(en)",
+        "websiteReady": "Website-promotie (binnenkort)",
+        "socialReady": "Social-promotie (binnenkort)",
+        "aiMarketing": "AI marketing (binnenkort)",
+        "campaignBuilder": "Campaign builder (binnenkort)",
+        "regionalCampaigns": "Regionale campagnes (binnenkort)",
+        "commission": "Lagere platformfee op verkopen"
+      },
+      "unlocked": {
+        "badge": "Business badge actief",
+        "discoveryBoost": "Discovery-boost actief",
+        "localSearch": "Lokale zoekprioriteit",
+        "verified": "Geverifieerd bedrijf",
+        "category": "Categorie-feature",
+        "regional": "Regionale discovery",
+        "homepage": "Homepage eligibility",
+        "spotlight": "Homepage spotlight",
+        "premiumAnalytics": "Premium analytics",
+        "multiLocation": "Meerdere vestigingen"
+      },
+      "locked": {
+        "campaignBuilder": "Campaign builder",
+        "regionalCampaigns": "Regionale campagnes",
+        "website": "Website-promotie",
+        "social": "Social-promotie",
+        "aiMarketing": "AI marketing"
+      },
+      "coming": {
+        "website": "Website-promotie",
+        "social": "Social-promotie",
+        "aiMarketing": "AI marketing",
+        "campaignBuilder": "Campaign builder",
+        "regionalCampaigns": "Regionale campagnes",
+        "marketplaceCampaigns": "Marketplace-campagnes",
+        "businessTools": "Business tools"
+      },
+      "growthStatus": {
+        "starter": "Starter",
+        "growing": "Groeiend",
+        "strong": "Sterke groei",
+        "max": "Maximale groei"
+      },
+      "widget": {
+        "title": "Business DNA",
+        "subtitle": "Je huidige groei- en zichtbaarheidsprofiel op HomeCheff.",
+        "currentPlan": "Huidig plan",
+        "visibilityScore": "Zichtbaarheidsscore",
+        "commission": "Platformfee",
+        "growthStatus": "Groei-status",
+        "unlocked": "Ontgrendeld",
+        "locked": "Nog niet actief",
+        "unlockedEmpty": "Upgrade voor business-voordelen.",
+        "lockedEmpty": "Je hebt alle beschikbare features voor dit plan.",
+        "upgradeCta": "Groei verder met {{plan}}",
+        "upgradeButton": "Bekijk plannen"
+      },
+      "compare": {
+        "title": "Vergelijk groei en zichtbaarheid",
+        "subtitle": "Kies op basis van wat je bedrijf helpt groeien — commission is één regel, niet het hele verhaal.",
+        "feature": "Functie",
+        "commission": "Platformfee op verkopen",
+        "badge": "Business badge",
+        "localVisibility": "Lokale zichtbaarheid",
+        "searchPriority": "Zoekprioriteit",
+        "analytics": "Analytics",
+        "verifiedBusiness": "Geverifieerd bedrijf",
+        "regionalVisibility": "Regionale zichtbaarheid",
+        "homepageSpotlight": "Homepage spotlight",
+        "websitePromotion": "Website-promotie",
+        "socialPromotion": "Social-promotie",
+        "aiMarketing": "AI marketing",
+        "locations": "Vestigingen",
+        "locationsUnlimited": "Onbeperkt",
+        "support": "Support"
+      }
+    }
+  },
   "sell": {
     "pageTitle": "Verkopen op HomeCheff",
     "freeTitle": "Als particulier plaats en verkoop je gratis",
@@ -7493,7 +7698,7 @@
     "title": "Zet je bedrijf op de kaart — groei met je lokale community",
     "subtitle": "Kies het abonnement dat bij jouw bedrijf past. Transparante prijzen, maandelijks opzegbaar en zonder verborgen kosten.",
     "introWho": "Deze pagina is voor verkopers met een KVK / bedrijfsregistratie: je kiest hier een maandabonnement met lagere HomeCheff-platformfee op je verkopen.",
-    "feeSummary": "Overzicht plannen: Basic €39 per maand + 7% platformfee · Pro €99 per maand + 4% · Premium €199 per maand + 2%.",
+    "feeSummary": "Overzicht plannen: Basic €39 per maand + 9% platformfee · Pro €99 per maand + 7% · Premium €199 per maand + 5%.",
     "buyersNoSubscription": "Kopers hebben geen HomeCheff-abonnement; zij betalen alleen hun bestelling (en eventuele betaalkosten via de betaalprovider).",
     "confirmationFailed": "Bevestigen mislukt",
     "cannotConfirmSubscription": "Kon abonnement niet bevestigen. Neem contact op met support.",

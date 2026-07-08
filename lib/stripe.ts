@@ -4,6 +4,7 @@ import {
   STRIPE_FIXED_FEE_CENTS,
   STRIPE_FEE_PERCENTAGE,
 } from './fees';
+import { getBusinessVisibilityProfile } from './business/visibility-profile';
 
 // Helper om omgevingsvariabelen te normaliseren (trim en leeg -> undefined)
 const sanitizeEnv = (value?: string | null): string | undefined => {
@@ -74,9 +75,9 @@ export function normalizeSubscriptionName(plan: string): string {
 }
 
 const BUSINESS_PLATFORM_FEES: Record<'BASIC' | 'PRO' | 'PREMIUM', number> = {
-  BASIC: 7,
-  PRO: 4,
-  PREMIUM: 2,
+  BASIC: getBusinessVisibilityProfile('basic').feePercent,
+  PRO: getBusinessVisibilityProfile('pro').feePercent,
+  PREMIUM: getBusinessVisibilityProfile('premium').feePercent,
 };
 
 // Bereken uitbetaling voor verkoper

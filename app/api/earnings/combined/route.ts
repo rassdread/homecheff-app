@@ -12,6 +12,7 @@ import { CommissionLedgerStatus } from "@prisma/client";
 import { matchesCurrentMode } from "@/lib/stripe";
 import { getSellerRequestablePayout } from "@/lib/sellerPayouts";
 import { DELIVERY_DELIVERER_PERCENT } from "@/lib/fees";
+import { getBusinessVisibilityProfile } from "@/lib/business/visibility-profile";
 
 export const dynamic = 'force-dynamic';
 
@@ -123,10 +124,12 @@ export async function GET(req: NextRequest) {
       }, 0);
 
       // Calculate platform fee
-      let platformFeePercentage = 12; // Default
-      if (sellerProfile.Subscription) {
-        platformFeePercentage = sellerProfile.Subscription.feeBps / 100;
-      }
+      const visibility = getBusinessVisibilityProfile({
+        subscriptionId: sellerProfile.subscriptionId,
+        subscriptionValidUntil: sellerProfile.subscriptionValidUntil,
+        Subscription: sellerProfile.Subscription,
+      });
+      const platformFeePercentage = visibility.commissionPercent;
       const platformFee = Math.round((totalEarnings * platformFeePercentage) / 100);
       const netEarnings = totalEarnings - platformFee;
 

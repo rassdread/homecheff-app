@@ -13,6 +13,7 @@ import AcceptedValuesDiscoveryFilter from '@/components/feed/AcceptedValuesDisco
 import DiscoveryDirectionToggle, {
   type DiscoveryDirection,
 } from '@/components/feed/DiscoveryDirectionToggle';
+import { DISCOVERY_CATEGORY_CHIP_OPTIONS } from '@/lib/marketplace/canonical-model';
 
 type Props = {
   open: boolean;
@@ -291,9 +292,13 @@ export default function FeedMobileFilterSheet({
               className={inputClass}
             >
               <option value="all">{t('common.allCategories')}</option>
-              <option value="cheff">{t('feed.categoryVerticalCheff')}</option>
-              <option value="garden">{t('feed.categoryVerticalGarden')}</option>
-              <option value="designer">{t('feed.categoryVerticalDesigner')}</option>
+              {DISCOVERY_CATEGORY_CHIP_OPTIONS.filter((o) => o.slug !== 'all').map(
+                ({ slug, labelKey }) => (
+                  <option key={slug} value={slug}>
+                    {t(labelKey)}
+                  </option>
+                ),
+              )}
             </select>
           </div>
 

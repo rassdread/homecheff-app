@@ -1,0 +1,55 @@
+{
+  "phase": "10E",
+  "generatedAt": "2026-07-08T17:14:47.163Z",
+  "executionMs": 383,
+  "databaseTarget": "remote",
+  "migrationSsot": {
+    "proposal": "lib/marketplace/normalization/propose-product-normalization.ts",
+    "audit": "scripts/audit-marketplace-data-normalization-phase10c.ts",
+    "backfill": "scripts/backfill-marketplace-data-normalization-phase10c.ts"
+  },
+  "totals": {
+    "products": 7,
+    "requests": 0,
+    "services": 2,
+    "dishes": 22,
+    "legacyListings": 0,
+    "canonicalRows": 1,
+    "requiringUpdates": 0,
+    "skipped": 6,
+    "manualReview": 1,
+    "unknownTaxonomyRows": 1,
+    "pendingAcceptedValueRows": 0,
+    "stripeConnectWarnings": 6,
+    "categoryMismatches": 0,
+    "listingKindDrift": 0,
+    "acceptedValueIssues": 0,
+    "settlementInconsistencies": 0
+  },
+  "issueCounts": {
+    "unmapped_specializations": 1,
+    "checkout_needs_stripe_connect": 6
+  },
+  "unmappedSpecializations": [
+    "CHEFF"
+  ],
+  "unmappedAcceptedValues": [],
+  "safetyVerification": {
+    "safe": true,
+    "violations": []
+  },
+  "writableProposals": [],
+  "manualReviewRows": [
+    {
+      "productId": "3b85deeb-5801-417a-a087-5b6027130ae0",
+      "title": "Kᴇᴋsɪ",
+      "reasons": [
+        "unmapped_spec:CHEFF",
+        "checkout_needs_stripe_connect"
+      ]
+    }
+  ],
+  "dryRunCommand": "npx tsx scripts/backfill-marketplace-data-normalization-phase10c.ts --dry-run",
+  "writeCommand": "CONFIRM_BACKFILL=1 npx tsx scripts/backfill-marketplace-data-normalization-phase10c.ts --write",
+  "postWriteAuditCommand": "npx tsx scripts/audit-production-backfill-phase10e.ts"
+}

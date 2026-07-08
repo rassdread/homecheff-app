@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get raw environment variables (for debugging)
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true },
+    });
+
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    // Only expose safe configuration health flags to avoid leaking key fragments.
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
     const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
@@ -24,7 +34,6 @@ export async function GET(req: NextRequest) {
       stripeSecretKey: {
         exists: !!stripeSecretKey,
         length: stripeSecretKey.length,
-        prefix: stripeSecretKey ? `${stripeSecretKey.substring(0, 15)}...` : 'NOT SET',
         startsWith_sk_test: stripeSecretKey.startsWith('sk_test'),
         startsWith_sk_live: stripeSecretKey.startsWith('sk_live'),
         mode: isLiveMode ? 'live' : isTestMode ? 'test' : 'unknown'
@@ -32,19 +41,16 @@ export async function GET(req: NextRequest) {
       stripePublishableKey: {
         exists: !!stripePublishableKey,
         length: stripePublishableKey.length,
-        prefix: stripePublishableKey ? `${stripePublishableKey.substring(0, 15)}...` : 'NOT SET',
         startsWith_pk_test: stripePublishableKey.startsWith('pk_test'),
         startsWith_pk_live: stripePublishableKey.startsWith('pk_live')
       },
       webhookSecret: {
         exists: !!webhookSecret,
-        length: webhookSecret.length,
-        prefix: webhookSecret ? `${webhookSecret.substring(0, 10)}...` : 'NOT SET'
+        length: webhookSecret.length
       },
       connectClientId: {
         exists: !!connectClientId,
-        length: connectClientId.length,
-        prefix: connectClientId ? `${connectClientId.substring(0, 10)}...` : 'NOT SET'
+        length: connectClientId.length
       },
       detectedMode: isLiveMode ? 'live' : isTestMode ? 'test' : 'unknown',
       nodeEnv: process.env.NODE_ENV,

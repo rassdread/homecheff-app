@@ -7,6 +7,14 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
+import SubscriptionComparisonTable from '@/components/business/SubscriptionComparisonTable';
+import SubscriptionPlanCards from '@/components/business/SubscriptionPlanCards';
+import SubscriptionLivePreview from '@/components/business/SubscriptionLivePreview';
+import BusinessDnaProductPreview from '@/components/business/BusinessDnaProductPreview';
+import SubscriptionWhatChangesPanel, {
+  SubscriptionLockedFeatures,
+} from '@/components/business/SubscriptionWhatChangesPanel';
+import { getBusinessVisibilityProfile, type BusinessPlanId } from '@/lib/business/visibility-profile';
 
 type Plan = 'BASIC' | 'PRO' | 'PREMIUM';
 
@@ -28,12 +36,7 @@ export default function SellPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Business plans - alleen zichtbaar voor KVK gebruikers
-  const businessPlans: { key: Plan; title: string; price: string; fee: string; perks: string[]; highlight?: boolean }[] = [
-    { key: 'BASIC', title: 'Basic', price: '€39 / maand', fee: '7% platform fee', perks: ['Start voor buurtverkoop', 'Essentiële statistieken', 'Community support'] },
-    { key: 'PRO', title: 'Pro', price: '€99 / maand', fee: '4% platform fee', perks: ['Uitgelichte zichtbaarheid', 'Premium statistieken', 'Voorrang bij support'], highlight: true },
-    { key: 'PREMIUM', title: 'Premium', price: '€199 / maand', fee: '2% platform fee', perks: ['Toppositie in zoekresultaten', 'Eigen accountmanager', 'Marketingcampagnes op maat'] },
-  ];
+  const stripePlans = ['BASIC', 'PRO', 'PREMIUM'] as const;
 
   // Validate plan availability on mount
   useEffect(() => {
@@ -135,7 +138,7 @@ export default function SellPage() {
   return (
     <React.Suspense fallback={null}>
       <SellPageContent
-        plans={businessPlans}
+        stripePlans={stripePlans}
         loading={loading}
         router={router}
         start={start}
@@ -159,7 +162,7 @@ export default function SellPage() {
 
 // Verwijderd: dubbele declaratie SellPageContent
 function SellPageContent({ 
-  plans, 
+  stripePlans,
   loading, 
   router, 
   start, 
@@ -177,7 +180,7 @@ function SellPageContent({
   promoCodeData,
   setPromoCodeData,
 }: {
-  plans: { key: Plan; title: string; price: string; fee: string; perks: string[]; highlight?: boolean }[];
+  stripePlans: readonly Plan[];
   loading: Plan | null;
   router: any;
   start: (plan: Plan) => void;
@@ -196,11 +199,34 @@ function SellPageContent({
   setPromoCodeData: (data: { discountSharePct: number; hasL2: boolean } | null) => void;
 }) {
   const { t } = useTranslation();
+  const individualDna = getBusinessVisibilityProfile('individual');
+  const [previewPlan, setPreviewPlan] = useState<BusinessPlanId>('basic');
+  const [currentPlan, setCurrentPlan] = useState<BusinessPlanId>('individual');
   const params = useSearchParams();
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmationHandled, setConfirmationHandled] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/seller/dashboard/stats?period=30d');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.businessPlan) {
+          setCurrentPlan(data.businessPlan as BusinessPlanId);
+          setPreviewPlan(data.businessPlan as BusinessPlanId);
+        }
+      } catch {
+        /* guest or no seller profile */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const success = params?.get('success');
@@ -255,17 +281,23 @@ function SellPageContent({
 
       <div className="mb-6 max-w-2xl mx-auto text-center border-t border-gray-200 pt-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {t('sell.businessSectionTitle') || 'Optioneel: zakelijk abonnement (KVK / bedrijf)'}
+          {t('business.dna.growthTitle')}
         </h2>
         <p className="text-sm text-gray-600 leading-relaxed max-w-xl mx-auto">
-          {t('sell.businessSectionSubtitle') || 'Verkoop je als bedrijf of met een KVK-registratie? Met een maandabonnement betaal je een lagere platformfee. Dit is een upgrade, geen verplichting.'}
+          {t('business.dna.growthSubtitle')}
         </p>
       </div>
 
-      <div className="mb-8 max-w-2xl mx-auto rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 sm:p-5 text-sm text-gray-800 text-left space-y-3 shadow-sm">
-        <p className="leading-relaxed">{t('sell.introWho')}</p>
-        <p className="font-medium text-gray-900 leading-relaxed">{t('sell.feeSummary')}</p>
-        <p className="text-gray-700 leading-relaxed border-t border-emerald-100 pt-3">
+      <div className="mb-8 max-w-3xl mx-auto rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 sm:p-5 text-sm text-gray-800 text-left space-y-3 shadow-sm">
+        <p className="leading-relaxed font-medium text-gray-900">{t('business.dna.growthPitch')}</p>
+        <ul className="grid gap-2 sm:grid-cols-2 text-gray-700">
+          <li>✓ {t('business.dna.pillar.visibility')}</li>
+          <li>✓ {t('business.dna.pillar.trust')}</li>
+          <li>✓ {t('business.dna.pillar.customers')}</li>
+          <li>✓ {t('business.dna.pillar.automation')}</li>
+        </ul>
+        <p className="text-xs text-gray-600 border-t border-emerald-100 pt-3">
+          {t('business.dna.commissionNote', { percent: individualDna.commissionPercent })}{' '}
           {t('sell.buyersNoSubscription')}
         </p>
       </div>
@@ -370,84 +402,35 @@ function SellPageContent({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((p) => {
-          const isAvailable = planAvailability[p.key];
-          const isLoading = loading === p.key;
-          const isDisabled = isLoading || isAvailable === false;
-          
-          return (
-            <div
-              key={p.key}
-              className={`rounded-2xl border shadow-sm p-6 flex flex-col items-center text-center transition-all ${
-                p.highlight ? 'border-primary-brand shadow-lg bg-primary-50/40' : 'bg-white'
-              } ${isAvailable === false ? 'opacity-60' : ''}`}
-            >
-              <h2 className="text-xl font-semibold mb-2">{p.title}</h2>
-              {(() => {
-                // Calculate price with promo code discount
-                const basePrice = p.key === 'BASIC' ? 39 : p.key === 'PRO' ? 99 : 199;
-                let displayPrice = basePrice;
-                let discountAmount = 0;
-                let originalPrice = basePrice;
-                
-                if (promoCodeValid && promoCodeData) {
-                  // Calculate discount: affiliate gets 50% of base price, discount is percentage of that
-                  const affiliateCommission = basePrice * 0.50; // 50% of base price
-                  const discount = Math.round(affiliateCommission * (promoCodeData.discountSharePct / 100));
-                  discountAmount = discount;
-                  displayPrice = basePrice - discount;
-                  originalPrice = basePrice;
-                }
-                
-                return (
-                  <>
-                    {promoCodeValid && discountAmount > 0 ? (
-                      <div className="mb-1">
-                        <div className="flex items-center justify-center gap-2">
-                          <p className="text-xl font-bold text-gray-400 line-through">€{originalPrice}</p>
-                          <p className="text-3xl font-bold text-emerald-600">€{displayPrice}</p>
-                        </div>
-                        <p className="text-sm text-emerald-600 font-semibold mt-1">
-                          Je bespaart €{discountAmount}/maand!
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-3xl font-bold mb-1">{p.price}</p>
-                    )}
-                  </>
-                );
-              })()}
-              <p className="text-sm text-gray-600 mb-4">{p.fee}</p>
-              <ul className="text-sm text-gray-700 space-y-1 mb-6 w-full">
-                {p.perks.map((x) => (
-                  <li key={x} className="flex items-start gap-2 justify-center">
-                    <span className="mt-1 text-primary-brand">•</span>
-                    <span>{x}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              {isAvailable === false && (
-                <p className="text-xs text-red-600 mb-2 text-center">
-                  Niet beschikbaar
-                </p>
-              )}
-              
-              <Button 
-                onClick={() => start(p.key)} 
-                disabled={isDisabled} 
-                className="mt-auto w-full"
-              >
-                {isLoading
-                  ? 'Bezig...'
-                  : isAvailable === false
-                    ? 'Niet beschikbaar'
-                    : 'Kies ' + p.title}
-              </Button>
-            </div>
-          );
-        })}
+      <div className="mb-10 grid gap-6 lg:grid-cols-2">
+        <SubscriptionLivePreview plan={previewPlan} onPlanChange={setPreviewPlan} />
+        <div className="space-y-4">
+          <SubscriptionWhatChangesPanel targetPlan={previewPlan} fromPlan={currentPlan} />
+          <SubscriptionLockedFeatures plan={previewPlan} />
+          <BusinessDnaProductPreview plan={previewPlan} />
+        </div>
+      </div>
+
+      <SubscriptionPlanCards
+        plans={[...stripePlans]}
+        loading={loading}
+        planAvailability={planAvailability}
+        promoCodeValid={promoCodeValid}
+        promoCodeData={promoCodeData}
+        onSelect={start}
+        previewPlan={previewPlan}
+        onPreviewPlan={setPreviewPlan}
+        currentPlan={currentPlan}
+      />
+
+      <div className="mt-12 max-w-5xl mx-auto">
+        <h2 className="mb-2 text-center text-xl font-bold text-gray-900">
+          {t('business.dna.compare.title')}
+        </h2>
+        <p className="mb-6 text-center text-sm text-gray-600 max-w-2xl mx-auto">
+          {t('business.dna.compare.subtitle')}
+        </p>
+        <SubscriptionComparisonTable />
       </div>
     </main>
   );

@@ -3,6 +3,8 @@
  * @see docs/audits/TRUST_ENRICHMENT_AUDIT.md
  */
 
+import type { BusinessPlanId } from '@/lib/business/visibility-profile';
+
 export type SellerTrustSnapshot = {
   userId: string;
   hasSellerProfile: boolean;
@@ -22,6 +24,8 @@ export type SellerTrustSnapshot = {
   /** Reviews authored by this user (any trust channel). */
   reviewsLeftCount: number;
   trustBadgeSlugs: string[];
+  /** Active business subscription plan — from visibility-profile SSOT. */
+  businessPlan: BusinessPlanId;
 };
 
 export function emptySellerTrustSnapshot(userId: string): SellerTrustSnapshot {
@@ -40,6 +44,7 @@ export function emptySellerTrustSnapshot(userId: string): SellerTrustSnapshot {
     repeatCustomers: 0,
     reviewsLeftCount: 0,
     trustBadgeSlugs: [],
+    businessPlan: 'individual',
   };
 }
 

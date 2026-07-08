@@ -4,31 +4,31 @@ import { prisma } from "../lib/prisma";
 async function main() {
   await prisma.subscription.upsert({
     where: { name: "Basic" },
-    update: {},
+    update: { feeBps: 900, priceCents: 3900 },
     create: {
       name: "Basic",
       priceCents: 3900,
-      feeBps: 700,
+      feeBps: 900,
       durationDays: 365,
     },
   });
   await prisma.subscription.upsert({
     where: { name: "Pro" },
-    update: {},
+    update: { feeBps: 700, priceCents: 9900 },
     create: {
       name: "Pro",
       priceCents: 9900,
-      feeBps: 400,
+      feeBps: 700,
       durationDays: 365,
     },
   });
   await prisma.subscription.upsert({
     where: { name: "Premium" },
-    update: {},
+    update: { feeBps: 500, priceCents: 19900 },
     create: {
       name: "Premium",
       priceCents: 19900,
-      feeBps: 200,
+      feeBps: 500,
       durationDays: 365,
     },
   });

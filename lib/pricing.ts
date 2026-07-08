@@ -3,63 +3,59 @@
 export const PRICING_TIERS = {
   INDIVIDUAL: {
     name: 'Particulier',
-    maxRevenue: 2000, // €2000 per jaar
-    feePercentage: 12, // 12% fee
-    monthlyFee: 0, // Geen abonnement
-    maxUsers: null, // Geen limiet
+    maxRevenue: 2000,
+    feePercentage: 12,
+    monthlyFee: 0,
+    maxUsers: null,
     features: [
-      'Maximaal €2000 omzet per jaar',
-      '12% transactiefee',
-      'Basis support',
-      'Standaard profiel'
+      'Standaard zichtbaarheid in de buurt',
+      'Basis analytics',
+      '1 locatie',
+      'Standaard support',
     ]
   },
   BUSINESS_BASIC: {
     name: 'Basic Bedrijf',
-    maxRevenue: null, // Geen limiet
-    feePercentage: 7, // 7% fee
-    monthlyFee: 39, // €39 per maand
+    maxRevenue: null,
+    feePercentage: 9,
+    monthlyFee: 39,
     maxUsers: 5,
     features: [
-      'Onbeperkte omzet',
-      '7% transactiefee',
+      'Business badge + geverifieerd profiel',
+      'Lichte discovery-boost',
+      'Basis business analytics',
+      'Lokale zoekprioriteit',
       '€39 per maand',
-      'Max 5 gebruikers',
-      'Prioriteit support',
-      'Uitgebreid profiel'
     ]
   },
   BUSINESS_PRO: {
     name: 'Pro Bedrijf',
-    maxRevenue: null, // Geen limiet
-    feePercentage: 4, // 4% fee
-    monthlyFee: 99, // €99 per maand
+    maxRevenue: null,
+    feePercentage: 7,
+    monthlyFee: 99,
     maxUsers: 25,
     features: [
-      'Onbeperkte omzet',
-      '4% transactiefee',
+      'Sterkere zichtbaarheid + categorie-feature',
+      'Geavanceerde analytics',
+      'Regionale discovery',
+      '2 vestigingen',
+      'Homepage eligibility',
       '€99 per maand',
-      'Max 25 gebruikers',
-      'Premium support',
-      'Analytics dashboard',
-      'Custom branding'
     ]
   },
   BUSINESS_PREMIUM: {
     name: 'Premium Bedrijf',
-    maxRevenue: null, // Geen limiet
-    feePercentage: 2, // 2% fee
-    monthlyFee: 199, // €199 per maand
-    maxUsers: null, // Onbeperkt
+    maxRevenue: null,
+    feePercentage: 5,
+    monthlyFee: 199,
+    maxUsers: null,
     features: [
-      'Onbeperkte omzet',
-      '2% transactiefee',
+      'Maximale discovery-zichtbaarheid',
+      'Premium badge + spotlight eligible',
+      'Premium analytics',
+      'Regionale campagnes',
+      'Website & social promotion ready',
       '€199 per maand',
-      'Onbeperkte gebruikers',
-      'White-label support',
-      'Advanced analytics',
-      'API toegang',
-      'Custom integraties'
     ]
   }
 } as const;

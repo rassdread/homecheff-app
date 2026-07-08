@@ -12,22 +12,41 @@ import {
   Calendar,
   BarChart3,
   Activity,
+  Heart,
+  MessageCircle,
 } from 'lucide-react';
 import OperationsShell from '@/components/operations/OperationsShell';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { AnalyticsLevel } from '@/lib/business/visibility-profile';
+import type { SellerAnalyticsMetric } from '@/lib/business/analytics-tier';
+import { canAccessAnalyticsMetric } from '@/lib/business/analytics-tier';
+
+interface PopularListing {
+  id: string;
+  title: string;
+  revenue: number;
+  sales: number;
+}
 
 interface AnalyticsData {
   totalRevenue: number;
   totalOrders: number;
   totalCustomers: number;
   totalViews: number;
+  totalFavorites?: number;
+  totalMessages?: number;
+  popularListings?: PopularListing[];
   averageRating: number;
   conversionRate: number;
   revenueChange: number;
   ordersChange: number;
   customersChange: number;
   viewsChange: number;
+  favoritesChange?: number;
+  messagesChange?: number;
   ratingChange?: number;
+  analyticsLevel?: AnalyticsLevel;
+  analyticsMetrics?: SellerAnalyticsMetric[];
 }
 
 export default function SellerAnalyticsPageClient() {
@@ -96,6 +115,11 @@ export default function SellerAnalyticsPageClient() {
       contentClassName="py-0"
     >
       <div className="pb-8">
+        {data?.analyticsLevel === 'none' ? (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-gray-800">
+            {t('business.plan.analyticsUpgrade')}
+          </div>
+        ) : null}
         {data && (
           <>
             {/* Key Metrics */}
@@ -132,6 +156,7 @@ export default function SellerAnalyticsPageClient() {
                 </div>
               </div>
 
+              {canAccessAnalyticsMetric(data.analyticsLevel ?? 'none', 'conversion_rate') ? (
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">{t('seller.conversionRate')}</h3>
@@ -142,10 +167,12 @@ export default function SellerAnalyticsPageClient() {
                   {t('seller.salesFromViews', { orders: data.totalOrders, views: data.totalViews })}
                 </p>
               </div>
+              ) : null}
             </div>
 
             {/* Additional Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {canAccessAnalyticsMetric(data.analyticsLevel ?? 'none', 'conversion_rate') ? (
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-3 bg-purple-100 rounded-lg">
@@ -165,7 +192,9 @@ export default function SellerAnalyticsPageClient() {
                   {Math.abs(data.customersChange)}{t('seller.newCustomers')}
                 </div>
               </div>
+              ) : null}
 
+              {canAccessAnalyticsMetric(data.analyticsLevel ?? 'none', 'views') ? (
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-3 bg-blue-100 rounded-lg">
@@ -190,6 +219,51 @@ export default function SellerAnalyticsPageClient() {
                   </div>
                 </div>
               </div>
+              ) : null}
+
+              {canAccessAnalyticsMetric(data.analyticsLevel ?? 'none', 'favorites') ? (
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 bg-rose-100 rounded-lg">
+                    <Heart className="w-6 h-6 text-rose-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t('seller.favoritesLabel')}</p>
+                    <p className="text-2xl font-bold text-gray-900">{data.totalFavorites ?? 0}</p>
+                  </div>
+                </div>
+                <div className={`flex items-center text-sm ${(data.favoritesChange ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {(data.favoritesChange ?? 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 mr-1" />
+                  )}
+                  {Math.abs(data.favoritesChange ?? 0).toFixed(1)}{t('seller.vsPreviousPeriod')}
+                </div>
+              </div>
+              ) : null}
+
+              {canAccessAnalyticsMetric(data.analyticsLevel ?? 'none', 'messages') ? (
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 bg-indigo-100 rounded-lg">
+                    <MessageCircle className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t('seller.messagesLabel')}</p>
+                    <p className="text-2xl font-bold text-gray-900">{data.totalMessages ?? 0}</p>
+                  </div>
+                </div>
+                <div className={`flex items-center text-sm ${(data.messagesChange ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {(data.messagesChange ?? 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 mr-1" />
+                  )}
+                  {Math.abs(data.messagesChange ?? 0).toFixed(1)}{t('seller.vsPreviousPeriod')}
+                </div>
+              </div>
+              ) : null}
 
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -215,6 +289,26 @@ export default function SellerAnalyticsPageClient() {
                 </div>
               </div>
             </div>
+
+            {canAccessAnalyticsMetric(data.analyticsLevel ?? 'none', 'popular_listings') &&
+            (data.popularListings?.length ?? 0) > 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('seller.popularListingsTitle')}</h3>
+                <ul className="space-y-3">
+                  {data.popularListings!.map((listing, index) => (
+                    <li key={listing.id} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-gray-700">
+                        <span className="font-medium text-gray-900 mr-2">#{index + 1}</span>
+                        {listing.title}
+                      </span>
+                      <span className="text-gray-600 shrink-0">
+                        {formatCurrency(listing.revenue)} · {listing.sales} {t('seller.salesUnit')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </>
         )}
       </div>

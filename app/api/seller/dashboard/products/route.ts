@@ -86,7 +86,24 @@ export async function GET(request: Request) {
       }
     });
 
-    // Calculate stats for each product (alleen orderregels waarvan de order in de juiste Stripe-modus zit)
+    const productIds = products.map((p) => p.id);
+    const viewCounts =
+      productIds.length === 0
+        ? []
+        : await prisma.analyticsEvent.groupBy({
+            by: ['entityId'],
+            where: {
+              eventType: 'VIEW',
+              entityType: 'PRODUCT',
+              entityId: { in: productIds },
+              createdAt: { gte: startDate, lte: now },
+            },
+            _count: { _all: true },
+          });
+    const viewsByProductId = new Map(
+      viewCounts.map((row) => [row.entityId, row._count._all]),
+    );
+
     const productsWithStats = products.map((product) => {
       const itemsInMode = product.orderItems.filter(
         (item) =>
@@ -102,8 +119,7 @@ export async function GET(request: Request) {
         ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
         : 0;
 
-      // Estimate views (this would need to be tracked separately)
-      const views = sales * 10; // Rough estimate
+      const views = viewsByProductId.get(product.id) ?? 0;
 
       return {
         id: product.id,
@@ -111,7 +127,7 @@ export async function GET(request: Request) {
         sales,
         revenue,
         views,
-        rating: averageRating
+        rating: averageRating,
       };
     });
 

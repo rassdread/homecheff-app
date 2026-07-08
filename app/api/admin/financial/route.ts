@@ -351,10 +351,10 @@ export async function GET(req: NextRequest) {
 
 // Platform fee percentages based on subscription tiers
 const PLATFORM_FEES = {
-  BASIC: 7,    // 7%
-  PRO: 4,      // 4%  
-  PREMIUM: 2,  // 2%
-  DEFAULT: 12  // 12% for users without subscription (individuals)
+  BASIC: 9,
+  PRO: 7,
+  PREMIUM: 5,
+  DEFAULT: 12,
 };
 
 async function calculatePlatformFeesFromOrders() {

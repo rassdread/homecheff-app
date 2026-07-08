@@ -64,6 +64,14 @@ export async function releaseEscrowForOrder(
       continue;
     }
 
+    const lock = await prisma.paymentEscrow.updateMany({
+      where: { id: escrow.id, currentStatus: 'held' },
+      data: { currentStatus: 'payout_scheduled' },
+    });
+    if (lock.count === 0) {
+      continue;
+    }
+
     try {
       const transfer = await stripe.transfers.create({
         amount: escrow.amountCents,
@@ -107,7 +115,7 @@ export async function releaseEscrowForOrder(
       errors.push(`Escrow ${escrow.id}: ${err?.message || 'Stripe transfer failed'}`);
       await prisma.paymentEscrow.update({
         where: { id: escrow.id },
-        data: { currentStatus: 'payout_scheduled' },
+        data: { currentStatus: 'held' },
       }).catch(() => {});
     }
   }

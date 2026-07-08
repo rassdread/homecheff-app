@@ -4,6 +4,7 @@
  */
 
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
+import { businessPlanLabelKey } from '@/lib/business/visibility-profile';
 import {
   TILE_BADGE_MAX,
   TILE_BADGE_PRIORITY,
@@ -127,6 +128,18 @@ function collectCandidates(
       label: trustBadge.name,
       tone: 'trust',
       icon: 'Award',
+      iconKind: 'lucide',
+    });
+  }
+
+  const plan = model.trust.businessPlan;
+  const planLabelKey = plan ? businessPlanLabelKey(plan) : null;
+  if (planLabelKey && plan !== 'individual') {
+    out.push({
+      kind: 'trust_badge',
+      label: t(planLabelKey),
+      tone: 'trust',
+      icon: 'Building2',
       iconKind: 'lucide',
     });
   }

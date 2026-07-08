@@ -13,6 +13,7 @@ export function mapDiscoveryTrustToTileTrust(
     repeatCustomers: trust.repeatCustomers,
     trustBadges: trust.trustBadges,
     sellerTier: trust.sellerTier,
+    businessPlan: trust.businessPlan,
   };
 }
 

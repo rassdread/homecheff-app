@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
 const VercelAnalytics = dynamic(() => import('@/components/VercelAnalytics'), { ssr: false });
+const GoogleAnalytics = dynamic(() => import('@/components/GoogleAnalytics'), { ssr: false });
 
 const CONSENT_KEY = 'privacy-notice-accepted';
 const CONSENT_FULL = 'true';
@@ -23,5 +24,16 @@ export default function ConsentAwareAnalytics() {
 
   if (!hasConsent) return null;
 
-  return <VercelAnalytics />;
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+  return (
+    <>
+      <VercelAnalytics />
+      {gaId ? (
+        <Suspense fallback={null}>
+          <GoogleAnalytics measurementId={gaId} />
+        </Suspense>
+      ) : null}
+    </>
+  );
 }

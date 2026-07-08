@@ -24,6 +24,7 @@ import AffiliateManagement from './AffiliateManagement';
 import FinancialAlerts from './FinancialAlerts';
 import MigrateOrdersButton from './MigrateOrdersButton';
 import VariabelenOverview from './VariabelenOverview';
+import AdminCommandCenter from './AdminCommandCenter';
 import { getUserAllowedTabs, getUserAllowedWidgets } from '@/lib/admin-role-mapping';
 
 // Lazy load heavy components for better performance
@@ -211,7 +212,7 @@ interface AdminDashboardProps {
 export default function AdminDashboard({ user, stats, permissions }: AdminDashboardProps) {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('command-center');
   const [filters, setFilters] = useState({
     search: '',
     role: 'all',
@@ -230,11 +231,11 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
   
   // Start with allowed tabs based on roles
   let allowedTabs = isSuperAdmin
-    ? ['overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates']
+    ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates']
     : isAdmin && adminRoles.length > 0
     ? getUserAllowedTabs(adminRoles)
     : isAdmin
-    ? ['overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates']
+    ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates']
     : [];
   
   // Apply permission filtering if permissions exist
@@ -267,7 +268,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         case 'live-locations':
           return permissions.canViewDeliveryDetails;
         default:
-          return true; // overview, orders, disputes, settings, audit, affiliates always visible
+          return true; // command-center, overview, orders, disputes, settings, audit, affiliates always visible
       }
     });
   }
@@ -279,6 +280,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
     : []; // Admin zonder rollen ziet alles (geen filter)
 
   const allTabs = [
+    { id: 'command-center', label: t('admin.commandCenter') || 'Command Center', icon: AlertTriangle },
     { id: 'overview', label: t('admin.overview'), icon: Eye },
     { id: 'orders', label: t('admin.orders'), icon: ShoppingCart },
     { id: 'financial', label: t('admin.financial'), icon: DollarSign },
@@ -367,6 +369,8 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         </div>
 
         {/* Content */}
+        {activeTab === 'command-center' && <AdminCommandCenter />}
+
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Stats Cards */}

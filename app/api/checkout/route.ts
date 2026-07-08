@@ -13,7 +13,10 @@ import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
 import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/community-order-checkout';
 import { resolveCheckoutBlockReason } from '@/lib/marketplace/settlement/settlement-router';
-import { sellerPaymentsReady } from '@/lib/product/order-method';
+import {
+  requiresStripeForHomecheffCheckout,
+  sellerPaymentsReady,
+} from '@/lib/product/order-method';
 
 const prisma = new PrismaClient();
 
