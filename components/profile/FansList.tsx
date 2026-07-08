@@ -49,8 +49,8 @@ export default function FansList({ userId }: FansListProps) {
     return (
       <EmptyState
         icon={<Users />}
-        title={t("emptyStates.fans.title")}
-        description={t("emptyStates.fans.description")}
+        title={t("emptyState.fansTitle")}
+        description={t("emptyState.fansDesc")}
       />
     );
   }

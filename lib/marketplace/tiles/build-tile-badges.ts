@@ -154,7 +154,17 @@ export function buildTileBadges(
   locale = 'nl-NL',
 ): BuildTileBadgesResult {
   const max = TILE_BADGE_MAX[variant];
-  const candidates = collectCandidates(model, t, locale);
+  const collected = collectCandidates(model, t, locale);
+
+  // Phase 7B.3 — one clear primary "what is it" badge. The pillar/category badge
+  // (offer_category, e.g. 🔧 Diensten / 📚 Workshops) already communicates the
+  // kind, so drop the redundant generic listing_kind badge ("Dienst"/"Taak"/…)
+  // when a category badge is present. listing_kind remains as fallback for
+  // legacy items that have no resolved marketplace category.
+  const hasOfferCategory = collected.some((c) => c.kind === 'offer_category');
+  const candidates = hasOfferCategory
+    ? collected.filter((c) => c.kind !== 'listing_kind')
+    : collected;
 
   const ordered: Candidate[] = [];
   for (const kind of TILE_BADGE_PRIORITY) {

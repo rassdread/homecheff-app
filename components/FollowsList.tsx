@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { UserPlus } from "lucide-react";
 import ClickableName from '@/components/ui/ClickableName';
 import SafeImage from '@/components/ui/SafeImage';
+import EmptyState from '@/components/ui/EmptyState';
+import { useTranslation } from '@/hooks/useTranslation';
 import { getDisplayName } from '@/lib/displayName';
 
 type Follow = { id: string; Seller?: { id: string; name?: string | null; image?: string | null; profileImage?: string | null } };
 
 export default function FollowsList() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Follow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,9 +31,11 @@ export default function FollowsList() {
 
   if (!items.length) {
     return (
-      <div className="rounded-xl border p-4 bg-white text-sm text-muted-foreground">
-        Nog geen fan (van). Zodra je iemands fan wordt, verschijnt het hier.
-      </div>
+      <EmptyState
+        icon={<UserPlus />}
+        title={t("emptyState.followsTitle")}
+        description={t("emptyState.followsDesc")}
+      />
     );
   }
 

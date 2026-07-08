@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { MessageCircle, Send, X, Loader2 } from 'lucide-react';
+import { MessageCircle, Send, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
+import Spinner from '@/components/ui/Spinner';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
@@ -435,7 +436,7 @@ export default function StartChatButton({
                   className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-3.5 min-h-[48px] bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                 >
                   {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Spinner size="md" />
                   ) : (
                     <Send className="w-5 h-5" />
                   )}

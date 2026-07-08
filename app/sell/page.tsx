@@ -238,10 +238,29 @@ function SellPageContent({
   
   return (
     <main className="max-w-5xl mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-4 text-center">{t('sell.title') || 'Zet je bedrijf op de kaart — groei met je lokale community'}</h1>
-      <p className="text-center text-gray-600 mb-6">
-        {t('sell.subtitle') || 'Kies het abonnement dat bij jouw bedrijf past. Transparante prijzen, maandelijks opzegbaar en zonder verborgen kosten.'}
-      </p>
+      <h1 className="text-3xl font-bold mb-6 text-center">{t('sell.pageTitle') || 'Verkopen op HomeCheff'}</h1>
+
+      {/* Primary path for individual sellers: free listing / create flow */}
+      <div className="mb-10 max-w-2xl mx-auto rounded-2xl border-2 border-primary-brand/30 bg-primary-50/50 p-5 sm:p-6 text-center shadow-sm">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
+          {t('sell.freeTitle') || 'Als particulier plaats en verkoop je gratis'}
+        </h2>
+        <p className="text-sm text-gray-700 leading-relaxed mb-4 max-w-xl mx-auto">
+          {t('sell.freeBody') || 'Plaats je maaltijden, oogst, creaties of een dienst zonder abonnement. Je betaalt alleen een kleine fee per verkoop.'}
+        </p>
+        <Button onClick={() => router.push('/sell/new')} className="w-full sm:w-auto">
+          {t('sell.freeCta') || 'Gratis iets plaatsen'}
+        </Button>
+      </div>
+
+      <div className="mb-6 max-w-2xl mx-auto text-center border-t border-gray-200 pt-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {t('sell.businessSectionTitle') || 'Optioneel: zakelijk abonnement (KVK / bedrijf)'}
+        </h2>
+        <p className="text-sm text-gray-600 leading-relaxed max-w-xl mx-auto">
+          {t('sell.businessSectionSubtitle') || 'Verkoop je als bedrijf of met een KVK-registratie? Met een maandabonnement betaal je een lagere platformfee. Dit is een upgrade, geen verplichting.'}
+        </p>
+      </div>
 
       <div className="mb-8 max-w-2xl mx-auto rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 sm:p-5 text-sm text-gray-800 text-left space-y-3 shadow-sm">
         <p className="leading-relaxed">{t('sell.introWho')}</p>

@@ -128,9 +128,9 @@ export default function NotificationsPage() {
       />
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Meldingen</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('notificationsPage.title') || 'Meldingen'}</h1>
           <p className="mt-1 text-sm text-gray-600">
-            Alle updates op één plek. Tik op een regel om naar de juiste pagina te gaan.
+            {t('notificationsPage.subtitle') || 'Alle updates op één plek. Tik op een regel om naar de juiste pagina te gaan.'}
           </p>
         </div>
         <button
@@ -138,7 +138,7 @@ export default function NotificationsPage() {
           onClick={() => void markAllRead()}
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
         >
-          Alles als gelezen markeren
+          {t('notificationsPage.markAllRead') || 'Alles als gelezen markeren'}
         </button>
       </div>
 

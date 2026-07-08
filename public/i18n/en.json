@@ -141,7 +141,7 @@
     },
     "giveProp": {
       "title": "Send appreciation to this maker",
-      "body": "Props are a small thank-you from the community. Continue with your account — one tap and you're back.",
+      "body": "Appreciation is a small thank-you from the community. Continue with your account — one tap and you're back.",
       "ctaLogin": "Log in",
       "ctaRegister": "Join HomeCheff"
     },
@@ -2423,22 +2423,6 @@
     "saved": "Favorited",
     "loading": "Loading…"
   },
-  "emptyStates": {
-    "favorites": {
-      "title": "No favorites yet",
-      "description": "Save products, services and inspiration you want to find back later.",
-      "cta": "Explore the marketplace"
-    },
-    "orders": {
-      "title": "No orders yet",
-      "description": "As soon as you buy something, your order shows up here.",
-      "cta": "Continue shopping"
-    },
-    "fans": {
-      "title": "No fans yet",
-      "description": "As soon as people become your fan, they appear here."
-    }
-  },
   "communityFeedback": {
     "label": "Feedback",
     "heading": "Community feedback",
@@ -2456,7 +2440,7 @@
     "tooltips": {
       "fans": "Number of fans",
       "favorites": "Favorites on products and inspiration",
-      "workspaceProps": "Props on studio content",
+      "workspaceProps": "Appreciation on studio content",
       "productReviews": "Product reviews (trust)",
       "productRating": "Average product rating",
       "communityFeedback": "Community feedback on inspiration (not a trust score)",
@@ -2467,9 +2451,9 @@
     "giveProps": "Give appreciation",
     "propsGiven": "Appreciated!",
     "propsButton": "Appreciation",
-    "propsWithdrawn": "Props withdrawn",
+    "propsWithdrawn": "Appreciation withdrawn",
     "retract": "Withdraw appreciation",
-    "workspaceLabel": "Studio props"
+    "workspaceLabel": "Studio appreciation"
   },
   "discover": {
     "hubTitle": "Discover",
@@ -2505,19 +2489,19 @@
     "noItemsDescription": "No public {category} have been shared yet.",
     "itemsFound": "{count} {category} found",
     "views": "views for this item",
-    "props": "props for this item",
+    "props": "appreciation for this item",
     "reviews": "Reviews for this item",
     "newest": "Newest first",
     "popular": "Most popular first",
     "mostViews": "Most views",
     "highestRating": "Highest rating",
-    "mostProps": "Most props",
+    "mostProps": "Most appreciation",
     "distance": "Distance",
     "advancedFilters": "Advanced filters",
     "allRegions": "All regions",
     "searchPlaceholder": "Search in inspiration (title, description, user)...",
     "minViews": "Minimum views",
-    "minProps": "Minimum props",
+    "minProps": "Least appreciation",
     "minRating": "Minimum rating",
     "region": {
       "asian": "Asian",
@@ -4588,7 +4572,7 @@
       "bulletMedia": "Add photos and video",
       "bulletReviews": "Receive reviews",
       "bulletSales": "Make sales",
-      "bulletCommunity": "Community actions (props, engagement)",
+      "bulletCommunity": "Community actions (appreciation, engagement)",
       "bulletReferrals": "Referrals and invites",
       "lastEventPrefix": "Latest:",
       "backToProfile": "Back to My HC"
@@ -5452,9 +5436,9 @@
     "fileUploadError": "Error uploading file.",
     "linkCopied": "Link copied to clipboard!",
     "onlineError": "An error occurred while going online",
-    "loginRequiredForProps": "You must be logged in to give props",
+    "loginRequiredForProps": "You must be logged in to give appreciation",
     "productOrDishIdRequired": "Product ID or Dish ID is required",
-    "propsError": "An error occurred while giving props",
+    "propsError": "An error occurred while giving appreciation",
     "startConversationError": "Error starting conversation. Please try again.",
     "reviewError": "An error occurred while posting your review. Check the console for details.",
     "reviewErrorSimple": "An error occurred while posting your review",
@@ -5533,7 +5517,7 @@
     "verticalGarden": "Garden",
     "verticalCreations": "Creations",
     "emptyServicesTitle": "No services here yet",
-    "emptyServicesBody": "There are no services, tasks, workshops or coaching in this area right now. Widen your search area or explore other pillars.",
+    "emptyServicesBody": "Services (Diensten) are services, workshops, coaching and practical tasks — including buurthulp: local help between neighbours. There are none in this area right now. Widen your search area or explore other pillars.",
     "discoverFiltersHeading": "Discover near you",
     "viewModeLabel": "View",
     "layoutModeLabel": "Feed layout",
@@ -5907,6 +5891,13 @@
     "ordersTitle": "No orders yet",
     "ordersDesc": "Your purchases will appear here once you place an order on the village square.",
     "ordersAction": "Go to village square",
+    "favoritesTitle": "No favorites yet",
+    "favoritesDesc": "Save products, services and inspiration you want to find back later.",
+    "favoritesAction": "Explore the marketplace",
+    "fansTitle": "No fans yet",
+    "fansDesc": "As soon as people become your fan, they appear here.",
+    "followsTitle": "You're not a fan of anyone yet",
+    "followsDesc": "As soon as you become someone's fan, they appear here.",
     "noResultsHint": "Try different filters or a larger search radius."
   },
   "notFound": {
@@ -7432,7 +7423,19 @@
     "addressMustBeValidated": "Address must be validated (select a suggestion from the list).",
     "locationSavedSuccess": "Location successfully saved!"
   },
+  "notificationsPage": {
+    "title": "Notifications",
+    "subtitle": "All your updates in one place. Tap a row to go to the right page.",
+    "markAllRead": "Mark all as read",
+    "defaultTitle": "Notification"
+  },
   "sell": {
+    "pageTitle": "Selling on HomeCheff",
+    "freeTitle": "As an individual you list and sell for free",
+    "freeBody": "List your meals, harvest, creations or a service — or post a request in Gezocht — without a subscription. You only pay a small fee per sale; buying never requires a subscription.",
+    "freeCta": "Post something for free",
+    "businessSectionTitle": "Optional: business subscription (registered business)",
+    "businessSectionSubtitle": "Selling as a business or with a business registration? A monthly subscription gives you a lower platform fee. This is an upgrade, not a requirement to sell.",
     "title": "Put your business on the map — grow with your local community",
     "subtitle": "Choose the subscription that fits your business. Transparent prices, cancelable monthly and without hidden costs.",
     "introWho": "This page is for sellers with a business registration: you choose a monthly subscription with a lower HomeCheff platform fee on your sales.",
@@ -7541,7 +7544,7 @@
     "messagesUrgentCta": "Open messages",
     "browseMakers": "Makers nearby",
     "communityCardTitle": "Growing locally together",
-    "communityCardBody": "Make arrangements, build trust with reviews and props, and sell or barter with makers and neighbors close by.",
+    "communityCardBody": "Make arrangements, build trust with reviews and appreciation, and sell or barter with makers and neighbors close by.",
     "communityCardCta": "More about HomeCheff",
     "spotlightLabel": "Help each other",
     "spotlightPlaceholder": "Someone looking for a product, service or help nearby? See what neighbors are asking for and offer yours.",
@@ -7583,6 +7586,11 @@
     "heroTitleHighlight": "nearby",
     "heroTitleAfter": " make, cook and create",
     "heroSubtitle": "Discover, buy, sell or barter homemade meals, garden harvest and creations. Post a request, share inspiration or find help in your neighborhood.",
+    "heroDefinition": "HomeCheff is a local platform where neighbours can buy, sell, barter and arrange food, harvest, creations, services and help.",
+    "howItWorksTitle": "How it works",
+    "howItWorksStep1": "Discover or post something in your neighbourhood",
+    "howItWorksStep2": "Make an arrangement or send a proposal",
+    "howItWorksStep3": "Pay, barter or help each other locally",
     "heroChipFood": "Food",
     "heroChipGarden": "Garden",
     "heroChipCreations": "Creations",
@@ -7626,7 +7634,10 @@
     "ctaLogin": "Log in",
     "discover": {
       "title": "Discover what's happening nearby",
-      "body": "Browse meals, garden products, creations and inspiration from people close to you."
+      "body": "HomeCheff is a local platform where neighbours buy, sell, barter and arrange food, harvest, creations, services and help. Local, with a real community and clear arrangements.",
+      "bullet1": "1. Discover or post something in your neighbourhood",
+      "bullet2": "2. Make an arrangement or send a proposal",
+      "bullet3": "3. Pay, barter or help each other locally"
     },
     "share": {
       "title": "Share what you make or offer",
@@ -7685,7 +7696,7 @@
       "title": "Build trust in your neighborhood",
       "body": "HomeCheff reputation helps makers and buyers see that you're trusted in the community.",
       "bullet1": "Earn appreciation and badges",
-      "bullet2": "Show reviews and props",
+      "bullet2": "Show reviews and appreciation",
       "bullet3": "Grow visibly in your area"
     }
   },
@@ -7696,6 +7707,8 @@
     "showMoreBadges": "More badges",
     "showLessBadges": "Show less",
     "noBadgesYet": "This maker is still building visible appreciation in the community.",
+    "noReviewsTitle": "No reviews yet",
+    "newMakerReassurance": "New maker — check the profile, photos and listings, and make clear arrangements via a message.",
     "emptyBio": "This maker has not added their story yet.",
     "emptyOfferings": "This maker has not listed anything for sale yet.",
     "emptyInspiration": "This maker has not shared inspiration yet.",
@@ -7881,7 +7894,7 @@
     },
     "payment": {
       "heading": "How can payment be arranged?",
-      "hint": "You may choose one or both options — useful for chat proposals and CommunityOrders.",
+      "hint": "You may choose one or both options — useful for chat proposals and group orders.",
       "homecheffTitle": "Pay via HomeCheff",
       "homecheffDescription": "Secure online checkout via HomeCheff (Stripe).",
       "directContactTitle": "Pay via direct contact",
@@ -8063,7 +8076,7 @@
       "requests": {
         "chip": "Wanted",
         "sectionTitle": "Wanted",
-        "sectionSubtitle": "Open requests near you",
+        "sectionSubtitle": "See what neighbours are looking for — or post your own request for a product, service, help or something to be made, delivered or repaired.",
         "emptyTitle": "No open requests found yet",
         "emptyBody": "Browse offers or post your own request — someone nearby might help.",
         "searchHints": {
@@ -8258,6 +8271,13 @@
         "aria": "Accepts: {{name}}",
         "overflow": "+{{count}} more"
       },
+      "settlement": {
+        "aria": "Settlement options",
+        "homecheff": "Secure checkout via HomeCheff",
+        "direct": "Cash or direct contact",
+        "barter": "Barter possible",
+        "acceptedValues": "Alternative values welcome"
+      },
       "badge": {
         "request": "Wanted"
       },
@@ -8354,8 +8374,8 @@
       }
     },
     "acceptedValues": {
-      "heading": "What would you also accept as value?",
-      "description": "Optional — indicate which other products or services you would also accept as trade or alternative value.",
+      "heading": "Besides money, what else would you accept?",
+      "description": "Optional — indicate what you would also accept besides money, such as help, food, delivery or a creation. This does not oblige anyone to barter.",
       "searchPlaceholder": "Search by category or item…",
       "offeredInReturnHeading": "What do you offer in return?",
       "filterAll": "All",
@@ -8418,7 +8438,7 @@
       "barterAcceptedRequired": "Choose at least one accepted value for barter-only listings."
     },
     "barterOpenness": {
-      "hint": "Choose whether you sell for money only, accept money and barter, or barter only."
+      "hint": "Choose whether you sell for money only, accept money and barter, or barter only. Bartering is never required or guaranteed — you arrange it together."
     },
     "taxonomy": {
       "groups": {
@@ -8886,7 +8906,7 @@
       "paymentHeading": "How will you pay?",
       "paymentHomecheff": "Pay via HomeCheff",
       "paymentDirect": "Direct contact / arrangement",
-      "paymentNone": "No money leg",
+      "paymentNone": "No payment",
       "prefilledAccepted": "Prefilled from listing.",
       "stockAvailable": "{{count}} available",
       "outOfStock": "Out of stock.",
@@ -8961,7 +8981,7 @@
     "paymentPath": {
       "homecheff": "Pay via HomeCheff",
       "direct": "Direct contact / arrangement",
-      "none": "No money leg"
+      "none": "No payment"
     },
     "fulfillment": {
       "pickup": "Pickup",

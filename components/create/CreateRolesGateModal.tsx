@@ -4,6 +4,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { CREATE_ROLES_SETTINGS_HREF } from "@/lib/create/create-placement-roles";
+import Modal from "@/components/ui/Modal";
 
 type Props = {
   open: boolean;
@@ -12,17 +13,13 @@ type Props = {
 
 export default function CreateRolesGateModal({ open, onClose }: Props) {
   const { t } = useTranslation();
-  if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[150] bg-black/50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="create-roles-gate-title"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <Modal
+      open={open}
+      onClose={onClose}
+      labelledById="create-roles-gate-title"
+      overlayClassName="fixed inset-0 z-[150] bg-black/50 flex items-center justify-center p-4"
     >
       <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
         <div className="bg-gradient-to-r from-primary-brand to-primary-600 p-5 text-white relative">
@@ -51,6 +48,6 @@ export default function CreateRolesGateModal({ open, onClose }: Props) {
           </Link>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

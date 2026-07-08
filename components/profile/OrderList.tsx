@@ -48,9 +48,9 @@ export default function OrderList() {
     return (
       <EmptyState
         icon={<ShoppingBag />}
-        title={t("emptyStates.orders.title")}
-        description={t("emptyStates.orders.description")}
-        actionLabel={t("emptyStates.orders.cta")}
+        title={t("emptyState.ordersTitle")}
+        description={t("emptyState.ordersDesc")}
+        actionLabel={t("emptyState.ordersAction")}
         actionHref="/"
       />
     );

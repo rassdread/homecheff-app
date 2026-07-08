@@ -36,9 +36,9 @@ export default function FavoritesGrid() {
     return (
       <EmptyState
         icon={<Heart />}
-        title={t("emptyStates.favorites.title")}
-        description={t("emptyStates.favorites.description")}
-        actionLabel={t("emptyStates.favorites.cta")}
+        title={t("emptyState.favoritesTitle")}
+        description={t("emptyState.favoritesDesc")}
+        actionLabel={t("emptyState.favoritesAction")}
         actionHref="/"
       />
     );

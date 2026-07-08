@@ -234,8 +234,11 @@ export default function HomeHeroSection() {
                 {t('homePhase1.heroTitleAfter')}
               </h1>
 
-              <p className="text-sm sm:text-[0.9375rem] lg:text-[0.975rem] text-white/90 mb-2 sm:mb-2.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug font-medium">
+              <p className="text-sm sm:text-[0.9375rem] lg:text-[0.975rem] text-white/90 mb-1 sm:mb-1.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug font-medium">
                 {t('homePhase1.heroSubtitle')}
+              </p>
+              <p className="text-[11px] sm:text-xs text-white/70 mb-2 sm:mb-2.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug">
+                {t('homePhase1.heroDefinition')}
               </p>
 
               <ul

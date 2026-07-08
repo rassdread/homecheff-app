@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Share2, Facebook, Twitter, Instagram, Copy, Check, Mail, MessageCircle, Linkedin, MessageSquare, Loader2 } from 'lucide-react';
+import { Share2, Facebook, Twitter, Instagram, Copy, Check, Mail, MessageCircle, Linkedin, MessageSquare } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 import { useTranslation } from '@/hooks/useTranslation';
+import Spinner from '@/components/ui/Spinner';
 
 function PinterestIcon({ className }: { className?: string }) {
   return (
@@ -148,7 +149,7 @@ export default function ShareButton({ url, title, description, className }: Shar
               <div className="p-4 pb-8">
                 {session?.user?.email && !shareReady && (
                   <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
-                    <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                    <Spinner size="sm" className="shrink-0" />
                     {t('share.preparingLink')}
                   </div>
                 )}
@@ -276,7 +277,7 @@ export default function ShareButton({ url, title, description, className }: Shar
 
               {session?.user?.email && !shareReady && (
                 <div className="mb-2 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs font-medium text-amber-900">
-                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+                  <Spinner size="xs" className="shrink-0" />
                   {t('share.preparingLink')}
                 </div>
               )}

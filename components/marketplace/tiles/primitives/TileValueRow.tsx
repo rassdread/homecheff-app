@@ -34,10 +34,8 @@ export default function TileValueRow({
     trackMarketplaceTileValueRowSeen(tileValueAnalyticsFromModel(model, surface, device));
   }, [trackSeen, model, surface, device]);
 
-  const indicators: string[] = [];
-  if (row.showMoneyIndicator) indicators.push('💶');
-  if (row.showBarterIndicator) indicators.push('🤝');
-
+  // Phase 7B: money/barter semantics moved to the dedicated settlement row.
+  // This row is value-only (price / budget / barter label).
   return (
     <p
       className={cn(
@@ -47,12 +45,6 @@ export default function TileValueRow({
       data-tile-value-row
     >
       <span className="min-w-0 truncate">{row.priceLabel}</span>
-      {indicators.length > 0 ? (
-        <span className="shrink-0 whitespace-nowrap text-[11px]" aria-hidden>
-          {indicators.length > 0 && row.priceLabel ? '· ' : ''}
-          {indicators.join(' ')}
-        </span>
-      ) : null}
     </p>
   );
 }

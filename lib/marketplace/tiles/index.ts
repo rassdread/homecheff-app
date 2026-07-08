@@ -37,6 +37,8 @@ export {
 export { buildTilePriceLine } from './build-tile-price-line';
 export { buildTileValueRow } from './build-tile-value-row';
 export type { TileValueRowData } from './build-tile-value-row';
+export { buildTileSettlementRow } from './build-tile-settlement-row';
+export type { TileSettlementRowData } from './build-tile-settlement-row';
 export {
   buildTileAcceptedValueIcons,
   ACCEPTED_VALUE_ICON_MAX,

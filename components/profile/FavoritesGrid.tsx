@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Heart } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
+import EmptyState from "@/components/ui/EmptyState";
 
 type Favorite = {
   id: string;
@@ -9,6 +12,7 @@ type Favorite = {
 };
 
 export default function FavoritesGrid() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +29,17 @@ export default function FavoritesGrid() {
   }, []);
 
   if (loading) return <div className="rounded-xl border p-4 bg-white animate-pulse h-32" />;
-  if (!items.length) return <div className="rounded-xl border p-4 bg-white text-sm text-muted-foreground">Nog geen favorieten.</div>;
+  if (!items.length) {
+    return (
+      <EmptyState
+        icon={<Heart />}
+        title={t("emptyState.favoritesTitle")}
+        description={t("emptyState.favoritesDesc")}
+        actionLabel={t("emptyState.favoritesAction")}
+        actionHref="/"
+      />
+    );
+  }
 
   return (
     <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">

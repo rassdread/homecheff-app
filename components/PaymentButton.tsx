@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/Button";
-import { CreditCard, Loader2 } from "lucide-react";
+import { CreditCard } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 
 // Test modus - geen echte Stripe keys nodig
 const isTestMode = !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY === 'test';
@@ -123,7 +124,7 @@ export default function PaymentButton({
       >
         {isLoading ? (
           <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            <Spinner size="md" className="mr-2" />
             {isTestMode ? 'Test betaling...' : 'Betaling verwerken...'}
           </>
         ) : (

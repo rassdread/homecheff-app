@@ -76,9 +76,9 @@ assert(
   'shared EmptyState component present',
 );
 for (const [label, src, key] of [
-  ['FavoritesGrid', favGrid, 'emptyStates.favorites.title'],
-  ['profile/OrderList', orderList, 'emptyStates.orders.title'],
-  ['profile/FansList', fansList, 'emptyStates.fans.title'],
+  ['FavoritesGrid', favGrid, 'emptyState.favoritesTitle'],
+  ['profile/OrderList', orderList, 'emptyState.ordersTitle'],
+  ['profile/FansList', fansList, 'emptyState.fansTitle'],
 ] as const) {
   assert(
     src.includes("from '@/components/ui/EmptyState'") ||
@@ -105,18 +105,18 @@ assert(
 );
 
 // --- 5E.4 Success/empty language + parity ------------------------------------
-console.log('\n5E.4 emptyStates copy present + NL/EN parity');
+console.log('\n5E.4 emptyState copy present + NL/EN parity (canonical namespace)');
 for (const key of [
-  'emptyStates.favorites.title',
-  'emptyStates.favorites.description',
-  'emptyStates.favorites.cta',
-  'emptyStates.orders.title',
-  'emptyStates.orders.cta',
-  'emptyStates.fans.title',
+  'emptyState.favoritesTitle',
+  'emptyState.favoritesDesc',
+  'emptyState.favoritesAction',
+  'emptyState.ordersTitle',
+  'emptyState.ordersAction',
+  'emptyState.fansTitle',
 ]) {
   assert(!!get(nl, key) && !!get(en, key), `i18n key present NL + EN: ${key}`);
 }
-for (const ns of ['emptyStates', 'favorites', 'communityFeedback', 'props', 'feed', 'home', 'agreements']) {
+for (const ns of ['emptyState', 'favorites', 'communityFeedback', 'props', 'feed', 'home', 'agreements']) {
   const nlKeys = new Set(flatKeys(get(nl, ns) ?? {}));
   const enKeys = new Set(flatKeys(get(en, ns) ?? {}));
   const missingInEn = [...nlKeys].filter((k) => !enKeys.has(k));

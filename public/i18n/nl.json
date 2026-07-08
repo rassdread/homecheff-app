@@ -1272,22 +1272,6 @@
     "saved": "Favoriet",
     "loading": "Laden…"
   },
-  "emptyStates": {
-    "favorites": {
-      "title": "Nog geen favorieten",
-      "description": "Bewaar producten, diensten en inspiratie die je later wilt terugvinden.",
-      "cta": "Ontdek het aanbod"
-    },
-    "orders": {
-      "title": "Nog geen bestellingen",
-      "description": "Zodra je iets koopt, verschijnt je bestelling hier.",
-      "cta": "Verder winkelen"
-    },
-    "fans": {
-      "title": "Nog geen fans",
-      "description": "Zodra mensen jouw fan worden, verschijnen ze hier."
-    }
-  },
   "communityFeedback": {
     "label": "Feedback",
     "heading": "Community feedback",
@@ -1305,7 +1289,7 @@
     "tooltips": {
       "fans": "Aantal fans",
       "favorites": "Favorieten op producten en inspiratie",
-      "workspaceProps": "Props op studio-content",
+      "workspaceProps": "Waardering op studio-content",
       "productReviews": "Productreviews (vertrouwen)",
       "productRating": "Gemiddelde productscore",
       "communityFeedback": "Community feedback op inspiratie (geen vertrouwensscore)",
@@ -1318,7 +1302,7 @@
     "propsButton": "Waardering",
     "propsWithdrawn": "Waardering ingetrokken",
     "retract": "Waardering intrekken",
-    "workspaceLabel": "Studio props"
+    "workspaceLabel": "Studio-waardering"
   },
   "dorpsplein": {
     "greeting": "Hey {firstName},",
@@ -1400,19 +1384,19 @@
     "noItemsDescription": "Er zijn nog geen publieke {category} gedeeld.",
     "itemsFound": "{count} {category} gevonden",
     "views": "views voor dit item",
-    "props": "props voor dit item",
+    "props": "waardering voor dit item",
     "reviews": "reviews voor dit item",
     "newest": "Nieuwste eerst",
     "popular": "Populairste eerst",
     "mostViews": "Meeste weergaven",
     "highestRating": "Hoogste beoordeling",
-    "mostProps": "Meeste props",
+    "mostProps": "Meeste waardering",
     "distance": "Afstand",
     "advancedFilters": "Geavanceerde filters",
     "allRegions": "Alle regio's",
     "searchPlaceholder": "Zoek in inspiratie (titel, beschrijving, gebruiker)...",
     "minViews": "Minimaal weergaven",
-    "minProps": "Minimaal props",
+    "minProps": "Minste waardering",
     "minRating": "Minimaal beoordeling",
     "region": {
       "asian": "Aziatisch",
@@ -3198,9 +3182,9 @@
     "fileUploadError": "Fout bij uploaden van bestand.",
     "linkCopied": "Link gekopieerd naar klembord!",
     "onlineError": "Er is een fout opgetreden bij het online gaan",
-    "loginRequiredForProps": "Je moet ingelogd zijn om props te geven",
+    "loginRequiredForProps": "Je moet ingelogd zijn om waardering te geven",
     "productOrDishIdRequired": "Product ID of Dish ID is vereist",
-    "propsError": "Er is een fout opgetreden bij het geven van props",
+    "propsError": "Er is een fout opgetreden bij het geven van waardering",
     "startConversationError": "Fout bij starten van gesprek. Probeer het opnieuw.",
     "reviewError": "Er is een fout opgetreden bij het plaatsen van je review. Controleer de console voor details.",
     "reviewErrorSimple": "Er is een fout opgetreden bij het plaatsen van je review",
@@ -6309,7 +6293,7 @@
       "bulletMedia": "Foto’s en video toevoegen",
       "bulletReviews": "Reviews ontvangen",
       "bulletSales": "Verkopen halen",
-      "bulletCommunity": "Community-acties (props, betrokkenheid)",
+      "bulletCommunity": "Community-acties (waardering, betrokkenheid)",
       "bulletReferrals": "Referrals en uitnodigingen",
       "lastEventPrefix": "Laatste:",
       "backToProfile": "Terug naar Mijn HC"
@@ -6469,6 +6453,13 @@
     "ordersTitle": "Nog geen bestellingen",
     "ordersDesc": "Je aankopen verschijnen hier zodra je iets bestelt op het dorpsplein.",
     "ordersAction": "Naar het dorpsplein",
+    "favoritesTitle": "Nog geen favorieten",
+    "favoritesDesc": "Bewaar producten, diensten en inspiratie die je later wilt terugvinden.",
+    "favoritesAction": "Ontdek het aanbod",
+    "fansTitle": "Nog geen fans",
+    "fansDesc": "Zodra mensen jouw fan worden, verschijnen ze hier.",
+    "followsTitle": "Je bent nog niemands fan",
+    "followsDesc": "Zodra je iemands fan wordt, verschijnt die hier.",
     "noResultsHint": "Probeer andere filters of een grotere zoekstraal."
   },
   "notFound": {
@@ -6704,7 +6695,7 @@
     "verticalGarden": "Tuin",
     "verticalCreations": "Creaties",
     "emptyServicesTitle": "Nog geen diensten in beeld",
-    "emptyServicesBody": "Er staan nu geen diensten, klussen, workshops of coaching in dit gebied. Verruim je zoekgebied of bekijk andere pijlers.",
+    "emptyServicesBody": "Diensten zijn services, workshops, coaching en praktische klusjes — inclusief buurthulp: lokale hulp tussen buurtgenoten. Er staan er nu geen in dit gebied. Verruim je zoekgebied of bekijk andere pijlers.",
     "discoverFiltersHeading": "Ontdekken in jouw buurt",
     "viewModeLabel": "Weergave",
     "layoutModeLabel": "Feedweergave",
@@ -7432,7 +7423,19 @@
     "addressMustBeValidated": "Adres moet gevalideerd zijn (selecteer een suggestie uit de lijst).",
     "locationSavedSuccess": "Locatie succesvol opgeslagen!"
   },
+  "notificationsPage": {
+    "title": "Meldingen",
+    "subtitle": "Alle updates op één plek. Tik op een regel om naar de juiste pagina te gaan.",
+    "markAllRead": "Alles als gelezen markeren",
+    "defaultTitle": "Melding"
+  },
   "sell": {
+    "pageTitle": "Verkopen op HomeCheff",
+    "freeTitle": "Als particulier plaats en verkoop je gratis",
+    "freeBody": "Plaats je maaltijden, oogst, creaties of een dienst — of een oproep in Gezocht — zonder abonnement. Je betaalt alleen een kleine fee per verkoop; kopen kost nooit een abonnement.",
+    "freeCta": "Gratis iets plaatsen",
+    "businessSectionTitle": "Optioneel: zakelijk abonnement (KVK / bedrijf)",
+    "businessSectionSubtitle": "Verkoop je als bedrijf of met een KVK-registratie? Met een maandabonnement betaal je een lagere platformfee. Dit is een upgrade, geen verplichting om te kunnen verkopen.",
     "title": "Zet je bedrijf op de kaart — groei met je lokale community",
     "subtitle": "Kies het abonnement dat bij jouw bedrijf past. Transparante prijzen, maandelijks opzegbaar en zonder verborgen kosten.",
     "introWho": "Deze pagina is voor verkopers met een KVK / bedrijfsregistratie: je kiest hier een maandabonnement met lagere HomeCheff-platformfee op je verkopen.",
@@ -7541,7 +7544,7 @@
     "messagesUrgentCta": "Berichten openen",
     "browseMakers": "Makers in de buurt",
     "communityCardTitle": "Samen groeien we lokaal",
-    "communityCardBody": "Maak afspraken, bouw vertrouwen op met reviews en props, en verkoop of ruil met makers en buren dichtbij.",
+    "communityCardBody": "Maak afspraken, bouw vertrouwen op met reviews en waardering, en verkoop of ruil met makers en buren dichtbij.",
     "communityCardCta": "Meer over HomeCheff",
     "spotlightLabel": "Help elkaar",
     "spotlightPlaceholder": "Iemand zoekt een product, dienst of hulp in de buurt? Bekijk wat buurtgenoten zoeken en bied je aan.",
@@ -7583,6 +7586,11 @@
     "heroTitleHighlight": "dichtbij",
     "heroTitleAfter": " maken, koken en creëren",
     "heroSubtitle": "Ontdek, koop, verkoop of ruil huisgemaakte maaltijden, tuinoogst en creaties. Plaats een oproep, deel inspiratie of vind hulp in je buurt.",
+    "heroDefinition": "HomeCheff is een lokaal platform waar buurtgenoten eten, oogst, creaties, diensten en hulp kunnen kopen, verkopen, ruilen en afspreken.",
+    "howItWorksTitle": "Zo werkt het",
+    "howItWorksStep1": "Ontdek of plaats iets in je buurt",
+    "howItWorksStep2": "Maak een afspraak of doe een voorstel",
+    "howItWorksStep3": "Betaal, ruil of help elkaar lokaal",
     "heroChipFood": "Eten",
     "heroChipGarden": "Tuin",
     "heroChipCreations": "Creaties",
@@ -7626,7 +7634,10 @@
     "ctaLogin": "Inloggen",
     "discover": {
       "title": "Ontdek wat er leeft in jouw buurt",
-      "body": "Bekijk maaltijden, tuinproducten, creaties en inspiratie van mensen dichtbij."
+      "body": "HomeCheff is een lokaal platform waar buurtgenoten eten, oogst, creaties, diensten en hulp kopen, verkopen, ruilen en afspreken. Lokaal, met een echte community en duidelijke afspraken.",
+      "bullet1": "1. Ontdek of plaats iets in je buurt",
+      "bullet2": "2. Maak een afspraak of doe een voorstel",
+      "bullet3": "3. Betaal, ruil of help elkaar lokaal"
     },
     "share": {
       "title": "Deel wat jij maakt of aanbiedt",
@@ -7685,7 +7696,7 @@
       "title": "Bouw vertrouwen in je buurt",
       "body": "Met HomeCheff-reputatie laten makers en kopers zien dat je betrouwbaar bent in de community.",
       "bullet1": "Verdien waardering en badges",
-      "bullet2": "Laat reviews en props zien",
+      "bullet2": "Laat reviews en waardering zien",
       "bullet3": "Groei zichtbaar in je buurt"
     }
   },
@@ -7696,6 +7707,8 @@
     "showMoreBadges": "Meer badges",
     "showLessBadges": "Minder tonen",
     "noBadgesYet": "Deze maker bouwt nog aan zichtbare waardering in de community.",
+    "noReviewsTitle": "Nog geen reviews",
+    "newMakerReassurance": "Nieuwe maker — bekijk het profiel, de foto's en het aanbod, en maak duidelijke afspraken via een bericht.",
     "emptyBio": "Deze maker heeft nog geen verhaal toegevoegd.",
     "emptyOfferings": "Deze maker heeft nog geen aanbod geplaatst.",
     "emptyInspiration": "Deze maker heeft nog geen inspiratie gedeeld.",
@@ -7881,7 +7894,7 @@
     },
     "payment": {
       "heading": "Hoe kan er worden afgerekend?",
-      "hint": "Je mag één of beide opties kiezen — handig voor chat-voorstellen en CommunityOrders.",
+      "hint": "Je mag één of beide opties kiezen — handig voor chat-voorstellen en groepsbestellingen.",
       "homecheffTitle": "Via HomeCheff betalen",
       "homecheffDescription": "Veilig online afrekenen via HomeCheff (Stripe).",
       "directContactTitle": "Via direct contact afrekenen",
@@ -8063,7 +8076,7 @@
       "requests": {
         "chip": "Gezocht",
         "sectionTitle": "Gezocht",
-        "sectionSubtitle": "Open verzoeken bij jou in de buurt",
+        "sectionSubtitle": "Bekijk wat buurtgenoten zoeken — of plaats zelf een oproep voor een product, dienst, hulp of iets dat gemaakt, bezorgd of gerepareerd moet worden.",
         "emptyTitle": "Nog geen open verzoeken gevonden",
         "emptyBody": "Bekijk het aanbod of plaats zelf een verzoek — misschien kan iemand je helpen.",
         "searchHints": {
@@ -8258,6 +8271,13 @@
         "aria": "Accepteert: {{name}}",
         "overflow": "+{{count}} meer"
       },
+      "settlement": {
+        "aria": "Afrekenmogelijkheden",
+        "homecheff": "Veilig betalen via HomeCheff",
+        "direct": "Contant of direct contact",
+        "barter": "Ruil mogelijk",
+        "acceptedValues": "Alternatieve tegenwaarden welkom"
+      },
       "badge": {
         "request": "Gezocht"
       },
@@ -8285,8 +8305,8 @@
       },
       "person": {
         "maker": "Maker",
-        "requester": "Gezochte",
-        "requestedBy": "Gezocht door"
+        "requester": "Vrager",
+        "requestedBy": "Gevraagd door"
       },
       "sidebar": {
         "viewLink": "Bekijk"
@@ -8354,8 +8374,8 @@
       }
     },
     "acceptedValues": {
-      "heading": "Wat accepteer je eventueel ook als waarde?",
-      "description": "Optioneel — geef aan welke andere producten of diensten je ook zou accepteren als ruil of alternatieve waarde.",
+      "heading": "Wat accepteer je naast geld eventueel ook?",
+      "description": "Optioneel — geef aan wat je naast geld ook zou accepteren, zoals hulp, eten, bezorging of een creatie. Dit verplicht niemand tot ruilen.",
       "searchPlaceholder": "Zoek op categorie of product…",
       "offeredInReturnHeading": "Wat bied je terug?",
       "filterAll": "Alles",
@@ -8418,7 +8438,7 @@
       "barterAcceptedRequired": "Kies minimaal één geaccepteerde waarde voor alleen ruil."
     },
     "barterOpenness": {
-      "hint": "Kies of je alleen verkoopt, ook open staat voor ruil, of alleen ruil accepteert."
+      "hint": "Kies of je alleen verkoopt, ook open staat voor ruil, of alleen ruil accepteert. Ruilen is nooit verplicht en niet gegarandeerd — je spreekt het samen af."
     },
     "taxonomy": {
       "groups": {
@@ -8886,7 +8906,7 @@
       "paymentHeading": "Hoe betaal je?",
       "paymentHomecheff": "Via HomeCheff betalen",
       "paymentDirect": "Direct contact / regeling",
-      "paymentNone": "Geen geldleg",
+      "paymentNone": "Geen betaling",
       "prefilledAccepted": "Vooraf ingevuld vanuit het aanbod.",
       "stockAvailable": "{{count}} beschikbaar",
       "outOfStock": "Niet op voorraad.",
@@ -8961,7 +8981,7 @@
     "paymentPath": {
       "homecheff": "Via HomeCheff betalen",
       "direct": "Direct contact / regeling",
-      "none": "Geen geldleg"
+      "none": "Geen betaling"
     },
     "fulfillment": {
       "pickup": "Afhalen",
