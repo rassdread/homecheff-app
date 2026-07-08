@@ -9,10 +9,11 @@ import { MAIN_DOMAIN } from "@/lib/seo/constants";
 import PostAuthPersonaBanner from "@/components/onboarding/PostAuthPersonaBanner";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomeDesktopSidebar from "@/components/home/HomeDesktopSidebar";
+import HomeDesktopLeftSidebar from "@/components/home/HomeDesktopLeftSidebar";
 import HomeMobileFeedInsert from "@/components/home/HomeMobileFeedInserts";
 import UserActionCenter from "@/components/home/UserActionCenter";
 import HomeMobileEcosystemStrip from "@/components/home/HomeMobileEcosystemStrip";
-import GeoFeed, { FeedContent, FeedFiltersPanel } from "@/components/feed/GeoFeed";
+import GeoFeed, { FeedContent } from "@/components/feed/GeoFeed";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
 import {
@@ -214,7 +215,7 @@ export default function HomePageClient({
                 aria-label={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
               >
                 <aside data-sticky-prod="left" className={desktopColScrollClass}>
-                  <FeedFiltersPanel />
+                  <HomeDesktopLeftSidebar />
                 </aside>
                 <div
                   id="homecheff-feed-desktop"

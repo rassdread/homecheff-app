@@ -21,6 +21,7 @@ import {
   FEED_SCOPE_NEARBY,
 } from "@/lib/feed/feed-scope";
 import type { FeedClientSortField } from "@/lib/feed/feed-client-sort";
+import { DISCOVERY_CATEGORY_CHIP_OPTIONS } from "@/lib/marketplace/canonical-model";
 
 type SortId = "newest" | "price" | "views" | "distance";
 
@@ -59,6 +60,8 @@ export type FeedSidebarFiltersProps = {
   filtersDirty: boolean;
   onApply: () => void;
   onResetDraft: () => void;
+  /** Phase 7F — parent provides section title in composed homepage sidebar. */
+  hideHeading?: boolean;
 };
 
 const inputClass =
@@ -107,12 +110,15 @@ export default function FeedSidebarFilters({
   filtersDirty,
   onApply,
   onResetDraft,
+  hideHeading = false,
 }: FeedSidebarFiltersProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold text-gray-900 leading-snug">
-        {t("feed.discoverFiltersHeading")}
-      </h2>
+      {hideHeading ? null : (
+        <h2 className="text-sm font-semibold text-gray-900 leading-snug">
+          {t("feed.discoverFiltersHeading")}
+        </h2>
+      )}
 
       {/* Scope */}
       <section>
@@ -279,9 +285,13 @@ export default function FeedSidebarFilters({
             className={inputClass}
           >
             <option value="all">{t("common.allCategories")}</option>
-            <option value="cheff">{t("feed.categoryVerticalCheff")}</option>
-            <option value="garden">{t("feed.categoryVerticalGarden")}</option>
-            <option value="designer">{t("feed.categoryVerticalDesigner")}</option>
+            {DISCOVERY_CATEGORY_CHIP_OPTIONS.filter((o) => o.slug !== "all").map(
+              ({ slug, labelKey }) => (
+                <option key={slug} value={slug}>
+                  {t(labelKey)}
+                </option>
+              ),
+            )}
           </select>
         </div>
       </section>

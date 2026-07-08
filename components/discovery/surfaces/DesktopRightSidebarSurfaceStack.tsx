@@ -24,6 +24,8 @@ import { Calendar, X } from 'lucide-react';
 export type DesktopRightSidebarSurfaceStackProps = {
   plan: ResolvedSurfacePlan | null;
   className?: string;
+  /** Phase 7F — activity-only slice for community cockpit (growth/community rendered upstream). */
+  mode?: 'full' | 'activity-modules';
 };
 
 function EventModuleCard({
@@ -89,6 +91,7 @@ function EventModuleCard({
 export default function DesktopRightSidebarSurfaceStack({
   plan,
   className = '',
+  mode = 'full',
 }: DesktopRightSidebarSurfaceStackProps) {
   const { t } = useTranslation();
   const [dismissedCommunity, setDismissedCommunity] = useState(false);
@@ -141,6 +144,7 @@ export default function DesktopRightSidebarSurfaceStack({
     : activityCards;
 
   const showCommunity =
+    mode === 'full' &&
     !dismissedCommunity &&
     communitySlot &&
     isSidebarSlotRenderable(communitySlot.visibility) &&
@@ -176,7 +180,7 @@ export default function DesktopRightSidebarSurfaceStack({
         />
       ) : null}
 
-      <GrowthActionStack plan={plan} />
+      {mode === 'full' ? <GrowthActionStack plan={plan} /> : null}
 
       {visibleActivityCards.map((card) => (
         <ActivityCard

@@ -6057,6 +6057,11 @@
       "gezocht": "Gezocht",
       "services": "Diensten"
     },
+    "desktop": {
+      "myEnvironmentTitle": "Mijn omgeving",
+      "marketplaceNavTitle": "Marketplace",
+      "myOffers": "Mijn aanbiedingen"
+    },
     "profileProgress": {
       "title": "Claim je plek",
       "start": "Vul een paar basics in zodat buren je herkennen.",

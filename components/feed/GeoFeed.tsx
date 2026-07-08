@@ -3164,6 +3164,44 @@ export default function GeoFeed({
     ) : null;
 
   const filterCardEl = isDesktopSplit ? (
+    homeComposedLayout ? (
+      <FeedSidebarFilters
+        t={t}
+        place={place}
+        onPlaceChange={handlePlaceInput}
+        onUseMyLocation={handleUseMyLocation}
+        locationLoading={locationLoading}
+        locationSupported={locationSupported}
+        locationError={showGpsError ? locationError : null}
+        activeLocationChip={activeLocationChip}
+        onClearLocation={clearViewerLocation}
+        showLocationHint={showViewerLocationHint}
+        profileNeedsCoords={profileNeedsCoords}
+        scope={appliedScope}
+        onScopeChange={handleScopeChange}
+        radius={radius}
+        onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
+        distanceSortEnabled={distanceSortEnabled}
+        q={q}
+        onQChange={setQ}
+        category={category}
+        onCategoryChange={setCategory}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSort}
+        sortOptions={sortOptions}
+        priceRange={priceRange}
+        onPriceRangeChange={setPriceRange}
+        refineOpen={sidebarRefineOpen}
+        onRefineOpenChange={setSidebarRefineOpen}
+        filtersDirty={filtersDirty}
+        onApply={applyFilters}
+        onResetDraft={resetDraftFilters}
+        hideHeading
+      />
+    ) : (
     <div
       className={`hc-dorpsplein-card bg-white/90 rounded-2xl border border-primary-brand/10 shadow-sm ${feedPanelPad}`}
     >
@@ -3203,6 +3241,7 @@ export default function GeoFeed({
         onResetDraft={resetDraftFilters}
       />
     </div>
+    )
   ) : feedCompactChrome ? (
     <>
       <FeedMobileToolbar

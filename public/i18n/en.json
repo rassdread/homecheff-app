@@ -4336,6 +4336,11 @@
       "gezocht": "Wanted",
       "services": "Services"
     },
+    "desktop": {
+      "myEnvironmentTitle": "My space",
+      "marketplaceNavTitle": "Marketplace",
+      "myOffers": "My listings"
+    },
     "profileProgress": {
       "title": "Claim your space",
       "start": "Add a few basics so neighbors recognize you.",

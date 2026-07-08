@@ -1,51 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { Plus, Users, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useCreateFlow } from '@/components/create/CreateFlowContext';
-import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
 import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
-import { useCommsUnread } from '@/hooks/useCommsUnread';
-import MessagesQuickActionLink from '@/components/communication/MessagesQuickActionLink';
-import MessagesUrgentSidebarCard from '@/components/communication/MessagesUrgentSidebarCard';
 import HomeReputationCompactCard from '@/components/home/HomeReputationCompactCard';
 import CommunityPulseBar from '@/components/home/CommunityPulseBar';
 import { DesktopRightSidebarSurfaceStack } from '@/components/discovery/surfaces';
+import GrowthActionStack from '@/components/discovery/surfaces/GrowthActionStack';
 import { useHomeSurfacePlan } from '@/components/feed/GeoFeed';
 import CreatorMomentumCard from '@/components/home/CreatorMomentumCard';
 import ReturnBelongingStrip from '@/components/home/ReturnBelongingStrip';
 import HomeProfileProgressCard from '@/components/home/HomeProfileProgressCard';
 import HomeRecommendedPromotions from '@/components/home/HomeRecommendedPromotions';
 import UserActionCenter from '@/components/home/UserActionCenter';
-import RoleQuickLinksSection from '@/components/navigation/RoleQuickLinksSection';
-import { primaryDashboardContextFromUser } from '@/lib/navigation/primary-dashboard';
 
 type Props = {
   welcomeLine?: string | null;
 };
 
+/**
+ * Desktop right column — personal community cockpit (Phase 7F).
+ * Order: Welcome → Reputation → HCP/Growth progress → Community pulse → Tips →
+ * Growth tasks → Activity modules → Promotions.
+ */
 export default function HomeDesktopSidebar({ welcomeLine }: Props) {
   const { t } = useTranslation();
   const surfacePlan = useHomeSurfacePlan();
   const { data: session } = useSession();
-  const { openCreateFlow } = useCreateFlow();
-  const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
   const {
-    sessionStatus,
-    handleGuestMessagesClick,
     handleGuestReputationClick,
     guestBottomNavPanelEl,
   } = useGuestBottomNavPanel();
 
-  const messagesTabUseLink = sessionStatus !== 'unauthenticated';
-  const { count: messagesUnreadCount } = useCommsUnread(sessionStatus === 'authenticated');
-  const promoteMessages = messagesUnreadCount > 0;
-
   return (
     <>
-      <div className="flex flex-col gap-3 pb-3">
+      <div className="flex flex-col gap-3 pb-3" data-home-sidebar="community-cockpit">
         {session?.user && welcomeLine ? (
           <div className="hc-dorpsplein-card hc-dorpsplein-card-warm px-4 py-3">
             <p className="text-sm font-semibold text-gray-900 leading-snug">{welcomeLine}</p>
@@ -53,82 +44,14 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
           </div>
         ) : null}
 
-        {session?.user ? <UserActionCenter variant="sidebar" /> : null}
-
-        {session?.user && promoteMessages ? <MessagesUrgentSidebarCard /> : null}
-
-        {session?.user ? (
-          <RoleQuickLinksSection
-            ctx={primaryDashboardContextFromUser(
-              session.user as Record<string, unknown>,
-            )}
-            surface="home"
-            max={4}
-            compact
-          />
-        ) : null}
-
         <HomeReputationCompactCard
           variant="sidebar"
           onGuestClick={handleGuestReputationClick}
         />
 
+        {session?.user ? <GrowthActionStack plan={surfacePlan} /> : null}
+
         <CommunityPulseBar variant="sidebar" />
-
-        {session?.user ? (
-          <DesktopRightSidebarSurfaceStack plan={surfacePlan} />
-        ) : null}
-
-        <HomeRecommendedPromotions variant="sidebar" />
-
-        <div className="hc-dorpsplein-card px-4 py-3">
-          <h3 className="hc-section-title text-base mb-3">
-            {t('homeDorpsplein.quickActionsTitle')}
-          </h3>
-          <div className="grid gap-2">
-            {session?.user ? (
-              <button
-                type="button"
-                onClick={() => openCreateFlow()}
-                className="flex items-center gap-3 rounded-xl bg-primary-brand px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition-colors text-left"
-              >
-                <Plus className="h-4 w-4 shrink-0" aria-hidden />
-                {t('homePhase1.ctaShare')}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => requireAuthAction('create', '/sell/new')}
-                className="flex items-center gap-3 rounded-xl bg-primary-brand px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition-colors text-left"
-              >
-                <Plus className="h-4 w-4 shrink-0" aria-hidden />
-                {t('homePhase1.ctaShare')}
-              </button>
-            )}
-            {!promoteMessages ? (
-              messagesTabUseLink ? (
-                <MessagesQuickActionLink />
-              ) : (
-                <MessagesQuickActionLink onGuestClick={handleGuestMessagesClick} />
-              )
-            ) : null}
-            <Link
-              href="/?chip=sale#homecheff-feed"
-              className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-800 hover:border-primary-brand/30 hover:bg-primary-50/50 transition-colors"
-            >
-              <Users className="h-4 w-4 shrink-0 text-primary-brand" aria-hidden />
-              {t('homeDorpsplein.browseMakers')}
-            </Link>
-          </div>
-        </div>
-
-        {session?.user ? (
-          <>
-            <CreatorMomentumCard className="mb-0" />
-            <ReturnBelongingStrip className="mb-0" />
-            <HomeProfileProgressCard className="mb-0" />
-          </>
-        ) : null}
 
         <div className="hc-dorpsplein-card hc-dorpsplein-card-community px-4 py-4">
           <div className="flex items-start gap-2 mb-2">
@@ -148,22 +71,21 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
           </Link>
         </div>
 
-        <Link
-          href="/?chip=gezocht#homecheff-feed"
-          className="hc-dorpsplein-card block border-amber-200/80 bg-gradient-to-br from-amber-50/60 to-orange-50/40 px-4 py-4 transition-colors hover:border-amber-300"
-        >
-          <p className="text-[11px] font-medium uppercase tracking-wide text-amber-800/70 mb-1">
-            {t('homeDorpsplein.spotlightLabel')}
-          </p>
-          <p className="text-xs text-gray-600 leading-relaxed mb-2">
-            {t('homeDorpsplein.spotlightPlaceholder')}
-          </p>
-          <span className="inline-flex text-xs font-semibold text-amber-800 hover:text-amber-900">
-            {t('homeDorpsplein.spotlightCta')} →
-          </span>
-        </Link>
+        {session?.user ? (
+          <>
+            <CreatorMomentumCard className="mb-0" />
+            <UserActionCenter variant="sidebar" />
+            <ReturnBelongingStrip className="mb-0" />
+            <HomeProfileProgressCard className="mb-0" />
+            <DesktopRightSidebarSurfaceStack
+              plan={surfacePlan}
+              mode="activity-modules"
+            />
+          </>
+        ) : null}
+
+        <HomeRecommendedPromotions variant="sidebar" />
       </div>
-      {guestAuthPanel}
       {guestBottomNavPanelEl}
     </>
   );
