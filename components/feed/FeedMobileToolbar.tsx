@@ -33,6 +33,9 @@ type Props = {
   onSort: (field: FeedClientSortField) => void;
   onOpenFilters: () => void;
   filterActive: boolean;
+  activeFilterCount: number;
+  /** When true, show compact sticky bar (scroll-down state). */
+  collapsed: boolean;
   feedLayoutMode: FeedLayoutMode;
   onFeedLayoutModeChange: (mode: FeedLayoutMode) => void;
 };
@@ -51,6 +54,17 @@ const scopeClass = (active: boolean) =>
     active ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700'
   );
 
+function collapsedFilterAriaLabel(
+  t: Props['t'],
+  filterActive: boolean,
+  activeFilterCount: number,
+): string {
+  if (filterActive && activeFilterCount > 0) {
+    return t('feed.mobileFilterCollapsedAriaActive', { count: activeFilterCount });
+  }
+  return t('feed.mobileFilterCollapsedAria');
+}
+
 export default function FeedMobileToolbar({
   t,
   feedChip,
@@ -64,6 +78,8 @@ export default function FeedMobileToolbar({
   onSort,
   onOpenFilters,
   filterActive,
+  activeFilterCount,
+  collapsed,
   feedLayoutMode,
   onFeedLayoutModeChange,
 }: Props) {
@@ -73,8 +89,56 @@ export default function FeedMobileToolbar({
     [FEED_SCOPE_INTERNATIONAL, 'feed.scopeInternational'],
   ] as const;
 
+  const viewLabel =
+    DISCOVERY_VIEW_CHIP_OPTIONS.find((o) => o.legacyChip === feedChip)?.labelKey;
+  const categoryLabel = DISCOVERY_CATEGORY_CHIP_OPTIONS.find(
+    (o) => o.slug === appliedCategory,
+  )?.labelKey;
+
+  if (collapsed) {
+    return (
+      <div
+        className="sticky top-[3.25rem] z-30 -mx-0.5 mb-2 rounded-xl border border-gray-200/80 bg-white/95 px-2 py-1.5 shadow-sm backdrop-blur-sm"
+        data-mobile-filter-collapsed="true"
+      >
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onOpenFilters}
+            className={cn(
+              'inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold touch-manipulation',
+              filterActive
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
+                : 'border-gray-200 bg-[#faf8f4] text-gray-800',
+            )}
+            aria-label={collapsedFilterAriaLabel(t, filterActive, activeFilterCount)}
+            aria-expanded={false}
+          >
+            <Filter className="h-4 w-4 shrink-0" aria-hidden />
+            <span>{t('common.filters')}</span>
+            {filterActive && activeFilterCount > 0 ? (
+              <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums">
+                {activeFilterCount}
+              </span>
+            ) : null}
+          </button>
+          {filterActive ? (
+            <p className="min-w-0 max-w-[42%] truncate text-[10px] text-gray-600">
+              {viewLabel ? t(viewLabel) : null}
+              {categoryLabel && appliedCategory !== 'all' ? ` · ${t(categoryLabel)}` : null}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="sticky top-[3.25rem] z-30 -mx-0.5 mb-2 space-y-2 rounded-xl border border-gray-200/80 bg-white px-2 py-2 shadow-sm">
+    <div
+      className="mb-2 space-y-2 rounded-xl border border-gray-200/80 bg-white px-2 py-2 shadow-sm"
+      data-mobile-filter-collapsed="false"
+      aria-expanded={true}
+    >
       <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
           <button
@@ -139,14 +203,16 @@ export default function FeedMobileToolbar({
             'inline-flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold touch-manipulation',
             filterActive
               ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-              : 'border-gray-200 bg-gray-50 text-gray-800'
+              : 'border-gray-200 bg-gray-50 text-gray-800',
           )}
           aria-label={t('common.filters')}
         >
           <Filter className="h-3.5 w-3.5" aria-hidden />
           {t('common.filters')}
-          {filterActive ? (
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+          {filterActive && activeFilterCount > 0 ? (
+            <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums">
+              {activeFilterCount}
+            </span>
           ) : null}
         </button>
       </div>

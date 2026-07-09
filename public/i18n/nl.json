@@ -6793,6 +6793,8 @@
     "emptyServicesTitle": "Nog geen diensten in beeld",
     "emptyServicesBody": "Diensten zijn services, workshops, coaching en praktische klusjes — inclusief buurthulp: lokale hulp tussen buurtgenoten. Er staan er nu geen in dit gebied. Verruim je zoekgebied of bekijk andere pijlers.",
     "discoverFiltersHeading": "Ontdekken in jouw buurt",
+    "mobileFilterCollapsedAria": "Filters openen",
+    "mobileFilterCollapsedAriaActive": "Filters openen, {count} actief",
     "viewModeLabel": "Weergave",
     "layoutModeLabel": "Feedweergave",
     "layoutCards": "Feed",

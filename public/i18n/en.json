@@ -5592,6 +5592,8 @@
     "emptyServicesTitle": "No services here yet",
     "emptyServicesBody": "Services (Diensten) are services, workshops, coaching and practical tasks — including buurthulp: local help between neighbours. There are none in this area right now. Widen your search area or explore other pillars.",
     "discoverFiltersHeading": "Discover near you",
+    "mobileFilterCollapsedAria": "Open filters",
+    "mobileFilterCollapsedAriaActive": "Open filters, {count} active",
     "viewModeLabel": "View",
     "layoutModeLabel": "Feed layout",
     "layoutCards": "Feed",

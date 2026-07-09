@@ -2,6 +2,7 @@
 
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, createContext, type ReactNode } from "react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useMobileFeedFilterScroll } from "@/hooks/useMobileFeedFilterScroll";
 import { useSession } from "next-auth/react";
 import {
   Filter,
@@ -1004,6 +1005,10 @@ export default function GeoFeed({
   /** Smalle browser + native: compacte filter-chips, sort bovenaan, geo onder uitklap. */
   const feedCompactChrome = isMobileFeedUi;
   const filterChrome = feedCompactChrome || isDesktopSplit;
+  const mobileFilterScrollEnabled = feedCompactChrome && !isDesktopSplit;
+  const { collapsed: mobileFilterCollapsed } = useMobileFeedFilterScroll(
+    mobileFilterScrollEnabled,
+  );
   const showGeoFilters =
     !feedCompactChrome || nativeFeedExtraOpen || isDesktopSplit;
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
@@ -2620,6 +2625,25 @@ export default function GeoFeed({
     ]
   );
 
+  const mobileActiveFilterCount = useMemo(() => {
+    let count = 0;
+    if (appliedPlace.trim() !== "") count += 1;
+    if (appliedQ.trim() !== "") count += 1;
+    if (appliedCategory !== "all") count += 1;
+    if (appliedSearchQuery.trim() !== "") count += 1;
+    if (appliedPriceRange.min !== "" || appliedPriceRange.max !== "") count += 1;
+    if (appliedAcceptedValues.length > 0) count += 1;
+    return count;
+  }, [
+    appliedPlace,
+    appliedQ,
+    appliedCategory,
+    appliedSearchQuery,
+    appliedPriceRange.min,
+    appliedPriceRange.max,
+    appliedAcceptedValues.length,
+  ]);
+
   const chipBtn = (active: boolean) =>
     `${filterChrome ? "px-3 py-1.5 rounded-lg text-xs shrink-0" : "px-4 py-2 rounded-lg text-sm"} font-semibold transition-colors ${
       active
@@ -3408,6 +3432,8 @@ export default function GeoFeed({
         onSort={handleSort}
         onOpenFilters={() => setMobileFilterSheetOpen(true)}
         filterActive={mobileToolbarFilterActive}
+        activeFilterCount={mobileActiveFilterCount}
+        collapsed={mobileFilterCollapsed}
         feedLayoutMode={feedLayoutMode}
         onFeedLayoutModeChange={setFeedLayoutMode}
       />
