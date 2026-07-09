@@ -1,11 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
-import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck, Shield, DollarSign, FileText, AlertTriangle, UserCheck, Database, BarChart3, Globe } from 'lucide-react';
+import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Truck } from 'lucide-react';
+import FounderControlCenterShell, { FounderQuickLinks } from './FounderControlCenterShell';
+import {
+  type AdminDomainId,
+  type AdminTabId,
+  ADMIN_TAB_DEFINITIONS,
+  buildAdminTabHref,
+  getTabsForDomain,
+  resolveAdminNavigation,
+} from '@/lib/founder-control-center/navigation';
 import UserManagement from './UserManagement';
 import ProductManagement from './ProductManagement';
 import SellerManagement from './SellerManagement';
@@ -211,8 +220,11 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ user, stats, permissions }: AdminDashboardProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState('command-center');
+  const [activeTab, setActiveTab] = useState<AdminTabId>('command-center');
+  const [activeDomain, setActiveDomain] = useState<AdminDomainId>('command-center');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [filters, setFilters] = useState({
     search: '',
     role: 'all',
@@ -229,49 +241,50 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
   const isSuperAdmin = user?.role === 'SUPERADMIN';
   const isAdmin = user?.role === 'ADMIN';
   
-  // Start with allowed tabs based on roles
-  let allowedTabs = isSuperAdmin
-    ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates']
-    : isAdmin && adminRoles.length > 0
-    ? getUserAllowedTabs(adminRoles)
-    : isAdmin
-    ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates']
-    : [];
-  
-  // Apply permission filtering if permissions exist
-  if (permissions && !isSuperAdmin) {
-    allowedTabs = allowedTabs.filter(tab => {
-      switch(tab) {
-        case 'financial':
-          return permissions.canViewRevenue || permissions.canViewAnalytics;
-        case 'users':
-          return permissions.canViewUserDetails || permissions.canEditUsers;
-        case 'messages':
-          return permissions.canViewPrivateMessages;
-        case 'sellers':
-          return permissions.canViewUserDetails; // Sellers are users
-        case 'products':
-          return permissions.canViewProductDetails || permissions.canEditProducts;
-        case 'analytics':
-        case 'promo-analytics':
-        case 'login-analytics':
-          return permissions.canViewAnalytics || permissions.canViewRevenue;
-        case 'variabelen':
-          return permissions.canViewAnalytics || permissions.canViewRevenue || permissions.canViewVariabelenTab;
-        case 'geographic':
-          return permissions.canViewAnalytics || permissions.canViewRevenue || permissions.canViewUserDetails;
-        case 'moderation':
-          return permissions.canModerateContent;
-        case 'notifications':
-          return permissions.canSendNotifications;
-        case 'delivery':
-        case 'live-locations':
-          return permissions.canViewDeliveryDetails;
-        default:
-          return true; // command-center, overview, orders, disputes, settings, audit, affiliates always visible
-      }
-    });
-  }
+  const allowedTabs = useMemo(() => {
+    let tabs = isSuperAdmin
+      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates']
+      : isAdmin && adminRoles.length > 0
+        ? getUserAllowedTabs(adminRoles)
+        : isAdmin
+          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates']
+          : [];
+
+    if (permissions && !isSuperAdmin) {
+      tabs = tabs.filter((tab) => {
+        switch (tab) {
+          case 'financial':
+            return permissions.canViewRevenue || permissions.canViewAnalytics;
+          case 'users':
+            return permissions.canViewUserDetails || permissions.canEditUsers;
+          case 'messages':
+            return permissions.canViewPrivateMessages;
+          case 'sellers':
+            return permissions.canViewUserDetails;
+          case 'products':
+            return permissions.canViewProductDetails || permissions.canEditProducts;
+          case 'analytics':
+          case 'promo-analytics':
+          case 'login-analytics':
+            return permissions.canViewAnalytics || permissions.canViewRevenue;
+          case 'variabelen':
+            return permissions.canViewAnalytics || permissions.canViewRevenue || permissions.canViewVariabelenTab;
+          case 'geographic':
+            return permissions.canViewAnalytics || permissions.canViewRevenue || permissions.canViewUserDetails;
+          case 'moderation':
+            return permissions.canModerateContent;
+          case 'notifications':
+            return permissions.canSendNotifications;
+          case 'delivery':
+          case 'live-locations':
+            return permissions.canViewDeliveryDetails;
+          default:
+            return true;
+        }
+      });
+    }
+    return tabs;
+  }, [adminRoles, isAdmin, isSuperAdmin, permissions]);
   
   const allowedWidgets = isSuperAdmin 
     ? [] // SUPERADMIN ziet alles, geen filter nodig
@@ -279,97 +292,62 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
     ? getUserAllowedWidgets(adminRoles)
     : []; // Admin zonder rollen ziet alles (geen filter)
 
-  const allTabs = [
-    { id: 'command-center', label: t('admin.commandCenter') || 'Command Center', icon: AlertTriangle },
-    { id: 'overview', label: t('admin.overview'), icon: Eye },
-    { id: 'orders', label: t('admin.orders'), icon: ShoppingCart },
-    { id: 'financial', label: t('admin.financial'), icon: DollarSign },
-    { id: 'disputes', label: t('admin.disputes'), icon: AlertTriangle },
-    { id: 'settings', label: t('admin.settings'), icon: Settings },
-    { id: 'audit', label: t('admin.auditLog'), icon: FileText },
-    { id: 'users', label: t('admin.users'), icon: Users },
-    { id: 'messages', label: t('admin.messages'), icon: MessageSquare },
-    { id: 'sellers', label: t('admin.sellers'), icon: TrendingUp },
-    { id: 'products', label: t('admin.products'), icon: Package },
-    { id: 'delivery', label: t('admin.delivery'), icon: Truck },
-    { id: 'live-locations', label: t('admin.liveLocations'), icon: Truck },
-    { id: 'analytics', label: t('admin.analytics'), icon: TrendingUp },
-    { id: 'promo-analytics', label: t('admin.promoAnalytics') || 'Promotie Analytics', icon: BarChart3 },
-    { id: 'login-analytics', label: t('admin.loginAnalytics') || 'Login Analytics', icon: Users },
-    { id: 'variabelen', label: t('admin.analyticsDashboard.variabelen') || 'Variabelen', icon: Database },
-    { id: 'geographic', label: t('admin.analyticsDashboard.geographic') || 'Geografisch', icon: Globe },
-    { id: 'moderation', label: t('admin.contentModeration'), icon: Shield },
-    { id: 'notifications', label: t('admin.notifications'), icon: Bell },
-    { id: 'affiliates', label: t('admin.affiliates'), icon: UserCheck },
-  ];
+  const allowedTabIds = useMemo(() => {
+    const ids = ADMIN_TAB_DEFINITIONS.map((tab) => tab.id).filter((id) => allowedTabs.includes(id));
+    if (!isSuperAdmin) {
+      return ids.filter((id) => id !== 'admin-management');
+    }
+    return ids;
+  }, [allowedTabs, isSuperAdmin]);
 
-  // Add admin-management tab only for SUPERADMIN
-  if (isSuperAdmin) {
-    allTabs.push({ id: 'admin-management', label: t('admin.adminManagement'), icon: Shield });
-  }
+  const syncUrl = useCallback(
+    (tabId: AdminTabId, domainId: AdminDomainId) => {
+      router.replace(buildAdminTabHref(tabId, domainId), { scroll: false });
+    },
+    [router],
+  );
 
-  // Filter tabs based on allowedTabs
-  const tabs = allTabs.filter(tab => allowedTabs.includes(tab.id));
+  const handleTabChange = useCallback(
+    (tabId: AdminTabId) => {
+      const resolvedDomain =
+        ADMIN_TAB_DEFINITIONS.find((tab) => tab.id === tabId)?.domain ?? 'command-center';
+      setActiveTab(tabId);
+      setActiveDomain(resolvedDomain);
+      syncUrl(tabId, resolvedDomain);
+    },
+    [syncUrl],
+  );
+
+  const handleDomainChange = useCallback(
+    (domainId: AdminDomainId) => {
+      const tabsInDomain = getTabsForDomain(domainId, allowedTabIds);
+      if (tabsInDomain.length === 0) return;
+      const nextTab = tabsInDomain[0].id;
+      setActiveDomain(domainId);
+      setActiveTab(nextTab);
+      syncUrl(nextTab, domainId);
+    },
+    [allowedTabIds, syncUrl],
+  );
 
   useEffect(() => {
-    const tabParam = searchParams?.get('tab');
-    if (!tabParam) return;
-    if (allowedTabs.includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams, allowedTabs.join(',')]);
+    const resolved = resolveAdminNavigation({
+      tabParam: searchParams?.get('tab') ?? null,
+      domainParam: searchParams?.get('domain') ?? null,
+      allowedTabIds,
+    });
+    setActiveTab(resolved.tabId);
+    setActiveDomain(resolved.domainId);
+  }, [searchParams, allowedTabIds.join(',')]);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 sm:py-6">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('admin.dashboardTitle')}</h1>
-              <p className="text-sm sm:text-base text-gray-600">{t('admin.dashboardSubtitle')}</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-xs sm:text-sm text-gray-500">
-                {t('admin.welcomeBack')}
-              </div>
-            </div>
+  const tabContent = (
+    <>
+        {activeTab === 'command-center' && (
+          <div className="space-y-4">
+            <AdminCommandCenter />
+            <FounderQuickLinks isSuperAdmin={isSuperAdmin} t={t} />
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Navigation Tabs */}
-        <div className="mb-6 sm:mb-8">
-          <nav className="flex flex-wrap gap-1.5 sm:gap-2 md:gap-2.5 border-b">
-            {tabs.length === 0 ? (
-              <div className="py-4 text-sm text-gray-500">
-                {t('admin.noTabsAvailable')}
-              </div>
-            ) : (
-              tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-1 py-1.5 px-2 sm:px-2.5 md:px-3 border-b-2 font-medium text-xs whitespace-nowrap transition-colors ${
-                      activeTab === tab.id
-                        ? 'border-emerald-500 text-emerald-600 bg-emerald-50/50'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })
-            )}
-          </nav>
-        </div>
-
-        {/* Content */}
-        {activeTab === 'command-center' && <AdminCommandCenter />}
+        )}
 
         {activeTab === 'overview' && (
           <div className="space-y-8">
@@ -596,8 +574,30 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         {activeTab === 'notifications' && <NotificationCenter />}
         {activeTab === 'admin-management' && <AdminManagement />}
         {activeTab === 'affiliates' && <AffiliateManagement />}
+    </>
+  );
+
+  if (allowedTabIds.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <p className="text-sm text-gray-500">{t('admin.noTabsAvailable')}</p>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <FounderControlCenterShell
+      activeDomainId={activeDomain}
+      activeTabId={activeTab}
+      allowedTabIds={allowedTabIds}
+      isSuperAdmin={isSuperAdmin}
+      onDomainChange={handleDomainChange}
+      onTabChange={handleTabChange}
+      mobileNavOpen={mobileNavOpen}
+      onMobileNavToggle={setMobileNavOpen}
+    >
+      {tabContent}
+    </FounderControlCenterShell>
   );
 }
 

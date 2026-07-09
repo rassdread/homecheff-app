@@ -1584,6 +1584,45 @@
     "legalNavAria": "Juridische informatie en contact"
   },
   "admin": {
+    "commandCenter": "Command Center",
+    "fcc": {
+      "badge": "Founder Control Center",
+      "title": "HomeCheff bedrijfsvoering",
+      "subtitle": "Beheer het platform vanuit één plek",
+      "domainsNav": "Domeinen",
+      "sectionNav": "Sectienavigatie",
+      "toggleNav": "Navigatie tonen/verbergen",
+      "toolsCount": "tools",
+      "quickLinks": "Diepere tools",
+      "domain": {
+        "commandCenter": "Command Center",
+        "commandCenterDesc": "Gezondheid, alerts en wat nu aandacht vraagt",
+        "community": "Community",
+        "communityDesc": "Gebruikers, verkopers en gesprekken",
+        "marketplace": "Marktplaats",
+        "marketplaceDesc": "Advertenties en bestellingen",
+        "finance": "Financiën",
+        "financeDesc": "Omzet, uitbetalingen, refunds, abonnementen",
+        "logistics": "Logistiek",
+        "logisticsDesc": "Bezorgers en live bezorgkaart",
+        "growth": "Groei",
+        "growthDesc": "Affiliates, notificaties, HCP, beta",
+        "trust": "Trust & Safety",
+        "trustDesc": "Geschillen, meldingen en moderatie",
+        "insights": "Inzichten",
+        "insightsDesc": "Analytics, geografie en variabelen",
+        "platform": "Platform",
+        "platformDesc": "Instellingen, auditlog en admin-toegang"
+      },
+      "standalone": {
+        "profile": "Mijn adminprofiel",
+        "beta": "Android beta-inzicht",
+        "hcp": "HCP-overzicht",
+        "hcpCarousel": "HCP-carousel",
+        "variabelen": "Variabelen-verkenner",
+        "clearChat": "Alle chat wissen (gevaar)"
+      }
+    },
     "newUser": "Nieuwe gebruiker",
     "promoAnalytics": "Promotie analytics",
     "loginAnalytics": "Login analytics",

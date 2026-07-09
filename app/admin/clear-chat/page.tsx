@@ -17,7 +17,7 @@ export default async function ClearChatPage() {
   });
 
   if (!user || user.role !== 'SUPERADMIN') {
-    redirect('/admin?tab=settings');
+    redirect('/admin?domain=platform&tab=settings');
   }
 
   return <ClearChatClient />;

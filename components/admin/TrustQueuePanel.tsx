@@ -91,12 +91,12 @@ export default function TrustQueuePanel() {
               <p className="text-xs text-gray-500 mt-1">Status: {item.status}</p>
               <div className="flex gap-3 mt-2 text-xs">
                 {item.links.userId ? (
-                  <Link href={`/admin?tab=users`} className="text-blue-600 hover:underline">
+                  <Link href="/admin?domain=community&tab=users" className="text-blue-600 hover:underline">
                     User
                   </Link>
                 ) : null}
                 {item.links.orderId ? (
-                  <Link href={`/admin?tab=orders`} className="text-blue-600 hover:underline">
+                  <Link href="/admin?domain=marketplace&tab=orders" className="text-blue-600 hover:underline">
                     Order
                   </Link>
                 ) : null}

@@ -789,6 +789,45 @@
     "enterCustomCategory": "Enter your own category"
   },
   "admin": {
+    "commandCenter": "Command Center",
+    "fcc": {
+      "badge": "Founder Control Center",
+      "title": "HomeCheff operations",
+      "subtitle": "Operate the platform from one place",
+      "domainsNav": "Domains",
+      "sectionNav": "Section navigation",
+      "toggleNav": "Toggle navigation",
+      "toolsCount": "tools",
+      "quickLinks": "Deep tools",
+      "domain": {
+        "commandCenter": "Command Center",
+        "commandCenterDesc": "Health, alerts, and what needs attention now",
+        "community": "Community",
+        "communityDesc": "Users, sellers, and conversations",
+        "marketplace": "Marketplace",
+        "marketplaceDesc": "Listings and orders",
+        "finance": "Finance",
+        "financeDesc": "Revenue, payouts, refunds, subscriptions",
+        "logistics": "Logistics",
+        "logisticsDesc": "Couriers and live delivery map",
+        "growth": "Growth",
+        "growthDesc": "Affiliates, notifications, HCP, beta",
+        "trust": "Trust & Safety",
+        "trustDesc": "Disputes, reports, and moderation",
+        "insights": "Insights",
+        "insightsDesc": "Analytics, geography, and variabelen",
+        "platform": "Platform",
+        "platformDesc": "Settings, audit trail, and admin access"
+      },
+      "standalone": {
+        "profile": "My admin profile",
+        "beta": "Android beta insights",
+        "hcp": "HCP overview",
+        "hcpCarousel": "HCP carousel",
+        "variabelen": "Variabelen explorer",
+        "clearChat": "Clear all chat (danger)"
+      }
+    },
     "newUser": "New user",
     "promoAnalytics": "Promo analytics",
     "loginAnalytics": "Login analytics",

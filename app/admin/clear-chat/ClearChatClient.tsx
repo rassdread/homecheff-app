@@ -88,7 +88,7 @@ export default function ClearChatClient() {
         )}
 
         <div className="mt-6 pt-6 border-t">
-          <Link href="/admin?tab=settings" className="text-blue-600 hover:text-blue-700 text-sm">
+          <Link href="/admin?domain=platform&tab=settings" className="text-blue-600 hover:text-blue-700 text-sm">
             ← Back to admin
           </Link>
         </div>
