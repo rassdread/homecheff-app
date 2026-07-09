@@ -9,6 +9,7 @@ import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/de
 import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
+import { assertNotSuspended } from '@/lib/user-suspend';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
 import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/community-order-checkout';
@@ -66,6 +67,11 @@ export async function POST(req: NextRequest) {
 
     if (!buyer) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const suspendBlock = await assertNotSuspended(buyer.id, 'checkout');
+    if (suspendBlock.blocked) {
+      return NextResponse.json({ error: suspendBlock.message }, { status: 403 });
     }
 
     const checkoutBlock = assertAccountRequirementsOr403(buyer, 'postItem');

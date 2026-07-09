@@ -48,6 +48,8 @@ export async function GET(request: NextRequest) {
         country: true,
         lat: true,
         lng: true,
+        suspendedAt: true,
+        suspendReason: true,
         SellerProfile: {
           select: {
             companyName: true,

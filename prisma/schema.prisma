@@ -101,6 +101,10 @@ model User {
   dateOfBirth                            DateTime? // Geboortedatum voor leeftijdscategorieën
   /// Gezet bij accountverwijdering: login geblokkeerd, profiel geanonimiseerd (zie lib/account-deletion.ts).
   accountDeletedAt                       DateTime?
+  /// Phase 13E: non-destructive admin suspension
+  suspendedAt                            DateTime?
+  suspendedById                          String?
+  suspendReason                          String?
   Account                                Account[]
   AdminAction                            AdminAction[]
   adminPermissions                       AdminPermissions?
@@ -316,6 +320,7 @@ enum CommissionLedgerEventType {
   ORDER_PAID
   REFUND
   CHARGEBACK
+  ADMIN_ADJUSTMENT
 }
 
 enum CommissionLedgerStatus {
@@ -1479,6 +1484,11 @@ model DeliveryProfile {
   isOnline             Boolean                       @default(false)
   lastOnlineAt         DateTime?
   lastOfflineAt        DateTime?
+  /// Phase 13E: admin block (distinct from isActive toggle)
+  isBlocked            Boolean                       @default(false)
+  blockedAt            DateTime?
+  blockedById          String?
+  blockReason          String?
   detailedAvailability DeliveryAvailability[]
   notificationSettings DeliveryNotificationSettings?
   deliveryOrders       DeliveryOrder[]

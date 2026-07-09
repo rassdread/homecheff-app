@@ -29,6 +29,8 @@ interface User {
   country: string | null;
   lat: number | null;
   lng: number | null;
+  suspendedAt?: string | Date | null;
+  suspendReason?: string | null;
   SellerProfile?: {
     companyName: string | null;
     kvk: string | null;
@@ -99,6 +101,37 @@ export default function UserManagement() {
     } catch (error) {
       console.error('Error deleting user:', error);
       alert(t('errors.userDeleteError'));
+    }
+  };
+
+  const handleSuspendUser = async (userId: string) => {
+    const reason = prompt('Suspend reason (optional):') ?? '';
+    try {
+      const response = await safeFetch(`/api/admin/users/${userId}/suspend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      });
+      if (response.ok) {
+        fetchUsers();
+      } else {
+        const err = await response.json();
+        alert(err.error || 'Suspend failed');
+      }
+    } catch (error) {
+      console.error('Suspend error:', error);
+    }
+  };
+
+  const handleRestoreUser = async (userId: string) => {
+    if (!confirm('Restore this user?')) return;
+    try {
+      const response = await safeFetch(`/api/admin/users/${userId}/suspend`, {
+        method: 'DELETE',
+      });
+      if (response.ok) fetchUsers();
+    } catch (error) {
+      console.error('Restore error:', error);
     }
   };
 
@@ -402,6 +435,9 @@ export default function UserManagement() {
                         {user.role === 'ADMIN' ? 'Admin' : 
                          user.role === 'SELLER' ? 'Verkoper' : 'Koper'}
                       </span>
+                      {user.suspendedAt ? (
+                        <span className="ml-2 text-xs text-red-600 font-semibold">Suspended</span>
+                      ) : null}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -431,6 +467,23 @@ export default function UserManagement() {
                       >
                         <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
                       </a>
+                      {user.suspendedAt ? (
+                        <button
+                          onClick={() => handleRestoreUser(user.id)}
+                          className="p-3 text-emerald-600 hover:text-emerald-900 hover:bg-emerald-50 rounded-lg transition-colors duration-200 touch-manipulation"
+                          title="Restore user"
+                        >
+                          <UserCheck className="w-5 h-5 sm:w-6 sm:h-6" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleSuspendUser(user.id)}
+                          className="p-3 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-lg transition-colors duration-200 touch-manipulation"
+                          title="Suspend user"
+                        >
+                          <UserX className="w-5 h-5 sm:w-6 sm:h-6" />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDeleteUser(user.id)}
                         className="p-3 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-200 touch-manipulation"

@@ -238,7 +238,12 @@ export async function GET(req: NextRequest) {
       }),
       prisma.productReview.count({ where: { createdAt: { gte: since } } }),
       prisma.report.count({ where: { createdAt: { gte: since } } }),
-      prisma.dispute.count({ where: { createdAt: { gte: since } } }),
+      prisma.report.count({
+        where: {
+          createdAt: { gte: since },
+          status: { in: ['OPEN', 'UNDER_REVIEW'] },
+        },
+      }),
     ]);
 
     const planDistribution: Record<'individual' | 'basic' | 'pro' | 'premium', number> = {

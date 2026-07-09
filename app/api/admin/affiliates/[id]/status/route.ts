@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { AffiliateStatus } from '@prisma/client';
+import { requireAdminPermission } from '@/lib/admin-guard';
+import { logAdminAction } from '@/lib/admin-audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,19 +15,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { role: true },
-    });
-
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const guard = await requireAdminPermission('canViewPaymentInfo');
+    if (!guard.ok) return guard.response;
 
     const { id } = await params;
     const body = await req.json();
@@ -65,6 +55,13 @@ export async function PUT(
     const updatedAffiliate = await prisma.affiliate.update({
       where: { id },
       data: { status: status as AffiliateStatus },
+    });
+
+    await logAdminAction(guard.admin.user.id, 'AFFILIATE_STATUS_UPDATE', {
+      targetType: 'affiliate',
+      targetId: id,
+      oldValue: { status: affiliate.status },
+      newValue: { status },
     });
 
     return NextResponse.json({
