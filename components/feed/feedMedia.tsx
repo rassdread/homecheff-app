@@ -35,6 +35,7 @@ import {
   setFeedAudioEnabled,
   maybeApplyFeedAudioPreference,
 } from "@/components/feed/feedVideoPlaybackCoordinator";
+import { feedPerfMarkFirstImageOnce } from "@/lib/feed/feed-performance-baseline";
 
 export const FEED_MEDIA_PLACEHOLDER = "/placeholder.webp";
 
@@ -205,6 +206,8 @@ export type FeedCardPrimaryMediaProps = {
   /** Extra classes op de inner media-wrapper (niet op aspect-box). */
   className?: string;
   badgeOverlay?: ReactNode;
+  /** First visible tile — eager load for LCP. */
+  imageLoading?: "lazy" | "eager";
 };
 
 /**
@@ -277,6 +280,7 @@ export function FeedCardPrimaryMedia({
   objectFit = "smart",
   className = "",
   badgeOverlay,
+  imageLoading = "lazy",
 }: FeedCardPrimaryMediaProps) {
   const reactId = useId().replace(/:/g, "");
   const instanceId = `feed-vid-${reactId}`;
@@ -588,9 +592,10 @@ export function FeedCardPrimaryMedia({
             src={staticPosterSrc}
             alt={label}
             className={`absolute inset-0 h-full w-full ${fitClass}`}
-            loading="lazy"
+            loading={imageLoading}
             decoding="async"
             sizes={FEED_CARD_IMG_SIZES}
+            onLoad={feedPerfMarkFirstImageOnce}
           />
         ) : showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -598,10 +603,11 @@ export function FeedCardPrimaryMedia({
             src={imageUrl!.trim()}
             alt={label}
             className={`absolute inset-0 h-full w-full ${fitClass}`}
-            loading="lazy"
+            loading={imageLoading}
             decoding="async"
             sizes={FEED_CARD_IMG_SIZES}
             onError={onImgError}
+            onLoad={feedPerfMarkFirstImageOnce}
           />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
@@ -609,9 +615,10 @@ export function FeedCardPrimaryMedia({
             src={FEED_MEDIA_PLACEHOLDER}
             alt=""
             className={`absolute inset-0 h-full w-full ${fitClass}`}
-            loading="lazy"
+            loading={imageLoading}
             decoding="async"
             sizes={FEED_CARD_IMG_SIZES}
+            onLoad={feedPerfMarkFirstImageOnce}
           />
         )}
       </div>

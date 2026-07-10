@@ -31,6 +31,7 @@ export type TileMediaProps = {
   showFavorite?: boolean;
   showPreviewInfo?: boolean;
   className?: string;
+  imageLoading?: 'lazy' | 'eager';
 };
 
 export default function TileMedia({
@@ -48,6 +49,7 @@ export default function TileMedia({
   showFavorite = true,
   showPreviewInfo = false,
   className = '',
+  imageLoading = 'lazy',
 }: TileMediaProps) {
   return (
     <div
@@ -60,6 +62,7 @@ export default function TileMedia({
         videoPoster={videoPoster}
         imageUrl={imageUrl}
         className="absolute inset-0 h-full w-full feed-card-primary-media"
+        imageLoading={imageLoading}
       />
       {badges.length > 0 || overflowCount > 0 ? (
         <TileBadgeRow badges={badges} overflowCount={overflowCount} />

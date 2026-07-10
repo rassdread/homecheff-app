@@ -6,6 +6,7 @@
 import type { FeedScope } from '@/lib/feed/feed-scope';
 import { scopeUsesRadiusFilter } from '@/lib/feed/feed-scope';
 import { feedVerticalSlugToCategoryEnum } from '@/lib/feed/feed-client-sort';
+import { FEED_FIRST_PAGE_TAKE } from '@/lib/feed/feed-pagination';
 
 export type GeoFeedApiParamsInput = {
   scope: FeedScope;
@@ -21,8 +22,16 @@ export type GeoFeedApiParamsInput = {
   listingIntent?: 'OFFER' | 'REQUEST' | null;
 };
 
+export type GeoFeedApiPaginationInput = {
+  take?: number;
+  skip?: number;
+};
+
 /** Build `/api/feed` search params from GeoFeed filter state. */
-export function buildGeoFeedApiParams(input: GeoFeedApiParamsInput): URLSearchParams {
+export function buildGeoFeedApiParams(
+  input: GeoFeedApiParamsInput,
+  pagination?: GeoFeedApiPaginationInput,
+): URLSearchParams {
   const params = new URLSearchParams();
   const nearby = scopeUsesRadiusFilter(input.scope);
 
@@ -63,6 +72,11 @@ export function buildGeoFeedApiParams(input: GeoFeedApiParamsInput): URLSearchPa
   if (input.category && input.category !== 'all') {
     params.set('vertical', input.category);
   }
+
+  const take = pagination?.take ?? FEED_FIRST_PAGE_TAKE;
+  const skip = pagination?.skip ?? 0;
+  params.set('take', String(take));
+  if (skip > 0) params.set('skip', String(skip));
 
   return params;
 }

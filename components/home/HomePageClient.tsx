@@ -23,6 +23,10 @@ import {
 } from "@/lib/appResumeCache";
 import { useVisibleHomePromotionIds } from "@/hooks/useVisibleHomePromotions";
 import { useNarrowViewportResolved } from "@/hooks/useNarrowViewport";
+import {
+  feedPerfMark,
+  installFeedPerfBaselineReporter,
+} from "@/lib/feed/feed-performance-baseline";
 
 import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
 
@@ -64,6 +68,18 @@ export default function HomePageClient({
   const { narrow: isNarrowHome, resolved: viewportResolved } =
     useNarrowViewportResolved();
   const [currentDomain, setCurrentDomain] = useState(MAIN_DOMAIN);
+
+  useEffect(() => {
+    installFeedPerfBaselineReporter();
+    feedPerfMark("home:shell-mounted");
+  }, []);
+
+  useEffect(() => {
+    if (viewportResolved) {
+      feedPerfMark("home:viewport-resolved");
+      feedPerfMark("layout:hydration-complete");
+    }
+  }, [viewportResolved]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

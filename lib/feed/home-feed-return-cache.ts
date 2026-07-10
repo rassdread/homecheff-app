@@ -22,6 +22,7 @@ export type HomeFeedReturnCachePayload = {
   apiViewerCoords: HomeFeedViewerCoords | null;
   nativeFeedRenderMore: boolean;
   discoveryFeed: DiscoveryFeedPayload | null;
+  feedHasMore?: boolean;
   savedAt: number;
 };
 

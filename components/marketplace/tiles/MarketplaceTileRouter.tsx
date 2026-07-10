@@ -33,6 +33,7 @@ export type MarketplaceTileRouterProps = {
   /** Pass pre-built model for profile/favorites surfaces. */
   model?: MarketplaceTileModel;
   locale?: string;
+  imageLoading?: 'lazy' | 'eager';
 };
 
 function useAutoFeedVariant(): 'compact' | 'standard' {
@@ -77,6 +78,7 @@ export default function MarketplaceTileRouter({
   href: hrefOverride,
   model: modelOverride,
   locale,
+  imageLoading = 'lazy',
 }: MarketplaceTileRouterProps) {
   const autoVariant = useAutoFeedVariant();
   const variant = variantOverride ?? autoVariant;
@@ -115,6 +117,7 @@ export default function MarketplaceTileRouter({
         t={t}
         baseUrl={baseUrl}
         locale={locale}
+        imageLoading={imageLoading}
       />
     );
   }
@@ -128,6 +131,7 @@ export default function MarketplaceTileRouter({
       t={t}
       mediaRatio={effectiveMediaRatio}
       locale={locale}
+      imageLoading={imageLoading}
     />
   );
 }

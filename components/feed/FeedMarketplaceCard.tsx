@@ -20,6 +20,8 @@ export type FeedMarketplaceCardProps = {
   variant: FeedMarketplaceCardVariant;
   inspirationApiItem?: InspirationItem;
   mediaRatio?: MarketplaceTileMediaRatio;
+  /** Eager-load cover for first visible tile (LCP). */
+  priorityMedia?: boolean;
 };
 
 /**
@@ -32,6 +34,7 @@ export function FeedMarketplaceCard({
   variant,
   inspirationApiItem,
   mediaRatio,
+  priorityMedia = false,
 }: FeedMarketplaceCardProps) {
   const mode =
     variant === 'sale' ? 'sale' : ('inspiration' as const);
@@ -44,6 +47,7 @@ export function FeedMarketplaceCard({
       mode={mode}
       mediaRatio={mediaRatio}
       inspirationApiItem={inspirationApiItem}
+      imageLoading={priorityMedia ? 'eager' : 'lazy'}
     />
   );
 }

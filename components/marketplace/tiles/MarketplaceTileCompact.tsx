@@ -24,6 +24,7 @@ export type MarketplaceTileCompactProps = {
   mediaRatio?: MarketplaceTileMediaRatio;
   locale?: string;
   enablePreview?: boolean;
+  imageLoading?: 'lazy' | 'eager';
 };
 
 export default function MarketplaceTileCompact({
@@ -32,6 +33,7 @@ export default function MarketplaceTileCompact({
   mediaRatio = '4:5',
   locale = 'nl-NL',
   enablePreview = true,
+  imageLoading = 'lazy',
 }: MarketplaceTileCompactProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'compact', locale);
   const trustCue = buildTileTrustCue(model, t, 2);
@@ -59,6 +61,7 @@ export default function MarketplaceTileCompact({
         favoriteTitle={title}
         mode={model.mode}
         showPreviewInfo={enablePreview}
+        imageLoading={imageLoading}
       />
       <div className="flex shrink-0 flex-col gap-1.5 p-2.5">
         <TilePersonRow model={model} t={t} />

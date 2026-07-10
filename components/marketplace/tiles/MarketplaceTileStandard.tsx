@@ -24,6 +24,7 @@ export type MarketplaceTileStandardProps = {
   baseUrl: string;
   locale?: string;
   enablePreview?: boolean;
+  imageLoading?: 'lazy' | 'eager';
 };
 
 export default function MarketplaceTileStandard({
@@ -32,6 +33,7 @@ export default function MarketplaceTileStandard({
   baseUrl,
   locale = 'nl-NL',
   enablePreview = true,
+  imageLoading = 'lazy',
 }: MarketplaceTileStandardProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'standard', locale);
   const trustCue = buildTileTrustCue(model, t, 3);
@@ -59,6 +61,7 @@ export default function MarketplaceTileStandard({
         favoriteTitle={title}
         mode={model.mode}
         showPreviewInfo={enablePreview}
+        imageLoading={imageLoading}
       />
       <div className="flex shrink-0 flex-col gap-1.5 p-3 sm:p-3.5">
         <TilePersonRow model={model} t={t} />

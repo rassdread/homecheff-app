@@ -166,9 +166,17 @@ import {
   type FeedClientSortOrder,
 } from "@/lib/feed/feed-client-sort";
 import {
+  feedPerfIncrementFeedFetch,
+  feedPerfIncrementGeoFeedMount,
+  feedPerfMark,
+  feedPerfMarkFirstTileOnce,
+  installFeedPerfBaselineReporter,
+} from "@/lib/feed/feed-performance-baseline";
+import {
   buildGeoFeedApiParams,
   buildInspiratieCategoryParam,
 } from "@/lib/feed/feed-query-params";
+import { FEED_FIRST_PAGE_TAKE } from "@/lib/feed/feed-pagination";
 import {
   FEED_SCOPE_INTERNATIONAL,
   FEED_SCOPE_NATIONAL,
@@ -569,6 +577,31 @@ function safeNormalizeFeedItem(
   }
 }
 
+function mapRawFeedApiItems(
+  rawItems: Record<string, unknown>[],
+  viewerForDistance: ViewerCoords | null,
+): FeedItem[] {
+  const normalized: FeedItem[] = [];
+  let dropped = 0;
+  rawItems.forEach((r, index) => {
+    const item = safeNormalizeFeedItem(r, index);
+    if (!item) {
+      dropped += 1;
+      return;
+    }
+    normalized.push(enrichFeedItemDistance(item, viewerForDistance));
+  });
+  const valid = normalized.filter((row) => {
+    if (row.id?.trim()) return true;
+    dropped += 1;
+    return false;
+  });
+  if (dropped > 0) {
+    reportAppDiagnostic("feed_items_filtered", { dropped });
+  }
+  return valid;
+}
+
 function isVisible(item: FeedItem) {
   return item.isActive !== false && Boolean(item.id?.trim());
 }
@@ -884,6 +917,32 @@ export default function GeoFeed({
   const createFlow = useCreateFlow();
   const { profile: bootstrapProfile, ensureProfile, status: bootstrapStatus } =
     useUserBootstrap();
+
+  useEffect(() => {
+    feedPerfIncrementGeoFeedMount();
+    installFeedPerfBaselineReporter();
+    feedPerfMark("nav:start");
+  }, []);
+
+  useEffect(() => {
+    if (sessionStatus === "loading") {
+      feedPerfMark("session:loading");
+      return;
+    }
+    feedPerfMark("session:resolved");
+  }, [sessionStatus]);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    if (bootstrapStatus === "loading") {
+      feedPerfMark("bootstrap:loading");
+      return;
+    }
+    if (bootstrapStatus === "ready") {
+      feedPerfMark("bootstrap:resolved");
+    }
+  }, [session?.user, bootstrapStatus]);
+
   const [items, setItems] = useState<FeedItem[]>([]);
   /** Last raw API payload count (audit). */
   const [apiRawItems, setApiRawItems] = useState<Record<string, unknown>[]>(
@@ -910,6 +969,11 @@ export default function GeoFeed({
   const [loading, setLoading] = useState(true);
   /** Warm filter refresh — keep prior results visible (Phase 7G). */
   const [feedRefreshing, setFeedRefreshing] = useState(false);
+  const [feedHasMore, setFeedHasMore] = useState(false);
+  const [feedLoadingMore, setFeedLoadingMore] = useState(false);
+  const feedLoadMoreRef = useRef<HTMLDivElement | null>(null);
+  const feedHasMoreRef = useRef(false);
+  const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
   const feedRestoredFromCacheRef = useRef(false);
   const [feedHydrated, setFeedHydrated] = useState(false);
@@ -918,6 +982,7 @@ export default function GeoFeed({
   const apiViewerCoordsRef = useRef<ViewerCoords | null>(null);
   const discoveryFeedRef = useRef<DiscoveryFeedPayload | null>(null);
   const nativeFeedRenderMoreRef = useRef(false);
+  const feedStableMarkedRef = useRef(false);
   const [radius, setRadius] = useState(RADIUS_LOCAL_KM);
   const [q, setQ] = useState("");
   const [place, setPlace] = useState(
@@ -1130,10 +1195,19 @@ export default function GeoFeed({
     !userLocation &&
     !!(bootstrapProfile?.place?.trim() || bootstrapProfile?.postalCode?.trim());
 
-  /** Wacht op sessie + profile-bootstrap zodat eerste fetch niet als anoniem/andere radius loopt. */
+  /** Block first fetch only when session loading, or nearby scope needs profile coords from bootstrap. */
+  const nearbyScopeAwaitingProfileCoords =
+    appliedScope === FEED_SCOPE_NEARBY &&
+    !appliedPlace.trim() &&
+    !userLocation &&
+    !coordsForApiLabels?.lat &&
+    !!session?.user;
+
   const feedStartupBlocked =
     sessionStatus === "loading" ||
-    (!!session?.user && bootstrapStatus === "loading");
+    (!!session?.user &&
+      bootstrapStatus === "loading" &&
+      nearbyScopeAwaitingProfileCoords);
 
   const { coords, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } =
     useGeolocation({
@@ -1239,6 +1313,7 @@ export default function GeoFeed({
       setDiscoveryDirection(migrated.discoveryDirection);
       setAppliedAcceptedValues(migrated.acceptedValues);
       trackOnboardingEvent("FEED_STATE_RESTORED", { surface: "home" });
+      feedPerfMark("filter:restored");
       queueMicrotask(() => {
         nativeFeedPrefsBootRef.current = false;
       });
@@ -1564,19 +1639,47 @@ export default function GeoFeed({
   };
 
   useEffect(() => {
+    if (coords || profileLocation || userLocation) {
+      feedPerfMark("location:available");
+    }
+  }, [coords, profileLocation, userLocation]);
+
+  useEffect(() => {
+    if (!feedHydrated || loading || items.length === 0) return;
+    feedPerfMarkFirstTileOnce();
+    if (feedStableMarkedRef.current) return;
+    const markStable = () => {
+      if (feedStableMarkedRef.current) return;
+      feedStableMarkedRef.current = true;
+      feedPerfMark("feed:stable");
+    };
+    if (typeof requestIdleCallback !== "undefined") {
+      const id = requestIdleCallback(markStable, { timeout: 2000 });
+      return () => cancelIdleCallback(id);
+    }
+    const t = window.setTimeout(markStable, 800);
+    return () => window.clearTimeout(t);
+  }, [feedHydrated, loading, items.length]);
+
+  useEffect(() => {
     if (feedStartupBlocked) return;
 
-    const params = buildGeoFeedApiParams({
-      scope: appliedScope,
-      radius: appliedRadius,
-      q: appliedQ,
-      category: appliedCategory,
-      lat: coordsForApiLabels?.lat ?? null,
-      lng: coordsForApiLabels?.lng ?? null,
-      place: viewerPlaceForApi,
-      locationSource:
-        appliedScope === FEED_SCOPE_NEARBY ? apiLocationSource : null,
-    });
+    setFeedHasMore(false);
+
+    const params = buildGeoFeedApiParams(
+      {
+        scope: appliedScope,
+        radius: appliedRadius,
+        q: appliedQ,
+        category: appliedCategory,
+        lat: coordsForApiLabels?.lat ?? null,
+        lng: coordsForApiLabels?.lng ?? null,
+        place: viewerPlaceForApi,
+        locationSource:
+          appliedScope === FEED_SCOPE_NEARBY ? apiLocationSource : null,
+      },
+      { take: FEED_FIRST_PAGE_TAKE, skip: 0 },
+    );
 
     const requestKey = params.toString();
 
@@ -1586,15 +1689,21 @@ export default function GeoFeed({
           readHomeFeedReturnCache(requestKey)
         : readHomeFeedReturnCache(requestKey);
 
-    // Stale-while-revalidate (UX-FIN-4.3/4.4/4.9): show cached feed instantly,
-    // and only when it is stale quietly refresh in the background — no loading
-    // flash, feed stays visible, content updates calmly.
     let backgroundRefresh = false;
     if (cached) {
       feedRestoredFromCacheRef.current = true;
+      if (!isHomeFeedReturnCacheStale(cached)) {
+        feedPerfMark("feed:cache-hit");
+      } else {
+        feedPerfMark("feed:cache-stale-refresh");
+      }
       setItems(cached.items as FeedItem[]);
       setDiscoveryFeed(cached.discoveryFeed ?? null);
       setInspiratiePool(cached.inspiratiePool);
+      setFeedHasMore(
+        cached.feedHasMore ??
+          cached.items.length >= FEED_FIRST_PAGE_TAKE,
+      );
       if (cached.apiViewerCoords) {
         setApiViewerCoords(cached.apiViewerCoords);
       }
@@ -1609,7 +1718,13 @@ export default function GeoFeed({
         return;
       }
       backgroundRefresh = true;
+    } else {
+      feedPerfMark("feed:cache-miss");
     }
+
+    feedPerfIncrementFeedFetch(
+      feedInteractionStartedRef.current ? "refresh" : "initial",
+    );
 
     if (feedInteractionStartedRef.current && !backgroundRefresh) {
       if (itemsRef.current.length > 0 || feedHydrated) {
@@ -1620,12 +1735,10 @@ export default function GeoFeed({
     }
 
     const feedUrl = `/api/feed?${params.toString()}`;
-    const startupInspParallel = !feedInteractionStartedRef.current;
 
     if (process.env.NODE_ENV === "development") {
       console.log("[GeoFeed feed-fetch]", {
         ts: new Date().toISOString(),
-        startupInspParallel,
         requestKey,
         feedUrl,
       });
@@ -1636,22 +1749,10 @@ export default function GeoFeed({
 
     const run = async () => {
       try {
-        const feedP = fetch(feedUrl, { signal: ac.signal, cache: "no-store" });
-        const inspCategory = buildInspiratieCategoryParam(appliedCategory);
-        const inspParams = new URLSearchParams({
-          take: "48",
-          sortBy: "newest",
-          category: inspCategory,
-        });
-        if (appliedQ.trim()) {
-          inspParams.set("q", appliedQ.trim());
-        }
-        const inspP = fetch(`/api/inspiratie?${inspParams.toString()}`, {
+        const feedRes = await fetch(feedUrl, {
           signal: ac.signal,
           cache: "no-store",
         });
-
-        const [feedRes, inspRes] = await Promise.all([feedP, inspP]);
 
         if (cancelled) return;
 
@@ -1660,16 +1761,18 @@ export default function GeoFeed({
             items?: unknown;
             statsPreview?: Record<string, unknown>;
             discovery?: DiscoveryFeedPayload;
+            pagination?: { hasMore?: boolean; total?: number };
           };
           try {
             data = await feedRes.json();
           } catch {
-            reportAppDiagnostic('feed_fetch_json_invalid', { surface: 'feed' });
+            reportAppDiagnostic("feed_fetch_json_invalid", { surface: "feed" });
             if (cancelled) return;
             setItems([]);
             return;
           }
           if (cancelled) return;
+          feedPerfMark("feed:json-received");
           const rawItems = (data.items || []) as Record<string, unknown>[];
           setApiRawItems(rawItems);
           const previewRaw = data.statsPreview as
@@ -1684,14 +1787,11 @@ export default function GeoFeed({
           if (process.env.NODE_ENV === "development") {
             console.log("[GeoFeed feed-fetch] response", {
               count: rawItems.length,
+              pagination: data.pagination,
               statsPreviewKeys:
                 previewRaw && typeof previewRaw === "object"
                   ? Object.keys(previewRaw).length
                   : 0,
-              firstTitles: rawItems.slice(0, 10).map((r) => ({
-                id: String(r.id ?? ""),
-                title: String((r.title as string) ?? "").slice(0, 60),
-              })),
             });
           }
           if (process.env.NODE_ENV === "development") {
@@ -1702,7 +1802,7 @@ export default function GeoFeed({
             }
           } else {
             setLastFeedApiDebug(
-              (data.debug as Record<string, unknown> | undefined) ?? null
+              (data.debug as Record<string, unknown> | undefined) ?? null,
             );
           }
           const filtersRaw = data.filters as
@@ -1725,22 +1825,9 @@ export default function GeoFeed({
               ? viewerFromApi ?? feedCoords ?? null
               : effectiveViewerForDistance;
 
-          const normalized: FeedItem[] = [];
-          rawItems.forEach((r, index) => {
-            const item = safeNormalizeFeedItem(r, index);
-            if (!item) return;
-            normalized.push(enrichFeedItemDistance(item, viewerForDistance));
-          });
-          let dropped = 0;
-          const valid = normalized.filter((row) => {
-            if (row.id?.trim()) return true;
-            dropped += 1;
-            return false;
-          });
-          if (dropped > 0) {
-            reportAppDiagnostic('feed_items_filtered', { dropped });
-          }
+          const valid = mapRawFeedApiItems(rawItems, viewerForDistance);
           setItems(valid);
+          setFeedHasMore(data.pagination?.hasMore ?? false);
           setDiscoveryFeed(
             data.discovery && data.discovery.version === 1
               ? data.discovery
@@ -1748,30 +1835,7 @@ export default function GeoFeed({
           );
         } else {
           setDiscoveryFeed(null);
-        }
-
-        if (inspRes.ok) {
-          let inspData: { items?: unknown };
-          try {
-            inspData = await inspRes.json();
-          } catch {
-            reportAppDiagnostic('feed_inspiration_json_invalid', {});
-            if (cancelled) return;
-            return;
-          }
-          if (cancelled) return;
-          if (Array.isArray(inspData.items) && inspData.items.length > 0) {
-            const pool = inspData.items as InspirationItem[];
-            const withIds = pool.filter(
-              (it) => it && typeof it.id === 'string' && it.id.trim() !== ''
-            );
-            if (withIds.length < pool.length) {
-              reportAppDiagnostic('feed_items_filtered', {
-                dropped: pool.length - withIds.length,
-              });
-            }
-            setInspiratiePool(withIds);
-          }
+          setFeedHasMore(false);
         }
       } catch (error) {
         if ((error as Error)?.name === "AbortError") return;
@@ -1800,6 +1864,7 @@ export default function GeoFeed({
           apiViewerCoords: apiViewerCoordsRef.current,
           nativeFeedRenderMore: nativeFeedRenderMoreRef.current,
           discoveryFeed: discoveryFeedRef.current,
+          feedHasMore: feedHasMoreRef.current,
         });
       }
     };
@@ -1816,6 +1881,151 @@ export default function GeoFeed({
     appliedCategory,
     effectiveViewerForDistance?.lat,
     effectiveViewerForDistance?.lng,
+  ]);
+
+  useEffect(() => {
+    feedHasMoreRef.current = feedHasMore;
+  }, [feedHasMore]);
+
+  const loadMoreFeed = useCallback(async () => {
+    if (!feedHasMore || feedLoadingMore || feedStartupBlocked) return;
+    setFeedLoadingMore(true);
+    try {
+      const skip = itemsRef.current.length;
+      const params = buildGeoFeedApiParams(
+        {
+          scope: appliedScope,
+          radius: appliedRadius,
+          q: appliedQ,
+          category: appliedCategory,
+          lat: coordsForApiLabels?.lat ?? null,
+          lng: coordsForApiLabels?.lng ?? null,
+          place: viewerPlaceForApi,
+          locationSource:
+            appliedScope === FEED_SCOPE_NEARBY ? apiLocationSource : null,
+        },
+        { take: FEED_FIRST_PAGE_TAKE, skip },
+      );
+      const feedRes = await fetch(`/api/feed?${params.toString()}`, {
+        cache: "no-store",
+      });
+      if (!feedRes.ok) return;
+      const data = (await feedRes.json()) as {
+        items?: unknown;
+        pagination?: { hasMore?: boolean };
+        filters?: { lat?: number | null; lng?: number | null };
+      };
+      const rawItems = (data.items || []) as Record<string, unknown>[];
+      const viewerForDistance =
+        appliedScope === FEED_SCOPE_NEARBY
+          ? apiViewerCoordsRef.current ?? feedCoords ?? null
+          : effectiveViewerForDistance;
+      const valid = mapRawFeedApiItems(rawItems, viewerForDistance);
+      if (valid.length === 0) {
+        setFeedHasMore(false);
+        return;
+      }
+      setItems((prev) => {
+        const seen = new Set(prev.map((row) => row.id));
+        const merged = [...prev];
+        for (const row of valid) {
+          if (!seen.has(row.id)) merged.push(row);
+        }
+        return merged;
+      });
+      setFeedHasMore(data.pagination?.hasMore ?? false);
+      feedPerfIncrementFeedFetch("refresh");
+    } catch (error) {
+      console.error("[GeoFeed] load-more failed", error);
+    } finally {
+      setFeedLoadingMore(false);
+    }
+  }, [
+    feedHasMore,
+    feedLoadingMore,
+    feedStartupBlocked,
+    appliedScope,
+    appliedRadius,
+    appliedQ,
+    appliedCategory,
+    coordsForApiLabels?.lat,
+    coordsForApiLabels?.lng,
+    viewerPlaceForApi,
+    apiLocationSource,
+    feedCoords,
+    effectiveViewerForDistance,
+  ]);
+
+  useEffect(() => {
+    const el = feedLoadMoreRef.current;
+    if (!el || !feedHasMore || loading) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) void loadMoreFeed();
+      },
+      { rootMargin: "480px 0px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [feedHasMore, feedLoadingMore, loading, loadMoreFeed]);
+
+  useEffect(() => {
+    if (feedStartupBlocked || !feedHydrated) return;
+    if (loading && itemsRef.current.length === 0) return;
+
+    const inspKey = `${appliedCategory}|${appliedQ.trim()}`;
+    if (
+      inspiratiePoolRef.current.length > 0 &&
+      lastInspiratieFetchKeyRef.current === inspKey
+    ) {
+      return;
+    }
+    lastInspiratieFetchKeyRef.current = inspKey;
+
+    const ac = new AbortController();
+    const run = async () => {
+      const inspCategory = buildInspiratieCategoryParam(appliedCategory);
+      const inspParams = new URLSearchParams({
+        take: "48",
+        sortBy: "newest",
+        category: inspCategory,
+      });
+      if (appliedQ.trim()) {
+        inspParams.set("q", appliedQ.trim());
+      }
+      try {
+        const inspRes = await fetch(
+          `/api/inspiratie?${inspParams.toString()}`,
+          { signal: ac.signal, cache: "no-store" },
+        );
+        if (!inspRes.ok) return;
+        let inspData: { items?: unknown };
+        try {
+          inspData = await inspRes.json();
+        } catch {
+          reportAppDiagnostic("feed_inspiration_json_invalid", {});
+          return;
+        }
+        if (Array.isArray(inspData.items) && inspData.items.length > 0) {
+          const pool = inspData.items as InspirationItem[];
+          const withIds = pool.filter(
+            (it) => it && typeof it.id === "string" && it.id.trim() !== "",
+          );
+          setInspiratiePool(withIds);
+        }
+      } catch (error) {
+        if ((error as Error)?.name === "AbortError") return;
+        console.error("[GeoFeed] deferred inspiratie fetch failed", error);
+      }
+    };
+    void run();
+    return () => ac.abort();
+  }, [
+    feedStartupBlocked,
+    feedHydrated,
+    loading,
+    appliedCategory,
+    appliedQ,
   ]);
 
   const activeFeedItems = useMemo(
@@ -3798,6 +4008,7 @@ export default function GeoFeed({
           {(() => {
             const nodes: ReactNode[] = [];
             let feedItemIndex = 0;
+            let firstTilePriorityPending = true;
             const isLoggedIn = !!session?.user;
             const insertedPromoIds = new Set<HomePromotionId>();
 
@@ -3876,6 +4087,8 @@ export default function GeoFeed({
               }
               if (row.row === "sale") {
                 const card = toCardItem(row.item, effectiveViewerForDistance);
+                const priorityMedia = firstTilePriorityPending;
+                if (priorityMedia) firstTilePriorityPending = false;
                 nodes.push(
                   <FeedMarketplaceCard
                     key={`sale-${row.item.id}-${idx}`}
@@ -3884,6 +4097,7 @@ export default function GeoFeed({
                     t={t}
                     variant="sale"
                     mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+                    priorityMedia={priorityMedia}
                   />
                 );
                 feedItemIndex += 1;
@@ -3892,6 +4106,8 @@ export default function GeoFeed({
               }
               const slot = row.slot;
               if (slot.kind === "api") {
+                const priorityMedia = firstTilePriorityPending;
+                if (priorityMedia) firstTilePriorityPending = false;
                 nodes.push(
                   <FeedMarketplaceCard
                     key={`insp-api-${slot.item.id}-${idx}`}
@@ -3901,10 +4117,13 @@ export default function GeoFeed({
                     variant="inspiration-api"
                     inspirationApiItem={slot.item}
                     mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+                    priorityMedia={priorityMedia}
                   />
                 );
               } else {
                 const card = toCardItem(slot.item, effectiveViewerForDistance);
+                const priorityMedia = firstTilePriorityPending;
+                if (priorityMedia) firstTilePriorityPending = false;
                 nodes.push(
                   <FeedMarketplaceCard
                     key={`insp-feed-${slot.item.id}-${idx}`}
@@ -3913,6 +4132,7 @@ export default function GeoFeed({
                     t={t}
                     variant="inspiration-feed"
                     mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+                    priorityMedia={priorityMedia}
                   />
                 );
               }
@@ -3939,6 +4159,20 @@ export default function GeoFeed({
             return nodes;
           })()}
         </div>
+        {feedHasMore ? (
+          <div
+            ref={feedLoadMoreRef}
+            className="flex min-h-[2rem] justify-center py-3"
+            aria-hidden={!feedLoadingMore}
+          >
+            {feedLoadingMore ? (
+              <Loader2
+                className="h-5 w-5 animate-spin text-gray-400"
+                aria-label={t("feed.updating")}
+              />
+            ) : null}
+          </div>
+        ) : null}
         </div>
       );
 
