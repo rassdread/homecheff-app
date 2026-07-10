@@ -33,7 +33,8 @@ export function buildProductSlugPath(
 
 /** Haalt het product-UUID uit route-param (plain UUID of slug met marker). */
 export function resolveProductIdFromParam(param: string): string {
-  const dec = decodeURIComponent(param).trim();
+  let dec = decodeURIComponent(param).trim();
+  if (dec.length > 1 && dec.endsWith('/')) dec = dec.slice(0, -1);
   if (UUID_REGEX.test(dec)) return dec;
   const idx = dec.indexOf(PRODUCT_SLUG_ID_MARKER);
   if (idx !== -1) {

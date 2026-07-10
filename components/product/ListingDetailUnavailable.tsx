@@ -14,16 +14,16 @@ export default function ListingDetailUnavailable({ reason, t, onRetry }: Props) 
   const titleKey =
     reason === 'missing_param'
       ? 'product.detailError.missingParam'
-      : reason === 'not_found'
+      : reason === 'not_found' || reason === 'unavailable'
         ? 'product.notFound'
         : reason === 'invalid'
           ? 'product.detailError.invalid'
           : 'product.detailError.network';
 
   const descKey =
-    reason === 'network'
+    reason === 'network' || reason === 'server_error'
       ? 'product.detailError.networkHint'
-      : reason === 'not_found'
+      : reason === 'not_found' || reason === 'unavailable'
         ? 'product.detailError.notFoundHint'
         : 'product.detailError.genericHint';
 
@@ -31,7 +31,7 @@ export default function ListingDetailUnavailable({ reason, t, onRetry }: Props) 
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+6rem)]">
       <div className="max-w-md text-center">
         <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-200">
-          {reason === 'network' ? (
+          {reason === 'network' || reason === 'server_error' ? (
             <AlertCircle className="h-12 w-12 text-amber-600" aria-hidden />
           ) : (
             <Package className="h-12 w-12 text-gray-400" aria-hidden />

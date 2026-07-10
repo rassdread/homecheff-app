@@ -13,9 +13,14 @@ import BackButton from "@/components/navigation/BackButton";
 import ListingDetailUnavailable from '@/components/product/ListingDetailUnavailable';
 import {
   listingDetailApiPath,
+  listingDetailFetchUrl,
   listingDetailResolvedId,
+  resolveListingDetailKind,
   type ListingDetailLoadError,
 } from '@/lib/marketplace/detail/listing-detail-route';
+import { listingDetailDiag } from '@/lib/marketplace/detail/listing-detail-diag';
+import { shouldUseAbsoluteApiBase } from '@/lib/client/resolve-api-url';
+import { isNativeApp } from '@/lib/native/capacitor';
 import { navDebug } from '@/lib/nav-debug';
 import PhotoCarousel from "@/components/ui/PhotoCarousel";
 import { getDisplayName as getDisplayNameUtil, PUBLIC_DISPLAY_FALLBACK } from "@/lib/displayName";
@@ -233,17 +238,67 @@ export default function ListingDetailPage() {
     setBaseUrl(window.location.origin);
     
     const fetchProduct = async () => {
+      const resolvedId = listingDetailResolvedId(routeParam);
+      const apiPath = listingDetailApiPath(routeParam);
+      const fetchUrl = listingDetailFetchUrl(routeParam);
+      const detailKind = resolveListingDetailKind(params ?? undefined);
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : '';
+      const diagBase = {
+        tileId: resolvedId,
+        routeParam,
+        resolvedId,
+        detailKind,
+        apiPath,
+        fetchUrl,
+        href:
+          typeof window !== 'undefined'
+            ? `${window.location.pathname}${window.location.search}`
+            : null,
+        native: isNativeApp(),
+        absoluteApi: shouldUseAbsoluteApiBase(),
+        origin,
+      };
+
       try {
         setIsLoading(true);
         setLoadError(null);
-        navDebug('listing-detail:fetch', {
-          routeParam,
-          resolvedId: listingDetailResolvedId(routeParam),
+        navDebug('listing-detail:fetch', diagBase);
+        listingDetailDiag('fetch:start', diagBase);
+
+        const response = await fetch(fetchUrl, {
+          credentials: shouldUseAbsoluteApiBase() ? 'omit' : 'same-origin',
+          cache: 'no-store',
         });
-        const response = await fetch(listingDetailApiPath(routeParam));
-        if (response.status === 404) {
+
+        const status = response.status;
+        let bodySnippet = '';
+        try {
+          bodySnippet = (await response.clone().text()).slice(0, 280);
+        } catch {
+          bodySnippet = '';
+        }
+
+        listingDetailDiag('fetch:response', {
+          ...diagBase,
+          httpStatus: status,
+          ok: response.ok,
+          bodySnippet,
+        });
+
+        if (status === 404) {
           setProduct(null);
           setLoadError('not_found');
+          return;
+        }
+        if (status === 403) {
+          setProduct(null);
+          setLoadError('unavailable');
+          return;
+        }
+        if (status >= 500) {
+          setProduct(null);
+          setLoadError('server_error');
           return;
         }
         if (!response.ok) {
@@ -251,7 +306,21 @@ export default function ListingDetailPage() {
           setLoadError('network');
           return;
         }
-        const data = await response.json();
+
+        let data: any = null;
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          listingDetailDiag('fetch:json-parse-failed', {
+            ...diagBase,
+            httpStatus: status,
+            bodySnippet,
+            error: String(parseError),
+          });
+          setProduct(null);
+          setLoadError('invalid');
+          return;
+        }
         
         if (!data || !data.product) {
           setProduct(null);
@@ -434,6 +503,16 @@ export default function ListingDetailPage() {
           console.error('Error loading reviews:', reviewError);
         }
       } catch (error) {
+        listingDetailDiag('fetch:threw', {
+          routeParam,
+          resolvedId,
+          apiPath,
+          fetchUrl,
+          error: error instanceof Error ? error.message : String(error),
+          native: isNativeApp(),
+          origin:
+            typeof window !== 'undefined' ? window.location.origin : '',
+        });
         console.error('Error fetching product:', error);
         setProduct(null);
         setLoadError('network');
@@ -607,7 +686,9 @@ export default function ListingDetailPage() {
         reason={loadError}
         t={t}
         onRetry={
-          loadError === 'network' || loadError === 'invalid'
+          loadError === 'network' ||
+          loadError === 'invalid' ||
+          loadError === 'server_error'
             ? () => setFetchGeneration((g) => g + 1)
             : undefined
         }
