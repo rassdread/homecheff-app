@@ -114,7 +114,7 @@ export function ProfileV2OverviewPanel({ ctx, onNavigateTab }: PanelProps) {
   return (
     <div className="space-y-8">
       {!viewerIsOwner && (hasQuote || hasBio) ? (
-        <p className="text-center text-sm leading-relaxed text-gray-600 lg:text-left">
+        <p className="text-center text-sm leading-relaxed text-gray-600 xl:text-left">
           {t('profileV2.overview.visitorIntro')}
         </p>
       ) : null}

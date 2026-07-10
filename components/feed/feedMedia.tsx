@@ -13,6 +13,7 @@ import Link from "next/link";
 import { PlayCircle, Volume2, VolumeX } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
+import { navDebug } from "@/lib/nav-debug";
 import { inspirationMediaClass } from "@/lib/inspiratie/media-fit";
 import { useSmartMediaFit } from "@/hooks/useSmartMediaFit";
 import { FeedMediaLightbox } from "@/components/feed/FeedMediaLightbox";
@@ -298,8 +299,8 @@ export function FeedCardPrimaryMedia({
     getCoarsePointerSnapshot,
     () => false
   );
-  /** Native app + touch web: media opens lightbox; desktop mouse web keeps link-to-detail on media. */
-  const lightboxEligible = nativeMounted || coarsePointer;
+  /** Touch mobile web opens lightbox; native app navigates to listing detail on media tap. */
+  const lightboxEligible = coarsePointer && !nativeMounted;
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxPayload, setLightboxPayload] =
     useState<FeedMediaLightboxPayload | null>(null);
@@ -638,6 +639,7 @@ export function FeedCardPrimaryMedia({
           href={href}
           className="absolute inset-0 z-10"
           aria-label={label}
+          onClick={() => navDebug('feed-tile:media-link', { href })}
           onMouseEnter={
             useHoverPlayback && renderVideoElement
               ? onDesktopMouseEnter

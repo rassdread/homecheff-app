@@ -186,7 +186,7 @@ export function ProfileV2SocialProofStrip({
 export function ProfileV2RolePills({ labels }: { labels: string[] }) {
   if (labels.length === 0) return null;
   return (
-    <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
+    <div className="flex flex-wrap justify-center gap-2 xl:justify-start">
       {labels.map((label) => (
         <span
           key={label}

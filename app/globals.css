@@ -1124,14 +1124,37 @@ html.hc-native-capacitor .hc-native-msg-success-toast {
   isolation: isolate;
 }
 
-/** Avatar lane — fixed width; avatar overlaps cover only inside this column */
+/**
+ * Mobile + tablet: vertical centered stack — avatar anchor, identity below (no text beside avatar).
+ * Desktop xl+: side-by-side grid (LinkedIn-style).
+ */
+.hc-profile-v2-hero-main {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 1280px) {
+  .hc-profile-v2-hero-main {
+    display: grid;
+    grid-template-columns: var(--hc-profile-v2-avatar-slot) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--hc-profile-v2-hero-gap);
+  }
+}
+
+/** Avatar lane — fixed width on desktop; centered anchor on mobile */
 .hc-profile-v2-avatar-column {
   width: min(100%, var(--hc-profile-v2-avatar-slot));
   max-width: var(--hc-profile-v2-avatar-slot);
   margin-inline: auto;
+  flex-shrink: 0;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .hc-profile-v2-avatar-column {
     margin-inline: 0;
   }
@@ -1141,6 +1164,36 @@ html.hc-native-capacitor .hc-native-msg-success-toast {
   margin-top: calc(-1 * var(--hc-profile-v2-avatar-overlap));
   width: var(--hc-profile-v2-avatar-size);
   max-width: 100%;
+  position: relative;
+  z-index: 3;
+  margin-inline: auto;
+}
+
+@media (max-width: 1279px) {
+  .hc-profile-v2-avatar-overlap {
+    /* Half overlap on mobile — cleaner anchor, more flow space for identity */
+    margin-top: calc(-1 * var(--hc-profile-v2-avatar-size) / 2);
+  }
+}
+
+.hc-profile-v2-hero-identity {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 1279px) {
+  .hc-profile-v2-hero-identity {
+    margin-top: 0.25rem;
+    padding-inline: 0.125rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hc-profile-v2-hero-identity {
+    padding-top: 0.5rem;
+  }
 }
 
 .hc-profile-v2-avatar-circle {
@@ -1160,7 +1213,7 @@ html.hc-native-capacitor .hc-native-msg-success-toast {
   z-index: 2;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .hc-profile-v2-hero-actions {
     margin-top: 0.75rem;
     padding-inline-start: calc(var(--hc-profile-v2-avatar-slot) + var(--hc-profile-v2-hero-gap));

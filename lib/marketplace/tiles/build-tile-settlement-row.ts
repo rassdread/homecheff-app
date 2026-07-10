@@ -66,7 +66,8 @@ export function buildTileSettlementRow(
   });
 
   const homecheffCheckout = options.canCheckoutNow;
-  const directContact = options.acceptsDirectContact;
+  const directContact =
+    options.acceptsDirectContact || options.homeCheffCheckoutNeedsConnect;
   const barter = options.allowsBarter;
   const acceptedValues = options.hasAcceptedValues;
 

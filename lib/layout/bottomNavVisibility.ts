@@ -15,6 +15,6 @@ export function bottomNavFlowSpacerClass(
   suppressed: boolean,
 ): string {
   if (suppressed) return 'h-0';
-  if (isNativeShell) return 'h-[6.5rem] md:h-[7.25rem]';
+  if (isNativeShell) return 'h-[5.75rem] md:h-[7.25rem]';
   return 'max-lg:h-20 max-lg:md:h-[5.75rem] lg:h-0';
 }

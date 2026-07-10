@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import {
   buildTileBadges,
+  buildTileSettlementRow,
   buildTileTrustCue,
   type MarketplaceTileModel,
   type TranslateFn,
@@ -10,6 +11,7 @@ import {
 import {
   TileMedia,
   TilePersonRow,
+  TileSettlementRow,
   TileTrustCue,
   TileValueExchangeBlock,
 } from '@/components/marketplace/tiles/primitives';
@@ -30,6 +32,7 @@ export default function MarketplaceTileMini({
 }: MarketplaceTileMiniProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'mini', locale);
   const trustCue = buildTileTrustCue(model, t, 1);
+  const settlement = buildTileSettlementRow(model);
   const title = model.title || t('common.dish');
 
   return (
@@ -63,6 +66,7 @@ export default function MarketplaceTileMini({
           trustCue={trustCue}
           className="truncate text-[10px] font-medium text-gray-500"
         />
+        {settlement ? <TileSettlementRow row={settlement} t={t} /> : null}
       </div>
     </article>
   );

@@ -39,7 +39,7 @@ export default function ProfileV2HeroPhotoEdit({ initialUrl, onPhotoChange }: Pr
   }
 
   return (
-    <div className="mt-3 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+    <div className="mt-3 flex flex-wrap items-center justify-center gap-2 xl:justify-start">
       <button
         type="button"
         disabled={uploading}

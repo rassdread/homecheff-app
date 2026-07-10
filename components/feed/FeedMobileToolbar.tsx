@@ -16,6 +16,10 @@ import {
   DISCOVERY_CATEGORY_CHIP_OPTIONS,
   DISCOVERY_VIEW_CHIP_OPTIONS,
 } from '@/lib/marketplace/canonical-model';
+import {
+  MOBILE_FEED_FILTER_STICKY_BELOW_NAV,
+  MOBILE_FEED_FILTER_STICKY_TOP,
+} from '@/lib/feed/mobile-filter-sticky';
 
 type SortId = 'newest' | 'price' | 'views' | 'distance';
 
@@ -36,6 +40,8 @@ type Props = {
   activeFilterCount: number;
   /** When true, show compact sticky bar (scroll-down state). */
   collapsed: boolean;
+  /** When false, main header has scrolled away — pin filter to top edge. */
+  navPinned?: boolean;
   feedLayoutMode: FeedLayoutMode;
   onFeedLayoutModeChange: (mode: FeedLayoutMode) => void;
 };
@@ -80,6 +86,7 @@ export default function FeedMobileToolbar({
   filterActive,
   activeFilterCount,
   collapsed,
+  navPinned = true,
   feedLayoutMode,
   onFeedLayoutModeChange,
 }: Props) {
@@ -98,7 +105,10 @@ export default function FeedMobileToolbar({
   if (collapsed) {
     return (
       <div
-        className="sticky top-[3.25rem] z-30 -mx-0.5 mb-2 rounded-xl border border-gray-200/80 bg-white/95 px-2 py-1.5 shadow-sm backdrop-blur-sm"
+        className={cn(
+          'sticky z-40 mb-0 border-b border-gray-200/90 bg-white px-2 py-1.5 shadow-sm',
+          navPinned ? MOBILE_FEED_FILTER_STICKY_BELOW_NAV : MOBILE_FEED_FILTER_STICKY_TOP,
+        )}
         data-mobile-filter-collapsed="true"
       >
         <div className="flex items-center gap-2">

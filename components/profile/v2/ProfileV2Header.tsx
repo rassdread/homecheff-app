@@ -152,10 +152,10 @@ export default function ProfileV2Header({
         ) : null}
       </div>
 
-      <div className="hc-profile-v2-hero-body px-4 pb-6 pt-4 sm:px-6 lg:px-8">
-        <div className="grid w-full min-w-0 grid-cols-1 gap-5 lg:grid-cols-[var(--hc-profile-v2-avatar-slot)_minmax(0,1fr)] lg:items-start lg:gap-[var(--hc-profile-v2-hero-gap)]">
+      <div className="hc-profile-v2-hero-body px-4 pb-6 pt-2 sm:px-6 sm:pt-3 xl:px-8 xl:pt-4">
+        <div className="hc-profile-v2-hero-main">
           <div className="hc-profile-v2-avatar-column">
-            <div className="hc-profile-v2-avatar-overlap mx-auto lg:mx-0">
+            <div className="hc-profile-v2-avatar-overlap">
               <ProfileAvatar
                 src={avatarSrc}
                 alt={t('profilePage.profilePhotoAlt')}
@@ -164,20 +164,10 @@ export default function ProfileV2Header({
             </div>
           </div>
 
-          <div className="min-w-0 w-full space-y-4 pt-1 text-center lg:pt-2 lg:text-left">
-            {user.SellerProfile?.kvk && user.SellerProfile.companyName ? (
-              <div className="flex justify-center lg:justify-start">
-                <BusinessBadge
-                  companyName={user.SellerProfile.companyName}
-                  subscriptionName={user.SellerProfile.Subscription?.name}
-                  size="lg"
-                />
-              </div>
-            ) : null}
-
-            {/* 1. Persoon */}
+          <div className="hc-profile-v2-hero-identity min-w-0 w-full space-y-4 text-center xl:text-left">
+            {/* 1. Persoon — avatar is anchor; identity stacks below on mobile/tablet */}
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-[2rem] lg:leading-tight">
+              <h1 className="mx-auto max-w-full break-words text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl xl:mx-0 xl:text-[2rem] xl:leading-tight">
                 {displayName}
               </h1>
               {user.username ? (
@@ -185,14 +175,23 @@ export default function ProfileV2Header({
               ) : null}
               <ProfileV2RolePills labels={roleLabels} />
               {businessPlan !== 'individual' ? (
-                <div className="flex justify-center lg:justify-start">
+                <div className="flex justify-center xl:justify-start">
                   <BusinessPlanBadge plan={businessPlan} t={t} size="md" />
                 </div>
               ) : null}
+              {user.SellerProfile?.kvk && user.SellerProfile.companyName ? (
+                <div className="flex justify-center xl:justify-start">
+                  <BusinessBadge
+                    companyName={user.SellerProfile.companyName}
+                    subscriptionName={user.SellerProfile.Subscription?.name}
+                    size="lg"
+                  />
+                </div>
+              ) : null}
               {user.place ? (
-                <p className="inline-flex items-center justify-center gap-1.5 text-sm text-gray-600 lg:justify-start">
+                <p className="inline-flex max-w-full items-center justify-center gap-1.5 text-sm text-gray-600 xl:justify-start">
                   <MapPin className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-                  {user.place}
+                  <span className="truncate">{user.place}</span>
                 </p>
               ) : null}
             </div>
@@ -211,7 +210,7 @@ export default function ProfileV2Header({
             ) : null}
 
             {ecosystemChipKeys && ecosystemChipKeys.length > 0 ? (
-              <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
+              <div className="flex flex-wrap justify-center gap-2 xl:justify-start">
                 {ecosystemChipKeys.map((key) => (
                   <span
                     key={key}
@@ -234,7 +233,7 @@ export default function ProfileV2Header({
             ) : null}
 
             {/* 4. Statistieken — klein, niet overheersend */}
-            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-gray-500 lg:justify-start">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-gray-500 xl:justify-start">
               {hcp && hcp.totalHcp > 0 ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
                   <Sparkles className="h-3.5 w-3.5 text-amber-600" aria-hidden />
@@ -275,7 +274,7 @@ export default function ProfileV2Header({
             />
           ) : null}
 
-          <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+          <div className="flex flex-wrap items-center justify-center gap-2 xl:justify-start">
             {viewerIsOwner ? (
               <>
                 <button type="button" onClick={onEditProfile} className="hc-btn-primary inline-flex items-center gap-2">
@@ -323,7 +322,7 @@ export default function ProfileV2Header({
               makerId={user.id}
               makerName={displayName}
               channels={publicContact}
-              className="text-left"
+              className="text-center xl:text-left"
             />
           ) : null}
         </div>

@@ -72,7 +72,7 @@ export default function ProductSaleSecondaryContact({
       ) : (
         <MakerContactSection
           variant="product"
-          makerId={product.seller.User.id}
+          makerId={product.seller?.User?.id ?? ''}
           makerName={sellerName}
           channels={publicContactChannels}
           productId={product.id}

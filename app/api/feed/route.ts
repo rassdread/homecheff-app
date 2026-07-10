@@ -37,6 +37,7 @@ import {
 } from "@/lib/search";
 import { attachSearchClassificationToRecord } from "@/lib/search/classify-result";
 import { attachDiscoveryReadModel } from "@/lib/discovery";
+import { legacyFeedSettlementBooleans } from "@/lib/marketplace/tiles/legacy-feed-settlement";
 import {
   discoveryEnrichmentFromBundle,
   fetchSellerTrustBundles,
@@ -398,20 +399,23 @@ export async function GET(req: NextRequest) {
       place: dish.place,
       user: dish.user,
     });
+    const dishPriceCents = dish.priceCents || 0;
+    const dishStripeReady = !!(
+      dish.user?.stripeConnectAccountId &&
+      dish.user?.stripeConnectOnboardingCompleted
+    );
+    const dishSettlement = legacyFeedSettlementBooleans(dishPriceCents, dishStripeReady);
     return {
     id: dish.id,
     feedSource: 'DISH' as const,
     type: 'dish' as const,
     title: dish.title || "",
     description: dish.description || "",
-    priceCents: dish.priceCents || 0,
+    priceCents: dishPriceCents,
     orderMethod: 'HOMECHEFF_PAYMENT',
-    acceptHomeCheffPayment: null,
-    acceptDirectContact: null,
-    sellerStripeConnectReady: !!(
-      dish.user?.stripeConnectAccountId &&
-      dish.user?.stripeConnectOnboardingCompleted
-    ),
+    acceptHomeCheffPayment: dishSettlement.acceptHomeCheffPayment,
+    acceptDirectContact: dishSettlement.acceptDirectContact,
+    sellerStripeConnectReady: dishStripeReady,
     listingIntent: 'OFFER' as const,
     priceModel: 'FIXED' as const,
     delivery: dish.deliveryMode || "PICKUP",
@@ -460,19 +464,25 @@ export async function GET(req: NextRequest) {
   const transformedListings = oldListings.map((listing) => {
     const listingCoords = resolveListingCoords(listing);
     const listingPlace = resolveListingPlaceLabel(listing);
+    const listingPriceCents = listing.priceCents || 0;
+    const listingStripeReady = !!(
+      listing.User?.stripeConnectAccountId &&
+      listing.User?.stripeConnectOnboardingCompleted
+    );
+    const listingSettlement = legacyFeedSettlementBooleans(
+      listingPriceCents,
+      listingStripeReady,
+    );
     return {
     id: listing.id,
     feedSource: 'LISTING' as const,
     title: listing.title || "",
     description: listing.description || "",
-    priceCents: listing.priceCents || 0,
+    priceCents: listingPriceCents,
     orderMethod: 'HOMECHEFF_PAYMENT',
-    acceptHomeCheffPayment: null,
-    acceptDirectContact: null,
-    sellerStripeConnectReady: !!(
-      listing.User?.stripeConnectAccountId &&
-      listing.User?.stripeConnectOnboardingCompleted
-    ),
+    acceptHomeCheffPayment: listingSettlement.acceptHomeCheffPayment,
+    acceptDirectContact: listingSettlement.acceptDirectContact,
+    sellerStripeConnectReady: listingStripeReady,
     listingIntent: 'OFFER' as const,
     priceModel: 'FIXED' as const,
         category: (listing as any).vertical || "HOMECHEFF",

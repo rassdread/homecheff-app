@@ -10,12 +10,18 @@ import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import type { PublicContactChannel } from "@/lib/profile/maker-contact-preferences";
 import BackButton from "@/components/navigation/BackButton";
+import ListingDetailUnavailable from '@/components/product/ListingDetailUnavailable';
+import {
+  listingDetailApiPath,
+  listingDetailResolvedId,
+  type ListingDetailLoadError,
+} from '@/lib/marketplace/detail/listing-detail-route';
+import { navDebug } from '@/lib/nav-debug';
 import PhotoCarousel from "@/components/ui/PhotoCarousel";
 import { getDisplayName as getDisplayNameUtil, PUBLIC_DISPLAY_FALLBACK } from "@/lib/displayName";
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   buildListingDetailHref,
-  resolveListingIdFromParam,
 } from '@/lib/seo/listing-routes';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
@@ -175,19 +181,6 @@ export default function ListingDetailPage() {
   const { data: session } = useSession();
   const { t } = useTranslation();
 
-  if (!routeParam) {
-    return (
-      <main className="min-h-screen bg-neutral-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-neutral-900 mb-4">Product ID niet gevonden</h1>
-            <BackButton />
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   const [product, setProduct] = useState<Product | null>(null);
   const [stats, setStats] = useState<ProductStats>({
     viewCount: 0,
@@ -232,25 +225,37 @@ export default function ListingDetailPage() {
   const [discoveryTrust, setDiscoveryTrust] = useState<DiscoveryTrustContract>(
     EMPTY_DISCOVERY_TRUST_CONTRACT,
   );
+  const [loadError, setLoadError] = useState<ListingDetailLoadError | null>(null);
+  const [fetchGeneration, setFetchGeneration] = useState(0);
 
   useEffect(() => {
+    if (!routeParam) return;
     setBaseUrl(window.location.origin);
     
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/products/${routeParam}`);
+        setLoadError(null);
+        navDebug('listing-detail:fetch', {
+          routeParam,
+          resolvedId: listingDetailResolvedId(routeParam),
+        });
+        const response = await fetch(listingDetailApiPath(routeParam));
+        if (response.status === 404) {
+          setProduct(null);
+          setLoadError('not_found');
+          return;
+        }
         if (!response.ok) {
-          console.error('Product fetch failed:', response.status);
-          router.push('/');
+          setProduct(null);
+          setLoadError('network');
           return;
         }
         const data = await response.json();
         
-        // Check if data and data.product exist
         if (!data || !data.product) {
-          console.error('Invalid product data:', data);
-          router.push('/');
+          setProduct(null);
+          setLoadError('invalid');
           return;
         }
 
@@ -353,7 +358,10 @@ export default function ListingDetailPage() {
             kvk: data.product.seller?.kvk ?? null,
             companyName: data.product.seller?.companyName ?? null,
             User: {
-              id: data.product.seller?.User?.id || data.product.User?.id,
+              id:
+                data.product.seller?.User?.id ||
+                data.product.User?.id ||
+                '',
               name: data.product.seller?.User?.name || data.product.User?.name,
               username: data.product.seller?.User?.username || data.product.User?.username,
               avatar: data.product.seller?.User?.image || data.product.seller?.User?.profileImage || data.product.User?.image || data.product.User?.profileImage,
@@ -427,17 +435,16 @@ export default function ListingDetailPage() {
         }
       } catch (error) {
         console.error('Error fetching product:', error);
-        router.push('/');
+        setProduct(null);
+        setLoadError('network');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (routeParam) {
-      fetchProduct();
-      trackView(resolveListingIdFromParam(routeParam));
-    }
-  }, [routeParam]);
+    fetchProduct();
+    trackView(listingDetailResolvedId(routeParam));
+  }, [routeParam, fetchGeneration, session?.user?.email]);
 
   const trackView = async (productId: string) => {
     try {
@@ -569,6 +576,10 @@ export default function ListingDetailPage() {
     }
   };
 
+  if (!routeParam) {
+    return <ListingDetailUnavailable reason="missing_param" t={t} />;
+  }
+
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -590,18 +601,22 @@ export default function ListingDetailPage() {
     );
   }
 
-  if (!product) {
+  if (loadError) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-          <div className="text-center">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Package className="w-12 h-12 text-gray-400" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">{t('product.notFound')}</h1>
-          <BackButton label={t('product.backToOverview')} />
-        </div>
-      </main>
+      <ListingDetailUnavailable
+        reason={loadError}
+        t={t}
+        onRetry={
+          loadError === 'network' || loadError === 'invalid'
+            ? () => setFetchGeneration((g) => g + 1)
+            : undefined
+        }
+      />
     );
+  }
+
+  if (!product) {
+    return <ListingDetailUnavailable reason="not_found" t={t} />;
   }
 
   const theme = getCategoryTheme(product.category, t);

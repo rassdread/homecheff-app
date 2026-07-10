@@ -1006,9 +1006,8 @@ export default function GeoFeed({
   const feedCompactChrome = isMobileFeedUi;
   const filterChrome = feedCompactChrome || isDesktopSplit;
   const mobileFilterScrollEnabled = feedCompactChrome && !isDesktopSplit;
-  const { collapsed: mobileFilterCollapsed } = useMobileFeedFilterScroll(
-    mobileFilterScrollEnabled,
-  );
+  const { collapsed: mobileFilterCollapsed, navPinned: mobileFilterNavPinned } =
+    useMobileFeedFilterScroll(mobileFilterScrollEnabled);
   const showGeoFilters =
     !feedCompactChrome || nativeFeedExtraOpen || isDesktopSplit;
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
@@ -3434,6 +3433,7 @@ export default function GeoFeed({
         filterActive={mobileToolbarFilterActive}
         activeFilterCount={mobileActiveFilterCount}
         collapsed={mobileFilterCollapsed}
+        navPinned={mobileFilterNavPinned}
         feedLayoutMode={feedLayoutMode}
         onFeedLayoutModeChange={setFeedLayoutMode}
       />

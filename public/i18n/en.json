@@ -3716,6 +3716,15 @@
     "deleteConfirmButton": "Yes, delete",
     "backToOverview": "Back to overview",
     "notFound": "Product not found",
+    "detailError": {
+      "missingParam": "Listing not found",
+      "invalid": "This link is invalid",
+      "network": "Could not load listing",
+      "networkHint": "Check your connection and try again.",
+      "notFoundHint": "This listing no longer exists or is unavailable.",
+      "genericHint": "Try going back to the overview.",
+      "retry": "Try again"
+    },
     "backToSellerDashboard": "Back to Seller Dashboard",
     "pickupAvailable": "Pickup available",
     "pickupDescription": "Come pick up the product",

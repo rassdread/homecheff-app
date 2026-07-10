@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 export const MOBILE_FEED_FILTER_TOP_EXPAND_PX = 24;
 /** Collapse after user scrolls down past this offset. */
 export const MOBILE_FEED_FILTER_COLLAPSE_AFTER_PX = 64;
+/** Navbar considered scrolled away after this offset (~4rem). */
+export const MOBILE_FEED_NAVBAR_PIN_PX = 68;
 
 /**
  * Mobile homepage feed: collapse filter chrome on downward scroll;
@@ -13,22 +15,26 @@ export const MOBILE_FEED_FILTER_COLLAPSE_AFTER_PX = 64;
  */
 export function useMobileFeedFilterScroll(enabled: boolean) {
   const [collapsed, setCollapsed] = useState(false);
+  const [navPinned, setNavPinned] = useState(true);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
 
   useEffect(() => {
     if (!enabled) {
       setCollapsed(false);
+      setNavPinned(true);
       return;
     }
 
     lastScrollY.current = window.scrollY;
+    setNavPinned(window.scrollY <= MOBILE_FEED_NAVBAR_PIN_PX);
 
     const onScroll = () => {
       if (ticking.current) return;
       ticking.current = true;
       requestAnimationFrame(() => {
         const y = window.scrollY;
+        setNavPinned(y <= MOBILE_FEED_NAVBAR_PIN_PX);
         if (y <= MOBILE_FEED_FILTER_TOP_EXPAND_PX) {
           setCollapsed(false);
         } else if (
@@ -46,5 +52,5 @@ export function useMobileFeedFilterScroll(enabled: boolean) {
     return () => window.removeEventListener('scroll', onScroll);
   }, [enabled]);
 
-  return { collapsed };
+  return { collapsed, navPinned };
 }

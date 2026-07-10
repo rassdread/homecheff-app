@@ -3145,6 +3145,15 @@
     "deleteConfirmButton": "Ja, verwijderen",
     "backToOverview": "Terug naar overzicht",
     "notFound": "Product niet gevonden",
+    "detailError": {
+      "missingParam": "Advertentie niet gevonden",
+      "invalid": "Deze link is ongeldig",
+      "network": "Kon advertentie niet laden",
+      "networkHint": "Controleer je internetverbinding en probeer opnieuw.",
+      "notFoundHint": "Deze advertentie bestaat niet meer of is niet meer beschikbaar.",
+      "genericHint": "Probeer terug te gaan naar het overzicht.",
+      "retry": "Opnieuw proberen"
+    },
     "backToSellerDashboard": "Terug naar Verkoper Dashboard",
     "pickupAvailable": "Ophalen mogelijk",
     "pickupDescription": "Kom het product ophalen",
