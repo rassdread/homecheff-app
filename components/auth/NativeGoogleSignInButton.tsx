@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useCallback, useState } from 'react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useAndroidBridgePresent } from '@/lib/native/useAndroidBridgePresent';
 import { useNativeAndroid } from '@/lib/native/useNativeAndroid';
@@ -14,10 +14,14 @@ import { trackLogin, trackRegistration } from '@/components/GoogleAnalytics';
 import { logGoogleLoginDiag } from '@/lib/auth/google-login-diagnostics';
 import { parseGoogleSignInError } from '@/lib/auth/parse-google-sign-in-error';
 
-const WEB_CLIENT_ID =
-  typeof process !== 'undefined'
-    ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || ''
-    : '';
+import {
+  GOOGLE_WEB_CLIENT_ID,
+  resolveNativeAuthApiUrl,
+} from '@/lib/native/google-sign-in-config';
+import {
+  ensureGoogleSocialLoginInitialized,
+  invalidateGoogleSocialLoginInit,
+} from '@/lib/native/prewarm-google-social-login';
 
 type NativeGoogleLoginShape = {
   provider?: string;
@@ -126,9 +130,31 @@ export function NativeGoogleSignInButton({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const capgoModulePromiseRef = useRef<Promise<
-    typeof import('@capgo/capacitor-social-login')
-  > | null>(null);
+
+  const waitForNativeSession = useCallback(async (): Promise<boolean> => {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      await new Promise((r) => setTimeout(r, 200));
+      try {
+        const session = await getSession();
+        if (session?.user?.email) return true;
+      } catch {
+        /* ignore */
+      }
+      try {
+        const res = await fetch(resolveNativeAuthApiUrl('/api/auth/session'), {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { user?: { email?: string | null } };
+          if (data?.user?.email) return true;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return false;
+  }, []);
 
   const runWebGoogleLogin = useCallback(async (): Promise<boolean> => {
     logGoogleLoginDiag('google_login_web_start', { preferNative });
@@ -153,12 +179,12 @@ export function NativeGoogleSignInButton({
 
   const runNativeGoogleLogin = useCallback(async (): Promise<boolean> => {
     logGoogleLoginDiag('google_login_native_start', {
-      hasWebClientId: Boolean(WEB_CLIENT_ID),
+      hasWebClientId: Boolean(GOOGLE_WEB_CLIENT_ID),
       androidBridge,
       nativeAndroid,
     });
 
-    if (!WEB_CLIENT_ID) {
+    if (!GOOGLE_WEB_CLIENT_ID) {
       setError('Google login is niet geconfigureerd (ontbrekende client id).');
       logGoogleLoginDiag('google_login_native_failed', { reason: 'missing_web_client_id' });
       return false;
@@ -172,17 +198,15 @@ export function NativeGoogleSignInButton({
 
     setRememberPreference(rememberMe);
 
+    const initialized = await ensureGoogleSocialLoginInitialized();
+    if (!initialized) {
+      logGoogleLoginDiag('google_login_native_failed', { reason: 'plugin_init_failed' });
+      return false;
+    }
+
     let SocialLogin: typeof import('@capgo/capacitor-social-login').SocialLogin;
     try {
-      if (!capgoModulePromiseRef.current) {
-        capgoModulePromiseRef.current = import('@capgo/capacitor-social-login').catch(
-          (e) => {
-            capgoModulePromiseRef.current = null;
-            throw e;
-          },
-        );
-      }
-      ({ SocialLogin } = await capgoModulePromiseRef.current);
+      ({ SocialLogin } = await import('@capgo/capacitor-social-login'));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       logGoogleLoginDiag('google_login_native_failed', {
@@ -192,63 +216,74 @@ export function NativeGoogleSignInButton({
       return false;
     }
 
-    try {
-      await SocialLogin.initialize({
-        google: {
-          webClientId: WEB_CLIENT_ID,
-          mode: 'online',
-        },
-      });
-    } catch (e) {
-      const parsed = parseGoogleSignInError(e);
-      logGoogleLoginDiag('google_login_native_failed', {
-        reason: 'plugin_init_failed',
-        message: parsed.message,
-        statusCode: parsed.statusCode ?? undefined,
-        statusName: parsed.statusName ?? undefined,
-        likelyConfigError: parsed.likelyConfigError,
-      });
-      if (parsed.likelyConfigError) {
-        setError(
-          'Google login init mislukt (DEVELOPER_ERROR). Controleer Firebase SHA en google-services.json.',
+    const attemptLogin = async (): Promise<
+      | { ok: true; login: unknown }
+      | { ok: false; cancelled: boolean; retryable: boolean; message?: string }
+    > => {
+      try {
+        const login = await SocialLogin.login(
+          { provider: 'google' } as import('@capgo/capacitor-social-login').LoginOptions,
         );
+        return { ok: true, login };
+      } catch (e) {
+        const parsed = parseGoogleSignInError(e);
+        if (parsed.statusCode === 12501 || /cancel/i.test(parsed.message)) {
+          logGoogleLoginDiag('google_login_native_failed', { reason: 'user_cancelled' });
+          return { ok: false, cancelled: true, retryable: false };
+        }
+        const retryable =
+          parsed.statusCode === 12502 ||
+          parsed.statusCode === 7 ||
+          parsed.statusCode === 8 ||
+          /not initialized|init/i.test(parsed.message);
+        logGoogleLoginDiag('google_login_native_failed', {
+          reason: 'plugin_login_failed',
+          message: parsed.message,
+          statusCode: parsed.statusCode ?? undefined,
+          statusName: parsed.statusName ?? undefined,
+          likelyConfigError: parsed.likelyConfigError,
+          retryable,
+        });
+        if (parsed.likelyConfigError) {
+          setError(
+            'Google login configuratie (Play Store): voeg Play App Signing SHA-1 toe in Firebase en installeer een nieuwe build. Fout: DEVELOPER_ERROR (10).',
+          );
+        } else if (/scopes|main activity/i.test(parsed.message)) {
+          setError('Google login configuratie moet opnieuw worden opgebouwd.');
+        } else if (parsed.statusCode === 7) {
+          setError('Netwerkfout bij Google inloggen. Controleer je verbinding.');
+        } else if (!retryable) {
+          setError(parsed.summary);
+        }
+        return {
+          ok: false,
+          cancelled: false,
+          retryable,
+          message: parsed.summary,
+        };
       }
-      return false;
+    };
+
+    let loginResult = await attemptLogin();
+    if (!loginResult.ok && loginResult.retryable && !loginResult.cancelled) {
+      invalidateGoogleSocialLoginInit();
+      await new Promise((r) => setTimeout(r, 450));
+      await ensureGoogleSocialLoginInitialized();
+      loginResult = await attemptLogin();
     }
 
-    let login: unknown;
-    try {
-      login = await SocialLogin.login(
-        { provider: 'google' } as import('@capgo/capacitor-social-login').LoginOptions,
+    if (!loginResult.ok) {
+      if (loginResult.cancelled) return true;
+      setError(
+        (prev) =>
+          prev ??
+          loginResult.message ??
+          'Google inloggen is mislukt. Probeer opnieuw of gebruik e-mail en wachtwoord.',
       );
-    } catch (e) {
-      const parsed = parseGoogleSignInError(e);
-      if (parsed.statusCode === 12501 || /cancel/i.test(parsed.message)) {
-        logGoogleLoginDiag('google_login_native_failed', { reason: 'user_cancelled' });
-        return true;
-      }
-      logGoogleLoginDiag('google_login_native_failed', {
-        reason: 'plugin_login_failed',
-        message: parsed.message,
-        statusCode: parsed.statusCode ?? undefined,
-        statusName: parsed.statusName ?? undefined,
-        likelyConfigError: parsed.likelyConfigError,
-      });
-      if (parsed.likelyConfigError) {
-        setError(
-          'Google login configuratie (Play Store): voeg Play App Signing SHA-1 toe in Firebase en installeer een nieuwe build. Fout: DEVELOPER_ERROR (10).',
-        );
-      } else if (/scopes|main activity/i.test(parsed.message)) {
-        setError('Google login configuratie moet opnieuw worden opgebouwd.');
-      } else if (parsed.statusCode === 7) {
-        setError('Netwerkfout bij Google inloggen. Controleer je verbinding.');
-      } else {
-        setError(parsed.summary);
-      }
       return false;
     }
 
-    const { idToken, pluginPayloadHint } = extractNativeGoogleIdToken(login);
+    const { idToken, pluginPayloadHint } = extractNativeGoogleIdToken(loginResult.login);
     if (!idToken) {
       logGoogleLoginDiag('google_login_native_failed', {
         reason: 'missing_id_token',
@@ -262,7 +297,7 @@ export function NativeGoogleSignInButton({
       return false;
     }
 
-    const post = await fetch('/api/auth/native/google', {
+    const post = await fetch(resolveNativeAuthApiUrl('/api/auth/native/google'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -300,6 +335,15 @@ export function NativeGoogleSignInButton({
     }
 
     await applySessionMode(rememberMe);
+    const sessionReady = await waitForNativeSession();
+    if (!sessionReady) {
+      logGoogleLoginDiag('google_login_native_failed', { reason: 'session_not_visible' });
+      setError(
+        'Inloggen gelukt, maar sessie start traag. Tik nogmaals op Google of ververs het scherm.',
+      );
+      return false;
+    }
+
     try {
       sessionStorage.setItem('hc_npush_gate', '1');
     } catch {
@@ -318,6 +362,7 @@ export function NativeGoogleSignInButton({
     nativeAndroid,
     rememberMe,
     router,
+    waitForNativeSession,
   ]);
 
   const onClick = useCallback(async () => {
@@ -338,15 +383,10 @@ export function NativeGoogleSignInButton({
         const nativeOk = await runNativeGoogleLogin();
         if (nativeOk) return;
 
-        logGoogleLoginDiag('google_login_native_failed', { reason: 'fallback_to_web' });
-        setError(null);
-        const webStarted = await runWebGoogleLogin();
-        if (!webStarted) {
-          setError((prev) =>
-            prev ??
-            'Google inloggen is mislukt. Probeer opnieuw of gebruik e-mail en wachtwoord.',
-          );
-        }
+        setError((prev) =>
+          prev ??
+          'Google inloggen is mislukt. Probeer opnieuw of gebruik e-mail en wachtwoord.',
+        );
         return;
       }
 
@@ -378,7 +418,7 @@ export function NativeGoogleSignInButton({
       ? 'w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed'
       : 'w-full inline-flex justify-center items-center px-6 py-4 border-2 border-gray-200 rounded-2xl shadow-sm bg-white text-base font-semibold text-gray-800 hover:border-emerald-300 hover:bg-emerald-50 active:bg-emerald-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 group';
 
-  const configBlocked = preferNative && !WEB_CLIENT_ID;
+  const configBlocked = preferNative && !GOOGLE_WEB_CLIENT_ID;
 
   return (
     <div className="space-y-2 relative z-10">

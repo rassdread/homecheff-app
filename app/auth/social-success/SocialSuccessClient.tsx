@@ -19,9 +19,11 @@ const POLL_MS = 400;
 
 type Phase = 'checking' | 'redirecting' | 'error';
 
+import { resolveNativeAuthApiUrl } from '@/lib/native/google-sign-in-config';
+
 async function fetchSessionViaApi(): Promise<{ user?: { email?: string | null } } | null> {
   try {
-    const res = await fetch('/api/auth/session', {
+    const res = await fetch(resolveNativeAuthApiUrl('/api/auth/session'), {
       cache: 'no-store',
       credentials: 'include',
     });

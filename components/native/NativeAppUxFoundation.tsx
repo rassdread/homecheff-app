@@ -16,6 +16,7 @@ import { nativePushDevLog } from "@/lib/native/push";
 import { refreshCommsAfterNativePush } from "@/lib/native/pushCommsRefresh";
 import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
 import { touchNativePrefsUser } from "@/lib/native/appPreferences";
+import { prewarmGoogleSocialLogin } from "@/lib/native/prewarm-google-social-login";
 
 const WARM_ROUTES = [
   "/",
@@ -238,12 +239,24 @@ function NativePushDeepLinkListener() {
   return null;
 }
 
+function NativeGoogleSignInPrewarm() {
+  const nativeMounted = useIsNativeAppMounted();
+
+  useEffect(() => {
+    if (!nativeMounted) return;
+    prewarmGoogleSocialLogin();
+  }, [nativeMounted]);
+
+  return null;
+}
+
 /**
  * Native Android: route persistence, prefetch, offline overlay, push deep links.
  */
 export default function NativeAppUxFoundation() {
   return (
     <>
+      <NativeGoogleSignInPrewarm />
       <NativeLastRouteTracker />
       <NativeWarmTabPrefetch />
       <NativePendingRouteApplier />
