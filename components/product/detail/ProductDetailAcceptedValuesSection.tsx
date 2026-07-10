@@ -5,6 +5,7 @@ import type { MarketplaceCategory } from '@prisma/client';
 import { useTranslation } from '@/hooks/useTranslation';
 import { buildDetailAcceptedValuesPresentation } from '@/lib/marketplace/detail/detail-accepted-values-presentation';
 import { deriveListingKind } from '@/lib/marketplace/listing-kind/derive-listing-kind';
+import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import { taxonomyLabelKey } from '@/lib/marketplace/taxonomy-i18n';
 import { cn } from '@/lib/utils';
@@ -81,7 +82,8 @@ export default function ProductDetailAcceptedValuesSection({
                   <div className="flex items-center gap-1.5 text-sm text-gray-900">
                     <TaxonomyLucideIcon
                       name={sub.icon}
-                      className="h-3.5 w-3.5 shrink-0 text-emerald-700"
+                      className="h-3.5 w-3.5 shrink-0"
+                      tone={getMarketplaceTaxonomyItem(sub.taxonomyId)?.tone}
                     />
                     <span>{t(taxonomyLabelKey(sub.taxonomyId))}</span>
                   </div>

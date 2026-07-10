@@ -3,6 +3,7 @@
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import { cn } from '@/lib/utils';
 import type { TileBadge } from '@/lib/marketplace/tiles';
+import { TAXONOMY_TONE_CLASSES } from '@/lib/marketplace/taxonomy-tone';
 
 const TONE_CLASS: Record<TileBadge['tone'], string> = {
   request: 'bg-amber-100 text-amber-900 ring-amber-200',
@@ -22,7 +23,11 @@ function TileBadgeIcon({ badge }: { badge: TileBadge }) {
     );
   }
   return (
-    <TaxonomyLucideIcon name={badge.icon} className="h-3 w-3 shrink-0" />
+    <TaxonomyLucideIcon
+      name={badge.icon}
+      className="h-3 w-3 shrink-0"
+      tone={badge.taxonomyTone}
+    />
   );
 }
 
@@ -54,7 +59,9 @@ export default function TileBadgeRow({
           key={`${badge.kind}-${badge.taxonomyId ?? badge.label}`}
           className={cn(
             'inline-flex max-w-full items-center gap-1 truncate rounded-lg px-2 py-0.5 text-[10px] font-semibold shadow-sm ring-1',
-            TONE_CLASS[badge.tone],
+            badge.taxonomyTone
+              ? TAXONOMY_TONE_CLASSES[badge.taxonomyTone]
+              : TONE_CLASS[badge.tone],
           )}
         >
           <TileBadgeIcon badge={badge} />

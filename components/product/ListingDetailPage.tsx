@@ -11,6 +11,7 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import type { PublicContactChannel } from "@/lib/profile/maker-contact-preferences";
 import BackButton from "@/components/navigation/BackButton";
 import ListingDetailUnavailable from '@/components/product/ListingDetailUnavailable';
+import { LEGACY_VERTICAL_DETAIL_CLASSES } from '@/lib/marketplace/marketplace-icon-colors';
 import {
   listingDetailApiPath,
   listingDetailFetchUrl,
@@ -115,36 +116,42 @@ type ProductStats = {
 
 const getCategoryTheme = (category: string | undefined, t: (key: string) => string) => {
   switch (category) {
-    case 'CHEFF':
+    case 'CHEFF': {
+      const tone = LEGACY_VERTICAL_DETAIL_CLASSES.CHEFF;
       return {
         gradient: 'from-orange-500 via-red-500 to-pink-500',
         bg: 'bg-orange-50',
-        text: 'text-orange-700',
-        badge: 'bg-orange-100 text-orange-800 border-orange-200',
+        text: tone.text,
+        badge: tone.badge,
         icon: ChefHat,
         label: t('productCategory.cheff'),
-        accent: 'bg-orange-500'
+        accent: tone.accent,
       };
-    case 'GROWN':
+    }
+    case 'GROWN': {
+      const tone = LEGACY_VERTICAL_DETAIL_CLASSES.GROWN;
       return {
         gradient: 'from-emerald-500 via-green-500 to-teal-500',
         bg: 'bg-emerald-50',
-        text: 'text-emerald-700',
-        badge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        text: tone.text,
+        badge: tone.badge,
         icon: Sprout,
         label: t('productCategory.garden'),
-        accent: 'bg-emerald-500'
+        accent: tone.accent,
       };
-    case 'DESIGNER':
+    }
+    case 'DESIGNER': {
+      const tone = LEGACY_VERTICAL_DETAIL_CLASSES.DESIGNER;
       return {
         gradient: 'from-purple-500 via-pink-500 to-yellow-500',
         bg: 'bg-purple-50',
-        text: 'text-purple-700',
-        badge: 'bg-purple-100 text-purple-800 border-purple-200',
+        text: tone.text,
+        badge: tone.badge,
         icon: Palette,
         label: t('productCategory.designer'),
-        accent: 'bg-purple-500'
+        accent: tone.accent,
       };
+    }
     default:
       return {
         gradient: 'from-gray-500 via-gray-600 to-gray-700',

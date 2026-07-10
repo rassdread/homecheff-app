@@ -1,10 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { ShieldCheck, Banknote, Handshake, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { TileSettlementRowData } from '@/lib/marketplace/tiles/build-tile-settlement-row';
 import type { TranslateFn } from '@/lib/marketplace/tiles';
+import { SettlementLucideIcon } from '@/components/marketplace/SettlementLucideIcon';
 
 /**
  * Settlement row — Phase 7B. "How can the agreement be settled?"
@@ -30,28 +30,28 @@ export default function TileSettlementRow({
     items.push({
       key: 'homecheff',
       label: t('marketplace.tile.settlement.homecheff'),
-      node: <ShieldCheck className="h-3.5 w-3.5 text-primary-brand" aria-hidden />,
+      node: <SettlementLucideIcon kind="homecheff" />,
     });
   }
   if (row.directContact) {
     items.push({
       key: 'direct',
       label: t('marketplace.tile.settlement.direct'),
-      node: <Banknote className="h-3.5 w-3.5 text-gray-600" aria-hidden />,
+      node: <SettlementLucideIcon kind="directContact" />,
     });
   }
   if (row.barter) {
     items.push({
       key: 'barter',
       label: t('marketplace.tile.settlement.barter'),
-      node: <Handshake className="h-3.5 w-3.5 text-amber-600" aria-hidden />,
+      node: <SettlementLucideIcon kind="barter" />,
     });
   }
   if (row.acceptedValues) {
     items.push({
       key: 'acceptedValues',
       label: t('marketplace.tile.settlement.acceptedValues'),
-      node: <ArrowLeftRight className="h-3.5 w-3.5 text-secondary-brand" aria-hidden />,
+      node: <SettlementLucideIcon kind="acceptedValues" />,
     });
   }
 

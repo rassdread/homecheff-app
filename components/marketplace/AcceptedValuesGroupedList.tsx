@@ -7,6 +7,7 @@ import PendingAcceptedValueProposalForm from '@/components/marketplace/PendingAc
 import { groupAcceptedTaxonomyIds } from '@/lib/marketplace/discovery/group-accepted-taxonomy-ids';
 import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import { taxonomyLabelKey } from '@/lib/marketplace/taxonomy-i18n';
+import { TAXONOMY_TONE_CLASSES } from '@/lib/marketplace/taxonomy-tone';
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
 import { resolveAcceptedValueEntry } from '@/lib/marketplace/pending-accepted-values/resolve-pending-display';
 import { usePendingAcceptedValueRegistry } from '@/hooks/usePendingAcceptedValueRegistry';
@@ -67,17 +68,20 @@ export default function AcceptedValuesGroupedList({
                     ? t(taxonomyLabelKey(id))
                     : id;
               const icon = pending?.icon ?? official?.icon ?? 'Tag';
+              const tone = pending?.tone ?? official?.tone ?? 'service';
               return (
                 <li
                   key={id}
                   className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 font-medium text-emerald-900',
+                    'inline-flex items-center gap-1.5 rounded-full border font-medium',
+                    TAXONOMY_TONE_CLASSES[tone],
                     compact ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-xs',
                   )}
                 >
                   <TaxonomyLucideIcon
                     name={icon}
                     className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}
+                    tone={tone}
                   />
                   {label}
                 </li>

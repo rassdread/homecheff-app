@@ -5,6 +5,7 @@ import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLu
 import { resolveAcceptedValueEntry } from '@/lib/marketplace/pending-accepted-values/resolve-pending-display';
 import { usePendingAcceptedValueRegistry } from '@/hooks/usePendingAcceptedValueRegistry';
 import { taxonomyLabelKey } from '@/lib/marketplace/taxonomy-i18n';
+import { TAXONOMY_TONE_CLASSES } from '@/lib/marketplace/taxonomy-tone';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -35,8 +36,9 @@ export default function AcceptedValueChip({
       type="button"
       onClick={onRemove}
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 font-semibold text-emerald-900 touch-manipulation',
-        onRemove ? 'hover:bg-emerald-100' : 'cursor-default',
+        'inline-flex items-center gap-1 rounded-full border font-semibold touch-manipulation',
+        TAXONOMY_TONE_CLASSES[entry.tone],
+        onRemove ? 'hover:brightness-[0.98]' : 'cursor-default',
         compact ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-xs',
         className,
       )}
@@ -45,6 +47,7 @@ export default function AcceptedValueChip({
       <TaxonomyLucideIcon
         name={entry.icon}
         className={compact ? 'h-3 w-3 shrink-0' : 'h-3.5 w-3.5 shrink-0'}
+        tone={entry.tone}
       />
       {label}
       {onRemove ? <span aria-hidden>×</span> : null}

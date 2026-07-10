@@ -1,16 +1,21 @@
 import type { TaxonomyTone } from './taxonomy-types';
 
-/** Compact badge styling per taxonomy tone */
+/** Compact badge styling per taxonomy tone — Phase 13M richer contrast. */
 export const TAXONOMY_TONE_CLASSES: Record<TaxonomyTone, string> = {
-  food: 'bg-orange-50 text-orange-800 border-orange-200/80',
-  garden: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
-  creative: 'bg-purple-50 text-purple-800 border-purple-200/80',
-  artistic: 'bg-pink-50 text-pink-800 border-pink-200/80',
-  service: 'bg-sky-50 text-sky-800 border-sky-200/80',
-  knowledge: 'bg-amber-50 text-amber-800 border-amber-200/80',
-  international: 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
-  blocked: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
+  food: 'bg-orange-50 text-orange-900 border-orange-300/70',
+  garden: 'bg-emerald-50 text-emerald-900 border-emerald-300/70',
+  creative: 'bg-purple-50 text-purple-900 border-purple-300/70',
+  artistic: 'bg-pink-50 text-pink-900 border-pink-300/70',
+  service: 'bg-sky-50 text-sky-900 border-sky-300/70',
+  knowledge: 'bg-amber-50 text-amber-900 border-amber-300/70',
+  international: 'bg-indigo-50 text-indigo-900 border-indigo-300/70',
+  blocked: 'bg-neutral-100 text-neutral-700 border-neutral-300/70',
 };
+
+export {
+  TAXONOMY_TONE_ICON_CLASSES,
+  resolveTaxonomyIconClass,
+} from './marketplace-icon-colors';
 
 export const TAXONOMY_BADGE_SIZE_CLASSES = {
   sm: {
@@ -24,3 +29,10 @@ export const TAXONOMY_BADGE_SIZE_CLASSES = {
 } as const;
 
 export type TaxonomyBadgeSize = keyof typeof TAXONOMY_BADGE_SIZE_CLASSES;
+
+/** Active/inactive chip shells for taxonomy pickers — icons inherit tone via TaxonomyLucideIcon. */
+export function taxonomyToneChipClass(active: boolean, tone: TaxonomyTone): string {
+  return active
+    ? `border ${TAXONOMY_TONE_CLASSES[tone]}`
+    : 'border border-gray-200 bg-white text-gray-700 hover:border-gray-300';
+}

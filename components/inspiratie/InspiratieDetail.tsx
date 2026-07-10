@@ -39,6 +39,7 @@ import MakerContactSection from '@/components/profile/MakerContactSection';
 import PublicItemOwnerActions from '@/components/items/PublicItemOwnerActions';
 import InstructionDetailSection from '@/components/inspiratie/InstructionDetailSection';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
+import { LEGACY_VERTICAL_DETAIL_CLASSES, LEGACY_VERTICAL_ICON_CLASSES } from '@/lib/marketplace/marketplace-icon-colors';
 import {
   buildHeroMediaItems,
   buildFullLightboxItems,
@@ -139,9 +140,9 @@ const CATEGORY_LABEL_KEY: Record<InspirationCategory, string> = {
 };
 
 const CATEGORY_BADGE: Record<InspirationCategory, string> = {
-  CHEFF: 'bg-orange-100 text-orange-700 border border-orange-200',
-  GROWN: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-  DESIGNER: 'bg-purple-100 text-purple-700 border border-purple-200',
+  CHEFF: LEGACY_VERTICAL_DETAIL_CLASSES.CHEFF.badge,
+  GROWN: LEGACY_VERTICAL_DETAIL_CLASSES.GROWN.badge,
+  DESIGNER: LEGACY_VERTICAL_DETAIL_CLASSES.DESIGNER.badge,
 };
 
 const CATEGORY_ICON: Record<InspirationCategory, typeof ChefHat> = {
@@ -157,9 +158,9 @@ const CATEGORY_GRADIENT: Record<InspirationCategory, string> = {
 };
 
 const CATEGORY_ACCENT: Record<InspirationCategory, string> = {
-  CHEFF: 'text-orange-700',
-  GROWN: 'text-emerald-700',
-  DESIGNER: 'text-purple-700',
+  CHEFF: LEGACY_VERTICAL_ICON_CLASSES.CHEFF,
+  GROWN: LEGACY_VERTICAL_ICON_CLASSES.GROWN,
+  DESIGNER: LEGACY_VERTICAL_ICON_CLASSES.DESIGNER,
 };
 
 const formatDate = (value: string) => {

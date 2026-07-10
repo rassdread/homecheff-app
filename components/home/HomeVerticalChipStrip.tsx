@@ -5,6 +5,7 @@ import { ChefHat, Sprout, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { scrollToHomeFeed } from '@/lib/guest/guest-explanation-panels';
+import { DISCOVERY_VERTICAL_ICON_CLASSES } from '@/lib/marketplace/marketplace-icon-colors';
 
 const VERTICALS = [
   { key: 'cheff', icon: ChefHat, emoji: '🍲' },
@@ -40,7 +41,10 @@ export default function HomeVerticalChipStrip({ className }: { className?: strin
           className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-200/90 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm hover:border-primary-brand/30 hover:bg-primary-50/40 transition-colors touch-manipulation"
         >
           <span aria-hidden>{emoji}</span>
-          <Icon className="h-3.5 w-3.5 text-primary-brand/80" aria-hidden />
+          <Icon
+            className={cn('h-3.5 w-3.5', DISCOVERY_VERTICAL_ICON_CLASSES[key])}
+            aria-hidden
+          />
           {t(`homePhase1.verticals.${key}.title`)}
         </button>
       ))}

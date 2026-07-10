@@ -32,7 +32,11 @@ export default function TileAcceptedValueIcons({
               {icon.icon}
             </span>
           ) : (
-            <TaxonomyLucideIcon name={icon.icon} className="h-3.5 w-3.5 text-gray-700" />
+            <TaxonomyLucideIcon
+              name={icon.icon}
+              className="h-3.5 w-3.5"
+              tone={icon.taxonomyTone}
+            />
           )}
         </span>
       ))}

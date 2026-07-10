@@ -46,7 +46,11 @@ export function MarketplaceBadgeResolved({
       )}
     >
       {showIcon ? (
-        <TaxonomyLucideIcon name={badge.icon} className={sizeClasses.icon} />
+        <TaxonomyLucideIcon
+          name={badge.icon}
+          className={sizeClasses.icon}
+          tone={badge.tone}
+        />
       ) : null}
       <span className="truncate">{badge.displayLabel ?? t(badge.labelKey)}</span>
     </span>

@@ -16,6 +16,7 @@ import {
   taxonomyGroupLabelKey,
   taxonomyLabelKey,
 } from '@/lib/marketplace/taxonomy-i18n';
+import { taxonomyToneChipClass } from '@/lib/marketplace/taxonomy-tone';
 import PendingAcceptedValueProposalForm from '@/components/marketplace/PendingAcceptedValueProposalForm';
 import { resolveAcceptedValueEntry } from '@/lib/marketplace/pending-accepted-values/resolve-pending-display';
 import { usePendingAcceptedValueRegistry } from '@/hooks/usePendingAcceptedValueRegistry';
@@ -94,11 +95,9 @@ export default function AcceptedValuesPicker({
     );
   };
 
-  const chipClass = (active: boolean) =>
+  const chipClass = (active: boolean, tone = 'service' as const) =>
     `inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
-      active
-        ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
-        : 'border-gray-200 bg-white text-gray-700 hover:border-emerald-300'
+      taxonomyToneChipClass(active, tone)
     }`;
 
   return (
@@ -156,15 +155,16 @@ export default function AcceptedValuesPicker({
                   : t(taxonomyLabelKey(id));
             const icon =
               pending?.icon ?? item?.icon;
+            const tone = pending?.tone ?? item?.tone ?? 'service';
             return (
               <button
                 key={id}
                 type="button"
                 onClick={() => toggle(id)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-sm text-emerald-900"
+                className={chipClass(true, tone)}
               >
                 {icon ? (
-                  <TaxonomyLucideIcon name={icon} className="h-3.5 w-3.5" />
+                  <TaxonomyLucideIcon name={icon} className="h-3.5 w-3.5" tone={tone} />
                 ) : null}
                 {label}
                 <span aria-hidden>×</span>
@@ -197,9 +197,9 @@ export default function AcceptedValuesPicker({
                       key={id}
                       type="button"
                       onClick={() => toggle(id)}
-                      className={chipClass(active)}
+                      className={chipClass(active, item.tone)}
                     >
-                      <TaxonomyLucideIcon name={item.icon} className="h-3.5 w-3.5" />
+                      <TaxonomyLucideIcon name={item.icon} className="h-3.5 w-3.5" tone={item.tone} />
                       {t(taxonomyLabelKey(id))}
                     </button>
                   );

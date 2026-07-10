@@ -11,6 +11,7 @@ import OnboardingTour from '@/components/onboarding/OnboardingTour';
 import TourTrigger from '@/components/onboarding/TourTrigger';
 import ClientOnly from '@/components/util/ClientOnly';
 import SafeImage from '@/components/ui/SafeImage';
+import { LEGACY_VERTICAL_CHIP_CLASSES } from '@/lib/marketplace/marketplace-icon-colors';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { calculateDistance } from '@/lib/geocoding';
@@ -142,9 +143,9 @@ export default function InspiratieContent({
   // Get categories with translations
   const CATEGORIES = [
     { id: 'all', label: t('inspiratie.all'), icon: Lightbulb, color: 'bg-gray-100 text-gray-700 hover:bg-gray-200' },
-    { id: 'CHEFF', label: t('inspiratie.recipes'), icon: ChefHat, color: 'bg-orange-100 text-orange-700 hover:bg-orange-200' },
-    { id: 'GROWN', label: t('inspiratie.growing'), icon: Sprout, color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-    { id: 'DESIGNER', label: t('inspiratie.designs'), icon: Palette, color: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
+    { id: 'CHEFF', label: t('inspiratie.recipes'), icon: ChefHat, color: LEGACY_VERTICAL_CHIP_CLASSES.CHEFF },
+    { id: 'GROWN', label: t('inspiratie.growing'), icon: Sprout, color: LEGACY_VERTICAL_CHIP_CLASSES.GROWN },
+    { id: 'DESIGNER', label: t('inspiratie.designs'), icon: Palette, color: LEGACY_VERTICAL_CHIP_CLASSES.DESIGNER },
   ];
 
   // Region options for filtering

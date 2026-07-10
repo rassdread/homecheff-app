@@ -23,6 +23,8 @@ import {
   MARKETPLACE_ERROR_KEYS,
 } from '@/lib/marketplace/i18n-keys';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
+import { TAXONOMY_TONE_CLASSES, taxonomyToneChipClass } from '@/lib/marketplace/taxonomy-tone';
+import type { TaxonomyTone } from '@/lib/marketplace/taxonomy-types';
 
 export type MarketplaceEntryResult = {
   listingIntent: ListingIntentValue;
@@ -115,12 +117,27 @@ export default function MarketplaceEntryFlow({
     setStep('summary');
   };
 
-  const chipClass = (active: boolean) =>
-    `inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-      active
-        ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-sm'
-        : 'border-gray-200 bg-white text-gray-800 hover:border-emerald-300 hover:bg-emerald-50/40'
-    }`;
+  const chipClass = (active: boolean, tone: TaxonomyTone = 'service') =>
+    `inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${taxonomyToneChipClass(active, tone)} shadow-sm`;
+
+  const renderTaxonomyChip = (
+    taxonomyId: string,
+    icon: string,
+    tone: TaxonomyTone,
+    active: boolean,
+  ) => (
+    <button
+      key={taxonomyId}
+      type="button"
+      onClick={() => toggleSpec(taxonomyId)}
+      className={chipClass(active, tone)}
+      aria-pressed={active}
+    >
+      <TaxonomyLucideIcon name={icon} className="h-4 w-4" tone={tone} />
+      {active ? <span aria-hidden>✓ </span> : null}
+      {t(taxonomyLabelKey(taxonomyId))}
+    </button>
+  );
 
   const cardClass = (active: boolean) =>
     `rounded-xl border-2 p-4 text-left font-medium transition-colors ${
@@ -128,20 +145,6 @@ export default function MarketplaceEntryFlow({
         ? 'border-emerald-500 bg-emerald-50'
         : 'border-gray-200 hover:border-emerald-200 hover:bg-emerald-50/30'
     }`;
-
-  const renderTaxonomyChip = (taxonomyId: string, icon: string, active: boolean) => (
-    <button
-      key={taxonomyId}
-      type="button"
-      onClick={() => toggleSpec(taxonomyId)}
-      className={chipClass(active)}
-      aria-pressed={active}
-    >
-      <TaxonomyLucideIcon name={icon} className="h-4 w-4" />
-      {active ? <span aria-hidden>✓ </span> : null}
-      {t(taxonomyLabelKey(taxonomyId))}
-    </button>
-  );
 
   return (
     <div className="space-y-6">
@@ -240,11 +243,11 @@ export default function MarketplaceEntryFlow({
                 }}
                 className={`flex items-center gap-2 rounded-xl border p-3 text-left font-medium transition-colors ${
                   selectedGroupId === group.id
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-950'
-                    : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 text-gray-900'
+                    ? `border ${taxonomyToneChipClass(true, group.tone)}`
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-900'
                 }`}
               >
-                <TaxonomyLucideIcon name={group.icon} />
+                <TaxonomyLucideIcon name={group.icon} tone={group.tone} />
                 {t(taxonomyGroupLabelKey(group.id))}
               </button>
             ))}
@@ -284,6 +287,7 @@ export default function MarketplaceEntryFlow({
               renderTaxonomyChip(
                 item.id,
                 item.icon,
+                item.tone,
                 selectedSpecs.includes(item.id),
               ),
             )}
@@ -343,14 +347,16 @@ export default function MarketplaceEntryFlow({
               <div className="flex flex-wrap gap-2">
                 {selectedSpecs.map((taxonomyId) => {
                   const item = getMarketplaceTaxonomyItem(taxonomyId);
+                  const tone = item?.tone ?? 'service';
                   return (
                     <span
                       key={taxonomyId}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-white border border-emerald-200 px-3 py-1 text-sm text-emerald-900"
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm ${TAXONOMY_TONE_CLASSES[tone]}`}
                     >
                       <TaxonomyLucideIcon
                         name={item?.icon ?? 'Tag'}
                         className="h-3.5 w-3.5"
+                        tone={tone}
                       />
                       {t(taxonomyLabelKey(taxonomyId))}
                     </span>

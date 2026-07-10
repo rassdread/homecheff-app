@@ -1,9 +1,10 @@
 'use client';
 
-import { ShieldCheck, Banknote, Handshake, ArrowLeftRight, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 import { cn } from '@/lib/utils';
+import { SettlementLucideIcon } from '@/components/marketplace/SettlementLucideIcon';
 
 type Props = {
   orderMethod?: string | null;
@@ -58,7 +59,7 @@ export default function ProductDetailSettlementSection({
   if (options.acceptsHomeCheffCheckout && checkoutAvailable) {
     rows.push({
       key: 'homecheff',
-      icon: <ShieldCheck className="h-4 w-4 shrink-0 text-primary-brand" aria-hidden />,
+      icon: <SettlementLucideIcon kind="homecheff" size="md" />,
       label: t('marketplace.detail.settlement.homeCheffCheckout'),
       desc: t('marketplace.detail.settlement.homeCheffCheckoutDesc'),
     });
@@ -66,7 +67,7 @@ export default function ProductDetailSettlementSection({
   if (options.acceptsDirectContact) {
     rows.push({
       key: 'direct',
-      icon: <Banknote className="h-4 w-4 shrink-0 text-gray-600" aria-hidden />,
+      icon: <SettlementLucideIcon kind="directContact" size="md" />,
       label: t('marketplace.detail.settlement.directContact'),
       desc: t('marketplace.detail.settlement.directContactDesc'),
     });
@@ -74,7 +75,7 @@ export default function ProductDetailSettlementSection({
   if (options.allowsBarter) {
     rows.push({
       key: 'barter',
-      icon: <Handshake className="h-4 w-4 shrink-0 text-amber-600" aria-hidden />,
+      icon: <SettlementLucideIcon kind="barter" size="md" />,
       label: t('marketplace.detail.settlement.barter'),
       desc: t('marketplace.detail.settlement.barterDesc'),
     });
@@ -82,7 +83,7 @@ export default function ProductDetailSettlementSection({
   if (options.hasAcceptedValues) {
     rows.push({
       key: 'value',
-      icon: <ArrowLeftRight className="h-4 w-4 shrink-0 text-secondary-brand" aria-hidden />,
+      icon: <SettlementLucideIcon kind="acceptedValues" size="md" />,
       label: t('marketplace.detail.settlement.acceptedValues'),
       desc: t('marketplace.detail.settlement.acceptedValuesDesc'),
     });

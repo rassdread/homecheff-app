@@ -7,6 +7,11 @@ import { MAIN_CATEGORY_REGISTRY } from '@/lib/marketplace/value-exchange/main-ca
 import { marketplaceCategoryToMainCategory } from '@/lib/marketplace/value-exchange/category-taxonomy-map';
 import { resolveOfferBadgeByTaxonomyId } from '@/lib/marketplace/taxonomy-badges';
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
+import {
+  resolveMainCategoryTone,
+} from '@/lib/marketplace/marketplace-icon-colors';
+import type { ValueExchangeMainCategory } from '@/lib/marketplace/value-exchange/value-exchange-contract';
+import type { TaxonomyTone } from '@/lib/marketplace/taxonomy-types';
 import type { TileBadgeVariant } from './tile-badge-priority';
 import type { MarketplaceTileModel, TranslateFn } from './types';
 
@@ -14,6 +19,7 @@ export type TileAcceptedValueIcon = {
   taxonomyId: string;
   icon: string;
   iconKind: 'lucide' | 'emoji';
+  taxonomyTone?: import('@/lib/marketplace/taxonomy-types').TaxonomyTone | null;
   ariaLabel: string;
   tooltipLabel: string;
 };
@@ -75,6 +81,25 @@ function resolveIconForTaxonomyId(
   return null;
 }
 
+function resolveToneForTaxonomyId(taxonomyId: string): TaxonomyTone | null {
+  if (taxonomyId.startsWith('main:')) {
+    const mainId = taxonomyId.slice(5) as ValueExchangeMainCategory;
+    if (mainId in MAIN_CATEGORY_REGISTRY) {
+      return resolveMainCategoryTone(mainId);
+    }
+    return null;
+  }
+  const registry = resolveOfferBadgeByTaxonomyId(taxonomyId);
+  if (registry?.tone) return registry.tone;
+  const item = getMarketplaceTaxonomyItem(taxonomyId);
+  if (item?.tone) return item.tone;
+  if (item) {
+    const main = marketplaceCategoryToMainCategory(item.category, item.id);
+    return resolveMainCategoryTone(main);
+  }
+  return null;
+}
+
 function resolveLabelKey(taxonomyId: string): string {
   if (taxonomyId.startsWith('main:')) {
     const mainId = taxonomyId.slice(5) as keyof typeof MAIN_CATEGORY_REGISTRY;
@@ -108,6 +133,7 @@ export function buildTileAcceptedValueIcons(
       taxonomyId,
       icon: resolved.icon,
       iconKind: resolved.iconKind,
+      taxonomyTone: resolveToneForTaxonomyId(taxonomyId),
       ariaLabel: t('marketplace.tile.acceptedValues.aria', { name }),
       tooltipLabel: name,
     });

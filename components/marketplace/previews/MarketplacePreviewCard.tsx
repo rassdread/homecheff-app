@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, type ReactNode } from 'react';
-import { ShieldCheck, Banknote, Handshake, ArrowLeftRight } from 'lucide-react';
 import { buildMarketplacePreviewContent } from '@/lib/marketplace/previews';
 import type { MarketplacePreviewContent } from '@/lib/marketplace/previews/types';
 import type { MarketplaceTileModel, TranslateFn } from '@/lib/marketplace/tiles/types';
@@ -9,6 +8,8 @@ import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlemen
 import { PreviewFulfillmentIcon } from './preview-fulfillment-icons';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import MarketplacePreviewActions from './MarketplacePreviewActions';
+import { SettlementLucideIcon } from '@/components/marketplace/SettlementLucideIcon';
+import { TAXONOMY_TONE_CLASSES } from '@/lib/marketplace/taxonomy-tone';
 
 /** Phase 7C.7 — plain-language settlement explanation for the preview. */
 function PreviewSettlement({
@@ -37,16 +38,16 @@ function PreviewSettlement({
 
   const rows: { key: string; icon: ReactNode; label: string }[] = [];
   if (options.canCheckoutNow) {
-    rows.push({ key: 'homecheff', icon: <ShieldCheck className="h-3.5 w-3.5 text-primary-brand" aria-hidden />, label: t('marketplace.preview.settlement.homeCheffCheckout') });
+    rows.push({ key: 'homecheff', icon: <SettlementLucideIcon kind="homecheff" />, label: t('marketplace.preview.settlement.homeCheffCheckout') });
   }
   if (options.acceptsDirectContact) {
-    rows.push({ key: 'direct', icon: <Banknote className="h-3.5 w-3.5 text-gray-600" aria-hidden />, label: t('marketplace.preview.settlement.directContact') });
+    rows.push({ key: 'direct', icon: <SettlementLucideIcon kind="directContact" />, label: t('marketplace.preview.settlement.directContact') });
   }
   if (options.allowsBarter) {
-    rows.push({ key: 'barter', icon: <Handshake className="h-3.5 w-3.5 text-amber-600" aria-hidden />, label: t('marketplace.preview.settlement.barter') });
+    rows.push({ key: 'barter', icon: <SettlementLucideIcon kind="barter" />, label: t('marketplace.preview.settlement.barter') });
   }
   if (options.hasAcceptedValues) {
-    rows.push({ key: 'value', icon: <ArrowLeftRight className="h-3.5 w-3.5 text-secondary-brand" aria-hidden />, label: t('marketplace.preview.settlement.acceptedValues') });
+    rows.push({ key: 'value', icon: <SettlementLucideIcon kind="acceptedValues" />, label: t('marketplace.preview.settlement.acceptedValues') });
   }
 
   if (rows.length === 0) return null;
@@ -272,10 +273,10 @@ export default function MarketplacePreviewCard({
               {content.acceptedValues.map((v) => (
                 <li
                   key={v.id}
-                  className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800"
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${TAXONOMY_TONE_CLASSES[v.tone ?? 'service']}`}
                 >
                   {v.icon ? (
-                    <TaxonomyLucideIcon name={v.icon} className="h-3 w-3 shrink-0" />
+                    <TaxonomyLucideIcon name={v.icon} className="h-3 w-3 shrink-0" tone={v.tone} />
                   ) : null}
                   {v.label}
                 </li>

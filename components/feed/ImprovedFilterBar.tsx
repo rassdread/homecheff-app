@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ChefHat, Sprout, Palette, MapPin, Euro, Truck, Package, TrendingUp, Clock, X, Search, Grid3X3, List, Users, Filter, ChevronDown, Check, Navigation, Map, Globe } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { LEGACY_VERTICAL_CHIP_CLASSES } from '@/lib/marketplace/marketplace-icon-colors';
 
 // Subcategories per main category - loaded dynamically via translations
 const getSubcategories = (t: (key: string) => string): Record<string, string[]> => {
@@ -23,9 +24,9 @@ const getSubcategories = (t: (key: string) => string): Record<string, string[]> 
 
 const getMainCategories = (t: (key: string) => string, useDorpspleinLabels: boolean = false) => [
   { id: 'all', label: t('filters.all'), icon: Package, color: 'bg-gray-100 text-gray-700 hover:bg-gray-200' },
-  { id: 'CHEFF', label: useDorpspleinLabels ? t('inspiratie.dorpsplein.recipes') : t('inspiratie.recipes'), icon: ChefHat, color: 'bg-orange-100 text-orange-700 hover:bg-orange-200' },
-  { id: 'GROWN', label: useDorpspleinLabels ? t('inspiratie.dorpsplein.growing') : t('inspiratie.growing'), icon: Sprout, color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-  { id: 'DESIGNER', label: useDorpspleinLabels ? t('inspiratie.dorpsplein.designs') : t('inspiratie.designs'), icon: Palette, color: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
+  { id: 'CHEFF', label: useDorpspleinLabels ? t('inspiratie.dorpsplein.recipes') : t('inspiratie.recipes'), icon: ChefHat, color: LEGACY_VERTICAL_CHIP_CLASSES.CHEFF },
+  { id: 'GROWN', label: useDorpspleinLabels ? t('inspiratie.dorpsplein.growing') : t('inspiratie.growing'), icon: Sprout, color: LEGACY_VERTICAL_CHIP_CLASSES.GROWN },
+  { id: 'DESIGNER', label: useDorpspleinLabels ? t('inspiratie.dorpsplein.designs') : t('inspiratie.designs'), icon: Palette, color: LEGACY_VERTICAL_CHIP_CLASSES.DESIGNER },
 ];
 
 const getDeliveryOptions = (t: (key: string) => string) => [

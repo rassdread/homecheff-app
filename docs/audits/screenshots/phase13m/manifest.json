@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-07-10T22:32:41.102Z",
+  "results": [
+    {
+      "shot": "01-desktop-feed-multi-tone",
+      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/?chip=sale#homecheff-feed\", waiting until \"networkidle\"\n"
+    },
+    {
+      "shot": "02-mobile-feed",
+      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/?chip=sale#homecheff-feed\", waiting until \"networkidle\"\n"
+    },
+    {
+      "shot": "03-desktop-home-vertical-chips",
+      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/?chip=sale#homecheff-feed\", waiting until \"networkidle\"\n"
+    },
+    {
+      "shot": "04-mobile-sell-entry-flow",
+      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/sell/new\", waiting until \"networkidle\"\n"
+    },
+    {
+      "shot": "05-desktop-product-detail-settlement",
+      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17\", waiting until \"networkidle\"\n"
+    },
+    {
+      "shot": "06-mobile-product-detail-settlement",
+      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17\", waiting until \"networkidle\"\n"
+    },
+    {
+      "shot": "07-desktop-inspiratie-feed",
+      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/inspiratie\", waiting until \"networkidle\"\n"
+    },
+    {
+      "shot": "08-desktop-accepted-values-filter",
+      "path": "/Users/sergioarrias/Homecheff-app git/docs/audits/screenshots/phase13m/08-desktop-accepted-values-filter.png"
+    }
+  ]
+}

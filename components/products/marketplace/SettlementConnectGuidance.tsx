@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, ShieldAlert, ExternalLink } from 'lucide-react';
+import { ShieldAlert, ExternalLink } from 'lucide-react';
+import { SettlementLucideIcon } from '@/components/marketplace/SettlementLucideIcon';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -77,7 +78,7 @@ export default function SettlementConnectGuidance({
         className="mt-3 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3"
         role="status"
       >
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+        <SettlementLucideIcon kind="homecheff" size="md" className="mt-0.5 shrink-0" />
         <p className="text-xs leading-relaxed text-emerald-900">
           {t('marketplace.settlement.connectReady')}
         </p>

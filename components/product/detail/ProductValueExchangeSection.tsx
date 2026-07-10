@@ -150,6 +150,7 @@ export default function ProductValueExchangeSection({
                       <TaxonomyLucideIcon
                         name={item?.icon ?? 'Tag'}
                         className="h-3.5 w-3.5 shrink-0"
+                        tone={item?.tone}
                       />
                       {label}
                     </div>

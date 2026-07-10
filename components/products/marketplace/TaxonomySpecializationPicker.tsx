@@ -14,6 +14,8 @@ import {
   taxonomyGroupLabelKey,
   taxonomyLabelKey,
 } from '@/lib/marketplace/taxonomy-i18n';
+import { taxonomyToneChipClass } from '@/lib/marketplace/taxonomy-tone';
+import type { TaxonomyTone } from '@/lib/marketplace/taxonomy-types';
 import { MARKETPLACE_ERROR_KEYS } from '@/lib/marketplace/i18n-keys';
 
 type Props = {
@@ -54,12 +56,8 @@ export default function TaxonomySpecializationPicker({
     setMessage(null);
   };
 
-  const chipClass = (active: boolean) =>
-    `inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
-      active
-        ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
-        : 'border-gray-200 bg-white text-gray-700 hover:border-emerald-300'
-    }`;
+  const chipClass = (active: boolean, tone: TaxonomyTone = 'service') =>
+    `inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${taxonomyToneChipClass(active, tone)}`;
 
   return (
     <div className={className ?? 'rounded-xl border border-gray-200 bg-gray-50/60 p-4 space-y-4'}>
@@ -74,21 +72,26 @@ export default function TaxonomySpecializationPicker({
 
       {value.length > 0 ? (
         <div className="flex flex-wrap gap-2">
-          {value.map((taxonomyId) => (
+          {value.map((taxonomyId) => {
+            const item = getMarketplaceTaxonomyItem(taxonomyId);
+            const tone = item?.tone ?? 'service';
+            return (
             <button
               key={taxonomyId}
               type="button"
               onClick={() => toggle(taxonomyId)}
-              className={chipClass(true)}
+              className={chipClass(true, tone)}
             >
               <TaxonomyLucideIcon
-                name={getMarketplaceTaxonomyItem(taxonomyId)?.icon ?? 'Tag'}
+                name={item?.icon ?? 'Tag'}
                 className="h-3.5 w-3.5"
+                tone={tone}
               />
               {t(taxonomyLabelKey(taxonomyId))}
               <span aria-hidden>×</span>
             </button>
-          ))}
+          );
+          })}
         </div>
       ) : null}
 
@@ -102,11 +105,11 @@ export default function TaxonomySpecializationPicker({
             }
             className={`flex items-center gap-2 rounded-xl border p-3 text-left text-sm font-medium transition-colors ${
               selectedGroupId === group.id
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-950'
-                : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 text-gray-900'
+                ? `border ${taxonomyToneChipClass(true, group.tone)}`
+                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-900'
             }`}
           >
-            <TaxonomyLucideIcon name={group.icon} className="h-4 w-4 shrink-0" />
+            <TaxonomyLucideIcon name={group.icon} className="h-4 w-4 shrink-0" tone={group.tone} />
             {t(taxonomyGroupLabelKey(group.id))}
           </button>
         ))}
@@ -123,10 +126,10 @@ export default function TaxonomySpecializationPicker({
                 key={item.id}
                 type="button"
                 onClick={() => toggle(item.id)}
-                className={chipClass(value.includes(item.id))}
+                className={chipClass(value.includes(item.id), item.tone)}
                 aria-pressed={value.includes(item.id)}
               >
-                <TaxonomyLucideIcon name={item.icon} className="h-3.5 w-3.5" />
+                <TaxonomyLucideIcon name={item.icon} className="h-3.5 w-3.5" tone={item.tone} />
                 {value.includes(item.id) ? <span aria-hidden>✓ </span> : null}
                 {t(taxonomyLabelKey(item.id))}
               </button>

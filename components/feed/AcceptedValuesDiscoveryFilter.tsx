@@ -17,6 +17,7 @@ import {
   taxonomyGroupLabelKey,
   taxonomyLabelKey,
 } from '@/lib/marketplace/taxonomy-i18n';
+import { taxonomyToneChipClass } from '@/lib/marketplace/taxonomy-tone';
 import { isPendingAcceptedValueId } from '@/lib/marketplace/pending-accepted-values/constants';
 import { resolveAcceptedValueEntry } from '@/lib/marketplace/pending-accepted-values/resolve-pending-display';
 import { usePendingAcceptedValueRegistry } from '@/hooks/usePendingAcceptedValueRegistry';
@@ -31,13 +32,11 @@ type Props = {
   offerMode?: boolean;
 };
 
-const chipClass = (active: boolean, compact: boolean) =>
+const chipClass = (active: boolean, compact: boolean, tone = 'service' as const) =>
   cn(
     'inline-flex items-center gap-1.5 rounded-full border font-medium transition-all touch-manipulation',
     compact ? 'px-2 py-1 text-[11px]' : 'px-3 py-1.5 text-sm',
-    active
-      ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
-      : 'border-gray-200 bg-white text-gray-700 hover:border-emerald-300',
+    taxonomyToneChipClass(active, tone),
   );
 
 /**
@@ -221,12 +220,13 @@ export default function AcceptedValuesDiscoveryFilter({
                       key={id}
                       type="button"
                       onClick={() => toggle(id)}
-                      className={chipClass(active, compact)}
+                      className={chipClass(active, compact, item.tone)}
                       aria-pressed={active}
                     >
                       <TaxonomyLucideIcon
                         name={item.icon}
                         className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}
+                        tone={item.tone}
                       />
                       {t(taxonomyLabelKey(id))}
                     </button>
@@ -251,11 +251,12 @@ export default function AcceptedValuesDiscoveryFilter({
                   key={id}
                   type="button"
                   onClick={() => toggle(id)}
-                  className={chipClass(true, compact)}
+                  className={chipClass(true, compact, entry.tone)}
                 >
                   <TaxonomyLucideIcon
                     name={entry.icon}
                     className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}
+                    tone={entry.tone}
                   />
                   {entry.label}
                   <span aria-hidden>×</span>

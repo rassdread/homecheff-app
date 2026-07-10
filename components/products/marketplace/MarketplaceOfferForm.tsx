@@ -498,6 +498,7 @@ export default function MarketplaceOfferForm({
                     <TaxonomyLucideIcon
                       name={item?.icon ?? 'Tag'}
                       className="h-3.5 w-3.5"
+                      tone={item?.tone}
                     />
                     {t(specializationI18nKey(marketplaceCategory, id))}
                   </span>

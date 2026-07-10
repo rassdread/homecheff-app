@@ -12,6 +12,7 @@ export function buildPreviewAcceptedValues(
     id: b.id,
     label: b.displayLabel ?? t(b.labelKey),
     icon: b.icon,
+    tone: b.tone,
   }));
   return {
     values: mapped.slice(0, PREVIEW_ACCEPTED_MAX),

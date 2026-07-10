@@ -19,6 +19,7 @@ export type PreviewAcceptedValue = {
   id: string;
   label: string;
   icon?: string;
+  tone?: import('@/lib/marketplace/taxonomy-types').TaxonomyTone;
 };
 
 export type PreviewTrustLine = {

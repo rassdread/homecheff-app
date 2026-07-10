@@ -30,6 +30,7 @@ import {
   type InstructionMeta,
 } from '@/lib/inspiratie/instruction-content';
 import type { InstructionDownloadState } from '@/lib/inspiratie/instruction-download';
+import { LEGACY_VERTICAL_ICON_CLASSES } from '@/lib/marketplace/marketplace-icon-colors';
 
 type Props = {
   category: InspirationCategory;
@@ -47,9 +48,9 @@ type Props = {
 };
 
 const CATEGORY_ACCENT: Record<InspirationCategory, string> = {
-  CHEFF: 'text-orange-600',
-  GROWN: 'text-emerald-600',
-  DESIGNER: 'text-purple-600',
+  CHEFF: LEGACY_VERTICAL_ICON_CLASSES.CHEFF,
+  GROWN: LEGACY_VERTICAL_ICON_CLASSES.GROWN,
+  DESIGNER: LEGACY_VERTICAL_ICON_CLASSES.DESIGNER,
 };
 
 const CATEGORY_RING: Record<InspirationCategory, string> = {
