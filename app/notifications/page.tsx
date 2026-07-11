@@ -10,6 +10,7 @@ import AppBackBar from '@/components/navigation/AppBackBar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 import { useSessionSwr } from '@/hooks/useSessionSwr';
+import { NotificationsLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 
 function mapApiToFeed(raw: unknown[]): NotificationFeedItem[] {
   return (raw as any[]).map((n) => ({
@@ -112,11 +113,7 @@ export default function NotificationsPage() {
   );
 
   if (status === 'loading') {
-    return (
-      <main className="mx-auto max-w-2xl px-4 py-10">
-        <div className="h-8 animate-pulse rounded bg-gray-200" />
-      </main>
-    );
+    return <NotificationsLoadingSkeleton />;
   }
 
   return (

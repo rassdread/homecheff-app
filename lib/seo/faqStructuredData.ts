@@ -1,15 +1,18 @@
+import { getPlatformDefinition } from './platform-definition';
+
 /** Curated FAQPage entities for JSON-LD (server-only; matches /faq themes). */
 export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
+  const def = getPlatformDefinition(lang);
   const pairs =
     lang === 'en'
       ? [
           {
             q: 'What is HomeCheff?',
-            a: 'HomeCheff is a local craft, exchange and community platform. Neighbours offer and discover food, garden harvest, creations, services and help — with secure checkout, direct contact, barter or proposals.',
+            a: def.faqWhatIsHomeCheff,
           },
           {
             q: 'What is the Village Square (Dorpsplein)?',
-            a: 'The Village Square is your local marketplace feed to discover what makers and neighbours offer nearby — products, services and help — with filters and profiles for trust and transparency.',
+            a: 'The Village Square is where you discover what local makers and neighbours offer nearby — food, garden, creations, services and help — with profiles for trust. The person behind the offer is always visible.',
           },
           {
             q: 'What are HomeCheff Points (HCP)?',
@@ -17,7 +20,7 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           },
           {
             q: 'How do I offer from home on HomeCheff?',
-            a: 'Create a seller profile, choose a category (food, garden, creations or services), add listings with clear photos, and receive payouts via Stripe Connect when you use HomeCheff Checkout.',
+            a: 'Create a profile, choose a category (food, garden, creations or services), add listings with clear photos, and receive payouts via Stripe Connect when you use HomeCheff Checkout.',
           },
           {
             q: 'How do payouts and agreements work?',
@@ -27,11 +30,11 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
       : [
           {
             q: 'Wat is HomeCheff?',
-            a: 'HomeCheff is een lokaal platform voor vakmanschap, waarde-uitwisseling en community. Buurtgenoten bieden en ontdekken eten, tuinoogst, creaties, diensten en hulp — met veilig afrekenen, direct contact, ruil of voorstellen.',
+            a: def.faqWhatIsHomeCheff,
           },
           {
             q: 'Wat is het Dorpsplein?',
-            a: 'Het Dorpsplein is je lokale marktplaats-feed om te zien wat makers en buren bij jou in de buurt aanbieden — producten, diensten en hulp — met filters en profielen voor vertrouwen.',
+            a: 'Het Dorpsplein is waar je ontdekt wat lokale makers en buren bij jou in de buurt aanbieden — eten, tuin, creaties, diensten en hulp — met profielen voor vertrouwen. De persoon achter het aanbod is altijd zichtbaar.',
           },
           {
             q: 'Wat zijn HomeCheff Points (HCP)?',
@@ -39,7 +42,7 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           },
           {
             q: 'Hoe bied ik iets aan op HomeCheff?',
-            a: 'Maak een verkopersprofiel, kies een categorie (eten, tuin, creaties of diensten), voeg aanbiedingen met foto’s toe, en ontvang uitbetalingen via Stripe Connect bij HomeCheff Checkout.',
+            a: 'Maak een profiel aan, kies een categorie (eten, tuin, creaties of diensten), voeg aanbiedingen met foto’s toe, en ontvang uitbetalingen via Stripe Connect bij HomeCheff Checkout.',
           },
           {
             q: 'Hoe werken uitbetalingen en afspraken?',

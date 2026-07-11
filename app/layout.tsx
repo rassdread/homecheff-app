@@ -6,6 +6,7 @@ import { headers, cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { MAIN_DOMAIN, getMetadataBaseFromHeaders, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
+import { getPlatformDefinition, PLATFORM_KEYWORDS } from '@/lib/seo/platform-definition';
 
 // Lazy load non-critical components for faster initial page load
 const PrivacyNotice = dynamic(() => import('@/components/PrivacyNotice'), {
@@ -66,28 +67,21 @@ export async function generateMetadata(): Promise<Metadata> {
     lang = isEnglishDomain ? 'en' : 'nl';
   }
 
+  const platform = getPlatformDefinition(lang);
+
   if (lang === 'en') {
     return {
       metadataBase,
       manifest: '/manifest.json',
       title: {
-        default: 'HomeCheff - Discover Digital Studios, Gardens and Kitchens',
+        default: platform.defaultTitle,
         template: '%s | HomeCheff',
       },
-      description: 'HomeCheff - Discover digital studios, gardens and kitchens in your neighborhood — or share yours and earn extra. Collect inspiration, sell what you make for free, with direct payouts. Your neighborhood becomes your village square.',
-      keywords: [
-        'HomeCheff', 'homecheff', 'home cheff', 'home-cheff', 'homechef', 'home chef',
-        'HomeCheff platform', 'HomeCheff marketplace', 'HomeCheff app', 'HomeCheff website',
-        'HomeCheff Netherlands', 'HomeCheff Europe', 'HomeCheff local', 'HomeCheff neighborhood',
-        'homemade', 'local', 'handmade', 'local marketplace', 'community marketplace',
-        'fresh produce', 'handmade creations', 'local services', 'value exchange',
-        'digital studios', 'digital gardens', 'digital kitchens', 'neighbourhood platform',
-        'homemade meals', 'local cooking', 'recipes',
-        'sell homemade', 'buy local', 'local shopping', 'support local',
-      ],
+      description: platform.defaultDescription,
+      keywords: PLATFORM_KEYWORDS.en,
       openGraph: {
-        title: 'HomeCheff - Discover Digital Studios, Gardens and Kitchens',
-        description: 'HomeCheff - Discover digital studios, gardens and kitchens in your neighborhood — or share yours and earn extra.',
+        title: platform.defaultTitle,
+        description: platform.defaultDescription,
         type: 'website',
         url: currentDomain,
         siteName: 'HomeCheff',
@@ -117,22 +111,14 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase,
     manifest: '/manifest.json',
     title: {
-      default: 'HomeCheff - Ontdek Digitale Ateliers, Tuinen en Keukens',
+      default: platform.defaultTitle,
       template: '%s | HomeCheff',
     },
-    description: 'HomeCheff - Ontdek digitale ateliers, tuinen en keukens in jouw buurt — of deel de jouwe en verdien extra. Verzamel inspiratie, verkoop gratis wat je maakt, met directe uitbetalingen. Jouw buurt wordt jouw dorpsplein.',
-    keywords: [
-      'HomeCheff', 'homecheff', 'home cheff', 'home-cheff', 'homechef', 'home chef',
-      'HomeCheff platform', 'HomeCheff marktplaats', 'HomeCheff app', 'HomeCheff website',
-      'HomeCheff Nederland', 'HomeCheff lokaal', 'HomeCheff buurt',
-      'thuisgemaakt', 'lokaal', 'handgemaakt', 'lokale marktplaats', 'buurtplatform',
-      'verse oogst', 'handgemaakte creaties', 'lokale diensten', 'waarde-uitwisseling',
-      'digitale ateliers', 'digitale tuinen', 'digitale keukens', 'community marktplaats',
-      'thuisgemaakte maaltijden', 'lokaal koken', 'recepten',
-    ],
+    description: platform.defaultDescription,
+    keywords: PLATFORM_KEYWORDS.nl,
     openGraph: {
-      title: 'HomeCheff - Ontdek Digitale Ateliers, Tuinen en Keukens',
-      description: 'HomeCheff - Ontdek digitale ateliers, tuinen en keukens in jouw buurt — of deel de jouwe en verdien extra.',
+      title: platform.defaultTitle,
+      description: platform.defaultDescription,
       type: 'website',
       url: currentDomain,
       siteName: 'HomeCheff',

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { 
@@ -50,6 +50,13 @@ import {
   type DiscoveryTrustContract,
 } from '@/lib/discovery/contracts/discovery-trust-contract';
 import { DESKTOP_DETAIL_GRID } from '@/lib/marketplace/detail/detail-layout-contract';
+import { ProductDetailLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
+import { consumeRouteLoadingHandoff } from '@/lib/instant-experience/route-loading-handoff';
+import {
+  readListingDetailReturnCache,
+  saveListingDetailReturnCache,
+  type ListingDetailReturnSnapshot,
+} from '@/lib/instant-experience/listing-detail-return-cache';
 
 type Product = {
   id: string;
@@ -239,6 +246,85 @@ export default function ListingDetailPage() {
   );
   const [loadError, setLoadError] = useState<ListingDetailLoadError | null>(null);
   const [fetchGeneration, setFetchGeneration] = useState(0);
+  const [showClientSkeleton, setShowClientSkeleton] = useState(true);
+  const handoffCheckedRef = useRef(false);
+  const hasStaleSnapshotRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!routeParam || typeof window === 'undefined') return;
+    const resolvedId = listingDetailResolvedId(routeParam);
+    const snapshot = readListingDetailReturnCache(resolvedId);
+    if (snapshot?.product) {
+      hasStaleSnapshotRef.current = true;
+      setProduct(snapshot.product as Product);
+      if (snapshot.stats) setStats(snapshot.stats as ProductStats);
+      if (Array.isArray(snapshot.reviews)) setReviews(snapshot.reviews);
+      if (Array.isArray(snapshot.sellerBadges)) {
+        setSellerBadges(snapshot.sellerBadges as UserBadgeChipItem[]);
+      }
+      if (snapshot.discoveryTrust) {
+        setDiscoveryTrust(snapshot.discoveryTrust as DiscoveryTrustContract);
+      }
+      if (snapshot.dishInfo) {
+        setDishInfo(
+          snapshot.dishInfo as import('@/components/product/detail/ProductSaleDomainStory').ProductSaleDishInfo,
+        );
+      }
+      if (snapshot.linkedInspiration) {
+        setLinkedInspiration(snapshot.linkedInspiration as ProductInspirationLink);
+      }
+      if (Array.isArray(snapshot.publicContactChannels)) {
+        setPublicContactChannels(snapshot.publicContactChannels as PublicContactChannel[]);
+      }
+      setCheckoutAvailable(snapshot.checkoutAvailable !== false);
+      setPaymentStatus((snapshot.paymentStatus as PublicPaymentStatus | null) ?? null);
+      setIsBusiness(Boolean(snapshot.isBusiness));
+      setCompanyName(snapshot.companyName ?? null);
+      setIsLoading(false);
+      setShowClientSkeleton(false);
+      return;
+    }
+    if (!handoffCheckedRef.current) {
+      handoffCheckedRef.current = true;
+      if (consumeRouteLoadingHandoff()) {
+        setShowClientSkeleton(false);
+      }
+    }
+  }, [routeParam]);
+
+  const persistListingDetailSnapshot = (
+    nextProduct: Product,
+    payload: {
+      stats: ProductStats;
+      reviews: unknown[];
+      sellerBadges: UserBadgeChipItem[];
+      discoveryTrust: DiscoveryTrustContract;
+      dishInfo: import('@/components/product/detail/ProductSaleDomainStory').ProductSaleDishInfo;
+      linkedInspiration: ProductInspirationLink | null;
+      publicContactChannels: PublicContactChannel[];
+      checkoutAvailable: boolean;
+      paymentStatus: PublicPaymentStatus | null;
+      isBusiness: boolean;
+      companyName: string | null;
+    },
+  ) => {
+    if (!routeParam) return;
+    const snapshot: Omit<ListingDetailReturnSnapshot, 'savedAt'> = {
+      product: nextProduct,
+      stats: payload.stats,
+      reviews: payload.reviews,
+      sellerBadges: payload.sellerBadges,
+      discoveryTrust: payload.discoveryTrust,
+      dishInfo: payload.dishInfo,
+      linkedInspiration: payload.linkedInspiration,
+      publicContactChannels: payload.publicContactChannels,
+      checkoutAvailable: payload.checkoutAvailable,
+      paymentStatus: payload.paymentStatus,
+      isBusiness: payload.isBusiness,
+      companyName: payload.companyName,
+    };
+    saveListingDetailReturnCache(listingDetailResolvedId(routeParam), snapshot);
+  };
 
   useEffect(() => {
     if (!routeParam) return;
@@ -268,7 +354,9 @@ export default function ListingDetailPage() {
       };
 
       try {
-        setIsLoading(true);
+        if (!hasStaleSnapshotRef.current) {
+          setIsLoading(true);
+        }
         setLoadError(null);
         navDebug('listing-detail:fetch', diagBase);
         listingDetailDiag('fetch:start', diagBase);
@@ -465,18 +553,29 @@ export default function ListingDetailPage() {
           surface: 'detail',
           entrypoint: 'product_detail_load',
         });
-        setSellerBadges(Array.isArray(data.sellerBadges) ? data.sellerBadges : []);
-        setIsBusiness(Boolean(data.isBusiness));
-        setCompanyName(data.companyName ?? data.product.seller?.companyName ?? null);
+        const nextSellerBadges = Array.isArray(data.sellerBadges) ? data.sellerBadges : [];
+        setSellerBadges(nextSellerBadges);
+        const nextIsBusiness = Boolean(data.isBusiness);
+        setIsBusiness(nextIsBusiness);
+        const nextCompanyName = data.companyName ?? data.product.seller?.companyName ?? null;
+        setCompanyName(nextCompanyName);
 
+        const nextPublicContactChannels = Array.isArray(data.publicContactChannels)
+          ? data.publicContactChannels
+          : [];
         if (Array.isArray(data.publicContactChannels)) {
-          setPublicContactChannels(data.publicContactChannels);
+          setPublicContactChannels(nextPublicContactChannels);
         }
 
-        setCheckoutAvailable(data.checkoutAvailable !== false);
-        setPaymentStatus(data.paymentStatus ?? null);
+        const nextCheckoutAvailable = data.checkoutAvailable !== false;
+        setCheckoutAvailable(nextCheckoutAvailable);
+        const nextPaymentStatus = data.paymentStatus ?? null;
+        setPaymentStatus(nextPaymentStatus);
+        const nextDiscoveryTrust = data.discoveryTrust
+          ? (data.discoveryTrust as DiscoveryTrustContract)
+          : EMPTY_DISCOVERY_TRUST_CONTRACT;
         if (data.discoveryTrust) {
-          setDiscoveryTrust(data.discoveryTrust as DiscoveryTrustContract);
+          setDiscoveryTrust(nextDiscoveryTrust);
         }
         
         if (session?.user?.email) {
@@ -504,11 +603,42 @@ export default function ListingDetailPage() {
           }
         }
 
+        let loadedReviews: unknown[] = [];
         try {
-          await loadReviews(data.product.id);
+          const reviewResponse = await fetch(`/api/products/${data.product.id}/reviews`);
+          if (reviewResponse.ok) {
+            const reviewPayload = await reviewResponse.json();
+            loadedReviews = reviewPayload.reviews || [];
+            setReviews(loadedReviews);
+          }
         } catch (reviewError) {
           console.error('Error loading reviews:', reviewError);
         }
+
+        const nextStats = data.stats
+          ? (data.stats as ProductStats)
+          : stats;
+
+        persistListingDetailSnapshot(transformedProduct, {
+          stats: nextStats,
+          reviews: loadedReviews,
+          sellerBadges: nextSellerBadges,
+          discoveryTrust: nextDiscoveryTrust,
+          dishInfo: dishData,
+          linkedInspiration:
+            data.linkedInspiration?.href && data.linkedInspiration?.category
+              ? {
+                  href: data.linkedInspiration.href,
+                  category: data.linkedInspiration.category,
+                }
+              : null,
+          publicContactChannels: nextPublicContactChannels,
+          checkoutAvailable: nextCheckoutAvailable,
+          paymentStatus: nextPaymentStatus,
+          isBusiness: nextIsBusiness,
+          companyName: nextCompanyName,
+        });
+        hasStaleSnapshotRef.current = true;
       } catch (error) {
         listingDetailDiag('fetch:threw', {
           routeParam,
@@ -667,24 +797,16 @@ export default function ListingDetailPage() {
   }
 
   if (isLoading) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-200 rounded w-32"></div>
-            <div className="h-96 bg-gray-200 rounded-3xl"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-4">
-                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-              </div>
-              <div className="h-64 bg-gray-200 rounded-3xl"></div>
-            </div>
-          </div>
-        </div>
-      </main>
-    );
+    if (!showClientSkeleton) {
+      return (
+        <main
+          className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100"
+          aria-busy
+          aria-label={t('product.loading') || 'Advertentie laden'}
+        />
+      );
+    }
+    return <ProductDetailLoadingSkeleton />;
   }
 
   if (loadError) {

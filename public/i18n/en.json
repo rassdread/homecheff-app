@@ -4143,7 +4143,7 @@
       "rightToDeletion": "Right to Deletion",
       "rightToDeletionDesc": "You can request deletion of your account and associated personal data via your profile or by contacting support. Some information may be retained where required by law or for legitimate accounting and security purposes.",
       "rightToPortability": "Right to Portability",
-      "rightToPortabilityDesc": "You can export your data in a standard format for use elsewhere.",
+      "rightToPortabilityDesc": "You can request an export of your data. Full export is being rolled out — contact support@homecheff.eu if you need help.",
       "cookiesAndTracking": "Cookies and Tracking",
       "minimalCookieUse": "Minimal Cookie Use",
       "minimalCookieUseDesc": "We use essential cookies and similar technologies to keep you signed in, remember preferences (such as language), and protect security:",
@@ -4469,7 +4469,7 @@
     "categoryDesignDescription": "Make something creative? Find customers directly.",
     "feedSectionTitle": "HomeCheff feed",
     "affiliateButtonFallback": "Affiliate 12-12",
-    "schemaOrganizationDescription": "HomeCheff is a local platform for products, services, craftsmanship, value exchange and community — where neighbours can offer, discover, barter and arrange agreements.",
+    "schemaOrganizationDescription": "HomeCheff is the digital home of personal craftsmanship and local opportunity. Neighbours offer and discover what real people make, cook, grow, design and provide — with secure checkout, direct contact, barter or proposals.",
     "schemaWebsiteDescription": "HomeCheff — discover digital studios, gardens, and kitchens in your neighborhood.",
     "schemaContactCustomerService": "Customer service",
     "schemaAreaServedCountry": "Netherlands",
@@ -5898,7 +5898,7 @@
     "exportItem5": "Workspace content (recipes, projects)",
     "exportStarted": "Export started...",
     "exportButton": "Export data",
-    "exportSuccess": "Data export started. You will receive an email with your data.",
+    "exportSuccess": "Your request is registered. Full data export is still being rolled out — we will contact you when your export is available.",
     "step3Title": "Final confirmation",
     "step3Subtitle": "You are about to delete your account",
     "finalWarningTitle": "This cannot be undone",
@@ -7555,9 +7555,9 @@
     "dna": {
       "growthTitle": "Grow faster with a business subscription",
       "growthSubtitle": "Choose visibility, trust, and reach — not just a lower fee. Every plan helps your business grow locally.",
-      "growthPitch": "HomeCheff subscriptions are growth packages: more feed visibility, stronger buyer trust, better analytics, and access to future promotion modules.",
+      "growthPitch": "HomeCheff subscriptions lower your platform fee and strengthen your business profile — business badge, trust and lower costs per transaction. No hidden ranking promises.",
       "pillar": {
-        "visibility": "More visibility in feed and search",
+        "visibility": "Business badge and profile on the village square",
         "trust": "Business badge and verified profile",
         "customers": "Reach more local customers",
         "automation": "Automatic activation after payment"
@@ -7600,7 +7600,7 @@
       "benefit": {
         "verified": "Appears as a verified business",
         "badge": "Business badge on profile and listings",
-        "discoveryBoost": "Light to strong local discovery boost",
+        "discoveryBoost": "Business badge and profile strength (no ranking boost)",
         "localSearch": "Priority in local search results",
         "categoryFeatured": "Featured in your category",
         "regional": "Regional discovery and campaigns",
@@ -7609,7 +7609,7 @@
         "campaigns": "Campaign modules (future)",
         "websiteReady": "Website promotion ready",
         "socialReady": "Social promotion ready",
-        "premiumAnalytics": "Premium analytics and export",
+        "premiumAnalytics": "Extended seller overview (no premium analytics module)",
         "multiLocation": "Multiple locations"
       },
       "preview": {
@@ -7621,7 +7621,7 @@
         "discoveryLevel": "Discovery level",
         "searchPriority": "Search priority",
         "analytics": "Analytics",
-        "visibilityScore": "Visibility score",
+        "visibilityScore": "Profile score (informational)",
         "homepage": "Homepage",
         "regional": "Regional",
         "websitePromotion": "Website promotion",
@@ -7671,14 +7671,14 @@
       },
       "unlocked": {
         "badge": "Business badge active",
-        "discoveryBoost": "Discovery boost active",
+        "discoveryBoost": "Business badge active",
         "localSearch": "Local search priority",
         "verified": "Verified business",
         "category": "Category feature",
         "regional": "Regional discovery",
         "homepage": "Homepage eligibility",
         "spotlight": "Homepage spotlight",
-        "premiumAnalytics": "Premium analytics",
+        "premiumAnalytics": "Seller overview",
         "multiLocation": "Multiple locations"
       },
       "locked": {
@@ -7707,7 +7707,7 @@
         "title": "Business DNA",
         "subtitle": "Your current growth and visibility profile on HomeCheff.",
         "currentPlan": "Current plan",
-        "visibilityScore": "Visibility score",
+        "visibilityScore": "Profile score (informational)",
         "commission": "Platform fee",
         "growthStatus": "Growth status",
         "unlocked": "Unlocked",
@@ -7923,7 +7923,7 @@
     "heroStripCommunityHint": "For makers. By the neighborhood.",
     "ctaDiscover": "Discover nearby",
     "ctaShare": "Sell or share",
-    "schemaWebsiteDescription": "HomeCheff — the digital village square for local food, garden, creations, services, wanted, inspiration and value exchange in your neighbourhood.",
+    "schemaWebsiteDescription": "HomeCheff — the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.",
     "verticals": {
       "cheff": {
         "title": "HomeCheff",

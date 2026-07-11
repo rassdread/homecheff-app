@@ -8,8 +8,8 @@ export const PRICING_TIERS = {
     monthlyFee: 0,
     maxUsers: null,
     features: [
-      'Standaard zichtbaarheid in de buurt',
-      'Basis analytics',
+      'Zichtbaar op het dorpsplein in je buurt',
+      'Basis verkopersoverzicht',
       '1 locatie',
       'Standaard support',
     ]
@@ -22,9 +22,9 @@ export const PRICING_TIERS = {
     maxUsers: 5,
     features: [
       'Business badge + geverifieerd profiel',
-      'Lichte discovery-boost',
-      'Basis business analytics',
-      'Lokale zoekprioriteit',
+      'Lagere platformfee (9%)',
+      'Basis verkopersoverzicht',
+      'Lokale profielpresentatie',
       '€39 per maand',
     ]
   },
@@ -35,11 +35,10 @@ export const PRICING_TIERS = {
     monthlyFee: 99,
     maxUsers: 25,
     features: [
-      'Sterkere zichtbaarheid + categorie-feature',
-      'Geavanceerde analytics',
-      'Regionale discovery',
+      'Business badge + sterkere profielpresentatie',
+      'Lagere platformfee (7%)',
+      'Verkopersoverzicht in dashboard',
       '2 vestigingen',
-      'Homepage eligibility',
       '€99 per maand',
     ]
   },
@@ -50,11 +49,10 @@ export const PRICING_TIERS = {
     monthlyFee: 199,
     maxUsers: null,
     features: [
-      'Maximale discovery-zichtbaarheid',
-      'Premium badge + spotlight eligible',
-      'Premium analytics',
-      'Regionale campagnes',
-      'Website & social promotion ready',
+      'Premium badge + uitgebreide profielpresentatie',
+      'Laagste platformfee (5%)',
+      'Verkopersoverzicht in dashboard',
+      'Regionale profielondersteuning',
       '€199 per maand',
     ]
   }

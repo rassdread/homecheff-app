@@ -8,6 +8,10 @@ import {
   SEO_HUB_PROGRAMMATIC_SECTIONS,
   type Bi,
 } from "@/lib/i18n/seoLandingSources";
+import {
+  PILLAR_HUB_SECTION,
+  PILLAR_PAGE_SOURCES,
+} from "@/lib/i18n/pillarPageSources";
 
 type LangCode = "nl" | "en";
 
@@ -36,7 +40,39 @@ export function mergeProgrammaticI18n(
   for (const [ns, src] of Object.entries(PROGRAMMATIC_PAGE_SOURCES)) {
     out[ns] = flattenBiSource(src, lang);
   }
+  for (const [ns, src] of Object.entries(PILLAR_PAGE_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
   return out;
+}
+
+export function getPillarSeoMeta(
+  namespace: string,
+  lang: string,
+): { title: string; description: string } {
+  const src = PILLAR_PAGE_SOURCES[namespace];
+  if (!src?.metaTitle || !src?.metaDescription) {
+    throw new Error(`getPillarSeoMeta: unknown namespace "${namespace}"`);
+  }
+  const L = pickLang(lang);
+  return {
+    title: src.metaTitle[L],
+    description: src.metaDescription[L],
+  };
+}
+
+export function getPillarHubSection(locale: "nl" | "en"): {
+  title: string;
+  links: { href: string; label: string }[];
+} {
+  const L = pickLang(locale);
+  return {
+    title: PILLAR_HUB_SECTION.sectionTitle[L],
+    links: PILLAR_HUB_SECTION.links.map((item) => ({
+      href: item.href,
+      label: item.label[L],
+    })),
+  };
 }
 
 /** @deprecated gebruik mergeProgrammaticI18n — alias voor API-compat. */

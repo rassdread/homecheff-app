@@ -13,6 +13,7 @@ import { iconKeyToDisplayIcon } from "@/lib/gamification/author-badge-summaries"
 import { sortBadgesByDisplayPriority } from "@/lib/gamification/badge-priority";
 import PublicProfileClient, { type PublicProfileHcpPayload } from "./PublicProfileClient";
 import { loadPublicContactChannelsForUser } from "@/lib/profile/load-public-contact-channels";
+import { buildProfilePageJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName } from "@/lib/displayName";
 
 export const revalidate = 0;
@@ -483,20 +484,20 @@ export default async function PublicProfilePage({
   const currentDomain = await getCurrentDomain();
   const profileDisplay = getDisplayName(user);
   const profileUrl = `${currentDomain}/user/${encodeURIComponent(username)}`;
-  const personLd = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: profileDisplay,
-    url: profileUrl,
-    ...(locality
-      ? {
-          address: {
-            "@type": "PostalAddress",
-            addressLocality: locality,
-          },
-        }
-      : {}),
-  };
+  const imageUrl =
+    user.profileImage?.startsWith("http")
+      ? user.profileImage
+      : user.profileImage
+        ? `${currentDomain}${user.profileImage}`
+        : null;
+  const profileLd = buildProfilePageJsonLd({
+    domain: currentDomain,
+    displayName: profileDisplay,
+    profileUrl,
+    bio: user.bio,
+    locality,
+    imageUrl,
+  });
 
   const publicContactChannels = await loadPublicContactChannelsForUser(user.id);
 
@@ -505,7 +506,7 @@ export default async function PublicProfilePage({
       <Script
         id="profile-person-ld"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(profileLd) }}
       />
       <div className="min-h-screen w-full min-w-0 max-w-[100vw] overflow-x-hidden bg-gray-50">
         <PublicProfileClient

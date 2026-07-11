@@ -5,6 +5,7 @@ import Script from "next/script";
 import { getCurrentDomain, seoHreflangLanguagesOnEu } from "@/lib/seo/metadata";
 import { LOCAL_SEO_CITIES } from "@/lib/seo/localCities";
 import { getEcosystemHubForCitySlug } from "@/lib/community/getEcosystemHubForCitySlug";
+import { shouldIndexCityHub } from "@/lib/seo/city-indexability";
 import CityHubSection from "@/components/community/CityHubSection";
 import EcosystemBackLink from "@/components/community/EcosystemBackLink";
 
@@ -21,11 +22,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const city = LOCAL_SEO_CITIES.find((c) => c.slug === params.stad);
   if (!city) {
-    return { title: "Maaltijden | HomeCheff", robots: { index: false } };
+    return { title: "Lokaal aanbod | HomeCheff", robots: { index: false } };
   }
+  const hub = await getEcosystemHubForCitySlug(city.slug);
+  const indexable = shouldIndexCityHub(hub);
   const currentDomain = await getCurrentDomain();
   const title = `Lokaal aanbod in ${city.label} | HomeCheff`;
-  const description = `Ontdek lokale producten, diensten en makers in ${city.label} via HomeCheff — eten, tuin, creaties en hulp in je buurt.`;
+  const description = `Ontdek lokale makers, vakmanschap en buurtaanbod in ${city.label} via HomeCheff — eten, tuin, creaties, diensten en hulp.`;
   return {
     title,
     description,
@@ -39,7 +42,7 @@ export async function generateMetadata({
       canonical: `${currentDomain}/maaltijden/${city.slug}`,
       languages: seoHreflangLanguagesOnEu(`/maaltijden/${city.slug}`),
     },
-    robots: { index: true, follow: true },
+    robots: { index: indexable, follow: true },
   };
 }
 
@@ -92,8 +95,8 @@ export default async function MaaltijdenStadPage({
           Lokaal aanbod in {city.label}
         </h1>
         <p className="mt-4 text-lg text-neutral-600">
-          Op het dorpsplein vind je lokale makers, producten, diensten en hulp — eten is
-          één categorie naast tuin, creaties en meer. Filter op jouw regio.
+          Op het dorpsplein vind je lokale makers, vakmanschap en buurtaanbod — eten is
+          één categorie naast tuin, creaties, diensten en hulp. De persoon achter het aanbod staat centraal.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
@@ -103,16 +106,16 @@ export default async function MaaltijdenStadPage({
             Naar het dorpsplein
           </Link>
           <Link
-            href="/#homecheff-feed"
+            href="/ontmoet-de-maker"
             className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
           >
-            Inspiratie
+            Ontmoet de maker
           </Link>
           <Link
-            href="/gemeenschap/keuken"
+            href="/wat-is-homecheff"
             className="inline-flex items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50/80 px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-100/80"
           >
-            Keuken-ecosysteem
+            Wat is HomeCheff?
           </Link>
         </div>
         {hub ? <CityHubSection initial={hub} /> : null}

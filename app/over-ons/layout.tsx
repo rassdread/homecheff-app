@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
+import { getPlatformDefinition } from '@/lib/seo/platform-definition';
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -17,13 +18,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const currentDomain = MAIN_DOMAIN;
 
+  const platform = getPlatformDefinition(lang);
+
   if (lang === 'en') {
     return {
       title: 'About Us - HomeCheff',
-      description: 'Who we are, our mission and how to reach us. Contact addresses for info, support, partners, press, jobs and team.',
+      description: platform.organizationDescription,
       openGraph: {
         title: 'About Us - HomeCheff',
-        description: 'Who we are and how to reach us.',
+        description: platform.entityDefinition,
         type: 'website',
         url: `${currentDomain}/over-ons`,
       },
@@ -40,10 +43,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: 'Over ons - HomeCheff',
-    description: 'Wie we zijn, onze missie en hoe je ons bereikt. Contactadressen voor info, support, partners, pers, vacatures en team.',
+    description: platform.organizationDescription,
     openGraph: {
       title: 'Over ons - HomeCheff',
-      description: 'Wie we zijn en hoe je ons bereikt.',
+      description: platform.entityDefinition,
       type: 'website',
       url: `${currentDomain}/over-ons`,
     },

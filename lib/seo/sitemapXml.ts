@@ -10,6 +10,13 @@ import { CATEGORY_ECOSYSTEM_SLUGS } from "@/lib/community/categoryEcosystemSlugs
 /** Vaste paden (NL marketing + hubs), zonder domein — volgorde = huidige sitemap. */
 const EXTRA_STATIC_PATHS: readonly string[] = [
   "/",
+  "/wat-is-homecheff",
+  "/persoonlijk-vakmanschap",
+  "/ontmoet-de-maker",
+  "/lokaal-verdienen",
+  "/buurthulp",
+  "/buurt-economie",
+  "/wat-we-niet-zijn",
   "/seo-hub",
   "/en/seo-hub",
   "/affiliate",

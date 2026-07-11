@@ -58,6 +58,15 @@
       "artifacts": [
         "aab"
       ]
+    },
+    {
+      "versionName": "1.0.19",
+      "versionCode": 25,
+      "at": "2026-07-10T16:25:07.334Z",
+      "changelog": "Stabilize native Google Sign-In on Android",
+      "artifacts": [
+        "aab"
+      ]
     }
   ]
 }

@@ -224,6 +224,7 @@ import { getMarketplaceTaxonomyItem } from "@/lib/marketplace/taxonomy-resolve";
 import { TaxonomyLucideIcon } from "@/components/products/marketplace/TaxonomyLucideIcon";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
+import { FeedTileGridLoadingSkeleton } from "@/components/navigation/RouteLoadingSkeletons";
 import { computeViewerDistanceKm, resolveFeedItemCoordsFromRaw } from "@/lib/geo/item-location";
 
 type ViewerCoords = { lat: number; lng: number };
@@ -3713,10 +3714,7 @@ export default function GeoFeed({
     feedRefreshing && feedHydrated && displayRows.length > 0;
 
   const feedResultsBlock = showFeedSkeleton ? (
-        <div className="space-y-4" aria-hidden>
-          <div className="h-48 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
-          <div className="h-32 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
-        </div>
+        <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 4} compact={isMobileFeedUi} />
       ) : emptyRadiusNoLocal ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">

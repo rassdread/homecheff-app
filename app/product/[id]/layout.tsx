@@ -17,6 +17,7 @@ import {
   buildListingDetailPath,
 } from '@/lib/seo/listing-routes';
 import { isRequestListing } from '@/lib/marketplace/product-visibility';
+import { buildListingJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 
 const BREADCRUMB_HOME_NL = 'Home';
@@ -93,21 +94,33 @@ export async function generateMetadata(
 
     const title =
       lang === 'en'
-        ? city
-          ? `${product.title} in ${city} | Buy on HomeCheff`
-          : `${product.title} | Buy local on HomeCheff`
-        : city
-          ? `${product.title} in ${city} kopen | HomeCheff`
-          : `${product.title} lokaal kopen | HomeCheff`;
+        ? sellerName
+          ? city
+            ? `${product.title} — ${sellerName} in ${city} | HomeCheff`
+            : `${product.title} — ${sellerName} | HomeCheff`
+          : city
+            ? `${product.title} in ${city} | HomeCheff`
+            : `${product.title} | HomeCheff`
+        : sellerName
+          ? city
+            ? `${product.title} — ${sellerName} in ${city} | HomeCheff`
+            : `${product.title} — ${sellerName} | HomeCheff`
+          : city
+            ? `${product.title} in ${city} | HomeCheff`
+            : `${product.title} | HomeCheff`;
 
     const description =
       lang === 'en'
-        ? city
-          ? `Order ${product.title} from local makers in ${city} on HomeCheff.`
-          : `Order ${product.title} from local makers on HomeCheff.`
-        : city
-          ? `Bestel ${product.title} van lokale makers in ${city} via HomeCheff.`
-          : `Bestel ${product.title} van lokale makers via HomeCheff.`;
+        ? sellerName
+          ? `${product.title} from ${sellerName}${city ? ` in ${city}` : ''} on HomeCheff — personal craftsmanship from a real local maker.`
+          : city
+            ? `Discover ${product.title} from local makers in ${city} on HomeCheff.`
+            : `Discover ${product.title} from local makers on HomeCheff.`
+        : sellerName
+          ? `${product.title} van ${sellerName}${city ? ` in ${city}` : ''} op HomeCheff — persoonlijk vakmanschap van een echte maker.`
+          : city
+            ? `Ontdek ${product.title} van lokale makers in ${city} via HomeCheff.`
+            : `Ontdek ${product.title} van lokale makers via HomeCheff.`;
 
     const keywords = [
       product.title,
@@ -271,64 +284,27 @@ export default async function ProductLayout({
           : `${currentDomain}${product.Image[0].fileUrl}`
         : `${currentDomain}/og-image.jpg`;
 
-      const sellerPerson: Record<string, unknown> = {
-        '@type': 'Person',
-        name: sellerName || PUBLIC_DISPLAY_FALLBACK,
-        ...(username
-          ? { url: `${currentDomain}/user/${username}` }
-          : {}),
-        ...(city
-          ? {
-              address: {
-                '@type': 'PostalAddress',
-                addressLocality: city,
-              },
-            }
-          : {}),
-      };
-
-      structuredData = {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        name: product.title,
+      structuredData = buildListingJsonLd({
+        domain: currentDomain,
+        title: product.title,
         description: product.description || '',
-        image: imageUrl,
-        brand: {
-          '@type': 'Brand',
-          name: sellerName || 'HomeCheff',
-        },
-        seller: sellerPerson,
-        offers: {
-          '@type': 'Offer',
-          price,
-          priceCurrency: 'EUR',
-          availability:
-            product.stock && product.stock > 0
-              ? 'https://schema.org/InStock'
-              : 'https://schema.org/OutOfStock',
-          url: productUrl,
-        },
-        ...(averageRating &&
-          reviewCount > 0 && {
-            aggregateRating: {
-              '@type': 'AggregateRating',
-              ratingValue: averageRating,
-              reviewCount,
-            },
-            review: product.reviews.slice(0, 5).map((review) => ({
-              '@type': 'Review',
-              author: {
-                '@type': 'Person',
-                name: review.buyer?.name || 'Anonymous',
-              },
-              reviewRating: {
-                '@type': 'Rating',
-                ratingValue: review.rating,
-              },
-              reviewBody: review.comment || review.title || '',
-            })),
-          }),
-      };
+        imageUrl,
+        price,
+        productUrl,
+        sellerName: sellerName || PUBLIC_DISPLAY_FALLBACK,
+        sellerUsername: username,
+        city,
+        marketplaceCategory: product.marketplaceCategory,
+        stock: product.stock,
+        averageRating,
+        reviewCount,
+        reviews: product.reviews.map((review) => ({
+          rating: review.rating,
+          comment: review.comment,
+          title: review.title,
+          buyerName: review.buyer?.name,
+        })),
+      });
 
       const homeLabel = lang === 'en' ? BREADCRUMB_HOME_EN : BREADCRUMB_HOME_NL;
       const squareLabel =

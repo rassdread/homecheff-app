@@ -4066,7 +4066,7 @@
       "rightToDeletion": "Recht op Verwijdering",
       "rightToDeletionDesc": "Je kunt verwijdering van je account en bijbehorende persoonsgegevens aanvragen via je profiel of door contact met support. Sommige informatie kan bewaard blijven waar de wet dat vereist of voor gerechtvaardigde boekhouding en beveiliging.",
       "rightToPortability": "Recht op Portabiliteit",
-      "rightToPortabilityDesc": "Je kunt je data exporteren in een standaard formaat voor gebruik elders.",
+      "rightToPortabilityDesc": "Je kunt een verzoek indienen om je gegevens te exporteren. Volledige export wordt momenteel uitgerold — neem contact op via support@homecheff.eu als je hulp nodig hebt.",
       "cookiesAndTracking": "Cookies en Tracking",
       "minimalCookieUse": "Minimale Cookie Gebruik",
       "minimalCookieUseDesc": "We gebruiken essentiële cookies en vergelijkbare technologieën om je ingelogd te houden, voorkeuren (zoals taal) te onthouden en beveiliging te borgen:",
@@ -4732,7 +4732,7 @@
     "exportItem5": "Werkruimte-content (recepten, projecten)",
     "exportStarted": "Export gestart...",
     "exportButton": "Data exporteren",
-    "exportSuccess": "Data-export is gestart. Je ontvangt een e-mail met je gegevens.",
+    "exportSuccess": "Je verzoek is geregistreerd. Volledige data-export wordt nog uitgerold — we nemen contact op zodra je export beschikbaar is.",
     "step3Title": "Laatste bevestiging",
     "step3Subtitle": "Je staat op het punt je account te verwijderen",
     "finalWarningTitle": "Dit kan niet ongedaan worden gemaakt",
@@ -6214,7 +6214,7 @@
     "categoryDesignDescription": "Maak je iets creatiefs? Vind direct klanten.",
     "feedSectionTitle": "HomeCheff feed",
     "affiliateButtonFallback": "Affiliate 12-12",
-    "schemaOrganizationDescription": "HomeCheff is een lokaal platform voor producten, diensten, vakmanschap, waarde-uitwisseling en community — waar buurtgenoten kunnen aanbieden, ontdekken, ruilen en afspreken.",
+    "schemaOrganizationDescription": "HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen. Buurtgenoten bieden en ontdekken wat echte mensen maken, koken, kweken, ontwerpen en aanbieden — met veilig afrekenen, direct contact, ruil of voorstellen.",
     "schemaWebsiteDescription": "HomeCheff - Ontdek digitale ateliers, tuinen en keukens in jouw buurt.",
     "schemaContactCustomerService": "Klantenservice",
     "schemaAreaServedCountry": "Nederland",
@@ -7555,9 +7555,9 @@
     "dna": {
       "growthTitle": "Groei sneller met een zakelijk abonnement",
       "growthSubtitle": "Kies zichtbaarheid, vertrouwen en bereik — niet alleen een lagere fee. Elk plan helpt je bedrijf groeien in de buurt.",
-      "growthPitch": "HomeCheff abonnementen zijn groeipakketten: meer zichtbaarheid in de feed, sterker vertrouwen bij kopers, betere analytics en toegang tot toekomstige promotiemodules.",
+      "growthPitch": "HomeCheff abonnementen verlagen je platformfee en versterken je zakelijke profiel — business badge, vertrouwen en lagere kosten per transactie. Geen verborgen ranking-beloftes.",
       "pillar": {
-        "visibility": "Meer zichtbaarheid in feed en zoeken",
+        "visibility": "Zakelijke badge en profiel op het dorpsplein",
         "trust": "Business badge en geverifieerd profiel",
         "customers": "Bereik meer lokale klanten",
         "automation": "Automatische activatie na betaling"
@@ -7600,7 +7600,7 @@
       "benefit": {
         "verified": "Verschijnt als geverifieerd bedrijf",
         "badge": "Business badge op profiel en listings",
-        "discoveryBoost": "Lichte tot sterke discovery-boost in de buurt",
+        "discoveryBoost": "Business badge en profielversterking (geen ranking-boost)",
         "localSearch": "Prioriteit in lokale zoekresultaten",
         "categoryFeatured": "Uitgelicht in je categorie",
         "regional": "Regionale discovery en campagnes",
@@ -7609,7 +7609,7 @@
         "campaigns": "Campagne-modules (toekomst)",
         "websiteReady": "Website-promotie klaar",
         "socialReady": "Social-promotie klaar",
-        "premiumAnalytics": "Premium analytics en export",
+        "premiumAnalytics": "Uitgebreid verkopersoverzicht (geen premium analytics-module)",
         "multiLocation": "Meerdere vestigingen"
       },
       "preview": {
@@ -7621,7 +7621,7 @@
         "discoveryLevel": "Discovery-niveau",
         "searchPriority": "Zoekprioriteit",
         "analytics": "Analytics",
-        "visibilityScore": "Zichtbaarheidsscore",
+        "visibilityScore": "Profielscore (informatief)",
         "homepage": "Homepage",
         "regional": "Regionaal",
         "websitePromotion": "Website-promotie",
@@ -7671,14 +7671,14 @@
       },
       "unlocked": {
         "badge": "Business badge actief",
-        "discoveryBoost": "Discovery-boost actief",
+        "discoveryBoost": "Business badge actief",
         "localSearch": "Lokale zoekprioriteit",
         "verified": "Geverifieerd bedrijf",
         "category": "Categorie-feature",
         "regional": "Regionale discovery",
         "homepage": "Homepage eligibility",
         "spotlight": "Homepage spotlight",
-        "premiumAnalytics": "Premium analytics",
+        "premiumAnalytics": "Verkopersoverzicht",
         "multiLocation": "Meerdere vestigingen"
       },
       "locked": {
@@ -7707,7 +7707,7 @@
         "title": "Business DNA",
         "subtitle": "Je huidige groei- en zichtbaarheidsprofiel op HomeCheff.",
         "currentPlan": "Huidig plan",
-        "visibilityScore": "Zichtbaarheidsscore",
+        "visibilityScore": "Profielscore (informatief)",
         "commission": "Platformfee",
         "growthStatus": "Groei-status",
         "unlocked": "Ontgrendeld",
@@ -7923,7 +7923,7 @@
     "heroStripCommunityHint": "Voor makers. Door de buurt.",
     "ctaDiscover": "Ontdek in je buurt",
     "ctaShare": "Verkoop of deel",
-    "schemaWebsiteDescription": "HomeCheff — het digitale dorpsplein voor lokaal eten, tuin, creaties, diensten, gezocht, inspiratie en waarde-uitwisseling in je buurt.",
+    "schemaWebsiteDescription": "HomeCheff — het digitale thuis van persoonlijk vakmanschap. Ontdek lokale makers, vakmensen en buren — eten, tuin, creaties, diensten en hulp.",
     "verticals": {
       "cheff": {
         "title": "HomeCheff",

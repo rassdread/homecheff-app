@@ -7,48 +7,49 @@ import {
   seoHreflangLanguagesOnEu,
 } from '@/lib/seo/metadata';
 import { getFaqPageJsonLd } from '@/lib/seo/faqStructuredData';
+import { getPlatformDefinition } from '@/lib/seo/platform-definition';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
+  const platform = getPlatformDefinition(lang);
 
   const keywords =
     lang === 'en'
       ? [
           'HomeCheff FAQ',
-          'homecheff questions',
-          'homemade marketplace',
+          'personal craftsmanship',
           'local makers',
-          'side income from home',
-          'HCP leaderboards',
+          'earn locally',
+          'neighbour help',
           'village square',
-          'inspiration feed',
-          'Dorpsplein',
+          'HCP',
           'Stripe payouts',
         ]
       : [
           'HomeCheff FAQ',
-          'homecheff vragen',
+          'persoonlijk vakmanschap',
           'lokale makers',
-          'zelfgemaakt eten',
-          'thuis verdienen',
-          'HCP ranglijsten',
+          'lokaal verdienen',
+          'buurthulp',
           'dorpsplein',
-          'inspiratie',
-          'lokale community marketplace',
+          'HCP',
           'uitbetaling Stripe',
         ];
+
+  const description =
+    lang === 'en'
+      ? `Answers about HomeCheff: ${platform.entityDefinition} Fees, payouts, barter, neighbour help and trust.`
+      : `Antwoorden over HomeCheff: ${platform.entityDefinition} Fees, uitbetalingen, ruil, buurthulp en vertrouwen.`;
 
   if (lang === 'en') {
     return {
       title: 'Frequently Asked Questions (FAQ) - HomeCheff',
-      description:
-        'Answers about HomeCheff: local homemade food, the village feed, inspiration, HCP points, selling from home, payments, delivery, and community trust.',
+      description,
       keywords,
       openGraph: {
         title: 'Frequently Asked Questions (FAQ) - HomeCheff',
-        description:
-          'Homemade marketplace, local creators, inspiration, HCP, and safe buying — clear answers in one place.',
+        description,
         type: 'website',
         url: `${currentDomain}/faq`,
       },
@@ -70,13 +71,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: 'Veelgestelde Vragen (FAQ) - HomeCheff',
-    description:
-      'Antwoorden over HomeCheff: lokaal zelfgemaakt eten, Dorpsplein, inspiratie, HCP-punten, verkopen vanuit huis, betalingen, levering en vertrouwen in de community.',
+    description,
     keywords,
     openGraph: {
       title: 'Veelgestelde Vragen (FAQ) - HomeCheff',
-      description:
-        'Lokale makers, dorpsplein, inspiratie, HCP en veilig kopen — heldere antwoorden op één plek.',
+      description,
       type: 'website',
       url: `${currentDomain}/faq`,
     },

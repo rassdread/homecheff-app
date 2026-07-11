@@ -1,8 +1,8 @@
 {
-  "versionName": "1.0.18",
-  "versionCode": 24,
+  "versionName": "1.0.19",
+  "versionCode": 25,
   "forceUpdate": false,
-  "minRequiredVersion": "1.0.18",
+  "minRequiredVersion": "1.0.19",
   "enabled": false,
   "apkUrl": "https://homecheff.eu/downloads/homecheff-beta.apk",
   "updateTitle": "Nieuwe HomeCheff beta beschikbaar",
@@ -10,6 +10,6 @@
   "updateTitleForced": "Update vereist",
   "updateMessageForced": "Deze versie van HomeCheff wordt niet meer ondersteund. Werk de app bij om verder te gaan.",
   "changelog": [
-    "Fix Google Sign-In for Play Store builds (Firebase SHA / App Signing)"
+    "Stabilize native Google Sign-In on Android"
   ]
 }

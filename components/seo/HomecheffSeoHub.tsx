@@ -9,21 +9,22 @@ import {
   getSeoPagePath,
 } from "@/lib/seo/homecheffSeoPages";
 import { MAIN_DOMAIN } from "@/lib/seo/metadata";
-import { getSeoHubProgrammaticSections } from "@/lib/i18n/translations";
+import { getPillarHubSection, getSeoHubProgrammaticSections } from "@/lib/i18n/translations";
 
 export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
   const isNl = locale === "nl";
   const canonical = isNl ? SEO_HUB_CANONICAL_NL : SEO_HUB_CANONICAL_EN;
   const otherHub = isNl ? "/en/seo-hub" : "/seo-hub";
   const programmaticSections = getSeoHubProgrammaticSections(locale);
+  const pillarSection = getPillarHubSection(locale);
 
   const webPageLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: isNl ? "Onderwerpen en gidsen | HomeCheff" : "Guides and topics | HomeCheff",
     description: isNl
-      ? "Overzicht van HomeCheff-gidsen: lokaal ontdekken, aanbieden, eten (één categorie), tuin, creaties, diensten en community."
-      : "Overview of HomeCheff guides: local discovery, offering, food (one category), garden, creations, services and community.",
+      ? "Overzicht van HomeCheff-gidsen: persoonlijk vakmanschap, lokaal verdienen, buurthulp en community — eten is één categorie."
+      : "Overview of HomeCheff guides: personal craftsmanship, earn locally, neighbour help and community — food is one category.",
     url: canonical,
     inLanguage: isNl ? "nl-NL" : "en-US",
     isPartOf: { "@type": "WebSite", name: "HomeCheff", url: MAIN_DOMAIN },
@@ -51,11 +52,25 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
           </h1>
           <p className="mt-4 text-lg text-gray-700">
             {isNl
-              ? "HomeCheff is een lokaal platform voor producten, diensten, vakmanschap en waarde-uitwisseling. Kies een onderwerp — eten is één categorie naast tuin, creaties en diensten."
-              : "HomeCheff is a local platform for products, services, craftsmanship and value exchange. Pick a topic — food is one category alongside garden, creations and services."}
+              ? "HomeCheff is het digitale thuis van persoonlijk vakmanschap. Kies een kernonderwerp — eten is één categorie naast tuin, creaties, diensten en buurthulp."
+              : "HomeCheff is the digital home of personal craftsmanship. Pick a core topic — food is one category alongside garden, creations, services and neighbour help."}
           </p>
 
           <div className="mt-10 space-y-12">
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {pillarSection.title}
+              </h2>
+              <ul className="mt-4 space-y-2 text-emerald-800">
+                {pillarSection.links.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className="hover:underline">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
             <section>
               <h2 className="text-xl font-semibold text-gray-900">
                 {isNl ? "Ecosysteem op HomeCheff" : "HomeCheff ecosystem"}

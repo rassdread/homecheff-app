@@ -288,7 +288,7 @@ export default function BusinessProfilePage() {
                 Wat gebeurt er als ik de limiet bereik?
               </h3>
               <p className="text-gray-600">
-                Individuele gebruikers kunnen maximaal €2000 per jaar verdienen. Als je deze limiet bereikt, 
+                Individuele gebruikers: richtlijn tot circa €2.000 omzet per jaar voordat een zakelijk abonnement wordt aangeraden (niet automatisch afgedwongen). Als je deze grens nadert, 
                 kun je upgraden naar een bedrijfspakket voor onbeperkte omzet.
               </p>
             </div>

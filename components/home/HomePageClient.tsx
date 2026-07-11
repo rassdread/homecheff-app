@@ -14,6 +14,7 @@ import HomeMobileFeedInsert from "@/components/home/HomeMobileFeedInserts";
 import UserActionCenter from "@/components/home/UserActionCenter";
 import HomeMobileEcosystemStrip from "@/components/home/HomeMobileEcosystemStrip";
 import GeoFeed, { FeedContent } from "@/components/feed/GeoFeed";
+import { HomeFeedViewportShell } from "@/components/navigation/RouteLoadingSkeletons";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
 import {
@@ -111,13 +112,13 @@ export default function HomePageClient({
 
   const schemaOrgDescription = tOr(
     'home.schemaOrganizationDescription',
-    'HomeCheff is a local platform where individuals can sell their handmade products.',
-    'HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen.'
+    'HomeCheff is the digital home of personal craftsmanship and local opportunity.',
+    'HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen.'
   );
   const schemaWebsiteDescription = tOr(
     'homePhase1.schemaWebsiteDescription',
-    'HomeCheff — the digital village square to discover and share local food, harvest and crafts.',
-    'HomeCheff — het digitale dorpsplein om lokaal eten, oogst en creaties te ontdekken en te delen.'
+    'HomeCheff — the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.',
+    'HomeCheff — het digitale thuis van persoonlijk vakmanschap. Ontdek lokale makers, vakmensen en buren bij jou in de buurt.'
   );
   const schemaContactType = tOr(
     'home.schemaContactCustomerService',
@@ -207,6 +208,21 @@ export default function HomePageClient({
                 RIGHT TEST
               </aside>
             </section>
+          ) : null}
+
+          {!viewportResolved ? (
+            <div className="min-w-0">
+              {session?.user ? (
+                <div className="mb-3">
+                  <UserActionCenter variant="mobileCompact" />
+                </div>
+              ) : null}
+              <HomeMobileEcosystemStrip
+                isLoggedIn={Boolean(session?.user)}
+                className="mb-3"
+              />
+              <HomeFeedViewportShell />
+            </div>
           ) : null}
 
           {showMobileHomeFeed ? (
