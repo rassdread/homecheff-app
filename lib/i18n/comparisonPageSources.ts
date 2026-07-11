@@ -28,6 +28,8 @@ export const comparisonShared: Record<string, Bi> = {
   faqBlockTitle: { nl: 'Veelgestelde vragen', en: 'Frequently asked questions' },
   linkHub: { nl: 'Alle vergelijkingen', en: 'All comparisons' },
   linkEcosystem: { nl: 'Hoe HomeCheff werkt', en: 'How HomeCheff works' },
+  linkManifest: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' },
+  linkAbout: { nl: 'Over ons', en: 'About us' },
   linkPlatform: { nl: 'Wat is HomeCheff?', en: 'What is HomeCheff?' },
 };
 
@@ -57,6 +59,8 @@ export const comparisonHubPage: Record<string, Bi> = {
   linkVinted: { nl: 'HomeCheff vs Vinted', en: 'HomeCheff vs Vinted' },
   linkDelivery: { nl: 'HomeCheff vs bezorgplatforms', en: 'HomeCheff vs delivery platforms' },
   linkEcosystem: { nl: 'Hoe HomeCheff werkt', en: 'How HomeCheff works' },
+  linkManifest: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' },
+  linkAbout: { nl: 'Over ons', en: 'About us' },
   linkPlatform: { nl: 'Wat is HomeCheff?', en: 'What is HomeCheff?' },
 };
 

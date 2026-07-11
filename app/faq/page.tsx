@@ -347,6 +347,18 @@ export default function FAQPage() {
                 })}
               </div>
 
+              {/* Manifest reference */}
+              <div className="mt-8 p-6 bg-white rounded-xl border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('faq.manifestTitle')}</h3>
+                <p className="text-gray-700 mb-4">{t('faq.manifestDescription')}</p>
+                <Link
+                  href="/manifest"
+                  className="inline-flex items-center font-medium text-emerald-700 hover:text-emerald-800 underline-offset-2 hover:underline"
+                >
+                  {t('faq.manifestLink')}
+                </Link>
+              </div>
+
               {/* Contact CTA */}
               <div className="mt-12 p-6 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl border border-emerald-200">
                 <div className="flex items-start space-x-4">

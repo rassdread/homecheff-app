@@ -38,10 +38,13 @@ const COMPARISON_SECTIONS: SeoLandingBlock[] = [
   },
   {
     type: 'linkRow',
+    labelNs: 'comparisonShared',
     links: [
       { href: '/vergelijken', labelKey: 'linkHub' },
+      { href: '/manifest', labelKey: 'linkManifest' },
       { href: '/hoe-homecheff-werkt', labelKey: 'linkEcosystem' },
       { href: '/wat-is-homecheff', labelKey: 'linkPlatform' },
+      { href: '/over-ons', labelKey: 'linkAbout' },
     ],
   },
   COMPARISON_FAQ,
@@ -118,9 +121,12 @@ export const COMPARISON_HUB_LINKS: SeoLandingBlock[] = [
   },
   {
     type: 'linkRow',
+    labelNs: 'comparisonShared',
     links: [
+      { href: '/manifest', labelKey: 'linkManifest' },
       { href: '/hoe-homecheff-werkt', labelKey: 'linkEcosystem' },
       { href: '/wat-is-homecheff', labelKey: 'linkPlatform' },
+      { href: '/over-ons', labelKey: 'linkAbout' },
     ],
   },
   { type: 'lastReviewed', sharedNs: 'comparisonShared' },

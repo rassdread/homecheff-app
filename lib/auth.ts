@@ -296,6 +296,7 @@ export const authOptions: NextAuthOptions = {
         if ((token as any).tempUsername) minimalToken.tempUsername = true;
         if ((token as any).socialOnboardingCompleted) minimalToken.socialOnboardingCompleted = true;
         if ((token as any).onboardingChecked) minimalToken.onboardingChecked = true;
+        if ((token as any).suspended) minimalToken.suspended = true;
         
         // Preserve firstName/lastName only during onboarding (for new social users)
         // Remove after onboarding to keep token size minimal
@@ -317,6 +318,7 @@ export const authOptions: NextAuthOptions = {
             role: true,
             socialOnboardingCompleted: true,
             username: true,
+            suspendedAt: true,
           },
         });
         
@@ -326,6 +328,8 @@ export const authOptions: NextAuthOptions = {
           minimalToken.role = dbUser.role as Role;
           // Truncate ID to 36 chars max (UUID length) for Edge browser
           minimalToken.id = dbUser.id ? String(dbUser.id).substring(0, 36) : undefined;
+          minimalToken.suspended =
+            dbUser.role !== 'SUPERADMIN' && Boolean(dbUser.suspendedAt);
           
           // Only store boolean flags (1 byte each) - no strings
           const hasTempUsername = dbUser.username?.startsWith('temp_');
@@ -386,6 +390,8 @@ export const authOptions: NextAuthOptions = {
                 sellerRoles: true,
                 adminRoles: true, // Include adminRoles for admin dashboard visibility
                 role: true, // Ensure role is also fetched from DB for consistency
+                suspendedAt: true,
+                suspendReason: true,
                 DeliveryProfile: {
                   select: {
                     id: true, // Just check if DeliveryProfile exists
@@ -450,6 +456,9 @@ export const authOptions: NextAuthOptions = {
           (session.user as any).hasDeliveryProfile = !!dbUser.DeliveryProfile;
           // Include hasAffiliate flag - CRITICAL for affiliate dashboard visibility
           (session.user as any).hasAffiliate = !!dbUser.affiliate;
+          (session.user as any).suspendedAt = dbUser.suspendedAt?.toISOString?.() ?? null;
+          (session.user as any).suspendReason = dbUser.suspendReason ?? null;
+          (session.user as any).isSuspended = Boolean(dbUser.suspendedAt && dbUser.role !== 'SUPERADMIN');
           
           // Log for debugging
           if (process.env.NODE_ENV === 'development') {

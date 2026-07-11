@@ -62,6 +62,7 @@ const PILLAR_FAQ: SeoLandingBlock = {
 
 const PILLAR_LINKS: SeoLandingBlock = {
   type: 'linkRow',
+  labelNs: 'pillarSharedFaq',
   links: [
     { href: '/wat-is-homecheff', labelKey: 'linkPlatform' },
     { href: '/persoonlijk-vakmanschap', labelKey: 'linkCraft' },
@@ -72,6 +73,7 @@ const PILLAR_LINKS: SeoLandingBlock = {
     { href: '/wat-we-niet-zijn', labelKey: 'linkNotMass' },
     { href: '/hoe-homecheff-werkt', labelKey: 'linkEcosystem' },
     { href: '/vergelijken', labelKey: 'linkCompare' },
+    { href: '/manifest', labelKey: 'linkManifest' },
     { href: '/over-ons', labelKey: 'linkAbout' },
     { href: '/faq', labelKey: 'linkFaq' },
   ],

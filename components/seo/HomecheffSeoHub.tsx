@@ -108,6 +108,38 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
                 </li>
               </ul>
             </section>
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {isNl ? "Governance & vertrouwen" : "Governance & trust"}
+              </h2>
+              <ul className="mt-4 space-y-2 text-emerald-800">
+                <li>
+                  <Link href="/constitution" className="hover:underline">
+                    {isNl ? "Constitution" : "Constitution"}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/manifest" className="hover:underline">
+                    Manifest
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/docs" className="hover:underline">
+                    {isNl ? "Open documentatie" : "Open documentation"}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/trust" className="hover:underline">
+                    Trust
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/evidence" className="hover:underline">
+                    {isNl ? "Platformbewijs" : "Platform evidence"}
+                  </Link>
+                </li>
+              </ul>
+            </section>
             {HOMECHEFF_SEO_HUB_SECTIONS.map((section) => (
               <section key={section.id}>
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -168,6 +200,12 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
               </Link>
               <Link href="/faq" className="text-emerald-700 hover:underline">
                 FAQ
+              </Link>
+              <Link href="/constitution" className="text-emerald-700 hover:underline">
+                Constitution
+              </Link>
+              <Link href="/manifest" className="text-emerald-700 hover:underline">
+                {isNl ? "Manifest" : "Manifest"}
               </Link>
               <Link href="/over-ons" className="text-emerald-700 hover:underline">
                 {isNl ? "Over ons" : "About"}

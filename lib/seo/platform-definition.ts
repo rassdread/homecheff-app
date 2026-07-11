@@ -1,7 +1,9 @@
 /**
  * Phase 13Q — Canonical platform identity (SSOT).
- * All public surfaces should align with these definitions.
+ * Phase 13T — Aligned with HomeCheff Manifest (lib/seo/homecheff-manifest.ts).
  */
+
+import { manifestOrganizationDescription } from './homecheff-manifest';
 
 export type PlatformLang = 'nl' | 'en';
 
@@ -31,8 +33,7 @@ export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> 
     defaultTitle: 'HomeCheff — Persoonlijk vakmanschap en lokale kansen',
     defaultDescription:
       'HomeCheff is het digitale thuis van persoonlijk vakmanschap. Ontdek makers, buren en vakmensen bij jou in de buurt — eten is één categorie naast tuin, creaties, diensten en hulp.',
-    organizationDescription:
-      'HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen. Buurtgenoten bieden en ontdekken wat echte mensen maken, koken, kweken, ontwerpen en aanbieden — met veilig afrekenen, direct contact, ruil of voorstellen.',
+    organizationDescription: manifestOrganizationDescription('nl'),
     websiteDescription:
       'HomeCheff — het digitale dorpsplein waar je lokale makers, vakmensen en buren ontdekt. Eten, tuin, creaties, diensten, hulp en inspiratie — altijd met de persoon achter het aanbod centraal.',
     faqWhatIsHomeCheff:
@@ -47,8 +48,7 @@ export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> 
     defaultTitle: 'HomeCheff — Personal craftsmanship and local opportunity',
     defaultDescription:
       'HomeCheff is the digital home of personal craftsmanship. Discover makers, neighbours and skilled locals near you — food is one category alongside garden, creations, services and help.',
-    organizationDescription:
-      'HomeCheff is the digital home of personal craftsmanship and local opportunity. Neighbours offer and discover what real people make, cook, grow, design and provide — with secure checkout, direct contact, barter or proposals.',
+    organizationDescription: manifestOrganizationDescription('en'),
     websiteDescription:
       'HomeCheff — the digital village square to discover local makers, craftspeople and neighbours. Food, garden, creations, services, help and inspiration — always with the person behind the offer at the centre.',
     faqWhatIsHomeCheff:

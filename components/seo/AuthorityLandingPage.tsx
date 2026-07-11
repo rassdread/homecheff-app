@@ -28,6 +28,7 @@ export default function AuthorityLandingPage({
         breadcrumbTrail?.map((item) => ({
           nameKey: item.labelKey,
           path: item.path,
+          ns: item.ns,
         }))
       }
     />

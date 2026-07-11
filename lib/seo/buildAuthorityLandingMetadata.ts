@@ -3,6 +3,9 @@ import { cookies, headers } from 'next/headers';
 import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 import { COMPARISON_PAGE_SOURCES } from '@/lib/i18n/comparisonPageSources';
 import { ECOSYSTEM_MAP_SOURCES } from '@/lib/i18n/ecosystemMapSources';
+import { MANIFEST_PAGE_SOURCES } from '@/lib/i18n/manifestPageSources';
+import { OPEN_KNOWLEDGE_SOURCES } from '@/lib/i18n/openKnowledgeSources';
+import { OPERATING_SYSTEM_PAGE_SOURCES } from '@/lib/i18n/operatingSystemSources';
 import type { Bi } from '@/lib/i18n/seoLandingSources';
 
 async function resolveLang(): Promise<'nl' | 'en'> {
@@ -32,6 +35,9 @@ export async function buildAuthorityPageMetadata(
   const src =
     COMPARISON_PAGE_SOURCES[namespace] ??
     ECOSYSTEM_MAP_SOURCES[namespace] ??
+    MANIFEST_PAGE_SOURCES[namespace] ??
+    OPEN_KNOWLEDGE_SOURCES[namespace] ??
+    OPERATING_SYSTEM_PAGE_SOURCES[namespace] ??
     null;
   if (!src?.metaTitle || !src?.metaDescription) {
     return { title: 'HomeCheff', robots: { index: false } };

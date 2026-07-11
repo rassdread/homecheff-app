@@ -54,6 +54,7 @@ export default function DeleteAccount({
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [dataExportRequested, setDataExportRequested] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const confirmationInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,10 +69,46 @@ export default function DeleteAccount({
   }, [currentStep]);
 
   const handleDataExport = async () => {
-    setDataExportRequested(true);
-    setTimeout(() => {
+    setIsExporting(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/profile/export-data', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setMessage({
+          type: 'error',
+          text: data.error || t('deleteAccountFlow.exportError'),
+        });
+        return;
+      }
+
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition') || '';
+      const match = disposition.match(/filename="([^"]+)"/);
+      const filename = match?.[1] || 'homecheff-data-export.json';
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      setDataExportRequested(true);
       setMessage({ type: 'success', text: t('deleteAccountFlow.exportSuccess') });
-    }, 1000);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      setMessage({ type: 'error', text: t('deleteAccountFlow.exportError') });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -238,11 +275,15 @@ export default function DeleteAccount({
         <button
           type="button"
           onClick={handleDataExport}
-          disabled={dataExportRequested}
+          disabled={dataExportRequested || isExporting}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
         >
           <Download className="w-4 h-4" />
-          {dataExportRequested ? t('deleteAccountFlow.exportStarted') : t('deleteAccountFlow.exportButton')}
+          {isExporting
+            ? t('deleteAccountFlow.exportStarted')
+            : dataExportRequested
+              ? t('deleteAccountFlow.exportComplete')
+              : t('deleteAccountFlow.exportButton')}
         </button>
         <button
           type="button"

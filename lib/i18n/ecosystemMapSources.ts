@@ -52,8 +52,8 @@ export const ecosystemMapPage: Record<string, Bi> = {
   },
   sectionMissionTitle: { nl: 'Missie in het ecosysteem', en: 'Mission in the ecosystem' },
   sectionMissionBody: {
-    nl: 'Persoonlijk vakmanschap, extra inkomen, lokale diensten, buurthulp, hergebruik/ruil en sociale cohesie — technologie ondersteunt echte ontmoetingen, geen aandachts-economie. Zie /wat-is-homecheff, /persoonlijk-vakmanschap en /buurt-economie.',
-    en: 'Personal craftsmanship, extra income, local services, neighbour help, reuse/barter and social cohesion — technology supports real-world meetings, not attention economics. See /wat-is-homecheff, /persoonlijk-vakmanschap and /buurt-economie.',
+    nl: 'Persoonlijk vakmanschap, extra inkomen, lokale diensten, buurthulp, hergebruik/ruil en sociale cohesie — technologie ondersteunt echte ontmoetingen, geen aandachts-economie. Zie /manifest, /wat-is-homecheff, /persoonlijk-vakmanschap en /buurt-economie.',
+    en: 'Personal craftsmanship, extra income, local services, neighbour help, reuse/barter and social cohesion — technology supports real-world meetings, not attention economics. See /manifest, /wat-is-homecheff, /persoonlijk-vakmanschap and /buurt-economie.',
   },
   sectionLocalTitle: { nl: 'Lokaal ontdekken', en: 'Discover locally' },
   sectionLocalBody: {
@@ -127,6 +127,8 @@ export const ecosystemMapPage: Record<string, Bi> = {
     en: 'Not guaranteed. Subscriptions lower fees; ranking boost claims are not live in the feed (Phase 13O).',
   },
   linkCompare: { nl: 'Platformvergelijkingen', en: 'Platform comparisons' },
+  linkManifest: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' },
+  linkAbout: { nl: 'Over ons', en: 'About us' },
   linkEarn: { nl: 'Lokaal verdienen', en: 'Earn locally' },
   linkHelp: { nl: 'Buurthulp', en: 'Neighbour help' },
   linkPlatform: { nl: 'Wat is HomeCheff?', en: 'What is HomeCheff?' },

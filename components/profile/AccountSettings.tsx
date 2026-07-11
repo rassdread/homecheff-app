@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Shield, Key, Mail, Eye, EyeOff, Save, AlertCircle, Trash2, BadgeCheck } from 'lucide-react';
 import DeleteAccount from './DeleteAccount';
+import SuspensionNotice from './SuspensionNotice';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -36,6 +38,13 @@ export default function AccountSettings({
   hideEmailTab = false,
 }: AccountSettingsProps) {
   const { t } = useTranslation();
+  const { data: session } = useSession();
+  const sessionUser = session?.user as {
+    isSuspended?: boolean;
+    suspendReason?: string | null;
+    suspendedAt?: string | null;
+  } | undefined;
+  const isSuspended = Boolean(sessionUser?.isSuspended);
   const hasPassword = user.hasPassword !== false;
   const tabs = [
     { id: 'password', label: t('accountSettings.password'), icon: Key },
@@ -149,6 +158,12 @@ export default function AccountSettings({
 
   return (
     <div className="space-y-6">
+      {isSuspended ? (
+        <SuspensionNotice
+          suspendReason={sessionUser?.suspendReason}
+          suspendedAt={sessionUser?.suspendedAt}
+        />
+      ) : null}
       {/* Help & Uitleg - BOVENAAN */}
       <HelpSettings />
 

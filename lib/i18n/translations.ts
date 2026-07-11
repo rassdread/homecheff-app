@@ -14,6 +14,10 @@ import {
 } from "@/lib/i18n/pillarPageSources";
 import { COMPARISON_PAGE_SOURCES } from "@/lib/i18n/comparisonPageSources";
 import { ECOSYSTEM_MAP_SOURCES } from "@/lib/i18n/ecosystemMapSources";
+import { MANIFEST_PAGE_SOURCES } from "@/lib/i18n/manifestPageSources";
+import { OPEN_KNOWLEDGE_SOURCES } from "@/lib/i18n/openKnowledgeSources";
+import { LIVING_PLATFORM_SOURCES } from "@/lib/i18n/livingPlatformSources";
+import { OPERATING_SYSTEM_PAGE_SOURCES } from "@/lib/i18n/operatingSystemSources";
 import { FOOD_CATEGORY_CONTEXT_SOURCES } from "@/lib/i18n/foodCategoryContextSources";
 
 type LangCode = "nl" | "en";
@@ -50,6 +54,18 @@ export function mergeProgrammaticI18n(
     out[ns] = flattenBiSource(src, lang);
   }
   for (const [ns, src] of Object.entries(ECOSYSTEM_MAP_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
+  for (const [ns, src] of Object.entries(MANIFEST_PAGE_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
+  for (const [ns, src] of Object.entries(OPEN_KNOWLEDGE_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
+  for (const [ns, src] of Object.entries(LIVING_PLATFORM_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
+  for (const [ns, src] of Object.entries(OPERATING_SYSTEM_PAGE_SOURCES)) {
     out[ns] = flattenBiSource(src, lang);
   }
   for (const [ns, src] of Object.entries(FOOD_CATEGORY_CONTEXT_SOURCES)) {

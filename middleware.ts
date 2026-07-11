@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import { getCorsHeaders } from '@/lib/apiCors';
 import { getSecurityHeaders } from '@/lib/security';
+import {
+  shouldBlockSuspendedMutation,
+  suspensionMutationBlockedResponse,
+} from '@/lib/user-suspend-middleware';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -17,8 +22,43 @@ function isPublicIconOrManifestPath(pathname: string): boolean {
   );
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // Phase 13T — block API mutations for suspended authenticated users (SSOT in user-suspend-middleware.ts)
+  if (shouldBlockSuspendedMutation(pathname, request.method)) {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    const userId = token?.id ? String(token.id) : null;
+    if (userId) {
+      let suspended = Boolean(token.suspended);
+      const internalSecret = process.env.INTERNAL_API_SECRET || process.env.NEXTAUTH_SECRET;
+      if (internalSecret) {
+        try {
+          const checkUrl = new URL('/api/internal/user-suspended', request.url);
+          checkUrl.searchParams.set('userId', userId);
+          const checkRes = await fetch(checkUrl.toString(), {
+            headers: { 'x-internal-secret': internalSecret },
+            cache: 'no-store',
+          });
+          if (checkRes.ok) {
+            const body = (await checkRes.json()) as { suspended?: boolean };
+            suspended = Boolean(body.suspended);
+          }
+        } catch {
+          // Fall back to JWT flag if internal check fails
+        }
+      }
+      if (suspended) {
+        const corsHeaders = getCorsHeaders(request);
+        const blocked = suspensionMutationBlockedResponse();
+        Object.entries(corsHeaders).forEach(([k, v]) => blocked.headers.set(k, v));
+        return blocked;
+      }
+    }
+  }
 
   // .nl → .eu: alles op één domein (Safari/sessie). Bezoeker landt op .eu in het Nederlands.
   const requestHost =

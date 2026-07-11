@@ -10,7 +10,12 @@ export type SuspensionBlockReason =
   | 'messaging'
   | 'affiliate_payout'
   | 'delivery_claim'
-  | 'admin_access';
+  | 'admin_access'
+  | 'platform_mutation'
+  | 'review'
+  | 'favorite'
+  | 'proposal'
+  | 'subscription';
 
 const BLOCK_MESSAGES: Record<SuspensionBlockReason, string> = {
   checkout: 'Je account is tijdelijk geblokkeerd. Neem contact op met support.',
@@ -19,6 +24,11 @@ const BLOCK_MESSAGES: Record<SuspensionBlockReason, string> = {
   affiliate_payout: 'Uitbetalingen zijn geblokkeerd voor dit account.',
   delivery_claim: 'Bezorgopdrachten zijn niet beschikbaar voor dit account.',
   admin_access: 'Admin-toegang is geblokkeerd voor dit account.',
+  platform_mutation: 'Je account is tijdelijk geschorst. Neem contact op met support.',
+  review: 'Je kunt geen reviews plaatsen terwijl je account is geschorst.',
+  favorite: 'Je kunt geen favorieten of volgers beheren terwijl je account is geschorst.',
+  proposal: 'Je kunt geen voorstellen doen terwijl je account is geschorst.',
+  subscription: 'Abonnementsacties zijn geblokkeerd terwijl je account is geschorst.',
 };
 
 export function suspensionBlockMessage(reason: SuspensionBlockReason): string {

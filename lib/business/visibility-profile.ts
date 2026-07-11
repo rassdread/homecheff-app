@@ -18,8 +18,11 @@ export type SupportLevel = 'standard' | 'business' | 'priority' | 'premium';
 
 export type FutureFeatureStatus = 'none' | 'ready' | 'optional' | 'future' | 'included';
 
-/** Max additive ranking boost from paid visibility (baseline profile). */
+/** Max additive ranking boost from paid visibility (baseline profile). NOT applied to live feed ranking (Phase 13T). */
 export const BUSINESS_VISIBILITY_RANK_CAP = 0.08;
+
+/** Phase 13T: paid discovery/ranking boost is config-only until fairly wired to feed ranking. */
+export const BUSINESS_DISCOVERY_RANKING_WIRED = false;
 
 /** Raw plan config stored in PLAN_CONFIG. */
 type BusinessPlanConfig = {

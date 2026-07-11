@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import Logo from '@/components/Logo';
-import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp, ShieldAlert, Users } from 'lucide-react';
+import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp, ShieldAlert, Users, Scroll, Library, BarChart3, Scale } from 'lucide-react';
 import { COMMUNITY_GUIDELINES_URL, SAFETY_STANDARDS_URL } from '@/lib/legal/policy-urls';
 import { isCompactMobileFooterPath } from '@/lib/layout/compactFooterRoutes';
 
@@ -15,6 +15,8 @@ export default function Footer() {
 
   const links = [
     { href: '/affiliate', label: t('siteFooter.affiliateProgram'), icon: TrendingUp },
+    { href: '/docs', label: t('siteFooter.openDocs'), icon: Library },
+    { href: '/evidence', label: t('siteFooter.evidence'), icon: BarChart3 },
     { href: '/seo-hub', label: t('siteFooter.seoHub'), icon: BookOpen },
     { href: '/privacy', label: t('siteFooter.privacy'), icon: Shield },
     { href: '/terms', label: t('siteFooter.terms'), icon: FileText },
@@ -22,6 +24,8 @@ export default function Footer() {
     { href: SAFETY_STANDARDS_URL, label: t('siteFooter.safety'), icon: ShieldAlert },
     { href: '/contact', label: t('siteFooter.contact'), icon: Mail },
     { href: '/over-ons', label: t('siteFooter.overOns'), icon: Info },
+    { href: '/constitution', label: t('siteFooter.constitution'), icon: Scale },
+    { href: '/manifest', label: t('siteFooter.manifest'), icon: Scroll },
     { href: '/faq', label: t('siteFooter.faq'), icon: HelpCircle },
     { href: '/hcp-ranglijsten', label: t('siteFooter.hcpRankings'), icon: Trophy },
     { href: '/contact?subject=feedback', label: t('siteFooter.feedback'), icon: MessageSquare },

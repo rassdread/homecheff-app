@@ -391,3 +391,164 @@ export function buildListingJsonLd(
       }),
   };
 }
+
+/** Phase 13V — TechArticle for /docs/* and open knowledge pages. */
+export function buildTechArticleJsonLd(input: {
+  domain: string;
+  lang: PlatformLang;
+  path: string;
+  headline: string;
+  description: string;
+  dateModified: string;
+}): Record<string, unknown> {
+  const url = input.path.startsWith('http')
+    ? input.path
+    : `${input.domain}${input.path.startsWith('/') ? input.path : `/${input.path}`}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: input.headline,
+    description: input.description,
+    url,
+    dateModified: input.dateModified,
+    inLanguage: input.lang === 'en' ? 'en-US' : 'nl-NL',
+    isPartOf: websitePartOfRef(input.domain),
+    publisher: organizationPublisherRef(input.domain),
+    author: organizationPublisherRef(input.domain),
+  };
+}
+
+/** Phase 13V — CollectionPage for /docs hub. */
+export function buildCollectionPageJsonLd(input: {
+  domain: string;
+  lang: PlatformLang;
+  path: string;
+  name: string;
+  description: string;
+  dateModified: string;
+  hasPart: Array<{ name: string; url: string }>;
+}): Record<string, unknown> {
+  const url = input.path.startsWith('http')
+    ? input.path
+    : `${input.domain}${input.path.startsWith('/') ? input.path : `/${input.path}`}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: input.name,
+    description: input.description,
+    url,
+    dateModified: input.dateModified,
+    inLanguage: input.lang === 'en' ? 'en-US' : 'nl-NL',
+    isPartOf: websitePartOfRef(input.domain),
+    publisher: organizationPublisherRef(input.domain),
+    hasPart: input.hasPart.map((part) => ({
+      '@type': 'WebPage',
+      name: part.name,
+      url: part.url.startsWith('http') ? part.url : `${input.domain}${part.url}`,
+    })),
+  };
+}
+
+/** Phase 13W — Dataset for /statistics and public evidence. */
+export function buildDatasetJsonLd(input: {
+  domain: string;
+  lang: PlatformLang;
+  path: string;
+  name: string;
+  description: string;
+  dateModified: string;
+}): Record<string, unknown> {
+  const url = input.path.startsWith('http')
+    ? input.path
+    : `${input.domain}${input.path.startsWith('/') ? input.path : `/${input.path}`}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Dataset',
+    name: input.name,
+    description: input.description,
+    url,
+    dateModified: input.dateModified,
+    inLanguage: input.lang === 'en' ? 'en-US' : 'nl-NL',
+    isPartOf: websitePartOfRef(input.domain),
+    publisher: organizationPublisherRef(input.domain),
+    license: `${input.domain}/terms`,
+  };
+}
+
+/** Phase 13W — ItemList for /evidence modules. */
+export function buildItemListJsonLd(input: {
+  domain: string;
+  lang: PlatformLang;
+  path: string;
+  name: string;
+  description: string;
+  dateModified: string;
+  items: Array<{ name: string; url?: string }>;
+}): Record<string, unknown> {
+  const url = input.path.startsWith('http')
+    ? input.path
+    : `${input.domain}${input.path.startsWith('/') ? input.path : `/${input.path}`}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: input.name,
+    description: input.description,
+    url,
+    dateModified: input.dateModified,
+    inLanguage: input.lang === 'en' ? 'en-US' : 'nl-NL',
+    isPartOf: websitePartOfRef(input.domain),
+    publisher: organizationPublisherRef(input.domain),
+    numberOfItems: input.items.length,
+    itemListElement: input.items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      ...(item.url
+        ? {
+            item: item.url.startsWith('http') ? item.url : `${input.domain}${item.url}`,
+          }
+        : {}),
+    })),
+  };
+}
+
+/** Phase 13V — DefinedTermSet for /glossary. */
+export function buildDefinedTermSetJsonLd(input: {
+  domain: string;
+  lang: PlatformLang;
+  path: string;
+  name: string;
+  description: string;
+  dateModified: string;
+  terms: Array<{ name: string; description: string }>;
+}): Record<string, unknown> {
+  const url = input.path.startsWith('http')
+    ? input.path
+    : `${input.domain}${input.path.startsWith('/') ? input.path : `/${input.path}`}`;
+
+  const setId = `${url}#defined-term-set`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTermSet',
+    '@id': setId,
+    name: input.name,
+    description: input.description,
+    url,
+    dateModified: input.dateModified,
+    inLanguage: input.lang === 'en' ? 'en-US' : 'nl-NL',
+    isPartOf: websitePartOfRef(input.domain),
+    publisher: organizationPublisherRef(input.domain),
+    hasDefinedTerm: input.terms.map((term, index) => ({
+      '@type': 'DefinedTerm',
+      '@id': `${url}#term-${index + 1}`,
+      name: term.name,
+      description: term.description,
+      inDefinedTermSet: { '@id': setId },
+    })),
+  };
+}

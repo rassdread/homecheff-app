@@ -7,6 +7,8 @@ import { MAIN_DOMAIN } from "@/lib/seo/metadata";
 import { LOCAL_SEO_CITIES } from "@/lib/seo/localCities";
 import { CATEGORY_ECOSYSTEM_SLUGS } from "@/lib/community/categoryEcosystemSlugs";
 import { COMPARISON_PAGE_REGISTRY } from "@/lib/seo/comparison-pages";
+import { collectOpenKnowledgePublicPaths } from "@/lib/open-knowledge/docs-registry";
+import { collectLivingPlatformPublicPaths } from "@/lib/living-platform/registry";
 
 /** Vaste paden (NL marketing + hubs), zonder domein — volgorde = huidige sitemap. */
 const EXTRA_STATIC_PATHS: readonly string[] = [
@@ -35,6 +37,8 @@ const EXTRA_STATIC_PATHS: readonly string[] = [
   "/lokaal-eten-verkopen",
   "/faq",
   "/over-ons",
+  "/manifest",
+  "/constitution",
 ] as const;
 
 function absoluteLoc(path: string): string {
@@ -73,6 +77,14 @@ export function collectSitemapLocUrls(): string[] {
 
   for (const page of COMPARISON_PAGE_REGISTRY) {
     push(page.path);
+  }
+
+  for (const path of collectOpenKnowledgePublicPaths()) {
+    push(path);
+  }
+
+  for (const path of collectLivingPlatformPublicPaths()) {
+    push(path);
   }
 
   for (const page of HOMECHEFF_SEO_PAGE_DEFS) {

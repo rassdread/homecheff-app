@@ -36,6 +36,8 @@ export const ECOSYSTEM_MAP_BLOCKS: SeoLandingBlock[] = [
       { href: '/buurthulp', labelKey: 'linkHelp' },
       { href: '/maaltijden/vlaardingen', labelKey: 'linkVlaardingen' },
       { href: '/maaltijden/rotterdam', labelKey: 'linkRotterdam' },
+      { href: '/manifest', labelKey: 'linkManifest' },
+      { href: '/over-ons', labelKey: 'linkAbout' },
       { href: '/wat-is-homecheff', labelKey: 'linkPlatform' },
     ],
   },

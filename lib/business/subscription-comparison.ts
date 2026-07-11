@@ -131,8 +131,6 @@ export function growthBenefitKeysForPlan(plan: BusinessPlanId): string[] {
 
   if (p.verifiedBusiness) keys.push('business.dna.benefit.verified');
   if (p.badge) keys.push('business.dna.benefit.badge');
-  if (p.boostEligible) keys.push('business.dna.benefit.discoveryBoost');
-  if (p.localSearchPriority) keys.push('business.dna.benefit.localSearch');
   if (p.categorySpotlightEligible) keys.push('business.dna.benefit.categoryFeatured');
   if (p.regionalEligible) keys.push('business.dna.benefit.regional');
   if (p.homepageEligible) keys.push('business.dna.benefit.homepageEligible');

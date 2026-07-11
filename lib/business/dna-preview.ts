@@ -42,18 +42,18 @@ function planRank(plan: BusinessPlanId): number {
   return PLAN_ORDER.indexOf(plan);
 }
 
-/** 0–100 visibility score from DNA — auditable, no fake metrics. */
+/** 0–100 profile strength score — informational only; does NOT reflect live feed ranking. */
 export function computeVisibilityScore(profile: BusinessVisibilityProfile): number {
-  const levelScore = profile.visibilityLevel * 18;
-  const searchScore = profile.searchPriorityLevel * 6;
-  const boostScore = Math.round(profile.rankingBoost * 200);
-  const discoveryScore = Math.round((profile.discoveryBoost - 1) * 40);
+  const levelScore = profile.visibilityLevel * 12;
+  const searchScore = profile.searchPriorityLevel * 4;
   const bonus =
-    (profile.verifiedBusiness ? 4 : 0) +
+    (profile.verifiedBusiness ? 8 : 0) +
+    (profile.badge ? 6 : 0) +
     (profile.regionalEligible ? 4 : 0) +
     (profile.homepageEligible ? 3 : 0) +
-    (profile.homepageSpotlightEligible ? 3 : 0);
-  return Math.min(100, levelScore + searchScore + boostScore + discoveryScore + bonus);
+    (profile.homepageSpotlightEligible ? 3 : 0) +
+    (profile.premiumAnalytics ? 4 : 0);
+  return Math.min(100, levelScore + searchScore + bonus);
 }
 
 /** Live preview metric rows for subscription selector. */
@@ -72,9 +72,9 @@ export function buildLivePreviewFields(plan: BusinessPlanId): DnaPreviewField[] 
       maxDots: 4,
     },
     {
-      labelKey: 'business.dna.preview.discoveryLevel',
+      labelKey: 'business.dna.preview.profileTier',
       kind: 'label',
-      textKey: `business.dna.preview.discovery.${p.visibilityLevel}`,
+      textKey: `business.dna.preview.tier.${p.visibilityLevel}`,
     },
     {
       labelKey: 'business.dna.preview.searchPriority',
@@ -163,20 +163,6 @@ export function computeUpgradeDelta(
     to,
     to.visibilityLevel > from.visibilityLevel,
     'business.dna.delta.visibility',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    to.searchPriorityLevel > from.searchPriorityLevel,
-    'business.dna.delta.searchPriority',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    to.rankingBoost > from.rankingBoost,
-    'business.dna.delta.discoveryPriority',
   );
   pushIfChanged(
     out,
@@ -287,8 +273,6 @@ export function listUnlockedFeatureKeys(plan: BusinessPlanId): string[] {
   const p = getBusinessVisibilityProfile(plan);
   const keys: string[] = [];
   if (p.badge) keys.push('business.dna.unlocked.badge');
-  if (p.boostEligible) keys.push('business.dna.unlocked.discoveryBoost');
-  if (p.localSearchPriority) keys.push('business.dna.unlocked.localSearch');
   if (p.verifiedBusiness) keys.push('business.dna.unlocked.verified');
   if (p.categorySpotlightEligible) keys.push('business.dna.unlocked.category');
   if (p.regionalEligible) keys.push('business.dna.unlocked.regional');
@@ -346,7 +330,7 @@ export function nextUpgradePlan(plan: BusinessPlanId): BusinessPlanId | null {
 export function growthStatusLabelKey(plan: BusinessPlanId): string {
   const p = getBusinessVisibilityProfile(plan);
   if (p.plan === 'premium') return 'business.dna.growthStatus.max';
-  if (p.boostEligible && p.regionalEligible) return 'business.dna.growthStatus.strong';
-  if (p.boostEligible) return 'business.dna.growthStatus.growing';
+  if (p.verifiedBusiness && p.regionalEligible) return 'business.dna.growthStatus.strong';
+  if (p.badge) return 'business.dna.growthStatus.growing';
   return 'business.dna.growthStatus.starter';
 }

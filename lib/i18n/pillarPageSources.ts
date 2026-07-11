@@ -39,6 +39,7 @@ export const pillarSharedFaq: Record<string, Bi> = {
   linkNotMass: { nl: 'Wat we niet zijn', en: 'What we are not' },
   linkEcosystem: { nl: 'Hoe HomeCheff werkt', en: 'How HomeCheff works' },
   linkCompare: { nl: 'Platformvergelijkingen', en: 'Platform comparisons' },
+  linkManifest: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' },
   linkAbout: { nl: 'Over ons', en: 'About us' },
   linkFaq: { nl: 'FAQ', en: 'FAQ' },
 };
@@ -353,6 +354,8 @@ export const PILLAR_HUB_SECTION = {
     en: 'Craft and community — core topics',
   },
   links: [
+    { href: '/manifest', label: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' } },
+    { href: '/over-ons', label: { nl: 'Over ons', en: 'About us' } },
     { href: '/wat-is-homecheff', label: { nl: 'Wat is HomeCheff?', en: 'What is HomeCheff?' } },
     { href: '/hoe-homecheff-werkt', label: { nl: 'Hoe HomeCheff werkt', en: 'How HomeCheff works' } },
     { href: '/vergelijken', label: { nl: 'Platformvergelijkingen', en: 'Platform comparisons' } },

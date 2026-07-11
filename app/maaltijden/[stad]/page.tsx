@@ -112,6 +112,12 @@ export default async function MaaltijdenStadPage({
             Ontmoet de maker
           </Link>
           <Link
+            href="/evidence"
+            className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+          >
+            Platformbewijs
+          </Link>
+          <Link
             href="/wat-is-homecheff"
             className="inline-flex items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50/80 px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-100/80"
           >

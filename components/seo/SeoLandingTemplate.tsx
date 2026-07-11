@@ -22,7 +22,7 @@ export type SeoLandingBlock =
     }
   | { type: 'paragraph'; bodyKey: string }
   | { type: 'richParagraph'; segments: RichSegment[] }
-  | { type: 'linkRow'; links: SeoLandingLink[] }
+  | { type: 'linkRow'; links: SeoLandingLink[]; labelNs?: string }
   | { type: 'steps'; titleKey: string; stepKeys: string[] }
   | { type: 'mistakes'; titleKey: string; bodyKey: string }
   | {
@@ -44,7 +44,7 @@ export type SeoLandingBlock =
   | {
       type: 'glossary';
       titleKey: string;
-      items: { termKey: string; defKey: string }[];
+      items: { termKey: string; defKey: string; shortDefKey?: string }[];
     }
   | { type: 'pressFacts'; titleKey: string; factKeys: string[] }
   | { type: 'lastReviewed'; sharedNs: string }
@@ -59,7 +59,7 @@ type Props = {
   foodContextVariant?: 0 | 1 | 2;
   /** Breadcrumb + WebPage schema */
   pagePath?: string;
-  breadcrumbItems?: Array<{ nameKey: string; path: string }>;
+  breadcrumbItems?: Array<{ nameKey: string; path: string; ns?: string }>;
 };
 
 function applyInterpolation(
@@ -151,7 +151,7 @@ export default function SeoLandingTemplate({
       itemListElement: breadcrumbItems.map((item, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        name: tk(item.nameKey),
+        name: item.ns ? sk(item.ns, item.nameKey) : tk(item.nameKey),
         item: `${domain}${item.path}`,
       })),
     });
@@ -256,6 +256,11 @@ export default function SeoLandingTemplate({
             );
           }
           if (b.type === 'linkRow') {
+            const lk = (key: string) =>
+              applyInterpolation(
+                t(`${b.labelNs ?? ns}.${key}`),
+                interpolation,
+              );
             return (
               <div key={i} className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
                 {b.links.map((l) => (
@@ -264,7 +269,7 @@ export default function SeoLandingTemplate({
                     href={l.href}
                     className="font-medium text-emerald-700 underline-offset-2 hover:underline"
                   >
-                    {tk(l.labelKey)}
+                    {lk(l.labelKey)}
                   </Link>
                 ))}
               </div>
@@ -352,10 +357,15 @@ export default function SeoLandingTemplate({
               <section key={i} className="mt-12">
                 <h2 className="text-2xl font-semibold text-gray-900">{tk(b.titleKey)}</h2>
                 <dl className="mt-4 space-y-4">
-                  {b.items.map(({ termKey, defKey }) => (
+                  {b.items.map(({ termKey, defKey, shortDefKey }) => (
                     <div key={termKey}>
                       <dt className="font-semibold text-gray-900">{tk(termKey)}</dt>
-                      <dd className="mt-1 text-gray-700 leading-relaxed">{tk(defKey)}</dd>
+                      <dd className="mt-1 text-gray-700 leading-relaxed">
+                        {shortDefKey ? (
+                          <p className="text-sm font-medium text-gray-600">{tk(shortDefKey)}</p>
+                        ) : null}
+                        <p className={shortDefKey ? 'mt-2' : undefined}>{tk(defKey)}</p>
+                      </dd>
                     </div>
                   ))}
                 </dl>

@@ -43,6 +43,8 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
     'lokale diensten',
     'ruilen',
     'lokaal verdienen',
+    'technologie met geweten',
+    'digitaal dorpsplein',
   ],
   en: [
     'personal craftsmanship',
@@ -54,6 +56,8 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
     'local services',
     'barter',
     'earn locally',
+    'technology with conscience',
+    'digital village square',
   ],
 };
 
