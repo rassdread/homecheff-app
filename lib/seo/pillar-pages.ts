@@ -70,6 +70,8 @@ const PILLAR_LINKS: SeoLandingBlock = {
     { href: '/buurthulp', labelKey: 'linkHelp' },
     { href: '/buurt-economie', labelKey: 'linkEconomy' },
     { href: '/wat-we-niet-zijn', labelKey: 'linkNotMass' },
+    { href: '/hoe-homecheff-werkt', labelKey: 'linkEcosystem' },
+    { href: '/vergelijken', labelKey: 'linkCompare' },
     { href: '/over-ons', labelKey: 'linkAbout' },
     { href: '/faq', labelKey: 'linkFaq' },
   ],

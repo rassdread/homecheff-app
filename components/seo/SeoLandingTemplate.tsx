@@ -27,10 +27,27 @@ export type SeoLandingBlock =
   | { type: 'mistakes'; titleKey: string; bodyKey: string }
   | {
       type: 'faq';
-      /** i18n-namespace met `faqBlockTitle`, `faq1Q`, `faq1A`, … */
-      faqNs: string;
+      /** i18n-namespace met `faqBlockTitle`, `faq1Q`, `faq1A`, … — default: page `ns` */
+      faqNs?: string;
       items: { qKey: string; aKey: string }[];
     }
+  | {
+      type: 'comparisonTable';
+      titleKey: string;
+      sharedNs: string;
+      rows: {
+        dimensionKey: string;
+        competitorKey: string;
+        homecheffKey: string;
+      }[];
+    }
+  | {
+      type: 'glossary';
+      titleKey: string;
+      items: { termKey: string; defKey: string }[];
+    }
+  | { type: 'pressFacts'; titleKey: string; factKeys: string[] }
+  | { type: 'lastReviewed'; sharedNs: string }
   | { type: 'cta' };
 
 type Props = {
@@ -38,6 +55,11 @@ type Props = {
   blocks: SeoLandingBlock[];
   /** Vervangt `{{key}}` in vertaalde strings (bijv. city-pagina’s). */
   interpolation?: Record<string, string>;
+  /** Phase 13S — optional food identity reconciliation after intro */
+  foodContextVariant?: 0 | 1 | 2;
+  /** Breadcrumb + WebPage schema */
+  pagePath?: string;
+  breadcrumbItems?: Array<{ nameKey: string; path: string }>;
 };
 
 function applyInterpolation(
@@ -56,22 +78,28 @@ export default function SeoLandingTemplate({
   ns,
   blocks,
   interpolation,
+  foodContextVariant,
+  pagePath,
+  breadcrumbItems,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const tk = (key: string) =>
     applyInterpolation(t(`${ns}.${key}`), interpolation);
+  const sk = (sharedNs: string, key: string) =>
+    applyInterpolation(t(`${sharedNs}.${key}`), interpolation);
 
   const faqLdPayload = useMemo(() => {
     const rows: { faqNs: string; qKey: string; aKey: string }[] = [];
     for (const b of blocks) {
       if (b.type === 'faq') {
+        const faqNs = b.faqNs ?? ns;
         for (const it of b.items) {
-          rows.push({ faqNs: b.faqNs, qKey: it.qKey, aKey: it.aKey });
+          rows.push({ faqNs, qKey: it.qKey, aKey: it.aKey });
         }
       }
     }
     return rows;
-  }, [blocks]);
+  }, [blocks, ns]);
 
   const faqLdJson = useMemo(() => {
     if (faqLdPayload.length === 0) return null;
@@ -91,6 +119,44 @@ export default function SeoLandingTemplate({
     });
   }, [faqLdPayload, interpolation, t]);
 
+  const webPageLdJson = useMemo(() => {
+    if (!pagePath) return null;
+    const lang = language === 'en' ? 'en' : 'nl';
+    const domain =
+      typeof document !== 'undefined'
+        ? document.documentElement.getAttribute('data-domain') || 'https://homecheff.eu'
+        : 'https://homecheff.eu';
+    return JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: tk('title'),
+      description: tk('intro').slice(0, 300),
+      url: `${domain}${pagePath}`,
+      inLanguage: lang === 'en' ? 'en-US' : 'nl-NL',
+      isPartOf: { '@id': `${domain}/#website` },
+      publisher: { '@id': `${domain}/#organization` },
+      dateModified: '2026-07-11',
+    });
+  }, [language, pagePath, t, ns, interpolation]);
+
+  const breadcrumbLdJson = useMemo(() => {
+    if (!pagePath || !breadcrumbItems?.length) return null;
+    const domain =
+      typeof document !== 'undefined'
+        ? document.documentElement.getAttribute('data-domain') || 'https://homecheff.eu'
+        : 'https://homecheff.eu';
+    return JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: breadcrumbItems.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: tk(item.nameKey),
+        item: `${domain}${item.path}`,
+      })),
+    });
+  }, [breadcrumbItems, pagePath, t, ns, interpolation]);
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-emerald-50/80 to-white">
       {faqLdJson ? (
@@ -100,11 +166,38 @@ export default function SeoLandingTemplate({
           dangerouslySetInnerHTML={{ __html: faqLdJson }}
         />
       ) : null}
+      {webPageLdJson ? (
+        <Script
+          id={`seo-wp-ld-${ns}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: webPageLdJson }}
+        />
+      ) : null}
+      {breadcrumbLdJson ? (
+        <Script
+          id={`seo-bc-ld-${ns}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: breadcrumbLdJson }}
+        />
+      ) : null}
       <article className="mx-auto max-w-3xl px-4 py-12 sm:py-16 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
           {tk('title')}
         </h1>
         <p className="mt-6 text-lg text-gray-700 leading-relaxed">{tk('intro')}</p>
+
+        {foodContextVariant != null ? (
+          <p className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-sm leading-relaxed text-gray-700">
+            {sk(`foodCategoryContextV${foodContextVariant}`, 'body')}
+            <Link href="/wat-is-homecheff" className="font-medium text-emerald-800 underline-offset-2 hover:underline">
+              {sk('foodCategoryContextShared', 'linkPlatform')}
+            </Link>
+            {' · '}
+            <Link href="/hoe-homecheff-werkt" className="font-medium text-emerald-800 underline-offset-2 hover:underline">
+              {sk('foodCategoryContextShared', 'linkEcosystem')}
+            </Link>
+          </p>
+        ) : null}
 
         {blocks.map((b, i) => {
           if (b.type === 'section') {
@@ -202,8 +295,9 @@ export default function SeoLandingTemplate({
             );
           }
           if (b.type === 'faq') {
+            const faqNs = b.faqNs ?? ns;
             const fq = (key: string) =>
-              applyInterpolation(t(`${b.faqNs}.${key}`), interpolation);
+              applyInterpolation(t(`${faqNs}.${key}`), interpolation);
             return (
               <section key={i} className="mt-14 border-t border-gray-200 pt-12">
                 <h2 className="text-2xl font-semibold text-gray-900">
@@ -218,6 +312,73 @@ export default function SeoLandingTemplate({
                   ))}
                 </dl>
               </section>
+            );
+          }
+          if (b.type === 'comparisonTable') {
+            return (
+              <section key={i} className="mt-12 overflow-x-auto">
+                <h2 className="text-2xl font-semibold text-gray-900">{tk(b.titleKey)}</h2>
+                <table className="mt-4 w-full min-w-[520px] border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50">
+                      <th className="px-3 py-2 font-semibold text-gray-900">
+                        {sk(b.sharedNs, 'tableDimension')}
+                      </th>
+                      <th className="px-3 py-2 font-semibold text-gray-900">
+                        {sk(b.sharedNs, 'tableCompetitor')}
+                      </th>
+                      <th className="px-3 py-2 font-semibold text-gray-900">
+                        {sk(b.sharedNs, 'tableHomeCheff')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {b.rows.map((row) => (
+                      <tr key={row.dimensionKey} className="border-b border-gray-100">
+                        <th className="px-3 py-2 font-medium text-gray-900">
+                          {sk(b.sharedNs, row.dimensionKey)}
+                        </th>
+                        <td className="px-3 py-2 text-gray-700">{tk(row.competitorKey)}</td>
+                        <td className="px-3 py-2 text-gray-700">{tk(row.homecheffKey)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            );
+          }
+          if (b.type === 'glossary') {
+            return (
+              <section key={i} className="mt-12">
+                <h2 className="text-2xl font-semibold text-gray-900">{tk(b.titleKey)}</h2>
+                <dl className="mt-4 space-y-4">
+                  {b.items.map(({ termKey, defKey }) => (
+                    <div key={termKey}>
+                      <dt className="font-semibold text-gray-900">{tk(termKey)}</dt>
+                      <dd className="mt-1 text-gray-700 leading-relaxed">{tk(defKey)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            );
+          }
+          if (b.type === 'pressFacts') {
+            return (
+              <section key={i} className="mt-12 rounded-xl border border-gray-200 bg-white p-6">
+                <h2 className="text-2xl font-semibold text-gray-900">{tk(b.titleKey)}</h2>
+                <ul className="mt-4 list-disc space-y-2 pl-5 text-gray-700 leading-relaxed">
+                  {b.factKeys.map((fk) => (
+                    <li key={fk}>{tk(fk)}</li>
+                  ))}
+                </ul>
+              </section>
+            );
+          }
+          if (b.type === 'lastReviewed') {
+            return (
+              <p key={i} className="mt-10 text-sm text-gray-500">
+                {sk(b.sharedNs, 'lastReviewedLabel')}: {sk(b.sharedNs, 'lastReviewedDate')}
+              </p>
             );
           }
           if (b.type === 'cta') {

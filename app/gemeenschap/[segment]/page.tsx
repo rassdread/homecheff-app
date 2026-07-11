@@ -114,13 +114,20 @@ export default async function GemeenschapSegmentPage({
   const url = `${currentDomain}/gemeenschap/${slug}`;
   const m = META[slug];
 
+  const lang = await resolvePageLanguage();
+  const title = lang === 'en' ? m.titleEn : m.titleNl;
+  const description = lang === 'en' ? m.descEn : m.descNl;
+
   const webPageLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: m.titleNl,
-    description: m.descNl,
+    name: title,
+    description,
     url,
-    isPartOf: { '@type': 'WebSite', name: 'HomeCheff', url: currentDomain },
+    inLanguage: lang === 'en' ? 'en-US' : 'nl-NL',
+    isPartOf: { '@id': `${currentDomain}/#website` },
+    publisher: { '@id': `${currentDomain}/#organization` },
+    dateModified: '2026-07-11',
   };
 
   return (

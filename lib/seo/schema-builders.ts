@@ -1,4 +1,17 @@
 import { getPlatformDefinition, type PlatformLang } from './platform-definition';
+import {
+  HOMECHEFF_BRAND_NAME,
+  LEGAL_OPERATOR,
+  ORGANIZATION_ALTERNATE_NAMES,
+  ORGANIZATION_KNOWS_ABOUT,
+  SUPPORT_EMAIL,
+  VERIFIED_FOUNDER,
+  VERIFIED_SAME_AS,
+  WEBSITE_SEARCH_ACTION_TEMPLATE,
+  legalOperatorEntityId,
+  organizationEntityId,
+  websiteEntityId,
+} from './organization-identity';
 
 const SERVICE_MARKETPLACE_CATEGORIES = new Set([
   'PRACTICAL_SERVICE',
@@ -12,22 +25,101 @@ export function isServiceMarketplaceCategory(
   return SERVICE_MARKETPLACE_CATEGORIES.has(String(category).trim().toUpperCase());
 }
 
+function organizationPublisherRef(domain: string): Record<string, string> {
+  return { '@id': organizationEntityId(domain) };
+}
+
+function websitePartOfRef(domain: string): Record<string, string> {
+  return { '@id': websiteEntityId(domain) };
+}
+
+/** Phase 13S — canonical Organization entity for the HomeCheff platform brand. */
 export function buildOrganizationJsonLd(
   domain: string,
   lang: PlatformLang,
 ): Record<string, unknown> {
   const def = getPlatformDefinition(lang);
+  const contactType = lang === 'en' ? 'Customer service' : 'Klantenservice';
+  const lang1 = lang === 'en' ? 'English' : 'Nederlands';
+  const lang2 = lang === 'en' ? 'Dutch' : 'Engels';
+  const countryName = lang === 'en' ? 'Netherlands' : 'Nederland';
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'HomeCheff',
+    '@id': organizationEntityId(domain),
+    name: HOMECHEFF_BRAND_NAME,
+    alternateName: [...ORGANIZATION_ALTERNATE_NAMES],
     url: domain,
     logo: { '@type': 'ImageObject', url: `${domain}/logo.png` },
     description: def.organizationDescription,
-    areaServed: { '@type': 'Country', name: lang === 'en' ? 'Netherlands' : 'Nederland' },
+    sameAs: [...VERIFIED_SAME_AS],
+    foundingLocation: {
+      '@type': 'Place',
+      name: LEGAL_OPERATOR.locality,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: LEGAL_OPERATOR.locality,
+        addressCountry: LEGAL_OPERATOR.addressCountry,
+      },
+    },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: LEGAL_OPERATOR.locality,
+      addressCountry: LEGAL_OPERATOR.addressCountry,
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType,
+      email: SUPPORT_EMAIL,
+      availableLanguage: [lang1, lang2],
+    },
+    parentOrganization: {
+      '@type': 'Organization',
+      '@id': legalOperatorEntityId(domain),
+      name: LEGAL_OPERATOR.name,
+      legalName: LEGAL_OPERATOR.legalName,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: LEGAL_OPERATOR.locality,
+        addressCountry: LEGAL_OPERATOR.addressCountry,
+      },
+    },
+    founder: {
+      '@type': 'Person',
+      name: VERIFIED_FOUNDER.name,
+      jobTitle: VERIFIED_FOUNDER.jobTitle,
+    },
+    knowsAbout: ORGANIZATION_KNOWS_ABOUT[lang],
+    areaServed: { '@type': 'Country', name: countryName },
+    copyrightHolder: { '@id': organizationEntityId(domain) },
   };
 }
 
+/** Legal operator node — referenced by platform Organization.parentOrganization. */
+export function buildLegalOperatorJsonLd(domain: string): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': legalOperatorEntityId(domain),
+    name: LEGAL_OPERATOR.name,
+    legalName: LEGAL_OPERATOR.legalName,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: LEGAL_OPERATOR.locality,
+      addressCountry: LEGAL_OPERATOR.addressCountry,
+    },
+    identifier: [
+      {
+        '@type': 'PropertyValue',
+        name: 'KvK',
+        value: LEGAL_OPERATOR.kvk,
+      },
+    ],
+  };
+}
+
+/** Phase 13S — canonical WebSite entity with single SearchAction contract. */
 export function buildWebsiteJsonLd(
   domain: string,
   lang: PlatformLang,
@@ -36,19 +128,76 @@ export function buildWebsiteJsonLd(
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'HomeCheff',
+    '@id': websiteEntityId(domain),
+    name: HOMECHEFF_BRAND_NAME,
+    alternateName: [...ORGANIZATION_ALTERNATE_NAMES],
     url: domain,
     description: def.websiteDescription,
-    publisher: { '@type': 'Organization', name: 'HomeCheff' },
+    publisher: organizationPublisherRef(domain),
     inLanguage: lang === 'en' ? 'en-US' : 'nl-NL',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${domain}/?place={search_term_string}#homecheff-feed`,
+        urlTemplate: `${domain}${WEBSITE_SEARCH_ACTION_TEMPLATE}`,
       },
       'query-input': 'required name=search_term_string',
     },
+  };
+}
+
+/** Root entity graph — Organization + legal operator + WebSite. */
+export function buildRootEntityGraphJsonLd(
+  domain: string,
+  lang: PlatformLang,
+): Record<string, unknown>[] {
+  return [
+    buildOrganizationJsonLd(domain, lang),
+    buildLegalOperatorJsonLd(domain),
+    buildWebsiteJsonLd(domain, lang),
+  ];
+}
+
+export function buildWebPageJsonLd(input: {
+  domain: string;
+  lang: PlatformLang;
+  path: string;
+  name: string;
+  description?: string;
+  dateModified?: string;
+}): Record<string, unknown> {
+  const url = input.path.startsWith('http')
+    ? input.path
+    : `${input.domain}${input.path.startsWith('/') ? input.path : `/${input.path}`}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: input.name,
+    ...(input.description ? { description: input.description } : {}),
+    url,
+    inLanguage: input.lang === 'en' ? 'en-US' : 'nl-NL',
+    isPartOf: websitePartOfRef(input.domain),
+    publisher: organizationPublisherRef(input.domain),
+    ...(input.dateModified ? { dateModified: input.dateModified } : {}),
+  };
+}
+
+export function buildBreadcrumbJsonLd(input: {
+  domain: string;
+  items: Array<{ name: string; path: string }>;
+}): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: input.items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.path.startsWith('http')
+        ? item.path
+        : `${input.domain}${item.path.startsWith('/') ? item.path : `/${item.path}`}`,
+    })),
   };
 }
 
@@ -82,7 +231,8 @@ export function buildProfilePageJsonLd(input: {
     name: `${input.displayName} | HomeCheff`,
     url: input.profileUrl,
     mainEntity: person,
-    isPartOf: { '@type': 'WebSite', name: 'HomeCheff', url: input.domain },
+    isPartOf: websitePartOfRef(input.domain),
+    publisher: organizationPublisherRef(input.domain),
   };
 }
 
@@ -124,6 +274,7 @@ export function buildSellerHowToJsonLd(
       text,
     })),
     url: `${domain}/lokaal-verdienen`,
+    publisher: organizationPublisherRef(domain),
   };
 }
 

@@ -2,6 +2,7 @@ import './globals.css';
 import Providers from '@/components/Providers';
 import NavBar from '@/components/NavBar';
 import AppPageChrome from '@/components/AppPageChrome';
+import RootEntityGraphScripts from '@/components/seo/RootEntityGraphScripts';
 import { headers, cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
@@ -170,6 +171,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
+        <RootEntityGraphScripts />
         <script
           dangerouslySetInnerHTML={{
             __html:

@@ -7,6 +7,11 @@ import {
   getSeoCanonicalUrl,
 } from "@/lib/seo/homecheffSeoPages";
 import { MAIN_DOMAIN } from "@/lib/seo/metadata";
+import {
+  pickFoodContextVariant,
+  shouldShowFoodCategoryContextForSeoId,
+} from "@/lib/seo/food-context";
+import FoodCategoryContextBlock from "@/components/seo/FoodCategoryContextBlock";
 
 type Props = {
   page: SeoPageDefinition;
@@ -20,6 +25,8 @@ export default function HomecheffSeoLanding({ page, locale }: Props) {
   const backLabel = locale === "nl" ? "Terug naar home" : "Back to home";
   const seoHubHref = locale === "nl" ? "/seo-hub" : "/en/seo-hub";
   const related = getRelatedHomecheffSeoPages(page, locale, 3);
+  const showFoodContext = shouldShowFoodCategoryContextForSeoId(page.id);
+  const foodContextVariant = showFoodContext ? pickFoodContextVariant(page.id) : null;
 
   const webPageLd = {
     "@context": "https://schema.org",
@@ -28,11 +35,9 @@ export default function HomecheffSeoLanding({ page, locale }: Props) {
     description: c.description,
     url: canonical,
     inLanguage: locale === "nl" ? "nl-NL" : "en-US",
-    isPartOf: {
-      "@type": "WebSite",
-      name: "HomeCheff",
-      url: MAIN_DOMAIN,
-    },
+    isPartOf: { "@id": `${MAIN_DOMAIN}/#website` },
+    publisher: { "@id": `${MAIN_DOMAIN}/#organization` },
+    dateModified: "2026-07-11",
   };
 
   const articleLd = {
@@ -42,16 +47,9 @@ export default function HomecheffSeoLanding({ page, locale }: Props) {
     description: c.description,
     inLanguage: locale === "nl" ? "nl-NL" : "en-US",
     url: canonical,
-    author: {
-      "@type": "Organization",
-      name: "HomeCheff",
-      url: MAIN_DOMAIN,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "HomeCheff",
-      url: MAIN_DOMAIN,
-    },
+    dateModified: "2026-07-11",
+    author: { "@id": `${MAIN_DOMAIN}/#organization` },
+    publisher: { "@id": `${MAIN_DOMAIN}/#organization` },
   };
 
   return (
@@ -85,6 +83,10 @@ export default function HomecheffSeoLanding({ page, locale }: Props) {
                 <p key={i}>{p}</p>
               ))}
             </div>
+
+            {foodContextVariant != null ? (
+              <FoodCategoryContextBlock variant={foodContextVariant} />
+            ) : null}
 
             <section className="mt-12">
               <h2 className="text-2xl font-bold text-gray-900">

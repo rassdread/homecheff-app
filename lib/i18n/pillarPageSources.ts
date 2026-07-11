@@ -37,6 +37,8 @@ export const pillarSharedFaq: Record<string, Bi> = {
   linkHelp: { nl: 'Buurthulp', en: 'Neighbour help' },
   linkEconomy: { nl: 'Buurt economie', en: 'Community economy' },
   linkNotMass: { nl: 'Wat we niet zijn', en: 'What we are not' },
+  linkEcosystem: { nl: 'Hoe HomeCheff werkt', en: 'How HomeCheff works' },
+  linkCompare: { nl: 'Platformvergelijkingen', en: 'Platform comparisons' },
   linkAbout: { nl: 'Over ons', en: 'About us' },
   linkFaq: { nl: 'FAQ', en: 'FAQ' },
 };
@@ -352,6 +354,8 @@ export const PILLAR_HUB_SECTION = {
   },
   links: [
     { href: '/wat-is-homecheff', label: { nl: 'Wat is HomeCheff?', en: 'What is HomeCheff?' } },
+    { href: '/hoe-homecheff-werkt', label: { nl: 'Hoe HomeCheff werkt', en: 'How HomeCheff works' } },
+    { href: '/vergelijken', label: { nl: 'Platformvergelijkingen', en: 'Platform comparisons' } },
     { href: '/persoonlijk-vakmanschap', label: { nl: 'Persoonlijk vakmanschap', en: 'Personal craftsmanship' } },
     { href: '/ontmoet-de-maker', label: { nl: 'Ontmoet de maker', en: 'Meet the maker' } },
     { href: '/lokaal-verdienen', label: { nl: 'Lokaal verdienen', en: 'Earn locally' } },

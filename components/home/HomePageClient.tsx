@@ -1,11 +1,9 @@
 'use client';
 
 import { useTranslation } from "@/hooks/useTranslation";
-import StructuredData from "@/components/seo/StructuredData";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
-import { MAIN_DOMAIN } from "@/lib/seo/constants";
 import PostAuthPersonaBanner from "@/components/onboarding/PostAuthPersonaBanner";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomeDesktopSidebar from "@/components/home/HomeDesktopSidebar";
@@ -68,7 +66,6 @@ export default function HomePageClient({
   const visibleHomePromotionIds = useVisibleHomePromotionIds();
   const { narrow: isNarrowHome, resolved: viewportResolved } =
     useNarrowViewportResolved();
-  const [currentDomain, setCurrentDomain] = useState(MAIN_DOMAIN);
 
   useEffect(() => {
     installFeedPerfBaselineReporter();
@@ -81,13 +78,6 @@ export default function HomePageClient({
       feedPerfMark("layout:hydration-complete");
     }
   }, [viewportResolved]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const fromHtml = document.documentElement.getAttribute('data-domain');
-      setCurrentDomain(fromHtml || window.location.origin);
-    }
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -109,54 +99,6 @@ export default function HomePageClient({
     firstName &&
     (t('home.welcomeFirstName', { name: firstName }).trim() ||
       (language === 'en' ? `Welcome, ${firstName}!` : `Welkom, ${firstName}!`));
-
-  const schemaOrgDescription = tOr(
-    'home.schemaOrganizationDescription',
-    'HomeCheff is the digital home of personal craftsmanship and local opportunity.',
-    'HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen.'
-  );
-  const schemaWebsiteDescription = tOr(
-    'homePhase1.schemaWebsiteDescription',
-    'HomeCheff — the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.',
-    'HomeCheff — het digitale thuis van persoonlijk vakmanschap. Ontdek lokale makers, vakmensen en buren bij jou in de buurt.'
-  );
-  const schemaContactType = tOr(
-    'home.schemaContactCustomerService',
-    'Customer service',
-    'Klantenservice'
-  );
-  const schemaAreaCountry = tOr(
-    'home.schemaAreaServedCountry',
-    'Netherlands',
-    'Nederland'
-  );
-  const schemaLang1 = tOr('home.schemaAvailableLang1', 'Dutch', 'Nederlands');
-  const schemaLang2 = tOr('home.schemaAvailableLang2', 'English', 'Engels');
-
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'HomeCheff',
-    alternateName: ['homecheff', 'home cheff', 'home-cheff', 'homechef', 'home chef', 'HomeCheff platform', 'HomeCheff marktplaats', 'HomeCheff marketplace', 'HomeCheff app', 'HomeCheff website', 'HomeCheff Netherlands', 'HomeCheff Europe'],
-    url: currentDomain,
-    logo: { '@type': 'ImageObject', url: `${currentDomain}/logo.png` },
-    description: schemaOrgDescription,
-    contactPoint: { '@type': 'ContactPoint', contactType: schemaContactType, email: 'support@homecheff.eu', availableLanguage: [schemaLang1, schemaLang2] },
-    areaServed: { '@type': 'Country', name: schemaAreaCountry },
-    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
-  };
-
-  const websiteStructuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'HomeCheff',
-    alternateName: ['homecheff', 'home cheff', 'home-cheff', 'homechef', 'home chef', 'HomeCheff platform', 'HomeCheff marketplace'],
-    url: currentDomain,
-    description: schemaWebsiteDescription,
-    publisher: { '@type': 'Organization', name: 'HomeCheff' },
-    inLanguage: language === 'nl' ? 'nl-NL' : 'en-US',
-    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
-  };
 
   const geoFeedProps = {
     initialInspiratieItems,
@@ -184,8 +126,6 @@ export default function HomePageClient({
 
   return (
     <>
-      <StructuredData data={structuredData} />
-      <StructuredData data={websiteStructuredData} />
       <PostAuthPersonaBanner />
       <div className="min-h-[60vh] hc-dorpsplein-page">
         <div className="hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-3 sm:py-5">

@@ -12,6 +12,9 @@ import {
   PILLAR_HUB_SECTION,
   PILLAR_PAGE_SOURCES,
 } from "@/lib/i18n/pillarPageSources";
+import { COMPARISON_PAGE_SOURCES } from "@/lib/i18n/comparisonPageSources";
+import { ECOSYSTEM_MAP_SOURCES } from "@/lib/i18n/ecosystemMapSources";
+import { FOOD_CATEGORY_CONTEXT_SOURCES } from "@/lib/i18n/foodCategoryContextSources";
 
 type LangCode = "nl" | "en";
 
@@ -41,6 +44,15 @@ export function mergeProgrammaticI18n(
     out[ns] = flattenBiSource(src, lang);
   }
   for (const [ns, src] of Object.entries(PILLAR_PAGE_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
+  for (const [ns, src] of Object.entries(COMPARISON_PAGE_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
+  for (const [ns, src] of Object.entries(ECOSYSTEM_MAP_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
+  for (const [ns, src] of Object.entries(FOOD_CATEGORY_CONTEXT_SOURCES)) {
     out[ns] = flattenBiSource(src, lang);
   }
   return out;

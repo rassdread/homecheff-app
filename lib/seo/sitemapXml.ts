@@ -6,11 +6,14 @@ import { ETEN_VERKOPEN_CITY_SLUGS } from "@/lib/seo/etenVerkopenCities";
 import { MAIN_DOMAIN } from "@/lib/seo/metadata";
 import { LOCAL_SEO_CITIES } from "@/lib/seo/localCities";
 import { CATEGORY_ECOSYSTEM_SLUGS } from "@/lib/community/categoryEcosystemSlugs";
+import { COMPARISON_PAGE_REGISTRY } from "@/lib/seo/comparison-pages";
 
 /** Vaste paden (NL marketing + hubs), zonder domein — volgorde = huidige sitemap. */
 const EXTRA_STATIC_PATHS: readonly string[] = [
   "/",
   "/wat-is-homecheff",
+  "/hoe-homecheff-werkt",
+  "/vergelijken",
   "/persoonlijk-vakmanschap",
   "/ontmoet-de-maker",
   "/lokaal-verdienen",
@@ -66,6 +69,10 @@ export function collectSitemapLocUrls(): string[] {
 
   for (const seg of CATEGORY_ECOSYSTEM_SLUGS) {
     push(`/gemeenschap/${seg}`);
+  }
+
+  for (const page of COMPARISON_PAGE_REGISTRY) {
+    push(page.path);
   }
 
   for (const page of HOMECHEFF_SEO_PAGE_DEFS) {
