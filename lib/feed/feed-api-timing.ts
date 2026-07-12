@@ -12,6 +12,8 @@ export type FeedApiTimingPhase =
   | 'params_parsed'
   | 'session_resolved'
   | 'viewer_geo_resolved'
+  | 'db_product_listing_done'
+  | 'db_dish_linked_done'
   | 'db_parallel_done'
   | 'transform_done'
   | 'stats_enrichment_done'
@@ -30,6 +32,10 @@ export type FeedApiTimingBucket =
   | 'auth'
   | 'geo'
   | 'feed-db'
+  | 'db-product'
+  | 'db-listing'
+  | 'db-dish'
+  | 'db-linked-media'
   | 'transform'
   | 'stats'
   | 'trust'
@@ -57,6 +63,12 @@ export type FeedApiTimingPayload = {
     prismaQueryBatches: number;
     prismaQueryCount?: number;
     prismaTotalMs?: number;
+    dbProductMs?: number;
+    dbListingMs?: number;
+    dbDishMs?: number;
+    dbLinkedMediaMs?: number;
+    trustTotalMs?: number;
+    statsPreviewDeferred?: boolean;
   };
   prisma?: PrismaPerfSnapshot;
   responseBytesEstimate?: number;
@@ -92,6 +104,9 @@ function buildBuckets(
 
   put('auth', 'params_parsed', 'session_resolved');
   put('geo', 'session_resolved', 'viewer_geo_resolved');
+  put('db-product', 'viewer_geo_resolved', 'db_product_listing_done');
+  put('db-dish', 'db_product_listing_done', 'db_dish_linked_done');
+  put('db-linked-media', 'db_product_listing_done', 'db_dish_linked_done');
   put('feed-db', 'viewer_geo_resolved', 'db_parallel_done');
   put('transform', 'db_parallel_done', 'transform_done');
   put('stats', 'transform_done', 'stats_enrichment_done');
@@ -99,9 +114,8 @@ function buildBuckets(
   put('discovery-attach', 'trust_business_dna_done', 'discovery_attach_done');
   put('discovery-sections', 'discovery_attach_done', 'discovery_sections_done');
   put('discovery-activity', 'discovery_sections_done', 'activity_slots_done');
-  put('stats-preview', 'response_mapped', 'stats_preview_done');
   put('mapping', 'activity_slots_done', 'response_mapped');
-  put('serialize', 'stats_preview_done', 'serialize_done');
+  put('serialize', 'response_mapped', 'serialize_done');
 
   // Legacy aggregate bucket (trust → discovery_done) for preview dashboards.
   put('discovery', 'trust_business_dna_done', 'discovery_done');
@@ -187,8 +201,10 @@ export function createFeedApiTiming() {
       'discovery-sections',
       'discovery-activity',
       'mapping',
-      'stats-preview',
       'serialize',
+      'db-product',
+      'db-dish',
+      'db-linked-media',
       'discovery',
       'prisma',
       'total',

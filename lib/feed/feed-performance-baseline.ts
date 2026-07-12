@@ -30,6 +30,8 @@ export type FeedPerfMilestone =
   | 'feed:first-image-visible'
   | 'feed:stable'
   | 'feed:second-request'
+  | 'feed:stats-preview-request-start'
+  | 'feed:stats-preview-seeded'
   | 'geofeed:mounted'
   | 'layout:hydration-complete'
   | 'vitals:fcp'

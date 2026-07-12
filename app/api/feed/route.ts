@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic';
 
 import { ListingCategory, ProductCategory } from "@prisma/client";
 import { getCorsHeaders } from "@/lib/apiCors";
-import { batchComputeUserStatsPreview } from "@/lib/userStatsBatchPreview";
 import { isStripeTestId } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -39,8 +38,8 @@ import { attachDiscoveryReadModel } from "@/lib/discovery";
 import { legacyFeedSettlementBooleans } from "@/lib/marketplace/tiles/legacy-feed-settlement";
 import {
   discoveryEnrichmentFromBundle,
-  fetchSellerTrustBundles,
 } from "@/lib/discovery/trust/batch-enrichment";
+import { fetchSellerTrustBundlesWithTiming } from "@/lib/feed/trust-enrichment-timing";
 import type { DiscoveryEnrichment } from "@/lib/discovery/mappers/enrichment";
 import {
   isMarketplaceSaleItem,
@@ -80,6 +79,10 @@ import {
   countActiveNeighboursInPool,
   countUpcomingWorkshopsInPool,
 } from "@/lib/discovery/surfaces/build-server-surface-context";
+import {
+  classifyFeedCachePolicy,
+  buildFeedResponseCacheHeaders,
+} from "@/lib/feed/feed-cache-policy";
 import {
   createFeedApiTiming,
   isFeedApiTimingEnabled,
@@ -154,7 +157,7 @@ function extractItemLatLng(item: Record<string, unknown>): { lat: number; lng: n
   return resolveFeedItemCoordsFromRaw(item);
 }
 
-const STATS_PREVIEW_SELLER_CAP = 9;
+const STATS_PREVIEW_DEFERRED = true;
 
 type FeedProductStripeRow = {
   priceCents: number | null;
@@ -238,14 +241,18 @@ async function handleFeedGet(req: NextRequest) {
   const session = await getServerSession(authOptions as any);
   apiPerf?.mark('session_resolved');
   const userId = (session as any)?.user?.id || null;
-  const isPublicDefaultFeed =
-    !userId &&
-    !q &&
-    !placeParam &&
-    vertical === 'all' &&
-    !searchParams.get('lat') &&
-    !searchParams.get('lng') &&
-    !searchParams.get('subfilters');
+  const cachePolicy = classifyFeedCachePolicy({
+    userId,
+    q,
+    placeParam,
+    vertical,
+    lat: searchParams.get("lat"),
+    lng: searchParams.get("lng"),
+    hasSubfilters: subfilters.length > 0,
+    feedScope,
+    skip: feedSkip,
+    searchParams,
+  });
 
   let lat = searchParams.get("lat");
   let lng = searchParams.get("lng");
@@ -285,8 +292,9 @@ async function handleFeedGet(req: NextRequest) {
   const effectiveRadius = normalizeFeedRadiusKm(radius);
 
   prismaPerfSetCategory("feed-db");
-  const [rawProductsFromDb, oldListings] = await Promise.all([
-    prisma.product.findMany({
+  const dbProductStart = performance.now();
+  const dbListingStart = performance.now();
+  const productQuery = prisma.product.findMany({
       where: {
         OR: [
           { isActive: true },
@@ -367,8 +375,13 @@ async function handleFeedGet(req: NextRequest) {
           select: { url: true, thumbnail: true },
         },
       }
-    }),
-    prisma.listing.findMany({
+    }).then((rows) => {
+      const dbProductMs = Math.round(performance.now() - dbProductStart);
+      apiPerf?.setCounts({ dbProductMs });
+      return rows;
+    });
+
+  const listingQuery = prisma.listing.findMany({
       where: {
         isPublic: true,
         ...(q ? buildListingTextSearchWhere(q) : {}),
@@ -404,15 +417,25 @@ async function handleFeedGet(req: NextRequest) {
           orderBy: { order: 'asc' }
         }
       }
-    }),
+    }).then((rows) => {
+      const dbListingMs = Math.round(performance.now() - dbListingStart);
+      apiPerf?.setCounts({ dbListingMs });
+      return rows;
+    });
+
+  const [rawProductsFromDb, oldListings] = await Promise.all([
+    productQuery,
+    listingQuery,
   ]);
+  apiPerf?.mark('db_product_listing_done');
 
   const linkedProductIds = rawProductsFromDb
     .filter(passesFeedProductStripeFilter)
     .map((product) => product.id);
 
-  const [publishedDishes, linkedDishMediaRows] = await Promise.all([
-    prisma.dish.findMany({
+  const dbDishStart = performance.now();
+  const dbLinkedStart = performance.now();
+  const dishQuery = prisma.dish.findMany({
       where: {
         status: "PUBLISHED",
         ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
@@ -452,7 +475,13 @@ async function handleFeedGet(req: NextRequest) {
           take: 1,
         },
       }
-    }),
+    }).then((rows) => {
+      const dbDishMs = Math.round(performance.now() - dbDishStart);
+      apiPerf?.setCounts({ dbDishMs });
+      return rows;
+    });
+
+  const linkedMediaQuery =
     linkedProductIds.length > 0
       ? prisma.dish.findMany({
           where: { id: { in: linkedProductIds }, status: "PUBLISHED" },
@@ -468,9 +497,21 @@ async function handleFeedGet(req: NextRequest) {
               take: 1,
             },
           },
+        }).then((rows) => {
+          const dbLinkedMediaMs = Math.round(performance.now() - dbLinkedStart);
+          apiPerf?.setCounts({ dbLinkedMediaMs });
+          return rows;
         })
-      : Promise.resolve([]),
+      : Promise.resolve([]).then((rows) => {
+          apiPerf?.setCounts({ dbLinkedMediaMs: 0 });
+          return rows;
+        });
+
+  const [publishedDishes, linkedDishMediaRows] = await Promise.all([
+    dishQuery,
+    linkedMediaQuery,
   ]);
+  apiPerf?.mark('db_dish_linked_done');
 
   const linkedDishMediaById = new Map(
     linkedDishMediaRows.map((row) => [row.id, linkedDishMediaToFeedFields(row)]),
@@ -889,15 +930,20 @@ async function handleFeedGet(req: NextRequest) {
     sellerIdsForBadges.length > 0
       ? await fetchAuthorBadgeSummariesByUserIds(sellerIdsForBadges, 2)
       : new Map<string, { key: string; name: string; icon: string }[]>();
-  let trustBundles: Awaited<ReturnType<typeof fetchSellerTrustBundles>> =
-    new Map();
+  let trustTiming: import('@/lib/feed/trust-enrichment-timing').TrustEnrichmentTiming | null =
+    null;
+  let trustBundles: Awaited<
+    ReturnType<typeof fetchSellerTrustBundlesWithTiming>
+  >['bundles'] = new Map();
   prismaPerfSetCategory("trust");
   if (sellerIdsForBadges.length > 0) {
     try {
-      trustBundles = await fetchSellerTrustBundles(
+      const trustResult = await fetchSellerTrustBundlesWithTiming(
         sellerIdsForBadges,
         badgeMap,
       );
+      trustBundles = trustResult.bundles;
+      trustTiming = trustResult.timing;
     } catch (e) {
       console.error("[feed] trust enrichment:", e);
     }
@@ -913,6 +959,8 @@ async function handleFeedGet(req: NextRequest) {
     sellerTrustLookups: sellerIdsForBadges.length,
     discoveryPool: enrichTargets.length,
     prismaQueryBatches: 3,
+    trustTotalMs: trustTiming?.totalMs,
+    statsPreviewDeferred: STATS_PREVIEW_DEFERRED,
   });
 
   for (const item of enrichTargets) {
@@ -1061,29 +1109,6 @@ async function handleFeedGet(req: NextRequest) {
   }
   apiPerf?.setCounts({ responseItems: pageItems.length });
 
-  let statsPreview:
-    | Awaited<ReturnType<typeof batchComputeUserStatsPreview>>
-    | undefined;
-  if (isFirstPage) {
-    try {
-      const previewIds = collectUniqueSellerUserIds(
-        pageItems,
-        (item) => extractFeedItemSellerUserId(item),
-        STATS_PREVIEW_SELLER_CAP,
-      );
-      if (previewIds.length > 0) {
-        prismaPerfSetCategory("stats");
-        const computed = await batchComputeUserStatsPreview(previewIds);
-        if (Object.keys(computed).length > 0) {
-          statsPreview = computed;
-        }
-      }
-    } catch (e) {
-      console.error("[feed] statsPreview:", e);
-    }
-  }
-  apiPerf?.mark('stats_preview_done');
-
   const feedDebug =
     process.env.NODE_ENV === "development" || process.env.FEED_PERF_TIMING === "1"
       ? (() => {
@@ -1092,6 +1117,10 @@ async function handleFeedGet(req: NextRequest) {
           );
           return {
             scope: feedScope,
+            cacheTier: cachePolicy.tier,
+            cacheReasons: cachePolicy.reasons,
+            statsPreviewDeferred: STATS_PREVIEW_DEFERRED,
+            trustTiming,
             searchFilters,
             activeProductsFromDb,
             productsWithPrice,
@@ -1148,9 +1177,7 @@ async function handleFeedGet(req: NextRequest) {
   const cors = getCorsHeaders(req);
   const headers: Record<string, string> = {
     ...cors,
-    ...(isPublicDefaultFeed
-      ? { 'Cache-Control': 'public, s-maxage=45, stale-while-revalidate=90' }
-      : {}),
+    ...buildFeedResponseCacheHeaders(cachePolicy),
   };
 
   const body = {
@@ -1170,7 +1197,6 @@ async function handleFeedGet(req: NextRequest) {
     pagination,
     ...(isFirstPage && discoveryFeed ? { discovery: discoveryFeed } : {}),
     ...(feedDebug ? { debug: feedDebug } : {}),
-    ...(isFirstPage && statsPreview ? { statsPreview } : {}),
   };
 
   if (apiPerf) {
@@ -1184,6 +1210,7 @@ async function handleFeedGet(req: NextRequest) {
     const serverTiming = apiPerf.toServerTimingHeader();
     if (serverTiming) {
       headers['Server-Timing'] = serverTiming;
+      headers['Access-Control-Expose-Headers'] = 'Server-Timing';
     }
   }
 

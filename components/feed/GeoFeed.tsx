@@ -123,10 +123,6 @@ import type {
   CreateFlowVertical,
 } from "@/lib/createFlowIntent";
 import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
-import {
-  coerceUserStatsPayload,
-  seedCachedUserStats,
-} from "@/lib/userStatsClientCache";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import {
@@ -177,6 +173,7 @@ import {
   isFeedPerfBaselineEnabled,
 } from "@/lib/feed/feed-performance-baseline";
 import { logFeedImageTrace } from "@/lib/feed/feed-image-trace-client";
+import { scheduleDeferredFeedStatsPreview } from "@/lib/feed/feed-deferred-stats-preview";
 import {
   buildGeoFeedApiParams,
   buildInspiratieCategoryParam,
@@ -1785,9 +1782,9 @@ export default function GeoFeed({
         if (feedRes.ok) {
           let data: {
             items?: unknown;
-            statsPreview?: Record<string, unknown>;
             discovery?: DiscoveryFeedPayload;
             pagination?: { hasMore?: boolean; total?: number };
+            debug?: Record<string, unknown>;
           };
           try {
             data = await feedRes.json();
@@ -1802,23 +1799,10 @@ export default function GeoFeed({
           feedPerfMarkFeedRequestEnd();
           const rawItems = (data.items || []) as Record<string, unknown>[];
           setApiRawItems(rawItems);
-          const previewRaw = data.statsPreview as
-            | Record<string, unknown>
-            | undefined;
-          if (previewRaw && typeof previewRaw === "object") {
-            for (const [uid, row] of Object.entries(previewRaw)) {
-              const payload = coerceUserStatsPayload(row);
-              if (payload) seedCachedUserStats(uid, payload);
-            }
-          }
           if (process.env.NODE_ENV === "development") {
             console.log("[GeoFeed feed-fetch] response", {
               count: rawItems.length,
               pagination: data.pagination,
-              statsPreviewKeys:
-                previewRaw && typeof previewRaw === "object"
-                  ? Object.keys(previewRaw).length
-                  : 0,
             });
           }
           if (process.env.NODE_ENV === "development") {
@@ -1932,6 +1916,13 @@ export default function GeoFeed({
   useEffect(() => {
     feedHasMoreRef.current = feedHasMore;
   }, [feedHasMore]);
+
+  useEffect(() => {
+    if (!feedHydrated || items.length === 0) return;
+    const ac = new AbortController();
+    scheduleDeferredFeedStatsPreview(items, ac.signal);
+    return () => ac.abort();
+  }, [feedHydrated, items]);
 
   const loadMoreFeed = useCallback(async () => {
     if (!feedHasMore || feedLoadingMore || feedStartupBlocked) return;
