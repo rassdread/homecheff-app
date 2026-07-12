@@ -6,6 +6,7 @@
  */
 
 import type { PrismaPerfSnapshot } from '@/lib/performance/prisma-perf-types';
+import type { TrustTimingDebugPayload } from '@/lib/feed/trust-timing-debug';
 
 export type FeedApiTimingPhase =
   | 'request_received'
@@ -72,6 +73,7 @@ export type FeedApiTimingPayload = {
   };
   prisma?: PrismaPerfSnapshot;
   responseBytesEstimate?: number;
+  trustTiming?: TrustTimingDebugPayload | null;
 };
 
 export function isFeedApiTimingEnabled(): boolean {

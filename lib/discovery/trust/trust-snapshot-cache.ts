@@ -22,6 +22,7 @@ export type TrustSnapshotCacheStats = {
   maxEntries: number;
   hits: number;
   misses: number;
+  expired: number;
   evictions: number;
   size: number;
   missSellerCount: number;
@@ -35,6 +36,7 @@ type CacheEntry = {
 const cache = new Map<string, CacheEntry>();
 let hits = 0;
 let misses = 0;
+let expired = 0;
 let evictions = 0;
 
 function cacheKey(userId: string, mode: 'minimal' | 'full'): string {
@@ -45,6 +47,7 @@ function pruneExpired(now: number): void {
   for (const [key, entry] of cache) {
     if (entry.expiresAt <= now) {
       cache.delete(key);
+      expired += 1;
     }
   }
 }
@@ -65,6 +68,7 @@ export function getTrustSnapshotCacheStats(): TrustSnapshotCacheStats {
     maxEntries: TRUST_SNAPSHOT_CACHE_MAX_ENTRIES,
     hits,
     misses,
+    expired,
     evictions,
     size: cache.size,
     missSellerCount: 0,
@@ -76,6 +80,7 @@ export function resetTrustSnapshotCacheForTests(): void {
   cache.clear();
   hits = 0;
   misses = 0;
+  expired = 0;
   evictions = 0;
 }
 

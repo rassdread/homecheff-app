@@ -40,7 +40,8 @@ ok('TTL between 30s and 120s', TRUST_SNAPSHOT_CACHE_TTL_MS >= 30_000 && TRUST_SN
 ok('eviction on overflow', cacheModule.includes('evictIfNeeded'));
 ok('batch enrichment useCache default', batchModule.includes('useCache !== false'));
 ok('timing exposes cacheStats', timingModule.includes('cacheStats'));
-ok('feed debug includes trustTiming', fs.readFileSync('app/api/feed/route.ts', 'utf8').includes('trustTiming'));
+ok('feed debug includes trustTiming', fs.readFileSync('app/api/feed/route.ts', 'utf8').includes('buildTrustTimingDebugPayload'));
+ok('perf.trustTiming nested under debug.perf', fs.readFileSync('app/api/feed/route.ts', 'utf8').includes('perfPayload.trustTiming'));
 ok('audit doc exists', fs.existsSync(auditPath));
 
 async function runtimeChecks() {

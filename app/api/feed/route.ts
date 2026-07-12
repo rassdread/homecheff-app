@@ -40,6 +40,7 @@ import {
   discoveryEnrichmentFromBundle,
 } from "@/lib/discovery/trust/batch-enrichment";
 import { fetchSellerTrustBundlesWithTiming } from "@/lib/feed/trust-enrichment-timing";
+import { buildTrustTimingDebugPayload } from "@/lib/feed/trust-timing-debug";
 import type { DiscoveryEnrichment } from "@/lib/discovery/mappers/enrichment";
 import {
   isMarketplaceSaleItem,
@@ -1139,7 +1140,7 @@ async function handleFeedGet(req: NextRequest) {
             cacheTier: cachePolicy.tier,
             cacheReasons: cachePolicy.reasons,
             statsPreviewDeferred: STATS_PREVIEW_DEFERRED,
-            trustTiming,
+            trustTiming: buildTrustTimingDebugPayload(trustTiming),
             searchFilters,
             activeProductsFromDb,
             productsWithPrice,
@@ -1227,8 +1228,9 @@ async function handleFeedGet(req: NextRequest) {
     const responseBytesEstimate = JSON.stringify(body).length;
     apiPerf.mark('serialize_done');
     if (feedDebug && typeof feedDebug === 'object') {
-      (feedDebug as Record<string, unknown>).perf =
-        apiPerf.toPayload(responseBytesEstimate);
+      const perfPayload = apiPerf.toPayload(responseBytesEstimate);
+      perfPayload.trustTiming = buildTrustTimingDebugPayload(trustTiming);
+      (feedDebug as Record<string, unknown>).perf = perfPayload;
     }
     const serverTiming = apiPerf.toServerTimingHeader();
     if (serverTiming) {

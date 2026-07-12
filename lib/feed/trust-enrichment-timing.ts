@@ -6,6 +6,7 @@ import { isFeedApiTimingEnabled } from '@/lib/feed/feed-api-timing';
 import { fetchSellerTrustBundlesWithReport } from '@/lib/discovery/trust/batch-enrichment';
 import type { DiscoveryTrustBadge } from '@/lib/discovery/contracts/discovery-read-model';
 import type { TrustSnapshotTimingReport } from '@/lib/discovery/trust/trust-snapshot-timing';
+import type { TrustSnapshotCacheStats } from '@/lib/discovery/trust/trust-snapshot-cache';
 
 export type TrustEnrichmentTiming = {
   totalMs: number;
@@ -14,7 +15,7 @@ export type TrustEnrichmentTiming = {
   sellerCount: number;
   mode: 'minimal' | 'full';
   snapshotTiming?: TrustSnapshotTimingReport;
-  cacheStats?: import('@/lib/discovery/trust/trust-snapshot-cache').TrustSnapshotCacheStats;
+  cacheStats?: TrustSnapshotCacheStats;
 };
 
 export async function fetchSellerTrustBundlesWithTiming(
@@ -28,24 +29,24 @@ export async function fetchSellerTrustBundlesWithTiming(
 }> {
   const trustMode = 'minimal' as const;
   const collectTiming = isFeedApiTimingEnabled();
-
-  if (!collectTiming) {
-    const { bundles } = await fetchSellerTrustBundlesWithReport(
-      userIds,
-      badgeMap,
-      { mode: trustMode, useCache: true },
-    );
-    return { bundles, timing: null };
-  }
+  const sellerCount = [...new Set(userIds.filter(Boolean))].length;
 
   const totalStart = performance.now();
   const bundlesStart = performance.now();
   const { bundles, snapshotTiming, cacheStats } = await fetchSellerTrustBundlesWithReport(
     userIds,
     badgeMap,
-    { mode: trustMode, collectTiming: true, useCache: true },
+    {
+      mode: trustMode,
+      collectTiming,
+      useCache: true,
+    },
   );
   const bundlesMs = Math.round(performance.now() - bundlesStart);
+
+  if (!collectTiming) {
+    return { bundles, timing: null };
+  }
 
   return {
     bundles,
@@ -53,7 +54,7 @@ export async function fetchSellerTrustBundlesWithTiming(
       totalMs: Math.round(performance.now() - totalStart),
       badgesMs: 0,
       bundlesMs,
-      sellerCount: [...new Set(userIds.filter(Boolean))].length,
+      sellerCount,
       mode: trustMode,
       snapshotTiming: snapshotTiming ?? undefined,
       cacheStats,
