@@ -595,6 +595,7 @@ export function FeedCardPrimaryMedia({
             loading={imageLoading}
             decoding="async"
             sizes={FEED_CARD_IMG_SIZES}
+            onError={onImgError}
             onLoad={feedPerfMarkFirstImageOnce}
           />
         ) : showImage ? (

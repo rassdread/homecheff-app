@@ -99,6 +99,10 @@ import {
   countInlineDataMediaUrls,
   sanitizeFeedItemsForResponse,
 } from "@/lib/feed/sanitize-feed-response-media";
+import {
+  classifyFeedMediaUrl,
+  resolveFeedMediaUrlForResponse,
+} from "@/lib/feed/resolve-feed-media-url";
 
 function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
   const listingKind = attachListingKindToRecord(item);
@@ -218,6 +222,17 @@ async function handleFeedGet(req: NextRequest) {
       searchParams.get("take"),
       searchParams.get("skip"),
     );
+  const imageTraceById = new Map<
+    string,
+    {
+      feedSource: string;
+      rawProductImage?: string | null;
+      rawProductImageKind?: string;
+      linkedDishPhoto?: string | null;
+      mappedImage?: string | null;
+      discoveryCoverImage?: string | null;
+    }
+  >();
   apiPerf?.mark('params_parsed');
 
   const session = await getServerSession(authOptions as any);
@@ -493,7 +508,7 @@ async function handleFeedGet(req: NextRequest) {
       dish.user?.stripeConnectOnboardingCompleted
     );
     const dishSettlement = legacyFeedSettlementBooleans(dishPriceCents, dishStripeReady);
-    return {
+    const row = {
     id: dish.id,
     feedSource: 'DISH' as const,
     type: 'dish' as const,
@@ -520,8 +535,21 @@ async function handleFeedGet(req: NextRequest) {
       displayFullName: dish.user.displayFullName,
       displayNameOption: dish.user.displayNameOption
     },
-    images: dish.photos.map(photo => photo.url),
-    image: dish.photos[0]?.url || null,
+    images: dish.photos
+      .map((photo, index) =>
+        resolveFeedMediaUrlForResponse(photo.url, {
+          entity: 'dish',
+          id: dish.id,
+          index,
+        }),
+      )
+      .filter((u): u is string => Boolean(u)),
+    image:
+      resolveFeedMediaUrlForResponse(dish.photos[0]?.url, {
+        entity: 'dish',
+        id: dish.id,
+        index: 0,
+      }) ?? null,
     videos:
       dish.videos?.length > 0
         ? dish.videos.map((v) => ({
@@ -546,6 +574,18 @@ async function handleFeedGet(req: NextRequest) {
       displayNameOption: dish.user.displayNameOption
     }
   };
+    imageTraceById.set(dish.id, {
+      feedSource: 'DISH',
+      rawProductImage: dish.photos[0]?.url?.slice(0, 96) ?? null,
+      rawProductImageKind: classifyFeedMediaUrl(dish.photos[0]?.url),
+      mappedImage:
+        resolveFeedMediaUrlForResponse(dish.photos[0]?.url, {
+          entity: 'dish',
+          id: dish.id,
+          index: 0,
+        }) ?? null,
+    });
+    return row;
   });
 
   // Transform old listings to match new product format
@@ -583,10 +623,28 @@ async function handleFeedGet(req: NextRequest) {
     createdAt: listing.createdAt,
     updatedAt: listing.createdAt,
     User: listing.User,
-    image: listing.ListingMedia?.[0]?.url || null, // Add main image field
-    images: listing.ListingMedia?.map(media => media.url) || [], // All images for slider
-    ListingMedia: listing.ListingMedia.map(media => ({
-      url: media.url,
+    image:
+      resolveFeedMediaUrlForResponse(listing.ListingMedia?.[0]?.url, {
+        entity: 'listing',
+        id: listing.id,
+        index: 0,
+      }) ?? null,
+    images: (listing.ListingMedia ?? [])
+      .map((media, index) =>
+        resolveFeedMediaUrlForResponse(media.url, {
+          entity: 'listing',
+          id: listing.id,
+          index,
+        }),
+      )
+      .filter((u): u is string => Boolean(u)),
+    ListingMedia: listing.ListingMedia.map((media, index) => ({
+      url:
+        resolveFeedMediaUrlForResponse(media.url, {
+          entity: 'listing',
+          id: listing.id,
+          index,
+        }) ?? media.url,
       order: media.order,
       isMain: media.order === 0
     })),
@@ -638,10 +696,25 @@ async function handleFeedGet(req: NextRequest) {
     createdAt: product.createdAt,
     updatedAt: product.createdAt,
     User: product.seller?.User || null,
-    image: product.Image?.[0]?.fileUrl || null, // Add main image field
-    images: product.Image?.map(img => img.fileUrl) || [], // All images for slider
-    ListingMedia: product.Image.map(img => ({
-      url: img.fileUrl,
+    image: resolveFeedMediaUrlForResponse(product.Image?.[0]?.fileUrl, {
+      entity: 'product',
+      id: product.id,
+      index: 0,
+    }),
+    images: product.Image.map((img, index) =>
+      resolveFeedMediaUrlForResponse(img.fileUrl, {
+        entity: 'product',
+        id: product.id,
+        index,
+      }),
+    ).filter((u): u is string => Boolean(u)),
+    ListingMedia: product.Image.map((img, index) => ({
+      url:
+        resolveFeedMediaUrlForResponse(img.fileUrl, {
+          entity: 'product',
+          id: product.id,
+          index,
+        }) ?? img.fileUrl,
       order: img.sortOrder,
       isMain: img.sortOrder === 0
     })),
@@ -673,7 +746,17 @@ async function handleFeedGet(req: NextRequest) {
     primaryVideoUrl: product.Video?.url ?? null,
   };
     const donor = linkedDishMediaById.get(product.id);
-    return donor ? mergeLinkedFeedItemMedia(base, donor) : base;
+    const merged = donor ? mergeLinkedFeedItemMedia(base, donor) : base;
+    const rawProductUrl = product.Image?.[0]?.fileUrl ?? null;
+    imageTraceById.set(product.id, {
+      feedSource: 'PRODUCT',
+      rawProductImage:
+        typeof rawProductUrl === 'string' ? rawProductUrl.slice(0, 96) : null,
+      rawProductImageKind: classifyFeedMediaUrl(rawProductUrl),
+      linkedDishPhoto: donor?.image ?? null,
+      mappedImage: merged.image ?? null,
+    });
+    return merged;
   });
 
   const combinedRaw = [...transformedProducts, ...transformedListings, ...transformedDishes];
@@ -1040,6 +1123,24 @@ async function handleFeedGet(req: NextRequest) {
               count: s.listingIds.length,
             })),
             discoveryMetrics: discoveryFeed?.metrics,
+            imageTrace: pageItems.map((item) => {
+              const id = String(item.id ?? '');
+              const trace = imageTraceById.get(id);
+              const discovery = item.discovery as
+                | { coverImage?: string | null; imageCount?: number }
+                | undefined;
+              return {
+                id,
+                title: item.title,
+                feedSource: trace?.feedSource ?? item.feedSource,
+                rawProductImage: trace?.rawProductImage ?? null,
+                rawProductImageKind: trace?.rawProductImageKind ?? null,
+                linkedDishPhoto: trace?.linkedDishPhoto ?? null,
+                mappedImage: item.image ?? trace?.mappedImage ?? null,
+                discoveryCoverImage: discovery?.coverImage ?? null,
+                discoveryImageCount: discovery?.imageCount ?? 0,
+              };
+            }),
           };
         })()
       : undefined;

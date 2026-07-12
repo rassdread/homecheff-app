@@ -174,7 +174,9 @@ import {
   feedPerfMarkFeedRequestEnd,
   feedPerfMarkFirstTileOnce,
   installFeedPerfBaselineReporter,
+  isFeedPerfBaselineEnabled,
 } from "@/lib/feed/feed-performance-baseline";
+import { logFeedImageTrace } from "@/lib/feed/feed-image-trace-client";
 import {
   buildGeoFeedApiParams,
   buildInspiratieCategoryParam,
@@ -1851,6 +1853,23 @@ export default function GeoFeed({
               : effectiveViewerForDistance;
 
           const valid = mapRawFeedApiItems(rawItems, viewerForDistance);
+          const feedApiDebug = data.debug as
+            | {
+                imageTrace?: import('@/lib/feed/feed-image-trace-client').FeedImageTraceRow[];
+              }
+            | undefined;
+          if (
+            process.env.NODE_ENV === "development" ||
+            isFeedPerfBaselineEnabled()
+          ) {
+            logFeedImageTrace(
+              rawItems,
+              valid.map((it) => toCardItem(it, viewerForDistance)),
+              Array.isArray(feedApiDebug?.imageTrace)
+                ? feedApiDebug.imageTrace
+                : null,
+            );
+          }
           setItems(valid);
           setFeedHasMore(data.pagination?.hasMore ?? false);
           setDiscoveryFeed(

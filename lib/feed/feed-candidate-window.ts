@@ -5,6 +5,8 @@
  * and pagination semantics stay intact without naïve take=10 at SQL layer.
  */
 
+import { resolveFeedMediaUrlForResponse } from '@/lib/feed/resolve-feed-media-url';
+
 export const FEED_DB_PRODUCT_CAP = 60;
 export const FEED_DB_LISTING_CAP = 35;
 export const FEED_DB_DISH_CAP = 30;
@@ -122,15 +124,54 @@ export type LinkedDishMediaRow = {
 export function linkedDishMediaToFeedFields(
   row: LinkedDishMediaRow,
 ): FeedItemMediaFields {
-  const images = row.photos.map((p) => p.url).filter((u) => !isEmptyMediaUrl(u));
+  const images = row.photos
+    .map((p, index) =>
+      resolveFeedMediaUrlForResponse(p.url, {
+        entity: 'dish',
+        id: row.id,
+        index,
+      }),
+    )
+    .filter((u): u is string => Boolean(u));
   const video = row.videos[0];
+  const videoUrl = video?.url
+    ? resolveFeedMediaUrlForResponse(video.url, {
+        entity: 'dish',
+        id: row.id,
+        index: 0,
+      })
+    : null;
   return {
     image: images[0] ?? null,
     images,
-    videoUrl: video?.url ?? null,
-    primaryVideoUrl: video?.url ?? null,
-    videos: video ? [{ url: video.url, thumbnail: video.thumbnail }] : [],
-    Video: video ? { url: video.url, thumbnail: video.thumbnail } : null,
+    videoUrl,
+    primaryVideoUrl: videoUrl,
+    videos: videoUrl
+      ? [
+          {
+            url: videoUrl,
+            thumbnail: video.thumbnail
+              ? resolveFeedMediaUrlForResponse(video.thumbnail, {
+                  entity: 'dish',
+                  id: row.id,
+                  index: 0,
+                })
+              : null,
+          },
+        ]
+      : [],
+    Video: videoUrl
+      ? {
+          url: videoUrl,
+          thumbnail: video.thumbnail
+            ? resolveFeedMediaUrlForResponse(video.thumbnail, {
+                entity: 'dish',
+                id: row.id,
+                index: 0,
+              })
+            : null,
+        }
+      : null,
   };
 }
 

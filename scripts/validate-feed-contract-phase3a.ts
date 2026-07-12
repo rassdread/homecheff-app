@@ -18,6 +18,19 @@ import {
   FEED_RESPONSE_ITEM_CAP,
   FEED_DISCOVERY_BUFFER,
 } from '../lib/feed/feed-candidate-window';
+import {
+  classifyFeedMediaUrl,
+  resolveFeedMediaUrlForResponse,
+} from '../lib/feed/resolve-feed-media-url';
+import {
+  FEED_MEDIA_MAX_DECODED_BYTES,
+  FEED_MEDIA_MAX_INDEX,
+  isValidFeedMediaId,
+  normalizeAllowedFeedImageMime,
+  parseFeedInlineDataUrl,
+  parseFeedMediaIndex,
+  parseFeedMediaQuery,
+} from '../lib/feed/feed-media-access';
 import { isMarketplaceSaleItem } from '../lib/feed/marketplace-sale';
 import { buildFeedPaginationMeta } from '../lib/feed/feed-pagination';
 import { sanitizeFeedItemsForResponse } from '../lib/feed/sanitize-feed-response-media';
@@ -248,6 +261,72 @@ const mergedViaHelper = mergeLinkedFeedItemMedia(
 );
 ok('helper fills image from linkedDishMediaToFeedFields', mergedViaHelper.image === dishImg);
 ok('helper fills video from linked dish', mergedViaHelper.videoUrl === 'https://v.mp4');
+
+console.log('\nInline data URL → feed media proxy');
+const dataSample = 'data:image/jpeg;base64,/9j/4AAQ';
+ok('classify data url', classifyFeedMediaUrl(dataSample) === 'data');
+const proxied = resolveFeedMediaUrlForResponse(dataSample, {
+  entity: 'product',
+  id: '1823cae9-2aae-400f-9a28-eadbdcded3bc',
+  index: 0,
+});
+ok(
+  'data url resolves to proxy path',
+  proxied === '/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0',
+);
+ok(
+  'blob https passes through',
+  resolveFeedMediaUrlForResponse('https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/x.jpg', {
+    entity: 'product',
+    id: 'x',
+    index: 0,
+  }) === 'https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/x.jpg',
+);
+const sanitizedProxy = sanitizeFeedItemsForResponse([
+  {
+    id: '1823cae9-2aae-400f-9a28-eadbdcded3bc',
+    title: 'Marilyn',
+    feedSource: 'PRODUCT',
+    image: proxied,
+    discovery: { coverImage: proxied, imageCount: 1 },
+  },
+]);
+ok('sanitize keeps proxy image url', sanitizedProxy[0]?.image === proxied);
+ok(
+  'sanitize syncs discovery.coverImage',
+  (sanitizedProxy[0]?.discovery as { coverImage?: string })?.coverImage === proxied,
+);
+
+console.log('\nFeed media endpoint safety');
+ok('valid uuid id accepted', isValidFeedMediaId('1823cae9-2aae-400f-9a28-eadbdcded3bc'));
+ok('rejects short id', !isValidFeedMediaId('abc'));
+ok('rejects script injection id', !isValidFeedMediaId('<script>'));
+ok('index 0 default', parseFeedMediaIndex(null) === 0);
+ok('index max boundary', parseFeedMediaIndex(String(FEED_MEDIA_MAX_INDEX)) === FEED_MEDIA_MAX_INDEX);
+ok('index over max rejected', parseFeedMediaIndex(String(FEED_MEDIA_MAX_INDEX + 1)) === null);
+ok('index negative rejected', parseFeedMediaIndex('-1') === null);
+ok('index non-numeric rejected', parseFeedMediaIndex('abc') === null);
+const validQuery = parseFeedMediaQuery(
+  new URLSearchParams('type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0'),
+);
+ok('query parse valid', validQuery.ok === true);
+ok(
+  'query parse invalid type',
+  parseFeedMediaQuery(new URLSearchParams('type=secret&id=1823cae9-2aae-400f-9a28-eadbdcded3bc')).ok === false,
+);
+ok('jpeg mime allowed', normalizeAllowedFeedImageMime('image/jpeg') === 'image/jpeg');
+ok('jpg normalized', normalizeAllowedFeedImageMime('image/jpg') === 'image/jpeg');
+ok('svg blocked', normalizeAllowedFeedImageMime('image/svg+xml') === null);
+ok('html blocked', normalizeAllowedFeedImageMime('text/html') === null);
+const tinyPng = parseFeedInlineDataUrl(
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+);
+ok('tiny png decodes', tinyPng.ok === true);
+const blockedMime = parseFeedInlineDataUrl('data:text/html;base64,PHNjcmlwdD4=');
+ok('blocked mime rejected', blockedMime.ok === false);
+const bigPayload = Buffer.alloc(FEED_MEDIA_MAX_DECODED_BYTES + 1, 0xff).toString('base64');
+const overLimit = parseFeedInlineDataUrl(`data:image/jpeg;base64,${bigPayload}`);
+ok('oversized payload rejected', overLimit.ok === false && overLimit.reason === 'too_large');
 
 console.log('\nSingle initial feed fetch (GeoFeed static guards)');
 function readSrc(rel: string): string {
