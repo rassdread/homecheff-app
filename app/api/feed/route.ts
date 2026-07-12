@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 
-import { prisma } from "@/lib/prisma";
 import { ListingCategory, ProductCategory } from "@prisma/client";
 import { getCorsHeaders } from "@/lib/apiCors";
 import { batchComputeUserStatsPreview } from "@/lib/userStatsBatchPreview";
@@ -75,6 +74,13 @@ import {
   createFeedApiTiming,
   isFeedApiTimingEnabled,
 } from "@/lib/feed/feed-api-timing";
+import {
+  getPrismaPerfSnapshot,
+  isPrismaPerfEnabled,
+  prismaPerfSetCategory,
+  runWithPrismaPerfContext,
+} from "@/lib/performance/prisma-perf-context.server";
+import { getPerfPrisma } from "@/lib/performance/perf-prisma.server";
 import {
   buildFeedPaginationMeta,
   parseFeedPaginationParams,
@@ -160,6 +166,14 @@ function resolveListingCategory(verticalRaw: string): ListingCategory | null {
 }
 
 export async function GET(req: NextRequest) {
+  if (isPrismaPerfEnabled()) {
+    return runWithPrismaPerfContext(() => handleFeedGet(req));
+  }
+  return handleFeedGet(req);
+}
+
+async function handleFeedGet(req: NextRequest) {
+  const prisma = getPerfPrisma();
   const apiPerf = isFeedApiTimingEnabled() ? createFeedApiTiming() : null;
   const { searchParams } = new URL(req.url);
   const searchFilters = parseSearchFilterParams(searchParams);
@@ -231,6 +245,7 @@ export async function GET(req: NextRequest) {
 
   const effectiveRadius = normalizeFeedRadiusKm(radius);
 
+  prismaPerfSetCategory("feed-db");
   // Get Products from both new and old models
   const [rawProductsFromDb, oldListings, publishedDishes] = await Promise.all([
     prisma.product.findMany({
@@ -654,6 +669,7 @@ export async function GET(req: NextRequest) {
   const enrichTargets = marketplacePool as typeof allItems;
 
   // Get view counts, review counts, and average ratings for discovery pool
+  prismaPerfSetCategory("stats");
   const allItemIds = enrichTargets.map(item => item.id);
   if (allItemIds.length > 0) {
     const [viewCounts, reviewCounts, avgRatings, favoriteCounts] = await Promise.all([
@@ -747,6 +763,7 @@ export async function GET(req: NextRequest) {
       : new Map<string, { key: string; name: string; icon: string }[]>();
   let trustBundles: Awaited<ReturnType<typeof fetchSellerTrustBundles>> =
     new Map();
+  prismaPerfSetCategory("trust");
   if (sellerIdsForBadges.length > 0) {
     try {
       trustBundles = await fetchSellerTrustBundles(
@@ -784,6 +801,7 @@ export async function GET(req: NextRequest) {
       if (previewIds.length >= STATS_PREVIEW_SELLER_CAP) break;
     }
     if (previewIds.length > 0) {
+      prismaPerfSetCategory("stats");
       const computed = await batchComputeUserStatsPreview(previewIds);
       if (Object.keys(computed).length > 0) {
         statsPreview = computed;
@@ -806,6 +824,7 @@ export async function GET(req: NextRequest) {
   }
 
   let discoveryFeed: DiscoveryFeedPayload | null = null;
+  prismaPerfSetCategory("enrichment");
   if (isFirstPage) {
     try {
       discoveryFeed = buildDiscoveryFeed({
@@ -974,10 +993,6 @@ export async function GET(req: NextRequest) {
       ? { 'Cache-Control': 'public, s-maxage=45, stale-while-revalidate=90' }
       : {}),
   };
-  const serverTiming = apiPerf?.toServerTimingHeader();
-  if (serverTiming) {
-    headers['Server-Timing'] = serverTiming;
-  }
 
   const body = {
     filters: {
@@ -999,9 +1014,18 @@ export async function GET(req: NextRequest) {
     ...(isFirstPage && statsPreview ? { statsPreview } : {}),
   };
 
-  if (apiPerf && feedDebug && typeof feedDebug === 'object') {
-    const size = JSON.stringify(body).length;
-    (feedDebug as Record<string, unknown>).perf = apiPerf.toPayload(size);
+  if (apiPerf) {
+    apiPerf.setPrismaSnapshot(getPrismaPerfSnapshot());
+    const responseBytesEstimate = JSON.stringify(body).length;
+    apiPerf.mark('serialize_done');
+    if (feedDebug && typeof feedDebug === 'object') {
+      (feedDebug as Record<string, unknown>).perf =
+        apiPerf.toPayload(responseBytesEstimate);
+    }
+    const serverTiming = apiPerf.toServerTimingHeader();
+    if (serverTiming) {
+      headers['Server-Timing'] = serverTiming;
+    }
   }
 
   return NextResponse.json(body, { headers });

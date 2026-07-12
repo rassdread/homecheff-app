@@ -26,6 +26,7 @@ import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
 import { CommsUnreadProvider } from '@/components/communication/CommsUnreadProvider';
 import dynamic from 'next/dynamic';
 import NavigationHistorySync from '@/components/navigation/NavigationHistorySync';
+import FeedPerfBaselineMount from '@/components/performance/FeedPerfBaselineMount';
 
 const CommsRealtimeListener = dynamic(
   () => import('@/components/communication/CommsRealtimeListener'),
@@ -43,6 +44,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       refetchInterval={5 * 60}
       refetchOnWindowFocus={false}
     >
+      <FeedPerfBaselineMount />
       <AppShellHtmlClasses />
       <Suspense fallback={null}>
         <NavigationHistorySync />

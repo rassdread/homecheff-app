@@ -1,9 +1,11 @@
 /**
- * Server-side feed API phase timing (Phase 13K baseline).
+ * Server-side feed API phase timing (Phase 13K + Phase 2).
  * No PII — counts and milliseconds only.
  *
  * Enabled: NODE_ENV=development OR FEED_PERF_TIMING=1
  */
+
+import type { PrismaPerfSnapshot } from '@/lib/performance/prisma-perf-types';
 
 export type FeedApiTimingPhase =
   | 'request_received'
@@ -16,11 +18,27 @@ export type FeedApiTimingPhase =
   | 'trust_business_dna_done'
   | 'discovery_done'
   | 'response_mapped'
+  | 'serialize_done'
   | 'response_sent';
+
+/** Server-Timing friendly buckets (Phase 2). */
+export type FeedApiTimingBucket =
+  | 'auth'
+  | 'geo'
+  | 'feed-db'
+  | 'transform'
+  | 'stats'
+  | 'trust'
+  | 'discovery'
+  | 'mapping'
+  | 'serialize'
+  | 'prisma'
+  | 'total';
 
 export type FeedApiTimingPayload = {
   totalMs: number;
   phases: Partial<Record<FeedApiTimingPhase, number>>;
+  buckets: Partial<Record<FeedApiTimingBucket, number>>;
   counts: {
     productsDb: number;
     listingsDb: number;
@@ -29,7 +47,10 @@ export type FeedApiTimingPayload = {
     discoveryPool: number;
     sellerTrustLookups: number;
     prismaQueryBatches: number;
+    prismaQueryCount?: number;
+    prismaTotalMs?: number;
   };
+  prisma?: PrismaPerfSnapshot;
   responseBytesEstimate?: number;
 };
 
@@ -38,6 +59,47 @@ export function isFeedApiTimingEnabled(): boolean {
     process.env.NODE_ENV === 'development' ||
     process.env.FEED_PERF_TIMING === '1'
   );
+}
+
+function phaseDelta(
+  phases: Partial<Record<FeedApiTimingPhase, number>>,
+  from: FeedApiTimingPhase,
+  to: FeedApiTimingPhase,
+): number | null {
+  const a = phases[from];
+  const b = phases[to];
+  if (a == null || b == null) return null;
+  return Math.max(0, Math.round(b - a));
+}
+
+function buildBuckets(
+  phases: Partial<Record<FeedApiTimingPhase, number>>,
+  prisma?: PrismaPerfSnapshot | null,
+): Partial<Record<FeedApiTimingBucket, number>> {
+  const buckets: Partial<Record<FeedApiTimingBucket, number>> = {};
+  const put = (key: FeedApiTimingBucket, from: FeedApiTimingPhase, to: FeedApiTimingPhase) => {
+    const d = phaseDelta(phases, from, to);
+    if (d != null) buckets[key] = d;
+  };
+
+  put('auth', 'params_parsed', 'session_resolved');
+  put('geo', 'session_resolved', 'viewer_geo_resolved');
+  put('feed-db', 'viewer_geo_resolved', 'db_parallel_done');
+  put('transform', 'db_parallel_done', 'transform_done');
+  put('stats', 'transform_done', 'stats_enrichment_done');
+  put('trust', 'stats_enrichment_done', 'trust_business_dna_done');
+  put('discovery', 'trust_business_dna_done', 'discovery_done');
+  put('mapping', 'discovery_done', 'response_mapped');
+  put('serialize', 'response_mapped', 'serialize_done');
+
+  if (prisma?.totalMs != null) {
+    buckets.prisma = Math.round(prisma.totalMs);
+  }
+
+  const end = phases.serialize_done ?? phases.response_sent;
+  if (end != null) buckets.total = end;
+
+  return buckets;
 }
 
 export function createFeedApiTiming() {
@@ -54,6 +116,7 @@ export function createFeedApiTiming() {
     sellerTrustLookups: 0,
     prismaQueryBatches: 0,
   };
+  let prismaSnapshot: PrismaPerfSnapshot | null = null;
 
   function mark(phase: FeedApiTimingPhase): void {
     phases[phase] = Math.round(performance.now() - start);
@@ -63,12 +126,31 @@ export function createFeedApiTiming() {
     Object.assign(counts, partial);
   }
 
-  function toPayload(responseBytesEstimate?: number): FeedApiTimingPayload {
-    mark('response_sent');
+  function setPrismaSnapshot(snapshot: PrismaPerfSnapshot | null): void {
+    prismaSnapshot = snapshot;
+    if (snapshot) {
+      counts.prismaQueryCount = snapshot.queryCount;
+      counts.prismaTotalMs = snapshot.totalMs;
+    }
+  }
+
+  function toPayload(
+    responseBytesEstimate?: number,
+    options?: { finalize?: boolean },
+  ): FeedApiTimingPayload {
+    if (options?.finalize !== false) {
+      if (phases.serialize_done == null && phases.response_mapped != null) {
+        phases.serialize_done = Math.round(performance.now() - start);
+      }
+      mark('response_sent');
+    }
+    const buckets = buildBuckets(phases, prismaSnapshot);
     return {
       totalMs: Math.round(performance.now() - start),
       phases: { ...phases },
+      buckets,
       counts: { ...counts },
+      ...(prismaSnapshot ? { prisma: prismaSnapshot } : {}),
       ...(responseBytesEstimate != null
         ? { responseBytesEstimate }
         : {}),
@@ -77,31 +159,35 @@ export function createFeedApiTiming() {
 
   function toServerTimingHeader(): string | null {
     if (!isFeedApiTimingEnabled()) return null;
+    const payload = toPayload(undefined, { finalize: false });
     const entries: string[] = [];
-    const ordered: FeedApiTimingPhase[] = [
-      'params_parsed',
-      'session_resolved',
-      'viewer_geo_resolved',
-      'db_parallel_done',
-      'transform_done',
-      'stats_enrichment_done',
-      'trust_business_dna_done',
-      'discovery_done',
-      'response_mapped',
-      'response_sent',
+
+    const bucketOrder: FeedApiTimingBucket[] = [
+      'auth',
+      'geo',
+      'feed-db',
+      'transform',
+      'stats',
+      'trust',
+      'discovery',
+      'mapping',
+      'serialize',
+      'prisma',
+      'total',
     ];
-    let prev = 0;
-    for (const key of ordered) {
-      const at = phases[key];
-      if (at == null) continue;
-      const dur = Math.max(0, at - prev);
-      prev = at;
+
+    for (const key of bucketOrder) {
+      const dur = payload.buckets[key];
+      if (dur == null) continue;
       entries.push(`${key};dur=${dur}`);
     }
-    const total = Math.round(performance.now() - start);
-    entries.push(`total;dur=${total}`);
+
+    if (payload.counts.prismaQueryCount != null) {
+      entries.push(`prisma-count;dur=0;desc="${payload.counts.prismaQueryCount} queries"`);
+    }
+
     return entries.length ? entries.join(', ') : null;
   }
 
-  return { mark, setCounts, toPayload, toServerTimingHeader };
+  return { mark, setCounts, setPrismaSnapshot, toPayload, toServerTimingHeader };
 }

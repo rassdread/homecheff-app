@@ -47,7 +47,11 @@
     "cap:build:android": "npm run build && npm run cap:sync && npx cap open android",
     "release:android": "node scripts/release-android.mjs",
     "android:fingerprints": "node scripts/android-signing-fingerprints.mjs",
-    "android:validate-google-services": "node scripts/validate-google-services.mjs"
+    "android:validate-google-services": "node scripts/validate-google-services.mjs",
+    "perf:startup": "node scripts/performance/measure-homecheff-startup.mjs",
+    "perf:startup:cold": "node scripts/performance/measure-homecheff-startup.mjs --mode=cold --runs=3",
+    "perf:startup:warm": "node scripts/performance/measure-homecheff-startup.mjs --mode=warm --runs=3",
+    "analyze": "cross-env ANALYZE=true npm run build"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
@@ -90,6 +94,7 @@
     "react-qr-code": "^2.0.18",
     "react-zoom-pan-pinch": "^4.0.3",
     "resend": "^6.3.0",
+    "server-only": "^0.0.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "stripe": "^18.5.0",
@@ -101,6 +106,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.1",
+    "@next/bundle-analyzer": "^14.2.35",
     "@types/formidable": "^3.4.5",
     "@types/node": "^20",
     "@types/react": "^18",

@@ -169,6 +169,9 @@ import {
   feedPerfIncrementFeedFetch,
   feedPerfIncrementGeoFeedMount,
   feedPerfMark,
+  feedPerfMarkAppUsable,
+  feedPerfMarkFeedBlocked,
+  feedPerfMarkFeedRequestEnd,
   feedPerfMarkFirstTileOnce,
   installFeedPerfBaselineReporter,
 } from "@/lib/feed/feed-performance-baseline";
@@ -1210,6 +1213,14 @@ export default function GeoFeed({
       bootstrapStatus === "loading" &&
       nearbyScopeAwaitingProfileCoords);
 
+  useEffect(() => {
+    feedPerfMarkFeedBlocked(feedStartupBlocked);
+  }, [feedStartupBlocked]);
+
+  useEffect(() => {
+    feedPerfMark("location:init-start");
+  }, []);
+
   const { coords, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } =
     useGeolocation({
       // Sneller eerste fix voor afstandssortering; hoge nauwkeurigheid houdt mobiel vaak seconden bezig.
@@ -1653,6 +1664,7 @@ export default function GeoFeed({
       if (feedStableMarkedRef.current) return;
       feedStableMarkedRef.current = true;
       feedPerfMark("feed:stable");
+      feedPerfMarkAppUsable();
     };
     if (typeof requestIdleCallback !== "undefined") {
       const id = requestIdleCallback(markStable, { timeout: 2000 });
@@ -1690,8 +1702,10 @@ export default function GeoFeed({
           readHomeFeedReturnCache(requestKey)
         : readHomeFeedReturnCache(requestKey);
 
+    feedPerfMark("cache:restore-start");
     let backgroundRefresh = false;
     if (cached) {
+      feedPerfMark("cache:restore-end");
       feedRestoredFromCacheRef.current = true;
       if (!isHomeFeedReturnCacheStale(cached)) {
         feedPerfMark("feed:cache-hit");
@@ -1720,6 +1734,7 @@ export default function GeoFeed({
       }
       backgroundRefresh = true;
     } else {
+      feedPerfMark("cache:restore-end");
       feedPerfMark("feed:cache-miss");
     }
 
@@ -1774,6 +1789,7 @@ export default function GeoFeed({
           }
           if (cancelled) return;
           feedPerfMark("feed:json-received");
+          feedPerfMarkFeedRequestEnd();
           const rawItems = (data.items || []) as Record<string, unknown>[];
           setApiRawItems(rawItems);
           const previewRaw = data.statsPreview as

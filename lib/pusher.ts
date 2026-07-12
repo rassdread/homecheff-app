@@ -1,6 +1,13 @@
 import Pusher from 'pusher';
 import PusherClient from 'pusher-js';
 
+let feedPerfMarkPusherInit: (() => void) | null = null;
+if (typeof window !== 'undefined') {
+  void import('@/lib/feed/feed-performance-baseline').then((mod) => {
+    feedPerfMarkPusherInit = mod.feedPerfMarkPusherInit;
+  });
+}
+
 // Server-side Pusher instance
 export const pusherServer = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -33,6 +40,7 @@ export const getPusherClient = () => {
       // Faster connection
       forceTLS: true,
     });
+    feedPerfMarkPusherInit?.();
   }
   return pusherClientInstance;
 };
