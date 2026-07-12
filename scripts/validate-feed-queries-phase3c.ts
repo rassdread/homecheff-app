@@ -31,7 +31,7 @@ ok('linked ids subset not all products', feedRoute.includes('linkedIdsNeedingDon
 
 const schema = fs.readFileSync('prisma/schema.prisma', 'utf8');
 ok('product has isActive+createdAt index', schema.includes('@@index([isActive, createdAt(sort: Desc)])'));
-ok('dish missing status+createdAt index (proposal only)', !schema.includes('@@index([status, createdAt'));
+ok('dish status+createdAt index in schema (phase3d)', schema.includes('@@index([status, createdAt'));
 
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===\n`);
 process.exit(failed > 0 ? 1 : 0);

@@ -1328,6 +1328,7 @@ model Dish {
   favorites          Favorite[]
 
   @@index([userId])
+  @@index([status, createdAt(sort: Desc)])
 }
 
 model DishPhoto {

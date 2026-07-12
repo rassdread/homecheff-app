@@ -5,7 +5,13 @@ import {
   type FetchSellerTrustSnapshotsOptions,
 } from './fetch-seller-trust-snapshots';
 import type { TrustSnapshotTimingReport } from './trust-snapshot-timing';
+import {
+  fetchSellerTrustSnapshotsWithReportCached,
+  type TrustSnapshotCacheStats,
+} from './trust-snapshot-cache';
 import { emptySellerTrustSnapshot, type SellerTrustSnapshot } from './types';
+
+export type { TrustSnapshotCacheStats } from './trust-snapshot-cache';
 
 export type SellerTrustBundle = {
   snapshot: SellerTrustSnapshot;
@@ -15,6 +21,7 @@ export type SellerTrustBundle = {
 export type FetchSellerTrustBundlesResult = {
   bundles: Map<string, SellerTrustBundle>;
   snapshotTiming: TrustSnapshotTimingReport | null;
+  cacheStats?: TrustSnapshotCacheStats;
 };
 
 /**
@@ -32,7 +39,7 @@ export async function fetchSellerTrustBundles(
 export async function fetchSellerTrustBundlesWithReport(
   userIds: string[],
   badgeMap?: Map<string, DiscoveryTrustBadge[]>,
-  options: FetchSellerTrustSnapshotsOptions = {},
+  options: FetchSellerTrustSnapshotsOptions & { useCache?: boolean } = {},
 ): Promise<FetchSellerTrustBundlesResult> {
   const unique = [...new Set(userIds.filter(Boolean))];
   const out = new Map<string, SellerTrustBundle>();
@@ -40,11 +47,24 @@ export async function fetchSellerTrustBundlesWithReport(
     return { bundles: out, snapshotTiming: null };
   }
 
+  const useCache = options.useCache !== false;
+
   try {
-    const { snapshots, timing } = await fetchSellerTrustSnapshotsWithReport(
-      unique,
-      options,
-    );
+    let snapshots: Map<string, SellerTrustSnapshot>;
+    let timing: TrustSnapshotTimingReport | null;
+    let cacheStats: TrustSnapshotCacheStats | undefined;
+
+    if (useCache) {
+      const cached = await fetchSellerTrustSnapshotsWithReportCached(unique, options);
+      snapshots = cached.snapshots;
+      timing = cached.timing;
+      cacheStats = cached.cacheStats;
+    } else {
+      const fetched = await fetchSellerTrustSnapshotsWithReport(unique, options);
+      snapshots = fetched.snapshots;
+      timing = fetched.timing;
+      cacheStats = undefined;
+    }
     for (const [uid, snapshot] of snapshots) {
       out.set(uid, {
         snapshot,
@@ -58,7 +78,7 @@ export async function fetchSellerTrustBundlesWithReport(
         trustBadges: badgeMap?.get(uid) ?? [],
       });
     }
-    return { bundles: out, snapshotTiming: timing };
+    return { bundles: out, snapshotTiming: timing, cacheStats };
   } catch (error) {
     console.error('[discovery/trust] fetchSellerTrustBundles failed:', error);
     for (const uid of unique) {

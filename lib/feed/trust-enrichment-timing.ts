@@ -14,6 +14,7 @@ export type TrustEnrichmentTiming = {
   sellerCount: number;
   mode: 'minimal' | 'full';
   snapshotTiming?: TrustSnapshotTimingReport;
+  cacheStats?: import('@/lib/discovery/trust/trust-snapshot-cache').TrustSnapshotCacheStats;
 };
 
 export async function fetchSellerTrustBundlesWithTiming(
@@ -32,17 +33,17 @@ export async function fetchSellerTrustBundlesWithTiming(
     const { bundles } = await fetchSellerTrustBundlesWithReport(
       userIds,
       badgeMap,
-      { mode: trustMode },
+      { mode: trustMode, useCache: true },
     );
     return { bundles, timing: null };
   }
 
   const totalStart = performance.now();
   const bundlesStart = performance.now();
-  const { bundles, snapshotTiming } = await fetchSellerTrustBundlesWithReport(
+  const { bundles, snapshotTiming, cacheStats } = await fetchSellerTrustBundlesWithReport(
     userIds,
     badgeMap,
-    { mode: trustMode, collectTiming: true },
+    { mode: trustMode, collectTiming: true, useCache: true },
   );
   const bundlesMs = Math.round(performance.now() - bundlesStart);
 
@@ -55,6 +56,7 @@ export async function fetchSellerTrustBundlesWithTiming(
       sellerCount: [...new Set(userIds.filter(Boolean))].length,
       mode: trustMode,
       snapshotTiming: snapshotTiming ?? undefined,
+      cacheStats,
     },
   };
 }
