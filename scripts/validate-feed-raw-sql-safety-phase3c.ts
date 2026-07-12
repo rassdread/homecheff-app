@@ -24,7 +24,7 @@ console.log('=== Phase 3C — Raw SQL safety ===\n');
 
 ok('uses $queryRaw only', meta.includes('prisma.$queryRaw'));
 ok('no $queryRawUnsafe', !meta.includes('$queryRawUnsafe'));
-ok('parameterized uuid array', meta.includes('::uuid[]'));
+ok('parameterized text array', meta.includes('::text[]'));
 ok('empty list early return product', meta.includes('capped.length === 0'));
 ok('empty list early return dish', (meta.match(/capped\.length === 0/g) ?? []).length >= 2);
 ok('product id cap', meta.includes('FEED_DB_PRODUCT_CAP'));

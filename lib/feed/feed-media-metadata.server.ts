@@ -44,7 +44,7 @@ export async function loadProductImageMetadata(
         ELSE NULL
       END as url_ref
     FROM "Image"
-    WHERE "productId" = ANY(${capped}::uuid[])
+    WHERE "productId" = ANY(${capped}::text[])
     ORDER BY "productId", "sortOrder" ASC
   `;
 
@@ -74,7 +74,7 @@ export async function loadDishPhotoMetadata(
         ELSE NULL
       END as url_ref
     FROM "DishPhoto"
-    WHERE "dishId" = ANY(${capped}::uuid[])
+    WHERE "dishId" = ANY(${capped}::text[])
     ORDER BY "dishId", "idx" ASC
   `;
 
