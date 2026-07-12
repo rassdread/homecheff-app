@@ -50,9 +50,17 @@ import { normalizeFeedScope, scopeUsesRadiusFilter } from "@/lib/feed/feed-scope
 import { geocodePlaceQuery } from "@/lib/global-geocoding";
 import {
   buildDiscoveryFeed,
-  FEED_DISCOVERY_POOL_CAP,
   reorderFeedItemsByDiscovery,
 } from "@/lib/feed/build-discovery-feed";
+import {
+  collectUniqueSellerUserIds,
+  computeEnrichmentPoolCap,
+  deduplicateCrossSourceFeedItems,
+  FEED_DB_DISH_CAP,
+  FEED_DB_LISTING_CAP,
+  FEED_DB_PRODUCT_CAP,
+  FEED_RESPONSE_ITEM_CAP,
+} from "@/lib/feed/feed-candidate-window";
 import type { DiscoveryFeedPayload } from "@/lib/feed/discovery-feed-contract";
 import {
   buildActivityCardsFeedSlot,
@@ -141,7 +149,21 @@ function extractItemLatLng(item: Record<string, unknown>): { lat: number; lng: n
 }
 
 const STATS_PREVIEW_SELLER_CAP = 9;
-const FEED_RESPONSE_ITEM_CAP = 40;
+
+type FeedProductStripeRow = {
+  priceCents: number | null;
+  orderMethod?: string | null;
+  seller?: { User?: { stripeConnectAccountId?: string | null } | null } | null;
+};
+
+/** Same gate as `allNewProducts` — used before Dish `notIn` to avoid hiding standalone dishes. */
+function passesFeedProductStripeFilter(product: FeedProductStripeRow): boolean {
+  if (isContactOnlyProduct(product)) return true;
+  if (!product.priceCents || product.priceCents === 0) return true;
+  const seller = product.seller?.User;
+  if (!seller?.stripeConnectAccountId) return true;
+  return !isStripeTestId(seller.stripeConnectAccountId);
+}
 
 /** Maps feed UI slugs (cheff, garden, …) to Prisma `ProductCategory` (GROWN, not GARDEN). */
 function resolveProductCategory(verticalRaw: string): ProductCategory | null {
@@ -246,13 +268,11 @@ async function handleFeedGet(req: NextRequest) {
   const effectiveRadius = normalizeFeedRadiusKm(radius);
 
   prismaPerfSetCategory("feed-db");
-  // Get Products from both new and old models
-  const [rawProductsFromDb, oldListings, publishedDishes] = await Promise.all([
+  const [rawProductsFromDb, oldListings] = await Promise.all([
     prisma.product.findMany({
       where: {
         OR: [
           { isActive: true },
-          // Include inactive products that have orders (products with sales history should remain visible)
           {
             isActive: false,
             orderItems: {
@@ -275,7 +295,7 @@ async function handleFeedGet(req: NextRequest) {
         } : {}),
       },
       orderBy: [{ createdAt: "desc" }],
-      take: 100,
+      take: FEED_DB_PRODUCT_CAP,
       select: {
         id: true,
         title: true,
@@ -344,7 +364,7 @@ async function handleFeedGet(req: NextRequest) {
         } : {})
       },
       orderBy: [{ createdAt: "desc" }],
-      take: 50,
+      take: FEED_DB_LISTING_CAP,
       include: {
         User: {
           select: {
@@ -368,10 +388,16 @@ async function handleFeedGet(req: NextRequest) {
         }
       }
     }),
-    // Haal gepubliceerde dishes op
-    prisma.dish.findMany({
+  ]);
+
+  const linkedProductIds = rawProductsFromDb
+    .filter(passesFeedProductStripeFilter)
+    .map((product) => product.id);
+
+  const publishedDishes = await prisma.dish.findMany({
       where: {
         status: "PUBLISHED",
+        ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
         ...(q ? buildDishTextSearchWhere(q) : {}),
         ...(lat && lng && effectiveRadius > 0 ? {
           lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
@@ -380,7 +406,7 @@ async function handleFeedGet(req: NextRequest) {
         ...(productCategory ? { category: productCategory } : {}),
       },
       orderBy: [{ createdAt: "desc" }],
-      take: 50,
+      take: FEED_DB_DISH_CAP,
       include: {
         user: {
           select: {
@@ -408,15 +434,14 @@ async function handleFeedGet(req: NextRequest) {
           take: 1,
         },
       }
-    })
-  ]);
+    });
 
   apiPerf?.mark('db_parallel_done');
   apiPerf?.setCounts({
     productsDb: rawProductsFromDb.length,
     listingsDb: oldListings.length,
     dishesDb: publishedDishes.length,
-    prismaQueryBatches: 1,
+    prismaQueryBatches: 2,
   });
 
   const activeProductsFromDb = rawProductsFromDb.length;
@@ -424,13 +449,7 @@ async function handleFeedGet(req: NextRequest) {
     (p) => (p.priceCents ?? 0) > 0
   ).length;
 
-  const allNewProducts = rawProductsFromDb.filter((product) => {
-    if (isContactOnlyProduct(product)) return true;
-    if (!product.priceCents || product.priceCents === 0) return true;
-    const seller = product.seller?.User;
-    if (!seller?.stripeConnectAccountId) return true;
-    return !isStripeTestId(seller.stripeConnectAccountId);
-  });
+  const allNewProducts = rawProductsFromDb.filter(passesFeedProductStripeFilter);
 
   // Transform dishes to match new product format
   const transformedDishes = publishedDishes.map((dish) => {
@@ -630,8 +649,9 @@ async function handleFeedGet(req: NextRequest) {
   };
   });
 
-  // Combine all items
-  const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes];
+  const combinedRaw = [...transformedProducts, ...transformedListings, ...transformedDishes];
+  const { items: allItems, dropped: crossSourceDropped } =
+    deduplicateCrossSourceFeedItems(combinedRaw);
   apiPerf?.mark('transform_done');
 
   /** Binnen ~7 dagen licht voorrang voor makers die je volgt (tie-break, geen harde filter). */
@@ -658,9 +678,11 @@ async function handleFeedGet(req: NextRequest) {
     extractCoords: (item) => extractItemLatLng(item),
   });
 
+  const enrichmentPoolCap = computeEnrichmentPoolCap(feedSkip, feedTake);
+
   const marketplacePool = sortedPool
     .filter((item) => isMarketplaceSaleItem(item as Record<string, unknown>))
-    .slice(0, FEED_DISCOVERY_POOL_CAP) as typeof allItems;
+    .slice(0, enrichmentPoolCap) as typeof allItems;
 
   const nonMarketplaceTail = sortedPool.filter(
     (item) => !isMarketplaceSaleItem(item as Record<string, unknown>),
@@ -749,14 +771,10 @@ async function handleFeedGet(req: NextRequest) {
   }
   apiPerf?.mark('stats_enrichment_done');
   
-  const sellerIdsForBadges: string[] = [];
-  const seenBadges = new Set<string>();
-  for (const item of enrichTargets) {
-    const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
-    if (!uid || seenBadges.has(uid)) continue;
-    seenBadges.add(uid);
-    sellerIdsForBadges.push(uid);
-  }
+  const sellerIdsForBadges = collectUniqueSellerUserIds(
+    enrichTargets as Array<Record<string, unknown>>,
+    extractFeedItemSellerUserId,
+  );
   const badgeMap =
     sellerIdsForBadges.length > 0
       ? await fetchAuthorBadgeSummariesByUserIds(sellerIdsForBadges, 2)
@@ -787,30 +805,6 @@ async function handleFeedGet(req: NextRequest) {
     prismaQueryBatches: 3,
   });
 
-  let statsPreview:
-    | Awaited<ReturnType<typeof batchComputeUserStatsPreview>>
-    | undefined;
-  try {
-    const previewIds: string[] = [];
-    const seen = new Set<string>();
-    for (const item of enrichTargets) {
-      const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
-      if (!uid || seen.has(uid)) continue;
-      seen.add(uid);
-      previewIds.push(uid);
-      if (previewIds.length >= STATS_PREVIEW_SELLER_CAP) break;
-    }
-    if (previewIds.length > 0) {
-      prismaPerfSetCategory("stats");
-      const computed = await batchComputeUserStatsPreview(previewIds);
-      if (Object.keys(computed).length > 0) {
-        statsPreview = computed;
-      }
-    }
-  } catch (e) {
-    console.error("[feed] statsPreview:", e);
-  }
-
   for (const item of enrichTargets) {
     const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
     const bundle = uid ? trustBundles.get(uid) : undefined;
@@ -822,6 +816,7 @@ async function handleFeedGet(req: NextRequest) {
       }),
     );
   }
+  apiPerf?.mark('discovery_attach_done');
 
   let discoveryFeed: DiscoveryFeedPayload | null = null;
   prismaPerfSetCategory("enrichment");
@@ -838,6 +833,7 @@ async function handleFeedGet(req: NextRequest) {
     } catch (e) {
       console.error("[feed] discovery sections:", e);
     }
+    apiPerf?.mark('discovery_sections_done');
 
     if (discoveryFeed && userId) {
       try {
@@ -897,6 +893,10 @@ async function handleFeedGet(req: NextRequest) {
         console.error("[feed] activity cards:", e);
       }
     }
+    apiPerf?.mark('activity_slots_done');
+  } else {
+    apiPerf?.mark('discovery_sections_done');
+    apiPerf?.mark('activity_slots_done');
   }
   apiPerf?.mark('discovery_done');
 
@@ -951,6 +951,29 @@ async function handleFeedGet(req: NextRequest) {
   }
   apiPerf?.setCounts({ responseItems: pageItems.length });
 
+  let statsPreview:
+    | Awaited<ReturnType<typeof batchComputeUserStatsPreview>>
+    | undefined;
+  if (isFirstPage) {
+    try {
+      const previewIds = collectUniqueSellerUserIds(
+        pageItems,
+        (item) => extractFeedItemSellerUserId(item),
+        STATS_PREVIEW_SELLER_CAP,
+      );
+      if (previewIds.length > 0) {
+        prismaPerfSetCategory("stats");
+        const computed = await batchComputeUserStatsPreview(previewIds);
+        if (Object.keys(computed).length > 0) {
+          statsPreview = computed;
+        }
+      }
+    } catch (e) {
+      console.error("[feed] statsPreview:", e);
+    }
+  }
+  apiPerf?.mark('stats_preview_done');
+
   const feedDebug =
     process.env.NODE_ENV === "development" || process.env.FEED_PERF_TIMING === "1"
       ? (() => {
@@ -966,7 +989,9 @@ async function handleFeedGet(req: NextRequest) {
             transformedProducts: transformedProducts.length,
             transformedListings: transformedListings.length,
             transformedDishes: transformedDishes.length,
-            combinedBeforeSort: allItems.length,
+            crossSourceDropped: crossSourceDropped.length,
+            combinedBeforeSort: combinedRaw.length,
+            combinedAfterDedup: allItems.length,
             finalFeedItems: pageItems.length,
             feedTotal,
             feedTake,
@@ -977,6 +1002,12 @@ async function handleFeedGet(req: NextRequest) {
               responseItems as Record<string, unknown>[]
             ),
             discoveryPool: enrichTargets.length,
+            candidateWindow: {
+              dbProductCap: FEED_DB_PRODUCT_CAP,
+              dbListingCap: FEED_DB_LISTING_CAP,
+              dbDishCap: FEED_DB_DISH_CAP,
+              enrichmentPoolCap,
+            },
             discoverySections: discoveryFeed?.sections.map((s) => ({
               id: s.sectionId,
               count: s.listingIds.length,

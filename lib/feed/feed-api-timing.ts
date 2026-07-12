@@ -16,12 +16,16 @@ export type FeedApiTimingPhase =
   | 'transform_done'
   | 'stats_enrichment_done'
   | 'trust_business_dna_done'
+  | 'discovery_attach_done'
+  | 'discovery_sections_done'
+  | 'activity_slots_done'
   | 'discovery_done'
   | 'response_mapped'
+  | 'stats_preview_done'
   | 'serialize_done'
   | 'response_sent';
 
-/** Server-Timing friendly buckets (Phase 2). */
+/** Server-Timing friendly buckets (Phase 2 + 3A sub-phases). */
 export type FeedApiTimingBucket =
   | 'auth'
   | 'geo'
@@ -29,6 +33,10 @@ export type FeedApiTimingBucket =
   | 'transform'
   | 'stats'
   | 'trust'
+  | 'discovery-attach'
+  | 'discovery-sections'
+  | 'discovery-activity'
+  | 'stats-preview'
   | 'discovery'
   | 'mapping'
   | 'serialize'
@@ -88,9 +96,15 @@ function buildBuckets(
   put('transform', 'db_parallel_done', 'transform_done');
   put('stats', 'transform_done', 'stats_enrichment_done');
   put('trust', 'stats_enrichment_done', 'trust_business_dna_done');
+  put('discovery-attach', 'trust_business_dna_done', 'discovery_attach_done');
+  put('discovery-sections', 'discovery_attach_done', 'discovery_sections_done');
+  put('discovery-activity', 'discovery_sections_done', 'activity_slots_done');
+  put('stats-preview', 'response_mapped', 'stats_preview_done');
+  put('mapping', 'activity_slots_done', 'response_mapped');
+  put('serialize', 'stats_preview_done', 'serialize_done');
+
+  // Legacy aggregate bucket (trust → discovery_done) for preview dashboards.
   put('discovery', 'trust_business_dna_done', 'discovery_done');
-  put('mapping', 'discovery_done', 'response_mapped');
-  put('serialize', 'response_mapped', 'serialize_done');
 
   if (prisma?.totalMs != null) {
     buckets.prisma = Math.round(prisma.totalMs);
@@ -169,9 +183,13 @@ export function createFeedApiTiming() {
       'transform',
       'stats',
       'trust',
-      'discovery',
+      'discovery-attach',
+      'discovery-sections',
+      'discovery-activity',
       'mapping',
+      'stats-preview',
       'serialize',
+      'discovery',
       'prisma',
       'total',
     ];

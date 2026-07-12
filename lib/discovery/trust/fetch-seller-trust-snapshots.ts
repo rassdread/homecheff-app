@@ -23,16 +23,19 @@ async function countDeliveredOrderItemsByProductId(
   productIds: string[],
 ): Promise<Map<string, number>> {
   if (productIds.length === 0) return new Map();
-  const rows = await prisma.orderItem.findMany({
+  const rows = await prisma.orderItem.groupBy({
+    by: ['productId'],
     where: {
       productId: { in: productIds },
       Order: { status: { in: [...DELIVERED_ORDER_STATUSES] } },
     },
-    select: { productId: true },
+    _count: { _all: true },
   });
   const totals = new Map<string, number>();
   for (const row of rows) {
-    totals.set(row.productId, (totals.get(row.productId) ?? 0) + 1);
+    if (row.productId) {
+      totals.set(row.productId, row._count._all ?? 0);
+    }
   }
   return totals;
 }
