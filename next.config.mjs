@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 import path from 'path';
 import { fileURLToPath } from 'url';
-import webpack from 'webpack';
 import bundleAnalyzer from '@next/bundle-analyzer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -188,7 +187,7 @@ const nextConfig = {
   // Can be disabled per Link with prefetch={false}
   reactStrictMode: true,
   // Simplified webpack config to handle LightningCSS issues
-  webpack: (config, { isServer, dev }) => {
+  webpack: (config, { isServer, dev, webpack }) => {
     // Handle module resolution issues
     config.resolve.fallback = {
       ...config.resolve.fallback,
