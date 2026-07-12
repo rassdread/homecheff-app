@@ -979,6 +979,8 @@ export default function GeoFeed({
   const feedHasMoreRef = useRef(false);
   const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
+  /** Prevents duplicate concurrent network fetch for the same query key. */
+  const feedRequestKeyInFlightRef = useRef<string | null>(null);
   const feedRestoredFromCacheRef = useRef(false);
   const [feedHydrated, setFeedHydrated] = useState(false);
   const itemsRef = useRef<FeedItem[]>([]);
@@ -1696,6 +1698,11 @@ export default function GeoFeed({
 
     const requestKey = params.toString();
 
+    if (feedRequestKeyInFlightRef.current === requestKey) {
+      return;
+    }
+    feedRequestKeyInFlightRef.current = requestKey;
+
     const cached =
       !feedInteractionStartedRef.current
         ? peekFreshHomeFeedReturnCache() ??
@@ -1730,6 +1737,7 @@ export default function GeoFeed({
       feedInteractionStartedRef.current = true;
       setFeedHydrated(true);
       if (!isHomeFeedReturnCacheStale(cached)) {
+        feedRequestKeyInFlightRef.current = null;
         return;
       }
       backgroundRefresh = true;
@@ -1863,6 +1871,7 @@ export default function GeoFeed({
           setFeedRefreshing(false);
           feedInteractionStartedRef.current = true;
           setFeedHydrated(true);
+          feedRequestKeyInFlightRef.current = null;
         }
       }
     };
@@ -1872,6 +1881,9 @@ export default function GeoFeed({
     return () => {
       cancelled = true;
       ac.abort();
+      if (feedRequestKeyInFlightRef.current === requestKey) {
+        feedRequestKeyInFlightRef.current = null;
+      }
       const snapshot = itemsRef.current;
       if (snapshot.length > 0) {
         saveHomeFeedReturnCache({
@@ -1896,8 +1908,6 @@ export default function GeoFeed({
     viewerPlaceForApi,
     apiLocationSource,
     appliedCategory,
-    effectiveViewerForDistance?.lat,
-    effectiveViewerForDistance?.lng,
   ]);
 
   useEffect(() => {

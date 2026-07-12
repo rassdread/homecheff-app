@@ -56,6 +56,8 @@ import {
   collectUniqueSellerUserIds,
   computeEnrichmentPoolCap,
   deduplicateCrossSourceFeedItems,
+  linkedDishMediaToFeedFields,
+  mergeLinkedFeedItemMedia,
   FEED_DB_DISH_CAP,
   FEED_DB_LISTING_CAP,
   FEED_DB_PRODUCT_CAP,
@@ -394,7 +396,8 @@ async function handleFeedGet(req: NextRequest) {
     .filter(passesFeedProductStripeFilter)
     .map((product) => product.id);
 
-  const publishedDishes = await prisma.dish.findMany({
+  const [publishedDishes, linkedDishMediaRows] = await Promise.all([
+    prisma.dish.findMany({
       where: {
         status: "PUBLISHED",
         ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
@@ -424,7 +427,7 @@ async function handleFeedGet(req: NextRequest) {
             stripeConnectOnboardingCompleted: true,
           },
         },
-        photos: { 
+        photos: {
           select: { url: true, idx: true },
           orderBy: { idx: 'asc' }
         },
@@ -434,7 +437,29 @@ async function handleFeedGet(req: NextRequest) {
           take: 1,
         },
       }
-    });
+    }),
+    linkedProductIds.length > 0
+      ? prisma.dish.findMany({
+          where: { id: { in: linkedProductIds }, status: "PUBLISHED" },
+          select: {
+            id: true,
+            photos: {
+              select: { url: true },
+              orderBy: { idx: 'asc' },
+            },
+            videos: {
+              select: { url: true, thumbnail: true },
+              orderBy: { createdAt: 'desc' as const },
+              take: 1,
+            },
+          },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const linkedDishMediaById = new Map(
+    linkedDishMediaRows.map((row) => [row.id, linkedDishMediaToFeedFields(row)]),
+  );
 
   apiPerf?.mark('db_parallel_done');
   apiPerf?.setCounts({
@@ -580,7 +605,7 @@ async function handleFeedGet(req: NextRequest) {
   const transformedProducts = allNewProducts.map((product) => {
     const productCoords = resolveProductCoords(product);
     const productPlace = resolveProductPlaceLabel(product);
-    return {
+    const base = {
     id: product.id,
     feedSource: 'PRODUCT' as const,
     ownerId: product.seller?.User?.id || "",
@@ -647,6 +672,8 @@ async function handleFeedGet(req: NextRequest) {
     videoUrl: product.Video?.url ?? null,
     primaryVideoUrl: product.Video?.url ?? null,
   };
+    const donor = linkedDishMediaById.get(product.id);
+    return donor ? mergeLinkedFeedItemMedia(base, donor) : base;
   });
 
   const combinedRaw = [...transformedProducts, ...transformedListings, ...transformedDishes];

@@ -4,10 +4,15 @@
  * Run: npx tsx scripts/validate-feed-contract-phase3a.ts
  */
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
 import {
   deduplicateCrossSourceFeedItems,
   collectUniqueSellerUserIds,
   computeEnrichmentPoolCap,
+  mergeLinkedFeedItemMedia,
+  linkedDishMediaToFeedFields,
   FEED_DB_PRODUCT_CAP,
   FEED_ENRICHMENT_POOL_CAP,
   FEED_RESPONSE_ITEM_CAP,
@@ -180,6 +185,95 @@ const mixed = deduplicateCrossSourceFeedItems([
   { id: 'd1', feedSource: 'DISH' },
 ]);
 ok('mixed sources all present when unique ids', mixed.items.length === 3);
+
+console.log('\nLinked media merge (Phase 3A-Fix)');
+const linkedMediaId = 'fcc5ff2a-651a-4983-9d17-b3f1acf7ca17';
+const dishImg = 'https://cdn.example/dish-cover.jpg';
+
+// 1. Product with image + linked Dish with image → Product image wins
+const bothHaveImage = deduplicateCrossSourceFeedItems([
+  { id: linkedMediaId, feedSource: 'PRODUCT', image: 'https://cdn.example/product.jpg', images: ['https://cdn.example/product.jpg'] },
+  { id: linkedMediaId, feedSource: 'DISH', image: dishImg, images: [dishImg] },
+]);
+ok('1. both have image → PRODUCT image kept', bothHaveImage.items[0]?.image === 'https://cdn.example/product.jpg');
+
+// 2. Product without image + linked Dish with image → fill from Dish
+const productNoImage = deduplicateCrossSourceFeedItems([
+  { id: linkedMediaId, feedSource: 'PRODUCT', image: null, images: [] },
+  { id: linkedMediaId, feedSource: 'DISH', image: dishImg, images: [dishImg] },
+]);
+ok('2. product empty + dish image → merged', productNoImage.items[0]?.image === dishImg);
+ok('2. merged images array', productNoImage.items[0]?.images?.[0] === dishImg);
+
+// 3. Product without image + Dish without image → still no image
+const neitherImage = deduplicateCrossSourceFeedItems([
+  { id: linkedMediaId, feedSource: 'PRODUCT', image: null, images: [] },
+  { id: linkedMediaId, feedSource: 'DISH', image: null, images: [] },
+]);
+ok('3. neither has image → null', neitherImage.items[0]?.image == null);
+
+// 4. Product with image + Dish without image → Product kept
+const productOnlyImage = deduplicateCrossSourceFeedItems([
+  { id: linkedMediaId, feedSource: 'PRODUCT', image: 'https://cdn.example/p.jpg', images: ['https://cdn.example/p.jpg'] },
+  { id: linkedMediaId, feedSource: 'DISH', image: null, images: [] },
+]);
+ok('4. product image + empty dish → product', productOnlyImage.items[0]?.image === 'https://cdn.example/p.jpg');
+
+// 5. standalone Dish
+const standaloneDish = deduplicateCrossSourceFeedItems([
+  { id: 'solo-dish', feedSource: 'DISH', image: dishImg, images: [dishImg] },
+]);
+ok('5. standalone dish preserved', standaloneDish.items[0]?.feedSource === 'DISH');
+
+// 6. Stripe-filtered Product absent + active Dish (upstream filter) → dish only in pool
+const stripeFilteredScenario = deduplicateCrossSourceFeedItems([
+  { id: 'dish-only-id', feedSource: 'DISH', image: dishImg, images: [dishImg] },
+]);
+ok('6. dish-only pool after product filter', stripeFilteredScenario.items.length === 1);
+
+// 7. not-linked similar content → both kept
+const similarUnlinked = deduplicateCrossSourceFeedItems([
+  { id: 'prod-a', feedSource: 'PRODUCT', title: 'Tomato soup', image: 'https://a.jpg' },
+  { id: 'dish-b', feedSource: 'DISH', title: 'Tomato soup', image: 'https://b.jpg' },
+]);
+ok('7. similar unlinked content → both rows', similarUnlinked.items.length === 2);
+
+const mergedViaHelper = mergeLinkedFeedItemMedia(
+  { image: null, images: [], videoUrl: null, primaryVideoUrl: null },
+  linkedDishMediaToFeedFields({
+    id: linkedMediaId,
+    photos: [{ url: dishImg }],
+    videos: [{ url: 'https://v.mp4', thumbnail: 'https://v-thumb.jpg' }],
+  }),
+);
+ok('helper fills image from linkedDishMediaToFeedFields', mergedViaHelper.image === dishImg);
+ok('helper fills video from linked dish', mergedViaHelper.videoUrl === 'https://v.mp4');
+
+console.log('\nSingle initial feed fetch (GeoFeed static guards)');
+function readSrc(rel: string): string {
+  const p = path.join(process.cwd(), rel);
+  return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
+}
+const geoFeedSrc = readSrc('components/feed/GeoFeed.tsx');
+const effectBlock = geoFeedSrc.slice(
+  geoFeedSrc.indexOf('useEffect(() => {\n    if (feedStartupBlocked) return;'),
+  geoFeedSrc.indexOf('const loadMoreFeed = useCallback'),
+);
+ok('GeoFeed initial fetch effect exists', effectBlock.length > 200);
+ok(
+  'deps exclude effectiveViewerForDistance (no apiViewerCoords feedback loop)',
+  !effectBlock.includes('effectiveViewerForDistance?.lat') &&
+    !effectBlock.includes('effectiveViewerForDistance?.lng'),
+);
+ok('in-flight requestKey guard present', geoFeedSrc.includes('feedRequestKeyInFlightRef'));
+ok('fresh cache restore returns before network fetch', effectBlock.includes('isHomeFeedReturnCacheStale(cached)'));
+ok('load-more uses separate callback', geoFeedSrc.includes('const loadMoreFeed = useCallback'));
+ok(
+  'filter deps still drive refetch',
+  effectBlock.includes('appliedScope') &&
+    effectBlock.includes('appliedRadius') &&
+    effectBlock.includes('appliedCategory'),
+);
 
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===\n`);
 process.exit(failed > 0 ? 1 : 0);
