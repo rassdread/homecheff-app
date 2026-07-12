@@ -3075,9 +3075,9 @@ export default function GeoFeed({
         return homeDesktopFeedGridClass(desktopFeedColumns);
       }
       if (feedColumnLayout === "home-main") {
-        return "grid grid-cols-2 gap-4 xl:gap-5";
+        return "grid grid-cols-1 gap-4 xl:gap-5";
       }
-      return "grid sm:grid-cols-2 md:grid-cols-3 gap-4";
+      return "grid grid-cols-1 gap-4 xl:gap-5";
     }
     if (effectiveFeedLayoutMode === "discover") {
       return "grid grid-cols-2 gap-2.5 sm:gap-3 hc-discover-feed-grid";

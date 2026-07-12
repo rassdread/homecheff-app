@@ -6,6 +6,8 @@
  */
 
 import { resolveFeedMediaUrlForResponse } from '@/lib/feed/resolve-feed-media-url';
+import type { FeedMediaMetaRow } from '@/lib/feed/resolve-feed-media-url';
+import { resolveFeedUrlsFromMetadata } from '@/lib/feed/resolve-feed-media-url';
 
 export const FEED_DB_PRODUCT_CAP = 60;
 export const FEED_DB_LISTING_CAP = 35;
@@ -120,7 +122,56 @@ export type LinkedDishMediaRow = {
   videos: Array<{ url: string; thumbnail: string | null }>;
 };
 
-/** Lightweight linked Dish media for Product rows excluded from full Dish fetch. */
+/** Lightweight linked Dish media from metadata rows (no base64 in feed path). */
+export function linkedDishMediaFromPhotoMetadata(
+  dishId: string,
+  photoMeta: FeedMediaMetaRow[],
+  videos: Array<{ url: string; thumbnail: string | null }> = [],
+): FeedItemMediaFields {
+  const { image, images } = resolveFeedUrlsFromMetadata('dish', dishId, photoMeta);
+  const video = videos[0];
+  const videoUrl = video?.url
+    ? resolveFeedMediaUrlForResponse(video.url, {
+        entity: 'dish',
+        id: dishId,
+        index: 0,
+      })
+    : null;
+  return {
+    image,
+    images,
+    videoUrl,
+    primaryVideoUrl: videoUrl,
+    videos: videoUrl
+      ? [
+          {
+            url: videoUrl,
+            thumbnail: video.thumbnail
+              ? resolveFeedMediaUrlForResponse(video.thumbnail, {
+                  entity: 'dish',
+                  id: dishId,
+                  index: 0,
+                })
+              : null,
+          },
+        ]
+      : [],
+    Video: videoUrl
+      ? {
+          url: videoUrl,
+          thumbnail: video.thumbnail
+            ? resolveFeedMediaUrlForResponse(video.thumbnail, {
+                entity: 'dish',
+                id: dishId,
+                index: 0,
+              })
+            : null,
+        }
+      : null,
+  };
+}
+
+/** @deprecated Use linkedDishMediaFromPhotoMetadata — kept for legacy row shape. */
 export function linkedDishMediaToFeedFields(
   row: LinkedDishMediaRow,
 ): FeedItemMediaFields {

@@ -1,50 +1,66 @@
 /**
- * Trust enrichment wall-clock sub-buckets (Phase 3B instrumentation).
+ * Trust enrichment wall-clock sub-buckets (Phase 3B + 3C instrumentation).
  */
 
 import { isFeedApiTimingEnabled } from '@/lib/feed/feed-api-timing';
-import { fetchSellerTrustBundles } from '@/lib/discovery/trust/batch-enrichment';
+import { fetchSellerTrustBundlesWithReport } from '@/lib/discovery/trust/batch-enrichment';
 import type { DiscoveryTrustBadge } from '@/lib/discovery/contracts/discovery-read-model';
+import type { TrustSnapshotTimingReport } from '@/lib/discovery/trust/trust-snapshot-timing';
 
 export type TrustEnrichmentTiming = {
   totalMs: number;
   badgesMs: number;
   bundlesMs: number;
   sellerCount: number;
+  mode: 'minimal' | 'full';
+  snapshotTiming?: TrustSnapshotTimingReport;
 };
 
 export async function fetchSellerTrustBundlesWithTiming(
   userIds: string[],
   badgeMap?: Map<string, DiscoveryTrustBadge[]>,
 ): Promise<{
-  bundles: Awaited<ReturnType<typeof fetchSellerTrustBundles>>;
+  bundles: Awaited<
+    ReturnType<typeof fetchSellerTrustBundlesWithReport>
+  >['bundles'];
   timing: TrustEnrichmentTiming | null;
 }> {
-  if (!isFeedApiTimingEnabled()) {
-    const bundles = await fetchSellerTrustBundles(userIds, badgeMap);
+  const trustMode = 'minimal' as const;
+  const collectTiming = isFeedApiTimingEnabled();
+
+  if (!collectTiming) {
+    const { bundles } = await fetchSellerTrustBundlesWithReport(
+      userIds,
+      badgeMap,
+      { mode: trustMode },
+    );
     return { bundles, timing: null };
   }
 
   const totalStart = performance.now();
-  const badgesMs = 0;
   const bundlesStart = performance.now();
-  const bundles = await fetchSellerTrustBundles(userIds, badgeMap);
+  const { bundles, snapshotTiming } = await fetchSellerTrustBundlesWithReport(
+    userIds,
+    badgeMap,
+    { mode: trustMode, collectTiming: true },
+  );
   const bundlesMs = Math.round(performance.now() - bundlesStart);
 
   return {
     bundles,
     timing: {
       totalMs: Math.round(performance.now() - totalStart),
-      badgesMs,
+      badgesMs: 0,
       bundlesMs,
       sellerCount: [...new Set(userIds.filter(Boolean))].length,
+      mode: trustMode,
+      snapshotTiming: snapshotTiming ?? undefined,
     },
   };
 }
 
 /**
- * Tile trust fields used on feed cards (minimal).
- * Extended trust (capabilities, repeat customers) is discovery.trust block.
+ * Minimal tile trust — rendered on feed cards and used for discovery ranking.
  */
 export const FEED_TILE_TRUST_FIELDS = [
   'productReviewCount',
@@ -56,6 +72,9 @@ export const FEED_TILE_TRUST_FIELDS = [
   'trustBadges',
 ] as const;
 
+/**
+ * Extended trust — buyer tier, reviews-left, buyer-side repeat (deferred in minimal mode).
+ */
 export const FEED_EXTENDED_TRUST_FIELDS = [
   'repeatCustomers',
   'businessPlan',
@@ -64,4 +83,15 @@ export const FEED_EXTENDED_TRUST_FIELDS = [
   'hasCreatorCapability',
   'buyerTier',
   'courierTier',
+  'reviewsLeftCount',
+  'completedDealsAsBuyer',
 ] as const;
+
+/**
+ * Fields safe to default in minimal mode without tile UI regression.
+ */
+export const FEED_MINIMAL_TRUST_DEFAULTS = {
+  buyerTier: 0,
+  reviewsLeftCount: 0,
+  completedDealsAsBuyer: 0,
+} as const;

@@ -55,13 +55,18 @@ import {
   collectUniqueSellerUserIds,
   computeEnrichmentPoolCap,
   deduplicateCrossSourceFeedItems,
-  linkedDishMediaToFeedFields,
+  linkedDishMediaFromPhotoMetadata,
   mergeLinkedFeedItemMedia,
   FEED_DB_DISH_CAP,
   FEED_DB_LISTING_CAP,
   FEED_DB_PRODUCT_CAP,
   FEED_RESPONSE_ITEM_CAP,
 } from "@/lib/feed/feed-candidate-window";
+import {
+  loadDishPhotoMetadata,
+  loadProductImageMetadata,
+  productNeedsLinkedDishMedia,
+} from "@/lib/feed/feed-media-metadata.server";
 import type { DiscoveryFeedPayload } from "@/lib/feed/discovery-feed-contract";
 import {
   buildActivityCardsFeedSlot,
@@ -103,8 +108,10 @@ import {
   sanitizeFeedItemsForResponse,
 } from "@/lib/feed/sanitize-feed-response-media";
 import {
+  buildFeedMediaProxyUrl,
   classifyFeedMediaUrl,
   resolveFeedMediaUrlForResponse,
+  resolveFeedUrlsFromMetadata,
 } from "@/lib/feed/resolve-feed-media-url";
 
 function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
@@ -367,8 +374,8 @@ async function handleFeedGet(req: NextRequest) {
             }
           }
         },
-        Image: { 
-          select: { fileUrl: true, sortOrder: true },
+        Image: {
+          select: { sortOrder: true },
           orderBy: { sortOrder: 'asc' }
         },
         Video: {
@@ -429,8 +436,16 @@ async function handleFeedGet(req: NextRequest) {
   ]);
   apiPerf?.mark('db_product_listing_done');
 
+  const productIdsForMetadata = rawProductsFromDb.map((p) => p.id);
+  const productImageMetadataPromise = loadProductImageMetadata(productIdsForMetadata);
+
   const linkedProductIds = rawProductsFromDb
     .filter(passesFeedProductStripeFilter)
+    .map((product) => product.id);
+
+  const linkedIdsNeedingDonor = rawProductsFromDb
+    .filter(passesFeedProductStripeFilter)
+    .filter((product) => productNeedsLinkedDishMedia(product.Image.length))
     .map((product) => product.id);
 
   const dbDishStart = performance.now();
@@ -466,7 +481,7 @@ async function handleFeedGet(req: NextRequest) {
           },
         },
         photos: {
-          select: { url: true, idx: true },
+          select: { idx: true },
           orderBy: { idx: 'asc' }
         },
         videos: {
@@ -482,15 +497,11 @@ async function handleFeedGet(req: NextRequest) {
     });
 
   const linkedMediaQuery =
-    linkedProductIds.length > 0
+    linkedIdsNeedingDonor.length > 0
       ? prisma.dish.findMany({
-          where: { id: { in: linkedProductIds }, status: "PUBLISHED" },
+          where: { id: { in: linkedIdsNeedingDonor }, status: "PUBLISHED" },
           select: {
             id: true,
-            photos: {
-              select: { url: true },
-              orderBy: { idx: 'asc' },
-            },
             videos: {
               select: { url: true, thumbnail: true },
               orderBy: { createdAt: 'desc' as const },
@@ -507,14 +518,31 @@ async function handleFeedGet(req: NextRequest) {
           return rows;
         });
 
-  const [publishedDishes, linkedDishMediaRows] = await Promise.all([
-    dishQuery,
-    linkedMediaQuery,
-  ]);
+  const [publishedDishes, linkedDishMediaRows, productImageMetadata] =
+    await Promise.all([
+      dishQuery,
+      linkedMediaQuery,
+      productImageMetadataPromise,
+    ]);
   apiPerf?.mark('db_dish_linked_done');
 
+  const dishIdsForMetadata = [
+    ...publishedDishes.map((d) => d.id),
+    ...linkedIdsNeedingDonor,
+  ];
+  const dishPhotoMetadata = await loadDishPhotoMetadata([
+    ...new Set(dishIdsForMetadata),
+  ]);
+
   const linkedDishMediaById = new Map(
-    linkedDishMediaRows.map((row) => [row.id, linkedDishMediaToFeedFields(row)]),
+    linkedDishMediaRows.map((row) => [
+      row.id,
+      linkedDishMediaFromPhotoMetadata(
+        row.id,
+        dishPhotoMetadata.get(row.id) ?? [],
+        row.videos,
+      ),
+    ]),
   );
 
   apiPerf?.mark('db_parallel_done');
@@ -549,6 +577,11 @@ async function handleFeedGet(req: NextRequest) {
       dish.user?.stripeConnectOnboardingCompleted
     );
     const dishSettlement = legacyFeedSettlementBooleans(dishPriceCents, dishStripeReady);
+    const dishMedia = resolveFeedUrlsFromMetadata(
+      'dish',
+      dish.id,
+      dishPhotoMetadata.get(dish.id) ?? [],
+    );
     const row = {
     id: dish.id,
     feedSource: 'DISH' as const,
@@ -576,21 +609,8 @@ async function handleFeedGet(req: NextRequest) {
       displayFullName: dish.user.displayFullName,
       displayNameOption: dish.user.displayNameOption
     },
-    images: dish.photos
-      .map((photo, index) =>
-        resolveFeedMediaUrlForResponse(photo.url, {
-          entity: 'dish',
-          id: dish.id,
-          index,
-        }),
-      )
-      .filter((u): u is string => Boolean(u)),
-    image:
-      resolveFeedMediaUrlForResponse(dish.photos[0]?.url, {
-        entity: 'dish',
-        id: dish.id,
-        index: 0,
-      }) ?? null,
+    images: dishMedia.images,
+    image: dishMedia.image,
     videos:
       dish.videos?.length > 0
         ? dish.videos.map((v) => ({
@@ -617,14 +637,11 @@ async function handleFeedGet(req: NextRequest) {
   };
     imageTraceById.set(dish.id, {
       feedSource: 'DISH',
-      rawProductImage: dish.photos[0]?.url?.slice(0, 96) ?? null,
-      rawProductImageKind: classifyFeedMediaUrl(dish.photos[0]?.url),
-      mappedImage:
-        resolveFeedMediaUrlForResponse(dish.photos[0]?.url, {
-          entity: 'dish',
-          id: dish.id,
-          index: 0,
-        }) ?? null,
+      rawProductImage: null,
+      rawProductImageKind: dishMedia.image
+        ? classifyFeedMediaUrl(dishMedia.image)
+        : 'empty',
+      mappedImage: dishMedia.image,
     });
     return row;
   });
@@ -704,6 +721,12 @@ async function handleFeedGet(req: NextRequest) {
   const transformedProducts = allNewProducts.map((product) => {
     const productCoords = resolveProductCoords(product);
     const productPlace = resolveProductPlaceLabel(product);
+    const productMedia = resolveFeedUrlsFromMetadata(
+      'product',
+      product.id,
+      productImageMetadata.get(product.id) ?? [],
+    );
+    const productMediaRows = productImageMetadata.get(product.id) ?? [];
     const base = {
     id: product.id,
     feedSource: 'PRODUCT' as const,
@@ -737,27 +760,20 @@ async function handleFeedGet(req: NextRequest) {
     createdAt: product.createdAt,
     updatedAt: product.createdAt,
     User: product.seller?.User || null,
-    image: resolveFeedMediaUrlForResponse(product.Image?.[0]?.fileUrl, {
-      entity: 'product',
-      id: product.id,
-      index: 0,
-    }),
-    images: product.Image.map((img, index) =>
-      resolveFeedMediaUrlForResponse(img.fileUrl, {
-        entity: 'product',
-        id: product.id,
-        index,
-      }),
-    ).filter((u): u is string => Boolean(u)),
-    ListingMedia: product.Image.map((img, index) => ({
-      url:
-        resolveFeedMediaUrlForResponse(img.fileUrl, {
-          entity: 'product',
-          id: product.id,
-          index,
-        }) ?? img.fileUrl,
-      order: img.sortOrder,
-      isMain: img.sortOrder === 0
+    image: productMedia.image,
+    images: productMedia.images,
+    ListingMedia: productMediaRows.map((row, index) => ({
+      url: row.httpUrl
+        ? resolveFeedMediaUrlForResponse(row.httpUrl, {
+            entity: 'product',
+            id: product.id,
+            index,
+          }) ?? row.httpUrl
+        : row.isLegacyInline
+          ? buildFeedMediaProxyUrl('product', product.id, index)
+          : null,
+      order: row.sortOrder,
+      isMain: row.sortOrder === 0
     })),
     seller: product.seller ? {
       id: product.seller.User?.id || undefined,
@@ -788,12 +804,15 @@ async function handleFeedGet(req: NextRequest) {
   };
     const donor = linkedDishMediaById.get(product.id);
     const merged = donor ? mergeLinkedFeedItemMedia(base, donor) : base;
-    const rawProductUrl = product.Image?.[0]?.fileUrl ?? null;
+    const hasLegacyInline = productMediaRows.some((row) => row.isLegacyInline);
     imageTraceById.set(product.id, {
       feedSource: 'PRODUCT',
-      rawProductImage:
-        typeof rawProductUrl === 'string' ? rawProductUrl.slice(0, 96) : null,
-      rawProductImageKind: classifyFeedMediaUrl(rawProductUrl),
+      rawProductImage: hasLegacyInline ? 'data:[metadata]' : null,
+      rawProductImageKind: hasLegacyInline
+        ? 'data'
+        : productMedia.image
+          ? classifyFeedMediaUrl(productMedia.image)
+          : 'empty',
       linkedDishPhoto: donor?.image ?? null,
       mappedImage: merged.image ?? null,
     });
@@ -1141,6 +1160,10 @@ async function handleFeedGet(req: NextRequest) {
               responseItems as Record<string, unknown>[]
             ),
             discoveryPool: enrichTargets.length,
+            linkedMediaDonorCount: linkedIdsNeedingDonor.length,
+            linkedMediaSkippedCount: linkedProductIds.length - linkedIdsNeedingDonor.length,
+            productMetadataCount: productImageMetadata.size,
+            dishMetadataCount: dishPhotoMetadata.size,
             candidateWindow: {
               dbProductCap: FEED_DB_PRODUCT_CAP,
               dbListingCap: FEED_DB_LISTING_CAP,

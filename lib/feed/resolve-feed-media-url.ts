@@ -46,6 +46,37 @@ export function resolveFeedMediaUrlForResponse(
   return null;
 }
 
+export type FeedMediaMetaRow = {
+  sortOrder: number;
+  /** Resolved http/relative URL, or null when legacy inline (use proxy). */
+  httpUrl: string | null;
+  isLegacyInline: boolean;
+};
+
+export function resolveFeedUrlsFromMetadata(
+  entity: FeedMediaEntityType,
+  entityId: string,
+  rows: FeedMediaMetaRow[],
+): { image: string | null; images: string[] } {
+  const images = rows
+    .map((row, index) => {
+      if (row.httpUrl) {
+        return resolveFeedMediaUrlForResponse(row.httpUrl, {
+          entity,
+          id: entityId,
+          index,
+        });
+      }
+      if (row.isLegacyInline) {
+        return buildFeedMediaProxyUrl(entity, entityId, index);
+      }
+      return null;
+    })
+    .filter((u): u is string => Boolean(u));
+
+  return { image: images[0] ?? null, images };
+}
+
 export function classifyFeedMediaUrl(rawUrl: unknown): 'http' | 'data' | 'empty' | 'invalid' {
   if (rawUrl == null || (typeof rawUrl === 'string' && rawUrl.trim() === '')) {
     return 'empty';
