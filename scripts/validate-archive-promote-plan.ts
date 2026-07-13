@@ -10,6 +10,8 @@ const MANIFEST = path.join(ROOT, "docs/audits/homecheff-prisma-phase9c-archive-m
 const CONFIG = path.join(ROOT, "prisma/migration-tracks.config.json");
 const BASELINE_STAGING = path.join(ROOT, "prisma/baseline-staging/20260713_current_state");
 const MIGRATIONS = path.join(ROOT, "prisma/migrations");
+const ARCHIVE_ROOT = path.join(ROOT, "prisma/migrations-archive/pre-20260714-greenfield");
+const ARCHIVE_LOOSE = path.join(ARCHIVE_ROOT, "loose-sql");
 const VERCEL_BUILD = path.join(ROOT, "scripts/vercel-build.js");
 
 type Manifest = {
@@ -41,14 +43,22 @@ function main(): number {
     .readdirSync(MIGRATIONS)
     .filter((n) => fs.existsSync(path.join(MIGRATIONS, n, "migration.sql")));
 
-  if (activeNow.length !== 62) {
-    fail(errors, `Expected 62 active migrations, found ${activeNow.length}`);
+  const archiveSet = new Set(manifest.virtual_after_promote.archive_migrations);
+  const isPrePromote = activeNow.length === 62;
+  const isPostPromote = activeNow.length === 1 && activeNow[0] === baseline;
+
+  if (!isPrePromote && !isPostPromote) {
+    fail(
+      errors,
+      `Unexpected prisma/migrations state: expected 62 (pre-promote) or 1 baseline-only (post-promote), found ${activeNow.length}`
+    );
   }
 
-  const archiveSet = new Set(manifest.virtual_after_promote.archive_migrations);
-  for (const name of activeNow) {
-    if (!archiveSet.has(name)) {
-      fail(errors, `Active migration ${name} missing from archive manifest`);
+  if (isPrePromote) {
+    for (const name of activeNow) {
+      if (!archiveSet.has(name)) {
+        fail(errors, `Active migration ${name} missing from archive manifest`);
+      }
     }
   }
 
@@ -74,13 +84,42 @@ function main(): number {
     fail(errors, `Duplicate migration names: ${dupes.join(", ")}`);
   }
 
-  for (const e of manifest.entries) {
-    const sql = path.join(MIGRATIONS, e.name, "migration.sql");
-    if (!fs.existsSync(sql)) continue;
-    const crypto = require("node:crypto") as typeof import("node:crypto");
-    const hash = crypto.createHash("sha256").update(fs.readFileSync(sql)).digest("hex");
-    if (hash !== e.checksum_sha256) {
-      fail(errors, `Checksum drift for ${e.name}`);
+  // Post-promote: archived checksums must match the Phase 9C manifest.
+  const crypto = require("node:crypto") as typeof import("node:crypto");
+  if (fs.existsSync(ARCHIVE_ROOT)) {
+    for (const e of manifest.entries) {
+      const sql = path.join(ARCHIVE_ROOT, e.name, "migration.sql");
+      if (!fs.existsSync(sql)) {
+        fail(errors, `Archived migration missing: ${e.name}`);
+        continue;
+      }
+      const hash = crypto.createHash("sha256").update(fs.readFileSync(sql)).digest("hex");
+      if (hash !== e.checksum_sha256) {
+        fail(errors, `Archived checksum drift for ${e.name}`);
+      }
+    }
+  }
+
+  // Post-promote: no loose SQL must remain in prisma/migrations/.
+  const looseInActive = fs
+    .readdirSync(MIGRATIONS)
+    .filter((n) => n.endsWith(".sql") && fs.statSync(path.join(MIGRATIONS, n)).isFile());
+  if (looseInActive.length > 0) {
+    fail(errors, `Loose .sql files still present in prisma/migrations/: ${looseInActive.join(", ")}`);
+  }
+
+  // Post-promote: archive loose-sql must exist and contain exactly the Phase 9C list.
+  if (fs.existsSync(ARCHIVE_LOOSE)) {
+    const looseArchived = fs.readdirSync(ARCHIVE_LOOSE).filter((n) => n.endsWith(".sql")).sort();
+    const expectedLoose = looseSql.map((x) => x.name).sort();
+    const same =
+      looseArchived.length === expectedLoose.length &&
+      looseArchived.every((n, i) => n === expectedLoose[i]);
+    if (!same) {
+      fail(
+        errors,
+        `Archived loose-sql mismatch (expected ${expectedLoose.length}, found ${looseArchived.length})`
+      );
     }
   }
 
