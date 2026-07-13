@@ -34,7 +34,16 @@ export type FeedCachePolicy = {
 };
 
 function hasPerfOrDebugBypass(searchParams: URLSearchParams): boolean {
-  if (isFeedApiTimingEnabled()) return true;
+  if (process.env.NODE_ENV === 'production') {
+    if (
+      process.env.FEED_PERF_TIMING === '1' &&
+      searchParams.get('perfProbe') === '1'
+    ) {
+      return true;
+    }
+  } else if (isFeedApiTimingEnabled()) {
+    return true;
+  }
   if (searchParams.has('perfBust') || searchParams.has('_perf')) return true;
   if (searchParams.get('debug') === '1') return true;
   return false;

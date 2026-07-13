@@ -18,12 +18,19 @@ function ok(label: string, cond: boolean) {
 }
 
 const feedRoute = fs.readFileSync('app/api/feed/route.ts', 'utf8');
+const productQuery = fs.existsSync('lib/feed/feed-product-query.server.ts')
+  ? fs.readFileSync('lib/feed/feed-product-query.server.ts', 'utf8')
+  : '';
+const dishQuery = fs.existsSync('lib/feed/feed-dish-query.server.ts')
+  ? fs.readFileSync('lib/feed/feed-dish-query.server.ts', 'utf8')
+  : '';
+const feedQuerySources = feedRoute + productQuery + dishQuery;
 
 console.log('=== Phase 3C — Feed queries ===\n');
 
-ok('product Image omits fileUrl in select', feedRoute.includes('select: { sortOrder: true }'));
+ok('product Image omits fileUrl in select', feedQuerySources.includes('select: { sortOrder: true }'));
 ok('product metadata loader used', feedRoute.includes('loadProductImageMetadata'));
-ok('dish photos omit url in include', feedRoute.includes('select: { idx: true }'));
+ok('dish photos omit url in include', feedQuerySources.includes('select: { idx: true }'));
 ok('dish metadata loader used', feedRoute.includes('loadDishPhotoMetadata'));
 ok('resolveFeedUrlsFromMetadata used', feedRoute.includes('resolveFeedUrlsFromMetadata'));
 ok('linked donor filter present', feedRoute.includes('productNeedsLinkedDishMedia'));
