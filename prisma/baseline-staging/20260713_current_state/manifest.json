@@ -1,0 +1,41 @@
+{
+  "baseline_version": "20260713_current_state",
+  "cutoff_date": "2026-07-13",
+  "proposed_migration_name": "20260714_greenfield_current_state_baseline",
+  "strategy": "B",
+  "status": "staging_not_active",
+  "generated_at": "2026-07-13T09:00:00.000Z",
+  "source": "npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma",
+  "files": {
+    "schema_baseline": "schema_baseline.sql",
+    "system_seed": "system_seed.sql",
+    "register_migration": "register_migration.sql"
+  },
+  "schema_prisma_commit_ref": "performance/phase2-baseline",
+  "baseline_sql_checksum": "834d5d1b632f83486761c6ea54f84a95552a23f52b62d1dbd9cf95ca155aaa52",
+  "schema_model_count": 93,
+  "schema_enum_count": 50,
+  "baseline_table_count": 93,
+  "baseline_index_count": 258,
+  "includes": [
+    "all Prisma models and enums as of cutoff",
+    "Dish_status_createdAt_idx",
+    "Product.lengthCm/widthCm/heightCm/weightKg",
+    "PromoCode.affiliateId nullable + sellerId",
+    "AdminPermissions all tab permission columns",
+    "AdminPreferences",
+    "DeliveryProfile gpsTrackingEnabled/isOnline",
+    "affiliate subsystem",
+    "trust/marketplace/community-order foundations"
+  ],
+  "explicitly_excludes": [
+    "production user data",
+    "orders products promo codes",
+    "unassigned sentinel (default — optional in system_seed.sql)"
+  ],
+  "shared_neon": {
+    "apply": false,
+    "preserve_existing_migrations": true
+  },
+  "linear_history_resumes_after": "20260714_greenfield_current_state_baseline"
+}

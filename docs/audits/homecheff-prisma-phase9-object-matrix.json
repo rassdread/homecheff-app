@@ -1,0 +1,1119 @@
+{
+  "generated_at": "2026-07-13T09:52:52.764Z",
+  "baseline_version": "20260713_current_state",
+  "baseline_sql_bytes": 114095,
+  "baseline_sql_checksum": "834d5d1b632f83486761c6ea54f84a95552a23f52b62d1dbd9cf95ca155aaa52",
+  "schema_model_count": 93,
+  "schema_enum_count": 50,
+  "baseline_table_count": 93,
+  "baseline_enum_count": 50,
+  "baseline_index_count": 258,
+  "matrix": [
+    {
+      "name": "User",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Business",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Affiliate",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ReferralLink",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Attribution",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PromoCode",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "BusinessSubscription",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CommissionLedger",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AffiliatePayout",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "SubAffiliateInvite",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Product",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PendingAcceptedValueProposal",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PendingAcceptedValueProposalUser",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Account",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AdminAction",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AuditLog",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Conversation",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ConversationParticipant",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ConversationKey",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Coupon",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeviceToken",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Favorite",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Image",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Listing",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ListingMedia",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ListingTag",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Message",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Proposal",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Agreement",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CommunityOrder",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DealReview",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryRequest",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CourierAvailability",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CourierAssignment",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Notification",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PaymentEscrow",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ShippingLabel",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Payout",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Refund",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Report",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Reservation",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ProductReview",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "SellerProfile",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Session",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Subscription",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Tag",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Transaction",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "VerificationToken",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Order",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "StockReservation",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "OrderItem",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Follow",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "FanRequest",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Dish",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DishPhoto",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DishVideo",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ProductVideo",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "RecipeStepPhoto",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "GardenGrowthPhoto",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ReviewImage",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DishReview",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DishReviewImage",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ReviewResponse",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryProfile",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryAvailability",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryNotificationSettings",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ShiftNotification",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PushToken",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "NotificationPreferences",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "BetaDownloadEvent",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DynamicSeller",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryOrder",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "HomeCheffCollection",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "VehiclePhoto",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryReview",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "WorkplacePhoto",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "WorkspaceContent",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "WorkspaceContentPhoto",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "WorkspaceContentProp",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "WorkspaceContentComment",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Recipe",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "GrowingProcess",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DesignItem",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AnalyticsEvent",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "HcpEvent",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "UserHcpStats",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Badge",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "UserBadge",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "UserHcpReward",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "HcpCarouselSlide",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "EncryptionKey",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AdminPreferences",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AdminPermissions",
+      "kind": "model",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AttributionType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AttributionSource",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PromoCodeStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CommissionLedgerEventType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CommissionLedgerStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AffiliatePayoutStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AffiliateStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PendingAcceptedValueStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ListingIntent",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "MarketplaceCategory",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PriceModel",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "BarterOpenness",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "HcpRewardStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "HcpCarouselSlideType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "HcpCarouselPlacement",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "HcpCarouselTargetType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "OrderStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ConversationContextType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ConversationStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "UserRole",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "MessagePrivacy",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "FanRequestStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryMode",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "TransportationMode",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ListingCategory",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ListingStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ProposalStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ProposalFulfillmentType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ProposalCategory",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "SettlementMode",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CommunityOrderStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CommunityOrderFulfillmentMode",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryRequestStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CourierWeekday",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CourierVehicleType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "CourierAssignmentStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "MessageType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "NotificationType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ProductCategory",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ProductOrderMethod",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ReportStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "StockReservationStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "ReservationStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "TransactionStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Unit",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DishStatus",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DownloadPermission",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PrintPermission",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Role",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "WorkspaceContentType",
+      "kind": "enum",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Dish_status_createdAt_idx",
+      "kind": "index",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true,
+      "notes": "Feed performance index"
+    },
+    {
+      "name": "Product.lengthCm",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Product.widthCm",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Product.heightCm",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "Product.weightKg",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PromoCode.sellerId",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "PromoCode.affiliateId",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AdminPermissions.canViewOrdersTab",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "AdminPermissions.canViewVariabelenTab",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "DeliveryProfile.gpsTrackingEnabled",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "User.passwordHash",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    },
+    {
+      "name": "pg_trgm / postgis / custom functions",
+      "kind": "extension",
+      "classification": "E",
+      "in_schema_prisma": false,
+      "in_baseline_sql": false,
+      "notes": "Not in Prisma schema — verify on live DB if needed (nader onderzoek)"
+    },
+    {
+      "name": "PromoCode.affiliateId nullable",
+      "kind": "other",
+      "classification": "A",
+      "in_schema_prisma": true,
+      "in_baseline_sql": true
+    }
+  ],
+  "classification_legend": {
+    "A": "vereist in baseline",
+    "B": "applicatie-optioneel",
+    "C": "production-only infrastructure",
+    "D": "legacy niet nodig",
+    "E": "nader onderzoek / niet in Prisma"
+  },
+  "validation": {
+    "errors": [],
+    "warnings": [],
+    "passed": true
+  }
+}
