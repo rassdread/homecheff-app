@@ -1,0 +1,67 @@
+{
+  "version": "phase3f-v1",
+  "generatedAt": "2026-07-14",
+  "tiers": {
+    "A": {
+      "description": "Anonymous national first page, no filters/search, radius=0; lat/lng labels-only allowed",
+      "cdnAllowed": true,
+      "originCacheAllowed": true,
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "CDN-Cache-Control": "public, s-maxage=45, stale-while-revalidate=90",
+        "Vercel-CDN-Cache-Control": "public, s-maxage=45, stale-while-revalidate=90"
+      },
+      "vary": ["Origin"],
+      "ttlSeconds": { "cdn": 45, "origin": 45, "swr": 90 }
+    },
+    "B": {
+      "description": "Location-dependent: place, nearby, radius>0, non-labels coords",
+      "cdnAllowed": false,
+      "originCacheAllowed": false,
+      "headers": { "Cache-Control": "private, max-age=0, must-revalidate" },
+      "vary": ["Origin", "Cookie"]
+    },
+    "C": {
+      "description": "User/session, filters, search, pagination",
+      "cdnAllowed": false,
+      "originCacheAllowed": false,
+      "headers": { "Cache-Control": "private, no-store" },
+      "vary": ["Origin", "Cookie"]
+    },
+    "D": {
+      "description": "perfProbe, perfBust, debug, _bust",
+      "cdnAllowed": false,
+      "originCacheAllowed": false,
+      "headers": { "Cache-Control": "private, no-store, no-cache" },
+      "vary": ["Origin"]
+    }
+  },
+  "matrix": [
+    { "profile": "anonymous_national_no_coords", "tier": "A", "originCache": true },
+    { "profile": "anonymous_national_with_lat_lng", "tier": "A", "originCache": true, "note": "labels-only; sort parity via viewerGeo:null on unlimited radius" },
+    { "profile": "anonymous_national_with_place", "tier": "B", "originCache": false },
+    { "profile": "nearby", "tier": "B", "originCache": false },
+    { "profile": "radius_gt_0", "tier": "B", "originCache": false },
+    { "profile": "filters_or_search", "tier": "C", "originCache": false },
+    { "profile": "pagination_skip_gt_0", "tier": "C", "originCache": false },
+    { "profile": "logged_in", "tier": "C", "originCache": false },
+    { "profile": "perfProbe_or_perfBust", "tier": "D", "originCache": false }
+  ],
+  "originCacheKey": {
+    "version": "v1",
+    "includes": ["scope", "radius0", "take", "skip", "vertical", "listingIntent", "listingKind"],
+    "excludes": ["lat", "lng", "cookies", "userId", "perfParams"]
+  },
+  "tags": ["homecheff-feed", "homecheff-feed:national"],
+  "revalidationRoutes": [
+    "app/api/products/create/route.ts",
+    "app/api/products/[id]/route.ts",
+    "app/api/profile/dishes/route.ts",
+    "app/api/profile/dishes/[id]/route.ts"
+  ],
+  "revalidationExcluded": [
+    "reviews-only updates",
+    "private draft edits (never feed-visible)",
+    "user profile non-feed fields"
+  ]
+}

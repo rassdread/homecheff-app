@@ -88,7 +88,18 @@ import {
 import {
   classifyFeedCachePolicy,
   buildFeedResponseCacheHeaders,
+  isAnonymousNationalFirstPageTierA,
 } from "@/lib/feed/feed-cache-policy";
+import { buildFeedOriginCacheKey } from "@/lib/feed/feed-cache-keys";
+import {
+  readAnonymousNationalOriginCache,
+  type FeedOriginCachePayload,
+  type FeedOriginCacheStatus,
+} from "@/lib/feed/feed-origin-cache.server";
+import {
+  applyFeedViewerDistanceLabels,
+  stripFeedViewerDistanceLabels,
+} from "@/lib/feed/feed-distance-labels";
 import {
   createFeedApiTiming,
 } from "@/lib/feed/feed-api-timing";
@@ -212,12 +223,22 @@ function resolveListingCategory(verticalRaw: string): ListingCategory | null {
 export async function GET(req: NextRequest) {
   const searchParams = new URL(req.url).searchParams;
   if (shouldRunFeedApiTiming(searchParams)) {
-    return runWithPrismaPerfContext(() => handleFeedGet(req));
+    return runWithPrismaPerfContext(() => handleFeedGet(req, {}));
   }
-  return handleFeedGet(req);
+  return handleFeedGet(req, {});
 }
 
-async function handleFeedGet(req: NextRequest) {
+type HandleFeedGetOptions = {
+  originBuild?: boolean;
+  originCacheBypass?: boolean;
+};
+
+const ORIGIN_CACHE_PAYLOAD_KEY = '__feedOriginCachePayload';
+
+async function handleFeedGet(
+  req: NextRequest,
+  opts: HandleFeedGetOptions,
+): Promise<NextResponse> {
   const prisma = getPerfPrisma();
   const { searchParams } = new URL(req.url);
   const apiPerf = shouldRunFeedApiTiming(searchParams)
@@ -241,6 +262,7 @@ async function handleFeedGet(req: NextRequest) {
       searchParams.get("take"),
       searchParams.get("skip"),
     );
+  const effectiveRadius = normalizeFeedRadiusKm(radius);
   const imageTraceById = new Map<
     string,
     {
@@ -267,8 +289,123 @@ async function handleFeedGet(req: NextRequest) {
     hasSubfilters: subfilters.length > 0,
     feedScope,
     skip: feedSkip,
+    radiusKm: effectiveRadius,
     searchParams,
   });
+
+  const cacheClassInput = {
+    userId,
+    q,
+    placeParam,
+    vertical,
+    lat: searchParams.get("lat"),
+    lng: searchParams.get("lng"),
+    hasSubfilters: subfilters.length > 0,
+    feedScope,
+    skip: feedSkip,
+    radiusKm: effectiveRadius,
+    searchParams,
+  };
+
+  let originCacheStatus: FeedOriginCacheStatus = 'bypass';
+
+  if (
+    !opts.originBuild &&
+    !opts.originCacheBypass &&
+    isAnonymousNationalFirstPageTierA(cacheClassInput)
+  ) {
+    const cacheKey = buildFeedOriginCacheKey({
+      feedScope,
+      take: feedTake,
+      skip: feedSkip,
+      vertical,
+      listingIntent: searchFilters.listingIntent ?? null,
+      listingKind: Array.isArray(searchFilters.listingKind)
+        ? searchFilters.listingKind.join(',')
+        : searchFilters.listingKind ?? null,
+    });
+    const buildUrl = new URL(req.url);
+    buildUrl.searchParams.delete('lat');
+    buildUrl.searchParams.delete('lng');
+    const buildReq = new NextRequest(buildUrl.toString(), {
+      headers: req.headers,
+    });
+    try {
+      const { payload, status } = await readAnonymousNationalOriginCache(
+        cacheKey,
+        async () => {
+          const buildRes = await handleFeedGet(buildReq, { originBuild: true });
+          const buildJson = (await buildRes.json()) as Record<string, unknown>;
+          const wrapped = buildJson[ORIGIN_CACHE_PAYLOAD_KEY] as
+            | FeedOriginCachePayload
+            | undefined;
+          if (!wrapped?.items) {
+            throw new Error('origin cache build missing payload');
+          }
+          return wrapped;
+        },
+      );
+      originCacheStatus = status;
+      let latLabel = searchParams.get("lat");
+      let lngLabel = searchParams.get("lng");
+      const viewerGeoLabels =
+        latLabel &&
+        lngLabel &&
+        Number.isFinite(Number(latLabel)) &&
+        Number.isFinite(Number(lngLabel))
+          ? { lat: Number(latLabel), lng: Number(lngLabel) }
+          : null;
+      const labeledItems = applyFeedViewerDistanceLabels(
+        payload.items,
+        viewerGeoLabels,
+      );
+      const listingKindFilterEarly = Array.isArray(searchFilters.listingKind)
+        ? searchFilters.listingKind
+        : searchFilters.listingKind
+          ? [searchFilters.listingKind]
+          : [];
+      const cors = getCorsHeaders(req);
+      const headers: Record<string, string> = {
+        ...cors,
+        ...buildFeedResponseCacheHeaders(cachePolicy),
+        'X-Feed-Origin-Cache': status,
+      };
+      const body = {
+        filters: {
+          q,
+          vertical,
+          subfilters,
+          scope: feedScope,
+          radius: effectiveRadius,
+          lat: latLabel ? Number(latLabel) : null,
+          lng: lngLabel ? Number(lngLabel) : null,
+          listingKind: listingKindFilterEarly.length
+            ? listingKindFilterEarly
+            : null,
+          listingIntent: searchFilters.listingIntent ?? null,
+        },
+        count: labeledItems.length,
+        items: labeledItems,
+        pagination: payload.pagination,
+        ...(payload.discovery ? { discovery: payload.discovery } : {}),
+        ...(shouldExposeFeedDebug(searchParams)
+          ? {
+              debug: {
+                scope: feedScope,
+                cacheTier: cachePolicy.tier,
+                cacheReasons: cachePolicy.reasons,
+                originCacheStatus: status,
+                originCacheKeyVersion: cacheKey.split(':')[0],
+              },
+            }
+          : {}),
+      };
+      return NextResponse.json(body, { headers });
+    } catch (error) {
+      console.error('[feed] origin cache path failed, falling back:', error);
+      originCacheStatus = 'bypass';
+    }
+  }
 
   let lat = searchParams.get("lat");
   let lng = searchParams.get("lng");
@@ -304,8 +441,6 @@ async function handleFeedGet(req: NextRequest) {
       ? { lat: Number(lat), lng: Number(lng) }
       : null;
   apiPerf?.mark('viewer_geo_resolved');
-
-  const effectiveRadius = normalizeFeedRadiusKm(radius);
 
   prismaPerfSetCategory("feed-db");
   const dbProductStart = performance.now();
@@ -1175,6 +1310,20 @@ async function handleFeedGet(req: NextRequest) {
     ...(feedDebug ? { debug: feedDebug } : {}),
   };
 
+  if (opts.originBuild) {
+    const originPayload: FeedOriginCachePayload = {
+      items: stripFeedViewerDistanceLabels(
+        pageItems as Record<string, unknown>[],
+      ),
+      discovery: isFirstPage ? discoveryFeed : null,
+      pagination,
+      feedTotal,
+    };
+    return NextResponse.json({
+      [ORIGIN_CACHE_PAYLOAD_KEY]: originPayload,
+    });
+  }
+
   if (apiPerf && shouldExposeFeedPerfPayload(searchParams)) {
     apiPerf.setPrismaSnapshot(getPrismaPerfSnapshot());
     const responseBytesEstimate = JSON.stringify(body).length;
@@ -1182,6 +1331,10 @@ async function handleFeedGet(req: NextRequest) {
     if (feedDebug && typeof feedDebug === 'object') {
       const perfPayload = apiPerf.toPayload(responseBytesEstimate);
       perfPayload.trustTiming = buildTrustTimingDebugPayload(trustTiming);
+      if (originCacheStatus !== 'bypass') {
+        (perfPayload.counts as Record<string, unknown>).originCacheStatus =
+          originCacheStatus;
+      }
       (feedDebug as Record<string, unknown>).perf = perfPayload;
     }
     const serverTiming = apiPerf.toServerTimingHeader();

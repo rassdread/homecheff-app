@@ -38,6 +38,7 @@ function tier(
     hasSubfilters: false,
     feedScope: 'national',
     skip: 0,
+    radiusKm: 0,
     searchParams: new URLSearchParams(),
   };
   return classifyFeedCachePolicy({ ...base, ...overrides }).tier;
@@ -73,8 +74,9 @@ ok(
   tier({ userId: '1823cae9-2aae-400f-9a28-eadbdcded3bc', lat: null, lng: null }) === 'C',
 );
 
-// 6. Explicit lat/lng
-ok('lat/lng → B', tier({ lat: '52.1', lng: '5.1' }) === 'B');
+// 6. Explicit lat/lng on national radius=0 → Tier A (labels-only, Phase 3F)
+ok('national lat/lng labels-only → A', tier({ lat: '52.1', lng: '5.1', radiusKm: 0 }) === 'A');
+ok('national lat/lng with radius → B', tier({ lat: '52.1', lng: '5.1', radiusKm: 25 }) === 'B');
 
 // 7. perfBust
 ok('perfBust → D', tier({ searchParams: new URLSearchParams('perfBust=1') }) === 'D');
@@ -115,11 +117,16 @@ const aPolicy = classifyFeedCachePolicy({
   hasSubfilters: false,
   feedScope: 'national',
   skip: 0,
+  radiusKm: 0,
   searchParams: new URLSearchParams(),
 });
 ok('tier A allows CDN', aPolicy.cdnAllowed === true);
-ok('tier A has public cache', aPolicy.cacheControl.includes('public'));
+ok('tier A browser max-age=0', aPolicy.cacheControl.includes('max-age=0'));
 ok('tier A Vary excludes Cookie', !aPolicy.vary.includes('Cookie'));
+
+const aHeaders = buildFeedResponseCacheHeaders(aPolicy);
+ok('tier A CDN s-maxage=45', aHeaders['CDN-Cache-Control']?.includes('s-maxage=45') === true);
+ok('tier A Vercel CDN header', !!aHeaders['Vercel-CDN-Cache-Control']);
 
 const cPolicy = classifyFeedCachePolicy({
   userId: 'x',
@@ -131,6 +138,7 @@ const cPolicy = classifyFeedCachePolicy({
   hasSubfilters: false,
   feedScope: 'national',
   skip: 0,
+  radiusKm: 0,
   searchParams: new URLSearchParams(),
 });
 ok('tier C no-store', cPolicy.cacheControl.includes('no-store'));
@@ -147,6 +155,7 @@ const bPolicy = classifyFeedCachePolicy({
   hasSubfilters: false,
   feedScope: 'national',
   skip: 0,
+  radiusKm: 0,
   searchParams: new URLSearchParams(),
 });
 ok('tier B private', bPolicy.cacheControl.includes('private'));
@@ -170,8 +179,17 @@ ok(
 const statsRoute = fs.readFileSync('app/api/feed/stats-preview/route.ts', 'utf8');
 ok('stats-preview no-store', statsRoute.includes("'Cache-Control': 'private, no-store'"));
 
-const aHeaders = buildFeedResponseCacheHeaders(aPolicy);
-ok('tier A response headers include Cache-Control', !!aHeaders['Cache-Control']);
+ok(
+  'feed origin cache integration',
+  feedRoute.includes('readAnonymousNationalOriginCache'),
+);
+ok(
+  'feed revalidate helper exists',
+  fs.existsSync('lib/feed/revalidate-public-feed.ts'),
+);
+
+const aHeadersLegacy = buildFeedResponseCacheHeaders(aPolicy);
+ok('tier A response headers include Cache-Control', !!aHeadersLegacy['Cache-Control']);
 
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===\n`);
 process.exit(failed > 0 ? 1 : 0);

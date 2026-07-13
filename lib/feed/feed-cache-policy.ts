@@ -22,6 +22,7 @@ export type FeedCacheClassificationInput = {
   hasSubfilters: boolean;
   feedScope: string;
   skip: number;
+  radiusKm: number;
   searchParams: URLSearchParams;
 };
 
@@ -45,8 +46,38 @@ function hasPerfOrDebugBypass(searchParams: URLSearchParams): boolean {
     return true;
   }
   if (searchParams.has('perfBust') || searchParams.has('_perf')) return true;
+  if (searchParams.has('_bust')) return true;
   if (searchParams.get('debug') === '1') return true;
   return false;
+}
+
+/** National scope with radius 0 — coords alone do not select/filter items. */
+export function isNationalLabelsOnlyCoords(input: {
+  feedScope: string;
+  radiusKm: number;
+  placeParam: string;
+}): boolean {
+  const scope = normalizeFeedScope(input.feedScope);
+  if (scope !== 'national') return false;
+  if (input.placeParam.trim()) return false;
+  if (input.radiusKm > 0) return false;
+  return true;
+}
+
+export function isAnonymousNationalFirstPageTierA(
+  input: FeedCacheClassificationInput,
+): boolean {
+  if (hasPerfOrDebugBypass(input.searchParams)) return false;
+  if (input.userId) return false;
+  if (input.skip > 0) return false;
+  if (input.q.trim() || input.hasSubfilters || input.vertical !== 'all') {
+    return false;
+  }
+  const scope = normalizeFeedScope(input.feedScope);
+  if (scope !== 'national') return false;
+  if (input.placeParam.trim()) return false;
+  if (input.radiusKm > 0) return false;
+  return true;
 }
 
 export function classifyFeedCachePolicy(
@@ -100,11 +131,20 @@ export function classifyFeedCachePolicy(
     input.lat.trim() !== '' &&
     input.lng.trim() !== '';
 
-  if (
+  const nationalLabelsOnly =
+    isNationalLabelsOnlyCoords({
+      feedScope: input.feedScope,
+      radiusKm: input.radiusKm,
+      placeParam: input.placeParam,
+    }) && hasCoords;
+
+  const locationDependent =
     input.placeParam.trim() ||
-    hasCoords ||
-    (scopeUsesRadiusFilter(scope) && scope !== 'national')
-  ) {
+    input.radiusKm > 0 ||
+    (scopeUsesRadiusFilter(scope) && scope !== 'national') ||
+    (hasCoords && !nationalLabelsOnly);
+
+  if (locationDependent) {
     reasons.push('location_dependent');
     return {
       tier: 'B',
@@ -115,10 +155,14 @@ export function classifyFeedCachePolicy(
     };
   }
 
-  reasons.push('anonymous_default_national');
+  if (nationalLabelsOnly) {
+    reasons.push('anonymous_national_labels_only_coords');
+  } else {
+    reasons.push('anonymous_default_national');
+  }
   return {
     tier: 'A',
-    cacheControl: 'public, s-maxage=45, stale-while-revalidate=90',
+    cacheControl: 'public, max-age=0, must-revalidate',
     vary,
     cdnAllowed: true,
     reasons,
@@ -128,14 +172,22 @@ export function classifyFeedCachePolicy(
 export function buildFeedResponseCacheHeaders(
   policy: FeedCachePolicy,
 ): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Cache-Control': policy.cacheControl,
-  };
+  const headers: Record<string, string> = {};
+
+  if (policy.tier === 'A') {
+    headers['Cache-Control'] = 'public, max-age=0, must-revalidate';
+    headers['CDN-Cache-Control'] =
+      'public, s-maxage=45, stale-while-revalidate=90';
+    headers['Vercel-CDN-Cache-Control'] =
+      'public, s-maxage=45, stale-while-revalidate=90';
+    headers['X-Feed-Cache-Tier'] = 'A';
+  } else {
+    headers['Cache-Control'] = policy.cacheControl;
+  }
+
   if (policy.vary.length > 0) {
     headers.Vary = policy.vary.join(', ');
   }
-  if (policy.tier === 'A') {
-    headers['X-Feed-Cache-Tier'] = 'A';
-  }
+
   return headers;
 }

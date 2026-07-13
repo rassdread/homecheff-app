@@ -9,6 +9,10 @@ import {
   getDishContentMetrics,
 } from "@/lib/gamification/content-hcp";
 import { syncLinkedProductFromDishPatch } from "@/lib/items/sync-linked-product-dish";
+import {
+  revalidatePublicFeedCache,
+  shouldRevalidateAfterDishMutation,
+} from "@/lib/feed/revalidate-public-feed";
 
 export async function GET(
   req: NextRequest,
@@ -364,6 +368,10 @@ export async function PATCH(
       } : null
     };
 
+    if (shouldRevalidateAfterDishMutation(dish, completeDish)) {
+      revalidatePublicFeedCache('dish:patch');
+    }
+
     return NextResponse.json({ item: transformedDish });
   } catch (error) {
     console.error("Error updating dish:", error);
@@ -410,6 +418,10 @@ export async function DELETE(
     await prisma.dish.delete({
       where: { id: id }
     });
+
+    if (shouldRevalidateAfterDishMutation(dish, null)) {
+      revalidatePublicFeedCache('dish:delete');
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

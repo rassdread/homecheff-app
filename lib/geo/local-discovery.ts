@@ -304,7 +304,8 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
     return [...items].sort((a, b) =>
       compareRecencyFollowDistance(a, b, {
         ...opts,
-        viewerGeo: opts.viewerGeo,
+        // National/unlimited: recency only — coords are labels-only (Phase 3F).
+        viewerGeo: null,
       })
     );
   }
