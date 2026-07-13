@@ -24,6 +24,10 @@ import {
 } from '@/lib/marketplace/parse-v2-payload';
 import { MARKETPLACE_ERROR_KEYS } from '@/lib/marketplace/i18n-keys';
 import { fulfillmentIsDigitalOnly } from '@/lib/marketplace/listing-taxonomy';
+import {
+  revalidatePublicFeedCache,
+  shouldRevalidateAfterProductMutation,
+} from '@/lib/feed/revalidate-public-feed';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -752,6 +756,10 @@ export async function POST(req: Request) {
     void awardProductLifecycleHcp(user.id, result.id, result.Image?.length ?? 0).catch((e) =>
       console.warn('[gamification] product lifecycle', e),
     );
+
+    if (shouldRevalidateAfterProductMutation(null, result)) {
+      revalidatePublicFeedCache('product:create');
+    }
 
     // Return product with explicit isActive field
     return NextResponse.json({ 

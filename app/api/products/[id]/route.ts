@@ -27,6 +27,11 @@ import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-ba
 import { fetchSellerTrustBundles } from '@/lib/discovery/trust/batch-enrichment';
 import { buildDiscoveryTrust } from '@/lib/discovery/trust/build-discovery-trust';
 import type { MarketplaceCategory } from '@prisma/client';
+import {
+  revalidatePublicFeedCache,
+  shouldRevalidateAfterListingMutation,
+  shouldRevalidateAfterProductMutation,
+} from '@/lib/feed/revalidate-public-feed';
 
 export const dynamic = 'force-dynamic';
 
@@ -632,6 +637,10 @@ export async function PATCH(
             (product as { seller?: { User?: { id?: string } } }).seller?.User?.id ?? user.id,
           ).catch((e) => console.warn('[product PATCH] linked dish sync', e));
 
+          if (shouldRevalidateAfterProductMutation(product, updatedProduct)) {
+            revalidatePublicFeedCache('product:patch');
+          }
+
           return NextResponse.json({
             product: updatedProduct,
             publishBlocked: publishState.publishBlocked,
@@ -648,6 +657,9 @@ export async function PATCH(
               status: body.isActive ? 'ACTIVE' : 'PAUSED'
             }
           });
+          if (shouldRevalidateAfterListingMutation(product, updatedListing)) {
+            revalidatePublicFeedCache('listing:patch');
+          }
           return NextResponse.json({ product: updatedListing });
         }
       }
@@ -822,6 +834,9 @@ export async function PATCH(
             body,
             (product as { seller?: { User?: { id?: string } } }).seller?.User?.id ?? user.id,
           ).catch((e) => console.warn('[product PATCH v4] linked dish sync', e));
+          if (shouldRevalidateAfterProductMutation(product, updatedProduct)) {
+            revalidatePublicFeedCache('product:patch');
+          }
           return NextResponse.json({ product: updatedProduct });
         } else {
           const updatedListing = await prisma.listing.update({
@@ -834,6 +849,9 @@ export async function PATCH(
               status: body.isActive ? 'ACTIVE' : 'PAUSED'
             }
           });
+          if (shouldRevalidateAfterListingMutation(product, updatedListing)) {
+            revalidatePublicFeedCache('listing:patch');
+          }
           return NextResponse.json({ product: updatedListing });
         }
       }
@@ -979,6 +997,14 @@ export async function DELETE(
           });
         }
 
+        if (isNewModel) {
+          if (shouldRevalidateAfterProductMutation(product, null)) {
+            revalidatePublicFeedCache('product:delete');
+          }
+        } else if (shouldRevalidateAfterListingMutation(product, null)) {
+          revalidatePublicFeedCache('listing:delete');
+        }
+
         return NextResponse.json({ success: true });
       }
     } catch {}
@@ -1107,6 +1133,14 @@ export async function DELETE(
               where: { id: id }
             });
           });
+        }
+
+        if (isNewModel) {
+          if (shouldRevalidateAfterProductMutation(product, null)) {
+            revalidatePublicFeedCache('product:delete');
+          }
+        } else if (shouldRevalidateAfterListingMutation(product, null)) {
+          revalidatePublicFeedCache('listing:delete');
         }
 
         return NextResponse.json({ success: true });

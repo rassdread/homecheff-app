@@ -1,0 +1,133 @@
+{
+  "generatedAt": "2026-07-14T00:45:00+02:00",
+  "baselineCommit": "7575fae",
+  "productionUrl": "https://homecheff.eu",
+  "layers": [
+    {
+      "id": "vercel-edge-feed-tier-a",
+      "resource": "/api/feed (Tier A)",
+      "conditions": ["anonymous", "scope=national", "radius=0", "no q/filters/skip", "no lat/lng/place"],
+      "cacheControl": "public, s-maxage=45, stale-while-revalidate=90",
+      "vary": ["Origin"],
+      "responseHeader": "X-Feed-Cache-Tier: A",
+      "browserCache": "public (Vercel rewrites client to max-age=0 per Vercel docs when s-maxage set)",
+      "cdnAllowed": true,
+      "measuredHitTtfbMs": { "p50": 62, "min": 55, "max": 121 },
+      "measuredMissTtfbMs": { "p50": 2300, "min": 1788, "max": 4571 },
+      "sourceFile": "lib/feed/feed-cache-policy.ts"
+    },
+    {
+      "id": "vercel-edge-feed-tier-b",
+      "resource": "/api/feed (Tier B)",
+      "conditions": ["place param", "lat/lng present", "non-national radius scope"],
+      "cacheControl": "private, max-age=0, must-revalidate",
+      "vary": ["Origin", "Cookie"],
+      "cdnAllowed": false,
+      "measuredMissTtfbMs": { "example": 2969, "note": "national+lat/lng downgrades to B" },
+      "sourceFile": "lib/feed/feed-cache-policy.ts"
+    },
+    {
+      "id": "vercel-edge-feed-tier-c",
+      "resource": "/api/feed (Tier C)",
+      "conditions": ["authenticated session", "filters", "pagination skip>0"],
+      "cacheControl": "private, no-store",
+      "cdnAllowed": false,
+      "sourceFile": "lib/feed/feed-cache-policy.ts"
+    },
+    {
+      "id": "vercel-edge-feed-tier-d",
+      "resource": "/api/feed (Tier D)",
+      "conditions": ["perfProbe+FEED_PERF_TIMING prod", "perfBust", "_perf", "debug=1", "dev timing enabled"],
+      "cacheControl": "private, no-store, no-cache",
+      "cdnAllowed": false,
+      "sourceFile": "lib/feed/feed-cache-policy.ts"
+    },
+    {
+      "id": "origin-unstable-cache-feed",
+      "resource": "/api/feed origin compute",
+      "status": "not_implemented",
+      "proposal": "unstable_cache Tier A core, revalidate 45, tag feed-national-v1",
+      "sourceFile": "docs/audits/homecheff-performance-phase3ep-anonymous-cache.md"
+    },
+    {
+      "id": "client-fetch-no-store",
+      "resource": "GeoFeed fetch /api/feed",
+      "cacheControl": "request cache: no-store",
+      "effect": "Browser HTTP cache bypassed; CDN edge still caches Tier A GET",
+      "sourceFile": "components/feed/GeoFeed.tsx"
+    },
+    {
+      "id": "client-return-cache",
+      "resource": "sessionStorage home feed return cache",
+      "freshMs": 60000,
+      "staleMs": 480000,
+      "scope": "same tab return navigation only",
+      "sourceFile": "lib/feed/home-feed-return-cache.ts"
+    },
+    {
+      "id": "trust-snapshot-in-process",
+      "resource": "seller trust bundles",
+      "ttlMs": 60000,
+      "maxEntries": 200,
+      "scope": "single Vercel instance only",
+      "sourceFile": "lib/discovery/trust/trust-snapshot-cache.ts"
+    },
+    {
+      "id": "homepage-isr",
+      "resource": "/",
+      "revalidateSeconds": 60,
+      "includesSsr": ["getInspiratieItems take 24"],
+      "measuredHtmlBytes": 4247538,
+      "sourceFile": "app/page.tsx"
+    },
+    {
+      "id": "feed-media-proxy",
+      "resource": "/api/feed/media",
+      "cacheControl": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400",
+      "sourceFile": "lib/feed/feed-media-access.ts"
+    },
+    {
+      "id": "next-static",
+      "resource": "/_next/static/*",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "sourceFile": "next.config.mjs"
+    },
+    {
+      "id": "next-images",
+      "resource": "next/image optimizer",
+      "minimumCacheTTL": 31536000,
+      "sourceFile": "next.config.mjs"
+    },
+    {
+      "id": "api-cors-default",
+      "resource": "all /api/* via getCorsHeaders",
+      "defaultCacheControl": "no-store",
+      "overriddenBy": ["/api/feed tier policy", "/api/feed/media"],
+      "sourceFile": "lib/apiCors.ts"
+    }
+  ],
+  "productionMeasurements": {
+    "tierAIdenticalUrl": [
+      { "run": 1, "ttfbMs": 121, "xVercelCache": "HIT", "age": 23 },
+      { "run": 2, "ttfbMs": 82, "xVercelCache": "HIT", "age": 23 },
+      { "run": 8, "ttfbMs": 55, "xVercelCache": "HIT", "age": 27 }
+    ],
+    "tierAMissWithBust": [
+      { "run": 1, "ttfbMs": 4571, "xVercelCache": "MISS" },
+      { "run": 2, "ttfbMs": 2536, "xVercelCache": "MISS" }
+    ],
+    "nationalWithCoords": {
+      "url": "/api/feed?scope=national&radius=0&take=10&lat=52.37&lng=4.89",
+      "ttfbMs": 2969,
+      "xVercelCache": "MISS",
+      "tier": "B"
+    },
+    "warmProdPerfProbe": {
+      "serverP50Ms": 2290,
+      "clientP50Ms": 2545,
+      "productP50Ms": 1512,
+      "dishP50Ms": 928,
+      "queryCount": 13
+    }
+  }
+}

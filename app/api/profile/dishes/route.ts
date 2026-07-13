@@ -8,6 +8,10 @@ import {
   awardDishInspirationContentHcp,
   getDishContentMetrics,
 } from "@/lib/gamification/content-hcp";
+import {
+  revalidatePublicFeedCache,
+  shouldRevalidateAfterDishMutation,
+} from "@/lib/feed/revalidate-public-feed";
 
 export async function GET(request: NextRequest) {
   try {
@@ -313,6 +317,10 @@ export async function POST(req: NextRequest) {
         duration: completeDish.videos[0].duration
       } : null
     };
+
+    if (shouldRevalidateAfterDishMutation(null, completeDish)) {
+      revalidatePublicFeedCache('dish:create');
+    }
 
     return NextResponse.json({ item: transformedDish });
   } catch (error) {
