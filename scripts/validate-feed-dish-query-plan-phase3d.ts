@@ -18,16 +18,20 @@ function ok(label: string, cond: boolean) {
 }
 
 const feedRoute = fs.readFileSync('app/api/feed/route.ts', 'utf8');
-const auditPath = 'docs/audits/homecheff-performance-phase3d-dish-query-plan.md';
+const dishQuery = fs.existsSync('lib/feed/feed-dish-query.server.ts')
+  ? fs.readFileSync('lib/feed/feed-dish-query.server.ts', 'utf8')
+  : '';
+const dishSources = feedRoute + dishQuery;
 
 console.log('=== Phase 3D — Dish query plan ===\n');
 
-ok('dish findMany uses status PUBLISHED', feedRoute.includes('status: "PUBLISHED"'));
-ok('dish orderBy createdAt desc', feedRoute.includes('orderBy: [{ createdAt: "desc" }]'));
-ok('dish take uses FEED_DB_DISH_CAP', feedRoute.includes('take: FEED_DB_DISH_CAP'));
+ok('dish findMany uses status PUBLISHED', dishSources.includes('status: "PUBLISHED"') || dishSources.includes("status: 'PUBLISHED'"));
+ok('dish orderBy createdAt desc', dishSources.includes('createdAt: "desc"') || dishSources.includes("createdAt: 'desc'"));
+ok('dish take uses FEED_DB_DISH_CAP', dishSources.includes('FEED_DB_DISH_CAP'));
 ok('dish optional notIn linkedProductIds', feedRoute.includes('notIn: linkedProductIds'));
-ok('dish photos select idx only', feedRoute.includes('select: { idx: true }'));
+ok('dish photos select idx only', dishSources.includes('select: { idx: true }'));
 ok('dish metadata loader present', feedRoute.includes('loadDishPhotoMetadata'));
+const auditPath = 'docs/audits/homecheff-performance-phase3d-dish-query-plan.md';
 ok('audit doc exists', fs.existsSync(auditPath));
 ok(
   'audit documents seq scan before index',

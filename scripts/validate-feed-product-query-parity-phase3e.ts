@@ -22,8 +22,8 @@ function assert(cond: boolean, label: string) {
 }
 
 async function idsFor(strategy: FeedProductQueryStrategy) {
-  const rows = await fetchFeedProducts(prisma, { strategy });
-  return rows.map((r) => `${r.id}:${r.createdAt.toISOString()}`);
+  const result = await fetchFeedProducts(prisma, { strategy });
+  return result.rows.map((r) => `${r.id}:${r.createdAt.toISOString()}`);
 }
 
 async function main() {
@@ -43,7 +43,7 @@ async function main() {
   if (inactivePaid) {
     const all = await fetchFeedProducts(prisma, { strategy: 'split_or' });
     assert(
-      all.some((r) => r.id === inactivePaid.id),
+      all.rows.some((r) => r.id === inactivePaid.id),
       'inactive paid product included when present',
     );
   } else {

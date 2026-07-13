@@ -70,6 +70,10 @@ export type FeedApiTimingPayload = {
     dbLinkedMediaMs?: number;
     productMetadataMs?: number;
     dishMetadataMs?: number;
+    dbProductIdsMs?: number;
+    dbProductHydrateMs?: number;
+    sellerHydrateMs?: number;
+    dbDishUserHydrateMs?: number;
     trustTotalMs?: number;
     statsPreviewDeferred?: boolean;
   };

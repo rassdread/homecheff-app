@@ -88,7 +88,11 @@ async function main() {
       outsideRouteMs:
         perf?.totalMs != null ? Math.max(0, res.totalMs - perf.totalMs) : null,
       dbProductMs: perf?.counts?.dbProductMs ?? perf?.buckets?.['db-product'] ?? null,
+      dbProductIdsMs: perf?.counts?.dbProductIdsMs ?? null,
+      dbProductHydrateMs: perf?.counts?.dbProductHydrateMs ?? null,
+      sellerHydrateMs: perf?.counts?.sellerHydrateMs ?? null,
       dbDishMs: perf?.counts?.dbDishMs ?? perf?.buckets?.['db-dish'] ?? null,
+      dbDishUserHydrateMs: perf?.counts?.dbDishUserHydrateMs ?? null,
       dbLinkedMediaMs: perf?.counts?.dbLinkedMediaMs ?? perf?.buckets?.['db-linked-media'] ?? null,
       productMetadataMs: perf?.counts?.productMetadataMs ?? null,
       dishMetadataMs: perf?.counts?.dishMetadataMs ?? null,

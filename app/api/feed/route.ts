@@ -97,7 +97,7 @@ import {
   shouldExposeFeedPerfPayload,
   shouldRunFeedApiTiming,
 } from "@/lib/feed/feed-perf-probe";
-import { fetchFeedProducts } from "@/lib/feed/feed-product-query.server";
+import { fetchFeedProductIdRows, hydrateFeedProductsFromIdRows, productIdRowToStripeRow } from "@/lib/feed/feed-product-query.server";
 import { fetchFeedPublishedDishes } from "@/lib/feed/feed-dish-query.server";
 import {
   getPrismaPerfSnapshot,
@@ -321,13 +321,14 @@ async function handleFeedGet(req: NextRequest) {
     ...(productCategory ? { category: productCategory as any } : {}),
   };
 
-  const productQuery = fetchFeedProducts(prisma, {
-    whereExtras: productWhereExtras,
-  }).then((rows) => {
-    const dbProductMs = Math.round(performance.now() - dbProductStart);
-    apiPerf?.setCounts({ dbProductMs });
-    return rows;
-  });
+  const productIdPhase = fetchFeedProductIdRows(prisma, productWhereExtras).then(
+    (phase) => {
+      apiPerf?.setCounts({
+        dbProductIdsMs: Math.round(performance.now() - dbProductStart),
+      });
+      return phase;
+    },
+  );
 
   const listingQuery = prisma.listing.findMany({
       where: {
@@ -371,13 +372,19 @@ async function handleFeedGet(req: NextRequest) {
       return rows;
     });
 
-  const [rawProductsFromDb, oldListings] = await Promise.all([
-    productQuery,
-    listingQuery,
-  ]);
-  apiPerf?.mark('db_product_listing_done');
+  const productIdResult = await productIdPhase;
+  const { idRows: productIdRows } = productIdResult;
 
-  const productIdsForMetadata = rawProductsFromDb.map((p) => p.id);
+  const linkedProductIds = productIdRows
+    .filter((row) => passesFeedProductStripeFilter(productIdRowToStripeRow(row)))
+    .map((row) => row.id);
+
+  const linkedIdsNeedingDonor = productIdRows
+    .filter((row) => passesFeedProductStripeFilter(productIdRowToStripeRow(row)))
+    .filter((row) => productNeedsLinkedDishMedia(row._count.Image))
+    .map((row) => row.id);
+
+  const productIdsForMetadata = productIdRows.map((p) => p.id);
   const productMetadataStart = performance.now();
   const productImageMetadataPromise = loadProductImageMetadata(
     productIdsForMetadata,
@@ -388,14 +395,19 @@ async function handleFeedGet(req: NextRequest) {
     return rows;
   });
 
-  const linkedProductIds = rawProductsFromDb
-    .filter(passesFeedProductStripeFilter)
-    .map((product) => product.id);
-
-  const linkedIdsNeedingDonor = rawProductsFromDb
-    .filter(passesFeedProductStripeFilter)
-    .filter((product) => productNeedsLinkedDishMedia(product.Image.length))
-    .map((product) => product.id);
+  const dbProductHydrateStart = performance.now();
+  const productHydratePromise = hydrateFeedProductsFromIdRows(
+    prisma,
+    productIdRows,
+  ).then((result) => {
+    const hydrateMs = Math.round(performance.now() - dbProductHydrateStart);
+    apiPerf?.setCounts({
+      dbProductMs: Math.round(performance.now() - dbProductStart),
+      dbProductHydrateMs: hydrateMs,
+      sellerHydrateMs: result.timing.sellerHydrateMs,
+    });
+    return result.rows;
+  });
 
   const linkedDishMetaStart = performance.now();
   const linkedDishMetadataPromise =
@@ -416,10 +428,13 @@ async function handleFeedGet(req: NextRequest) {
     ...(productCategory ? { category: productCategory } : {}),
   };
   const dishQuery = fetchFeedPublishedDishes(prisma, { where: dishWhere }).then(
-    (rows) => {
+    (result) => {
       const dbDishMs = Math.round(performance.now() - dbDishStart);
-      apiPerf?.setCounts({ dbDishMs });
-      return rows;
+      apiPerf?.setCounts({
+        dbDishMs,
+        dbDishUserHydrateMs: result.idsFirstTiming?.userHydrateMs,
+      });
+      return result.rows;
     },
   );
 
@@ -445,13 +460,16 @@ async function handleFeedGet(req: NextRequest) {
           return rows;
         });
 
-  const [publishedDishes, linkedDishMediaRows, productImageMetadata, linkedDishMetaEarly] =
+  const [rawProductsFromDb, publishedDishes, linkedDishMediaRows, productImageMetadata, linkedDishMetaEarly, oldListings] =
     await Promise.all([
+      productHydratePromise,
       dishQuery,
       linkedMediaQuery,
       productImageMetadataPromise,
       linkedDishMetadataPromise,
+      listingQuery,
     ]);
+  apiPerf?.mark('db_product_listing_done');
   apiPerf?.mark('db_dish_linked_done');
 
   const publishedOnlyIds = publishedDishes

@@ -38,7 +38,10 @@ async function main() {
   assert(!read('scripts/vercel-build.js').includes('migrate deploy'), 'no auto migrate in build');
 
   const route = read('app/api/feed/route.ts');
-  assert(route.includes('fetchFeedProducts'), 'uses feed product query module');
+  assert(
+    route.includes('fetchFeedProductIdRows') || route.includes('fetchFeedProducts'),
+    'uses feed product query module',
+  );
   assert(route.includes('fetchFeedPublishedDishes'), 'uses feed dish query module');
   assert(route.includes('shouldRunFeedApiTiming'), 'probe timing gate in route');
   assert(route.includes('STATS_PREVIEW_DEFERRED = true'), 'stats still deferred');

@@ -39,7 +39,7 @@ async function main() {
     strategy: 'trimmed_user',
   });
   assert(
-    full.map((r) => r.id).join(',') === trimmed.map((r) => r.id).join(','),
+    full.rows.map((r) => r.id).join(',') === trimmed.rows.map((r) => r.id).join(','),
     'trimmed_user same ids as include_full',
   );
 

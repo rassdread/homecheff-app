@@ -6,6 +6,7 @@ import { prisma } from '../lib/prisma';
 import {
   fetchFeedProducts,
   type FeedProductQueryStrategy,
+  type FeedProductRow,
 } from '../lib/feed/feed-product-query.server';
 import { isContactOnlyProduct } from '../lib/product/order-method';
 import { isStripeTestId } from '../lib/stripe';
@@ -14,6 +15,7 @@ const STRATEGIES: FeedProductQueryStrategy[] = [
   'or_single',
   'split_or',
   'trimmed_or',
+  'ids_first',
 ];
 
 function stripeFilter(product: {
@@ -30,10 +32,11 @@ function stripeFilter(product: {
 
 async function bench(strategy: FeedProductQueryStrategy, runs = 5) {
   const times: number[] = [];
-  let lastRows: Awaited<ReturnType<typeof fetchFeedProducts>> = [];
+  let lastRows: FeedProductRow[] = [];
   for (let i = 0; i < runs; i++) {
     const start = performance.now();
-    lastRows = await fetchFeedProducts(prisma, { strategy });
+    const result = await fetchFeedProducts(prisma, { strategy });
+    lastRows = result.rows;
     times.push(Math.round(performance.now() - start));
   }
   times.sort((a, b) => a - b);

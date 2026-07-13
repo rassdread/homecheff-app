@@ -8,15 +8,16 @@ import {
   type FeedDishQueryStrategy,
 } from '../lib/feed/feed-dish-query.server';
 
-const STRATEGIES: FeedDishQueryStrategy[] = ['include_full', 'trimmed_user'];
+const STRATEGIES: FeedDishQueryStrategy[] = ['include_full', 'trimmed_user', 'ids_first'];
 
 async function bench(strategy: FeedDishQueryStrategy, runs = 5) {
   const where = { status: 'PUBLISHED' as const };
   const times: number[] = [];
-  let lastRows: Awaited<ReturnType<typeof fetchFeedPublishedDishes>> = [];
+  let lastRows: { id: string }[] = [];
   for (let i = 0; i < runs; i++) {
     const start = performance.now();
-    lastRows = await fetchFeedPublishedDishes(prisma, { where, strategy });
+    const result = await fetchFeedPublishedDishes(prisma, { where, strategy });
+    lastRows = result.rows;
     times.push(Math.round(performance.now() - start));
   }
   times.sort((a, b) => a - b);

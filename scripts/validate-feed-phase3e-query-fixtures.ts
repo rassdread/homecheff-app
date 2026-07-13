@@ -47,18 +47,18 @@ async function main() {
   const orSingle = await fetchFeedProducts(prisma, { strategy: 'or_single' });
   const splitOr = await fetchFeedProducts(prisma, { strategy: 'split_or' });
 
-  assert(orSingle.length <= FEED_DB_PRODUCT_CAP, `take cap <= ${FEED_DB_PRODUCT_CAP}`);
-  assert(splitOr.length <= FEED_DB_PRODUCT_CAP, 'split_or respects cap');
+  assert(orSingle.rows.length <= FEED_DB_PRODUCT_CAP, `take cap <= ${FEED_DB_PRODUCT_CAP}`);
+  assert(splitOr.rows.length <= FEED_DB_PRODUCT_CAP, 'split_or respects cap');
   assert(
-    orSingle.map((r) => `${r.id}:${r.createdAt.toISOString()}`).join('|') ===
-      splitOr.map((r) => `${r.id}:${r.createdAt.toISOString()}`).join('|'),
+    orSingle.rows.map((r) => `${r.id}:${r.createdAt.toISOString()}`).join('|') ===
+      splitOr.rows.map((r) => `${r.id}:${r.createdAt.toISOString()}`).join('|'),
     'split_or exact createdAt order parity with or_single',
   );
 
-  const ids = new Set(splitOr.map((r) => r.id));
-  assert(ids.size === splitOr.length, 'no duplicate product ids after merge');
+  const ids = new Set(splitOr.rows.map((r) => r.id));
+  assert(ids.size === splitOr.rows.length, 'no duplicate product ids after merge');
 
-  for (const row of splitOr) {
+  for (const row of splitOr.rows) {
     assert(!!row.id && !!row.createdAt, `product ${row.id} has id+createdAt`);
     assert(
       row.seller?.User?.id != null || row.seller == null,
@@ -70,12 +70,12 @@ async function main() {
     );
   }
 
-  const filtered = splitOr.filter(stripeFilter);
-  assert(filtered.length === splitOr.length, 'stripe filter parity on fixture set');
+  const filtered = splitOr.rows.filter(stripeFilter);
+  assert(filtered.length === splitOr.rows.length, 'stripe filter parity on fixture set');
 
   const activeCount = await prisma.product.count({ where: { isActive: true } });
   assert(
-    splitOr.length >= Math.min(activeCount, 1) || activeCount === 0,
+    splitOr.rows.length >= Math.min(activeCount, 1) || activeCount === 0,
     'active products visible when active rows exist',
   );
 
@@ -90,27 +90,27 @@ async function main() {
     strategy: 'trimmed_user',
   });
 
-  assert(full.length <= FEED_DB_DISH_CAP, `dish take <= ${FEED_DB_DISH_CAP}`);
+  assert(full.rows.length <= FEED_DB_DISH_CAP, `dish take <= ${FEED_DB_DISH_CAP}`);
   assert(
-    full.map((d) => d.id).join(',') === trimmed.map((d) => d.id).join(','),
+    full.rows.map((d) => d.id).join(',') === trimmed.rows.map((d) => d.id).join(','),
     'trimmed_user same dish ids as include_full',
   );
 
-  const linkedProductIds = splitOr.filter(stripeFilter).map((p) => p.id);
+  const linkedProductIds = splitOr.rows.filter(stripeFilter).map((p) => p.id);
   const standalone = await fetchFeedPublishedDishes(prisma, {
     where: {
       status: 'PUBLISHED',
       ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
     },
   });
-  assert(standalone.length > 0 || full.length === 0, 'standalone dishes query returns rows when dishes exist');
+  assert(standalone.rows.length > 0 || full.rows.length === 0, 'standalone dishes query returns rows when dishes exist');
 
-  const dishOnly = standalone.map((d) => ({
+  const dishOnly = standalone.rows.map((d) => ({
     id: d.id,
     feedSource: 'DISH' as const,
     createdAt: d.createdAt,
   }));
-  const productOnly = splitOr.slice(0, 3).map((p) => ({
+  const productOnly = splitOr.rows.slice(0, 3).map((p) => ({
     id: p.id,
     feedSource: 'PRODUCT' as const,
     createdAt: p.createdAt,
