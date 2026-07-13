@@ -91,11 +91,16 @@ import {
 } from "@/lib/feed/feed-cache-policy";
 import {
   createFeedApiTiming,
-  isFeedApiTimingEnabled,
 } from "@/lib/feed/feed-api-timing";
 import {
+  shouldExposeFeedDebug,
+  shouldExposeFeedPerfPayload,
+  shouldRunFeedApiTiming,
+} from "@/lib/feed/feed-perf-probe";
+import { fetchFeedProducts } from "@/lib/feed/feed-product-query.server";
+import { fetchFeedPublishedDishes } from "@/lib/feed/feed-dish-query.server";
+import {
   getPrismaPerfSnapshot,
-  isPrismaPerfEnabled,
   prismaPerfSetCategory,
   runWithPrismaPerfContext,
 } from "@/lib/performance/prisma-perf-context.server";
@@ -205,7 +210,8 @@ function resolveListingCategory(verticalRaw: string): ListingCategory | null {
 }
 
 export async function GET(req: NextRequest) {
-  if (isPrismaPerfEnabled()) {
+  const searchParams = new URL(req.url).searchParams;
+  if (shouldRunFeedApiTiming(searchParams)) {
     return runWithPrismaPerfContext(() => handleFeedGet(req));
   }
   return handleFeedGet(req);
@@ -213,8 +219,10 @@ export async function GET(req: NextRequest) {
 
 async function handleFeedGet(req: NextRequest) {
   const prisma = getPerfPrisma();
-  const apiPerf = isFeedApiTimingEnabled() ? createFeedApiTiming() : null;
   const { searchParams } = new URL(req.url);
+  const apiPerf = shouldRunFeedApiTiming(searchParams)
+    ? createFeedApiTiming()
+    : null;
   const searchFilters = parseSearchFilterParams(searchParams);
   const q = searchParams.get("q") || "";
   const vertical = (searchParams.get("vertical") || "all").toLowerCase();
@@ -302,92 +310,24 @@ async function handleFeedGet(req: NextRequest) {
   prismaPerfSetCategory("feed-db");
   const dbProductStart = performance.now();
   const dbListingStart = performance.now();
-  const productQuery = prisma.product.findMany({
-      where: {
-        OR: [
-          { isActive: true },
-          {
-            isActive: false,
-            orderItems: {
-              some: {
-                Order: {
-                  stripeSessionId: { not: null }
-                }
-              }
-            }
-          }
-        ],
-        ...(q ? buildProductTextSearchWhere(q) : {}),
-        ...(searchFilters.listingIntent === 'REQUEST'
-          ? { listingIntent: 'REQUEST' as const }
-          : searchFilters.listingIntent === 'OFFER'
-            ? { OR: [{ listingIntent: 'OFFER' as const }, { listingIntent: null }] }
-            : {}),
-        ...(productCategory ? {
-          category: productCategory as any
-        } : {}),
-      },
-      orderBy: [{ createdAt: "desc" }],
-      take: FEED_DB_PRODUCT_CAP,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        priceCents: true,
-        orderMethod: true,
-        acceptHomeCheffPayment: true,
-        acceptDirectContact: true,
-        listingIntent: true,
-        priceModel: true,
-        delivery: true,
-        category: true,
-        marketplaceCategory: true,
-        specializations: true,
-        acceptedSpecializations: true,
-        subcategory: true,
-        barterOpenness: true,
-        createdAt: true,
-        pickupAddress: true,
-        pickupLat: true,
-        pickupLng: true,
-        seller: {
-          select: {
-            id: true,
-            lat: true,
-            lng: true,
-            kvk: true,
-            companyName: true,
-            User: { 
-              select: { 
-                id: true, 
-                name: true, 
-                username: true, 
-                profileImage: true, 
-                displayFullName: true, 
-                displayNameOption: true,
-                stripeConnectAccountId: true,
-                stripeConnectOnboardingCompleted: true,
-                lat: true,
-                lng: true,
-                place: true,
-                city: true,
-              } 
-            }
-          }
-        },
-        Image: {
-          select: { sortOrder: true },
-          orderBy: { sortOrder: 'asc' }
-        },
-        Video: {
-          select: { url: true, thumbnail: true },
-        },
-      }
-    }).then((rows) => {
-      const dbProductMs = Math.round(performance.now() - dbProductStart);
-      apiPerf?.setCounts({ dbProductMs });
-      return rows;
-    });
+
+  const productWhereExtras = {
+    ...(q ? buildProductTextSearchWhere(q) : {}),
+    ...(searchFilters.listingIntent === 'REQUEST'
+      ? { listingIntent: 'REQUEST' as const }
+      : searchFilters.listingIntent === 'OFFER'
+        ? { OR: [{ listingIntent: 'OFFER' as const }, { listingIntent: null }] }
+        : {}),
+    ...(productCategory ? { category: productCategory as any } : {}),
+  };
+
+  const productQuery = fetchFeedProducts(prisma, {
+    whereExtras: productWhereExtras,
+  }).then((rows) => {
+    const dbProductMs = Math.round(performance.now() - dbProductStart);
+    apiPerf?.setCounts({ dbProductMs });
+    return rows;
+  });
 
   const listingQuery = prisma.listing.findMany({
       where: {
@@ -438,7 +378,15 @@ async function handleFeedGet(req: NextRequest) {
   apiPerf?.mark('db_product_listing_done');
 
   const productIdsForMetadata = rawProductsFromDb.map((p) => p.id);
-  const productImageMetadataPromise = loadProductImageMetadata(productIdsForMetadata);
+  const productMetadataStart = performance.now();
+  const productImageMetadataPromise = loadProductImageMetadata(
+    productIdsForMetadata,
+  ).then((rows) => {
+    apiPerf?.setCounts({
+      productMetadataMs: Math.round(performance.now() - productMetadataStart),
+    });
+    return rows;
+  });
 
   const linkedProductIds = rawProductsFromDb
     .filter(passesFeedProductStripeFilter)
@@ -449,53 +397,31 @@ async function handleFeedGet(req: NextRequest) {
     .filter((product) => productNeedsLinkedDishMedia(product.Image.length))
     .map((product) => product.id);
 
+  const linkedDishMetaStart = performance.now();
+  const linkedDishMetadataPromise =
+    linkedIdsNeedingDonor.length > 0
+      ? loadDishPhotoMetadata(linkedIdsNeedingDonor)
+      : Promise.resolve(new Map<string, import('@/lib/feed/resolve-feed-media-url').FeedMediaMetaRow[]>());
+
   const dbDishStart = performance.now();
   const dbLinkedStart = performance.now();
-  const dishQuery = prisma.dish.findMany({
-      where: {
-        status: "PUBLISHED",
-        ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
-        ...(q ? buildDishTextSearchWhere(q) : {}),
-        ...(lat && lng && effectiveRadius > 0 ? {
-          lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
-          lng: { gte: Number(lng) - (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
-        } : {}),
-        ...(productCategory ? { category: productCategory } : {}),
-      },
-      orderBy: [{ createdAt: "desc" }],
-      take: FEED_DB_DISH_CAP,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profileImage: true,
-            displayFullName: true,
-            displayNameOption: true,
-            place: true,
-            city: true,
-            lat: true,
-            lng: true,
-            stripeConnectAccountId: true,
-            stripeConnectOnboardingCompleted: true,
-          },
-        },
-        photos: {
-          select: { idx: true },
-          orderBy: { idx: 'asc' }
-        },
-        videos: {
-          select: { url: true, thumbnail: true },
-          orderBy: { createdAt: 'desc' as const },
-          take: 1,
-        },
-      }
-    }).then((rows) => {
+  const dishWhere = {
+    status: "PUBLISHED" as const,
+    ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
+    ...(q ? buildDishTextSearchWhere(q) : {}),
+    ...(lat && lng && effectiveRadius > 0 ? {
+      lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
+      lng: { gte: Number(lng) - (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
+    } : {}),
+    ...(productCategory ? { category: productCategory } : {}),
+  };
+  const dishQuery = fetchFeedPublishedDishes(prisma, { where: dishWhere }).then(
+    (rows) => {
       const dbDishMs = Math.round(performance.now() - dbDishStart);
       apiPerf?.setCounts({ dbDishMs });
       return rows;
-    });
+    },
+  );
 
   const linkedMediaQuery =
     linkedIdsNeedingDonor.length > 0
@@ -519,21 +445,29 @@ async function handleFeedGet(req: NextRequest) {
           return rows;
         });
 
-  const [publishedDishes, linkedDishMediaRows, productImageMetadata] =
+  const [publishedDishes, linkedDishMediaRows, productImageMetadata, linkedDishMetaEarly] =
     await Promise.all([
       dishQuery,
       linkedMediaQuery,
       productImageMetadataPromise,
+      linkedDishMetadataPromise,
     ]);
   apiPerf?.mark('db_dish_linked_done');
 
-  const dishIdsForMetadata = [
-    ...publishedDishes.map((d) => d.id),
-    ...linkedIdsNeedingDonor,
-  ];
-  const dishPhotoMetadata = await loadDishPhotoMetadata([
-    ...new Set(dishIdsForMetadata),
+  const publishedOnlyIds = publishedDishes
+    .map((d) => d.id)
+    .filter((id) => !linkedIdsNeedingDonor.includes(id));
+  const publishedDishMeta =
+    publishedOnlyIds.length > 0
+      ? await loadDishPhotoMetadata(publishedOnlyIds)
+      : new Map<string, import('@/lib/feed/resolve-feed-media-url').FeedMediaMetaRow[]>();
+  const dishPhotoMetadata = new Map([
+    ...linkedDishMetaEarly.entries(),
+    ...publishedDishMeta.entries(),
   ]);
+  apiPerf?.setCounts({
+    dishMetadataMs: Math.round(performance.now() - linkedDishMetaStart),
+  });
 
   const linkedDishMediaById = new Map(
     linkedDishMediaRows.map((row) => [
@@ -1130,7 +1064,7 @@ async function handleFeedGet(req: NextRequest) {
   apiPerf?.setCounts({ responseItems: pageItems.length });
 
   const feedDebug =
-    process.env.NODE_ENV === "development" || process.env.FEED_PERF_TIMING === "1"
+    shouldExposeFeedDebug(searchParams)
       ? (() => {
           const saleInResponse = responseItems.filter((item) =>
             isMarketplaceSaleItem(item as Record<string, unknown>)
@@ -1223,7 +1157,7 @@ async function handleFeedGet(req: NextRequest) {
     ...(feedDebug ? { debug: feedDebug } : {}),
   };
 
-  if (apiPerf) {
+  if (apiPerf && shouldExposeFeedPerfPayload(searchParams)) {
     apiPerf.setPrismaSnapshot(getPrismaPerfSnapshot());
     const responseBytesEstimate = JSON.stringify(body).length;
     apiPerf.mark('serialize_done');
@@ -1237,6 +1171,8 @@ async function handleFeedGet(req: NextRequest) {
       headers['Server-Timing'] = serverTiming;
       headers['Access-Control-Expose-Headers'] = 'Server-Timing';
     }
+  } else if (apiPerf) {
+    apiPerf.mark('serialize_done');
   }
 
   return NextResponse.json(body, { headers });
