@@ -35,6 +35,7 @@
     "validate:greenfield-safety": "tsx scripts/validate-disposable-greenfield-safety.ts",
     "validate:migration-cutoff": "tsx scripts/validate-migration-cutoff.ts",
     "validate:dual-track": "tsx scripts/validate-dual-track-migration-config.ts",
+    "validate:no-auto-migrations-in-build": "tsx scripts/validate-no-auto-migrations-in-build.ts",
     "deploy": "npm run build && git add -A && git commit -m \"Deploy: $(date +'%Y-%m-%d %H:%M')\" && git push origin main && npx vercel --prod",
     "deploy:quick": "npx vercel --prod",
     "deploy:preview": "npx vercel",
