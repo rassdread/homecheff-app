@@ -153,6 +153,7 @@ model User {
   workspaceContentComments               WorkspaceContentComment[]
   workspaceContentProps                  WorkspaceContentProp[]
   dishReviewsAsReviewer                  DishReview[]              @relation("DishReviewReviewer")
+  promoCodesAsSeller                     PromoCode[]               @relation("PromoCodeSeller")
   affiliate                              Affiliate?
   attributions                           Attribution[]
   hcpEvents                              HcpEvent[]
@@ -264,7 +265,8 @@ model Attribution {
 
 model PromoCode {
   id                    String                 @id @default(uuid())
-  affiliateId           String
+  affiliateId           String?
+  sellerId              String?
   code                  String                 @unique
   appliesTo             String                 @default("SUBSCRIPTION_ONLY")
   discountSharePct      Int                    @default(0) // 0-100, percentage of L1 share
@@ -275,10 +277,12 @@ model PromoCode {
   status                PromoCodeStatus        @default(ACTIVE)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  affiliate             Affiliate              @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  affiliate             Affiliate?             @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  seller                User?                  @relation("PromoCodeSeller", fields: [sellerId], references: [id], onDelete: Cascade)
   businessSubscriptions BusinessSubscription[]
 
   @@index([affiliateId])
+  @@index([sellerId])
   @@index([code])
   @@index([status])
   @@index([startsAt, endsAt])
@@ -400,53 +404,58 @@ model SubAffiliateInvite {
 }
 
 model Product {
-  id                String             @id @default(uuid())
-  sellerId          String
-  category          ProductCategory
-  title             String
-  description       String
-  priceCents        Int
-  unit              Unit
-  delivery          DeliveryMode
-  createdAt         DateTime           @default(now())
-  isActive          Boolean            @default(true)
-  displayNameType   String             @default("fullname")
-  maxStock          Int?
-  stock             Int                @default(0)
-  availabilityDate  DateTime?
-  isFutureProduct   Boolean            @default(false)
-  subcategory       String?
-  pickupAddress     String?
-  pickupLat         Float?
-  pickupLng         Float?
-  sellerCanDeliver  Boolean            @default(false)
-  deliveryRadiusKm  Float?
-  tags              String[]           @default([])
-  orderMethod       ProductOrderMethod @default(HOMECHEFF_PAYMENT)
+  id                      String               @id @default(uuid())
+  sellerId                String
+  category                ProductCategory
+  title                   String
+  description             String
+  priceCents              Int
+  unit                    Unit
+  delivery                DeliveryMode
+  createdAt               DateTime             @default(now())
+  isActive                Boolean              @default(true)
+  displayNameType         String               @default("fullname")
+  maxStock                Int?
+  stock                   Int                  @default(0)
+  availabilityDate        DateTime?
+  isFutureProduct         Boolean              @default(false)
+  subcategory             String?
+  pickupAddress           String?
+  pickupLat               Float?
+  pickupLng               Float?
+  sellerCanDeliver        Boolean              @default(false)
+  deliveryRadiusKm        Float?
+  tags                    String[]             @default([])
+  orderMethod             ProductOrderMethod   @default(HOMECHEFF_PAYMENT)
   /// Marketplace Foundation V2
-  listingIntent         ListingIntent          @default(OFFER)
-  marketplaceCategory   MarketplaceCategory?
-  priceModel            PriceModel             @default(FIXED)
-  acceptHomeCheffPayment Boolean               @default(true)
-  acceptDirectContact    Boolean               @default(false)
-  fulfillmentOptions     Json?
-  barterOpenness         BarterOpenness?
-  placeName              String?
-  useProfileLocation     Boolean                @default(true)
+  listingIntent           ListingIntent        @default(OFFER)
+  marketplaceCategory     MarketplaceCategory?
+  priceModel              PriceModel           @default(FIXED)
+  acceptHomeCheffPayment  Boolean              @default(true)
+  acceptDirectContact     Boolean              @default(false)
+  fulfillmentOptions      Json?
+  barterOpenness          BarterOpenness?
+  placeName               String?
+  useProfileLocation      Boolean              @default(true)
   /// Marketplace Entry V3 — multi-select skill tags for search/matching
-  specializations        String[]               @default([])
+  specializations         String[]             @default([])
   /// Accepted alternative value tags (barter/proposals — Slice 4 foundation)
-  acceptedSpecializations String[]              @default([])
-  conversations     Conversation[]
-  proposals         Proposal[]
-  deliveryOrders    DeliveryOrder[]
-  favorites         Favorite[]
-  Image             Image[]
-  Video             ProductVideo?
-  orderItems        OrderItem[]
-  seller            SellerProfile      @relation("SellerProducts", fields: [sellerId], references: [id])
-  reviews           ProductReview[]
-  stockReservations StockReservation[] @relation("ProductStockReservations")
+  acceptedSpecializations String[]             @default([])
+  /// Physical dimensions for shipping/parcel (optional; cm / kg)
+  lengthCm                Float?
+  widthCm                 Float?
+  heightCm                Float?
+  weightKg                Float?
+  conversations           Conversation[]
+  proposals               Proposal[]
+  deliveryOrders          DeliveryOrder[]
+  favorites               Favorite[]
+  Image                   Image[]
+  Video                   ProductVideo?
+  orderItems              OrderItem[]
+  seller                  SellerProfile        @relation("SellerProducts", fields: [sellerId], references: [id])
+  reviews                 ProductReview[]
+  stockReservations       StockReservation[]   @relation("ProductStockReservations")
 
   @@index([category])
   @@index([sellerId])
@@ -474,16 +483,16 @@ enum PendingAcceptedValueStatus {
 
 /// Community-proposed accepted values — promoted to official taxonomy after review (Phase 8C).
 model PendingAcceptedValueProposal {
-  id                 String                     @id @default(cuid())
-  canonicalKey       String                     @unique
+  id                 String                             @id @default(cuid())
+  canonicalKey       String                             @unique
   label              String
   category           MarketplaceCategory
-  language           String                     @default("nl")
-  listingCount       Int                        @default(0)
-  userCount          Int                        @default(0)
-  firstUsedAt        DateTime                   @default(now())
-  lastUsedAt         DateTime                   @updatedAt
-  status             PendingAcceptedValueStatus @default(PENDING)
+  language           String                             @default("nl")
+  listingCount       Int                                @default(0)
+  userCount          Int                                @default(0)
+  firstUsedAt        DateTime                           @default(now())
+  lastUsedAt         DateTime                           @updatedAt
+  status             PendingAcceptedValueStatus         @default(PENDING)
   approvedTaxonomyId String?
   users              PendingAcceptedValueProposalUser[]
 
@@ -496,7 +505,7 @@ model PendingAcceptedValueProposal {
 model PendingAcceptedValueProposalUser {
   proposalId String
   userId     String
-  createdAt  DateTime @default(now())
+  createdAt  DateTime                     @default(now())
   proposal   PendingAcceptedValueProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 
   @@id([proposalId, userId])
@@ -782,45 +791,45 @@ model Message {
 
 /// Structured offer inside a conversation (Proposal Foundation V1).
 model Proposal {
-  id                  String                   @id @default(uuid())
-  conversationId      String
-  createdById         String
-  sellerId            String
-  buyerId             String
-  productId           String?
-  listingId           String?
-  title               String
-  description         String?
-  quantity            Int?
-  amountCents         Int?
-  currency            String                   @default("EUR")
-  requestedDate       DateTime?
-  requestedTimeWindow String?
-  fulfillmentType     ProposalFulfillmentType?
-  category            ProposalCategory         @default(PRODUCT)
-  settlementMode              SettlementMode           @default(MONEY)
+  id                        String                   @id @default(uuid())
+  conversationId            String
+  createdById               String
+  sellerId                  String
+  buyerId                   String
+  productId                 String?
+  listingId                 String?
+  title                     String
+  description               String?
+  quantity                  Int?
+  amountCents               Int?
+  currency                  String                   @default("EUR")
+  requestedDate             DateTime?
+  requestedTimeWindow       String?
+  fulfillmentType           ProposalFulfillmentType?
+  category                  ProposalCategory         @default(PRODUCT)
+  settlementMode            SettlementMode           @default(MONEY)
   /// Taxonomy ids the proposer accepts as alternative value (Slice V2)
-  acceptedValueTaxonomyIds    String[]                 @default([])
+  acceptedValueTaxonomyIds  String[]                 @default([])
   /// Taxonomy ids requested as value in this proposal (Slice V2)
-  requestedValueTaxonomyIds   String[]                 @default([])
+  requestedValueTaxonomyIds String[]                 @default([])
   /// Denormalized display snapshot (settlement, amounts, value ids)
-  proposalSummary             Json?
-  status              ProposalStatus           @default(PENDING)
-  parentProposalId    String?
-  expiresAt           DateTime?
-  createdAt           DateTime                 @default(now())
-  updatedAt           DateTime                 @updatedAt
-  Conversation        Conversation             @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  CreatedBy           User                     @relation("ProposalCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
-  Seller              User                     @relation("ProposalSeller", fields: [sellerId], references: [id], onDelete: Cascade)
-  Buyer               User                     @relation("ProposalBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
-  Product             Product?                 @relation(fields: [productId], references: [id], onDelete: SetNull)
-  Listing             Listing?                 @relation(fields: [listingId], references: [id], onDelete: SetNull)
-  ParentProposal      Proposal?                @relation("ProposalChain", fields: [parentProposalId], references: [id], onDelete: SetNull)
-  CounterProposals    Proposal[]               @relation("ProposalChain")
-  Agreement           Agreement?
-  CommunityOrders     CommunityOrder[]
-  Messages            Message[]
+  proposalSummary           Json?
+  status                    ProposalStatus           @default(PENDING)
+  parentProposalId          String?
+  expiresAt                 DateTime?
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  Conversation              Conversation             @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  CreatedBy                 User                     @relation("ProposalCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  Seller                    User                     @relation("ProposalSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  Buyer                     User                     @relation("ProposalBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  Product                   Product?                 @relation(fields: [productId], references: [id], onDelete: SetNull)
+  Listing                   Listing?                 @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  ParentProposal            Proposal?                @relation("ProposalChain", fields: [parentProposalId], references: [id], onDelete: SetNull)
+  CounterProposals          Proposal[]               @relation("ProposalChain")
+  Agreement                 Agreement?
+  CommunityOrders           CommunityOrder[]
+  Messages                  Message[]
 
   @@index([conversationId, status, createdAt])
   @@index([sellerId, status])
@@ -832,43 +841,43 @@ model Proposal {
 
 /// Created when a proposal is accepted.
 model Agreement {
-  id           String   @id @default(uuid())
-  proposalId   String   @unique
-  acceptedById String
-  acceptedAt   DateTime @default(now())
+  id               String          @id @default(uuid())
+  proposalId       String          @unique
+  acceptedById     String
+  acceptedAt       DateTime        @default(now())
   /// Frozen terms at acceptance — survives listing edits
   agreementSummary Json?
-  createdAt    DateTime @default(now())
-  Proposal     Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-  AcceptedBy   User     @relation("AgreementAcceptedBy", fields: [acceptedById], references: [id], onDelete: Cascade)
-  CommunityOrder CommunityOrder?
+  createdAt        DateTime        @default(now())
+  Proposal         Proposal        @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  AcceptedBy       User            @relation("AgreementAcceptedBy", fields: [acceptedById], references: [id], onDelete: Cascade)
+  CommunityOrder   CommunityOrder?
 }
 
 /// Agreement-derived order — not the Stripe checkout Order.
 model CommunityOrder {
-  id              String               @id @default(uuid())
-  agreementId     String               @unique
-  proposalId      String
-  conversationId  String
-  buyerId         String
-  sellerId        String
-  status          CommunityOrderStatus @default(OPEN)
-  fulfillmentMode CommunityOrderFulfillmentMode?
-  deliveryRequested Boolean            @default(false)
-  deliveryAssigned  Boolean            @default(false)
-  checkoutOrderId String?
-  completedAt     DateTime?
-  cancelledAt     DateTime?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  Agreement       Agreement            @relation(fields: [agreementId], references: [id], onDelete: Cascade)
-  Proposal        Proposal             @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-  Conversation    Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  Buyer           User                 @relation("CommunityOrderBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
-  Seller          User                 @relation("CommunityOrderSeller", fields: [sellerId], references: [id], onDelete: Cascade)
-  CheckoutOrder   Order?               @relation(fields: [checkoutOrderId], references: [id], onDelete: SetNull)
-  DeliveryRequests DeliveryRequest[]
-  DealReviews     DealReview[]
+  id                String                         @id @default(uuid())
+  agreementId       String                         @unique
+  proposalId        String
+  conversationId    String
+  buyerId           String
+  sellerId          String
+  status            CommunityOrderStatus           @default(OPEN)
+  fulfillmentMode   CommunityOrderFulfillmentMode?
+  deliveryRequested Boolean                        @default(false)
+  deliveryAssigned  Boolean                        @default(false)
+  checkoutOrderId   String?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  createdAt         DateTime                       @default(now())
+  updatedAt         DateTime                       @updatedAt
+  Agreement         Agreement                      @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  Proposal          Proposal                       @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  Conversation      Conversation                   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  Buyer             User                           @relation("CommunityOrderBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  Seller            User                           @relation("CommunityOrderSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  CheckoutOrder     Order?                         @relation(fields: [checkoutOrderId], references: [id], onDelete: SetNull)
+  DeliveryRequests  DeliveryRequest[]
+  DealReviews       DealReview[]
 
   @@index([conversationId])
   @@index([proposalId])
@@ -899,9 +908,9 @@ model DealReview {
 
 /// Community-order delivery job — separate from checkout DeliveryOrder.
 model DeliveryRequest {
-  id                 String                 @id @default(uuid())
+  id                 String                @id @default(uuid())
   communityOrderId   String
-  status             DeliveryRequestStatus  @default(OPEN)
+  status             DeliveryRequestStatus @default(OPEN)
   pickupAddress      String?
   deliveryAddress    String?
   pickupDate         DateTime?
@@ -909,9 +918,9 @@ model DeliveryRequest {
   deliveryDate       DateTime?
   deliveryTimeWindow String?
   notes              String?
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
-  CommunityOrder     CommunityOrder         @relation(fields: [communityOrderId], references: [id], onDelete: Cascade)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  CommunityOrder     CommunityOrder        @relation(fields: [communityOrderId], references: [id], onDelete: Cascade)
   Assignments        CourierAssignment[]
 
   @@index([communityOrderId])
@@ -920,18 +929,18 @@ model DeliveryRequest {
 
 /// Structured courier availability windows (Delivery Marketplace V1).
 model CourierAvailability {
-  id             String              @id @default(uuid())
+  id             String             @id @default(uuid())
   userId         String
   weekday        CourierWeekday
   startTime      String
   endTime        String
-  radiusKm       Float               @default(5.0)
-  preferredAreas String[]            @default([])
-  vehicleType    CourierVehicleType  @default(BIKE)
-  isActive       Boolean             @default(true)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  User           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  radiusKm       Float              @default(5.0)
+  preferredAreas String[]           @default([])
+  vehicleType    CourierVehicleType @default(BIKE)
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  User           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isActive])
   @@index([weekday])
@@ -939,17 +948,17 @@ model CourierAvailability {
 
 /// Manual courier assignment to a delivery request.
 model CourierAssignment {
-  id                String                   @id @default(uuid())
+  id                String                  @id @default(uuid())
   deliveryRequestId String
   courierId         String
-  status            CourierAssignmentStatus  @default(PENDING)
-  assignedAt        DateTime                 @default(now())
+  status            CourierAssignmentStatus @default(PENDING)
+  assignedAt        DateTime                @default(now())
   acceptedAt        DateTime?
   completedAt       DateTime?
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
-  DeliveryRequest   DeliveryRequest          @relation(fields: [deliveryRequestId], references: [id], onDelete: Cascade)
-  Courier           User                     @relation("CourierAssignmentCourier", fields: [courierId], references: [id], onDelete: Cascade)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  DeliveryRequest   DeliveryRequest         @relation(fields: [deliveryRequestId], references: [id], onDelete: Cascade)
+  Courier           User                    @relation("CourierAssignmentCourier", fields: [courierId], references: [id], onDelete: Cascade)
   DeliveryReviews   DeliveryReview[]
 
   @@index([deliveryRequestId, status])

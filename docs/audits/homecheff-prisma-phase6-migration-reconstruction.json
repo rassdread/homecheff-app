@@ -1,0 +1,162 @@
+{
+  "generated_at": "2026-07-13T02:30:00.000Z",
+  "branch": "performance/phase2-baseline",
+  "method": "read-only DB probes + schema introspection + codebase grep",
+  "no_ddl_executed": true,
+  "migrations": [
+    {
+      "name": "20260208220000_add_user_password_hash",
+      "db_checksum": "7cc9b15e408538f49812210f0e604bb3d07b82970ab4fa6b9f0b341e773a1248",
+      "applied_at": "2026-02-09T21:09:29.705Z",
+      "classification": "B",
+      "classification_label": "functionally_reconstructable_checksum_will_differ",
+      "evidence": {
+        "columns": [{ "table": "User", "column": "passwordHash", "type": "text", "nullable": true }],
+        "schema_prisma": "User.passwordHash String? — already present",
+        "local_overlap": [
+          "20250830090428_password_hash_optional",
+          "20250829113125_user_relations_fix"
+        ],
+        "code_references": ["lib/auth", "app/api/auth/register", "password reset routes"]
+      },
+      "proposed_sql_summary": "ALTER TABLE \"User\" ADD COLUMN IF NOT EXISTS \"passwordHash\" TEXT;",
+      "exact_reconstruction_possible": false,
+      "reconstruction_risk": "low",
+      "notes": "Column exists; likely idempotent ADD. Original may differ in ordering/comments."
+    },
+    {
+      "name": "20260210000000_affiliate_business_subscription_admin_roles",
+      "db_checksum": "9a9778a9d8c851c65de0ead8aabbf26277088c5809058c9251d01ed5f18605e9",
+      "applied_at": "2026-02-10T22:43:05.803Z",
+      "classification": "B",
+      "classification_label": "functionally_reconstructable_checksum_will_differ",
+      "evidence": {
+        "tables_present": ["Affiliate", "BusinessSubscription", "AdminPermissions", "ReferralLink", "Attribution", "CommissionLedger", "AffiliatePayout", "SubAffiliateInvite", "PromoCode"],
+        "schema_prisma": "Full affiliate block in schema.prisma — no local CREATE TABLE migration in repo",
+        "git_search": "No CREATE TABLE Affiliate in prisma/migrations/"
+      },
+      "proposed_sql_summary": "Multi-table CREATE TYPE/CREATE TABLE block for affiliate system (~large); reconstruct via prisma migrate diff from empty DB with schema-only affiliate models",
+      "exact_reconstruction_possible": false,
+      "reconstruction_risk": "medium",
+      "notes": "Largest migration. Functional rebuild from schema introspection feasible; byte-exact checksum unlikely."
+    },
+    {
+      "name": "20260210120000_add_unassigned_delivery_profile",
+      "db_checksum": "66bb04f0e0ac9c09cfcd3a6712b0a7a0d1ad59463c55e1ba2a032e7d08830f00",
+      "applied_at": "2026-02-11T22:24:18.499Z",
+      "classification": "D",
+      "classification_label": "further_investigation_required",
+      "evidence": {
+        "delivery_profile_null_userId_count": 0,
+        "delivery_order_null_profile": "20251113120000_make_delivery_profile_optional makes DeliveryOrder.deliveryProfileId nullable locally",
+        "schema_prisma": "DeliveryProfile.userId required; DeliveryOrder.deliveryProfileId optional via local migration"
+      },
+      "proposed_sql_summary": "Unknown — possibly seed row, placeholder profile, or DeliveryOrder nullable step",
+      "exact_reconstruction_possible": false,
+      "reconstruction_risk": "medium",
+      "notes": "No observable NULL userId profiles. Effect may be absorbed by later local migration or one-time seed. Do not resolve until SQL intent confirmed."
+    },
+    {
+      "name": "20260211000000_add_superadmin_role",
+      "db_checksum": "379b2919f5b72a342020425e9660709ab740dea636db0806b08345e904b40e5f",
+      "applied_at": "2026-02-10T22:43:05.969Z",
+      "classification": "B",
+      "classification_label": "functionally_reconstructable_checksum_will_differ",
+      "evidence": {
+        "enum_values": { "UserRole": ["USER", "ADMIN", "BUYER", "SELLER", "DELIVERY", "SUPERADMIN"] },
+        "schema_prisma": "enum UserRole includes SUPERADMIN",
+        "role_enum": "Role enum does NOT include SUPERADMIN (expected — separate enum)"
+      },
+      "proposed_sql_summary": "ALTER TYPE \"UserRole\" ADD VALUE IF NOT EXISTS 'SUPERADMIN'; (via DO block for idempotency)",
+      "exact_reconstruction_possible": false,
+      "reconstruction_risk": "low",
+      "notes": "Enum value present. Idempotent ADD VALUE pattern safe for greenfield."
+    },
+    {
+      "name": "20260212000000_promo_code_admin_optional_affiliate",
+      "db_checksum": "86c13e843208f86803ba822d74de597100e5af72ffd91d60571597c01ebc5ef4",
+      "applied_at": "2026-02-11T22:24:18.661Z",
+      "classification": "B",
+      "classification_label": "functionally_reconstructable_checksum_will_differ",
+      "evidence": {
+        "promo_code_affiliateId_nullable": true,
+        "schema_prisma_after_phase6": "affiliateId String?"
+      },
+      "proposed_sql_summary": "ALTER TABLE \"PromoCode\" ALTER COLUMN \"affiliateId\" DROP NOT NULL;",
+      "exact_reconstruction_possible": false,
+      "reconstruction_risk": "low",
+      "notes": "Admin promos without affiliate — DB nullable confirmed."
+    },
+    {
+      "name": "20260212000000_promo_code_affiliate_optional",
+      "db_checksum": "f306c0f9587798b61c7b3bee4da1060371a914486e9a5bec41f1e539bb66573c",
+      "applied_at": "2026-02-14T14:42:50.830Z",
+      "classification": "B",
+      "classification_label": "functionally_reconstructable_checksum_will_differ",
+      "evidence": {
+        "overlap_with": "20260212000000_promo_code_admin_optional_affiliate",
+        "promo_code_affiliateId_nullable": true
+      },
+      "proposed_sql_summary": "Likely duplicate DROP NOT NULL or related constraint change — consolidate with prior promo migration for greenfield",
+      "exact_reconstruction_possible": false,
+      "reconstruction_risk": "low",
+      "notes": "Two migrations same day/name prefix — greenfield may use single idempotent step; shared DB keeps both history rows."
+    },
+    {
+      "name": "20260212100000_promo_code_seller_id",
+      "db_checksum": "f798e5ac7433e18b369395f303a0bce34a7c6e3e648edbc5ac844e8b09018dcd",
+      "applied_at": "2026-02-14T14:42:50.991Z",
+      "classification": "B",
+      "classification_label": "functionally_reconstructable_checksum_will_differ",
+      "evidence": {
+        "column": { "sellerId": "text nullable" },
+        "index": "PromoCode_sellerId_idx",
+        "fk": { "name": "PromoCode_sellerId_fkey", "ref": "User", "onDelete": "CASCADE" },
+        "schema_prisma_after_phase6": "sellerId String? + relation + index"
+      },
+      "proposed_sql_summary": "ADD COLUMN sellerId; CREATE INDEX; ADD FK to User CASCADE",
+      "exact_reconstruction_possible": false,
+      "reconstruction_risk": "low",
+      "notes": "Fully evidenced from information_schema + pg_indexes."
+    },
+    {
+      "name": "20260212120000_add_product_weight_dimensions",
+      "db_checksum": "06fc2f411e60820eed738a72175689f27a539166ddcee688d406aa3f55141ccc",
+      "applied_at": "2026-02-14T14:42:51.167Z",
+      "classification": "B",
+      "classification_label": "functionally_reconstructable_checksum_will_differ",
+      "evidence": {
+        "columns": [
+          { "name": "lengthCm", "type": "double precision", "nullable": true },
+          { "name": "widthCm", "type": "double precision", "nullable": true },
+          { "name": "heightCm", "type": "double precision", "nullable": true },
+          { "name": "weightKg", "type": "double precision", "nullable": true }
+        ],
+        "product_population": { "total": 7, "any_dimension_set": 0 },
+        "schema_prisma_after_phase6": "four Float? fields on Product"
+      },
+      "proposed_sql_summary": "Four ADD COLUMN IF NOT EXISTS DOUBLE PRECISION on Product",
+      "exact_reconstruction_possible": false,
+      "reconstruction_risk": "low",
+      "notes": "No app consumers yet."
+    }
+  ],
+  "classification_summary": {
+    "A_exact_reconstructable": 0,
+    "B_functional_reconstructable": 7,
+    "C_baseline_only": 0,
+    "D_investigation_required": 1
+  },
+  "baseline_folders_created": false,
+  "reason_no_folders": "Per Phase 6 instructions: do not auto-create migration folders until SQL reviewed; D-class migration blocks full pack approval",
+  "schema_sync_applied_locally": {
+    "product_dimensions": true,
+    "promo_code_relations": true,
+    "hcp_carousel_slide": "no change — introspection noise only"
+  },
+  "proposed_forward_migration": {
+    "name": "20260714_phase6_schema_sync_baseline",
+    "status": "documented_not_created",
+    "path": "docs/audits/homecheff-prisma-phase6-schema-sync.md"
+  }
+}
