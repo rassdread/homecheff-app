@@ -3,6 +3,7 @@
  */
 
 import type { GeoFeedCardItem } from '@/components/feed/GeoFeedCards';
+import { hasUsableMediaUrl } from '@/components/feed/feedMedia';
 import { EMPTY_DISCOVERY_TRUST_CONTRACT } from '@/lib/discovery/contracts/discovery-trust-contract';
 import {
   getDiscoveryFavoriteCount,
@@ -130,7 +131,9 @@ export function mapGeoFeedCardToTileModel(
     title: item.title ?? '',
     description: d?.description ?? item.description ?? null,
 
-    coverImage: d?.coverImage ?? item.photo ?? null,
+    coverImage:
+      (d?.coverImage && hasUsableMediaUrl(d.coverImage) ? d.coverImage : null) ??
+      (item.photo && hasUsableMediaUrl(item.photo) ? item.photo : null),
     videoUrl: item.videoUrl ?? null,
     videoPoster: item.videoThumbnail ?? null,
     imageAlt: item.title ?? '',

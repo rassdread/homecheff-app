@@ -136,9 +136,13 @@ export function sanitizeFeedItemForResponse(
     next.seller = sanitizeSellerBlock(next.seller as Record<string, unknown>);
   }
   if (next.discovery) {
-    next.discovery = sanitizeDiscoveryBlock(
+    const disc = sanitizeDiscoveryBlock(
       next.discovery as Record<string, unknown>,
     );
+    if (disc && cover) {
+      disc.coverImage = cover;
+    }
+    next.discovery = disc;
   }
 
   return next;

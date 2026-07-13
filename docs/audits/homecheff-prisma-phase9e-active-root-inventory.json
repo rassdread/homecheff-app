@@ -1,0 +1,13 @@
+{
+  "phase": "9E",
+  "generated_at": "2026-07-13T19:26:00.000Z",
+  "active_root": "prisma/migrations",
+  "active_entries": [
+    "migration_lock.toml",
+    "20260714_greenfield_current_state_baseline/migration.sql"
+  ],
+  "archive_root": "prisma/migrations-archive/pre-20260714-greenfield",
+  "archive_folders_count": 62,
+  "archive_loose_sql_count": 8
+}
+

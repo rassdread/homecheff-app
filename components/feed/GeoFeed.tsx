@@ -123,10 +123,6 @@ import type {
   CreateFlowVertical,
 } from "@/lib/createFlowIntent";
 import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
-import {
-  coerceUserStatsPayload,
-  seedCachedUserStats,
-} from "@/lib/userStatsClientCache";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import {
@@ -169,9 +165,15 @@ import {
   feedPerfIncrementFeedFetch,
   feedPerfIncrementGeoFeedMount,
   feedPerfMark,
+  feedPerfMarkAppUsable,
+  feedPerfMarkFeedBlocked,
+  feedPerfMarkFeedRequestEnd,
   feedPerfMarkFirstTileOnce,
   installFeedPerfBaselineReporter,
+  isFeedPerfBaselineEnabled,
 } from "@/lib/feed/feed-performance-baseline";
+import { logFeedImageTrace } from "@/lib/feed/feed-image-trace-client";
+import { scheduleDeferredFeedStatsPreview } from "@/lib/feed/feed-deferred-stats-preview";
 import {
   buildGeoFeedApiParams,
   buildInspiratieCategoryParam,
@@ -976,6 +978,8 @@ export default function GeoFeed({
   const feedHasMoreRef = useRef(false);
   const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
+  /** Prevents duplicate concurrent network fetch for the same query key. */
+  const feedRequestKeyInFlightRef = useRef<string | null>(null);
   const feedRestoredFromCacheRef = useRef(false);
   const [feedHydrated, setFeedHydrated] = useState(false);
   const itemsRef = useRef<FeedItem[]>([]);
@@ -1209,6 +1213,14 @@ export default function GeoFeed({
     (!!session?.user &&
       bootstrapStatus === "loading" &&
       nearbyScopeAwaitingProfileCoords);
+
+  useEffect(() => {
+    feedPerfMarkFeedBlocked(feedStartupBlocked);
+  }, [feedStartupBlocked]);
+
+  useEffect(() => {
+    feedPerfMark("location:init-start");
+  }, []);
 
   const { coords, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } =
     useGeolocation({
@@ -1653,6 +1665,7 @@ export default function GeoFeed({
       if (feedStableMarkedRef.current) return;
       feedStableMarkedRef.current = true;
       feedPerfMark("feed:stable");
+      feedPerfMarkAppUsable();
     };
     if (typeof requestIdleCallback !== "undefined") {
       const id = requestIdleCallback(markStable, { timeout: 2000 });
@@ -1684,14 +1697,21 @@ export default function GeoFeed({
 
     const requestKey = params.toString();
 
+    if (feedRequestKeyInFlightRef.current === requestKey) {
+      return;
+    }
+    feedRequestKeyInFlightRef.current = requestKey;
+
     const cached =
       !feedInteractionStartedRef.current
         ? peekFreshHomeFeedReturnCache() ??
           readHomeFeedReturnCache(requestKey)
         : readHomeFeedReturnCache(requestKey);
 
+    feedPerfMark("cache:restore-start");
     let backgroundRefresh = false;
     if (cached) {
+      feedPerfMark("cache:restore-end");
       feedRestoredFromCacheRef.current = true;
       if (!isHomeFeedReturnCacheStale(cached)) {
         feedPerfMark("feed:cache-hit");
@@ -1716,10 +1736,12 @@ export default function GeoFeed({
       feedInteractionStartedRef.current = true;
       setFeedHydrated(true);
       if (!isHomeFeedReturnCacheStale(cached)) {
+        feedRequestKeyInFlightRef.current = null;
         return;
       }
       backgroundRefresh = true;
     } else {
+      feedPerfMark("cache:restore-end");
       feedPerfMark("feed:cache-miss");
     }
 
@@ -1760,9 +1782,9 @@ export default function GeoFeed({
         if (feedRes.ok) {
           let data: {
             items?: unknown;
-            statsPreview?: Record<string, unknown>;
             discovery?: DiscoveryFeedPayload;
             pagination?: { hasMore?: boolean; total?: number };
+            debug?: Record<string, unknown>;
           };
           try {
             data = await feedRes.json();
@@ -1774,25 +1796,13 @@ export default function GeoFeed({
           }
           if (cancelled) return;
           feedPerfMark("feed:json-received");
+          feedPerfMarkFeedRequestEnd();
           const rawItems = (data.items || []) as Record<string, unknown>[];
           setApiRawItems(rawItems);
-          const previewRaw = data.statsPreview as
-            | Record<string, unknown>
-            | undefined;
-          if (previewRaw && typeof previewRaw === "object") {
-            for (const [uid, row] of Object.entries(previewRaw)) {
-              const payload = coerceUserStatsPayload(row);
-              if (payload) seedCachedUserStats(uid, payload);
-            }
-          }
           if (process.env.NODE_ENV === "development") {
             console.log("[GeoFeed feed-fetch] response", {
               count: rawItems.length,
               pagination: data.pagination,
-              statsPreviewKeys:
-                previewRaw && typeof previewRaw === "object"
-                  ? Object.keys(previewRaw).length
-                  : 0,
             });
           }
           if (process.env.NODE_ENV === "development") {
@@ -1827,6 +1837,23 @@ export default function GeoFeed({
               : effectiveViewerForDistance;
 
           const valid = mapRawFeedApiItems(rawItems, viewerForDistance);
+          const feedApiDebug = data.debug as
+            | {
+                imageTrace?: import('@/lib/feed/feed-image-trace-client').FeedImageTraceRow[];
+              }
+            | undefined;
+          if (
+            process.env.NODE_ENV === "development" ||
+            isFeedPerfBaselineEnabled()
+          ) {
+            logFeedImageTrace(
+              rawItems,
+              valid.map((it) => toCardItem(it, viewerForDistance)),
+              Array.isArray(feedApiDebug?.imageTrace)
+                ? feedApiDebug.imageTrace
+                : null,
+            );
+          }
           setItems(valid);
           setFeedHasMore(data.pagination?.hasMore ?? false);
           setDiscoveryFeed(
@@ -1847,6 +1874,7 @@ export default function GeoFeed({
           setFeedRefreshing(false);
           feedInteractionStartedRef.current = true;
           setFeedHydrated(true);
+          feedRequestKeyInFlightRef.current = null;
         }
       }
     };
@@ -1856,6 +1884,9 @@ export default function GeoFeed({
     return () => {
       cancelled = true;
       ac.abort();
+      if (feedRequestKeyInFlightRef.current === requestKey) {
+        feedRequestKeyInFlightRef.current = null;
+      }
       const snapshot = itemsRef.current;
       if (snapshot.length > 0) {
         saveHomeFeedReturnCache({
@@ -1880,13 +1911,18 @@ export default function GeoFeed({
     viewerPlaceForApi,
     apiLocationSource,
     appliedCategory,
-    effectiveViewerForDistance?.lat,
-    effectiveViewerForDistance?.lng,
   ]);
 
   useEffect(() => {
     feedHasMoreRef.current = feedHasMore;
   }, [feedHasMore]);
+
+  useEffect(() => {
+    if (!feedHydrated || items.length === 0) return;
+    const ac = new AbortController();
+    scheduleDeferredFeedStatsPreview(items, ac.signal);
+    return () => ac.abort();
+  }, [feedHydrated, items]);
 
   const loadMoreFeed = useCallback(async () => {
     if (!feedHasMore || feedLoadingMore || feedStartupBlocked) return;
@@ -3039,9 +3075,9 @@ export default function GeoFeed({
         return homeDesktopFeedGridClass(desktopFeedColumns);
       }
       if (feedColumnLayout === "home-main") {
-        return "grid grid-cols-2 gap-4 xl:gap-5";
+        return "grid grid-cols-1 gap-4 xl:gap-5";
       }
-      return "grid sm:grid-cols-2 md:grid-cols-3 gap-4";
+      return "grid grid-cols-1 gap-4 xl:gap-5";
     }
     if (effectiveFeedLayoutMode === "discover") {
       return "grid grid-cols-2 gap-2.5 sm:gap-3 hc-discover-feed-grid";

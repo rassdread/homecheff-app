@@ -1,0 +1,826 @@
+{
+  "generated_at": "2026-07-13T12:52:15.514Z",
+  "phase": "9C",
+  "cutoff_date": "2026-07-13",
+  "baseline_migration_name": "20260714_greenfield_current_state_baseline",
+  "summary": {
+    "current_active_folder_count": 62,
+    "loose_sql_files_in_migrations_root": 8,
+    "category_A_pre_cutoff": 62,
+    "category_B_baseline": 1,
+    "category_C_post_cutoff": 0,
+    "category_D_uncertain": 8,
+    "after_promote_active_count": 1,
+    "after_promote_archive_folder_count": 62,
+    "after_promote_relocate_loose_sql_count": 8
+  },
+  "first_pre_cutoff": "20250108000000_auto_encryption",
+  "last_pre_cutoff_semantic": "add_dish_reviews",
+  "last_pre_cutoff_lex": "manual_add_stock_reservation.sql",
+  "migrations_after_cutoff_timestamp": [],
+  "invalid_timestamp_format": [
+    "20250114_add_conversation_participant_hidden",
+    "20250115_add_dish_video",
+    "20260709_phase13e_admin_p0",
+    "20260713_dish_status_created_at_feed_index",
+    "add_dish_reviews"
+  ],
+  "loose_sql_files": [
+    {
+      "name": "add_admin_preferences.sql",
+      "kind": "loose_sql_file",
+      "category": "D_uncertain_blocker",
+      "category_reason": "loose .sql file in migrations root (not a Prisma migration folder) — must relocate to archive/docs during promote",
+      "checksum_sha256": "4e5399554a252d87fac4a24133a23e5dd8acbf15cf046eb03e12b1ad05af0333",
+      "sql_bytes": 3266,
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after"
+    },
+    {
+      "name": "add_delivery_countdown_fields.sql",
+      "kind": "loose_sql_file",
+      "category": "D_uncertain_blocker",
+      "category_reason": "loose .sql file in migrations root (not a Prisma migration folder) — must relocate to archive/docs during promote",
+      "checksum_sha256": "4481ac9967868d0ceb623c6a5ce37c75e81bfdb0df805e9a8e567d754dd37c8e",
+      "sql_bytes": 714,
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after"
+    },
+    {
+      "name": "add_delivery_online_status.sql",
+      "kind": "loose_sql_file",
+      "category": "D_uncertain_blocker",
+      "category_reason": "loose .sql file in migrations root (not a Prisma migration folder) — must relocate to archive/docs during promote",
+      "checksum_sha256": "b53f86d593a5d6ce6af016a5d2def01234dcb295e9a3cd6951617508d954dabd",
+      "sql_bytes": 995,
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after"
+    },
+    {
+      "name": "add_notification_order_fields.sql",
+      "kind": "loose_sql_file",
+      "category": "D_uncertain_blocker",
+      "category_reason": "loose .sql file in migrations root (not a Prisma migration folder) — must relocate to archive/docs during promote",
+      "checksum_sha256": "0464f62cb1e19fd0956062e68a6a7fc13592439196eccc70e7c6983b95bb5055",
+      "sql_bytes": 485,
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after"
+    },
+    {
+      "name": "add_social_onboarding.sql",
+      "kind": "loose_sql_file",
+      "category": "D_uncertain_blocker",
+      "category_reason": "loose .sql file in migrations root (not a Prisma migration folder) — must relocate to archive/docs during promote",
+      "checksum_sha256": "f0b3fd9cc8a90077d3840bc03df49d37c945753892cd9de75250e351d8a6c914",
+      "sql_bytes": 422,
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after"
+    },
+    {
+      "name": "add_tab_permissions.sql",
+      "kind": "loose_sql_file",
+      "category": "D_uncertain_blocker",
+      "category_reason": "loose .sql file in migrations root (not a Prisma migration folder) — must relocate to archive/docs during promote",
+      "checksum_sha256": "a6a17a7899fa6ac0a2b3c6b6065456e6331cdbfd20d71d5a6f36b659394a4eea",
+      "sql_bytes": 1203,
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after"
+    },
+    {
+      "name": "add_user_online_status.sql",
+      "kind": "loose_sql_file",
+      "category": "D_uncertain_blocker",
+      "category_reason": "loose .sql file in migrations root (not a Prisma migration folder) — must relocate to archive/docs during promote",
+      "checksum_sha256": "9f2a3891672e20906211d2fe562c1b831613832655670e24a6cc2f4753541d40",
+      "sql_bytes": 517,
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after"
+    },
+    {
+      "name": "manual_add_stock_reservation.sql",
+      "kind": "loose_sql_file",
+      "category": "D_uncertain_blocker",
+      "category_reason": "loose .sql file in migrations root (not a Prisma migration folder) — must relocate to archive/docs during promote",
+      "checksum_sha256": "86a6ac1119407405c798f61f68807f35152e34c8854ed5502c1dbb39e9bdde3b",
+      "sql_bytes": 1297,
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after"
+    }
+  ],
+  "duplicate_folder_names": [
+    "20250108000000_auto_encryption",
+    "20250108000001_fix_dish_review_updated_at",
+    "20250114120000_add_is_hidden_to_participant",
+    "20250114_add_conversation_participant_hidden",
+    "20250115000000_add_notification_preferences",
+    "20250115000001_add_tab_permissions",
+    "20250115_add_dish_video",
+    "20250120000000_make_reservation_id_optional",
+    "20250826141844_init",
+    "20250826185222_products_init",
+    "20250827185027_add_images",
+    "20250828180304_init_all_tables",
+    "20250829113125_user_relations_fix",
+    "20250829113321_image_workspace_support",
+    "20250829152749_add_subscription_model",
+    "20250830083724_npx_prisma_format_npx_prisma_migrate_dev",
+    "20250830090428_password_hash_optional",
+    "20250831211328_add_profile_image",
+    "20250901151719_add_dishes_and_username",
+    "20250901205335_add_company",
+    "20250901205523_add_company_fields",
+    "20250901210104_support_favorites_for_products",
+    "20250901210943_add_order_items",
+    "20250901211324_add_user_interests",
+    "20250901212503_add_workplace_photos",
+    "20250901213337_rename_company_to_business",
+    "20250920183824_add_realtime_messaging",
+    "20250920185746_add_order_messaging",
+    "20250920190315_add_order_details_messaging",
+    "20250921112416_add_delivery_profile_system",
+    "20250921201950_add_analytics_events",
+    "20250924150344_add_workspace_content",
+    "20250925160523_add_user_quote",
+    "20250925162550_add_quote_field",
+    "20250925181251_add_displaynameoption_field",
+    "20250926220659_add_dish_category_fields",
+    "20251109183030_add_stripe_subscription_refs",
+    "20251113120000_make_delivery_profile_optional",
+    "20260410160000_user_homepage_ui_prefs",
+    "20260508223000_push_token_device_id",
+    "20260509130000_add_hcp_gamification",
+    "20260509180000_hcp_v2_gamification_state",
+    "20260509193000_hcp_v3_user_hcp_reward",
+    "20260509200000_hcp_v3_carousel_slides",
+    "20260509210000_hcp_carousel_placement_targeting",
+    "20260509220000_android_beta_referral_onboarding",
+    "20260514180000_canonicalize_user_email_lowercase",
+    "20260515120000_user_account_deleted_at",
+    "20260702120000_add_public_maker_contact_fields",
+    "20260702140000_add_product_order_method",
+    "20260705140000_conversation_context_layer",
+    "20260705180000_proposal_foundation_v1",
+    "20260705193000_marketplace_foundation_v2",
+    "20260705210000_marketplace_entry_v3_specializations",
+    "20260705220000_marketplace_accepted_values_v1",
+    "20260705230000_community_order_foundation_v2",
+    "20260705240000_delivery_marketplace_foundation_v1",
+    "20260705250000_trust_foundation_v1",
+    "20260708140000_phase_8c_pending_accepted_values",
+    "20260709_phase13e_admin_p0",
+    "20260713_dish_status_created_at_feed_index",
+    "add_dish_reviews"
+  ],
+  "duplicate_timestamp_prefixes": [],
+  "entries": [
+    {
+      "name": "20250108000000_auto_encryption",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "e60363813d35b7c88a9352b14118c3907332b6cbf303fac242544186444ff62e",
+      "sql_bytes": 637
+    },
+    {
+      "name": "20250108000001_fix_dish_review_updated_at",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "be6d4df933484dffa101f8507b72d8097380ce2d2c36bc404120b4e74070bc77",
+      "sql_bytes": 417
+    },
+    {
+      "name": "20250114_add_conversation_participant_hidden",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "b06f6b93f7335cc792c1b15090071b9237a844d26d7b9f7a30c60ed108f07a60",
+      "sql_bytes": 70
+    },
+    {
+      "name": "20250114120000_add_is_hidden_to_participant",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "2bc3952f7a321221c79215362acccf20b7693116e8fab10572d6c3f9c8b673c4",
+      "sql_bytes": 564
+    },
+    {
+      "name": "20250115_add_dish_video",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "926efbaa8ac873d4fc647ed0865d4c6b58b6155c2962ca4273ac05363c9af2a4",
+      "sql_bytes": 655
+    },
+    {
+      "name": "20250115000000_add_notification_preferences",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "e0d13c36291885c712128210c8a7836cc48fdd4ea3aed5e5be228636e1e7156f",
+      "sql_bytes": 2066
+    },
+    {
+      "name": "20250115000001_add_tab_permissions",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "423221146db893bae3009d8f3639875e56522526eb501418e4c2397d6d60e98e",
+      "sql_bytes": 3518
+    },
+    {
+      "name": "20250120000000_make_reservation_id_optional",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "8b88330f55f4563fb01e37d08b0879ee659da9fc549d2a4979fe55284589a39e",
+      "sql_bytes": 1297
+    },
+    {
+      "name": "20250826141844_init",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "b3951839a540dc493e5889137497964a9faed37679c07149a333fe5e53b2cd04",
+      "sql_bytes": 462
+    },
+    {
+      "name": "20250826185222_products_init",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "3419f80cbace26d06ebef2c60388b6e52451a5853443026ae8893025b368a688",
+      "sql_bytes": 1737
+    },
+    {
+      "name": "20250827185027_add_images",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "b5fad4df5c2908feffbb3136e215b4913b31e7357d872a29b20283f4d263200b",
+      "sql_bytes": 401
+    },
+    {
+      "name": "20250828180304_init_all_tables",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "8ba1b456e04c1d9d9eef1f9893a4ad293065381c2f1e2d671813f66ee9f26a69",
+      "sql_bytes": 18434
+    },
+    {
+      "name": "20250829113125_user_relations_fix",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "cfe5dffb3661f3a2c2a1589dfd1b6f2d814ea2d9b67409f13f0c89622f27b2a4",
+      "sql_bytes": 2917
+    },
+    {
+      "name": "20250829113321_image_workspace_support",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "27b05dcd207b77fc0070d71003b399ef45a95790c9e4c942ede98ea2dfbf82b3",
+      "sql_bytes": 598
+    },
+    {
+      "name": "20250829152749_add_subscription_model",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "f364c50fdea06e4bf3402b8eb881403b8da86f6902e454318bacf0cc05ec2e2e",
+      "sql_bytes": 2647
+    },
+    {
+      "name": "20250830083724_npx_prisma_format_npx_prisma_migrate_dev",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "9dd5ab32abda4eb72f2f258d4f655d884440e3d26c83ad1554f042c8ff45ce1a",
+      "sql_bytes": 600
+    },
+    {
+      "name": "20250830090428_password_hash_optional",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "966e8604bbcc98401442dcf81e89e76a90a85c3aa9a314ef269cf4c96b7f32c6",
+      "sql_bytes": 78
+    },
+    {
+      "name": "20250831211328_add_profile_image",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "8f7002fda7b8520eba9b5fb62c4f8dc991de9e195cabc18d6e5e2c41f6279cd4",
+      "sql_bytes": 1504
+    },
+    {
+      "name": "20250901151719_add_dishes_and_username",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "4dc320f2fbcc758b85a5b22621c990c1490f228e4a8a82a9301fd7a722eddb09",
+      "sql_bytes": 1658
+    },
+    {
+      "name": "20250901205335_add_company",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "f5f80cbe540b758f0e80bfeda5210dca475b963e69f29ece9cb83f6694a6b184",
+      "sql_bytes": 641
+    },
+    {
+      "name": "20250901205523_add_company_fields",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "867290df5b932a295465345e58952624548ced23244935b380d36e7ee9ea8ae4",
+      "sql_bytes": 206
+    },
+    {
+      "name": "20250901210104_support_favorites_for_products",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "e92bde21edb20262120139a538896dc40de1f866d2d9a4426a3302b3e5f40cbd",
+      "sql_bytes": 1458
+    },
+    {
+      "name": "20250901210943_add_order_items",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "6e8a936a04f139530f095533671ca600fba1118eecd8b8bd742e4e0677ccdc6b",
+      "sql_bytes": 750
+    },
+    {
+      "name": "20250901211324_add_user_interests",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "ece186c0f05747ba77525862085ba7cee094c6e9eae07940d2b86c929be2d093",
+      "sql_bytes": 77
+    },
+    {
+      "name": "20250901212503_add_workplace_photos",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "a7b87661a443b3ebd7faee47233ab5a006d380b1f4b102712d075834d86ca6cf",
+      "sql_bytes": 86
+    },
+    {
+      "name": "20250901213337_rename_company_to_business",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "cda44a127d929da3411cb0ecce6070d6b20006d712c0cea872a529533933deb0",
+      "sql_bytes": 1063
+    },
+    {
+      "name": "20250920183824_add_realtime_messaging",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "c7110f196e39c5289bcd91aaec8481edc6beefdc7a34973af71d74a9e8c82f5c",
+      "sql_bytes": 6541
+    },
+    {
+      "name": "20250920185746_add_order_messaging",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "d7c7f9818b5da730e1adc2f2ba5612425c79e5893df0752f9fd2350d526583d6",
+      "sql_bytes": 1049
+    },
+    {
+      "name": "20250920190315_add_order_details_messaging",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "98437de07b91fe6f5e2f7bcbe68ae3f137dc44339ac107a08b89f0821511a453",
+      "sql_bytes": 859
+    },
+    {
+      "name": "20250921112416_add_delivery_profile_system",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "8553fde638f951b65fe36de8e91e9ffc9de8f708c44dfa201bd60ed0c41b5e6b",
+      "sql_bytes": 2378
+    },
+    {
+      "name": "20250921201950_add_analytics_events",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "ae2f5dab873086ecebc65bf64989a4efb2cb0a31008e8a043e8d9f1aa6ab5fc3",
+      "sql_bytes": 1667
+    },
+    {
+      "name": "20250924150344_add_workspace_content",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "ec92cfa54aed590d4560adc3414de128533454525a96b2e586149a552f484840",
+      "sql_bytes": 13242
+    },
+    {
+      "name": "20250925160523_add_user_quote",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "3f9a96e96925d48686184d4319c7893268f02d20e4e0cdc6b36aa260aa16409d",
+      "sql_bytes": 296
+    },
+    {
+      "name": "20250925162550_add_quote_field",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "1e9fc7e2a1ac2a1f442ee44cb2586b695e0fa70f84bdb1c047677dbea1f735b2",
+      "sql_bytes": 71
+    },
+    {
+      "name": "20250925181251_add_displaynameoption_field",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "7c49a3ab2eb52914e63b785f5577f72951d6d96cd76c8f9a700ef9ea6ddf9225",
+      "sql_bytes": 107
+    },
+    {
+      "name": "20250926220659_add_dish_category_fields",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "23118886026d3630b99e525a940141468f3a39002a66c6caa964190e06b6ea44",
+      "sql_bytes": 109
+    },
+    {
+      "name": "20251109183030_add_stripe_subscription_refs",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "82b64eecfd9849256e3f46d62c66911f08e061c6a1eb6cec544e69682629c74d",
+      "sql_bytes": 203
+    },
+    {
+      "name": "20251113120000_make_delivery_profile_optional",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "6403a2ddd82e41e48ab6a1bc6e7e850e7b4bad03e82c3e1372a8ae0f52e43b1a",
+      "sql_bytes": 153
+    },
+    {
+      "name": "20260410160000_user_homepage_ui_prefs",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "5b260225b40e44cd4ca9da8d1a29de9cf7370cef7139fa01a1dc2f1b94c9d279",
+      "sql_bytes": 170
+    },
+    {
+      "name": "20260508223000_push_token_device_id",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "27d5efe6caba6f7f263da370e0ad24878a637941d3a42ae1684e6e5733902124",
+      "sql_bytes": 205
+    },
+    {
+      "name": "20260509130000_add_hcp_gamification",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "b98b744e19d0bd8ddf8313d3e2350fc814c4422f37dc16ff7244daae53225e08",
+      "sql_bytes": 2226
+    },
+    {
+      "name": "20260509180000_hcp_v2_gamification_state",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "58c7d63edbde2996e4eee1e3a91277efe939eb467c69ed318bcc7a985478f0e6",
+      "sql_bytes": 311
+    },
+    {
+      "name": "20260509193000_hcp_v3_user_hcp_reward",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "8fc066c0f86ebef048dacca48eebba061f67f23ccaecf96beb0795c2e3f433c8",
+      "sql_bytes": 914
+    },
+    {
+      "name": "20260509200000_hcp_v3_carousel_slides",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "0bcc24d7e8457584796a140e330cf21be3b2a0227104592fa14e5051595a2854",
+      "sql_bytes": 1010
+    },
+    {
+      "name": "20260509210000_hcp_carousel_placement_targeting",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "011e9b77a4877e291fd5a4ce358c8ad0627db2e2d7b844d179037bf0f8346ec5",
+      "sql_bytes": 851
+    },
+    {
+      "name": "20260509220000_android_beta_referral_onboarding",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "cee7b87f459d91816e921cf36c6f369f343ea564c12aabac265f24d9ce9cd543",
+      "sql_bytes": 1085
+    },
+    {
+      "name": "20260514180000_canonicalize_user_email_lowercase",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "681add10c06926ce274f3daff3554a35dc88ea86578df85aa9f7b6dac0e7cdb0",
+      "sql_bytes": 379
+    },
+    {
+      "name": "20260515120000_user_account_deleted_at",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "5c7a1997139d7a3ca6eeba1d6438fb971be70e0bdeda1591b24518f643a165c2",
+      "sql_bytes": 239
+    },
+    {
+      "name": "20260702120000_add_public_maker_contact_fields",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "0be96cd48d0831ca3110a24a1591bc2f2c5207b29089ce365f4bd83331a97d99",
+      "sql_bytes": 1237
+    },
+    {
+      "name": "20260702140000_add_product_order_method",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "f88fab1224ccf0afe448a6a2438b68b15d28a985ae4dcc97c9597f29d2d4c6b7",
+      "sql_bytes": 210
+    },
+    {
+      "name": "20260705140000_conversation_context_layer",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "4cd0b0dc7d02403b34b4cb50b8ddca1f1baed7aa54d610c30e45dbf9d1a33fb8",
+      "sql_bytes": 1086
+    },
+    {
+      "name": "20260705180000_proposal_foundation_v1",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "cf8f814cdff6db21ed7835ce2003409142e5e26300b70368b5ddac4cbbbb6620",
+      "sql_bytes": 6880
+    },
+    {
+      "name": "20260705193000_marketplace_foundation_v2",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "826174510569dd20e80801e4c06107f78c8fcd7b429fab04247fedfd73d5167b",
+      "sql_bytes": 2052
+    },
+    {
+      "name": "20260705210000_marketplace_entry_v3_specializations",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "557e9de8763edf3604242355969487c0068dc64bb1ebe28908a77b20a4fb8d1a",
+      "sql_bytes": 245
+    },
+    {
+      "name": "20260705220000_marketplace_accepted_values_v1",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "0f0f585b9d2b7ae6d67ae66473844923c9b37c87287eebab2b83defea48d9ab3",
+      "sql_bytes": 291
+    },
+    {
+      "name": "20260705230000_community_order_foundation_v2",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "7f5ba654b0cc871a4b0ba0f7929a835048447030f2a5e7ce3d2d46fd71f65863",
+      "sql_bytes": 1468
+    },
+    {
+      "name": "20260705240000_delivery_marketplace_foundation_v1",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "9a92321d1020a8cbb87431e360a11295dc88f8b901503047b7715b798954a47c",
+      "sql_bytes": 3770
+    },
+    {
+      "name": "20260705250000_trust_foundation_v1",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "925b5afc5979cef696d02210e93e8c8e304e1f517f7be48928c361e01fb063e5",
+      "sql_bytes": 1991
+    },
+    {
+      "name": "20260708140000_phase_8c_pending_accepted_values",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": true,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "7e851c8200c795c31b009a0bfe6f10f70b5633c9009cc96e2f724a2b950eecfa",
+      "sql_bytes": 1924
+    },
+    {
+      "name": "20260709_phase13e_admin_p0",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "folder name lexicographically before baseline cutoff",
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "7d6b4c5d899489eca1df469baae003316e9dbce03a24f1a106364c16c7b5fc9e",
+      "sql_bytes": 693
+    },
+    {
+      "name": "20260713_dish_status_created_at_feed_index",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "semantic pre-cutoff; DDL absorbed in baseline SQL",
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "before",
+      "checksum_sha256": "daa46b64be6e2a574174364a5a61c0dd2c3a37ba5c7a5d09e31b0778d5cb5f45",
+      "sql_bytes": 323
+    },
+    {
+      "name": "add_dish_reviews",
+      "category": "A_pre_cutoff_historical",
+      "category_reason": "semantic pre-cutoff; DDL absorbed in baseline SQL",
+      "has_valid_timestamp": false,
+      "lexicographic_vs_baseline": "after",
+      "checksum_sha256": "92bb5acf400bd7270cf407100e765c8a23565db632f20bbf26b3a932f39adfaa",
+      "sql_bytes": 3433
+    }
+  ],
+  "baseline_promote": {
+    "name": "20260714_greenfield_current_state_baseline",
+    "category": "B_baseline_promote",
+    "category_reason": "promoted from prisma/baseline-staging/.../promote-to-migrations/",
+    "checksum_sha256": "834d5d1b632f83486761c6ea54f84a95552a23f52b62d1dbd9cf95ca155aaa52",
+    "sql_bytes": 114095,
+    "has_valid_timestamp": false,
+    "lexicographic_vs_baseline": "equal"
+  },
+  "virtual_after_promote": {
+    "active_root": "prisma/migrations",
+    "active_migrations": [
+      "20260714_greenfield_current_state_baseline"
+    ],
+    "archive_root": "prisma/migrations-archive/pre-20260714-greenfield",
+    "archive_migrations": [
+      "20250108000000_auto_encryption",
+      "20250108000001_fix_dish_review_updated_at",
+      "20250114120000_add_is_hidden_to_participant",
+      "20250114_add_conversation_participant_hidden",
+      "20250115000000_add_notification_preferences",
+      "20250115000001_add_tab_permissions",
+      "20250115_add_dish_video",
+      "20250120000000_make_reservation_id_optional",
+      "20250826141844_init",
+      "20250826185222_products_init",
+      "20250827185027_add_images",
+      "20250828180304_init_all_tables",
+      "20250829113125_user_relations_fix",
+      "20250829113321_image_workspace_support",
+      "20250829152749_add_subscription_model",
+      "20250830083724_npx_prisma_format_npx_prisma_migrate_dev",
+      "20250830090428_password_hash_optional",
+      "20250831211328_add_profile_image",
+      "20250901151719_add_dishes_and_username",
+      "20250901205335_add_company",
+      "20250901205523_add_company_fields",
+      "20250901210104_support_favorites_for_products",
+      "20250901210943_add_order_items",
+      "20250901211324_add_user_interests",
+      "20250901212503_add_workplace_photos",
+      "20250901213337_rename_company_to_business",
+      "20250920183824_add_realtime_messaging",
+      "20250920185746_add_order_messaging",
+      "20250920190315_add_order_details_messaging",
+      "20250921112416_add_delivery_profile_system",
+      "20250921201950_add_analytics_events",
+      "20250924150344_add_workspace_content",
+      "20250925160523_add_user_quote",
+      "20250925162550_add_quote_field",
+      "20250925181251_add_displaynameoption_field",
+      "20250926220659_add_dish_category_fields",
+      "20251109183030_add_stripe_subscription_refs",
+      "20251113120000_make_delivery_profile_optional",
+      "20260410160000_user_homepage_ui_prefs",
+      "20260508223000_push_token_device_id",
+      "20260509130000_add_hcp_gamification",
+      "20260509180000_hcp_v2_gamification_state",
+      "20260509193000_hcp_v3_user_hcp_reward",
+      "20260509200000_hcp_v3_carousel_slides",
+      "20260509210000_hcp_carousel_placement_targeting",
+      "20260509220000_android_beta_referral_onboarding",
+      "20260514180000_canonicalize_user_email_lowercase",
+      "20260515120000_user_account_deleted_at",
+      "20260702120000_add_public_maker_contact_fields",
+      "20260702140000_add_product_order_method",
+      "20260705140000_conversation_context_layer",
+      "20260705180000_proposal_foundation_v1",
+      "20260705193000_marketplace_foundation_v2",
+      "20260705210000_marketplace_entry_v3_specializations",
+      "20260705220000_marketplace_accepted_values_v1",
+      "20260705230000_community_order_foundation_v2",
+      "20260705240000_delivery_marketplace_foundation_v1",
+      "20260705250000_trust_foundation_v1",
+      "20260708140000_phase_8c_pending_accepted_values",
+      "20260709_phase13e_admin_p0",
+      "20260713_dish_status_created_at_feed_index",
+      "add_dish_reviews"
+    ],
+    "file_count_preserved": true,
+    "notes": [
+      "All 62 current folders → archive",
+      "8 loose .sql files in migrations root → archive/docs (D-class)",
+      "Baseline folder promoted from staging",
+      "add_dish_reviews folder absorbed in baseline — archive explicitly",
+      "No C-class folder migrations remain after promote"
+    ]
+  },
+  "blockers": [
+    "8 loose .sql files in prisma/migrations/ must be relocated during promote"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "version": "phase9b",
+  "cutoff": {
+    "date": "2026-07-13",
+    "baseline_migration_name": "20260714_greenfield_current_state_baseline",
+    "baseline_staging_dir": "prisma/baseline-staging/20260713_current_state"
+  },
+  "tracks": {
+    "shared": {
+      "description": "Shared Neon production/staging — preserves historical _prisma_migrations",
+      "schema": "prisma/schema.prisma",
+      "migrations_dir": "prisma/migrations",
+      "archive_dir": "prisma/migrations-archive/pre-20260714-greenfield",
+      "env_url": "DATABASE_URL",
+      "mutating": true,
+      "baseline_apply": false,
+      "notes": "After archive+promote: migrate resolve --applied for baseline once; never db execute baseline SQL"
+    },
+    "greenfield": {
+      "description": "Disposable empty database — baseline + post-cutoff only",
+      "schema": "prisma/schema.prisma",
+      "migrations_dir": "prisma/migrations",
+      "env_url": "GREENFIELD_DATABASE_URL",
+      "mutating": true,
+      "requires_empty_db": true,
+      "blocked_hosts": [
+        "ep-summer-darkness-a2l0745u",
+        "homecheff.eu"
+      ],
+      "notes": "Active root must contain zero pre-cutoff folders before --execute"
+    }
+  },
+  "post_cutoff_naming": {
+    "pattern": "^20[0-9]{12}_[a-z0-9_]+$",
+    "example": "20260715_add_dish_reviews",
+    "legacy_exceptions": []
+  },
+  "policies": {
+    "data_migrations": "Separate prisma/migrations/*/migration.sql steps; no hidden data in baseline SQL except optional system_seed.sql on greenfield",
+    "raw_sql": "Allowed in migration.sql; baseline uses migrate diff output only",
+    "concurrent_indexes": "CREATE INDEX CONCURRENTLY forbidden inside Prisma migrate transaction — use non-concurrent or separate manual runbook"
+  }
+}

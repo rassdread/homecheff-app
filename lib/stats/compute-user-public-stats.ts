@@ -101,11 +101,12 @@ export async function computeUserPublicStats(userId: string): Promise<UserPublic
         })
       : Promise.resolve(0),
     productIds.length > 0
-      ? prisma.productReview.findMany({
+      ? prisma.productReview.aggregate({
           where: { productId: { in: productIds } },
-          select: { rating: true },
+          _count: { _all: true },
+          _avg: { rating: true },
         })
-      : Promise.resolve([]),
+      : Promise.resolve({ _count: { _all: 0 }, _avg: { rating: null } }),
     dishIds.length > 0
       ? prisma.dishReview.count({ where: { dishId: { in: dishIds } } })
       : Promise.resolve(0),
@@ -120,14 +121,10 @@ export async function computeUserPublicStats(userId: string): Promise<UserPublic
       : Promise.resolve(0),
   ]);
 
-  const productReviewCount = productReviews.length;
+  const productReviewCount = productReviews._count._all ?? 0;
   const productAverageRating =
-    productReviewCount > 0
-      ? Math.round(
-          (productReviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
-            productReviewCount) *
-            10,
-        ) / 10
+    productReviewCount > 0 && productReviews._avg.rating != null
+      ? Math.round(productReviews._avg.rating * 10) / 10
       : 0;
 
   return {

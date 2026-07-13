@@ -1,0 +1,125 @@
+{
+  "generated_at": "2026-07-13T02:55:00.000Z",
+  "branch": "performance/phase2-baseline",
+  "investigation": "20260210120000_add_unassigned_delivery_profile",
+  "method": "read-only _prisma_migrations, information_schema, pg_indexes, data probes",
+  "migration_record": {
+    "migration_name": "20260210120000_add_unassigned_delivery_profile",
+    "checksum": "66bb04f0e0ac9c09cfcd3a6712b0a7a0d1ad59463c55e1ba2a032e7d08830f00",
+    "started_at": "2026-02-11T22:24:18.499Z",
+    "finished_at": "2026-02-11T22:24:18.619Z",
+    "rolled_back_at": null,
+    "applied_steps_count": 1,
+    "logs": null
+  },
+  "execution_context": {
+    "neighbors_before": [
+      "20260208220000_add_user_password_hash",
+      "20260210000000_affiliate_business_subscription_admin_roles",
+      "20260211000000_add_superadmin_role"
+    ],
+    "neighbors_after": [
+      "20260212000000_promo_code_admin_optional_affiliate",
+      "20260212000000_promo_code_affiliate_optional",
+      "20260212100000_promo_code_seller_id",
+      "20260212120000_add_product_weight_dimensions"
+    ],
+    "note": "Promo migrations started 162ms after this migration finished (same deploy batch)."
+  },
+  "related_delivery_migrations_timeline": [
+    {
+      "name": "20250921112416_add_delivery_profile_system",
+      "started_at": "2025-09-24T15:00:37.750Z",
+      "effect": "CREATE DeliveryProfile + DeliveryOrder; deliveryProfileId NOT NULL; FK ON DELETE RESTRICT"
+    },
+    {
+      "name": "20251113120000_make_delivery_profile_optional",
+      "started_at": "2025-11-13T22:21:56.914Z",
+      "effect": "DeliveryOrder.deliveryProfileId DROP NOT NULL (in repo)",
+      "local_file": "prisma/migrations/20251113120000_make_delivery_profile_optional/migration.sql"
+    },
+    {
+      "name": "20260210120000_add_unassigned_delivery_profile",
+      "started_at": "2026-02-11T22:24:18.499Z",
+      "effect": "DATA: system User + sentinel DeliveryProfile id=unassigned"
+    },
+    {
+      "name": "20260705240000_delivery_marketplace_foundation_v1",
+      "started_at": "2026-07-05T20:12:58.225Z",
+      "effect": "DeliveryRequest / community delivery foundation"
+    }
+  ],
+  "delivery_tables": [
+    "DeliveryAvailability",
+    "DeliveryNotificationSettings",
+    "DeliveryOrder",
+    "DeliveryProfile",
+    "DeliveryRequest",
+    "DeliveryReview"
+  ],
+  "delivery_profile": {
+    "userId_nullable": false,
+    "userId_unique": true,
+    "sentinel_record": {
+      "id": "unassigned",
+      "userId": "system-unassigned-delivery",
+      "age": 0,
+      "isActive": false,
+      "isVerified": false,
+      "createdAt": "2026-02-11T22:24:18.595Z",
+      "matches_migration_timestamp": true
+    },
+    "stats": {
+      "total_profiles": 2,
+      "null_user_id": 0,
+      "created_on_migration_date": 1,
+      "bio_unassigned_pattern": 0
+    }
+  },
+  "delivery_order": {
+    "deliveryProfileId_nullable": true,
+    "fk_delete_rule": "SET NULL",
+    "fk_note": "Initial migration used RESTRICT; live DB has SET NULL — likely separate undocumented change",
+    "stats": {
+      "total_orders": 0,
+      "null_deliveryProfileId": 0,
+      "sentinel_id_unassigned": 0,
+      "orphan_profile_fk": 0
+    }
+  },
+  "system_user": {
+    "id": "system-unassigned-delivery",
+    "email_pattern": "system+unassigned@homecheff.internal",
+    "role": "USER",
+    "createdAt": "2026-02-11T22:24:18.595Z",
+    "matches_migration_timestamp": true
+  },
+  "schema_prisma_alignment": {
+    "DeliveryProfile.userId": "required String @unique — matches DB (no nullable userId)",
+    "DeliveryOrder.deliveryProfileId": "optional String? — matches DB",
+    "sentinel_in_schema": false,
+    "application_pattern": "deliveryProfileId: null for unassigned pool orders"
+  },
+  "git_search_summary": {
+    "migration_file_in_repo": false,
+    "system-unassigned-delivery_in_history": false,
+    "id_unassigned_in_code": false,
+    "unassigned_in_app_comments": [
+      "app/api/delivery/orders/route.ts",
+      "app/api/stripe/webhook/route.ts",
+      "app/api/delivery/dashboard/route.ts",
+      "docs/HOMECHEFF_DELIVERY_FOUNDATION.md"
+    ],
+    "pattern": "null deliveryProfileId, not sentinel profile id"
+  },
+  "classification": {
+    "primary": "E",
+    "label": "data_migration_system_user_and_sentinel_profile",
+    "secondary": "B",
+    "secondary_label": "functionally_reconstructable_idempotent_inserts",
+    "resolved_from_D": true
+  },
+  "proposed_reconstruction_sql_file": "documented in homecheff-prisma-phase7-unassigned-delivery-profile.md",
+  "checksum_exact_match_possible": false,
+  "checksum_note": "Reconstructed idempotent INSERT will not match 66bb04f0… unless byte-identical original found"
+}

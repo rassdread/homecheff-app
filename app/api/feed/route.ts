@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 
-import { prisma } from "@/lib/prisma";
 import { ListingCategory, ProductCategory } from "@prisma/client";
 import { getCorsHeaders } from "@/lib/apiCors";
-import { batchComputeUserStatsPreview } from "@/lib/userStatsBatchPreview";
 import { isStripeTestId } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -40,8 +38,9 @@ import { attachDiscoveryReadModel } from "@/lib/discovery";
 import { legacyFeedSettlementBooleans } from "@/lib/marketplace/tiles/legacy-feed-settlement";
 import {
   discoveryEnrichmentFromBundle,
-  fetchSellerTrustBundles,
 } from "@/lib/discovery/trust/batch-enrichment";
+import { fetchSellerTrustBundlesWithTiming } from "@/lib/feed/trust-enrichment-timing";
+import { buildTrustTimingDebugPayload } from "@/lib/feed/trust-timing-debug";
 import type { DiscoveryEnrichment } from "@/lib/discovery/mappers/enrichment";
 import {
   isMarketplaceSaleItem,
@@ -51,9 +50,24 @@ import { normalizeFeedScope, scopeUsesRadiusFilter } from "@/lib/feed/feed-scope
 import { geocodePlaceQuery } from "@/lib/global-geocoding";
 import {
   buildDiscoveryFeed,
-  FEED_DISCOVERY_POOL_CAP,
   reorderFeedItemsByDiscovery,
 } from "@/lib/feed/build-discovery-feed";
+import {
+  collectUniqueSellerUserIds,
+  computeEnrichmentPoolCap,
+  deduplicateCrossSourceFeedItems,
+  linkedDishMediaFromPhotoMetadata,
+  mergeLinkedFeedItemMedia,
+  FEED_DB_DISH_CAP,
+  FEED_DB_LISTING_CAP,
+  FEED_DB_PRODUCT_CAP,
+  FEED_RESPONSE_ITEM_CAP,
+} from "@/lib/feed/feed-candidate-window";
+import {
+  loadDishPhotoMetadata,
+  loadProductImageMetadata,
+  productNeedsLinkedDishMedia,
+} from "@/lib/feed/feed-media-metadata.server";
 import type { DiscoveryFeedPayload } from "@/lib/feed/discovery-feed-contract";
 import {
   buildActivityCardsFeedSlot,
@@ -72,9 +86,20 @@ import {
   countUpcomingWorkshopsInPool,
 } from "@/lib/discovery/surfaces/build-server-surface-context";
 import {
+  classifyFeedCachePolicy,
+  buildFeedResponseCacheHeaders,
+} from "@/lib/feed/feed-cache-policy";
+import {
   createFeedApiTiming,
   isFeedApiTimingEnabled,
 } from "@/lib/feed/feed-api-timing";
+import {
+  getPrismaPerfSnapshot,
+  isPrismaPerfEnabled,
+  prismaPerfSetCategory,
+  runWithPrismaPerfContext,
+} from "@/lib/performance/prisma-perf-context.server";
+import { getPerfPrisma } from "@/lib/performance/perf-prisma.server";
 import {
   buildFeedPaginationMeta,
   parseFeedPaginationParams,
@@ -83,6 +108,12 @@ import {
   countInlineDataMediaUrls,
   sanitizeFeedItemsForResponse,
 } from "@/lib/feed/sanitize-feed-response-media";
+import {
+  buildFeedMediaProxyUrl,
+  classifyFeedMediaUrl,
+  resolveFeedMediaUrlForResponse,
+  resolveFeedUrlsFromMetadata,
+} from "@/lib/feed/resolve-feed-media-url";
 
 function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
   const listingKind = attachListingKindToRecord(item);
@@ -134,8 +165,22 @@ function extractItemLatLng(item: Record<string, unknown>): { lat: number; lng: n
   return resolveFeedItemCoordsFromRaw(item);
 }
 
-const STATS_PREVIEW_SELLER_CAP = 9;
-const FEED_RESPONSE_ITEM_CAP = 40;
+const STATS_PREVIEW_DEFERRED = true;
+
+type FeedProductStripeRow = {
+  priceCents: number | null;
+  orderMethod?: string | null;
+  seller?: { User?: { stripeConnectAccountId?: string | null } | null } | null;
+};
+
+/** Same gate as `allNewProducts` — used before Dish `notIn` to avoid hiding standalone dishes. */
+function passesFeedProductStripeFilter(product: FeedProductStripeRow): boolean {
+  if (isContactOnlyProduct(product)) return true;
+  if (!product.priceCents || product.priceCents === 0) return true;
+  const seller = product.seller?.User;
+  if (!seller?.stripeConnectAccountId) return true;
+  return !isStripeTestId(seller.stripeConnectAccountId);
+}
 
 /** Maps feed UI slugs (cheff, garden, …) to Prisma `ProductCategory` (GROWN, not GARDEN). */
 function resolveProductCategory(verticalRaw: string): ProductCategory | null {
@@ -160,6 +205,14 @@ function resolveListingCategory(verticalRaw: string): ListingCategory | null {
 }
 
 export async function GET(req: NextRequest) {
+  if (isPrismaPerfEnabled()) {
+    return runWithPrismaPerfContext(() => handleFeedGet(req));
+  }
+  return handleFeedGet(req);
+}
+
+async function handleFeedGet(req: NextRequest) {
+  const prisma = getPerfPrisma();
   const apiPerf = isFeedApiTimingEnabled() ? createFeedApiTiming() : null;
   const { searchParams } = new URL(req.url);
   const searchFilters = parseSearchFilterParams(searchParams);
@@ -180,19 +233,34 @@ export async function GET(req: NextRequest) {
       searchParams.get("take"),
       searchParams.get("skip"),
     );
+  const imageTraceById = new Map<
+    string,
+    {
+      feedSource: string;
+      rawProductImage?: string | null;
+      rawProductImageKind?: string;
+      linkedDishPhoto?: string | null;
+      mappedImage?: string | null;
+      discoveryCoverImage?: string | null;
+    }
+  >();
   apiPerf?.mark('params_parsed');
 
   const session = await getServerSession(authOptions as any);
   apiPerf?.mark('session_resolved');
   const userId = (session as any)?.user?.id || null;
-  const isPublicDefaultFeed =
-    !userId &&
-    !q &&
-    !placeParam &&
-    vertical === 'all' &&
-    !searchParams.get('lat') &&
-    !searchParams.get('lng') &&
-    !searchParams.get('subfilters');
+  const cachePolicy = classifyFeedCachePolicy({
+    userId,
+    q,
+    placeParam,
+    vertical,
+    lat: searchParams.get("lat"),
+    lng: searchParams.get("lng"),
+    hasSubfilters: subfilters.length > 0,
+    feedScope,
+    skip: feedSkip,
+    searchParams,
+  });
 
   let lat = searchParams.get("lat");
   let lng = searchParams.get("lng");
@@ -231,13 +299,13 @@ export async function GET(req: NextRequest) {
 
   const effectiveRadius = normalizeFeedRadiusKm(radius);
 
-  // Get Products from both new and old models
-  const [rawProductsFromDb, oldListings, publishedDishes] = await Promise.all([
-    prisma.product.findMany({
+  prismaPerfSetCategory("feed-db");
+  const dbProductStart = performance.now();
+  const dbListingStart = performance.now();
+  const productQuery = prisma.product.findMany({
       where: {
         OR: [
           { isActive: true },
-          // Include inactive products that have orders (products with sales history should remain visible)
           {
             isActive: false,
             orderItems: {
@@ -260,7 +328,7 @@ export async function GET(req: NextRequest) {
         } : {}),
       },
       orderBy: [{ createdAt: "desc" }],
-      take: 100,
+      take: FEED_DB_PRODUCT_CAP,
       select: {
         id: true,
         title: true,
@@ -307,16 +375,21 @@ export async function GET(req: NextRequest) {
             }
           }
         },
-        Image: { 
-          select: { fileUrl: true, sortOrder: true },
+        Image: {
+          select: { sortOrder: true },
           orderBy: { sortOrder: 'asc' }
         },
         Video: {
           select: { url: true, thumbnail: true },
         },
       }
-    }),
-    prisma.listing.findMany({
+    }).then((rows) => {
+      const dbProductMs = Math.round(performance.now() - dbProductStart);
+      apiPerf?.setCounts({ dbProductMs });
+      return rows;
+    });
+
+  const listingQuery = prisma.listing.findMany({
       where: {
         isPublic: true,
         ...(q ? buildListingTextSearchWhere(q) : {}),
@@ -329,7 +402,7 @@ export async function GET(req: NextRequest) {
         } : {})
       },
       orderBy: [{ createdAt: "desc" }],
-      take: 50,
+      take: FEED_DB_LISTING_CAP,
       include: {
         User: {
           select: {
@@ -352,11 +425,36 @@ export async function GET(req: NextRequest) {
           orderBy: { order: 'asc' }
         }
       }
-    }),
-    // Haal gepubliceerde dishes op
-    prisma.dish.findMany({
+    }).then((rows) => {
+      const dbListingMs = Math.round(performance.now() - dbListingStart);
+      apiPerf?.setCounts({ dbListingMs });
+      return rows;
+    });
+
+  const [rawProductsFromDb, oldListings] = await Promise.all([
+    productQuery,
+    listingQuery,
+  ]);
+  apiPerf?.mark('db_product_listing_done');
+
+  const productIdsForMetadata = rawProductsFromDb.map((p) => p.id);
+  const productImageMetadataPromise = loadProductImageMetadata(productIdsForMetadata);
+
+  const linkedProductIds = rawProductsFromDb
+    .filter(passesFeedProductStripeFilter)
+    .map((product) => product.id);
+
+  const linkedIdsNeedingDonor = rawProductsFromDb
+    .filter(passesFeedProductStripeFilter)
+    .filter((product) => productNeedsLinkedDishMedia(product.Image.length))
+    .map((product) => product.id);
+
+  const dbDishStart = performance.now();
+  const dbLinkedStart = performance.now();
+  const dishQuery = prisma.dish.findMany({
       where: {
         status: "PUBLISHED",
+        ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
         ...(q ? buildDishTextSearchWhere(q) : {}),
         ...(lat && lng && effectiveRadius > 0 ? {
           lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
@@ -365,7 +463,7 @@ export async function GET(req: NextRequest) {
         ...(productCategory ? { category: productCategory } : {}),
       },
       orderBy: [{ createdAt: "desc" }],
-      take: 50,
+      take: FEED_DB_DISH_CAP,
       include: {
         user: {
           select: {
@@ -383,8 +481,8 @@ export async function GET(req: NextRequest) {
             stripeConnectOnboardingCompleted: true,
           },
         },
-        photos: { 
-          select: { url: true, idx: true },
+        photos: {
+          select: { idx: true },
           orderBy: { idx: 'asc' }
         },
         videos: {
@@ -393,15 +491,67 @@ export async function GET(req: NextRequest) {
           take: 1,
         },
       }
-    })
+    }).then((rows) => {
+      const dbDishMs = Math.round(performance.now() - dbDishStart);
+      apiPerf?.setCounts({ dbDishMs });
+      return rows;
+    });
+
+  const linkedMediaQuery =
+    linkedIdsNeedingDonor.length > 0
+      ? prisma.dish.findMany({
+          where: { id: { in: linkedIdsNeedingDonor }, status: "PUBLISHED" },
+          select: {
+            id: true,
+            videos: {
+              select: { url: true, thumbnail: true },
+              orderBy: { createdAt: 'desc' as const },
+              take: 1,
+            },
+          },
+        }).then((rows) => {
+          const dbLinkedMediaMs = Math.round(performance.now() - dbLinkedStart);
+          apiPerf?.setCounts({ dbLinkedMediaMs });
+          return rows;
+        })
+      : Promise.resolve([]).then((rows) => {
+          apiPerf?.setCounts({ dbLinkedMediaMs: 0 });
+          return rows;
+        });
+
+  const [publishedDishes, linkedDishMediaRows, productImageMetadata] =
+    await Promise.all([
+      dishQuery,
+      linkedMediaQuery,
+      productImageMetadataPromise,
+    ]);
+  apiPerf?.mark('db_dish_linked_done');
+
+  const dishIdsForMetadata = [
+    ...publishedDishes.map((d) => d.id),
+    ...linkedIdsNeedingDonor,
+  ];
+  const dishPhotoMetadata = await loadDishPhotoMetadata([
+    ...new Set(dishIdsForMetadata),
   ]);
+
+  const linkedDishMediaById = new Map(
+    linkedDishMediaRows.map((row) => [
+      row.id,
+      linkedDishMediaFromPhotoMetadata(
+        row.id,
+        dishPhotoMetadata.get(row.id) ?? [],
+        row.videos,
+      ),
+    ]),
+  );
 
   apiPerf?.mark('db_parallel_done');
   apiPerf?.setCounts({
     productsDb: rawProductsFromDb.length,
     listingsDb: oldListings.length,
     dishesDb: publishedDishes.length,
-    prismaQueryBatches: 1,
+    prismaQueryBatches: 2,
   });
 
   const activeProductsFromDb = rawProductsFromDb.length;
@@ -409,13 +559,7 @@ export async function GET(req: NextRequest) {
     (p) => (p.priceCents ?? 0) > 0
   ).length;
 
-  const allNewProducts = rawProductsFromDb.filter((product) => {
-    if (isContactOnlyProduct(product)) return true;
-    if (!product.priceCents || product.priceCents === 0) return true;
-    const seller = product.seller?.User;
-    if (!seller?.stripeConnectAccountId) return true;
-    return !isStripeTestId(seller.stripeConnectAccountId);
-  });
+  const allNewProducts = rawProductsFromDb.filter(passesFeedProductStripeFilter);
 
   // Transform dishes to match new product format
   const transformedDishes = publishedDishes.map((dish) => {
@@ -434,7 +578,12 @@ export async function GET(req: NextRequest) {
       dish.user?.stripeConnectOnboardingCompleted
     );
     const dishSettlement = legacyFeedSettlementBooleans(dishPriceCents, dishStripeReady);
-    return {
+    const dishMedia = resolveFeedUrlsFromMetadata(
+      'dish',
+      dish.id,
+      dishPhotoMetadata.get(dish.id) ?? [],
+    );
+    const row = {
     id: dish.id,
     feedSource: 'DISH' as const,
     type: 'dish' as const,
@@ -461,8 +610,8 @@ export async function GET(req: NextRequest) {
       displayFullName: dish.user.displayFullName,
       displayNameOption: dish.user.displayNameOption
     },
-    images: dish.photos.map(photo => photo.url),
-    image: dish.photos[0]?.url || null,
+    images: dishMedia.images,
+    image: dishMedia.image,
     videos:
       dish.videos?.length > 0
         ? dish.videos.map((v) => ({
@@ -487,6 +636,15 @@ export async function GET(req: NextRequest) {
       displayNameOption: dish.user.displayNameOption
     }
   };
+    imageTraceById.set(dish.id, {
+      feedSource: 'DISH',
+      rawProductImage: null,
+      rawProductImageKind: dishMedia.image
+        ? classifyFeedMediaUrl(dishMedia.image)
+        : 'empty',
+      mappedImage: dishMedia.image,
+    });
+    return row;
   });
 
   // Transform old listings to match new product format
@@ -524,10 +682,28 @@ export async function GET(req: NextRequest) {
     createdAt: listing.createdAt,
     updatedAt: listing.createdAt,
     User: listing.User,
-    image: listing.ListingMedia?.[0]?.url || null, // Add main image field
-    images: listing.ListingMedia?.map(media => media.url) || [], // All images for slider
-    ListingMedia: listing.ListingMedia.map(media => ({
-      url: media.url,
+    image:
+      resolveFeedMediaUrlForResponse(listing.ListingMedia?.[0]?.url, {
+        entity: 'listing',
+        id: listing.id,
+        index: 0,
+      }) ?? null,
+    images: (listing.ListingMedia ?? [])
+      .map((media, index) =>
+        resolveFeedMediaUrlForResponse(media.url, {
+          entity: 'listing',
+          id: listing.id,
+          index,
+        }),
+      )
+      .filter((u): u is string => Boolean(u)),
+    ListingMedia: listing.ListingMedia.map((media, index) => ({
+      url:
+        resolveFeedMediaUrlForResponse(media.url, {
+          entity: 'listing',
+          id: listing.id,
+          index,
+        }) ?? media.url,
       order: media.order,
       isMain: media.order === 0
     })),
@@ -546,7 +722,13 @@ export async function GET(req: NextRequest) {
   const transformedProducts = allNewProducts.map((product) => {
     const productCoords = resolveProductCoords(product);
     const productPlace = resolveProductPlaceLabel(product);
-    return {
+    const productMedia = resolveFeedUrlsFromMetadata(
+      'product',
+      product.id,
+      productImageMetadata.get(product.id) ?? [],
+    );
+    const productMediaRows = productImageMetadata.get(product.id) ?? [];
+    const base = {
     id: product.id,
     feedSource: 'PRODUCT' as const,
     ownerId: product.seller?.User?.id || "",
@@ -579,12 +761,20 @@ export async function GET(req: NextRequest) {
     createdAt: product.createdAt,
     updatedAt: product.createdAt,
     User: product.seller?.User || null,
-    image: product.Image?.[0]?.fileUrl || null, // Add main image field
-    images: product.Image?.map(img => img.fileUrl) || [], // All images for slider
-    ListingMedia: product.Image.map(img => ({
-      url: img.fileUrl,
-      order: img.sortOrder,
-      isMain: img.sortOrder === 0
+    image: productMedia.image,
+    images: productMedia.images,
+    ListingMedia: productMediaRows.map((row, index) => ({
+      url: row.httpUrl
+        ? resolveFeedMediaUrlForResponse(row.httpUrl, {
+            entity: 'product',
+            id: product.id,
+            index,
+          }) ?? row.httpUrl
+        : row.isLegacyInline
+          ? buildFeedMediaProxyUrl('product', product.id, index)
+          : null,
+      order: row.sortOrder,
+      isMain: row.sortOrder === 0
     })),
     seller: product.seller ? {
       id: product.seller.User?.id || undefined,
@@ -613,10 +803,26 @@ export async function GET(req: NextRequest) {
     videoUrl: product.Video?.url ?? null,
     primaryVideoUrl: product.Video?.url ?? null,
   };
+    const donor = linkedDishMediaById.get(product.id);
+    const merged = donor ? mergeLinkedFeedItemMedia(base, donor) : base;
+    const hasLegacyInline = productMediaRows.some((row) => row.isLegacyInline);
+    imageTraceById.set(product.id, {
+      feedSource: 'PRODUCT',
+      rawProductImage: hasLegacyInline ? 'data:[metadata]' : null,
+      rawProductImageKind: hasLegacyInline
+        ? 'data'
+        : productMedia.image
+          ? classifyFeedMediaUrl(productMedia.image)
+          : 'empty',
+      linkedDishPhoto: donor?.image ?? null,
+      mappedImage: merged.image ?? null,
+    });
+    return merged;
   });
 
-  // Combine all items
-  const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes];
+  const combinedRaw = [...transformedProducts, ...transformedListings, ...transformedDishes];
+  const { items: allItems, dropped: crossSourceDropped } =
+    deduplicateCrossSourceFeedItems(combinedRaw);
   apiPerf?.mark('transform_done');
 
   /** Binnen ~7 dagen licht voorrang voor makers die je volgt (tie-break, geen harde filter). */
@@ -643,9 +849,11 @@ export async function GET(req: NextRequest) {
     extractCoords: (item) => extractItemLatLng(item),
   });
 
+  const enrichmentPoolCap = computeEnrichmentPoolCap(feedSkip, feedTake);
+
   const marketplacePool = sortedPool
     .filter((item) => isMarketplaceSaleItem(item as Record<string, unknown>))
-    .slice(0, FEED_DISCOVERY_POOL_CAP) as typeof allItems;
+    .slice(0, enrichmentPoolCap) as typeof allItems;
 
   const nonMarketplaceTail = sortedPool.filter(
     (item) => !isMarketplaceSaleItem(item as Record<string, unknown>),
@@ -654,6 +862,7 @@ export async function GET(req: NextRequest) {
   const enrichTargets = marketplacePool as typeof allItems;
 
   // Get view counts, review counts, and average ratings for discovery pool
+  prismaPerfSetCategory("stats");
   const allItemIds = enrichTargets.map(item => item.id);
   if (allItemIds.length > 0) {
     const [viewCounts, reviewCounts, avgRatings, favoriteCounts] = await Promise.all([
@@ -733,26 +942,28 @@ export async function GET(req: NextRequest) {
   }
   apiPerf?.mark('stats_enrichment_done');
   
-  const sellerIdsForBadges: string[] = [];
-  const seenBadges = new Set<string>();
-  for (const item of enrichTargets) {
-    const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
-    if (!uid || seenBadges.has(uid)) continue;
-    seenBadges.add(uid);
-    sellerIdsForBadges.push(uid);
-  }
+  const sellerIdsForBadges = collectUniqueSellerUserIds(
+    enrichTargets as Array<Record<string, unknown>>,
+    extractFeedItemSellerUserId,
+  );
   const badgeMap =
     sellerIdsForBadges.length > 0
       ? await fetchAuthorBadgeSummariesByUserIds(sellerIdsForBadges, 2)
       : new Map<string, { key: string; name: string; icon: string }[]>();
-  let trustBundles: Awaited<ReturnType<typeof fetchSellerTrustBundles>> =
-    new Map();
+  let trustTiming: import('@/lib/feed/trust-enrichment-timing').TrustEnrichmentTiming | null =
+    null;
+  let trustBundles: Awaited<
+    ReturnType<typeof fetchSellerTrustBundlesWithTiming>
+  >['bundles'] = new Map();
+  prismaPerfSetCategory("trust");
   if (sellerIdsForBadges.length > 0) {
     try {
-      trustBundles = await fetchSellerTrustBundles(
+      const trustResult = await fetchSellerTrustBundlesWithTiming(
         sellerIdsForBadges,
         badgeMap,
       );
+      trustBundles = trustResult.bundles;
+      trustTiming = trustResult.timing;
     } catch (e) {
       console.error("[feed] trust enrichment:", e);
     }
@@ -768,30 +979,9 @@ export async function GET(req: NextRequest) {
     sellerTrustLookups: sellerIdsForBadges.length,
     discoveryPool: enrichTargets.length,
     prismaQueryBatches: 3,
+    trustTotalMs: trustTiming?.totalMs,
+    statsPreviewDeferred: STATS_PREVIEW_DEFERRED,
   });
-
-  let statsPreview:
-    | Awaited<ReturnType<typeof batchComputeUserStatsPreview>>
-    | undefined;
-  try {
-    const previewIds: string[] = [];
-    const seen = new Set<string>();
-    for (const item of enrichTargets) {
-      const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
-      if (!uid || seen.has(uid)) continue;
-      seen.add(uid);
-      previewIds.push(uid);
-      if (previewIds.length >= STATS_PREVIEW_SELLER_CAP) break;
-    }
-    if (previewIds.length > 0) {
-      const computed = await batchComputeUserStatsPreview(previewIds);
-      if (Object.keys(computed).length > 0) {
-        statsPreview = computed;
-      }
-    }
-  } catch (e) {
-    console.error("[feed] statsPreview:", e);
-  }
 
   for (const item of enrichTargets) {
     const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
@@ -804,8 +994,10 @@ export async function GET(req: NextRequest) {
       }),
     );
   }
+  apiPerf?.mark('discovery_attach_done');
 
   let discoveryFeed: DiscoveryFeedPayload | null = null;
+  prismaPerfSetCategory("enrichment");
   if (isFirstPage) {
     try {
       discoveryFeed = buildDiscoveryFeed({
@@ -819,6 +1011,7 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       console.error("[feed] discovery sections:", e);
     }
+    apiPerf?.mark('discovery_sections_done');
 
     if (discoveryFeed && userId) {
       try {
@@ -878,6 +1071,10 @@ export async function GET(req: NextRequest) {
         console.error("[feed] activity cards:", e);
       }
     }
+    apiPerf?.mark('activity_slots_done');
+  } else {
+    apiPerf?.mark('discovery_sections_done');
+    apiPerf?.mark('activity_slots_done');
   }
   apiPerf?.mark('discovery_done');
 
@@ -940,6 +1137,10 @@ export async function GET(req: NextRequest) {
           );
           return {
             scope: feedScope,
+            cacheTier: cachePolicy.tier,
+            cacheReasons: cachePolicy.reasons,
+            statsPreviewDeferred: STATS_PREVIEW_DEFERRED,
+            trustTiming: buildTrustTimingDebugPayload(trustTiming),
             searchFilters,
             activeProductsFromDb,
             productsWithPrice,
@@ -947,7 +1148,9 @@ export async function GET(req: NextRequest) {
             transformedProducts: transformedProducts.length,
             transformedListings: transformedListings.length,
             transformedDishes: transformedDishes.length,
-            combinedBeforeSort: allItems.length,
+            crossSourceDropped: crossSourceDropped.length,
+            combinedBeforeSort: combinedRaw.length,
+            combinedAfterDedup: allItems.length,
             finalFeedItems: pageItems.length,
             feedTotal,
             feedTake,
@@ -958,11 +1161,39 @@ export async function GET(req: NextRequest) {
               responseItems as Record<string, unknown>[]
             ),
             discoveryPool: enrichTargets.length,
+            linkedMediaDonorCount: linkedIdsNeedingDonor.length,
+            linkedMediaSkippedCount: linkedProductIds.length - linkedIdsNeedingDonor.length,
+            productMetadataCount: productImageMetadata.size,
+            dishMetadataCount: dishPhotoMetadata.size,
+            candidateWindow: {
+              dbProductCap: FEED_DB_PRODUCT_CAP,
+              dbListingCap: FEED_DB_LISTING_CAP,
+              dbDishCap: FEED_DB_DISH_CAP,
+              enrichmentPoolCap,
+            },
             discoverySections: discoveryFeed?.sections.map((s) => ({
               id: s.sectionId,
               count: s.listingIds.length,
             })),
             discoveryMetrics: discoveryFeed?.metrics,
+            imageTrace: pageItems.map((item) => {
+              const id = String(item.id ?? '');
+              const trace = imageTraceById.get(id);
+              const discovery = item.discovery as
+                | { coverImage?: string | null; imageCount?: number }
+                | undefined;
+              return {
+                id,
+                title: item.title,
+                feedSource: trace?.feedSource ?? item.feedSource,
+                rawProductImage: trace?.rawProductImage ?? null,
+                rawProductImageKind: trace?.rawProductImageKind ?? null,
+                linkedDishPhoto: trace?.linkedDishPhoto ?? null,
+                mappedImage: item.image ?? trace?.mappedImage ?? null,
+                discoveryCoverImage: discovery?.coverImage ?? null,
+                discoveryImageCount: discovery?.imageCount ?? 0,
+              };
+            }),
           };
         })()
       : undefined;
@@ -970,14 +1201,8 @@ export async function GET(req: NextRequest) {
   const cors = getCorsHeaders(req);
   const headers: Record<string, string> = {
     ...cors,
-    ...(isPublicDefaultFeed
-      ? { 'Cache-Control': 'public, s-maxage=45, stale-while-revalidate=90' }
-      : {}),
+    ...buildFeedResponseCacheHeaders(cachePolicy),
   };
-  const serverTiming = apiPerf?.toServerTimingHeader();
-  if (serverTiming) {
-    headers['Server-Timing'] = serverTiming;
-  }
 
   const body = {
     filters: {
@@ -996,12 +1221,22 @@ export async function GET(req: NextRequest) {
     pagination,
     ...(isFirstPage && discoveryFeed ? { discovery: discoveryFeed } : {}),
     ...(feedDebug ? { debug: feedDebug } : {}),
-    ...(isFirstPage && statsPreview ? { statsPreview } : {}),
   };
 
-  if (apiPerf && feedDebug && typeof feedDebug === 'object') {
-    const size = JSON.stringify(body).length;
-    (feedDebug as Record<string, unknown>).perf = apiPerf.toPayload(size);
+  if (apiPerf) {
+    apiPerf.setPrismaSnapshot(getPrismaPerfSnapshot());
+    const responseBytesEstimate = JSON.stringify(body).length;
+    apiPerf.mark('serialize_done');
+    if (feedDebug && typeof feedDebug === 'object') {
+      const perfPayload = apiPerf.toPayload(responseBytesEstimate);
+      perfPayload.trustTiming = buildTrustTimingDebugPayload(trustTiming);
+      (feedDebug as Record<string, unknown>).perf = perfPayload;
+    }
+    const serverTiming = apiPerf.toServerTimingHeader();
+    if (serverTiming) {
+      headers['Server-Timing'] = serverTiming;
+      headers['Access-Control-Expose-Headers'] = 'Server-Timing';
+    }
   }
 
   return NextResponse.json(body, { headers });

@@ -1,4 +1,22 @@
 /** @type {import('next').NextConfig} */
+import path from 'path';
+import { fileURLToPath } from 'url';
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const feedPerfBaselineMountActive = path.join(
+  __dirname,
+  'components/performance/FeedPerfBaselineMount.tsx',
+);
+const feedPerfBaselineMountNoop = path.join(
+  __dirname,
+  'components/performance/FeedPerfBaselineMount.noop.tsx',
+);
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -169,7 +187,7 @@ const nextConfig = {
   // Can be disabled per Link with prefetch={false}
   reactStrictMode: true,
   // Simplified webpack config to handle LightningCSS issues
-  webpack: (config, { isServer, dev }) => {
+  webpack: (config, { isServer, dev, webpack }) => {
     // Handle module resolution issues
     config.resolve.fallback = {
       ...config.resolve.fallback,
@@ -185,6 +203,20 @@ const nextConfig = {
       '@tailwindcss/node': false,
       '@tailwindcss/postcss': false,
     };
+
+    // Phase 2B: omit perf client chunks unless NEXT_PUBLIC_FEED_PERF_BASELINE=1 at build time.
+    if (process.env.NEXT_PUBLIC_FEED_PERF_BASELINE !== '1') {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        [feedPerfBaselineMountActive]: feedPerfBaselineMountNoop,
+      };
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /components[\\/]performance[\\/]FeedPerfBaselineMount$/,
+          feedPerfBaselineMountNoop,
+        ),
+      );
+    }
 
     // Exclude from server-side builds
     if (isServer) {
@@ -264,4 +296,4 @@ const nextConfig = {
     return config;
   },
 };
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);
