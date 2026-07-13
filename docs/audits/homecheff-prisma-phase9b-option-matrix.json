@@ -1,0 +1,93 @@
+{
+  "generated_at": "2026-07-13T14:00:00.000Z",
+  "prisma_version": "6.16.2",
+  "recommended_primary": "A_archive_baseline_root",
+  "recommended_fallback": "B_dual_prisma_config",
+  "cutoff": {
+    "date": "2026-07-13",
+    "baseline_migration_name": "20260714_greenfield_current_state_baseline"
+  },
+  "options": [
+    {
+      "id": "A",
+      "name": "Archive historical migrations; baseline becomes new root",
+      "officially_supported": true,
+      "shared_neon_risk": "low",
+      "greenfield_risk": "low",
+      "manual_prisma_migrations_edit": false,
+      "migrate_status_after": "applied_but_missing_for_archived",
+      "deploy_new_migrations": true,
+      "developer_complexity": "low",
+      "ci_friendly": true,
+      "verdict": "recommended_primary"
+    },
+    {
+      "id": "B",
+      "name": "Two Prisma configurations (historical / greenfield)",
+      "officially_supported": true,
+      "shared_neon_risk": "low",
+      "greenfield_risk": "medium",
+      "manual_prisma_migrations_edit": false,
+      "migrate_status_after": "unchanged_on_shared_track",
+      "deploy_new_migrations": true,
+      "developer_complexity": "medium",
+      "ci_friendly": "medium",
+      "verdict": "fallback_if_archive_blocked"
+    },
+    {
+      "id": "C",
+      "name": "Baseline outside migration root (bootstrap SQL + resolve)",
+      "officially_supported": "partial",
+      "shared_neon_risk": "high_if_baseline_sql_on_shared",
+      "greenfield_risk": "low",
+      "manual_prisma_migrations_edit": false,
+      "migrate_status_after": "same_as_A_after_promote",
+      "deploy_new_migrations": true,
+      "developer_complexity": "medium",
+      "ci_friendly": true,
+      "verdict": "greenfield_subflow_only"
+    },
+    {
+      "id": "D",
+      "name": "New migration npm package",
+      "officially_supported": false,
+      "shared_neon_risk": "medium",
+      "greenfield_risk": "medium",
+      "manual_prisma_migrations_edit": false,
+      "migrate_status_after": "custom",
+      "deploy_new_migrations": "custom",
+      "developer_complexity": "high",
+      "ci_friendly": false,
+      "verdict": "reject"
+    },
+    {
+      "id": "E",
+      "name": "One-time history cutover",
+      "officially_supported": false,
+      "shared_neon_risk": "critical",
+      "greenfield_risk": "high",
+      "manual_prisma_migrations_edit": true,
+      "migrate_status_after": "unpredictable",
+      "deploy_new_migrations": false,
+      "developer_complexity": "high",
+      "ci_friendly": false,
+      "verdict": "forbidden"
+    }
+  ],
+  "official_prisma_capabilities": {
+    "prisma_config_ts": { "supported": true, "since": "6.12" },
+    "multiple_schema_files": { "supported": true, "recommended_for_homecheff": false },
+    "multiple_migration_roots_simultaneous": { "supported": false },
+    "alternate_migration_root": { "supported": true, "via": "prisma.config.ts migrations.path" },
+    "cli_schema_flag": { "supported": true },
+    "workspace_monorepo": { "supported": true, "recommended_for_homecheff": false }
+  },
+  "go_hold": {
+    "architecture_commit": "GO",
+    "archive_historical_migrations": "HOLD",
+    "disposable_database_test": "HOLD",
+    "developer_onboarding": "HOLD",
+    "merge_to_main": "HOLD",
+    "shared_neon_migrate_deploy": "HOLD"
+  }
+}

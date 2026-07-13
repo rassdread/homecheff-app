@@ -56,8 +56,9 @@ function main(): number {
     { pattern: /GREENFIELD_DATABASE_URL/, label: "GREENFIELD_DATABASE_URL explicit env" },
     { pattern: /ep-summer-darkness-a2l0745u/i, label: "blocked shared Neon host" },
     { pattern: /homecheff\\\.eu/, label: "blocked homecheff.eu" },
-    { pattern: /--execute/, label: "--execute flag" },
+    { pattern: /--execute|--mode/, label: "--execute or --mode flag" },
     { pattern: /DRY-RUN|dry-run/i, label: "dry-run default" },
+    { pattern: /migration-tracks\.config\.json|migration_root/, label: "migration root reporting" },
   ];
 
   for (const { pattern, label } of requiredPatterns) {

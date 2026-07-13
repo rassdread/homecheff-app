@@ -1,16 +1,20 @@
 /**
- * Disposable greenfield database test — Phase 9 / 9A.
+ * Disposable greenfield database test — Phase 9B.
  *
  * DEFAULT: dry-run only (no DB writes, no .env.local).
+ *
+ * Modes (explicit):
+ *   --mode dry-run   (default) plan only
+ *   --mode greenfield  same as --execute (disposable DB)
  *
  * Execute (disposable DB only):
  *   export GREENFIELD_DATABASE_URL="postgresql://..."
  *   export GREENFIELD_TEST_ACK=I_UNDERSTAND_DISPOSABLE
- *   npx tsx scripts/run-disposable-greenfield-test.ts --execute
+ *   npx tsx scripts/run-disposable-greenfield-test.ts --mode greenfield
  *
  * Cleanup (optional, destructive):
  *   export GREENFIELD_CLEANUP_ACK=I_UNDERSTAND_CLEANUP
- *   npx tsx scripts/run-disposable-greenfield-test.ts --execute --cleanup
+ *   npx tsx scripts/run-disposable-greenfield-test.ts --mode greenfield --cleanup
  */
 import { execSync } from "node:child_process";
 import crypto from "node:crypto";
@@ -23,6 +27,7 @@ const SCHEMA_SQL = path.join(BASELINE_DIR, "schema_baseline.sql");
 const SEED_SQL = path.join(BASELINE_DIR, "system_seed.sql");
 const MANIFEST = path.join(BASELINE_DIR, "manifest.json");
 const REPORT_DIR = path.join(ROOT, "docs/audits");
+const TRACKS_CONFIG = path.join(ROOT, "prisma/migration-tracks.config.json");
 const MIGRATIONS_DIR = path.join(ROOT, "prisma/migrations");
 const BASELINE_MIGRATION = "20260714_greenfield_current_state_baseline";
 const BASELINE_PREVIEW = path.join(
@@ -41,12 +46,46 @@ const BLOCKED_URL_PATTERNS = [
 
 type StepResult = { step: string; ok: boolean; detail?: unknown };
 
-function parseArgs() {
+type RunMode = "dry-run" | "greenfield";
+
+function parseArgs(): { mode: RunMode; includeSentinel: boolean; cleanup: boolean } {
   const args = process.argv.slice(2);
+  const modeIdx = args.indexOf("--mode");
+  let mode: RunMode = "dry-run";
+  if (modeIdx >= 0 && args[modeIdx + 1] === "greenfield") {
+    mode = "greenfield";
+  } else if (modeIdx >= 0 && args[modeIdx + 1] === "dry-run") {
+    mode = "dry-run";
+  } else if (args.includes("--execute")) {
+    mode = "greenfield";
+  }
   return {
-    execute: args.includes("--execute"),
+    mode,
     includeSentinel: args.includes("--include-sentinel"),
     cleanup: args.includes("--cleanup"),
+  };
+}
+
+function loadMigrationRoot(): {
+  migrations_dir: string;
+  schema: string;
+  archive_dir: string;
+  baseline: string;
+} {
+  if (fs.existsSync(TRACKS_CONFIG)) {
+    const cfg = JSON.parse(fs.readFileSync(TRACKS_CONFIG, "utf8"));
+    return {
+      migrations_dir: cfg.tracks?.greenfield?.migrations_dir ?? "prisma/migrations",
+      schema: cfg.tracks?.greenfield?.schema ?? "prisma/schema.prisma",
+      archive_dir: cfg.tracks?.shared?.archive_dir ?? "prisma/migrations-archive/pre-20260714-greenfield",
+      baseline: cfg.cutoff?.baseline_migration_name ?? BASELINE_MIGRATION,
+    };
+  }
+  return {
+    migrations_dir: "prisma/migrations",
+    schema: "prisma/schema.prisma",
+    archive_dir: "prisma/migrations-archive/pre-20260714-greenfield",
+    baseline: BASELINE_MIGRATION,
   };
 }
 
@@ -130,9 +169,14 @@ function writeReport(name: string, body: object): string {
   return file;
 }
 
-function runReadOnlyValidators(): void {
+function runReadOnlyValidators(strictCutoff: boolean): void {
   runCmdInherit("npx tsx scripts/validate-current-state-baseline.ts", process.env);
   runCmdInherit("npx tsx scripts/validate-disposable-greenfield-safety.ts", process.env);
+  runCmdInherit(
+    `npx tsx scripts/validate-migration-cutoff.ts${strictCutoff ? " --strict" : ""}`,
+    process.env
+  );
+  runCmdInherit("npx tsx scripts/validate-dual-track-migration-config.ts", process.env);
 }
 
 function buildPlan(includeSentinel: boolean, cleanup: boolean) {
@@ -172,23 +216,40 @@ function buildPlan(includeSentinel: boolean, cleanup: boolean) {
 }
 
 async function main(): Promise<void> {
-  const { execute, includeSentinel, cleanup } = parseArgs();
+  const { mode, includeSentinel, cleanup } = parseArgs();
+  const execute = mode === "greenfield";
   const started = new Date().toISOString();
   const steps: StepResult[] = [];
+  const track = loadMigrationRoot();
+  const migrationsDirAbs = path.join(ROOT, track.migrations_dir);
 
-  console.log("HomeCheff Phase 9A — disposable greenfield test\n");
-  console.log(`Mode: ${execute ? "EXECUTE" : "DRY-RUN"}\n`);
+  console.log("HomeCheff Phase 9B — disposable greenfield test\n");
+  console.log(`Mode: ${mode}\n`);
+  console.log(`Migration root: ${track.migrations_dir}`);
+  console.log(`Schema: ${track.schema}`);
+  console.log(`Archive (shared pre-cutoff): ${track.archive_dir}\n`);
 
   if (!fs.existsSync(SCHEMA_SQL)) throw new Error(`Missing ${SCHEMA_SQL}`);
 
   const manifest = JSON.parse(fs.readFileSync(MANIFEST, "utf8"));
-  runReadOnlyValidators();
+  runReadOnlyValidators(execute);
+
+  const activeFolders = fs.existsSync(migrationsDirAbs)
+    ? fs
+        .readdirSync(migrationsDirAbs)
+        .filter((n) => fs.existsSync(path.join(migrationsDirAbs, n, "migration.sql")))
+        .sort()
+    : [];
 
   const plan = {
     started_at: started,
-    mode: execute ? "execute" : "dry-run",
+    mode,
+    migration_root: track.migrations_dir,
+    schema: track.schema,
+    archive_dir: track.archive_dir,
+    active_migration_folders: activeFolders,
     baseline_version: manifest.baseline_version,
-    baseline_migration: BASELINE_MIGRATION,
+    baseline_migration: track.baseline,
     steps: buildPlan(includeSentinel, cleanup),
     required_env_execute: [
       "GREENFIELD_DATABASE_URL",
@@ -206,7 +267,7 @@ async function main(): Promise<void> {
     console.log("\nExecute when approved:");
     console.log('  export GREENFIELD_TEST_ACK=I_UNDERSTAND_DISPOSABLE');
     console.log('  export GREENFIELD_DATABASE_URL="postgresql://..."');
-    console.log("  npx tsx scripts/run-disposable-greenfield-test.ts --execute");
+    console.log("  npx tsx scripts/run-disposable-greenfield-test.ts --mode greenfield");
     return;
   }
 
@@ -248,7 +309,6 @@ async function main(): Promise<void> {
     throw e;
   }
 
-  const activeFolders = listActiveMigrations();
   const onlyBaseline = activeFolders.length === 1 && activeFolders[0] === BASELINE_MIGRATION;
 
   try {
