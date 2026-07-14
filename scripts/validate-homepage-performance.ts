@@ -52,19 +52,22 @@ const resumeCache = read('lib/appResumeCache.ts');
 // --- Server seed (no empty first paint) ---------------------------------
 console.log('4.1/4.3 Server-seeded first content');
 assert(
-  homePage.includes('getInspiratieItems') && homePage.includes('HomePageClient'),
-  'homepage server component seeds initial items into the client',
+  homePage.includes('HomePageClient') && homePage.includes('getServerSession'),
+  'homepage server component passes SSR auth hint (no heavy inspiratie SSR)',
 );
 assert(/export const revalidate\s*=/.test(homePage), 'homepage sets ISR revalidate');
 
 // --- Single feed fetch (no duplicate fetch) -----------------------------
 console.log('\n4.1/4.4 Single, abortable feed fetch');
 assert(count(geoFeed, 'fetch(feedUrl') === 1, 'exactly one /api/feed fetch call');
-assert(count(geoFeed, '`/api/feed?${') === 1, 'exactly one /api/feed URL builder');
+assert(
+  count(geoFeed, 'const feedUrl = `/api/feed?${') === 1,
+  'exactly one primary /api/feed URL builder',
+);
 assert(geoFeed.includes('new AbortController()'), 'feed fetch is abortable');
 assert(
-  geoFeed.includes('Promise.all([feedP, inspP])'),
-  'feed + inspiration fetched in parallel (not serial awaits)',
+  geoFeed.includes('/api/inspiratie?') && geoFeed.includes('feedHydrated'),
+  'inspiration deferred until feed hydrated (not serial with feed fetch)',
 );
 
 // --- Instant return cache + stale-while-revalidate ----------------------
@@ -151,10 +154,12 @@ assert(
 // --- No double mount ----------------------------------------------------
 console.log('\n4.5 No double feed mount');
 assert(
-  homeClient.includes('showMobileHomeFeed') &&
-    homeClient.includes('showDesktopHomeFeed') &&
-    homeClient.includes('viewportResolved'),
-  'exactly one GeoFeed tree renders per resolved viewport',
+  count(homeClient, '<GeoFeed') === 1,
+  'exactly one GeoFeed instance on homepage',
+);
+assert(
+  homeClient.includes('homeComposedLayout={showDesktopComposedLayout}'),
+  'viewport layout toggles via prop (no dual mount trees)',
 );
 
 // --- summary -------------------------------------------------------------

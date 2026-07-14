@@ -1,0 +1,44 @@
+{
+  "phase": "3F-Wave-1",
+  "branch": "performance/phase3f-first-paint",
+  "generatedAt": "2026-07-14T00:30:00.000Z",
+  "homepageCriticalPath": {
+    "removed": [
+      "getInspiratieItems({ take: 24 }) SSR in app/page.tsx",
+      "initialInspiratieItems RSC serialization",
+      "HomeFeedViewportShell gate before GeoFeed mount",
+      "Dual mobile/desktop GeoFeed mount trees"
+    ],
+    "added": [
+      "getServerSession → ssrAuthHint (lightweight SSR auth hint)",
+      "anonymous-session-fast-path.ts",
+      "Single GeoFeed with homeComposedLayout prop toggle",
+      "useNarrowViewportResolved resolved:true from first render"
+    ],
+    "unchanged": [
+      "GeoFeed static import (Wave 2)",
+      "Deferred /api/inspiratie after feedHydrated",
+      "Feed API / CDN / cache policy",
+      "Prisma schema and migrations"
+    ]
+  },
+  "filesChanged": [
+    "app/page.tsx",
+    "components/home/HomePageClient.tsx",
+    "components/feed/GeoFeed.tsx",
+    "hooks/useNarrowViewport.ts",
+    "lib/feed/anonymous-session-fast-path.ts",
+    "lib/feed/feed-performance-baseline.ts",
+    "scripts/validate-homepage-performance.ts",
+    "scripts/validate-homepage-no-ssr-inspiratie-phase3f6.ts",
+    "scripts/validate-anonymous-session-fast-path-phase3f5.ts",
+    "scripts/validate-homepage-viewport-fast-path-phase3f5.ts",
+    "scripts/validate-homepage-first-paint-contract-phase3fw1.ts",
+    "scripts/probe-homepage-html-phase3fw1.ts"
+  ],
+  "htmlInventory": {
+    "beforeProdBytes": 4247538,
+    "afterLocalBytes": 146275,
+    "reductionPct": 96.6
+  }
+}

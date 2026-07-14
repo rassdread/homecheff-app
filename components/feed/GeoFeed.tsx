@@ -172,6 +172,12 @@ import {
   installFeedPerfBaselineReporter,
   isFeedPerfBaselineEnabled,
 } from "@/lib/feed/feed-performance-baseline";
+import {
+  isAwaitingSessionResolution,
+  recordSessionFastPathObservability,
+  shouldBypassSessionLoadingGate,
+  type SsrAuthHint,
+} from "@/lib/feed/anonymous-session-fast-path";
 import { logFeedImageTrace } from "@/lib/feed/feed-image-trace-client";
 import { scheduleDeferredFeedStatsPreview } from "@/lib/feed/feed-deferred-stats-preview";
 import {
@@ -851,6 +857,8 @@ function initialDorpspleinCategoryFromServer(raw?: string): string {
 }
 
 type GeoFeedProps = {
+  /** SSR session hint — anonymous enables feed fetch before client session resolves. */
+  ssrAuthHint?: SsrAuthHint;
   initialInspiratieItems?: InspirationItem[];
   /** Optioneel: startfilter vanuit URL (bv. `/?feed=inspiration`) of server searchParams. */
   initialFeedChip?: FeedChip;
@@ -904,6 +912,7 @@ export function useHomeSurfacePlan() {
 const CATEGORY_CHIP_OPTIONS = DISCOVERY_CATEGORY_CHIP_OPTIONS;
 
 export default function GeoFeed({
+  ssrAuthHint,
   initialInspiratieItems = [],
   initialFeedChip,
   initialFeedCategory,
@@ -1209,10 +1218,26 @@ export default function GeoFeed({
     !!session?.user;
 
   const feedStartupBlocked =
-    sessionStatus === "loading" ||
+    isAwaitingSessionResolution(sessionStatus, ssrAuthHint) ||
     (!!session?.user &&
       bootstrapStatus === "loading" &&
       nearbyScopeAwaitingProfileCoords);
+
+  const sessionGateBypassed = shouldBypassSessionLoadingGate(
+    sessionStatus,
+    ssrAuthHint,
+  );
+
+  useEffect(() => {
+    if (sessionGateBypassed) {
+      recordSessionFastPathObservability({
+        anonFastPathUsed: true,
+        sessionGateBypassed: true,
+        sessionResolvedBeforeFetch: sessionStatus === "loading",
+      });
+      feedPerfMark("session:anon-fast-path");
+    }
+  }, [sessionGateBypassed, sessionStatus]);
 
   useEffect(() => {
     feedPerfMarkFeedBlocked(feedStartupBlocked);
@@ -1748,6 +1773,9 @@ export default function GeoFeed({
     feedPerfIncrementFeedFetch(
       feedInteractionStartedRef.current ? "refresh" : "initial",
     );
+    recordSessionFastPathObservability({
+      feedFetchReason: feedInteractionStartedRef.current ? "refresh" : "initial",
+    });
 
     if (feedInteractionStartedRef.current && !backgroundRefresh) {
       if (itemsRef.current.length > 0 || feedHydrated) {

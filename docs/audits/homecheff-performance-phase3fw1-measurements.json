@@ -1,0 +1,54 @@
+{
+  "phase": "3F-Wave-1",
+  "branch": "performance/phase3f-first-paint",
+  "baselineCommit": "5fa92ed",
+  "measuredAt": "2026-07-14T00:28:53.491Z",
+  "before": {
+    "source": "production https://homecheff.eu/",
+    "htmlBytes": 4247538,
+    "htmlKb": 4148,
+    "ttfbMs": 383,
+    "totalDownloadMs": 5489,
+    "rscPushChunks": 55,
+    "blobUrlCount": 1,
+    "dataImageUrlCount": 22,
+    "scriptTagCount": 70,
+    "notes": "Pre-Wave-1 prod still SSR-serializes 24 inspiratie items (audit: ~82 blob photo URLs in HTML)"
+  },
+  "after": {
+    "source": "local production build http://127.0.0.1:3010/",
+    "htmlBytes": 146275,
+    "htmlKb": 143,
+    "ttfbMs": 289,
+    "totalDownloadMs": 296,
+    "rscPushChunks": 11,
+    "blobUrlCount": 0,
+    "dataImageUrlCount": 0,
+    "scriptTagCount": 25,
+    "firstLoadJsSharedKb": 637
+  },
+  "delta": {
+    "htmlBytesReductionPct": 96.6,
+    "htmlBytesSaved": 4101263,
+    "rscPushChunksDelta": -44,
+    "blobUrlCountDelta": -1,
+    "dataImageUrlCountDelta": -22,
+    "scriptTagCountDelta": -45
+  },
+  "scenarios": {
+    "anonymousDesktopCold": {
+      "status": "partial",
+      "notes": "HTML/TTFB measured locally; FP/LCP/first-tile require browser perf baseline flag"
+    },
+    "anonymousDesktopWarm": { "status": "not-run" },
+    "anonymousMobileViewport": { "status": "not-run" },
+    "loggedInDesktop": { "status": "not-run" }
+  },
+  "invariants": {
+    "feedFetchesExpected": 1,
+    "geoFeedMountsExpected": 1,
+    "feedApiChanged": false,
+    "prismaChanged": false,
+    "cdnCacheChanged": false
+  }
+}

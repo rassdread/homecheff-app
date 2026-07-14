@@ -1,4 +1,5 @@
-import { getInspiratieItems } from '@/lib/getInspiratieItems';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import HomePageClient from '@/components/home/HomePageClient';
 import {
   isLegacyServicesViewChip,
@@ -6,6 +7,7 @@ import {
   normalizeDiscoveryCategorySlug,
 } from '@/lib/marketplace/canonical-model';
 import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
+import type { SsrAuthHint } from '@/lib/feed/anonymous-session-fast-path';
 
 export const revalidate = 60;
 
@@ -55,19 +57,21 @@ function resolveHomeFeedDeepLink(
 }
 
 /**
- * Server component: eerste batch inspiratie + optionele feed-chip (/?chip=sale|inspiration|all#homecheff-feed).
+ * Server component: optionele feed-chip (/?chip=sale|inspiration|all#homecheff-feed).
+ * Inspiratie loads client-side after feed hydration (Phase 3F.6 — no SSR payload on /).
  */
 export default async function HomePage({
   searchParams,
 }: {
   searchParams?: { chip?: string; vertical?: string; place?: string; stickyTest?: string };
 }) {
-  let items: Awaited<ReturnType<typeof getInspiratieItems>>['items'] = [];
+  let ssrAuthHint: SsrAuthHint = 'anonymous';
   try {
-    const res = await getInspiratieItems({ take: 24, skip: 0, sortBy: 'newest' });
-    items = res.items;
+    const session = await getServerSession(authOptions);
+    ssrAuthHint = session?.user ? 'authenticated' : 'anonymous';
   } catch (e) {
-    console.error('[HomePage] getInspiratieItems failed:', e);
+    console.error('[HomePage] getServerSession failed:', e);
+    ssrAuthHint = undefined;
   }
 
   const raw = searchParams?.chip;
@@ -80,7 +84,7 @@ export default async function HomePage({
 
   return (
     <HomePageClient
-      initialInspiratieItems={items}
+      ssrAuthHint={ssrAuthHint}
       initialFeedChip={initialFeedChip}
       initialFeedCategory={initialFeedCategory}
       initialFeedPlace={initialFeedPlace}
