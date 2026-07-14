@@ -5,12 +5,15 @@
  * Enable: NODE_ENV=development OR NEXT_PUBLIC_FEED_PERF_BASELINE=1
  */
 
+import { getSessionFastPathObservability } from '@/lib/feed/anonymous-session-fast-path';
+
 export type FeedPerfMilestone =
   | 'nav:start'
   | 'home:shell-mounted'
   | 'home:viewport-resolved'
   | 'session:loading'
   | 'session:resolved'
+  | 'session:anon-fast-path'
   | 'bootstrap:loading'
   | 'bootstrap:resolved'
   | 'feed:blocked-start'
@@ -255,6 +258,8 @@ export function feedPerfCounters(): {
   return { geoFeedMounts: geoFeedMountCount, feedFetches: feedFetchCount };
 }
 
+export { getSessionFastPathObservability } from '@/lib/feed/anonymous-session-fast-path';
+
 export function feedPerfMeasures(): PerformanceMeasure[] {
   if (typeof performance === 'undefined') return [];
   return performance.getEntriesByType('measure').filter((m) => m.name.startsWith(PREFIX));
@@ -270,6 +275,7 @@ export function installFeedPerfBaselineReporter(): void {
     milestones: feedPerfReport(),
     webVitals: feedPerfWebVitals(),
     counters: feedPerfCounters(),
+    sessionFastPath: getSessionFastPathObservability(),
     measures: feedPerfMeasures().map((m) => ({
       name: m.name.replace(PREFIX, ''),
       durationMs: Math.round(m.duration),

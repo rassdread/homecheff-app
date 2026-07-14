@@ -7,7 +7,7 @@ const MQ = "(max-width: 1023px)";
 export type NarrowViewportState = {
   /** True when viewport is below lg (< 1024px). */
   narrow: boolean;
-  /** False until client matchMedia has run (useLayoutEffect). */
+  /** True once viewport is known (Phase 3F.5: true from first render). */
   resolved: boolean;
 };
 
@@ -15,17 +15,18 @@ export type NarrowViewportState = {
  * True op viewports onder lg (mobiel + tablet). Aligns with homepage `lg:hidden` shell.
  */
 export function useNarrowViewport(): boolean {
-  const { narrow, resolved } = useNarrowViewportResolved();
-  return resolved ? narrow : false;
+  const { narrow } = useNarrowViewportResolved();
+  return narrow;
 }
 
 /**
- * Homepage responsive shell: `resolved` gates a single GeoFeed mount after viewport is known.
+ * Homepage responsive shell. Phase 3F.5: `resolved` is true immediately so GeoFeed
+ * mounts without a JS viewport gate; useLayoutEffect refines `narrow` before paint.
  */
 export function useNarrowViewportResolved(): NarrowViewportState {
   const [state, setState] = useState<NarrowViewportState>({
     narrow: false,
-    resolved: false,
+    resolved: true,
   });
 
   useLayoutEffect(() => {

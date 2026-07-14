@@ -3,7 +3,6 @@
 import { useTranslation } from "@/hooks/useTranslation";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import PostAuthPersonaBanner from "@/components/onboarding/PostAuthPersonaBanner";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomeDesktopSidebar from "@/components/home/HomeDesktopSidebar";
@@ -12,7 +11,6 @@ import HomeMobileFeedInsert from "@/components/home/HomeMobileFeedInserts";
 import UserActionCenter from "@/components/home/UserActionCenter";
 import HomeMobileEcosystemStrip from "@/components/home/HomeMobileEcosystemStrip";
 import GeoFeed, { FeedContent } from "@/components/feed/GeoFeed";
-import { HomeFeedViewportShell } from "@/components/navigation/RouteLoadingSkeletons";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
 import {
@@ -22,6 +20,7 @@ import {
 } from "@/lib/appResumeCache";
 import { useVisibleHomePromotionIds } from "@/hooks/useVisibleHomePromotions";
 import { useNarrowViewportResolved } from "@/hooks/useNarrowViewport";
+import type { SsrAuthHint } from "@/lib/feed/anonymous-session-fast-path";
 import {
   feedPerfMark,
   installFeedPerfBaselineReporter,
@@ -46,7 +45,8 @@ function pickFirstName(
 }
 
 type Props = {
-  initialInspiratieItems?: InspirationItem[];
+  /** SSR session hint from getServerSession — enables anonymous feed fast-path. */
+  ssrAuthHint?: SsrAuthHint;
   initialFeedChip?: HomeFeedChip;
   initialFeedCategory?: string;
   initialFeedPlace?: string;
@@ -55,7 +55,7 @@ type Props = {
 };
 
 export default function HomePageClient({
-  initialInspiratieItems = [],
+  ssrAuthHint,
   initialFeedChip,
   initialFeedCategory,
   initialFeedPlace,
@@ -64,20 +64,14 @@ export default function HomePageClient({
   const { t, tOr, language } = useTranslation();
   const { data: session } = useSession();
   const visibleHomePromotionIds = useVisibleHomePromotionIds();
-  const { narrow: isNarrowHome, resolved: viewportResolved } =
-    useNarrowViewportResolved();
+  const { narrow: isNarrowHome } = useNarrowViewportResolved();
 
   useEffect(() => {
     installFeedPerfBaselineReporter();
     feedPerfMark("home:shell-mounted");
+    feedPerfMark("home:viewport-resolved");
+    feedPerfMark("layout:hydration-complete");
   }, []);
-
-  useEffect(() => {
-    if (viewportResolved) {
-      feedPerfMark("home:viewport-resolved");
-      feedPerfMark("layout:hydration-complete");
-    }
-  }, [viewportResolved]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -101,7 +95,7 @@ export default function HomePageClient({
       (language === 'en' ? `Welcome, ${firstName}!` : `Welkom, ${firstName}!`));
 
   const geoFeedProps = {
-    initialInspiratieItems,
+    ssrAuthHint,
     initialFeedChip,
     initialFeedCategory,
     initialFeedPlace,
@@ -119,10 +113,8 @@ export default function HomePageClient({
   const stickyAsideClass =
     'sticky top-20 z-[1] self-start max-h-[calc(100vh-5rem)] overflow-y-auto pb-3';
 
-  /** After client viewport is known: exactly one GeoFeed tree (mobile or desktop). */
-  const showMobileHomeFeed = viewportResolved && isNarrowHome;
-  const showDesktopHomeFeed =
-    viewportResolved && !isNarrowHome && !stickyTestMode;
+  /** Phase 3F.5: single GeoFeed instance; layout toggles via prop (no unmount/remount). */
+  const showDesktopComposedLayout = !isNarrowHome && !stickyTestMode;
 
   return (
     <>
@@ -133,7 +125,7 @@ export default function HomePageClient({
             <HomeHeroSection />
           </div>
 
-          {stickyTestMode && showDesktopHomeFeed ? (
+          {stickyTestMode && showDesktopComposedLayout ? (
             <section
               className="hc-home-sticky-grid lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] gap-6 items-start mb-8"
               data-sticky-test-shell
@@ -150,56 +142,45 @@ export default function HomePageClient({
             </section>
           ) : null}
 
-          {!viewportResolved ? (
-            <div className="min-w-0">
-              {session?.user ? (
-                <div className="mb-3">
-                  <UserActionCenter variant="mobileCompact" />
+          {!stickyTestMode ? (
+            <>
+              <div className="min-w-0 lg:hidden">
+                  {session?.user ? (
+                    <div className="mb-3">
+                      <UserActionCenter variant="mobileCompact" />
+                    </div>
+                  ) : null}
+                  <HomeMobileEcosystemStrip
+                    isLoggedIn={Boolean(session?.user)}
+                    className="mb-3"
+                  />
                 </div>
-              ) : null}
-              <HomeMobileEcosystemStrip
-                isLoggedIn={Boolean(session?.user)}
-                className="mb-3"
-              />
-              <HomeFeedViewportShell />
-            </div>
-          ) : null}
 
-          {showMobileHomeFeed ? (
-            <div className="min-w-0">
-              {session?.user ? (
-                <div className="mb-3">
-                  <UserActionCenter variant="mobileCompact" />
-                </div>
-              ) : null}
-              <HomeMobileEcosystemStrip
-                isLoggedIn={Boolean(session?.user)}
-                className="mb-3"
-              />
-              <GeoFeed {...geoFeedProps} />
-            </div>
-          ) : null}
-
-          {showDesktopHomeFeed ? (
-            <GeoFeed {...geoFeedProps} homeComposedLayout>
-              <section
-                className="hc-home-sticky-grid hc-home-desktop-shell lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] gap-5 xl:gap-6 lg:items-stretch lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] lg:min-h-[28rem]"
-                aria-label={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
+              <GeoFeed
+                {...geoFeedProps}
+                homeComposedLayout={showDesktopComposedLayout}
               >
-                <aside data-sticky-prod="left" className={desktopColScrollClass}>
-                  <HomeDesktopLeftSidebar />
-                </aside>
-                <div
-                  id="homecheff-feed-desktop"
-                  className={`${desktopColScrollClass} min-w-0 space-y-4 hc-home-feed-grid`}
-                >
-                  <FeedContent />
-                </div>
-                <aside data-sticky-prod="right" className={desktopColScrollClass}>
-                  <HomeDesktopSidebar welcomeLine={welcomeLine} />
-                </aside>
-              </section>
-            </GeoFeed>
+                {showDesktopComposedLayout ? (
+                  <section
+                    className="hc-home-sticky-grid hc-home-desktop-shell lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] gap-5 xl:gap-6 lg:items-stretch lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] lg:min-h-[28rem]"
+                    aria-label={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
+                  >
+                    <aside data-sticky-prod="left" className={desktopColScrollClass}>
+                      <HomeDesktopLeftSidebar />
+                    </aside>
+                    <div
+                      id="homecheff-feed-desktop"
+                      className={`${desktopColScrollClass} min-w-0 space-y-4 hc-home-feed-grid`}
+                    >
+                      <FeedContent />
+                    </div>
+                    <aside data-sticky-prod="right" className={desktopColScrollClass}>
+                      <HomeDesktopSidebar welcomeLine={welcomeLine} />
+                    </aside>
+                  </section>
+                ) : null}
+              </GeoFeed>
+            </>
           ) : null}
         </div>
       </div>
