@@ -1,44 +1,53 @@
 {
   "phase": "3F-Wave-2",
-  "verificationType": "preview-equivalent-local",
-  "measuredAt": "2026-07-14T13:46:06.425Z",
-  "importantNote": "Wave 2 is NOT on Vercel preview (uncommitted). Vercel preview at d19b107 is Wave 1 only + SSO blocked. This probe uses local prod build with NEXT_PUBLIC_FEED_PERF_BASELINE=1.",
+  "verificationType": "preview-equivalent-local-post-push",
+  "commit": "63f184515dafd3b8e27628ccbea5e2cb391c4515",
+  "measuredAt": "2026-07-14T14:24:57.041Z",
+  "importantNote": "Vercel Preview @ 63f1845 is Ready but SSO-blocked for automated probes. Metrics from local prod build (NEXT_PUBLIC_FEED_PERF_BASELINE=1, next start :3010). Manual SSO-browser checks on preview URL still required for DEEL 6-9.",
   "vercelPreview": {
-    "commit": "d19b107",
-    "url": "https://homecheff-psnrhvz2y-sergio-s-projects-f7b64ee1.vercel.app",
+    "commit": "63f1845",
+    "url": "https://homecheff-5o7aspfvn-sergio-s-projects-f7b64ee1.vercel.app",
     "status": "Ready",
-    "wave": "Wave 1 only",
+    "wave": "Wave 2",
     "ssoBlocked": true
   },
   "localBaseUrl": "http://127.0.0.1:3010",
   "results": {
     "anonymousDesktopCold": {
-      "fcpMs": 732,
-      "lcpMs": null,
-      "firstPaintMs": 732,
-      "firstTileMs": 2247,
-      "firstImageMs": 2470,
-      "domContentLoadedMs": 88,
-      "loadMs": 169,
+      "fcpMs": 580,
+      "lcpMs": 580,
+      "firstPaintMs": 580,
+      "firstTileMs": 2103,
+      "firstImageMs": null,
+      "domContentLoadedMs": 32,
+      "loadMs": 100,
       "feedFetches": 1,
       "geoFeedMounts": 1,
+      "shellMountedMs": 370,
+      "geofeedMountedMs": 362,
       "skeletonStuck": false,
       "consoleErrors": 0,
       "hydrationWarnings": 0,
-      "dynamicChunkCount": 24
+      "networkFailures": 0
     },
     "anonymousDesktopWarm": {
-      "fcpMs": 528,
-      "firstTileMs": 2036,
+      "fcpMs": 572,
+      "lcpMs": 572,
+      "firstTileMs": 1977,
+      "firstImageMs": 2341,
       "feedFetches": 1,
       "geoFeedMounts": 1
     },
     "anonymousMobileCold": {
-      "fcpMs": 460,
-      "firstTileMs": 1826,
+      "fcpMs": 500,
+      "lcpMs": 500,
+      "firstTileMs": 1589,
+      "firstImageMs": 2008,
       "feedFetches": 1,
-      "geoFeedMounts": 1
+      "geoFeedMounts": 1,
+      "mobileFlash": "none_or_acceptable_single_frame"
     },
-    "loggedIn": "NOT_TESTED — requires manual SSO login"
+    "authenticatedDesktop": "NOT_TESTED — manual SSO login required",
+    "loginLogout": "NOT_TESTED — manual SSO login required"
   }
 }

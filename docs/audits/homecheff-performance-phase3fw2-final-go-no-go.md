@@ -1,7 +1,27 @@
 # Phase 3F Wave 2 — Final GO / NO-GO
 
 **Date:** 2026-07-14  
-**Decision:** **GROEN — GO for preview commit** (with manual FCP/LCP spot-check)
+**Branch:** `performance/phase3f-first-paint`  
+**Release:** interaction fix + responsive auth navigation (zie commit na push)
+
+---
+
+## Besluit
+
+| Besluit | Status | Toelichting |
+|---------|--------|-------------|
+| **Interaction + responsive fix** | ✅ **GROEN** | HcpRewardProvider static; auth CTAs vast rechts |
+| **Validators + probes lokaal** | ✅ **GROEN** | 16/16 Wave2 validator; 18/18 responsive; interaction A/B |
+| **Preview build** | ⏳ **Wacht op nieuwe deploy** | Na push featurebranch |
+| **Merge naar main** | 🟠 **HOLD** | Handmatige SSO Preview-checks verplicht |
+| **Productie deploy** | 🔴 **HOLD** | Geen merge, geen `vercel --prod` |
+
+---
+
+## Fixes in deze release
+
+1. **Interaction (P0):** `HcpRewardProvider` terug static — layout-children mount direct (SSR 7 buttons, login @ ~98ms).
+2. **Responsive nav (P0):** Auth CTAs `ml-auto shrink-0`; desktop nav `lg+`; hamburger `<lg`; NavBarShell `pointer-events-none`.
 
 ---
 
@@ -9,43 +29,33 @@
 
 | Criterion | Result |
 |-----------|--------|
-| GeoFeed code-split (`dynamic`, skeleton) | ✅ |
-| NavBar lazy + shell | ✅ |
-| Hero / provider deferrals | ✅ |
-| Homepage HTML smaller | ✅ 146 KB → 26 KB (-82%) |
+| UI direct interactief (lokaal) | ✅ login @ domcontentloaded |
+| SSR login/register | ✅ 4 login links, 7 buttons |
+| Responsive 320–2560 | ✅ 18/18 pass |
 | feedFetches = 1 | ✅ |
 | geoFeedMounts = 1 | ✅ |
-| Wave 1 fast-paths intact | ✅ |
-| lint / build / smoke | ✅ |
-| Validators (Wave 1 + 2) | ✅ (13L 33/34 known) |
-| No feed/API/cache/DB change | ✅ |
+| Hydration/console errors | ✅ 0 |
+| lint / build / smoke-check | ✅ |
+| Phase 13K–3F validators | ✅ |
+| Preview anonymous click (handmatig) | ⏳ |
+| Authenticated / logout (handmatig) | ⏳ |
 
 ---
 
-## ORANJE
+## GO/HOLD merge naar main
 
-- FCP/LCP/first-tile not fully automated — verify on preview with `__hcFeedPerfReport()`
-- Common chunk raw size +166 KB (dynamic graph); mitigated by `ssr: false` deferral
-- Brief NavBar/hero skeleton flash possible
+**HOLD** tot handmatige Preview GO op:
+- anonymous cold: login/register eerste klik
+- responsive 1280/900/768/320
+- authenticated + logout (indien mogelijk)
 
----
-
-## ROOD
-
-None.
+**GROEN voor mergevoorbereiding** wanneer bovenstaande Preview-checks slagen.
 
 ---
 
-## Not done
+## Niet gedaan
 
-- ❌ Commit / push / merge / deploy
-- ❌ Prisma / Neon / Render / DB
-
----
-
-## Expected production improvement
-
-- Faster **First Paint** (smaller HTML, deferred GeoFeed hydration)
-- Faster **perceived** feed startup (skeleton visible immediately)
-- Reduced main-thread work before feed chunk loads
-- LCP likely improves when first tile renders (feed still ~100ms CDN HIT)
+- ❌ Merge naar `main`
+- ❌ `npx vercel --prod`
+- ❌ `npx prisma migrate deploy`
+- ❌ Database / Neon / Render wijzigingen

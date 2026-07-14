@@ -16,13 +16,15 @@
 
 ---
 
-## Browser (local Puppeteer, anonymous)
+## Browser (local prod @ `63f1845`, anonymous)
 
-| Scenario | FCP | First tile |
-|----------|-----|------------|
-| Desktop cold | 732 ms | 2247 ms |
-| Desktop warm | 528 ms | 2036 ms |
-| Mobile cold | 460 ms | 1826 ms |
+| Scenario | FCP | LCP | First tile | First image |
+|----------|-----|-----|------------|-------------|
+| Desktop cold | 580 ms | 580 ms | 2103 ms | — |
+| Desktop warm | 572 ms | 572 ms | 1977 ms | 2341 ms |
+| Mobile cold | 500 ms | 500 ms | 1589 ms | 2008 ms |
+
+Preview URL (SSO): https://homecheff-5o7aspfvn-sergio-s-projects-f7b64ee1.vercel.app — handmatige browsercheck vereist.
 
 ---
 
