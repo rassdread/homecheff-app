@@ -1,0 +1,37 @@
+{
+  "phase": "3F-Wave-2",
+  "branch": "performance/phase3f-first-paint",
+  "baselineWave1Commit": "d19b107",
+  "measuredAt": "2026-07-14T13:33:05.387Z",
+  "before": {
+    "source": "docs/audits/homecheff-performance-phase3fw2-bundles-before.json",
+    "htmlBytes": 146275,
+    "homepageServerPageKb": 206,
+    "commonChunkKb": 1202,
+    "firstLoadJsSharedKb": 637
+  },
+  "after": {
+    "source": "local next start :3010 + bundle probe",
+    "htmlBytes": 25869,
+    "homepageServerPageKb": 35,
+    "commonChunkKb": 1368,
+    "firstLoadJsSharedKb": 637,
+    "ttfbMs": 199,
+    "totalDownloadMs": 209
+  },
+  "delta": {
+    "htmlReductionPct": 82.3,
+    "homepageServerPageReductionPct": 83.0,
+    "ttfbMsDelta": -90
+  },
+  "browserMetrics": {
+    "fcp": "requires manual NEXT_PUBLIC_FEED_PERF_BASELINE=1",
+    "lcp": "requires manual browser probe",
+    "firstTile": "requires manual browser probe",
+    "appUsable": "requires manual browser probe"
+  },
+  "invariants": {
+    "feedFetches": 1,
+    "geoFeedMounts": 1
+  }
+}

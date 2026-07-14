@@ -1,0 +1,31 @@
+{
+  "phase": "3F-Wave-2",
+  "branch": "performance/phase3f-first-paint",
+  "generatedAt": "2026-07-14T14:20:00.000Z",
+  "deferredComponents": [
+    "GeoFeed via HomeGeoFeedDynamic.tsx",
+    "NavBar via layout.tsx dynamic + NavBarShell",
+    "HomeHeroVisualCluster",
+    "GuestSalesInfoPanel",
+    "HomeDesktopLeftSidebar",
+    "HomeDesktopSidebar",
+    "UserActionCenter",
+    "HomeMobileEcosystemStrip",
+    "HomeMobileFeedInsert",
+    "OnboardingTour",
+    "PostAuthPersonaBanner",
+    "HcpRewardProvider"
+  ],
+  "unchanged": [
+    "Feed API",
+    "CDN/cache policy",
+    "Prisma schema",
+    "Wave 1 ssrAuthHint + viewport fast-path"
+  ],
+  "bundleDelta": {
+    "htmlBytesWave1": 146275,
+    "htmlBytesWave2": 25869,
+    "homepageServerPageKbWave1": 206,
+    "homepageServerPageKbWave2": 35
+  }
+}

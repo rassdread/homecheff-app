@@ -22,7 +22,6 @@ import AppResumeCoordinator from '@/components/app/AppResumeCoordinator';
 import AppUpdateGate from '@/components/app/AppUpdateGate';
 import PlayStoreMigrationGate from '@/components/app/PlayStoreMigrationGate';
 import { AppUpdateStatusProvider } from '@/components/app/AppUpdateStatusProvider';
-import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
 import { CommsUnreadProvider } from '@/components/communication/CommsUnreadProvider';
 import dynamic from 'next/dynamic';
 import NavigationHistorySync from '@/components/navigation/NavigationHistorySync';
@@ -30,6 +29,14 @@ import FeedPerfBaselineMount from '@/components/performance/FeedPerfBaselineMoun
 
 const CommsRealtimeListener = dynamic(
   () => import('@/components/communication/CommsRealtimeListener'),
+  { ssr: false },
+);
+
+const HcpRewardProvider = dynamic(
+  () =>
+    import('@/components/gamification/HcpRewardProvider').then((m) => ({
+      default: m.HcpRewardProvider,
+    })),
   { ssr: false },
 );
 

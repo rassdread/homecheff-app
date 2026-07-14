@@ -1,17 +1,10 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useTranslation } from "@/hooks/useTranslation";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import PostAuthPersonaBanner from "@/components/onboarding/PostAuthPersonaBanner";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
-import HomeDesktopSidebar from "@/components/home/HomeDesktopSidebar";
-import HomeDesktopLeftSidebar from "@/components/home/HomeDesktopLeftSidebar";
-import HomeMobileFeedInsert from "@/components/home/HomeMobileFeedInserts";
-import UserActionCenter from "@/components/home/UserActionCenter";
-import HomeMobileEcosystemStrip from "@/components/home/HomeMobileEcosystemStrip";
-import GeoFeed, { FeedContent } from "@/components/feed/GeoFeed";
-import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
 import {
   readScrollPosition,
@@ -25,8 +18,38 @@ import {
   feedPerfMark,
   installFeedPerfBaselineReporter,
 } from "@/lib/feed/feed-performance-baseline";
+import GeoFeed, { FeedContent } from "@/components/home/HomeGeoFeedDynamic";
 
 import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
+
+const PostAuthPersonaBanner = dynamic(
+  () => import("@/components/onboarding/PostAuthPersonaBanner"),
+  { ssr: false },
+);
+const HomeDesktopSidebar = dynamic(
+  () => import("@/components/home/HomeDesktopSidebar"),
+  { ssr: false },
+);
+const HomeDesktopLeftSidebar = dynamic(
+  () => import("@/components/home/HomeDesktopLeftSidebar"),
+  { ssr: false },
+);
+const UserActionCenter = dynamic(
+  () => import("@/components/home/UserActionCenter"),
+  { ssr: false },
+);
+const HomeMobileEcosystemStrip = dynamic(
+  () => import("@/components/home/HomeMobileEcosystemStrip"),
+  { ssr: false },
+);
+const HomeMobileFeedInsert = dynamic(
+  () => import("@/components/home/HomeMobileFeedInserts"),
+  { ssr: false },
+);
+const OnboardingTour = dynamic(
+  () => import("@/components/onboarding/OnboardingTour"),
+  { ssr: false },
+);
 
 type HomeFeedChip = FeedViewFilterId;
 
