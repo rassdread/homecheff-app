@@ -1,0 +1,63 @@
+{
+  "measuredAt": "2026-07-14T13:30:13.030Z",
+  "firstLoadJsSharedKb": 637,
+  "staticChunksTotalKb": 3970,
+  "topChunksKb": [
+    {
+      "name": "vendors-6681e7c1679b35f5.js",
+      "kb": 1472
+    },
+    {
+      "name": "common-cf1039c5147cb1dd.js",
+      "kb": 1202
+    },
+    {
+      "name": "nextjs-012429f51b4ba587.js",
+      "kb": 895
+    },
+    {
+      "name": "react-e76cfbacc93e43c4.js",
+      "kb": 137
+    },
+    {
+      "name": "polyfills-42372ed130431b0a.js",
+      "kb": 110
+    },
+    {
+      "name": "2891.f7c939487900306b.js",
+      "kb": 44
+    },
+    {
+      "name": "9902.c6e32315a2a42ec4.js",
+      "kb": 39
+    },
+    {
+      "name": "3417.dfa06ca835580588.js",
+      "kb": 14
+    },
+    {
+      "name": "4372.3d80ed5cc659409d.js",
+      "kb": 12
+    },
+    {
+      "name": "3908.af237927a31ca486.js",
+      "kb": 8
+    },
+    {
+      "name": "946.16ec9ca4062f2212.js",
+      "kb": 7
+    },
+    {
+      "name": "5660.6dcec8e76ecd3a10.js",
+      "kb": 7
+    }
+  ],
+  "commonChunkKb": 1202,
+  "vendorsChunkKb": 1472,
+  "nextjsChunkKb": 895,
+  "homepageServerPageKb": 206,
+  "homepageClientChunkRefs": [],
+  "geoFeedChunkFile": "common-cf1039c5147cb1dd.js",
+  "navBarChunkFile": null,
+  "heroChunkFile": null
+}

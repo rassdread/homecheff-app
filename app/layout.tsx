@@ -1,8 +1,8 @@
 import './globals.css';
 import Providers from '@/components/Providers';
-import NavBar from '@/components/NavBar';
 import AppPageChrome from '@/components/AppPageChrome';
 import RootEntityGraphScripts from '@/components/seo/RootEntityGraphScripts';
+import NavBarShell from '@/components/navigation/NavBarShell';
 import { headers, cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
@@ -42,6 +42,9 @@ const Footer = dynamic(() => import('@/components/Footer'), {
 });
 const SkipLink = dynamic(() => import('@/components/SkipLink'), {
   ssr: false,
+});
+const NavBar = dynamic(() => import('@/components/NavBar'), {
+  loading: () => <NavBarShell />,
 });
 
 // Tab- + touch-icons: app/icon.png + app/apple-icon.png (Next). /favicon.ico komt uit public/ + expliciete link met query (Safari cache op blote /favicon.ico).
