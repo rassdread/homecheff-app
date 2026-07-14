@@ -70,10 +70,14 @@ assert(hero.includes('HomeHeroVisualCluster'), 'hero visual cluster deferred');
 assert(hero.includes('GuestSalesInfoPanel'), 'guest sales panel deferred');
 assert(homeClient.includes('dynamic('), 'HomePageClient uses dynamic imports for non-critical modules');
 
-console.log('\nWave 2 provider deferral');
+console.log('\nWave 2 provider deferral (interaction fix)');
 assert(
-  providers.includes("import('@/components/gamification/HcpRewardProvider')"),
-  'HcpRewardProvider dynamically imported',
+  providers.includes("import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider'"),
+  'HcpRewardProvider static import (intentional — avoids blocking layout children)',
+);
+assert(
+  !providers.includes("import('@/components/gamification/HcpRewardProvider')"),
+  'HcpRewardProvider not dynamic(ssr:false) around children',
 );
 
 console.log('\nWave 2 invariants');

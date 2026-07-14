@@ -97,9 +97,23 @@ export default function NavBar() {
 
   /** Desktop top-nav: één interactief element (geen <Link><Button>). */
   const desktopNavGhostClass = cn(
-    'inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium transition-all duration-200',
+    'inline-flex shrink-0 items-center justify-center rounded-2xl px-3 py-2 text-sm font-medium transition-all duration-200 xl:px-5 xl:py-2.5 xl:text-base',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
-    'bg-transparent text-primary-brand hover:bg-primary-50 hover:shadow-sm touch-manipulation select-none'
+    'bg-transparent text-primary-brand hover:bg-primary-50 hover:shadow-sm touch-manipulation select-none whitespace-nowrap'
+  );
+
+  /** Guest auth CTAs — altijd zichtbaar, buiten de inkrimpende nav (md–lg overflow-fix). */
+  const guestAuthLoginClass = cn(
+    'inline-flex shrink-0 items-center justify-center rounded-xl font-medium transition-colors touch-manipulation no-underline whitespace-nowrap',
+    'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
+    'bg-transparent text-gray-700 hover:bg-primary-50 hover:text-primary-brand',
+    'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm lg:rounded-2xl lg:px-5 lg:py-2.5 lg:text-base',
+  );
+  const guestAuthRegisterClass = cn(
+    'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold transition-colors touch-manipulation no-underline whitespace-nowrap',
+    'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
+    'bg-primary-brand text-white hover:bg-primary-700 shadow-sm hover:shadow-md',
+    'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm lg:rounded-2xl lg:px-5 lg:py-2.5 lg:text-base',
   );
 
   const user =
@@ -321,19 +335,24 @@ export default function NavBar() {
 
   return (
     <header
-      className={`w-full max-w-[100vw] overflow-visible border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
+      className={`w-full max-w-[100vw] overflow-x-clip border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
         nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : ''
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative min-w-0">
-        <div className="flex items-center justify-between h-16 min-w-0 gap-2">
-          {/* Logo - responsive voor mobiel */}
-          <div className="flex-shrink-0 min-w-0">
-            <Logo size="md" />
+        <div className="flex items-center justify-between h-16 min-w-0 gap-1 sm:gap-2">
+          {/* Logo — compact icoon < lg zodat auth-CTAs niet overlappen */}
+          <div className="flex shrink-0 items-center min-w-0 max-w-[42%] sm:max-w-[48%] lg:max-w-none overflow-hidden">
+            <div className="lg:hidden">
+              <Logo size="md" showText={false} />
+            </div>
+            <div className="hidden lg:block">
+              <Logo size="md" />
+            </div>
           </div>
 
-          {/* Desktop Navigation - mag inkrimpen zodat rechts in beeld blijft */}
-          <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-visible">
+          {/* Desktop Navigation — volledige rij pas vanaf lg; md–lg via hamburger + vaste auth-CTAs */}
+          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0 flex-1 justify-center overflow-hidden">
             <Link
               href="/"
               prefetch={false}
@@ -414,18 +433,25 @@ export default function NavBar() {
             </div>
 
             <LanguageSwitcher />
+          </nav>
 
-            {status === 'unauthenticated' && !user && (
+          {/* Rechtercluster: auth altijd bereikbaar; hamburger < lg */}
+          <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {(status === 'unauthenticated' || status === 'loading') && !user && (
               <>
-                <Link 
-                  href="/login" 
-                  className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand bg-transparent text-gray-700 hover:bg-primary-50 hover:text-primary-brand cursor-pointer hover:shadow-sm no-underline"
+                <Link
+                  href="/login"
+                  prefetch={false}
+                  className={guestAuthLoginClass}
+                  onClick={() => navDebug('navbar:auth-cta', { href: '/login' })}
                 >
                   {t('navbar.login')}
                 </Link>
-                <Link 
-                  href="/register" 
-                  className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand bg-primary-brand text-white hover:bg-primary-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 cursor-pointer no-underline"
+                <Link
+                  href="/register"
+                  prefetch={false}
+                  className={guestAuthRegisterClass}
+                  onClick={() => navDebug('navbar:auth-cta', { href: '/register' })}
                 >
                   {t('navbar.register')}
                 </Link>
@@ -433,12 +459,12 @@ export default function NavBar() {
             )}
 
             {user && (
-              <div className="hidden md:flex items-center flex-shrink-0 min-w-0 gap-1">
+              <div className="hidden lg:flex items-center flex-shrink-0 min-w-0 gap-1">
                 <CartIcon />
                 <div className="relative z-[110] shrink-0">
                   <NotificationBell />
                 </div>
-                
+
                 {/* Profile Dropdown */}
                 <div className="relative z-[100] min-w-0" ref={profileDropdownRef}>
                   <button
@@ -635,27 +661,27 @@ export default function NavBar() {
                 </div>
               </div>
             )}
-          </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors touch-manipulation"
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="navbar-mobile-menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors touch-manipulation shrink-0"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="navbar-mobile-menu"
+              aria-label={isMobileMenuOpen ? t('buttons.close') : 'Menu'}
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Compact / mobile navigation (< lg) */}
         {isMobileMenuOpen && (
-          <div id="navbar-mobile-menu" className="md:hidden border-t border-gray-200 py-4">
+          <div id="navbar-mobile-menu" className="lg:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-2">
               <Link
                 href="/"

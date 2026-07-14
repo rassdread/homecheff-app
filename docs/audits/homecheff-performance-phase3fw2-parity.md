@@ -38,11 +38,13 @@
 
 ---
 
-## Manual preview (post-push)
+## Manual preview (post-push @ `63f1845`)
 
 | Check | Status |
 |-------|--------|
-| Anonymous desktop | Pending SSO browser |
-| Anonymous mobile | Pending SSO browser |
-| Authenticated | Pending manual login |
-| Login/logout | Pending manual |
+| Preview build Ready | ✅ https://homecheff-5o7aspfvn-sergio-s-projects-f7b64ee1.vercel.app |
+| Anonymous desktop (preview) | ⏳ SSO manual browser |
+| Anonymous mobile (preview) | ⏳ SSO manual browser |
+| Authenticated (preview) | ⏳ SSO manual login |
+| Login/logout (preview) | ⏳ SSO manual |
+| Local equiv. anonymous | ✅ feedFetches=1, geoFeedMounts=1, 0 errors |

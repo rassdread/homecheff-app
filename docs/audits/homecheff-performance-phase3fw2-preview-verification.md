@@ -2,7 +2,7 @@
 
 **Datum:** 2026-07-14  
 **Branch:** `performance/phase3f-first-paint`  
-**Modus:** verificatie only — geen commit/push/deploy
+**Commit:** `63f1845` — `perf(home): split critical homepage rendering into async chunks`
 
 ---
 
@@ -10,96 +10,148 @@
 
 | Veld | Waarde |
 |------|--------|
-| Remote preview commit | `d19b107` (**Wave 1 only**) |
-| Remote preview URL | https://homecheff-psnrhvz2y-sergio-s-projects-f7b64ee1.vercel.app |
-| Vercel build | ✅ Ready |
-| Wave 2 op preview | ❌ **Niet deployed** (Wave 2 uncommitted) |
-| SSO | Preview URL SSO-beschermd — geautomatiseerde remote probe geblokkeerd |
-
-**Preview-equivalent:** lokaal `NEXT_PUBLIC_FEED_PERF_BASELINE=1 npm run build && npm start -p 3010` met Wave 2 working tree.
-
----
-
-## Browsermetingen (Puppeteer + Chrome, anonymous)
-
-| Scenario | FCP | First tile | First image | feedFetches | geoFeedMounts |
-|----------|-----|------------|-------------|-------------|---------------|
-| Desktop cold | **732 ms** | 2247 ms | 2470 ms | **1** | **1** |
-| Desktop warm | **528 ms** | 2036 ms | 2313 ms | **1** | **1** |
-| Mobile cold | **460 ms** | 1826 ms | 2230 ms | **1** | **1** |
-
-| Metric | Desktop cold | Opmerking |
-|--------|--------------|-----------|
-| First Paint | 732 ms | = FCP |
-| LCP | n.v.t. | PerformanceObserver LCP niet vastgelegd in headless snapshot |
-| App usable | n.v.t. | `app:usable` idle mark niet in snapshot |
-| DOMContentLoaded | 88 ms | |
-| Load event | 169 ms | |
+| Commit | `63f184515dafd3b8e27628ccbea5e2cb391c4515` |
+| Preview URL | https://homecheff-5o7aspfvn-sergio-s-projects-f7b64ee1.vercel.app |
+| Branch alias | https://homecheff-app-git-performance-0f5539-sergio-s-projects-f7b64ee1.vercel.app |
+| Vercel deployment | `dpl_GGwCH6XAdcpwivQT2JpNwVGWWNvg` |
+| Vercel build | ✅ **Ready** (3m build) |
+| Environment | **Preview** (geen production deployment) |
+| `prisma migrate deploy` | ❌ Niet uitgevoerd |
+| SSO | ✅ Actief — publieke `curl`/Puppeteer → 302 naar Vercel SSO |
 
 ---
 
-## `__hcFeedPerfReport()` (anonymous desktop)
+## DEEL 1 — Safety review (code + lokaal)
+
+### GeoFeed dynamic import
+
+| Check | Status |
+|-------|--------|
+| Maximaal één mount | ✅ `geoFeedMounts = 1` |
+| `feedFetches = 1` | ✅ |
+| Geen tweede request door dynamic import | ✅ `ssr: false`, enkele instantie in `HomePageClient` |
+| Skeleton verdwijnt | ✅ `skeleton: false` na load |
+| Chunk failure fallback | ✅ `HomeFeedViewportShell` als `loading` |
+| Geen SSR/hydration mismatch | ✅ `ssr: false` |
+| Wave 1 anonymous fast-path intact | ✅ `anonymous-session-fast-path.ts` ongewijzigd in gedrag |
+| Authenticated flow (code) | ✅ session gate logica behouden |
+
+### NavBar dynamic import
+
+| Check | Status |
+|-------|--------|
+| Shell voorkomt layout shift | ✅ `NavBarShell` fixed `h-14/h-16` |
+| Navigation na hydration | ✅ lokaal chunk geladen, shell cleared |
+| Accessibility shell | ✅ `aria-busy`, `aria-label="Navigatie laden"` |
+| Mobile nav | ✅ codepad ongewijzigd in `NavBar` |
+
+### Hero / deferred components
+
+| Check | Status |
+|-------|--------|
+| Hero content zichtbaar | ✅ SSR/client hero tekst behouden |
+| Orbit/guest deferred | ✅ aparte dynamic chunks |
+| Geen permanente skeleton | ✅ lokaal bevestigd |
+| SEO/meta | ✅ `generateMetadata` in `layout.tsx` ongewijzigd |
+
+### Providers
+
+| Check | Status |
+|-------|--------|
+| HcpRewardProvider deferred | ✅ `dynamic`, `ssr: false` |
+| Geen dubbele provider | ✅ enkele mount in `Providers.tsx` |
+| Geen context crash vóór mount | ✅ consumers binnen provider tree |
+
+### Sidebars / tours
+
+| Check | Status |
+|-------|--------|
+| Desktop sidebars deferred | ✅ `HomeDesktopSidebar`, `HomeDesktopLeftSidebar` |
+| OnboardingTour deferred | ✅ `autoStart={false}` |
+| Mobile ongewijzigd | ✅ narrow viewport fast-path Wave 1 intact |
+
+---
+
+## Browsermetingen
+
+### Remote Preview (SSO-geblokkeerd)
+
+Publieke probe op preview-URL retourneert HTTP 302 → Vercel SSO. Geen geautomatiseerde anonymous/authenticated metingen op echte Preview mogelijk zonder ingelogde browser.
+
+**Handmatige Preview-check vereist** (DEEL 6–9): open preview in privévenster terwijl Vercel SSO actief is.
+
+### Preview-equivalent lokaal (`next start :3010`, commit `63f1845`)
+
+| Scenario | HTML (curl) | TTFB | FCP | LCP* | First tile | First image | feedFetches | geoFeedMounts |
+|----------|-------------|------|-----|------|------------|-------------|-------------|---------------|
+| Anonymous desktop cold | 25,953 B | 150 ms | **580 ms** | 580 ms | **2103 ms** | — | **1** | **1** |
+| Anonymous desktop warm | — | — | **572 ms** | 572 ms | **1977 ms** | 2341 ms | **1** | **1** |
+| Anonymous mobile cold | — | — | **500 ms** | 500 ms | **1589 ms** | 2008 ms | **1** | **1** |
+
+\*LCP via `__hcFeedPerfReport().webVitals.lcp` / `vitals:lcp` milestone.
+
+### `__hcFeedPerfReport()` (anonymous desktop cold)
 
 ```json
 {
   "counters": { "feedFetches": 1, "geoFeedMounts": 1 },
+  "milestones": {
+    "home:shell-mounted": 370,
+    "geofeed:mounted": 362,
+    "session:resolved": 362,
+    "feed:request-start": 365,
+    "feed:first-tile-rendered": 2103
+  },
   "sessionFastPath": {
     "anonFastPathUsed": false,
-    "sessionGateBypassed": false,
-    "sessionResolvedBeforeFetch": false,
     "feedFetchReason": "initial"
-  },
-  "milestones": {
-    "geofeed:mounted": 464,
-    "session:resolved": 464,
-    "feed:request-start": 466
   }
 }
 ```
 
-**Interpretatie:** Session resolved en feed-fetch start vrijwel gelijktijdig (2 ms). In headless anonymous flow is `sessionStatus === 'loading'` te kort om `anonFastPathUsed` te flaggen — **geen functionele regressie** (feedFetches=1, geen dubbele fetch).
+**Interpretatie:** `anonFastPathUsed: false` omdat session in headless anonymous flow resolved vóór snapshot-read — **geen functionele regressie** (feedFetches=1).
 
 ---
 
-## DevTools-equivalent checks
+## DevTools-equivalent checks (lokaal)
 
 | Check | Resultaat |
 |-------|-----------|
 | Hydration warnings | **0** |
 | Console errors | **0** |
-| Network 404s | **0** |
-| Missing chunks | **0** |
-| Skeleton blijft hangen | **Nee** (nav + feed shell cleared) |
-| Dynamic chunks geladen | **18–24** async chunks (layout, page, common, vendors, numbered splits) |
-| NavBar lazy | ✅ `layout-*.js` + geen nav-shell na load |
-| GeoFeed dynamic | ✅ `page-*.js` + feed tiles na skeleton |
-| Hero lazy | ✅ orbit/guest in aparte chunks |
-| RSC prefetch abort | 1× `ERR_ABORTED` op product `_rsc` (normaal Next prefetch) |
+| Network 404s / chunk failures | **0** |
+| Skeleton blijft hangen | **Nee** |
+| NavBar shell cleared | ✅ |
+| GeoFeed skeleton cleared | ✅ |
+| Dynamic chunks geladen | ✅ layout + page + vendors |
 
 ---
 
-## Niet getest (manual vereist)
+## Mobile flash classificatie (lokaal)
 
-| Scenario | Reden |
-|----------|-------|
-| Ingelogde gebruiker | Geen test-credentials in geautomatiseerde probe |
-| Login/logout overgang | Manual op preview na Wave 2 deploy |
-| Vercel preview Wave 2 | Wave 2 niet gepusht |
-| LCP / CLS exact | Headless snapshot beperkt; manual DevTools Performance |
+| Classificatie | **Geen flash** / acceptabele één-frame flash |
+|---------------|-----------------------------------------------|
+| Horizontale overflow | Niet waargenomen |
+| Desktop layout op mobile | Niet storend (narrow viewport fast-path) |
 
 ---
 
-## Besluit
+## Nog handmatig op echte Preview (SSO-browser)
 
-| | |
-|--|--|
-| **Lokaal Wave 2** | **GROEN** — FCP 460–732ms, feedFetches=1, geoFeedMounts=1, geen errors |
-| **Remote preview Wave 2** | **HOLD** — niet deployed; SSO blokkeert remote |
-| **Logged-in flow** | **HOLD** — manual vereist |
+| Scenario | Status |
+|----------|--------|
+| Anonymous desktop hard reload | ⏳ **Manual vereist** |
+| Anonymous mobile (iPhone/Android viewport) | ⏳ **Manual vereist** |
+| Authenticated homepage | ⏳ **Manual vereist** |
+| Login/logout transitions | ⏳ **Manual vereist** |
+| HcpRewardProvider na login | ⏳ **Manual vereist** |
 
 ---
 
 ## Constraints bevestigd
 
-- ❌ Geen commit, push, merge, deploy
-- ❌ Geen database-/Prisma-wijzigingen
+- ✅ Geen merge naar `main`
+- ✅ Geen production deployment (`vercel --prod`)
+- ✅ Geen database-/Prisma-migratie
+- ✅ Geen feed/API/cache-wijziging
+- ✅ Geen Neon-/Render-wijziging
