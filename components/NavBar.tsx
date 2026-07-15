@@ -95,9 +95,11 @@ export default function NavBar() {
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand'
   );
 
-  /** Desktop top-nav: één interactief element (geen <Link><Button>). */
+  /** Desktop top-nav: compact lg–1279, premium xl+. */
   const desktopNavGhostClass = cn(
-    'inline-flex shrink-0 items-center justify-center rounded-2xl px-3 py-2 text-sm font-medium transition-all duration-200 xl:px-5 xl:py-2.5 xl:text-base',
+    'inline-flex shrink-0 items-center justify-center rounded-2xl font-medium transition-all duration-200',
+    'px-3 py-2 text-sm lg:px-4 lg:py-2.5 lg:text-sm',
+    'xl:px-6 xl:py-3 xl:text-base',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
     'bg-transparent text-primary-brand hover:bg-primary-50 hover:shadow-sm touch-manipulation select-none whitespace-nowrap'
   );
@@ -107,13 +109,21 @@ export default function NavBar() {
     'inline-flex shrink-0 items-center justify-center rounded-xl font-medium transition-colors touch-manipulation no-underline whitespace-nowrap',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
     'bg-transparent text-gray-700 hover:bg-primary-50 hover:text-primary-brand',
-    'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm lg:rounded-2xl lg:px-5 lg:py-2.5 lg:text-base',
+    'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm',
+    'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
+    'lg:rounded-2xl lg:px-4 lg:py-2.5 lg:text-sm',
+    'xl:px-6 xl:py-3 xl:text-base',
   );
   const guestAuthRegisterClass = cn(
-    'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold transition-colors touch-manipulation no-underline whitespace-nowrap',
+    'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold transition-all touch-manipulation no-underline whitespace-nowrap',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
-    'bg-primary-brand text-white hover:bg-primary-700 shadow-sm hover:shadow-md',
-    'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm lg:rounded-2xl lg:px-5 lg:py-2.5 lg:text-base',
+    'bg-primary-brand text-white hover:bg-primary-700',
+    'shadow-sm hover:shadow-md',
+    'xl:shadow-lg xl:hover:shadow-xl xl:hover:-translate-y-0.5',
+    'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm',
+    'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
+    'lg:rounded-2xl lg:px-4 lg:py-2.5 lg:text-sm',
+    'xl:px-6 xl:py-3 xl:text-base',
   );
 
   const user =
@@ -341,18 +351,18 @@ export default function NavBar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative min-w-0">
         <div className="flex items-center justify-between h-16 min-w-0 gap-1 sm:gap-2">
-          {/* Logo — compact icoon < lg zodat auth-CTAs niet overlappen */}
-          <div className="flex shrink-0 items-center min-w-0 max-w-[42%] sm:max-w-[48%] lg:max-w-none overflow-hidden">
-            <div className="lg:hidden">
+          {/* Logo — icoon lg–1279, volledig merk xl+ */}
+          <div className="flex shrink-0 items-center min-w-0 max-w-[42%] sm:max-w-[48%] xl:max-w-none overflow-hidden">
+            <div className="xl:hidden">
               <Logo size="md" showText={false} />
             </div>
-            <div className="hidden lg:block">
+            <div className="hidden xl:block">
               <Logo size="md" />
             </div>
           </div>
 
-          {/* Desktop Navigation — volledige rij pas vanaf lg; md–lg via hamburger + vaste auth-CTAs */}
-          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0 flex-1 justify-center overflow-hidden">
+          {/* Desktop Navigation — volledige rij lg+; compact lg, premium xl */}
+          <nav className="hidden lg:flex items-center gap-1 min-w-0 flex-1 justify-center overflow-hidden xl:gap-1.5">
             <Link
               href="/"
               prefetch={false}
