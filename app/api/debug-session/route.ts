@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { getAuthOriginDiagnostics } from '@/lib/auth-origin';
 import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,6 @@ export const dynamic = 'force-dynamic';
  * Verwijder of beveilig deze route in productie als je geen debug wilt.
  */
 export async function GET(req: NextRequest) {
-  const cors = getCorsHeaders(req);
   const cookieHeader = req.headers.get('cookie') || '';
   const cookieNames = cookieHeader.split(';').map((c) => c.trim().split('=')[0]).filter(Boolean);
   const sessionCookiePresent =
@@ -32,13 +32,16 @@ export async function GET(req: NextRequest) {
         : 'niet gezet (Vercel: NEXTAUTH_URL=https://homecheff.eu)';
   const hasSecret = !!process.env.NEXTAUTH_SECRET;
 
+  const authDiag = getAuthOriginDiagnostics(req.nextUrl.origin);
   const body = {
     hasSession: !!session?.user,
     cookiePresent: sessionCookiePresent,
     origin: req.headers.get('origin') ?? '(missing)',
+    requestHost: req.nextUrl.hostname,
     cookieNames: cookieNames.filter((n) => n.includes('next-auth') || n.includes('session')),
     NEXTAUTH_URL: nextAuthUrlSet ? nextAuthUrlMatch : 'niet gezet',
     NEXTAUTH_SECRET: hasSecret ? 'gezet' : 'niet gezet (Vercel: verplicht voor JWT)',
+    authOrigin: authDiag,
     hint: sessionCookiePresent && !session?.user
       ? (hasSecret
           ? 'Cookie wordt meegestuurd maar sessie ongeldig/verlopen – log uit en opnieuw in voor nieuwe cookie.'
@@ -49,5 +52,5 @@ export async function GET(req: NextRequest) {
           ? 'Sessie OK.'
           : 'Onbekend',
   };
-  return NextResponse.json(body, { headers: cors });
+  return NextResponse.json(body, { headers: getCorsHeaders(req) });
 }
