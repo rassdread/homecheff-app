@@ -676,14 +676,21 @@ export function useTranslation() {
   };
 
   const t = (key: string, params?: Record<string, string | number>): string => {
-    // Try current translations first (even during loading, might have cached data)
+    // Hydration-safe: module-level cache can survive remounts while SSR always renders
+    // empty strings (no translations on server). Only read cache after isReady so the
+    // first client render matches SSR HTML and avoids React #425 text mismatches.
+    const canUseTranslationCache = isReady || isChangingLanguage;
     let value: any = null;
-    if (Object.keys(translations).length > 0) {
+    if (canUseTranslationCache && Object.keys(translations).length > 0) {
       value = lookupTranslationKey(key, translations);
     }
 
     // If not found in current translations, try previous translations (during language switch)
-    if (value === null && Object.keys(previousTranslations).length > 0) {
+    if (
+      value === null &&
+      canUseTranslationCache &&
+      Object.keys(previousTranslations).length > 0
+    ) {
       value = lookupTranslationKey(key, previousTranslations);
     }
 

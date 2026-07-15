@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useMemo, useRef, useState, createContext, type ReactNode } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, startTransition, createContext, type ReactNode } from "react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useMobileFeedFilterScroll } from "@/hooks/useMobileFeedFilterScroll";
 import { useSession } from "next-auth/react";
@@ -1399,7 +1399,9 @@ export default function GeoFeed({
 
   useEffect(() => {
     if (feedRestoredFromCacheRef.current) return;
-    setInspiratiePool(initialInspiratieItems);
+    startTransition(() => {
+      setInspiratiePool(initialInspiratieItems);
+    });
   }, [initialInspiratieItems]);
 
   useEffect(() => {
