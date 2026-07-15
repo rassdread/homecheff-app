@@ -8,7 +8,12 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
-import { getNextAuthSharedCookieDomain } from "./auth-cookie-domain";
+import {
+  getAllowedAuthOrigins,
+  getAuthSessionCookieDomain,
+  getCanonicalAuthOrigin,
+  resolveSafeAuthRedirect,
+} from "./auth-origin";
 import { syncGoogleProfileToDatabase } from "./auth/google-account-sync";
 import { tryNormalizeEmail } from "./auth/normalize-email";
 import { findUserByCanonicalEmail } from "./auth/find-user-by-email";
@@ -23,7 +28,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL) {
   console.warn('[auth] NEXTAUTH_URL niet gezet in productie – zet in Vercel op https://homecheff.eu');
 }
 
-const sharedSessionCookieDomain = getNextAuthSharedCookieDomain();
+const sharedSessionCookieDomain = getAuthSessionCookieDomain();
 const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim() || "";
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim() || "";
 const isGoogleAuthConfigured = Boolean(googleClientId && googleClientSecret);
@@ -504,61 +509,35 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // .eu = enige auth-domein: sessie-cookie altijd op .eu, anders .nl/.eu glitch (Safari uitlog na inlog).
-      // Middleware stuurt .nl → .eu; OAuth callback moet altijd naar .eu gaan zodat cookie op .eu staat.
-      const canonicalAuthOrigin = process.env.NEXTAUTH_URL?.replace(/\/$/, '') || 'https://homecheff.eu';
-      const ourDomains = [
-        'https://homecheff.nl',
-        'https://homecheff.eu',
-        'https://www.homecheff.nl',
-        'https://www.homecheff.eu',
-        'https://growth.homecheff.eu',
-      ];
-      const baseUrlNorm = (baseUrl || '').replace(/\/$/, '');
-      const isBaseOurDomain = ourDomains.some((d) => baseUrlNorm === d || baseUrlNorm.startsWith(d + '/'));
-      // In productie: altijd .eu gebruiken voor redirects (NEXTAUTH_URL), geen .nl – voorkomt cookie op verkeerd domein.
-      const actualBaseUrl =
-        process.env.NODE_ENV === 'production'
-          ? (ourDomains.includes(canonicalAuthOrigin as any) ? canonicalAuthOrigin : 'https://homecheff.eu')
-          : (isBaseOurDomain ? baseUrlNorm : baseUrl) || baseUrl || 'http://localhost:3000';
-
-      const forceSameDomain = (targetUrl: string): string => {
-        if (!actualBaseUrl || !targetUrl) return targetUrl;
-        try {
-          const target = new URL(targetUrl.startsWith('/') ? actualBaseUrl + targetUrl : targetUrl);
-          const actual = new URL(actualBaseUrl);
-          if (target.origin !== actual.origin && ourDomains.some((d) => target.origin === d || actual.origin === d)) {
-            return actualBaseUrl + target.pathname + target.search;
-          }
-        } catch {
-          // ignore
-        }
-        return targetUrl;
-      };
+      const actualBaseUrl = getCanonicalAuthOrigin(baseUrl);
+      const allowedOrigins = getAllowedAuthOrigins(baseUrl);
 
       try {
         if (url.includes('/api/auth/callback/google') || url.includes('/api/auth/callback/apple')) {
-          return actualBaseUrl + '/auth/social-success';
+          return resolveSafeAuthRedirect('/auth/social-success', baseUrl);
         }
         if (url.includes('/social-login-success') || url.includes('/auth/social-success')) {
-          return actualBaseUrl + '/auth/social-success';
+          return resolveSafeAuthRedirect('/auth/social-success', baseUrl);
         }
         if (url.startsWith('/')) {
-          return actualBaseUrl + url;
+          return resolveSafeAuthRedirect(url, baseUrl);
         }
         if (url.startsWith(actualBaseUrl)) {
-          return forceSameDomain(url);
+          return resolveSafeAuthRedirect(url, baseUrl);
         }
         const u = new URL(url);
-        let res = actualBaseUrl + u.pathname + u.search;
-        if (res.length > 200) res = actualBaseUrl;
-        return forceSameDomain(res);
+        if (allowedOrigins.includes(u.origin)) {
+          const path = `${u.pathname}${u.search}`;
+          const res = resolveSafeAuthRedirect(path, baseUrl);
+          return res.length > 200 ? `${actualBaseUrl}/` : res;
+        }
+        return resolveSafeAuthRedirect('/', baseUrl);
       } catch (error) {
         console.error('🔍 Redirect error:', error);
         if (url.includes('google') || url.includes('apple')) {
-          return actualBaseUrl + '/auth/social-success';
+          return resolveSafeAuthRedirect('/auth/social-success', baseUrl);
         }
-        return actualBaseUrl + '/';
+        return resolveSafeAuthRedirect('/', baseUrl);
       }
     },
   },
