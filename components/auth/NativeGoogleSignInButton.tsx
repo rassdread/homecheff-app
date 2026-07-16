@@ -87,9 +87,10 @@ function mapNativeGoogleApiError(code: string): string {
     case 'token_audience_mismatch':
       return 'Google token verificatie mislukt.';
     case 'google_not_configured':
+    case 'google_native_not_configured':
     case 'google_client_id_mismatch':
     case 'auth_not_configured':
-      return 'Google configuratie mismatch. Controleer server-omgeving (GOOGLE_CLIENT_ID).';
+      return 'Google native configuratie ontbreekt. Zet GOOGLE_NATIVE_CLIENT_ID / NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID.';
     case 'email_not_verified':
       return 'Je Google-e-mail is niet geverifieerd.';
     case 'user_create_failed':
@@ -471,8 +472,8 @@ export function NativeGoogleSignInButton({
       {error ? <p className="text-xs text-center text-red-600">{error}</p> : null}
       {configBlocked ? (
         <p className="text-xs text-center text-amber-700">
-          Google login in de app vereist NEXT_PUBLIC_GOOGLE_CLIENT_ID (zelfde waarde als de web
-          Google client).
+          Google login in de app vereist NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID (of legacy
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID) — de Firebase/native audience, niet de web OAuth client.
         </p>
       ) : null}
     </div>

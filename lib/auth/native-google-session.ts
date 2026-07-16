@@ -1,50 +1,23 @@
 /**
  * Server-only: verify Google ID token and mint a NextAuth-compatible JWT session cookie.
  * Geen tokens of secrets loggen.
+ *
+ * Phase 2: native audiences are independent from the web NextAuth OAuth client.
  */
 import { OAuth2Client } from 'google-auth-library';
 import { encode } from 'next-auth/jwt';
 import type { UserRole } from '@prisma/client';
 import { getNextAuthSharedCookieDomain } from '@/lib/auth-cookie-domain';
 import { syncGoogleProfileToDatabase } from '@/lib/auth/google-account-sync';
+import {
+  googleClientIdPreview,
+  resolveNativeGoogleAudiences,
+} from '@/lib/auth/google-oauth-clients';
 
 const SESSION_MAX_AGE_SEC = 30 * 24 * 60 * 60;
 const SESSION_COOKIE_NAME = 'next-auth.session-token';
 
 const LOG_PREFIX = '[HomeCheff native-google session]';
-
-/** Alleen voor logs: client-id is geen geheim; toch ingekort. */
-function clientIdPreview(id: string): string {
-  const t = id.trim();
-  if (t.length <= 24) return `${t.slice(0, 8)}…`;
-  return `${t.slice(0, 12)}…${t.slice(-20)}`;
-}
-
-function resolveGoogleVerifyAudience(): {
-  audience: string;
-  publicClientId: string | null;
-} | null {
-  const audience = process.env.GOOGLE_CLIENT_ID?.trim() || '';
-  const publicClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || null;
-  if (!audience) {
-    console.info(LOG_PREFIX, {
-      verifyFailed: true,
-      reason: 'GOOGLE_CLIENT_ID ontbreekt op de server (vereist voor verifyIdToken audience).',
-      hasNextPublicGoogleClientId: Boolean(publicClientId),
-    });
-    return null;
-  }
-  if (publicClientId && publicClientId !== audience) {
-    console.info(LOG_PREFIX, {
-      verifyFailed: true,
-      reason: 'GOOGLE_CLIENT_ID en NEXT_PUBLIC_GOOGLE_CLIENT_ID verschillen; moeten dezelfde Web OAuth client ID zijn.',
-      audienceUsed: clientIdPreview(audience),
-      nextPublicPreview: clientIdPreview(publicClientId),
-    });
-    return null;
-  }
-  return { audience, publicClientId };
-}
 
 function buildSessionCookieAttributes(maxAge: number): string[] {
   const isProd = process.env.NODE_ENV === 'production';
@@ -73,21 +46,22 @@ export async function createSessionFromNativeGoogleIdToken(
     return { ok: false, status: 503, code: 'auth_not_configured' };
   }
 
-  const resolved = resolveGoogleVerifyAudience();
-  if (!resolved) {
-    const pub = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim();
-    const web = process.env.GOOGLE_CLIENT_ID?.trim();
-    if (web && pub && pub !== web) {
-      return { ok: false, status: 503, code: 'google_client_id_mismatch' };
-    }
-    return { ok: false, status: 503, code: 'google_not_configured' };
+  const { audiences, sources } = resolveNativeGoogleAudiences();
+  if (audiences.length === 0) {
+    console.info(LOG_PREFIX, {
+      verifyFailed: true,
+      reason:
+        'Native Google audience ontbreekt. Zet GOOGLE_NATIVE_CLIENT_ID (server) en/of NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID / NEXT_PUBLIC_GOOGLE_CLIENT_ID.',
+    });
+    return { ok: false, status: 503, code: 'google_native_not_configured' };
   }
 
-  const { audience } = resolved;
   console.info(LOG_PREFIX, {
     verifyStarted: true,
     hasIdToken: Boolean(idToken?.length),
-    audienceUsed: clientIdPreview(audience),
+    audienceCount: audiences.length,
+    audienceUsed: audiences.map(googleClientIdPreview),
+    audienceSources: sources,
   });
 
   const client = new OAuth2Client();
@@ -95,7 +69,7 @@ export async function createSessionFromNativeGoogleIdToken(
   try {
     const ticket = await client.verifyIdToken({
       idToken,
-      audience,
+      audience: audiences.length === 1 ? audiences[0] : audiences,
     });
     const p = ticket.getPayload();
     if (!p?.email) {
