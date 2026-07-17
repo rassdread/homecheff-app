@@ -149,9 +149,15 @@ import {
 import {
   readHomeFeedReturnCache,
   saveHomeFeedReturnCache,
-  peekFreshHomeFeedReturnCache,
+  clearHomeFeedReturnCache,
   isHomeFeedReturnCacheStale,
 } from "@/lib/feed/home-feed-return-cache";
+import {
+  isGeoFeedDiagnosticsEnabled,
+  newGeoFeedRequestId,
+  pushGeoFeedDiag,
+} from "@/lib/feed/geo-feed-diagnostics";
+import { isNativeApp } from "@/lib/native/capacitor";
 import {
   compareFeedSaleItems,
   feedItemCategoryEnum,
@@ -989,6 +995,7 @@ export default function GeoFeed({
   const feedInteractionStartedRef = useRef(false);
   /** Prevents duplicate concurrent network fetch for the same query key. */
   const feedRequestKeyInFlightRef = useRef<string | null>(null);
+  const latestFeedRequestKeyRef = useRef<string | null>(null);
   const feedRestoredFromCacheRef = useRef(false);
   const [feedHydrated, setFeedHydrated] = useState(false);
   const itemsRef = useRef<FeedItem[]>([]);
@@ -1526,12 +1533,38 @@ export default function GeoFeed({
   }, [session?.user, userLocation, locationSource, profileHasCoords]);
 
   const handleUseMyLocation = useCallback(() => {
-    if (!locationSupported) return;
+    if (!locationSupported && !isNativeApp()) return;
     gpsRequestPendingRef.current = true;
     setShowGpsError(false);
     setPlace("");
-    getCurrentPosition();
-  }, [locationSupported, getCurrentPosition]);
+    void (async () => {
+      if (isNativeApp()) {
+        try {
+          const { requestAndGetNativeCurrentPosition } = await import(
+            "@/lib/native/location"
+          );
+          const pos = await requestAndGetNativeCurrentPosition();
+          gpsRequestPendingRef.current = false;
+          setUserLocation({ lat: pos.latitude, lng: pos.longitude });
+          setLocationSource("gps");
+          setAppliedScope(FEED_SCOPE_NEARBY);
+          setAppliedRadius(radius);
+          setAppliedPlace("");
+          setSortBy("distance");
+          setSortOrder("asc");
+          setAppliedSortBy("distance");
+          setAppliedSortOrder("asc");
+          return;
+        } catch (e) {
+          console.warn("[HomeCheff] native geolocation failed, falling back", e);
+          setShowGpsError(true);
+        }
+      }
+      if (locationSupported) {
+        getCurrentPosition();
+      }
+    })();
+  }, [locationSupported, getCurrentPosition, radius]);
 
   useEffect(() => {
     if (!gpsRequestPendingRef.current || locationLoading || coords) return;
@@ -1672,6 +1705,13 @@ export default function GeoFeed({
     setSortOrder(defaults.sortOrder);
     setAppliedSortBy(defaults.sortBy);
     setAppliedSortOrder(defaults.sortOrder);
+    // Scope switch must never keep previous-scope items/cursor/cache.
+    setItems([]);
+    setDiscoveryFeed(null);
+    setFeedHasMore(false);
+    setApiRawItems([]);
+    clearHomeFeedReturnCache();
+    feedRestoredFromCacheRef.current = false;
   }, []);
 
   const handlePlaceInput = (inputPlace: string) => {
@@ -1723,17 +1763,15 @@ export default function GeoFeed({
     );
 
     const requestKey = params.toString();
+    latestFeedRequestKeyRef.current = requestKey;
 
     if (feedRequestKeyInFlightRef.current === requestKey) {
       return;
     }
     feedRequestKeyInFlightRef.current = requestKey;
 
-    const cached =
-      !feedInteractionStartedRef.current
-        ? peekFreshHomeFeedReturnCache() ??
-          readHomeFeedReturnCache(requestKey)
-        : readHomeFeedReturnCache(requestKey);
+    // Always key by request identity — never cross-scope peek.
+    const cached = readHomeFeedReturnCache(requestKey);
 
     feedPerfMark("cache:restore-start");
     let backgroundRefresh = false;
@@ -1825,10 +1863,88 @@ export default function GeoFeed({
             return;
           }
           if (cancelled) return;
+          // Reject late responses from a previous scope/radius/coords selection.
+          if (latestFeedRequestKeyRef.current !== requestKey) {
+            if (isGeoFeedDiagnosticsEnabled()) {
+              pushGeoFeedDiag({
+                requestId: newGeoFeedRequestId(),
+                at: new Date().toISOString(),
+                platform: isNativeApp() ? "android" : "web",
+                authenticated: null,
+                selectedScope: appliedScope,
+                radiusKm: appliedRadius,
+                latitude: coordsForApiLabels?.lat ?? null,
+                longitude: coordsForApiLabels?.lng ?? null,
+                countryCode: null,
+                pageCursor: { take: FEED_FIRST_PAGE_TAKE, skip: 0 },
+                cacheMode: "bypass",
+                cacheHit: false,
+                apiBranch: null,
+                resultCount: null,
+                resultListingIds: [],
+                resultCities: [],
+                resultCountries: [],
+                startedAt: null,
+                endedAt: Date.now(),
+                status: "stale",
+                note: "ignored response for superseded requestKey",
+              });
+            }
+            return;
+          }
           feedPerfMark("feed:json-received");
           feedPerfMarkFeedRequestEnd();
           const rawItems = (data.items || []) as Record<string, unknown>[];
           setApiRawItems(rawItems);
+          if (isGeoFeedDiagnosticsEnabled()) {
+            const cities = rawItems
+              .map((it) =>
+                String(
+                  (it as { place?: string; city?: string }).place ||
+                    (it as { city?: string }).city ||
+                    "",
+                ).slice(0, 40),
+              )
+              .filter(Boolean)
+              .slice(0, 12);
+            const countries = rawItems
+              .map((it) =>
+                String(
+                  (it as { country?: string; countryCode?: string }).countryCode ||
+                    (it as { country?: string }).country ||
+                    "",
+                ).slice(0, 8),
+              )
+              .filter(Boolean)
+              .slice(0, 12);
+            pushGeoFeedDiag({
+              requestId: newGeoFeedRequestId(),
+              at: new Date().toISOString(),
+              platform: isNativeApp() ? "android" : "web",
+              authenticated: Boolean(session?.user),
+              selectedScope: appliedScope,
+              radiusKm: appliedRadius,
+              latitude: coordsForApiLabels?.lat ?? null,
+              longitude: coordsForApiLabels?.lng ?? null,
+              countryCode: null,
+              pageCursor: { take: FEED_FIRST_PAGE_TAKE, skip: 0 },
+              cacheMode: backgroundRefresh ? "stale-refresh" : "miss",
+              cacheHit: false,
+              apiBranch: String(
+                (data.debug as { branch?: string } | undefined)?.branch ?? "feed",
+              ),
+              resultCount: rawItems.length,
+              resultListingIds: rawItems
+                .map((it) => String((it as { id?: string }).id || ""))
+                .filter(Boolean)
+                .slice(0, 20),
+              resultCities: cities,
+              resultCountries: countries,
+              startedAt: null,
+              endedAt: Date.now(),
+              status: "accepted",
+            });
+          }
           if (process.env.NODE_ENV === "development") {
             console.log("[GeoFeed feed-fetch] response", {
               count: rawItems.length,
@@ -2623,7 +2739,8 @@ export default function GeoFeed({
   const feedRowsToRender = useMemo(() => {
     if (!nativeMounted) return displayRows;
     if (nativeFeedRenderMore) return displayRows;
-    return displayRows.slice(0, 2);
+    // Keep first page usable on Android (avoid stuck 1–2 card chrome).
+    return displayRows.slice(0, Math.min(displayRows.length, FEED_FIRST_PAGE_TAKE));
   }, [nativeMounted, nativeFeedRenderMore, displayRows]);
 
   const applyFilters = useCallback(() => {

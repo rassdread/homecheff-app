@@ -1,8 +1,13 @@
 /**
  * Feed location scope — replaces radiusMode toggle.
- * - nearby: place/GPS + radius filter, nearest first
- * - national: all sale items, no radius/country filter
- * - international: no radius/country filter, farthest-first distance sort
+ *
+ * Product contract:
+ * - nearby: viewer coords/place + radius; server+client distance-verified;
+ *   never silently degrade to national/international.
+ * - national ("Heel Nederland"): European mainland Netherlands only
+ *   (see lib/geo/netherlands-mainland.ts). Caribbean Kingdom territories
+ *   (SX/CW/AW/BQ) are excluded.
+ * - international: worldwide including NL; farthest-first distance sort.
  */
 
 export const FEED_SCOPE_NEARBY = 'nearby' as const;

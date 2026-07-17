@@ -83,9 +83,13 @@ assert(
   'return cache exposes staleness window',
 );
 assert(
-  geoFeed.includes('peekFreshHomeFeedReturnCache') &&
-    geoFeed.includes('readHomeFeedReturnCache'),
-  'GeoFeed reads the return cache on mount',
+  geoFeed.includes('readHomeFeedReturnCache(requestKey)') &&
+    geoFeed.includes('clearHomeFeedReturnCache'),
+  'GeoFeed reads keyed return cache and clears on scope change',
+);
+assert(
+  !geoFeed.includes('peekFreshHomeFeedReturnCache()'),
+  'GeoFeed must not cross-key peekFresh (scope bleed)',
 );
 assert(
   geoFeed.includes('saveHomeFeedReturnCache'),

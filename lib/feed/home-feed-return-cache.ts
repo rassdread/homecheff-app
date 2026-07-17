@@ -44,9 +44,19 @@ export function readHomeFeedReturnCache(
   return memoryCache;
 }
 
-export function peekFreshHomeFeedReturnCache(): HomeFeedReturnCachePayload | null {
+/**
+ * @deprecated Cross-key peek caused wrong-scope reuse. Prefer
+ * {@link readHomeFeedReturnCache} with the current requestKey.
+ * Kept for callers that still pass a key via readHomeFeedReturnCache.
+ */
+export function peekFreshHomeFeedReturnCache(
+  requestKey?: string,
+): HomeFeedReturnCachePayload | null {
   if (!memoryCache) return null;
   if (Date.now() - memoryCache.savedAt > MAX_AGE_MS) return null;
+  if (requestKey && memoryCache.requestKey !== requestKey) return null;
+  // Without a key, never return a payload — prevents scope bleed.
+  if (!requestKey) return null;
   return memoryCache;
 }
 

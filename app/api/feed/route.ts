@@ -12,9 +12,18 @@ import { isContactOnlyProduct } from "@/lib/product/order-method";
 import {
   FEED_RADIUS_DEFAULT_KM,
   FEED_RADIUS_MODE_LOCAL_FIRST,
+  FEED_RADIUS_MODE_STRICT_LOCAL,
   normalizeFeedRadiusKm,
   sortFeedItemsLocalFirst,
 } from "@/lib/geo/local-discovery";
+import { isNationalNetherlandsListing } from "@/lib/geo/netherlands-mainland";
+import {
+  FEED_SCOPE_INTERNATIONAL,
+  FEED_SCOPE_NATIONAL,
+  FEED_SCOPE_NEARBY,
+  normalizeFeedScope,
+  scopeUsesRadiusFilter,
+} from "@/lib/feed/feed-scope";
 import {
   resolveDishCoords,
   resolveDishPlaceLabel,
@@ -46,7 +55,6 @@ import {
   isMarketplaceSaleItem,
   marketplaceSaleAuditSample,
 } from "@/lib/feed/marketplace-sale";
-import { normalizeFeedScope, scopeUsesRadiusFilter } from "@/lib/feed/feed-scope";
 import { geocodePlaceQuery } from "@/lib/global-geocoding";
 import {
   buildDiscoveryFeed,
@@ -927,14 +935,50 @@ async function handleFeedGet(
     }
   }
 
-  const sortedPool = sortFeedItemsLocalFirst(allItems as Record<string, unknown>[], {
+  const nearbyNeedsLocation =
+    feedScope === FEED_SCOPE_NEARBY &&
+    effectiveRadius > 0 &&
+    !viewerGeo;
+
+  const radiusModeForSort =
+    feedScope === FEED_SCOPE_NEARBY && viewerGeo && effectiveRadius > 0
+      ? FEED_RADIUS_MODE_STRICT_LOCAL
+      : FEED_RADIUS_MODE_LOCAL_FIRST;
+
+  let sortedPool = sortFeedItemsLocalFirst(allItems as Record<string, unknown>[], {
     viewerGeo,
-    radiusKm: effectiveRadius,
-    radiusMode: FEED_RADIUS_MODE_LOCAL_FIRST,
+    radiusKm: nearbyNeedsLocation ? 0 : effectiveRadius,
+    radiusMode: radiusModeForSort,
     followedSellerUserIds,
     extractSellerUserId: (item) => extractFeedItemSellerUserId(item),
     extractCoords: (item) => extractItemLatLng(item),
   });
+
+  // Nearby without viewer location must not silently return a national/global pool.
+  if (nearbyNeedsLocation) {
+    sortedPool = sortedPool.filter(
+      (item) => !isMarketplaceSaleItem(item as Record<string, unknown>),
+    );
+  }
+
+  // Heel Nederland = European mainland only (exclude SX/CW/AW/BQ and foreign).
+  if (feedScope === FEED_SCOPE_NATIONAL) {
+    sortedPool = sortedPool.filter((item) => {
+      if (!isMarketplaceSaleItem(item as Record<string, unknown>)) return true;
+      const coords = extractItemLatLng(item);
+      const countryCode =
+        (item.countryCode as string | undefined) ||
+        (item.country as string | undefined) ||
+        ((item.User as { country?: string } | undefined)?.country) ||
+        ((item.seller as { User?: { country?: string } } | undefined)?.User
+          ?.country) ||
+        null;
+      return isNationalNetherlandsListing({ coords, countryCode });
+    });
+  }
+
+  // International keeps worldwide results including NL (contract a).
+  void FEED_SCOPE_INTERNATIONAL;
 
   const enrichmentPoolCap = computeEnrichmentPoolCap(feedSkip, feedTake);
 
@@ -1224,6 +1268,18 @@ async function handleFeedGet(
           );
           return {
             scope: feedScope,
+            branch: nearbyNeedsLocation
+              ? 'nearby_needs_location'
+              : feedScope === FEED_SCOPE_NATIONAL
+                ? 'national_mainland'
+                : feedScope === FEED_SCOPE_NEARBY
+                  ? 'nearby_strict_local'
+                  : 'international_worldwide',
+            nearbyNeedsLocation,
+            radiusMode: radiusModeForSort,
+            viewerGeo: viewerGeo
+              ? { lat: viewerGeo.lat, lng: viewerGeo.lng }
+              : null,
             cacheTier: cachePolicy.tier,
             cacheReasons: cachePolicy.reasons,
             statsPreviewDeferred: STATS_PREVIEW_DEFERRED,
