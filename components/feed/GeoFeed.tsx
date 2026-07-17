@@ -208,6 +208,23 @@ import {
 } from "@/lib/feed/nearby-location-state";
 import NearbyLocationRequiredEmptyState from "@/components/feed/NearbyLocationRequiredEmptyState";
 import {
+  FEED_SALE_INSPIRATION_STRIDE,
+  FEED_RECIRC_BATCH_SIZE,
+  FEED_RECIRC_MIN_SEED,
+  buildRecirculationBatch,
+  inspirationEligibleForFeedScope,
+  type RecircSeedItem,
+} from "@/lib/feed/feed-composition-policy";
+import {
+  composedFeedCanContinue,
+  createFeedCompositionState,
+  markMarketplacePageResult,
+  recordDisplayedSeeds,
+  resetFeedCompositionState,
+  bumpRecirculatedCount,
+  type FeedCompositionState,
+} from "@/lib/feed/feed-composition-state";
+import {
   migrateHomeFilterPersist,
   normalizeHomeFeedChip,
   snapshotHomeFilterPersist,
@@ -717,7 +734,7 @@ function interleaveSalesAndInspiration(
   let si = 0;
   let ii = 0;
   let streak = 0;
-  const STRIDE = 4;
+  const STRIDE = FEED_SALE_INSPIRATION_STRIDE;
 
   while (si < sales.length) {
     out.push({ row: "sale", item: sales[si++] });
@@ -768,7 +785,7 @@ function interleaveWithSmartPrefix(
   }
 
   let streak = rows.filter((r) => r.row === "sale").length;
-  const STRIDE = 4;
+  const STRIDE = FEED_SALE_INSPIRATION_STRIDE;
 
   let ti = 0;
   while (ti < tailSales.length) {
@@ -997,6 +1014,17 @@ export default function GeoFeed({
   const [feedHasMore, setFeedHasMore] = useState(false);
   const [feedLoadingMore, setFeedLoadingMore] = useState(false);
   const feedLoadMoreRef = useRef<HTMLDivElement | null>(null);
+  /** Unified composition pagination / recirculation (one source must not kill the feed). */
+  const [compositionState, setCompositionState] = useState<FeedCompositionState>(
+    () => createFeedCompositionState(),
+  );
+  const compositionStateRef = useRef(compositionState);
+  compositionStateRef.current = compositionState;
+  /** Client-side recirculated rows appended after unique inventory is exhausted. */
+  const [recirculatedRows, setRecirculatedRows] = useState<
+    Array<{ row: "sale"; item: FeedItem } | { row: "insp"; slot: InspSlot }>
+  >([]);
+  const recirculationInFlightRef = useRef(false);
   const feedHasMoreRef = useRef(false);
   const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
@@ -1797,6 +1825,10 @@ export default function GeoFeed({
     lastInspiratieFetchKeyRef.current = "";
     setFeedHasMore(false);
     setApiRawItems([]);
+    setRecirculatedRows([]);
+    setCompositionState((prev) =>
+      resetFeedCompositionState(prev, `scope=${next}`),
+    );
     clearHomeFeedReturnCache();
     feedRestoredFromCacheRef.current = false;
     if (next === FEED_SCOPE_NEARBY) {
@@ -1846,6 +1878,10 @@ export default function GeoFeed({
       setFeedHasMore(false);
       setApiRawItems([]);
       setApiViewerCoords(null);
+      setRecirculatedRows([]);
+      setCompositionState((prev) =>
+        resetFeedCompositionState(prev, "nearby:needs-location"),
+      );
       setLoading(false);
       setFeedRefreshing(false);
       setFeedHydrated(true);
@@ -1905,6 +1941,9 @@ export default function GeoFeed({
 
     const requestKey = params.toString();
     latestFeedRequestKeyRef.current = requestKey;
+
+    setRecirculatedRows([]);
+    setCompositionState((prev) => resetFeedCompositionState(prev, requestKey));
 
     if (feedRequestKeyInFlightRef.current === requestKey) {
       return;
@@ -2146,7 +2185,27 @@ export default function GeoFeed({
             );
           }
           setItems(valid);
-          setFeedHasMore(data.pagination?.hasMore ?? false);
+          const apiHasMore = Boolean(data.pagination?.hasMore);
+          setCompositionState((prev) => {
+            let next = recordDisplayedSeeds(
+              prev,
+              valid.map((row) => ({
+                id: row.id,
+                kind: isMarketplaceSaleItem(row)
+                  ? ("sale" as const)
+                  : ("insp" as const),
+              })),
+            );
+            next = markMarketplacePageResult(next, {
+              fetchedCount: valid.length,
+              apiHasMore,
+              skipUsed: 0,
+            });
+            return next;
+          });
+          setFeedHasMore(
+            apiHasMore || valid.length >= FEED_RECIRC_MIN_SEED,
+          );
           setDiscoveryFeed(
             data.discovery && data.discovery.version === 1
               ? data.discovery
@@ -2218,6 +2277,129 @@ export default function GeoFeed({
 
   const loadMoreFeed = useCallback(async () => {
     if (!feedHasMore || feedLoadingMore || feedStartupBlocked) return;
+    if (nearbyNeedsLocation) return;
+
+    const comp = compositionStateRef.current;
+    const shouldRecirculate =
+      comp.recirculationActive ||
+      (comp.marketplaceExhausted &&
+        comp.uniqueEligibleCount >= FEED_RECIRC_MIN_SEED);
+
+    if (shouldRecirculate) {
+      if (recirculationInFlightRef.current) return;
+      recirculationInFlightRef.current = true;
+      setFeedLoadingMore(true);
+      try {
+        const lastId =
+          recirculatedRows.length > 0
+            ? recirculatedRows[recirculatedRows.length - 1]?.row === "sale"
+              ? recirculatedRows[recirculatedRows.length - 1].item.id
+              : recirculatedRows[recirculatedRows.length - 1].slot.kind === "api"
+                ? recirculatedRows[recirculatedRows.length - 1].slot.item.id
+                : recirculatedRows[recirculatedRows.length - 1].slot.item.id
+            : null;
+        // Prefer seeds from composition history; fall back to current items + insp pool.
+        let seeds: RecircSeedItem[] = comp.displayedHistory;
+        if (seeds.length < FEED_RECIRC_MIN_SEED) {
+          seeds = [
+            ...itemsRef.current.map((row) => ({
+              id: row.id,
+              kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
+                | "sale"
+                | "insp",
+            })),
+            ...inspiratiePoolRef.current.map((row) => ({
+              id: row.id,
+              kind: "insp" as const,
+            })),
+          ];
+        }
+        const batch = buildRecirculationBatch({
+          seeds,
+          recentIds: comp.recentIds,
+          lastDisplayedId: lastId,
+          take: FEED_RECIRC_BATCH_SIZE,
+        });
+        if (batch.length === 0) {
+          setFeedHasMore(false);
+          return;
+        }
+
+        const saleById = new Map(
+          itemsRef.current.map((row) => [row.id, row] as const),
+        );
+        const inspApiById = new Map(
+          inspiratiePoolRef.current.map((row) => [row.id, row] as const),
+        );
+        const nextRows: Array<
+          { row: "sale"; item: FeedItem } | { row: "insp"; slot: InspSlot }
+        > = [];
+        for (const seed of batch) {
+          if (seed.kind === "sale") {
+            const item = saleById.get(seed.id);
+            if (item) nextRows.push({ row: "sale", item });
+          } else {
+            const api = inspApiById.get(seed.id);
+            if (api) {
+              nextRows.push({ row: "insp", slot: { kind: "api", item: api } });
+            } else {
+              const feedItem = saleById.get(seed.id);
+              if (feedItem) {
+                nextRows.push({
+                  row: "insp",
+                  slot: { kind: "feed", item: feedItem },
+                });
+              }
+            }
+          }
+        }
+        if (nextRows.length === 0) {
+          setFeedHasMore(false);
+          return;
+        }
+        setRecirculatedRows((prev) => [...prev, ...nextRows]);
+        setCompositionState((prev) =>
+          bumpRecirculatedCount(
+            recordDisplayedSeeds(
+              { ...prev, recirculationActive: true, stage: "recirculation" },
+              batch,
+            ),
+            nextRows.length,
+          ),
+        );
+        setFeedHasMore(true);
+        if (isGeoFeedDiagnosticsEnabled()) {
+          pushGeoFeedDiag({
+            requestId: newGeoFeedRequestId(),
+            at: new Date().toISOString(),
+            platform: isNativeApp() ? "android" : "web",
+            authenticated: Boolean(session?.user),
+            selectedScope: appliedScope,
+            radiusKm: appliedRadius,
+            latitude: coordsForApiLabels?.lat ?? null,
+            longitude: coordsForApiLabels?.lng ?? null,
+            countryCode: null,
+            pageCursor: null,
+            cacheMode: "bypass",
+            cacheHit: false,
+            apiBranch: "recirculation",
+            resultCount: nextRows.length,
+            resultListingIds: batch.map((b) => b.id).slice(0, 20),
+            resultCities: [],
+            resultCountries: [],
+            startedAt: null,
+            endedAt: Date.now(),
+            status: "accepted",
+            note: `stage=recirculation unique=${comp.uniqueEligibleCount}`,
+          });
+        }
+      } finally {
+        recirculationInFlightRef.current = false;
+        setFeedLoadingMore(false);
+      }
+      return;
+    }
+
     setFeedLoadingMore(true);
     try {
       const skip = itemsRef.current.length;
@@ -2235,6 +2417,9 @@ export default function GeoFeed({
         },
         { take: FEED_FIRST_PAGE_TAKE, skip },
       );
+      if (latestFeedRequestKeyRef.current && !params.toString().includes(appliedScope)) {
+        // stale guard uses request identity from main effect; generation checked via scope deps
+      }
       const feedRes = await fetch(`/api/feed?${params.toString()}`, {
         cache: "no-store",
       });
@@ -2250,10 +2435,19 @@ export default function GeoFeed({
           ? apiViewerCoordsRef.current ?? feedCoords ?? null
           : effectiveViewerForDistance;
       const valid = mapRawFeedApiItems(rawItems, viewerForDistance);
+      const apiHasMore = Boolean(data.pagination?.hasMore);
+
       if (valid.length === 0) {
-        setFeedHasMore(false);
+        const next = markMarketplacePageResult(compositionStateRef.current, {
+          fetchedCount: 0,
+          apiHasMore: false,
+          skipUsed: skip,
+        });
+        setCompositionState(next);
+        setFeedHasMore(composedFeedCanContinue(next));
         return;
       }
+
       setItems((prev) => {
         const seen = new Set(prev.map((row) => row.id));
         const merged = [...prev];
@@ -2262,7 +2456,25 @@ export default function GeoFeed({
         }
         return merged;
       });
-      setFeedHasMore(data.pagination?.hasMore ?? false);
+
+      {
+        let next = recordDisplayedSeeds(
+          compositionStateRef.current,
+          valid.map((row) => ({
+            id: row.id,
+            kind: isMarketplaceSaleItem(row)
+              ? ("sale" as const)
+              : ("insp" as const),
+          })),
+        );
+        next = markMarketplacePageResult(next, {
+          fetchedCount: valid.length,
+          apiHasMore,
+          skipUsed: skip,
+        });
+        setCompositionState(next);
+        setFeedHasMore(apiHasMore || composedFeedCanContinue(next));
+      }
       feedPerfIncrementFeedFetch("refresh");
     } catch (error) {
       console.error("[GeoFeed] load-more failed", error);
@@ -2273,6 +2485,8 @@ export default function GeoFeed({
     feedHasMore,
     feedLoadingMore,
     feedStartupBlocked,
+    nearbyNeedsLocation,
+    recirculatedRows,
     appliedScope,
     appliedRadius,
     appliedQ,
@@ -2283,6 +2497,7 @@ export default function GeoFeed({
     apiLocationSource,
     feedCoords,
     effectiveViewerForDistance,
+    session?.user,
   ]);
 
   useEffect(() => {
@@ -2519,6 +2734,20 @@ export default function GeoFeed({
     const qn = appliedSearchQuery.trim();
     return inspiratiePool.filter((item) => {
       if (
+        !inspirationEligibleForFeedScope({
+          scope: appliedScope,
+          item: {
+            lat: item.location?.lat,
+            lng: item.location?.lng,
+            place: item.location?.place,
+          },
+          viewer: effectiveViewerForDistance,
+          radiusKm: appliedRadius,
+        })
+      ) {
+        return false;
+      }
+      if (
         !itemMatchesDiscoveryCategorySlug(
           item,
           appliedCategory,
@@ -2529,11 +2758,32 @@ export default function GeoFeed({
       }
       return matchesSearchTextQuery(toSearchableListingRecord(item), qn);
     });
-  }, [inspiratiePool, appliedSearchQuery, appliedCategory]);
+  }, [
+    inspiratiePool,
+    appliedSearchQuery,
+    appliedCategory,
+    appliedScope,
+    effectiveViewerForDistance,
+    appliedRadius,
+  ]);
 
   const filteredFeedInspiration = useMemo(() => {
     const qn = appliedSearchQuery.trim();
     return feedOnlyInspiration.filter((item) => {
+      if (
+        !inspirationEligibleForFeedScope({
+          scope: appliedScope,
+          item: {
+            lat: item.lat,
+            lng: item.lng,
+            place: item.place,
+          },
+          viewer: effectiveViewerForDistance,
+          radiusKm: appliedRadius,
+        })
+      ) {
+        return false;
+      }
       if (
         !itemMatchesDiscoveryCategorySlug(
           item,
@@ -2545,7 +2795,14 @@ export default function GeoFeed({
       }
       return matchesSearch(item, qn);
     });
-  }, [feedOnlyInspiration, appliedSearchQuery, appliedCategory]);
+  }, [
+    feedOnlyInspiration,
+    appliedSearchQuery,
+    appliedCategory,
+    appliedScope,
+    effectiveViewerForDistance,
+    appliedRadius,
+  ]);
 
   const inspirationSlots = useMemo(() => {
     // Product integrity: never interleave worldwide inspiration under Nearby
@@ -2806,7 +3063,15 @@ export default function GeoFeed({
     filteredRequestBase,
   ]);
 
-  const displayCount = displayRows.length;
+  const composedDisplayRows = useMemo(() => {
+    if (nearbyNeedsLocation) return displayRows;
+    if (feedChip === "sale" || feedChip === "gezocht") return displayRows;
+    if (recirculatedRows.length === 0) return displayRows;
+    return [...displayRows, ...recirculatedRows];
+  }, [displayRows, recirculatedRows, nearbyNeedsLocation, feedChip]);
+
+  const displayCount = composedDisplayRows.length;
+
 
   useEffect(() => {
     logFeedSaleVisibilityAudit({
@@ -2891,14 +3156,17 @@ export default function GeoFeed({
       }
       if (timeoutId != null) window.clearTimeout(timeoutId);
     };
-  }, [nativeMounted, displayRows]);
+  }, [nativeMounted, composedDisplayRows]);
 
   const feedRowsToRender = useMemo(() => {
-    if (!nativeMounted) return displayRows;
-    if (nativeFeedRenderMore) return displayRows;
+    if (!nativeMounted) return composedDisplayRows;
+    if (nativeFeedRenderMore) return composedDisplayRows;
     // Keep first page usable on Android (avoid stuck 1–2 card chrome).
-    return displayRows.slice(0, Math.min(displayRows.length, FEED_FIRST_PAGE_TAKE));
-  }, [nativeMounted, nativeFeedRenderMore, displayRows]);
+    return composedDisplayRows.slice(
+      0,
+      Math.min(composedDisplayRows.length, FEED_FIRST_PAGE_TAKE),
+    );
+  }, [nativeMounted, nativeFeedRenderMore, composedDisplayRows]);
 
   const applyFilters = useCallback(() => {
     const trimmedPlace = place.trim();
@@ -2910,6 +3178,7 @@ export default function GeoFeed({
     setAppliedSortOrder(sortOrder);
     setAppliedSearchQuery(searchQuery);
     setAppliedPriceRange({ ...priceRange });
+    setRecirculatedRows([]);
 
     const hasNewLocation =
       trimmedPlace !== "" ||
@@ -4060,7 +4329,7 @@ export default function GeoFeed({
 
   const showFeedSkeleton = loading && !feedHydrated;
   const showStaleFeedWhileRefreshing =
-    feedRefreshing && feedHydrated && displayRows.length > 0;
+    feedRefreshing && feedHydrated && composedDisplayRows.length > 0;
 
   const feedResultsBlock = showFeedSkeleton ? (
         <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 4} compact={isMobileFeedUi} />
