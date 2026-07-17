@@ -1244,20 +1244,6 @@ export default function GeoFeed({
       bootstrapStatus === "loading" &&
       nearbyScopeAwaitingProfileCoords);
 
-  const nearbyNeedsLocation = isNearbyMissingLocation({
-    scope: appliedScope,
-    appliedPlace,
-    feedCoords,
-  });
-
-  const locationBusy = locationLoading || locationAcquiring;
-
-  const showNearbyLocationRequired =
-    nearbyNeedsLocation &&
-    !locationBusy &&
-    !feedStartupBlocked &&
-    feedHydrated;
-
   const sessionGateBypassed = shouldBypassSessionLoadingGate(
     sessionStatus,
     ssrAuthHint,
@@ -1295,6 +1281,20 @@ export default function GeoFeed({
         setLocationAcquiring(false);
       },
     });
+
+  const nearbyNeedsLocation = isNearbyMissingLocation({
+    scope: appliedScope,
+    appliedPlace,
+    feedCoords,
+  });
+
+  const locationBusy = locationLoading || locationAcquiring;
+
+  const showNearbyLocationRequired =
+    nearbyNeedsLocation &&
+    !locationBusy &&
+    !feedStartupBlocked &&
+    feedHydrated;
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
