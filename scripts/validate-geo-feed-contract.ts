@@ -124,6 +124,15 @@ assert(!geo.includes('peekFreshHomeFeedReturnCache()'), 'no unkeyed peek');
 assert(geo.includes('clearHomeFeedReturnCache()'), 'scope change clears cache');
 assert(geo.includes('latestFeedRequestKeyRef'), 'stale response guard present');
 assert(geo.includes('requestAndGetNativeCurrentPosition'), 'native GPS wired');
+assert(
+  !geo.includes('[nativeMounted, composedDisplayRows]'),
+  'native first-paint must not re-collapse on composedDisplayRows (Android scroll bug)',
+);
+assert(
+  geo.includes('Intentionally NOT composedDisplayRows') ||
+    geo.includes('nativePaintKey'),
+  'native paint key isolates first-paint slice from pagination',
+);
 assert(route.includes('isEligibleForNationalFeedScope'), 'API national filter');
 assert(route.includes('FEED_RADIUS_MODE_STRICT_LOCAL'), 'nearby strict local');
 assert(route.includes('nearbyNeedsLocation'), 'nearby without coords guarded');

@@ -1014,6 +1014,7 @@ export default function GeoFeed({
   const [feedHasMore, setFeedHasMore] = useState(false);
   const [feedLoadingMore, setFeedLoadingMore] = useState(false);
   const feedLoadMoreRef = useRef<HTMLDivElement | null>(null);
+  const feedLoadingMoreRef = useRef(false);
   /** Unified composition pagination / recirculation (one source must not kill the feed). */
   const [compositionState, setCompositionState] = useState<FeedCompositionState>(
     () => createFeedCompositionState(),
@@ -2265,6 +2266,10 @@ export default function GeoFeed({
   }, [feedHasMore]);
 
   useEffect(() => {
+    feedLoadingMoreRef.current = feedLoadingMore;
+  }, [feedLoadingMore]);
+
+  useEffect(() => {
     if (!feedHydrated || items.length === 0) return;
     const ac = new AbortController();
     scheduleDeferredFeedStatsPreview(items, ac.signal);
@@ -2274,6 +2279,13 @@ export default function GeoFeed({
   const loadMoreFeed = useCallback(async () => {
     if (!feedHasMore || feedLoadingMore || feedStartupBlocked) return;
     if (nearbyNeedsLocation) return;
+    if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+      console.info("[hc-native-scroll]", "loadMore-entered", {
+        marketplaceItems: itemsRef.current.length,
+        recirculation: compositionStateRef.current.recirculationActive,
+        nativeExpanded: nativeFeedRenderMoreRef.current,
+      });
+    }
 
     const comp = compositionStateRef.current;
     if (comp.emptyTerminal) {
@@ -2366,6 +2378,12 @@ export default function GeoFeed({
           return;
         }
         setRecirculatedRows((prev) => [...prev, ...nextRows]);
+        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+          console.info("[hc-native-scroll]", "state-updated-recirc", {
+            batch: nextRows.length,
+            prevTail: recirculatedRows.length,
+          });
+        }
         setCompositionState((prev) =>
           bumpRecirculatedCount(
             recordDisplayedSeeds(
@@ -2462,6 +2480,14 @@ export default function GeoFeed({
         for (const row of valid) {
           if (!seen.has(row.id)) merged.push(row);
         }
+        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+          console.info("[hc-native-scroll]", "state-updated-items", {
+            prev: prev.length,
+            next: merged.length,
+            batch: valid.length,
+            apiHasMore,
+          });
+        }
         return merged;
       });
 
@@ -2511,15 +2537,38 @@ export default function GeoFeed({
   useEffect(() => {
     const el = feedLoadMoreRef.current;
     if (!el || !feedHasMore || loading) return;
+    // Do not depend on feedLoadingMore — disconnect/reconnect on every load tick
+    // races Capacitor WebView layout and can miss the next intersection.
     const obs = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) void loadMoreFeed();
+        const hit = Boolean(entries[0]?.isIntersecting);
+        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+          console.info("[hc-native-scroll]", "observer-fired", {
+            hit,
+            feedHasMore,
+            feedLoadingMore: feedLoadingMoreRef.current,
+            nativeExpanded: nativeFeedRenderMoreRef.current,
+            rows: itemsRef.current.length,
+          });
+        }
+        if (hit) void loadMoreFeed();
       },
-      { rootMargin: "480px 0px" },
+      { root: null, rootMargin: "480px 0px", threshold: 0 },
     );
     obs.observe(el);
-    return () => obs.disconnect();
-  }, [feedHasMore, feedLoadingMore, loading, loadMoreFeed]);
+    if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+      console.info("[hc-native-scroll]", "observer-attached", {
+        feedHasMore,
+        nativeExpanded: nativeFeedRenderMoreRef.current,
+      });
+    }
+    return () => {
+      obs.disconnect();
+      if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+        console.info("[hc-native-scroll]", "observer-detached");
+      }
+    };
+  }, [feedHasMore, loading, loadMoreFeed]);
 
   useEffect(() => {
     if (feedStartupBlocked || !feedHydrated) return;
@@ -3130,10 +3179,14 @@ export default function GeoFeed({
   ]);
 
   /**
-   * Native: false = toon eerst 2 kaarten; true = volledige lijst (na idle).
-   * Web: nativeMounted is altijd false tot mount — slice wordt niet gebruikt.
+   * Native first-paint throttle: briefly slice the list, then expand once.
+   * CRITICAL: do NOT re-collapse when composedDisplayRows grows (load-more /
+   * recirculation). Re-collapsing shrinks content height in Capacitor WebView,
+   * leaves scrollY past the sentinel, and permanently stops IntersectionObserver.
+   * Desktop never hits this path (nativeMounted === false).
    */
   const [nativeFeedRenderMore, setNativeFeedRenderMore] = useState(false);
+  const nativePaintKey = `${appliedScope}|${appliedCategory}|${appliedPlace}|${appliedRadius}|${appliedQ}`;
 
   useEffect(() => {
     if (!nativeMounted) {
@@ -3143,11 +3196,19 @@ export default function GeoFeed({
     }
     setNativeFeedRenderMore(false);
     nativeFeedRenderMoreRef.current = false;
+    if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+      console.info("[hc-native-scroll]", "first-paint-slice", {
+        paintKey: nativePaintKey,
+      });
+    }
     let cancelled = false;
     const finish = () => {
       if (!cancelled) {
         setNativeFeedRenderMore(true);
         nativeFeedRenderMoreRef.current = true;
+        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+          console.info("[hc-native-scroll]", "first-paint-expanded");
+        }
       }
     };
     let idleId: number | undefined;
@@ -3164,7 +3225,8 @@ export default function GeoFeed({
       }
       if (timeoutId != null) window.clearTimeout(timeoutId);
     };
-  }, [nativeMounted, composedDisplayRows]);
+    // Intentionally NOT composedDisplayRows — pagination must not re-collapse.
+  }, [nativeMounted, nativePaintKey]);
 
   const feedRowsToRender = useMemo(() => {
     if (!nativeMounted) return composedDisplayRows;
