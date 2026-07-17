@@ -86,3 +86,11 @@ Exact Preview measurements to fill after deploy: spinner ms avg, prefetch hit ra
 ## Recommendation
 
 **HOLD** for Production until Preview + Android Web scroll UX confirms spinner rarity. GO for Preview soak.
+
+| Preview | Value |
+| --- | --- |
+| Commit | `c7dfe88` |
+| Branch | `fix/feed-prefetch-smooth` |
+| Deployment | `dpl_4r7YXMrD8NdwvBwH6QsgW2r56TGu` |
+| Preview URL | https://homecheff-hfcqv62i3-sergio-s-projects-f7b64ee1.vercel.app |
+| Inspect | https://vercel.com/sergio-s-projects-f7b64ee1/homecheff-app/4r7YXMrD8NdwvBwH6QsgW2r56TGu |
