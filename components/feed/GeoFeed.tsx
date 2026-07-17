@@ -208,6 +208,14 @@ import {
 } from "@/lib/feed/nearby-location-state";
 import NearbyLocationRequiredEmptyState from "@/components/feed/NearbyLocationRequiredEmptyState";
 import {
+  FEED_PREFETCH_MAX_BATCHES,
+  FeedPrefetchCache,
+  buildPrefetchObserverRootMargin,
+  computePrefetchRootMarginPx,
+  readNetworkHints,
+  scheduleIdleWork,
+} from "@/lib/feed/feed-prefetch-cache";
+import {
   FEED_SALE_INSPIRATION_STRIDE,
   FEED_RECIRC_BATCH_SIZE,
   FEED_RECIRC_MIN_SEED,
@@ -1026,6 +1034,15 @@ export default function GeoFeed({
     Array<{ row: "sale"; item: FeedItem } | { row: "insp"; slot: InspSlot }>
   >([]);
   const recirculationInFlightRef = useRef(false);
+  /** Predictive prefetch — max 2 prepared pages per requestKey. */
+  const feedPrefetchCacheRef = useRef(
+    new FeedPrefetchCache<FeedItem>(FEED_PREFETCH_MAX_BATCHES),
+  );
+  const prefetchScrollVelocityRef = useRef(0);
+  const lastScrollYRef = useRef(0);
+  const lastScrollTsRef = useRef(0);
+  const spinnerShownAtRef = useRef<number | null>(null);
+  const preparedRecircBatchRef = useRef<RecircSeedItem[] | null>(null);
   const feedHasMoreRef = useRef(false);
   const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
@@ -1872,6 +1889,8 @@ export default function GeoFeed({
     if (nearbyNeedsLocation) {
       latestFeedRequestKeyRef.current = "nearby:needs-location";
       feedRequestKeyInFlightRef.current = null;
+      feedPrefetchCacheRef.current.setRequestKey("nearby:needs-location");
+      preparedRecircBatchRef.current = null;
       setItems([]);
       setDiscoveryFeed(null);
       setInspiratiePool([]);
@@ -1942,6 +1961,8 @@ export default function GeoFeed({
 
     const requestKey = params.toString();
     latestFeedRequestKeyRef.current = requestKey;
+    feedPrefetchCacheRef.current.setRequestKey(requestKey);
+    preparedRecircBatchRef.current = null;
 
     setRecirculatedRows([]);
     setCompositionState((prev) => resetFeedCompositionState(prev, requestKey));
@@ -2276,6 +2297,269 @@ export default function GeoFeed({
     return () => ac.abort();
   }, [feedHydrated, items]);
 
+  const buildLoadMoreParams = useCallback(
+    (skip: number) =>
+      buildGeoFeedApiParams(
+        {
+          scope: appliedScope,
+          radius: appliedRadius,
+          q: appliedQ,
+          category: appliedCategory,
+          lat: coordsForApiLabels?.lat ?? null,
+          lng: coordsForApiLabels?.lng ?? null,
+          place: viewerPlaceForApi,
+          locationSource:
+            appliedScope === FEED_SCOPE_NEARBY ? apiLocationSource : null,
+        },
+        { take: FEED_FIRST_PAGE_TAKE, skip },
+      ),
+    [
+      appliedScope,
+      appliedRadius,
+      appliedQ,
+      appliedCategory,
+      coordsForApiLabels?.lat,
+      coordsForApiLabels?.lng,
+      viewerPlaceForApi,
+      apiLocationSource,
+    ],
+  );
+
+  const applyMarketplacePage = useCallback(
+    (input: {
+      valid: FeedItem[];
+      apiHasMore: boolean;
+      skip: number;
+      fromPrefetch: boolean;
+      appendStartedAt: number;
+    }) => {
+      const { valid, apiHasMore, skip, fromPrefetch, appendStartedAt } = input;
+      if (valid.length === 0) {
+        const next = markMarketplacePageResult(compositionStateRef.current, {
+          fetchedCount: 0,
+          apiHasMore: false,
+          skipUsed: skip,
+        });
+        setCompositionState(next);
+        setFeedHasMore(composedFeedCanContinue(next));
+        return;
+      }
+
+      setItems((prev) => {
+        const seen = new Set(prev.map((row) => row.id));
+        const merged = [...prev];
+        for (const row of valid) {
+          if (!seen.has(row.id)) merged.push(row);
+        }
+        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+          console.info("[hc-native-scroll]", "state-updated-items", {
+            prev: prev.length,
+            next: merged.length,
+            batch: valid.length,
+            apiHasMore,
+            fromPrefetch,
+          });
+        }
+        return merged;
+      });
+
+      let next = recordDisplayedSeeds(
+        compositionStateRef.current,
+        valid.map((row) => ({
+          id: row.id,
+          kind: isMarketplaceSaleItem(row)
+            ? ("sale" as const)
+            : ("insp" as const),
+        })),
+      );
+      next = markMarketplacePageResult(next, {
+        fetchedCount: valid.length,
+        apiHasMore,
+        skipUsed: skip,
+      });
+      setCompositionState(next);
+      setFeedHasMore(apiHasMore || composedFeedCanContinue(next));
+      feedPerfIncrementFeedFetch("refresh");
+
+      const latency = Date.now() - appendStartedAt;
+      const diag = feedPrefetchCacheRef.current.diag;
+      diag.batchAppendLatencyMsTotal += latency;
+      diag.batchAppendCount += 1;
+      if (isGeoFeedDiagnosticsEnabled()) {
+        pushGeoFeedDiag({
+          requestId: newGeoFeedRequestId(),
+          at: new Date().toISOString(),
+          platform: isNativeApp() ? "android" : "web",
+          authenticated: Boolean(session?.user),
+          selectedScope: appliedScope,
+          radiusKm: appliedRadius,
+          latitude: coordsForApiLabels?.lat ?? null,
+          longitude: coordsForApiLabels?.lng ?? null,
+          countryCode: null,
+          pageCursor: { take: FEED_FIRST_PAGE_TAKE, skip },
+          cacheMode: fromPrefetch ? "hit" : "miss",
+          cacheHit: fromPrefetch,
+          apiBranch: fromPrefetch ? "prefetch_append" : "load_more",
+          resultCount: valid.length,
+          resultListingIds: valid.map((v) => v.id).slice(0, 20),
+          resultCities: [],
+          resultCountries: [],
+          startedAt: appendStartedAt,
+          endedAt: Date.now(),
+          status: "accepted",
+          note: `appendLatencyMs=${latency} prepared=${feedPrefetchCacheRef.current.preparedCount()}`,
+        });
+      }
+    },
+    [
+      appliedScope,
+      appliedRadius,
+      coordsForApiLabels?.lat,
+      coordsForApiLabels?.lng,
+      session?.user,
+    ],
+  );
+
+  /** Background prepare next marketplace page — never shows spinner. */
+  const prefetchNextMarketplacePage = useCallback(
+    async (reason: "early" | "idle" | "post-append") => {
+      if (feedStartupBlocked || nearbyNeedsLocation || loading) return;
+      if (!feedHasMoreRef.current) return;
+      const comp = compositionStateRef.current;
+      if (
+        comp.emptyTerminal ||
+        comp.recirculationActive ||
+        comp.marketplaceExhausted
+      ) {
+        return;
+      }
+      const cache = feedPrefetchCacheRef.current;
+      if (!cache.canPrefetchMore()) return;
+
+      const identityKey = latestFeedRequestKeyRef.current;
+      if (!identityKey) return;
+
+      let targetSkip = itemsRef.current.length;
+      if (
+        cache.peek(identityKey, targetSkip) ||
+        cache.hasInFlight(identityKey, targetSkip)
+      ) {
+        targetSkip = itemsRef.current.length + FEED_FIRST_PAGE_TAKE;
+      }
+      if (
+        cache.peek(identityKey, targetSkip) ||
+        cache.hasInFlight(identityKey, targetSkip)
+      ) {
+        return;
+      }
+
+      const params = buildLoadMoreParams(targetSkip);
+      cache.markInFlight(identityKey, targetSkip);
+      if (reason === "idle") cache.diag.idlePrefetch += 1;
+      if (isGeoFeedDiagnosticsEnabled()) {
+        console.info("[hc-feed-prefetch]", "prefetchStarted", {
+          reason,
+          skip: targetSkip,
+          prepared: cache.preparedCount(),
+        });
+      }
+      try {
+        const feedRes = await fetch(`/api/feed?${params.toString()}`, {
+          cache: "no-store",
+        });
+        if (!feedRes.ok) {
+          cache.clearInFlight(identityKey, targetSkip);
+          return;
+        }
+        if (latestFeedRequestKeyRef.current !== identityKey) {
+          cache.clearInFlight(identityKey, targetSkip);
+          cache.diag.prefetchDiscarded += 1;
+          return;
+        }
+        const data = (await feedRes.json()) as {
+          items?: unknown;
+          pagination?: { hasMore?: boolean };
+        };
+        const rawItems = (data.items || []) as Record<string, unknown>[];
+        const viewerForDistance =
+          appliedScope === FEED_SCOPE_NEARBY
+            ? apiViewerCoordsRef.current ?? feedCoords ?? null
+            : effectiveViewerForDistance;
+        const valid = mapRawFeedApiItems(rawItems, viewerForDistance);
+        cache.put({
+          requestKey: identityKey,
+          skip: targetSkip,
+          items: valid,
+          apiHasMore: Boolean(data.pagination?.hasMore),
+          preparedAt: Date.now(),
+          source: "network",
+        });
+        if (isGeoFeedDiagnosticsEnabled()) {
+          console.info("[hc-feed-prefetch]", "prefetchCompleted", {
+            reason,
+            skip: targetSkip,
+            count: valid.length,
+            prepared: cache.preparedCount(),
+          });
+        }
+      } catch {
+        cache.clearInFlight(identityKey, targetSkip);
+      }
+    },
+    [
+      feedStartupBlocked,
+      nearbyNeedsLocation,
+      loading,
+      buildLoadMoreParams,
+      appliedScope,
+      feedCoords,
+      effectiveViewerForDistance,
+    ],
+  );
+
+  const prepareRecirculationIfNeeded = useCallback(() => {
+    const comp = compositionStateRef.current;
+    if (comp.emptyTerminal) return;
+    if (preparedRecircBatchRef.current) return;
+    const approaching =
+      comp.marketplaceExhausted ||
+      (comp.uniqueEligibleCount > 0 &&
+        comp.uniqueEligibleCount <= FEED_RECIRC_MIN_SEED + 2);
+    if (!approaching && !comp.recirculationActive) return;
+    if (comp.uniqueEligibleCount < FEED_RECIRC_MIN_SEED) return;
+
+    let seeds: RecircSeedItem[] = comp.displayedHistory;
+    if (seeds.length < FEED_RECIRC_MIN_SEED) {
+      seeds = [
+        ...itemsRef.current.map((row) => ({
+          id: row.id,
+          kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
+            | "sale"
+            | "insp",
+        })),
+        ...inspiratiePoolRef.current.map((row) => ({
+          id: row.id,
+          kind: "insp" as const,
+        })),
+      ];
+    }
+    const batch = buildRecirculationBatch({
+      seeds,
+      recentIds: comp.recentIds,
+      lastDisplayedId: null,
+      take: FEED_RECIRC_BATCH_SIZE,
+      batchIndex: comp.recirculationBatchIndex,
+    });
+    if (batch.length === 0) return;
+    preparedRecircBatchRef.current = batch;
+    feedPrefetchCacheRef.current.diag.recirculationPrepared += 1;
+    if (isGeoFeedDiagnosticsEnabled()) {
+      console.info("[hc-feed-prefetch]", "recirculationPrepared", {
+        size: batch.length,
+      });
+    }
+  }, []);
+
   const loadMoreFeed = useCallback(async () => {
     if (!feedHasMore || feedLoadingMore || feedStartupBlocked) return;
     if (nearbyNeedsLocation) return;
@@ -2284,6 +2568,7 @@ export default function GeoFeed({
         marketplaceItems: itemsRef.current.length,
         recirculation: compositionStateRef.current.recirculationActive,
         nativeExpanded: nativeFeedRenderMoreRef.current,
+        prepared: feedPrefetchCacheRef.current.preparedCount(),
       });
     }
 
@@ -2301,17 +2586,20 @@ export default function GeoFeed({
     if (shouldRecirculate) {
       if (recirculationInFlightRef.current) return;
       recirculationInFlightRef.current = true;
-      setFeedLoadingMore(true);
+      const appendStartedAt = Date.now();
+      const prepared = preparedRecircBatchRef.current;
+      const showSpinner = !prepared;
+      if (showSpinner) {
+        spinnerShownAtRef.current = Date.now();
+        setFeedLoadingMore(true);
+      }
       try {
-        const lastId =
-          recirculatedRows.length > 0
-            ? recirculatedRows[recirculatedRows.length - 1]?.row === "sale"
-              ? recirculatedRows[recirculatedRows.length - 1].item.id
-              : recirculatedRows[recirculatedRows.length - 1].slot.kind === "api"
-                ? recirculatedRows[recirculatedRows.length - 1].slot.item.id
-                : recirculatedRows[recirculatedRows.length - 1].slot.item.id
-            : null;
-        // Prefer seeds from composition history; fall back to current items + insp pool.
+        const lastRow = recirculatedRows[recirculatedRows.length - 1];
+        const lastId = !lastRow
+          ? null
+          : lastRow.row === "sale"
+            ? lastRow.item.id
+            : lastRow.slot.item.id;
         let seeds: RecircSeedItem[] = comp.displayedHistory;
         if (seeds.length < FEED_RECIRC_MIN_SEED) {
           seeds = [
@@ -2327,13 +2615,16 @@ export default function GeoFeed({
             })),
           ];
         }
-        const batch = buildRecirculationBatch({
-          seeds,
-          recentIds: comp.recentIds,
-          lastDisplayedId: lastId,
-          take: FEED_RECIRC_BATCH_SIZE,
-          batchIndex: comp.recirculationBatchIndex,
-        });
+        const batch =
+          prepared ??
+          buildRecirculationBatch({
+            seeds,
+            recentIds: comp.recentIds,
+            lastDisplayedId: lastId,
+            take: FEED_RECIRC_BATCH_SIZE,
+            batchIndex: comp.recirculationBatchIndex,
+          });
+        preparedRecircBatchRef.current = null;
         if (batch.length === 0) {
           setCompositionState((prev) => ({
             ...prev,
@@ -2378,12 +2669,6 @@ export default function GeoFeed({
           return;
         }
         setRecirculatedRows((prev) => [...prev, ...nextRows]);
-        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
-          console.info("[hc-native-scroll]", "state-updated-recirc", {
-            batch: nextRows.length,
-            prevTail: recirculatedRows.length,
-          });
-        }
         setCompositionState((prev) =>
           bumpRecirculatedCount(
             recordDisplayedSeeds(
@@ -2394,58 +2679,47 @@ export default function GeoFeed({
           ),
         );
         setFeedHasMore(true);
-        if (isGeoFeedDiagnosticsEnabled()) {
-          pushGeoFeedDiag({
-            requestId: newGeoFeedRequestId(),
-            at: new Date().toISOString(),
-            platform: isNativeApp() ? "android" : "web",
-            authenticated: Boolean(session?.user),
-            selectedScope: appliedScope,
-            radiusKm: appliedRadius,
-            latitude: coordsForApiLabels?.lat ?? null,
-            longitude: coordsForApiLabels?.lng ?? null,
-            countryCode: null,
-            pageCursor: null,
-            cacheMode: "bypass",
-            cacheHit: false,
-            apiBranch: "recirculation",
-            resultCount: nextRows.length,
-            resultListingIds: batch.map((b) => b.id).slice(0, 20),
-            resultCities: [],
-            resultCountries: [],
-            startedAt: null,
-            endedAt: Date.now(),
-            status: "accepted",
-            note: `stage=recirculation unique=${comp.uniqueEligibleCount}`,
-          });
-        }
+        prepareRecirculationIfNeeded();
+        const latency = Date.now() - appendStartedAt;
+        feedPrefetchCacheRef.current.diag.batchAppendLatencyMsTotal += latency;
+        feedPrefetchCacheRef.current.diag.batchAppendCount += 1;
       } finally {
         recirculationInFlightRef.current = false;
+        if (spinnerShownAtRef.current != null) {
+          feedPrefetchCacheRef.current.diag.spinnerVisibleMsTotal +=
+            Date.now() - spinnerShownAtRef.current;
+          feedPrefetchCacheRef.current.diag.spinnerVisibleCount += 1;
+          spinnerShownAtRef.current = null;
+        }
         setFeedLoadingMore(false);
       }
       return;
     }
 
+    const skip = itemsRef.current.length;
+    const identityKey =
+      latestFeedRequestKeyRef.current ||
+      buildLoadMoreParams(skip).toString();
+    const appendStartedAt = Date.now();
+    const cached = feedPrefetchCacheRef.current.take(identityKey, skip);
+    if (cached) {
+      applyMarketplacePage({
+        valid: cached.items,
+        apiHasMore: cached.apiHasMore,
+        skip,
+        fromPrefetch: true,
+        appendStartedAt,
+      });
+      // Keep pipeline warm — never block UI
+      void prefetchNextMarketplacePage("post-append");
+      prepareRecirculationIfNeeded();
+      return;
+    }
+
+    spinnerShownAtRef.current = Date.now();
     setFeedLoadingMore(true);
     try {
-      const skip = itemsRef.current.length;
-      const params = buildGeoFeedApiParams(
-        {
-          scope: appliedScope,
-          radius: appliedRadius,
-          q: appliedQ,
-          category: appliedCategory,
-          lat: coordsForApiLabels?.lat ?? null,
-          lng: coordsForApiLabels?.lng ?? null,
-          place: viewerPlaceForApi,
-          locationSource:
-            appliedScope === FEED_SCOPE_NEARBY ? apiLocationSource : null,
-        },
-        { take: FEED_FIRST_PAGE_TAKE, skip },
-      );
-      if (latestFeedRequestKeyRef.current && !params.toString().includes(appliedScope)) {
-        // stale guard uses request identity from main effect; generation checked via scope deps
-      }
+      const params = buildLoadMoreParams(skip);
       const feedRes = await fetch(`/api/feed?${params.toString()}`, {
         cache: "no-store",
       });
@@ -2453,7 +2727,6 @@ export default function GeoFeed({
       const data = (await feedRes.json()) as {
         items?: unknown;
         pagination?: { hasMore?: boolean };
-        filters?: { lat?: number | null; lng?: number | null };
       };
       const rawItems = (data.items || []) as Record<string, unknown>[];
       const viewerForDistance =
@@ -2462,57 +2735,24 @@ export default function GeoFeed({
           : effectiveViewerForDistance;
       const valid = mapRawFeedApiItems(rawItems, viewerForDistance);
       const apiHasMore = Boolean(data.pagination?.hasMore);
-
-      if (valid.length === 0) {
-        const next = markMarketplacePageResult(compositionStateRef.current, {
-          fetchedCount: 0,
-          apiHasMore: false,
-          skipUsed: skip,
-        });
-        setCompositionState(next);
-        setFeedHasMore(composedFeedCanContinue(next));
-        return;
-      }
-
-      setItems((prev) => {
-        const seen = new Set(prev.map((row) => row.id));
-        const merged = [...prev];
-        for (const row of valid) {
-          if (!seen.has(row.id)) merged.push(row);
-        }
-        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
-          console.info("[hc-native-scroll]", "state-updated-items", {
-            prev: prev.length,
-            next: merged.length,
-            batch: valid.length,
-            apiHasMore,
-          });
-        }
-        return merged;
+      applyMarketplacePage({
+        valid,
+        apiHasMore,
+        skip,
+        fromPrefetch: false,
+        appendStartedAt,
       });
-
-      {
-        let next = recordDisplayedSeeds(
-          compositionStateRef.current,
-          valid.map((row) => ({
-            id: row.id,
-            kind: isMarketplaceSaleItem(row)
-              ? ("sale" as const)
-              : ("insp" as const),
-          })),
-        );
-        next = markMarketplacePageResult(next, {
-          fetchedCount: valid.length,
-          apiHasMore,
-          skipUsed: skip,
-        });
-        setCompositionState(next);
-        setFeedHasMore(apiHasMore || composedFeedCanContinue(next));
-      }
-      feedPerfIncrementFeedFetch("refresh");
+      void prefetchNextMarketplacePage("post-append");
+      prepareRecirculationIfNeeded();
     } catch (error) {
       console.error("[GeoFeed] load-more failed", error);
     } finally {
+      if (spinnerShownAtRef.current != null) {
+        feedPrefetchCacheRef.current.diag.spinnerVisibleMsTotal +=
+          Date.now() - spinnerShownAtRef.current;
+        feedPrefetchCacheRef.current.diag.spinnerVisibleCount += 1;
+        spinnerShownAtRef.current = null;
+      }
       setFeedLoadingMore(false);
     }
   }, [
@@ -2521,24 +2761,107 @@ export default function GeoFeed({
     feedStartupBlocked,
     nearbyNeedsLocation,
     recirculatedRows,
+    buildLoadMoreParams,
+    applyMarketplacePage,
+    prefetchNextMarketplacePage,
+    prepareRecirculationIfNeeded,
     appliedScope,
-    appliedRadius,
-    appliedQ,
-    appliedCategory,
-    coordsForApiLabels?.lat,
-    coordsForApiLabels?.lng,
-    viewerPlaceForApi,
-    apiLocationSource,
     feedCoords,
     effectiveViewerForDistance,
-    session?.user,
   ]);
 
+  // Track scroll velocity for adaptive prefetch distance
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onScroll = () => {
+      const y = window.scrollY || 0;
+      const now = performance.now();
+      const prevY = lastScrollYRef.current;
+      const prevT = lastScrollTsRef.current;
+      if (prevT > 0) {
+        const dt = Math.max(1, now - prevT);
+        prefetchScrollVelocityRef.current = Math.abs(y - prevY) / dt;
+      }
+      lastScrollYRef.current = y;
+      lastScrollTsRef.current = now;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // After first feed visible: prepare next batch on idle (does not delay interaction)
+  useEffect(() => {
+    if (!feedHydrated || loading || feedStartupBlocked || nearbyNeedsLocation) {
+      return;
+    }
+    if (items.length === 0) return;
+    return scheduleIdleWork(() => {
+      void prefetchNextMarketplacePage("idle");
+      prepareRecirculationIfNeeded();
+      if (isGeoFeedDiagnosticsEnabled()) {
+        (
+          window as Window & {
+            __hcFeedPrefetchDiag?: () => unknown;
+          }
+        ).__hcFeedPrefetchDiag = () =>
+          feedPrefetchCacheRef.current.snapshotDiag();
+      }
+    }, 900);
+  }, [
+    feedHydrated,
+    loading,
+    feedStartupBlocked,
+    nearbyNeedsLocation,
+    items.length,
+    appliedScope,
+    prefetchNextMarketplacePage,
+    prepareRecirculationIfNeeded,
+  ]);
+
+  // Early predictive prefetch (~2–3 vh) — background only, never spinner.
   useEffect(() => {
     const el = feedLoadMoreRef.current;
     if (!el || !feedHasMore || loading) return;
-    // Do not depend on feedLoadingMore — disconnect/reconnect on every load tick
-    // races Capacitor WebView layout and can miss the next intersection.
+    const net = readNetworkHints();
+    const marginPx = computePrefetchRootMarginPx({
+      viewportHeight: typeof window !== "undefined" ? window.innerHeight : 800,
+      scrollVelocityPxPerMs: prefetchScrollVelocityRef.current,
+      downlinkMbps: net.downlinkMbps,
+      saveData: net.saveData,
+    });
+    const earlyObs = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        if (isGeoFeedDiagnosticsEnabled()) {
+          console.info("[hc-feed-prefetch]", "early-zone", {
+            marginPx,
+            prepared: feedPrefetchCacheRef.current.preparedCount(),
+          });
+        }
+        void prefetchNextMarketplacePage("early");
+        prepareRecirculationIfNeeded();
+      },
+      {
+        root: null,
+        rootMargin: buildPrefetchObserverRootMargin(marginPx),
+        threshold: 0,
+      },
+    );
+    earlyObs.observe(el);
+    return () => earlyObs.disconnect();
+  }, [
+    feedHasMore,
+    loading,
+    prefetchNextMarketplacePage,
+    prepareRecirculationIfNeeded,
+  ]);
+
+  // Near-end append — consume prefetch (no spinner) or fetch (spinner only on miss).
+  // Keep rootMargin identical across Desktop / Android WebView / Chrome Android.
+  useEffect(() => {
+    const el = feedLoadMoreRef.current;
+    if (!el || !feedHasMore || loading) return;
+    const nearMarginPx = 480;
     const obs = new IntersectionObserver(
       (entries) => {
         const hit = Boolean(entries[0]?.isIntersecting);
@@ -2549,16 +2872,23 @@ export default function GeoFeed({
             feedLoadingMore: feedLoadingMoreRef.current,
             nativeExpanded: nativeFeedRenderMoreRef.current,
             rows: itemsRef.current.length,
+            marginPx: nearMarginPx,
+            prepared: feedPrefetchCacheRef.current.preparedCount(),
           });
         }
         if (hit) void loadMoreFeed();
       },
-      { root: null, rootMargin: "480px 0px", threshold: 0 },
+      {
+        root: null,
+        rootMargin: buildPrefetchObserverRootMargin(nearMarginPx),
+        threshold: 0,
+      },
     );
     obs.observe(el);
     if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
       console.info("[hc-native-scroll]", "observer-attached", {
         feedHasMore,
+        marginPx: nearMarginPx,
         nativeExpanded: nativeFeedRenderMoreRef.current,
       });
     }
