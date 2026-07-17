@@ -2186,26 +2186,22 @@ export default function GeoFeed({
           }
           setItems(valid);
           const apiHasMore = Boolean(data.pagination?.hasMore);
-          setCompositionState((prev) => {
-            let next = recordDisplayedSeeds(
-              prev,
-              valid.map((row) => ({
-                id: row.id,
-                kind: isMarketplaceSaleItem(row)
-                  ? ("sale" as const)
-                  : ("insp" as const),
-              })),
-            );
-            next = markMarketplacePageResult(next, {
-              fetchedCount: valid.length,
-              apiHasMore,
-              skipUsed: 0,
-            });
-            return next;
-          });
-          setFeedHasMore(
-            apiHasMore || valid.length >= FEED_RECIRC_MIN_SEED,
+          let nextComp = recordDisplayedSeeds(
+            compositionStateRef.current,
+            valid.map((row) => ({
+              id: row.id,
+              kind: isMarketplaceSaleItem(row)
+                ? ("sale" as const)
+                : ("insp" as const),
+            })),
           );
+          nextComp = markMarketplacePageResult(nextComp, {
+            fetchedCount: valid.length,
+            apiHasMore,
+            skipUsed: 0,
+          });
+          setCompositionState(nextComp);
+          setFeedHasMore(apiHasMore || composedFeedCanContinue(nextComp));
           setDiscoveryFeed(
             data.discovery && data.discovery.version === 1
               ? data.discovery
@@ -2280,10 +2276,15 @@ export default function GeoFeed({
     if (nearbyNeedsLocation) return;
 
     const comp = compositionStateRef.current;
+    if (comp.emptyTerminal) {
+      setFeedHasMore(false);
+      return;
+    }
     const shouldRecirculate =
       comp.recirculationActive ||
       (comp.marketplaceExhausted &&
-        comp.uniqueEligibleCount >= FEED_RECIRC_MIN_SEED);
+        comp.uniqueEligibleCount >= FEED_RECIRC_MIN_SEED &&
+        !comp.emptyTerminal);
 
     if (shouldRecirculate) {
       if (recirculationInFlightRef.current) return;
@@ -2319,8 +2320,15 @@ export default function GeoFeed({
           recentIds: comp.recentIds,
           lastDisplayedId: lastId,
           take: FEED_RECIRC_BATCH_SIZE,
+          batchIndex: comp.recirculationBatchIndex,
         });
         if (batch.length === 0) {
+          setCompositionState((prev) => ({
+            ...prev,
+            emptyTerminal: prev.uniqueEligibleCount === 0,
+            recirculationActive: false,
+            stage: prev.uniqueEligibleCount === 0 ? "empty" : prev.stage,
+          }));
           setFeedHasMore(false);
           return;
         }
@@ -3633,7 +3641,7 @@ export default function GeoFeed({
     feedChip === "all" &&
     !loading &&
     feedHydrated &&
-    displayCount === 0;
+    (displayCount === 0 || compositionState.emptyTerminal);
 
   const handleWidenRadius = () => {
     const next = Math.min(100, nextWiderFeedRadiusKm(appliedRadius));

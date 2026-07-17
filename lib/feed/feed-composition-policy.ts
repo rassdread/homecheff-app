@@ -16,8 +16,11 @@ import { haversineKm } from '@/lib/community/geoDistance';
 /** Marketplace tiles between inspiration inserts (≈ 3–5 sales, then 1 insp). */
 export const FEED_SALE_INSPIRATION_STRIDE = 4;
 
-/** Minimum unique eligible items before client recirculation may start. */
-export const FEED_RECIRC_MIN_SEED = 3;
+/**
+ * Recirculation may start from a single unique seed.
+ * 0 seeds → intentional empty state (no recirculation, no request loop).
+ */
+export const FEED_RECIRC_MIN_SEED = 1;
 
 /** Target minimum gap between two occurrences of the same id (positions). */
 export const FEED_RECIRC_MIN_SPACING = 6;
@@ -28,10 +31,34 @@ export const FEED_RECIRC_BATCH_SIZE = 8;
 /** Soft cap on retained display history for recirculation memory. */
 export const FEED_RECIRC_HISTORY_CAP = 120;
 
+/**
+ * Inventory-size continuation contract.
+ *
+ * 0  → empty state; never recirculate or request-loop
+ * 1  → spaced single-seed recirculation (1 card per batch)
+ * 2  → safe alternation; no consecutive duplicate; flip order across batches
+ * 3+ → least-recent + spacing policy
+ */
+export type InventoryContinuationMode =
+  | 'empty_state'
+  | 'single_seed_spaced'
+  | 'pair_alternate'
+  | 'standard_recirc';
+
+export function resolveInventoryContinuationMode(
+  uniqueEligibleCount: number,
+): InventoryContinuationMode {
+  if (uniqueEligibleCount <= 0) return 'empty_state';
+  if (uniqueEligibleCount === 1) return 'single_seed_spaced';
+  if (uniqueEligibleCount === 2) return 'pair_alternate';
+  return 'standard_recirc';
+}
+
 export type FeedCompositionStage =
   | 'exact'
   | 'broadened'
-  | 'recirculation';
+  | 'recirculation'
+  | 'empty';
 
 /**
  * Filter compatibility matrix (product contract).
@@ -196,10 +223,12 @@ export function interleaveSaleInspirationRows<TSale, TInsp>(input: {
 
 /**
  * Build a recirculation batch from previously shown eligible items.
- * - Prefer least-recently displayed
- * - Never consecutive duplicate of lastDisplayedId
- * - Prefer spacing >= FEED_RECIRC_MIN_SPACING from recent window
- * - Rotate kinds when possible
+ *
+ * Inventory contract:
+ * - 0 seeds → [] (caller shows empty state; no loop)
+ * - 1 seed  → at most 1 card (viewport spacing via load-more batches)
+ * - 2 seeds → alternate; never consecutive; flip order across batches
+ * - 3+      → least-recent + min spacing + kind rotation
  */
 export function buildRecirculationBatch(input: {
   seeds: RecircSeedItem[];
@@ -207,19 +236,49 @@ export function buildRecirculationBatch(input: {
   lastDisplayedId: string | null;
   take?: number;
   minSpacing?: number;
+  /** Increments each recirculation tick — used to flip pair order. */
+  batchIndex?: number;
 }): RecircSeedItem[] {
+  const uniqueIds = [...new Set(input.seeds.map((s) => s.id))];
+  const mode = resolveInventoryContinuationMode(uniqueIds.length);
+  if (mode === 'empty_state') return [];
+
+  // Deduplicate seeds by id (first occurrence wins for kind).
+  const byId = new Map<string, RecircSeedItem>();
+  for (const seed of input.seeds) {
+    if (!byId.has(seed.id)) byId.set(seed.id, seed);
+  }
+  const uniqueSeeds = [...byId.values()];
+
+  if (mode === 'single_seed_spaced') {
+    const only = uniqueSeeds[0];
+    if (!only) return [];
+    // One card per tick — avoids double-render in the same viewport.
+    return [only];
+  }
+
+  if (mode === 'pair_alternate') {
+    const [a, b] = uniqueSeeds;
+    if (!a || !b) return uniqueSeeds.slice(0, 1);
+    // One card per tick, alternating — avoids A-B viewport bursts and consecutive IDs.
+    const flip = (input.batchIndex ?? 0) % 2 === 1;
+    let pick = flip ? b : a;
+    if (input.lastDisplayedId && pick.id === input.lastDisplayedId) {
+      pick = pick.id === a.id ? b : a;
+    }
+    return [pick];
+  }
+
+  // standard_recirc (3+)
   const take = Math.max(1, input.take ?? FEED_RECIRC_BATCH_SIZE);
   const minSpacing = input.minSpacing ?? FEED_RECIRC_MIN_SPACING;
-  if (input.seeds.length === 0) return [];
-
   const recent = input.recentIds.slice(-Math.max(minSpacing, 1));
   const recentSet = new Set(recent);
   const out: RecircSeedItem[] = [];
   let lastId = input.lastDisplayedId;
   let lastKind: ComposedRowKind | null = null;
 
-  // Order: least recently seen first (stable by seed order as tie-break).
-  const scored = input.seeds.map((seed, idx) => {
+  const scored = uniqueSeeds.map((seed, idx) => {
     const lastIdx = input.recentIds.lastIndexOf(seed.id);
     return { seed, lastIdx, idx };
   });
@@ -239,14 +298,12 @@ export function buildRecirculationBatch(input: {
       if (seed.id === lastId) continue;
       return seed;
     }
-    // Unavoidable: only one seed
     return scored[0]?.seed ?? null;
   };
 
   for (let i = 0; i < take; i++) {
     const pick = tryPick(i > 0);
     if (!pick) break;
-    // If consecutive same id still slipped through, skip
     if (pick.id === lastId && out.length > 0) {
       const alt = scored.find((s) => s.seed.id !== lastId)?.seed;
       if (!alt) break;
