@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Static guard: responsive navbar structure + premium xl recovery without losing auth cluster.
+ * Static guard: adaptive navbar — compact before clip, CTA outside overflow nav.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,23 +8,24 @@ import { readFileSync } from 'node:fs';
 const nav = readFileSync('components/NavBar.tsx', 'utf8');
 const shell = readFileSync('components/navigation/NavBarShell.tsx', 'utf8');
 
-console.log('=== Navbar responsive premium UI validator ===\n');
+console.log('=== Navbar adaptive responsive UI validator ===\n');
 
-assert(nav.includes('ml-auto flex items-center'), 'auth CTA cluster preserved');
-assert(nav.includes('shrink-0'), 'shrink-0 on auth CTAs');
-assert(nav.includes('hidden lg:flex'), 'desktop nav lg+ only');
-assert(nav.includes('lg:hidden'), 'hamburger below lg');
-assert(nav.includes('xl:px-6 xl:py-3 xl:text-base'), 'premium nav sizing from xl');
-assert(nav.includes('xl:shadow-lg xl:hover:shadow-xl'), 'register premium shadow from xl');
-assert(nav.includes('xl:hover:-translate-y-0.5'), 'register lift hover from xl');
-assert(nav.includes('hidden xl:block'), 'logo text breakpoint strategy');
-assert(!nav.includes('overflow-visible border-b'), 'header uses overflow-x-clip');
+assert(nav.includes('ml-auto flex items-center'), 'primary action cluster preserved');
+assert(nav.includes('createCtaClass'), 'dedicated create CTA class');
+assert(nav.includes('hidden xl:flex'), 'secondary text nav starts at xl');
+assert(nav.includes('xl:hidden'), 'compact menu below xl');
+assert(nav.includes('2xl:hidden'), 'logo icon below 2xl');
+assert(nav.includes('hidden 2xl:block') || nav.includes('hidden 2xl:inline'), 'full logo / name at 2xl');
+assert(nav.includes('user ? \'hidden lg:inline-flex\' : \'hidden xl:inline-flex\''), 'CTA compact rules');
+assert(!nav.includes('overflow-hidden xl:gap'), 'center nav must not clip via overflow-hidden');
+assert(!/nav className="[^"]*overflow-hidden/.test(nav), 'desktop nav has no overflow-hidden clip');
 
 assert(shell.includes('pointer-events-none'), 'NavBarShell non-interactive');
-assert(shell.includes('lg:flex'), 'shell matches lg desktop nav breakpoint');
+assert(shell.includes('xl:flex'), 'shell matches xl desktop nav breakpoint');
+assert(shell.includes('xl:hidden'), 'shell hamburger below xl');
 
-console.log('  ✅ auth cluster + lg/xl breakpoint strategy');
-console.log('  ✅ premium xl sizing + register shadow/lift');
-console.log('  ✅ NavBarShell pointer-events-none');
+console.log('  ✅ CTA outside clipping nav + xl compact menu');
+console.log('  ✅ progressive 2xl secondary links + full logo');
+console.log('  ✅ NavBarShell non-interactive parity');
 
-console.log('\n=== Result: navbar premium UI checks passed ===\n');
+console.log('\n=== Result: navbar adaptive UI checks passed ===\n');

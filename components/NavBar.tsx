@@ -95,13 +95,27 @@ export default function NavBar() {
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand'
   );
 
-  /** Desktop top-nav: compact lg–1279, premium xl+. */
+  /**
+   * Desktop text nav (xl+ only). Compact lg–xl uses menu + primary actions
+   * so labels never clip inside overflow-hidden.
+   */
   const desktopNavGhostClass = cn(
     'inline-flex shrink-0 items-center justify-center rounded-2xl font-medium transition-all duration-200',
-    'px-3 py-2 text-sm lg:px-4 lg:py-2.5 lg:text-sm',
-    'xl:px-6 xl:py-3 xl:text-base',
+    'px-2.5 py-2 text-sm gap-1.5',
+    '2xl:px-5 2xl:py-2.5 2xl:text-base 2xl:gap-2',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
     'bg-transparent text-primary-brand hover:bg-primary-50 hover:shadow-sm touch-manipulation select-none whitespace-nowrap'
+  );
+
+  /** Primary create CTA — lives outside the flexible nav so it never clips. */
+  const createCtaClass = cn(
+    'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-2xl font-medium transition-all duration-200',
+    'whitespace-nowrap touch-manipulation select-none',
+    'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
+    'bg-primary-brand text-white hover:bg-primary-700 hover:text-white',
+    'min-h-[40px] px-3 py-2 text-sm',
+    'xl:min-h-[44px] xl:px-4 xl:py-2.5',
+    '2xl:px-5 2xl:py-3 2xl:text-base',
   );
 
   /** Guest auth CTAs — altijd zichtbaar, buiten de inkrimpende nav (md–lg overflow-fix). */
@@ -192,6 +206,17 @@ export default function NavBar() {
       };
     }
   }, [isProfileDropdownOpen]);
+
+  // Close compact menu when crossing into full desktop nav (xl)
+  useEffect(() => {
+    function handleResize() {
+      if (typeof window !== 'undefined' && window.innerWidth >= 1280) {
+        setIsMobileMenuOpen(false);
+      }
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Close dropdown when clicking outside (button of portaled menu)
   useEffect(() => {
@@ -349,104 +374,87 @@ export default function NavBar() {
         nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : ''
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative min-w-0">
-        <div className="flex items-center justify-between h-16 min-w-0 gap-1 sm:gap-2">
-          {/* Logo — icoon lg–1279, volledig merk xl+ */}
-          <div className="flex shrink-0 items-center min-w-0 max-w-[42%] sm:max-w-[48%] xl:max-w-none overflow-hidden">
-            <div className="xl:hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-5 xl:px-6 2xl:px-8 relative min-w-0">
+        <div className="flex items-center h-16 min-w-0 gap-1 sm:gap-1.5 xl:gap-2">
+          {/* Logo — icon until 2xl; full wordmark when space is abundant */}
+          <div className="flex shrink-0 items-center">
+            <div className="2xl:hidden">
               <Logo size="md" showText={false} />
             </div>
-            <div className="hidden xl:block">
+            <div className="hidden 2xl:block">
               <Logo size="md" />
             </div>
           </div>
 
-          {/* Desktop Navigation — volledige rij lg+; compact lg, premium xl */}
-          <nav className="hidden lg:flex items-center gap-1 min-w-0 flex-1 justify-center overflow-hidden xl:gap-1.5">
+          {/*
+            Secondary text navigation — xl+ only.
+            Below xl, compact chrome keeps CTA/account/menu fully visible (no overflow clipping).
+          */}
+          <nav
+            className="hidden xl:flex items-center justify-center gap-0.5 2xl:gap-1 min-w-0 flex-1"
+            aria-label="Hoofdnavigatie"
+          >
             <Link
               href="/"
               prefetch={false}
-              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              className={desktopNavGhostClass}
               onClick={() => navDebug('navbar:desktop', { href: '/' })}
             >
-              <Home className="w-4 h-4" />
+              <Home className="w-4 h-4 shrink-0" />
               <span>{t('navbar.home')}</span>
             </Link>
             <Link
               href="/werken-bij"
               prefetch={false}
-              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              className={cn(desktopNavGhostClass, 'hidden 2xl:inline-flex')}
               onClick={() => navDebug('navbar:desktop', { href: '/werken-bij' })}
             >
-              <Lightbulb className="w-4 h-4" />
+              <Lightbulb className="w-4 h-4 shrink-0" />
               <span>{t('navbar.werkenBij')}</span>
             </Link>
             <Link
-              href={user ? '/profile' : '/login'}
+              href={user ? '/messages' : '/login'}
               prefetch={false}
-              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              className={cn(desktopNavGhostClass, 'relative')}
               onClick={() =>
-                navDebug('navbar:desktop', { href: user ? '/profile' : '/login' })
+                navDebug('navbar:desktop', { href: user ? '/messages' : '/login' })
               }
             >
-              <User className="w-4 h-4" />
-              <span>{t('bottomNav.profile')}</span>
+              <MessageCircle className="w-4 h-4 shrink-0" />
+              <span>{t('navbar.messages')}</span>
+              {user && unreadCount > 0 ? (
+                <span className="absolute -top-0.5 right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              ) : null}
             </Link>
-
-            {/* lg+ desktop: replaces bottom nav tabs (tablet keeps bottom nav until lg). */}
-            <div className="hidden lg:flex items-center gap-0.5 shrink-0">
-              <Link
-                href={user ? '/messages' : '/login'}
-                prefetch={false}
-                className={cn(desktopNavGhostClass, 'relative flex items-center space-x-2 px-4 py-3')}
-                onClick={() =>
-                  navDebug('navbar:desktop', { href: user ? '/messages' : '/login' })
-                }
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>{t('navbar.messages')}</span>
-                {user && unreadCount > 0 ? (
-                  <span className="absolute -top-0.5 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                ) : null}
-              </Link>
-              <Link
-                href={user ? '/mijn-hcp' : '/login'}
-                prefetch={false}
-                className={cn(desktopNavGhostClass, 'flex items-center space-x-2 px-4 py-3')}
-                onClick={() =>
-                  navDebug('navbar:desktop', { href: user ? '/mijn-hcp' : '/login' })
-                }
-              >
-                <Award className="w-4 h-4" />
-                <span>{t('bottomNav.reputationTab')}</span>
-              </Link>
-              <button
-                type="button"
-                className={cn(
-                  desktopNavGhostClass,
-                  'flex items-center space-x-2 px-4 py-3 bg-primary-brand text-white hover:bg-primary-700 hover:text-white',
-                )}
-                onClick={() => {
-                  if (user) {
-                    openCreateFlow();
-                  } else {
-                    requireAuthAction('create', '/sell/new');
-                  }
-                  navDebug('navbar:desktop', { action: 'create' });
-                }}
-              >
-                <Plus className="w-4 h-4" />
-                <span>{t('homePhase1.ctaShare')}</span>
-              </button>
-            </div>
-
-            <LanguageSwitcher />
           </nav>
 
-          {/* Rechtercluster: auth altijd bereikbaar; hamburger < lg */}
-          <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Primary actions: never clipped; menu covers secondary links below xl */}
+          <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0 min-w-0">
+            <div className="hidden xl:block shrink-0">
+              <LanguageSwitcher />
+            </div>
+            <button
+              type="button"
+              className={cn(
+                createCtaClass,
+                // Authenticated: show from lg (compact chrome). Guests: from xl (login/register already primary).
+                user ? 'hidden lg:inline-flex' : 'hidden xl:inline-flex',
+              )}
+              onClick={() => {
+                if (user) {
+                  openCreateFlow();
+                } else {
+                  requireAuthAction('create', '/sell/new');
+                }
+                navDebug('navbar:desktop', { action: 'create' });
+              }}
+            >
+              <Plus className="w-4 h-4 shrink-0" aria-hidden />
+              <span>{t('homePhase1.ctaShare')}</span>
+            </button>
+
             {(status === 'unauthenticated' || status === 'loading') && !user && (
               <>
                 <Link
@@ -469,18 +477,21 @@ export default function NavBar() {
             )}
 
             {user && (
-              <div className="hidden lg:flex items-center flex-shrink-0 min-w-0 gap-1">
+              <div className="hidden lg:flex items-center shrink-0 gap-0.5 xl:gap-1">
                 <CartIcon />
                 <div className="relative z-[110] shrink-0">
                   <NotificationBell />
                 </div>
 
                 {/* Profile Dropdown */}
-                <div className="relative z-[100] min-w-0" ref={profileDropdownRef}>
+                <div className="relative z-[100] shrink-0" ref={profileDropdownRef}>
                   <button
                     ref={profileButtonRef}
+                    type="button"
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 min-w-0 max-w-full"
+                    className="flex items-center gap-1.5 xl:gap-2 px-1.5 xl:px-2 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 shrink-0"
+                    aria-expanded={isProfileDropdownOpen}
+                    aria-haspopup="menu"
                   >
                     {(userProfile?.profileImage || userProfile?.image || user?.image) ? (
                       <SafeImage
@@ -495,11 +506,11 @@ export default function NavBar() {
                         <User className="w-4 h-4 text-primary-brand" />
                       </div>
                     )}
-                    <span className="text-sm font-medium text-gray-700 truncate max-w-[7rem] sm:max-w-32">
+                    <span className="hidden 2xl:inline text-sm font-medium text-gray-700 max-w-[9rem] truncate">
                       {userProfile ? getDisplayName(userProfile) : getDisplayName(user)}
                     </span>
                     <ChevronDown 
-                      className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                      className={`w-4 h-4 text-gray-500 shrink-0 transition-transform duration-200 ${
                         isProfileDropdownOpen ? 'rotate-180' : ''
                       }`} 
                     />
@@ -675,7 +686,7 @@ export default function NavBar() {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors touch-manipulation shrink-0"
+              className="xl:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors touch-manipulation shrink-0"
               aria-expanded={isMobileMenuOpen}
               aria-controls="navbar-mobile-menu"
               aria-label={isMobileMenuOpen ? t('buttons.close') : 'Menu'}
@@ -689,9 +700,9 @@ export default function NavBar() {
           </div>
         </div>
 
-        {/* Compact / mobile navigation (< lg) */}
+        {/* Compact / mobile navigation (< xl) — covers tablet + narrow laptop */}
         {isMobileMenuOpen && (
-          <div id="navbar-mobile-menu" className="lg:hidden border-t border-gray-200 py-4">
+          <div id="navbar-mobile-menu" className="xl:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-2">
               <Link
                 href="/"
@@ -705,6 +716,26 @@ export default function NavBar() {
                 <Home className="w-4 h-4 shrink-0" />
                 <span>{t('navbar.home')}</span>
               </Link>
+
+              <button
+                type="button"
+                className={cn(
+                  mobileNavRowClass,
+                  'justify-center bg-primary-brand font-semibold text-white hover:bg-primary-700 hover:text-white',
+                )}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (user) {
+                    openCreateFlow();
+                  } else {
+                    requireAuthAction('create', '/sell/new');
+                  }
+                  navDebug('navbar:mobile', { action: 'create' });
+                }}
+              >
+                <Plus className="w-4 h-4 shrink-0" aria-hidden />
+                <span>{t('homePhase1.ctaShare')}</span>
+              </button>
 
               {appUpdateStatus.showPlayMigrationStrip ? (
                 <button
