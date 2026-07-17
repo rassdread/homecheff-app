@@ -201,6 +201,13 @@ import {
   type FeedScope,
 } from "@/lib/feed/feed-scope";
 import {
+  isNearbyMissingLocation,
+  mapGpsFailureToNearbyStatus,
+  NEARBY_LOCATION_STATUS,
+  type NearbyLocationStatus,
+} from "@/lib/feed/nearby-location-state";
+import NearbyLocationRequiredEmptyState from "@/components/feed/NearbyLocationRequiredEmptyState";
+import {
   migrateHomeFilterPersist,
   normalizeHomeFeedChip,
   snapshotHomeFilterPersist,
@@ -1038,6 +1045,13 @@ export default function GeoFeed({
   /** Desktop sidebar: refinement collapsed by default. */
   const [sidebarRefineOpen, setSidebarRefineOpen] = useState(false);
   const [showGpsError, setShowGpsError] = useState(false);
+  /** Product integrity: Nearby without GPS/place → empty state (never inspiration). */
+  const [nearbyLocationStatus, setNearbyLocationStatus] =
+    useState<NearbyLocationStatus>(
+      NEARBY_LOCATION_STATUS.NO_LOCATION_SELECTED,
+    );
+  const [locationAcquiring, setLocationAcquiring] = useState(false);
+  const placeInputRef = useRef<HTMLInputElement | null>(null);
   /** Applied filter state — drives API fetch and client-side ranking. */
   const [appliedRadius, setAppliedRadius] = useState(RADIUS_LOCAL_KM);
   const [appliedScope, setAppliedScope] = useState<FeedScope>(
@@ -1230,6 +1244,20 @@ export default function GeoFeed({
       bootstrapStatus === "loading" &&
       nearbyScopeAwaitingProfileCoords);
 
+  const nearbyNeedsLocation = isNearbyMissingLocation({
+    scope: appliedScope,
+    appliedPlace,
+    feedCoords,
+  });
+
+  const locationBusy = locationLoading || locationAcquiring;
+
+  const showNearbyLocationRequired =
+    nearbyNeedsLocation &&
+    !locationBusy &&
+    !feedStartupBlocked &&
+    feedHydrated;
+
   const sessionGateBypassed = shouldBypassSessionLoadingGate(
     sessionStatus,
     ssrAuthHint,
@@ -1261,7 +1289,11 @@ export default function GeoFeed({
       timeout: 10000,
       maximumAge: 300000,
       fallbackToManual: false,
-      onFallback: () => {},
+      onFallback: (reason) => {
+        setNearbyLocationStatus(mapGpsFailureToNearbyStatus(reason));
+        setShowGpsError(true);
+        setLocationAcquiring(false);
+      },
     });
 
   useEffect(() => {
@@ -1537,6 +1569,8 @@ export default function GeoFeed({
     gpsRequestPendingRef.current = true;
     setShowGpsError(false);
     setPlace("");
+    setLocationAcquiring(true);
+    setNearbyLocationStatus(NEARBY_LOCATION_STATUS.NO_LOCATION_SELECTED);
     void (async () => {
       if (isNativeApp()) {
         try {
@@ -1545,6 +1579,8 @@ export default function GeoFeed({
           );
           const pos = await requestAndGetNativeCurrentPosition();
           gpsRequestPendingRef.current = false;
+          setLocationAcquiring(false);
+          setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_GRANTED);
           setUserLocation({ lat: pos.latitude, lng: pos.longitude });
           setLocationSource("gps");
           setAppliedScope(FEED_SCOPE_NEARBY);
@@ -1557,20 +1593,56 @@ export default function GeoFeed({
           return;
         } catch (e) {
           console.warn("[HomeCheff] native geolocation failed, falling back", e);
+          gpsRequestPendingRef.current = false;
+          setLocationAcquiring(false);
+          if (e instanceof NativeLocationError) {
+            setNearbyLocationStatus(mapGpsFailureToNearbyStatus(e.code));
+          } else {
+            setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_UNAVAILABLE);
+          }
           setShowGpsError(true);
         }
       }
       if (locationSupported) {
         getCurrentPosition();
+      } else {
+        setLocationAcquiring(false);
       }
     })();
   }, [locationSupported, getCurrentPosition, radius]);
+
+  const handleChoosePlaceForNearby = useCallback(() => {
+    if (feedCompactChrome && !isDesktopSplit) {
+      setNativeFeedExtraOpen(true);
+      setMobileFilterSheetOpen(true);
+    } else if (isDesktopSplit) {
+      setSidebarRefineOpen(true);
+    } else {
+      setShowFilters(true);
+    }
+    window.setTimeout(() => {
+      placeInputRef.current?.focus();
+      placeInputRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 80);
+  }, [feedCompactChrome, isDesktopSplit]);
 
   useEffect(() => {
     if (!gpsRequestPendingRef.current || locationLoading || coords) return;
     if (locationError) {
       gpsRequestPendingRef.current = false;
+      setLocationAcquiring(false);
       setShowGpsError(true);
+      const msg = (locationError || "").toLowerCase();
+      if (msg.includes("geweigerd") || msg.includes("denied")) {
+        setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_DENIED);
+      } else if (msg.includes("verlopen") || msg.includes("timeout")) {
+        setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_TIMEOUT);
+      } else {
+        setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_UNAVAILABLE);
+      }
     }
   }, [coords, locationLoading, locationError]);
 
@@ -1679,7 +1751,9 @@ export default function GeoFeed({
   useEffect(() => {
     if (!coords || !gpsRequestPendingRef.current) return;
     gpsRequestPendingRef.current = false;
+    setLocationAcquiring(false);
     setShowGpsError(false);
+    setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_GRANTED);
     setUserLocation(coords);
     setLocationSource("gps");
     setAppliedScope(FEED_SCOPE_NEARBY);
@@ -1693,10 +1767,21 @@ export default function GeoFeed({
   }, [coords, radius]);
 
   useEffect(() => {
-    if (locationError && !userLocation && !profileLocation && session?.user) {
-      void loadProfileLocation();
-    }
-  }, [locationError, userLocation, profileLocation, session?.user, loadProfileLocation]);
+    if (appliedScope !== FEED_SCOPE_NEARBY) return;
+    if (nearbyNeedsLocation) return;
+    setNearbyLocationStatus((prev) => {
+      if (
+        prev === NEARBY_LOCATION_STATUS.GPS_GRANTED ||
+        prev === NEARBY_LOCATION_STATUS.LOCATION_READY ||
+        prev === NEARBY_LOCATION_STATUS.NEARBY_RESULTS
+      ) {
+        return prev === NEARBY_LOCATION_STATUS.NEARBY_RESULTS
+          ? prev
+          : NEARBY_LOCATION_STATUS.LOCATION_READY;
+      }
+      return NEARBY_LOCATION_STATUS.LOCATION_READY;
+    });
+  }, [appliedScope, nearbyNeedsLocation, appliedPlace, feedCoords]);
 
   const handleScopeChange = useCallback((next: FeedScope) => {
     setAppliedScope(next);
@@ -1708,10 +1793,15 @@ export default function GeoFeed({
     // Scope switch must never keep previous-scope items/cursor/cache.
     setItems([]);
     setDiscoveryFeed(null);
+    setInspiratiePool([]);
+    lastInspiratieFetchKeyRef.current = "";
     setFeedHasMore(false);
     setApiRawItems([]);
     clearHomeFeedReturnCache();
     feedRestoredFromCacheRef.current = false;
+    if (next === FEED_SCOPE_NEARBY) {
+      setNearbyLocationStatus(NEARBY_LOCATION_STATUS.NO_LOCATION_SELECTED);
+    }
   }, []);
 
   const handlePlaceInput = (inputPlace: string) => {
@@ -1744,6 +1834,57 @@ export default function GeoFeed({
 
   useEffect(() => {
     if (feedStartupBlocked) return;
+
+    // Nearby without location: never fetch unrelated inspiration/national pool.
+    if (nearbyNeedsLocation) {
+      latestFeedRequestKeyRef.current = "nearby:needs-location";
+      feedRequestKeyInFlightRef.current = null;
+      setItems([]);
+      setDiscoveryFeed(null);
+      setInspiratiePool([]);
+      lastInspiratieFetchKeyRef.current = "";
+      setFeedHasMore(false);
+      setApiRawItems([]);
+      setApiViewerCoords(null);
+      setLoading(false);
+      setFeedRefreshing(false);
+      setFeedHydrated(true);
+      feedInteractionStartedRef.current = true;
+      setNearbyLocationStatus((prev) =>
+        prev === NEARBY_LOCATION_STATUS.GPS_DENIED ||
+        prev === NEARBY_LOCATION_STATUS.GPS_TIMEOUT ||
+        prev === NEARBY_LOCATION_STATUS.GPS_UNAVAILABLE
+          ? prev
+          : NEARBY_LOCATION_STATUS.NEARBY_EMPTY_STATE,
+      );
+      if (isGeoFeedDiagnosticsEnabled()) {
+        pushGeoFeedDiag({
+          requestId: newGeoFeedRequestId(),
+          at: new Date().toISOString(),
+          platform: isNativeApp() ? "android" : "web",
+          authenticated: Boolean(session?.user),
+          selectedScope: appliedScope,
+          radiusKm: appliedRadius,
+          latitude: null,
+          longitude: null,
+          countryCode: null,
+          pageCursor: null,
+          cacheMode: "bypass",
+          cacheHit: false,
+          apiBranch: "nearby_needs_location",
+          resultCount: 0,
+          resultListingIds: [],
+          resultCities: [],
+          resultCountries: [],
+          startedAt: null,
+          endedAt: Date.now(),
+          status: "accepted",
+          nearbyLocationStatus: NEARBY_LOCATION_STATUS.NEARBY_EMPTY_STATE,
+          note: "client short-circuit: no unrelated inspiration",
+        });
+      }
+      return;
+    }
 
     setFeedHasMore(false);
 
@@ -1943,6 +2084,10 @@ export default function GeoFeed({
               startedAt: null,
               endedAt: Date.now(),
               status: "accepted",
+              nearbyLocationStatus:
+                appliedScope === FEED_SCOPE_NEARBY
+                  ? NEARBY_LOCATION_STATUS.NEARBY_RESULTS
+                  : null,
             });
           }
           if (process.env.NODE_ENV === "development") {
@@ -2048,6 +2193,7 @@ export default function GeoFeed({
     };
   }, [
     feedStartupBlocked,
+    nearbyNeedsLocation,
     appliedRadius,
     appliedScope,
     appliedQ,
@@ -2155,6 +2301,12 @@ export default function GeoFeed({
   useEffect(() => {
     if (feedStartupBlocked || !feedHydrated) return;
     if (loading && itemsRef.current.length === 0) return;
+    // Nearby without location must never load unrelated inspiration.
+    if (nearbyNeedsLocation) {
+      setInspiratiePool([]);
+      lastInspiratieFetchKeyRef.current = "";
+      return;
+    }
 
     const inspKey = `${appliedCategory}|${appliedQ.trim()}`;
     if (
@@ -2207,6 +2359,7 @@ export default function GeoFeed({
     feedStartupBlocked,
     feedHydrated,
     loading,
+    nearbyNeedsLocation,
     appliedCategory,
     appliedQ,
   ]);
@@ -2395,10 +2548,14 @@ export default function GeoFeed({
   }, [feedOnlyInspiration, appliedSearchQuery, appliedCategory]);
 
   const inspirationSlots = useMemo(() => {
+    // Product integrity: never interleave worldwide inspiration under Nearby
+    // when the viewer has no location.
+    if (nearbyNeedsLocation) return [];
     const built = buildInspSlots(filteredApiInspiration, filteredFeedInspiration);
     if (appliedSortBy === "newest" && appliedSortOrder === "desc") return built;
     return sortInspirationSlots(built, appliedSortBy, appliedSortOrder);
   }, [
+    nearbyNeedsLocation,
     filteredApiInspiration,
     filteredFeedInspiration,
     appliedSortBy,
@@ -3133,7 +3290,8 @@ export default function GeoFeed({
       </div>
     ) : null;
 
-  const resultCountEl = (
+  const resultCountEl =
+    showNearbyLocationRequired ? null : (
     <div
       className={
         feedCompactChrome
@@ -3156,12 +3314,14 @@ export default function GeoFeed({
     feedChip === "sale" &&
     appliedScope === FEED_SCOPE_NEARBY &&
     locationFilterActive &&
+    !nearbyNeedsLocation &&
     !loading &&
     feedHydrated &&
     sortedSales.length === 0 &&
     filteredSaleBase.length > 0;
 
   const emptyAcceptedValues =
+    !showNearbyLocationRequired &&
     acceptedValuesFilterActive &&
     !loading &&
     !feedRefreshing &&
@@ -3169,6 +3329,7 @@ export default function GeoFeed({
     displayCount === 0 &&
     !emptyRadiusNoLocal;
   const emptySale =
+    !showNearbyLocationRequired &&
     !emptyRadiusNoLocal &&
     !emptyAcceptedValues &&
     feedChip === "sale" &&
@@ -3176,17 +3337,20 @@ export default function GeoFeed({
     feedHydrated &&
     filteredSaleBase.length === 0;
   const emptyInsp =
+    !showNearbyLocationRequired &&
     feedChip === "inspiration" &&
     !loading &&
     feedHydrated &&
     inspirationSlots.length === 0;
   const emptyGezocht =
+    !showNearbyLocationRequired &&
     !emptyAcceptedValues &&
     feedChip === "gezocht" &&
     !loading &&
     feedHydrated &&
     filteredRequestBase.length === 0;
   const emptyServices =
+    !showNearbyLocationRequired &&
     isServicesCategorySlug(appliedCategory) &&
     feedChip !== "inspiration" &&
     feedChip !== "gezocht" &&
@@ -3194,6 +3358,7 @@ export default function GeoFeed({
     feedHydrated &&
     sortedSales.length === 0;
   const emptyAll =
+    !showNearbyLocationRequired &&
     !emptyRadiusNoLocal &&
     !emptyAcceptedValues &&
     feedChip === "all" &&
@@ -3380,6 +3545,7 @@ export default function GeoFeed({
                     }
                   >
                     <input
+                      ref={placeInputRef}
                       value={place}
                       onChange={(e) => handlePlaceInput(e.target.value)}
                       className={filterInputClass}
@@ -3389,11 +3555,11 @@ export default function GeoFeed({
                     <button
                       type="button"
                       onClick={handleUseMyLocation}
-                      disabled={locationLoading || !locationSupported}
-                      aria-busy={locationLoading}
+                      disabled={locationBusy || (!locationSupported && !isNativeApp())}
+                      aria-busy={locationBusy}
                       className="inline-flex w-full md:w-auto md:min-w-[11rem] shrink-0 items-center justify-center gap-2 rounded-xl border border-primary-brand/30 bg-white px-4 py-3 text-sm font-semibold text-primary-brand hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation"
                     >
-                      {locationLoading ? (
+                      {locationBusy ? (
                         <>
                           <Loader2
                             className="h-4 w-4 shrink-0 animate-spin"
@@ -3898,6 +4064,19 @@ export default function GeoFeed({
 
   const feedResultsBlock = showFeedSkeleton ? (
         <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 4} compact={isMobileFeedUi} />
+      ) : showNearbyLocationRequired ? (
+        <NearbyLocationRequiredEmptyState
+          title={t("feed.nearbyNeedsLocationTitle")}
+          description={t("feed.nearbyNeedsLocationBody")}
+          useMyLocationLabel={t("feed.useMyLocation")}
+          choosePlaceLabel={t("feed.nearbyNeedsLocationChoosePlace")}
+          altScopesHint={t("feed.nearbyNeedsLocationAltScopes")}
+          locationLoading={locationBusy}
+          locationSupported={locationSupported || isNativeApp()}
+          locationStatus={nearbyLocationStatus}
+          onUseMyLocation={handleUseMyLocation}
+          onChoosePlace={handleChoosePlaceForNearby}
+        />
       ) : emptyRadiusNoLocal ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">

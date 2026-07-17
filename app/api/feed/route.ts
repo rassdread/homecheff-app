@@ -954,11 +954,10 @@ async function handleFeedGet(
     extractCoords: (item) => extractItemLatLng(item),
   });
 
-  // Nearby without viewer location must not silently return a national/global pool.
+  // Nearby without viewer location: empty feed (no inspiration fallback).
+  // Product contract: explicit client empty state — never unrelated worldwide content.
   if (nearbyNeedsLocation) {
-    sortedPool = sortedPool.filter(
-      (item) => !isMarketplaceSaleItem(item as Record<string, unknown>),
-    );
+    sortedPool = [];
   }
 
   // Heel Nederland = European mainland only (exclude SX/CW/AW/BQ and foreign).

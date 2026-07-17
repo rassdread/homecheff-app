@@ -127,9 +127,20 @@ assert(geo.includes('requestAndGetNativeCurrentPosition'), 'native GPS wired');
 assert(route.includes('isEligibleForNationalFeedScope'), 'API national filter');
 assert(route.includes('FEED_RADIUS_MODE_STRICT_LOCAL'), 'nearby strict local');
 assert(route.includes('nearbyNeedsLocation'), 'nearby without coords guarded');
+assert(
+  /if \(nearbyNeedsLocation\) \{\s*sortedPool = \[\];/m.test(route),
+  'nearby without location clears pool (no inspiration fallback)',
+);
 assert(cache.includes('if (!requestKey) return null'), 'peek requires key');
+
+const nearbyState = readFileSync('lib/feed/nearby-location-state.ts', 'utf8');
+assert(nearbyState.includes('NEARBY_EMPTY_STATE'), 'nearby empty status');
+assert(nearbyState.includes('GPS_DENIED'), 'GPS_DENIED status');
+assert(geo.includes('NearbyLocationRequiredEmptyState'), 'nearby empty UI');
+assert(geo.includes('nearbyNeedsLocation'), 'client nearbyNeedsLocation');
 
 console.log('  ✅ mainland NL / Caribbean classification');
 console.log('  ✅ return-cache requestKey isolation');
 console.log('  ✅ GeoFeed + API wiring guards');
+console.log('  ✅ nearby empty state (no inspiration fallback)');
 console.log('\n=== Result: geo feed integrity checks passed ===\n');

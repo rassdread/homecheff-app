@@ -3,6 +3,8 @@
  * Enable: NEXT_PUBLIC_GEO_FEED_DIAGNOSTICS=1 or Vercel Preview.
  */
 
+import type { NearbyLocationStatus } from '@/lib/feed/nearby-location-state';
+
 export type GeoFeedDiagPlatform = 'web' | 'android' | 'ios' | 'unknown';
 
 export type GeoFeedDiagEvent = {
@@ -26,6 +28,8 @@ export type GeoFeedDiagEvent = {
   startedAt: number | null;
   endedAt: number | null;
   status: 'started' | 'accepted' | 'aborted' | 'stale' | 'error';
+  /** Nearby location product integrity (GPS / empty state / results). */
+  nearbyLocationStatus?: NearbyLocationStatus | null;
   note?: string;
 };
 
@@ -66,6 +70,7 @@ export function pushGeoFeedDiag(event: GeoFeedDiagEvent): void {
       id: event.requestId,
       status: event.status,
       scope: event.selectedScope,
+      nearbyLocationStatus: event.nearbyLocationStatus ?? null,
       radius: event.radiusKm,
       lat: event.latitude,
       lng: event.longitude,
