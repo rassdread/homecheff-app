@@ -4,7 +4,8 @@
 
 import { normalizeFeedScope } from '@/lib/feed/feed-scope';
 
-export const FEED_ORIGIN_CACHE_KEY_VERSION = 'v1';
+/** Bumped when national pool eligibility changes (e.g. Caribbean place labels). */
+export const FEED_ORIGIN_CACHE_KEY_VERSION = 'v2';
 
 export const PUBLIC_FEED_CACHE_TAGS = [
   'homecheff-feed',

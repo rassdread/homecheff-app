@@ -19,7 +19,7 @@
 ## Fixes in this branch
 
 - Keyed return cache only; clear on scope change; reject stale responses by `requestKey`.
-- National mainland filter server-side; nearby strict_local; nearby without location returns no sales.
+- National mainland filter server-side (sales + inspiration; Caribbean place labels excluded even when coords are null); nearby strict_local; nearby without location returns no sales.
 - Native GPS wired into “use my location”; Android first paint shows full first page.
 - Preview/dev diagnostics via `window.__hcGeoFeedDiagReport()` / console `[hc-geo-diag]`.
 

@@ -53,6 +53,53 @@ export function isKingdomCaribbeanCountryCode(
   return (KINGDOM_CARIBBEAN_COUNTRY_CODES as readonly string[]).includes(c);
 }
 
+/**
+ * Place-label fallback when coords/country are missing (common on DISH inspiration).
+ * Matches Caribbean Kingdom territory names that must never appear under national.
+ */
+export function isKingdomCaribbeanPlaceLabel(
+  place: string | null | undefined,
+): boolean {
+  if (!place) return false;
+  const p = place
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+  if (!p) return false;
+  // Exact / near-exact common place strings stored on listings.
+  if (
+    p === 'sint maarten' ||
+    p === 'st. maarten' ||
+    p === 'st maarten' ||
+    p === 'philipsburg' ||
+    p === 'curacao' ||
+    p === 'willemstad' ||
+    p === 'aruba' ||
+    p === 'oranjestad' ||
+    p === 'bonaire' ||
+    p === 'kralendijk' ||
+    p === 'sint eustatius' ||
+    p === 'statia' ||
+    p === 'saba' ||
+    p === 'the bottom'
+  ) {
+    return true;
+  }
+  // Containment for longer labels ("Sint Maarten, Caribbean").
+  return (
+    p.includes('sint maarten') ||
+    p.includes('st. maarten') ||
+    p.includes('st maarten') ||
+    p.includes('curacao') ||
+    p.includes('aruba') ||
+    p.includes('bonaire') ||
+    p.includes('sint eustatius') ||
+    p === 'saba' ||
+    p.startsWith('saba ')
+  );
+}
+
 export function isInsideNlMainlandBbox(coords: GeoCoords | null | undefined): boolean {
   if (!coords) return false;
   const { lat, lng } = coords;
@@ -66,17 +113,44 @@ export function isInsideNlMainlandBbox(coords: GeoCoords | null | undefined): bo
 }
 
 /**
- * National scope eligibility for a sale listing.
+ * National scope eligibility for a listing (sale or inspiration).
  * Prefer coords (bbox). Country code alone is insufficient when defaults are "NL".
+ * Place labels cover DISH rows that have no lat/lng but say "Sint Maarten".
  */
 export function isNationalNetherlandsListing(input: {
   coords: GeoCoords | null | undefined;
   countryCode?: string | null;
+  place?: string | null;
 }): boolean {
+  if (isKingdomCaribbeanPlaceLabel(input.place)) return false;
   if (isKingdomCaribbeanCountryCode(input.countryCode)) return false;
   if (isInsideNlMainlandBbox(input.coords)) return true;
   // No reliable mainland coords → not national (avoid SX mislabeled as NL).
   return false;
+}
+
+/**
+ * National pool gate: sales require mainland coords; non-sales may keep
+ * mainland-coords OR no-coords mainland-looking places (not Caribbean labels).
+ */
+export function isEligibleForNationalFeedScope(input: {
+  coords: GeoCoords | null | undefined;
+  countryCode?: string | null;
+  place?: string | null;
+  isMarketplaceSale: boolean;
+}): boolean {
+  if (isKingdomCaribbeanPlaceLabel(input.place)) return false;
+  if (isKingdomCaribbeanCountryCode(input.countryCode)) return false;
+  if (input.isMarketplaceSale) {
+    return isNationalNetherlandsListing({
+      coords: input.coords,
+      countryCode: input.countryCode,
+      place: input.place,
+    });
+  }
+  if (input.coords) return isInsideNlMainlandBbox(input.coords);
+  // Inspiration without coords: allow only when place is not Caribbean.
+  return true;
 }
 
 /** International = worldwide, including mainland NL. */

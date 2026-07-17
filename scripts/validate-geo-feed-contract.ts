@@ -6,8 +6,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import {
+  isEligibleForNationalFeedScope,
   isInsideNlMainlandBbox,
   isKingdomCaribbeanCountryCode,
+  isKingdomCaribbeanPlaceLabel,
   isNationalNetherlandsListing,
   NL_MAINLAND_BBOX,
 } from '../lib/geo/netherlands-mainland';
@@ -27,6 +29,11 @@ assert.equal(isKingdomCaribbeanCountryCode('CW'), true);
 assert.equal(isKingdomCaribbeanCountryCode('AW'), true);
 assert.equal(isKingdomCaribbeanCountryCode('BQ'), true);
 assert.equal(isKingdomCaribbeanCountryCode('NL'), false);
+
+assert.equal(isKingdomCaribbeanPlaceLabel('Sint Maarten'), true);
+assert.equal(isKingdomCaribbeanPlaceLabel('Curaçao'), true);
+assert.equal(isKingdomCaribbeanPlaceLabel('Berkel & Rodenrijs'), false);
+assert.equal(isKingdomCaribbeanPlaceLabel('Vlaardingen'), false);
 
 const vlaardingen = { lat: 51.912, lng: 4.341 };
 const sintMaarten = { lat: 18.0425, lng: -63.0548 };
@@ -49,6 +56,33 @@ assert.equal(
   isNationalNetherlandsListing({ coords: null, countryCode: 'NL' }),
   false,
   'national requires mainland coords',
+);
+assert.equal(
+  isNationalNetherlandsListing({
+    coords: null,
+    countryCode: 'NL',
+    place: 'Sint Maarten',
+  }),
+  false,
+  'place-labeled SX must not pass national',
+);
+assert.equal(
+  isEligibleForNationalFeedScope({
+    coords: null,
+    place: 'Sint Maarten',
+    isMarketplaceSale: false,
+  }),
+  false,
+  'inspiration with SX place excluded from national',
+);
+assert.equal(
+  isEligibleForNationalFeedScope({
+    coords: null,
+    place: 'Berkel & Rodenrijs',
+    isMarketplaceSale: false,
+  }),
+  true,
+  'NL inspiration without coords may remain in national',
 );
 assert.ok(NL_MAINLAND_BBOX.latMax > NL_MAINLAND_BBOX.latMin);
 
@@ -90,7 +124,7 @@ assert(!geo.includes('peekFreshHomeFeedReturnCache()'), 'no unkeyed peek');
 assert(geo.includes('clearHomeFeedReturnCache()'), 'scope change clears cache');
 assert(geo.includes('latestFeedRequestKeyRef'), 'stale response guard present');
 assert(geo.includes('requestAndGetNativeCurrentPosition'), 'native GPS wired');
-assert(route.includes('isNationalNetherlandsListing'), 'API national filter');
+assert(route.includes('isEligibleForNationalFeedScope'), 'API national filter');
 assert(route.includes('FEED_RADIUS_MODE_STRICT_LOCAL'), 'nearby strict local');
 assert(route.includes('nearbyNeedsLocation'), 'nearby without coords guarded');
 assert(cache.includes('if (!requestKey) return null'), 'peek requires key');

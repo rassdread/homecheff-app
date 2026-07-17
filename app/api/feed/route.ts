@@ -16,7 +16,7 @@ import {
   normalizeFeedRadiusKm,
   sortFeedItemsLocalFirst,
 } from "@/lib/geo/local-discovery";
-import { isNationalNetherlandsListing } from "@/lib/geo/netherlands-mainland";
+import { isEligibleForNationalFeedScope } from "@/lib/geo/netherlands-mainland";
 import {
   FEED_SCOPE_INTERNATIONAL,
   FEED_SCOPE_NATIONAL,
@@ -962,10 +962,15 @@ async function handleFeedGet(
   }
 
   // Heel Nederland = European mainland only (exclude SX/CW/AW/BQ and foreign).
+  // Applies to sales AND inspiration — DISH rows often lack coords but carry place text.
   if (feedScope === FEED_SCOPE_NATIONAL) {
     sortedPool = sortedPool.filter((item) => {
-      if (!isMarketplaceSaleItem(item as Record<string, unknown>)) return true;
+      const record = item as Record<string, unknown>;
       const coords = extractItemLatLng(item);
+      const place =
+        (typeof record.place === "string" && record.place) ||
+        (typeof record.city === "string" && record.city) ||
+        null;
       const countryCode =
         (item.countryCode as string | undefined) ||
         (item.country as string | undefined) ||
@@ -973,7 +978,12 @@ async function handleFeedGet(
         ((item.seller as { User?: { country?: string } } | undefined)?.User
           ?.country) ||
         null;
-      return isNationalNetherlandsListing({ coords, countryCode });
+      return isEligibleForNationalFeedScope({
+        coords,
+        countryCode,
+        place,
+        isMarketplaceSale: isMarketplaceSaleItem(record),
+      });
     });
   }
 
