@@ -94,3 +94,24 @@ Exact Preview measurements to fill after deploy: spinner ms avg, prefetch hit ra
 | Deployment | `dpl_4r7YXMrD8NdwvBwH6QsgW2r56TGu` |
 | Preview URL | https://homecheff-hfcqv62i3-sergio-s-projects-f7b64ee1.vercel.app |
 | Inspect | https://vercel.com/sergio-s-projects-f7b64ee1/homecheff-app/4r7YXMrD8NdwvBwH6QsgW2r56TGu |
+
+---
+
+## Controlled Production promotion (2026-07-17)
+
+| Field | Value |
+| --- | --- |
+| Production commit | `2b66362` |
+| Merged commits | `c7dfe88`, `2b66362` (only `fix/feed-prefetch-smooth`) |
+| Production deployment | `dpl_23FvEVUFzoFHBCcQiFnPKtivyut8` |
+| Production URL | https://homecheff-qly8xs4b6-sergio-s-projects-f7b64ee1.vercel.app |
+| Aliases | `homecheff.eu`, `homecheff.nl`, `www.homecheff.eu`, `www.homecheff.nl` |
+| Inspect | https://vercel.com/sergio-s-projects-f7b64ee1/homecheff-app/23FvEVUFzoFHBCcQiFnPKtivyut8 |
+| Rollback deployment | `dpl_HAouUVEUatv2QrYGxx3Fn45W2SUW` |
+| Rollback commit | `400a86d` |
+| Rollback URL | https://homecheff-6hnw9wcy7-sergio-s-projects-f7b64ee1.vercel.app |
+
+### Promotion verdict
+
+- **Production promotion:** successful (web smoke OK)
+- **Full GO (incl. installed Android):** **HOLD** until checklist A–K confirmed on Capacitor Production WebView
