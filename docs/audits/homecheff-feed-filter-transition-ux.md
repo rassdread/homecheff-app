@@ -34,4 +34,11 @@ Filter tap → applied* updates → client filters empty list → empty UI flash
 
 ## Preview
 
-Deploy after validators; Production only after explicit approval.
+| Field | Value |
+| --- | --- |
+| Commit | `e77e13f` |
+| Deployment | `dpl_FdBq4C8mt7XNgd9XJZ2KBsT9w7v1` |
+| Preview URL | https://homecheff-2i6xkv8g0-sergio-s-projects-f7b64ee1.vercel.app |
+| Inspect | https://vercel.com/sergio-s-projects-f7b64ee1/homecheff-app/FdBq4C8mt7XNgd9XJZ2KBsT9w7v1 |
+
+**Production:** not promoted — awaiting explicit approval after Preview soak + Android certification.
