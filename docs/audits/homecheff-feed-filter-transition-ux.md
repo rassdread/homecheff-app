@@ -42,3 +42,25 @@ Filter tap → applied* updates → client filters empty list → empty UI flash
 | Inspect | https://vercel.com/sergio-s-projects-f7b64ee1/homecheff-app/FdBq4C8mt7XNgd9XJZ2KBsT9w7v1 |
 
 **Production:** not promoted — awaiting explicit approval after Preview soak + Android certification.
+
+---
+
+## Controlled Production promotion (2026-07-18)
+
+| Field | Value |
+| --- | --- |
+| Merge method | Fast-forward `fix/feed-filter-transition-ux` → `main` |
+| Feature commit | `e77e13f` |
+| Production tip | `e52b919` (includes Preview docs commit) |
+| Production deployment | `dpl_4cyiC6MbQcYf6LbtTPn69Gt2Scy6` |
+| Production URL | https://homecheff-jkm9c4923-sergio-s-projects-f7b64ee1.vercel.app |
+| Aliases | `homecheff.eu`, `homecheff.nl`, `www.homecheff.eu`, `www.homecheff.nl` |
+| Inspect | https://vercel.com/sergio-s-projects-f7b64ee1/homecheff-app/4cyiC6MbQcYf6LbtTPn69Gt2Scy6 |
+| Rollback deployment | `dpl_2cwSUmyxVLMJdMB6kQKHo4LHTjqb` (pre-promotion Production) |
+| Rollback commit | `2b66362` (prefetch runtime; `e6434f8` docs-only equivalent) |
+| Rollback URL | https://homecheff-d4d9lyauv-sergio-s-projects-f7b64ee1.vercel.app |
+
+### Promotion verdict
+
+- **Production promotion:** successful (web API/homepage smoke OK)
+- **Full GO (installed Android):** **HOLD** until checklist A–J confirmed
