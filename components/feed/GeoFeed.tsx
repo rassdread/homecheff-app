@@ -216,6 +216,14 @@ import {
   scheduleIdleWork,
 } from "@/lib/feed/feed-prefetch-cache";
 import {
+  FEED_RESULT_PHASE,
+  createFeedFilterTransitionDiag,
+  isFilterSearchingPhase,
+  isZeroResultsEligible,
+  type FeedResultPhase,
+} from "@/lib/feed/feed-filter-transition";
+import { FeedFilterResultCache } from "@/lib/feed/feed-filter-result-cache";
+import {
   FEED_SALE_INSPIRATION_STRIDE,
   FEED_RECIRC_BATCH_SIZE,
   FEED_RECIRC_MIN_SEED,
@@ -1019,6 +1027,14 @@ export default function GeoFeed({
   const [loading, setLoading] = useState(true);
   /** Warm filter refresh — keep prior results visible (Phase 7G). */
   const [feedRefreshing, setFeedRefreshing] = useState(false);
+  const [filterResultPhase, setFilterResultPhase] = useState<FeedResultPhase>(
+    FEED_RESULT_PHASE.IDLE,
+  );
+  const filterTransitionStartedAtRef = useRef<number | null>(null);
+  const filterResultCacheRef = useRef(new FeedFilterResultCache<FeedItem>());
+  const filterTransitionDiagRef = useRef(createFeedFilterTransitionDiag());
+  const requestInFlightStateRef = useRef(false);
+  const [requestInFlight, setRequestInFlight] = useState(false);
   const [feedHasMore, setFeedHasMore] = useState(false);
   const [feedLoadingMore, setFeedLoadingMore] = useState(false);
   const feedLoadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -1836,11 +1852,9 @@ export default function GeoFeed({
     setSortOrder(defaults.sortOrder);
     setAppliedSortBy(defaults.sortBy);
     setAppliedSortOrder(defaults.sortOrder);
-    // Scope switch must never keep previous-scope items/cursor/cache.
-    setItems([]);
+    // Keep prior cards visible (stale-while-revalidate) until the new
+    // requestKey settles — clearing here caused a false zero-results flash.
     setDiscoveryFeed(null);
-    setInspiratiePool([]);
-    lastInspiratieFetchKeyRef.current = "";
     setFeedHasMore(false);
     setApiRawItems([]);
     setRecirculatedRows([]);
@@ -1849,8 +1863,16 @@ export default function GeoFeed({
     );
     clearHomeFeedReturnCache();
     feedRestoredFromCacheRef.current = false;
+    setFilterResultPhase(FEED_RESULT_PHASE.FILTER_TRANSITION_STARTED);
+    filterTransitionStartedAtRef.current = Date.now();
+    filterTransitionDiagRef.current.filterTransitionStarted += 1;
     if (next === FEED_SCOPE_NEARBY) {
       setNearbyLocationStatus(NEARBY_LOCATION_STATUS.NO_LOCATION_SELECTED);
+      // Geography must not show previous national/international cards.
+      setItems([]);
+      setInspiratiePool([]);
+      lastInspiratieFetchKeyRef.current = "";
+      filterResultCacheRef.current.invalidateAll();
     }
   }, []);
 
@@ -1891,6 +1913,7 @@ export default function GeoFeed({
       feedRequestKeyInFlightRef.current = null;
       feedPrefetchCacheRef.current.setRequestKey("nearby:needs-location");
       preparedRecircBatchRef.current = null;
+      filterResultCacheRef.current.invalidateAll();
       setItems([]);
       setDiscoveryFeed(null);
       setInspiratiePool([]);
@@ -1904,6 +1927,9 @@ export default function GeoFeed({
       );
       setLoading(false);
       setFeedRefreshing(false);
+      setRequestInFlight(false);
+      requestInFlightStateRef.current = false;
+      setFilterResultPhase(FEED_RESULT_PHASE.LOCATION_REQUIRED);
       setFeedHydrated(true);
       feedInteractionStartedRef.current = true;
       setNearbyLocationStatus((prev) =>
@@ -1960,6 +1986,11 @@ export default function GeoFeed({
     );
 
     const requestKey = params.toString();
+    const prevKey = latestFeedRequestKeyRef.current;
+    const isFilterTransition =
+      Boolean(prevKey) &&
+      prevKey !== requestKey &&
+      prevKey !== "nearby:needs-location";
     latestFeedRequestKeyRef.current = requestKey;
     feedPrefetchCacheRef.current.setRequestKey(requestKey);
     preparedRecircBatchRef.current = null;
@@ -1967,19 +1998,43 @@ export default function GeoFeed({
     setRecirculatedRows([]);
     setCompositionState((prev) => resetFeedCompositionState(prev, requestKey));
 
+    if (isFilterTransition) {
+      setFilterResultPhase(FEED_RESULT_PHASE.FILTER_TRANSITION_STARTED);
+      filterTransitionStartedAtRef.current = Date.now();
+      filterTransitionDiagRef.current.filterTransitionStarted += 1;
+      if (itemsRef.current.length > 0) {
+        filterTransitionDiagRef.current.staleFeedRetained += 1;
+      }
+    }
+
     if (feedRequestKeyInFlightRef.current === requestKey) {
       return;
     }
     feedRequestKeyInFlightRef.current = requestKey;
 
-    // Always key by request identity — never cross-scope peek.
-    const cached = readHomeFeedReturnCache(requestKey);
+    // Multi-key recent filter first-batch cache, then single-slot return cache.
+    const recentHit = filterResultCacheRef.current.get(requestKey);
+    const cached = recentHit
+      ? {
+          requestKey,
+          items: recentHit.items,
+          inspiratiePool: recentHit.inspiratiePool as InspirationItem[],
+          apiViewerCoords: recentHit.apiViewerCoords,
+          nativeFeedRenderMore: false,
+          discoveryFeed: recentHit.discoveryFeed as DiscoveryFeedPayload | null,
+          feedHasMore: recentHit.feedHasMore,
+          savedAt: recentHit.savedAt,
+        }
+      : readHomeFeedReturnCache(requestKey);
 
     feedPerfMark("cache:restore-start");
     let backgroundRefresh = false;
     if (cached) {
       feedPerfMark("cache:restore-end");
       feedRestoredFromCacheRef.current = true;
+      if (recentHit) {
+        filterTransitionDiagRef.current.filterCacheHit += 1;
+      }
       if (!isHomeFeedReturnCacheStale(cached)) {
         feedPerfMark("feed:cache-hit");
       } else {
@@ -2002,14 +2057,19 @@ export default function GeoFeed({
       setLoading(false);
       feedInteractionStartedRef.current = true;
       setFeedHydrated(true);
-      if (!isHomeFeedReturnCacheStale(cached)) {
+      setFilterResultPhase(FEED_RESULT_PHASE.RESULTS_READY);
+      if (!isHomeFeedReturnCacheStale(cached) && !recentHit) {
         feedRequestKeyInFlightRef.current = null;
+        setRequestInFlight(false);
+        requestInFlightStateRef.current = false;
         return;
       }
+      // Recent-filter hit or stale return cache: show instantly, revalidate.
       backgroundRefresh = true;
     } else {
       feedPerfMark("cache:restore-end");
       feedPerfMark("feed:cache-miss");
+      filterTransitionDiagRef.current.filterCacheMiss += 1;
     }
 
     feedPerfIncrementFeedFetch(
@@ -2019,12 +2079,19 @@ export default function GeoFeed({
       feedFetchReason: feedInteractionStartedRef.current ? "refresh" : "initial",
     });
 
+    setFilterResultPhase(FEED_RESULT_PHASE.SEARCHING);
+    setRequestInFlight(true);
+    requestInFlightStateRef.current = true;
+    filterTransitionDiagRef.current.filterRequestStarted += 1;
+
     if (feedInteractionStartedRef.current && !backgroundRefresh) {
       if (itemsRef.current.length > 0 || feedHydrated) {
         setFeedRefreshing(true);
       } else {
         setLoading(true);
       }
+    } else if (backgroundRefresh) {
+      setFeedRefreshing(true);
     }
 
     const feedUrl = `/api/feed?${params.toString()}`;
@@ -2061,12 +2128,14 @@ export default function GeoFeed({
           } catch {
             reportAppDiagnostic("feed_fetch_json_invalid", { surface: "feed" });
             if (cancelled) return;
-            setItems([]);
+            setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
             return;
           }
           if (cancelled) return;
           // Reject late responses from a previous scope/radius/coords selection.
           if (latestFeedRequestKeyRef.current !== requestKey) {
+            filterTransitionDiagRef.current.responseRejectedStale += 1;
+            setFilterResultPhase(FEED_RESULT_PHASE.STALE_RESPONSE_REJECTED);
             if (isGeoFeedDiagnosticsEnabled()) {
               pushGeoFeedDiag({
                 requestId: newGeoFeedRequestId(),
@@ -2094,6 +2163,8 @@ export default function GeoFeed({
             }
             return;
           }
+          filterTransitionDiagRef.current.responseAccepted += 1;
+          filterTransitionDiagRef.current.filterRequestCompleted += 1;
           feedPerfMark("feed:json-received");
           feedPerfMarkFeedRequestEnd();
           const rawItems = (data.items || []) as Record<string, unknown>[];
@@ -2206,6 +2277,9 @@ export default function GeoFeed({
                 : null,
             );
           }
+          if (itemsRef.current.length > 0) {
+            filterTransitionDiagRef.current.staleFeedReplaced += 1;
+          }
           setItems(valid);
           const apiHasMore = Boolean(data.pagination?.hasMore);
           let nextComp = recordDisplayedSeeds(
@@ -2229,20 +2303,66 @@ export default function GeoFeed({
               ? data.discovery
               : null,
           );
+          filterResultCacheRef.current.put({
+            requestKey,
+            items: valid,
+            inspiratiePool: inspiratiePoolRef.current,
+            discoveryFeed:
+              data.discovery && data.discovery.version === 1
+                ? data.discovery
+                : null,
+            apiViewerCoords: viewerFromApi,
+            feedHasMore: apiHasMore || composedFeedCanContinue(nextComp),
+          });
+          const startedAt = filterTransitionStartedAtRef.current;
+          if (startedAt != null) {
+            const dur = Date.now() - startedAt;
+            filterTransitionDiagRef.current.timeToFirstFilteredResultMsTotal +=
+              dur;
+            filterTransitionDiagRef.current.timeToFirstFilteredResultCount += 1;
+            filterTransitionDiagRef.current.filterTransitionDurationMsTotal +=
+              dur;
+            filterTransitionDiagRef.current.filterTransitionDurationCount += 1;
+            filterTransitionStartedAtRef.current = null;
+          }
+          setFilterResultPhase(
+            valid.length === 0
+              ? FEED_RESULT_PHASE.ZERO_RESULTS_CONFIRMED
+              : FEED_RESULT_PHASE.RESULTS_READY,
+          );
         } else {
           setDiscoveryFeed(null);
           setFeedHasMore(false);
+          setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
         }
       } catch (error) {
         if ((error as Error)?.name === "AbortError") return;
         console.error("Error fetching items:", error);
+        if (!cancelled) {
+          setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
+        }
       } finally {
         if (!cancelled) {
           setLoading(false);
           setFeedRefreshing(false);
+          setRequestInFlight(false);
+          requestInFlightStateRef.current = false;
           feedInteractionStartedRef.current = true;
           setFeedHydrated(true);
           feedRequestKeyInFlightRef.current = null;
+          if (isGeoFeedDiagnosticsEnabled()) {
+            (
+              window as Window & {
+                __hcFeedFilterTransitionDiag?: () => unknown;
+              }
+            ).__hcFeedFilterTransitionDiag = () => ({
+              ...filterTransitionDiagRef.current,
+              phase: filterResultPhase,
+              requestKey: latestFeedRequestKeyRef.current,
+              requestInFlight: requestInFlightStateRef.current,
+              preparedBatchCount: feedPrefetchCacheRef.current.preparedCount(),
+            });
+          }
         }
       }
     };
@@ -2264,6 +2384,14 @@ export default function GeoFeed({
           apiViewerCoords: apiViewerCoordsRef.current,
           nativeFeedRenderMore: nativeFeedRenderMoreRef.current,
           discoveryFeed: discoveryFeedRef.current,
+          feedHasMore: feedHasMoreRef.current,
+        });
+        filterResultCacheRef.current.put({
+          requestKey,
+          items: snapshot,
+          inspiratiePool: inspiratiePoolRef.current,
+          discoveryFeed: discoveryFeedRef.current,
+          apiViewerCoords: apiViewerCoordsRef.current,
           feedHasMore: feedHasMoreRef.current,
         });
       }
@@ -3027,7 +3155,15 @@ export default function GeoFeed({
     [saleCandidates, appliedSearchQuery]
   );
 
+  const pauseClientRefineDuringApiTransition =
+    feedRefreshing ||
+    requestInFlight ||
+    isFilterSearchingPhase(filterResultPhase);
+
   const filteredRequestBase = useMemo(() => {
+    if (pauseClientRefineDuringApiTransition) {
+      return requestCandidates;
+    }
     const qn = appliedSearchQuery.trim();
     return requestCandidates.filter((item) => {
       if (!matchesSearch(item, qn)) return false;
@@ -3045,9 +3181,21 @@ export default function GeoFeed({
         appliedAcceptedValues,
       );
     });
-  }, [requestCandidates, appliedSearchQuery, appliedCategory, appliedAcceptedValues]);
+  }, [
+    pauseClientRefineDuringApiTransition,
+    requestCandidates,
+    appliedSearchQuery,
+    appliedCategory,
+    appliedAcceptedValues,
+  ]);
 
   const filteredSaleBase = useMemo(() => {
+    // While the active requestKey is in flight, keep prior cards visible.
+    // Applying the new category/price client-side on stale items caused a
+    // false "geen resultaten" flash before the API response arrived.
+    if (pauseClientRefineDuringApiTransition) {
+      return saleCandidates;
+    }
     const qn = appliedSearchQuery.trim();
     return saleCandidates.filter((item) => {
       if (!matchesSearch(item, qn)) return false;
@@ -3075,6 +3223,7 @@ export default function GeoFeed({
       );
     });
   }, [
+    pauseClientRefineDuringApiTransition,
     saleCandidates,
     appliedSearchQuery,
     appliedPriceRange,
@@ -3118,6 +3267,9 @@ export default function GeoFeed({
   );
 
   const filteredApiInspiration = useMemo(() => {
+    if (pauseClientRefineDuringApiTransition) {
+      return inspiratiePool;
+    }
     const qn = appliedSearchQuery.trim();
     return inspiratiePool.filter((item) => {
       if (
@@ -3146,6 +3298,7 @@ export default function GeoFeed({
       return matchesSearchTextQuery(toSearchableListingRecord(item), qn);
     });
   }, [
+    pauseClientRefineDuringApiTransition,
     inspiratiePool,
     appliedSearchQuery,
     appliedCategory,
@@ -3155,6 +3308,9 @@ export default function GeoFeed({
   ]);
 
   const filteredFeedInspiration = useMemo(() => {
+    if (pauseClientRefineDuringApiTransition) {
+      return feedOnlyInspiration;
+    }
     const qn = appliedSearchQuery.trim();
     return feedOnlyInspiration.filter((item) => {
       if (
@@ -3183,6 +3339,7 @@ export default function GeoFeed({
       return matchesSearch(item, qn);
     });
   }, [
+    pauseClientRefineDuringApiTransition,
     feedOnlyInspiration,
     appliedSearchQuery,
     appliedCategory,
@@ -3985,16 +4142,37 @@ export default function GeoFeed({
     locationFilterActive &&
     !nearbyNeedsLocation &&
     !loading &&
+    !feedRefreshing &&
+    !requestInFlight &&
+    !isFilterSearchingPhase(filterResultPhase) &&
     feedHydrated &&
     sortedSales.length === 0 &&
     filteredSaleBase.length > 0;
 
+  const zeroResultsGate = isZeroResultsEligible({
+    phase: filterResultPhase,
+    loading,
+    feedRefreshing,
+    feedHydrated,
+    nearbyNeedsLocation,
+    requestInFlight,
+    resultCount: displayCount,
+    emptyTerminal: compositionState.emptyTerminal,
+  });
+  if (
+    !zeroResultsGate &&
+    displayCount === 0 &&
+    (loading || feedRefreshing || requestInFlight || isFilterSearchingPhase(filterResultPhase))
+  ) {
+    filterTransitionDiagRef.current.zeroStateSuppressedBecauseLoading += 1;
+  } else if (zeroResultsGate) {
+    filterTransitionDiagRef.current.zeroStateEligible += 1;
+  }
+
   const emptyAcceptedValues =
     !showNearbyLocationRequired &&
     acceptedValuesFilterActive &&
-    !loading &&
-    !feedRefreshing &&
-    feedHydrated &&
+    zeroResultsGate &&
     displayCount === 0 &&
     !emptyRadiusNoLocal;
   const emptySale =
@@ -4002,38 +4180,40 @@ export default function GeoFeed({
     !emptyRadiusNoLocal &&
     !emptyAcceptedValues &&
     feedChip === "sale" &&
-    !loading &&
-    feedHydrated &&
+    zeroResultsGate &&
     filteredSaleBase.length === 0;
   const emptyInsp =
     !showNearbyLocationRequired &&
     feedChip === "inspiration" &&
-    !loading &&
-    feedHydrated &&
+    zeroResultsGate &&
     inspirationSlots.length === 0;
   const emptyGezocht =
     !showNearbyLocationRequired &&
     !emptyAcceptedValues &&
     feedChip === "gezocht" &&
-    !loading &&
-    feedHydrated &&
+    zeroResultsGate &&
     filteredRequestBase.length === 0;
   const emptyServices =
     !showNearbyLocationRequired &&
     isServicesCategorySlug(appliedCategory) &&
     feedChip !== "inspiration" &&
     feedChip !== "gezocht" &&
-    !loading &&
-    feedHydrated &&
+    zeroResultsGate &&
     sortedSales.length === 0;
   const emptyAll =
     !showNearbyLocationRequired &&
     !emptyRadiusNoLocal &&
     !emptyAcceptedValues &&
     feedChip === "all" &&
-    !loading &&
-    feedHydrated &&
+    zeroResultsGate &&
     (displayCount === 0 || compositionState.emptyTerminal);
+  const emptyFilterSearching =
+    !showNearbyLocationRequired &&
+    !(loading && !feedHydrated) &&
+    (feedRefreshing ||
+      requestInFlight ||
+      isFilterSearchingPhase(filterResultPhase)) &&
+    composedDisplayRows.length === 0;
 
   const handleWidenRadius = () => {
     const next = Math.min(100, nextWiderFeedRadiusKm(appliedRadius));
@@ -4728,8 +4908,26 @@ export default function GeoFeed({
   ) : null;
 
   const showFeedSkeleton = loading && !feedHydrated;
+  const showFilterSearchingChrome =
+    !showNearbyLocationRequired &&
+    (feedRefreshing ||
+      requestInFlight ||
+      isFilterSearchingPhase(filterResultPhase));
   const showStaleFeedWhileRefreshing =
-    feedRefreshing && feedHydrated && composedDisplayRows.length > 0;
+    showFilterSearchingChrome && composedDisplayRows.length > 0;
+
+  const filterSearchingBannerEl = showFilterSearchingChrome ? (
+    <p
+      className="flex items-center gap-2 text-xs font-medium text-emerald-800"
+      role="status"
+      aria-live="polite"
+      data-testid="feed-filter-searching"
+      data-hc-filter-phase={filterResultPhase}
+    >
+      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+      {t("feed.searchingResults")}
+    </p>
+  ) : null;
 
   const feedResultsBlock = showFeedSkeleton ? (
         <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 4} compact={isMobileFeedUi} />
@@ -4746,6 +4944,22 @@ export default function GeoFeed({
           onUseMyLocation={handleUseMyLocation}
           onChoosePlace={handleChoosePlaceForNearby}
         />
+      ) : emptyFilterSearching ? (
+        <div
+          className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-900"
+          role="status"
+          aria-live="polite"
+          data-testid="feed-filter-searching-empty"
+        >
+          <p className="flex items-center gap-2 text-base font-semibold">
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+            {t("feed.searchingResults")}
+          </p>
+          <p className="mt-1 text-emerald-800/80">{t("feed.searchingResultsHint")}</p>
+          <div className="mt-4 opacity-70">
+            <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 3} compact={isMobileFeedUi} />
+          </div>
+        </div>
       ) : emptyRadiusNoLocal ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">
@@ -4982,10 +5196,23 @@ export default function GeoFeed({
       ) : emptyAll ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">
-            {t("feed.emptyAllTitle")}
+            {t("feed.emptyConfirmedTitle")}
           </p>
-          <p className="mt-1">{t("feed.emptyAllBody")}</p>
+          <p className="mt-1">{t("feed.emptyConfirmedBody")}</p>
           <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (feedCompactChrome && !isDesktopSplit) {
+                  setMobileFilterSheetOpen(true);
+                } else {
+                  setSidebarRefineOpen(true);
+                }
+              }}
+              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              {t("feed.emptyConfirmedAdjustFilters")}
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -4994,37 +5221,24 @@ export default function GeoFeed({
               }}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
-              {t("filters.clearFilters")}
+              {t("feed.emptyConfirmedClearFilters")}
             </button>
-            <button
-              type="button"
-              onClick={() =>
-                createFlow.openCreateFlowWithIntent(
-                  createIntentForSaleOrInspiration(category, "inspiration")
-                )
-              }
-              className="inline-flex items-center rounded-lg border border-emerald-600 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
-            >
-              {t(
-                quickCreateLabelKey(
-                  createIntentForSaleOrInspiration(category, "inspiration")
-                )
-              )}
-            </button>
+            {appliedScope === FEED_SCOPE_NEARBY ? (
+              <button
+                type="button"
+                onClick={handleWidenRadius}
+                className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                {t("feed.emptyConfirmedWidenArea")}
+              </button>
+            ) : null}
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          {showStaleFeedWhileRefreshing ? (
-            <p
-              className="flex items-center gap-2 text-xs font-medium text-gray-500"
-              role="status"
-              aria-live="polite"
-            >
-              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
-              {t("feed.updating")}
-            </p>
-          ) : null}
+        <div
+          className={`space-y-3${showStaleFeedWhileRefreshing ? " opacity-90" : ""}`}
+        >
+          {filterSearchingBannerEl}
         <div
           key={isMobileFeedUi ? effectiveFeedLayoutMode : "desktop"}
           className={feedResultsContainerClass}
