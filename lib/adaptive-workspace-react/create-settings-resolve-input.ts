@@ -5,31 +5,63 @@ import {
   type ResolveInput,
 } from "@/lib/adaptive-workspace";
 import type { NormalizedMeasurement } from "./workspace-runtime-types";
+import type {
+  ChromeOccupancyShell,
+  WorkspaceChromeOccupancy,
+} from "./chrome-occupancy-types";
+import { emptyChromeOccupancy } from "./build-chrome-occupancy";
+import {
+  buildSettingsResolveStabilityToken,
+  usableDimensionsFromContainerFirst,
+} from "./usable-space-from-occupancy";
 
 /**
  * Build Phase 2A ResolveInput for Settings shadow resolves.
  *
- * CHROME OCCUPANCY (Phase 2B):
- * chromeOccupied is filled with zeros — the measured container already
- * reflects space inside the existing root shell. Real chrome occupancy
- * adapters arrive in Phase 2C. Profile must never rewrite chrome in-cycle.
+ * CHROME OCCUPANCY (Phase 2C) — MODEL A container-first:
+ * - widthPx/heightPx = measured Settings container (already usable)
+ * - chromeOccupied filled from diagnostic occupancy snapshot
+ * - safeArea on AvailableSpace stays zeros for subtract semantics;
+ *   occupancy.safeArea is carried via diagnostics / sources flags
+ * - Pure resolver MUST NOT subtract chrome again (Preference B)
+ * - Profile must never rewrite chrome in-cycle (fixed-point)
  */
 export function createSettingsResolveInput(args: {
   measurement: NormalizedMeasurement;
   compatibilityMode: CompatibilityMode;
   reducedMotion?: boolean;
+  chromeOccupancy?: WorkspaceChromeOccupancy | null;
+  shell?: ChromeOccupancyShell;
 }): ResolveInput {
-  const { measurement, compatibilityMode, reducedMotion = false } = args;
+  const {
+    measurement,
+    compatibilityMode,
+    reducedMotion = false,
+    shell = "web",
+  } = args;
+
+  const occupancy = args.chromeOccupancy ?? emptyChromeOccupancy();
+  const usable = usableDimensionsFromContainerFirst(measurement, occupancy);
+  const stabilityToken = buildSettingsResolveStabilityToken(
+    { ...measurement, widthPx: usable.widthPx, heightPx: usable.heightPx },
+    occupancy,
+  );
 
   return {
     schemaVersion: ADAPTIVE_WORKSPACE_SCHEMA_VERSION,
     availableSpace: {
-      widthPx: measurement.widthPx,
-      heightPx: measurement.heightPx,
+      widthPx: usable.widthPx,
+      heightPx: usable.heightPx,
+      // Subtract semantics: zeros — SA already in shell / container exclusion.
       safeArea: { top: 0, right: 0, bottom: 0, left: 0 },
-      chromeOccupied: { top: 0, bottom: 0, start: 0, end: 0 },
+      chromeOccupied: {
+        top: occupancy.topPx,
+        bottom: occupancy.bottomPx,
+        start: occupancy.startPx,
+        end: occupancy.endPx,
+      },
       occlusions: [],
-      stabilityToken: measurement.stabilityToken,
+      stabilityToken,
     },
     capabilities: {
       pointerFine: false,
@@ -38,7 +70,7 @@ export function createSettingsResolveInput(args: {
       reducedMotion,
     },
     environment: {
-      shell: "web",
+      shell,
       localeDir: "ltr",
     },
     surfaceId: "settings",

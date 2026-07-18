@@ -78,7 +78,8 @@ console.log("\n[adaptive-workspace-react] ResolveInput + shadow plan");
   assert.equal(input.surfaceId, "settings");
   assert.equal(input.compatibility.mode, "shadow");
   assert.equal(input.availableSpace.chromeOccupied.top, 0);
-  assert.equal(input.availableSpace.stabilityToken, measurement.stabilityToken);
+  assert.equal(input.availableSpace.widthPx, measurement.widthPx);
+  assert.match(input.availableSpace.stabilityToken, /^settings:1200x800:chrome-0-0-0-0:v1$/);
 
   const plan = resolveWorkspaceLayout(input);
   assert.equal(plan.renderActivation, false);
