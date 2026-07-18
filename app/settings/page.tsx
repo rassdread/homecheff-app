@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import SettingsHubClient from '@/components/settings/SettingsHubClient';
+import SettingsWorkspaceShadowRoot from '@/components/adaptive-workspace/SettingsWorkspaceShadowRoot';
 import { settingsHubContextFromUser } from '@/lib/settings/settings-hub';
 
 export const dynamic = 'force-dynamic';
@@ -77,7 +78,10 @@ export default async function SettingsPage({
 
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
-      <SettingsHubClient user={hubUser as any} hubContext={hubContext} />
+      {/* Phase 2B: Settings Workspace Shadow Root — diagnostics only; UI writer unchanged. */}
+      <SettingsWorkspaceShadowRoot>
+        <SettingsHubClient user={hubUser as any} hubContext={hubContext} />
+      </SettingsWorkspaceShadowRoot>
     </Suspense>
   );
 }

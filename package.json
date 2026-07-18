@@ -41,6 +41,8 @@
     "deploy:preview": "npx vercel",
     "test:account-normalization": "npx tsx scripts/test-account-email-normalization.ts",
     "test:adaptive-workspace": "npx tsx lib/adaptive-workspace/tests/run-tests.ts",
+    "test:adaptive-workspace-react": "npx tsx lib/adaptive-workspace-react/tests/run-tests.ts",
+    "validate:adaptive-workspace-settings-shadow": "npx tsx scripts/validate-adaptive-workspace-settings-shadow.ts",
     "test:display-name": "npx tsx scripts/test-display-name-preference.ts",
     "test:notifications-unread": "npx tsx scripts/test-notification-unread-logic.ts",
     "test:chat-config": "node scripts/test-chat-config.js",
