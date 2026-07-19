@@ -173,6 +173,12 @@ import {
   isFeedPerfBaselineEnabled,
 } from "@/lib/feed/feed-performance-baseline";
 import {
+  feedSealedNoteGeoFeedMount,
+  feedSealedNoteGeoFeedUnmount,
+  feedSealedNoteRequestKey,
+  feedSealedNoteRequestStart,
+} from "@/lib/feed/feed-sealed-runtime-instrumentation";
+import {
   isAwaitingSessionResolution,
   recordSessionFastPathObservability,
   shouldBypassSessionLoadingGate,
@@ -932,8 +938,12 @@ export default function GeoFeed({
 
   useEffect(() => {
     feedPerfIncrementGeoFeedMount();
+    feedSealedNoteGeoFeedMount();
     installFeedPerfBaselineReporter();
     feedPerfMark("nav:start");
+    return () => {
+      feedSealedNoteGeoFeedUnmount();
+    };
   }, []);
 
   useEffect(() => {
@@ -1723,6 +1733,7 @@ export default function GeoFeed({
     );
 
     const requestKey = params.toString();
+    feedSealedNoteRequestKey(requestKey);
 
     if (feedRequestKeyInFlightRef.current === requestKey) {
       return;
@@ -1775,6 +1786,7 @@ export default function GeoFeed({
     feedPerfIncrementFeedFetch(
       feedInteractionStartedRef.current ? "refresh" : "initial",
     );
+    feedSealedNoteRequestStart();
     recordSessionFastPathObservability({
       feedFetchReason: feedInteractionStartedRef.current ? "refresh" : "initial",
     });
@@ -2002,6 +2014,7 @@ export default function GeoFeed({
       });
       setFeedHasMore(data.pagination?.hasMore ?? false);
       feedPerfIncrementFeedFetch("refresh");
+      feedSealedNoteRequestStart();
     } catch (error) {
       console.error("[GeoFeed] load-more failed", error);
     } finally {

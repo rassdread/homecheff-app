@@ -76,6 +76,24 @@ export function feedGeoTestManifest(
 }
 
 /**
+ * Phase 3B.1 — feed.discovery sealed widget manifest (declaration only).
+ * MUST NOT import lib/feed or components/feed. No renderer registration.
+ */
+export function feedDiscoveryManifest(
+  overrides?: Partial<WidgetManifest>,
+): WidgetManifest {
+  return sealedPrimaryManifest({
+    id: "feed.discovery",
+    statePreservationKey: "feed.discovery",
+    accessibilityLabel: "Feed discovery",
+    ssrCapability: "shell",
+    hydrationStrategy: "client-only",
+    focusBehavior: "preserve",
+    ...overrides,
+  });
+}
+
+/**
  * Notifications inbox widget — Phase 2D shadow contract.
  *
  * Production UI remains a full-page route (`/notifications`).

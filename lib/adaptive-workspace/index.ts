@@ -68,6 +68,7 @@ export {
   settingsHubManifest,
   sealedPrimaryManifest,
   feedGeoTestManifest,
+  feedDiscoveryManifest,
   notificationsInboxManifest,
   messagesListManifest,
   messagesChatManifest,
@@ -80,3 +81,36 @@ export {
 } from "./resolver/canonicalize-layout-plan";
 
 export { DIAGNOSTIC_CODES } from "./diagnostics/diagnostic-codes";
+
+export {
+  FEED_SEALED_INVARIANT_IDS,
+  FEED_SEALED_INVARIANT_ID,
+  type FeedSealedInvariantId,
+} from "./sealed/feed-discovery-invariants";
+
+export {
+  SEALED_RUNTIME_CONTRACT_SCHEMA_VERSION,
+  SEALED_WORKSPACE_CAPABILITIES,
+  SEALED_WORKSPACE_PROHIBITIONS,
+  type SealedRuntimeContract,
+  type SealedRuntimeClassification,
+  type SealedRuntimeOwner,
+  type SealedRuntimeActiveWriter,
+  type SealedMountPolicy,
+  type SealedStateBoundary,
+  type SealedRequestBoundary,
+  type SealedObserverBoundary,
+  type SealedScrollBoundary,
+  type SealedWorkspaceCapability,
+  type SealedWorkspaceProhibition,
+} from "./sealed/sealed-runtime-types";
+
+export {
+  validateSealedRuntimeContract,
+  isSealedCapabilityProhibited,
+} from "./sealed/validate-sealed-runtime-contract";
+
+export {
+  FEED_DISCOVERY_WIDGET_ID,
+  createFeedDiscoverySealedContract,
+} from "./sealed/feed-discovery-sealed-contract";
