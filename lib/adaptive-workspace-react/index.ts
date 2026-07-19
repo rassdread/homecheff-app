@@ -2,8 +2,10 @@ export type {
   AdaptiveWorkspaceSettingsMode,
   MeasuredBox,
   NormalizedMeasurement,
+  SettingsOnPilotDiagnostics,
   SettingsShadowDiagnostics,
   SettingsShadowPlanSnapshot,
+  SettingsWorkspaceModeSource,
 } from "./workspace-runtime-types";
 
 export type {
@@ -20,7 +22,25 @@ export { CHROME_OCCUPANCY_SCHEMA_VERSION } from "./chrome-occupancy-types";
 export {
   resolveAdaptiveWorkspaceSettingsMode,
   coerceAdaptiveWorkspaceSettingsMode,
+  resolveSettingsWorkspaceMode,
+  parseSettingsWorkspaceMode,
+  SETTINGS_WORKSPACE_MODE_ENV,
 } from "./settings-mode";
+
+export {
+  createSettingsInitialPlan,
+  SETTINGS_HUB_WIDGET_ID,
+  SETTINGS_SURFACE_ID,
+  SETTINGS_PRIMARY_REGION_ID,
+  SETTINGS_PRIMARY_SLOT_ID,
+  SETTINGS_PRIMARY_PANEL_ID,
+  SETTINGS_PRIMARY_PLACEMENT_ID,
+} from "./create-settings-initial-plan";
+
+export {
+  validateSettingsRenderPlan,
+  isSettingsRenderAllowlistedWidget,
+} from "./validate-settings-render-plan";
 
 export {
   normalizeWorkspaceMeasurement,

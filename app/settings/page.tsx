@@ -4,8 +4,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import SettingsHubClient from '@/components/settings/SettingsHubClient';
-import SettingsWorkspaceShadowRoot from '@/components/adaptive-workspace/SettingsWorkspaceShadowRoot';
+import SettingsWorkspaceRoot from '@/components/adaptive-workspace/SettingsWorkspaceRoot';
 import { settingsHubContextFromUser } from '@/lib/settings/settings-hub';
+import { resolveSettingsWorkspaceMode } from '@/lib/adaptive-workspace-react/settings-mode';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,10 @@ export default async function SettingsPage({
 }: {
   searchParams?: { tab?: string };
 }) {
+  // Server-resolved mode — same value passed to client (hydration-safe).
+  // Source: HOMECHEFF_SETTINGS_WORKSPACE_MODE (off|shadow|on). Never query/storage flags.
+  const { mode: settingsWorkspaceMode } = resolveSettingsWorkspaceMode();
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     redirect('/login?callbackUrl=/settings');
@@ -78,10 +83,10 @@ export default async function SettingsPage({
 
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
-      {/* Phase 2B: Settings Workspace Shadow Root — diagnostics only; UI writer unchanged. */}
-      <SettingsWorkspaceShadowRoot>
+      {/* Phase 2F: Settings Workspace Root — OFF/SHADOW legacy writer; ON Workspace writer. */}
+      <SettingsWorkspaceRoot mode={settingsWorkspaceMode}>
         <SettingsHubClient user={hubUser as any} hubContext={hubContext} />
-      </SettingsWorkspaceShadowRoot>
+      </SettingsWorkspaceRoot>
     </Suspense>
   );
 }

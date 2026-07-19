@@ -35,9 +35,10 @@ console.log("\n[adaptive-workspace-react] mode");
 {
   assert.equal(coerceAdaptiveWorkspaceSettingsMode("off"), "off");
   assert.equal(coerceAdaptiveWorkspaceSettingsMode("shadow"), "shadow");
-  assert.equal(coerceAdaptiveWorkspaceSettingsMode("on"), "shadow");
+  assert.equal(coerceAdaptiveWorkspaceSettingsMode("on"), "on");
   assert.equal(coerceAdaptiveWorkspaceSettingsMode("weird"), resolveAdaptiveWorkspaceSettingsMode());
-  ok("ON fails closed to shadow; off/shadow preserved");
+  assert.equal(coerceAdaptiveWorkspaceSettingsMode(" ON "), "on");
+  ok("off/shadow/on preserved; invalid fails closed to env default");
 }
 
 console.log("\n[adaptive-workspace-react] measurement normalize / coalesce");
@@ -154,9 +155,10 @@ console.log("\n[adaptive-workspace-react] source contracts");
 
 {
   const pageSrc = readFileSync(join(root, "app/settings/page.tsx"), "utf8");
-  assert.match(pageSrc, /SettingsWorkspaceShadowRoot/);
+  assert.match(pageSrc, /SettingsWorkspaceRoot/);
   assert.match(pageSrc, /SettingsHubClient/);
-  ok("Settings page wraps hub with shadow root");
+  assert.match(pageSrc, /resolveSettingsWorkspaceMode/);
+  ok("Settings page wraps hub with Settings Workspace Root");
 }
 
 {

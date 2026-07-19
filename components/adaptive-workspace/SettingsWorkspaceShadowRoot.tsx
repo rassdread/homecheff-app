@@ -48,7 +48,7 @@ import {
 export type SettingsWorkspaceShadowRootProps = {
   children: ReactNode;
   /** Test override only — never sourced from query params or browser storage in production paths. */
-  modeOverride?: AdaptiveWorkspaceSettingsMode | "on";
+  modeOverride?: Exclude<AdaptiveWorkspaceSettingsMode, "on"> | "off" | "shadow";
   /** Test/dev callback — not an event bus. */
   onDiagnostics?: (d: SettingsShadowDiagnostics) => void;
   /** Prefer reduced motion when known (optional). */
@@ -131,9 +131,12 @@ export default function SettingsWorkspaceShadowRoot({
   messagesPresentationOverride = null,
   pathname = "/settings",
 }: SettingsWorkspaceShadowRootProps) {
-  const mode = coerceAdaptiveWorkspaceSettingsMode(
+  const coerced = coerceAdaptiveWorkspaceSettingsMode(
     modeOverride ?? resolveAdaptiveWorkspaceSettingsMode(),
   );
+  // Shadow Root never activates ON — fail closed to shadow if "on" is passed here.
+  const mode: AdaptiveWorkspaceSettingsMode =
+    coerced === "on" ? "shadow" : coerced;
 
   const measureRef = useRef<HTMLDivElement | null>(null);
   const stableMeasureRef = useRef<NormalizedMeasurement | null>(null);

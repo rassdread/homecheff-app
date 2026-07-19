@@ -1,6 +1,6 @@
 /**
- * Phase 2B/2C runtime types for Settings shadow integration.
- * Does not execute commands/events; diagnostics only.
+ * Phase 2B/2C/2F runtime types for Settings workspace integration.
+ * Does not hold Domain State; diagnostics + mode only.
  */
 
 import type {
@@ -11,8 +11,12 @@ import type {
 import type { WorkspaceChromeOccupancy } from "./chrome-occupancy-types";
 import type { NotificationsShadowDiagnostics } from "./notifications/notifications-shadow-types";
 import type { MessagesShadowDiagnostics } from "./messages/messages-shadow-types";
+import type {
+  AdaptiveWorkspaceSettingsMode,
+  SettingsWorkspaceModeSource,
+} from "./settings-mode";
 
-export type AdaptiveWorkspaceSettingsMode = "off" | "shadow";
+export type { AdaptiveWorkspaceSettingsMode, SettingsWorkspaceModeSource };
 
 export type SettingsShadowDiagnostics = {
   compatibilityMode: CompatibilityMode;
@@ -51,6 +55,26 @@ export type SettingsShadowDiagnostics = {
   notifications: NotificationsShadowDiagnostics;
   /** Phase 2E Messages shadow diagnostics (fixture-only; idle when unset). */
   messages: MessagesShadowDiagnostics;
+};
+
+/** Phase 2F ON-pilot diagnostics (extends shadow fields; no Domain State). */
+export type SettingsOnPilotDiagnostics = SettingsShadowDiagnostics & {
+  effectiveMode: AdaptiveWorkspaceSettingsMode;
+  requestedMode: AdaptiveWorkspaceSettingsMode | string;
+  modeSource: SettingsWorkspaceModeSource | string;
+  renderOwner: "legacy" | "workspace" | "legacy-fallback" | "none";
+  planValidationStatus: "idle" | "ok" | "invalid" | "error";
+  fallbackActive: boolean;
+  renderedSurface: "settings" | null;
+  renderedRegionId: string | null;
+  renderedSlotId: string | null;
+  renderedPanelId: string | null;
+  renderedWidgetId: string | null;
+  preservationKey: string | null;
+  planToken: string;
+  singleWriterStatus: "ok" | "violation";
+  rejectedWidgetIds: string;
+  ignoredMeasurementCount: number;
 };
 
 export type MeasuredBox = {

@@ -27,7 +27,7 @@ assert.match(shadow, /ResizeObserver/);
 assert.doesNotMatch(shadow, /addEventListener\(\s*['"]resize['"]/);
 
 const page = readFileSync(join(root, "app/settings/page.tsx"), "utf8");
-assert.match(page, /SettingsWorkspaceShadowRoot/);
+assert.match(page, /SettingsWorkspaceRoot|SettingsWorkspaceShadowRoot/);
 
 const providers = readFileSync(join(root, "components/Providers.tsx"), "utf8");
 assert.doesNotMatch(providers, /SettingsWorkspaceShadowRoot|WorkspaceProvider/);
