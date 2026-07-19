@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.2",
+  "branch": "identity/phase2-auth-foundation",
+  "commit": "6c994caa39cc5e74563df0eedd81bbabb1f6f246",
+  "productionMode": true,
+  "browser": "chromium-puppeteer-core",
+  "browserVersion": "Chrome/131.0.6778.33",
+  "scenarios": [
+    "OFF_INITIAL_LOAD",
+    "SHADOW_EVALUATION",
+    "SHADOW_REEVALUATION",
+    "FEED_ON_FAIL_CLOSED",
+    "VIEWPORT_RESIZE",
+    "CHROME_OCCUPANCY_LIKE",
+    "SCROLL_CONTINUITY",
+    "FILTER_CONTINUITY",
+    "PAGINATION_CONTINUITY"
+  ],
+  "invariants": [
+    {
+      "id": "FEED_GEOFEED_SINGLE_MOUNT",
+      "expected": "mountCount=1 throughout",
+      "observed": "off=1 final=1",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_GEOFEED_ZERO_UNMOUNT_DURING_STABLE_SESSION",
+      "expected": "unmountCount=0",
+      "observed": "final=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NO_WORKSPACE_REQUEST_IDENTITY_INPUT",
+      "expected": "requestKey hash free of workspace tokens",
+      "observed": "hash=fbd314f0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_REQUEST_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "expected": "no requestKey transition from shadow reevaluation",
+      "observed": "shadowDelta=0 hashStable=true",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NATIVE_PAINT_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "expected": "nativePaintKey absent+stable (transition=0)",
+      "observed": "delta=0 hash=null",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_PREPARED_BATCH_IDENTITY_STABLE",
+      "expected": "prepared-batch hash unchanged under shadow reevaluation",
+      "observed": "delta=0 hash=null",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_PAGINATION_CURSOR_NOT_RESET_BY_WORKSPACE",
+      "expected": "paginationReset unchanged under shadow; cursor hash stable",
+      "observed": "resetDelta=0 hash=null",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_RESULT_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "expected": "resultCacheInitCount unchanged under shadow",
+      "observed": "delta=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_FILTER_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "expected": "filterCacheInitCount unchanged under shadow",
+      "observed": "delta=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_INTERSECTION_OBSERVER_OWNERSHIP_UNCHANGED",
+      "expected": "no extra Feed IO create from shadow; page IO delta 0",
+      "observed": "feedIoDelta=0 pageIoDelta=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_RESIZE_OBSERVER_OWNERSHIP_UNCHANGED",
+      "expected": "no ResizeObserver created by shadow evaluation",
+      "observed": "pageRoDelta=0 feedRo=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SCROLL_OWNERSHIP_UNCHANGED",
+      "expected": "legacy scroll owner retained; no jump-to-top (tol soft=4px hard=80px)",
+      "observed": "owner=#homecheff-feed-desktop before=600 after=600 jump=false",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_TILE_IDENTITY_UNCHANGED",
+      "expected": "tile ids unchanged under shadow reevaluation",
+      "observed": "equal=true",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SKELETON_OWNERSHIP_UNCHANGED",
+      "expected": "no skeleton replay under shadow",
+      "observed": "skeleton=false",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_LOADING_BEHAVIOR_UNCHANGED",
+      "expected": "no extra loading shell under shadow",
+      "observed": "skeleton=false",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_VISIBLE_DOM_UNCHANGED",
+      "expected": "DOM signature equal after shadow reevaluation",
+      "observed": "equal=true",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SSR_BEHAVIOR_UNCHANGED",
+      "expected": "production HTML served; client probe mounts once",
+      "observed": "status=200 mount=1",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_HYDRATION_CLEAN",
+      "expected": "no hydration mismatch console errors",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NO_ADDITIONAL_API_REQUESTS",
+      "expected": "shadow evaluation adds 0 feed requests",
+      "observed": "shadowOnlyReqDelta=0 totalNet=18",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_LEGACY_SINGLE_WRITER",
+      "expected": "renderActivation false; writer legacy; ON blocked",
+      "observed": "shadow={\"widgetId\":\"feed.discovery\",\"renderActivation\":false,\"shadowActivation\":true,\"activeWriter\":\"legacy\",\"runtimeClassification\":\"sealed-runtime\",\"workspaceRendererRegistered\":false} on={\"allowed\":false,\"renderActivation\":false,\"reason\":\"feed.discovery renderActivation is permanently false in Phase 3B\"}",
+      "status": "PASS",
+      "releaseBlocking": true
+    }
+  ],
+  "requestSummaries": [
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed?radius=0&scope=national&take=10",
+      "status": 200,
+      "sequence": 1
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=4f822286-6043-417d-8be5-1bae8342d3a9&type=product",
+      "status": null,
+      "sequence": 2
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=33392889-a509-4598-a379-c0671b2c37e0&type=product",
+      "status": null,
+      "sequence": 3
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&type=product",
+      "status": null,
+      "sequence": 4
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&type=product",
+      "status": null,
+      "sequence": 5
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=c31d06c4-293e-4d19-a269-fe4c41e6a660&type=dish",
+      "status": null,
+      "sequence": 6
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=47ce973a-8d93-4ae2-a3af-d1a5064e1b32&type=dish",
+      "status": null,
+      "sequence": 7
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=8c609bde-4e0a-4e65-9f4f-4405c42c4d44&type=dish",
+      "status": null,
+      "sequence": 8
+    },
+    {
+      "scenario": "session",
+      "method": "POST",
+      "path": "/api/feed/stats-preview?",
+      "status": 200,
+      "sequence": 9
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=4f822286-6043-417d-8be5-1bae8342d3a9&type=product",
+      "status": null,
+      "sequence": 10
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=33392889-a509-4598-a379-c0671b2c37e0&type=product",
+      "status": null,
+      "sequence": 11
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&type=product",
+      "status": null,
+      "sequence": 12
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&type=product",
+      "status": null,
+      "sequence": 13
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=c31d06c4-293e-4d19-a269-fe4c41e6a660&type=dish",
+      "status": null,
+      "sequence": 14
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=47ce973a-8d93-4ae2-a3af-d1a5064e1b32&type=dish",
+      "status": null,
+      "sequence": 15
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=8c609bde-4e0a-4e65-9f4f-4405c42c4d44&type=dish",
+      "status": 200,
+      "sequence": 16
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=4f822286-6043-417d-8be5-1bae8342d3a9&type=product",
+      "status": null,
+      "sequence": 17
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=33392889-a509-4598-a379-c0671b2c37e0&type=product",
+      "status": null,
+      "sequence": 18
+    }
+  ],
+  "mountUnmount": {
+    "mountCount": 1,
+    "unmountCount": 0,
+    "activeInstanceCount": 1
+  },
+  "keyTransitions": {
+    "requestKeyTransitionCount": 0,
+    "nativePaintKeyTransitionCount": 0,
+    "lastRequestKeyHash": "fbd314f0",
+    "lastNativePaintKeyHash": null
+  },
+  "cacheInit": {
+    "resultCacheInitCount": 0,
+    "filterCacheInitCount": 0
+  },
+  "pagination": {
+    "paginationResetCount": 0,
+    "lastPaginationCursorHash": "0ee2c44b",
+    "preparedBatchIdentityTransitionCount": 0,
+    "lastPreparedBatchHash": "cb373250"
+  },
+  "observers": {
+    "intersectionObserverCreateCount": 1,
+    "pageIntersectionObserverDelta": 136,
+    "pageResizeObserverDelta": 0
+  },
+  "scroll": {
+    "owner": "#homecheff-feed-desktop",
+    "before": 600,
+    "after": 600,
+    "tolerancePx": 4
+  },
+  "domSignatures": {
+    "initial": "DIV::2::0::0::0::",
+    "afterShadowReeval": "DIV::2::0::0::0::",
+    "equal": true
+  },
+  "hydration": {
+    "errors": [],
+    "warnings": [
+      "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    ]
+  },
+  "performance": {
+    "feedRequestCount": 18,
+    "softTimingInconclusive": true,
+    "notes": "Hard invariants (mount/request/DOM) are release-blocking; FCP/LCP treated soft/inconclusive locally."
+  },
+  "modes": {
+    "off": {
+      "evaluated": true,
+      "pass": true
+    },
+    "shadow": {
+      "evaluated": true,
+      "pass": true
+    },
+    "onAttempt": {
+      "allowed": false,
+      "renderActivation": false
+    }
+  },
+  "overallVerdict": "READY_FOR_PHASE_3B_3"
+}

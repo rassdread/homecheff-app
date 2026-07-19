@@ -175,9 +175,15 @@ import {
 import {
   feedSealedNoteGeoFeedMount,
   feedSealedNoteGeoFeedUnmount,
+  feedSealedNoteIntersectionObserverCreate,
+  feedSealedNoteNativePaintKeyAbsent,
+  feedSealedNotePaginationCursor,
+  feedSealedNotePaginationReset,
+  feedSealedNotePreparedBatchIdentity,
   feedSealedNoteRequestKey,
   feedSealedNoteRequestStart,
 } from "@/lib/feed/feed-sealed-runtime-instrumentation";
+import { installFeedSealedProbeBridge } from "@/lib/feed/feed-sealed-probe-bridge";
 import {
   isAwaitingSessionResolution,
   recordSessionFastPathObservability,
@@ -939,7 +945,9 @@ export default function GeoFeed({
   useEffect(() => {
     feedPerfIncrementGeoFeedMount();
     feedSealedNoteGeoFeedMount();
+    feedSealedNoteNativePaintKeyAbsent();
     installFeedPerfBaselineReporter();
+    installFeedSealedProbeBridge();
     feedPerfMark("nav:start");
     return () => {
       feedSealedNoteGeoFeedUnmount();
@@ -1716,6 +1724,9 @@ export default function GeoFeed({
     if (feedStartupBlocked) return;
 
     setFeedHasMore(false);
+    if (itemsRef.current.length > 0) {
+      feedSealedNotePaginationReset();
+    }
 
     const params = buildGeoFeedApiParams(
       {
@@ -1898,6 +1909,15 @@ export default function GeoFeed({
           }
           setItems(valid);
           setFeedHasMore(data.pagination?.hasMore ?? false);
+          feedSealedNotePreparedBatchIdentity({
+            itemCount: valid.length,
+            firstId: valid[0]?.id ?? null,
+            lastId: valid[valid.length - 1]?.id ?? null,
+          });
+          feedSealedNotePaginationCursor({
+            hasMore: data.pagination?.hasMore ?? false,
+            itemCount: valid.length,
+          });
           setDiscoveryFeed(
             data.discovery && data.discovery.version === 1
               ? data.discovery
@@ -2045,6 +2065,7 @@ export default function GeoFeed({
       },
       { rootMargin: "480px 0px" },
     );
+    feedSealedNoteIntersectionObserverCreate();
     obs.observe(el);
     return () => obs.disconnect();
   }, [feedHasMore, feedLoadingMore, loading, loadMoreFeed]);

@@ -114,3 +114,18 @@ export {
   FEED_DISCOVERY_WIDGET_ID,
   createFeedDiscoverySealedContract,
 } from "./sealed/feed-discovery-sealed-contract";
+
+export {
+  FEED_DISCOVERY_FREEZE_SCHEMA_VERSION,
+  createFeedDiscoveryFreezeContract,
+  validateFeedDiscoveryFreezeContract,
+  type FeedDiscoveryFreezeContract,
+} from "./sealed/feed-discovery-freeze-contract";
+
+export {
+  FEED_BROWSER_PROOF_SCHEMA_VERSION,
+  validateFeedBrowserProofArtifact,
+  type FeedBrowserProofArtifact,
+  type FeedBrowserProofInvariantRow,
+  type FeedBrowserProofStatus,
+} from "./sealed/validate-feed-browser-proof";

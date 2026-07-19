@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "widgetId": "feed.discovery",
+  "runtimeClassification": "sealed-runtime",
+  "modeMax": "shadow",
+  "renderActivation": false,
+  "shadowActivation": true,
+  "activeWriter": "legacy",
+  "singleStableMount": true,
+  "zeroUnmountDuringStableSession": true,
+  "noWorkspaceRequestIdentity": true,
+  "noWorkspaceObserverOwnership": true,
+  "noWorkspaceScrollOwnership": true,
+  "noWorkspaceCacheOwnership": true,
+  "browserProofStatus": "frozen",
+  "nextEligiblePhase": "3B.3",
+  "hostActivation": false,
+  "productionMode": true,
+  "evidenceCommit": "6c994caa39cc5e74563df0eedd81bbabb1f6f246",
+  "evidenceArtifactPath": "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json"
+}

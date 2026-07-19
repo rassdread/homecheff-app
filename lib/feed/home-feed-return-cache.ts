@@ -1,5 +1,9 @@
 import type { InspirationItem } from '@/components/inspiratie/InspiratieContent';
 import type { DiscoveryFeedPayload } from '@/lib/feed/discovery-feed-contract';
+import {
+  feedSealedNoteFilterCacheTransition,
+  feedSealedNoteResultCacheInit,
+} from '@/lib/feed/feed-sealed-runtime-instrumentation';
 
 /** In-tab memory cache — survives GeoFeed remount on client navigations within the same tab. */
 const MAX_AGE_MS = 8 * 60 * 1000;
@@ -32,6 +36,10 @@ export function saveHomeFeedReturnCache(
   payload: Omit<HomeFeedReturnCachePayload, 'savedAt'>,
 ): void {
   if (!payload.requestKey || payload.items.length === 0) return;
+  if (memoryCache === null) {
+    feedSealedNoteResultCacheInit();
+  }
+  feedSealedNoteFilterCacheTransition(payload.requestKey);
   memoryCache = { ...payload, savedAt: Date.now() };
 }
 
