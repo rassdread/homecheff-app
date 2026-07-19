@@ -58,3 +58,20 @@ export {
   detectChromeOccupancyShell,
   readSafeAreaInsetsPx,
 } from "./detect-chrome-shell";
+
+export {
+  NOTIFICATIONS_INBOX_WIDGET_ID,
+  NOTIFICATIONS_INBOX_PRESERVATION_KEY,
+  NOTIFICATIONS_ALLOWED_PREFERRED_MODES,
+  createNotificationsPanelRequest,
+  createSettingsNotificationsResolveInput,
+  extractNotificationsShadowDiagnostics,
+  emptyNotificationsShadowDiagnostics,
+} from "./notifications";
+
+export type {
+  NotificationsPresentationIntent,
+  NotificationsPreferredMode,
+  NotificationsShadowDiagnostics,
+  CreateNotificationsPanelRequestResult,
+} from "./notifications";

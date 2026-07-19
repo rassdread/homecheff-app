@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * Settings Workspace Shadow Root — Phase 2B + 2C.
+ * Settings Workspace Shadow Root — Phase 2B–2D.
  *
  * HOMEPAGE / FEED: not touched.
- * Chrome occupancy: read-only diagnostic snapshot (MODEL A container-first).
+ * Notifications: presentation-intent shadow only (no Domain State, no open/close).
  *
  * Shadow mode: measure + resolve for diagnostics only.
  * Existing Settings UI remains the sole layout writer.
@@ -26,14 +26,17 @@ import {
   coalesceChromeOccupancy,
   coalesceMeasurement,
   coerceAdaptiveWorkspaceSettingsMode,
-  createSettingsResolveInput,
+  createSettingsNotificationsResolveInput,
   detectChromeOccupancyShell,
   emptyChromeOccupancy,
+  emptyNotificationsShadowDiagnostics,
+  extractNotificationsShadowDiagnostics,
   HC_AW_LG_BREAKPOINT_PX,
   readSafeAreaInsetsPx,
   resolveAdaptiveWorkspaceSettingsMode,
   type AdaptiveWorkspaceSettingsMode,
   type NormalizedMeasurement,
+  type NotificationsPresentationIntent,
   type SettingsShadowDiagnostics,
   type WorkspaceChromeOccupancy,
 } from "@/lib/adaptive-workspace-react";
@@ -48,6 +51,11 @@ export type SettingsWorkspaceShadowRootProps = {
   reducedMotion?: boolean;
   /** Test override for chrome occupancy (skip live shell read). */
   chromeOccupancyOverride?: WorkspaceChromeOccupancy | null;
+  /**
+   * Test/dev-only Notifications presentation intent.
+   * Default closed. Never wired to Notification Domain State or bell UI.
+   */
+  notificationsPresentationOverride?: NotificationsPresentationIntent | null;
   /**
    * Settings pilot defaults to `/settings` (no Next router dependency).
    * Used only for legacy bottom-nav visibility — never mutates URL.
@@ -98,6 +106,7 @@ function emptyDiagnostics(
     chromeIgnoredIdenticalCount: 0,
     chromeAppliedToUsableSpace: false,
     lastNormalizationStatus: mode === "off" ? "skipped" : "idle",
+    notifications: emptyNotificationsShadowDiagnostics(),
   };
 }
 
@@ -107,6 +116,7 @@ export default function SettingsWorkspaceShadowRoot({
   onDiagnostics,
   reducedMotion = false,
   chromeOccupancyOverride,
+  notificationsPresentationOverride = null,
   pathname = "/settings",
 }: SettingsWorkspaceShadowRootProps) {
   const mode = coerceAdaptiveWorkspaceSettingsMode(
@@ -118,6 +128,11 @@ export default function SettingsWorkspaceShadowRoot({
   const stableOccupancyRef = useRef<WorkspaceChromeOccupancy>(
     emptyChromeOccupancy(),
   );
+  const notificationsIntentRef = useRef<NotificationsPresentationIntent | null>(
+    notificationsPresentationOverride ?? null,
+  );
+  notificationsIntentRef.current = notificationsPresentationOverride ?? null;
+
   const resolveCountRef = useRef(0);
   const chromeUpdateCountRef = useRef(0);
   const chromeIgnoredRef = useRef(0);
@@ -145,18 +160,24 @@ export default function SettingsWorkspaceShadowRoot({
             ? document.documentElement.classList
             : null,
         );
-        const input = createSettingsResolveInput({
-          measurement,
-          compatibilityMode: "shadow",
-          reducedMotion,
-          chromeOccupancy: occupancy,
-          shell,
-        });
+        const { input, notificationsRequestKind } =
+          createSettingsNotificationsResolveInput({
+            measurement,
+            compatibilityMode: "shadow",
+            reducedMotion,
+            chromeOccupancy: occupancy,
+            shell,
+            notificationsPresentation: notificationsIntentRef.current,
+          });
         const plan: WorkspaceLayoutPlan = resolveWorkspaceLayout(input);
         resolveCountRef.current += 1;
 
         const renderActivation = false;
         const token = input.availableSpace.stabilityToken;
+        const notifications = extractNotificationsShadowDiagnostics(
+          plan,
+          notificationsRequestKind,
+        );
 
         publish({
           compatibilityMode: "shadow",
@@ -188,6 +209,7 @@ export default function SettingsWorkspaceShadowRoot({
           chromeIgnoredIdenticalCount: chromeIgnoredRef.current,
           chromeAppliedToUsableSpace: occupancy.appliedToUsableSpace,
           lastNormalizationStatus: "ok",
+          notifications,
         });
       } catch (err) {
         publish({
@@ -220,6 +242,12 @@ export default function SettingsWorkspaceShadowRoot({
     if (!measurement) return;
     runResolve(measurement, occupancy);
   }, [runResolve]);
+
+  // Re-resolve when test presentation intent changes (no remount of children).
+  useEffect(() => {
+    if (mode === "off") return;
+    tryResolve();
+  }, [mode, notificationsPresentationOverride, tryResolve]);
 
   // Chrome occupancy owner — policy + matchMedia (no chrome ResizeObserver).
   useEffect(() => {
@@ -347,6 +375,8 @@ export default function SettingsWorkspaceShadowRoot({
     };
   }, [mode, publish, runResolve]);
 
+  const n = diagnostics.notifications;
+
   return (
     <div
       ref={measureRef}
@@ -354,7 +384,9 @@ export default function SettingsWorkspaceShadowRoot({
       data-aw-mode={mode}
       data-aw-render-activation={String(diagnostics.renderActivation)}
       data-aw-profile={diagnostics.profile ?? ""}
-      data-aw-stability-token={diagnostics.resolveStabilityToken || diagnostics.stabilityToken}
+      data-aw-stability-token={
+        diagnostics.resolveStabilityToken || diagnostics.stabilityToken
+      }
       data-aw-resolve-count={String(diagnostics.resolveCount)}
       data-aw-last-status={diagnostics.lastStatus}
       data-aw-primary-widget={diagnostics.primaryWidgetId ?? ""}
@@ -364,9 +396,20 @@ export default function SettingsWorkspaceShadowRoot({
       data-aw-chrome-applied={String(diagnostics.chromeAppliedToUsableSpace)}
       data-aw-usable-w={String(diagnostics.usableWidthPx)}
       data-aw-usable-h={String(diagnostics.usableHeightPx)}
+      data-aw-notifications-candidate={n.candidate ? "1" : "0"}
+      data-aw-notifications-request={n.request}
+      data-aw-notifications-mode={n.mode}
+      data-aw-notifications-region={n.region}
+      data-aw-notifications-placement={n.placement}
+      data-aw-notifications-collapse={n.collapse}
+      data-aw-notifications-focus-intent={n.focusIntent}
+      data-aw-notifications-transition-intent={n.transitionIntent}
+      data-aw-notifications-lifecycle-intent={n.lifecycleIntent}
+      data-aw-notifications-preservation-key={n.preservationKey}
+      data-aw-notifications-diagnostic-codes={n.diagnosticCodes}
       className="w-full min-w-0"
     >
-      {/* Stable child host: never keyed by profile/width/plan/occupancy */}
+      {/* Stable child host: never keyed by profile/width/plan/occupancy/notifications */}
       <div data-aw-settings-content="">{children}</div>
     </div>
   );

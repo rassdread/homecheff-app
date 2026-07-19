@@ -9,6 +9,7 @@ import type {
   WorkspaceProfile,
 } from "@/lib/adaptive-workspace";
 import type { WorkspaceChromeOccupancy } from "./chrome-occupancy-types";
+import type { NotificationsShadowDiagnostics } from "./notifications/notifications-shadow-types";
 
 export type AdaptiveWorkspaceSettingsMode = "off" | "shadow";
 
@@ -45,6 +46,8 @@ export type SettingsShadowDiagnostics = {
   chromeIgnoredIdenticalCount: number;
   chromeAppliedToUsableSpace: boolean;
   lastNormalizationStatus: "ok" | "fallback" | "error" | "idle" | "skipped";
+  /** Phase 2D Notifications shadow diagnostics (presentation only). */
+  notifications: NotificationsShadowDiagnostics;
 };
 
 export type MeasuredBox = {

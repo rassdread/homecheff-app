@@ -12,6 +12,7 @@ export type {
   FocusIntent,
   LifecycleIntent,
   PanelMode,
+  PanelRequest,
   RegionId,
   ResolveInput,
   TransitionIntent,
@@ -66,6 +67,7 @@ export {
   settingsHubManifest,
   sealedPrimaryManifest,
   feedGeoTestManifest,
+  notificationsInboxManifest,
 } from "./registry/settings-manifests";
 
 export { resolveWorkspaceLayout } from "./resolver/resolve-workspace-layout";

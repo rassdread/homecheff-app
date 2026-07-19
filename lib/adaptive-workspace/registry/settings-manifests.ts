@@ -74,3 +74,40 @@ export function feedGeoTestManifest(
     ...overrides,
   });
 }
+
+/**
+ * Notifications inbox widget — Phase 2D shadow contract.
+ *
+ * Production UI remains a full-page route (`/notifications`).
+ * Within the Settings pilot this widget is supporting/transient only
+ * (`canBePrimary: false`). Override for notifications-surface primary tests.
+ *
+ * MUST NOT import Notifications React components, APIs, or Domain State.
+ */
+export function notificationsInboxManifest(
+  overrides?: Partial<WidgetManifest>,
+): WidgetManifest {
+  return {
+    schemaVersion: ADAPTIVE_WORKSPACE_SCHEMA_VERSION,
+    id: "notifications.inbox",
+    type: "standard",
+    version: 1,
+    supportedSurfaces: ["settings", "notifications", "*"],
+    constraints: { minWidth: 280, preferredWidth: 360, minHeight: 240 },
+    preferredRegion: "supporting-end",
+    allowedPanelModes: ["rail", "sheet", "overlay"],
+    canBePrimary: false,
+    canPersist: false,
+    canFloat: false,
+    canOverlay: true,
+    priority: 40,
+    collapseBehavior: "to-sheet",
+    restoreBehavior: "last-mode",
+    focusBehavior: "move-with-panel",
+    ssrCapability: "shell",
+    hydrationStrategy: "client-only",
+    statePreservationKey: "notifications.inbox",
+    accessibilityLabel: "Notifications",
+    ...overrides,
+  };
+}
