@@ -11,6 +11,7 @@ export type {
   DecisionTrace,
   FocusIntent,
   LifecycleIntent,
+  Occlusion,
   PanelMode,
   PanelRequest,
   RegionId,
@@ -68,6 +69,8 @@ export {
   sealedPrimaryManifest,
   feedGeoTestManifest,
   notificationsInboxManifest,
+  messagesListManifest,
+  messagesChatManifest,
 } from "./registry/settings-manifests";
 
 export { resolveWorkspaceLayout } from "./resolver/resolve-workspace-layout";

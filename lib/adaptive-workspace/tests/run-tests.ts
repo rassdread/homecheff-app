@@ -20,6 +20,8 @@ import {
   resolveWorkspaceProfile,
   sealedPrimaryManifest,
   settingsHubManifest,
+  messagesListManifest,
+  messagesChatManifest,
   stableStringify,
   validateResolveInput,
   validateWidgetManifest,
@@ -609,6 +611,53 @@ console.log("\n[adaptive-workspace] properties / determinism");
   assert.equal(isAllowedLifecycleTransition("DESTROYED", "VISIBLE"), false);
   assert.ok(WIDGET_LIFECYCLE_TRANSITIONS.HIDDEN.includes("VISIBLE"));
   ok("lifecycle + precedence contracts");
+}
+
+{
+  // Phase 2E: exact primaryTask id must outrank shared prefix (messages.*).
+  const base = {
+    schemaVersion: ADAPTIVE_WORKSPACE_SCHEMA_VERSION,
+    availableSpace: {
+      widthPx: 390,
+      heightPx: 800,
+      safeArea: { top: 0, right: 0, bottom: 0, left: 0 },
+      chromeOccupied: { top: 0, bottom: 0, start: 0, end: 0 },
+      occlusions: [] as const,
+      stabilityToken: "stable-msg",
+    },
+    capabilities: {
+      pointerFine: false,
+      hover: false,
+      touch: false,
+      reducedMotion: false,
+    },
+    environment: { shell: "web" as const, localeDir: "ltr" as const },
+    surfaceId: "messages",
+    manifests: [messagesListManifest(), messagesChatManifest()],
+    panelRequests: [] as const,
+    preferences: {
+      schemaVersion: ADAPTIVE_WORKSPACE_SCHEMA_VERSION,
+      version: 1,
+      pins: [] as const,
+    },
+    accessibility: {},
+    compatibility: { mode: "shadow" as const },
+  };
+  const listPrimary = resolveWorkspaceLayout({
+    ...base,
+    primaryTask: "messages.list",
+  });
+  assert.equal(listPrimary.primaryWidgetId, "messages.list");
+  const chatPrimary = resolveWorkspaceLayout({
+    ...base,
+    primaryTask: "messages.chat",
+  });
+  assert.equal(chatPrimary.primaryWidgetId, "messages.chat");
+  assert.equal(
+    chatPrimary.panels.filter((p) => p.mode === "stage").length,
+    1,
+  );
+  ok("primaryTask exact id outranks shared prefix (messages.list vs chat)");
 }
 
 console.log("\n[adaptive-workspace] import boundary");

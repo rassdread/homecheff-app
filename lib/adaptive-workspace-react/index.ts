@@ -75,3 +75,24 @@ export type {
   NotificationsShadowDiagnostics,
   CreateNotificationsPanelRequestResult,
 } from "./notifications";
+
+export {
+  MESSAGES_LIST_WIDGET_ID,
+  MESSAGES_CHAT_WIDGET_ID,
+  MESSAGES_LIST_PRESERVATION_KEY,
+  MESSAGES_CHAT_PRESERVATION_KEY,
+  MESSAGES_PRESENTATION_SCHEMA_VERSION,
+  MESSAGES_LIST_PREFERRED_MODES,
+  createMessagesPanelRequests,
+  createMessagesShadowResolveInput,
+  extractMessagesShadowDiagnostics,
+  emptyMessagesShadowDiagnostics,
+} from "./messages";
+
+export type {
+  MessagesPresentationIntent,
+  MessagesListPreferredMode,
+  MessagesShadowDiagnostics,
+  MessagesShadowScenario,
+  CreateMessagesPanelRequestsResult,
+} from "./messages";

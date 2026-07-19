@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * Settings Workspace Shadow Root — Phase 2B–2D.
+ * Settings Workspace Shadow Root — Phase 2B–2E.
  *
  * HOMEPAGE / FEED: not touched.
- * Notifications: presentation-intent shadow only (no Domain State, no open/close).
+ * Notifications / Messages: fixture presentation-intent shadow only.
  *
  * Shadow mode: measure + resolve for diagnostics only.
  * Existing Settings UI remains the sole layout writer.
@@ -26,15 +26,19 @@ import {
   coalesceChromeOccupancy,
   coalesceMeasurement,
   coerceAdaptiveWorkspaceSettingsMode,
+  createMessagesShadowResolveInput,
   createSettingsNotificationsResolveInput,
   detectChromeOccupancyShell,
   emptyChromeOccupancy,
+  emptyMessagesShadowDiagnostics,
   emptyNotificationsShadowDiagnostics,
+  extractMessagesShadowDiagnostics,
   extractNotificationsShadowDiagnostics,
   HC_AW_LG_BREAKPOINT_PX,
   readSafeAreaInsetsPx,
   resolveAdaptiveWorkspaceSettingsMode,
   type AdaptiveWorkspaceSettingsMode,
+  type MessagesPresentationIntent,
   type NormalizedMeasurement,
   type NotificationsPresentationIntent,
   type SettingsShadowDiagnostics,
@@ -56,6 +60,12 @@ export type SettingsWorkspaceShadowRootProps = {
    * Default closed. Never wired to Notification Domain State or bell UI.
    */
   notificationsPresentationOverride?: NotificationsPresentationIntent | null;
+  /**
+   * Test/dev-only Messages presentation intent (fixture).
+   * When set, evaluates a separate messages-surface shadow plan for diagnostics.
+   * Never wired to real /messages route, selection, drafts, or realtime.
+   */
+  messagesPresentationOverride?: MessagesPresentationIntent | null;
   /**
    * Settings pilot defaults to `/settings` (no Next router dependency).
    * Used only for legacy bottom-nav visibility — never mutates URL.
@@ -107,6 +117,7 @@ function emptyDiagnostics(
     chromeAppliedToUsableSpace: false,
     lastNormalizationStatus: mode === "off" ? "skipped" : "idle",
     notifications: emptyNotificationsShadowDiagnostics(),
+    messages: emptyMessagesShadowDiagnostics(),
   };
 }
 
@@ -117,6 +128,7 @@ export default function SettingsWorkspaceShadowRoot({
   reducedMotion = false,
   chromeOccupancyOverride,
   notificationsPresentationOverride = null,
+  messagesPresentationOverride = null,
   pathname = "/settings",
 }: SettingsWorkspaceShadowRootProps) {
   const mode = coerceAdaptiveWorkspaceSettingsMode(
@@ -132,6 +144,10 @@ export default function SettingsWorkspaceShadowRoot({
     notificationsPresentationOverride ?? null,
   );
   notificationsIntentRef.current = notificationsPresentationOverride ?? null;
+  const messagesIntentRef = useRef<MessagesPresentationIntent | null>(
+    messagesPresentationOverride ?? null,
+  );
+  messagesIntentRef.current = messagesPresentationOverride ?? null;
 
   const resolveCountRef = useRef(0);
   const chromeUpdateCountRef = useRef(0);
@@ -179,6 +195,35 @@ export default function SettingsWorkspaceShadowRoot({
           notificationsRequestKind,
         );
 
+        let messages = emptyMessagesShadowDiagnostics();
+        const messagesIntent = messagesIntentRef.current;
+        if (messagesIntent) {
+          try {
+            const msgBuilt = createMessagesShadowResolveInput({
+              measurement,
+              compatibilityMode: "shadow",
+              chromeOccupancy: occupancy,
+              shell,
+              messagesPresentation: {
+                ...messagesIntent,
+                reducedMotion:
+                  messagesIntent.reducedMotion ?? reducedMotion,
+              },
+            });
+            const msgPlan = resolveWorkspaceLayout(msgBuilt.input);
+            messages = extractMessagesShadowDiagnostics(
+              msgPlan,
+              messagesIntent,
+              msgBuilt.primaryTask,
+            );
+          } catch {
+            messages = {
+              ...emptyMessagesShadowDiagnostics(),
+              diagnosticCodes: "AW.MESSAGES.SHADOW_RESOLVE_ERROR",
+            };
+          }
+        }
+
         publish({
           compatibilityMode: "shadow",
           surfaceId: "settings",
@@ -210,6 +255,7 @@ export default function SettingsWorkspaceShadowRoot({
           chromeAppliedToUsableSpace: occupancy.appliedToUsableSpace,
           lastNormalizationStatus: "ok",
           notifications,
+          messages,
         });
       } catch (err) {
         publish({
@@ -247,7 +293,12 @@ export default function SettingsWorkspaceShadowRoot({
   useEffect(() => {
     if (mode === "off") return;
     tryResolve();
-  }, [mode, notificationsPresentationOverride, tryResolve]);
+  }, [
+    mode,
+    notificationsPresentationOverride,
+    messagesPresentationOverride,
+    tryResolve,
+  ]);
 
   // Chrome occupancy owner — policy + matchMedia (no chrome ResizeObserver).
   useEffect(() => {
@@ -376,6 +427,7 @@ export default function SettingsWorkspaceShadowRoot({
   }, [mode, publish, runResolve]);
 
   const n = diagnostics.notifications;
+  const m = diagnostics.messages;
 
   return (
     <div
@@ -407,9 +459,23 @@ export default function SettingsWorkspaceShadowRoot({
       data-aw-notifications-lifecycle-intent={n.lifecycleIntent}
       data-aw-notifications-preservation-key={n.preservationKey}
       data-aw-notifications-diagnostic-codes={n.diagnosticCodes}
+      data-aw-messages-scenario={m.scenario}
+      data-aw-messages-primary-task={m.primaryTask}
+      data-aw-messages-primary-widget={m.primaryWidget}
+      data-aw-messages-list-mode={m.listMode}
+      data-aw-messages-list-region={m.listRegion}
+      data-aw-messages-conversation-mode={m.conversationMode}
+      data-aw-messages-conversation-region={m.conversationRegion}
+      data-aw-messages-split={m.split ? "1" : "0"}
+      data-aw-messages-collapse={m.collapse}
+      data-aw-messages-focus-intent={m.focusIntent}
+      data-aw-messages-transition-intent={m.transitionIntent}
+      data-aw-messages-lifecycle-intents={m.lifecycleIntents}
+      data-aw-messages-preservation-keys={m.preservationKeys}
+      data-aw-messages-diagnostic-codes={m.diagnosticCodes}
       className="w-full min-w-0"
     >
-      {/* Stable child host: never keyed by profile/width/plan/occupancy/notifications */}
+      {/* Stable child host: never keyed by profile/width/plan/occupancy/messages */}
       <div data-aw-settings-content="">{children}</div>
     </div>
   );

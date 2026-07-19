@@ -111,3 +111,70 @@ export function notificationsInboxManifest(
     ...overrides,
   };
 }
+
+/**
+ * Messages conversation list — Phase 2E shadow contract.
+ * Aligns with AWV-007…010 (`messages.list`).
+ * MUST NOT import Messages React / API / Domain State.
+ */
+export function messagesListManifest(
+  overrides?: Partial<WidgetManifest>,
+): WidgetManifest {
+  return {
+    schemaVersion: ADAPTIVE_WORKSPACE_SCHEMA_VERSION,
+    id: "messages.list",
+    type: "standard",
+    version: 1,
+    supportedSurfaces: ["messages", "*"],
+    constraints: { minWidth: 240, preferredWidth: 320, minHeight: 320 },
+    preferredRegion: "supporting-start",
+    allowedPanelModes: ["stage", "split", "rail"],
+    canBePrimary: true,
+    canPersist: true,
+    canFloat: false,
+    canOverlay: false,
+    priority: 100,
+    collapseBehavior: "hide",
+    restoreBehavior: "last-mode",
+    focusBehavior: "preserve",
+    ssrCapability: "shell",
+    hydrationStrategy: "client-only",
+    statePreservationKey: "messages.list",
+    accessibilityLabel: "Conversation list",
+    ...overrides,
+  };
+}
+
+/**
+ * Messages conversation stage (thread + composer) — Phase 2E.
+ * Aligns with AWV-007…011 (`messages.chat`).
+ * Composer belongs to this widget — not a separate primary.
+ * MUST NOT import Messages React / API / Domain State.
+ */
+export function messagesChatManifest(
+  overrides?: Partial<WidgetManifest>,
+): WidgetManifest {
+  return {
+    schemaVersion: ADAPTIVE_WORKSPACE_SCHEMA_VERSION,
+    id: "messages.chat",
+    type: "standard",
+    version: 1,
+    supportedSurfaces: ["messages", "*"],
+    constraints: { minWidth: 280, preferredWidth: 640, minHeight: 360 },
+    preferredRegion: "primary-stage",
+    allowedPanelModes: ["stage", "split"],
+    canBePrimary: true,
+    canPersist: true,
+    canFloat: false,
+    canOverlay: false,
+    priority: 90,
+    collapseBehavior: "hide",
+    restoreBehavior: "last-mode",
+    focusBehavior: "stage-prefer",
+    ssrCapability: "shell",
+    hydrationStrategy: "client-only",
+    statePreservationKey: "messages.chat",
+    accessibilityLabel: "Conversation",
+    ...overrides,
+  };
+}

@@ -10,6 +10,7 @@ import type {
 } from "@/lib/adaptive-workspace";
 import type { WorkspaceChromeOccupancy } from "./chrome-occupancy-types";
 import type { NotificationsShadowDiagnostics } from "./notifications/notifications-shadow-types";
+import type { MessagesShadowDiagnostics } from "./messages/messages-shadow-types";
 
 export type AdaptiveWorkspaceSettingsMode = "off" | "shadow";
 
@@ -48,6 +49,8 @@ export type SettingsShadowDiagnostics = {
   lastNormalizationStatus: "ok" | "fallback" | "error" | "idle" | "skipped";
   /** Phase 2D Notifications shadow diagnostics (presentation only). */
   notifications: NotificationsShadowDiagnostics;
+  /** Phase 2E Messages shadow diagnostics (fixture-only; idle when unset). */
+  messages: MessagesShadowDiagnostics;
 };
 
 export type MeasuredBox = {

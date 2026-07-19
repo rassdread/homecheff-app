@@ -63,6 +63,12 @@ function pickPrimary(
     if (m?.canBePrimary && manifestSupportsSurface(m, input.surfaceId)) return m;
   }
   const taskHint = input.primaryTask.split(".")[0] ?? "";
+  /** Exact primaryTask id outranks shared prefix (e.g. messages.chat vs messages.list). */
+  const taskScore = (m: { id: string }): number => {
+    if (m.id === input.primaryTask) return 2;
+    if (m.id.startsWith(`${taskHint}.`)) return 1;
+    return 0;
+  };
   const ranked = input.manifests
     .filter(
       (m) =>
@@ -72,10 +78,8 @@ function pickPrimary(
     )
     .slice()
     .sort((a, b) => {
-      const aTask =
-        a.id === input.primaryTask || a.id.startsWith(`${taskHint}.`) ? 1 : 0;
-      const bTask =
-        b.id === input.primaryTask || b.id.startsWith(`${taskHint}.`) ? 1 : 0;
+      const aTask = taskScore(a);
+      const bTask = taskScore(b);
       if (bTask !== aTask) return bTask - aTask;
       if (b.priority !== a.priority) return b.priority - a.priority;
       return a.id.localeCompare(b.id);
