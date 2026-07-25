@@ -455,6 +455,11 @@ export type FeedSealedProbeApi = {
     grantApplied: false;
     grantAuthorityAvailable: false;
     grantAuthorityEnabled: false;
+    grantExecutionAllowed: false;
+    grantCreationAllowed: false;
+    grantIssuanceAllowed: false;
+    grantPersistenceAllowed: false;
+    grantApplicationAllowed: false;
     authorizationDecisionResult: "authorization-eligible-not-granted";
     authorizationDecisionCompleted: true;
     authorizationDecisionExecuted: false;
@@ -1338,6 +1343,11 @@ export function installFeedSealedProbeBridge(): void {
         grantApplied: false as const,
         grantAuthorityAvailable: false as const,
         grantAuthorityEnabled: false as const,
+        grantExecutionAllowed: false as const,
+        grantCreationAllowed: false as const,
+        grantIssuanceAllowed: false as const,
+        grantPersistenceAllowed: false as const,
+        grantApplicationAllowed: false as const,
         authorizationDecisionResult: "authorization-eligible-not-granted" as const,
         authorizationDecisionCompleted: true as const,
         authorizationDecisionExecuted: false as const,
