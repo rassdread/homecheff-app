@@ -1,5 +1,5 @@
 /**
- * Phase 3B.2/3B.3.16 — namespaced browser probe bridge for sealed Feed instrumentation.
+ * Phase 3B.2/3B.3.17 — namespaced browser probe bridge for sealed Feed instrumentation.
  *
  * Installed only when NEXT_PUBLIC_FEED_SEALED_BASELINE=1 (compile-time gate).
  */
@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 17;
+  version: 18;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -31,15 +31,15 @@ export type FeedSealedProbeApi = {
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.16";
-    eligibleStep: "3B.3.17";
+    currentStep: "3B.3.17";
+    eligibleStep: "3B.3.18";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
     activeRenderOwner: "legacy";
     activeWriter: "legacy";
-    nextEligibleStep: "3B.3.17";
+    nextEligibleStep: "3B.3.18";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
@@ -92,6 +92,15 @@ export type FeedSealedProbeApi = {
     preflightReady?: true;
     preflightBlocked?: true;
     preflightExecuted?: false;
+    authorizationDecisionState?: "completed";
+    authorizationDecisionResult?: "authorization-eligible-not-granted";
+    authorizationDecisionCompleted?: true;
+    authorizationDecisionExecuted?: false;
+    authorizationEligible?: true;
+    authorizationBlocked?: true;
+    wouldAuthorize?: true;
+    authorizationApplied?: false;
+    authorizationExecutionAllowed?: false;
     transitionAuthorized?: false;
     authorizationGranted?: false;
     recommendedNextStep: string;
@@ -357,6 +366,64 @@ export type FeedSealedProbeApi = {
     canStartActivation: false;
     activationBlocker: "PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY";
     nextEligibleStep: "3B.3.17";
+    diagnostics: Record<string, unknown>;
+  }>;
+  readHostActivationTransitionAuthorizationDecision: () => Promise<{
+    phase: "3B.3.17";
+    authorizationDecisionId: string;
+    authorizationDecisionVersion: 1;
+    authorizationDecisionState: "completed";
+    authorizationDecisionResult: "authorization-eligible-not-granted";
+    authorizationDecisionCompleted: true;
+    authorizationDecisionExecuted: false;
+    authorizationEligible: true;
+    authorizationBlocked: true;
+    wouldAuthorize: true;
+    authorizationGranted: false;
+    authorizationApplied: false;
+    authorizationExecutionAllowed: false;
+    transitionAuthorized: false;
+    currentState: "COMMIT_READY";
+    currentNode: "COMMIT_READY";
+    selectedTransition: "COMMIT_READY->ACTIVE";
+    selectedTransitionId: "COMMIT_READY->ACTIVE";
+    selectedFromState: "COMMIT_READY";
+    selectedToState: "ACTIVE";
+    preflightResult: "transition-preflight-ready-not-authorized";
+    preflightCompleted: true;
+    preflightReady: true;
+    preflightBlocked: true;
+    preflightExecuted: false;
+    selectionResult: "transition-selected-not-executable";
+    selectionCompleted: true;
+    selectionExecuted: false;
+    transitionExecutionAllowed: false;
+    graphTraversalAllowed: false;
+    selectionExecutionAllowed: false;
+    preflightExecutionAllowed: false;
+    authorizationDecisionExecutionAllowed: false;
+    authorizationGrantAllowed: false;
+    authorizationApplicationAllowed: false;
+    transitionAuthorizationAllowed: false;
+    transitionExecuted: false;
+    graphTraversalExecuted: false;
+    protocolExecuted: false;
+    transactionCommitted: false;
+    wouldCommit: true;
+    commitReady: true;
+    graphResult: "transition-graph-complete-not-executable";
+    machineResult: "state-machine-complete-not-executable";
+    protocolResult: "protocol-complete-not-executable";
+    decisionResult: "ALLOW";
+    planResult: "plan-complete-not-executable";
+    pipelineResult: "pipeline-complete-not-executable";
+    wouldActivate: true;
+    runtimeId: string;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    activationBlocker: "PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY";
+    nextEligibleStep: "3B.3.18";
     diagnostics: Record<string, unknown>;
   }>;
     readHostActivationStateMachine: () => Promise<{
@@ -653,7 +720,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 17,
+    version: 18,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -704,6 +771,7 @@ export function installFeedSealedProbeBridge(): void {
         phase3b314ProofValid: true,
         phase3b315ProofValid: true,
         phase3b316ProofValid: true,
+        phase3b317ProofValid: true,
         observedWriter: "legacy",
         observedRenderOwner: "legacy",
         observedMountCount: 1,
@@ -722,13 +790,14 @@ export function installFeedSealedProbeBridge(): void {
         observedTransitionGraphState: "completed",
         observedTransitionSelectionState: "completed",
         observedTransitionPreflightState: "completed",
+        observedTransitionAuthorizationDecisionState: "completed",
         observedRuntimeId: "feed.discovery.legacy-single-mount.v1",
       });
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.16" as const,
-        eligibleStep: "3B.3.17" as const,
+        currentStep: "3B.3.17" as const,
+        eligibleStep: "3B.3.18" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -739,7 +808,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activeRenderOwner: "legacy" as const,
         activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.17" as const,
+        nextEligibleStep: "3B.3.18" as const,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -796,6 +865,15 @@ export function installFeedSealedProbeBridge(): void {
         preflightReady: true as const,
         preflightBlocked: true as const,
         preflightExecuted: false as const,
+        authorizationDecisionState: "completed" as const,
+        authorizationDecisionResult: "authorization-eligible-not-granted" as const,
+        authorizationDecisionCompleted: true as const,
+        authorizationDecisionExecuted: false as const,
+        authorizationEligible: true as const,
+        authorizationBlocked: true as const,
+        wouldAuthorize: true as const,
+        authorizationApplied: false as const,
+        authorizationExecutionAllowed: false as const,
         transitionAuthorized: false as const,
         authorizationGranted: false as const,
         recommendedNextStep: p.recommendedNextStep,
@@ -1070,6 +1148,71 @@ export function installFeedSealedProbeBridge(): void {
         activationBlocker:
           "PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY" as const,
         nextEligibleStep: "3B.3.17" as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readHostActivationTransitionAuthorizationDecision: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation =
+        mod.evaluateControlledHostActivationTransitionAuthorizationDecision();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.17" as const,
+        authorizationDecisionId: d.authorizationDecisionId,
+        authorizationDecisionVersion: 1 as const,
+        authorizationDecisionState: "completed" as const,
+        authorizationDecisionResult: "authorization-eligible-not-granted" as const,
+        authorizationDecisionCompleted: true as const,
+        authorizationDecisionExecuted: false as const,
+        authorizationEligible: true as const,
+        authorizationBlocked: true as const,
+        wouldAuthorize: true as const,
+        authorizationGranted: false as const,
+        authorizationApplied: false as const,
+        authorizationExecutionAllowed: false as const,
+        transitionAuthorized: false as const,
+        currentState: "COMMIT_READY" as const,
+        currentNode: "COMMIT_READY" as const,
+        selectedTransition: "COMMIT_READY->ACTIVE" as const,
+        selectedTransitionId: "COMMIT_READY->ACTIVE" as const,
+        selectedFromState: "COMMIT_READY" as const,
+        selectedToState: "ACTIVE" as const,
+        preflightResult: "transition-preflight-ready-not-authorized" as const,
+        preflightCompleted: true as const,
+        preflightReady: true as const,
+        preflightBlocked: true as const,
+        preflightExecuted: false as const,
+        selectionResult: "transition-selected-not-executable" as const,
+        selectionCompleted: true as const,
+        selectionExecuted: false as const,
+        transitionExecutionAllowed: false as const,
+        graphTraversalAllowed: false as const,
+        selectionExecutionAllowed: false as const,
+        preflightExecutionAllowed: false as const,
+        authorizationDecisionExecutionAllowed: false as const,
+        authorizationGrantAllowed: false as const,
+        authorizationApplicationAllowed: false as const,
+        transitionAuthorizationAllowed: false as const,
+        transitionExecuted: false as const,
+        graphTraversalExecuted: false as const,
+        protocolExecuted: false as const,
+        transactionCommitted: false as const,
+        wouldCommit: true as const,
+        commitReady: true as const,
+        graphResult: "transition-graph-complete-not-executable" as const,
+        machineResult: "state-machine-complete-not-executable" as const,
+        protocolResult: "protocol-complete-not-executable" as const,
+        decisionResult: "ALLOW" as const,
+        planResult: "plan-complete-not-executable" as const,
+        pipelineResult: "pipeline-complete-not-executable" as const,
+        wouldActivate: true as const,
+        runtimeId: d.runtimeId,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker:
+          "PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY" as const,
+        nextEligibleStep: "3B.3.18" as const,
         diagnostics: evaluation.diagnostics,
       };
     },

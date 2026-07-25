@@ -160,6 +160,7 @@ export {
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
   PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
   PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
+  PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -788,4 +789,49 @@ export {
   validateFeedHostActivationTransitionPreflightPreparedContract,
   type FeedHostActivationTransitionPreflightPreparedContract,
 } from "./sealed/feed-host-activation-transition-preflight-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ID,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_VERSION,
+  CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_POLICY,
+  CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_POLICY_VERSION,
+  CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_STRATEGY,
+  CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_VALIDATION_POINTS,
+  createControlledHostActivationTransitionAuthorizationDecisionDescriptor,
+  evaluateControlledHostActivationTransitionAuthorizationDecision,
+  validateControlledHostActivationTransitionAuthorizationDecisionDescriptor,
+  type ControlledHostActivationTransitionAuthorizationDecisionDescriptor,
+  type ControlledHostActivationTransitionAuthorizationDecisionEvaluation,
+  type ControlledHostActivationTransitionAuthorizationDecisionDiagnostics,
+  type ControlledHostActivationTransitionAuthorizationDecisionState,
+  type ControlledHostActivationTransitionAuthorizationDecisionResult,
+} from "./sealed/controlled-host-activation-transition-authorization-decision";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_REQUIREMENTS,
+  createControlledHostActivationTransitionAuthorizationDecisionContract,
+  validateControlledHostActivationTransitionAuthorizationDecisionContract,
+  type ControlledHostActivationTransitionAuthorizationDecisionContract,
+  type ControlledHostActivationTransitionAuthorizationDecisionRequirement,
+} from "./sealed/controlled-host-activation-transition-authorization-decision-contract";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationTransitionAuthorizationDecisionIdentity,
+  validateFeedHostActivationTransitionAuthorizationDecisionIdentity,
+  type FeedHostActivationTransitionAuthorizationDecisionIdentity,
+} from "./sealed/feed-host-activation-transition-authorization-decision-identity";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationTransitionAuthorizationDecisionPreparedContract,
+  validateFeedHostActivationTransitionAuthorizationDecisionPreparedContract,
+  type FeedHostActivationTransitionAuthorizationDecisionPreparedContract,
+} from "./sealed/feed-host-activation-transition-authorization-decision-prepared";
 

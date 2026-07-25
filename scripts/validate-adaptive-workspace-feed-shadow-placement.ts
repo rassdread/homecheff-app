@@ -20,7 +20,7 @@ import {
   PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
-  PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
+  PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
@@ -55,7 +55,7 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.17");
+assert.equal(host.nextEligibleStep, "3B.3.18");
 assert.ok(
   host.activationBlockers.includes(PHASE_3B3_2_SHADOW_PLACEMENT_ONLY),
 );
@@ -77,7 +77,7 @@ const plan = createControlledFeedHostPlan();
 assert.equal(plan.placementState, "shadow-registered");
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.17-controlled-host-activation-candidate",
+  "3B.3.18-controlled-host-activation-candidate",
 );
 assert.equal(plan.registrationState, "registered");
 assert.equal(plan.eligibilityState, "eligible");
@@ -101,9 +101,9 @@ const gate = evaluateFeedHostActivationGate({
   phase3b2FreezeValid: true,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY));
-assert.equal(gate.currentStep, "3B.3.16");
-assert.equal(gate.eligibleStep, "3B.3.17");
+assert.ok(gate.blockers.includes(PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY));
+assert.equal(gate.currentStep, "3B.3.17");
+assert.equal(gate.eligibleStep, "3B.3.18");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
 assert.equal(
@@ -135,7 +135,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*17/);
+assert.match(probeBridge, /version:\s*18/);
 assert.match(probeBridge, /readShadowPlacement/);
 assert.match(probeBridge, /PHASE_3B3_2_SHADOW_PLACEMENT_ONLY/);
 assert.match(probeBridge, /PHASE_3B3_3_HOST_REGISTRATION_ONLY/);

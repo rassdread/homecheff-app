@@ -1,11 +1,12 @@
 /**
- * Phase 3B.3.16 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY.
+ * Phase 3B.3.17 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY } from "./controlled-host-activation-transition-preflight";
+import { PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY } from "./controlled-host-activation-transition-authorization-decision";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -24,11 +25,12 @@ export { PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY } from "./controlled-ho
 export { PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY } from "./controlled-host-activation-transition-graph";
 export { PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY } from "./controlled-host-activation-transition-selection";
 export { PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY };
+export { PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.16";
-  eligibleStep: "3B.3.17";
+  currentStep: "3B.3.17";
+  eligibleStep: "3B.3.18";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -51,6 +53,7 @@ export type FeedHostActivationGateResult = {
   transitionGraphStatus: "completed" | "mismatch";
   transitionSelectionStatus: "completed" | "mismatch";
   transitionPreflightStatus: "completed" | "mismatch";
+  transitionAuthorizationDecisionStatus: "completed" | "mismatch";
 };
 
 export type FeedHostActivationGateInput = {
@@ -72,6 +75,7 @@ export type FeedHostActivationGateInput = {
   phase3b314ProofValid?: boolean;
   phase3b315ProofValid?: boolean;
   phase3b316ProofValid?: boolean;
+  phase3b317ProofValid?: boolean;
   forceHostActivation?: unknown;
   envHostActivation?: unknown;
   queryHostActivation?: unknown;
@@ -100,6 +104,7 @@ export type FeedHostActivationGateInput = {
   observedTransitionGraphState?: "completed" | "missing";
   observedTransitionSelectionState?: "completed" | "missing";
   observedTransitionPreflightState?: "completed" | "missing";
+  observedTransitionAuthorizationDecisionState?: "completed" | "missing";
   observedRuntimeId?: string;
 };
 
@@ -108,10 +113,10 @@ export function evaluateFeedHostActivationGate(
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
   const blockers: string[] = [
-    PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
+    PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   ];
   const reasons: string[] = [
-    "Phase 3B.3.16 models sealed activation transition preflight only; hostActivation remains deferred to 3B.3.17",
+    "Phase 3B.3.17 models sealed activation transition authorization decision only; hostActivation remains deferred to 3B.3.18",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -143,7 +148,8 @@ export function evaluateFeedHostActivationGate(
     input.phase3b313ProofValid === false ||
     input.phase3b314ProofValid === false ||
     input.phase3b315ProofValid === false ||
-    input.phase3b316ProofValid === false
+    input.phase3b316ProofValid === false ||
+    input.phase3b317ProofValid === false
   ) {
     blockers.push("missing-proof", "proof-fail");
   }
@@ -284,6 +290,13 @@ export function evaluateFeedHostActivationGate(
     blockers.push("react-identity-changed");
   }
 
+  let transitionAuthorizationDecisionStatus: FeedHostActivationGateResult["transitionAuthorizationDecisionStatus"] =
+    "completed";
+  if (input.observedTransitionAuthorizationDecisionState === "missing") {
+    transitionAuthorizationDecisionStatus = "mismatch";
+    blockers.push("react-identity-changed");
+  }
+
   if (
     typeof input.observedRuntimeId === "string" &&
     input.observedRuntimeId.length > 0 &&
@@ -303,6 +316,7 @@ export function evaluateFeedHostActivationGate(
     transitionGraphStatus = "mismatch";
     transitionSelectionStatus = "mismatch";
     transitionPreflightStatus = "mismatch";
+    transitionAuthorizationDecisionStatus = "mismatch";
     blockers.push("react-identity-changed");
   }
 
@@ -319,8 +333,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.16",
-    eligibleStep: "3B.3.17",
+    currentStep: "3B.3.17",
+    eligibleStep: "3B.3.18",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,
@@ -343,5 +357,6 @@ export function evaluateFeedHostActivationGate(
     transitionGraphStatus,
     transitionSelectionStatus,
     transitionPreflightStatus,
+    transitionAuthorizationDecisionStatus,
   };
 }

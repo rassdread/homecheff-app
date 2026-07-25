@@ -24,7 +24,7 @@ import {
   PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
-  PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
+  PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   createFeedHostRollbackContract,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -124,12 +124,11 @@ console.log("\n[phase3b32] identity + activation safety");
     observedRenderOwner: "legacy",
     observedMountCount: 1,
     observedRollbackTarget: "legacy",
-    observedShadowPlacementState: "shadow-registered",
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY));
-  assert.equal(gate.currentStep, "3B.3.16");
-  assert.equal(gate.eligibleStep, "3B.3.17");
+  assert.ok(gate.blockers.includes(PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY));
+  assert.equal(gate.currentStep, "3B.3.17");
+  assert.equal(gate.eligibleStep, "3B.3.18");
   ok("activation remains impossible under all override channels");
 }
 
