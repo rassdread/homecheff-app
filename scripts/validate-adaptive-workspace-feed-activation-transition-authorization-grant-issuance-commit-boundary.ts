@@ -409,7 +409,7 @@ if (artifactsPresent) {
     validateFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryPreparedContract(
       JSON.parse(readFileSync(issuancePreparedPath, "utf8")),
     );
-  assert.equal(prepared.nextEligibleStep, "3B.3.23");
+  assert.equal(prepared.nextEligibleStep, "3B.3.24");
   assert.equal(prepared.currentState, "COMMIT_READY");
   assert.equal(prepared.grantIssued, false);
   assert.equal(prepared.issuanceCommitBoundaryExecuted, false);
