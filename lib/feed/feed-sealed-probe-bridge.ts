@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 15;
+  version: 16;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -31,15 +31,15 @@ export type FeedSealedProbeApi = {
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.14";
-    eligibleStep: "3B.3.15";
+    currentStep: "3B.3.15";
+    eligibleStep: "3B.3.16";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
     activeRenderOwner: "legacy";
     activeWriter: "legacy";
-    nextEligibleStep: "3B.3.15";
+    nextEligibleStep: "3B.3.16";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
@@ -79,6 +79,13 @@ export type FeedSealedProbeApi = {
     transitionGraphResult?: "transition-graph-complete-not-executable";
     currentGraphNode?: "COMMIT_READY";
     graphTraversalExecuted?: false;
+    transitionSelectionState?: "completed";
+    transitionSelectionResult?: "transition-selected-not-executable";
+    selectionCompleted?: true;
+    selectionExecuted?: false;
+    selectedTransition?: "COMMIT_READY->ACTIVE";
+    selectedFromState?: "COMMIT_READY";
+    selectedToState?: "ACTIVE";
     recommendedNextStep: string;
   }>;
   readShadowPlacement: () => Promise<{
@@ -241,7 +248,49 @@ export type FeedSealedProbeApi = {
     renderActivation: false;
     canStartActivation: false;
     activationBlocker: "PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY";
-    nextEligibleStep: "3B.3.15";
+    nextEligibleStep: "3B.3.16";
+    diagnostics: Record<string, unknown>;
+  }>;
+  readHostActivationTransitionSelection: () => Promise<{
+    phase: "3B.3.15";
+    selectionId: string;
+    selectionVersion: 1;
+    selectionState: "completed";
+    selectionResult: "transition-selected-not-executable";
+    selectionCompleted: true;
+    selectionExecuted: false;
+    currentState: "COMMIT_READY";
+    currentNode: "COMMIT_READY";
+    candidateTransitions: readonly string[];
+    eligibleTransitions: readonly string[];
+    ineligibleTransitions: readonly string[];
+    selectedTransition: "COMMIT_READY->ACTIVE";
+    selectedTransitionId: "COMMIT_READY->ACTIVE";
+    selectedFromState: "COMMIT_READY";
+    selectedToState: "ACTIVE";
+    selectionReason: string;
+    selectionStrategy: string;
+    selectionPriority: 100;
+    selectionScore: 100;
+    transitionExecuted: false;
+    graphTraversalExecuted: false;
+    protocolExecuted: false;
+    transactionCommitted: false;
+    wouldCommit: true;
+    commitReady: true;
+    graphResult: "transition-graph-complete-not-executable";
+    machineResult: "state-machine-complete-not-executable";
+    protocolResult: "protocol-complete-not-executable";
+    decisionResult: "ALLOW";
+    planResult: "plan-complete-not-executable";
+    pipelineResult: "pipeline-complete-not-executable";
+    wouldActivate: true;
+    runtimeId: string;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    activationBlocker: "PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY";
+    nextEligibleStep: "3B.3.16";
     diagnostics: Record<string, unknown>;
   }>;
     readHostActivationStateMachine: () => Promise<{
@@ -538,7 +587,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 15,
+    version: 16,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -587,6 +636,7 @@ export function installFeedSealedProbeBridge(): void {
         phase3b312ProofValid: true,
         phase3b313ProofValid: true,
         phase3b314ProofValid: true,
+        phase3b315ProofValid: true,
         observedWriter: "legacy",
         observedRenderOwner: "legacy",
         observedMountCount: 1,
@@ -603,13 +653,14 @@ export function installFeedSealedProbeBridge(): void {
         observedCommitProtocolState: "completed",
         observedStateMachineState: "completed",
         observedTransitionGraphState: "completed",
+        observedTransitionSelectionState: "completed",
         observedRuntimeId: "feed.discovery.legacy-single-mount.v1",
       });
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.14" as const,
-        eligibleStep: "3B.3.15" as const,
+        currentStep: "3B.3.15" as const,
+        eligibleStep: "3B.3.16" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -620,7 +671,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activeRenderOwner: "legacy" as const,
         activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.15" as const,
+        nextEligibleStep: "3B.3.16" as const,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -664,6 +715,13 @@ export function installFeedSealedProbeBridge(): void {
         transitionGraphResult: "transition-graph-complete-not-executable" as const,
         currentGraphNode: "COMMIT_READY" as const,
         graphTraversalExecuted: false as const,
+        transitionSelectionState: "completed" as const,
+        transitionSelectionResult: "transition-selected-not-executable" as const,
+        selectionCompleted: true as const,
+        selectionExecuted: false as const,
+        selectedTransition: "COMMIT_READY->ACTIVE" as const,
+        selectedFromState: "COMMIT_READY" as const,
+        selectedToState: "ACTIVE" as const,
         recommendedNextStep: p.recommendedNextStep,
       };
     },
@@ -822,6 +880,55 @@ export function installFeedSealedProbeBridge(): void {
         canStartActivation: false as const,
         activationBlocker: "PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY" as const,
         nextEligibleStep: "3B.3.15" as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readHostActivationTransitionSelection: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation =
+        mod.evaluateControlledHostActivationTransitionSelection();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.15" as const,
+        selectionId: d.selectionId,
+        selectionVersion: 1 as const,
+        selectionState: "completed" as const,
+        selectionResult: "transition-selected-not-executable" as const,
+        selectionCompleted: true as const,
+        selectionExecuted: false as const,
+        currentState: "COMMIT_READY" as const,
+        currentNode: "COMMIT_READY" as const,
+        candidateTransitions: d.candidateTransitions,
+        eligibleTransitions: d.eligibleTransitions,
+        ineligibleTransitions: d.ineligibleTransitions,
+        selectedTransition: "COMMIT_READY->ACTIVE" as const,
+        selectedTransitionId: "COMMIT_READY->ACTIVE" as const,
+        selectedFromState: "COMMIT_READY" as const,
+        selectedToState: "ACTIVE" as const,
+        selectionReason: d.selectionReason,
+        selectionStrategy: d.selectionStrategy,
+        selectionPriority: 100 as const,
+        selectionScore: 100 as const,
+        transitionExecuted: false as const,
+        graphTraversalExecuted: false as const,
+        protocolExecuted: false as const,
+        transactionCommitted: false as const,
+        wouldCommit: true as const,
+        commitReady: true as const,
+        graphResult: "transition-graph-complete-not-executable" as const,
+        machineResult: "state-machine-complete-not-executable" as const,
+        protocolResult: "protocol-complete-not-executable" as const,
+        decisionResult: "ALLOW" as const,
+        planResult: "plan-complete-not-executable" as const,
+        pipelineResult: "pipeline-complete-not-executable" as const,
+        wouldActivate: true as const,
+        runtimeId: d.runtimeId,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker:
+          "PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY" as const,
+        nextEligibleStep: "3B.3.16" as const,
         diagnostics: evaluation.diagnostics,
       };
     },

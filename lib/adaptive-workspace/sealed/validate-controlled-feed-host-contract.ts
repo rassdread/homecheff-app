@@ -170,10 +170,10 @@ export function validateControlledFeedHostContract(
       "freezeRequirement must be phase3b2-freeze-required",
     );
   }
-  if (c.nextEligibleStep !== "3B.3.15") {
+  if (c.nextEligibleStep !== "3B.3.16") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_NEXT",
-      "nextEligibleStep must be 3B.3.15",
+      "nextEligibleStep must be 3B.3.16",
     );
   }
 
@@ -270,6 +270,6 @@ export function validateControlledFeedHostContract(
     ],
     browserProofRequirement: "phase3b2-frozen-proof-required",
     freezeRequirement: "phase3b2-freeze-required",
-    nextEligibleStep: "3B.3.15",
+    nextEligibleStep: "3B.3.16",
   };
 }

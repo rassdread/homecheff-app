@@ -19,6 +19,7 @@ import {
   PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
+  PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
   CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_INPUT_SOURCES,
   CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_STAGES,
   CONTROLLED_HOST_ACTIVATION_COMMIT_SEQUENCE,
@@ -74,10 +75,10 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.15");
+assert.equal(host.nextEligibleStep, "3B.3.16");
 assert.ok(
   host.activationBlockers.includes(
-    PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
+    PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
   ),
 );
 
@@ -163,7 +164,7 @@ assert.equal(plan.commitProtocolResult, "protocol-complete-not-executable");
 assert.equal(plan.protocolExecuted, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.15-controlled-host-activation-candidate",
+  "3B.3.16-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -186,6 +187,7 @@ const gate = evaluateFeedHostActivationGate({
   phase3b312ProofValid: true,
     phase3b313ProofValid: true,
     phase3b314ProofValid: true,
+    phase3b315ProofValid: true,
   observedWriter: "legacy",
   observedRenderOwner: "legacy",
   observedMountCount: 1,
@@ -202,14 +204,15 @@ const gate = evaluateFeedHostActivationGate({
   observedCommitProtocolState: "completed",
     observedStateMachineState: "completed",
     observedTransitionGraphState: "completed",
+  observedTransitionSelectionState: "completed",
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
 assert.ok(
-  gate.blockers.includes(PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY),
+  gate.blockers.includes(PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY),
 );
-assert.equal(gate.currentStep, "3B.3.14");
-assert.equal(gate.eligibleStep, "3B.3.15");
+assert.equal(gate.currentStep, "3B.3.15");
+assert.equal(gate.eligibleStep, "3B.3.16");
 
 assert.equal(
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA.commitProtocolResult,
@@ -231,7 +234,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*15/);
+assert.match(probeBridge, /version:\s*16/);
 assert.match(probeBridge, /readHostActivationCommitProtocol/);
 assert.match(probeBridge, /PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY/);
 assert.match(probeBridge, /PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY/);

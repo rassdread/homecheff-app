@@ -158,6 +158,7 @@ export {
   PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
+  PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -696,4 +697,53 @@ export {
   validateFeedHostActivationTransitionGraphPreparedContract,
   type FeedHostActivationTransitionGraphPreparedContract,
 } from "./sealed/feed-host-activation-transition-graph-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_ID,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_VERSION,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_STRATEGY,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_TIE_BREAK,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_CANDIDATE_TRANSITIONS,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_ELIGIBLE_TRANSITIONS,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_INELIGIBLE_TRANSITIONS,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_PRIORITIES,
+  CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_SELECTION_VALIDATION_POINTS,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_INPUT_SOURCES,
+  createControlledHostActivationTransitionSelectionDescriptor,
+  evaluateControlledHostActivationTransitionSelection,
+  validateControlledHostActivationTransitionSelectionDescriptor,
+  type ControlledHostActivationTransitionSelectionDescriptor,
+  type ControlledHostActivationTransitionSelectionEvaluation,
+  type ControlledHostActivationTransitionSelectionDiagnostics,
+  type ControlledHostActivationTransitionSelectionState,
+  type ControlledHostActivationTransitionSelectionResult,
+} from "./sealed/controlled-host-activation-transition-selection";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_REQUIREMENTS,
+  createControlledHostActivationTransitionSelectionContract,
+  validateControlledHostActivationTransitionSelectionContract,
+  type ControlledHostActivationTransitionSelectionContract,
+  type ControlledHostActivationTransitionSelectionRequirement,
+} from "./sealed/controlled-host-activation-transition-selection-contract";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_SELECTION_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationTransitionSelectionIdentity,
+  validateFeedHostActivationTransitionSelectionIdentity,
+  type FeedHostActivationTransitionSelectionIdentity,
+} from "./sealed/feed-host-activation-transition-selection-identity";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_SELECTION_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationTransitionSelectionPreparedContract,
+  validateFeedHostActivationTransitionSelectionPreparedContract,
+  type FeedHostActivationTransitionSelectionPreparedContract,
+} from "./sealed/feed-host-activation-transition-selection-prepared";
 
