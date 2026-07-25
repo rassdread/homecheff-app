@@ -23,6 +23,7 @@ import {
   evaluateFeedHostActivationGate,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
+  PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -294,6 +295,7 @@ console.log("\n[phase3b318] contract + identity + activation safety");
     phase3b316ProofValid: true,
     phase3b317ProofValid: true,
     phase3b318ProofValid: true,
+    phase3b319ProofValid: true,
     observedWriter: "legacy",
     observedRenderOwner: "legacy",
     observedMountCount: 1,
@@ -314,16 +316,17 @@ console.log("\n[phase3b318] contract + identity + activation safety");
     observedTransitionPreflightState: "completed",
     observedTransitionAuthorizationDecisionState: "completed",
     observedTransitionAuthorizationGrantReadinessState: "completed",
+    observedTransitionAuthorizationGrantIssuanceDecisionState: "completed",
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
+      PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.18");
-  assert.equal(gate.eligibleStep, "3B.3.19");
+  assert.equal(gate.currentStep, "3B.3.19");
+  assert.equal(gate.eligibleStep, "3B.3.20");
   assert.equal(gate.transitionAuthorizationGrantReadinessStatus, "completed");
   ok("activation remains impossible");
 }
@@ -337,7 +340,7 @@ console.log("\n[phase3b318] contract + identity + activation safety");
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(host.nextEligibleStep, "3B.3.19");
+  assert.equal(host.nextEligibleStep, "3B.3.20");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
@@ -350,7 +353,7 @@ console.log("\n[phase3b318] contract + identity + activation safety");
   );
   assert.equal(
     FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep,
-    "3B.3.19",
+    "3B.3.20",
   );
   assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantIssued, false);
   assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantReady, true);

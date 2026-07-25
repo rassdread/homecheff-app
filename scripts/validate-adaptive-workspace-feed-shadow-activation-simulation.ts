@@ -23,6 +23,7 @@ import {
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
+  PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
@@ -71,7 +72,7 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.19");
+assert.equal(host.nextEligibleStep, "3B.3.20");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
@@ -137,7 +138,7 @@ assert.equal(plan.readinessState, "ready");
 assert.equal(plan.canStartActivation, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.19-controlled-host-activation-candidate",
+  "3B.3.20-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -173,10 +174,10 @@ const gate = evaluateFeedHostActivationGate({
 });
 assert.equal(gate.allowed, false);
 assert.ok(
-  gate.blockers.includes(PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY),
+  gate.blockers.includes(PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY),
 );
-assert.equal(gate.currentStep, "3B.3.18");
-assert.equal(gate.eligibleStep, "3B.3.19");
+assert.equal(gate.currentStep, "3B.3.19");
+assert.equal(gate.eligibleStep, "3B.3.20");
 
 assert.equal(
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA.simulationState,
@@ -204,7 +205,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*19/);
+assert.match(probeBridge, /version:\s*20/);
 assert.match(probeBridge, /readHostShadowActivationSimulation/);
 assert.match(probeBridge, /PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY/);
 

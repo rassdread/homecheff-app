@@ -5,7 +5,7 @@
 import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
-import { PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY } from "./controlled-host-activation-transition-authorization-grant-readiness";
+import { PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-decision";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -19,8 +19,8 @@ export type ControlledFeedHostPlan = {
   rollbackTarget: "legacy";
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
-  blockerSet: readonly [typeof PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY];
-  recommendedNextStep: "3B.3.19-controlled-host-activation-candidate";
+  blockerSet: readonly [typeof PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY];
+  recommendedNextStep: "3B.3.20-controlled-host-activation-candidate";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -85,10 +85,32 @@ export type ControlledFeedHostPlan = {
   wouldIssueGrant: true;
   grantIssued: false;
   grantCreated: false;
+  grantMaterialized: false;
   grantPersisted: false;
   grantApplied: false;
+  grantActivated: false;
+  grantConsumed: false;
+  grantRevoked: false;
   grantAuthorityAvailable: false;
   grantAuthorityEnabled: false;
+  grantAuthorityDelegated: false;
+  grantAuthorityTransferred: false;
+  issuanceDecisionState: "completed";
+  issuanceDecisionResult: "authorization-grant-issuance-eligible-not-issued";
+  issuanceDecisionCompleted: true;
+  issuanceDecisionExecuted: false;
+  issuanceEligible: true;
+  issuanceBlocked: true;
+  tokenPresent: false;
+  secretPresent: false;
+  signaturePresent: false;
+  noncePresent: false;
+  credentialPresent: false;
+  certificatePresent: false;
+  permitPresent: false;
+  callbackPresent: false;
+  executableHandlePresent: false;
+  runtimeCapabilityPresent: false;
   hostActivation: false;
   renderActivation: false;
   canStartActivation: false;
@@ -110,8 +132,8 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     rollbackTarget: "legacy",
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
-    blockerSet: [PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY],
-    recommendedNextStep: "3B.3.19-controlled-host-activation-candidate",
+    blockerSet: [PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY],
+    recommendedNextStep: "3B.3.20-controlled-host-activation-candidate",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
@@ -176,10 +198,32 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     wouldIssueGrant: true,
     grantIssued: false,
     grantCreated: false,
+    grantMaterialized: false,
     grantPersisted: false,
     grantApplied: false,
+    grantActivated: false,
+    grantConsumed: false,
+    grantRevoked: false,
     grantAuthorityAvailable: false,
     grantAuthorityEnabled: false,
+    grantAuthorityDelegated: false,
+    grantAuthorityTransferred: false,
+    issuanceDecisionState: "completed",
+    issuanceDecisionResult: "authorization-grant-issuance-eligible-not-issued",
+    issuanceDecisionCompleted: true,
+    issuanceDecisionExecuted: false,
+    issuanceEligible: true,
+    issuanceBlocked: true,
+    tokenPresent: false,
+    secretPresent: false,
+    signaturePresent: false,
+    noncePresent: false,
+    credentialPresent: false,
+    certificatePresent: false,
+    permitPresent: false,
+    callbackPresent: false,
+    executableHandlePresent: false,
+    runtimeCapabilityPresent: false,
     hostActivation: false,
     renderActivation: false,
     canStartActivation: false,

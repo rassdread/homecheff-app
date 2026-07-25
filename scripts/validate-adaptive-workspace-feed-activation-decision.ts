@@ -24,6 +24,7 @@ import {
   PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
+  PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
   CONTROLLED_HOST_ACTIVATION_DECISION_INPUT_SOURCES,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
@@ -69,7 +70,7 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.19");
+assert.equal(host.nextEligibleStep, "3B.3.20");
 assert.ok(
   host.activationBlockers.includes(PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY),
 );
@@ -114,7 +115,7 @@ assert.equal(plan.decisionResult, "ALLOW");
 assert.equal(plan.confidence, "high");
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.19-controlled-host-activation-candidate",
+  "3B.3.20-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -142,9 +143,9 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY));
-assert.equal(gate.currentStep, "3B.3.18");
-assert.equal(gate.eligibleStep, "3B.3.19");
+assert.ok(gate.blockers.includes(PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY));
+assert.equal(gate.currentStep, "3B.3.19");
+assert.equal(gate.eligibleStep, "3B.3.20");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.decisionResult, "ALLOW");
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.canStartActivation, false);
@@ -162,7 +163,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*19/);
+assert.match(probeBridge, /version:\s*20/);
 assert.match(probeBridge, /readHostActivationDecision/);
 assert.match(probeBridge, /PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY/);
 assert.match(probeBridge, /PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY/);
