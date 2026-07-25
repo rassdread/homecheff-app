@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "phase": "3B.2",
-  "branch": "workspace/phase3b310-controlled-host-activation-transaction",
-  "commit": "ea207bac697067a8a42efdca48436215c0a23232",
+  "branch": "workspace/phase3b311-controlled-host-activation-commit-readiness",
+  "commit": "d8442769e34538b65a158e5a6511c475f1de7a24",
   "productionMode": true,
   "browser": "chromium-puppeteer-core",
   "browserVersion": "Chrome/131.0.6778.33",
@@ -147,7 +147,7 @@
     {
       "id": "FEED_NO_ADDITIONAL_API_REQUESTS",
       "expected": "shadow evaluation adds 0 feed requests",
-      "observed": "shadowOnlyReqDelta=0 totalNet=33",
+      "observed": "shadowOnlyReqDelta=0 totalNet=34",
       "status": "PASS",
       "releaseBlocking": true
     },
@@ -317,7 +317,7 @@
     {
       "scenario": "session",
       "method": "GET",
-      "path": "/api/feed/media?i=0&id=c31d06c4-293e-4d19-a269-fe4c41e6a660&type=dish",
+      "path": "/api/feed/media?i=0&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&type=product",
       "status": 200,
       "sequence": 23
     },
@@ -387,9 +387,16 @@
     {
       "scenario": "session",
       "method": "GET",
-      "path": "/api/feed/media?i=0&id=47ce973a-8d93-4ae2-a3af-d1a5064e1b32&type=dish",
-      "status": 200,
+      "path": "/api/feed/media?i=0&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&type=product",
+      "status": null,
       "sequence": 33
+    },
+    {
+      "scenario": "session",
+      "method": "GET",
+      "path": "/api/feed/media?i=0&id=c31d06c4-293e-4d19-a269-fe4c41e6a660&type=dish",
+      "status": 200,
+      "sequence": 34
     }
   ],
   "mountUnmount": {
@@ -434,7 +441,7 @@
     "warnings": []
   },
   "performance": {
-    "feedRequestCount": 33,
+    "feedRequestCount": 34,
     "softTimingInconclusive": true,
     "notes": "Hard invariants (mount/request/DOM) are release-blocking; FCP/LCP treated soft/inconclusive locally."
   },
