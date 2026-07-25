@@ -1,0 +1,6 @@
+{
+  "transactionLockPresent": false,
+  "resourceReservationPresent": false,
+  "lockAcquired": false,
+  "resourceReserved": false
+}

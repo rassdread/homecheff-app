@@ -1,0 +1,6 @@
+SKIP_BUILD=1 PHASE3B322_PORT=3043 npm run probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction
+Phase 3B.2: READY_FOR_PHASE_3B_3 passCount=20
+Phase 3B.3.22: READY_FOR_PHASE_3B_3_23 passCount=20 issuanceTransactionMetaOk=true forcedNegativeProofsOk=true
+proofTarget=34b35677ead65479ecd0909904fd93fb2da190d4
+port=3043
+probeBridge=v23

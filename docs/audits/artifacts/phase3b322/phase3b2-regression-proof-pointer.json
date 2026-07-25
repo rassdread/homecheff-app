@@ -1,0 +1,7 @@
+{
+  "path": "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "note": "Phase 3B.2 Chromium regression rerun during Phase 3B.3.22 orchestrator; leave historical phase3b2 files unstaged unless intentionally normalized under phase3b322",
+  "expectedVerdict": "READY_FOR_PHASE_3B_3",
+  "expectedPassCount": 20,
+  "observedCommitInRerun": "34b35677ead65479ecd0909904fd93fb2da190d4"
+}

@@ -1,0 +1,62 @@
+OK validate:adaptive-workspace-feed-dormant-host
+validate-adaptive-workspace-feed-dormant-host: ok
+
+OK validate:adaptive-workspace-feed-host-registration
+validate-adaptive-workspace-feed-host-registration: ok
+
+OK validate:adaptive-workspace-feed-eligibility
+validate-adaptive-workspace-feed-eligibility: ok
+
+OK validate:adaptive-workspace-feed-shadow-placement
+validate-adaptive-workspace-feed-shadow-placement: ok
+
+OK validate:adaptive-workspace-feed-shadow-activation-simulation
+validate-adaptive-workspace-feed-shadow-activation-simulation: ok
+
+OK validate:adaptive-workspace-feed-activation-decision
+validate-adaptive-workspace-feed-activation-decision: ok
+
+OK validate:adaptive-workspace-feed-activation-readiness
+validate-adaptive-workspace-feed-activation-readiness: ok
+
+OK validate:adaptive-workspace-feed-activation-plan
+validate-adaptive-workspace-feed-activation-plan: ok
+
+OK validate:adaptive-workspace-feed-activation-pipeline
+validate-adaptive-workspace-feed-activation-pipeline: ok
+
+OK validate:adaptive-workspace-feed-activation-transaction
+validate-adaptive-workspace-feed-activation-transaction: ok
+
+OK validate:adaptive-workspace-feed-activation-commit-readiness
+validate-adaptive-workspace-feed-activation-commit-readiness: ok
+
+OK validate:adaptive-workspace-feed-activation-commit-protocol
+validate-adaptive-workspace-feed-activation-commit-protocol: ok
+
+OK validate:adaptive-workspace-feed-activation-state-machine
+validate-adaptive-workspace-feed-activation-state-machine: ok (with artifacts)
+
+OK validate:adaptive-workspace-feed-activation-transition-graph
+validate-adaptive-workspace-feed-activation-transition-graph: ok (with artifacts)
+
+OK validate:adaptive-workspace-feed-activation-transition-selection
+validate-adaptive-workspace-feed-activation-transition-selection: ok (with artifacts)
+
+OK validate:adaptive-workspace-feed-activation-transition-preflight
+validate-adaptive-workspace-feed-activation-transition-preflight: ok (with artifacts)
+
+OK validate:adaptive-workspace-feed-activation-transition-authorization-decision
+validate-adaptive-workspace-feed-activation-transition-authorization-decision: ok (with artifacts)
+
+OK validate:adaptive-workspace-feed-activation-transition-authorization-grant-readiness
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-readiness: ok (with artifacts)
+
+OK validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision: ok (with artifacts)
+
+OK validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan: ok (with artifacts)
+
+OK validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline: ok (with artifacts)

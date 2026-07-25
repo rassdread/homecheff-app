@@ -1,0 +1,6 @@
+{
+  "transactionParticipantGraphAcyclic": true,
+  "participantCount": 30,
+  "ordinalsContiguous": true,
+  "idsUnique": false
+}

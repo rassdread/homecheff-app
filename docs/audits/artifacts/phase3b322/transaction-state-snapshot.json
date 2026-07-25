@@ -1,0 +1,15 @@
+{
+  "issuanceTransactionState": "NOT_OPENED",
+  "transactionOpened": false,
+  "transactionPrepared": false,
+  "transactionCommitted": false,
+  "transactionAborted": false,
+  "transactionRolledBack": false,
+  "transactionCompensated": false,
+  "issuanceTransactionOpened": false,
+  "issuanceTransactionPrepared": false,
+  "issuanceTransactionCommitted": false,
+  "issuanceTransactionAborted": false,
+  "issuanceTransactionRolledBack": false,
+  "issuanceTransactionCompensated": false
+}

@@ -1,0 +1,189 @@
+{
+  "sourcePipelineStageCount": 30,
+  "coveredPipelineStageCount": 30,
+  "uncoveredPipelineStageCount": 0,
+  "duplicateCoveredPipelineStageCount": 0,
+  "unknownReferencedPipelineStageCount": 0,
+  "coverage": [
+    {
+      "ordinal": 1,
+      "inputPipelineStageIds": [
+        "frozen-predecessor-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "inputPipelineStageIds": [
+        "issuance-plan-intake-stage"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "inputPipelineStageIds": [
+        "plan-structure-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "inputPipelineStageIds": [
+        "plan-dependency-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "inputPipelineStageIds": [
+        "issuance-decision-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "inputPipelineStageIds": [
+        "grant-readiness-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 7,
+      "inputPipelineStageIds": [
+        "authorization-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "inputPipelineStageIds": [
+        "preflight-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 9,
+      "inputPipelineStageIds": [
+        "transition-selection-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 10,
+      "inputPipelineStageIds": [
+        "state-and-graph-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 11,
+      "inputPipelineStageIds": [
+        "commit-boundary-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 12,
+      "inputPipelineStageIds": [
+        "runtime-identity-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 13,
+      "inputPipelineStageIds": [
+        "runtime-mount-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 14,
+      "inputPipelineStageIds": [
+        "geofeed-singularity-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 15,
+      "inputPipelineStageIds": [
+        "workspace-shell-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 16,
+      "inputPipelineStageIds": [
+        "legacy-ownership-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 17,
+      "inputPipelineStageIds": [
+        "grant-absence-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 18,
+      "inputPipelineStageIds": [
+        "authority-absence-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 19,
+      "inputPipelineStageIds": [
+        "credential-absence-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 20,
+      "inputPipelineStageIds": [
+        "executable-path-absence-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 21,
+      "inputPipelineStageIds": [
+        "hypothetical-grant-construction-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 22,
+      "inputPipelineStageIds": [
+        "hypothetical-grant-issuance-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 23,
+      "inputPipelineStageIds": [
+        "hypothetical-grant-persistence-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 24,
+      "inputPipelineStageIds": [
+        "hypothetical-grant-application-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 25,
+      "inputPipelineStageIds": [
+        "hypothetical-authority-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 26,
+      "inputPipelineStageIds": [
+        "hypothetical-transition-authorization-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 27,
+      "inputPipelineStageIds": [
+        "hypothetical-activation-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 28,
+      "inputPipelineStageIds": [
+        "rollback-description-stage"
+      ]
+    },
+    {
+      "ordinal": 29,
+      "inputPipelineStageIds": [
+        "final-fail-closed-verification-stage"
+      ]
+    },
+    {
+      "ordinal": 30,
+      "inputPipelineStageIds": [
+        "pipeline-completion-declaration-stage"
+      ]
+    }
+  ]
+}

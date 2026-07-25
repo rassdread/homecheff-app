@@ -1,0 +1,16 @@
+{
+  "transactionContextPresent": false,
+  "transactionHandlePresent": false,
+  "transactionTokenPresent": false,
+  "transactionSecretPresent": false,
+  "transactionSignaturePresent": false,
+  "transactionCallbackPresent": false,
+  "transactionCoordinatorPresent": false,
+  "transactionExecutorPresent": false,
+  "transactionSchedulerPresent": false,
+  "transactionDispatcherPresent": false,
+  "transactionQueuePresent": false,
+  "compensationActionPresent": false,
+  "persistenceBoundaryPresent": false,
+  "persistenceApplied": false
+}
