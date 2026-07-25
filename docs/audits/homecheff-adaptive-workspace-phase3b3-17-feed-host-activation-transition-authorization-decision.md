@@ -5,7 +5,7 @@
 | Phase | 3B.3.17 |
 | Branch | `workspace/phase3b317-controlled-host-activation-transition-authorization-decision` |
 | Implementation commit (proof target) | `da0916006f3ebdc05404b42c4fd79f630d906805` |
-| Browser proof / audit commit | see tip after artifacts commit |
+| Browser proof / audit commit | `1a577af11fb4b50013d9a2903056d5100a532416` |
 | Browser | Chromium Chrome/131 · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` · port **3038** |
 | Probe bridge | **v18** |
 | Decision | **READY FOR PHASE 3B.3.18** |
