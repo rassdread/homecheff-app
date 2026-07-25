@@ -112,19 +112,19 @@ async function main() {
   if (!existsSync(phase3b2ProofPath) || !existsSync(phase3b2FreezePath)) {
     throw new Error("Phase 3B.2 proof/freeze artifacts required");
   }
-  const priorIssuanceDecisionProofPath = join(
+  const priorIssuancePipelineProofPath = join(
     process.cwd(),
-    "docs/audits/artifacts/phase3b321/phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-plan-proof.json",
+    "docs/audits/artifacts/phase3b321/phase3b3-21-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
   );
-  if (!existsSync(priorIssuanceDecisionProofPath)) {
-    throw new Error("Phase 3B.3.21 issuance decision proof required");
+  if (!existsSync(priorIssuancePipelineProofPath)) {
+    throw new Error("Phase 3B.3.21 issuance pipeline proof required");
   }
-  const priorIssuanceDecisionProof = JSON.parse(
-    readFileSync(priorIssuanceDecisionProofPath, "utf8"),
+  const priorIssuancePipelineProof = JSON.parse(
+    readFileSync(priorIssuancePipelineProofPath, "utf8"),
   );
-  if (priorIssuanceDecisionProof.overallVerdict !== "READY_FOR_PHASE_3B_3_22") {
+  if (priorIssuancePipelineProof.overallVerdict !== "READY_FOR_PHASE_3B_3_22") {
     throw new Error(
-      `Phase 3B.3.21 proof not ready: ${priorIssuanceDecisionProof.overallVerdict}`,
+      `Phase 3B.3.21 proof not ready: ${priorIssuancePipelineProof.overallVerdict}`,
     );
   }
 
@@ -817,7 +817,7 @@ async function main() {
       sourceFreezeReference:
         "docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json",
       priorPhaseProofReference:
-        "docs/audits/artifacts/phase3b321/phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-plan-proof.json",
+        "docs/audits/artifacts/phase3b321/phase3b3-21-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
       controlledHostContractStatus: "valid",
       hostActivation: false,
       renderActivation: false,
