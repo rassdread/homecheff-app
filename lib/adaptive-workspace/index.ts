@@ -147,6 +147,7 @@ export {
   PHASE_3B3_1_DORMANT_HOST_ONLY,
   PHASE_3B3_2_SHADOW_PLACEMENT_ONLY,
   PHASE_3B3_3_HOST_REGISTRATION_ONLY,
+  PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -229,3 +230,35 @@ export {
   validateFeedHostRegistrationReadinessContract,
   type FeedHostRegistrationReadinessContract,
 } from "./sealed/feed-host-registration-readiness";
+
+export {
+  CONTROLLED_HOST_ELIGIBILITY_SCHEMA_VERSION,
+  createControlledHostEligibilityDescriptor,
+  evaluateControlledHostEligibility,
+  validateControlledHostEligibilityDescriptor,
+  type ControlledHostEligibilityDescriptor,
+  type ControlledHostEligibilityEvaluation,
+} from "./sealed/controlled-host-eligibility";
+
+export {
+  CONTROLLED_HOST_ELIGIBILITY_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ELIGIBILITY_REQUIREMENTS,
+  createControlledHostEligibilityContract,
+  validateControlledHostEligibilityContract,
+  type ControlledHostEligibilityContract,
+  type ControlledHostEligibilityRequirement,
+} from "./sealed/controlled-host-eligibility-contract";
+
+export {
+  FEED_HOST_ELIGIBILITY_IDENTITY_SCHEMA_VERSION,
+  createFeedHostEligibilityIdentity,
+  validateFeedHostEligibilityIdentity,
+  type FeedHostEligibilityIdentity,
+} from "./sealed/feed-host-eligibility-identity";
+
+export {
+  FEED_HOST_ELIGIBILITY_READINESS_SCHEMA_VERSION,
+  createFeedHostEligibilityReadinessContract,
+  validateFeedHostEligibilityReadinessContract,
+  type FeedHostEligibilityReadinessContract,
+} from "./sealed/feed-host-eligibility-readiness";

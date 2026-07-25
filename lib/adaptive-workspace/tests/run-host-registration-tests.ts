@@ -19,6 +19,7 @@ import {
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_3_HOST_REGISTRATION_ONLY,
+  PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_CONTROLLED_HOST_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
@@ -138,9 +139,9 @@ console.log("\n[phase3b33] registration + identity + activation");
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_3_HOST_REGISTRATION_ONLY));
-  assert.equal(gate.currentStep, "3B.3.3");
-  assert.equal(gate.eligibleStep, "3B.3.4");
+  assert.ok(gate.blockers.includes(PHASE_3B3_4_HOST_ELIGIBILITY_ONLY));
+  assert.equal(gate.currentStep, "3B.3.4");
+  assert.equal(gate.eligibleStep, "3B.3.5");
   ok("activation remains impossible");
 }
 
@@ -184,6 +185,7 @@ console.log("\n[phase3b33] shell + homepage");
     FEED_DISCOVERY_HOST_CANDIDATE_METADATA.runtimeId,
     FEED_DISCOVERY_STABLE_RUNTIME_ID,
   );
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.eligibilityState, "eligible");
   ok("homepage single mount + registration metadata");
 }
 

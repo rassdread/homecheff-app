@@ -53,6 +53,7 @@ export const CONTROLLED_FEED_HOST_ACTIVATION_PREREQUISITES = [
   "dormant-host-browser-proof-green",
   "shadow-placement-browser-proof-green",
   "host-registration-browser-proof-green",
+  "host-eligibility-browser-proof-green",
 ] as const;
 
 export type ControlledFeedHostActivationPrerequisite =
@@ -68,6 +69,8 @@ export const CONTROLLED_FEED_HOST_ACTIVATION_BLOCKERS = [
   "render-activation-true-in-3b3-2",
   "host-activation-true-in-3b3-3",
   "render-activation-true-in-3b3-3",
+  "host-activation-true-in-3b3-4",
+  "render-activation-true-in-3b3-4",
   "active-workspace-writer",
   "active-workspace-renderer",
   "second-geofeed-mount",
@@ -78,6 +81,7 @@ export const CONTROLLED_FEED_HOST_ACTIVATION_BLOCKERS = [
   "PHASE_3B3_1_DORMANT_HOST_ONLY",
   "PHASE_3B3_2_SHADOW_PLACEMENT_ONLY",
   "PHASE_3B3_3_HOST_REGISTRATION_ONLY",
+  "PHASE_3B3_4_HOST_ELIGIBILITY_ONLY",
 ] as const;
 
 export type ControlledFeedHostActivationBlocker =
@@ -111,5 +115,5 @@ export type ControlledFeedHostContract = {
   requiredInvariantIds: readonly FeedSealedInvariantId[];
   browserProofRequirement: "phase3b2-frozen-proof-required";
   freezeRequirement: "phase3b2-freeze-required";
-  nextEligibleStep: "3B.3.4";
+  nextEligibleStep: "3B.3.5";
 };

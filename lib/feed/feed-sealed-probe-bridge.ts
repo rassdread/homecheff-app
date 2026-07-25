@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 4;
+  version: 5;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -31,15 +31,15 @@ export type FeedSealedProbeApi = {
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.3";
-    eligibleStep: "3B.3.4";
+    currentStep: "3B.3.4";
+    eligibleStep: "3B.3.5";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
     activeRenderOwner: "legacy";
     activeWriter: "legacy";
-    nextEligibleStep: "3B.3.4";
+    nextEligibleStep: "3B.3.5";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
@@ -48,6 +48,7 @@ export type FeedSealedProbeApi = {
     renderActivation: false;
     placementState: "shadow-registered";
     registrationState: "registered";
+    eligibilityState: "eligible";
     recommendedNextStep: string;
   }>;
   readShadowPlacement: () => Promise<{
@@ -93,6 +94,25 @@ export type FeedSealedProbeApi = {
     activationRestriction: "PHASE_3B3_3_HOST_REGISTRATION_ONLY";
     nextEligibleStep: "3B.3.4";
   }>;
+  readHostEligibility: () => Promise<{
+    phase: "3B.3.4";
+    eligibilityState: "eligible";
+    eligibilityReason: string;
+    runtimeId: string;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    activationBlocker: "PHASE_3B3_4_HOST_ELIGIBILITY_ONLY";
+    nextEligibleStep: "3B.3.5";
+    diagnostics: {
+      registryHostCount: 1;
+      runtimeIdStable: true;
+      ownershipLegacy: true;
+      rendererLegacy: true;
+      rollbackPrepared: true;
+      activationBlocked: true;
+    };
+  }>;
 };
 
 declare global {
@@ -107,7 +127,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 4,
+    version: 5,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -145,18 +165,20 @@ export function installFeedSealedProbeBridge(): void {
         phase3b2FreezeValid: true,
         phase3b32ProofValid: true,
         phase3b33ProofValid: true,
+        phase3b34ProofValid: true,
         observedWriter: "legacy",
         observedRenderOwner: "legacy",
         observedMountCount: 1,
         observedRollbackTarget: "legacy",
         observedRegistrationState: "registered",
+        observedEligibilityState: "eligible",
         observedRuntimeId: "feed.discovery.legacy-single-mount.v1",
       });
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.3" as const,
-        eligibleStep: "3B.3.4" as const,
+        currentStep: "3B.3.4" as const,
+        eligibleStep: "3B.3.5" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -167,7 +189,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activeRenderOwner: "legacy" as const,
         activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.4" as const,
+        nextEligibleStep: "3B.3.5" as const,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -180,6 +202,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         placementState: "shadow-registered" as const,
         registrationState: "registered" as const,
+        eligibilityState: "eligible" as const,
         recommendedNextStep: p.recommendedNextStep,
       };
     },
@@ -241,6 +264,23 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activationRestriction: "PHASE_3B3_3_HOST_REGISTRATION_ONLY" as const,
         nextEligibleStep: "3B.3.4" as const,
+      };
+    },
+    readHostEligibility: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledHostEligibility();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.4" as const,
+        eligibilityState: "eligible" as const,
+        eligibilityReason: d.eligibilityReason,
+        runtimeId: d.runtimeId,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker: "PHASE_3B3_4_HOST_ELIGIBILITY_ONLY" as const,
+        nextEligibleStep: "3B.3.5" as const,
+        diagnostics: evaluation.diagnostics,
       };
     },
   };

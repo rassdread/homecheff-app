@@ -13,6 +13,7 @@ import {
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_3_HOST_REGISTRATION_ONLY,
+  PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
@@ -51,8 +52,9 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.4");
+assert.equal(host.nextEligibleStep, "3B.3.5");
 assert.ok(host.activationBlockers.includes(PHASE_3B3_3_HOST_REGISTRATION_ONLY));
+assert.ok(host.activationBlockers.includes(PHASE_3B3_4_HOST_ELIGIBILITY_ONLY));
 
 const registry = createControlledHostRegistry();
 assert.equal(registry.hostCount, 1);
@@ -67,6 +69,7 @@ assert.equal(registration.hostActivation, false);
 assert.equal(
   registration.activationRestriction,
   PHASE_3B3_3_HOST_REGISTRATION_ONLY,
+  PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
 );
 
 const identity = createFeedHostRegistrationIdentity();
@@ -75,9 +78,10 @@ assert.equal(identity.runtimeIdTransitionAllowed, false);
 
 const plan = createControlledFeedHostPlan();
 assert.equal(plan.registrationState, "registered");
+assert.equal(plan.eligibilityState, "eligible");
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.4-controlled-host-activation-candidate",
+  "3B.3.5-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -99,9 +103,9 @@ const gate = evaluateFeedHostActivationGate({
   phase3b32ProofValid: true,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_3_HOST_REGISTRATION_ONLY));
-assert.equal(gate.currentStep, "3B.3.3");
-assert.equal(gate.eligibleStep, "3B.3.4");
+assert.ok(gate.blockers.includes(PHASE_3B3_4_HOST_ELIGIBILITY_ONLY));
+assert.equal(gate.currentStep, "3B.3.4");
+assert.equal(gate.eligibleStep, "3B.3.5");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
 assert.equal(
@@ -127,9 +131,11 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*4/);
+assert.match(probeBridge, /version:\s*5/);
 assert.match(probeBridge, /readHostRegistry/);
 assert.match(probeBridge, /PHASE_3B3_3_HOST_REGISTRATION_ONLY/);
+assert.match(probeBridge, /PHASE_3B3_4_HOST_ELIGIBILITY_ONLY/);
+assert.match(probeBridge, /readHostEligibility/);
 
 const proof3b2 = validateFeedBrowserProofArtifact(
   JSON.parse(
