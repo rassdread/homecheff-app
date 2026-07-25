@@ -17,6 +17,7 @@ import {
   evaluateFeedHostActivationGate,
   PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
   PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
+  PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
@@ -63,9 +64,9 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.7");
+assert.equal(host.nextEligibleStep, "3B.3.8");
 assert.ok(
-  host.activationBlockers.includes(PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY),
+  host.activationBlockers.includes(PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY),
 );
 
 const registry = createControlledHostRegistry();
@@ -121,7 +122,7 @@ assert.equal(plan.eligibilityState, "eligible");
 assert.equal(plan.canStartActivation, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.7-controlled-host-activation-candidate",
+  "3B.3.8-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -154,9 +155,9 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY));
-assert.equal(gate.currentStep, "3B.3.6");
-assert.equal(gate.eligibleStep, "3B.3.7");
+assert.ok(gate.blockers.includes(PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY));
+assert.equal(gate.currentStep, "3B.3.7");
+assert.equal(gate.eligibleStep, "3B.3.8");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.readinessState, "ready");
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.canStartActivation, false);
@@ -180,7 +181,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*7/);
+assert.match(probeBridge, /version:\s*8/);
 assert.match(probeBridge, /readHostActivationReadiness/);
 assert.match(probeBridge, /PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY/);
 

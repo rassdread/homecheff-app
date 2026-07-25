@@ -1,22 +1,22 @@
 /**
- * Phase 3B.3.6 — host shadow activation simulation unit tests.
+ * Phase 3B.3.7 — host activation decision unit tests.
  */
 import assert from "node:assert/strict";
 import {
-  createControlledHostShadowActivationSimulationDescriptor,
-  evaluateControlledHostShadowActivationSimulation,
-  validateControlledHostShadowActivationSimulationDescriptor,
-  createControlledHostShadowActivationSimulationContract,
-  validateControlledHostShadowActivationSimulationContract,
-  createFeedHostShadowActivationSimulationIdentity,
-  validateFeedHostShadowActivationSimulationIdentity,
-  createFeedHostShadowActivationSimulationPreparedContract,
-  validateFeedHostShadowActivationSimulationPreparedContract,
+  createControlledHostActivationDecisionDescriptor,
+  evaluateControlledHostActivationDecision,
+  validateControlledHostActivationDecisionDescriptor,
+  createControlledHostActivationDecisionContract,
+  validateControlledHostActivationDecisionContract,
+  createFeedHostActivationDecisionIdentity,
+  validateFeedHostActivationDecisionIdentity,
+  createFeedHostActivationDecisionPreparedContract,
+  validateFeedHostActivationDecisionPreparedContract,
+  CONTROLLED_HOST_ACTIVATION_DECISION_INPUT_SOURCES,
   createControlledHostRegistry,
   createControlledFeedHostContract,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
   PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
@@ -30,53 +30,49 @@ function ok(label: string) {
   console.log(`  ✓ ${label}`);
 }
 
-console.log("\n[phase3b36] shadow activation simulation descriptor + engine");
+console.log("\n[phase3b37] activation decision descriptor + engine");
 
 {
-  const a = createControlledHostShadowActivationSimulationDescriptor();
-  const b = createControlledHostShadowActivationSimulationDescriptor();
-  assert.equal(a.simulationState, "completed");
+  const a = createControlledHostActivationDecisionDescriptor();
+  const b = createControlledHostActivationDecisionDescriptor();
+  assert.equal(a.decisionState, "completed");
+  assert.equal(a.decisionResult, "ALLOW");
   assert.equal(a.wouldActivate, true);
+  assert.equal(a.confidence, "high");
   assert.equal(a.activationState, "dormant");
   assert.equal(a.runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
   assert.equal(a.hostActivation, false);
-  assert.equal(a.renderActivation, false);
   assert.equal(a.canStartActivation, false);
-  assert.equal(
-    a.activationBlocker,
-    PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
-  );
-  assert.ok(a.simulationReasons.length >= 5);
-  assert.ok(
-    a.simulationBlockers.includes(
-      PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
-    ),
+  assert.equal(a.activationBlocker, PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY);
+  assert.deepEqual(
+    [...a.decisionInputSources],
+    [...CONTROLLED_HOST_ACTIVATION_DECISION_INPUT_SOURCES],
   );
   assert.equal(stableStringify(a), stableStringify(b));
-  ok("simulation descriptor deterministic + dry-run");
+  ok("decision descriptor deterministic");
 }
 
 {
-  const evaluation = evaluateControlledHostShadowActivationSimulation(
+  const evaluation = evaluateControlledHostActivationDecision(
     createControlledHostRegistry(),
   );
-  assert.equal(evaluation.descriptor.wouldActivate, true);
-  assert.equal(evaluation.diagnostics.simulationCompleted, true);
+  assert.equal(evaluation.descriptor.decisionResult, "ALLOW");
+  assert.equal(evaluation.diagnostics.decisionCompleted, true);
   assert.equal(evaluation.diagnostics.wouldActivate, true);
+  assert.equal(evaluation.diagnostics.confidence, "high");
   assert.equal(evaluation.diagnostics.activationBlocked, true);
   assert.equal(evaluation.diagnostics.canStartActivation, false);
-  assert.equal(evaluation.diagnostics.currentPhase, "3B.3.6");
-  assert.equal(evaluation.diagnostics.readinessStatus, "ready");
-  assert.equal(evaluation.diagnostics.eligibilityStatus, "eligible");
+  assert.equal(evaluation.diagnostics.currentPhase, "3B.3.7");
+  assert.equal(evaluation.diagnostics.simulationStatus, "completed");
   assert.equal(evaluation.diagnostics.registryHostCount, 1);
-  ok("simulation engine + diagnostics metadata only");
+  ok("decision engine + diagnostics metadata only");
 }
 
 {
-  const base = createControlledHostShadowActivationSimulationDescriptor();
+  const base = createControlledHostActivationDecisionDescriptor();
   assert.throws(
     () =>
-      validateControlledHostShadowActivationSimulationDescriptor({
+      validateControlledHostActivationDecisionDescriptor({
         ...base,
         canStartActivation: true,
       }),
@@ -84,63 +80,51 @@ console.log("\n[phase3b36] shadow activation simulation descriptor + engine");
   );
   assert.throws(
     () =>
-      validateControlledHostShadowActivationSimulationDescriptor({
+      validateControlledHostActivationDecisionDescriptor({
         ...base,
-        hostActivation: true,
+        decisionResult: "DENY",
       }),
     HardContractViolation,
   );
-  assert.throws(
-    () =>
-      validateControlledHostShadowActivationSimulationDescriptor({
-        ...base,
-        wouldActivate: false,
-      }),
-    HardContractViolation,
-  );
-  ok("simulation descriptor fail-closed");
+  ok("decision descriptor fail-closed");
 }
 
-console.log("\n[phase3b36] contract + identity + activation safety");
+console.log("\n[phase3b37] contract + identity + activation safety");
 
 {
-  const c = createControlledHostShadowActivationSimulationContract();
-  assert.equal(c.simulationState, "completed");
+  const c = createControlledHostActivationDecisionContract();
+  assert.equal(c.decisionResult, "ALLOW");
   assert.equal(c.wouldActivate, true);
   assert.equal(c.canStartActivation, false);
   assert.equal(c.executorAllowed, false);
   assert.equal(c.runtimeMutationAllowed, false);
-  assert.equal(
-    c.activationRestriction,
-    PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
-  );
+  assert.equal(c.activationRestriction, PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY);
   assert.throws(
     () =>
-      validateControlledHostShadowActivationSimulationContract({
+      validateControlledHostActivationDecisionContract({
         ...c,
         remountAllowed: true,
       }),
     HardContractViolation,
   );
-  ok("simulation contract fail-closed");
+  ok("decision contract fail-closed");
 }
 
 {
-  const id = createFeedHostShadowActivationSimulationIdentity();
+  const id = createFeedHostActivationDecisionIdentity();
   assert.equal(id.expectedMountCount, 1);
-  assert.equal(id.activationViaSimulationAllowed, false);
+  assert.equal(id.activationViaDecisionAllowed, false);
   assert.equal(id.canStartActivationAllowed, false);
-  assert.equal(id.runtimeMutationViaSimulationAllowed, false);
   assert.equal(id.runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
   assert.throws(
     () =>
-      validateFeedHostShadowActivationSimulationIdentity({
+      validateFeedHostActivationDecisionIdentity({
         ...id,
         remountAllowed: true,
       }),
     HardContractViolation,
   );
-  ok("simulation identity forbids activation/remount");
+  ok("decision identity forbids activation/remount");
 }
 
 {
@@ -162,6 +146,7 @@ console.log("\n[phase3b36] contract + identity + activation safety");
     phase3b34ProofValid: true,
     phase3b35ProofValid: true,
     phase3b36ProofValid: true,
+    phase3b37ProofValid: true,
     observedWriter: "legacy",
     observedRenderOwner: "legacy",
     observedMountCount: 1,
@@ -170,12 +155,11 @@ console.log("\n[phase3b36] contract + identity + activation safety");
     observedEligibilityState: "eligible",
     observedReadinessState: "ready",
     observedSimulationState: "completed",
+    observedDecisionState: "completed",
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
-  assert.ok(
-    gate.blockers.includes(PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY),
-  );
+  assert.ok(gate.blockers.includes(PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY));
   assert.equal(gate.currentStep, "3B.3.7");
   assert.equal(gate.eligibleStep, "3B.3.8");
   ok("activation remains impossible");
@@ -190,36 +174,33 @@ console.log("\n[phase3b36] contract + identity + activation safety");
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(
-    FEED_DISCOVERY_HOST_CANDIDATE_METADATA.simulationState,
-    "completed",
-  );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.wouldActivate, true);
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.decisionState, "completed");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.decisionResult, "ALLOW");
   assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.canStartActivation, false);
   ok("owner/writer/renderer/registry/rollback unchanged");
 }
 
 {
-  const ready = createFeedHostShadowActivationSimulationPreparedContract({
+  const ready = createFeedHostActivationDecisionPreparedContract({
     evidenceCommit: "abcdef0123456789",
     evidenceArtifactPath:
-      "docs/audits/artifacts/phase3b36/phase3b3-6-feed-host-shadow-activation-simulation-proof.json",
+      "docs/audits/artifacts/phase3b37/phase3b3-7-feed-host-activation-decision-proof.json",
   });
-  assert.equal(ready.status, "host-shadow-activation-simulation-prepared");
-  assert.equal(ready.nextEligibleStep, "3B.3.7");
-  assert.equal(ready.wouldActivate, true);
+  assert.equal(ready.status, "host-activation-decision-prepared");
+  assert.equal(ready.nextEligibleStep, "3B.3.8");
+  assert.equal(ready.decisionResult, "ALLOW");
   assert.equal(ready.canStartActivation, false);
   assert.throws(
     () =>
-      validateFeedHostShadowActivationSimulationPreparedContract({
+      validateFeedHostActivationDecisionPreparedContract({
         ...ready,
         canStartActivation: true,
       }),
     HardContractViolation,
   );
-  ok("prepared simulation fail-closed");
+  ok("prepared decision fail-closed");
 }
 
 console.log(
-  `\nadaptive-workspace Phase 3B.3.6 shadow activation simulation: ${passed} assertions ok\n`,
+  `\nadaptive-workspace Phase 3B.3.7 host activation decision: ${passed} assertions ok\n`,
 );

@@ -15,6 +15,7 @@ import {
   PHASE_3B3_3_HOST_REGISTRATION_ONLY,
   PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
   PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
+  PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
@@ -49,7 +50,7 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.7");
+assert.equal(host.nextEligibleStep, "3B.3.8");
 assert.ok(
   host.activationBlockers.includes(PHASE_3B3_2_SHADOW_PLACEMENT_ONLY),
 );
@@ -71,7 +72,7 @@ const plan = createControlledFeedHostPlan();
 assert.equal(plan.placementState, "shadow-registered");
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.7-controlled-host-activation-candidate",
+  "3B.3.8-controlled-host-activation-candidate",
 );
 assert.equal(plan.registrationState, "registered");
 assert.equal(plan.eligibilityState, "eligible");
@@ -95,9 +96,9 @@ const gate = evaluateFeedHostActivationGate({
   phase3b2FreezeValid: true,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY));
-assert.equal(gate.currentStep, "3B.3.6");
-assert.equal(gate.eligibleStep, "3B.3.7");
+assert.ok(gate.blockers.includes(PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY));
+assert.equal(gate.currentStep, "3B.3.7");
+assert.equal(gate.eligibleStep, "3B.3.8");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
 assert.equal(
@@ -129,7 +130,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*7/);
+assert.match(probeBridge, /version:\s*8/);
 assert.match(probeBridge, /readShadowPlacement/);
 assert.match(probeBridge, /PHASE_3B3_2_SHADOW_PLACEMENT_ONLY/);
 assert.match(probeBridge, /PHASE_3B3_3_HOST_REGISTRATION_ONLY/);

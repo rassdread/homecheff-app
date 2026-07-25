@@ -1,11 +1,11 @@
 /**
- * Phase 3B.3.6 — pure Controlled Host Plan (metadata only).
+ * Phase 3B.3.7 — pure Controlled Host Plan (metadata only).
  */
 
 import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
-import { PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY } from "./controlled-host-shadow-activation-simulation";
+import { PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY } from "./controlled-host-activation-decision";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -19,14 +19,17 @@ export type ControlledFeedHostPlan = {
   rollbackTarget: "legacy";
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
-  blockerSet: readonly [typeof PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY];
-  recommendedNextStep: "3B.3.7-controlled-host-activation-candidate";
+  blockerSet: readonly [typeof PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY];
+  recommendedNextStep: "3B.3.8-controlled-host-activation-candidate";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
   readinessState: "ready";
   simulationState: "completed";
+  decisionState: "completed";
+  decisionResult: "ALLOW";
   wouldActivate: true;
+  confidence: "high";
   hostActivation: false;
   renderActivation: false;
   canStartActivation: false;
@@ -48,14 +51,17 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     rollbackTarget: "legacy",
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
-    blockerSet: [PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY],
-    recommendedNextStep: "3B.3.7-controlled-host-activation-candidate",
+    blockerSet: [PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY],
+    recommendedNextStep: "3B.3.8-controlled-host-activation-candidate",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
     readinessState: "ready",
     simulationState: "completed",
+    decisionState: "completed",
+    decisionResult: "ALLOW",
     wouldActivate: true,
+    confidence: "high",
     hostActivation: false,
     renderActivation: false,
     canStartActivation: false,

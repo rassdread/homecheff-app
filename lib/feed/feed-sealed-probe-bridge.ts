@@ -1,5 +1,5 @@
 /**
- * Phase 3B.2/3B.3.6 — namespaced browser probe bridge for sealed Feed instrumentation.
+ * Phase 3B.2/3B.3.7 — namespaced browser probe bridge for sealed Feed instrumentation.
  *
  * Installed only when NEXT_PUBLIC_FEED_SEALED_BASELINE=1 (compile-time gate).
  */
@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 7;
+  version: 8;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -31,15 +31,15 @@ export type FeedSealedProbeApi = {
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.6";
-    eligibleStep: "3B.3.7";
+    currentStep: "3B.3.7";
+    eligibleStep: "3B.3.8";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
     activeRenderOwner: "legacy";
     activeWriter: "legacy";
-    nextEligibleStep: "3B.3.7";
+    nextEligibleStep: "3B.3.8";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
@@ -177,6 +177,44 @@ export type FeedSealedProbeApi = {
       rollbackPrepared: true;
     };
   }>;
+
+  readHostActivationDecision: () => Promise<{
+    phase: "3B.3.7";
+    decisionState: "completed";
+    decisionResult: "ALLOW";
+    wouldActivate: true;
+    confidence: "high";
+    decisionReasons: readonly string[];
+    decisionBlockers: readonly string[];
+    runtimeId: string;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    activationBlocker: "PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY";
+    nextEligibleStep: "3B.3.8";
+    diagnostics: {
+      decisionCompleted: true;
+      decisionResult: "ALLOW";
+      wouldActivate: true;
+      confidence: "high";
+      usedConditions: readonly string[];
+      decisionInputSources: readonly string[];
+      activationBlocked: true;
+      canStartActivation: false;
+      currentPhase: "3B.3.7";
+      nextEligibleStep: "3B.3.8";
+      activeBlockers: readonly string[];
+      readinessStatus: "ready";
+      eligibilityStatus: "eligible";
+      simulationStatus: "completed";
+      missingConditionsForExecution: readonly string[];
+      registryHostCount: 1;
+      runtimeIdStable: true;
+      ownershipLegacy: true;
+      rendererLegacy: true;
+      rollbackPrepared: true;
+    };
+  }>;
 };
 
 declare global {
@@ -191,7 +229,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 7,
+    version: 8,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -232,6 +270,7 @@ export function installFeedSealedProbeBridge(): void {
         phase3b34ProofValid: true,
         phase3b35ProofValid: true,
         phase3b36ProofValid: true,
+        phase3b37ProofValid: true,
         observedWriter: "legacy",
         observedRenderOwner: "legacy",
         observedMountCount: 1,
@@ -240,13 +279,14 @@ export function installFeedSealedProbeBridge(): void {
         observedEligibilityState: "eligible",
         observedReadinessState: "ready",
         observedSimulationState: "completed",
+        observedDecisionState: "completed",
         observedRuntimeId: "feed.discovery.legacy-single-mount.v1",
       });
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.6" as const,
-        eligibleStep: "3B.3.7" as const,
+        currentStep: "3B.3.7" as const,
+        eligibleStep: "3B.3.8" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -257,7 +297,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activeRenderOwner: "legacy" as const,
         activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.7" as const,
+        nextEligibleStep: "3B.3.8" as const,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -275,6 +315,9 @@ export function installFeedSealedProbeBridge(): void {
         readinessState: "ready" as const,
         simulationState: "completed" as const,
         wouldActivate: true as const,
+        decisionState: "completed" as const,
+        decisionResult: "ALLOW" as const,
+        confidence: "high" as const,
         recommendedNextStep: p.recommendedNextStep,
       };
     },
@@ -390,6 +433,27 @@ export function installFeedSealedProbeBridge(): void {
         canStartActivation: false as const,
         activationBlocker: "PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY" as const,
         nextEligibleStep: "3B.3.7" as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readHostActivationDecision: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledHostActivationDecision();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.7" as const,
+        decisionState: "completed" as const,
+        decisionResult: "ALLOW" as const,
+        wouldActivate: true as const,
+        confidence: "high" as const,
+        decisionReasons: d.decisionReasons,
+        decisionBlockers: d.decisionBlockers,
+        runtimeId: d.runtimeId,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker: "PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY" as const,
+        nextEligibleStep: "3B.3.8" as const,
         diagnostics: evaluation.diagnostics,
       };
     },

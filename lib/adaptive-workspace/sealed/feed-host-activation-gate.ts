@@ -1,11 +1,11 @@
 /**
- * Phase 3B.3.6 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY.
+ * Phase 3B.3.7 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
-import { PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY } from "./controlled-host-shadow-activation-simulation";
+import { PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY } from "./controlled-host-activation-decision";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -13,12 +13,13 @@ export { PHASE_3B3_2_SHADOW_PLACEMENT_ONLY } from "./controlled-feed-host-shadow
 export { PHASE_3B3_3_HOST_REGISTRATION_ONLY } from "./controlled-host-registry";
 export { PHASE_3B3_4_HOST_ELIGIBILITY_ONLY } from "./controlled-host-eligibility";
 export { PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY } from "./controlled-host-activation-readiness";
-export { PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY };
+export { PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY } from "./controlled-host-shadow-activation-simulation";
+export { PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.6";
-  eligibleStep: "3B.3.7";
+  currentStep: "3B.3.7";
+  eligibleStep: "3B.3.8";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -31,6 +32,7 @@ export type FeedHostActivationGateResult = {
   eligibilityStatus: "eligible" | "mismatch";
   readinessStatus: "ready" | "mismatch";
   simulationStatus: "completed" | "mismatch";
+  decisionStatus: "completed" | "mismatch";
 };
 
 export type FeedHostActivationGateInput = {
@@ -42,6 +44,7 @@ export type FeedHostActivationGateInput = {
   phase3b34ProofValid?: boolean;
   phase3b35ProofValid?: boolean;
   phase3b36ProofValid?: boolean;
+  phase3b37ProofValid?: boolean;
   forceHostActivation?: unknown;
   envHostActivation?: unknown;
   queryHostActivation?: unknown;
@@ -60,6 +63,7 @@ export type FeedHostActivationGateInput = {
   observedEligibilityState?: "eligible" | "missing";
   observedReadinessState?: "ready" | "missing";
   observedSimulationState?: "completed" | "missing";
+  observedDecisionState?: "completed" | "missing";
   observedRuntimeId?: string;
 };
 
@@ -67,9 +71,9 @@ export function evaluateFeedHostActivationGate(
   input: FeedHostActivationGateInput = {},
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
-  const blockers: string[] = [PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY];
+  const blockers: string[] = [PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY];
   const reasons: string[] = [
-    "Phase 3B.3.6 runs shadow activation simulation (dry-run) only; hostActivation remains deferred to 3B.3.7",
+    "Phase 3B.3.7 computes a sealed activation decision only; hostActivation remains deferred to 3B.3.8",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -91,7 +95,8 @@ export function evaluateFeedHostActivationGate(
     input.phase3b33ProofValid === false ||
     input.phase3b34ProofValid === false ||
     input.phase3b35ProofValid === false ||
-    input.phase3b36ProofValid === false
+    input.phase3b36ProofValid === false ||
+    input.phase3b37ProofValid === false
   ) {
     blockers.push("missing-proof", "proof-fail");
   }
@@ -163,6 +168,13 @@ export function evaluateFeedHostActivationGate(
     blockers.push("react-identity-changed");
   }
 
+  let decisionStatus: FeedHostActivationGateResult["decisionStatus"] =
+    "completed";
+  if (input.observedDecisionState === "missing") {
+    decisionStatus = "mismatch";
+    blockers.push("react-identity-changed");
+  }
+
   if (
     typeof input.observedRuntimeId === "string" &&
     input.observedRuntimeId.length > 0 &&
@@ -172,6 +184,7 @@ export function evaluateFeedHostActivationGate(
     eligibilityStatus = "mismatch";
     readinessStatus = "mismatch";
     simulationStatus = "mismatch";
+    decisionStatus = "mismatch";
     blockers.push("react-identity-changed");
   }
 
@@ -188,8 +201,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.6",
-    eligibleStep: "3B.3.7",
+    currentStep: "3B.3.7",
+    eligibleStep: "3B.3.8",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,
@@ -202,5 +215,6 @@ export function evaluateFeedHostActivationGate(
     eligibilityStatus,
     readinessStatus,
     simulationStatus,
+    decisionStatus,
   };
 }

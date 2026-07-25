@@ -150,6 +150,7 @@ export {
   PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
   PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
   PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
+  PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -334,3 +335,39 @@ export {
   validateFeedHostShadowActivationSimulationPreparedContract,
   type FeedHostShadowActivationSimulationPreparedContract,
 } from "./sealed/feed-host-shadow-activation-simulation-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_DECISION_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_DECISION_REASONS,
+  CONTROLLED_HOST_ACTIVATION_DECISION_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_DECISION_INPUT_SOURCES,
+  createControlledHostActivationDecisionDescriptor,
+  evaluateControlledHostActivationDecision,
+  validateControlledHostActivationDecisionDescriptor,
+  type ControlledHostActivationDecisionDescriptor,
+  type ControlledHostActivationDecisionEvaluation,
+  type ControlledHostActivationDecisionDiagnostics,
+} from "./sealed/controlled-host-activation-decision";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_DECISION_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_DECISION_REQUIREMENTS,
+  createControlledHostActivationDecisionContract,
+  validateControlledHostActivationDecisionContract,
+  type ControlledHostActivationDecisionContract,
+  type ControlledHostActivationDecisionRequirement,
+} from "./sealed/controlled-host-activation-decision-contract";
+
+export {
+  FEED_HOST_ACTIVATION_DECISION_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationDecisionIdentity,
+  validateFeedHostActivationDecisionIdentity,
+  type FeedHostActivationDecisionIdentity,
+} from "./sealed/feed-host-activation-decision-identity";
+
+export {
+  FEED_HOST_ACTIVATION_DECISION_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationDecisionPreparedContract,
+  validateFeedHostActivationDecisionPreparedContract,
+  type FeedHostActivationDecisionPreparedContract,
+} from "./sealed/feed-host-activation-decision-prepared";
