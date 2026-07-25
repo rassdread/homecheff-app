@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.4",
+  "branch": "workspace/phase3b34-controlled-host-eligibility",
+  "commit": "a53bf3757aeb530b379d28f0a9d8f5219e00cc7b",
+  "browser": "chromium-puppeteer-core",
+  "browserVersion": "Chrome/131.0.6778.33",
+  "productionMode": true,
+  "sourceProofReference": "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "sourceFreezeReference": "docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json",
+  "controlledHostContractStatus": "valid",
+  "hostActivation": false,
+  "renderActivation": false,
+  "activeRenderOwner": "legacy",
+  "activeWriter": "legacy",
+  "shellChildCount": 0,
+  "shellDOMNodeCount": 0,
+  "rendererRegistrationCount": 0,
+  "hostRegistry": {
+    "phase": "3B.3.3",
+    "hostCount": 1,
+    "containsRuntimeObjects": false,
+    "containsReactInstances": false,
+    "hostId": "feed.discovery.controlled-host",
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "registrationState": "registered",
+    "owner": "legacy",
+    "writer": "legacy",
+    "renderer": "legacy",
+    "activationState": "dormant",
+    "hostActivation": false,
+    "renderActivation": false
+  },
+  "hostRegistration": {
+    "phase": "3B.3.3",
+    "registrationState": "registered",
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "activationRestriction": "PHASE_3B3_3_HOST_REGISTRATION_ONLY",
+    "nextEligibleStep": "3B.3.4"
+  },
+  "hostEligibility": {
+    "phase": "3B.3.4",
+    "eligibilityState": "eligible",
+    "eligibilityReason": "registered-stable-legacy-host-prerequisites-met",
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "canStartActivation": false,
+    "activationBlocker": "PHASE_3B3_4_HOST_ELIGIBILITY_ONLY",
+    "nextEligibleStep": "3B.3.5",
+    "diagnostics": {
+      "registryHostCount": 1,
+      "runtimeIdStable": true,
+      "ownershipLegacy": true,
+      "rendererLegacy": true,
+      "rollbackPrepared": true,
+      "activationBlocked": true
+    }
+  },
+  "shadowPlacement": {
+    "phase": "3B.3.2",
+    "placementState": "shadow-registered",
+    "placementMode": "sibling-after-legacy-mount",
+    "hostActivation": false,
+    "renderActivation": false,
+    "activeWriter": "legacy",
+    "activeRenderOwner": "legacy",
+    "registrationVisibleInMetadata": true,
+    "rollbackTarget": "legacy",
+    "nextEligibleStep": "3B.3.3",
+    "activationBlocker": "PHASE_3B3_2_SHADOW_PLACEMENT_ONLY"
+  },
+  "shadowPlacementIdentity": {
+    "expectedMountCount": 1,
+    "expectedUnmountCount": 0,
+    "expectedRendererRegistrationCount": 0,
+    "identityTransitionAllowed": false
+  },
+  "eligibilityMetaOk": true,
+  "activationAttempt": {
+    "blocked": true,
+    "allowed": false,
+    "blockers": [
+      "PHASE_3B3_4_HOST_ELIGIBILITY_ONLY"
+    ]
+  },
+  "rollbackTarget": "legacy",
+  "rollbackReadiness": "prepared-not-active",
+  "nextEligibleStep": "3B.3.5",
+  "hostPlan": {
+    "activationState": "dormant",
+    "hostActivation": false,
+    "renderActivation": false,
+    "placementState": "shadow-registered",
+    "registrationState": "registered",
+    "eligibilityState": "eligible",
+    "recommendedNextStep": "3B.3.5-controlled-host-activation-candidate"
+  },
+  "hostContract": {
+    "hostActivation": false,
+    "renderActivation": false,
+    "activeRenderOwner": "legacy",
+    "activeWriter": "legacy",
+    "nextEligibleStep": "3B.3.5",
+    "hostClassification": "controlled-host-candidate"
+  },
+  "scenarios": [
+    "HOST_ELIGIBLE",
+    "ELIGIBILITY_METADATA_VISIBLE",
+    "REGISTRY_METADATA_ONLY",
+    "FORCED_ACTIVATION_ATTEMPT",
+    "RESIZE_CHROME",
+    "SCROLL_CONTINUITY",
+    "IDENTITY_STABLE",
+    "RUNTIME_ID_STABLE"
+  ],
+  "invariants": [
+    {
+      "id": "FEED_GEOFEED_SINGLE_MOUNT",
+      "expected": "mountCount=1",
+      "observed": "final=1",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_GEOFEED_ZERO_UNMOUNT_DURING_STABLE_SESSION",
+      "expected": "unmount=0",
+      "observed": "unmount=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NO_WORKSPACE_REQUEST_IDENTITY_INPUT",
+      "expected": "no workspace tokens in key hash",
+      "observed": "hash=fbd314f0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_REQUEST_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "expected": "no rk transition on shadow",
+      "observed": "delta=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NATIVE_PAINT_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "expected": "paint transitions=0",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_PREPARED_BATCH_IDENTITY_STABLE",
+      "expected": "batch hash stable",
+      "observed": "hash=cb373250",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_PAGINATION_CURSOR_NOT_RESET_BY_WORKSPACE",
+      "expected": "paginationReset unchanged",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_RESULT_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "expected": "result cache init stable",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_FILTER_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "expected": "filter cache init stable",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_INTERSECTION_OBSERVER_OWNERSHIP_UNCHANGED",
+      "expected": "IO create unchanged under shadow",
+      "observed": "count=1",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_RESIZE_OBSERVER_OWNERSHIP_UNCHANGED",
+      "expected": "no Feed RO",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SCROLL_OWNERSHIP_UNCHANGED",
+      "expected": "no jump-to-top",
+      "observed": "before=500 after=500",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_TILE_IDENTITY_UNCHANGED",
+      "expected": "tiles equal after shadow",
+      "observed": "n=14",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SKELETON_OWNERSHIP_UNCHANGED",
+      "expected": "no host skeleton",
+      "observed": "ok",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_LOADING_BEHAVIOR_UNCHANGED",
+      "expected": "no host loading",
+      "observed": "ok",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_VISIBLE_DOM_UNCHANGED",
+      "expected": "DOM signature equal; no host DOM",
+      "observed": "hostDom=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SSR_BEHAVIOR_UNCHANGED",
+      "expected": "SSR ok + single mount",
+      "observed": "status=200",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_HYDRATION_CLEAN",
+      "expected": "no hydration errors",
+      "observed": "n=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NO_ADDITIONAL_API_REQUESTS",
+      "expected": "shadow/force host request delta 0",
+      "observed": "shadowDelta=0 forceDelta=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_LEGACY_SINGLE_WRITER",
+      "expected": "legacy writer; host eligibility; activation blocked",
+      "observed": "{\"activationAttempt\":{\"allowed\":false,\"blockers\":[\"PHASE_3B3_4_HOST_ELIGIBILITY_ONLY\"],\"currentStep\":\"3B.3.4\",\"eligibleStep\":\"3B.3.5\"},\"placementState\":\"shadow-registered\"}",
+      "status": "PASS",
+      "releaseBlocking": true
+    }
+  ],
+  "mountUnmount": {
+    "mountCount": 1,
+    "unmountCount": 0,
+    "activeInstanceCount": 1
+  },
+  "feedNetworkCount": 23,
+  "overallVerdict": "READY_FOR_PHASE_3B_3_5"
+}

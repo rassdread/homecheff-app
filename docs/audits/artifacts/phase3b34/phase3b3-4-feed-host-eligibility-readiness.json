@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.4",
+  "status": "host-eligibility-prepared",
+  "eligibilityContract": "valid",
+  "identityContract": "valid",
+  "hostActivation": false,
+  "renderActivation": false,
+  "writer": "legacy",
+  "owner": "legacy",
+  "renderer": "legacy",
+  "rollbackFoundation": "prepared-not-active",
+  "browserProof": "pass",
+  "existing20Invariants": "pass",
+  "nextEligibleStep": "3B.3.5",
+  "activeHostMigration": false,
+  "activeRendererMigration": false,
+  "canStartActivation": false,
+  "evidenceCommit": "a53bf3757aeb530b379d28f0a9d8f5219e00cc7b",
+  "evidenceArtifactPath": "docs/audits/artifacts/phase3b34/phase3b3-4-feed-host-eligibility-proof.json"
+}
