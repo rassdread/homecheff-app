@@ -700,8 +700,14 @@ async function main() {
       grantReadiness.activationBlocker ===
         "PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY" &&
       grantReadiness.nextEligibleStep === "3B.3.19" &&
-      // Issuance decision (new for 3B.3.22)
-      issuanceTransaction.issuanceTransactionState === "completed" &&
+      // Issuance transaction (new for 3B.3.22)
+      issuanceTransaction.issuanceTransactionState === "NOT_OPENED" &&
+      issuanceTransaction.issuanceTransactionOpened === false &&
+      issuanceTransaction.issuanceTransactionPrepared === false &&
+      issuanceTransaction.issuanceTransactionCommitted === false &&
+      issuanceTransaction.issuanceTransactionAborted === false &&
+      issuanceTransaction.issuanceTransactionRolledBack === false &&
+      issuanceTransaction.issuanceTransactionCompensated === false &&
       issuanceTransaction.issuanceTransactionResult ===
         "authorization-grant-issuance-transaction-ready-not-opened" &&
       issuanceTransaction.issuanceTransactionCompleted === true &&
