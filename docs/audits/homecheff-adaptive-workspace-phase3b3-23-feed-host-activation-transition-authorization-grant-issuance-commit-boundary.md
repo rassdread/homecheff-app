@@ -10,7 +10,7 @@
 | Bridge eligibility-field fix | `44f2ae6244cbae53bee5e475dff84c8f53422689` (**proof target**) |
 | Validator prepared nextEligible fix | `135b6b93a446c3872ed87429df59c03549aa2d83` |
 | Proof artifacts + audit | `0e8b268d11db8de9bff77a2cd3139a86476c1081` |
-| Documentary tip | `173e0f0f29d4d49678fd9398ac3b56aa179b2f8a` |
+| Documentary tip | `57c1e8c9106701b3d068f5e27a28cc7a83e31bad` |
 
 ## 1. Phase identification
 
@@ -341,7 +341,7 @@ See `docs/audits/artifacts/phase3b323/changed-file-inventory.txt`.
 | Implementation | `e3b880b9348f224f5dd1c113db8ac1a9b9451824` |
 | Bridge eligibility-field fix | `44f2ae6244cbae53bee5e475dff84c8f53422689` (**proof target**) |
 | Proof artifacts + audit | `PENDING_AUDIT` |
-| Documentary tip | `173e0f0f29d4d49678fd9398ac3b56aa179b2f8a` |
+| Documentary tip | `57c1e8c9106701b3d068f5e27a28cc7a83e31bad` |
 
 ## 61. Pre-existing dirty files left untouched
 
