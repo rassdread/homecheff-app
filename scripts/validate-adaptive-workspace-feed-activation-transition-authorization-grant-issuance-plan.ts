@@ -407,10 +407,13 @@ if (artifactsPresent) {
     validateFeedHostActivationTransitionAuthorizationGrantIssuancePlanPreparedContract(
       JSON.parse(readFileSync(issuancePreparedPath, "utf8")),
     );
-  assert.equal(prepared.nextEligibleStep, "3B.3.20");
+  assert.equal(prepared.nextEligibleStep, "3B.3.21");
   assert.equal(prepared.currentState, "COMMIT_READY");
   assert.equal(prepared.grantIssued, false);
   assert.equal(prepared.issuancePlanExecuted, false);
+  assert.equal(prepared.issuancePlanReady, true);
+  assert.equal(prepared.issuancePlanExecutable, false);
+  assert.equal(prepared.wouldExecuteIssuancePlan, true);
 }
 
 const feedQuery = readFileSync(
