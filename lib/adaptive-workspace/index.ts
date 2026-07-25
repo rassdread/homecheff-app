@@ -149,6 +149,7 @@ export {
   PHASE_3B3_3_HOST_REGISTRATION_ONLY,
   PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
   PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
+  PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -298,3 +299,38 @@ export {
   validateFeedHostActivationReadinessPreparedContract,
   type FeedHostActivationReadinessPreparedContract,
 } from "./sealed/feed-host-activation-readiness-prepared";
+
+export {
+  CONTROLLED_HOST_SHADOW_ACTIVATION_SIMULATION_SCHEMA_VERSION,
+  CONTROLLED_HOST_SHADOW_ACTIVATION_SIMULATION_REASONS,
+  CONTROLLED_HOST_SHADOW_ACTIVATION_SIMULATION_BLOCKERS,
+  createControlledHostShadowActivationSimulationDescriptor,
+  evaluateControlledHostShadowActivationSimulation,
+  validateControlledHostShadowActivationSimulationDescriptor,
+  type ControlledHostShadowActivationSimulationDescriptor,
+  type ControlledHostShadowActivationSimulationEvaluation,
+  type ControlledHostShadowActivationSimulationDiagnostics,
+} from "./sealed/controlled-host-shadow-activation-simulation";
+
+export {
+  CONTROLLED_HOST_SHADOW_ACTIVATION_SIMULATION_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_SHADOW_ACTIVATION_SIMULATION_REQUIREMENTS,
+  createControlledHostShadowActivationSimulationContract,
+  validateControlledHostShadowActivationSimulationContract,
+  type ControlledHostShadowActivationSimulationContract,
+  type ControlledHostShadowActivationSimulationRequirement,
+} from "./sealed/controlled-host-shadow-activation-simulation-contract";
+
+export {
+  FEED_HOST_SHADOW_ACTIVATION_SIMULATION_IDENTITY_SCHEMA_VERSION,
+  createFeedHostShadowActivationSimulationIdentity,
+  validateFeedHostShadowActivationSimulationIdentity,
+  type FeedHostShadowActivationSimulationIdentity,
+} from "./sealed/feed-host-shadow-activation-simulation-identity";
+
+export {
+  FEED_HOST_SHADOW_ACTIVATION_SIMULATION_PREPARED_SCHEMA_VERSION,
+  createFeedHostShadowActivationSimulationPreparedContract,
+  validateFeedHostShadowActivationSimulationPreparedContract,
+  type FeedHostShadowActivationSimulationPreparedContract,
+} from "./sealed/feed-host-shadow-activation-simulation-prepared";

@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.5 static validator — activation readiness contract / integrity /
- * diagnostics / metadata / activation safety / ownership / renderer safety.
+ * Phase 3B.3.6 static validator — shadow activation simulation contract /
+ * integrity / diagnostics / metadata / activation / ownership / renderer safety.
  */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -8,21 +8,20 @@ import { join } from "node:path";
 import {
   createControlledFeedHostContract,
   createControlledHostRegistry,
-  createControlledHostActivationReadinessDescriptor,
-  createControlledHostActivationReadinessContract,
-  evaluateControlledHostActivationReadiness,
-  createFeedHostActivationReadinessIdentity,
+  createControlledHostShadowActivationSimulationDescriptor,
+  createControlledHostShadowActivationSimulationContract,
+  evaluateControlledHostShadowActivationSimulation,
+  createFeedHostShadowActivationSimulationIdentity,
   createControlledFeedHostPlan,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
   PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
   createFeedDiscoverySealedContract,
-  validateFeedHostActivationReadinessPreparedContract,
+  validateFeedHostShadowActivationSimulationPreparedContract,
 } from "../lib/adaptive-workspace";
 
 const root = process.cwd();
@@ -32,32 +31,34 @@ function mustExist(rel: string) {
 }
 
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-host-activation-readiness.ts",
+  "lib/adaptive-workspace/sealed/controlled-host-shadow-activation-simulation.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-host-activation-readiness-contract.ts",
+  "lib/adaptive-workspace/sealed/controlled-host-shadow-activation-simulation-contract.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-host-activation-readiness-identity.ts",
+  "lib/adaptive-workspace/sealed/feed-host-shadow-activation-simulation-identity.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-host-activation-readiness-prepared.ts",
+  "lib/adaptive-workspace/sealed/feed-host-shadow-activation-simulation-prepared.ts",
 );
-mustExist("scripts/probe-feed-host-activation-readiness-phase3b35.mjs");
-mustExist("scripts/run-feed-host-activation-readiness-proof-phase3b35.mjs");
+mustExist("scripts/probe-feed-host-shadow-activation-simulation-phase3b36.mjs");
 mustExist(
-  "docs/audits/homecheff-adaptive-workspace-phase3b3-5-feed-host-activation-readiness.md",
+  "scripts/run-feed-host-shadow-activation-simulation-proof-phase3b36.mjs",
+);
+mustExist(
+  "docs/audits/homecheff-adaptive-workspace-phase3b3-6-feed-host-shadow-activation-simulation.md",
 );
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json");
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json");
 mustExist(
-  "docs/audits/artifacts/phase3b34/phase3b3-4-feed-host-eligibility-proof.json",
-);
-mustExist(
   "docs/audits/artifacts/phase3b35/phase3b3-5-feed-host-activation-readiness-proof.json",
 );
 mustExist(
-  "docs/audits/artifacts/phase3b35/phase3b3-5-feed-host-activation-readiness-prepared.json",
+  "docs/audits/artifacts/phase3b36/phase3b3-6-feed-host-shadow-activation-simulation-proof.json",
+);
+mustExist(
+  "docs/audits/artifacts/phase3b36/phase3b3-6-feed-host-shadow-activation-simulation-prepared.json",
 );
 
 const host = createControlledFeedHostContract();
@@ -65,7 +66,9 @@ assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
 assert.equal(host.nextEligibleStep, "3B.3.7");
 assert.ok(
-  host.activationBlockers.includes(PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY),
+  host.activationBlockers.includes(
+    PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
+  ),
 );
 
 const registry = createControlledHostRegistry();
@@ -74,50 +77,56 @@ assert.equal(registry.hosts[0].runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
 assert.equal(registry.containsRuntimeObjects, false);
 assert.equal(registry.containsReactInstances, false);
 
-const descriptor = createControlledHostActivationReadinessDescriptor();
-assert.equal(descriptor.readinessState, "ready");
+const descriptor = createControlledHostShadowActivationSimulationDescriptor();
+assert.equal(descriptor.simulationState, "completed");
+assert.equal(descriptor.wouldActivate, true);
+assert.equal(descriptor.activationState, "dormant");
 assert.equal(descriptor.canStartActivation, false);
 assert.equal(descriptor.hostActivation, false);
 assert.equal(descriptor.renderActivation, false);
 assert.equal(
   descriptor.activationBlocker,
-  PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
+  PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
 );
 assert.equal(descriptor.runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
 assert.equal(descriptor.owner, "legacy");
 assert.equal(descriptor.writer, "legacy");
 assert.equal(descriptor.renderer, "legacy");
 assert.equal(descriptor.rollbackState, "prepared-not-active");
-assert.ok(descriptor.readinessReasons.length >= 5);
 
-const evaluation = evaluateControlledHostActivationReadiness(registry);
+const evaluation = evaluateControlledHostShadowActivationSimulation(registry);
 assert.equal(evaluation.diagnostics.registryHostCount, 1);
-assert.equal(evaluation.diagnostics.readinessSatisfied, true);
+assert.equal(evaluation.diagnostics.simulationCompleted, true);
+assert.equal(evaluation.diagnostics.wouldActivate, true);
 assert.equal(evaluation.diagnostics.activationBlocked, true);
 assert.equal(evaluation.diagnostics.canStartActivation, false);
-assert.equal(evaluation.diagnostics.currentPhase, "3B.3.5");
-assert.ok(evaluation.diagnostics.missingConditionsForActivation.length >= 1);
+assert.equal(evaluation.diagnostics.currentPhase, "3B.3.6");
+assert.equal(evaluation.diagnostics.readinessStatus, "ready");
+assert.equal(evaluation.diagnostics.eligibilityStatus, "eligible");
 
-const readinessContract = createControlledHostActivationReadinessContract();
-assert.equal(readinessContract.readinessState, "ready");
-assert.equal(readinessContract.canStartActivation, false);
-assert.equal(readinessContract.executorAllowed, false);
-assert.equal(readinessContract.schedulerAllowed, false);
+const simulationContract =
+  createControlledHostShadowActivationSimulationContract();
+assert.equal(simulationContract.simulationState, "completed");
+assert.equal(simulationContract.wouldActivate, true);
+assert.equal(simulationContract.canStartActivation, false);
+assert.equal(simulationContract.executorAllowed, false);
+assert.equal(simulationContract.runtimeMutationAllowed, false);
 assert.equal(
-  readinessContract.activationRestriction,
-  PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
+  simulationContract.activationRestriction,
+  PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
 );
 
-const identity = createFeedHostActivationReadinessIdentity();
+const identity = createFeedHostShadowActivationSimulationIdentity();
 assert.equal(identity.expectedMountCount, 1);
 assert.equal(identity.expectedUnmountCount, 0);
-assert.equal(identity.activationViaReadinessAllowed, false);
+assert.equal(identity.activationViaSimulationAllowed, false);
 assert.equal(identity.canStartActivationAllowed, false);
 assert.equal(identity.runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
 
 const plan = createControlledFeedHostPlan();
+assert.equal(plan.simulationState, "completed");
+assert.equal(plan.wouldActivate, true);
 assert.equal(plan.readinessState, "ready");
-assert.equal(plan.eligibilityState, "eligible");
 assert.equal(plan.canStartActivation, false);
 assert.equal(
   plan.recommendedNextStep,
@@ -144,6 +153,7 @@ const gate = evaluateFeedHostActivationGate({
   phase3b33ProofValid: true,
   phase3b34ProofValid: true,
   phase3b35ProofValid: true,
+  phase3b36ProofValid: true,
   observedWriter: "legacy",
   observedRenderOwner: "legacy",
   observedMountCount: 1,
@@ -151,14 +161,21 @@ const gate = evaluateFeedHostActivationGate({
   observedRegistrationState: "registered",
   observedEligibilityState: "eligible",
   observedReadinessState: "ready",
+  observedSimulationState: "completed",
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY));
+assert.ok(
+  gate.blockers.includes(PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY),
+);
 assert.equal(gate.currentStep, "3B.3.6");
 assert.equal(gate.eligibleStep, "3B.3.7");
 
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.readinessState, "ready");
+assert.equal(
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.simulationState,
+  "completed",
+);
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.wouldActivate, true);
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.canStartActivation, false);
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
 
@@ -181,15 +198,15 @@ const probeBridge = readFileSync(
   "utf8",
 );
 assert.match(probeBridge, /version:\s*7/);
-assert.match(probeBridge, /readHostActivationReadiness/);
-assert.match(probeBridge, /PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY/);
+assert.match(probeBridge, /readHostShadowActivationSimulation/);
+assert.match(probeBridge, /PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY/);
 
 const sealedDir = join(root, "lib/adaptive-workspace/sealed");
 for (const name of [
-  "controlled-host-activation-readiness.ts",
-  "controlled-host-activation-readiness-contract.ts",
-  "feed-host-activation-readiness-identity.ts",
-  "feed-host-activation-readiness-prepared.ts",
+  "controlled-host-shadow-activation-simulation.ts",
+  "controlled-host-shadow-activation-simulation-contract.ts",
+  "feed-host-shadow-activation-simulation-identity.ts",
+  "feed-host-shadow-activation-simulation-prepared.ts",
 ]) {
   const src = readFileSync(join(sealedDir, name), "utf8");
   assert.doesNotMatch(src, /GeoFeed|HomeGeoFeedDynamic/);
@@ -217,17 +234,6 @@ validateFeedDiscoveryFreezeContract({
   releaseBlockingInvariantIds: createFeedDiscoverySealedContract().invariantIds,
 });
 
-const eligProof = JSON.parse(
-  readFileSync(
-    join(
-      root,
-      "docs/audits/artifacts/phase3b34/phase3b3-4-feed-host-eligibility-proof.json",
-    ),
-    "utf8",
-  ),
-);
-assert.equal(eligProof.overallVerdict, "READY_FOR_PHASE_3B_3_5");
-
 const readyProof = JSON.parse(
   readFileSync(
     join(
@@ -238,55 +244,70 @@ const readyProof = JSON.parse(
   ),
 );
 assert.equal(readyProof.overallVerdict, "READY_FOR_PHASE_3B_3_6");
-assert.equal(readyProof.hostActivation, false);
-assert.equal(readyProof.renderActivation, false);
-assert.equal(readyProof.canStartActivation, false);
-assert.equal(readyProof.activeWriter, "legacy");
-assert.equal(readyProof.activeRenderOwner, "legacy");
-assert.equal(readyProof.hostRegistry.hostCount, 1);
-assert.equal(
-  readyProof.hostRegistry.runtimeId,
-  FEED_DISCOVERY_STABLE_RUNTIME_ID,
+
+const simProof = JSON.parse(
+  readFileSync(
+    join(
+      root,
+      "docs/audits/artifacts/phase3b36/phase3b3-6-feed-host-shadow-activation-simulation-proof.json",
+    ),
+    "utf8",
+  ),
 );
-assert.equal(readyProof.hostActivationReadiness.readinessState, "ready");
-assert.equal(readyProof.hostActivationReadiness.canStartActivation, false);
+assert.equal(simProof.overallVerdict, "READY_FOR_PHASE_3B_3_7");
+assert.equal(simProof.hostActivation, false);
+assert.equal(simProof.renderActivation, false);
+assert.equal(simProof.canStartActivation, false);
+assert.equal(simProof.activeWriter, "legacy");
+assert.equal(simProof.activeRenderOwner, "legacy");
+assert.equal(simProof.hostRegistry.hostCount, 1);
 assert.equal(
-  readyProof.hostActivationReadiness.activationBlocker,
-  PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
+  simProof.hostShadowActivationSimulation.simulationState,
+  "completed",
+);
+assert.equal(simProof.hostShadowActivationSimulation.wouldActivate, true);
+assert.equal(
+  simProof.hostShadowActivationSimulation.canStartActivation,
+  false,
 );
 assert.equal(
-  readyProof.hostActivationReadiness.diagnostics.readinessSatisfied,
+  simProof.hostShadowActivationSimulation.activationBlocker,
+  PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
+);
+assert.equal(
+  simProof.hostShadowActivationSimulation.diagnostics.simulationCompleted,
   true,
 );
-assert.equal(readyProof.mountUnmount.mountCount, 1);
-assert.equal(readyProof.mountUnmount.unmountCount, 0);
-assert.equal(readyProof.activationAttempt.blocked, true);
+assert.equal(simProof.mountUnmount.mountCount, 1);
+assert.equal(simProof.mountUnmount.unmountCount, 0);
+assert.equal(simProof.activationAttempt.blocked, true);
 assert.ok(
-  readyProof.activationAttempt.blockers.includes(
-    PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
+  simProof.activationAttempt.blockers.includes(
+    PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
   ),
 );
 assert.equal(
-  (readyProof.invariants || []).filter(
+  (simProof.invariants || []).filter(
     (i: { status: string }) => i.status === "PASS",
   ).length,
   20,
 );
 
-const prepared = validateFeedHostActivationReadinessPreparedContract(
+const prepared = validateFeedHostShadowActivationSimulationPreparedContract(
   JSON.parse(
     readFileSync(
       join(
         root,
-        "docs/audits/artifacts/phase3b35/phase3b3-5-feed-host-activation-readiness-prepared.json",
+        "docs/audits/artifacts/phase3b36/phase3b3-6-feed-host-shadow-activation-simulation-prepared.json",
       ),
       "utf8",
     ),
   ),
 );
-assert.equal(prepared.nextEligibleStep, "3B.3.6");
+assert.equal(prepared.nextEligibleStep, "3B.3.7");
 assert.equal(prepared.hostActivation, false);
 assert.equal(prepared.canStartActivation, false);
+assert.equal(prepared.wouldActivate, true);
 assert.equal(prepared.executorAuthorized, false);
 
 const queryParams = readFileSync(join(root, "lib/feed/feed-query-params.ts"), "utf8");
@@ -295,4 +316,6 @@ assert.doesNotMatch(
   /adaptive-workspace|hostActivation|AvailableSpace|feed\.discovery/,
 );
 
-console.log("validate-adaptive-workspace-feed-activation-readiness: ok");
+console.log(
+  "validate-adaptive-workspace-feed-shadow-activation-simulation: ok",
+);
