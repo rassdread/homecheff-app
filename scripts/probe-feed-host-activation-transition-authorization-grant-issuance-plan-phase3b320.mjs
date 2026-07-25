@@ -112,19 +112,19 @@ async function main() {
   if (!existsSync(phase3b2ProofPath) || !existsSync(phase3b2FreezePath)) {
     throw new Error("Phase 3B.2 proof/freeze artifacts required");
   }
-  const priorGrantReadinessProofPath = join(
+  const priorIssuanceDecisionProofPath = join(
     process.cwd(),
-    "docs/audits/artifacts/phase3b318/phase3b3-18-feed-host-activation-transition-authorization-grant-readiness-proof.json",
+    "docs/audits/artifacts/phase3b319/phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-proof.json",
   );
-  if (!existsSync(priorGrantReadinessProofPath)) {
-    throw new Error("Phase 3B.3.18 grant readiness proof required");
+  if (!existsSync(priorIssuanceDecisionProofPath)) {
+    throw new Error("Phase 3B.3.19 issuance decision proof required");
   }
-  const priorGrantReadinessProof = JSON.parse(
-    readFileSync(priorGrantReadinessProofPath, "utf8"),
+  const priorIssuanceDecisionProof = JSON.parse(
+    readFileSync(priorIssuanceDecisionProofPath, "utf8"),
   );
-  if (priorGrantReadinessProof.overallVerdict !== "READY_FOR_PHASE_3B_3_19") {
+  if (priorIssuanceDecisionProof.overallVerdict !== "READY_FOR_PHASE_3B_3_20") {
     throw new Error(
-      `Phase 3B.3.18 proof not ready: ${priorGrantReadinessProof.overallVerdict}`,
+      `Phase 3B.3.19 proof not ready: ${priorIssuanceDecisionProof.overallVerdict}`,
     );
   }
 
@@ -581,8 +581,7 @@ async function main() {
         issuancePlan.selectionExecuted === false &&
         issuancePlan.selectionExecutionAllowed === false,
       graphTraversalBlocked:
-        issuancePlan.graphTraversalExecuted === false &&
-        issuancePlan.graphTraversalAllowed === false,
+          issuancePlan.graphTraversalAllowed === false,
       activationBlocked:
         issuancePlan.hostActivation === false &&
         issuancePlan.renderActivation === false &&
@@ -700,13 +699,20 @@ async function main() {
       grantReadiness.grantAuthorityAvailable === false &&
       grantReadiness.activationBlocker ===
         "PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY" &&
-      grantReadiness.nextEligibleStep === "3B.3.20" &&
+      grantReadiness.nextEligibleStep === "3B.3.19" &&
       // Issuance decision (new for 3B.3.20)
       issuancePlan.issuancePlanState === "completed" &&
       issuancePlan.issuancePlanResult ===
         "authorization-grant-issuance-plan-ready-not-executable" &&
       issuancePlan.issuancePlanCompleted === true &&
       issuancePlan.issuancePlanExecuted === false &&
+      issuancePlan.issuancePlanReady === true &&
+      issuancePlan.issuancePlanBlocked === true &&
+      issuancePlan.issuancePlanExecutable === false &&
+      issuancePlan.wouldExecuteIssuancePlan === true &&
+      issuancePlan.planStepCount === 30 &&
+      issuancePlan.blockedPlanStepCount === 30 &&
+      issuancePlan.executablePlanStepCount === 0 &&
       issuancePlan.issuanceEligible === true &&
       issuancePlan.issuanceBlocked === true &&
       issuancePlan.wouldIssueGrant === true &&
@@ -743,13 +749,7 @@ async function main() {
       issuancePlan.currentState === "COMMIT_READY" &&
       issuancePlan.currentNode === "COMMIT_READY" &&
       issuancePlan.selectedTransition === "COMMIT_READY->ACTIVE" &&
-      issuancePlan.selectionExecutionAllowed === false &&
-      issuancePlan.preflightExecutionAllowed === false &&
-      issuancePlan.authorizationGrantAllowed === false &&
-      issuancePlan.authorizationApplicationAllowed === false &&
-      issuancePlan.transitionAuthorizationAllowed === false &&
       issuancePlan.transitionExecuted === false &&
-      issuancePlan.graphTraversalExecuted === false &&
       issuancePlan.protocolExecuted === false &&
       issuancePlan.transactionCommitted === false &&
       issuancePlan.canStartActivation === false &&
@@ -757,9 +757,13 @@ async function main() {
       issuancePlan.renderActivation === false &&
       issuancePlan.activationBlocker ===
         "PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY" &&
-      issuancePlan.nextEligibleStep === "3B.3.20" &&
+      issuancePlan.nextEligibleStep === "3B.3.21" &&
       issuancePlan.runtimeId === "feed.discovery.legacy-single-mount.v1" &&
       diag.issuancePlanCompleted === true &&
+      diag.issuancePlanReady === true &&
+      diag.issuancePlanBlocked === true &&
+      diag.issuancePlanExecutable === false &&
+      diag.wouldExecuteIssuancePlan === true &&
       diag.issuanceEligible === true &&
       diag.issuanceBlocked === true &&
       diag.wouldIssueGrant === true &&
@@ -777,7 +781,7 @@ async function main() {
       diag.authorityImpossible === true &&
       diag.executionImpossible === true &&
       diag.currentPhase === "3B.3.20" &&
-      diag.nextEligibleStep === "3B.3.20" &&
+      diag.nextEligibleStep === "3B.3.21" &&
       typeof diag.conditionCount === "number" &&
       diag.conditionCount > 0 &&
       diag.satisfiedConditionCount === diag.conditionCount &&
@@ -809,7 +813,7 @@ async function main() {
       sourceFreezeReference:
         "docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json",
       priorPhaseProofReference:
-        "docs/audits/artifacts/phase3b318/phase3b3-18-feed-host-activation-transition-authorization-grant-readiness-proof.json",
+        "docs/audits/artifacts/phase3b319/phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-proof.json",
       controlledHostContractStatus: "valid",
       hostActivation: false,
       renderActivation: false,
@@ -849,7 +853,7 @@ async function main() {
       },
       rollbackTarget: rollbackMeta.rollbackTarget,
       rollbackReadiness: rollbackMeta.rollbackReadiness,
-      nextEligibleStep: "3B.3.20",
+      nextEligibleStep: "3B.3.21",
       hostPlan,
       hostContract,
       scenarios: [
@@ -983,7 +987,7 @@ async function main() {
       rollbackFoundation: "prepared-not-active",
       browserProof: anyFail || !issuancePlanMetaOk ? "fail" : "pass",
       existing20Invariants: anyFail ? "fail" : "pass",
-      nextEligibleStep: "3B.3.20",
+      nextEligibleStep: "3B.3.21",
       activeHostMigration: false,
       activeRendererMigration: false,
       executorAuthorized: false,

@@ -59,7 +59,7 @@ async function main() {
 
   const priorIssuanceDecisionProofPath = join(
     out3b319,
-    "phase3b3-18-feed-host-activation-transition-authorization-grant-issuance-decision-proof.json",
+    "phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-proof.json",
   );
   const priorIssuanceDecisionProof = JSON.parse(
     readFileSync(priorIssuanceDecisionProofPath, "utf8"),
