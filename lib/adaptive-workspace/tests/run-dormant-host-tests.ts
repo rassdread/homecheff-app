@@ -16,7 +16,7 @@ import {
   PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
-  PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
+  PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   createFeedHostRollbackContract,
   validateFeedHostRollbackContract,
   createControlledFeedHostPlan,
@@ -45,7 +45,7 @@ console.log("\n[phase3b31] controlled host contract");
   assert.equal(a.shadowActivation, true);
   assert.equal(a.activeRenderOwner, "legacy");
   assert.equal(a.activeWriter, "legacy");
-  assert.equal(a.nextEligibleStep, "3B.3.16");
+  assert.equal(a.nextEligibleStep, "3B.3.17");
   assert.equal(a.hostClassification, "controlled-host-candidate");
   assert.equal(a.runtimeClassification, "sealed-runtime");
   assert.equal(stableStringify(a), stableStringify(b));
@@ -159,10 +159,10 @@ console.log("\n[phase3b31] activation gate");
     observedRollbackTarget: "legacy",
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY));
+  assert.ok(gate.blockers.includes(PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY));
   assert.ok(gate.blockers.includes(PHASE_3B3_1_DORMANT_HOST_ONLY) === false);
-  assert.equal(gate.currentStep, "3B.3.15");
-  assert.equal(gate.eligibleStep, "3B.3.16");
+  assert.equal(gate.currentStep, "3B.3.16");
+  assert.equal(gate.eligibleStep, "3B.3.17");
   ok("gate always denied; force/env/query/cookie/storage ignored");
 }
 
@@ -176,7 +176,7 @@ console.log("\n[phase3b31] activation gate");
     observedRollbackTarget: "workspace",
   });
   assert.equal(bad.allowed, false);
-  assert.ok(bad.blockers.includes(PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY));
+  assert.ok(bad.blockers.includes(PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY));
   assert.ok(bad.blockers.includes("active-workspace-writer"));
   assert.ok(bad.blockers.includes("active-workspace-renderer"));
   assert.ok(bad.blockers.includes("second-geofeed-mount"));
@@ -211,7 +211,7 @@ console.log("\n[phase3b31] rollback + plan + readiness");
   assert.equal(plan.hostActivation, false);
   assert.equal(
     plan.recommendedNextStep,
-    "3B.3.16-controlled-host-activation-candidate",
+    "3B.3.17-controlled-host-activation-candidate",
   );
   assert.equal(plan.placementState, "shadow-registered");
   assert.equal(plan.registrationState, "registered");

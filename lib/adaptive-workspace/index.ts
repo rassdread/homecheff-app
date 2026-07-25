@@ -159,6 +159,7 @@ export {
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
   PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
+  PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -746,4 +747,45 @@ export {
   validateFeedHostActivationTransitionSelectionPreparedContract,
   type FeedHostActivationTransitionSelectionPreparedContract,
 } from "./sealed/feed-host-activation-transition-selection-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_PREFLIGHT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ID,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_PREFLIGHT_VERSION,
+  CONTROLLED_HOST_ACTIVATION_PREFLIGHT_CHECKS,
+  CONTROLLED_HOST_ACTIVATION_PREFLIGHT_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_PREFLIGHT_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_PREFLIGHT_VALIDATION_POINTS,
+  createControlledHostActivationTransitionPreflightDescriptor,
+  evaluateControlledHostActivationTransitionPreflight,
+  validateControlledHostActivationTransitionPreflightDescriptor,
+  type ControlledHostActivationTransitionPreflightDescriptor,
+  type ControlledHostActivationTransitionPreflightEvaluation,
+  type ControlledHostActivationTransitionPreflightDiagnostics,
+  type ControlledHostActivationTransitionPreflightState,
+  type ControlledHostActivationTransitionPreflightResult,
+} from "./sealed/controlled-host-activation-transition-preflight";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_PREFLIGHT_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_PREFLIGHT_REQUIREMENTS,
+  createControlledHostActivationTransitionPreflightContract,
+  validateControlledHostActivationTransitionPreflightContract,
+  type ControlledHostActivationTransitionPreflightContract,
+  type ControlledHostActivationTransitionPreflightRequirement,
+} from "./sealed/controlled-host-activation-transition-preflight-contract";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_PREFLIGHT_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationTransitionPreflightIdentity,
+  validateFeedHostActivationTransitionPreflightIdentity,
+  type FeedHostActivationTransitionPreflightIdentity,
+} from "./sealed/feed-host-activation-transition-preflight-identity";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_PREFLIGHT_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationTransitionPreflightPreparedContract,
+  validateFeedHostActivationTransitionPreflightPreparedContract,
+  type FeedHostActivationTransitionPreflightPreparedContract,
+} from "./sealed/feed-host-activation-transition-preflight-prepared";
 

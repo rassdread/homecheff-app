@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.15 static validator — activation transition selection contract /
- * integrity / diagnostics / metadata / transition / selection / activation /
+ * Phase 3B.3.16 static validator — activation transition preflight contract /
+ * integrity / diagnostics / metadata / transition / preflight / authorization /
  * ownership / renderer / writer safety.
  */
 import assert from "node:assert/strict";
@@ -9,28 +9,22 @@ import { join } from "node:path";
 import {
   createControlledFeedHostContract,
   createControlledHostRegistry,
-  createControlledHostActivationTransitionSelectionDescriptor,
-  createControlledHostActivationTransitionSelectionContract,
-  evaluateControlledHostActivationTransitionSelection,
-  createFeedHostActivationTransitionSelectionIdentity,
+  createControlledHostActivationTransitionPreflightDescriptor,
+  createControlledHostActivationTransitionPreflightContract,
+  evaluateControlledHostActivationTransitionPreflight,
+  createFeedHostActivationTransitionPreflightIdentity,
   createControlledFeedHostPlan,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
   PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
-  CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_INPUT_SOURCES,
-  CONTROLLED_HOST_ACTIVATION_SELECTION_CANDIDATE_TRANSITIONS,
-  CONTROLLED_HOST_ACTIVATION_SELECTION_ELIGIBLE_TRANSITIONS,
-  CONTROLLED_HOST_ACTIVATION_SELECTION_INELIGIBLE_TRANSITIONS,
-  CONTROLLED_HOST_ACTIVATION_SELECTION_GUARDS,
-  CONTROLLED_HOST_ACTIVATION_SELECTION_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_PREFLIGHT_CHECKS,
   CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
   createFeedDiscoverySealedContract,
-  validateFeedHostActivationTransitionSelectionPreparedContract,
+  validateFeedHostActivationTransitionPreflightPreparedContract,
 } from "../lib/adaptive-workspace";
 
 const root = process.cwd();
@@ -40,43 +34,43 @@ function mustExist(rel: string) {
 }
 
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-host-activation-transition-selection.ts",
+  "lib/adaptive-workspace/sealed/controlled-host-activation-transition-preflight.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-host-activation-transition-selection-contract.ts",
+  "lib/adaptive-workspace/sealed/controlled-host-activation-transition-preflight-contract.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-host-activation-transition-selection-identity.ts",
+  "lib/adaptive-workspace/sealed/feed-host-activation-transition-preflight-identity.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-host-activation-transition-selection-prepared.ts",
+  "lib/adaptive-workspace/sealed/feed-host-activation-transition-preflight-prepared.ts",
 );
-mustExist("scripts/probe-feed-host-activation-transition-selection-phase3b315.mjs");
+mustExist("scripts/probe-feed-host-activation-transition-preflight-phase3b316.mjs");
 mustExist(
-  "scripts/run-feed-host-activation-transition-selection-proof-phase3b315.mjs",
+  "scripts/run-feed-host-activation-transition-preflight-proof-phase3b316.mjs",
 );
 mustExist(
-  "docs/audits/homecheff-adaptive-workspace-phase3b3-15-feed-host-activation-transition-selection.md",
+  "docs/audits/homecheff-adaptive-workspace-phase3b3-16-feed-host-activation-transition-preflight.md",
 );
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json");
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json");
 mustExist(
-  "docs/audits/artifacts/phase3b314/phase3b3-14-feed-host-activation-transition-graph-proof.json",
-);
-
-const selectionProofPath = join(
-  root,
   "docs/audits/artifacts/phase3b315/phase3b3-15-feed-host-activation-transition-selection-proof.json",
 );
-const selectionPreparedPath = join(
+
+const preflightProofPath = join(
   root,
-  "docs/audits/artifacts/phase3b315/phase3b3-15-feed-host-activation-transition-selection-prepared.json",
+  "docs/audits/artifacts/phase3b316/phase3b3-16-feed-host-activation-transition-preflight-proof.json",
+);
+const preflightPreparedPath = join(
+  root,
+  "docs/audits/artifacts/phase3b316/phase3b3-16-feed-host-activation-transition-preflight-prepared.json",
 );
 const artifactsPresent =
-  existsSync(selectionProofPath) && existsSync(selectionPreparedPath);
-if (!artifactsPresent && process.env.REQUIRE_PHASE3B315_ARTIFACTS === "1") {
+  existsSync(preflightProofPath) && existsSync(preflightPreparedPath);
+if (!artifactsPresent && process.env.REQUIRE_PHASE3B316_ARTIFACTS === "1") {
   assert.fail(
-    "Phase 3B.3.15 proof/prepared artifacts required but missing",
+    "Phase 3B.3.16 proof/prepared artifacts required but missing",
   );
 }
 
@@ -93,10 +87,13 @@ assert.ok(
 const registry = createControlledHostRegistry();
 assert.equal(registry.hostCount, 1);
 
-const descriptor = createControlledHostActivationTransitionSelectionDescriptor();
-assert.equal(descriptor.selectionResult, "transition-selected-not-executable");
+const descriptor = createControlledHostActivationTransitionPreflightDescriptor();
+assert.equal(descriptor.preflightResult, "transition-preflight-ready-not-authorized");
 assert.equal(descriptor.currentState, "COMMIT_READY");
 assert.equal(descriptor.currentNode, "COMMIT_READY");
+assert.equal(descriptor.preflightExecuted, false);
+assert.equal(descriptor.transitionAuthorized, false);
+assert.equal(descriptor.authorizationGranted, false);
 assert.equal(descriptor.selectionExecuted, false);
 assert.equal(descriptor.transitionExecuted, false);
 assert.equal(descriptor.protocolExecuted, false);
@@ -104,65 +101,66 @@ assert.equal(descriptor.transactionCommitted, false);
 assert.equal(descriptor.canStartActivation, false);
 assert.equal(
   descriptor.activationBlocker,
-  PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
+  PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
 );
 assert.deepEqual(
-  [...descriptor.candidateTransitions],
-  [...CONTROLLED_HOST_ACTIVATION_SELECTION_CANDIDATE_TRANSITIONS],
+  [...descriptor.preflightChecks],
+  [...CONTROLLED_HOST_ACTIVATION_PREFLIGHT_CHECKS],
 );
 assert.deepEqual(
-  [...descriptor.eligibleTransitions],
-  [...CONTROLLED_HOST_ACTIVATION_SELECTION_ELIGIBLE_TRANSITIONS],
-);
-assert.deepEqual(
-  [...descriptor.ineligibleTransitions],
-  [...CONTROLLED_HOST_ACTIVATION_SELECTION_INELIGIBLE_TRANSITIONS],
-);
-assert.deepEqual(
-  [...descriptor.selectionGuards],
-  [...CONTROLLED_HOST_ACTIVATION_SELECTION_GUARDS],
-);
-assert.deepEqual(
-  [...descriptor.selectionPreconditions],
-  [...CONTROLLED_HOST_ACTIVATION_SELECTION_PRECONDITIONS],
-);
-assert.deepEqual(
-  [...descriptor.selectionInputSources],
-  [...CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_INPUT_SOURCES],
+  [...descriptor.passedChecks],
+  [...CONTROLLED_HOST_ACTIVATION_PREFLIGHT_CHECKS],
 );
 assert.equal(descriptor.selectedTransition, CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION);
-assert.equal(descriptor.invariants.length, 20);
+assert.equal(descriptor.preflightInvariants.length, 20);
 
-const evaluation = evaluateControlledHostActivationTransitionSelection(registry);
-assert.equal(evaluation.diagnostics.selectionCompleted, true);
+const evaluation = evaluateControlledHostActivationTransitionPreflight(registry);
+assert.equal(evaluation.diagnostics.preflightCompleted, true);
+assert.equal(evaluation.diagnostics.preflightReady, true);
+assert.equal(evaluation.diagnostics.preflightBlocked, true);
 assert.equal(evaluation.diagnostics.currentState, "COMMIT_READY");
-assert.equal(evaluation.diagnostics.selectionExecuted, false);
+assert.equal(evaluation.diagnostics.preflightExecuted, false);
+assert.equal(evaluation.diagnostics.transitionAuthorized, false);
 assert.equal(evaluation.diagnostics.executionImpossible, true);
-assert.equal(evaluation.diagnostics.currentPhase, "3B.3.15");
-assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.16");
-
-const selectionContract =
-  createControlledHostActivationTransitionSelectionContract();
+assert.equal(evaluation.diagnostics.currentPhase, "3B.3.16");
+assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.17");
 assert.equal(
-  selectionContract.selectionResult,
-  "transition-selected-not-executable",
+  evaluation.diagnostics.checkCount,
+  CONTROLLED_HOST_ACTIVATION_PREFLIGHT_CHECKS.length,
 );
-assert.equal(selectionContract.selectionExecutionAllowed, false);
-assert.equal(selectionContract.commitAllowed, false);
-
-const identity = createFeedHostActivationTransitionSelectionIdentity();
 assert.equal(
-  identity.selectionExecutionViaTransitionSelectionAllowed,
+  evaluation.diagnostics.passedCount,
+  CONTROLLED_HOST_ACTIVATION_PREFLIGHT_CHECKS.length,
+);
+
+const preflightContract =
+  createControlledHostActivationTransitionPreflightContract();
+assert.equal(
+  preflightContract.preflightResult,
+  "transition-preflight-ready-not-authorized",
+);
+assert.equal(preflightContract.preflightExecutionAllowed, false);
+assert.equal(preflightContract.transitionAuthorizationAllowed, false);
+assert.equal(preflightContract.commitAllowed, false);
+
+const identity = createFeedHostActivationTransitionPreflightIdentity();
+assert.equal(
+  identity.preflightExecutionViaTransitionPreflightAllowed,
+  false,
+);
+assert.equal(
+  identity.transitionAuthorizationViaTransitionPreflightAllowed,
   false,
 );
 
 const plan = createControlledFeedHostPlan();
 assert.equal(
-  plan.transitionSelectionResult,
-  "transition-selected-not-executable",
+  plan.transitionPreflightResult,
+  "transition-preflight-ready-not-authorized",
 );
 assert.equal(plan.selectedTransition, "COMMIT_READY->ACTIVE");
-assert.equal(plan.selectionExecuted, false);
+assert.equal(plan.preflightExecuted, false);
+assert.equal(plan.transitionAuthorized, false);
 assert.equal(
   plan.recommendedNextStep,
   "3B.3.17-controlled-host-activation-candidate",
@@ -216,18 +214,18 @@ assert.ok(
 );
 assert.equal(gate.currentStep, "3B.3.16");
 assert.equal(gate.eligibleStep, "3B.3.17");
-assert.equal(gate.transitionSelectionStatus, "completed");
 assert.equal(gate.transitionPreflightStatus, "completed");
 
 assert.equal(
-  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.transitionSelectionResult,
-  "transition-selected-not-executable",
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.transitionPreflightResult,
+  "transition-preflight-ready-not-authorized",
 );
 assert.equal(
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA.selectedTransition,
   "COMMIT_READY->ACTIVE",
 );
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.selectionExecuted, false);
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.preflightExecuted, false);
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.transitionAuthorized, false);
 
 const shell = readFileSync(
   join(root, "components/adaptive-workspace/FeedControlledHostShell.tsx"),
@@ -249,10 +247,10 @@ assert.match(
 );
 
 for (const name of [
-  "controlled-host-activation-transition-selection.ts",
-  "controlled-host-activation-transition-selection-contract.ts",
-  "feed-host-activation-transition-selection-identity.ts",
-  "feed-host-activation-transition-selection-prepared.ts",
+  "controlled-host-activation-transition-preflight.ts",
+  "controlled-host-activation-transition-preflight-contract.ts",
+  "feed-host-activation-transition-preflight-identity.ts",
+  "feed-host-activation-transition-preflight-prepared.ts",
 ]) {
   assert.doesNotMatch(
     readFileSync(join(root, "lib/adaptive-workspace/sealed", name), "utf8"),
@@ -282,63 +280,67 @@ validateFeedDiscoveryFreezeContract({
   releaseBlockingInvariantIds: createFeedDiscoverySealedContract().invariantIds,
 });
 
-const graphProof = JSON.parse(
+const selectionProof = JSON.parse(
   readFileSync(
     join(
       root,
-      "docs/audits/artifacts/phase3b314/phase3b3-14-feed-host-activation-transition-graph-proof.json",
+      "docs/audits/artifacts/phase3b315/phase3b3-15-feed-host-activation-transition-selection-proof.json",
     ),
     "utf8",
   ),
 );
-assert.equal(graphProof.overallVerdict, "READY_FOR_PHASE_3B_3_15");
+assert.equal(selectionProof.overallVerdict, "READY_FOR_PHASE_3B_3_16");
 
 if (artifactsPresent) {
-  const selectionProof = JSON.parse(readFileSync(selectionProofPath, "utf8"));
-  assert.equal(selectionProof.overallVerdict, "READY_FOR_PHASE_3B_3_16");
-  assert.equal(selectionProof.hostActivation, false);
-  assert.equal(selectionProof.canStartActivation, false);
+  const preflightProof = JSON.parse(readFileSync(preflightProofPath, "utf8"));
+  assert.equal(preflightProof.overallVerdict, "READY_FOR_PHASE_3B_3_17");
+  assert.equal(preflightProof.hostActivation, false);
+  assert.equal(preflightProof.canStartActivation, false);
   assert.equal(
-    selectionProof.hostActivationTransitionSelection.selectionResult,
-    "transition-selected-not-executable",
+    preflightProof.hostActivationTransitionPreflight.preflightResult,
+    "transition-preflight-ready-not-authorized",
   );
   assert.equal(
-    selectionProof.hostActivationTransitionSelection.currentState,
+    preflightProof.hostActivationTransitionPreflight.currentState,
     "COMMIT_READY",
   );
   assert.equal(
-    selectionProof.hostActivationTransitionSelection.selectionExecuted,
+    preflightProof.hostActivationTransitionPreflight.preflightExecuted,
     false,
   );
   assert.equal(
-    selectionProof.hostActivationTransitionSelection.selectedTransition,
+    preflightProof.hostActivationTransitionPreflight.transitionAuthorized,
+    false,
+  );
+  assert.equal(
+    preflightProof.hostActivationTransitionPreflight.selectedTransition,
     "COMMIT_READY->ACTIVE",
   );
   assert.equal(
-    selectionProof.hostActivationTransitionSelection.activationBlocker,
-    PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
+    preflightProof.hostActivationTransitionPreflight.activationBlocker,
+    PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   );
-  assert.equal(selectionProof.mountUnmount.mountCount, 1);
-  assert.equal(selectionProof.mountUnmount.unmountCount, 0);
-  assert.equal(selectionProof.activationAttempt.blocked, true);
+  assert.equal(preflightProof.mountUnmount.mountCount, 1);
+  assert.equal(preflightProof.mountUnmount.unmountCount, 0);
+  assert.equal(preflightProof.activationAttempt.blocked, true);
   assert.ok(
-    selectionProof.activationAttempt.blockers.includes(
-      PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
+    preflightProof.activationAttempt.blockers.includes(
+      PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
     ),
   );
   assert.equal(
-    (selectionProof.invariants || []).filter(
+    (preflightProof.invariants || []).filter(
       (i: { status: string }) => i.status === "PASS",
     ).length,
     20,
   );
 
-  const prepared = validateFeedHostActivationTransitionSelectionPreparedContract(
-    JSON.parse(readFileSync(selectionPreparedPath, "utf8")),
+  const prepared = validateFeedHostActivationTransitionPreflightPreparedContract(
+    JSON.parse(readFileSync(preflightPreparedPath, "utf8")),
   );
-  assert.equal(prepared.nextEligibleStep, "3B.3.16");
+  assert.equal(prepared.nextEligibleStep, "3B.3.17");
   assert.equal(prepared.currentState, "COMMIT_READY");
-  assert.equal(prepared.selectionExecuted, false);
+  assert.equal(prepared.preflightExecuted, false);
 }
 
 const feedQuery = readFileSync(
@@ -349,6 +351,6 @@ assert.doesNotMatch(feedQuery, /hostActivation|adaptive-workspace-host/);
 
 console.log(
   artifactsPresent
-    ? "validate-adaptive-workspace-feed-activation-transition-selection: ok (with artifacts)"
-    : "validate-adaptive-workspace-feed-activation-transition-selection: ok (pre-proof contracts)",
+    ? "validate-adaptive-workspace-feed-activation-transition-preflight: ok (with artifacts)"
+    : "validate-adaptive-workspace-feed-activation-transition-preflight: ok (pre-proof contracts)",
 );

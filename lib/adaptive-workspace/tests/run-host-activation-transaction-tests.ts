@@ -27,7 +27,7 @@ import {
   PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
   PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
-  PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
+  PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -205,6 +205,7 @@ console.log("\n[phase3b310] contract + identity + activation safety");
     phase3b313ProofValid: true,
     phase3b314ProofValid: true,
     phase3b315ProofValid: true,
+    phase3b316ProofValid: true,
     observedWriter: "legacy",
     observedRenderOwner: "legacy",
     observedMountCount: 1,
@@ -222,14 +223,15 @@ console.log("\n[phase3b310] contract + identity + activation safety");
     observedStateMachineState: "completed",
     observedTransitionGraphState: "completed",
   observedTransitionSelectionState: "completed",
+    observedTransitionPreflightState: "completed",
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
   assert.ok(
-    gate.blockers.includes(PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY),
+    gate.blockers.includes(PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY),
   );
-  assert.equal(gate.currentStep, "3B.3.15");
-  assert.equal(gate.eligibleStep, "3B.3.16");
+  assert.equal(gate.currentStep, "3B.3.16");
+  assert.equal(gate.eligibleStep, "3B.3.17");
   ok("activation remains impossible");
 }
 

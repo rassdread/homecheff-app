@@ -5,7 +5,7 @@
 import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
-import { PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY } from "./controlled-host-activation-transition-selection";
+import { PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY } from "./controlled-host-activation-transition-preflight";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -19,8 +19,8 @@ export type ControlledFeedHostPlan = {
   rollbackTarget: "legacy";
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
-  blockerSet: readonly [typeof PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY];
-  recommendedNextStep: "3B.3.16-controlled-host-activation-candidate";
+  blockerSet: readonly [typeof PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY];
+  recommendedNextStep: "3B.3.17-controlled-host-activation-candidate";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -60,6 +60,14 @@ export type ControlledFeedHostPlan = {
   selectedTransition: "COMMIT_READY->ACTIVE";
   selectedFromState: "COMMIT_READY";
   selectedToState: "ACTIVE";
+  transitionPreflightState: "completed";
+  transitionPreflightResult: "transition-preflight-ready-not-authorized";
+  preflightCompleted: true;
+  preflightReady: true;
+  preflightBlocked: true;
+  preflightExecuted: false;
+  transitionAuthorized: false;
+  authorizationGranted: false;
   hostActivation: false;
   renderActivation: false;
   canStartActivation: false;
@@ -81,8 +89,8 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     rollbackTarget: "legacy",
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
-    blockerSet: [PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY],
-    recommendedNextStep: "3B.3.16-controlled-host-activation-candidate",
+    blockerSet: [PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY],
+    recommendedNextStep: "3B.3.17-controlled-host-activation-candidate",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
@@ -122,6 +130,14 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     selectedTransition: "COMMIT_READY->ACTIVE",
     selectedFromState: "COMMIT_READY",
     selectedToState: "ACTIVE",
+    transitionPreflightState: "completed",
+    transitionPreflightResult: "transition-preflight-ready-not-authorized",
+    preflightCompleted: true,
+    preflightReady: true,
+    preflightBlocked: true,
+    preflightExecuted: false,
+    transitionAuthorized: false,
+    authorizationGranted: false,
     hostActivation: false,
     renderActivation: false,
     canStartActivation: false,
