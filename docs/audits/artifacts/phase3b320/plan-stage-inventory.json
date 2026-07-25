@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.20",
+  "proofTarget": "3a0857e55a96ecaebafa5ed3568cc41d1b5e4201",
+  "planStepCount": 30,
+  "stages": [
+    {
+      "ordinal": 1,
+      "stepId": "validate-frozen-predecessor",
+      "title": "Validate frozen predecessor",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 2,
+      "stepId": "validate-issuance-decision",
+      "title": "Validate issuance decision",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 3,
+      "stepId": "validate-grant-readiness",
+      "title": "Validate grant readiness",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 4,
+      "stepId": "validate-authorization-decision",
+      "title": "Validate authorization decision",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 5,
+      "stepId": "validate-transition-preflight",
+      "title": "Validate transition preflight",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 6,
+      "stepId": "validate-selected-transition",
+      "title": "Validate selected transition",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 7,
+      "stepId": "validate-state-and-graph-position",
+      "title": "Validate state and graph position",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 8,
+      "stepId": "validate-commit-boundary",
+      "title": "Validate commit boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 9,
+      "stepId": "validate-runtime-ownership",
+      "title": "Validate runtime ownership",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 10,
+      "stepId": "validate-stable-runtime-identity",
+      "title": "Validate stable runtime identity",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 11,
+      "stepId": "validate-stable-mount",
+      "title": "Validate stable mount",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 12,
+      "stepId": "validate-single-geofeed",
+      "title": "Validate single sealed feed instance",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 13,
+      "stepId": "validate-null-workspace-shell",
+      "title": "Validate null Workspace shell",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 14,
+      "stepId": "validate-grant-absence",
+      "title": "Validate grant absence",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 15,
+      "stepId": "validate-authority-absence",
+      "title": "Validate authority absence",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 16,
+      "stepId": "validate-credential-absence",
+      "title": "Validate credential absence",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 17,
+      "stepId": "validate-executable-path-absence",
+      "title": "Validate executable-path absence",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 18,
+      "stepId": "validate-transition-remains-unauthorized",
+      "title": "Validate transition remains unauthorized",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 19,
+      "stepId": "validate-activation-remains-impossible",
+      "title": "Validate activation remains impossible",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 20,
+      "stepId": "validate-commit-and-rollback-unexecuted",
+      "title": "Validate commit and rollback remain unexecuted",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 21,
+      "stepId": "describe-hypothetical-grant-construction-boundary",
+      "title": "Describe hypothetical grant construction boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 22,
+      "stepId": "describe-hypothetical-grant-issuance-boundary",
+      "title": "Describe hypothetical grant issuance boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 23,
+      "stepId": "describe-hypothetical-grant-persistence-boundary",
+      "title": "Describe hypothetical grant persistence boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 24,
+      "stepId": "describe-hypothetical-grant-application-boundary",
+      "title": "Describe hypothetical grant application boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 25,
+      "stepId": "describe-hypothetical-authority-boundary",
+      "title": "Describe hypothetical authority boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 26,
+      "stepId": "describe-hypothetical-transition-authorization-boundary",
+      "title": "Describe hypothetical transition-authorization boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 27,
+      "stepId": "describe-hypothetical-activation-boundary",
+      "title": "Describe hypothetical activation boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 28,
+      "stepId": "describe-rollback-boundary",
+      "title": "Describe rollback boundary",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 29,
+      "stepId": "reassert-final-fail-closed-state",
+      "title": "Reassert final fail-closed state",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    },
+    {
+      "ordinal": 30,
+      "stepId": "declare-plan-complete-but-non-executable",
+      "title": "Declare plan complete but non-executable",
+      "status": "planned-blocked-not-executable",
+      "blocked": true,
+      "executable": false
+    }
+  ]
+}

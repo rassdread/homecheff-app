@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.20",
+  "proofTarget": "3a0857e55a96ecaebafa5ed3568cc41d1b5e4201",
+  "hostId": "feed.discovery.controlled-host",
+  "runtimeId": "feed.discovery.legacy-single-mount.v1",
+  "issuancePlanId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-plan.v1",
+  "issuancePlanVersion": 1,
+  "selectedTransition": "COMMIT_READY->ACTIVE",
+  "grantIssuancePlanId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-plan.v1"
+}

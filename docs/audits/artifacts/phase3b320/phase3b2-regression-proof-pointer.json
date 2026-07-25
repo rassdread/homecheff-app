@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.20",
+  "proofTarget": "3a0857e55a96ecaebafa5ed3568cc41d1b5e4201",
+  "reference": "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "expectedVerdict": "READY_FOR_PHASE_3B_3",
+  "expectedPassCount": 20
+}

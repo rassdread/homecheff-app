@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "phase": "3B.2",
-  "branch": "workspace/phase3b319-controlled-host-activation-transition-authorization-grant-issuance-decision",
-  "commit": "793ca6612f384a6e8a005e640724972f50aa5d7b",
+  "branch": "workspace/phase3b320-controlled-host-activation-transition-authorization-grant-issuance-plan",
+  "commit": "3a0857e55a96ecaebafa5ed3568cc41d1b5e4201",
   "productionMode": true,
   "browser": "chromium-puppeteer-core",
   "browserVersion": "Chrome/131.0.6778.33",
@@ -147,7 +147,7 @@
     {
       "id": "FEED_NO_ADDITIONAL_API_REQUESTS",
       "expected": "shadow evaluation adds 0 feed requests",
-      "observed": "shadowOnlyReqDelta=0 totalNet=31",
+      "observed": "shadowOnlyReqDelta=0 totalNet=22",
       "status": "PASS",
       "releaseBlocking": true
     },
@@ -297,85 +297,22 @@
       "scenario": "session",
       "method": "GET",
       "path": "/api/feed/media?i=0&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&type=product",
-      "status": 200,
+      "status": null,
       "sequence": 20
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=4f822286-6043-417d-8be5-1bae8342d3a9&type=product",
-      "status": null,
-      "sequence": 21
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=33392889-a509-4598-a379-c0671b2c37e0&type=product",
-      "status": null,
-      "sequence": 22
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&type=product",
-      "status": null,
-      "sequence": 23
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&type=product",
-      "status": null,
-      "sequence": 24
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=c31d06c4-293e-4d19-a269-fe4c41e6a660&type=dish",
-      "status": null,
-      "sequence": 25
     },
     {
       "scenario": "session",
       "method": "GET",
       "path": "/api/feed/media?i=0&id=47ce973a-8d93-4ae2-a3af-d1a5064e1b32&type=dish",
       "status": null,
-      "sequence": 26
+      "sequence": 21
     },
     {
       "scenario": "session",
       "method": "GET",
       "path": "/api/feed/media?i=0&id=8c609bde-4e0a-4e65-9f4f-4405c42c4d44&type=dish",
-      "status": 200,
-      "sequence": 27
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=4f822286-6043-417d-8be5-1bae8342d3a9&type=product",
       "status": null,
-      "sequence": 28
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=33392889-a509-4598-a379-c0671b2c37e0&type=product",
-      "status": null,
-      "sequence": 29
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&type=product",
-      "status": null,
-      "sequence": 30
-    },
-    {
-      "scenario": "session",
-      "method": "GET",
-      "path": "/api/feed/media?i=0&id=c31d06c4-293e-4d19-a269-fe4c41e6a660&type=dish",
-      "status": 200,
-      "sequence": 31
+      "sequence": 22
     }
   ],
   "mountUnmount": {
@@ -401,7 +338,7 @@
   },
   "observers": {
     "intersectionObserverCreateCount": 1,
-    "pageIntersectionObserverDelta": 150,
+    "pageIntersectionObserverDelta": 204,
     "pageResizeObserverDelta": 0
   },
   "scroll": {
@@ -420,7 +357,7 @@
     "warnings": []
   },
   "performance": {
-    "feedRequestCount": 31,
+    "feedRequestCount": 22,
     "softTimingInconclusive": true,
     "notes": "Hard invariants (mount/request/DOM) are release-blocking; FCP/LCP treated soft/inconclusive locally."
   },

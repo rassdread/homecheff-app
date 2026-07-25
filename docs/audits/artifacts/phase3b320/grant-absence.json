@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.20",
+  "proofTarget": "3a0857e55a96ecaebafa5ed3568cc41d1b5e4201",
+  "grantIssued": false,
+  "grantCreated": false,
+  "grantMaterialized": false,
+  "grantPersisted": false,
+  "grantApplied": false,
+  "grantActivated": false,
+  "grantConsumed": false,
+  "grantRevoked": false
+}
