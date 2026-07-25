@@ -15,9 +15,9 @@ const require = createRequire(import.meta.url);
 const root = process.cwd();
 const port = process.env.PHASE3B314_PORT || "3035";
 const out3b2 = join(root, "docs/audits/artifacts/phase3b2");
-const out3b313 = join(root, "docs/audits/artifacts/phase3b314");
+const out3b314 = join(root, "docs/audits/artifacts/phase3b314");
 mkdirSync(out3b2, { recursive: true });
-mkdirSync(out3b313, { recursive: true });
+mkdirSync(out3b314, { recursive: true });
 
 function run(cmd, args, env = {}) {
   return new Promise((resolve, reject) => {
@@ -123,12 +123,12 @@ async function main() {
       `--base-url=${baseUrl}`,
       `--commit=${commit}`,
       `--branch=${branch}`,
-      `--out-dir=${out3b313}`,
+      `--out-dir=${out3b314}`,
     ]);
 
     const p32 = JSON.parse(
       readFileSync(
-        join(out3b313, "phase3b3-14-feed-host-activation-transition-graph-proof.json"),
+        join(out3b314, "phase3b3-14-feed-host-activation-transition-graph-proof.json"),
         "utf8",
       ),
     );
@@ -145,7 +145,7 @@ async function main() {
   } finally {
     server.kill("SIGTERM");
     writeFileSync(
-      join(out3b313, "phase3b3-13-server-log-tail.txt"),
+      join(out3b314, "phase3b3-14-server-log-tail.txt"),
       serverLog.slice(-8000),
     );
   }
