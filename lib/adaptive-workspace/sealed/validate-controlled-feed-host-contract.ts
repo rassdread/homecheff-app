@@ -73,25 +73,25 @@ export function validateControlledFeedHostContract(
   if (c.activeRenderOwner !== "legacy") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_RENDER_OWNER",
-      "activeRenderOwner must be legacy in Phase 3B.3.1",
+      "activeRenderOwner must be legacy through Phase 3B.3.2",
     );
   }
   if (c.activeWriter !== "legacy") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_WRITER",
-      "activeWriter must be legacy in Phase 3B.3.1",
+      "activeWriter must be legacy through Phase 3B.3.2",
     );
   }
   if (c.hostActivation !== false) {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_HOST_ACTIVATION",
-      "hostActivation must be false in Phase 3B.3.1",
+      "hostActivation must be false through Phase 3B.3.2",
     );
   }
   if (c.renderActivation !== false) {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_RENDER_ACTIVATION",
-      "renderActivation must be false in Phase 3B.3.1",
+      "renderActivation must be false through Phase 3B.3.2",
     );
   }
   if (c.shadowActivation !== true) {
@@ -170,10 +170,10 @@ export function validateControlledFeedHostContract(
       "freezeRequirement must be phase3b2-freeze-required",
     );
   }
-  if (c.nextEligibleStep !== "3B.3.2") {
+  if (c.nextEligibleStep !== "3B.3.3") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_NEXT",
-      "nextEligibleStep must be 3B.3.2",
+      "nextEligibleStep must be 3B.3.3",
     );
   }
 
@@ -270,6 +270,6 @@ export function validateControlledFeedHostContract(
     ],
     browserProofRequirement: "phase3b2-frozen-proof-required",
     freezeRequirement: "phase3b2-freeze-required",
-    nextEligibleStep: "3B.3.2",
+    nextEligibleStep: "3B.3.3",
   };
 }

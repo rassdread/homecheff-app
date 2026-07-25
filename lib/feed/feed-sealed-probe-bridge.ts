@@ -1,5 +1,5 @@
 /**
- * Phase 3B.2/3B.3.1 — namespaced browser probe bridge for sealed Feed instrumentation.
+ * Phase 3B.2/3B.3.2 — namespaced browser probe bridge for sealed Feed instrumentation.
  *
  * Installed only when NEXT_PUBLIC_FEED_SEALED_BASELINE=1 (compile-time gate).
  */
@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 2;
+  version: 3;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -28,26 +28,46 @@ export type FeedSealedProbeApi = {
     renderActivation: false;
     reason: string;
   };
-  /** Phase 3B.3.1 — always blocked host activation. */
+  /** Phase 3B.3.2 — always blocked host activation. */
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.1";
-    eligibleStep: "3B.3.2";
+    currentStep: "3B.3.2";
+    eligibleStep: "3B.3.3";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
     activeRenderOwner: "legacy";
     activeWriter: "legacy";
-    nextEligibleStep: "3B.3.2";
+    nextEligibleStep: "3B.3.3";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
     activationState: "dormant";
     hostActivation: false;
     renderActivation: false;
+    placementState: "shadow-registered";
     recommendedNextStep: string;
+  }>;
+  readShadowPlacement: () => Promise<{
+    phase: "3B.3.2";
+    placementState: "shadow-registered";
+    placementMode: "sibling-after-legacy-mount";
+    hostActivation: false;
+    renderActivation: false;
+    activeWriter: "legacy";
+    activeRenderOwner: "legacy";
+    registrationVisibleInMetadata: true;
+    rollbackTarget: "legacy";
+    nextEligibleStep: "3B.3.3";
+    activationBlocker: "PHASE_3B3_2_SHADOW_PLACEMENT_ONLY";
+  }>;
+  readShadowPlacementIdentity: () => Promise<{
+    expectedMountCount: 1;
+    expectedUnmountCount: 0;
+    expectedRendererRegistrationCount: 0;
+    identityTransitionAllowed: false;
   }>;
 };
 
@@ -63,7 +83,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 2,
+    version: 3,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -92,18 +112,25 @@ export function installFeedSealedProbeBridge(): void {
         queryHostActivation: force,
         cookieHostActivation: force,
         localStorageHostActivation: force,
+        sessionStorageHostActivation: force,
+        contextHostActivation: force,
+        globalHostActivation: force,
+        featureFlagHostActivation: force,
+        debugOverrideHostActivation: force,
         phase3b2ProofValid: true,
         phase3b2FreezeValid: true,
+        phase3b32ProofValid: true,
         observedWriter: "legacy",
         observedRenderOwner: "legacy",
         observedMountCount: 1,
         observedRollbackTarget: "legacy",
+        observedShadowPlacementState: "shadow-registered",
       });
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.1" as const,
-        eligibleStep: "3B.3.2" as const,
+        currentStep: "3B.3.2" as const,
+        eligibleStep: "3B.3.3" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -114,7 +141,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activeRenderOwner: "legacy" as const,
         activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.2" as const,
+        nextEligibleStep: "3B.3.3" as const,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -125,7 +152,35 @@ export function installFeedSealedProbeBridge(): void {
         activationState: "dormant" as const,
         hostActivation: false as const,
         renderActivation: false as const,
+        placementState: "shadow-registered" as const,
         recommendedNextStep: p.recommendedNextStep,
+      };
+    },
+    readShadowPlacement: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const p = mod.createControlledFeedHostShadowPlacement();
+      return {
+        phase: "3B.3.2" as const,
+        placementState: "shadow-registered" as const,
+        placementMode: "sibling-after-legacy-mount" as const,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        activeWriter: "legacy" as const,
+        activeRenderOwner: "legacy" as const,
+        registrationVisibleInMetadata: true as const,
+        rollbackTarget: "legacy" as const,
+        nextEligibleStep: "3B.3.3" as const,
+        activationBlocker: "PHASE_3B3_2_SHADOW_PLACEMENT_ONLY" as const,
+      };
+    },
+    readShadowPlacementIdentity: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const i = mod.createFeedHostShadowPlacementIdentity();
+      return {
+        expectedMountCount: 1 as const,
+        expectedUnmountCount: 0 as const,
+        expectedRendererRegistrationCount: 0 as const,
+        identityTransitionAllowed: false as const,
       };
     },
   };

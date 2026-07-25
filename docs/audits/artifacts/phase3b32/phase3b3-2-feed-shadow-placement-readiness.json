@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.2",
+  "status": "shadow-placement-prepared",
+  "shadowPlacementContract": "valid",
+  "identityContract": "valid",
+  "hostActivation": false,
+  "renderActivation": false,
+  "writer": "legacy",
+  "renderOwner": "legacy",
+  "rollbackFoundation": "prepared-not-active",
+  "browserProof": "pass",
+  "existing20Invariants": "pass",
+  "nextEligibleStep": "3B.3.3",
+  "activeHostMigration": false,
+  "activeRendererMigration": false,
+  "evidenceCommit": "ad5cef0782371290f7415a18238a711d0cad35af",
+  "evidenceArtifactPath": "docs/audits/artifacts/phase3b32/phase3b3-2-feed-shadow-placement-proof.json"
+}

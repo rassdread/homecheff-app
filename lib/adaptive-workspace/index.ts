@@ -145,6 +145,7 @@ export { validateControlledFeedHostContract } from "./sealed/validate-controlled
 
 export {
   PHASE_3B3_1_DORMANT_HOST_ONLY,
+  PHASE_3B3_2_SHADOW_PLACEMENT_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -170,3 +171,24 @@ export {
   validateFeedDormantHostReadinessContract,
   type FeedDormantHostReadinessContract,
 } from "./sealed/feed-dormant-host-readiness";
+
+export {
+  CONTROLLED_FEED_HOST_SHADOW_PLACEMENT_SCHEMA_VERSION,
+  createControlledFeedHostShadowPlacement,
+  validateControlledFeedHostShadowPlacement,
+  type ControlledFeedHostShadowPlacement,
+} from "./sealed/controlled-feed-host-shadow-placement";
+
+export {
+  FEED_HOST_SHADOW_PLACEMENT_IDENTITY_SCHEMA_VERSION,
+  createFeedHostShadowPlacementIdentity,
+  validateFeedHostShadowPlacementIdentity,
+  type FeedHostShadowPlacementIdentity,
+} from "./sealed/feed-host-shadow-placement-identity";
+
+export {
+  FEED_SHADOW_PLACEMENT_READINESS_SCHEMA_VERSION,
+  createFeedShadowPlacementReadinessContract,
+  validateFeedShadowPlacementReadinessContract,
+  type FeedShadowPlacementReadinessContract,
+} from "./sealed/feed-shadow-placement-readiness";

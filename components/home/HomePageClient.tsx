@@ -19,8 +19,15 @@ import {
   installFeedPerfBaselineReporter,
 } from "@/lib/feed/feed-performance-baseline";
 import GeoFeed, { FeedContent } from "@/components/home/HomeGeoFeedDynamic";
+import FeedControlledHostShell from "@/components/adaptive-workspace/FeedControlledHostShell";
+import { createControlledFeedHostContract } from "@/lib/adaptive-workspace/sealed/create-controlled-feed-host-contract";
+import { createControlledFeedHostShadowPlacement } from "@/lib/adaptive-workspace/sealed/controlled-feed-host-shadow-placement";
 
 import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
+
+/** Phase 3B.3.2 — module-stable metadata; shell remains null (zero DOM). */
+const FEED_CONTROLLED_HOST_CONTRACT = createControlledFeedHostContract();
+const FEED_HOST_SHADOW_PLACEMENT = createControlledFeedHostShadowPlacement();
 
 const PostAuthPersonaBanner = dynamic(
   () => import("@/components/onboarding/PostAuthPersonaBanner"),
@@ -203,6 +210,15 @@ export default function HomePageClient({
                   </section>
                 ) : null}
               </GeoFeed>
+              {/*
+                Phase 3B.3.2 Controlled Host Shadow Placement:
+                sibling AFTER GeoFeed so GeoFeed keeps its React sibling index.
+                Shell always returns null — zero DOM / zero remount of GeoFeed.
+              */}
+              <FeedControlledHostShell
+                contract={FEED_CONTROLLED_HOST_CONTRACT}
+                placement={FEED_HOST_SHADOW_PLACEMENT}
+              />
             </>
           ) : null}
         </div>

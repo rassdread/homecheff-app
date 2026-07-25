@@ -1,5 +1,6 @@
 /**
- * Phase 3B.3.1 static validator — dormant controlled host foundation.
+ * Phase 3B.3.1 static validator — dormant controlled host foundation artifacts.
+ * Live contracts advanced to 3B.3.2; historical 3B.3.1 proof artifacts remain frozen.
  */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -9,7 +10,7 @@ import {
   createFeedHostRollbackContract,
   createControlledFeedHostPlan,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_1_DORMANT_HOST_ONLY,
+  PHASE_3B3_2_SHADOW_PLACEMENT_ONLY,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
@@ -44,7 +45,7 @@ assert.equal(contract.hostActivation, false);
 assert.equal(contract.renderActivation, false);
 assert.equal(contract.activeRenderOwner, "legacy");
 assert.equal(contract.activeWriter, "legacy");
-assert.equal(contract.nextEligibleStep, "3B.3.2");
+assert.equal(contract.nextEligibleStep, "3B.3.3");
 
 const gate = evaluateFeedHostActivationGate({
   phase3b2ProofValid: true,
@@ -52,7 +53,7 @@ const gate = evaluateFeedHostActivationGate({
   forceHostActivation: true,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_1_DORMANT_HOST_ONLY));
+assert.ok(gate.blockers.includes(PHASE_3B3_2_SHADOW_PLACEMENT_ONLY));
 
 const rollback = createFeedHostRollbackContract();
 assert.equal(rollback.rollbackTarget, "legacy");
@@ -60,9 +61,11 @@ assert.equal(rollback.rollbackReadiness, "prepared-not-active");
 
 const plan = createControlledFeedHostPlan();
 assert.equal(plan.activationState, "dormant");
+assert.equal(plan.placementState, "shadow-registered");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.childFactoryRegistered, false);
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.3");
 
 const shell = readFileSync(
   join(root, "components/adaptive-workspace/FeedControlledHostShell.tsx"),
@@ -82,7 +85,13 @@ assert.equal(
 
 const home = readFileSync(join(root, "components/home/HomePageClient.tsx"), "utf8");
 assert.equal((home.match(/<GeoFeed\b/g) ?? []).length, 1);
-assert.doesNotMatch(home, /FeedControlledHostShell|hostActivation/);
+// Shadow placement may mount the null shell AFTER GeoFeed (not wrapping).
+const geoIdx = home.indexOf("<GeoFeed");
+const shellIdx = home.indexOf("<FeedControlledHostShell");
+assert.ok(geoIdx >= 0, "GeoFeed must remain on homepage");
+assert.ok(shellIdx > geoIdx, "shadow shell must be sibling AFTER GeoFeed");
+assert.doesNotMatch(home, /hostActivation\s*=\s*\{?\s*true/);
+assert.doesNotMatch(home, /key=\{[^}]*host|key=\{[^}]*feed\.discovery/);
 
 const geoDynamic = readFileSync(
   join(root, "components/home/HomeGeoFeedDynamic.tsx"),
