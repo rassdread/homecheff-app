@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Phase 3B.3.19 — Chromium proof: Controlled Host Activation Transition
- * Authorization Grant Issuance Decision. New proof run (not a reuse of
+ * Phase 3B.3.20 — Chromium proof: Controlled Host Activation Transition
+ * Authorization Grant Issuance Plan. New proof run (not a reuse of
  * 3B.3.18). Requires production server with NEXT_PUBLIC_FEED_SEALED_BASELINE=1.
  */
 
@@ -13,10 +13,10 @@ import { homedir } from "node:os";
 const require = createRequire(import.meta.url);
 
 function parseArgs(argv) {
-  let baseUrl = "http://127.0.0.1:3040";
+  let baseUrl = "http://127.0.0.1:3041";
   let commit = "unknown";
-  let branch = "workspace/phase3b319-controlled-host-activation-transition-authorization-grant-issuance-decision";
-  let outDir = join(process.cwd(), "docs/audits/artifacts/phase3b319");
+  let branch = "workspace/phase3b320-controlled-host-activation-transition-authorization-grant-issuance-plan";
+  let outDir = join(process.cwd(), "docs/audits/artifacts/phase3b320");
   for (const a of argv) {
     if (a.startsWith("--base-url=")) baseUrl = a.slice("--base-url=".length);
     if (a.startsWith("--commit=")) commit = a.slice("--commit=".length);
@@ -247,9 +247,9 @@ async function main() {
       await page.evaluate(async () => {
         return window.__HC_FEED_SEALED_PROBE__.readHostActivationTransitionAuthorizationGrantReadiness();
       });
-    const hostActivationTransitionAuthorizationGrantIssuanceDecision =
+    const hostActivationTransitionAuthorizationGrantIssuancePlan =
       await page.evaluate(async () => {
-        return window.__HC_FEED_SEALED_PROBE__.readHostActivationTransitionAuthorizationGrantIssuanceDecision();
+        return window.__HC_FEED_SEALED_PROBE__.readHostActivationTransitionAuthorizationGrantIssuancePlan();
       });
     const shadowPlacement = await page.evaluate(async () => {
       return window.__HC_FEED_SEALED_PROBE__.readShadowPlacement();
@@ -504,9 +504,9 @@ async function main() {
         shadowPlacement.placementState === "shadow-registered" &&
         activationAttempt.allowed === false &&
         activationAttempt.blockers.includes(
-          "PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY",
+          "PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY",
         ),
-      "legacy writer; host activation transition authorization grant issuance decision; activation blocked",
+      "legacy writer; host activation transition authorization grant issuance plan; activation blocked",
       JSON.stringify({
         activationAttempt,
         placementState: shadowPlacement.placementState,
@@ -517,105 +517,105 @@ async function main() {
     const anyFail = invariants.some((i) => i.status !== "PASS");
 
     const grantReadiness = hostActivationTransitionAuthorizationGrantReadiness;
-    const issuanceDecision =
-      hostActivationTransitionAuthorizationGrantIssuanceDecision;
-    const diag = issuanceDecision.diagnostics ?? {};
+    const issuancePlan =
+      hostActivationTransitionAuthorizationGrantIssuancePlan;
+    const diag = issuancePlan.diagnostics ?? {};
 
     // Forced negative proofs: every execution/grant/materialization/authority
-    // surface that the issuance-decision evaluation could theoretically
+    // surface that the issuance-plan evaluation could theoretically
     // unlock must remain false. The browser probe API is intentionally
     // read-only (no execute/grant/issue/apply functions are exposed on
     // window), so these are asserted directly from the returned
     // descriptor/diagnostics; deeper fail-closed validation (throwing on
     // forced-true candidates) is unit-test-covered in
-    // lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-decision-tests.ts.
+    // lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-plan-tests.ts.
     const forcedNegativeProofs = {
       grantCreationBlocked:
-        issuanceDecision.grantCreated === false &&
-        issuanceDecision.grantCreationAllowed === false,
+        issuancePlan.grantCreated === false &&
+        issuancePlan.grantCreationAllowed === false,
       grantIssuanceBlocked:
-        issuanceDecision.grantIssued === false &&
-        issuanceDecision.grantIssuanceAllowed === false,
+        issuancePlan.grantIssued === false &&
+        issuancePlan.grantIssuanceAllowed === false,
       grantMaterializationBlocked:
-        issuanceDecision.grantMaterialized === false &&
-        issuanceDecision.grantMaterializationAllowed === false,
+        issuancePlan.grantMaterialized === false &&
+        issuancePlan.grantMaterializationAllowed === false,
       grantPersistenceBlocked:
-        issuanceDecision.grantPersisted === false &&
-        issuanceDecision.grantPersistenceAllowed === false,
+        issuancePlan.grantPersisted === false &&
+        issuancePlan.grantPersistenceAllowed === false,
       grantApplicationBlocked:
-        issuanceDecision.grantApplied === false &&
-        issuanceDecision.grantApplicationAllowed === false,
+        issuancePlan.grantApplied === false &&
+        issuancePlan.grantApplicationAllowed === false,
       grantActivationBlocked:
-        issuanceDecision.grantActivated === false &&
-        issuanceDecision.grantActivationAllowed === false,
+        issuancePlan.grantActivated === false &&
+        issuancePlan.grantActivationAllowed === false,
       grantConsumptionBlocked:
-        issuanceDecision.grantConsumed === false &&
-        issuanceDecision.grantConsumptionAllowed === false,
+        issuancePlan.grantConsumed === false &&
+        issuancePlan.grantConsumptionAllowed === false,
       grantRevocationBlocked:
-        issuanceDecision.grantRevoked === false &&
-        issuanceDecision.grantRevocationAllowed === false,
+        issuancePlan.grantRevoked === false &&
+        issuancePlan.grantRevocationAllowed === false,
       grantAuthorityBlocked:
-        issuanceDecision.grantAuthorityAvailable === false &&
-        issuanceDecision.grantAuthorityEnabled === false,
+        issuancePlan.grantAuthorityAvailable === false &&
+        issuancePlan.grantAuthorityEnabled === false,
       authorityDelegationBlocked:
-        issuanceDecision.grantAuthorityDelegated === false &&
-        issuanceDecision.grantAuthorityTransferred === false,
-      issuanceDecisionExecutionBlocked:
-        issuanceDecision.issuanceDecisionExecuted === false,
+        issuancePlan.grantAuthorityDelegated === false &&
+        issuancePlan.grantAuthorityTransferred === false,
+      issuancePlanExecutionBlocked:
+        issuancePlan.issuancePlanExecuted === false,
       authorizationGrantBlocked:
-        issuanceDecision.authorizationGranted === false &&
-        issuanceDecision.authorizationGrantAllowed === false,
+        issuancePlan.authorizationGranted === false &&
+        issuancePlan.authorizationGrantAllowed === false,
       authorizationApplicationBlocked:
-        issuanceDecision.authorizationApplied === false &&
-        issuanceDecision.authorizationApplicationAllowed === false,
+        issuancePlan.authorizationApplied === false &&
+        issuancePlan.authorizationApplicationAllowed === false,
       transitionAuthorizationBlocked:
-        issuanceDecision.transitionAuthorized === false &&
-        issuanceDecision.transitionAuthorizationAllowed === false,
+        issuancePlan.transitionAuthorized === false &&
+        issuancePlan.transitionAuthorizationAllowed === false,
       transitionExecutionBlocked:
-        issuanceDecision.transitionExecuted === false &&
-        issuanceDecision.transitionExecutionAllowed === false,
+        issuancePlan.transitionExecuted === false &&
+        issuancePlan.transitionExecutionAllowed === false,
       preflightExecutionBlocked:
-        issuanceDecision.preflightExecuted === false &&
-        issuanceDecision.preflightExecutionAllowed === false,
+        issuancePlan.preflightExecuted === false &&
+        issuancePlan.preflightExecutionAllowed === false,
       selectionExecutionBlocked:
-        issuanceDecision.selectionExecuted === false &&
-        issuanceDecision.selectionExecutionAllowed === false,
+        issuancePlan.selectionExecuted === false &&
+        issuancePlan.selectionExecutionAllowed === false,
       graphTraversalBlocked:
-        issuanceDecision.graphTraversalExecuted === false &&
-        issuanceDecision.graphTraversalAllowed === false,
+        issuancePlan.graphTraversalExecuted === false &&
+        issuancePlan.graphTraversalAllowed === false,
       activationBlocked:
-        issuanceDecision.hostActivation === false &&
-        issuanceDecision.renderActivation === false &&
-        issuanceDecision.canStartActivation === false,
+        issuancePlan.hostActivation === false &&
+        issuancePlan.renderActivation === false &&
+        issuancePlan.canStartActivation === false,
       commitBlocked:
-        issuanceDecision.transactionCommitted === false &&
-        issuanceDecision.protocolExecuted === false,
+        issuancePlan.transactionCommitted === false &&
+        issuancePlan.protocolExecuted === false,
       rollbackExecutionBlocked: rollbackMeta.rollbackReadiness === "prepared-not-active",
       ownershipTransferBlocked: hostContract.activeWriter === "legacy",
       writerTransferBlocked: hostContract.activeRenderOwner === "legacy",
       rendererTransferBlocked: hostRegistry.renderer === "legacy",
-      currentStateUnmutated: issuanceDecision.currentState === "COMMIT_READY",
-      currentNodeUnmutated: issuanceDecision.currentNode === "COMMIT_READY",
+      currentStateUnmutated: issuancePlan.currentState === "COMMIT_READY",
+      currentNodeUnmutated: issuancePlan.currentNode === "COMMIT_READY",
       selectedTransitionUnmutated:
-        issuanceDecision.selectedTransition === "COMMIT_READY->ACTIVE",
-      tokenAbsent: issuanceDecision.tokenPresent === false,
-      secretAbsent: issuanceDecision.secretPresent === false,
-      signatureAbsent: issuanceDecision.signaturePresent === false,
-      nonceAbsent: issuanceDecision.noncePresent === false,
-      credentialAbsent: issuanceDecision.credentialPresent === false,
-      certificateAbsent: issuanceDecision.certificatePresent === false,
-      permitAbsent: issuanceDecision.permitPresent === false,
-      callbackAbsent: issuanceDecision.callbackPresent === false,
+        issuancePlan.selectedTransition === "COMMIT_READY->ACTIVE",
+      tokenAbsent: issuancePlan.tokenPresent === false,
+      secretAbsent: issuancePlan.secretPresent === false,
+      signatureAbsent: issuancePlan.signaturePresent === false,
+      nonceAbsent: issuancePlan.noncePresent === false,
+      credentialAbsent: issuancePlan.credentialPresent === false,
+      certificateAbsent: issuancePlan.certificatePresent === false,
+      permitAbsent: issuancePlan.permitPresent === false,
+      callbackAbsent: issuancePlan.callbackPresent === false,
       executableHandleAbsent:
-        issuanceDecision.executableHandlePresent === false,
+        issuancePlan.executableHandlePresent === false,
       runtimeCapabilityAbsent:
-        issuanceDecision.runtimeCapabilityPresent === false,
+        issuancePlan.runtimeCapabilityPresent === false,
     };
     const anyForcedNegativeFail = Object.values(forcedNegativeProofs).some(
       (v) => v !== true,
     );
 
-    const issuanceMetaOk =
+    const issuancePlanMetaOk =
       hostRegistry.hostCount === 1 &&
       hostRegistry.containsRuntimeObjects === false &&
       hostRegistry.containsReactInstances === false &&
@@ -700,66 +700,66 @@ async function main() {
       grantReadiness.grantAuthorityAvailable === false &&
       grantReadiness.activationBlocker ===
         "PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY" &&
-      grantReadiness.nextEligibleStep === "3B.3.19" &&
-      // Issuance decision (new for 3B.3.19)
-      issuanceDecision.issuanceDecisionState === "completed" &&
-      issuanceDecision.issuanceDecisionResult ===
-        "authorization-grant-issuance-eligible-not-issued" &&
-      issuanceDecision.issuanceDecisionCompleted === true &&
-      issuanceDecision.issuanceDecisionExecuted === false &&
-      issuanceDecision.issuanceEligible === true &&
-      issuanceDecision.issuanceBlocked === true &&
-      issuanceDecision.wouldIssueGrant === true &&
-      issuanceDecision.grantIssued === false &&
-      issuanceDecision.grantCreated === false &&
-      issuanceDecision.grantMaterialized === false &&
-      issuanceDecision.grantPersisted === false &&
-      issuanceDecision.grantApplied === false &&
-      issuanceDecision.grantActivated === false &&
-      issuanceDecision.grantConsumed === false &&
-      issuanceDecision.grantRevoked === false &&
-      issuanceDecision.grantAuthorityAvailable === false &&
-      issuanceDecision.grantAuthorityEnabled === false &&
-      issuanceDecision.grantAuthorityDelegated === false &&
-      issuanceDecision.grantAuthorityTransferred === false &&
-      issuanceDecision.tokenPresent === false &&
-      issuanceDecision.secretPresent === false &&
-      issuanceDecision.signaturePresent === false &&
-      issuanceDecision.noncePresent === false &&
-      issuanceDecision.credentialPresent === false &&
-      issuanceDecision.certificatePresent === false &&
-      issuanceDecision.permitPresent === false &&
-      issuanceDecision.callbackPresent === false &&
-      issuanceDecision.executableHandlePresent === false &&
-      issuanceDecision.runtimeCapabilityPresent === false &&
-      issuanceDecision.grantReadinessResult ===
+      grantReadiness.nextEligibleStep === "3B.3.20" &&
+      // Issuance decision (new for 3B.3.20)
+      issuancePlan.issuancePlanState === "completed" &&
+      issuancePlan.issuancePlanResult ===
+        "authorization-grant-issuance-plan-ready-not-executable" &&
+      issuancePlan.issuancePlanCompleted === true &&
+      issuancePlan.issuancePlanExecuted === false &&
+      issuancePlan.issuanceEligible === true &&
+      issuancePlan.issuanceBlocked === true &&
+      issuancePlan.wouldIssueGrant === true &&
+      issuancePlan.grantIssued === false &&
+      issuancePlan.grantCreated === false &&
+      issuancePlan.grantMaterialized === false &&
+      issuancePlan.grantPersisted === false &&
+      issuancePlan.grantApplied === false &&
+      issuancePlan.grantActivated === false &&
+      issuancePlan.grantConsumed === false &&
+      issuancePlan.grantRevoked === false &&
+      issuancePlan.grantAuthorityAvailable === false &&
+      issuancePlan.grantAuthorityEnabled === false &&
+      issuancePlan.grantAuthorityDelegated === false &&
+      issuancePlan.grantAuthorityTransferred === false &&
+      issuancePlan.tokenPresent === false &&
+      issuancePlan.secretPresent === false &&
+      issuancePlan.signaturePresent === false &&
+      issuancePlan.noncePresent === false &&
+      issuancePlan.credentialPresent === false &&
+      issuancePlan.certificatePresent === false &&
+      issuancePlan.permitPresent === false &&
+      issuancePlan.callbackPresent === false &&
+      issuancePlan.executableHandlePresent === false &&
+      issuancePlan.runtimeCapabilityPresent === false &&
+      issuancePlan.grantReadinessResult ===
         "authorization-grant-ready-not-issued" &&
-      issuanceDecision.grantReady === true &&
-      issuanceDecision.authorizationDecisionResult ===
+      issuancePlan.grantReady === true &&
+      issuancePlan.authorizationDecisionResult ===
         "authorization-eligible-not-granted" &&
-      issuanceDecision.authorizationEligible === true &&
-      issuanceDecision.authorizationGranted === false &&
-      issuanceDecision.transitionAuthorized === false &&
-      issuanceDecision.currentState === "COMMIT_READY" &&
-      issuanceDecision.currentNode === "COMMIT_READY" &&
-      issuanceDecision.selectedTransition === "COMMIT_READY->ACTIVE" &&
-      issuanceDecision.selectionExecutionAllowed === false &&
-      issuanceDecision.preflightExecutionAllowed === false &&
-      issuanceDecision.authorizationGrantAllowed === false &&
-      issuanceDecision.authorizationApplicationAllowed === false &&
-      issuanceDecision.transitionAuthorizationAllowed === false &&
-      issuanceDecision.transitionExecuted === false &&
-      issuanceDecision.graphTraversalExecuted === false &&
-      issuanceDecision.protocolExecuted === false &&
-      issuanceDecision.transactionCommitted === false &&
-      issuanceDecision.canStartActivation === false &&
-      issuanceDecision.hostActivation === false &&
-      issuanceDecision.renderActivation === false &&
-      issuanceDecision.activationBlocker ===
-        "PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY" &&
-      issuanceDecision.nextEligibleStep === "3B.3.20" &&
-      issuanceDecision.runtimeId === "feed.discovery.legacy-single-mount.v1" &&
-      diag.issuanceDecisionCompleted === true &&
+      issuancePlan.authorizationEligible === true &&
+      issuancePlan.authorizationGranted === false &&
+      issuancePlan.transitionAuthorized === false &&
+      issuancePlan.currentState === "COMMIT_READY" &&
+      issuancePlan.currentNode === "COMMIT_READY" &&
+      issuancePlan.selectedTransition === "COMMIT_READY->ACTIVE" &&
+      issuancePlan.selectionExecutionAllowed === false &&
+      issuancePlan.preflightExecutionAllowed === false &&
+      issuancePlan.authorizationGrantAllowed === false &&
+      issuancePlan.authorizationApplicationAllowed === false &&
+      issuancePlan.transitionAuthorizationAllowed === false &&
+      issuancePlan.transitionExecuted === false &&
+      issuancePlan.graphTraversalExecuted === false &&
+      issuancePlan.protocolExecuted === false &&
+      issuancePlan.transactionCommitted === false &&
+      issuancePlan.canStartActivation === false &&
+      issuancePlan.hostActivation === false &&
+      issuancePlan.renderActivation === false &&
+      issuancePlan.activationBlocker ===
+        "PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY" &&
+      issuancePlan.nextEligibleStep === "3B.3.20" &&
+      issuancePlan.runtimeId === "feed.discovery.legacy-single-mount.v1" &&
+      diag.issuancePlanCompleted === true &&
       diag.issuanceEligible === true &&
       diag.issuanceBlocked === true &&
       diag.wouldIssueGrant === true &&
@@ -776,7 +776,7 @@ async function main() {
       diag.issuanceImpossible === true &&
       diag.authorityImpossible === true &&
       diag.executionImpossible === true &&
-      diag.currentPhase === "3B.3.19" &&
+      diag.currentPhase === "3B.3.20" &&
       diag.nextEligibleStep === "3B.3.20" &&
       typeof diag.conditionCount === "number" &&
       diag.conditionCount > 0 &&
@@ -798,7 +798,7 @@ async function main() {
 
     const artifact = {
       schemaVersion: 1,
-      phase: "3B.3.19",
+      phase: "3B.3.20",
       branch,
       commit,
       browser: "chromium-puppeteer-core",
@@ -836,11 +836,11 @@ async function main() {
       hostActivationTransitionPreflight,
       hostActivationTransitionAuthorizationDecision,
       hostActivationTransitionAuthorizationGrantReadiness: grantReadiness,
-      hostActivationTransitionAuthorizationGrantIssuanceDecision:
-        issuanceDecision,
+      hostActivationTransitionAuthorizationGrantIssuancePlan:
+        issuancePlan,
       shadowPlacement,
       shadowPlacementIdentity: shadowIdentity,
-      issuanceMetaOk,
+      issuancePlanMetaOk,
       forcedNegativeProofs,
       activationAttempt: {
         blocked: true,
@@ -853,10 +853,10 @@ async function main() {
       hostPlan,
       hostContract,
       scenarios: [
-        "HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION",
+        "HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN",
         "AUTHORIZATION_GRANT_ISSUANCE_ELIGIBLE_NOT_ISSUED",
-        "ISSUANCE_DECISION_METADATA_VISIBLE",
-        "ISSUANCE_DECISION_DIAGNOSTICS_VISIBLE",
+        "ISSUANCE_PLAN_METADATA_VISIBLE",
+        "ISSUANCE_PLAN_DIAGNOSTICS_VISIBLE",
         "GRANT_READINESS_LINKAGE_VISIBLE",
         "WOULD_ISSUE_GRANT_VISIBLE",
         "REGISTRY_METADATA_ONLY",
@@ -875,28 +875,28 @@ async function main() {
       },
       feedNetworkCount: feedReqs.length,
       overallVerdict:
-        anyFail || !issuanceMetaOk
-          ? "NOT_READY_FOR_PHASE_3B_3_20"
-          : "READY_FOR_PHASE_3B_3_20",
+        anyFail || !issuancePlanMetaOk
+          ? "NOT_READY_FOR_PHASE_3B_3_21"
+          : "READY_FOR_PHASE_3B_3_21",
     };
 
     const outPath = join(
       outDir,
-      "phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-proof.json",
+      "phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-plan-proof.json",
     );
     writeFileSync(outPath, JSON.stringify(artifact, null, 2));
 
     const prepared = {
       schemaVersion: 1,
-      phase: "3B.3.19",
-      status: "host-activation-transition-authorization-grant-issuance-decision-prepared",
-      issuanceDecisionContract: "valid",
+      phase: "3B.3.20",
+      status: "host-activation-transition-authorization-grant-issuance-plan-prepared",
+      issuancePlanContract: "valid",
       identityContract: "valid",
       diagnosticsReadable: true,
-      issuanceDecisionState: "completed",
-      issuanceDecisionResult: "authorization-grant-issuance-eligible-not-issued",
-      issuanceDecisionCompleted: true,
-      issuanceDecisionExecuted: false,
+      issuancePlanState: "completed",
+      issuancePlanResult: "authorization-grant-issuance-plan-ready-not-executable",
+      issuancePlanCompleted: true,
+      issuancePlanExecuted: false,
       issuanceEligible: true,
       issuanceBlocked: true,
       wouldIssueGrant: true,
@@ -981,7 +981,7 @@ async function main() {
       owner: "legacy",
       renderer: "legacy",
       rollbackFoundation: "prepared-not-active",
-      browserProof: anyFail || !issuanceMetaOk ? "fail" : "pass",
+      browserProof: anyFail || !issuancePlanMetaOk ? "fail" : "pass",
       existing20Invariants: anyFail ? "fail" : "pass",
       nextEligibleStep: "3B.3.20",
       activeHostMigration: false,
@@ -999,7 +999,7 @@ async function main() {
       authorizationApplicationAuthorized: false,
       transitionAuthorizationAuthorized: false,
       grantReadinessExecutionAuthorized: false,
-      issuanceDecisionExecutionAuthorized: false,
+      issuancePlanExecutionAuthorized: false,
       grantCreationAuthorized: false,
       grantIssuanceAuthorized: false,
       grantMaterializationAuthorized: false,
@@ -1022,32 +1022,32 @@ async function main() {
       secondGeofeedAuthorized: false,
       evidenceCommit: commit,
       evidenceArtifactPath:
-        "docs/audits/artifacts/phase3b319/phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-proof.json",
+        "docs/audits/artifacts/phase3b320/phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-plan-proof.json",
     };
     writeFileSync(
       join(
         outDir,
-        "phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-prepared.json",
+        "phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-plan-prepared.json",
       ),
       JSON.stringify(prepared, null, 2),
     );
     writeFileSync(
       join(
         outDir,
-        "phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-summary.md",
+        "phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-plan-summary.md",
       ),
       [
-        `# Phase 3B.3.19 Host Activation Transition Authorization Grant Issuance Decision Proof Summary`,
+        `# Phase 3B.3.20 Host Activation Transition Authorization Grant Issuance Plan Proof Summary`,
         ``,
         `- Verdict: **${artifact.overallVerdict}**`,
         `- Commit: \`${commit}\``,
         `- Branch: \`${branch}\``,
-        `- Issuance decision: result=${issuanceDecision.issuanceDecisionResult} eligible=${issuanceDecision.issuanceEligible} issued=${issuanceDecision.grantIssued} wouldIssueGrant=${issuanceDecision.wouldIssueGrant}`,
+        `- Issuance decision: result=${issuancePlan.issuancePlanResult} eligible=${issuancePlan.issuanceEligible} issued=${issuancePlan.grantIssued} wouldIssueGrant=${issuancePlan.wouldIssueGrant}`,
         `- Grant readiness linkage: result=${grantReadiness.grantReadinessResult} ready=${grantReadiness.grantReady}`,
-        `- Selected transition: ${issuanceDecision.selectedTransition} (current=${issuanceDecision.currentState}/${issuanceDecision.currentNode})`,
+        `- Selected transition: ${issuancePlan.selectedTransition} (current=${issuancePlan.currentState}/${issuancePlan.currentNode})`,
         `- Diagnostics: phase=${diag.currentPhase} next=${diag.nextEligibleStep} conditions=${diag.satisfiedConditionCount}/${diag.conditionCount} guards=${diag.satisfiedGuardCount}/${diag.guardCount}`,
         `- Registry: hostCount=${hostRegistry.hostCount} runtimeId=${hostRegistry.runtimeId}`,
-        `- Host activation: false (blocked by PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY); canStartActivation=false; grantIssued=false; grantAuthorityAvailable=false`,
+        `- Host activation: false (blocked by PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY); canStartActivation=false; grantIssued=false; grantAuthorityAvailable=false`,
         `- Forced negative proofs: ${Object.values(forcedNegativeProofs).every((v) => v === true) ? "all pass" : "FAILURES PRESENT"}`,
         `- Mount/unmount: ${final.mountCount}/${final.unmountCount}`,
         `- Invariants PASS: ${invariants.filter((i) => i.status === "PASS").length}/20`,
@@ -1059,12 +1059,12 @@ async function main() {
     console.log(
       JSON.stringify(
         {
-          ok: !anyFail && issuanceMetaOk,
+          ok: !anyFail && issuancePlanMetaOk,
           outPath,
           verdict: artifact.overallVerdict,
           passCount: invariants.filter((i) => i.status === "PASS").length,
           fail: invariants.filter((i) => i.status !== "PASS").map((i) => i.id),
-          issuanceMetaOk,
+          issuancePlanMetaOk,
           forcedNegativeProofsOk: !anyForcedNegativeFail,
         },
         null,
@@ -1073,7 +1073,7 @@ async function main() {
     );
 
     await browser.close();
-    process.exit(anyFail || !issuanceMetaOk ? 1 : 0);
+    process.exit(anyFail || !issuancePlanMetaOk ? 1 : 0);
   } catch (err) {
     console.error(err);
     try {

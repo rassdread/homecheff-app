@@ -6,6 +6,7 @@ import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
 import { PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-decision";
+import { PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-plan";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -20,7 +21,7 @@ export type ControlledFeedHostPlan = {
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
   blockerSet: readonly [typeof PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY];
-  recommendedNextStep: "3B.3.20-controlled-host-activation-candidate";
+  recommendedNextStep: "3B.3.21-controlled-host-activation-candidate";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -101,6 +102,14 @@ export type ControlledFeedHostPlan = {
   issuanceDecisionExecuted: false;
   issuanceEligible: true;
   issuanceBlocked: true;
+  issuancePlanState: "completed";
+  issuancePlanResult: "authorization-grant-issuance-plan-ready-not-executable";
+  issuancePlanCompleted: true;
+  issuancePlanExecuted: false;
+  issuancePlanReady: true;
+  issuancePlanBlocked: true;
+  issuancePlanExecutable: false;
+  wouldExecuteIssuancePlan: true;
   tokenPresent: false;
   secretPresent: false;
   signaturePresent: false;
@@ -214,6 +223,14 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     issuanceDecisionExecuted: false,
     issuanceEligible: true,
     issuanceBlocked: true,
+    issuancePlanState: "completed",
+    issuancePlanResult: "authorization-grant-issuance-plan-ready-not-executable",
+    issuancePlanCompleted: true,
+    issuancePlanExecuted: false,
+    issuancePlanReady: true,
+    issuancePlanBlocked: true,
+    issuancePlanExecutable: false,
+    wouldExecuteIssuancePlan: true,
     tokenPresent: false,
     secretPresent: false,
     signaturePresent: false,

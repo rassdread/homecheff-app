@@ -20,7 +20,7 @@ import {
   PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
-  PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+  PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
   CONTROLLED_HOST_ACTIVATION_TRANSITION_SELECTION_INPUT_SOURCES,
   CONTROLLED_HOST_ACTIVATION_SELECTION_CANDIDATE_TRANSITIONS,
   CONTROLLED_HOST_ACTIVATION_SELECTION_ELIGIBLE_TRANSITIONS,
@@ -86,7 +86,7 @@ if (!artifactsPresent && process.env.REQUIRE_PHASE3B315_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.20");
+assert.equal(host.nextEligibleStep, "3B.3.21");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
@@ -196,6 +196,7 @@ const gate = evaluateFeedHostActivationGate({
   phase3b317ProofValid: true,
   phase3b318ProofValid: true,
     phase3b319ProofValid: true,
+    phase3b320ProofValid: true,
   observedWriter: "legacy",
   observedRenderOwner: "legacy",
   observedMountCount: 1,
@@ -217,14 +218,15 @@ const gate = evaluateFeedHostActivationGate({
   observedTransitionAuthorizationDecisionState: "completed",
   observedTransitionAuthorizationGrantReadinessState: "completed",
     observedTransitionAuthorizationGrantIssuanceDecisionState: "completed",
+    observedTransitionAuthorizationGrantIssuancePlanState: "completed",
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
 assert.ok(
-  gate.blockers.includes(PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY),
+  gate.blockers.includes(PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY),
 );
-assert.equal(gate.currentStep, "3B.3.19");
-assert.equal(gate.eligibleStep, "3B.3.20");
+assert.equal(gate.currentStep, "3B.3.20");
+assert.equal(gate.eligibleStep, "3B.3.21");
 assert.equal(gate.transitionSelectionStatus, "completed");
 assert.equal(gate.transitionPreflightStatus, "completed");
 
@@ -250,7 +252,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*20/);
+assert.match(probeBridge, /version:\s*21/);
 assert.match(probeBridge, /readHostActivationTransitionPreflight/);
 assert.match(
   probeBridge,

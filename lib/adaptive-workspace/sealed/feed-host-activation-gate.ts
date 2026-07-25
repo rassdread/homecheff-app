@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.19 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY.
+ * Phase 3B.3.20 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
@@ -9,6 +9,7 @@ import { PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY } from "./contro
 import { PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY } from "./controlled-host-activation-transition-authorization-decision";
 import { PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY } from "./controlled-host-activation-transition-authorization-grant-readiness";
 import { PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-decision";
+import { PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-plan";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -30,11 +31,12 @@ export { PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY };
 export { PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY };
 export { PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY };
 export { PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY };
+export { PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.19";
-  eligibleStep: "3B.3.20";
+  currentStep: "3B.3.20";
+  eligibleStep: "3B.3.21";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -60,6 +62,7 @@ export type FeedHostActivationGateResult = {
   transitionAuthorizationDecisionStatus: "completed" | "mismatch";
   transitionAuthorizationGrantReadinessStatus: "completed" | "mismatch";
   transitionAuthorizationGrantIssuanceDecisionStatus: "completed" | "mismatch";
+  transitionAuthorizationGrantIssuancePlanStatus: "completed" | "mismatch";
 };
 
 export type FeedHostActivationGateInput = {
@@ -84,6 +87,7 @@ export type FeedHostActivationGateInput = {
   phase3b317ProofValid?: boolean;
   phase3b318ProofValid?: boolean;
   phase3b319ProofValid?: boolean;
+  phase3b320ProofValid?: boolean;
   forceHostActivation?: unknown;
   envHostActivation?: unknown;
   queryHostActivation?: unknown;
@@ -117,6 +121,9 @@ export type FeedHostActivationGateInput = {
   observedTransitionAuthorizationGrantIssuanceDecisionState?:
     | "completed"
     | "missing";
+  observedTransitionAuthorizationGrantIssuancePlanState?:
+    | "completed"
+    | "missing";
   observedRuntimeId?: string;
 };
 
@@ -125,10 +132,10 @@ export function evaluateFeedHostActivationGate(
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
   const blockers: string[] = [
-    PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+    PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
   ];
   const reasons: string[] = [
-    "Phase 3B.3.19 models sealed activation transition authorization grant issuance decision only; hostActivation remains deferred to 3B.3.20",
+    "Phase 3B.3.20 models sealed activation transition authorization grant issuance plan only; hostActivation remains deferred to 3B.3.21",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -163,7 +170,8 @@ export function evaluateFeedHostActivationGate(
     input.phase3b316ProofValid === false ||
     input.phase3b317ProofValid === false ||
     input.phase3b318ProofValid === false ||
-    input.phase3b319ProofValid === false
+    input.phase3b319ProofValid === false ||
+    input.phase3b320ProofValid === false
   ) {
     blockers.push("missing-proof", "proof-fail");
   }
@@ -328,6 +336,15 @@ export function evaluateFeedHostActivationGate(
     blockers.push("react-identity-changed");
   }
 
+  let transitionAuthorizationGrantIssuancePlanStatus: FeedHostActivationGateResult["transitionAuthorizationGrantIssuancePlanStatus"] =
+    "completed";
+  if (
+    input.observedTransitionAuthorizationGrantIssuancePlanState === "missing"
+  ) {
+    transitionAuthorizationGrantIssuancePlanStatus = "mismatch";
+    blockers.push("react-identity-changed");
+  }
+
   if (
     typeof input.observedRuntimeId === "string" &&
     input.observedRuntimeId.length > 0 &&
@@ -350,6 +367,7 @@ export function evaluateFeedHostActivationGate(
     transitionAuthorizationDecisionStatus = "mismatch";
     transitionAuthorizationGrantReadinessStatus = "mismatch";
     transitionAuthorizationGrantIssuanceDecisionStatus = "mismatch";
+    transitionAuthorizationGrantIssuancePlanStatus = "mismatch";
     blockers.push("react-identity-changed");
   }
 
@@ -366,8 +384,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.19",
-    eligibleStep: "3B.3.20",
+    currentStep: "3B.3.20",
+    eligibleStep: "3B.3.21",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,
@@ -393,5 +411,6 @@ export function evaluateFeedHostActivationGate(
     transitionAuthorizationDecisionStatus,
     transitionAuthorizationGrantReadinessStatus,
     transitionAuthorizationGrantIssuanceDecisionStatus,
+    transitionAuthorizationGrantIssuancePlanStatus,
   };
 }

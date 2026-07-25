@@ -140,7 +140,10 @@
     "perf:startup": "node scripts/performance/measure-homecheff-startup.mjs",
     "perf:startup:cold": "node scripts/performance/measure-homecheff-startup.mjs --mode=cold --runs=3",
     "perf:startup:warm": "node scripts/performance/measure-homecheff-startup.mjs --mode=warm --runs=3",
-    "analyze": "cross-env ANALYZE=true npm run build"
+    "analyze": "cross-env ANALYZE=true npm run build",
+    "test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan": "npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-plan-tests.ts",
+    "validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan": "npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan.ts",
+    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-plan-proof-phase3b320.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
