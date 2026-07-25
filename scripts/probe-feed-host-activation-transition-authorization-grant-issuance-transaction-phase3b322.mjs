@@ -631,7 +631,7 @@ async function main() {
       hostActivationDecision.decisionState === "completed" &&
       hostActivationPlan.planState === "completed" &&
       hostActivationPipeline.activationBlocker ===
-        "PHASE_3B3_9_HOST_ACTIVATION_TRANSACTION_ONLY" &&
+        "PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY" &&
       hostActivationTransaction.activationBlocker ===
         "PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY" &&
       hostActivationCommitReadiness.activationBlocker ===
