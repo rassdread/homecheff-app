@@ -157,6 +157,7 @@ export {
   PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY,
   PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
+  PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -646,3 +647,53 @@ export {
   validateFeedHostActivationStateMachinePreparedContract,
   type FeedHostActivationStateMachinePreparedContract,
 } from "./sealed/feed-host-activation-state-machine-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_GRAPH_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_GRAPH_ID,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_GRAPH_VERSION,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_NODES,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_EDGES,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_ENTRY_NODE,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_CURRENT_NODE,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_TERMINAL_NODES,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_REACHABLE_NODES,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_UNREACHABLE_NODES,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_ALLOWED_PATHS,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_BLOCKED_PATHS,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_EDGE_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_EDGE_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_GRAPH_EDGE_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_GRAPH_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_GRAPH_INPUT_SOURCES,
+  createControlledHostActivationTransitionGraphDescriptor,
+  evaluateControlledHostActivationTransitionGraph,
+  validateControlledHostActivationTransitionGraphDescriptor,
+  type ControlledHostActivationTransitionGraphDescriptor,
+  type ControlledHostActivationTransitionGraphEvaluation,
+  type ControlledHostActivationTransitionGraphDiagnostics,
+} from "./sealed/controlled-host-activation-transition-graph";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_GRAPH_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_GRAPH_REQUIREMENTS,
+  createControlledHostActivationTransitionGraphContract,
+  validateControlledHostActivationTransitionGraphContract,
+  type ControlledHostActivationTransitionGraphContract,
+  type ControlledHostActivationTransitionGraphRequirement,
+} from "./sealed/controlled-host-activation-transition-graph-contract";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_GRAPH_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationTransitionGraphIdentity,
+  validateFeedHostActivationTransitionGraphIdentity,
+  type FeedHostActivationTransitionGraphIdentity,
+} from "./sealed/feed-host-activation-transition-graph-identity";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_GRAPH_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationTransitionGraphPreparedContract,
+  validateFeedHostActivationTransitionGraphPreparedContract,
+  type FeedHostActivationTransitionGraphPreparedContract,
+} from "./sealed/feed-host-activation-transition-graph-prepared";
+

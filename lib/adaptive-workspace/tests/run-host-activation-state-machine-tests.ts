@@ -23,6 +23,7 @@ import {
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
+  PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -197,6 +198,7 @@ console.log("\n[phase3b313] contract + identity + activation safety");
     phase3b311ProofValid: true,
     phase3b312ProofValid: true,
     phase3b313ProofValid: true,
+    phase3b314ProofValid: true,
     observedWriter: "legacy",
     observedRenderOwner: "legacy",
     observedMountCount: 1,
@@ -212,14 +214,15 @@ console.log("\n[phase3b313] contract + identity + activation safety");
     observedCommitReadinessState: "completed",
     observedCommitProtocolState: "completed",
     observedStateMachineState: "completed",
+    observedTransitionGraphState: "completed",
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
   assert.ok(
-    gate.blockers.includes(PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY),
+    gate.blockers.includes(PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY),
   );
-  assert.equal(gate.currentStep, "3B.3.13");
-  assert.equal(gate.eligibleStep, "3B.3.14");
+  assert.equal(gate.currentStep, "3B.3.14");
+  assert.equal(gate.eligibleStep, "3B.3.15");
   ok("activation remains impossible");
 }
 

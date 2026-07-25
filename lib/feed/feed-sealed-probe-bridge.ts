@@ -1,5 +1,5 @@
 /**
- * Phase 3B.2/3B.3.13 — namespaced browser probe bridge for sealed Feed instrumentation.
+ * Phase 3B.2/3B.3.14 — namespaced browser probe bridge for sealed Feed instrumentation.
  *
  * Installed only when NEXT_PUBLIC_FEED_SEALED_BASELINE=1 (compile-time gate).
  */
@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 14;
+  version: 15;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -31,15 +31,15 @@ export type FeedSealedProbeApi = {
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.13";
-    eligibleStep: "3B.3.14";
+    currentStep: "3B.3.14";
+    eligibleStep: "3B.3.15";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
     activeRenderOwner: "legacy";
     activeWriter: "legacy";
-    nextEligibleStep: "3B.3.14";
+    nextEligibleStep: "3B.3.15";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
@@ -75,6 +75,10 @@ export type FeedSealedProbeApi = {
     stateMachineResult?: "state-machine-complete-not-executable";
     currentActivationLifecycleState?: "COMMIT_READY";
     transitionExecuted?: false;
+    transitionGraphState?: "completed";
+    transitionGraphResult?: "transition-graph-complete-not-executable";
+    currentGraphNode?: "COMMIT_READY";
+    graphTraversalExecuted?: false;
     recommendedNextStep: string;
   }>;
   readShadowPlacement: () => Promise<{
@@ -202,7 +206,45 @@ export type FeedSealedProbeApi = {
     };
   }>;
 
-  readHostActivationStateMachine: () => Promise<{
+  readHostActivationTransitionGraph: () => Promise<{
+    phase: "3B.3.14";
+    graphId: string;
+    graphVersion: 1;
+    graphState: "completed";
+    graphResult: "transition-graph-complete-not-executable";
+    currentNode: "COMMIT_READY";
+    entryNode: "LEGACY_DORMANT";
+    terminalNodes: readonly string[];
+    graphNodes: readonly string[];
+    graphEdges: readonly string[];
+    reachableNodes: readonly string[];
+    unreachableNodes: readonly string[];
+    allowedPaths: readonly string[];
+    blockedPaths: readonly string[];
+    edgeGuards: readonly string[];
+    edgeBlockers: readonly string[];
+    edgePreconditions: readonly string[];
+    graphTraversalExecuted: false;
+    transitionExecuted: false;
+    protocolExecuted: false;
+    transactionCommitted: false;
+    wouldCommit: true;
+    commitReady: true;
+    machineResult: "state-machine-complete-not-executable";
+    protocolResult: "protocol-complete-not-executable";
+    decisionResult: "ALLOW";
+    planResult: "plan-complete-not-executable";
+    pipelineResult: "pipeline-complete-not-executable";
+    wouldActivate: true;
+    runtimeId: string;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    activationBlocker: "PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY";
+    nextEligibleStep: "3B.3.15";
+    diagnostics: Record<string, unknown>;
+  }>;
+    readHostActivationStateMachine: () => Promise<{
     phase: "3B.3.13";
     machineId: string;
     machineVersion: 1;
@@ -496,7 +538,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 14,
+    version: 15,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -544,6 +586,7 @@ export function installFeedSealedProbeBridge(): void {
         phase3b311ProofValid: true,
         phase3b312ProofValid: true,
         phase3b313ProofValid: true,
+        phase3b314ProofValid: true,
         observedWriter: "legacy",
         observedRenderOwner: "legacy",
         observedMountCount: 1,
@@ -559,13 +602,14 @@ export function installFeedSealedProbeBridge(): void {
         observedCommitReadinessState: "completed",
         observedCommitProtocolState: "completed",
         observedStateMachineState: "completed",
+        observedTransitionGraphState: "completed",
         observedRuntimeId: "feed.discovery.legacy-single-mount.v1",
       });
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.13" as const,
-        eligibleStep: "3B.3.14" as const,
+        currentStep: "3B.3.14" as const,
+        eligibleStep: "3B.3.15" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -576,7 +620,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activeRenderOwner: "legacy" as const,
         activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.14" as const,
+        nextEligibleStep: "3B.3.15" as const,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -616,6 +660,10 @@ export function installFeedSealedProbeBridge(): void {
         stateMachineResult: "state-machine-complete-not-executable" as const,
         currentActivationLifecycleState: "COMMIT_READY" as const,
         transitionExecuted: false as const,
+        transitionGraphState: "completed" as const,
+        transitionGraphResult: "transition-graph-complete-not-executable" as const,
+        currentGraphNode: "COMMIT_READY" as const,
+        graphTraversalExecuted: false as const,
         recommendedNextStep: p.recommendedNextStep,
       };
     },
@@ -734,7 +782,50 @@ export function installFeedSealedProbeBridge(): void {
         diagnostics: evaluation.diagnostics,
       };
     },
-    readHostActivationStateMachine: async () => {
+    readHostActivationTransitionGraph: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledHostActivationTransitionGraph();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.14" as const,
+        graphId: d.graphId,
+        graphVersion: 1 as const,
+        graphState: "completed" as const,
+        graphResult: "transition-graph-complete-not-executable" as const,
+        currentNode: "COMMIT_READY" as const,
+        entryNode: "LEGACY_DORMANT" as const,
+        terminalNodes: d.terminalNodes,
+        graphNodes: d.graphNodes,
+        graphEdges: d.graphEdges,
+        reachableNodes: d.reachableNodes,
+        unreachableNodes: d.unreachableNodes,
+        allowedPaths: d.allowedPaths,
+        blockedPaths: d.blockedPaths,
+        edgeGuards: d.edgeGuards,
+        edgeBlockers: d.edgeBlockers,
+        edgePreconditions: d.edgePreconditions,
+        graphTraversalExecuted: false as const,
+        transitionExecuted: false as const,
+        protocolExecuted: false as const,
+        transactionCommitted: false as const,
+        wouldCommit: true as const,
+        commitReady: true as const,
+        machineResult: "state-machine-complete-not-executable" as const,
+        protocolResult: "protocol-complete-not-executable" as const,
+        decisionResult: "ALLOW" as const,
+        planResult: "plan-complete-not-executable" as const,
+        pipelineResult: "pipeline-complete-not-executable" as const,
+        wouldActivate: true as const,
+        runtimeId: d.runtimeId,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker: "PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY" as const,
+        nextEligibleStep: "3B.3.15" as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+        readHostActivationStateMachine: async () => {
       const mod = await import("@/lib/adaptive-workspace");
       const evaluation = mod.evaluateControlledHostActivationStateMachine();
       const d = evaluation.descriptor;
