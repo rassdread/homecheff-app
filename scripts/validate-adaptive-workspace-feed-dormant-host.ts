@@ -1,0 +1,156 @@
+/**
+ * Phase 3B.3.1 static validator — dormant controlled host foundation.
+ */
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  createControlledFeedHostContract,
+  createFeedHostRollbackContract,
+  createControlledFeedHostPlan,
+  evaluateFeedHostActivationGate,
+  PHASE_3B3_1_DORMANT_HOST_ONLY,
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
+  validateFeedBrowserProofArtifact,
+  validateFeedDiscoveryFreezeContract,
+  createFeedDiscoverySealedContract,
+  validateFeedDormantHostReadinessContract,
+} from "../lib/adaptive-workspace";
+
+const root = process.cwd();
+
+function mustExist(rel: string) {
+  assert.ok(existsSync(join(root, rel)), `missing ${rel}`);
+}
+
+mustExist("lib/adaptive-workspace/sealed/create-controlled-feed-host-contract.ts");
+mustExist("lib/adaptive-workspace/sealed/feed-host-activation-gate.ts");
+mustExist("lib/adaptive-workspace/sealed/feed-host-rollback-contract.ts");
+mustExist("lib/adaptive-workspace/sealed/controlled-feed-host-plan.ts");
+mustExist("lib/adaptive-workspace/sealed/feed-dormant-host-readiness.ts");
+mustExist("components/adaptive-workspace/FeedControlledHostShell.tsx");
+mustExist(
+  "docs/audits/homecheff-adaptive-workspace-phase3b3-1-feed-dormant-host-foundation.md",
+);
+mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json");
+mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json");
+mustExist("docs/audits/artifacts/phase3b3/phase3b3-1-feed-dormant-host-proof.json");
+mustExist(
+  "docs/audits/artifacts/phase3b3/phase3b3-1-feed-dormant-host-readiness.json",
+);
+
+const contract = createControlledFeedHostContract();
+assert.equal(contract.hostActivation, false);
+assert.equal(contract.renderActivation, false);
+assert.equal(contract.activeRenderOwner, "legacy");
+assert.equal(contract.activeWriter, "legacy");
+assert.equal(contract.nextEligibleStep, "3B.3.2");
+
+const gate = evaluateFeedHostActivationGate({
+  phase3b2ProofValid: true,
+  phase3b2FreezeValid: true,
+  forceHostActivation: true,
+});
+assert.equal(gate.allowed, false);
+assert.ok(gate.blockers.includes(PHASE_3B3_1_DORMANT_HOST_ONLY));
+
+const rollback = createFeedHostRollbackContract();
+assert.equal(rollback.rollbackTarget, "legacy");
+assert.equal(rollback.rollbackReadiness, "prepared-not-active");
+
+const plan = createControlledFeedHostPlan();
+assert.equal(plan.activationState, "dormant");
+
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.childFactoryRegistered, false);
+
+const shell = readFileSync(
+  join(root, "components/adaptive-workspace/FeedControlledHostShell.tsx"),
+  "utf8",
+);
+assert.doesNotMatch(
+  shell,
+  /from\s+['"][^'"]*(GeoFeed|HomeGeoFeedDynamic|components\/feed)[^'"]*['"]/,
+);
+assert.doesNotMatch(shell, /useEffect|useState|useRef|Suspense|createPortal/);
+assert.match(shell, /return null/);
+
+assert.equal(
+  existsSync(join(root, "components/adaptive-workspace/FeedWorkspaceRoot.tsx")),
+  false,
+);
+
+const home = readFileSync(join(root, "components/home/HomePageClient.tsx"), "utf8");
+assert.equal((home.match(/<GeoFeed\b/g) ?? []).length, 1);
+assert.doesNotMatch(home, /FeedControlledHostShell|hostActivation/);
+
+const geoDynamic = readFileSync(
+  join(root, "components/home/HomeGeoFeedDynamic.tsx"),
+  "utf8",
+);
+assert.equal(
+  (geoDynamic.match(/import\(['"]@\/components\/feed\/GeoFeed['"]\)/g) ?? [])
+    .length,
+  2,
+);
+
+const proof = validateFeedBrowserProofArtifact(
+  JSON.parse(
+    readFileSync(
+      join(root, "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json"),
+      "utf8",
+    ),
+  ),
+);
+assert.equal(proof.overallVerdict, "READY_FOR_PHASE_3B_3");
+
+const freezeRaw = JSON.parse(
+  readFileSync(
+    join(root, "docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json"),
+    "utf8",
+  ),
+);
+validateFeedDiscoveryFreezeContract({
+  ...freezeRaw,
+  sealedContract: createFeedDiscoverySealedContract(),
+  releaseBlockingInvariantIds: createFeedDiscoverySealedContract().invariantIds,
+});
+
+const dormantProof = JSON.parse(
+  readFileSync(
+    join(
+      root,
+      "docs/audits/artifacts/phase3b3/phase3b3-1-feed-dormant-host-proof.json",
+    ),
+    "utf8",
+  ),
+);
+assert.equal(dormantProof.overallVerdict, "READY_FOR_PHASE_3B_3_2");
+assert.equal(dormantProof.hostActivation, false);
+assert.equal(dormantProof.renderActivation, false);
+assert.equal(dormantProof.shellChildCount, 0);
+assert.equal(dormantProof.shellDOMNodeCount, 0);
+assert.equal(dormantProof.rendererRegistrationCount, 0);
+assert.equal(dormantProof.activationAttempt.blocked, true);
+
+const readiness = validateFeedDormantHostReadinessContract(
+  JSON.parse(
+    readFileSync(
+      join(
+        root,
+        "docs/audits/artifacts/phase3b3/phase3b3-1-feed-dormant-host-readiness.json",
+      ),
+      "utf8",
+    ),
+  ),
+);
+assert.equal(readiness.nextEligibleStep, "3B.3.2");
+assert.equal(readiness.hostActivation, false);
+
+const queryParams = readFileSync(join(root, "lib/feed/feed-query-params.ts"), "utf8");
+assert.doesNotMatch(
+  queryParams,
+  /adaptive-workspace|hostActivation|AvailableSpace|feed\.discovery/,
+);
+
+console.log("validate-adaptive-workspace-feed-dormant-host: ok");

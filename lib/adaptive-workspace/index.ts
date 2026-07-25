@@ -69,6 +69,7 @@ export {
   sealedPrimaryManifest,
   feedGeoTestManifest,
   feedDiscoveryManifest,
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   notificationsInboxManifest,
   messagesListManifest,
   messagesChatManifest,
@@ -129,3 +130,43 @@ export {
   type FeedBrowserProofInvariantRow,
   type FeedBrowserProofStatus,
 } from "./sealed/validate-feed-browser-proof";
+
+export {
+  CONTROLLED_FEED_HOST_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_FEED_HOST_ACTIVATION_PREREQUISITES,
+  CONTROLLED_FEED_HOST_ACTIVATION_BLOCKERS,
+  type ControlledFeedHostContract,
+  type ControlledFeedHostActivationPrerequisite,
+  type ControlledFeedHostActivationBlocker,
+} from "./sealed/controlled-feed-host-types";
+
+export { createControlledFeedHostContract } from "./sealed/create-controlled-feed-host-contract";
+export { validateControlledFeedHostContract } from "./sealed/validate-controlled-feed-host-contract";
+
+export {
+  PHASE_3B3_1_DORMANT_HOST_ONLY,
+  evaluateFeedHostActivationGate,
+  type FeedHostActivationGateResult,
+  type FeedHostActivationGateInput,
+} from "./sealed/feed-host-activation-gate";
+
+export {
+  FEED_HOST_ROLLBACK_SCHEMA_VERSION,
+  FEED_HOST_ROLLBACK_TRIGGER_TYPES,
+  createFeedHostRollbackContract,
+  validateFeedHostRollbackContract,
+  type FeedHostRollbackContract,
+  type FeedHostRollbackTriggerType,
+} from "./sealed/feed-host-rollback-contract";
+
+export {
+  createControlledFeedHostPlan,
+  type ControlledFeedHostPlan,
+} from "./sealed/controlled-feed-host-plan";
+
+export {
+  FEED_DORMANT_HOST_READINESS_SCHEMA_VERSION,
+  createFeedDormantHostReadinessContract,
+  validateFeedDormantHostReadinessContract,
+  type FeedDormantHostReadinessContract,
+} from "./sealed/feed-dormant-host-readiness";

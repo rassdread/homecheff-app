@@ -207,6 +207,31 @@ async function waitForFeedUsable(page) {
   );
 }
 
+/** Wait until Feed IO create counters stop changing (legacy async observers). */
+async function waitForObserverQuiet(page, quietMs = 1200, maxMs = 15000) {
+  const start = Date.now();
+  let last = -1;
+  let lastPage = -1;
+  let quietSince = Date.now();
+  while (Date.now() - start < maxMs) {
+    const cur = await page.evaluate(() => {
+      const c = window.__HC_FEED_SEALED_PROBE__?.readCounters?.();
+      return {
+        feedIo: c?.intersectionObserverCreateCount ?? 0,
+        pageIo: window.__HC_IO_CREATE__ ?? 0,
+      };
+    });
+    if (cur.feedIo === last && cur.pageIo === lastPage) {
+      if (Date.now() - quietSince >= quietMs) return;
+    } else {
+      last = cur.feedIo;
+      lastPage = cur.pageIo;
+      quietSince = Date.now();
+    }
+    await sleep(200);
+  }
+}
+
 async function readProbe(page) {
   return page.evaluate(() => {
     const probe = window.__HC_FEED_SEALED_PROBE__;
@@ -322,6 +347,7 @@ async function main() {
     // Allow client hydration + GeoFeed dynamic import
     await sleep(3000);
     await waitForFeedUsable(page);
+    await waitForObserverQuiet(page);
     const offSnap = await readProbe(page);
     if (!offSnap) throw new Error("Sealed probe not installed — rebuild with NEXT_PUBLIC_FEED_SEALED_BASELINE=1");
 
@@ -336,17 +362,20 @@ async function main() {
     const offPagReset = offSnap.counters.paginationResetCount;
     const offResultInit = offSnap.counters.resultCacheInitCount;
     const offFilterInit = offSnap.counters.filterCacheInitCount;
-    const offIo = offSnap.counters.intersectionObserverCreateCount;
-    const offPageIo = offSnap.ioCreate;
-    const offPageRo = offSnap.roCreate;
     const offDom = offSnap.domSignature;
     const offTiles = offSnap.tileIds.slice();
     const offRkHash = offSnap.counters.lastRequestKeyHash;
     const offBatchHash = offSnap.counters.lastPreparedBatchHash;
     const offPagHash = offSnap.counters.lastPaginationCursorHash;
 
-    // --- SHADOW: evaluate shadow (should not remount / request) ---
+    // --- SHADOW: snapshot immediately before eval (exclude late legacy observers) ---
     scenarios.push("SHADOW_EVALUATION");
+    await waitForObserverQuiet(page, 800, 10000);
+    const preShadow = await readProbe(page);
+    const offIo = preShadow.counters.intersectionObserverCreateCount;
+    const offPageIo = preShadow.ioCreate;
+    const offPageRo = preShadow.roCreate;
+    const preShadowReq = preShadow.counters.requestStartCount;
     const shadowDecl = await evaluateShadow(page);
     const afterShadow1 = await readProbe(page);
 
@@ -468,7 +497,7 @@ async function main() {
       (afterResize.counters.requestStartCount - afterShadowRe.counters.requestStartCount);
     // Resize may trigger legacy behavior; compare shadow-only:
     const shadowOnlyReqDelta =
-      afterShadowRe.counters.requestStartCount - offReq;
+      afterShadowRe.counters.requestStartCount - preShadowReq;
     const shadowRkDelta =
       afterShadowRe.counters.requestKeyTransitionCount - offRkTrans;
     const shadowPaintDelta =

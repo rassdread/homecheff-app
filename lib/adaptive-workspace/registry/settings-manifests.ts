@@ -94,6 +94,25 @@ export function feedDiscoveryManifest(
 }
 
 /**
+ * Phase 3B.3.1 — controlled-host-candidate metadata (no renderer / child factory).
+ * Serializable registry annotation only. MUST NOT import Feed React modules.
+ */
+export const FEED_DISCOVERY_HOST_CANDIDATE_METADATA = {
+  widgetId: "feed.discovery" as const,
+  runtimeClassification: "sealed-runtime" as const,
+  hostClassification: "controlled-host-candidate" as const,
+  hostVersion: 1 as const,
+  hostActivation: false as const,
+  renderActivation: false as const,
+  shadowActivation: true as const,
+  activeRenderOwner: "legacy" as const,
+  activeWriter: "legacy" as const,
+  rendererRegistered: false as const,
+  childFactoryRegistered: false as const,
+  nextEligibleStep: "3B.3.2" as const,
+};
+
+/**
  * Notifications inbox widget — Phase 2D shadow contract.
  *
  * Production UI remains a full-page route (`/notifications`).
