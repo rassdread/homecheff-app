@@ -366,7 +366,7 @@ See `docs/audits/artifacts/phase3b322/changed-file-inventory.txt` (diff vs prede
 | Probe prior-proof path fix | `23bafb0090f0e840db84b4f2513c6d6a18502d71` |
 | Bridge NOT_OPENED + capability fields | `9fdbddc94b04a94f43f025d740d01ebc3433f1a1` |
 | Probe pipeline-blocker expectation | `34b35677ead65479ecd0909904fd93fb2da190d4` (**proof target**) |
-| Documentary tip |  |
+| Documentary tip | `983c8fa594e7d5599d0db8752f87d751c27a6e46` |
 | Proof artifacts + audit | `2676741fa4586751ce1f6cb9df41dc338814fc8a` |
 
 ## 61. Pre-existing dirty files left untouched
