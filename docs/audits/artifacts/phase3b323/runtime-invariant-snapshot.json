@@ -1,0 +1,12 @@
+{
+  "mountCount": 1,
+  "unmountCount": 0,
+  "geoFeedRenderCount": 1,
+  "activeInstanceCount": 1,
+  "shellRendered": false,
+  "shellChildCount": 0,
+  "shellDOMNodeCount": 0,
+  "owner": "legacy",
+  "writer": "legacy",
+  "renderer": "legacy"
+}

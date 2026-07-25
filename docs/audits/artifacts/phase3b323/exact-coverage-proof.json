@@ -1,0 +1,8 @@
+{
+  "transactionParticipantCoverageExact": true,
+  "pipelineCoverageComplete": true,
+  "covered": 30,
+  "uncovered": 0,
+  "duplicate": 0,
+  "unknown": 0
+}

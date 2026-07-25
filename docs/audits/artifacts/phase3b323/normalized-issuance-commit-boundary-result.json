@@ -1,0 +1,12 @@
+{
+  "result": "authorization-grant-issuance-commit-boundary-ready-not-entered",
+  "state": "NOT_ENTERED",
+  "completed": true,
+  "ready": true,
+  "blocked": true,
+  "executable": false,
+  "entered": false,
+  "armed": false,
+  "prepared": false,
+  "committed": false
+}

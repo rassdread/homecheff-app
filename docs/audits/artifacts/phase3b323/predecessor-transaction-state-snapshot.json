@@ -1,0 +1,11 @@
+{
+  "issuanceTransactionState": "NOT_OPENED",
+  "issuanceTransactionOpened": false,
+  "issuanceTransactionPrepared": false,
+  "issuanceTransactionCommitted": false,
+  "issuanceTransactionAborted": false,
+  "issuanceTransactionRolledBack": false,
+  "issuanceTransactionCompensated": false,
+  "issuanceTransactionResult": "authorization-grant-issuance-transaction-ready-not-opened",
+  "issuanceTransactionExecutable": false
+}

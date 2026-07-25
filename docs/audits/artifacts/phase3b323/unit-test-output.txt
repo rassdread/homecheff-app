@@ -1,0 +1,20 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-commit-boundary-tests.ts
+
+
+[phase3b323] activation transition authorization grant issuance pipeline descriptor + engine
+  ✓ authorization grant issuance plan descriptor deterministic
+  ✓ authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.23, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b323] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance pipeline contract fail-closed
+  ✓ authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.23, eligibleStep=3B.3.24)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance pipeline fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_23 blocker
+
+adaptive-workspace Phase 3B.3.23 host activation transition authorization grant issuance pipeline: 9 assertions ok
+

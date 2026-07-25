@@ -1,0 +1,23 @@
+
+> homecheff-app@0.1.0 probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary
+> node scripts/run-feed-host-activation-transition-authorization-grant-issuance-commit-boundary-proof-phase3b323.mjs
+
+[phase3b323] Phase 3B.2 proof rerun
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "fail": []
+}
+[phase3b323] Phase 3B.3.23 host activation transition authorization grant issuance plan proof
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b323/phase3b3-23-feed-host-activation-transition-authorization-grant-issuance-commit-boundary-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3_24",
+  "passCount": 20,
+  "fail": [],
+  "commitBoundaryMetaOk": true,
+  "forcedNegativeProofsOk": true
+}
+[phase3b323] READY_FOR_PHASE_3B_3_24

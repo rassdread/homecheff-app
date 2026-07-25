@@ -1,0 +1,7 @@
+{
+  "commandPresent": false,
+  "dispatcherPresent": false,
+  "queuePresent": false,
+  "schedulerPresent": false,
+  "executorPresent": false
+}
