@@ -151,6 +151,7 @@ export {
   PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
   PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
   PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY,
+  PHASE_3B3_8_HOST_ACTIVATION_PLAN_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -371,3 +372,45 @@ export {
   validateFeedHostActivationDecisionPreparedContract,
   type FeedHostActivationDecisionPreparedContract,
 } from "./sealed/feed-host-activation-decision-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_PLAN_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_PLAN_STEPS,
+  CONTROLLED_HOST_ACTIVATION_PLAN_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_PLAN_VALIDATION_POINTS,
+  CONTROLLED_HOST_ACTIVATION_PLAN_ROLLBACK_CHECKPOINTS,
+  CONTROLLED_HOST_ACTIVATION_PLAN_ABORT_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_PLAN_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_PLAN_INPUT_SOURCES,
+  CONTROLLED_HOST_ACTIVATION_PLAN_ID,
+  CONTROLLED_HOST_ACTIVATION_PLAN_VERSION,
+  createControlledHostActivationPlanDescriptor,
+  evaluateControlledHostActivationPlan,
+  validateControlledHostActivationPlanDescriptor,
+  type ControlledHostActivationPlanDescriptor,
+  type ControlledHostActivationPlanEvaluation,
+  type ControlledHostActivationPlanDiagnostics,
+} from "./sealed/controlled-host-activation-plan";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_PLAN_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_PLAN_REQUIREMENTS,
+  createControlledHostActivationPlanContract,
+  validateControlledHostActivationPlanContract,
+  type ControlledHostActivationPlanContract,
+  type ControlledHostActivationPlanRequirement,
+} from "./sealed/controlled-host-activation-plan-contract";
+
+export {
+  FEED_HOST_ACTIVATION_PLAN_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationPlanIdentity,
+  validateFeedHostActivationPlanIdentity,
+  type FeedHostActivationPlanIdentity,
+} from "./sealed/feed-host-activation-plan-identity";
+
+export {
+  FEED_HOST_ACTIVATION_PLAN_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationPlanPreparedContract,
+  validateFeedHostActivationPlanPreparedContract,
+  type FeedHostActivationPlanPreparedContract,
+} from "./sealed/feed-host-activation-plan-prepared";

@@ -109,7 +109,7 @@ export const FEED_DISCOVERY_HOST_CANDIDATE_METADATA = {
   activeWriter: "legacy" as const,
   rendererRegistered: false as const,
   childFactoryRegistered: false as const,
-  nextEligibleStep: "3B.3.8" as const,
+  nextEligibleStep: "3B.3.9" as const,
   shadowPlacementState: "shadow-registered" as const,
   placementMode: "sibling-after-legacy-mount" as const,
   registrationState: "registered" as const,
@@ -120,6 +120,8 @@ export const FEED_DISCOVERY_HOST_CANDIDATE_METADATA = {
   decisionState: "completed" as const,
   decisionResult: "ALLOW" as const,
   confidence: "high" as const,
+  planState: "completed" as const,
+  planResult: "plan-complete-not-executable" as const,
   canStartActivation: false as const,
   runtimeId: "feed.discovery.legacy-single-mount.v1" as const,
 };
