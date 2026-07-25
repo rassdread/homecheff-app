@@ -272,6 +272,13 @@ export type FeedSealedProbeApi = {
     selectionStrategy: string;
     selectionPriority: 100;
     selectionScore: 100;
+    deterministicTieBreak: "lexicographic-transition-id";
+    selectionGuards: readonly string[];
+    selectionBlockers: readonly string[];
+    alternativeTransitions: readonly string[];
+    transitionExecutionAllowed: false;
+    graphTraversalAllowed: false;
+    selectionExecutionAllowed: false;
     transitionExecuted: false;
     graphTraversalExecuted: false;
     protocolExecuted: false;
@@ -909,6 +916,13 @@ export function installFeedSealedProbeBridge(): void {
         selectionStrategy: d.selectionStrategy,
         selectionPriority: 100 as const,
         selectionScore: 100 as const,
+        deterministicTieBreak: "lexicographic-transition-id" as const,
+        selectionGuards: d.selectionGuards,
+        selectionBlockers: d.selectionBlockers,
+        alternativeTransitions: d.alternativeTransitions,
+        transitionExecutionAllowed: false as const,
+        graphTraversalAllowed: false as const,
+        selectionExecutionAllowed: false as const,
         transitionExecuted: false as const,
         graphTraversalExecuted: false as const,
         protocolExecuted: false as const,
@@ -932,7 +946,7 @@ export function installFeedSealedProbeBridge(): void {
         diagnostics: evaluation.diagnostics,
       };
     },
-        readHostActivationStateMachine: async () => {
+    readHostActivationStateMachine: async () => {
       const mod = await import("@/lib/adaptive-workspace");
       const evaluation = mod.evaluateControlledHostActivationStateMachine();
       const d = evaluation.descriptor;

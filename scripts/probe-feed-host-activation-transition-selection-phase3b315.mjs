@@ -539,6 +539,9 @@ async function main() {
       hostActivationTransitionSelection.currentNode === "COMMIT_READY" &&
       hostActivationTransitionSelection.selectedTransition ===
         "COMMIT_READY->ACTIVE" &&
+      hostActivationTransitionSelection.deterministicTieBreak ===
+        "lexicographic-transition-id" &&
+      hostActivationTransitionSelection.transitionExecutionAllowed === false &&
       hostActivationTransitionSelection.selectedFromState === "COMMIT_READY" &&
       hostActivationTransitionSelection.selectedToState === "ACTIVE" &&
       Array.isArray(hostActivationTransitionSelection.candidateTransitions) &&
