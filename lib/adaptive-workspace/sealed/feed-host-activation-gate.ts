@@ -1,11 +1,11 @@
 /**
- * Phase 3B.3.11 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY.
+ * Phase 3B.3.12 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
-import { PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY } from "./controlled-host-activation-commit-readiness";
+import { PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY } from "./controlled-host-activation-commit-protocol";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -18,12 +18,13 @@ export { PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY } from "./controlled-host-act
 export { PHASE_3B3_8_HOST_ACTIVATION_PLAN_ONLY } from "./controlled-host-activation-plan";
 export { PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY } from "./controlled-host-activation-pipeline";
 export { PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY } from "./controlled-host-activation-transaction";
-export { PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY };
+export { PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY } from "./controlled-host-activation-commit-readiness";
+export { PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.11";
-  eligibleStep: "3B.3.12";
+  currentStep: "3B.3.12";
+  eligibleStep: "3B.3.13";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -41,6 +42,7 @@ export type FeedHostActivationGateResult = {
   pipelineStatus: "completed" | "mismatch";
   transactionStatus: "completed" | "mismatch";
   commitReadinessStatus: "completed" | "mismatch";
+  commitProtocolStatus: "completed" | "mismatch";
 };
 
 export type FeedHostActivationGateInput = {
@@ -57,6 +59,7 @@ export type FeedHostActivationGateInput = {
   phase3b39ProofValid?: boolean;
   phase3b310ProofValid?: boolean;
   phase3b311ProofValid?: boolean;
+  phase3b312ProofValid?: boolean;
   forceHostActivation?: unknown;
   envHostActivation?: unknown;
   queryHostActivation?: unknown;
@@ -80,6 +83,7 @@ export type FeedHostActivationGateInput = {
   observedPipelineState?: "completed" | "missing";
   observedTransactionState?: "completed" | "missing";
   observedCommitReadinessState?: "completed" | "missing";
+  observedCommitProtocolState?: "completed" | "missing";
   observedRuntimeId?: string;
 };
 
@@ -87,9 +91,9 @@ export function evaluateFeedHostActivationGate(
   input: FeedHostActivationGateInput = {},
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
-  const blockers: string[] = [PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY];
+  const blockers: string[] = [PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY];
   const reasons: string[] = [
-    "Phase 3B.3.11 models sealed activation commit readiness only; hostActivation remains deferred to 3B.3.12",
+    "Phase 3B.3.12 models sealed activation commit protocol only; hostActivation remains deferred to 3B.3.13",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -116,7 +120,8 @@ export function evaluateFeedHostActivationGate(
     input.phase3b38ProofValid === false ||
     input.phase3b39ProofValid === false ||
     input.phase3b310ProofValid === false ||
-    input.phase3b311ProofValid === false
+    input.phase3b311ProofValid === false ||
+    input.phase3b312ProofValid === false
   ) {
     blockers.push("missing-proof", "proof-fail");
   }
@@ -222,6 +227,13 @@ export function evaluateFeedHostActivationGate(
     blockers.push("react-identity-changed");
   }
 
+  let commitProtocolStatus: FeedHostActivationGateResult["commitProtocolStatus"] =
+    "completed";
+  if (input.observedCommitProtocolState === "missing") {
+    commitProtocolStatus = "mismatch";
+    blockers.push("react-identity-changed");
+  }
+
   if (
     typeof input.observedRuntimeId === "string" &&
     input.observedRuntimeId.length > 0 &&
@@ -236,6 +248,7 @@ export function evaluateFeedHostActivationGate(
     pipelineStatus = "mismatch";
     transactionStatus = "mismatch";
     commitReadinessStatus = "mismatch";
+    commitProtocolStatus = "mismatch";
     blockers.push("react-identity-changed");
   }
 
@@ -252,8 +265,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.11",
-    eligibleStep: "3B.3.12",
+    currentStep: "3B.3.12",
+    eligibleStep: "3B.3.13",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,
@@ -271,5 +284,6 @@ export function evaluateFeedHostActivationGate(
     pipelineStatus,
     transactionStatus,
     commitReadinessStatus,
+    commitProtocolStatus,
   };
 }

@@ -17,6 +17,7 @@ import {
   evaluateFeedHostActivationGate,
   PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY,
   PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY,
+  PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   CONTROLLED_HOST_ACTIVATION_TRANSACTION_INPUT_SOURCES,
   CONTROLLED_HOST_ACTIVATION_TRANSACTION_COMMIT_CONDITIONS,
   CONTROLLED_HOST_ACTIVATION_TRANSACTION_ROLLBACK_CONDITIONS,
@@ -67,9 +68,9 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.12");
+assert.equal(host.nextEligibleStep, "3B.3.13");
 assert.ok(
-  host.activationBlockers.includes(PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY),
+  host.activationBlockers.includes(PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY),
 );
 
 const registry = createControlledHostRegistry();
@@ -160,7 +161,7 @@ assert.equal(plan.wouldCommit, true);
 assert.equal(plan.transactionCommitted, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.12-controlled-host-activation-candidate",
+  "3B.3.13-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -180,6 +181,7 @@ const gate = evaluateFeedHostActivationGate({
   phase3b39ProofValid: true,
   phase3b310ProofValid: true,
     phase3b311ProofValid: true,
+    phase3b312ProofValid: true,
   observedWriter: "legacy",
   observedRenderOwner: "legacy",
   observedMountCount: 1,
@@ -193,12 +195,13 @@ const gate = evaluateFeedHostActivationGate({
   observedPipelineState: "completed",
   observedTransactionState: "completed",
     observedCommitReadinessState: "completed",
+    observedCommitProtocolState: "completed",
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY));
-assert.equal(gate.currentStep, "3B.3.11");
-assert.equal(gate.eligibleStep, "3B.3.12");
+assert.ok(gate.blockers.includes(PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY));
+assert.equal(gate.currentStep, "3B.3.12");
+assert.equal(gate.eligibleStep, "3B.3.13");
 
 assert.equal(
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA.transactionResult,
@@ -221,10 +224,11 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*12/);
+assert.match(probeBridge, /version:\s*13/);
 assert.match(probeBridge, /readHostActivationTransaction/);
 assert.match(probeBridge, /PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY/);
 assert.match(probeBridge, /PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY/);
+assert.match(probeBridge, /PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY/);
 
 for (const name of [
   "controlled-host-activation-transaction.ts",

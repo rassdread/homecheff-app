@@ -155,6 +155,7 @@ export {
   PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY,
   PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY,
   PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY,
+  PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -546,3 +547,52 @@ export {
   validateFeedHostActivationCommitReadinessPreparedContract,
   type FeedHostActivationCommitReadinessPreparedContract,
 } from "./sealed/feed-host-activation-commit-readiness-prepared";
+
+
+export {
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_STAGES,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_STAGE_SEQUENCE,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_SEQUENCE,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_VALIDATION_POINTS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_OWNERSHIP_CHECKS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_RENDERER_CHECKS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_WRITER_CHECKS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_ROLLBACK_PREPARATION,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_ABORT_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_INPUT_SOURCES,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_ID,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_VERSION,
+  createControlledHostActivationCommitProtocolDescriptor,
+  evaluateControlledHostActivationCommitProtocol,
+  validateControlledHostActivationCommitProtocolDescriptor,
+  type ControlledHostActivationCommitProtocolDescriptor,
+  type ControlledHostActivationCommitProtocolEvaluation,
+  type ControlledHostActivationCommitProtocolDiagnostics,
+} from "./sealed/controlled-host-activation-commit-protocol";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PROTOCOL_REQUIREMENTS,
+  createControlledHostActivationCommitProtocolContract,
+  validateControlledHostActivationCommitProtocolContract,
+  type ControlledHostActivationCommitProtocolContract,
+  type ControlledHostActivationCommitProtocolRequirement,
+} from "./sealed/controlled-host-activation-commit-protocol-contract";
+
+export {
+  FEED_HOST_ACTIVATION_COMMIT_PROTOCOL_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationCommitProtocolIdentity,
+  validateFeedHostActivationCommitProtocolIdentity,
+  type FeedHostActivationCommitProtocolIdentity,
+} from "./sealed/feed-host-activation-commit-protocol-identity";
+
+export {
+  FEED_HOST_ACTIVATION_COMMIT_PROTOCOL_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationCommitProtocolPreparedContract,
+  validateFeedHostActivationCommitProtocolPreparedContract,
+  type FeedHostActivationCommitProtocolPreparedContract,
+} from "./sealed/feed-host-activation-commit-protocol-prepared";
