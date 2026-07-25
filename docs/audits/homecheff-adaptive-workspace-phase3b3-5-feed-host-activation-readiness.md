@@ -4,9 +4,9 @@
 |-------|--------|
 | Phase | 3B.3.5 |
 | Branch | `workspace/phase3b35-controlled-host-activation-readiness` |
-| Browser proof commit | _(filled after Chromium proof)_ |
-| Browser | Chromium · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` |
-| Decision | **PENDING** |
+| Browser proof commit | `3fbc69c2b1603d26330b0bfb9ef9ac72c71a2ddc` |
+| Browser | Chromium Chrome/131 · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` |
+| Decision | **READY FOR PHASE 3B.3.6** |
 
 ## 1. Architecture
 
@@ -29,27 +29,46 @@ Workspace determines whether the registered Controlled Host is architecturally r
 | owner / writer / renderer | legacy / legacy / legacy |
 | activationState | `dormant` |
 | rollbackState | `prepared-not-active` |
+| canStartActivation | false |
+| nextEligibleStep | `3B.3.6` |
+
+Components: Activation Readiness Contract, Readiness Descriptor + Engine, Readiness Diagnostics, Readiness Validator, Browser Instrumentation (`readHostActivationReadiness`, probe v6).
 
 ## 3. Diagnostics
 
-Readable diagnostics expose: readinessSatisfied, activeBlockers, missingConditionsForActivation, currentPhase=`3B.3.5`, nextEligibleStep=`3B.3.6`. Diagnostics never mutate runtime.
+Readable diagnostics expose: `readinessSatisfied=true`, `activeBlockers=[PHASE_3B3_5_…]`, `missingConditionsForActivation` (executor unauthorized; flags must remain false), `currentPhase=3B.3.5`, `nextEligibleStep=3B.3.6`. Diagnostics never mutate runtime.
 
-## 4. Registry / identity / ownership / runtime
+## 4. Registry
 
-Registry remains metadata-only (`hostCount=1`). Browser identity: mount=1, unmount=0, stable runtimeId. Shell remains `return null`.
+Unchanged metadata-only registry: `hostCount=1`, no runtime objects, no React instances.
 
-## 5. Browser proof / validators / tests
+## 5. Identity / ownership / runtime
 
-Artifacts under `docs/audits/artifacts/phase3b35/`. Probe v6 `readHostActivationReadiness`. Forced activation blocked.
+Browser-measured on proof commit `3fbc69c`: mount=1, unmount=0, activeInstanceCount=1, stable `runtimeId`, owner/writer/renderer remain legacy. Shell remains `return null`. Forced activation blocked.
 
-## 6. Regression risk
+## 6. Browser proof
 
-Low for DOM/runtime. Residual risk for 3B.3.6: treating readiness as authorization to execute activation.
+Artifact: `docs/audits/artifacts/phase3b35/phase3b3-5-feed-host-activation-readiness-proof.json`
 
-## 7. Limits toward 3B.3.6
+- New Chromium production run (not reused)
+- Proof commit matches implementation commit `3fbc69c`
+- 20/20 release-blocking invariants PASS
+- Readiness metadata + diagnostics visible via probe
+- Forced activation blocked (`PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY`)
+- Phase 3B.2 rerun also 20/20 PASS
 
-No activation executor, no scheduler, no hostActivation flip, no Workspace renderer.
+## 7. Validators / tests
 
-## 8. Decision
+All green: sealed, sealed-browser, dormant, shadow, host-registration, eligibility, activation-readiness; unit suites including 8 activation-readiness assertions; production sealed build pass.
 
-**PENDING — complete after green Chromium proof**
+## 8. Regression risk
+
+Low for DOM/runtime. Residual risk for 3B.3.6: treating readiness as authorization to execute activation without identity-preserving gates.
+
+## 9. Limits toward 3B.3.6
+
+No activation executor, no scheduler, no hostActivation flip, no Workspace renderer, no remount/wrappers/portals.
+
+## 10. Decision
+
+**READY FOR PHASE 3B.3.6**
