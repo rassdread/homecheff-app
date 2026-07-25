@@ -156,6 +156,7 @@ export {
   PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY,
   PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY,
   PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY,
+  PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -596,3 +597,52 @@ export {
   validateFeedHostActivationCommitProtocolPreparedContract,
   type FeedHostActivationCommitProtocolPreparedContract,
 } from "./sealed/feed-host-activation-commit-protocol-prepared";
+
+
+export {
+  CONTROLLED_HOST_ACTIVATION_STATE_MACHINE_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_LIFECYCLE_STATES,
+  CONTROLLED_HOST_ACTIVATION_INITIAL_STATE,
+  CONTROLLED_HOST_ACTIVATION_CURRENT_STATE,
+  CONTROLLED_HOST_ACTIVATION_TERMINAL_STATES,
+  CONTROLLED_HOST_ACTIVATION_ALLOWED_TRANSITIONS,
+  CONTROLLED_HOST_ACTIVATION_BLOCKED_TRANSITIONS,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_REASONS,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_VALIDATION_POINTS,
+  CONTROLLED_HOST_ACTIVATION_STATE_MACHINE_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_STATE_MACHINE_INPUT_SOURCES,
+  CONTROLLED_HOST_ACTIVATION_STATE_MACHINE_ID,
+  CONTROLLED_HOST_ACTIVATION_STATE_MACHINE_VERSION,
+  createControlledHostActivationStateMachineDescriptor,
+  evaluateControlledHostActivationStateMachine,
+  validateControlledHostActivationStateMachineDescriptor,
+  type ControlledHostActivationStateMachineDescriptor,
+  type ControlledHostActivationStateMachineEvaluation,
+  type ControlledHostActivationStateMachineDiagnostics,
+} from "./sealed/controlled-host-activation-state-machine";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_STATE_MACHINE_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_STATE_MACHINE_REQUIREMENTS,
+  createControlledHostActivationStateMachineContract,
+  validateControlledHostActivationStateMachineContract,
+  type ControlledHostActivationStateMachineContract,
+  type ControlledHostActivationStateMachineRequirement,
+} from "./sealed/controlled-host-activation-state-machine-contract";
+
+export {
+  FEED_HOST_ACTIVATION_STATE_MACHINE_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationStateMachineIdentity,
+  validateFeedHostActivationStateMachineIdentity,
+  type FeedHostActivationStateMachineIdentity,
+} from "./sealed/feed-host-activation-state-machine-identity";
+
+export {
+  FEED_HOST_ACTIVATION_STATE_MACHINE_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationStateMachinePreparedContract,
+  validateFeedHostActivationStateMachinePreparedContract,
+  type FeedHostActivationStateMachinePreparedContract,
+} from "./sealed/feed-host-activation-state-machine-prepared";

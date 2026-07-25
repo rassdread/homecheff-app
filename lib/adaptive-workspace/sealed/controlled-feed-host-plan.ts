@@ -5,7 +5,7 @@
 import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
-import { PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY } from "./controlled-host-activation-commit-protocol";
+import { PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY } from "./controlled-host-activation-state-machine";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -19,8 +19,8 @@ export type ControlledFeedHostPlan = {
   rollbackTarget: "legacy";
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
-  blockerSet: readonly [typeof PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY];
-  recommendedNextStep: "3B.3.13-controlled-host-activation-candidate";
+  blockerSet: readonly [typeof PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY];
+  recommendedNextStep: "3B.3.14-controlled-host-activation-candidate";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -45,6 +45,10 @@ export type ControlledFeedHostPlan = {
   commitProtocolState: "completed";
   commitProtocolResult: "protocol-complete-not-executable";
   protocolExecuted: false;
+  stateMachineState: "completed";
+  stateMachineResult: "state-machine-complete-not-executable";
+  currentActivationLifecycleState: "COMMIT_READY";
+  transitionExecuted: false;
   hostActivation: false;
   renderActivation: false;
   canStartActivation: false;
@@ -66,8 +70,8 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     rollbackTarget: "legacy",
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
-    blockerSet: [PHASE_3B3_12_HOST_ACTIVATION_COMMIT_PROTOCOL_ONLY],
-    recommendedNextStep: "3B.3.13-controlled-host-activation-candidate",
+    blockerSet: [PHASE_3B3_13_HOST_ACTIVATION_STATE_MACHINE_ONLY],
+    recommendedNextStep: "3B.3.14-controlled-host-activation-candidate",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
@@ -92,6 +96,10 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     commitProtocolState: "completed",
     commitProtocolResult: "protocol-complete-not-executable",
     protocolExecuted: false,
+    stateMachineState: "completed",
+    stateMachineResult: "state-machine-complete-not-executable",
+    currentActivationLifecycleState: "COMMIT_READY",
+    transitionExecuted: false,
     hostActivation: false,
     renderActivation: false,
     canStartActivation: false,
