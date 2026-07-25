@@ -1,23 +1,23 @@
 /**
- * Phase 3B.3.2 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_2_SHADOW_PLACEMENT_ONLY.
- * No env/query/cookie/localStorage/context can bypass this in 3B.3.2.
+ * Phase 3B.3.3 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_3_HOST_REGISTRATION_ONLY.
+ * No env/query/cookie/storage/context/flag can bypass this in 3B.3.3.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
-import { PHASE_3B3_2_SHADOW_PLACEMENT_ONLY } from "./controlled-feed-host-shadow-placement";
+import { PHASE_3B3_3_HOST_REGISTRATION_ONLY } from "./controlled-host-registry";
 
-/** Historical 3B.3.1 blocker id — retained in contract catalog only. */
+/** Historical blocker ids — retained in contract catalog only. */
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
-
-export { PHASE_3B3_2_SHADOW_PLACEMENT_ONLY };
+export { PHASE_3B3_2_SHADOW_PLACEMENT_ONLY } from "./controlled-feed-host-shadow-placement";
+export { PHASE_3B3_3_HOST_REGISTRATION_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.2";
-  eligibleStep: "3B.3.3";
+  currentStep: "3B.3.3";
+  eligibleStep: "3B.3.4";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -26,19 +26,15 @@ export type FeedHostActivationGateResult = {
   renderOwnerStatus: "legacy" | "mismatch";
   mountStatus: "single-legacy" | "mismatch";
   rollbackStatus: "prepared-not-active" | "mismatch";
-  shadowPlacementStatus: "shadow-registered" | "mismatch";
+  registrationStatus: "registered" | "mismatch";
 };
 
 export type FeedHostActivationGateInput = {
-  /** Optional contract; defaults to canonical dormant contract. */
   contract?: ControlledFeedHostContract;
-  /** Whether Phase 3B.2 proof artifact validates. */
   phase3b2ProofValid?: boolean;
-  /** Whether Phase 3B.2 freeze validates. */
   phase3b2FreezeValid?: boolean;
-  /** Whether Phase 3B.3.2 shadow placement proof validates. */
   phase3b32ProofValid?: boolean;
-  /** Attempted overrides — ignored for activation in 3B.3.2. */
+  phase3b33ProofValid?: boolean;
   forceHostActivation?: unknown;
   envHostActivation?: unknown;
   queryHostActivation?: unknown;
@@ -53,19 +49,20 @@ export type FeedHostActivationGateInput = {
   observedRenderOwner?: "legacy" | "workspace";
   observedMountCount?: number;
   observedRollbackTarget?: "legacy" | "workspace";
-  observedShadowPlacementState?: "shadow-registered" | "missing";
+  observedRegistrationState?: "registered" | "missing";
+  observedRuntimeId?: string;
 };
 
 /**
- * Pure gate: host activation is never allowed in Phase 3B.3.2.
+ * Pure gate: host activation is never allowed in Phase 3B.3.3.
  */
 export function evaluateFeedHostActivationGate(
   input: FeedHostActivationGateInput = {},
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
-  const blockers: string[] = [PHASE_3B3_2_SHADOW_PLACEMENT_ONLY];
+  const blockers: string[] = [PHASE_3B3_3_HOST_REGISTRATION_ONLY];
   const reasons: string[] = [
-    "Phase 3B.3.2 registers shadow placement only; hostActivation remains deferred to 3B.3.3",
+    "Phase 3B.3.3 registers the legacy feed host in metadata only; hostActivation remains deferred to 3B.3.4",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -82,7 +79,7 @@ export function evaluateFeedHostActivationGate(
     blockers.push("missing-proof");
   }
 
-  if (input.phase3b32ProofValid === false) {
+  if (input.phase3b32ProofValid === false || input.phase3b33ProofValid === false) {
     blockers.push("missing-proof", "proof-fail");
   }
 
@@ -125,14 +122,21 @@ export function evaluateFeedHostActivationGate(
     blockers.push("missing-rollback-route");
   }
 
-  let shadowPlacementStatus: FeedHostActivationGateResult["shadowPlacementStatus"] =
-    "shadow-registered";
-  if (input.observedShadowPlacementState === "missing") {
-    shadowPlacementStatus = "mismatch";
+  let registrationStatus: FeedHostActivationGateResult["registrationStatus"] =
+    "registered";
+  if (input.observedRegistrationState === "missing") {
+    registrationStatus = "mismatch";
+    blockers.push("react-identity-changed");
+  }
+  if (
+    typeof input.observedRuntimeId === "string" &&
+    input.observedRuntimeId.length > 0 &&
+    input.observedRuntimeId !== "feed.discovery.legacy-single-mount.v1"
+  ) {
+    registrationStatus = "mismatch";
     blockers.push("react-identity-changed");
   }
 
-  // Explicitly ignore any force/env/query/cookie/storage/context/flag attempts.
   void input.forceHostActivation;
   void input.envHostActivation;
   void input.queryHostActivation;
@@ -146,8 +150,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.2",
-    eligibleStep: "3B.3.3",
+    currentStep: "3B.3.3",
+    eligibleStep: "3B.3.4",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,
@@ -156,6 +160,6 @@ export function evaluateFeedHostActivationGate(
     renderOwnerStatus,
     mountStatus,
     rollbackStatus,
-    shadowPlacementStatus,
+    registrationStatus,
   };
 }

@@ -109,9 +109,11 @@ export const FEED_DISCOVERY_HOST_CANDIDATE_METADATA = {
   activeWriter: "legacy" as const,
   rendererRegistered: false as const,
   childFactoryRegistered: false as const,
-  nextEligibleStep: "3B.3.3" as const,
+  nextEligibleStep: "3B.3.4" as const,
   shadowPlacementState: "shadow-registered" as const,
   placementMode: "sibling-after-legacy-mount" as const,
+  registrationState: "registered" as const,
+  runtimeId: "feed.discovery.legacy-single-mount.v1" as const,
 };
 
 /**

@@ -1,11 +1,11 @@
 /**
- * Phase 3B.3.2 — pure Controlled Host Plan (metadata only, no React elements).
+ * Phase 3B.3.3 — pure Controlled Host Plan (metadata only, no React elements).
  */
 
 import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
-import { PHASE_3B3_2_SHADOW_PLACEMENT_ONLY } from "./controlled-feed-host-shadow-placement";
+import { PHASE_3B3_3_HOST_REGISTRATION_ONLY } from "./controlled-host-registry";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -19,16 +19,16 @@ export type ControlledFeedHostPlan = {
   rollbackTarget: "legacy";
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
-  blockerSet: readonly [typeof PHASE_3B3_2_SHADOW_PLACEMENT_ONLY];
-  recommendedNextStep: "3B.3.3-controlled-host-activation-candidate";
+  blockerSet: readonly [typeof PHASE_3B3_3_HOST_REGISTRATION_ONLY];
+  recommendedNextStep: "3B.3.4-controlled-host-activation-candidate";
   placementState: "shadow-registered";
+  registrationState: "registered";
   hostActivation: false;
   renderActivation: false;
   hostClassification: "controlled-host-candidate";
 };
 
 export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
-  // Touch contracts to ensure fail-closed factories remain consistent.
   const host = createControlledFeedHostContract();
   const rollback = createFeedHostRollbackContract();
   void host;
@@ -45,9 +45,10 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     rollbackTarget: "legacy",
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
-    blockerSet: [PHASE_3B3_2_SHADOW_PLACEMENT_ONLY],
-    recommendedNextStep: "3B.3.3-controlled-host-activation-candidate",
+    blockerSet: [PHASE_3B3_3_HOST_REGISTRATION_ONLY],
+    recommendedNextStep: "3B.3.4-controlled-host-activation-candidate",
     placementState: "shadow-registered",
+    registrationState: "registered",
     hostActivation: false,
     renderActivation: false,
     hostClassification: "controlled-host-candidate",

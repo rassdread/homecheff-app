@@ -16,6 +16,6 @@
   "nextEligiblePhase": "3B.3",
   "hostActivation": false,
   "productionMode": true,
-  "evidenceCommit": "ad5cef0782371290f7415a18238a711d0cad35af",
+  "evidenceCommit": "4cd026e1c1f95e0b69cb12527563e98f8fde95d8",
   "evidenceArtifactPath": "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json"
 }

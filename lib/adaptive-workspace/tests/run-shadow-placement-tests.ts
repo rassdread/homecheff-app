@@ -16,6 +16,7 @@ import {
   validateFeedShadowPlacementReadinessContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_2_SHADOW_PLACEMENT_ONLY,
+  PHASE_3B3_3_HOST_REGISTRATION_ONLY,
   createFeedHostRollbackContract,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -118,9 +119,9 @@ console.log("\n[phase3b32] identity + activation safety");
     observedShadowPlacementState: "shadow-registered",
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_2_SHADOW_PLACEMENT_ONLY));
-  assert.equal(gate.currentStep, "3B.3.2");
-  assert.equal(gate.eligibleStep, "3B.3.3");
+  assert.ok(gate.blockers.includes(PHASE_3B3_3_HOST_REGISTRATION_ONLY));
+  assert.equal(gate.currentStep, "3B.3.3");
+  assert.equal(gate.eligibleStep, "3B.3.4");
   ok("activation remains impossible under all override channels");
 }
 

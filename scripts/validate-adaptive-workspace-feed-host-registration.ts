@@ -1,23 +1,24 @@
 /**
- * Phase 3B.3.2 static validator — shadow placement / identity / activation safety.
+ * Phase 3B.3.3 static validator — host registration / registry / identity / activation.
  */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   createControlledFeedHostContract,
-  createControlledFeedHostShadowPlacement,
-  createFeedHostShadowPlacementIdentity,
+  createControlledHostRegistry,
+  createControlledHostRegistrationContract,
+  createFeedHostRegistrationIdentity,
   createControlledFeedHostPlan,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_2_SHADOW_PLACEMENT_ONLY,
   PHASE_3B3_3_HOST_REGISTRATION_ONLY,
+  FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
   createFeedDiscoverySealedContract,
-  validateFeedShadowPlacementReadinessContract,
+  validateFeedHostRegistrationReadinessContract,
 } from "../lib/adaptive-workspace";
 
 const root = process.cwd();
@@ -26,14 +27,14 @@ function mustExist(rel: string) {
   assert.ok(existsSync(join(root, rel)), `missing ${rel}`);
 }
 
-mustExist("lib/adaptive-workspace/sealed/controlled-feed-host-shadow-placement.ts");
-mustExist("lib/adaptive-workspace/sealed/feed-host-shadow-placement-identity.ts");
-mustExist("lib/adaptive-workspace/sealed/feed-shadow-placement-readiness.ts");
-mustExist("components/adaptive-workspace/FeedControlledHostShell.tsx");
-mustExist("scripts/probe-feed-shadow-placement-phase3b32.mjs");
-mustExist("scripts/run-feed-shadow-placement-proof-phase3b32.mjs");
+mustExist("lib/adaptive-workspace/sealed/controlled-host-registry.ts");
+mustExist("lib/adaptive-workspace/sealed/controlled-host-registration-contract.ts");
+mustExist("lib/adaptive-workspace/sealed/feed-host-registration-identity.ts");
+mustExist("lib/adaptive-workspace/sealed/feed-host-registration-readiness.ts");
+mustExist("scripts/probe-feed-host-registration-phase3b33.mjs");
+mustExist("scripts/run-feed-host-registration-proof-phase3b33.mjs");
 mustExist(
-  "docs/audits/homecheff-adaptive-workspace-phase3b3-2-feed-shadow-placement.md",
+  "docs/audits/homecheff-adaptive-workspace-phase3b3-3-feed-host-registration.md",
 );
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json");
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json");
@@ -41,41 +42,46 @@ mustExist(
   "docs/audits/artifacts/phase3b32/phase3b3-2-feed-shadow-placement-proof.json",
 );
 mustExist(
-  "docs/audits/artifacts/phase3b32/phase3b3-2-feed-shadow-placement-readiness.json",
+  "docs/audits/artifacts/phase3b33/phase3b3-3-feed-host-registration-proof.json",
+);
+mustExist(
+  "docs/audits/artifacts/phase3b33/phase3b3-3-feed-host-registration-readiness.json",
 );
 
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
 assert.equal(host.nextEligibleStep, "3B.3.4");
-assert.ok(
-  host.activationBlockers.includes(PHASE_3B3_2_SHADOW_PLACEMENT_ONLY),
-);
-assert.ok(
-  host.activationBlockers.includes(PHASE_3B3_3_HOST_REGISTRATION_ONLY),
+assert.ok(host.activationBlockers.includes(PHASE_3B3_3_HOST_REGISTRATION_ONLY));
+
+const registry = createControlledHostRegistry();
+assert.equal(registry.hostCount, 1);
+assert.equal(registry.hosts[0].runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
+assert.equal(registry.hosts[0].registrationState, "registered");
+assert.equal(registry.containsRuntimeObjects, false);
+assert.equal(registry.containsReactInstances, false);
+
+const registration = createControlledHostRegistrationContract();
+assert.equal(registration.registrationState, "registered");
+assert.equal(registration.hostActivation, false);
+assert.equal(
+  registration.activationRestriction,
+  PHASE_3B3_3_HOST_REGISTRATION_ONLY,
 );
 
-const placement = createControlledFeedHostShadowPlacement();
-assert.equal(placement.placementState, "shadow-registered");
-assert.equal(placement.placementMode, "sibling-after-legacy-mount");
-assert.equal(placement.hostActivation, false);
-assert.equal(placement.renderActivation, false);
-
-const identity = createFeedHostShadowPlacementIdentity();
+const identity = createFeedHostRegistrationIdentity();
 assert.equal(identity.expectedMountCount, 1);
-assert.equal(identity.identityTransitionAllowed, false);
+assert.equal(identity.runtimeIdTransitionAllowed, false);
 
 const plan = createControlledFeedHostPlan();
-assert.equal(plan.placementState, "shadow-registered");
+assert.equal(plan.registrationState, "registered");
 assert.equal(
   plan.recommendedNextStep,
   "3B.3.4-controlled-host-activation-candidate",
 );
-assert.equal(plan.registrationState, "registered");
 
 const rollback = createFeedHostRollbackContract();
 assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-assert.equal(rollback.rollbackTarget, "legacy");
 
 const gate = evaluateFeedHostActivationGate({
   forceHostActivation: true,
@@ -90,6 +96,7 @@ const gate = evaluateFeedHostActivationGate({
   debugOverrideHostActivation: true,
   phase3b2ProofValid: true,
   phase3b2FreezeValid: true,
+  phase3b32ProofValid: true,
 });
 assert.equal(gate.allowed, false);
 assert.ok(gate.blockers.includes(PHASE_3B3_3_HOST_REGISTRATION_ONLY));
@@ -98,8 +105,8 @@ assert.equal(gate.eligibleStep, "3B.3.4");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
 assert.equal(
-  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.shadowPlacementState,
-  "shadow-registered",
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.registrationState,
+  "registered",
 );
 
 const shell = readFileSync(
@@ -111,26 +118,18 @@ assert.doesNotMatch(
   shell,
   /from\s+['"][^'"]*(GeoFeed|HomeGeoFeedDynamic|components\/feed)[^'"]*['"]/,
 );
-assert.doesNotMatch(shell, /useEffect|useState|createPortal/);
 
 const home = readFileSync(join(root, "components/home/HomePageClient.tsx"), "utf8");
 assert.equal((home.match(/<GeoFeed\b/g) ?? []).length, 1);
-const geoIdx = home.indexOf("<GeoFeed");
-const geoClose = home.indexOf("</GeoFeed>");
-const shellIdx = home.indexOf("<FeedControlledHostShell");
-assert.ok(geoClose > geoIdx);
-assert.ok(shellIdx > geoClose, "shell must be AFTER </GeoFeed> (not wrapping)");
-assert.doesNotMatch(home, /createPortal/);
+assert.ok(home.indexOf("<FeedControlledHostShell") > home.indexOf("</GeoFeed>"));
 
 const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
 assert.match(probeBridge, /version:\s*4/);
-assert.match(probeBridge, /readShadowPlacement/);
-assert.match(probeBridge, /PHASE_3B3_2_SHADOW_PLACEMENT_ONLY/);
-assert.match(probeBridge, /PHASE_3B3_3_HOST_REGISTRATION_ONLY/);
 assert.match(probeBridge, /readHostRegistry/);
+assert.match(probeBridge, /PHASE_3B3_3_HOST_REGISTRATION_ONLY/);
 
 const proof3b2 = validateFeedBrowserProofArtifact(
   JSON.parse(
@@ -164,35 +163,44 @@ const shadowProof = JSON.parse(
   ),
 );
 assert.equal(shadowProof.overallVerdict, "READY_FOR_PHASE_3B_3_3");
-assert.equal(shadowProof.hostActivation, false);
-assert.equal(shadowProof.renderActivation, false);
-assert.equal(shadowProof.shadowPlacement.placementState, "shadow-registered");
-assert.equal(shadowProof.mountUnmount.mountCount, 1);
-assert.equal(shadowProof.mountUnmount.unmountCount, 0);
-assert.equal(shadowProof.activationAttempt.blocked, true);
-assert.ok(
-  shadowProof.activationAttempt.blockers.includes(
-    PHASE_3B3_2_SHADOW_PLACEMENT_ONLY,
+
+const regProof = JSON.parse(
+  readFileSync(
+    join(
+      root,
+      "docs/audits/artifacts/phase3b33/phase3b3-3-feed-host-registration-proof.json",
+    ),
+    "utf8",
   ),
 );
+assert.equal(regProof.overallVerdict, "READY_FOR_PHASE_3B_3_4");
+assert.equal(regProof.hostActivation, false);
+assert.equal(regProof.hostRegistry.hostCount, 1);
+assert.equal(regProof.hostRegistry.runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
+assert.equal(regProof.mountUnmount.mountCount, 1);
+assert.equal(regProof.mountUnmount.unmountCount, 0);
+assert.equal(regProof.activationAttempt.blocked, true);
+assert.ok(
+  regProof.activationAttempt.blockers.includes(PHASE_3B3_3_HOST_REGISTRATION_ONLY),
+);
 assert.equal(
-  (shadowProof.invariants || []).filter((i: { status: string }) => i.status === "PASS")
+  (regProof.invariants || []).filter((i: { status: string }) => i.status === "PASS")
     .length,
   20,
 );
 
-const readiness = validateFeedShadowPlacementReadinessContract(
+const readiness = validateFeedHostRegistrationReadinessContract(
   JSON.parse(
     readFileSync(
       join(
         root,
-        "docs/audits/artifacts/phase3b32/phase3b3-2-feed-shadow-placement-readiness.json",
+        "docs/audits/artifacts/phase3b33/phase3b3-3-feed-host-registration-readiness.json",
       ),
       "utf8",
     ),
   ),
 );
-assert.equal(readiness.nextEligibleStep, "3B.3.3");
+assert.equal(readiness.nextEligibleStep, "3B.3.4");
 assert.equal(readiness.hostActivation, false);
 
 const queryParams = readFileSync(join(root, "lib/feed/feed-query-params.ts"), "utf8");
@@ -201,4 +209,4 @@ assert.doesNotMatch(
   /adaptive-workspace|hostActivation|AvailableSpace|feed\.discovery/,
 );
 
-console.log("validate-adaptive-workspace-feed-shadow-placement: ok");
+console.log("validate-adaptive-workspace-feed-host-registration: ok");

@@ -9,12 +9,15 @@
 
 import type { ControlledFeedHostContract } from "@/lib/adaptive-workspace";
 import type { ControlledFeedHostShadowPlacement } from "@/lib/adaptive-workspace/sealed/controlled-feed-host-shadow-placement";
+import type { ControlledHostDescriptor } from "@/lib/adaptive-workspace/sealed/controlled-host-registry";
 
 export type FeedControlledHostShellProps = {
   /** Validated dormant host contract (metadata only). */
   contract: ControlledFeedHostContract;
   /** Phase 3B.3.2 shadow placement registration (metadata only). */
   placement?: ControlledFeedHostShadowPlacement;
+  /** Phase 3B.3.3 host registry descriptor (metadata only). */
+  hostDescriptor?: ControlledHostDescriptor;
 };
 
 /**

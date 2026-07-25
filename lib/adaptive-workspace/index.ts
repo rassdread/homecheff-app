@@ -146,6 +146,7 @@ export { validateControlledFeedHostContract } from "./sealed/validate-controlled
 export {
   PHASE_3B3_1_DORMANT_HOST_ONLY,
   PHASE_3B3_2_SHADOW_PLACEMENT_ONLY,
+  PHASE_3B3_3_HOST_REGISTRATION_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -192,3 +193,39 @@ export {
   validateFeedShadowPlacementReadinessContract,
   type FeedShadowPlacementReadinessContract,
 } from "./sealed/feed-shadow-placement-readiness";
+
+export {
+  CONTROLLED_HOST_REGISTRY_SCHEMA_VERSION,
+  FEED_DISCOVERY_CONTROLLED_HOST_ID,
+  FEED_DISCOVERY_STABLE_RUNTIME_ID,
+  createControlledHostRegistry,
+  readControlledHostRegistry,
+  createFeedDiscoveryControlledHostDescriptor,
+  validateControlledHostRegistry,
+  validateControlledHostDescriptor,
+  type ControlledHostRegistry,
+  type ControlledHostDescriptor,
+} from "./sealed/controlled-host-registry";
+
+export {
+  CONTROLLED_HOST_REGISTRATION_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_REGISTRATION_REQUIREMENTS,
+  createControlledHostRegistrationContract,
+  validateControlledHostRegistrationContract,
+  type ControlledHostRegistrationContract,
+  type ControlledHostRegistrationRequirement,
+} from "./sealed/controlled-host-registration-contract";
+
+export {
+  FEED_HOST_REGISTRATION_IDENTITY_SCHEMA_VERSION,
+  createFeedHostRegistrationIdentity,
+  validateFeedHostRegistrationIdentity,
+  type FeedHostRegistrationIdentity,
+} from "./sealed/feed-host-registration-identity";
+
+export {
+  FEED_HOST_REGISTRATION_READINESS_SCHEMA_VERSION,
+  createFeedHostRegistrationReadinessContract,
+  validateFeedHostRegistrationReadinessContract,
+  type FeedHostRegistrationReadinessContract,
+} from "./sealed/feed-host-registration-readiness";
