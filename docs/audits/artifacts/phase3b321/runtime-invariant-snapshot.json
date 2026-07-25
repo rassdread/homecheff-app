@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.21",
+  "mountCount": 1,
+  "unmountCount": 0,
+  "geoFeedRenderCount": 1,
+  "activeInstanceCount": 1,
+  "shellRendered": false,
+  "shellChildCount": 0,
+  "shellDOMNodeCount": 0,
+  "hostId": "feed.discovery.controlled-host",
+  "runtimeId": "feed.discovery.legacy-single-mount.v1",
+  "hostActivation": false,
+  "canStartActivation": false
+}

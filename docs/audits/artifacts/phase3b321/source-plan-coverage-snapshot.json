@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.21",
+  "coverage": [
+    {
+      "pipelineStageId": "frozen-predecessor-validation-stage",
+      "ordinal": 1,
+      "planStepId": "validate-frozen-predecessor"
+    },
+    {
+      "pipelineStageId": "issuance-plan-intake-stage",
+      "ordinal": 2,
+      "planStepId": "validate-issuance-decision"
+    },
+    {
+      "pipelineStageId": "plan-structure-validation-stage",
+      "ordinal": 3,
+      "planStepId": "validate-grant-readiness"
+    },
+    {
+      "pipelineStageId": "plan-dependency-validation-stage",
+      "ordinal": 4,
+      "planStepId": "validate-authorization-decision"
+    },
+    {
+      "pipelineStageId": "issuance-decision-validation-stage",
+      "ordinal": 5,
+      "planStepId": "validate-transition-preflight"
+    },
+    {
+      "pipelineStageId": "grant-readiness-validation-stage",
+      "ordinal": 6,
+      "planStepId": "validate-selected-transition"
+    },
+    {
+      "pipelineStageId": "authorization-validation-stage",
+      "ordinal": 7,
+      "planStepId": "validate-state-and-graph-position"
+    },
+    {
+      "pipelineStageId": "preflight-validation-stage",
+      "ordinal": 8,
+      "planStepId": "validate-commit-boundary"
+    },
+    {
+      "pipelineStageId": "transition-selection-validation-stage",
+      "ordinal": 9,
+      "planStepId": "validate-runtime-ownership"
+    },
+    {
+      "pipelineStageId": "state-and-graph-validation-stage",
+      "ordinal": 10,
+      "planStepId": "validate-stable-runtime-identity"
+    },
+    {
+      "pipelineStageId": "commit-boundary-validation-stage",
+      "ordinal": 11,
+      "planStepId": "validate-stable-mount"
+    },
+    {
+      "pipelineStageId": "runtime-identity-validation-stage",
+      "ordinal": 12,
+      "planStepId": "validate-single-geofeed"
+    },
+    {
+      "pipelineStageId": "runtime-mount-validation-stage",
+      "ordinal": 13,
+      "planStepId": "validate-null-workspace-shell"
+    },
+    {
+      "pipelineStageId": "geofeed-singularity-validation-stage",
+      "ordinal": 14,
+      "planStepId": "validate-grant-absence"
+    },
+    {
+      "pipelineStageId": "workspace-shell-validation-stage",
+      "ordinal": 15,
+      "planStepId": "validate-authority-absence"
+    },
+    {
+      "pipelineStageId": "legacy-ownership-validation-stage",
+      "ordinal": 16,
+      "planStepId": "validate-credential-absence"
+    },
+    {
+      "pipelineStageId": "grant-absence-validation-stage",
+      "ordinal": 17,
+      "planStepId": "validate-executable-path-absence"
+    },
+    {
+      "pipelineStageId": "authority-absence-validation-stage",
+      "ordinal": 18,
+      "planStepId": "validate-transition-remains-unauthorized"
+    },
+    {
+      "pipelineStageId": "credential-absence-validation-stage",
+      "ordinal": 19,
+      "planStepId": "validate-activation-remains-impossible"
+    },
+    {
+      "pipelineStageId": "executable-path-absence-validation-stage",
+      "ordinal": 20,
+      "planStepId": "validate-commit-and-rollback-unexecuted"
+    },
+    {
+      "pipelineStageId": "hypothetical-grant-construction-boundary-stage",
+      "ordinal": 21,
+      "planStepId": "describe-hypothetical-grant-construction-boundary"
+    },
+    {
+      "pipelineStageId": "hypothetical-grant-issuance-boundary-stage",
+      "ordinal": 22,
+      "planStepId": "describe-hypothetical-grant-issuance-boundary"
+    },
+    {
+      "pipelineStageId": "hypothetical-grant-persistence-boundary-stage",
+      "ordinal": 23,
+      "planStepId": "describe-hypothetical-grant-persistence-boundary"
+    },
+    {
+      "pipelineStageId": "hypothetical-grant-application-boundary-stage",
+      "ordinal": 24,
+      "planStepId": "describe-hypothetical-grant-application-boundary"
+    },
+    {
+      "pipelineStageId": "hypothetical-authority-boundary-stage",
+      "ordinal": 25,
+      "planStepId": "describe-hypothetical-authority-boundary"
+    },
+    {
+      "pipelineStageId": "hypothetical-transition-authorization-boundary-stage",
+      "ordinal": 26,
+      "planStepId": "describe-hypothetical-transition-authorization-boundary"
+    },
+    {
+      "pipelineStageId": "hypothetical-activation-boundary-stage",
+      "ordinal": 27,
+      "planStepId": "describe-hypothetical-activation-boundary"
+    },
+    {
+      "pipelineStageId": "rollback-description-stage",
+      "ordinal": 28,
+      "planStepId": "describe-rollback-boundary"
+    },
+    {
+      "pipelineStageId": "final-fail-closed-verification-stage",
+      "ordinal": 29,
+      "planStepId": "reassert-final-fail-closed-state"
+    },
+    {
+      "pipelineStageId": "pipeline-completion-declaration-stage",
+      "ordinal": 30,
+      "planStepId": "declare-plan-complete-but-non-executable"
+    }
+  ],
+  "sourcePlanStepCount": 30,
+  "coveredPlanStepCount": 30
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.21",
+  "executableHandlePresent": false,
+  "runtimeCapabilityPresent": false,
+  "commandPresent": false,
+  "dispatcherPresent": false,
+  "queuePresent": false,
+  "schedulerPresent": false,
+  "executorPresent": false,
+  "schedulerAllowed": false,
+  "executorAllowed": false,
+  "issuancePipelineExecutionImpossible": true,
+  "executionImpossible": true
+}

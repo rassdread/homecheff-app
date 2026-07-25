@@ -1,0 +1,635 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.21",
+  "pipelineStageCount": 30,
+  "stages": [
+    {
+      "stageId": "frozen-predecessor-validation-stage",
+      "ordinal": 1,
+      "title": "Frozen predecessor validation stage",
+      "category": "predecessor-validation",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-frozen-predecessor"
+      ],
+      "prerequisiteStageIds": []
+    },
+    {
+      "stageId": "issuance-plan-intake-stage",
+      "ordinal": 2,
+      "title": "Issuance-plan intake stage",
+      "category": "plan-intake",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-issuance-decision"
+      ],
+      "prerequisiteStageIds": [
+        "frozen-predecessor-validation-stage"
+      ]
+    },
+    {
+      "stageId": "plan-structure-validation-stage",
+      "ordinal": 3,
+      "title": "Plan-structure validation stage",
+      "category": "plan-structure",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-grant-readiness"
+      ],
+      "prerequisiteStageIds": [
+        "issuance-plan-intake-stage"
+      ]
+    },
+    {
+      "stageId": "plan-dependency-validation-stage",
+      "ordinal": 4,
+      "title": "Plan-dependency validation stage",
+      "category": "plan-dependency",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-authorization-decision"
+      ],
+      "prerequisiteStageIds": [
+        "plan-structure-validation-stage"
+      ]
+    },
+    {
+      "stageId": "issuance-decision-validation-stage",
+      "ordinal": 5,
+      "title": "Issuance-decision validation stage",
+      "category": "issuance-decision",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-transition-preflight"
+      ],
+      "prerequisiteStageIds": [
+        "plan-dependency-validation-stage"
+      ]
+    },
+    {
+      "stageId": "grant-readiness-validation-stage",
+      "ordinal": 6,
+      "title": "Grant-readiness validation stage",
+      "category": "grant-readiness",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-selected-transition"
+      ],
+      "prerequisiteStageIds": [
+        "issuance-decision-validation-stage"
+      ]
+    },
+    {
+      "stageId": "authorization-validation-stage",
+      "ordinal": 7,
+      "title": "Authorization validation stage",
+      "category": "authorization",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-state-and-graph-position"
+      ],
+      "prerequisiteStageIds": [
+        "grant-readiness-validation-stage"
+      ]
+    },
+    {
+      "stageId": "preflight-validation-stage",
+      "ordinal": 8,
+      "title": "Preflight validation stage",
+      "category": "preflight",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-commit-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "authorization-validation-stage"
+      ]
+    },
+    {
+      "stageId": "transition-selection-validation-stage",
+      "ordinal": 9,
+      "title": "Transition-selection validation stage",
+      "category": "selection",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-runtime-ownership"
+      ],
+      "prerequisiteStageIds": [
+        "preflight-validation-stage"
+      ]
+    },
+    {
+      "stageId": "state-and-graph-validation-stage",
+      "ordinal": 10,
+      "title": "State-and-graph validation stage",
+      "category": "state-graph",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-stable-runtime-identity"
+      ],
+      "prerequisiteStageIds": [
+        "transition-selection-validation-stage"
+      ]
+    },
+    {
+      "stageId": "commit-boundary-validation-stage",
+      "ordinal": 11,
+      "title": "Commit-boundary validation stage",
+      "category": "commit-boundary",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-stable-mount"
+      ],
+      "prerequisiteStageIds": [
+        "state-and-graph-validation-stage"
+      ]
+    },
+    {
+      "stageId": "runtime-identity-validation-stage",
+      "ordinal": 12,
+      "title": "Runtime-identity validation stage",
+      "category": "runtime-identity",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-single-geofeed"
+      ],
+      "prerequisiteStageIds": [
+        "commit-boundary-validation-stage"
+      ]
+    },
+    {
+      "stageId": "runtime-mount-validation-stage",
+      "ordinal": 13,
+      "title": "Runtime-mount validation stage",
+      "category": "runtime-mount",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-null-workspace-shell"
+      ],
+      "prerequisiteStageIds": [
+        "runtime-identity-validation-stage"
+      ]
+    },
+    {
+      "stageId": "geofeed-singularity-validation-stage",
+      "ordinal": 14,
+      "title": "Sealed-feed singularity validation stage",
+      "category": "geofeed-singularity",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-grant-absence"
+      ],
+      "prerequisiteStageIds": [
+        "runtime-mount-validation-stage"
+      ]
+    },
+    {
+      "stageId": "workspace-shell-validation-stage",
+      "ordinal": 15,
+      "title": "Workspace-shell validation stage",
+      "category": "workspace-shell",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-authority-absence"
+      ],
+      "prerequisiteStageIds": [
+        "geofeed-singularity-validation-stage"
+      ]
+    },
+    {
+      "stageId": "legacy-ownership-validation-stage",
+      "ordinal": 16,
+      "title": "Legacy-ownership validation stage",
+      "category": "ownership",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-credential-absence"
+      ],
+      "prerequisiteStageIds": [
+        "workspace-shell-validation-stage"
+      ]
+    },
+    {
+      "stageId": "grant-absence-validation-stage",
+      "ordinal": 17,
+      "title": "Grant-absence validation stage",
+      "category": "grant-absence",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-executable-path-absence"
+      ],
+      "prerequisiteStageIds": [
+        "legacy-ownership-validation-stage"
+      ]
+    },
+    {
+      "stageId": "authority-absence-validation-stage",
+      "ordinal": 18,
+      "title": "Authority-absence validation stage",
+      "category": "authority-absence",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-transition-remains-unauthorized"
+      ],
+      "prerequisiteStageIds": [
+        "grant-absence-validation-stage"
+      ]
+    },
+    {
+      "stageId": "credential-absence-validation-stage",
+      "ordinal": 19,
+      "title": "Credential-absence validation stage",
+      "category": "credential-absence",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-activation-remains-impossible"
+      ],
+      "prerequisiteStageIds": [
+        "authority-absence-validation-stage"
+      ]
+    },
+    {
+      "stageId": "executable-path-absence-validation-stage",
+      "ordinal": 20,
+      "title": "Executable-path absence validation stage",
+      "category": "executable-path-absence",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "validate-commit-and-rollback-unexecuted"
+      ],
+      "prerequisiteStageIds": [
+        "credential-absence-validation-stage"
+      ]
+    },
+    {
+      "stageId": "hypothetical-grant-construction-boundary-stage",
+      "ordinal": 21,
+      "title": "Hypothetical grant-construction boundary stage",
+      "category": "hypothetical-boundary",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "describe-hypothetical-grant-construction-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "executable-path-absence-validation-stage"
+      ]
+    },
+    {
+      "stageId": "hypothetical-grant-issuance-boundary-stage",
+      "ordinal": 22,
+      "title": "Hypothetical grant-issuance boundary stage",
+      "category": "hypothetical-boundary",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "describe-hypothetical-grant-issuance-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "hypothetical-grant-construction-boundary-stage"
+      ]
+    },
+    {
+      "stageId": "hypothetical-grant-persistence-boundary-stage",
+      "ordinal": 23,
+      "title": "Hypothetical grant-persistence boundary stage",
+      "category": "hypothetical-boundary",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "describe-hypothetical-grant-persistence-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "hypothetical-grant-issuance-boundary-stage"
+      ]
+    },
+    {
+      "stageId": "hypothetical-grant-application-boundary-stage",
+      "ordinal": 24,
+      "title": "Hypothetical grant-application boundary stage",
+      "category": "hypothetical-boundary",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "describe-hypothetical-grant-application-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "hypothetical-grant-persistence-boundary-stage"
+      ]
+    },
+    {
+      "stageId": "hypothetical-authority-boundary-stage",
+      "ordinal": 25,
+      "title": "Hypothetical authority boundary stage",
+      "category": "hypothetical-boundary",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "describe-hypothetical-authority-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "hypothetical-grant-application-boundary-stage"
+      ]
+    },
+    {
+      "stageId": "hypothetical-transition-authorization-boundary-stage",
+      "ordinal": 26,
+      "title": "Hypothetical transition-authorization boundary stage",
+      "category": "hypothetical-boundary",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "describe-hypothetical-transition-authorization-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "hypothetical-authority-boundary-stage"
+      ]
+    },
+    {
+      "stageId": "hypothetical-activation-boundary-stage",
+      "ordinal": 27,
+      "title": "Hypothetical activation boundary stage",
+      "category": "hypothetical-boundary",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "describe-hypothetical-activation-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "hypothetical-transition-authorization-boundary-stage"
+      ]
+    },
+    {
+      "stageId": "rollback-description-stage",
+      "ordinal": 28,
+      "title": "Rollback-description stage",
+      "category": "rollback-description",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "describe-rollback-boundary"
+      ],
+      "prerequisiteStageIds": [
+        "hypothetical-activation-boundary-stage"
+      ]
+    },
+    {
+      "stageId": "final-fail-closed-verification-stage",
+      "ordinal": 29,
+      "title": "Final fail-closed verification stage",
+      "category": "fail-closed",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "reassert-final-fail-closed-state"
+      ],
+      "prerequisiteStageIds": [
+        "rollback-description-stage"
+      ]
+    },
+    {
+      "stageId": "pipeline-completion-declaration-stage",
+      "ordinal": 30,
+      "title": "Pipeline completion declaration stage",
+      "category": "pipeline-completion",
+      "status": "pipeline-stage-blocked-not-executable",
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "scheduled": false,
+      "dispatched": false,
+      "started": false,
+      "completed": false,
+      "applied": false,
+      "inputPlanStepIds": [
+        "declare-plan-complete-but-non-executable"
+      ],
+      "prerequisiteStageIds": [
+        "final-fail-closed-verification-stage"
+      ]
+    }
+  ]
+}

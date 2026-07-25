@@ -1,0 +1,331 @@
+=== UNIT PIPELINE ===
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-pipeline-tests.ts
+
+
+[phase3b321] activation transition authorization grant issuance pipeline descriptor + engine
+  ✓ authorization grant issuance plan descriptor deterministic
+  ✓ authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.21, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b321] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance pipeline contract fail-closed
+  ✓ authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.21, eligibleStep=3B.3.22)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance pipeline fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_21 blocker
+
+adaptive-workspace Phase 3B.3.21 host activation transition authorization grant issuance pipeline: 9 assertions ok
+
+=== VALIDATE PIPELINE ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline.ts
+
+/Users/sergioarrias/Homecheff-app git/lib/adaptive-workspace/sealed/feed-host-activation-transition-authorization-grant-issuance-pipeline-prepared.ts:434
+    throw new HardContractViolation(
+          ^
+
+HardContractViolation: issuance plan/grant readiness/authorization decision/preflight/selection/current mismatch
+    at validateFeedHostActivationTransitionAuthorizationGrantIssuancePipelinePreparedContract (/Users/sergioarrias/Homecheff-app git/lib/adaptive-workspace/sealed/feed-host-activation-transition-authorization-grant-issuance-pipeline-prepared.ts:434:11)
+    at assert (/Users/sergioarrias/Homecheff-app git/scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline.ts:407:5)
+    at Object.<anonymous> (/Users/sergioarrias/Homecheff-app git/scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline.ts:429:1)
+    at Module._compile (node:internal/modules/cjs/loader:1705:14)
+    at Object.transformer (/Users/sergioarrias/Homecheff-app git/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at cjsLoader (node:internal/modules/esm/translators:309:5) {
+  code: 'FEED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_PREPARED_RESULT',
+  details: undefined
+}
+
+Node.js v22.22.1
+=== PRIOR TESTS 3B.3.1-ish through 3B.3.20 ===
+-- test:adaptive-workspace-feed-activation-readiness --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-readiness
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-readiness-tests.ts
+
+
+[phase3b35] activation readiness descriptor + engine
+  ✓ readiness descriptor deterministic + dormant
+  ✓ readiness engine + diagnostics metadata only
+  ✓ readiness descriptor fail-closed
+
+[phase3b35] contract + identity + activation safety
+  ✓ readiness contract fail-closed
+  ✓ readiness identity forbids activation/remount
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback unchanged
+  ✓ prepared readiness fail-closed
+
+adaptive-workspace Phase 3B.3.5 host activation readiness: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-decision --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-decision
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-decision-tests.ts
+
+
+[phase3b37] activation decision descriptor + engine
+  ✓ decision descriptor deterministic
+  ✓ decision engine + diagnostics metadata only
+  ✓ decision descriptor fail-closed
+
+[phase3b37] contract + identity + activation safety
+  ✓ decision contract fail-closed
+  ✓ decision identity forbids activation/remount
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback unchanged
+  ✓ prepared decision fail-closed
+
+adaptive-workspace Phase 3B.3.7 host activation decision: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-plan --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-plan
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-plan-tests.ts
+
+
+[phase3b38] activation plan descriptor + engine
+  ✓ plan descriptor deterministic
+  ✓ plan engine + diagnostics metadata only
+  ✓ plan descriptor fail-closed
+
+[phase3b38] contract + identity + activation safety
+  ✓ plan contract fail-closed
+  ✓ plan identity forbids activation/remount
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback unchanged
+  ✓ prepared plan fail-closed
+
+adaptive-workspace Phase 3B.3.8 host activation plan: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-pipeline --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-pipeline
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-pipeline-tests.ts
+
+
+[phase3b39] activation pipeline descriptor + engine
+  ✓ pipeline descriptor deterministic
+  ✓ pipeline engine + diagnostics metadata only
+  ✓ pipeline descriptor fail-closed
+
+[phase3b39] contract + identity + activation safety
+  ✓ pipeline contract fail-closed
+  ✓ pipeline identity forbids activation/remount
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback unchanged
+  ✓ prepared pipeline fail-closed
+
+adaptive-workspace Phase 3B.3.9 host activation pipeline: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-transaction --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transaction
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transaction-tests.ts
+
+
+[phase3b310] activation transaction descriptor + engine
+  ✓ transaction descriptor deterministic
+  ✓ transaction engine + diagnostics metadata only
+  ✓ transaction descriptor fail-closed
+
+[phase3b310] contract + identity + activation safety
+  ✓ transaction contract fail-closed
+  ✓ transaction identity forbids activation/commit
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback unchanged
+  ✓ prepared transaction fail-closed
+
+adaptive-workspace Phase 3B.3.10 host activation transaction: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-commit-readiness --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-commit-readiness
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-commit-readiness-tests.ts
+
+
+[phase3b311] activation commit readiness descriptor + engine
+  ✓ commit readiness descriptor deterministic
+  ✓ commit readiness engine + diagnostics metadata only
+  ✓ commit readiness descriptor fail-closed
+
+[phase3b311] contract + identity + activation safety
+  ✓ commit readiness contract fail-closed
+  ✓ commit readiness identity forbids activation/commit/transfer
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback/transfers unchanged
+  ✓ prepared commit readiness fail-closed
+
+adaptive-workspace Phase 3B.3.11 host activation commit readiness: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-commit-protocol --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-commit-protocol
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-commit-protocol-tests.ts
+
+
+[phase3b312] activation commit protocol descriptor + engine
+  ✓ commit protocol descriptor deterministic
+  ✓ commit protocol engine + diagnostics metadata only
+  ✓ commit protocol descriptor fail-closed
+
+[phase3b312] contract + identity + activation safety
+  ✓ commit protocol contract fail-closed
+  ✓ commit protocol identity forbids activation/commit/protocol execution
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback/protocol unchanged
+  ✓ prepared commit protocol fail-closed
+
+adaptive-workspace Phase 3B.3.12 host activation commit protocol: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-state-machine --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-state-machine
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-state-machine-tests.ts
+
+
+[phase3b313] activation state machine descriptor + engine
+  ✓ state machine descriptor deterministic
+  ✓ state machine engine + diagnostics metadata only
+  ✓ state machine descriptor fail-closed
+
+[phase3b313] contract + identity + activation safety
+  ✓ state machine contract fail-closed
+  ✓ state machine identity forbids transition/activation
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback/state-machine unchanged
+  ✓ prepared state machine fail-closed
+
+adaptive-workspace Phase 3B.3.13 host activation state machine: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-transition-graph --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-graph
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-graph-tests.ts
+
+
+[phase3b314] activation transition graph descriptor + engine
+  ✓ transition graph descriptor deterministic
+  ✓ transition graph engine + diagnostics metadata only
+  ✓ transition graph descriptor fail-closed
+
+[phase3b314] contract + identity + activation safety
+  ✓ transition graph contract fail-closed
+  ✓ transition graph identity forbids traversal/activation
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback/transition-graph unchanged
+  ✓ prepared transition graph fail-closed
+
+adaptive-workspace Phase 3B.3.14 host activation transition graph: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-transition-selection --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-selection
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-selection-tests.ts
+
+
+[phase3b315] activation transition selection descriptor + engine
+  ✓ transition selection descriptor deterministic
+  ✓ transition selection engine + diagnostics metadata only
+  ✓ transition selection descriptor fail-closed
+
+[phase3b315] contract + identity + activation safety
+  ✓ transition selection contract fail-closed
+  ✓ transition selection identity forbids selection/activation
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback/transition-selection unchanged
+  ✓ prepared transition selection fail-closed
+
+adaptive-workspace Phase 3B.3.15 host activation transition selection: 8 assertions ok
+
+-- test:adaptive-workspace-feed-activation-transition-authorization-decision --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-decision
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-decision-tests.ts
+
+
+[phase3b317] activation transition authorization decision descriptor + engine
+  ✓ authorization decision descriptor deterministic
+  ✓ authorization decision engine + diagnostics metadata only
+  ✓ authorization decision descriptor fail-closed
+
+[phase3b317] contract + identity + activation safety
+  ✓ authorization decision contract fail-closed
+  ✓ authorization decision identity forbids grant/application/execution
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback/authorization-decision unchanged
+  ✓ prepared authorization decision fail-closed
+  ✓ grant/execution permanently blocked with phase blocker
+
+adaptive-workspace Phase 3B.3.17 host activation transition authorization decision: 9 assertions ok
+
+-- test:adaptive-workspace-feed-activation-transition-authorization-grant-readiness --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-readiness
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-readiness-tests.ts
+
+
+[phase3b318] activation transition authorization grant readiness descriptor + engine
+  ✓ authorization grant readiness descriptor deterministic
+  ✓ authorization grant readiness engine + diagnostics metadata only
+  ✓ authorization grant readiness descriptor fail-closed
+
+[phase3b318] contract + identity + activation safety
+  ✓ authorization grant readiness contract fail-closed
+  ✓ authorization grant readiness identity forbids grant creation/issuance/authority
+  ✓ activation remains impossible
+  ✓ owner/writer/renderer/registry/rollback/grant-readiness unchanged
+  ✓ prepared authorization grant readiness fail-closed
+  ✓ grant issuance permanently blocked with phase blocker
+
+adaptive-workspace Phase 3B.3.18 host activation transition authorization grant readiness: 9 assertions ok
+
+-- test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-decision-tests.ts
+
+
+[phase3b319] activation transition authorization grant issuance decision descriptor + engine
+  ✓ authorization grant issuance decision descriptor deterministic
+  ✓ authorization grant issuance decision engine + diagnostics metadata only (currentPhase 3B.3.19, chained from 3B.3.18)
+  ✓ authorization grant issuance decision descriptor fail-closed
+
+[phase3b319] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance decision contract fail-closed
+  ✓ authorization grant issuance decision identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.19, eligibleStep=3B.3.20)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance decision fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_19 blocker
+
+adaptive-workspace Phase 3B.3.19 host activation transition authorization grant issuance decision: 9 assertions ok
+
+-- test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan --
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-plan-tests.ts
+
+
+[phase3b320] activation transition authorization grant issuance plan descriptor + engine
+  ✓ authorization grant issuance plan descriptor deterministic
+  ✓ authorization grant issuance plan engine + diagnostics metadata only (currentPhase 3B.3.20, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b320] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance plan contract fail-closed
+  ✓ authorization grant issuance plan identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.20, eligibleStep=3B.3.21)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance plan fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_20 blocker
+
+adaptive-workspace Phase 3B.3.20 host activation transition authorization grant issuance plan: 9 assertions ok
+

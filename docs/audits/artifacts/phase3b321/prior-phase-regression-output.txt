@@ -1,0 +1,161 @@
+-- validate:adaptive-workspace-feed-activation-readiness --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-readiness
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-readiness.ts
+
+validate-adaptive-workspace-feed-activation-readiness: ok
+-- validate:adaptive-workspace-feed-activation-decision --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-decision
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-decision.ts
+
+validate-adaptive-workspace-feed-activation-decision: ok
+-- validate:adaptive-workspace-feed-activation-plan --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-plan
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-plan.ts
+
+validate-adaptive-workspace-feed-activation-plan: ok
+-- validate:adaptive-workspace-feed-activation-pipeline --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-pipeline
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-pipeline.ts
+
+validate-adaptive-workspace-feed-activation-pipeline: ok
+-- validate:adaptive-workspace-feed-activation-transaction --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transaction
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transaction.ts
+
+validate-adaptive-workspace-feed-activation-transaction: ok
+-- validate:adaptive-workspace-feed-activation-commit-readiness --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-commit-readiness
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-commit-readiness.ts
+
+validate-adaptive-workspace-feed-activation-commit-readiness: ok
+-- validate:adaptive-workspace-feed-activation-commit-protocol --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-commit-protocol
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-commit-protocol.ts
+
+validate-adaptive-workspace-feed-activation-commit-protocol: ok
+-- validate:adaptive-workspace-feed-activation-state-machine --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-state-machine
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-state-machine.ts
+
+validate-adaptive-workspace-feed-activation-state-machine: ok (with artifacts)
+-- validate:adaptive-workspace-feed-activation-transition-graph --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-graph
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-graph.ts
+
+validate-adaptive-workspace-feed-activation-transition-graph: ok (with artifacts)
+-- validate:adaptive-workspace-feed-activation-transition-selection --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-selection
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-selection.ts
+
+validate-adaptive-workspace-feed-activation-transition-selection: ok (with artifacts)
+-- validate:adaptive-workspace-feed-activation-transition-preflight --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-preflight
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-preflight.ts
+
+validate-adaptive-workspace-feed-activation-transition-preflight: ok (with artifacts)
+-- validate:adaptive-workspace-feed-activation-transition-authorization-decision --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-decision
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-decision.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-decision: ok (with artifacts)
+-- validate:adaptive-workspace-feed-activation-transition-authorization-grant-readiness --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-readiness
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-readiness.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-readiness: ok (with artifacts)
+-- validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision: ok (with artifacts)
+-- validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan: ok (with artifacts)
+-- validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline: ok (with artifacts)
+-- validate:adaptive-workspace-feed-eligibility --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-eligibility
+> npx tsx scripts/validate-adaptive-workspace-feed-eligibility.ts
+
+validate-adaptive-workspace-feed-eligibility: ok
+-- validate:adaptive-workspace-feed-host-registration --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-host-registration
+> npx tsx scripts/validate-adaptive-workspace-feed-host-registration.ts
+
+validate-adaptive-workspace-feed-host-registration: ok
+-- validate:adaptive-workspace-feed-shadow-placement --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-shadow-placement
+> npx tsx scripts/validate-adaptive-workspace-feed-shadow-placement.ts
+
+validate-adaptive-workspace-feed-shadow-placement: ok
+-- validate:adaptive-workspace-feed-shadow-activation-simulation --
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-shadow-activation-simulation
+> npx tsx scripts/validate-adaptive-workspace-feed-shadow-activation-simulation.ts
+
+validate-adaptive-workspace-feed-shadow-activation-simulation: ok
+=== UNIT PIPELINE ===
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-pipeline-tests.ts
+
+
+[phase3b321] activation transition authorization grant issuance pipeline descriptor + engine
+  ✓ authorization grant issuance plan descriptor deterministic
+  ✓ authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.21, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b321] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance pipeline contract fail-closed
+  ✓ authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.21, eligibleStep=3B.3.22)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance pipeline fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_21 blocker
+
+adaptive-workspace Phase 3B.3.21 host activation transition authorization grant issuance pipeline: 9 assertions ok
+
+=== DORMANT ===
+
+[phase3b31] controlled host contract
+  ✓ valid dormant contract deterministic + serializable
+  ✓ invalid contracts fail closed
+
+[phase3b31] activation gate
+  ✓ gate always denied; force/env/query/cookie/storage ignored
+  ✓ mismatches add blockers; still denied
+
+[phase3b31] rollback + plan + readiness
+  ✓ rollback foundation prepared-not-active + fail-closed
+  ✓ host plan metadata only
+  ✓ readiness contract valid + fail-closed
+
+[phase3b31] dormant shell + manifest metadata
+  ✓ shell renders null; metadata has no renderer/child factory
+
+adaptive-workspace Phase 3B.3.1 dormant host: 8 assertions ok
+

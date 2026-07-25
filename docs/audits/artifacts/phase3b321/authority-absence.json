@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.21",
+  "grantAuthorityAvailable": false,
+  "grantAuthorityEnabled": false,
+  "grantAuthorityDelegated": false,
+  "grantAuthorityTransferred": false,
+  "authorityProviderPresent": false,
+  "issuanceServicePresent": false,
+  "authorityImpossible": true
+}
