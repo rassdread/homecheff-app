@@ -17,6 +17,7 @@ import {
   createControlledFeedHostPlan,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
+  PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
   PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   CONTROLLED_HOST_ACTIVATION_ISSUANCE_PLAN_CONDITIONS,
   CONTROLLED_HOST_ACTIVATION_ISSUANCE_PLAN_GUARDS,
@@ -161,7 +162,7 @@ assert.equal(descriptor.currentNode, "COMMIT_READY");
 assert.equal(descriptor.canStartActivation, false);
 assert.equal(
   descriptor.activationBlocker,
-  PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
+  PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
 );
 assert.equal(
   descriptor.issuancePlanPolicy,
@@ -386,14 +387,14 @@ if (artifactsPresent) {
   assert.equal(
     issuanceProof.hostActivationTransitionAuthorizationGrantIssuancePlan
       .activationBlocker,
-    PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
+    PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
   );
   assert.equal(issuanceProof.mountUnmount.mountCount, 1);
   assert.equal(issuanceProof.mountUnmount.unmountCount, 0);
   assert.equal(issuanceProof.activationAttempt.blocked, true);
   assert.ok(
     issuanceProof.activationAttempt.blockers.includes(
-      PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
+      PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
     ),
   );
   assert.equal(
