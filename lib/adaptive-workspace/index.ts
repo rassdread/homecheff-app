@@ -153,6 +153,7 @@ export {
   PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY,
   PHASE_3B3_8_HOST_ACTIVATION_PLAN_ONLY,
   PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY,
+  PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -460,3 +461,46 @@ export {
   validateFeedHostActivationPipelinePreparedContract,
   type FeedHostActivationPipelinePreparedContract,
 } from "./sealed/feed-host-activation-pipeline-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_COMMIT_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_ROLLBACK_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_VALIDATION_CHECKPOINTS,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_CHECKPOINTS,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_COMPENSATING_ACTIONS,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_ABORT_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_INPUT_SOURCES,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_ID,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_VERSION,
+  createControlledHostActivationTransactionDescriptor,
+  evaluateControlledHostActivationTransaction,
+  validateControlledHostActivationTransactionDescriptor,
+  type ControlledHostActivationTransactionDescriptor,
+  type ControlledHostActivationTransactionEvaluation,
+  type ControlledHostActivationTransactionDiagnostics,
+} from "./sealed/controlled-host-activation-transaction";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSACTION_REQUIREMENTS,
+  createControlledHostActivationTransactionContract,
+  validateControlledHostActivationTransactionContract,
+  type ControlledHostActivationTransactionContract,
+  type ControlledHostActivationTransactionRequirement,
+} from "./sealed/controlled-host-activation-transaction-contract";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSACTION_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationTransactionIdentity,
+  validateFeedHostActivationTransactionIdentity,
+  type FeedHostActivationTransactionIdentity,
+} from "./sealed/feed-host-activation-transaction-identity";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSACTION_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationTransactionPreparedContract,
+  validateFeedHostActivationTransactionPreparedContract,
+  type FeedHostActivationTransactionPreparedContract,
+} from "./sealed/feed-host-activation-transaction-prepared";

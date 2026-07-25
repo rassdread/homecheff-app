@@ -16,6 +16,7 @@ import {
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY,
+  PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY,
   CONTROLLED_HOST_ACTIVATION_PIPELINE_INPUT_SOURCES,
   CONTROLLED_HOST_ACTIVATION_PIPELINE_STAGES,
   CONTROLLED_HOST_ACTIVATION_PIPELINE_STAGE_DEPENDENCIES,
@@ -63,9 +64,9 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.10");
+assert.equal(host.nextEligibleStep, "3B.3.11");
 assert.ok(
-  host.activationBlockers.includes(PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY),
+  host.activationBlockers.includes(PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY),
 );
 
 const registry = createControlledHostRegistry();
@@ -132,7 +133,7 @@ const plan = createControlledFeedHostPlan();
 assert.equal(plan.pipelineResult, "pipeline-complete-not-executable");
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.10-controlled-host-activation-candidate",
+  "3B.3.11-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -164,9 +165,9 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY));
-assert.equal(gate.currentStep, "3B.3.9");
-assert.equal(gate.eligibleStep, "3B.3.10");
+assert.ok(gate.blockers.includes(PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY));
+assert.equal(gate.currentStep, "3B.3.10");
+assert.equal(gate.eligibleStep, "3B.3.11");
 
 assert.equal(
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA.pipelineResult,
@@ -187,9 +188,10 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*10/);
+assert.match(probeBridge, /version:\s*11/);
 assert.match(probeBridge, /readHostActivationPipeline/);
 assert.match(probeBridge, /PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY/);
+assert.match(probeBridge, /PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY/);
 
 for (const name of [
   "controlled-host-activation-pipeline.ts",
