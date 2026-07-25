@@ -5,7 +5,7 @@
 import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
-import { PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY } from "./controlled-host-activation-transition-authorization-decision";
+import { PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY } from "./controlled-host-activation-transition-authorization-grant-readiness";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -19,8 +19,8 @@ export type ControlledFeedHostPlan = {
   rollbackTarget: "legacy";
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
-  blockerSet: readonly [typeof PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY];
-  recommendedNextStep: "3B.3.18-controlled-host-activation-candidate";
+  blockerSet: readonly [typeof PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY];
+  recommendedNextStep: "3B.3.19-controlled-host-activation-candidate";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -77,6 +77,18 @@ export type ControlledFeedHostPlan = {
   authorizationExecutionAllowed: false;
   transitionAuthorized: false;
   authorizationGranted: false;
+  grantReadinessState: "completed";
+  grantReadinessResult: "authorization-grant-ready-not-issued";
+  grantReadinessCompleted: true;
+  grantReady: true;
+  grantBlocked: true;
+  wouldIssueGrant: true;
+  grantIssued: false;
+  grantCreated: false;
+  grantPersisted: false;
+  grantApplied: false;
+  grantAuthorityAvailable: false;
+  grantAuthorityEnabled: false;
   hostActivation: false;
   renderActivation: false;
   canStartActivation: false;
@@ -98,8 +110,8 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     rollbackTarget: "legacy",
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
-    blockerSet: [PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY],
-    recommendedNextStep: "3B.3.18-controlled-host-activation-candidate",
+    blockerSet: [PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY],
+    recommendedNextStep: "3B.3.19-controlled-host-activation-candidate",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
@@ -156,6 +168,18 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     authorizationExecutionAllowed: false,
     transitionAuthorized: false,
     authorizationGranted: false,
+    grantReadinessState: "completed",
+    grantReadinessResult: "authorization-grant-ready-not-issued",
+    grantReadinessCompleted: true,
+    grantReady: true,
+    grantBlocked: true,
+    wouldIssueGrant: true,
+    grantIssued: false,
+    grantCreated: false,
+    grantPersisted: false,
+    grantApplied: false,
+    grantAuthorityAvailable: false,
+    grantAuthorityEnabled: false,
     hostActivation: false,
     renderActivation: false,
     canStartActivation: false,

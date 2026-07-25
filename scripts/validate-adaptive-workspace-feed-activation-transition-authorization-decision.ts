@@ -17,6 +17,7 @@ import {
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
+  PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
   CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_CONDITIONS,
   CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_GUARDS,
   CONTROLLED_HOST_ACTIVATION_AUTHORIZATION_POLICY,
@@ -81,7 +82,7 @@ if (!artifactsPresent && process.env.REQUIRE_PHASE3B317_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.18");
+assert.equal(host.nextEligibleStep, "3B.3.19");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
@@ -196,7 +197,7 @@ assert.equal(plan.authorizationGranted, false);
 assert.equal(plan.transitionAuthorized, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.18-controlled-host-activation-candidate",
+  "3B.3.19-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -222,6 +223,7 @@ const gate = evaluateFeedHostActivationGate({
   phase3b315ProofValid: true,
   phase3b316ProofValid: true,
   phase3b317ProofValid: true,
+  phase3b318ProofValid: true,
   observedWriter: "legacy",
   observedRenderOwner: "legacy",
   observedMountCount: 1,
@@ -241,16 +243,17 @@ const gate = evaluateFeedHostActivationGate({
   observedTransitionSelectionState: "completed",
   observedTransitionPreflightState: "completed",
   observedTransitionAuthorizationDecisionState: "completed",
+  observedTransitionAuthorizationGrantReadinessState: "completed",
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
 assert.ok(
   gate.blockers.includes(
-    PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
+    PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
   ),
 );
-assert.equal(gate.currentStep, "3B.3.17");
-assert.equal(gate.eligibleStep, "3B.3.18");
+assert.equal(gate.currentStep, "3B.3.18");
+assert.equal(gate.eligibleStep, "3B.3.19");
 assert.equal(gate.transitionAuthorizationDecisionStatus, "completed");
 
 assert.equal(
@@ -276,7 +279,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*18/);
+assert.match(probeBridge, /version:\s*19/);
 assert.match(probeBridge, /readHostActivationTransitionAuthorizationDecision/);
 assert.match(
   probeBridge,

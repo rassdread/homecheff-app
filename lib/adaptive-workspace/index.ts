@@ -161,6 +161,7 @@ export {
   PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY,
   PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
+  PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -834,4 +835,49 @@ export {
   validateFeedHostActivationTransitionAuthorizationDecisionPreparedContract,
   type FeedHostActivationTransitionAuthorizationDecisionPreparedContract,
 } from "./sealed/feed-host-activation-transition-authorization-decision-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ID,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_VERSION,
+  CONTROLLED_HOST_ACTIVATION_GRANT_POLICY,
+  CONTROLLED_HOST_ACTIVATION_GRANT_POLICY_VERSION,
+  CONTROLLED_HOST_ACTIVATION_GRANT_STRATEGY,
+  CONTROLLED_HOST_ACTIVATION_GRANT_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_GRANT_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_GRANT_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_GRANT_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_GRANT_VALIDATION_POINTS,
+  createControlledHostActivationTransitionAuthorizationGrantReadinessDescriptor,
+  evaluateControlledHostActivationTransitionAuthorizationGrantReadiness,
+  validateControlledHostActivationTransitionAuthorizationGrantReadinessDescriptor,
+  type ControlledHostActivationTransitionAuthorizationGrantReadinessDescriptor,
+  type ControlledHostActivationTransitionAuthorizationGrantReadinessEvaluation,
+  type ControlledHostActivationTransitionAuthorizationGrantReadinessDiagnostics,
+  type ControlledHostActivationTransitionAuthorizationGrantReadinessState,
+  type ControlledHostActivationTransitionAuthorizationGrantReadinessResult,
+} from "./sealed/controlled-host-activation-transition-authorization-grant-readiness";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_REQUIREMENTS,
+  createControlledHostActivationTransitionAuthorizationGrantReadinessContract,
+  validateControlledHostActivationTransitionAuthorizationGrantReadinessContract,
+  type ControlledHostActivationTransitionAuthorizationGrantReadinessContract,
+  type ControlledHostActivationTransitionAuthorizationGrantReadinessRequirement,
+} from "./sealed/controlled-host-activation-transition-authorization-grant-readiness-contract";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationTransitionAuthorizationGrantReadinessIdentity,
+  validateFeedHostActivationTransitionAuthorizationGrantReadinessIdentity,
+  type FeedHostActivationTransitionAuthorizationGrantReadinessIdentity,
+} from "./sealed/feed-host-activation-transition-authorization-grant-readiness-identity";
+
+export {
+  FEED_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationTransitionAuthorizationGrantReadinessPreparedContract,
+  validateFeedHostActivationTransitionAuthorizationGrantReadinessPreparedContract,
+  type FeedHostActivationTransitionAuthorizationGrantReadinessPreparedContract,
+} from "./sealed/feed-host-activation-transition-authorization-grant-readiness-prepared";
 
