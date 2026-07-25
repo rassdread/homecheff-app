@@ -152,6 +152,7 @@ export {
   PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY,
   PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY,
   PHASE_3B3_8_HOST_ACTIVATION_PLAN_ONLY,
+  PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -414,3 +415,48 @@ export {
   validateFeedHostActivationPlanPreparedContract,
   type FeedHostActivationPlanPreparedContract,
 } from "./sealed/feed-host-activation-plan-prepared";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_STAGES,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_STAGE_ORDER,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_STAGE_DEPENDENCIES,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_ENTRY_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_EXIT_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_VALIDATION_POINTS,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_ROLLBACK_CHECKPOINTS,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_ABORT_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_INPUT_SOURCES,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_ID,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_VERSION,
+  createControlledHostActivationPipelineDescriptor,
+  evaluateControlledHostActivationPipeline,
+  validateControlledHostActivationPipelineDescriptor,
+  type ControlledHostActivationPipelineDescriptor,
+  type ControlledHostActivationPipelineEvaluation,
+  type ControlledHostActivationPipelineDiagnostics,
+} from "./sealed/controlled-host-activation-pipeline";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_PIPELINE_REQUIREMENTS,
+  createControlledHostActivationPipelineContract,
+  validateControlledHostActivationPipelineContract,
+  type ControlledHostActivationPipelineContract,
+  type ControlledHostActivationPipelineRequirement,
+} from "./sealed/controlled-host-activation-pipeline-contract";
+
+export {
+  FEED_HOST_ACTIVATION_PIPELINE_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationPipelineIdentity,
+  validateFeedHostActivationPipelineIdentity,
+  type FeedHostActivationPipelineIdentity,
+} from "./sealed/feed-host-activation-pipeline-identity";
+
+export {
+  FEED_HOST_ACTIVATION_PIPELINE_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationPipelinePreparedContract,
+  validateFeedHostActivationPipelinePreparedContract,
+  type FeedHostActivationPipelinePreparedContract,
+} from "./sealed/feed-host-activation-pipeline-prepared";

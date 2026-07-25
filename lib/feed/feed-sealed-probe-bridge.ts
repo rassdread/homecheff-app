@@ -1,5 +1,5 @@
 /**
- * Phase 3B.2/3B.3.8 — namespaced browser probe bridge for sealed Feed instrumentation.
+ * Phase 3B.2/3B.3.9 — namespaced browser probe bridge for sealed Feed instrumentation.
  *
  * Installed only when NEXT_PUBLIC_FEED_SEALED_BASELINE=1 (compile-time gate).
  */
@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 9;
+  version: 10;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -31,15 +31,15 @@ export type FeedSealedProbeApi = {
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.8";
-    eligibleStep: "3B.3.9";
+    currentStep: "3B.3.9";
+    eligibleStep: "3B.3.10";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
     activeRenderOwner: "legacy";
     activeWriter: "legacy";
-    nextEligibleStep: "3B.3.9";
+    nextEligibleStep: "3B.3.10";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
@@ -58,6 +58,8 @@ export type FeedSealedProbeApi = {
     confidence?: "high";
     planState?: "completed";
     planResult?: "plan-complete-not-executable";
+    pipelineState?: "completed";
+    pipelineResult?: "pipeline-complete-not-executable";
     recommendedNextStep: string;
   }>;
   readShadowPlacement: () => Promise<{
@@ -185,6 +187,63 @@ export type FeedSealedProbeApi = {
     };
   }>;
 
+  readHostActivationPipeline: () => Promise<{
+    phase: "3B.3.9";
+    pipelineId: string;
+    pipelineVersion: 1;
+    pipelineState: "completed";
+    pipelineResult: "pipeline-complete-not-executable";
+    decisionResult: "ALLOW";
+    planResult: "plan-complete-not-executable";
+    wouldActivate: true;
+    pipelineStages: readonly string[];
+    stageOrder: readonly string[];
+    stageDependencies: readonly string[];
+    entryConditions: readonly string[];
+    exitConditions: readonly string[];
+    validationPoints: readonly string[];
+    rollbackCheckpoints: readonly string[];
+    abortConditions: readonly string[];
+    invariants: readonly string[];
+    runtimeId: string;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    activationBlocker: "PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY";
+    nextEligibleStep: "3B.3.10";
+    diagnostics: {
+      pipelineCompleted: true;
+      pipelineResult: "pipeline-complete-not-executable";
+      stageCount: number;
+      stageOrder: readonly string[];
+      stageDependencies: readonly string[];
+      validationPoints: readonly string[];
+      rollbackCheckpoints: readonly string[];
+      abortConditions: readonly string[];
+      invariants: readonly string[];
+      pipelineInputSources: readonly string[];
+      decisionResult: "ALLOW";
+      planResult: "plan-complete-not-executable";
+      wouldActivate: true;
+      activationBlocked: true;
+      canStartActivation: false;
+      currentPhase: "3B.3.9";
+      nextEligibleStep: "3B.3.10";
+      activeBlockers: readonly string[];
+      readinessStatus: "ready";
+      eligibilityStatus: "eligible";
+      simulationStatus: "completed";
+      decisionStatus: "completed";
+      planStatus: "completed";
+      missingConditionsForExecution: readonly string[];
+      registryHostCount: 1;
+      runtimeIdStable: true;
+      ownershipLegacy: true;
+      rendererLegacy: true;
+      rollbackPrepared: true;
+    };
+  }>;
+
   readHostActivationPlan: () => Promise<{
     phase: "3B.3.8";
     planId: string;
@@ -287,7 +346,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 9,
+    version: 10,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -330,6 +389,7 @@ export function installFeedSealedProbeBridge(): void {
         phase3b36ProofValid: true,
         phase3b37ProofValid: true,
         phase3b38ProofValid: true,
+        phase3b39ProofValid: true,
         observedWriter: "legacy",
         observedRenderOwner: "legacy",
         observedMountCount: 1,
@@ -340,13 +400,14 @@ export function installFeedSealedProbeBridge(): void {
         observedSimulationState: "completed",
         observedDecisionState: "completed",
         observedPlanState: "completed",
+        observedPipelineState: "completed",
         observedRuntimeId: "feed.discovery.legacy-single-mount.v1",
       });
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.8" as const,
-        eligibleStep: "3B.3.9" as const,
+        currentStep: "3B.3.9" as const,
+        eligibleStep: "3B.3.10" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -357,7 +418,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activeRenderOwner: "legacy" as const,
         activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.9" as const,
+        nextEligibleStep: "3B.3.10" as const,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -380,6 +441,8 @@ export function installFeedSealedProbeBridge(): void {
         confidence: "high" as const,
         planState: "completed" as const,
         planResult: "plan-complete-not-executable" as const,
+        pipelineState: "completed" as const,
+        pipelineResult: "pipeline-complete-not-executable" as const,
         recommendedNextStep: p.recommendedNextStep,
       };
     },
@@ -495,6 +558,37 @@ export function installFeedSealedProbeBridge(): void {
         canStartActivation: false as const,
         activationBlocker: "PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY" as const,
         nextEligibleStep: "3B.3.7" as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readHostActivationPipeline: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledHostActivationPipeline();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.9" as const,
+        pipelineId: d.pipelineId,
+        pipelineVersion: 1 as const,
+        pipelineState: "completed" as const,
+        pipelineResult: "pipeline-complete-not-executable" as const,
+        decisionResult: "ALLOW" as const,
+        planResult: "plan-complete-not-executable" as const,
+        wouldActivate: true as const,
+        pipelineStages: d.pipelineStages,
+        stageOrder: d.stageOrder,
+        stageDependencies: d.stageDependencies,
+        entryConditions: d.entryConditions,
+        exitConditions: d.exitConditions,
+        validationPoints: d.validationPoints,
+        rollbackCheckpoints: d.rollbackCheckpoints,
+        abortConditions: d.abortConditions,
+        invariants: d.invariants,
+        runtimeId: d.runtimeId,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker: "PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY" as const,
+        nextEligibleStep: "3B.3.10" as const,
         diagnostics: evaluation.diagnostics,
       };
     },
