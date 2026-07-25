@@ -1,54 +1,97 @@
 # Phase 3B.3.10 — Controlled Host Activation Transaction
 
-Status: DRAFT (pending browser proof)
+| Field | Value |
+|-------|--------|
+| Phase | 3B.3.10 |
+| Branch | `workspace/phase3b310-controlled-host-activation-transaction` |
+| Implementation commit | `ea207bac697067a8a42efdca48436215c0a23232` |
+| Browser proof commit | `ea207bac697067a8a42efdca48436215c0a23232` |
+| Browser | Chromium Chrome/131 · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` · port 3031 |
+| Decision | **READY FOR PHASE 3B.3.11** |
 
-## Architecture
+## 1. Architecture
 
-Workspace models an atomic **Activation Transaction** as metadata only. GeoFeed remains sole renderer, writer, and runtime owner. No commit, rollback execution, activation, scheduler, or executor.
+Workspace defines a deterministic activation *transaction* describing how a future atomic host activation would commit, from sealed metadata: registration, shadow placement, eligibility, readiness, simulation, decision, plan, and pipeline. The transaction is metadata only. GeoFeed remains sole owner of rendering, writer, and all Feed runtime surfaces.
 
-## Transaction model
+`hostActivation=false`, `renderActivation=false`, `canStartActivation=false`, `transactionCommitted=false`. No executor. No scheduler. No commit. No rollback execution. No runtime mutation.
 
-- `transactionResult`: `transaction-complete-not-committed`
-- `wouldCommit`: `true` (prerequisites agree a future atomic commit could be valid)
-- `transactionCommitted`: always `false`
-- `activationState`: always dormant / false
-- `beginState` / `intendedEndState` fully recorded
-- commit / rollback / abort / compensating / checkpoint / invariant metadata only
+## 2. Transaction model
 
-## Transaction engine
+| Field | Value |
+|-------|--------|
+| hostId | `feed.discovery.controlled-host` |
+| runtimeId | `feed.discovery.legacy-single-mount.v1` |
+| transactionId | `feed.discovery.controlled-host.activation-transaction.v1` |
+| transactionVersion | `1` |
+| transactionState | `completed` |
+| transactionResult | `transaction-complete-not-committed` |
+| wouldCommit | `true` (prerequisites agree; intent only) |
+| transactionCommitted | `false` (always) |
+| beginState | `legacy-dormant-single-mount` |
+| intendedEndState | `controlled-host-active-same-instance-no-remount` |
+| commitConditions / rollbackConditions | sealed arrays |
+| validationCheckpoints / transactionCheckpoints | sealed arrays |
+| compensatingActions / abortConditions | sealed arrays |
+| invariants | all 20 release-blocking IDs |
+| decisionResult / planResult / pipelineResult | ALLOW / plan-complete-not-executable / pipeline-complete-not-executable |
+| wouldActivate | `true` (intent only) |
+| owner / writer / renderer | legacy / legacy / legacy |
+| activationState | `dormant` |
+| rollbackState | `prepared-not-active` |
+| canStartActivation | false |
+| nextEligibleStep | `3B.3.11` |
+| activationBlocker | `PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY` |
 
-Pure deterministic `evaluateControlledHostActivationTransaction(registry)` — no side effects, no React/browser/global state. Chains prior pipeline evaluation; never executes.
+Components: Activation Transaction Contract, Transaction Descriptor + Engine, Transaction Diagnostics, Transaction Validator, Browser Instrumentation (`readHostActivationTransaction`, probe v11).
 
-## Commit / rollback model
+## 3. Transaction engine
 
-Commit and rollback are described and validated as conditions only. Fail-closed contract forbids `commitAllowed`, `rollbackExecutionAllowed`, executors, and schedulers.
+Pure `evaluateControlledHostActivationTransaction(registry)`:
 
-## Diagnostics
+- no side effects / React / browser / global state
+- chains `evaluateControlledHostActivationPipeline(registry)`
+- explicit inputs: `CONTROLLED_HOST_ACTIVATION_TRANSACTION_INPUT_SOURCES`
+- builds begin/end state, commit/rollback/abort/compensating metadata deterministically
+- identical input → identical output (`stableStringify`)
 
-Readable diagnostics include transaction completed/result, wouldCommit, transactionCommitted, begin/end state, conditions, checkpoints, compensating actions, abort conditions, invariants, blockers, pipeline/plan/decision results, wouldActivate, currentPhase, nextEligibleStep.
+Atomicity is metadata-only: the model records a single would-be commit unit. Partial execution is impossible because no executor, scheduler, or commit path exists. `wouldCommit=true` never implies `transactionCommitted=true`.
 
-## Identity / ownership / runtime
+## 4. Commit / rollback model
 
-- runtimeId stable (`feed.discovery.legacy-single-mount.v1`)
-- mount=1, unmount=0
-- owner/writer/renderer = legacy
-- registry + activation-transaction metadata-only
-- `hostActivation=false`, `renderActivation=false`, `canStartActivation=false`
+Commit conditions enumerate sealed prerequisites (single host, pipeline/plan complete, decision ALLOW, legacy ownership, rollback prepared, 20 invariants, future executor authorization). Rollback conditions enumerate abort triggers (identity drift, second mount, forced activation, executor presence, partial attempt). Compensating actions are descriptive only (`prepared-not-active`). No codepath executes commit or rollback.
 
-## Browser proof
+## 5. Diagnostics
 
-Pending Chromium production proof on implementation commit (port 3031, probe v11).
+Readable: transaction completed, transactionResult, wouldCommit, transactionCommitted, beginState, intendedEndState, commit/rollback conditions, transaction/validation checkpoints, compensatingActions, abortConditions, invariants, blockers, pipelineResult, planResult, decisionResult, wouldActivate, `currentPhase=3B.3.10`, `nextEligibleStep=3B.3.11`.
 
-## Validators / tests
+## 6. Identity / ownership / runtime
 
-- `validate:adaptive-workspace-feed-activation-transaction`
-- `test:adaptive-workspace-feed-activation-transaction`
-- Prior phase validators must remain green.
+Browser-measured on proof commit `ea207ba`: mount=1, unmount=0, stable `runtimeId`, React identity stable, owner/writer/renderer legacy, registry + activation-transaction metadata-only. Shell remains `return null`. Forced activation blocked by `PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY`.
 
-## Regression risk
+## 7. Browser proof
 
-Low if boundaries hold: no GeoFeed ownership shift, no DOM/runtime mutation, gate remains fail-closed on `PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY`.
+Artifact: `docs/audits/artifacts/phase3b310/phase3b3-10-feed-host-activation-transaction-proof.json`
 
-## Limits toward Phase 3B.3.11
+- New Chromium production run (not reused)
+- Proof commit matches implementation commit `ea207ba`
+- 20/20 release-blocking invariants PASS
+- Transaction metadata + diagnostics + wouldCommit + transactionCommitted=false visible
+- Forced activation blocked (`PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY`)
+- Phase 3B.2 rerun also 20/20 PASS
+- `transactionMetaOk=true`, verdict `READY_FOR_PHASE_3B_3_11`
 
-Transaction models atomic activation but does not authorize candidate activation, commit, or any runtime cutover. Phase 3B.3.11 may introduce the next metadata gate only under Master Specification constraints.
+## 8. Validators / tests
+
+All green through sealed → activation-pipeline + activation-transaction; unit suites including 8 transaction assertions; production sealed build pass; `validate:adaptive-workspace-feed-activation-transaction` ok.
+
+## 9. Regression risk
+
+Low for DOM/runtime. Residual risk for 3B.3.11: treating `wouldCommit=true` or `transactionResult=transaction-complete-not-committed` as authorization to commit or activate.
+
+## 10. Limits toward 3B.3.11
+
+No activation executor, no scheduler, no commit, no rollback execution, no hostActivation flip, no Workspace renderer, no remount/wrappers/portals, no runtime mutation. Phase 3B.3.11 may only introduce further non-executing controls if fail-closed under the Master Specification.
+
+## 11. Decision
+
+**READY FOR PHASE 3B.3.11**
