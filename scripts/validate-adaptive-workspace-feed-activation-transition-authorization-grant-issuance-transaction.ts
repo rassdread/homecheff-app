@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.19 static validator — activation transition authorization grant
- * issuance decision contract / integrity / diagnostics / metadata / policy /
+ * Phase 3B.3.22 static validator — activation transition authorization grant
+ * issuance plan contract / integrity / diagnostics / metadata / policy /
  * condition / guard / blocker / grant-readiness linkage / issuance safety /
  * ownership / renderer / writer.
  */
@@ -10,24 +10,25 @@ import { join } from "node:path";
 import {
   createControlledFeedHostContract,
   createControlledHostRegistry,
-  createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor,
-  createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionContract,
-  evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceDecision,
-  createFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionIdentity,
+  createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor,
+  createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionContract,
+  evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceTransaction,
+  createFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionIdentity,
   createControlledFeedHostPlan,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_GUARDS,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_POLICY,
+  PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
+  PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_POLICY,
   CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
   createFeedDiscoverySealedContract,
-  validateFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionPreparedContract,
+  validateFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionPreparedContract,
 } from "../lib/adaptive-workspace";
 
 const root = process.cwd();
@@ -37,57 +38,57 @@ function mustExist(rel: string) {
 }
 
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-host-activation-transition-authorization-grant-issuance-decision.ts",
+  "lib/adaptive-workspace/sealed/controlled-host-activation-transition-authorization-grant-issuance-transaction.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-host-activation-transition-authorization-grant-issuance-decision-contract.ts",
+  "lib/adaptive-workspace/sealed/controlled-host-activation-transition-authorization-grant-issuance-transaction-contract.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-host-activation-transition-authorization-grant-issuance-decision-identity.ts",
+  "lib/adaptive-workspace/sealed/feed-host-activation-transition-authorization-grant-issuance-transaction-identity.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-host-activation-transition-authorization-grant-issuance-decision-prepared.ts",
+  "lib/adaptive-workspace/sealed/feed-host-activation-transition-authorization-grant-issuance-transaction-prepared.ts",
 );
 mustExist(
-  "scripts/probe-feed-host-activation-transition-authorization-grant-issuance-decision-phase3b319.mjs",
+  "scripts/probe-feed-host-activation-transition-authorization-grant-issuance-transaction-phase3b322.mjs",
 );
 mustExist(
-  "scripts/run-feed-host-activation-transition-authorization-grant-issuance-decision-proof-phase3b319.mjs",
+  "scripts/run-feed-host-activation-transition-authorization-grant-issuance-transaction-proof-phase3b322.mjs",
 );
 mustExist(
-  "docs/audits/homecheff-adaptive-workspace-phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision.md",
+  "docs/audits/homecheff-adaptive-workspace-phase3b3-22-feed-host-activation-transition-authorization-grant-issuance-transaction.md",
 );
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json");
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json");
 
-const priorGrantReadinessProofPath = join(
+const priorIssuancePlanProofPath = join(
   root,
-  "docs/audits/artifacts/phase3b318/phase3b3-18-feed-host-activation-transition-authorization-grant-readiness-proof.json",
+  "docs/audits/artifacts/phase3b321/phase3b3-21-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
 );
 mustExist(
-  "docs/audits/artifacts/phase3b318/phase3b3-18-feed-host-activation-transition-authorization-grant-readiness-proof.json",
+  "docs/audits/artifacts/phase3b321/phase3b3-21-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
 );
-const priorGrantReadinessProof = JSON.parse(
-  readFileSync(priorGrantReadinessProofPath, "utf8"),
+const priorIssuancePlanProof = JSON.parse(
+  readFileSync(priorIssuancePlanProofPath, "utf8"),
 );
 assert.equal(
-  priorGrantReadinessProof.overallVerdict,
-  "READY_FOR_PHASE_3B_3_19",
+  priorIssuancePlanProof.overallVerdict,
+  "READY_FOR_PHASE_3B_3_22",
 );
 
 const issuanceProofPath = join(
   root,
-  "docs/audits/artifacts/phase3b319/phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-proof.json",
+  "docs/audits/artifacts/phase3b322/phase3b3-22-feed-host-activation-transition-authorization-grant-issuance-transaction-proof.json",
 );
 const issuancePreparedPath = join(
   root,
-  "docs/audits/artifacts/phase3b319/phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-prepared.json",
+  "docs/audits/artifacts/phase3b322/phase3b3-22-feed-host-activation-transition-authorization-grant-issuance-transaction-prepared.json",
 );
 const artifactsPresent =
   existsSync(issuanceProofPath) && existsSync(issuancePreparedPath);
-if (!artifactsPresent && process.env.REQUIRE_PHASE3B319_ARTIFACTS === "1") {
+if (!artifactsPresent && process.env.REQUIRE_PHASE3B322_ARTIFACTS === "1") {
   assert.fail(
-    "Phase 3B.3.19 proof/prepared artifacts required but missing",
+    "Phase 3B.3.22 proof/prepared artifacts required but missing",
   );
 }
 
@@ -97,7 +98,7 @@ assert.equal(host.renderActivation, false);
 assert.equal(host.nextEligibleStep, "3B.3.23");
 assert.ok(
   host.activationBlockers.includes(
-    PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+    PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
   ),
 );
 
@@ -105,15 +106,22 @@ const registry = createControlledHostRegistry();
 assert.equal(registry.hostCount, 1);
 
 const descriptor =
-  createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor();
+  createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor();
 assert.equal(
-  descriptor.issuanceDecisionResult,
-  "authorization-grant-issuance-eligible-not-issued",
+  descriptor.issuanceTransactionResult,
+  "authorization-grant-issuance-transaction-ready-not-opened",
 );
-assert.equal(descriptor.issuanceDecisionCompleted, true);
+assert.equal(descriptor.issuanceTransactionCompleted, true);
+assert.equal(descriptor.issuanceTransactionReady, true);
+assert.equal(descriptor.issuanceTransactionBlocked, true);
+assert.equal(descriptor.issuanceTransactionExecutable, false);
+assert.equal(descriptor.wouldOpenIssuanceTransaction, true);
 assert.equal(descriptor.issuanceEligible, true);
 assert.equal(descriptor.issuanceBlocked, true);
 assert.equal(descriptor.wouldIssueGrant, true);
+assert.equal(descriptor.transactionParticipantCount, 30);
+assert.equal(descriptor.blockedTransactionParticipantCount, 30);
+assert.equal(descriptor.executableTransactionParticipantCount, 0);
 assert.equal(descriptor.grantIssued, false);
 assert.equal(descriptor.grantCreated, false);
 assert.equal(descriptor.grantMaterialized, false);
@@ -154,44 +162,44 @@ assert.equal(descriptor.currentNode, "COMMIT_READY");
 assert.equal(descriptor.canStartActivation, false);
 assert.equal(
   descriptor.activationBlocker,
-  PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+  PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
 );
 assert.equal(
-  descriptor.issuancePolicy,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_POLICY,
+  descriptor.issuanceTransactionPolicy,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_POLICY,
 );
 assert.deepEqual(
-  [...descriptor.issuanceConditions],
-  [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS],
+  [...descriptor.issuanceTransactionConditions],
+  [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS],
 );
 assert.deepEqual(
-  [...descriptor.satisfiedIssuanceConditions],
-  [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS],
+  [...descriptor.satisfiedIssuanceTransactionConditions],
+  [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS],
 );
-assert.equal(descriptor.unsatisfiedIssuanceConditions.length, 0);
+assert.equal(descriptor.unsatisfiedIssuanceTransactionConditions.length, 0);
 assert.deepEqual(
-  [...descriptor.issuanceGuards],
-  [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_GUARDS],
+  [...descriptor.issuanceTransactionGuards],
+  [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_GUARDS],
 );
-assert.equal(descriptor.unsatisfiedIssuanceGuards.length, 0);
+assert.equal(descriptor.unsatisfiedIssuanceTransactionGuards.length, 0);
 assert.equal(
   descriptor.selectedTransition,
   CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION,
 );
 assert.equal(
-  new Set(descriptor.issuanceConditions).size,
-  descriptor.issuanceConditions.length,
+  new Set(descriptor.issuanceTransactionConditions).size,
+  descriptor.issuanceTransactionConditions.length,
 );
 assert.equal(
-  new Set(descriptor.issuanceGuards).size,
-  descriptor.issuanceGuards.length,
+  new Set(descriptor.issuanceTransactionGuards).size,
+  descriptor.issuanceTransactionGuards.length,
 );
 
 const evaluation =
-  evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceDecision(
+  evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceTransaction(
     registry,
   );
-assert.equal(evaluation.diagnostics.issuanceDecisionCompleted, true);
+assert.equal(evaluation.diagnostics.issuanceTransactionCompleted, true);
 assert.equal(evaluation.diagnostics.issuanceEligible, true);
 assert.equal(evaluation.diagnostics.issuanceBlocked, true);
 assert.equal(evaluation.diagnostics.wouldIssueGrant, true);
@@ -199,22 +207,22 @@ assert.equal(evaluation.diagnostics.grantIssued, false);
 assert.equal(evaluation.diagnostics.issuanceImpossible, true);
 assert.equal(evaluation.diagnostics.authorityImpossible, true);
 assert.equal(evaluation.diagnostics.executionImpossible, true);
-assert.equal(evaluation.diagnostics.currentPhase, "3B.3.19");
-assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.20");
+assert.equal(evaluation.diagnostics.currentPhase, "3B.3.22");
+assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.23");
 assert.equal(
   evaluation.diagnostics.conditionCount,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS.length,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS.length,
 );
 assert.equal(
   evaluation.diagnostics.guardCount,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_GUARDS.length,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_GUARDS.length,
 );
 
 const issuanceContract =
-  createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionContract();
+  createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionContract();
 assert.equal(
-  issuanceContract.issuanceDecisionResult,
-  "authorization-grant-issuance-eligible-not-issued",
+  issuanceContract.issuanceTransactionResult,
+  "authorization-grant-issuance-transaction-ready-not-opened",
 );
 assert.equal(issuanceContract.grantCreationAllowed, false);
 assert.equal(issuanceContract.grantIssuanceAllowed, false);
@@ -223,11 +231,11 @@ assert.equal(issuanceContract.authorizationGrantAllowed, false);
 assert.equal(issuanceContract.commitAllowed, false);
 
 const identity =
-  createFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionIdentity();
-assert.equal(identity.grantCreationViaIssuanceDecisionAllowed, false);
-assert.equal(identity.grantIssuanceViaIssuanceDecisionAllowed, false);
-assert.equal(identity.grantMaterializationViaIssuanceDecisionAllowed, false);
-assert.equal(identity.grantAuthorityViaIssuanceDecisionAllowed, false);
+  createFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionIdentity();
+assert.equal(identity.grantCreationViaIssuanceTransactionAllowed, false);
+assert.equal(identity.grantIssuanceViaIssuanceTransactionAllowed, false);
+assert.equal(identity.grantMaterializationViaIssuanceTransactionAllowed, false);
+assert.equal(identity.grantAuthorityViaIssuanceTransactionAllowed, false);
 
 const plan = createControlledFeedHostPlan();
 assert.equal(plan.authorizationGranted, false);
@@ -257,8 +265,7 @@ const gate = evaluateFeedHostActivationGate({
   phase3b316ProofValid: true,
   phase3b317ProofValid: true,
   phase3b318ProofValid: true,
-  phase3b319ProofValid: true,
-    phase3b320ProofValid: true,
+  phase3b322ProofValid: true,
   observedWriter: "legacy",
   observedRenderOwner: "legacy",
   observedMountCount: 1,
@@ -279,8 +286,7 @@ const gate = evaluateFeedHostActivationGate({
   observedTransitionPreflightState: "completed",
   observedTransitionAuthorizationDecisionState: "completed",
   observedTransitionAuthorizationGrantReadinessState: "completed",
-  observedTransitionAuthorizationGrantIssuanceDecisionState: "completed",
-    observedTransitionAuthorizationGrantIssuancePlanState: "completed",
+  observedTransitionAuthorizationGrantIssuanceTransactionState: "completed",
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
 assert.equal(gate.allowed, false);
@@ -307,18 +313,18 @@ const probeBridge = readFileSync(
 assert.match(probeBridge, /version: 23/);
 assert.match(
   probeBridge,
-  /readHostActivationTransitionAuthorizationGrantIssuanceDecision/,
+  /readHostActivationTransitionAuthorizationGrantIssuanceTransaction/,
 );
 assert.match(
   probeBridge,
-  /PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY/,
+  /PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY/,
 );
 
 for (const name of [
-  "controlled-host-activation-transition-authorization-grant-issuance-decision.ts",
-  "controlled-host-activation-transition-authorization-grant-issuance-decision-contract.ts",
-  "feed-host-activation-transition-authorization-grant-issuance-decision-identity.ts",
-  "feed-host-activation-transition-authorization-grant-issuance-decision-prepared.ts",
+  "controlled-host-activation-transition-authorization-grant-issuance-transaction.ts",
+  "controlled-host-activation-transition-authorization-grant-issuance-transaction-contract.ts",
+  "feed-host-activation-transition-authorization-grant-issuance-transaction-identity.ts",
+  "feed-host-activation-transition-authorization-grant-issuance-transaction-prepared.ts",
 ]) {
   assert.doesNotMatch(
     readFileSync(join(root, "lib/adaptive-workspace/sealed", name), "utf8"),
@@ -350,45 +356,45 @@ validateFeedDiscoveryFreezeContract({
 
 if (artifactsPresent) {
   const issuanceProof = JSON.parse(readFileSync(issuanceProofPath, "utf8"));
-  assert.equal(issuanceProof.overallVerdict, "READY_FOR_PHASE_3B_3_20");
+  assert.equal(issuanceProof.overallVerdict, "READY_FOR_PHASE_3B_3_23");
   assert.equal(issuanceProof.hostActivation, false);
   assert.equal(issuanceProof.canStartActivation, false);
   assert.equal(
-    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceDecision
-      .issuanceDecisionResult,
-    "authorization-grant-issuance-eligible-not-issued",
+    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceTransaction
+      .issuanceTransactionResult,
+    "authorization-grant-issuance-transaction-ready-not-opened",
   );
   assert.equal(
-    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceDecision
+    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceTransaction
       .grantIssued,
     false,
   );
   assert.equal(
-    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceDecision
+    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceTransaction
       .grantAuthorityAvailable,
     false,
   );
   assert.equal(
-    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceDecision
+    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceTransaction
       .currentState,
     "COMMIT_READY",
   );
   assert.equal(
-    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceDecision
+    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceTransaction
       .selectedTransition,
     "COMMIT_READY->ACTIVE",
   );
   assert.equal(
-    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceDecision
+    issuanceProof.hostActivationTransitionAuthorizationGrantIssuanceTransaction
       .activationBlocker,
-    PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+    PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
   );
   assert.equal(issuanceProof.mountUnmount.mountCount, 1);
   assert.equal(issuanceProof.mountUnmount.unmountCount, 0);
   assert.equal(issuanceProof.activationAttempt.blocked, true);
   assert.ok(
     issuanceProof.activationAttempt.blockers.includes(
-      PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+      PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
     ),
   );
   assert.equal(
@@ -399,13 +405,16 @@ if (artifactsPresent) {
   );
 
   const prepared =
-    validateFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionPreparedContract(
+    validateFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionPreparedContract(
       JSON.parse(readFileSync(issuancePreparedPath, "utf8")),
     );
-  assert.equal(prepared.nextEligibleStep, "3B.3.20");
+  assert.equal(prepared.nextEligibleStep, "3B.3.23");
   assert.equal(prepared.currentState, "COMMIT_READY");
   assert.equal(prepared.grantIssued, false);
-  assert.equal(prepared.issuanceDecisionExecuted, false);
+  assert.equal(prepared.issuanceTransactionExecuted, false);
+  assert.equal(prepared.issuanceTransactionReady, true);
+  assert.equal(prepared.issuanceTransactionExecutable, false);
+  assert.equal(prepared.wouldOpenIssuanceTransaction, true);
 }
 
 const feedQuery = readFileSync(
@@ -416,6 +425,6 @@ assert.doesNotMatch(feedQuery, /hostActivation|adaptive-workspace-host/);
 
 console.log(
   artifactsPresent
-    ? "validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision: ok (with artifacts)"
-    : "validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision: ok (pre-proof contracts)",
+    ? "validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction: ok (with artifacts)"
+    : "validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction: ok (pre-proof contracts)",
 );

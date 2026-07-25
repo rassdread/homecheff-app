@@ -25,7 +25,7 @@ import {
   PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
-  PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
+  PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
@@ -72,7 +72,7 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.22");
+assert.equal(host.nextEligibleStep, "3B.3.23");
 assert.ok(
   host.activationBlockers.includes(PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY),
 );
@@ -130,7 +130,7 @@ assert.equal(plan.eligibilityState, "eligible");
 assert.equal(plan.canStartActivation, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.22-controlled-host-activation-candidate",
+  "3B.3.23-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -163,9 +163,9 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY));
-assert.equal(gate.currentStep, "3B.3.21");
-assert.equal(gate.eligibleStep, "3B.3.22");
+assert.ok(gate.blockers.includes(PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY));
+assert.equal(gate.currentStep, "3B.3.22");
+assert.equal(gate.eligibleStep, "3B.3.23");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.readinessState, "ready");
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.canStartActivation, false);
@@ -189,7 +189,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*22/);
+assert.match(probeBridge, /version: 23/);
 assert.match(probeBridge, /readHostActivationReadiness/);
 assert.match(probeBridge, /PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY/);
 

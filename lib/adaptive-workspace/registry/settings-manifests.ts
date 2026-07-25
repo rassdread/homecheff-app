@@ -109,7 +109,7 @@ export const FEED_DISCOVERY_HOST_CANDIDATE_METADATA = {
   activeWriter: "legacy" as const,
   rendererRegistered: false as const,
   childFactoryRegistered: false as const,
-  nextEligibleStep: "3B.3.22" as const,
+  nextEligibleStep: "3B.3.23" as const,
   shadowPlacementState: "shadow-registered" as const,
   placementMode: "sibling-after-legacy-mount" as const,
   registrationState: "registered" as const,
