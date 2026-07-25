@@ -4,86 +4,78 @@
 |-------|--------|
 | Phase | 3B.3.15 |
 | Branch | `workspace/phase3b315-controlled-host-activation-transition-selection` |
-| Implementation commit | _(pending proof)_ |
-| Browser proof commit | _(pending proof)_ |
-| Browser | Chromium · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` · port 3036 |
-| Decision | **PENDING PROOF — contract wiring complete** |
+| Implementation commit | `9a92c08babcedb5ac798fb386d1f6fd0acaaa2e2` |
+| Browser proof commit | `9a92c08babcedb5ac798fb386d1f6fd0acaaa2e2` |
+| Browser | Chromium Chrome/131 · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` · port 3036 |
+| Decision | **READY FOR PHASE 3B.3.16** |
 
-## 1. Architecture
+## 1. Goal / architecture position
 
-Workspace builds a sealed Activation *Transition Selection* atop the Activation Transition Graph. The selection engine deterministically chooses the theoretical next transition candidate (`COMMIT_READY->ACTIVE`) from sealed outgoing edges. GeoFeed remains sole owner of rendering, writer, and all Feed runtime surfaces.
+Workspace deterministically selects the theoretical next transition candidate from the sealed Activation State Machine and Transition Graph. Metadata only. Phase 15 sits after Transition Graph (14) and before any future execution-oriented step (16). No executor, scheduler, traversal, transition execution, activation, commit, or rollback.
 
-`hostActivation=false`, `renderActivation=false`, `canStartActivation=false`, `selectionExecuted=false`, `transitionExecuted=false`, `graphTraversalExecuted=false`, `transactionCommitted=false`, `protocolExecuted=false`, ownership/writer/renderer remain legacy. No executor. No scheduler. No selection execution. No traversal. No transition execution. No commit. No rollback. No runtime mutation.
+## 2. Relation to State Machine / Transition Graph
 
-## 2. Selection model
+Selection reads completed unexecuted state-machine (`COMMIT_READY`) and transition-graph descriptors. Outgoing theoretical edges from `COMMIT_READY` are taken from sealed graph `blockedPaths` (`COMMIT_READY->ACTIVE|ABORTED|ROLLED_BACK`). Selection never mutates machine or graph metadata.
 
-| Field | Value |
-|-------|--------|
-| hostId | `feed.discovery.controlled-host` |
-| runtimeId | `feed.discovery.legacy-single-mount.v1` |
-| selectionId | `feed.discovery.controlled-host.activation-transition-selection.v1` |
-| selectionVersion | `1` |
-| selectionState | `completed` |
-| selectionResult | `transition-selected-not-executable` |
-| currentState / currentNode | `COMMIT_READY` (unchanged) |
-| candidateTransitions | `COMMIT_READY->ABORTED`, `COMMIT_READY->ACTIVE`, `COMMIT_READY->ROLLED_BACK` |
-| eligibleTransitions | `COMMIT_READY->ACTIVE` |
-| ineligibleTransitions | abort + rollback paths |
-| selectedTransition | `COMMIT_READY->ACTIVE` |
-| selectionStrategy | `activation-path-priority-then-lexicographic-transition-id` |
-| selectionExecuted | `false` (always) |
-| owner / writer / renderer | legacy / legacy / legacy |
-| activationState | dormant / false |
-| rollbackState | `prepared-not-active` |
-| nextEligibleStep | `3B.3.16` |
-| activationBlocker | `PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY` |
-
-Components: Transition Selection Contract, Descriptor + Engine, Diagnostics, Validator, Browser Instrumentation (`readHostActivationTransitionSelection`, probe v16).
-
-## 3. Selection engine
+## 3. Selection model / engine
 
 Pure `evaluateControlledHostActivationTransitionSelection(registry)`:
 
-- no side effects / React / browser / global state
-- chains `evaluateControlledHostActivationTransitionGraph(registry)`
-- classifies outgoing `COMMIT_READY` edges into eligible/ineligible sets
-- ranks eligible edges by activation-path priority + lexicographic tie-break
-- selects `COMMIT_READY->ACTIVE` as theoretical winner
-- `selectionExecuted` remains false; currentState/currentNode remain `COMMIT_READY`
-- identical input → identical output
+1. Validate registry identity/ownership
+2. Require completed untraversed graph at `COMMIT_READY`
+3. Collect candidate outgoing edges
+4. Classify eligible (`COMMIT_READY->ACTIVE`) vs ineligible (abort/rollback)
+5. Rank by activation-path priority, then lexicographic transitionId
+6. Select exactly one winner: `COMMIT_READY->ACTIVE`
+7. Never execute; `currentState`/`currentNode` remain `COMMIT_READY`
 
-## 4. Candidates / eligibility / guards
+| Field | Value |
+|-------|--------|
+| selectionResult | `transition-selected-not-executable` |
+| selectionCompleted | `true` |
+| selectionExecuted | `false` |
+| selectedTransition | `COMMIT_READY->ACTIVE` |
+| selectedFromState | `COMMIT_READY` |
+| selectedToState | `ACTIVE` |
+| selectionStrategy | `activation-path-priority-then-lexicographic-transition-id` |
+| selectionPriority | `100` |
+| deterministicTieBreak | `lexicographic-transition-id` |
+| activationBlocker | `PHASE_3B3_15_HOST_ACTIVATION_TRANSITION_SELECTION_ONLY` |
+| nextEligibleStep | `3B.3.16` |
 
-Candidates mirror sealed outgoing edges from `COMMIT_READY`. Only the activation path to `ACTIVE` is eligible; abort/rollback paths are ineligible but preserved as alternatives. Guards/blockers permanently deny selection execution because no executor exists and `selectionExecutionAllowed=false`.
+## 4. Candidate classification
 
-## 5. Diagnostics
+| Set | Members |
+|-----|---------|
+| candidateTransitions | `COMMIT_READY->ABORTED`, `COMMIT_READY->ACTIVE`, `COMMIT_READY->ROLLED_BACK` (lex sorted) |
+| eligibleTransitions | `COMMIT_READY->ACTIVE` |
+| ineligibleTransitions | `COMMIT_READY->ABORTED`, `COMMIT_READY->ROLLED_BACK` |
+| alternativeTransitions | same as ineligible |
 
-Readable: `selectionCompleted`, `selectionResult`, `currentState`, `currentNode`, `candidateTransitions`, `eligibleTransitions`, `ineligibleTransitions`, `selectedTransition`, `selectionReason`, `selectionStrategy`, upstream graph/machine/protocol results, `currentPhase=3B.3.15`, `nextEligibleStep=3B.3.16`.
+Sets are disjoint, deterministic, and reference existing graph-model edges only.
+
+## 5. Guards / blockers / fail-closed
+
+Guards cover identity, ownership, graph/machine completeness, and execution forbids. Blockers permanently deny selection/transition/traversal/activation execution. Mismatch of host/runtime/graph/state, duplicate IDs, or unresolved ties throw `HardContractViolation` (no silent fallback).
 
 ## 6. Identity / ownership / runtime
 
-Browser-measured expectations: mount=1, unmount=0, stable `runtimeId`, React identity stable, owner/writer/renderer legacy, registry + activation-transition-selection metadata-only. Shell remains `return null`. Forced activation blocked.
+Browser-measured on proof commit `9a92c08`: mount=1, unmount=0, stable `runtimeId`, owner/writer/renderer legacy, transfers false, registry + transition-selection metadata-only. Shell `return null`. `currentState`/`currentNode` remain `COMMIT_READY` after selection.
 
-## 7. Browser proof
+## 7. Probe bridge / browser proof
 
-Artifact (after orchestrator): `docs/audits/artifacts/phase3b315/phase3b3-15-feed-host-activation-transition-selection-proof.json`
+Probe bridge **v16** exposes `readHostActivationTransitionSelection` (read-only). Artifact: `docs/audits/artifacts/phase3b315/phase3b3-15-feed-host-activation-transition-selection-proof.json`
 
-- New Chromium production run (requires Phase 3B.3.14 graph proof artifact as upstream reference)
-- 20/20 release-blocking invariants PASS
-- Transition selection metadata + diagnostics + `selectedTransition=COMMIT_READY->ACTIVE` visible
-- `selectionExecuted=false`, `transitionExecuted=false`, `graphTraversalExecuted=false`
+- New Chromium production run on port **3036**
+- 20/20 invariants PASS · `transitionSelectionMetaOk=true`
 - Forced activation blocked (`PHASE_3B3_15_…`)
-- `transitionSelectionMetaOk=true`, verdict `READY_FOR_PHASE_3B_3_16`
+- Phase 3B.2 rerun 20/20 PASS
+- Verdict: `READY_FOR_PHASE_3B_3_16`
 
-## 8. Validators / tests
+## 8. Validators / tests / build
 
-Unit suite: `run-host-activation-transition-selection-tests.ts`  
-Static validator: `validate-adaptive-workspace-feed-activation-transition-selection.ts` (artifacts optional until proof; `REQUIRE_PHASE3B315_ARTIFACTS=1` for strict mode)
+Selection validator ok (with artifacts). Prior dormant → transition-graph validators/tests green. Unit suites 3B.3.1–3B.3.15 green (selection 8/8). Sealed production build PASS.
 
-## 9. Regression risk
+## 9. Regression risk / limits toward 3B.3.16
 
-Low: metadata-only extension of sealed host path; no GeoFeed remount, no DOM/UI change, no writer/renderer ownership shift. Residual risk is gate/blocker drift in historical layer tests (mitigated by layer-owned `PHASE_3B3_N` on prior descriptors).
-
-## 10. Limits toward Phase 3B.3.16
-
-Transition selection does **not** authorize selection execution, graph traversal, transition execution, commit, activation, ownership/writer/renderer transfer, executor, or scheduler. `canStartActivation` remains `false`. Next eligible step remains under 3B.3.16 constraints.
+Low: metadata-only. Selection does **not** authorize execution, traversal, commit, activation, ownership/writer/renderer transfer, executor, or scheduler. `canStartActivation=false` remains. Phase 3B.3.16 must not treat selectedTransition as an execution mandate.
