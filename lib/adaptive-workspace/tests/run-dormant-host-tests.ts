@@ -214,7 +214,7 @@ console.log("\n[phase3b31] rollback + plan + readiness");
   assert.equal(plan.hostActivation, false);
   assert.equal(
     plan.recommendedNextStep,
-    "3B.3.20-controlled-host-activation-candidate",
+    "3B.3.22-controlled-host-activation-candidate",
   );
   assert.equal(plan.placementState, "shadow-registered");
   assert.equal(plan.registrationState, "registered");

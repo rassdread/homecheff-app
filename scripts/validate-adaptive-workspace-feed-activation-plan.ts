@@ -131,7 +131,7 @@ assert.equal(plan.planResult, "plan-complete-not-executable");
 assert.equal(plan.decisionResult, "ALLOW");
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.20-controlled-host-activation-candidate",
+  "3B.3.22-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();

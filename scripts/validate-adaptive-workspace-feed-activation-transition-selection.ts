@@ -168,7 +168,7 @@ assert.equal(plan.selectedTransition, "COMMIT_READY->ACTIVE");
 assert.equal(plan.selectionExecuted, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.20-controlled-host-activation-candidate",
+  "3B.3.22-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();

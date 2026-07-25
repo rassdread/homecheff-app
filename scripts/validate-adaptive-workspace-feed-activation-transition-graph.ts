@@ -160,7 +160,7 @@ assert.equal(plan.currentGraphNode, "COMMIT_READY");
 assert.equal(plan.graphTraversalExecuted, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.20-controlled-host-activation-candidate",
+  "3B.3.22-controlled-host-activation-candidate",
 );
 
 const rollback = createFeedHostRollbackContract();
