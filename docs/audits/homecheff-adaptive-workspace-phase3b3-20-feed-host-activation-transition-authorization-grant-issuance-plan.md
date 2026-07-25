@@ -5,7 +5,7 @@
 | Phase | 3B.3.20 |
 | Branch | `workspace/phase3b320-controlled-host-activation-transition-authorization-grant-issuance-plan` |
 | Implementation proof target | `3a0857e55a96ecaebafa5ed3568cc41d1b5e4201` |
-| Browser proof / audit commit | see tip after artifacts commit |
+| Browser proof / audit commit | ad4012b30e07effd4b72736f062078ae3096e158 |
 | Browser | Chromium Chrome/131 · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` · port **3041** |
 | Probe bridge | **v21** |
 | Decision | **READY FOR PHASE 3B.3.21** |
@@ -287,7 +287,7 @@ Unrelated dirty/untracked files left untouched and unstaged, including `docs/aud
 | Probe prior-proof/bridge fix | `724cad403841b9f07cf148933c8f5d7bc92f23ad` |
 | Grant-allowance bridge flags | `579c58187d5ee38d455280e5c689840d3086e4e5` |
 | Prepared fields + validator next step | `3a0857e55a96ecaebafa5ed3568cc41d1b5e4201` (**proof target**) |
-| Proof artifacts / audit | (this docs commit) |
+| Proof artifacts / audit | `ad4012b30e07effd4b72736f062078ae3096e158` |
 
 ## 41. Pre-existing dirty files left untouched
 
