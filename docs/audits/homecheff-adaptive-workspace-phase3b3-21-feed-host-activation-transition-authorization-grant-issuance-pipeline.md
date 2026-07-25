@@ -318,7 +318,7 @@ See `docs/audits/artifacts/phase3b321/changed-file-inventory.txt` (diff vs prede
 | Prepared fields + LIVE candidate | `291817764ea296813c83d1bc6f6aa99751c76f53` (**proof target**) |
 | Plan validator historical blocker | `ed76be029c1d4df20f1f769840af38f37b6ded9b` |
 | Proof artifacts + audit | `236944650870383f2e6cff50336010697842b1c1` |
-| Documentary tip | `f6ff306fdedad454637e60969e77a34ac23790f2` |
+| Documentary tip | `00fc37faa4d82d5f5f3e91583b97174a74320a1a` |
 
 ## 45. Pre-existing dirty files left untouched
 
