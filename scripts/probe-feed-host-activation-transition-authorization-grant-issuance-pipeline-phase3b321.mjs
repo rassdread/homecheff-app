@@ -890,7 +890,7 @@ async function main() {
 
     const outPath = join(
       outDir,
-      "phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
+      "phase3b3-21-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
     );
     writeFileSync(outPath, JSON.stringify(artifact, null, 2));
 
@@ -1037,19 +1037,19 @@ async function main() {
       secondGeofeedAuthorized: false,
       evidenceCommit: commit,
       evidenceArtifactPath:
-        "docs/audits/artifacts/phase3b321/phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
+        "docs/audits/artifacts/phase3b321/phase3b3-21-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
     };
     writeFileSync(
       join(
         outDir,
-        "phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-pipeline-prepared.json",
+        "phase3b3-21-feed-host-activation-transition-authorization-grant-issuance-pipeline-prepared.json",
       ),
       JSON.stringify(prepared, null, 2),
     );
     writeFileSync(
       join(
         outDir,
-        "phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-pipeline-summary.md",
+        "phase3b3-21-feed-host-activation-transition-authorization-grant-issuance-pipeline-summary.md",
       ),
       [
         `# Phase 3B.3.21 Host Activation Transition Authorization Grant Issuance Plan Proof Summary`,
