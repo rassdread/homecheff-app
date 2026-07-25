@@ -1,0 +1,10 @@
+{
+  "grantIssued": false,
+  "grantCreated": false,
+  "grantMaterialized": false,
+  "grantPersisted": false,
+  "grantApplied": false,
+  "grantActivated": false,
+  "grantConsumed": false,
+  "grantRevoked": false
+}

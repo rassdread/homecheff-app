@@ -1,0 +1,3 @@
+proofTarget=793ca6612f384a6e8a005e640724972f50aa5d7b
+implementationCommit=793ca6612f384a6e8a005e640724972f50aa5d7b
+branch=workspace/phase3b319-controlled-host-activation-transition-authorization-grant-issuance-decision

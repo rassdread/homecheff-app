@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.19",
+  "proofTarget": "793ca6612f384a6e8a005e640724972f50aa5d7b",
+  "issuanceDecisionResult": "authorization-grant-issuance-eligible-not-issued",
+  "issuanceDecisionCompleted": true,
+  "issuanceEligible": true,
+  "issuanceBlocked": true,
+  "wouldIssueGrant": true,
+  "currentPhase": "3B.3.19",
+  "previousPhase": "3B.3.18",
+  "nextEligibleStep": "3B.3.20",
+  "issuanceImpossible": true,
+  "authorityImpossible": true,
+  "executionImpossible": true
+}

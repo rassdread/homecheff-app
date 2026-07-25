@@ -4,11 +4,11 @@
 |-------|--------|
 | Phase | 3B.3.19 |
 | Branch | `workspace/phase3b319-controlled-host-activation-transition-authorization-grant-issuance-decision` |
-| Implementation proof target | _pending_ |
-| Browser proof / audit commit | _pending_ |
+| Implementation proof target | `793ca6612f384a6e8a005e640724972f50aa5d7b` |
+| Browser proof / audit commit | see tip after artifacts commit |
 | Browser | Chromium Chrome/131 · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` · port **3040** |
-| Probe bridge | **v20** (pending wiring) |
-| Decision | _pending — stub audit, run orchestrator to populate_ |
+| Probe bridge | **v20** |
+| Decision | **READY FOR PHASE 3B.3.20** |
 
 ## 1. Goal / architecture position
 
@@ -34,6 +34,7 @@ Pure `evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisi
 
 - **140** unique ordered issuance conditions — all satisfied on happy path
 - **55** unique issuance guards — all satisfied on happy path
+- **37** issuance blockers (mandatory phase + forbidden-path inventory)
 - Policy: `sealed-authorization-grant-issuance-decision-policy` v1
 - Strategy: `grant-ready-then-sealed-issuance-eligibility`
 - `issuanceEligible=true` **AND** `issuanceBlocked=true` simultaneously
@@ -41,6 +42,7 @@ Pure `evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisi
 - `wouldIssueGrant=true`; issuance/creation/materialization/persistence/application/activation/consumption/revocation and authority creation/enablement/delegation/transfer remain permanently false
 - No token / secret / signature / nonce / credential / certificate / permit / callback / executable handle / runtime capability
 - Gate blocker: `PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY`
+- Diagnostics: `issuanceImpossible=true`, `authorityImpossible=true`, `executionImpossible=true`
 
 ## 4. Eligible vs issued / wouldIssueGrant vs created
 
@@ -64,45 +66,49 @@ Issuance eligibility is **not** a grant, token, capability, runtime permission, 
 | wouldIssueGrant | `true` |
 | issuanceDecisionResult | `authorization-grant-issuance-eligible-not-issued` |
 | issuanceReason | `grant-ready-and-all-issuance-prerequisites-satisfied-but-issuance-disabled-by-phase-contract` |
-| grantIssued / Created / Materialized / Persisted / Applied | all `false` |
-| grantAuthorityAvailable / Enabled | `false` / `false` |
+| grantIssued / Created / Materialized / Persisted / Applied / Activated / Consumed / Revoked | all `false` |
+| grantAuthorityAvailable / Enabled / Delegated / Transferred | all `false` |
 | token/secret/signature/nonce/credential/certificate/permit/callback/executableHandle/runtimeCapability Present | all `false` |
+| issuanceImpossible / authorityImpossible / executionImpossible | all `true` |
 | authorizationEligible / Granted | `true` / `false` |
-| transitionAuthorized | `false` |
+| transitionAuthorized / transitionExecuted | `false` / `false` |
 | selectedTransition | `COMMIT_READY->ACTIVE` |
 | currentState / currentNode | `COMMIT_READY` / `COMMIT_READY` |
 | canStartActivation | `false` |
 | nextEligibleStep | `3B.3.20` |
 
-## 6. Identity / ownership / runtime (browser-measured — pending)
+## 6. Identity / ownership / runtime (browser-measured on `793ca66`)
 
-- mount=1, unmount=0, single GeoFeed
-- stable hostId/runtimeId/machine/graph/selection/preflight/authorization-decision/grant-readiness/selected-transition/protocol/transaction/authorization-policy/grant-policy/issuance-policy identities
+- mount=1, unmount=0, activeInstanceCount=1, single GeoFeed
+- hostId=`feed.discovery.controlled-host`; runtimeId=`feed.discovery.legacy-single-mount.v1`
+- stable machine/graph/selection/preflight/authorization-decision/grant-readiness/issuance-decision/selected-transition/protocol/transaction/authorization-policy/grant-policy/issuance-policy identities
 - owner/writer/renderer=`legacy`; transfers=`false`
-- shell `return null`; metadata-only registry + grant-readiness + issuance-decision
+- shell childCount=0 / DOMNodeCount=0 (`return null`); metadata-only registry + grant-readiness + issuance-decision
 
 ## 7. Token / secret / authority absence
 
-Browser proof asserts: no token, secret, signature, nonce, credential, certificate, permit, or executable callback; `grantAuthorityAvailable=false`, `grantAuthorityEnabled=false`; forced creation/issuance/materialization/persistence/application/activation/consumption/revocation/authority enablement fail-closed.
+Browser proof asserts: no token, secret, signature, nonce, credential, certificate, permit, callback, executable handle, or runtime capability; `grantAuthorityAvailable=false`, `grantAuthorityEnabled=false`; forced creation/issuance/materialization/persistence/application/activation/consumption/revocation/authority enablement/delegation/transfer fail-closed by absence metadata (`forcedNegativeProofsOk=true`).
 
 ## 8. Probe / browser proof
 
-Probe bridge **v20** (pending wiring) · port **3040** · artifacts under `docs/audits/artifacts/phase3b319/`
+Probe bridge **v20** · port **3040** · artifacts under `docs/audits/artifacts/phase3b319/`
 
-- 20/20 release-blocking invariants PASS (pending run)
-- `issuanceMetaOk=true` (pending run)
-- `forcedNegativeProofsOk=true` (pending run)
+Proof target commit: `793ca6612f384a6e8a005e640724972f50aa5d7b`
+
+- 20/20 release-blocking invariants PASS
+- `issuanceMetaOk=true`
+- `forcedNegativeProofsOk=true`
 - Forced activation blocked by `PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY`
-- Phase 3B.2 rerun **20/20 PASS** (pending run)
-- Prior Phase 3B.3.18 proof required at `READY_FOR_PHASE_3B_3_19`
-- Verdict: **`READY_FOR_PHASE_3B_3_20`** (pending run)
+- Phase 3B.2 rerun **20/20 PASS** (`READY_FOR_PHASE_3B_3`)
+- Prior Phase 3B.3.18 required at `READY_FOR_PHASE_3B_3_19`
+- Verdict: **`READY_FOR_PHASE_3B_3_20`**
 
 ## 9. Validators / tests / build
 
-- `validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision` (pending wiring + artifacts)
-- Prior validators dormant → grant-readiness PASS
-- Unit suites Phase 3B.3.1–3B.3.19 (issuance-decision unit tests pending gate wiring for full pass)
-- Sealed production build PASS (`NEXT_PUBLIC_FEED_SEALED_BASELINE=1`) (pending run)
+- `validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision` PASS (with artifacts)
+- Prior validators Phase 3B.3.1–3B.3.18 PASS
+- Unit suites Phase 3B.3.1–3B.3.19 PASS (issuance-decision **9/9**)
+- Sealed production build PASS (`NEXT_PUBLIC_FEED_SEALED_BASELINE=1`)
 
 ## 10. Limits toward Phase 3B.3.20
 
@@ -110,6 +116,18 @@ Probe bridge **v20** (pending wiring) · port **3040** · artifacts under `docs/
 
 Phase 3B.3.20 must not treat issuance eligibility as permission to issue a grant or mutate runtime.
 
-## 11. Wiring status note
+## 11. Recovery note
 
-Sealed modules for Phase 3B.3.19 (`controlled-host-activation-transition-authorization-grant-issuance-decision.ts`, `-contract.ts`, `feed-host-activation-transition-authorization-grant-issuance-decision-identity.ts`, `-prepared.ts`) exist under `lib/adaptive-workspace/sealed/`. As of this stub, `lib/adaptive-workspace/index.ts`, `lib/feed/feed-sealed-probe-bridge.ts` (probe v19 → v20), `lib/adaptive-workspace/sealed/feed-host-activation-gate.ts`, and `lib/adaptive-workspace/sealed/create-controlled-feed-host-contract.ts` have not yet been updated to export/wire the 3B.3.19 surface. Unit tests, the static validator, the browser probe, and the orchestrator in this phase are written to expect the wired 3B.3.19 state; they will pass once wiring lands and the orchestrator proof runs successfully.
+The first Phase 3B.3.19 run stalled while waiting for a subagent. Recovery continued from the existing working tree without subagents, preserved valid sealed/core/wiring work, completed incomplete files rather than recreating them, and left unrelated dirty files (including `homecheff-performance-phase3fw2-preview-verification.md`) untouched and unstaged.
+
+## 12. Artifact index
+
+Normalized snapshots and evidence under `docs/audits/artifacts/phase3b319/`:
+
+- Chromium proof JSON + summary + prepared + server log
+- normalized issuance-decision result, condition/guard results, blocker inventory
+- identity / cross-layer / runtime-invariant / ownership snapshots
+- grant / token-secret / authority / executable-path absence
+- forced-negative proof
+- unit-test / validator / production-build / orchestrator outputs
+- Phase 3B.2 regression pointer, git status, changed-file inventory, commit hashes
