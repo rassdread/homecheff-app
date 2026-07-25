@@ -5,7 +5,7 @@
 | Phase | 3B.3.21 |
 | Branch | `workspace/phase3b321-controlled-host-activation-transition-authorization-grant-issuance-pipeline` |
 | Implementation proof target | `291817764ea296813c83d1bc6f6aa99751c76f53` |
-| Browser proof / audit commit |  |
+| Browser proof / audit commit | `236944650870383f2e6cff50336010697842b1c1` |
 | Browser | Chromium Chrome/131 · production · `NEXT_PUBLIC_FEED_SEALED_BASELINE=1` · port **3042** |
 | Probe bridge | **v22** |
 | Decision | **READY FOR PHASE 3B.3.22** |
@@ -317,7 +317,8 @@ See `docs/audits/artifacts/phase3b321/changed-file-inventory.txt` (diff vs prede
 | Probe artifact filename fix | `aee197bbb3bad83ca3c007b56f312f74425f2f6f` |
 | Prepared fields + LIVE candidate | `291817764ea296813c83d1bc6f6aa99751c76f53` (**proof target**) |
 | Plan validator historical blocker | `ed76be029c1d4df20f1f769840af38f37b6ded9b` |
-| Proof artifacts + audit |  |
+| Proof artifacts + audit | `236944650870383f2e6cff50336010697842b1c1` |
+| Documentary tip | `f6ff306fdedad454637e60969e77a34ac23790f2` |
 
 ## 45. Pre-existing dirty files left untouched
 
