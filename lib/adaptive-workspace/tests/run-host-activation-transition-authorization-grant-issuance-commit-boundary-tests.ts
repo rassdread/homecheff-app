@@ -1,31 +1,29 @@
 /**
- * Phase 3B.3.22 — host activation transition authorization grant issuance
+ * Phase 3B.3.23 — host activation transition authorization grant issuance
  * decision unit tests.
  */
 import assert from "node:assert/strict";
 import {
-  createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor,
-  evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceTransaction,
-  validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor,
-  createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionContract,
-  validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionContract,
-  createFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionIdentity,
-  validateFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionIdentity,
-  createFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionPreparedContract,
-  validateFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionPreparedContract,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_GUARDS,
-  CONTROLLED_HOST_ACTIVATION_GRANT_ISSUANCE_TRANSACTION_BLOCKERS,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_POLICY,
+  createControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor,
+  evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundary,
+  validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor,
+  createControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryContract,
+  validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryContract,
+  createFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryIdentity,
+  validateFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryIdentity,
+  createFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryPreparedContract,
+  validateFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryPreparedContract,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_POLICY,
   CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION,
   createControlledHostRegistry,
   createControlledFeedHostContract,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
-  PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
   PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
-  PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -39,48 +37,48 @@ function ok(label: string) {
 }
 
 console.log(
-  "\n[phase3b322] activation transition authorization grant issuance pipeline descriptor + engine",
+  "\n[phase3b323] activation transition authorization grant issuance pipeline descriptor + engine",
 );
 
 {
   const a =
-    createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor();
+    createControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor();
   const b =
-    createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor();
-  assert.equal(a.issuanceTransactionState, "NOT_OPENED");
-  assert.equal(a.issuanceTransactionLifecycleState, "completed");
+    createControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor();
+  assert.equal(a.issuanceCommitBoundaryState, "NOT_ENTERED");
+  assert.equal(a.issuanceCommitBoundaryLifecycleState ?? "completed", "completed");
   assert.equal(
-    a.issuanceTransactionResult,
-    "authorization-grant-issuance-transaction-ready-not-opened",
+    a.issuanceCommitBoundaryResult,
+    "authorization-grant-issuance-commit-boundary-ready-not-entered",
   );
-  assert.equal(a.issuanceTransactionCompleted, true);
-  assert.equal(a.issuanceTransactionOpened, false);
-  assert.equal(a.issuanceTransactionPrepared, false);
-  assert.equal(a.issuanceTransactionCommitted, false);
-  assert.equal(a.issuanceTransactionAborted, false);
-  assert.equal(a.issuanceTransactionRolledBack, false);
-  assert.equal(a.issuanceTransactionCompensated, false);
+  assert.equal(a.issuanceCommitBoundaryCompleted, true);
+  assert.equal(a.issuanceCommitBoundaryEntered, false);
+  assert.equal(a.issuanceCommitBoundaryPrepared, false);
+  assert.equal(a.issuanceCommitBoundaryCommitted, false);
+  assert.equal(a.issuanceCommitBoundaryAborted, false);
+  assert.equal(a.issuanceCommitBoundaryRolledBack, false);
+  assert.equal(a.issuanceCommitBoundaryCompensated, false);
+  assert.equal(a.issuanceCommitBoundaryReady, true);
+  assert.equal(a.issuanceCommitBoundaryBlocked, true);
+  assert.equal(a.issuanceCommitBoundaryExecutable, false);
+  assert.equal(a.wouldEnterIssuanceCommitBoundary, true);
+  assert.equal(a.issuanceTransactionResult, "authorization-grant-issuance-transaction-ready-not-opened");
   assert.equal(a.issuanceTransactionReady, true);
   assert.equal(a.issuanceTransactionBlocked, true);
   assert.equal(a.issuanceTransactionExecutable, false);
-  assert.equal(a.wouldOpenIssuanceTransaction, true);
-  assert.equal(a.issuancePipelineResult, "authorization-grant-issuance-pipeline-ready-not-executable");
-  assert.equal(a.issuancePipelineReady, true);
-  assert.equal(a.issuancePipelineBlocked, true);
-  assert.equal(a.issuancePipelineExecutable, false);
   assert.equal(a.transactionParticipantCount, 30);
   assert.equal(a.completedTransactionParticipantCount, 0);
   assert.equal(a.executableTransactionParticipantCount, 0);
   assert.equal(a.blockedTransactionParticipantCount, 30);
   assert.equal(a.invalidTransactionParticipantCount, 0);
-  assert.equal(a.sourcePipelineStageCount, 30);
-  assert.equal(a.coveredPipelineStageCount, 30);
-  assert.equal(a.uncoveredPipelineStageCount, 0);
-  assert.equal(a.duplicateCoveredPipelineStageCount, 0);
-  assert.equal(a.unknownReferencedPipelineStageCount, 0);
-  assert.equal(a.pipelineCoverageComplete, true);
-  assert.equal(a.pipelineCoverageExact, true);
-  assert.equal(a.pipelineOrderPreserved, true);
+  assert.equal(a.sourceTransactionParticipantCount, 30);
+  assert.equal(a.coveredTransactionParticipantCount, 30);
+  assert.equal(a.uncoveredTransactionParticipantCount, 0);
+  assert.equal(a.duplicateCoveredTransactionParticipantCount, 0);
+  assert.equal(a.unknownReferencedTransactionParticipantCount, 0);
+  assert.equal(a.transactionParticipantCoverageComplete, true);
+  assert.equal(a.transactionParticipantCoverageExact, true);
+  assert.equal(a.transactionParticipantOrderPreserved, true);
   assert.equal(a.transactionParticipantGraphAcyclic, true);
   assert.equal(a.transactionContextPresent, false);
   assert.equal(a.transactionHandlePresent, false);
@@ -93,8 +91,8 @@ console.log(
   assert.equal(a.executorPresent, false);
   assert.equal(a.dispatcherPresent, false);
   assert.equal(a.queuePresent, false);
-  assert.equal(a.issuanceTransactionExecutionImpossible, true);
-  assert.equal(a.issuanceTransactionExecuted, false);
+  assert.equal(a.issuanceCommitBoundaryExecutionImpossible, true);
+  assert.equal(a.issuanceCommitBoundaryExecuted, false);
   assert.equal(a.issuanceEligible, true);
   assert.equal(a.issuanceBlocked, true);
   assert.equal(a.wouldIssueGrant, true);
@@ -139,30 +137,30 @@ console.log(
   assert.equal(a.hostActivation, false);
   assert.equal(a.renderActivation, false);
   assert.equal(a.canStartActivation, false);
-  assert.equal(a.issuanceTransactionPolicy, CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_POLICY);
+  assert.equal(a.issuanceCommitBoundaryPolicy, CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_POLICY);
   assert.equal(
     a.activationBlocker,
-    PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
+    PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   );
   assert.deepEqual(
-    [...a.issuanceTransactionConditions],
-    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS],
+    [...a.issuanceCommitBoundaryConditions],
+    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_CONDITIONS],
   );
-  assert.equal(a.issuanceTransactionConditions.length, 228);
+  assert.equal(a.issuanceCommitBoundaryConditions.length, 228);
   assert.deepEqual(
-    [...a.satisfiedIssuanceTransactionConditions],
-    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS],
+    [...a.satisfiedIssuanceCommitBoundaryConditions],
+    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_CONDITIONS],
   );
-  assert.equal(a.unsatisfiedIssuanceTransactionConditions.length, 0);
+  assert.equal(a.unsatisfiedIssuanceCommitBoundaryConditions.length, 0);
   assert.deepEqual(
-    [...a.issuanceTransactionGuards],
-    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_GUARDS],
+    [...a.issuanceCommitBoundaryGuards],
+    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_GUARDS],
   );
-  assert.equal(a.issuanceTransactionGuards.length, 83);
-  assert.equal(a.unsatisfiedIssuanceTransactionGuards.length, 0);
+  assert.equal(a.issuanceCommitBoundaryGuards.length, 83);
+  assert.equal(a.unsatisfiedIssuanceCommitBoundaryGuards.length, 0);
   assert.ok(
-    a.issuanceTransactionBlockers.includes(
-      PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
+    a.issuanceCommitBoundaryBlockers.includes(
+      PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
     ),
   );
   assert.equal(
@@ -170,25 +168,25 @@ console.log(
     CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION,
   );
   assert.equal(
-    new Set(a.issuanceTransactionConditions).size,
-    a.issuanceTransactionConditions.length,
+    new Set(a.issuanceCommitBoundaryConditions).size,
+    a.issuanceCommitBoundaryConditions.length,
   );
-  assert.equal(new Set(a.issuanceTransactionGuards).size, a.issuanceTransactionGuards.length);
+  assert.equal(new Set(a.issuanceCommitBoundaryGuards).size, a.issuanceCommitBoundaryGuards.length);
   assert.equal(stableStringify(a), stableStringify(b));
   ok("authorization grant issuance plan descriptor deterministic");
 }
 
 {
   const evaluation =
-    evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceTransaction(
+    evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundary(
       createControlledHostRegistry(),
     );
   assert.equal(
-    evaluation.descriptor.issuanceTransactionResult,
-    "authorization-grant-issuance-transaction-ready-not-opened",
+    evaluation.descriptor.issuanceCommitBoundaryResult,
+    "authorization-grant-issuance-commit-boundary-ready-not-entered",
   );
-  assert.equal(evaluation.diagnostics.issuanceTransactionCompleted, true);
-  assert.equal(evaluation.diagnostics.issuanceTransactionReady, true);
+  assert.equal(evaluation.diagnostics.issuanceCommitBoundaryCompleted, true);
+  assert.equal(evaluation.diagnostics.issuanceCommitBoundaryReady, true);
   assert.equal(evaluation.diagnostics.issuanceBlocked, true);
   assert.equal(evaluation.diagnostics.wouldIssueGrant, true);
   assert.equal(evaluation.diagnostics.grantIssued, false);
@@ -225,71 +223,71 @@ console.log(
   assert.equal(evaluation.diagnostics.currentState, "COMMIT_READY");
   assert.equal(evaluation.diagnostics.currentNode, "COMMIT_READY");
   assert.equal(evaluation.diagnostics.canStartActivation, false);
-  assert.equal(evaluation.diagnostics.currentPhase, "3B.3.22");
-  assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.23");
+  assert.equal(evaluation.diagnostics.currentPhase, "3B.3.23");
+  assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.24");
   assert.equal(evaluation.diagnostics.issuanceImpossible, true);
   assert.equal(evaluation.diagnostics.authorityImpossible, true);
   assert.equal(evaluation.diagnostics.executionImpossible, true);
   assert.equal(
     evaluation.diagnostics.conditionCount,
-    CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS.length,
+    CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_CONDITIONS.length,
   );
   assert.equal(
     evaluation.diagnostics.satisfiedConditionCount,
-    CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS.length,
+    CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_CONDITIONS.length,
   );
   assert.equal(evaluation.diagnostics.unsatisfiedConditionCount, 0);
   assert.equal(
     evaluation.diagnostics.guardCount,
-    CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_GUARDS.length,
+    CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_GUARDS.length,
   );
   assert.equal(evaluation.diagnostics.unsatisfiedGuardCount, 0);
   ok(
-    "authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.22, chained from 3B.3.18)",
+    "authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.23, chained from 3B.3.18)",
   );
 }
 
 {
   const base =
-    createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor();
+    createControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor();
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor(
         { ...base, grantIssued: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor(
         { ...base, grantCreated: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor(
         { ...base, grantAuthorityAvailable: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor(
         { ...base, tokenPresent: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor(
         { ...base, canStartActivation: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor(
         { ...base, currentState: "ACTIVE" },
       ),
     HardContractViolation,
@@ -298,15 +296,15 @@ console.log(
 }
 
 console.log(
-  "\n[phase3b322] contract + identity + gate + host metadata + prepared + permanent block",
+  "\n[phase3b323] contract + identity + gate + host metadata + prepared + permanent block",
 );
 
 {
   const c =
-    createControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionContract();
+    createControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryContract();
   assert.equal(
-    c.issuanceTransactionResult,
-    "authorization-grant-issuance-transaction-ready-not-opened",
+    c.issuanceCommitBoundaryResult,
+    "authorization-grant-issuance-commit-boundary-ready-not-entered",
   );
   assert.equal(c.issuanceEligible, true);
   assert.equal(c.issuanceBlocked, true);
@@ -318,7 +316,7 @@ console.log(
   assert.equal(c.authorizationGranted, false);
   assert.equal(c.transitionAuthorized, false);
   assert.equal(c.currentState, "COMMIT_READY");
-  assert.equal(c.issuanceTransactionExecuted, false);
+  assert.equal(c.issuanceCommitBoundaryExecuted, false);
   assert.equal(c.grantCreationAllowed, false);
   assert.equal(c.grantIssuanceAllowed, false);
   assert.equal(c.grantMaterializationAllowed, false);
@@ -327,11 +325,11 @@ console.log(
   assert.equal(c.executorAllowed, false);
   assert.equal(
     c.activationRestriction,
-    PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
+    PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceTransactionContract(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryContract(
         { ...c, remountAllowed: true },
       ),
     HardContractViolation,
@@ -341,21 +339,21 @@ console.log(
 
 {
   const id =
-    createFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionIdentity();
+    createFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryIdentity();
   assert.equal(id.expectedMountCount, 1);
   assert.equal(id.expectedUnmountCount, 0);
-  assert.equal(id.grantCreationViaIssuanceTransactionAllowed, false);
-  assert.equal(id.grantIssuanceViaIssuanceTransactionAllowed, false);
-  assert.equal(id.grantMaterializationViaIssuanceTransactionAllowed, false);
-  assert.equal(id.grantAuthorityViaIssuanceTransactionAllowed, false);
-  assert.equal(id.authorizationGrantViaIssuanceTransactionAllowed, false);
-  assert.equal(id.activationViaIssuanceTransactionAllowed, false);
+  assert.equal(id.grantCreationViaIssuanceCommitBoundaryAllowed, false);
+  assert.equal(id.grantIssuanceViaIssuanceCommitBoundaryAllowed, false);
+  assert.equal(id.grantMaterializationViaIssuanceCommitBoundaryAllowed, false);
+  assert.equal(id.grantAuthorityViaIssuanceCommitBoundaryAllowed, false);
+  assert.equal(id.authorizationGrantViaIssuanceCommitBoundaryAllowed, false);
+  assert.equal(id.activationViaIssuanceCommitBoundaryAllowed, false);
   assert.equal(id.canStartActivationAllowed, false);
-  assert.equal(id.tokenViaIssuanceTransactionAllowed, false);
+  assert.equal(id.tokenViaIssuanceCommitBoundaryAllowed, false);
   assert.equal(id.runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
   assert.throws(
     () =>
-      validateFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionIdentity(
+      validateFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryIdentity(
         { ...id, remountAllowed: true },
       ),
     HardContractViolation,
@@ -387,7 +385,7 @@ console.log(
     phase3b316ProofValid: true,
     phase3b317ProofValid: true,
     phase3b318ProofValid: true,
-    phase3b322ProofValid: true,
+    phase3b323ProofValid: true,
     observedWriter: "legacy",
     observedRenderOwner: "legacy",
     observedMountCount: 1,
@@ -408,7 +406,7 @@ console.log(
     observedTransitionPreflightState: "completed",
     observedTransitionAuthorizationDecisionState: "completed",
     observedTransitionAuthorizationGrantReadinessState: "completed",
-    observedTransitionAuthorizationGrantIssuanceTransactionState: "completed",
+    observedTransitionAuthorizationGrantIssuanceCommitBoundaryState: "completed",
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
   assert.equal(gate.allowed, false);
@@ -441,7 +439,7 @@ console.log(
   );
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
+      PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
     ),
   );
   assert.equal(
@@ -457,29 +455,29 @@ console.log(
 
 {
   const prepared =
-    createFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionPreparedContract(
+    createFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryPreparedContract(
       {
         evidenceCommit: "abcdef0123456789",
         evidenceArtifactPath:
-          "docs/audits/artifacts/phase3b322/phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-transaction-proof.json",
-        conditionCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS.length,
+          "docs/audits/artifacts/phase3b323/phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-commit-boundary-proof.json",
+        conditionCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_CONDITIONS.length,
         satisfiedConditionCount:
-          CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_CONDITIONS.length,
-        guardCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_GUARDS.length,
-        satisfiedGuardCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_TRANSACTION_GUARDS.length,
+          CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_CONDITIONS.length,
+        guardCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_GUARDS.length,
+        satisfiedGuardCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_COMMIT_BOUNDARY_GUARDS.length,
       },
     );
   assert.equal(
     prepared.status,
-    "host-activation-transition-authorization-grant-issuance-transaction-prepared",
+    "host-activation-transition-authorization-grant-issuance-commit-boundary-prepared",
   );
-  assert.equal(prepared.nextEligibleStep, "3B.3.23");
+  assert.equal(prepared.nextEligibleStep, "3B.3.24");
   assert.equal(prepared.currentState, "COMMIT_READY");
   assert.equal(prepared.grantIssued, false);
-  assert.equal(prepared.issuanceTransactionExecuted, false);
+  assert.equal(prepared.issuanceCommitBoundaryExecuted, false);
   assert.throws(
     () =>
-      validateFeedHostActivationTransitionAuthorizationGrantIssuanceTransactionPreparedContract(
+      validateFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryPreparedContract(
         { ...prepared, grantIssued: true },
       ),
     HardContractViolation,
@@ -489,12 +487,12 @@ console.log(
 
 {
   assert.ok(
-    CONTROLLED_HOST_ACTIVATION_GRANT_ISSUANCE_TRANSACTION_BLOCKERS.includes(
-      PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
+    CONTROLLED_HOST_ACTIVATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_BLOCKERS.includes(
+      PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
     ),
   );
   const e =
-    evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceTransaction();
+    evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundary();
   assert.equal(e.descriptor.grantIssued, false);
   assert.equal(e.descriptor.grantCreated, false);
   assert.equal(e.descriptor.grantMaterialized, false);
@@ -528,9 +526,9 @@ console.log(
   assert.equal(e.descriptor.schedulerAllowed, false);
   assert.equal(e.descriptor.hostActivation, false);
   assert.equal(e.descriptor.renderActivation, false);
-  ok("grant issuance permanently blocked with PHASE_3B3_22 blocker");
+  ok("grant issuance permanently blocked with PHASE_3B3_23 blocker");
 }
 
 console.log(
-  `\nadaptive-workspace Phase 3B.3.22 host activation transition authorization grant issuance pipeline: ${passed} assertions ok\n`,
+  `\nadaptive-workspace Phase 3B.3.23 host activation transition authorization grant issuance pipeline: ${passed} assertions ok\n`,
 );

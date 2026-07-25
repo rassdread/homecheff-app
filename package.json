@@ -149,7 +149,10 @@
     "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof-phase3b321.mjs",
     "test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction": "npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-transaction-tests.ts",
     "validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction": "npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction.ts",
-    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-transaction-proof-phase3b322.mjs"
+    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-transaction-proof-phase3b322.mjs",
+    "test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary": "npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-commit-boundary-tests.ts",
+    "validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary": "npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary.ts",
+    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-commit-boundary-proof-phase3b323.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

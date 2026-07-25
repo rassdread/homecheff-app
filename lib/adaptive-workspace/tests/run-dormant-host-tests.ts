@@ -19,7 +19,7 @@ import {
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
   PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
-  PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
+  PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   createFeedHostRollbackContract,
   validateFeedHostRollbackContract,
   createControlledFeedHostPlan,
@@ -48,7 +48,7 @@ console.log("\n[phase3b31] controlled host contract");
   assert.equal(a.shadowActivation, true);
   assert.equal(a.activeRenderOwner, "legacy");
   assert.equal(a.activeWriter, "legacy");
-  assert.equal(a.nextEligibleStep, "3B.3.23");
+  assert.equal(a.nextEligibleStep, "3B.3.24");
   assert.equal(a.hostClassification, "controlled-host-candidate");
   assert.equal(a.runtimeClassification, "sealed-runtime");
   assert.equal(stableStringify(a), stableStringify(b));
@@ -162,10 +162,10 @@ console.log("\n[phase3b31] activation gate");
     observedRollbackTarget: "legacy",
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY));
+  assert.ok(gate.blockers.includes(PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY));
   assert.ok(gate.blockers.includes(PHASE_3B3_1_DORMANT_HOST_ONLY) === false);
-  assert.equal(gate.currentStep, "3B.3.22");
-  assert.equal(gate.eligibleStep, "3B.3.23");
+  assert.equal(gate.currentStep, "3B.3.23");
+  assert.equal(gate.eligibleStep, "3B.3.24");
   ok("gate always denied; force/env/query/cookie/storage ignored");
 }
 
@@ -179,7 +179,7 @@ console.log("\n[phase3b31] activation gate");
     observedRollbackTarget: "workspace",
   });
   assert.equal(bad.allowed, false);
-  assert.ok(bad.blockers.includes(PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY));
+  assert.ok(bad.blockers.includes(PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY));
   assert.ok(bad.blockers.includes("active-workspace-writer"));
   assert.ok(bad.blockers.includes("active-workspace-renderer"));
   assert.ok(bad.blockers.includes("second-geofeed-mount"));
@@ -214,7 +214,7 @@ console.log("\n[phase3b31] rollback + plan + readiness");
   assert.equal(plan.hostActivation, false);
   assert.equal(
     plan.recommendedNextStep,
-    "3B.3.23-controlled-host-activation-candidate",
+    "3B.3.24-controlled-host-activation-candidate",
   );
   assert.equal(plan.placementState, "shadow-registered");
   assert.equal(plan.registrationState, "registered");
