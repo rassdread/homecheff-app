@@ -1,11 +1,11 @@
 /**
- * Phase 3B.3.4 — pure Controlled Host Plan (metadata only).
+ * Phase 3B.3.5 — pure Controlled Host Plan (metadata only).
  */
 
 import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
-import { PHASE_3B3_4_HOST_ELIGIBILITY_ONLY } from "./controlled-host-eligibility";
+import { PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY } from "./controlled-host-activation-readiness";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -19,13 +19,15 @@ export type ControlledFeedHostPlan = {
   rollbackTarget: "legacy";
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
-  blockerSet: readonly [typeof PHASE_3B3_4_HOST_ELIGIBILITY_ONLY];
-  recommendedNextStep: "3B.3.5-controlled-host-activation-candidate";
+  blockerSet: readonly [typeof PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY];
+  recommendedNextStep: "3B.3.6-controlled-host-activation-candidate";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
+  readinessState: "ready";
   hostActivation: false;
   renderActivation: false;
+  canStartActivation: false;
   hostClassification: "controlled-host-candidate";
 };
 
@@ -44,13 +46,15 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     rollbackTarget: "legacy",
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
-    blockerSet: [PHASE_3B3_4_HOST_ELIGIBILITY_ONLY],
-    recommendedNextStep: "3B.3.5-controlled-host-activation-candidate",
+    blockerSet: [PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY],
+    recommendedNextStep: "3B.3.6-controlled-host-activation-candidate",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
+    readinessState: "ready",
     hostActivation: false,
     renderActivation: false,
+    canStartActivation: false,
     hostClassification: "controlled-host-candidate",
   };
 }

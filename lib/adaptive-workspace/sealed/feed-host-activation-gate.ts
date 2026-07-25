@@ -1,22 +1,23 @@
 /**
- * Phase 3B.3.4 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_4_HOST_ELIGIBILITY_ONLY.
+ * Phase 3B.3.5 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
-import { PHASE_3B3_4_HOST_ELIGIBILITY_ONLY } from "./controlled-host-eligibility";
+import { PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY } from "./controlled-host-activation-readiness";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
 export { PHASE_3B3_2_SHADOW_PLACEMENT_ONLY } from "./controlled-feed-host-shadow-placement";
 export { PHASE_3B3_3_HOST_REGISTRATION_ONLY } from "./controlled-host-registry";
-export { PHASE_3B3_4_HOST_ELIGIBILITY_ONLY };
+export { PHASE_3B3_4_HOST_ELIGIBILITY_ONLY } from "./controlled-host-eligibility";
+export { PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.4";
-  eligibleStep: "3B.3.5";
+  currentStep: "3B.3.5";
+  eligibleStep: "3B.3.6";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -27,6 +28,7 @@ export type FeedHostActivationGateResult = {
   rollbackStatus: "prepared-not-active" | "mismatch";
   registrationStatus: "registered" | "mismatch";
   eligibilityStatus: "eligible" | "mismatch";
+  readinessStatus: "ready" | "mismatch";
 };
 
 export type FeedHostActivationGateInput = {
@@ -36,6 +38,7 @@ export type FeedHostActivationGateInput = {
   phase3b32ProofValid?: boolean;
   phase3b33ProofValid?: boolean;
   phase3b34ProofValid?: boolean;
+  phase3b35ProofValid?: boolean;
   forceHostActivation?: unknown;
   envHostActivation?: unknown;
   queryHostActivation?: unknown;
@@ -52,6 +55,7 @@ export type FeedHostActivationGateInput = {
   observedRollbackTarget?: "legacy" | "workspace";
   observedRegistrationState?: "registered" | "missing";
   observedEligibilityState?: "eligible" | "missing";
+  observedReadinessState?: "ready" | "missing";
   observedRuntimeId?: string;
 };
 
@@ -59,9 +63,9 @@ export function evaluateFeedHostActivationGate(
   input: FeedHostActivationGateInput = {},
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
-  const blockers: string[] = [PHASE_3B3_4_HOST_ELIGIBILITY_ONLY];
+  const blockers: string[] = [PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY];
   const reasons: string[] = [
-    "Phase 3B.3.4 evaluates host eligibility metadata only; hostActivation remains deferred to 3B.3.5",
+    "Phase 3B.3.5 evaluates host activation readiness metadata only; hostActivation remains deferred to 3B.3.6",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -81,7 +85,8 @@ export function evaluateFeedHostActivationGate(
   if (
     input.phase3b32ProofValid === false ||
     input.phase3b33ProofValid === false ||
-    input.phase3b34ProofValid === false
+    input.phase3b34ProofValid === false ||
+    input.phase3b35ProofValid === false
   ) {
     blockers.push("missing-proof", "proof-fail");
   }
@@ -139,6 +144,13 @@ export function evaluateFeedHostActivationGate(
     blockers.push("react-identity-changed");
   }
 
+  let readinessStatus: FeedHostActivationGateResult["readinessStatus"] =
+    "ready";
+  if (input.observedReadinessState === "missing") {
+    readinessStatus = "mismatch";
+    blockers.push("react-identity-changed");
+  }
+
   if (
     typeof input.observedRuntimeId === "string" &&
     input.observedRuntimeId.length > 0 &&
@@ -146,6 +158,7 @@ export function evaluateFeedHostActivationGate(
   ) {
     registrationStatus = "mismatch";
     eligibilityStatus = "mismatch";
+    readinessStatus = "mismatch";
     blockers.push("react-identity-changed");
   }
 
@@ -162,8 +175,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.4",
-    eligibleStep: "3B.3.5",
+    currentStep: "3B.3.5",
+    eligibleStep: "3B.3.6",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,
@@ -174,5 +187,6 @@ export function evaluateFeedHostActivationGate(
     rollbackStatus,
     registrationStatus,
     eligibilityStatus,
+    readinessStatus,
   };
 }

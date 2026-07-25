@@ -10,7 +10,7 @@ import {
   createFeedHostRollbackContract,
   createControlledFeedHostPlan,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
+  PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
@@ -45,7 +45,7 @@ assert.equal(contract.hostActivation, false);
 assert.equal(contract.renderActivation, false);
 assert.equal(contract.activeRenderOwner, "legacy");
 assert.equal(contract.activeWriter, "legacy");
-assert.equal(contract.nextEligibleStep, "3B.3.5");
+assert.equal(contract.nextEligibleStep, "3B.3.6");
 
 const gate = evaluateFeedHostActivationGate({
   phase3b2ProofValid: true,
@@ -53,7 +53,7 @@ const gate = evaluateFeedHostActivationGate({
   forceHostActivation: true,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_4_HOST_ELIGIBILITY_ONLY));
+assert.ok(gate.blockers.includes(PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY));
 
 const rollback = createFeedHostRollbackContract();
 assert.equal(rollback.rollbackTarget, "legacy");
@@ -65,7 +65,7 @@ assert.equal(plan.placementState, "shadow-registered");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.childFactoryRegistered, false);
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.5");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.6");
 
 const shell = readFileSync(
   join(root, "components/adaptive-workspace/FeedControlledHostShell.tsx"),

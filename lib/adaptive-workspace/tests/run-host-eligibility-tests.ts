@@ -17,6 +17,7 @@ import {
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
+  PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -136,9 +137,9 @@ console.log("\n[phase3b34] contract + identity + activation safety");
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_4_HOST_ELIGIBILITY_ONLY));
-  assert.equal(gate.currentStep, "3B.3.4");
-  assert.equal(gate.eligibleStep, "3B.3.5");
+  assert.ok(gate.blockers.includes(PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY));
+  assert.equal(gate.currentStep, "3B.3.5");
+  assert.equal(gate.eligibleStep, "3B.3.6");
   ok("activation remains impossible");
 }
 

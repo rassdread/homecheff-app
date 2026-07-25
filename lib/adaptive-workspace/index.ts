@@ -148,6 +148,7 @@ export {
   PHASE_3B3_2_SHADOW_PLACEMENT_ONLY,
   PHASE_3B3_3_HOST_REGISTRATION_ONLY,
   PHASE_3B3_4_HOST_ELIGIBILITY_ONLY,
+  PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -262,3 +263,38 @@ export {
   validateFeedHostEligibilityReadinessContract,
   type FeedHostEligibilityReadinessContract,
 } from "./sealed/feed-host-eligibility-readiness";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_READINESS_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_READINESS_REASONS,
+  CONTROLLED_HOST_ACTIVATION_READINESS_BLOCKERS,
+  createControlledHostActivationReadinessDescriptor,
+  evaluateControlledHostActivationReadiness,
+  validateControlledHostActivationReadinessDescriptor,
+  type ControlledHostActivationReadinessDescriptor,
+  type ControlledHostActivationReadinessEvaluation,
+  type ControlledHostActivationReadinessDiagnostics,
+} from "./sealed/controlled-host-activation-readiness";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_READINESS_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_READINESS_REQUIREMENTS,
+  createControlledHostActivationReadinessContract,
+  validateControlledHostActivationReadinessContract,
+  type ControlledHostActivationReadinessContract,
+  type ControlledHostActivationReadinessRequirement,
+} from "./sealed/controlled-host-activation-readiness-contract";
+
+export {
+  FEED_HOST_ACTIVATION_READINESS_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationReadinessIdentity,
+  validateFeedHostActivationReadinessIdentity,
+  type FeedHostActivationReadinessIdentity,
+} from "./sealed/feed-host-activation-readiness-identity";
+
+export {
+  FEED_HOST_ACTIVATION_READINESS_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationReadinessPreparedContract,
+  validateFeedHostActivationReadinessPreparedContract,
+  type FeedHostActivationReadinessPreparedContract,
+} from "./sealed/feed-host-activation-readiness-prepared";
