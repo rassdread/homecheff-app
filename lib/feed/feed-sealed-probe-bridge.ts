@@ -1,5 +1,5 @@
 /**
- * Phase 3B.2/3B.3.10 — namespaced browser probe bridge for sealed Feed instrumentation.
+ * Phase 3B.2/3B.3.11 — namespaced browser probe bridge for sealed Feed instrumentation.
  *
  * Installed only when NEXT_PUBLIC_FEED_SEALED_BASELINE=1 (compile-time gate).
  */
@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 11;
+  version: 12;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -31,15 +31,15 @@ export type FeedSealedProbeApi = {
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.10";
-    eligibleStep: "3B.3.11";
+    currentStep: "3B.3.11";
+    eligibleStep: "3B.3.12";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
     activeRenderOwner: "legacy";
     activeWriter: "legacy";
-    nextEligibleStep: "3B.3.11";
+    nextEligibleStep: "3B.3.12";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
@@ -64,6 +64,10 @@ export type FeedSealedProbeApi = {
     transactionResult?: "transaction-complete-not-committed";
     wouldCommit?: true;
     transactionCommitted?: false;
+    commitReadinessState?: "completed";
+    commitReadinessResult?: "commit-ready-not-executable";
+    commitReady?: true;
+    commitBlocked?: true;
     recommendedNextStep: string;
   }>;
   readShadowPlacement: () => Promise<{
@@ -191,6 +195,37 @@ export type FeedSealedProbeApi = {
     };
   }>;
 
+  readHostActivationCommitReadiness: () => Promise<{
+    phase: "3B.3.11";
+    readinessId: string;
+    readinessVersion: 1;
+    readinessState: "completed";
+    readinessResult: "commit-ready-not-executable";
+    wouldCommit: true;
+    commitReady: true;
+    commitBlocked: true;
+    commitBlockers: readonly string[];
+    commitPreconditions: readonly string[];
+    commitValidationPoints: readonly string[];
+    commitAbortConditions: readonly string[];
+    transactionResult: "transaction-complete-not-committed";
+    transactionCommitted: false;
+    commitExecuted: false;
+    ownershipTransferred: false;
+    writerTransferred: false;
+    rendererTransferred: false;
+    pipelineResult: "pipeline-complete-not-executable";
+    planResult: "plan-complete-not-executable";
+    decisionResult: "ALLOW";
+    wouldActivate: true;
+    runtimeId: string;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    activationBlocker: "PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY";
+    nextEligibleStep: "3B.3.12";
+    diagnostics: Record<string, unknown>;
+  }>;
   readHostActivationTransaction: () => Promise<{
     phase: "3B.3.10";
     transactionId: string;
@@ -380,7 +415,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 11,
+    version: 12,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -425,6 +460,7 @@ export function installFeedSealedProbeBridge(): void {
         phase3b38ProofValid: true,
         phase3b39ProofValid: true,
         phase3b310ProofValid: true,
+        phase3b311ProofValid: true,
         observedWriter: "legacy",
         observedRenderOwner: "legacy",
         observedMountCount: 1,
@@ -437,13 +473,14 @@ export function installFeedSealedProbeBridge(): void {
         observedPlanState: "completed",
         observedPipelineState: "completed",
         observedTransactionState: "completed",
+        observedCommitReadinessState: "completed",
         observedRuntimeId: "feed.discovery.legacy-single-mount.v1",
       });
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.10" as const,
-        eligibleStep: "3B.3.11" as const,
+        currentStep: "3B.3.11" as const,
+        eligibleStep: "3B.3.12" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -454,7 +491,7 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         activeRenderOwner: "legacy" as const,
         activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.11" as const,
+        nextEligibleStep: "3B.3.12" as const,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -483,6 +520,10 @@ export function installFeedSealedProbeBridge(): void {
         transactionResult: "transaction-complete-not-committed" as const,
         wouldCommit: true as const,
         transactionCommitted: false as const,
+        commitReadinessState: "completed" as const,
+        commitReadinessResult: "commit-ready-not-executable" as const,
+        commitReady: true as const,
+        commitBlocked: true as const,
         recommendedNextStep: p.recommendedNextStep,
       };
     },
@@ -598,6 +639,42 @@ export function installFeedSealedProbeBridge(): void {
         canStartActivation: false as const,
         activationBlocker: "PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY" as const,
         nextEligibleStep: "3B.3.7" as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readHostActivationCommitReadiness: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledHostActivationCommitReadiness();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.11" as const,
+        readinessId: d.readinessId,
+        readinessVersion: 1 as const,
+        readinessState: "completed" as const,
+        readinessResult: "commit-ready-not-executable" as const,
+        wouldCommit: true as const,
+        commitReady: true as const,
+        commitBlocked: true as const,
+        commitBlockers: d.commitBlockers,
+        commitPreconditions: d.commitPreconditions,
+        commitValidationPoints: d.commitValidationPoints,
+        commitAbortConditions: d.commitAbortConditions,
+        transactionResult: "transaction-complete-not-committed" as const,
+        transactionCommitted: false as const,
+        commitExecuted: false as const,
+        ownershipTransferred: false as const,
+        writerTransferred: false as const,
+        rendererTransferred: false as const,
+        pipelineResult: "pipeline-complete-not-executable" as const,
+        planResult: "plan-complete-not-executable" as const,
+        decisionResult: "ALLOW" as const,
+        wouldActivate: true as const,
+        runtimeId: d.runtimeId,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker: "PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY" as const,
+        nextEligibleStep: "3B.3.12" as const,
         diagnostics: evaluation.diagnostics,
       };
     },

@@ -25,6 +25,7 @@ import {
   evaluateFeedHostActivationGate,
   PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY,
   PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY,
+  PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -210,9 +211,9 @@ console.log("\n[phase3b39] contract + identity + activation safety");
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY));
-  assert.equal(gate.currentStep, "3B.3.10");
-  assert.equal(gate.eligibleStep, "3B.3.11");
+  assert.ok(gate.blockers.includes(PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY));
+  assert.equal(gate.currentStep, "3B.3.11");
+  assert.equal(gate.eligibleStep, "3B.3.12");
   ok("activation remains impossible");
 }
 

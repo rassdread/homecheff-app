@@ -154,6 +154,7 @@ export {
   PHASE_3B3_8_HOST_ACTIVATION_PLAN_ONLY,
   PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY,
   PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY,
+  PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY,
   evaluateFeedHostActivationGate,
   type FeedHostActivationGateResult,
   type FeedHostActivationGateInput,
@@ -504,3 +505,44 @@ export {
   validateFeedHostActivationTransactionPreparedContract,
   type FeedHostActivationTransactionPreparedContract,
 } from "./sealed/feed-host-activation-transaction-prepared";
+
+
+export {
+  CONTROLLED_HOST_ACTIVATION_COMMIT_READINESS_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_PRECONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_VALIDATION_POINTS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_ABORT_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_READINESS_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_READINESS_INPUT_SOURCES,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_READINESS_ID,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_READINESS_VERSION,
+  createControlledHostActivationCommitReadinessDescriptor,
+  evaluateControlledHostActivationCommitReadiness,
+  validateControlledHostActivationCommitReadinessDescriptor,
+  type ControlledHostActivationCommitReadinessDescriptor,
+  type ControlledHostActivationCommitReadinessEvaluation,
+  type ControlledHostActivationCommitReadinessDiagnostics,
+} from "./sealed/controlled-host-activation-commit-readiness";
+
+export {
+  CONTROLLED_HOST_ACTIVATION_COMMIT_READINESS_CONTRACT_SCHEMA_VERSION,
+  CONTROLLED_HOST_ACTIVATION_COMMIT_READINESS_REQUIREMENTS,
+  createControlledHostActivationCommitReadinessContract,
+  validateControlledHostActivationCommitReadinessContract,
+  type ControlledHostActivationCommitReadinessContract,
+  type ControlledHostActivationCommitReadinessRequirement,
+} from "./sealed/controlled-host-activation-commit-readiness-contract";
+
+export {
+  FEED_HOST_ACTIVATION_COMMIT_READINESS_IDENTITY_SCHEMA_VERSION,
+  createFeedHostActivationCommitReadinessIdentity,
+  validateFeedHostActivationCommitReadinessIdentity,
+  type FeedHostActivationCommitReadinessIdentity,
+} from "./sealed/feed-host-activation-commit-readiness-identity";
+
+export {
+  FEED_HOST_ACTIVATION_COMMIT_READINESS_PREPARED_SCHEMA_VERSION,
+  createFeedHostActivationCommitReadinessPreparedContract,
+  validateFeedHostActivationCommitReadinessPreparedContract,
+  type FeedHostActivationCommitReadinessPreparedContract,
+} from "./sealed/feed-host-activation-commit-readiness-prepared";
