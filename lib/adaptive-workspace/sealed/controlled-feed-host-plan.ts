@@ -5,8 +5,7 @@
 import { FEED_SEALED_INVARIANT_IDS } from "./feed-discovery-invariants";
 import { createControlledFeedHostContract } from "./create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
-import { PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-decision";
-import { PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-plan";
+import { PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-pipeline";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -20,8 +19,8 @@ export type ControlledFeedHostPlan = {
   rollbackTarget: "legacy";
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
-  blockerSet: readonly [typeof PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY];
-  recommendedNextStep: "3B.3.21-controlled-host-activation-candidate";
+  blockerSet: readonly [typeof PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY];
+  recommendedNextStep: "3B.3.22-controlled-host-activation-candidate";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -110,6 +109,14 @@ export type ControlledFeedHostPlan = {
   issuancePlanBlocked: true;
   issuancePlanExecutable: false;
   wouldExecuteIssuancePlan: true;
+  issuancePipelineState: "completed";
+  issuancePipelineResult: "authorization-grant-issuance-pipeline-ready-not-executable";
+  issuancePipelineCompleted: true;
+  issuancePipelineExecuted: false;
+  issuancePipelineReady: true;
+  issuancePipelineBlocked: true;
+  issuancePipelineExecutable: false;
+  wouldExecuteIssuancePipeline: true;
   tokenPresent: false;
   secretPresent: false;
   signaturePresent: false;
@@ -141,8 +148,8 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     rollbackTarget: "legacy",
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
-    blockerSet: [PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY],
-    recommendedNextStep: "3B.3.20-controlled-host-activation-candidate",
+    blockerSet: [PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY],
+    recommendedNextStep: "3B.3.22-controlled-host-activation-candidate",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
@@ -231,6 +238,14 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     issuancePlanBlocked: true,
     issuancePlanExecutable: false,
     wouldExecuteIssuancePlan: true,
+    issuancePipelineState: "completed",
+    issuancePipelineResult: "authorization-grant-issuance-pipeline-ready-not-executable",
+    issuancePipelineCompleted: true,
+    issuancePipelineExecuted: false,
+    issuancePipelineReady: true,
+    issuancePipelineBlocked: true,
+    issuancePipelineExecutable: false,
+    wouldExecuteIssuancePipeline: true,
     tokenPresent: false,
     secretPresent: false,
     signaturePresent: false,

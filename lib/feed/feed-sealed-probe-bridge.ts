@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 21;
+  version: 22;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -646,6 +646,34 @@ export type FeedSealedProbeApi = {
     nextEligibleStep: "3B.3.20";
     diagnostics: Record<string, unknown>;
   }>;
+  readHostActivationTransitionAuthorizationGrantIssuancePipeline: () => Promise<{
+    phase: "3B.3.21";
+    issuancePipelineId: string;
+    issuancePipelineVersion: 1;
+    issuancePipelineState: "completed";
+    issuancePipelineResult: "authorization-grant-issuance-pipeline-ready-not-executable";
+    issuancePipelineCompleted: true;
+    issuancePipelineExecuted: false;
+    issuancePipelineReady: true;
+    issuancePipelineBlocked: true;
+    issuancePipelineExecutable: false;
+    wouldExecuteIssuancePipeline: true;
+    pipelineStageCount: number;
+    completedPipelineStageCount: 0;
+    executablePipelineStageCount: 0;
+    blockedPipelineStageCount: number;
+    invalidPipelineStageCount: 0;
+    sourcePlanStepCount: 30;
+    coveredPlanStepCount: 30;
+    uncoveredPlanStepCount: 0;
+    duplicateCoveredPlanStepCount: 0;
+    unknownReferencedPlanStepCount: 0;
+    planCoverageComplete: true;
+    planCoverageExact: true;
+    planOrderPreserved: true;
+    pipelineDependencyGraphAcyclic: true;
+    [key: string]: unknown;
+  }>;
   readHostActivationTransitionAuthorizationGrantIssuancePlan: () => Promise<{
     phase: "3B.3.20";
     issuancePlanId: string;
@@ -1046,7 +1074,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 21,
+    version: 22,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -1916,6 +1944,160 @@ export function installFeedSealedProbeBridge(): void {
         activationBlocker:
           "PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY" as const,
         nextEligibleStep: "3B.3.21" as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readHostActivationTransitionAuthorizationGrantIssuancePipeline: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation =
+        mod.evaluateControlledHostActivationTransitionAuthorizationGrantIssuancePipeline();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.21" as const,
+        issuancePipelineId: d.issuancePipelineId,
+        issuancePipelineVersion: 1 as const,
+        issuancePipelineState: "completed" as const,
+        issuancePipelineResult:
+          "authorization-grant-issuance-pipeline-ready-not-executable" as const,
+        issuancePipelineCompleted: true as const,
+        issuancePipelineExecuted: false as const,
+        issuancePipelineReady: true as const,
+        issuancePipelineBlocked: true as const,
+        issuancePipelineExecutable: false as const,
+        wouldExecuteIssuancePipeline: true as const,
+        pipelineStageCount: d.pipelineStageCount,
+        completedPipelineStageCount: 0 as const,
+        executablePipelineStageCount: 0 as const,
+        blockedPipelineStageCount: d.blockedPipelineStageCount,
+        invalidPipelineStageCount: 0 as const,
+        sourcePlanStepCount: 30 as const,
+        coveredPlanStepCount: 30 as const,
+        uncoveredPlanStepCount: 0 as const,
+        duplicateCoveredPlanStepCount: 0 as const,
+        unknownReferencedPlanStepCount: 0 as const,
+        planCoverageComplete: true as const,
+        planCoverageExact: true as const,
+        planOrderPreserved: true as const,
+        pipelineDependencyGraphAcyclic: true as const,
+        issuancePlanResult:
+          "authorization-grant-issuance-plan-ready-not-executable" as const,
+        issuancePlanCompleted: true as const,
+        issuancePlanReady: true as const,
+        issuancePlanBlocked: true as const,
+        issuancePlanExecutable: false as const,
+        wouldExecuteIssuancePlan: true as const,
+        issuanceDecisionResult:
+          "authorization-grant-issuance-eligible-not-issued" as const,
+        issuanceDecisionCompleted: true as const,
+        issuanceEligible: true as const,
+        issuanceBlocked: true as const,
+        wouldIssueGrant: true as const,
+        grantIssued: false as const,
+        grantCreated: false as const,
+        grantMaterialized: false as const,
+        grantPersisted: false as const,
+        grantApplied: false as const,
+        grantActivated: false as const,
+        grantConsumed: false as const,
+        grantRevoked: false as const,
+        grantAuthorityAvailable: false as const,
+        grantAuthorityEnabled: false as const,
+        grantAuthorityDelegated: false as const,
+        grantAuthorityTransferred: false as const,
+        grantCreationAllowed: false as const,
+        grantIssuanceAllowed: false as const,
+        grantMaterializationAllowed: false as const,
+        grantPersistenceAllowed: false as const,
+        grantApplicationAllowed: false as const,
+        grantActivationAllowed: false as const,
+        grantConsumptionAllowed: false as const,
+        grantRevocationAllowed: false as const,
+        grantReadinessResult: "authorization-grant-ready-not-issued" as const,
+        grantReady: true as const,
+        grantBlocked: true as const,
+        authorizationDecisionResult: "authorization-eligible-not-granted" as const,
+        authorizationEligible: true as const,
+        authorizationGranted: false as const,
+        authorizationApplied: false as const,
+        transitionAuthorized: false as const,
+        currentState: "COMMIT_READY" as const,
+        currentNode: "COMMIT_READY" as const,
+        currentGraphNode: "COMMIT_READY" as const,
+        selectedTransition: "COMMIT_READY->ACTIVE" as const,
+        selectedFromState: "COMMIT_READY" as const,
+        selectedToState: "ACTIVE" as const,
+        sourceState: "COMMIT_READY" as const,
+        targetState: "ACTIVE" as const,
+        preflightResult: "transition-preflight-ready-not-authorized" as const,
+        preflightReady: true as const,
+        preflightExecuted: false as const,
+        preflightExecutionAllowed: false as const,
+        selectionExecuted: false as const,
+        selectionExecutionAllowed: false as const,
+        graphTraversalAllowed: false as const,
+        graphTraversalExecuted: false as const,
+        transitionExecuted: false as const,
+        transitionExecutionAllowed: false as const,
+        protocolExecuted: false as const,
+        transactionCommitted: false as const,
+        commitExecuted: false as const,
+        rollbackExecuted: false as const,
+        authorizationGrantAllowed: false as const,
+        authorizationApplicationAllowed: false as const,
+        transitionAuthorizationAllowed: false as const,
+        issuancePipelineExecutionAllowed: false as const,
+        issuancePlanExecutionAllowed: false as const,
+        issuanceExecutionAllowed: false as const,
+        grantExecutionAllowed: false as const,
+        authorizationExecutionAllowed: false as const,
+        activationExecutionAllowed: false as const,
+        selectionExecutionAllowed: false as const,
+        preflightExecutionAllowed: false as const,
+        schedulerAllowed: false as const,
+        executorAllowed: false as const,
+        canStartActivation: false as const,
+        ownershipTransferred: false as const,
+        writerTransferred: false as const,
+        rendererTransferred: false as const,
+        tokenPresent: false as const,
+        secretPresent: false as const,
+        signaturePresent: false as const,
+        noncePresent: false as const,
+        credentialPresent: false as const,
+        certificatePresent: false as const,
+        permitPresent: false as const,
+        callbackPresent: false as const,
+        executableHandlePresent: false as const,
+        runtimeCapabilityPresent: false as const,
+        commandPresent: false as const,
+        dispatcherPresent: false as const,
+        queuePresent: false as const,
+        schedulerPresent: false as const,
+        executorPresent: false as const,
+        authorityProviderPresent: false as const,
+        issuanceServicePresent: false as const,
+        issuancePipelineExecutionImpossible: true as const,
+        issuancePlanExecutionImpossible: true as const,
+        issuanceImpossible: true as const,
+        authorityImpossible: true as const,
+        executionImpossible: true as const,
+        runtimeId: d.runtimeId,
+        hostId: d.hostId,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        mountCount: 1 as const,
+        unmountCount: 0 as const,
+        geoFeedRenderCount: 1 as const,
+        activeInstanceCount: 1 as const,
+        shellRendered: false as const,
+        shellChildCount: 0 as const,
+        shellDOMNodeCount: 0 as const,
+        owner: "legacy" as const,
+        writer: "legacy" as const,
+        renderer: "legacy" as const,
+        activationBlocker:
+          "PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY" as const,
+        nextEligibleStep: "3B.3.22" as const,
         diagnostics: evaluation.diagnostics,
       };
     },

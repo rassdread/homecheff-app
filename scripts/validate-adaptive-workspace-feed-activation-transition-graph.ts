@@ -20,7 +20,7 @@ import {
   PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
-  PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
+  PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   CONTROLLED_HOST_ACTIVATION_TRANSITION_GRAPH_INPUT_SOURCES,
   CONTROLLED_HOST_ACTIVATION_GRAPH_NODES,
   CONTROLLED_HOST_ACTIVATION_GRAPH_EDGES,
@@ -84,7 +84,7 @@ if (!artifactsPresent && process.env.REQUIRE_PHASE3B314_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.21");
+assert.equal(host.nextEligibleStep, "3B.3.22");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
@@ -215,10 +215,10 @@ const gate = evaluateFeedHostActivationGate({
 });
 assert.equal(gate.allowed, false);
 assert.ok(
-  gate.blockers.includes(PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY),
+  gate.blockers.includes(PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY),
 );
-assert.equal(gate.currentStep, "3B.3.20");
-assert.equal(gate.eligibleStep, "3B.3.21");
+assert.equal(gate.currentStep, "3B.3.21");
+assert.equal(gate.eligibleStep, "3B.3.22");
 
 assert.equal(
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA.transitionGraphResult,
@@ -242,7 +242,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*21/);
+assert.match(probeBridge, /version:\s*22/);
 assert.match(probeBridge, /readHostActivationTransitionGraph/);
 assert.match(probeBridge, /PHASE_3B3_14_HOST_ACTIVATION_TRANSITION_GRAPH_ONLY/);
 

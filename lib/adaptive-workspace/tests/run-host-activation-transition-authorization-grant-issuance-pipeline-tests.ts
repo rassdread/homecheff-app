@@ -1,29 +1,28 @@
 /**
- * Phase 3B.3.19 — host activation transition authorization grant issuance
+ * Phase 3B.3.21 — host activation transition authorization grant issuance
  * decision unit tests.
  */
 import assert from "node:assert/strict";
 import {
-  createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor,
-  evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceDecision,
-  validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor,
-  createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionContract,
-  validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionContract,
-  createFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionIdentity,
-  validateFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionIdentity,
-  createFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionPreparedContract,
-  validateFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionPreparedContract,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_GUARDS,
-  CONTROLLED_HOST_ACTIVATION_GRANT_ISSUANCE_BLOCKERS,
-  CONTROLLED_HOST_ACTIVATION_ISSUANCE_POLICY,
+  createControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor,
+  evaluateControlledHostActivationTransitionAuthorizationGrantIssuancePipeline,
+  validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor,
+  createControlledHostActivationTransitionAuthorizationGrantIssuancePipelineContract,
+  validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineContract,
+  createFeedHostActivationTransitionAuthorizationGrantIssuancePipelineIdentity,
+  validateFeedHostActivationTransitionAuthorizationGrantIssuancePipelineIdentity,
+  createFeedHostActivationTransitionAuthorizationGrantIssuancePipelinePreparedContract,
+  validateFeedHostActivationTransitionAuthorizationGrantIssuancePipelinePreparedContract,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_CONDITIONS,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_GUARDS,
+  CONTROLLED_HOST_ACTIVATION_GRANT_ISSUANCE_PIPELINE_BLOCKERS,
+  CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_POLICY,
   CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION,
   createControlledHostRegistry,
   createControlledFeedHostContract,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
-  PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
   PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
@@ -38,21 +37,45 @@ function ok(label: string) {
 }
 
 console.log(
-  "\n[phase3b319] activation transition authorization grant issuance decision descriptor + engine",
+  "\n[phase3b321] activation transition authorization grant issuance pipeline descriptor + engine",
 );
 
 {
   const a =
-    createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor();
+    createControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor();
   const b =
-    createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor();
-  assert.equal(a.issuanceDecisionState, "completed");
+    createControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor();
+  assert.equal(a.issuancePipelineState, "completed");
   assert.equal(
-    a.issuanceDecisionResult,
-    "authorization-grant-issuance-eligible-not-issued",
+    a.issuancePipelineResult,
+    "authorization-grant-issuance-pipeline-ready-not-executable",
   );
-  assert.equal(a.issuanceDecisionCompleted, true);
-  assert.equal(a.issuanceDecisionExecuted, false);
+  assert.equal(a.issuancePipelineCompleted, true);
+  assert.equal(a.issuancePipelineReady, true);
+  assert.equal(a.issuancePipelineBlocked, true);
+  assert.equal(a.issuancePipelineExecutable, false);
+  assert.equal(a.wouldExecuteIssuancePipeline, true);
+  assert.equal(a.pipelineStageCount, 30);
+  assert.equal(a.completedPipelineStageCount, 0);
+  assert.equal(a.executablePipelineStageCount, 0);
+  assert.equal(a.blockedPipelineStageCount, 30);
+  assert.equal(a.invalidPipelineStageCount, 0);
+  assert.equal(a.sourcePlanStepCount, 30);
+  assert.equal(a.coveredPlanStepCount, 30);
+  assert.equal(a.uncoveredPlanStepCount, 0);
+  assert.equal(a.duplicateCoveredPlanStepCount, 0);
+  assert.equal(a.unknownReferencedPlanStepCount, 0);
+  assert.equal(a.planCoverageComplete, true);
+  assert.equal(a.planCoverageExact, true);
+  assert.equal(a.planOrderPreserved, true);
+  assert.equal(a.pipelineDependencyGraphAcyclic, true);
+  assert.equal(a.commandPresent, false);
+  assert.equal(a.schedulerPresent, false);
+  assert.equal(a.executorPresent, false);
+  assert.equal(a.dispatcherPresent, false);
+  assert.equal(a.queuePresent, false);
+  assert.equal(a.issuancePipelineExecutionImpossible, true);
+  assert.equal(a.issuancePipelineExecuted, false);
   assert.equal(a.issuanceEligible, true);
   assert.equal(a.issuanceBlocked, true);
   assert.equal(a.wouldIssueGrant, true);
@@ -97,30 +120,30 @@ console.log(
   assert.equal(a.hostActivation, false);
   assert.equal(a.renderActivation, false);
   assert.equal(a.canStartActivation, false);
-  assert.equal(a.issuancePolicy, CONTROLLED_HOST_ACTIVATION_ISSUANCE_POLICY);
+  assert.equal(a.issuancePipelinePolicy, CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_POLICY);
   assert.equal(
     a.activationBlocker,
-    PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+    PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   );
   assert.deepEqual(
-    [...a.issuanceConditions],
-    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS],
+    [...a.issuancePipelineConditions],
+    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_CONDITIONS],
   );
-  assert.equal(a.issuanceConditions.length, 140);
+  assert.equal(a.issuancePipelineConditions.length, 204);
   assert.deepEqual(
-    [...a.satisfiedIssuanceConditions],
-    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS],
+    [...a.satisfiedIssuancePipelineConditions],
+    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_CONDITIONS],
   );
-  assert.equal(a.unsatisfiedIssuanceConditions.length, 0);
+  assert.equal(a.unsatisfiedIssuancePipelineConditions.length, 0);
   assert.deepEqual(
-    [...a.issuanceGuards],
-    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_GUARDS],
+    [...a.issuancePipelineGuards],
+    [...CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_GUARDS],
   );
-  assert.equal(a.issuanceGuards.length, 55);
-  assert.equal(a.unsatisfiedIssuanceGuards.length, 0);
+  assert.equal(a.issuancePipelineGuards.length, 62);
+  assert.equal(a.unsatisfiedIssuancePipelineGuards.length, 0);
   assert.ok(
-    a.issuanceBlockers.includes(
-      PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+    a.issuancePipelineBlockers.includes(
+      PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
     ),
   );
   assert.equal(
@@ -128,25 +151,25 @@ console.log(
     CONTROLLED_HOST_ACTIVATION_SELECTED_TRANSITION,
   );
   assert.equal(
-    new Set(a.issuanceConditions).size,
-    a.issuanceConditions.length,
+    new Set(a.issuancePipelineConditions).size,
+    a.issuancePipelineConditions.length,
   );
-  assert.equal(new Set(a.issuanceGuards).size, a.issuanceGuards.length);
+  assert.equal(new Set(a.issuancePipelineGuards).size, a.issuancePipelineGuards.length);
   assert.equal(stableStringify(a), stableStringify(b));
-  ok("authorization grant issuance decision descriptor deterministic");
+  ok("authorization grant issuance plan descriptor deterministic");
 }
 
 {
   const evaluation =
-    evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceDecision(
+    evaluateControlledHostActivationTransitionAuthorizationGrantIssuancePipeline(
       createControlledHostRegistry(),
     );
   assert.equal(
-    evaluation.descriptor.issuanceDecisionResult,
-    "authorization-grant-issuance-eligible-not-issued",
+    evaluation.descriptor.issuancePipelineResult,
+    "authorization-grant-issuance-pipeline-ready-not-executable",
   );
-  assert.equal(evaluation.diagnostics.issuanceDecisionCompleted, true);
-  assert.equal(evaluation.diagnostics.issuanceEligible, true);
+  assert.equal(evaluation.diagnostics.issuancePipelineCompleted, true);
+  assert.equal(evaluation.diagnostics.issuancePipelineReady, true);
   assert.equal(evaluation.diagnostics.issuanceBlocked, true);
   assert.equal(evaluation.diagnostics.wouldIssueGrant, true);
   assert.equal(evaluation.diagnostics.grantIssued, false);
@@ -183,88 +206,88 @@ console.log(
   assert.equal(evaluation.diagnostics.currentState, "COMMIT_READY");
   assert.equal(evaluation.diagnostics.currentNode, "COMMIT_READY");
   assert.equal(evaluation.diagnostics.canStartActivation, false);
-  assert.equal(evaluation.diagnostics.currentPhase, "3B.3.19");
-  assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.20");
+  assert.equal(evaluation.diagnostics.currentPhase, "3B.3.21");
+  assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.22");
   assert.equal(evaluation.diagnostics.issuanceImpossible, true);
   assert.equal(evaluation.diagnostics.authorityImpossible, true);
   assert.equal(evaluation.diagnostics.executionImpossible, true);
   assert.equal(
     evaluation.diagnostics.conditionCount,
-    CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS.length,
+    CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_CONDITIONS.length,
   );
   assert.equal(
     evaluation.diagnostics.satisfiedConditionCount,
-    CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS.length,
+    CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_CONDITIONS.length,
   );
   assert.equal(evaluation.diagnostics.unsatisfiedConditionCount, 0);
   assert.equal(
     evaluation.diagnostics.guardCount,
-    CONTROLLED_HOST_ACTIVATION_ISSUANCE_GUARDS.length,
+    CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_GUARDS.length,
   );
   assert.equal(evaluation.diagnostics.unsatisfiedGuardCount, 0);
   ok(
-    "authorization grant issuance decision engine + diagnostics metadata only (currentPhase 3B.3.19, chained from 3B.3.18)",
+    "authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.21, chained from 3B.3.18)",
   );
 }
 
 {
   const base =
-    createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor();
+    createControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor();
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor(
         { ...base, grantIssued: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor(
         { ...base, grantCreated: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor(
         { ...base, grantAuthorityAvailable: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor(
         { ...base, tokenPresent: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor(
         { ...base, canStartActivation: true },
       ),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionDescriptor(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineDescriptor(
         { ...base, currentState: "ACTIVE" },
       ),
     HardContractViolation,
   );
-  ok("authorization grant issuance decision descriptor fail-closed");
+  ok("authorization grant issuance plan descriptor fail-closed");
 }
 
 console.log(
-  "\n[phase3b319] contract + identity + gate + host metadata + prepared + permanent block",
+  "\n[phase3b321] contract + identity + gate + host metadata + prepared + permanent block",
 );
 
 {
   const c =
-    createControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionContract();
+    createControlledHostActivationTransitionAuthorizationGrantIssuancePipelineContract();
   assert.equal(
-    c.issuanceDecisionResult,
-    "authorization-grant-issuance-eligible-not-issued",
+    c.issuancePipelineResult,
+    "authorization-grant-issuance-pipeline-ready-not-executable",
   );
   assert.equal(c.issuanceEligible, true);
   assert.equal(c.issuanceBlocked, true);
@@ -276,7 +299,7 @@ console.log(
   assert.equal(c.authorizationGranted, false);
   assert.equal(c.transitionAuthorized, false);
   assert.equal(c.currentState, "COMMIT_READY");
-  assert.equal(c.issuanceDecisionExecuted, false);
+  assert.equal(c.issuancePipelineExecuted, false);
   assert.equal(c.grantCreationAllowed, false);
   assert.equal(c.grantIssuanceAllowed, false);
   assert.equal(c.grantMaterializationAllowed, false);
@@ -285,41 +308,41 @@ console.log(
   assert.equal(c.executorAllowed, false);
   assert.equal(
     c.activationRestriction,
-    PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+    PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   );
   assert.throws(
     () =>
-      validateControlledHostActivationTransitionAuthorizationGrantIssuanceDecisionContract(
+      validateControlledHostActivationTransitionAuthorizationGrantIssuancePipelineContract(
         { ...c, remountAllowed: true },
       ),
     HardContractViolation,
   );
-  ok("authorization grant issuance decision contract fail-closed");
+  ok("authorization grant issuance pipeline contract fail-closed");
 }
 
 {
   const id =
-    createFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionIdentity();
+    createFeedHostActivationTransitionAuthorizationGrantIssuancePipelineIdentity();
   assert.equal(id.expectedMountCount, 1);
   assert.equal(id.expectedUnmountCount, 0);
-  assert.equal(id.grantCreationViaIssuanceDecisionAllowed, false);
-  assert.equal(id.grantIssuanceViaIssuanceDecisionAllowed, false);
-  assert.equal(id.grantMaterializationViaIssuanceDecisionAllowed, false);
-  assert.equal(id.grantAuthorityViaIssuanceDecisionAllowed, false);
-  assert.equal(id.authorizationGrantViaIssuanceDecisionAllowed, false);
-  assert.equal(id.activationViaIssuanceDecisionAllowed, false);
+  assert.equal(id.grantCreationViaIssuancePipelineAllowed, false);
+  assert.equal(id.grantIssuanceViaIssuancePipelineAllowed, false);
+  assert.equal(id.grantMaterializationViaIssuancePipelineAllowed, false);
+  assert.equal(id.grantAuthorityViaIssuancePipelineAllowed, false);
+  assert.equal(id.authorizationGrantViaIssuancePipelineAllowed, false);
+  assert.equal(id.activationViaIssuancePipelineAllowed, false);
   assert.equal(id.canStartActivationAllowed, false);
-  assert.equal(id.tokenViaIssuanceDecisionAllowed, false);
+  assert.equal(id.tokenViaIssuancePipelineAllowed, false);
   assert.equal(id.runtimeId, FEED_DISCOVERY_STABLE_RUNTIME_ID);
   assert.throws(
     () =>
-      validateFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionIdentity(
+      validateFeedHostActivationTransitionAuthorizationGrantIssuancePipelineIdentity(
         { ...id, remountAllowed: true },
       ),
     HardContractViolation,
   );
   ok(
-    "authorization grant issuance decision identity forbids grant creation/issuance/materialization/authority",
+    "authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority",
   );
 }
 
@@ -345,8 +368,7 @@ console.log(
     phase3b316ProofValid: true,
     phase3b317ProofValid: true,
     phase3b318ProofValid: true,
-    phase3b319ProofValid: true,
-    phase3b320ProofValid: true,
+    phase3b321ProofValid: true,
     observedWriter: "legacy",
     observedRenderOwner: "legacy",
     observedMountCount: 1,
@@ -367,8 +389,7 @@ console.log(
     observedTransitionPreflightState: "completed",
     observedTransitionAuthorizationDecisionState: "completed",
     observedTransitionAuthorizationGrantReadinessState: "completed",
-    observedTransitionAuthorizationGrantIssuanceDecisionState: "completed",
-    observedTransitionAuthorizationGrantIssuancePlanState: "completed",
+    observedTransitionAuthorizationGrantIssuancePipelineState: "completed",
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
   assert.equal(gate.allowed, false);
@@ -380,7 +401,7 @@ console.log(
   assert.equal(gate.currentStep, "3B.3.21");
   assert.equal(gate.eligibleStep, "3B.3.22");
   ok(
-    "activation remains impossible (gate currentStep=3B.3.19, eligibleStep=3B.3.20)",
+    "activation remains impossible (gate currentStep=3B.3.21, eligibleStep=3B.3.22)",
   );
 }
 
@@ -401,11 +422,6 @@ console.log(
   );
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
-    ),
-  );
-  assert.ok(
-    host.activationBlockers.includes(
       PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
     ),
   );
@@ -422,44 +438,44 @@ console.log(
 
 {
   const prepared =
-    createFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionPreparedContract(
+    createFeedHostActivationTransitionAuthorizationGrantIssuancePipelinePreparedContract(
       {
         evidenceCommit: "abcdef0123456789",
         evidenceArtifactPath:
-          "docs/audits/artifacts/phase3b319/phase3b3-19-feed-host-activation-transition-authorization-grant-issuance-decision-proof.json",
-        conditionCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS.length,
+          "docs/audits/artifacts/phase3b321/phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof.json",
+        conditionCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_CONDITIONS.length,
         satisfiedConditionCount:
-          CONTROLLED_HOST_ACTIVATION_ISSUANCE_CONDITIONS.length,
-        guardCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_GUARDS.length,
-        satisfiedGuardCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_GUARDS.length,
+          CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_CONDITIONS.length,
+        guardCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_GUARDS.length,
+        satisfiedGuardCount: CONTROLLED_HOST_ACTIVATION_ISSUANCE_PIPELINE_GUARDS.length,
       },
     );
   assert.equal(
     prepared.status,
-    "host-activation-transition-authorization-grant-issuance-decision-prepared",
+    "host-activation-transition-authorization-grant-issuance-pipeline-prepared",
   );
-  assert.equal(prepared.nextEligibleStep, "3B.3.20");
+  assert.equal(prepared.nextEligibleStep, "3B.3.22");
   assert.equal(prepared.currentState, "COMMIT_READY");
   assert.equal(prepared.grantIssued, false);
-  assert.equal(prepared.issuanceDecisionExecuted, false);
+  assert.equal(prepared.issuancePipelineExecuted, false);
   assert.throws(
     () =>
-      validateFeedHostActivationTransitionAuthorizationGrantIssuanceDecisionPreparedContract(
+      validateFeedHostActivationTransitionAuthorizationGrantIssuancePipelinePreparedContract(
         { ...prepared, grantIssued: true },
       ),
     HardContractViolation,
   );
-  ok("prepared authorization grant issuance decision fail-closed");
+  ok("prepared authorization grant issuance pipeline fail-closed");
 }
 
 {
   assert.ok(
-    CONTROLLED_HOST_ACTIVATION_GRANT_ISSUANCE_BLOCKERS.includes(
-      PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
+    CONTROLLED_HOST_ACTIVATION_GRANT_ISSUANCE_PIPELINE_BLOCKERS.includes(
+      PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
     ),
   );
   const e =
-    evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceDecision();
+    evaluateControlledHostActivationTransitionAuthorizationGrantIssuancePipeline();
   assert.equal(e.descriptor.grantIssued, false);
   assert.equal(e.descriptor.grantCreated, false);
   assert.equal(e.descriptor.grantMaterialized, false);
@@ -493,9 +509,9 @@ console.log(
   assert.equal(e.descriptor.schedulerAllowed, false);
   assert.equal(e.descriptor.hostActivation, false);
   assert.equal(e.descriptor.renderActivation, false);
-  ok("grant issuance permanently blocked with PHASE_3B3_19 blocker");
+  ok("grant issuance permanently blocked with PHASE_3B3_21 blocker");
 }
 
 console.log(
-  `\nadaptive-workspace Phase 3B.3.19 host activation transition authorization grant issuance decision: ${passed} assertions ok\n`,
+  `\nadaptive-workspace Phase 3B.3.21 host activation transition authorization grant issuance pipeline: ${passed} assertions ok\n`,
 );

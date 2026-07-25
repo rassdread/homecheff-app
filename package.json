@@ -143,7 +143,10 @@
     "analyze": "cross-env ANALYZE=true npm run build",
     "test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan": "npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-plan-tests.ts",
     "validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan": "npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan.ts",
-    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-plan-proof-phase3b320.mjs"
+    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-plan-proof-phase3b320.mjs",
+    "test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline": "npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-pipeline-tests.ts",
+    "validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline": "npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline.ts",
+    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-pipeline-proof-phase3b321.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

@@ -23,7 +23,7 @@ import {
   PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY,
   PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
-  PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
+  PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   CONTROLLED_HOST_ACTIVATION_TRANSACTION_INPUT_SOURCES,
   CONTROLLED_HOST_ACTIVATION_TRANSACTION_COMMIT_CONDITIONS,
   CONTROLLED_HOST_ACTIVATION_TRANSACTION_ROLLBACK_CONDITIONS,
@@ -74,7 +74,7 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.21");
+assert.equal(host.nextEligibleStep, "3B.3.22");
 assert.ok(
   host.activationBlockers.includes(PHASE_3B3_16_HOST_ACTIVATION_TRANSITION_PREFLIGHT_ONLY),
 );
@@ -221,9 +221,9 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY));
-assert.equal(gate.currentStep, "3B.3.20");
-assert.equal(gate.eligibleStep, "3B.3.21");
+assert.ok(gate.blockers.includes(PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY));
+assert.equal(gate.currentStep, "3B.3.21");
+assert.equal(gate.eligibleStep, "3B.3.22");
 
 assert.equal(
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA.transactionResult,
@@ -246,7 +246,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*21/);
+assert.match(probeBridge, /version:\s*22/);
 assert.match(probeBridge, /readHostActivationTransaction/);
 assert.match(probeBridge, /PHASE_3B3_10_HOST_ACTIVATION_TRANSACTION_ONLY/);
 assert.match(probeBridge, /PHASE_3B3_11_HOST_ACTIVATION_COMMIT_READINESS_ONLY/);

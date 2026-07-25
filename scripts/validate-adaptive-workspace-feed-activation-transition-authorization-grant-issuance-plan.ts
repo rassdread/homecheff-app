@@ -17,7 +17,7 @@ import {
   createControlledFeedHostPlan,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
+  PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   CONTROLLED_HOST_ACTIVATION_ISSUANCE_PLAN_CONDITIONS,
   CONTROLLED_HOST_ACTIVATION_ISSUANCE_PLAN_GUARDS,
   CONTROLLED_HOST_ACTIVATION_ISSUANCE_PLAN_POLICY,
@@ -94,10 +94,10 @@ if (!artifactsPresent && process.env.REQUIRE_PHASE3B320_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.21");
+assert.equal(host.nextEligibleStep, "3B.3.22");
 assert.ok(
   host.activationBlockers.includes(
-    PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
+    PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   ),
 );
 
@@ -161,7 +161,7 @@ assert.equal(descriptor.currentNode, "COMMIT_READY");
 assert.equal(descriptor.canStartActivation, false);
 assert.equal(
   descriptor.activationBlocker,
-  PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
+  PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
 );
 assert.equal(
   descriptor.issuancePlanPolicy,
@@ -289,11 +289,11 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "3B.3.20");
-assert.equal(gate.eligibleStep, "3B.3.21");
+assert.equal(gate.currentStep, "3B.3.21");
+assert.equal(gate.eligibleStep, "3B.3.22");
 
 assert.equal(
-  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.21",
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.22",
 );
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantIssued, false);
 
@@ -309,14 +309,14 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version:\s*21/);
+assert.match(probeBridge, /version:\s*22/);
 assert.match(
   probeBridge,
   /readHostActivationTransitionAuthorizationGrantIssuancePlan/,
 );
 assert.match(
   probeBridge,
-  /PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY/,
+  /PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY/,
 );
 
 for (const name of [
@@ -386,14 +386,14 @@ if (artifactsPresent) {
   assert.equal(
     issuanceProof.hostActivationTransitionAuthorizationGrantIssuancePlan
       .activationBlocker,
-    PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
+    PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
   );
   assert.equal(issuanceProof.mountUnmount.mountCount, 1);
   assert.equal(issuanceProof.mountUnmount.unmountCount, 0);
   assert.equal(issuanceProof.activationAttempt.blocked, true);
   assert.ok(
     issuanceProof.activationAttempt.blockers.includes(
-      PHASE_3B3_20_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PLAN_ONLY,
+      PHASE_3B3_21_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_PIPELINE_ONLY,
     ),
   );
   assert.equal(
