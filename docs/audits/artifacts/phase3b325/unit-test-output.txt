@@ -1,0 +1,20 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-controlled-workspace-host-candidate-selection
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-selection-tests.ts
+
+
+[phase3b325] candidate selection descriptor + engine
+  ✓ successful deterministic selection descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.24)
+  ✓ fail-closed activation/duplicate/predecessor/ownership paths
+
+[phase3b325] contract + identity + gate + host + prepared
+  ✓ selection contract fail-closed
+  ✓ selection identity forbids remount and ownership transfer
+  ✓ activation remains impossible (gate currentStep=3B.3.25, eligibleStep=3B.3.26)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared selection fail-closed
+  ✓ candidate selected-not-activated with PHASE_3B3_25 blocker
+
+adaptive-workspace Phase 3B.3.25 controlled workspace host candidate selection: 9 assertions ok
+

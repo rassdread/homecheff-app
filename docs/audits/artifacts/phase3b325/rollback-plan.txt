@@ -1,0 +1,21 @@
+Phase 3B.3.25 rollback plan (reverse commit order)
+
+1. Revert documentary tip commit(s)
+2. Revert proof artifacts + audit
+3. Revert probe/orchestrator proof-target fixes
+4. Revert tests/bridge/validator/probe tooling
+5. Revert selection contracts/evaluator/LIVE wiring
+
+Restores:
+- currentPhase=3B.3.24
+- nextEligibleStep=3B.3.25
+- probe bridge v25
+- candidate result=controlled-workspace-host-candidate-registered-not-selected
+- candidate state=REGISTERED_NOT_SELECTED
+- selectedCandidateCount=0
+- futureActivationTargetCount=0
+- no selection identity
+- Phase 3B.3.23 commit boundary NOT_ENTERED
+
+No runtime cleanup required.
+- no database/storage/cache/request/observer/ownership/writer/renderer/React/DOM/grant/authority/transaction/commit-boundary compensation required
