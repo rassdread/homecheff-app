@@ -194,16 +194,21 @@ async function main() {
       reg.invalidCandidateCount === 0 &&
       reg.duplicateCandidateCount === 0 &&
       reg.singleCandidateExact === true &&
+      reg.singleSelectionExact === true &&
       reg.candidateIdentityUnique === true &&
       reg.registrationIdentityUnique === true &&
-      reg.candidateStructurallyCompatible === true &&
-      reg.candidateSelectionEligibleNow === false &&
+      reg.selectionIdentityUnique === true &&
+      reg.selectedCandidateStructurallyCompatible === true &&
+      reg.selectedCandidateWasRegistered === true &&
       reg.candidateActivationEligibleNow === false &&
       reg.candidateRuntimeAdoptionEligibleNow === false &&
+      reg.futureActivationTargetCount === 1 &&
       reg.runtimeCapabilityPresent === false &&
       reg.runtimeHostInstancePresent === false &&
       reg.activationHandlePresent === false &&
       reg.selectionHandlePresent === false &&
+      reg.predecessorCandidateRegistrationState === "REGISTERED_NOT_SELECTED" &&
+      reg.predecessorCandidateSelected === false &&
       reg.containsGeoFeed === false &&
       reg.mountsGeoFeed === false &&
       reg.wrapsGeoFeed === false &&
@@ -268,7 +273,7 @@ async function main() {
 
     const artifact = {
       schemaVersion: 1,
-      phase: "3B.3.24",
+      phase: "3B.3.25",
       branch,
       commit,
       browser: "chromium-puppeteer-core",
@@ -314,7 +319,7 @@ async function main() {
 
     const prepared = {
       schemaVersion: 1,
-      phase: "3B.3.24",
+      phase: "3B.3.25",
       status: "controlled-workspace-host-candidate-selection-prepared",
       selectionContract: "valid",
       identityContract: "valid",
