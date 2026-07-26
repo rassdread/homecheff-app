@@ -187,7 +187,7 @@ Proof target: `6d186d70f02659faa2ac2f927551465a29f31255`
 
 Audit/artifacts commit: `07c938135a5a46720134add5fa77c6b7315472a7`
 
-Documentary tip: `DOCUMENTARY_TIP_PLACEHOLDER`
+Documentary tip: `e749453793d1e8126f6c1b67d8ba5e8a06a2bb8c`
 
 Freeze HEAD: `56c2f5aca0331907ed34d7b4984724dce59dccf4`
 
