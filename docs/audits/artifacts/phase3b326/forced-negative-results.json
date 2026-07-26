@@ -1,0 +1,135 @@
+{
+  "allPass": true,
+  "negatives": {
+    "candidate-missing": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-invalid-candidate"
+    },
+    "candidate-duplicated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-invalid-candidate"
+    },
+    "selection-missing": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-invalid-selection"
+    },
+    "selection-duplicated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-invalid-selection"
+    },
+    "activation-readiness-identity-invalid": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-contract"
+    },
+    "candidate-activated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-invalid-candidate"
+    },
+    "candidate-authorized": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-authority"
+    },
+    "candidate-granted": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-grant"
+    },
+    "runtime-capability-present": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-runtime-capability"
+    },
+    "runtime-host-present": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-runtime-host"
+    },
+    "activation-handle-present": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-activation-handle"
+    },
+    "workspace-rendered": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-workspace-render"
+    },
+    "workspace-children": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-shell"
+    },
+    "workspace-dom": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-shell"
+    },
+    "geofeed-duplicated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-second-geofeed"
+    },
+    "geofeed-relocated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-second-geofeed"
+    },
+    "owner-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-ownership"
+    },
+    "writer-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-writer"
+    },
+    "renderer-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-renderer"
+    },
+    "commit-boundary-entered": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-commit-boundary"
+    },
+    "transaction-opened": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-transaction"
+    },
+    "pipeline-executable": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-pipeline"
+    },
+    "runtime-mutation": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-runtime-mutation"
+    },
+    "ownership-transfer": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-runtime-mutation"
+    },
+    "invalid-selection-state": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-invalid-selection"
+    },
+    "invalid-predecessor-result": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-readiness-blocked-invalid-selection"
+    }
+  }
+}

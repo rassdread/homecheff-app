@@ -1,0 +1,19 @@
+Phase 3B.3.26 Rollback Plan
+===========================
+
+Restore Phase 3B.3.25 exactly:
+
+  git checkout 9c3c7ab02be288a1bbd7faaba5d6398f1c6683ef
+  # or reset branch to predecessor HEAD
+
+Restored state:
+  currentPhase=3B.3.25
+  nextEligibleStep=3B.3.26
+  bridge=v26
+  result=controlled-workspace-host-candidate-selected-not-activated
+  state=SELECTED_NOT_ACTIVATED
+  candidateReady=false
+  activationReadiness=false
+
+No runtime cleanup required.
+No database / storage / cache / request / ownership / renderer / writer / React / DOM rollback.

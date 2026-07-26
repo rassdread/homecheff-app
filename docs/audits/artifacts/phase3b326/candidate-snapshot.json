@@ -1,0 +1,12 @@
+{
+  "candidateId": "feed.discovery.adaptive-workspace.host-candidate.v1",
+  "registrationId": "feed.discovery.adaptive-workspace.host-candidate-registration.v1",
+  "selectionId": "feed.discovery.adaptive-workspace.host-candidate-selection.v1",
+  "selected": true,
+  "ready": true,
+  "authorized": false,
+  "granted": false,
+  "activated": false,
+  "active": false,
+  "executable": false
+}

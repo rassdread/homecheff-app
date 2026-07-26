@@ -1,0 +1,23 @@
+
+> homecheff-app@0.1.0 probe:adaptive-workspace-host-activation-readiness
+> node scripts/run-controlled-workspace-host-activation-readiness-proof-phase3b326.mjs
+
+[phase3b326] Phase 3B.2 proof rerun
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "fail": []
+}
+[phase3b326] Phase 3B.3.26 activation readiness proof
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b326/phase3b3-26-controlled-workspace-host-activation-readiness-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3_27",
+  "passCount": 20,
+  "fail": [],
+  "activationReadinessMetaOk": true,
+  "forcedNegativeProofsOk": true
+}
+[phase3b326] READY_FOR_PHASE_3B_3_27

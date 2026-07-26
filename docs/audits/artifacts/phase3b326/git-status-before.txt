@@ -1,0 +1,119 @@
+ M docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof-summary.md
+ M docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json
+ M docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json
+ M docs/audits/homecheff-performance-phase3fw2-preview-verification.md
+ M lib/adaptive-workspace/index.ts
+ M lib/adaptive-workspace/registry/settings-manifests.ts
+ M lib/adaptive-workspace/sealed/controlled-feed-host-plan.ts
+ M lib/adaptive-workspace/sealed/controlled-feed-host-types.ts
+ M lib/adaptive-workspace/sealed/create-controlled-feed-host-contract.ts
+ M lib/adaptive-workspace/sealed/feed-host-activation-gate.ts
+ M lib/adaptive-workspace/sealed/validate-controlled-feed-host-contract.ts
+ M lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-registration-tests.ts
+ M lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-selection-tests.ts
+ M lib/adaptive-workspace/tests/run-dormant-host-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-commit-protocol-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-commit-readiness-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-decision-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-pipeline-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-plan-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-readiness-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-state-machine-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transaction-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-authorization-decision-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-commit-boundary-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-decision-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-pipeline-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-plan-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-transaction-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-readiness-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-graph-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-preflight-tests.ts
+ M lib/adaptive-workspace/tests/run-host-activation-transition-selection-tests.ts
+ M lib/adaptive-workspace/tests/run-host-eligibility-tests.ts
+ M lib/adaptive-workspace/tests/run-host-registration-tests.ts
+ M lib/adaptive-workspace/tests/run-host-shadow-activation-simulation-tests.ts
+ M lib/adaptive-workspace/tests/run-shadow-placement-tests.ts
+ M lib/feed/feed-sealed-probe-bridge.ts
+ M package.json
+?? backup-pre-conversation-context-logical-20260705-041402.json
+?? docs/architecture/fixtures/
+?? docs/architecture/homecheff-adaptive-workspace-contract-validation.md
+?? docs/architecture/homecheff-adaptive-workspace-target-architecture.md
+?? docs/architecture/homecheff-identity-contract-phase2.md
+?? docs/architecture/homecheff-identity-phase2-backup-readiness.md
+?? docs/architecture/product-membership-schema-proposal.md
+?? docs/audits/artifacts/phase3b326/
+?? docs/audits/feed-payload-phase13l-probe-latest.json
+?? docs/audits/feed-performance-baseline-probe-latest.json
+?? docs/audits/greenfield-test-plan-dry-run-2026-07-13.json
+?? docs/audits/homecheff-adaptive-workspace-phase2a-approval-audit.md
+?? docs/audits/homecheff-performance-phase3d-migrations/_apply_preview_index.sql
+?? docs/audits/homecheff-performance-phase3e-plus-handoff.md
+?? docs/audits/homecheff-performance-phase3e-preview-verification.md
+?? docs/audits/homecheff-performance-phase3ep-preview-verification.md
+?? docs/audits/homecheff-performance-phase3f-probe-latest.json
+?? docs/audits/homecheff-performance-phase3f7-before-after-estimates.md
+?? docs/audits/homecheff-performance-phase3f7-critical-render-path.md
+?? docs/audits/homecheff-performance-phase3f7-final-go-no-go.md
+?? docs/audits/homecheff-performance-phase3f7-first-paint-analysis.md
+?? docs/audits/homecheff-performance-phase3f7-render-inventory.json
+?? docs/audits/homecheff-prisma-phase8-baseline-pack.md
+?? docs/audits/homecheff-prisma-phase8-migration-reconstruction.json
+?? docs/audits/homecheff-prisma-phase8b-adminpermissions-audit.md
+?? docs/audits/homecheff-prisma-phase8b-affiliate-review.md
+?? docs/audits/homecheff-prisma-phase8b-dependency-graph.json
+?? docs/audits/homecheff-prisma-phase8b-dependency-graph.md
+?? docs/audits/homecheff-prisma-phase8b-final-recommendation.md
+?? docs/audits/homecheff-prisma-phase8b-greenfield-strategy.md
+?? docs/audits/homecheff-prisma-phase9b-simulation-latest.json
+?? docs/audits/homecheff-prisma-phase9c-simulate-report.json
+?? docs/audits/homecheff-prisma-phase9f-backup-readiness.md
+?? docs/audits/homecheff-prisma-phase9f-final-go-no-go.md
+?? docs/audits/homecheff-prisma-phase9f-live-schema-fingerprint.json
+?? docs/audits/homecheff-prisma-phase9f-migrate-diff-live-vs-schema.sql
+?? docs/audits/homecheff-prisma-phase9f-resolve-safety.md
+?? docs/audits/homecheff-prisma-phase9f-schema-equivalence.md
+?? docs/audits/homecheff-wave2-interaction-integrity-audit.md
+?? docs/audits/homecheff-workspace-topology-audit.md
+?? docs/audits/p0-production-google-oauth-recovery-final.md
+?? docs/audits/phase30-backup-pitr-matrix.json
+?? docs/audits/phase30-cookie-inventory.json
+?? docs/audits/phase30-gate-matrix.json
+?? docs/audits/phase30-manual-certification-checklist.md
+?? docs/audits/phase30-oauth-environment-matrix.json
+?? docs/audits/phase30-user-migration-conflict-report.json
+?? docs/audits/phase30a-production-auth-recovery.md
+?? lib/adaptive-workspace/sealed/controlled-workspace-host-activation-readiness-contract.ts
+?? lib/adaptive-workspace/sealed/controlled-workspace-host-activation-readiness.ts
+?? lib/adaptive-workspace/sealed/feed-workspace-host-activation-readiness-identity.ts
+?? lib/adaptive-workspace/sealed/feed-workspace-host-activation-readiness-prepared.ts
+?? lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-readiness-tests.ts
+?? phase10e-prod-dry-run.log
+?? scripts/analyze-prisma-migration-dependencies.ts
+?? scripts/phase30-hc-user-quality.cjs
+?? scripts/phase30-pg-user-emails.cjs
+?? scripts/probe-ab-soft-nav-verification.mjs
+?? scripts/probe-controlled-workspace-host-activation-readiness-phase3b326.mjs
+?? scripts/probe-feed-cache-preview-phase3f.ts
+?? scripts/probe-geofeed-binary-isolation.mjs
+?? scripts/probe-guest-p0-nav-regression-phase-ui.mjs
+?? scripts/probe-home-nav-history-instrument.mjs
+?? scripts/probe-homepage-interaction-integrity-phase-ui.mjs
+?? scripts/probe-homepage-link-matrix.mjs
+?? scripts/probe-link-by-start-page.mjs
+?? scripts/probe-link-targeted-compare.mjs
+?? scripts/probe-login-link-click-flow.mjs
+?? scripts/probe-login-link-hypothesis.mjs
+?? scripts/probe-nav-hard-navigation-regression-phase-ui.mjs
+?? scripts/probe-navbar-hydration-diff-phase-ui.mjs
+?? scripts/probe-p1-root-cause-isolation.mjs
+?? scripts/probe-responsive-action-clickability-phase-ui.mjs
+?? scripts/probe-sidebar-link-from-home.mjs
+?? scripts/probe-stickytest-link.mjs
+?? scripts/probe-wave2-link-navigation-verification.mjs
+?? scripts/run-controlled-workspace-host-activation-readiness-proof-phase3b326.mjs
+?? scripts/validate-adaptive-workspace-host-activation-readiness-phase3b326.ts
+?? scripts/validate-homepage-interactive-shells-phase-ui.ts
+?? scripts/validate-shared-neon-baseline-equivalence.ts
+?? scripts/validate-wave2-dynamic-boundaries-phase-ui.ts

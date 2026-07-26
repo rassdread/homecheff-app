@@ -1,0 +1,6 @@
+{
+  "issuanceCommitBoundaryState": "NOT_ENTERED",
+  "issuanceCommitBoundaryEntered": false,
+  "issuanceCommitBoundaryArmed": false,
+  "boundaryCrossed": false
+}

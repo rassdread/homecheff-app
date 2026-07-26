@@ -1,0 +1,9 @@
+{
+  "candidateId": "feed.discovery.adaptive-workspace.host-candidate.v1",
+  "registrationId": "feed.discovery.adaptive-workspace.host-candidate-registration.v1",
+  "selectionId": "feed.discovery.adaptive-workspace.host-candidate-selection.v1",
+  "activationReadinessId": "feed.discovery.adaptive-workspace.host-activation-readiness.v1",
+  "activationReadinessContractId": "feed.discovery.adaptive-workspace.host-activation-readiness.contract.v1",
+  "controlledHostId": "feed.discovery.controlled-host",
+  "legacyRuntimeId": "feed.discovery.legacy-single-mount.v1"
+}

@@ -1,0 +1,2 @@
+28fea59 test(workspace): add Phase 3B.3.26 readiness suite, validator, and bridge v27
+c2e0d6e feat(workspace): add Phase 3B.3.26 activation readiness contracts and LIVE gate
