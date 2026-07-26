@@ -309,7 +309,7 @@ async function main() {
         activeInstanceCount: counters.activeInstanceCount,
         geoFeedRenderCount: reg.geoFeedRenderCount,
       },
-      nextEligibleStep: "3B.3.25",
+      nextEligibleStep: "3B.3.26",
       invariants,
       overallVerdict: anyFail ? "NOT_READY_FOR_PHASE_3B_3_26" : "READY_FOR_PHASE_3B_3_26",
     };
@@ -343,7 +343,7 @@ async function main() {
       shellRendered: false,
       browserProof: anyFail ? "fail" : "pass",
       existing20Invariants: passCount === 20 ? "pass" : "fail",
-      nextEligibleStep: "3B.3.25",
+      nextEligibleStep: "3B.3.26",
       conditionCount: diag.conditionCount,
       satisfiedConditionCount: diag.satisfiedConditionCount,
       guardCount: diag.guardCount,
