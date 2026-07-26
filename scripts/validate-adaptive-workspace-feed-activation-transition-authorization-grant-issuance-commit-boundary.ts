@@ -96,7 +96,7 @@ if (artifactsPresent || process.env.REQUIRE_PHASE3B323_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.25");
+assert.equal(host.nextEligibleStep, "3B.3.26");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
@@ -295,7 +295,7 @@ assert.equal(gate.currentStep, "3B.3.23");
 assert.equal(gate.eligibleStep, "3B.3.24");
 
 assert.equal(
-  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.25",
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.26",
 );
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantIssued, false);
 

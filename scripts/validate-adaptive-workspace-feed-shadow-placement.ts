@@ -24,6 +24,7 @@ import {
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
   PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
+  PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
@@ -58,7 +59,7 @@ mustExist(
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.25");
+assert.equal(host.nextEligibleStep, "3B.3.26");
 assert.ok(
   host.activationBlockers.includes(PHASE_3B3_2_SHADOW_PLACEMENT_ONLY),
 );
@@ -80,7 +81,7 @@ const plan = createControlledFeedHostPlan();
 assert.equal(plan.placementState, "shadow-registered");
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.25-controlled-workspace-host-candidate-selection",
+  "3B.3.26-controlled-workspace-host-activation-readiness",
 );
 assert.equal(plan.registrationState, "registered");
 assert.equal(plan.eligibilityState, "eligible");
@@ -104,9 +105,9 @@ const gate = evaluateFeedHostActivationGate({
   phase3b2FreezeValid: true,
 });
 assert.equal(gate.allowed, false);
-assert.ok(gate.blockers.includes(PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY));
-assert.equal(gate.currentStep, "3B.3.24");
-assert.equal(gate.eligibleStep, "3B.3.25");
+assert.ok(gate.blockers.includes(PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY));
+assert.equal(gate.currentStep, "3B.3.25");
+assert.equal(gate.eligibleStep, "3B.3.26");
 
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.rendererRegistered, false);
 assert.equal(

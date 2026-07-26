@@ -1169,3 +1169,43 @@ export {
   validateFeedWorkspaceHostCandidateRegistrationPreparedContract,
 } from "./sealed/feed-workspace-host-candidate-registration-prepared";
 export type { FeedWorkspaceHostCandidateRegistrationPreparedContract } from "./sealed/feed-workspace-host-candidate-registration-prepared";
+
+export {
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_SCHEMA_VERSION,
+  PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_GUARDS,
+  evaluateControlledWorkspaceHostCandidateSelection,
+  createControlledWorkspaceHostCandidateSelectionDescriptor,
+  validateControlledWorkspaceHostCandidateSelectionDescriptor,
+} from "./sealed/controlled-workspace-host-candidate-selection";
+export type {
+  ControlledWorkspaceHostSelectedCandidate,
+  ControlledWorkspaceHostCandidateSelectionState,
+  ControlledWorkspaceHostCandidateSelectionResult,
+  ControlledWorkspaceHostCandidateSelectionDescriptor,
+  ControlledWorkspaceHostCandidateSelectionDiagnostics,
+  ControlledWorkspaceHostCandidateSelectionEvaluation,
+  ControlledWorkspaceHostCandidateSelectionInput,
+} from "./sealed/controlled-workspace-host-candidate-selection";
+export {
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_CONTRACT_SCHEMA_VERSION,
+  createControlledWorkspaceHostCandidateSelectionContract,
+  validateControlledWorkspaceHostCandidateSelectionContract,
+} from "./sealed/controlled-workspace-host-candidate-selection-contract";
+export type { ControlledWorkspaceHostCandidateSelectionContract } from "./sealed/controlled-workspace-host-candidate-selection-contract";
+export {
+  FEED_WORKSPACE_HOST_CANDIDATE_SELECTION_IDENTITY_SCHEMA_VERSION,
+  createFeedWorkspaceHostCandidateSelectionIdentity,
+  validateFeedWorkspaceHostCandidateSelectionIdentity,
+} from "./sealed/feed-workspace-host-candidate-selection-identity";
+export type { FeedWorkspaceHostCandidateSelectionIdentity } from "./sealed/feed-workspace-host-candidate-selection-identity";
+export {
+  FEED_WORKSPACE_HOST_CANDIDATE_SELECTION_PREPARED_SCHEMA_VERSION,
+  createFeedWorkspaceHostCandidateSelectionPreparedContract,
+  validateFeedWorkspaceHostCandidateSelectionPreparedContract,
+} from "./sealed/feed-workspace-host-candidate-selection-prepared";
+export type { FeedWorkspaceHostCandidateSelectionPreparedContract } from "./sealed/feed-workspace-host-candidate-selection-prepared";

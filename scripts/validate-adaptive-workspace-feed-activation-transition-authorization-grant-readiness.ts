@@ -90,7 +90,7 @@ if (!artifactsPresent && process.env.REQUIRE_PHASE3B318_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.25");
+assert.equal(host.nextEligibleStep, "3B.3.26");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
@@ -211,7 +211,7 @@ assert.equal(plan.authorizationGranted, false);
 assert.equal(plan.transitionAuthorized, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.25-controlled-workspace-host-candidate-selection",
+  "3B.3.26-controlled-workspace-host-activation-readiness",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -270,8 +270,8 @@ assert.ok(
     PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   ),
 );
-assert.equal(gate.currentStep, "3B.3.24");
-assert.equal(gate.eligibleStep, "3B.3.25");
+assert.equal(gate.currentStep, "3B.3.25");
+assert.equal(gate.eligibleStep, "3B.3.26");
 assert.equal(
   gate.transitionAuthorizationGrantReadinessStatus,
   "completed",
@@ -282,7 +282,7 @@ assert.equal(
   "authorization-grant-ready-not-issued",
 );
 assert.equal(
-  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.25",
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.26",
 );
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantIssued, false);
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.wouldIssueGrant, true);

@@ -95,7 +95,7 @@ if (!artifactsPresent && process.env.REQUIRE_PHASE3B322_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.25");
+assert.equal(host.nextEligibleStep, "3B.3.26");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
@@ -290,11 +290,11 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "3B.3.24");
-assert.equal(gate.eligibleStep, "3B.3.25");
+assert.equal(gate.currentStep, "3B.3.25");
+assert.equal(gate.eligibleStep, "3B.3.26");
 
 assert.equal(
-  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.25",
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.26",
 );
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantIssued, false);
 

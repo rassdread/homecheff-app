@@ -19,6 +19,7 @@ import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_GUARDS,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_BLOCKERS,
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
+  PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
   createControlledHostRegistry,
   createControlledFeedHostContract,
@@ -336,12 +337,12 @@ console.log("\n[phase3b324] contract + identity + gate + host + prepared");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
+      PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.24");
-  assert.equal(gate.eligibleStep, "3B.3.25");
-  ok("activation remains impossible (gate currentStep=3B.3.24, eligibleStep=3B.3.25)");
+  assert.equal(gate.currentStep, "3B.3.25");
+  assert.equal(gate.eligibleStep, "3B.3.26");
+  ok("activation remains impossible (gate currentStep=3B.3.25, eligibleStep=3B.3.26)");
 }
 
 {
@@ -353,7 +354,7 @@ console.log("\n[phase3b324] contract + identity + gate + host + prepared");
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(host.nextEligibleStep, "3B.3.25");
+  assert.equal(host.nextEligibleStep, "3B.3.26");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
@@ -364,9 +365,14 @@ console.log("\n[phase3b324] contract + identity + gate + host + prepared");
       PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
     ),
   );
+  assert.ok(
+    host.activationBlockers.includes(
+      PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
+    ),
+  );
   assert.equal(
     FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep,
-    "3B.3.25",
+    "3B.3.26",
   );
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");
 }
