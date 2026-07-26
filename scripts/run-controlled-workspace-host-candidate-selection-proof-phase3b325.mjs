@@ -115,9 +115,9 @@ async function main() {
     freeze.productionMode = true;
     writeFileSync(freezePath, JSON.stringify(freeze, null, 2) + "\n");
 
-    console.log("[phase3b325] Phase 3B.3.25 candidate registration proof");
+    console.log("[phase3b325] Phase 3B.3.25 candidate selection proof");
     await run("node", [
-      "scripts/probe-controlled-workspace-host-candidate-registration-phase3b325.mjs",
+      "scripts/probe-controlled-workspace-host-candidate-selection-phase3b325.mjs",
       `--base-url=${baseUrl}`,
       `--commit=${commit}`,
       `--branch=${branch}`,
