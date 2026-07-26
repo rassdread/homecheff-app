@@ -1,0 +1,2 @@
+validate-adaptive-workspace-host-activation-transaction-preparation-readiness-phase3b333: PASS
+fail-closed=49

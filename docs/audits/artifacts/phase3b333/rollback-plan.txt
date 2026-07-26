@@ -1,0 +1,3 @@
+Rollback: revert Phase 3B.3.33 source commits on branch workspace/phase3b333-controlled-workspace-host-activation-transaction-preparation-readiness.
+Restore LIVE gate to PHASE_3B3_32 / currentStep 3B.3.32 / eligibleStep 3B.3.33.
+No production runtime rollback required (metadata-only phase).
