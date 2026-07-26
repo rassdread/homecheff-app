@@ -128,7 +128,7 @@ async function main() {
       readFileSync(
         join(
           out3b330,
-          "phase3b3-29-controlled-workspace-host-activation-transaction-opening-readiness-proof.json",
+          "phase3b3-30-controlled-workspace-host-activation-transaction-opening-readiness-proof.json",
         ),
         "utf8",
       ),
@@ -143,7 +143,7 @@ async function main() {
   } finally {
     server.kill("SIGTERM");
     writeFileSync(
-      join(out3b330, "phase3b3-29-server-log-tail.txt"),
+      join(out3b330, "phase3b3-30-server-log-tail.txt"),
       serverLog.slice(-8000),
     );
   }

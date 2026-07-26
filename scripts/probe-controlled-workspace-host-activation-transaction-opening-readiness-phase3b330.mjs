@@ -332,9 +332,10 @@ async function main() {
       browser: "chromium-puppeteer-core",
       browserVersion: await browser.version(),
       productionMode: true,
+      bridgeVersion: probe.version,
       sourceProofReference: "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
       priorPhaseProofReference:
-        "docs/audits/artifacts/phase3b329/phase3b3-28-controlled-workspace-host-activation-grant-issuance-proof.json",
+        "docs/audits/artifacts/phase3b329/phase3b3-29-controlled-workspace-host-activation-commit-boundary-entry-proof.json",
       controlledHostContractStatus: "valid",
       hostActivation: false,
       renderActivation: false,
