@@ -1,0 +1,7 @@
+{
+  "entered": true,
+  "lifecycle": "COMMIT_BOUNDARY_ENTERED",
+  "pass": true,
+  "result": "controlled-workspace-host-activation-commit-boundary-entered",
+  "state": "ENTERED"
+}

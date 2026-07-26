@@ -1,0 +1,196 @@
+{
+  "allPass": true,
+  "cases": [
+    {
+      "label": "missing predecessor grant issuance",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-grant-issuance",
+      "pass": true
+    },
+    {
+      "label": "wrong predecessor result",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-grant-issuance",
+      "pass": true
+    },
+    {
+      "label": "wrong predecessor lifecycle",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-grant-issuance",
+      "pass": true
+    },
+    {
+      "label": "missing candidate",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-candidate",
+      "pass": true
+    },
+    {
+      "label": "duplicated candidate",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-candidate",
+      "pass": true
+    },
+    {
+      "label": "missing grant",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-grant-issuance",
+      "pass": true
+    },
+    {
+      "label": "duplicated grant / second entry",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-duplicate-entry",
+      "pass": true
+    },
+    {
+      "label": "invalid commit-boundary identity",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-contract",
+      "pass": true
+    },
+    {
+      "label": "invalid commit-boundary contract path",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-runtime-mutation",
+      "pass": true
+    },
+    {
+      "label": "candidate activated",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-candidate",
+      "pass": true
+    },
+    {
+      "label": "candidate active",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-invalid-candidate",
+      "pass": true
+    },
+    {
+      "label": "candidate executable",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-boundary-executable",
+      "pass": true
+    },
+    {
+      "label": "runtime capability present",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-runtime-capability",
+      "pass": true
+    },
+    {
+      "label": "runtime host present",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-runtime-host",
+      "pass": true
+    },
+    {
+      "label": "activation handle present",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-activation-handle",
+      "pass": true
+    },
+    {
+      "label": "execution handle present",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-runtime-capability",
+      "pass": true
+    },
+    {
+      "label": "transaction opened",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-transaction",
+      "pass": true
+    },
+    {
+      "label": "pipeline executable",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-pipeline",
+      "pass": true
+    },
+    {
+      "label": "boundary armed beyond ENTERED",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-armed",
+      "pass": true
+    },
+    {
+      "label": "boundary crossed",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-crossed",
+      "pass": true
+    },
+    {
+      "label": "boundary committed",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-committed",
+      "pass": true
+    },
+    {
+      "label": "boundary aborted",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-aborted",
+      "pass": true
+    },
+    {
+      "label": "illegal boundary transition",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-illegal-transition",
+      "pass": true
+    },
+    {
+      "label": "second boundary entry",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-duplicate-entry",
+      "pass": true
+    },
+    {
+      "label": "Workspace rendered",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-shell",
+      "pass": true
+    },
+    {
+      "label": "Workspace mounted/hosting",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-workspace-render",
+      "pass": true
+    },
+    {
+      "label": "Workspace visible",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-workspace-render",
+      "pass": true
+    },
+    {
+      "label": "Workspace React/render instance present",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-workspace-render",
+      "pass": true
+    },
+    {
+      "label": "GeoFeed duplicated",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-second-geofeed",
+      "pass": true
+    },
+    {
+      "label": "GeoFeed wrapped",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-second-geofeed",
+      "pass": true
+    },
+    {
+      "label": "GeoFeed relocated",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-second-geofeed",
+      "pass": true
+    },
+    {
+      "label": "owner changed",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-ownership",
+      "pass": true
+    },
+    {
+      "label": "writer changed",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-writer",
+      "pass": true
+    },
+    {
+      "label": "renderer changed",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-renderer",
+      "pass": true
+    },
+    {
+      "label": "ownership transfer attempted",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-runtime-mutation",
+      "pass": true
+    },
+    {
+      "label": "writer transfer attempted",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-runtime-mutation",
+      "pass": true
+    },
+    {
+      "label": "renderer transfer attempted",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-runtime-mutation",
+      "pass": true
+    },
+    {
+      "label": "runtime adoption attempted",
+      "message": "controlled-workspace-host-activation-commit-boundary-entry-blocked-runtime-mutation",
+      "pass": true
+    }
+  ],
+  "count": 38
+}

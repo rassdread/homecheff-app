@@ -1,0 +1,11 @@
+{
+  "activated": false,
+  "active": false,
+  "authorized": true,
+  "candidateId": "feed.discovery.adaptive-workspace.host-candidate.v1",
+  "count": 1,
+  "executable": false,
+  "granted": true,
+  "ready": true,
+  "selected": true
+}

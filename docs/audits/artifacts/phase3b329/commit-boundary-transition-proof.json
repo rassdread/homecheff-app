@@ -1,0 +1,7 @@
+{
+  "from": "NOT_ENTERED",
+  "legal": true,
+  "onlyLegalTransition": "NOT_ENTERED \u2192 ENTERED",
+  "pass": true,
+  "to": "ENTERED"
+}

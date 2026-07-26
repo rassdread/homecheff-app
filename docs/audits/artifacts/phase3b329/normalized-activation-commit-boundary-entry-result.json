@@ -1,0 +1,13 @@
+{
+  "commitBoundaryState": "ENTERED",
+  "entryCount": 1,
+  "lifecycle": "COMMIT_BOUNDARY_ENTERED",
+  "owner": "legacy",
+  "pipelineExecutable": false,
+  "renderer": "legacy",
+  "result": "controlled-workspace-host-activation-commit-boundary-entered",
+  "transaction": "NOT_OPENED",
+  "transitionFrom": "NOT_ENTERED",
+  "transitionTo": "ENTERED",
+  "writer": "legacy"
+}

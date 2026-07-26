@@ -1,0 +1,9 @@
+{
+  "commitBoundaryState": "NOT_ENTERED",
+  "issuanceCommitBoundaryEntered": false,
+  "issuanceCommitBoundaryState": "NOT_ENTERED",
+  "predecessorHead": "2af07c062edd176fcf6631461d6a9e3d93bcce2c",
+  "predecessorLifecycle": "GRANTED_NOT_ACTIVATED",
+  "predecessorPhase": "3B.3.28",
+  "predecessorResult": "controlled-workspace-host-activation-grant-issued-not-activated"
+}

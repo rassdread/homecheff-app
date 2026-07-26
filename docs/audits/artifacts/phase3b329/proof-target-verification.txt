@@ -1,0 +1,11 @@
+proofTarget=541ae81afee1bb281a5fabdb7c9521f956a8c6e3
+implementationCommit1=0a4dd98e628ec29ff543e9ad649ba448b09ef988
+implementationCommit2=541ae81afee1bb281a5fabdb7c9521f956a8c6e3
+chromiumProofCommit=541ae81afee1bb281a5fabdb7c9521f956a8c6e3
+match=True
+bridge=v30
+port=3050
+verdict=READY_FOR_PHASE_3B_3_30
+invariantsPass=20/20
+forcedNegativeProofsOk=True
+activationCommitBoundaryEntryMetaOk=True
