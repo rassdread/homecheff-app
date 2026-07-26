@@ -287,8 +287,14 @@ async function main() {
       reg.issuanceCommitBoundaryEntered === false &&
       reg.issuanceTransactionState === "NOT_OPENED" &&
       reg.issuancePipelineExecutable === false &&
-      reg.nextEligibleStep === "3B.3.31" &&
+      reg.transactionOpeningReady === true &&
+      reg.transactionOpeningAuthorized === true &&
+      reg.transactionOpeningStarted === false &&
+      reg.transactionOpeningCompleted === false &&
+      reg.nextEligibleStep === "3B.3.32" &&
       reg.activationBlocker === "PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY" &&
+      (reg.predecessorActivationTransactionOpeningReadinessState === "TRANSACTION_OPENING_READY_NOT_OPENED" ||
+        reg.predecessorActivationCommitBoundaryEntryState === "COMMIT_BOUNDARY_ENTERED") &&
       cb.issuanceCommitBoundaryState === "NOT_ENTERED" &&
       hr.hostCount === 1 &&
       hr.owner === "legacy" &&
