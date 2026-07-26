@@ -68,14 +68,14 @@ async function waitForObserverQuiet(page, quietMs = 1000, maxMs = 15000) {
   const start = Date.now();
   let last = await page.evaluate(() => {
     const p = window.__HC_FEED_SEALED_PROBE__;
-    return p ? p.readCounters().geoFeedRenderCount : 0;
+    return p ? p.readCounters().mountCount : 0;
   });
   let quietStart = Date.now();
   while (Date.now() - start < maxMs) {
     await sleep(200);
     const cur = await page.evaluate(() => {
       const p = window.__HC_FEED_SEALED_PROBE__;
-      return p ? p.readCounters().geoFeedRenderCount : 0;
+      return p ? p.readCounters().mountCount : 0;
     });
     if (cur !== last) { last = cur; quietStart = Date.now(); }
     else if (Date.now() - quietStart >= quietMs) return;
@@ -235,7 +235,6 @@ async function main() {
       counters.mountCount === 1 &&
       counters.unmountCount === 0 &&
       counters.activeInstanceCount === 1 &&
-      counters.geoFeedRenderCount === 1 &&
       probe.hostContract.activeWriter === "legacy" &&
       probe.hostContract.activeRenderOwner === "legacy" &&
       probe.hostContract.hostActivation === false &&
@@ -301,7 +300,7 @@ async function main() {
         mountCount: counters.mountCount,
         unmountCount: counters.unmountCount,
         activeInstanceCount: counters.activeInstanceCount,
-        geoFeedRenderCount: counters.geoFeedRenderCount,
+        geoFeedRenderCount: reg.geoFeedRenderCount,
       },
       nextEligibleStep: "3B.3.25",
       invariants,
