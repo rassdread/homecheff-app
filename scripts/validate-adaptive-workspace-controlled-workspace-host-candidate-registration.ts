@@ -15,6 +15,7 @@ import {
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
+  PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
   PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID,
@@ -88,15 +89,15 @@ if (artifactsPresent || process.env.REQUIRE_PHASE3B324_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.26");
+assert.equal(host.nextEligibleStep, "3B.3.30");
 assert.ok(
   host.activationBlockers.includes(
-    PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
+    PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
   ),
 );
 assert.ok(
   host.activationBlockers.includes(
-    PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
+    PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
   ),
 );
 
@@ -170,7 +171,7 @@ assert.equal(identity.candidateOwner, "none");
 const plan = createControlledFeedHostPlan();
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.26-controlled-workspace-host-activation-readiness",
+  "3B.3.30-controlled-workspace-host-activation",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -187,15 +188,15 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "3B.3.25");
-assert.equal(gate.eligibleStep, "3B.3.26");
+assert.equal(gate.currentStep, "3B.3.29");
+assert.equal(gate.eligibleStep, "3B.3.30");
 assert.ok(
   gate.blockers.includes(
-    PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
+    PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
   ),
 );
 
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.26");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.30");
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantIssued, false);
 
 const shell = readFileSync(
@@ -210,7 +211,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version: 26/);
+assert.match(probeBridge, /version: 30/);
 assert.match(probeBridge, /readControlledWorkspaceHostCandidateRegistration/);
 assert.match(
   probeBridge,
