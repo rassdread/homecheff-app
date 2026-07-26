@@ -185,7 +185,7 @@ Implementation commits:
 
 Proof target: `6d186d70f02659faa2ac2f927551465a29f31255`
 
-Audit/artifacts commit: `AUDIT_COMMIT_PLACEHOLDER`
+Audit/artifacts commit: `07c938135a5a46720134add5fa77c6b7315472a7`
 
 Documentary tip: `DOCUMENTARY_TIP_PLACEHOLDER`
 
