@@ -1249,3 +1249,43 @@ export {
   validateFeedWorkspaceHostActivationReadinessPreparedContract,
 } from "./sealed/feed-workspace-host-activation-readiness-prepared";
 export type { FeedWorkspaceHostActivationReadinessPreparedContract } from "./sealed/feed-workspace-host-activation-readiness-prepared";
+
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_SCHEMA_VERSION,
+  PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_GUARDS,
+  evaluateControlledWorkspaceHostActivationAuthorization,
+  createControlledWorkspaceHostActivationAuthorizationDescriptor,
+  validateControlledWorkspaceHostActivationAuthorizationDescriptor,
+} from "./sealed/controlled-workspace-host-activation-authorization";
+export type {
+  ControlledWorkspaceHostActivationAuthorizationState,
+  ControlledWorkspaceHostActivationAuthorizationResult,
+  ControlledWorkspaceHostActivationAuthorizationRecord,
+  ControlledWorkspaceHostActivationAuthorizationDescriptor,
+  ControlledWorkspaceHostActivationAuthorizationDiagnostics,
+  ControlledWorkspaceHostActivationAuthorizationEvaluation,
+  ControlledWorkspaceHostActivationAuthorizationInput,
+} from "./sealed/controlled-workspace-host-activation-authorization";
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_CONTRACT_SCHEMA_VERSION,
+  createControlledWorkspaceHostActivationAuthorizationContract,
+  validateControlledWorkspaceHostActivationAuthorizationContract,
+} from "./sealed/controlled-workspace-host-activation-authorization-contract";
+export type { ControlledWorkspaceHostActivationAuthorizationContract } from "./sealed/controlled-workspace-host-activation-authorization-contract";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_IDENTITY_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationAuthorizationIdentity,
+  validateFeedWorkspaceHostActivationAuthorizationIdentity,
+} from "./sealed/feed-workspace-host-activation-authorization-identity";
+export type { FeedWorkspaceHostActivationAuthorizationIdentity } from "./sealed/feed-workspace-host-activation-authorization-identity";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_PREPARED_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationAuthorizationPreparedContract,
+  validateFeedWorkspaceHostActivationAuthorizationPreparedContract,
+} from "./sealed/feed-workspace-host-activation-authorization-prepared";
+export type { FeedWorkspaceHostActivationAuthorizationPreparedContract } from "./sealed/feed-workspace-host-activation-authorization-prepared";

@@ -10,6 +10,7 @@ import { PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_CO
 import { PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY } from "./controlled-workspace-host-candidate-registration";
 import { PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY } from "./controlled-workspace-host-candidate-selection";
 import { PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY } from "./controlled-workspace-host-activation-readiness";
+import { PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY } from "./controlled-workspace-host-activation-authorization";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -29,8 +30,9 @@ export type ControlledFeedHostPlan = {
     typeof PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
     typeof PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
     typeof PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
+    typeof PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
   ];
-  recommendedNextStep: "3B.3.27-controlled-workspace-host-activation-authorization";
+  recommendedNextStep: "3B.3.28-controlled-workspace-host-activation-grant-issuance";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -162,8 +164,9 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
   PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
       PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
-      PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY],
-    recommendedNextStep: "3B.3.27-controlled-workspace-host-activation-authorization",
+      PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
+      PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY],
+    recommendedNextStep: "3B.3.28-controlled-workspace-host-activation-grant-issuance",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",

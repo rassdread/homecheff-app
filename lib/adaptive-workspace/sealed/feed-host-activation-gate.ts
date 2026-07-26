@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.26 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY.
+ * Phase 3B.3.27 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
@@ -16,6 +16,7 @@ import { PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_CO
 import { PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY } from "./controlled-workspace-host-candidate-registration";
 import { PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY } from "./controlled-workspace-host-candidate-selection";
 import { PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY } from "./controlled-workspace-host-activation-readiness";
+import { PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY } from "./controlled-workspace-host-activation-authorization";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -44,11 +45,12 @@ export { PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_CO
 export { PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY };
 export { PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY };
 export { PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY };
+export { PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.26";
-  eligibleStep: "3B.3.27";
+  currentStep: "3B.3.27";
+  eligibleStep: "3B.3.28";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -144,10 +146,10 @@ export function evaluateFeedHostActivationGate(
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
   const blockers: string[] = [
-    PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
+    PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
   ];
   const reasons: string[] = [
-    "Phase 3B.3.26 proves Adaptive Workspace candidate activation readiness only; authorization remains deferred to 3B.3.27+",
+    "Phase 3B.3.27 authorizes Adaptive Workspace candidate for future activation only; grant issuance remains deferred to 3B.3.28+",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -396,8 +398,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.26",
-    eligibleStep: "3B.3.27",
+    currentStep: "3B.3.27",
+    eligibleStep: "3B.3.28",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

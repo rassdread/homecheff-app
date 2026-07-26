@@ -21,7 +21,7 @@ import {
   PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
   PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
-  PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
+  PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
   createFeedHostRollbackContract,
   validateFeedHostRollbackContract,
   createControlledFeedHostPlan,
@@ -164,10 +164,10 @@ console.log("\n[phase3b31] activation gate");
     observedRollbackTarget: "legacy",
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY));
+  assert.ok(gate.blockers.includes(PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY));
   assert.ok(gate.blockers.includes(PHASE_3B3_1_DORMANT_HOST_ONLY) === false);
-  assert.equal(gate.currentStep, "3B.3.26");
-  assert.equal(gate.eligibleStep, "3B.3.27");
+  assert.equal(gate.currentStep, "3B.3.27");
+  assert.equal(gate.eligibleStep, "3B.3.28");
   ok("gate always denied; force/env/query/cookie/storage ignored");
 }
 
