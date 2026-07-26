@@ -170,7 +170,10 @@
     "probe:adaptive-workspace-host-activation-grant-issuance": "node scripts/run-controlled-workspace-host-activation-grant-issuance-proof-phase3b328.mjs",
     "test:adaptive-workspace-host-activation-commit-boundary-entry": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-commit-boundary-entry-tests.ts",
     "validate:adaptive-workspace-host-activation-commit-boundary-entry": "npx tsx scripts/validate-adaptive-workspace-host-activation-commit-boundary-entry-phase3b329.ts",
-    "probe:adaptive-workspace-host-activation-commit-boundary-entry": "node scripts/run-controlled-workspace-host-activation-commit-boundary-entry-proof-phase3b329.mjs"
+    "probe:adaptive-workspace-host-activation-commit-boundary-entry": "node scripts/run-controlled-workspace-host-activation-commit-boundary-entry-proof-phase3b329.mjs",
+    "test:adaptive-workspace-host-activation-transaction-opening-readiness": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-opening-readiness-tests.ts",
+    "validate:adaptive-workspace-host-activation-transaction-opening-readiness": "npx tsx scripts/validate-adaptive-workspace-host-activation-transaction-opening-readiness-phase3b330.ts",
+    "probe:adaptive-workspace-host-activation-transaction-opening-readiness": "node scripts/run-controlled-workspace-host-activation-transaction-opening-readiness-proof-phase3b330.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
