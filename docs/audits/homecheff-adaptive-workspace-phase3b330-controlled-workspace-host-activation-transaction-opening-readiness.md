@@ -181,9 +181,9 @@ Proof target: `2aa5f68ed7368c59923499132c35584b3ac5e88c`
 
 Audit/artifacts commit: `7a445f8d67039fdaf3ce83e86554782649f28150`
 
-Documentary tip: `UNRESOLVED_UNTIL_DOCUMENTARY_TIP`
+Documentary tip: `3511547d02f8c3786ab36c51879f3d90e18822fa`
 
-Freeze HEAD: `PENDING_FREEZE`
+Freeze HEAD: `ce86ae2140fe47e3b418e1bc385d3978a1ff124a`
 
 ## Rollback
 
