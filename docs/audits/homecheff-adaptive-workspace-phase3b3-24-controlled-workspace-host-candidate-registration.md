@@ -254,7 +254,7 @@ See `docs/audits/artifacts/phase3b324/changed-file-inventory.txt`.
 | Probe navigation fix | `9d9f3674d62213176ab98a01c055b1aae30017e0` |
 | Proof target (probe counter align) | `295b6a4934efd91dc8a11ed4c01a2198a0bf3d3f` |
 | Proof artifacts + audit | `604481632cb937943136f8f42c670dc5a1928b55` |
-| Documentary tip | `DOC_TIP_PENDING` |
+| Documentary tip | `4ab7e4b73d82a541e278060fcc6a3979eb34ea12` |
 
 
 ## 46. Pre-existing dirty files left untouched
