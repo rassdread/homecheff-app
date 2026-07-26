@@ -16,6 +16,7 @@ import {
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
   PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
+  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ID,
@@ -144,10 +145,11 @@ if (artifactsPresent || process.env.REQUIRE_PHASE3B330_ARTIFACTS === "1") {
 
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.31");
+assert.equal(host.nextEligibleStep, "3B.3.32");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
+  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   ),
 );
 
@@ -255,6 +257,7 @@ assert.equal(descriptor.nextEligibleStep, "3B.3.31");
 assert.equal(
   descriptor.activationBlocker,
   PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
+  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
 );
 assert.deepEqual(
   [...descriptor.conditions],
@@ -268,6 +271,7 @@ assert.equal(descriptor.unsatisfiedConditions.length, 0);
 assert.ok(
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_BLOCKERS.includes(
     PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
+  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   ),
 );
 
@@ -449,11 +453,12 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "3B.3.30");
-assert.equal(gate.eligibleStep, "3B.3.31");
+assert.equal(gate.currentStep, "3B.3.31");
+assert.equal(gate.eligibleStep, "3B.3.32");
 assert.ok(
   gate.blockers.includes(
     PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
+  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   ),
 );
 
@@ -461,10 +466,11 @@ const plan = createControlledFeedHostPlan();
 assert.ok(
   plan.blockerSet.includes(
     PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
+  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   ),
 );
 assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.31");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.32");
 
 const proofArtifact = JSON.parse(
   readFileSync(

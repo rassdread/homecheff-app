@@ -1,5 +1,5 @@
 /**
- * Phase 3B.3.29 static validator — controlled workspace host activation commit-boundary entry.
+ * Phase 3B.3.31 static validator — controlled workspace host activation transaction-opening authorization.
  */
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
@@ -8,15 +8,13 @@ import { join } from "node:path";
 import {
   createControlledFeedHostContract,
   createControlledHostRegistry,
-  createControlledWorkspaceHostActivationCommitBoundaryEntryDescriptor,
-  createControlledWorkspaceHostActivationCommitBoundaryEntryContract,
-  evaluateControlledWorkspaceHostActivationCommitBoundaryEntry,
-  createFeedWorkspaceHostActivationCommitBoundaryEntryIdentity,
+  createControlledWorkspaceHostActivationTransactionOpeningAuthorizationDescriptor,
+  createControlledWorkspaceHostActivationTransactionOpeningAuthorizationContract,
+  evaluateControlledWorkspaceHostActivationTransactionOpeningAuthorization,
+  createFeedWorkspaceHostActivationTransactionOpeningAuthorizationIdentity,
   createControlledFeedHostPlan,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
-  PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
   PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID,
@@ -28,34 +26,36 @@ import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ID,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_CONTRACT_ID,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ID,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_CONTRACT_ID,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_CONDITIONS,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_GUARDS,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_BLOCKERS,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
   createFeedDiscoverySealedContract,
-  validateFeedWorkspaceHostActivationCommitBoundaryEntryPreparedContract,
+  validateFeedWorkspaceHostActivationTransactionOpeningAuthorizationPreparedContract,
   HardContractViolation,
   stableStringify,
 } from "../lib/adaptive-workspace";
 
 const root = process.cwd();
 
-const PREDECESSOR_PHASE = "3B.3.28";
+const PREDECESSOR_PHASE = "3B.3.30";
 const PREDECESSOR_HEAD =
-  "2af07c062edd176fcf6631461d6a9e3d93bcce2c";
+  "7230f7c148d7b1172e7422d383f1162d3ae7181e";
 const PREDECESSOR_PROOF_TARGET =
-  "7b2bb2fbfc6c4edc52ac7552e31513ce34710fc3";
+  "2aa5f68ed7368c59923499132c35584b3ac5e88c";
 const PREDECESSOR_RESULT =
-  "controlled-workspace-host-activation-grant-issued-not-activated";
-const PREDECESSOR_LIFECYCLE = "GRANTED_NOT_ACTIVATED";
-const PREDECESSOR_VERDICT = "READY_FOR_PHASE_3B_3_29";
+  "controlled-workspace-host-activation-transaction-opening-ready-not-opened";
+const PREDECESSOR_LIFECYCLE = "TRANSACTION_OPENING_READY_NOT_OPENED";
+const PREDECESSOR_VERDICT = "READY_FOR_PHASE_3B_3_31";
 
 const UNRESOLVED = [
-  "UNRESOLVED_UNTIL_3B328_FROZEN",
+  "UNRESOLVED_UNTIL_3B330_FROZEN",
   "UNKNOWN",
   "TBD",
   "PLACEHOLDER",
@@ -78,22 +78,22 @@ function rejectUnresolved(label: string, value: unknown) {
 }
 
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-workspace-host-activation-commit-boundary-entry.ts",
+  "lib/adaptive-workspace/sealed/controlled-workspace-host-activation-transaction-opening-authorization.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-workspace-host-activation-commit-boundary-entry-contract.ts",
+  "lib/adaptive-workspace/sealed/controlled-workspace-host-activation-transaction-opening-authorization-contract.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-workspace-host-activation-commit-boundary-entry-identity.ts",
+  "lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-opening-authorization-identity.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-workspace-host-activation-commit-boundary-entry-prepared.ts",
+  "lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-opening-authorization-prepared.ts",
 );
 mustExist(
-  "scripts/probe-controlled-workspace-host-activation-commit-boundary-entry-phase3b329.mjs",
+  "scripts/probe-controlled-workspace-host-activation-transaction-opening-authorization-phase3b331.mjs",
 );
 mustExist(
-  "scripts/run-controlled-workspace-host-activation-commit-boundary-entry-proof-phase3b329.mjs",
+  "scripts/run-controlled-workspace-host-activation-transaction-opening-authorization-proof-phase3b331.mjs",
 );
 
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json");
@@ -101,10 +101,10 @@ mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json");
 
 const priorProofPath = join(
   root,
-  "docs/audits/artifacts/phase3b328/phase3b3-28-controlled-workspace-host-activation-grant-issuance-proof.json",
+  "docs/audits/artifacts/phase3b330/phase3b3-30-controlled-workspace-host-activation-transaction-opening-readiness-proof.json",
 );
 mustExist(
-  "docs/audits/artifacts/phase3b328/phase3b3-28-controlled-workspace-host-activation-grant-issuance-proof.json",
+  "docs/audits/artifacts/phase3b330/phase3b3-30-controlled-workspace-host-activation-transaction-opening-readiness-proof.json",
 );
 const priorProof = JSON.parse(readFileSync(priorProofPath, "utf8"));
 assert.equal(priorProof.overallVerdict, PREDECESSOR_VERDICT);
@@ -127,19 +127,19 @@ rejectUnresolved("predecessorHead", PREDECESSOR_HEAD);
 
 const proofPath = join(
   root,
-  "docs/audits/artifacts/phase3b329/phase3b3-29-controlled-workspace-host-activation-commit-boundary-entry-proof.json",
+  "docs/audits/artifacts/phase3b331/phase3b3-31-controlled-workspace-host-activation-transaction-opening-authorization-proof.json",
 );
 const preparedPath = join(
   root,
-  "docs/audits/artifacts/phase3b329/phase3b3-29-controlled-workspace-host-activation-commit-boundary-entry-prepared.json",
+  "docs/audits/artifacts/phase3b331/phase3b3-31-controlled-workspace-host-activation-transaction-opening-authorization-prepared.json",
 );
 const auditPath =
-  "docs/audits/homecheff-adaptive-workspace-phase3b329-controlled-workspace-host-activation-commit-boundary-entry.md";
+  "docs/audits/homecheff-adaptive-workspace-phase3b331-controlled-workspace-host-activation-transaction-opening-authorization.md";
 const artifactsPresent = existsSync(proofPath) && existsSync(preparedPath);
-if (!artifactsPresent && process.env.REQUIRE_PHASE3B329_ARTIFACTS === "1") {
-  assert.fail("Phase 3B.3.29 proof/prepared artifacts required but missing");
+if (!artifactsPresent && process.env.REQUIRE_PHASE3B331_ARTIFACTS === "1") {
+  assert.fail("Phase 3B.3.31 proof/prepared artifacts required but missing");
 }
-if (artifactsPresent || process.env.REQUIRE_PHASE3B329_ARTIFACTS === "1") {
+if (artifactsPresent || process.env.REQUIRE_PHASE3B331_ARTIFACTS === "1") {
   mustExist(auditPath);
 }
 
@@ -148,8 +148,7 @@ assert.equal(host.hostActivation, false);
 assert.equal(host.nextEligibleStep, "3B.3.32");
 assert.ok(
   host.activationBlockers.includes(
-    PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
-  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
+    PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   ),
 );
 
@@ -157,20 +156,20 @@ const registry = createControlledHostRegistry();
 assert.equal(registry.hostCount, 1);
 
 const descriptor =
-  createControlledWorkspaceHostActivationCommitBoundaryEntryDescriptor();
-assert.equal(descriptor.phase, "3B.3.29");
+  createControlledWorkspaceHostActivationTransactionOpeningAuthorizationDescriptor();
+assert.equal(descriptor.phase, "3B.3.31");
 assert.equal(
-  descriptor.commitBoundaryEntryResult,
-  "controlled-workspace-host-activation-commit-boundary-entered",
+  descriptor.transactionOpeningAuthorizationResult,
+  "controlled-workspace-host-activation-transaction-opening-authorized-not-opened",
 );
-assert.equal(descriptor.commitBoundaryEntryState, "COMMIT_BOUNDARY_ENTERED");
+assert.equal(descriptor.transactionOpeningAuthorizationState, "TRANSACTION_OPENING_AUTHORIZED_NOT_OPENED");
 assert.equal(descriptor.activationCommitBoundaryState, "ENTERED");
 assert.equal(descriptor.activationCommitBoundaryEntered, true);
 assert.equal(descriptor.transitionFrom, "NOT_ENTERED");
 assert.equal(descriptor.transitionTo, "ENTERED");
 assert.equal(descriptor.transitionLegal, true);
-assert.equal(descriptor.commitBoundaryEntryCount, 1);
-assert.equal(descriptor.duplicateCommitBoundaryEntryCount, 0);
+assert.equal(descriptor.transactionOpeningAuthorizationCount, 1);
+assert.equal(descriptor.duplicateTransactionOpeningAuthorizationCount, 0);
 assert.equal(descriptor.activationCommitBoundaryArmed, false);
 assert.equal(descriptor.activationCommitBoundaryCrossed, false);
 assert.equal(descriptor.activationCommitBoundaryCommitted, false);
@@ -204,12 +203,16 @@ assert.equal(
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_CONTRACT_ID,
 );
 assert.equal(
-  descriptor.activationCommitBoundaryEntryId,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ID,
+  descriptor.activationTransactionOpeningReadinessId,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ID,
 );
 assert.equal(
-  descriptor.activationCommitBoundaryEntryContractId,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_CONTRACT_ID,
+  descriptor.activationTransactionOpeningAuthorizationId,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ID,
+);
+assert.equal(
+  descriptor.activationTransactionOpeningAuthorizationContractId,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_CONTRACT_ID,
 );
 assert.equal(descriptor.candidateSelected, true);
 assert.equal(descriptor.candidateReady, true);
@@ -230,13 +233,18 @@ assert.equal(descriptor.credentialPresent, false);
 assert.equal(descriptor.certificatePresent, false);
 assert.equal(descriptor.permitPresent, false);
 assert.equal(
-  descriptor.predecessorActivationGrantIssuanceState,
+  descriptor.predecessorActivationTransactionOpeningReadinessState,
   PREDECESSOR_LIFECYCLE,
 );
 assert.equal(
-  descriptor.predecessorActivationGrantIssuanceResult,
+  descriptor.predecessorActivationTransactionOpeningReadinessResult,
   PREDECESSOR_RESULT,
 );
+assert.equal(descriptor.transactionOpeningReady, true);
+assert.equal(descriptor.transactionOpeningAuthorized, true);
+assert.equal(descriptor.transactionOpeningStarted, false);
+assert.equal(descriptor.transactionOpeningCompleted, false);
+assert.equal(descriptor.issuancePipelineState, "NON_EXECUTABLE");
 assert.equal(descriptor.issuanceCommitBoundaryState, "NOT_ENTERED");
 assert.equal(descriptor.issuanceTransactionState, "NOT_OPENED");
 assert.equal(descriptor.issuanceTransactionOpened, false);
@@ -248,34 +256,34 @@ assert.equal(descriptor.mountCount, 1);
 assert.equal(descriptor.geoFeedRenderCount, 1);
 assert.equal(descriptor.shellRendered, false);
 assert.equal(descriptor.workspaceHostMounted, false);
-assert.equal(descriptor.nextEligibleStep, "3B.3.30");
+assert.equal(descriptor.nextEligibleStep, "3B.3.32");
 assert.equal(
   descriptor.activationBlocker,
-  PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
+  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
 );
 assert.deepEqual(
   [...descriptor.conditions],
-  [...CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_CONDITIONS],
+  [...CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_CONDITIONS],
 );
 assert.deepEqual(
   [...descriptor.guards],
-  [...CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_GUARDS],
+  [...CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_GUARDS],
 );
 assert.equal(descriptor.unsatisfiedConditions.length, 0);
 assert.ok(
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_BLOCKERS.includes(
-    PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_BLOCKERS.includes(
+    PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   ),
 );
 
-rejectUnresolved("descriptor.commitBoundaryEntryResult", descriptor.commitBoundaryEntryResult);
+rejectUnresolved("descriptor.transactionOpeningAuthorizationResult", descriptor.transactionOpeningAuthorizationResult);
 rejectUnresolved("descriptor.activationCommitBoundaryId", descriptor.activationCommitBoundaryId);
 rejectUnresolved("PREDECESSOR_PHASE", PREDECESSOR_PHASE);
 
-const evaluation = evaluateControlledWorkspaceHostActivationCommitBoundaryEntry(registry);
+const evaluation = evaluateControlledWorkspaceHostActivationTransactionOpeningAuthorization(registry);
 assert.equal(evaluation.diagnostics.activationCommitBoundaryEntered, true);
-assert.equal(evaluation.diagnostics.currentPhase, "3B.3.29");
-assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.30");
+assert.equal(evaluation.diagnostics.currentPhase, "3B.3.31");
+assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.32");
 assert.equal(
   evaluation.diagnostics.satisfiedConditionCount,
   evaluation.diagnostics.conditionCount,
@@ -291,18 +299,30 @@ rejectUnresolved("diagnostics", serialized);
 
 const failClosedCases: Array<{ label: string; input: Record<string, unknown> }> = [
   {
-    label: "missing predecessor grant issuance",
+    label: "missing predecessor commit-boundary grant",
     input: { candidateGranted: false },
   },
   {
     label: "wrong predecessor result",
     input: {
-      grantIssuanceResult: "controlled-workspace-host-activation-authorized-not-granted",
+      commitBoundaryEntryResult: "controlled-workspace-host-activation-grant-issued-not-activated",
     },
   },
   {
     label: "wrong predecessor lifecycle",
-    input: { grantIssuanceState: "AUTHORIZED_NOT_GRANTED" },
+    input: { commitBoundaryEntryState: "GRANTED_NOT_ACTIVATED" },
+  },
+  {
+    label: "issuance transaction state opened",
+    input: { issuanceTransactionState: "OPENED" },
+  },
+  {
+    label: "transaction opening readiness absent",
+    input: { transactionOpeningReady: false },
+  },
+  {
+    label: "transaction opening started early",
+    input: { transactionOpeningStarted: true },
   },
   { label: "missing candidate", input: { candidates: [] } },
   { label: "duplicated candidate", input: { candidates: [{}, {}] } },
@@ -317,7 +337,7 @@ const failClosedCases: Array<{ label: string; input: Record<string, unknown> }> 
   },
   {
     label: "invalid commit-boundary contract path",
-    input: { entry: { activationCommitBoundaryEntryAllowed: true } },
+    input: { entry: { activationTransactionOpeningAuthorizationAllowed: true } },
   },
   { label: "candidate activated", input: { entry: { activated: true } } },
   { label: "candidate active", input: { entry: { active: true } } },
@@ -399,7 +419,7 @@ let forcedNegativePassCount = 0;
 for (const { label, input } of failClosedCases) {
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostActivationCommitBoundaryEntry(
+      evaluateControlledWorkspaceHostActivationTransactionOpeningAuthorization(
         registry,
         input as never,
       ),
@@ -411,10 +431,18 @@ for (const { label, input } of failClosedCases) {
 assert.equal(forcedNegativePassCount, failClosedCases.length);
 assert.ok(forcedNegativePassCount >= 30, "expected at least 30 forced-negative cases");
 
-const contract = createControlledWorkspaceHostActivationCommitBoundaryEntryContract();
-assert.equal(contract.phase, "3B.3.29");
-assert.equal(contract.nextEligibleStep, "3B.3.30");
-const identity = createFeedWorkspaceHostActivationCommitBoundaryEntryIdentity();
+const contract = createControlledWorkspaceHostActivationTransactionOpeningAuthorizationContract();
+assert.equal(contract.phase, "3B.3.31");
+assert.equal(contract.nextEligibleStep, "3B.3.32");
+const identity = createFeedWorkspaceHostActivationTransactionOpeningAuthorizationIdentity();
+assert.equal(
+  identity.activationTransactionOpeningReadinessId,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ID,
+);
+assert.equal(
+  identity.activationTransactionOpeningAuthorizationId,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ID,
+);
 assert.equal(
   identity.activationCommitBoundaryEntryId,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ID,
@@ -434,16 +462,14 @@ assert.equal(gate.currentStep, "3B.3.31");
 assert.equal(gate.eligibleStep, "3B.3.32");
 assert.ok(
   gate.blockers.includes(
-    PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
-  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
+    PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   ),
 );
 
 const plan = createControlledFeedHostPlan();
 assert.ok(
   plan.blockerSet.includes(
-    PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
-  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
+    PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
   ),
 );
 assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
@@ -467,19 +493,19 @@ createFeedDiscoverySealedContract();
 
 if (artifactsPresent) {
   const proof = JSON.parse(readFileSync(proofPath, "utf8"));
-  assert.equal(proof.overallVerdict, "READY_FOR_PHASE_3B_3_30");
-  assert.equal(proof.activationCommitBoundaryEntryMetaOk, true);
+  assert.equal(proof.overallVerdict, "READY_FOR_PHASE_3B_3_32");
+  assert.equal(proof.activationTransactionOpeningAuthorizationMetaOk, true);
   assert.equal(proof.forcedNegativeProofsOk, true);
-  assert.equal(proof.bridgeVersion ?? proof.version ?? 30, 30);
+  assert.equal(proof.bridgeVersion ?? proof.version ?? 31, 31);
   rejectUnresolved("proof.overallVerdict", proof.overallVerdict);
   const prepared = JSON.parse(readFileSync(preparedPath, "utf8"));
-  validateFeedWorkspaceHostActivationCommitBoundaryEntryPreparedContract(prepared);
-  assert.equal(prepared.nextEligibleStep, "3B.3.30");
-  assert.equal(prepared.activationCommitBoundaryState, "ENTERED");
-  assert.equal(prepared.transitionFrom, "NOT_ENTERED");
-  assert.equal(prepared.transitionTo, "ENTERED");
+  validateFeedWorkspaceHostActivationTransactionOpeningAuthorizationPreparedContract(prepared);
+  assert.equal(prepared.nextEligibleStep, "3B.3.32");
+  assert.equal(prepared.activationCommitBoundaryEntered, true);
+  assert.equal(prepared.issuanceTransactionState, "NOT_OPENED");
+  assert.equal(prepared.transactionOpeningReady, true);
 }
 
 console.log(
-  "validate-adaptive-workspace-host-activation-commit-boundary-entry-phase3b329: PASS",
+  "validate-adaptive-workspace-host-activation-transaction-opening-authorization-phase3b331: PASS",
 );
