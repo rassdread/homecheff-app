@@ -54,7 +54,7 @@ async function main() {
 
   const priorPath = join(
     root,
-    "docs/audits/artifacts/phase3b334/phase3b3-35-controlled-workspace-host-activation-transaction-preparation-proof.json",
+    "docs/audits/artifacts/phase3b334/phase3b3-34-controlled-workspace-host-activation-transaction-preparation-authorization-proof.json",
   );
   const prior = JSON.parse(readFileSync(priorPath, "utf8"));
   if (prior.overallVerdict !== "READY_FOR_PHASE_3B_3_35") {

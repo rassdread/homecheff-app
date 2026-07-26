@@ -87,7 +87,7 @@ async function main() {
   mkdirSync(outDir, { recursive: true });
 
   const priorPath = join(process.cwd(),
-    "docs/audits/artifacts/phase3b334/phase3b3-35-controlled-workspace-host-activation-transaction-preparation-proof.json");
+    "docs/audits/artifacts/phase3b334/phase3b3-34-controlled-workspace-host-activation-transaction-preparation-authorization-proof.json");
   const prior = JSON.parse(readFileSync(priorPath, "utf8"));
   if (prior.overallVerdict !== "READY_FOR_PHASE_3B_3_35") {
     throw new Error(`Predecessor not ready: ${prior.overallVerdict}`);
@@ -363,7 +363,7 @@ async function main() {
       bridgeVersion: probe.version,
       sourceProofReference: "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
       priorPhaseProofReference:
-        "docs/audits/artifacts/phase3b334/phase3b3-35-controlled-workspace-host-activation-transaction-preparation-proof.json",
+        "docs/audits/artifacts/phase3b334/phase3b3-34-controlled-workspace-host-activation-transaction-preparation-authorization-proof.json",
       controlledHostContractStatus: "valid",
       hostActivation: false,
       renderActivation: false,
