@@ -184,7 +184,9 @@
     "validate:adaptive-workspace-host-activation-transaction-preparation-readiness": "npx tsx scripts/validate-adaptive-workspace-host-activation-transaction-preparation-readiness-phase3b333.ts",
     "probe:adaptive-workspace-host-activation-transaction-preparation-readiness": "node scripts/run-controlled-workspace-host-activation-transaction-preparation-readiness-proof-phase3b333.mjs",
     "validate:adaptive-workspace-host-activation-transaction-preparation-authorization": "npx tsx scripts/validate-adaptive-workspace-host-activation-transaction-preparation-authorization-phase3b334.ts",
-    "probe:adaptive-workspace-host-activation-transaction-preparation-authorization": "node scripts/run-controlled-workspace-host-activation-transaction-preparation-authorization-proof-phase3b334.mjs"
+    "probe:adaptive-workspace-host-activation-transaction-preparation-authorization": "node scripts/run-controlled-workspace-host-activation-transaction-preparation-authorization-proof-phase3b334.mjs",
+    "validate:adaptive-workspace-host-activation-transaction-preparation": "npx tsx scripts/validate-adaptive-workspace-host-activation-transaction-preparation-phase3b335.ts",
+    "probe:adaptive-workspace-host-activation-transaction-preparation": "node scripts/run-controlled-workspace-host-activation-transaction-preparation-proof-phase3b335.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
