@@ -183,7 +183,7 @@ Audit/artifacts commit: `7a445f8d67039fdaf3ce83e86554782649f28150`
 
 Documentary tip: `UNRESOLVED_UNTIL_DOCUMENTARY_TIP`
 
-Freeze HEAD: `UNRESOLVED_UNTIL_FREEZE`
+Freeze HEAD: `PENDING_FREEZE`
 
 ## Rollback
 
