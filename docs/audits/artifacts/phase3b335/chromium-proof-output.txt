@@ -1,0 +1,19 @@
+[phase3b335] Phase 3B.2 proof rerun
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "fail": []
+}
+[phase3b335] Phase 3B.3.35 transaction-preparation proof
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b335/phase3b3-35-controlled-workspace-host-activation-transaction-preparation-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3_36",
+  "passCount": 20,
+  "fail": [],
+  "transactionPreparedMetaOk": true,
+  "forcedNegativeProofsOk": true
+}
+[phase3b335] READY_FOR_PHASE_3B_3_36

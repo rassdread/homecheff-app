@@ -1,0 +1,4 @@
+{
+  "result": "controlled-workspace-host-activation-transaction-prepared-not-committed",
+  "lifecycle": "TRANSACTION_PREPARED_NOT_COMMITTED"
+}
