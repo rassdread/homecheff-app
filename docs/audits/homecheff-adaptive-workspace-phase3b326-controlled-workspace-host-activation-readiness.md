@@ -162,7 +162,7 @@ Implementation commits:
 
 Proof target: `28fea5989d94ee184bba4c6bead6fd9aed95b4d0`
 
-Audit/artifacts commit: _(filled after commit)_
+Audit/artifacts commit: `0b03dc7ef483f26c5c845c693df4f8b3a9e0306a`
 
 Documentary tip: _(filled after tip commit)_
 
