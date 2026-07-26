@@ -176,7 +176,10 @@
     "probe:adaptive-workspace-host-activation-transaction-opening-readiness": "node scripts/run-controlled-workspace-host-activation-transaction-opening-readiness-proof-phase3b330.mjs",
     "test:adaptive-workspace-host-activation-transaction-opening-authorization": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-opening-authorization-tests.ts",
     "validate:adaptive-workspace-host-activation-transaction-opening-authorization": "npx tsx scripts/validate-adaptive-workspace-host-activation-transaction-opening-authorization-phase3b331.ts",
-    "probe:adaptive-workspace-host-activation-transaction-opening-authorization": "node scripts/run-controlled-workspace-host-activation-transaction-opening-authorization-proof-phase3b331.mjs"
+    "probe:adaptive-workspace-host-activation-transaction-opening-authorization": "node scripts/run-controlled-workspace-host-activation-transaction-opening-authorization-proof-phase3b331.mjs",
+    "test:adaptive-workspace-host-activation-transaction-opening": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-opening-tests.ts",
+    "validate:adaptive-workspace-host-activation-transaction-opening": "npx tsx scripts/validate-adaptive-workspace-host-activation-transaction-opening-phase3b332.ts",
+    "probe:adaptive-workspace-host-activation-transaction-opening": "node scripts/run-controlled-workspace-host-activation-transaction-opening-proof-phase3b332.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
