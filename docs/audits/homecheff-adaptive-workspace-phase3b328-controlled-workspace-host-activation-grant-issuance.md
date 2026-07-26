@@ -147,7 +147,7 @@ Proof target: `7b2bb2fbfc6c4edc52ac7552e31513ce34710fc3`
 
 Audit/artifacts commit: `0d6204c30d671532a2f8c1fa241982613d23e566`
 
-Documentary tip: `DOCUMENTARY_TIP_PLACEHOLDER`
+Documentary tip: `d105e9f727b60074108c8c90422d4963016f58a9`
 
 Freeze HEAD: `FREEZE_HEAD_PLACEHOLDER`
 
