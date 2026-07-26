@@ -9,6 +9,7 @@ import { PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TR
 import { PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-commit-boundary";
 import { PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY } from "./controlled-workspace-host-candidate-registration";
 import { PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY } from "./controlled-workspace-host-candidate-selection";
+import { PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY } from "./controlled-workspace-host-activation-readiness";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -27,8 +28,9 @@ export type ControlledFeedHostPlan = {
     typeof PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
     typeof PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
     typeof PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
+    typeof PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
   ];
-  recommendedNextStep: "3B.3.26-controlled-workspace-host-activation-readiness";
+  recommendedNextStep: "3B.3.27-controlled-workspace-host-activation-authorization";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -159,8 +161,9 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     blockerSet: [PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
   PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
-      PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY],
-    recommendedNextStep: "3B.3.26-controlled-workspace-host-activation-readiness",
+      PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
+      PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY],
+    recommendedNextStep: "3B.3.27-controlled-workspace-host-activation-authorization",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
