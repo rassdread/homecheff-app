@@ -158,7 +158,10 @@
     "probe:adaptive-workspace-controlled-workspace-host-candidate-registration": "node scripts/run-controlled-workspace-host-candidate-registration-proof-phase3b324.mjs",
     "test:adaptive-workspace-controlled-workspace-host-candidate-selection": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-selection-tests.ts",
     "validate:adaptive-workspace-controlled-workspace-host-candidate-selection": "npx tsx scripts/validate-adaptive-workspace-controlled-workspace-host-candidate-selection.ts",
-    "probe:adaptive-workspace-controlled-workspace-host-candidate-selection": "node scripts/run-controlled-workspace-host-candidate-selection-proof-phase3b325.mjs"
+    "probe:adaptive-workspace-controlled-workspace-host-candidate-selection": "node scripts/run-controlled-workspace-host-candidate-selection-proof-phase3b325.mjs",
+    "test:adaptive-workspace-host-activation-readiness": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-readiness-tests.ts",
+    "validate:adaptive-workspace-host-activation-readiness": "npx tsx scripts/validate-adaptive-workspace-host-activation-readiness-phase3b326.ts",
+    "probe:adaptive-workspace-host-activation-readiness": "node scripts/run-controlled-workspace-host-activation-readiness-proof-phase3b326.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
