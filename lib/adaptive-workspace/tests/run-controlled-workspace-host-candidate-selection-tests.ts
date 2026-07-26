@@ -299,7 +299,7 @@ console.log("\n[phase3b325] contract + identity + gate + host + prepared");
   );
   assert.equal(
     FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep,
-    "3B.3.31",
+    "3B.3.32",
   );
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");
 }

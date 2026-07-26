@@ -358,7 +358,7 @@ console.log("\n[phase3b318] contract + identity + activation safety");
     ),
   );
   assert.equal(
-    FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.31",
+    FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.32",
   );
   assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantIssued, false);
   assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantReady, true);
