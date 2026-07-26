@@ -3,7 +3,7 @@
  * Phase 3B.3.32 orchestrator:
  * 1) production build with sealed baseline
  * 2) Phase 3B.2 Chromium proof rerun (20/20)
- * 3) Phase 3B.3.32 activation commit-boundary entry Chromium proof
+ * 3) Phase 3B.3.32 transaction-opening Chromium proof
  */
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
@@ -14,9 +14,9 @@ const require = createRequire(import.meta.url);
 const root = process.cwd();
 const port = process.env.PHASE3B332_PORT || "3053";
 const out3b2 = join(root, "docs/audits/artifacts/phase3b2");
-const out3b330 = join(root, "docs/audits/artifacts/phase3b332");
+const out3b332 = join(root, "docs/audits/artifacts/phase3b332");
 mkdirSync(out3b2, { recursive: true });
-mkdirSync(out3b330, { recursive: true });
+mkdirSync(out3b332, { recursive: true });
 
 function run(cmd, args, env = {}) {
   return new Promise((resolve, reject) => {
@@ -117,33 +117,33 @@ async function main() {
 
     console.log("[phase3b332] Phase 3B.3.32 transaction-opening proof");
     await run("node", [
-      "scripts/probe-controlled-workspace-host-activation-transaction-opening-authorization-phase3b332.mjs",
+      "scripts/probe-controlled-workspace-host-activation-transaction-opening-phase3b332.mjs",
       `--base-url=${baseUrl}`,
       `--commit=${commit}`,
       `--branch=${branch}`,
-      `--out-dir=${out3b330}`,
+      `--out-dir=${out3b332}`,
     ]);
 
-    const p331 = JSON.parse(
+    const p332 = JSON.parse(
       readFileSync(
         join(
-          out3b330,
-          "phase3b3-31-controlled-workspace-host-activation-transaction-opening-authorization-proof.json",
+          out3b332,
+          "phase3b3-32-controlled-workspace-host-activation-transaction-opening-proof.json",
         ),
         "utf8",
       ),
     );
-    if (p331.overallVerdict !== "READY_FOR_PHASE_3B_3_33") {
-      throw new Error(`Phase 3B.3.32 proof failed: ${p331.overallVerdict}`);
+    if (p332.overallVerdict !== "READY_FOR_PHASE_3B_3_33") {
+      throw new Error(`Phase 3B.3.32 proof failed: ${p332.overallVerdict}`);
     }
-    if (p331.commit !== commit) {
-      throw new Error(`Proof commit mismatch: artifact=${p331.commit} HEAD=${commit}`);
+    if (p332.commit !== commit) {
+      throw new Error(`Proof commit mismatch: artifact=${p332.commit} HEAD=${commit}`);
     }
     console.log("[phase3b332] READY_FOR_PHASE_3B_3_33");
   } finally {
     server.kill("SIGTERM");
     writeFileSync(
-      join(out3b330, "phase3b3-31-server-log-tail.txt"),
+      join(out3b332, "phase3b3-32-server-log-tail.txt"),
       serverLog.slice(-8000),
     );
   }
