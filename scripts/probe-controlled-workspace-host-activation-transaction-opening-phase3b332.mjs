@@ -349,7 +349,7 @@ async function main() {
       bridgeVersion: probe.version,
       sourceProofReference: "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
       priorPhaseProofReference:
-        "docs/audits/artifacts/phase3b331/phase3b3-32-controlled-workspace-host-activation-transaction-opening-proof.json",
+        "docs/audits/artifacts/phase3b331/phase3b3-31-controlled-workspace-host-activation-transaction-opening-authorization-proof.json",
       controlledHostContractStatus: "valid",
       hostActivation: false,
       renderActivation: false,
@@ -460,7 +460,7 @@ async function main() {
       satisfiedGuardCount: diag.satisfiedGuardCount,
       evidenceCommit: commit,
       evidenceArtifactPath:
-        "docs/audits/artifacts/phase3b331/phase3b3-31-controlled-workspace-host-activation-transaction-opening-authorization-proof.json",
+        "docs/audits/artifacts/phase3b332/phase3b3-32-controlled-workspace-host-activation-transaction-opening-proof.json",
     };
 
 
@@ -470,13 +470,14 @@ async function main() {
     );
 
     const summary = [
-      "# Phase 3B.3.31 Controlled Workspace Host Activation Transaction Opening Readiness Proof Summary",
+      "# Phase 3B.3.32 Controlled Workspace Host Activation Transaction Opening Proof Summary",
       "",
       `- Verdict: **${artifact.overallVerdict}**`,
       `- Commit: \`${commit}\``,
       `- Branch: \`${branch}\``,
-      `- Commit-boundary entry: result=${reg.transactionOpeningResult} entered=${reg.activationCommitBoundaryEntered} state=${reg.activationCommitBoundaryState}`,
-      `- Predecessor commit-boundary entry: state=${reg.predecessorActivationCommitBoundaryEntryState}`,
+      `- Transaction opening: result=${reg.transactionOpeningResult} state=${reg.transactionOpeningState} started=${reg.transactionOpeningStarted} completed=${reg.transactionOpeningCompleted}`,
+      `- Issuance transaction: state=${reg.issuanceTransactionState} opened=${reg.issuanceTransactionOpened} prepared=${reg.issuanceTransactionPrepared}`,
+      `- Predecessor authorization: state=${reg.predecessorActivationTransactionOpeningAuthorizationState}`,
       `- Diagnostics: phase=${diag.currentPhase} next=${diag.nextEligibleStep} conditions=${diag.satisfiedConditionCount}/${diag.conditionCount} guards=${diag.satisfiedGuardCount}/${diag.guardCount}`,
       `- Registry: hostCount=${hr.hostCount} runtimeId=${reg.runtimeId}`,
       `- Forced negative proofs: ${forcedNegativeProofsOk ? "all pass" : "FAIL"}`,
@@ -486,7 +487,7 @@ async function main() {
       "",
     ].join("\n");
     writeFileSync(
-      join(outDir, "phase3b3-31-controlled-workspace-host-activation-transaction-opening-authorization-summary.md"),
+      join(outDir, "phase3b3-32-controlled-workspace-host-activation-transaction-opening-summary.md"),
       summary,
     );
 
