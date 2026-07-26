@@ -179,7 +179,7 @@ Proof target: `541ae81afee1bb281a5fabdb7c9521f956a8c6e3`
 
 Audit/artifacts commit: `a6554abf5b4074e34543c51bb4bd786185dcd2d2`
 
-Documentary tip: `UNRESOLVED_UNTIL_DOCUMENTARY_TIP`
+Documentary tip: `c2e6ea16e32252dd42159dc518821d08c702fb22`
 
 Freeze HEAD: `UNRESOLVED_UNTIL_FREEZE`
 
