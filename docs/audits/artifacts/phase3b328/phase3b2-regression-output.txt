@@ -1,0 +1,3 @@
+verdict=READY_FOR_PHASE_3B_3
+passCount=20
+commit=7b2bb2fbfc6c4edc52ac7552e31513ce34710fc3

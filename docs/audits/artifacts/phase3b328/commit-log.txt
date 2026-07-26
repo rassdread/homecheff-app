@@ -1,0 +1,3 @@
+7b2bb2f fix(workspace): point Phase 3B.3.28 probe at authorization predecessor proof
+49fbc1f test(workspace): add Phase 3B.3.28 grant issuance suite, validator, and bridge v29
+e486b7d feat(workspace): add Phase 3B.3.28 activation grant issuance contracts and LIVE gate

@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "verdict": "READY_FOR_PHASE_3B_3_29",
+  "passCount": 20,
+  "activationGrantIssuanceMetaOk": true,
+  "forcedNegativeProofsOk": true,
+  "commit": "7b2bb2fbfc6c4edc52ac7552e31513ce34710fc3"
+}
