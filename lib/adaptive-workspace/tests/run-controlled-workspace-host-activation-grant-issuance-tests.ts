@@ -24,6 +24,7 @@ import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_GUARDS,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_BLOCKERS,
   PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY,
+  PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
   createControlledHostRegistry,
   createControlledFeedHostContract,
   createFeedHostRollbackContract,
@@ -295,23 +296,23 @@ console.log("\n[phase3b328] contract + identity + gate + host + prepared");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY,
+      PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.28");
-  assert.equal(gate.eligibleStep, "3B.3.29");
-  ok("activation remains impossible (gate currentStep=3B.3.28, eligibleStep=3B.3.29)");
+  assert.equal(gate.currentStep, "3B.3.29");
+  assert.equal(gate.eligibleStep, "3B.3.30");
+  ok("activation remains impossible (gate currentStep=3B.3.29, eligibleStep=3B.3.30)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "3B.3.29");
+  assert.equal(host.nextEligibleStep, "3B.3.30");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY,
+      PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.29");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.30");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

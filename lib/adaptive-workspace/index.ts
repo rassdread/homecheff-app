@@ -1331,3 +1331,45 @@ export {
   validateFeedWorkspaceHostActivationGrantIssuancePreparedContract,
 } from "./sealed/feed-workspace-host-activation-grant-issuance-prepared";
 export type { FeedWorkspaceHostActivationGrantIssuancePreparedContract } from "./sealed/feed-workspace-host-activation-grant-issuance-prepared";
+
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_SCHEMA_VERSION,
+  PHASE_3B3_29_CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_GUARDS,
+  evaluateControlledWorkspaceHostActivationCommitBoundaryEntry,
+  createControlledWorkspaceHostActivationCommitBoundaryEntryDescriptor,
+  validateControlledWorkspaceHostActivationCommitBoundaryEntryDescriptor,
+} from "./sealed/controlled-workspace-host-activation-commit-boundary-entry";
+export type {
+  ControlledWorkspaceHostActivationCommitBoundaryEntryState,
+  ControlledWorkspaceHostActivationCommitBoundaryEntryResult,
+  ControlledWorkspaceHostActivationCommitBoundaryEntryRecord,
+  ControlledWorkspaceHostActivationCommitBoundaryEntryDescriptor,
+  ControlledWorkspaceHostActivationCommitBoundaryEntryDiagnostics,
+  ControlledWorkspaceHostActivationCommitBoundaryEntryEvaluation,
+  ControlledWorkspaceHostActivationCommitBoundaryEntryInput,
+} from "./sealed/controlled-workspace-host-activation-commit-boundary-entry";
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_CONTRACT_SCHEMA_VERSION,
+  createControlledWorkspaceHostActivationCommitBoundaryEntryContract,
+  validateControlledWorkspaceHostActivationCommitBoundaryEntryContract,
+} from "./sealed/controlled-workspace-host-activation-commit-boundary-entry-contract";
+export type { ControlledWorkspaceHostActivationCommitBoundaryEntryContract } from "./sealed/controlled-workspace-host-activation-commit-boundary-entry-contract";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_IDENTITY_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationCommitBoundaryEntryIdentity,
+  validateFeedWorkspaceHostActivationCommitBoundaryEntryIdentity,
+} from "./sealed/feed-workspace-host-activation-commit-boundary-entry-identity";
+export type { FeedWorkspaceHostActivationCommitBoundaryEntryIdentity } from "./sealed/feed-workspace-host-activation-commit-boundary-entry-identity";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_COMMIT_BOUNDARY_ENTRY_PREPARED_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationCommitBoundaryEntryPreparedContract,
+  validateFeedWorkspaceHostActivationCommitBoundaryEntryPreparedContract,
+} from "./sealed/feed-workspace-host-activation-commit-boundary-entry-prepared";
+export type { FeedWorkspaceHostActivationCommitBoundaryEntryPreparedContract } from "./sealed/feed-workspace-host-activation-commit-boundary-entry-prepared";
