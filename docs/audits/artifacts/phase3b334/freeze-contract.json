@@ -1,0 +1,12 @@
+{
+  "phase": "3B.3.34",
+  "branch": "workspace/phase3b334-controlled-workspace-host-activation-transaction-preparation-authorization",
+  "result": "controlled-workspace-host-activation-transaction-preparation-authorized-not-prepared",
+  "lifecycle": "TRANSACTION_PREPARATION_AUTHORIZED_NOT_PREPARED",
+  "proofTarget": "8bf7ba819ad03af183d4e34f9326f985f3afc087",
+  "predecessorHead": "95c304eec140c2b67f119f200f9fb196d4c010d1",
+  "bridgeVersion": 35,
+  "proofPort": 3055,
+  "verdict": "READY_FOR_PHASE_3B_3_35",
+  "documentaryTip": "795cfde01c2a53fc40de1a413099c470d70715b2"
+}
