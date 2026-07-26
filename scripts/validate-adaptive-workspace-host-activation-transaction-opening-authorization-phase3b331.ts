@@ -496,7 +496,7 @@ if (artifactsPresent) {
   assert.equal(proof.overallVerdict, "READY_FOR_PHASE_3B_3_32");
   assert.equal(proof.activationTransactionOpeningAuthorizationMetaOk, true);
   assert.equal(proof.forcedNegativeProofsOk, true);
-  assert.equal(proof.bridgeVersion ?? proof.version ?? 31, 31);
+  assert.equal(proof.bridgeVersion ?? proof.version ?? 32, 32);
   rejectUnresolved("proof.overallVerdict", proof.overallVerdict);
   const prepared = JSON.parse(readFileSync(preparedPath, "utf8"));
   validateFeedWorkspaceHostActivationTransactionOpeningAuthorizationPreparedContract(prepared);
@@ -504,6 +504,7 @@ if (artifactsPresent) {
   assert.equal(prepared.activationCommitBoundaryEntered, true);
   assert.equal(prepared.issuanceTransactionState, "NOT_OPENED");
   assert.equal(prepared.transactionOpeningReady, true);
+  assert.equal(prepared.transactionOpeningAuthorized, true);
 }
 
 console.log(
