@@ -30,6 +30,7 @@ import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_GUARDS,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_BLOCKERS,
   PHASE_3B3_33_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_ONLY,
+  PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY,
   createControlledHostRegistry,
   createControlledFeedHostContract,
   createFeedHostRollbackContract,
@@ -362,23 +363,23 @@ console.log("\n[phase3b333] LIVE gate + host continuity");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_33_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_ONLY,
+      PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.33");
-  assert.equal(gate.eligibleStep, "3B.3.34");
-  ok("activation remains impossible (gate currentStep=3B.3.33, eligibleStep=3B.3.34)");
+  assert.equal(gate.currentStep, "3B.3.34");
+  assert.equal(gate.eligibleStep, "3B.3.35");
+  ok("activation remains impossible (gate currentStep=3B.3.34, eligibleStep=3B.3.35)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "3B.3.34");
+  assert.equal(host.nextEligibleStep, "3B.3.35");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_33_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_ONLY,
+      PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.34");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.35");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");
