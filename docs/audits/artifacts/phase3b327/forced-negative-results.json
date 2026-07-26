@@ -1,0 +1,110 @@
+{
+  "allPass": true,
+  "negatives": {
+    "candidate-missing": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-invalid-candidate"
+    },
+    "candidate-duplicated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-invalid-candidate"
+    },
+    "selection-duplicated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-invalid-selection"
+    },
+    "grant-present": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-grant-present"
+    },
+    "grant-flag-present": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-grant-present"
+    },
+    "runtime-capability-present": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-runtime-capability"
+    },
+    "runtime-host-present": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-runtime-host"
+    },
+    "activation-handle-present": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-activation-handle"
+    },
+    "workspace-rendered": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-shell"
+    },
+    "workspace-children": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-shell"
+    },
+    "workspace-dom": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-shell"
+    },
+    "geofeed-duplicated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-second-geofeed"
+    },
+    "geofeed-contained": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-second-geofeed"
+    },
+    "owner-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-ownership"
+    },
+    "writer-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-writer"
+    },
+    "renderer-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-renderer"
+    },
+    "commit-boundary-entered": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-commit-boundary"
+    },
+    "transaction-opened": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-transaction"
+    },
+    "pipeline-executable": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-pipeline"
+    },
+    "invalid-readiness-state": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-invalid-readiness"
+    },
+    "candidate-activated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-authorization-blocked-invalid-candidate"
+    }
+  }
+}

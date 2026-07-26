@@ -1,0 +1,9 @@
+{
+  "futureActivationPossible": true,
+  "futureActivationAuthorized": true,
+  "futureActivationTargetCount": 1,
+  "futureGrantPossible": true,
+  "futureGrantIssued": false,
+  "futureGrantTargetCount": 1,
+  "activationGrantIssuanceAllowed": false
+}

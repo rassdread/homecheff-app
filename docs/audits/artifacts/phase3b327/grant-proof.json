@@ -1,0 +1,11 @@
+{
+  "grantPresent": false,
+  "candidateGranted": false,
+  "grantedCandidateCount": 0,
+  "futureGrantIssued": false,
+  "activationGrantIssuanceAllowed": false,
+  "tokenPresent": false,
+  "credentialPresent": false,
+  "certificatePresent": false,
+  "permitPresent": false
+}

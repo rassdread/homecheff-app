@@ -1,0 +1,7 @@
+{
+  "activationReadinessId": "feed.discovery.adaptive-workspace.host-activation-readiness.v1",
+  "activationReadinessState": "READY_NOT_AUTHORIZED",
+  "activationReadinessResult": "controlled-workspace-host-activation-ready-not-authorized",
+  "candidateReady": true,
+  "candidateAuthorized": false
+}

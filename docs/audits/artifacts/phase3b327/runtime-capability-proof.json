@@ -1,0 +1,14 @@
+{
+  "runtimeCapabilityPresent": false,
+  "runtimeHostInstancePresent": false,
+  "activationHandlePresent": false,
+  "callbackPresent": false,
+  "commandPresent": false,
+  "executorPresent": false,
+  "providerPresent": false,
+  "servicePresent": false,
+  "dispatcherPresent": false,
+  "schedulerPresent": false,
+  "queuePresent": false,
+  "coordinatorPresent": false
+}

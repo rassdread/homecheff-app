@@ -1,0 +1,12 @@
+{
+  "candidateAuthorized": true,
+  "candidateReady": true,
+  "candidateSelected": true,
+  "candidateGranted": false,
+  "futureActivationPossible": true,
+  "futureActivationAuthorized": true,
+  "futureGrantPossible": true,
+  "futureGrantIssued": false,
+  "activationGrantIssuanceAllowed": false,
+  "activationAuthorizationExecutable": false
+}
