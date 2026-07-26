@@ -167,7 +167,7 @@ Implementation commits:
 
 Proof target: `323af2e8043b053e058f96ab3a7d6224e11fd29b`
 
-Audit/artifacts commit: `AUDIT_COMMIT_PLACEHOLDER`
+Audit/artifacts commit: `b42d3d469857109396d8f7f022704b50fba64061`
 
 Documentary tip: `DOCUMENTARY_TIP_PLACEHOLDER`
 
