@@ -313,8 +313,11 @@ async function main() {
       reg.issuanceTransactionPrepared === true &&
       reg.nextEligibleStep === "3B.3.36" &&
       reg.activationBlocker === "PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY" &&
-      reg.predecessorActivationTransactionPreparationReadinessState === "TRANSACTION_PREPARATION_READY_NOT_PREPARED" &&
-      reg.predecessorActivationTransactionPreparationReadinessResult === "controlled-workspace-host-activation-transaction-preparation-ready-not-prepared" &&
+      reg.predecessorActivationTransactionPreparationAuthorizationState === "TRANSACTION_PREPARATION_AUTHORIZED_NOT_PREPARED" &&
+      reg.predecessorActivationTransactionPreparationAuthorizationResult === "controlled-workspace-host-activation-transaction-preparation-authorized-not-prepared" &&
+      reg.activationTransactionPreparationAuthorizationId === "feed.discovery.adaptive-workspace.host-activation-transaction-preparation-authorization.v1" &&
+      reg.activationTransactionPreparationAuthorizationContractId === "feed.discovery.adaptive-workspace.host-activation-transaction-preparation-authorization.contract.v1" &&
+      reg.activationTransactionPreparationAuthorizationIdentityUnique === true &&
       reg.predecessorActivationCommitBoundaryEntryState === "COMMIT_BOUNDARY_ENTERED" &&
       cb.issuanceCommitBoundaryState === "NOT_ENTERED" &&
       hr.hostCount === 1 &&
