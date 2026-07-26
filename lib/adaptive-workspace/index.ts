@@ -1289,3 +1289,45 @@ export {
   validateFeedWorkspaceHostActivationAuthorizationPreparedContract,
 } from "./sealed/feed-workspace-host-activation-authorization-prepared";
 export type { FeedWorkspaceHostActivationAuthorizationPreparedContract } from "./sealed/feed-workspace-host-activation-authorization-prepared";
+
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_SCHEMA_VERSION,
+  PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_GUARDS,
+  evaluateControlledWorkspaceHostActivationGrantIssuance,
+  createControlledWorkspaceHostActivationGrantIssuanceDescriptor,
+  validateControlledWorkspaceHostActivationGrantIssuanceDescriptor,
+} from "./sealed/controlled-workspace-host-activation-grant-issuance";
+export type {
+  ControlledWorkspaceHostActivationGrantIssuanceState,
+  ControlledWorkspaceHostActivationGrantIssuanceResult,
+  ControlledWorkspaceHostActivationGrantRecord,
+  ControlledWorkspaceHostActivationGrantIssuanceDescriptor,
+  ControlledWorkspaceHostActivationGrantIssuanceDiagnostics,
+  ControlledWorkspaceHostActivationGrantIssuanceEvaluation,
+  ControlledWorkspaceHostActivationGrantIssuanceInput,
+} from "./sealed/controlled-workspace-host-activation-grant-issuance";
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_CONTRACT_SCHEMA_VERSION,
+  createControlledWorkspaceHostActivationGrantIssuanceContract,
+  validateControlledWorkspaceHostActivationGrantIssuanceContract,
+} from "./sealed/controlled-workspace-host-activation-grant-issuance-contract";
+export type { ControlledWorkspaceHostActivationGrantIssuanceContract } from "./sealed/controlled-workspace-host-activation-grant-issuance-contract";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_IDENTITY_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationGrantIssuanceIdentity,
+  validateFeedWorkspaceHostActivationGrantIssuanceIdentity,
+} from "./sealed/feed-workspace-host-activation-grant-issuance-identity";
+export type { FeedWorkspaceHostActivationGrantIssuanceIdentity } from "./sealed/feed-workspace-host-activation-grant-issuance-identity";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_PREPARED_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationGrantIssuancePreparedContract,
+  validateFeedWorkspaceHostActivationGrantIssuancePreparedContract,
+} from "./sealed/feed-workspace-host-activation-grant-issuance-prepared";
+export type { FeedWorkspaceHostActivationGrantIssuancePreparedContract } from "./sealed/feed-workspace-host-activation-grant-issuance-prepared";

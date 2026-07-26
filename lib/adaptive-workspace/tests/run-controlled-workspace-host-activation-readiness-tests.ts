@@ -21,7 +21,7 @@ import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_GUARDS,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_BLOCKERS,
   PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
-  PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
+  PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY,
   createControlledHostRegistry,
   createControlledFeedHostContract,
   createFeedHostRollbackContract,
@@ -298,12 +298,12 @@ console.log("\n[phase3b326] contract + identity + gate + host + prepared");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
+      PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.27");
-  assert.equal(gate.eligibleStep, "3B.3.28");
-  ok("activation remains impossible (gate currentStep=3B.3.27, eligibleStep=3B.3.28)");
+  assert.equal(gate.currentStep, "3B.3.28");
+  assert.equal(gate.eligibleStep, "3B.3.29");
+  ok("activation remains impossible (gate currentStep=3B.3.28, eligibleStep=3B.3.29)");
 }
 
 {
@@ -315,15 +315,15 @@ console.log("\n[phase3b326] contract + identity + gate + host + prepared");
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(host.nextEligibleStep, "3B.3.28");
+  assert.equal(host.nextEligibleStep, "3B.3.29");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
+      PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY,
     ),
   );
   assert.equal(
     FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep,
-    "3B.3.28",
+    "3B.3.29",
   );
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");
 }

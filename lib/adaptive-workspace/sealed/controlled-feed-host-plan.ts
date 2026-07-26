@@ -11,6 +11,7 @@ import { PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY } fr
 import { PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY } from "./controlled-workspace-host-candidate-selection";
 import { PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY } from "./controlled-workspace-host-activation-readiness";
 import { PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY } from "./controlled-workspace-host-activation-authorization";
+import { PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY } from "./controlled-workspace-host-activation-grant-issuance";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -31,8 +32,9 @@ export type ControlledFeedHostPlan = {
     typeof PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
     typeof PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
     typeof PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
+    typeof PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY,
   ];
-  recommendedNextStep: "3B.3.28-controlled-workspace-host-activation-grant-issuance";
+  recommendedNextStep: "3B.3.29-controlled-workspace-host-activation";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -165,8 +167,9 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
       PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
       PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
-      PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY],
-    recommendedNextStep: "3B.3.28-controlled-workspace-host-activation-grant-issuance",
+      PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY,
+      PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY],
+    recommendedNextStep: "3B.3.29-controlled-workspace-host-activation",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
