@@ -189,7 +189,7 @@ Audit/artifacts commit: `07c938135a5a46720134add5fa77c6b7315472a7`
 
 Documentary tip: `DOCUMENTARY_TIP_PLACEHOLDER`
 
-Freeze HEAD: `FREEZE_HEAD_PLACEHOLDER`
+Freeze HEAD: `56c2f5aca0331907ed34d7b4984724dce59dccf4`
 
 
 ## Rollback
