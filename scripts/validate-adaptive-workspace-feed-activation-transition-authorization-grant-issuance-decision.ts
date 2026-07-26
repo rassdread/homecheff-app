@@ -94,7 +94,7 @@ if (!artifactsPresent && process.env.REQUIRE_PHASE3B319_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.24");
+assert.equal(host.nextEligibleStep, "3B.3.25");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_19_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_DECISION_ONLY,
@@ -284,11 +284,11 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "3B.3.23");
-assert.equal(gate.eligibleStep, "3B.3.24");
+assert.equal(gate.currentStep, "3B.3.24");
+assert.equal(gate.eligibleStep, "3B.3.25");
 
 assert.equal(
-  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.24",
+  FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.25",
 );
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.grantIssued, false);
 
@@ -304,7 +304,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version: 24/);
+assert.match(probeBridge, /version: 25/);
 assert.match(
   probeBridge,
   /readHostActivationTransitionAuthorizationGrantIssuanceDecision/,

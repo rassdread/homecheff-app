@@ -83,7 +83,7 @@ if (!artifactsPresent && process.env.REQUIRE_PHASE3B317_ARTIFACTS === "1") {
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
 assert.equal(host.renderActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.24");
+assert.equal(host.nextEligibleStep, "3B.3.25");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,
@@ -198,7 +198,7 @@ assert.equal(plan.authorizationGranted, false);
 assert.equal(plan.transitionAuthorized, false);
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.24-controlled-host-activation-candidate",
+  "3B.3.25-controlled-workspace-host-candidate-selection",
 );
 
 const rollback = createFeedHostRollbackContract();
@@ -257,8 +257,8 @@ assert.ok(
     PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   ),
 );
-assert.equal(gate.currentStep, "3B.3.23");
-assert.equal(gate.eligibleStep, "3B.3.24");
+assert.equal(gate.currentStep, "3B.3.24");
+assert.equal(gate.eligibleStep, "3B.3.25");
 assert.equal(gate.transitionAuthorizationDecisionStatus, "completed");
 
 assert.equal(
@@ -284,7 +284,7 @@ const probeBridge = readFileSync(
   join(root, "lib/feed/feed-sealed-probe-bridge.ts"),
   "utf8",
 );
-assert.match(probeBridge, /version: 24/);
+assert.match(probeBridge, /version: 25/);
 assert.match(probeBridge, /readHostActivationTransitionAuthorizationDecision/);
 assert.match(
   probeBridge,

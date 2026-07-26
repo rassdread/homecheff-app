@@ -1126,3 +1126,46 @@ export {
   validateFeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryPreparedContract,
 } from "./sealed/feed-host-activation-transition-authorization-grant-issuance-commit-boundary-prepared";
 export type { FeedHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryPreparedContract } from "./sealed/feed-host-activation-transition-authorization-grant-issuance-commit-boundary-prepared";
+
+export {
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_SCHEMA_VERSION,
+  PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_KIND,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_LABEL,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_GUARDS,
+  evaluateControlledWorkspaceHostCandidateRegistration,
+  createControlledWorkspaceHostCandidateRegistrationDescriptor,
+  validateControlledWorkspaceHostCandidateRegistrationDescriptor,
+} from "./sealed/controlled-workspace-host-candidate-registration";
+export type {
+  ControlledWorkspaceHostCandidate,
+  ControlledWorkspaceHostCandidateRegistrationState,
+  ControlledWorkspaceHostCandidateRegistrationResult,
+  ControlledWorkspaceHostCandidateRegistrationDescriptor,
+  ControlledWorkspaceHostCandidateRegistrationDiagnostics,
+  ControlledWorkspaceHostCandidateRegistrationEvaluation,
+  ControlledWorkspaceHostCandidateRegistrationInput,
+} from "./sealed/controlled-workspace-host-candidate-registration";
+export {
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_CONTRACT_SCHEMA_VERSION,
+  createControlledWorkspaceHostCandidateRegistrationContract,
+  validateControlledWorkspaceHostCandidateRegistrationContract,
+} from "./sealed/controlled-workspace-host-candidate-registration-contract";
+export type { ControlledWorkspaceHostCandidateRegistrationContract } from "./sealed/controlled-workspace-host-candidate-registration-contract";
+export {
+  FEED_WORKSPACE_HOST_CANDIDATE_IDENTITY_SCHEMA_VERSION,
+  createFeedWorkspaceHostCandidateIdentity,
+  validateFeedWorkspaceHostCandidateIdentity,
+} from "./sealed/feed-workspace-host-candidate-identity";
+export type { FeedWorkspaceHostCandidateIdentity } from "./sealed/feed-workspace-host-candidate-identity";
+export {
+  FEED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_PREPARED_SCHEMA_VERSION,
+  createFeedWorkspaceHostCandidateRegistrationPreparedContract,
+  validateFeedWorkspaceHostCandidateRegistrationPreparedContract,
+} from "./sealed/feed-workspace-host-candidate-registration-prepared";
+export type { FeedWorkspaceHostCandidateRegistrationPreparedContract } from "./sealed/feed-workspace-host-candidate-registration-prepared";

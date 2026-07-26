@@ -7,6 +7,7 @@ import { createControlledFeedHostContract } from "./create-controlled-feed-host-
 import { createFeedHostRollbackContract } from "./feed-host-rollback-contract";
 import { PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-transaction";
 import { PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY } from "./controlled-host-activation-transition-authorization-grant-issuance-commit-boundary";
+import { PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY } from "./controlled-workspace-host-candidate-registration";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -21,8 +22,9 @@ export type ControlledFeedHostPlan = {
   invariantSet: typeof FEED_SEALED_INVARIANT_IDS;
   prerequisiteStatus: "phase3b2-frozen-ready";
   blockerSet: readonly [typeof PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
-  PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY];
-  recommendedNextStep: "3B.3.24-controlled-host-activation-candidate";
+  PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
+  PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY];
+  recommendedNextStep: "3B.3.25-controlled-workspace-host-candidate-selection";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -151,8 +153,9 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
     invariantSet: FEED_SEALED_INVARIANT_IDS,
     prerequisiteStatus: "phase3b2-frozen-ready",
     blockerSet: [PHASE_3B3_22_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_TRANSACTION_ONLY,
-  PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY],
-    recommendedNextStep: "3B.3.24-controlled-host-activation-candidate",
+  PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
+  PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY],
+    recommendedNextStep: "3B.3.25-controlled-workspace-host-candidate-selection",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
