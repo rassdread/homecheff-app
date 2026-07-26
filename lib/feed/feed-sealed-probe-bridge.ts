@@ -1490,6 +1490,7 @@ export type FeedSealedProbeApi = {
     unsatisfiedGuardCount: 0;
     blockerCount: number;
     diagnostics: Record<string, unknown>;
+  }>;
   readControlledWorkspaceHostActivationTransactionOpeningAuthorization: () => Promise<{
     phase: "3B.3.31";
     candidateId: string;
