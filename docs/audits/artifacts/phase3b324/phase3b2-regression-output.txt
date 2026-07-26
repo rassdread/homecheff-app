@@ -1,0 +1,3 @@
+Phase 3B.2 regression on Phase 3B.3.24 server
+verdict=READY_FOR_PHASE_3B_3
+pass=20/20

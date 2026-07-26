@@ -1,0 +1,20 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-controlled-workspace-host-candidate-registration
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-registration-tests.ts
+
+
+[phase3b324] candidate registration descriptor + engine
+  ✓ successful deterministic registration descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.23)
+  ✓ fail-closed selection/duplicate/predecessor/ownership paths
+
+[phase3b324] contract + identity + gate + host + prepared
+  ✓ registration contract fail-closed
+  ✓ candidate identity forbids remount and ownership transfer
+  ✓ activation remains impossible (gate currentStep=3B.3.24, eligibleStep=3B.3.25)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared registration fail-closed
+  ✓ candidate permanently unselected with PHASE_3B3_24 blocker
+
+adaptive-workspace Phase 3B.3.24 controlled workspace host candidate registration: 9 assertions ok
+

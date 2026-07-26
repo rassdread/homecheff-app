@@ -1,0 +1,28 @@
+Phase 3B.3.24 rollback plan (reverse commit order)
+
+1. Revert documentary tip commit(s) if present
+2. Revert proof artifacts + audit commit
+3. Revert probe counter/navigation fixes (295b6a4, 9d9f367)
+4. Revert tests/bridge/validator/probe tooling (85190a0)
+5. Revert registration contracts/evaluator/LIVE wiring (6bc51b6)
+
+Restores:
+- currentPhase=3B.3.23
+- nextEligibleStep=3B.3.24
+- probe bridge v24
+- frozen Phase 3B.3.23 commit-boundary result authorization-grant-issuance-commit-boundary-ready-not-entered
+- frozen Phase 3B.3.23 state NOT_ENTERED
+- no Workspace candidate registration metadata
+
+No runtime cleanup required (metadata-only phase).
+- no database rollback required
+- no storage rollback required
+- no cache rollback required
+- no request rollback required
+- no ownership rollback required
+- no React mount rollback required
+- no DOM rollback required
+- no grant rollback required
+- no authority rollback required
+- no transaction rollback required
+- no commit-boundary compensation required

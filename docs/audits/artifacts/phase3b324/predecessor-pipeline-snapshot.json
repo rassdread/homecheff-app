@@ -1,0 +1,5 @@
+{
+  "issuancePipelineResult": "authorization-grant-issuance-pipeline-ready-not-executable",
+  "issuancePipelineExecutable": false,
+  "issuancePipelineExecutionAllowed": false
+}
