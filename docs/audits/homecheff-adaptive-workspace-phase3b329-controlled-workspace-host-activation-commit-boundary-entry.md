@@ -177,7 +177,7 @@ Implementation commits:
 
 Proof target: `541ae81afee1bb281a5fabdb7c9521f956a8c6e3`
 
-Audit/artifacts commit: `UNRESOLVED_UNTIL_AUDIT_COMMIT`
+Audit/artifacts commit: `a6554abf5b4074e34543c51bb4bd786185dcd2d2`
 
 Documentary tip: `UNRESOLVED_UNTIL_DOCUMENTARY_TIP`
 
