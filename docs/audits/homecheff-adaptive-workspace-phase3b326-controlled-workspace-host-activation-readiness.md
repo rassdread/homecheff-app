@@ -157,14 +157,16 @@ Scoped staging only (no `git add .` / `git add -A`). Unrelated dirty/untracked f
 
 Implementation commits:
 
-1. `c2e0d6e` — contracts, identity, prepared, evaluator, LIVE gate
-2. `28fea59` — tests, validator, bridge v27, Chromium probe
+1. `c2e0d6e6b5eff8fb477227c795a6bd3680c2a3d1` — contracts, identity, prepared, evaluator, LIVE gate
+2. `28fea5989d94ee184bba4c6bead6fd9aed95b4d0` — tests, validator, bridge v27, Chromium probe
 
 Proof target: `28fea5989d94ee184bba4c6bead6fd9aed95b4d0`
 
 Audit/artifacts commit: `0b03dc7ef483f26c5c845c693df4f8b3a9e0306a`
 
 Documentary tip: `faee0097eb4bf5477d6f049f0aab0070e93960e2`
+
+Freeze HEAD: `d3e90ea361d381b8f516d0814bdf425acabfba0f`
 
 ## Rollback
 
