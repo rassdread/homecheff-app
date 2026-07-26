@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 24;
+  version: 25;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -687,6 +687,28 @@ export type FeedSealedProbeApi = {
     wouldEnterIssuanceCommitBoundary: true;
     [key: string]: unknown;
   }>;
+  readControlledWorkspaceHostCandidateRegistration: () => Promise<{
+    phase: "3B.3.24";
+    candidateId: string;
+    registrationId: string;
+    candidateRegistrationState: "REGISTERED_NOT_SELECTED";
+    candidateRegistrationResult: "controlled-workspace-host-candidate-registered-not-selected";
+    candidateRegistrationCompleted: true;
+    candidateRegistrationReady: true;
+    candidateRegistrationBlocked: true;
+    candidateRegistrationExecutable: false;
+    candidateRegistered: true;
+    candidateSelected: false;
+    candidateActivated: false;
+    wouldSelectCandidate: true;
+    futureSelectionTarget: true;
+    candidateCount: 1;
+    registeredCandidateCount: 1;
+    selectedCandidateCount: 0;
+    activeCandidateCount: 0;
+    executableCandidateCount: 0;
+    [key: string]: unknown;
+  }>;
   readHostActivationTransitionAuthorizationGrantIssuanceTransaction: () => Promise<{
     phase: "3B.3.22";
     issuanceTransactionId: string;
@@ -1121,7 +1143,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 24,
+    version: 25,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -2554,6 +2576,99 @@ export function installFeedSealedProbeBridge(): void {
         activationBlocker:
           "PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY" as const,
         nextEligibleStep: "3B.3.24" as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readControlledWorkspaceHostCandidateRegistration: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledWorkspaceHostCandidateRegistration();
+      const d = evaluation.descriptor;
+      return {
+        phase: "3B.3.24" as const,
+        candidateId: d.candidateId,
+        registrationId: d.candidateRegistrationId,
+        candidateKind: "adaptive-workspace" as const,
+        candidateRegistrationState: "REGISTERED_NOT_SELECTED" as const,
+        candidateRegistrationResult:
+          "controlled-workspace-host-candidate-registered-not-selected" as const,
+        candidateRegistrationCompleted: true as const,
+        candidateRegistrationReady: true as const,
+        candidateRegistrationBlocked: true as const,
+        candidateRegistrationExecutable: false as const,
+        candidateRegistered: true as const,
+        candidateSelected: false as const,
+        candidateActivated: false as const,
+        candidateActive: false as const,
+        candidateAuthorized: false as const,
+        candidateGranted: false as const,
+        candidateExecutable: false as const,
+        wouldSelectCandidate: true as const,
+        futureSelectionTarget: true as const,
+        candidateCount: 1 as const,
+        registeredCandidateCount: 1 as const,
+        selectedCandidateCount: 0 as const,
+        activeCandidateCount: 0 as const,
+        executableCandidateCount: 0 as const,
+        invalidCandidateCount: 0 as const,
+        duplicateCandidateCount: 0 as const,
+        unknownCandidateCount: 0 as const,
+        singleCandidateExact: true as const,
+        candidateIdentityUnique: true as const,
+        registrationIdentityUnique: true as const,
+        candidateKindUnique: true as const,
+        candidateStructurallyCompatible: true as const,
+        candidateRuntimeCompatible: true as const,
+        candidateSelectionEligibleInFuture: true as const,
+        candidateSelectionEligibleNow: false as const,
+        candidateActivationEligibleNow: false as const,
+        candidateRuntimeAdoptionEligibleNow: false as const,
+        runtimeCapabilityPresent: false as const,
+        runtimeHostInstancePresent: false as const,
+        ownsRuntime: false as const,
+        ownsFeed: false as const,
+        writesRuntime: false as const,
+        writesFeed: false as const,
+        rendersRuntime: false as const,
+        rendersFeed: false as const,
+        mountsGeoFeed: false as const,
+        containsGeoFeed: false as const,
+        wrapsGeoFeed: false as const,
+        duplicatesGeoFeed: false as const,
+        createsSecondGeoFeed: false as const,
+        shellRendered: false as const,
+        shellChildCount: 0 as const,
+        shellDOMNodeCount: 0 as const,
+        workspaceVisible: false as const,
+        workspaceHostMounted: false as const,
+        workspaceCandidateRendered: false as const,
+        workspaceCandidateDOMPresent: false as const,
+        workspaceCandidateReactInstancePresent: false as const,
+        issuanceCommitBoundaryResult:
+          "authorization-grant-issuance-commit-boundary-ready-not-entered" as const,
+        issuanceCommitBoundaryState: "NOT_ENTERED" as const,
+        issuanceCommitBoundaryEntered: false as const,
+        issuanceTransactionResult:
+          "authorization-grant-issuance-transaction-ready-not-opened" as const,
+        issuanceTransactionState: "NOT_OPENED" as const,
+        issuanceTransactionOpened: false as const,
+        issuancePipelineResult:
+          "authorization-grant-issuance-pipeline-ready-not-executable" as const,
+        issuancePipelineExecutable: false as const,
+        owner: "legacy" as const,
+        writer: "legacy" as const,
+        renderer: "legacy" as const,
+        runtimeId: d.runtimeId,
+        hostId: d.hostId,
+        mountCount: 1 as const,
+        unmountCount: 0 as const,
+        geoFeedRenderCount: 1 as const,
+        activeInstanceCount: 1 as const,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker:
+          "PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY" as const,
+        nextEligibleStep: "3B.3.25" as const,
         diagnostics: evaluation.diagnostics,
       };
     },

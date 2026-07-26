@@ -152,7 +152,10 @@
     "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-transaction-proof-phase3b322.mjs",
     "test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary": "npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-commit-boundary-tests.ts",
     "validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary": "npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary.ts",
-    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-commit-boundary-proof-phase3b323.mjs"
+    "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-commit-boundary-proof-phase3b323.mjs",
+    "test:adaptive-workspace-controlled-workspace-host-candidate-registration": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-registration-tests.ts",
+    "validate:adaptive-workspace-controlled-workspace-host-candidate-registration": "npx tsx scripts/validate-adaptive-workspace-controlled-workspace-host-candidate-registration.ts",
+    "probe:adaptive-workspace-controlled-workspace-host-candidate-registration": "node scripts/run-controlled-workspace-host-candidate-registration-proof-phase3b324.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
