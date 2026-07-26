@@ -1,0 +1,23 @@
+[3B.3.30] PASS
+adaptive-workspace Phase 3B.3.30 controlled workspace host activation transaction opening readiness: 9 assertions ok
+
+[3B.3.29] PASS
+adaptive-workspace Phase 3B.3.29 controlled workspace host activation commit boundary entry: 9 assertions ok
+
+[3B.3.28] PASS
+adaptive-workspace Phase 3B.3.28 controlled workspace host activation grant issuance: 9 assertions ok
+
+[3B.3.27] PASS
+adaptive-workspace Phase 3B.3.27 controlled workspace host activation authorization: 9 assertions ok
+
+[3B.3.26] PASS
+adaptive-workspace Phase 3B.3.26 controlled workspace host activation readiness: 9 assertions ok
+
+[3B.3.25] PASS
+adaptive-workspace Phase 3B.3.25 controlled workspace host candidate selection: 9 assertions ok
+
+[3B.3.24] PASS
+adaptive-workspace Phase 3B.3.24 controlled workspace host candidate registration: 9 assertions ok
+
+[3B.3.1] PASS
+adaptive-workspace Phase 3B.3.1 dormant host: 8 assertions ok

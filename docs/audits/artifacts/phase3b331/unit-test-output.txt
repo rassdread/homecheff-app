@@ -1,0 +1,14 @@
+[phase3b331] activation transaction-opening authorization descriptor + engine
+  ✓ successful deterministic transaction-opening authorization descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.30)
+  ✓ fail-closed duplicate/activated/transaction/pipeline/shell/ownership paths
+
+[phase3b331] contract + identity + prepared
+  ✓ transaction-opening authorization contract fail-closed
+  ✓ transaction-opening authorization identity forbids remount and further progression
+  ✓ prepared transaction-opening authorization fail-closed
+  ✓ activation remains impossible (gate currentStep=3B.3.31, eligibleStep=3B.3.32)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate authorized-not-opened with PHASE_3B3_31 blocker
+
+adaptive-workspace Phase 3B.3.31 controlled workspace host activation transaction opening authorization: 9 assertions ok
