@@ -171,7 +171,7 @@ Audit/artifacts commit: `b42d3d469857109396d8f7f022704b50fba64061`
 
 Documentary tip: `74e034358984865c8159ec5e95b8d35070b8e391`
 
-Freeze HEAD: `FREEZE_HEAD_PLACEHOLDER`
+Freeze HEAD: `PENDING_FREEZE`
 
 ## Rollback
 
