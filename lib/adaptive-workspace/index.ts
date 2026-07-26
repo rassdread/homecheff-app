@@ -1453,3 +1453,43 @@ export {
   validateFeedWorkspaceHostActivationTransactionOpeningAuthorizationPreparedContract,
 } from "./sealed/feed-workspace-host-activation-transaction-opening-authorization-prepared";
 export type { FeedWorkspaceHostActivationTransactionOpeningAuthorizationPreparedContract } from "./sealed/feed-workspace-host-activation-transaction-opening-authorization-prepared";
+
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_SCHEMA_VERSION,
+  PHASE_3B3_32_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_GUARDS,
+  evaluateControlledWorkspaceHostActivationTransactionOpening,
+  createControlledWorkspaceHostActivationTransactionOpeningDescriptor,
+  validateControlledWorkspaceHostActivationTransactionOpeningDescriptor,
+} from "./sealed/controlled-workspace-host-activation-transaction-opening";
+export type {
+  ControlledWorkspaceHostActivationTransactionOpeningState,
+  ControlledWorkspaceHostActivationTransactionOpeningResult,
+  ControlledWorkspaceHostActivationTransactionOpeningRecord,
+  ControlledWorkspaceHostActivationTransactionOpeningDescriptor,
+  ControlledWorkspaceHostActivationTransactionOpeningDiagnostics,
+  ControlledWorkspaceHostActivationTransactionOpeningEvaluation,
+  ControlledWorkspaceHostActivationTransactionOpeningInput,
+} from "./sealed/controlled-workspace-host-activation-transaction-opening";
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_CONTRACT_SCHEMA_VERSION,
+  createControlledWorkspaceHostActivationTransactionOpeningContract,
+  validateControlledWorkspaceHostActivationTransactionOpeningContract,
+} from "./sealed/controlled-workspace-host-activation-transaction-opening-contract";
+export type { ControlledWorkspaceHostActivationTransactionOpeningContract } from "./sealed/controlled-workspace-host-activation-transaction-opening-contract";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_IDENTITY_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationTransactionOpeningIdentity,
+  validateFeedWorkspaceHostActivationTransactionOpeningIdentity,
+} from "./sealed/feed-workspace-host-activation-transaction-opening-identity";
+export type { FeedWorkspaceHostActivationTransactionOpeningIdentity } from "./sealed/feed-workspace-host-activation-transaction-opening-identity";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_PREPARED_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationTransactionOpeningPreparedContract,
+  validateFeedWorkspaceHostActivationTransactionOpeningPreparedContract,
+} from "./sealed/feed-workspace-host-activation-transaction-opening-prepared";
+export type { FeedWorkspaceHostActivationTransactionOpeningPreparedContract } from "./sealed/feed-workspace-host-activation-transaction-opening-prepared";
