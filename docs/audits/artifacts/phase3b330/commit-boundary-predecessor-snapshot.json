@@ -1,0 +1,10 @@
+{
+  "predecessorActivationCommitBoundaryEntryState": "COMMIT_BOUNDARY_ENTERED",
+  "predecessorActivationCommitBoundaryEntryResult": "controlled-workspace-host-activation-commit-boundary-entered",
+  "activationCommitBoundaryState": "ENTERED",
+  "activationCommitBoundaryEntered": true,
+  "activationCommitBoundaryArmed": false,
+  "activationCommitBoundaryCrossed": false,
+  "activationCommitBoundaryCommitted": false,
+  "activationCommitBoundaryAborted": false
+}

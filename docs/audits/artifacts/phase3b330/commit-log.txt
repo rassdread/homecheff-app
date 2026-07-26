@@ -1,0 +1,3 @@
+2aa5f68 fix(workspace): correct Phase 3B.3.30 proof artifact paths and bridgeVersion
+f28bead test(workspace): add Phase 3B.3.30 bridge v31, validator, and Chromium proof
+1d9fa99 feat(workspace): add Phase 3B.3.30 transaction-opening readiness contracts and LIVE gate

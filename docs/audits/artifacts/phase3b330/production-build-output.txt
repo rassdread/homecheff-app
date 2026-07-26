@@ -1,0 +1,567 @@
+
+> homecheff-app@0.1.0 prebuild
+> npm install next@14.2.35 --save-exact --no-save || true && npx prisma generate || true
+
+
+up to date, audited 887 packages in 6s
+
+134 packages are looking for funding
+  run `npm fund` for details
+
+44 vulnerabilities (1 low, 17 moderate, 22 high, 4 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.16.2) to ./node_modules/@prisma/client in 681ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
+
+
+> homecheff-app@0.1.0 build
+> cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env.local
+  - Experiments (use with caution):
+    · turbo
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/224) ...
+   Generating static pages (56/224) 
+   Generating static pages (112/224) 
+   Generating static pages (168/224) 
+ ✓ Generating static pages (224/224)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                             Size     First Load JS
+┌ ƒ /                                                   4.96 kB         1.1 MB
+├ ƒ /_not-found                                         141 B          1.09 MB
+├ ● /[seoSlug]                                          141 B          1.09 MB
+├   ├ /thuisgekookt-eten-kopen
+├   ├ /eten-bestellen-bij-particulieren
+├   ├ /maaltijden-aan-huis
+├   └ [+17 more paths]
+├ ƒ /admin                                              47.4 kB        1.14 MB
+├ ƒ /admin/beta                                         899 B           639 kB
+├ ƒ /admin/clear-chat                                   1.3 kB         1.09 MB
+├ ƒ /admin/hcp                                          682 B           638 kB
+├ ƒ /admin/hcp-carousel                                 3.3 kB          641 kB
+├ ƒ /admin/profile                                      5.69 kB         1.1 MB
+├ ƒ /admin/variabelen                                   5.51 kB         643 kB
+├ ƒ /affiliate                                          4.83 kB         1.1 MB
+├ ƒ /affiliate/dashboard                                7.49 kB         1.1 MB
+├ ƒ /affiliate/passive-income-calculator                2.92 kB        1.09 MB
+├ ƒ /affiliate/promo-codes                              3.08 kB        1.09 MB
+├ ƒ /affiliate/sub-affiliate-signup                     966 B          1.09 MB
+├ ƒ /agreements                                         141 B          1.09 MB
+├ ƒ /ai                                                 141 B          1.09 MB
+├ ƒ /alternatief-voor-dropshipping                      141 B          1.09 MB
+├ ƒ /api/admin/admins                                   0 B                0 B
+├ ƒ /api/admin/affiliates                               0 B                0 B
+├ ƒ /api/admin/affiliates/[id]/status                   0 B                0 B
+├ ƒ /api/admin/affiliates/attributions                  0 B                0 B
+├ ƒ /api/admin/affiliates/commission-adjustment         0 B                0 B
+├ ƒ /api/admin/affiliates/referral-link                 0 B                0 B
+├ ƒ /api/admin/alerts                                   0 B                0 B
+├ ƒ /api/admin/all-users                                0 B                0 B
+├ ƒ /api/admin/analytics                                0 B                0 B
+├ ƒ /api/admin/analytics/ga4                            0 B                0 B
+├ ƒ /api/admin/analytics/unified                        0 B                0 B
+├ ƒ /api/admin/assign-role                              0 B                0 B
+├ ƒ /api/admin/audit-log                                0 B                0 B
+├ ƒ /api/admin/beta-insights                            0 B                0 B
+├ ƒ /api/admin/business-subscriptions/[userId]          0 B                0 B
+├ ƒ /api/admin/clear-messages                           0 B                0 B
+├ ƒ /api/admin/command-center                           0 B                0 B
+├ ƒ /api/admin/delivery/[profileId]/block               0 B                0 B
+├ ƒ /api/admin/delivery/[profileId]/status              0 B                0 B
+├ ƒ /api/admin/delivery/orders/[orderId]/assign         0 B                0 B
+├ ƒ /api/admin/disputes                                 0 B                0 B
+├ ƒ /api/admin/financial                                0 B                0 B
+├ ƒ /api/admin/hcp-carousel                             0 B                0 B
+├ ƒ /api/admin/hcp-carousel/[id]                        0 B                0 B
+├ ƒ /api/admin/messages                                 0 B                0 B
+├ ƒ /api/admin/messages/[conversationId]                0 B                0 B
+├ ƒ /api/admin/messages/stats                           0 B                0 B
+├ ƒ /api/admin/migrate-orders                           0 B                0 B
+├ ƒ /api/admin/moderation/logs                          0 B                0 B
+├ ƒ /api/admin/moderation/review                        0 B                0 B
+├ ƒ /api/admin/notifications/send                       0 B                0 B
+├ ƒ /api/admin/orders                                   0 B                0 B
+├ ƒ /api/admin/orders/[orderId]                         0 B                0 B
+├ ƒ /api/admin/orders/release-escrow                    0 B                0 B
+├ ƒ /api/admin/payouts                                  0 B                0 B
+├ ƒ /api/admin/permissions                              0 B                0 B
+├ ƒ /api/admin/preferences                              0 B                0 B
+├ ƒ /api/admin/products                                 0 B                0 B
+├ ƒ /api/admin/promo-codes                              0 B                0 B
+├ ƒ /api/admin/promo-codes/[id]                         0 B                0 B
+├ ƒ /api/admin/refunds                                  0 B                0 B
+├ ƒ /api/admin/sellers                                  0 B                0 B
+├ ƒ /api/admin/send-bulk-message                        0 B                0 B
+├ ƒ /api/admin/send-message                             0 B                0 B
+├ ƒ /api/admin/settings                                 0 B                0 B
+├ ƒ /api/admin/stripe-status                            0 B                0 B
+├ ƒ /api/admin/subscriptions                            0 B                0 B
+├ ƒ /api/admin/transactions                             0 B                0 B
+├ ƒ /api/admin/trust-queue                              0 B                0 B
+├ ƒ /api/admin/upgrade-to-superadmin                    0 B                0 B
+├ ƒ /api/admin/user-contact                             0 B                0 B
+├ ƒ /api/admin/users                                    0 B                0 B
+├ ƒ /api/admin/users/[id]                               0 B                0 B
+├ ƒ /api/admin/users/[id]/suspend                       0 B                0 B
+├ ƒ /api/admin/users/bulk-delete                        0 B                0 B
+├ ƒ /api/admin/users/search                             0 B                0 B
+├ ƒ /api/affiliate/create-sub                           0 B                0 B
+├ ƒ /api/affiliate/dashboard                            0 B                0 B
+├ ƒ /api/affiliate/delete-sub                           0 B                0 B
+├ ƒ /api/affiliate/payouts/process                      0 B                0 B
+├ ƒ /api/affiliate/payouts/update-status                0 B                0 B
+├ ƒ /api/affiliate/promo-codes                          0 B                0 B
+├ ƒ /api/affiliate/promo-codes/[id]                     0 B                0 B
+├ ƒ /api/affiliate/referral                             0 B                0 B
+├ ƒ /api/affiliate/referral-link                        0 B                0 B
+├ ƒ /api/affiliate/signup                               0 B                0 B
+├ ƒ /api/affiliate/update-sub-commission                0 B                0 B
+├ ƒ /api/affiliate/validate-invite                      0 B                0 B
+├ ƒ /api/affiliate/validate-promo-code                  0 B                0 B
+├ ƒ /api/agreements                                     0 B                0 B
+├ ƒ /api/analytics/dashboard                            0 B                0 B
+├ ƒ /api/analytics/generate-organic                     0 B                0 B
+├ ƒ /api/analytics/track-profile-view                   0 B                0 B
+├ ƒ /api/analytics/track-view                           0 B                0 B
+├ ƒ /api/app-version                                    0 B                0 B
+├ ƒ /api/auth/[...nextauth]                             0 B                0 B
+├ ƒ /api/auth/callback/delivery-redirect                0 B                0 B
+├ ƒ /api/auth/callback/role-redirect                    0 B                0 B
+├ ƒ /api/auth/check-onboarding                          0 B                0 B
+├ ƒ /api/auth/complete-social-onboarding                0 B                0 B
+├ ƒ /api/auth/force-logout                              0 B                0 B
+├ ƒ /api/auth/forgot-password                           0 B                0 B
+├ ƒ /api/auth/native/google                             0 B                0 B
+├ ƒ /api/auth/register                                  0 B                0 B
+├ ƒ /api/auth/register-simple                           0 B                0 B
+├ ƒ /api/auth/resend-verification                       0 B                0 B
+├ ƒ /api/auth/resend-verification-simple                0 B                0 B
+├ ƒ /api/auth/reset-password                            0 B                0 B
+├ ƒ /api/auth/session-mode                              0 B                0 B
+├ ƒ /api/auth/validate-email                            0 B                0 B
+├ ƒ /api/auth/validate-username                         0 B                0 B
+├ ƒ /api/auth/verify-email                              0 B                0 B
+├ ƒ /api/auth/verify-email-simple                       0 B                0 B
+├ ƒ /api/beta/onboarding/complete                       0 B                0 B
+├ ƒ /api/beta/track-download                            0 B                0 B
+├ ƒ /api/checkout                                       0 B                0 B
+├ ƒ /api/checkout/calculate-delivery-fee                0 B                0 B
+├ ƒ /api/checkout/session                               0 B                0 B
+├ ƒ /api/checkout/validate-coupon                       0 B                0 B
+├ ƒ /api/community-orders/[id]/cancel                   0 B                0 B
+├ ƒ /api/community-orders/[id]/checkout-context         0 B                0 B
+├ ƒ /api/community-orders/[id]/complete                 0 B                0 B
+├ ƒ /api/community-orders/[id]/deal-review              0 B                0 B
+├ ƒ /api/community-orders/[id]/delivery-request         0 B                0 B
+├ ƒ /api/community/category-ecosystem                   0 B                0 B
+├ ƒ /api/community/ecosystem-hub                        0 B                0 B
+├ ƒ /api/contact                                        0 B                0 B
+├ ƒ /api/conversations                                  0 B                0 B
+├ ƒ /api/conversations-fast                             0 B                0 B
+├ ƒ /api/conversations/[conversationId]                 0 B                0 B
+├ ƒ /api/conversations/[conversationId]/delete          0 B                0 B
+├ ƒ /api/conversations/[conversationId]/messages        0 B                0 B
+├ ƒ /api/conversations/[conversationId]/messages-fast   0 B                0 B
+├ ƒ /api/conversations/[conversationId]/messages/quick  0 B                0 B
+├ ƒ /api/conversations/[conversationId]/proposals       0 B                0 B
+├ ƒ /api/conversations/[conversationId]/typing          0 B                0 B
+├ ƒ /api/conversations/start                            0 B                0 B
+├ ƒ /api/conversations/start-general                    0 B                0 B
+├ ƒ /api/conversations/start-order                      0 B                0 B
+├ ƒ /api/conversations/start-seller                     0 B                0 B
+├ ƒ /api/coupon                                         0 B                0 B
+├ ƒ /api/creator/audience-insights                      0 B                0 B
+├ ƒ /api/creator/visibility-summary                     0 B                0 B
+├ ƒ /api/cron/cleanup-stock-reservations                0 B                0 B
+├ ƒ /api/cron/delivery-warnings                         0 B                0 B
+├ ƒ /api/cron/schedule-shift-notifications              0 B                0 B
+├ ƒ /api/cron/send-notifications                        0 B                0 B
+├ ƒ /api/debug-session                                  0 B                0 B
+├ ƒ /api/debug/email-status                             0 B                0 B
+├ ƒ /api/delivery-requests/[id]                         0 B                0 B
+├ ƒ /api/delivery-requests/[id]/accept                  0 B                0 B
+├ ƒ /api/delivery-requests/[id]/assign                  0 B                0 B
+├ ƒ /api/delivery-requests/[id]/claim                   0 B                0 B
+├ ƒ /api/delivery-requests/[id]/complete                0 B                0 B
+├ ƒ /api/delivery-requests/[id]/review                  0 B                0 B
+├ ƒ /api/delivery/add-seller-roles                      0 B                0 B
+├ ƒ /api/delivery/assign-order                          0 B                0 B
+├ ƒ /api/delivery/check-availability                    0 B                0 B
+├ ƒ /api/delivery/community-requests                    0 B                0 B
+├ ƒ /api/delivery/dashboard                             0 B                0 B
+├ ƒ /api/delivery/earnings                              0 B                0 B
+├ ƒ /api/delivery/gps-location                          0 B                0 B
+├ ƒ /api/delivery/location                              0 B                0 B
+├ ƒ /api/delivery/match-deliverers                      0 B                0 B
+├ ƒ /api/delivery/match-orders                          0 B                0 B
+├ ƒ /api/delivery/notification-settings                 0 B                0 B
+├ ƒ /api/delivery/orders                                0 B                0 B
+├ ƒ /api/delivery/orders/[orderId]/accept               0 B                0 B
+├ ƒ /api/delivery/orders/[orderId]/countdown            0 B                0 B
+├ ƒ /api/delivery/orders/[orderId]/update-status        0 B                0 B
+├ ƒ /api/delivery/profile                               0 B                0 B
+├ ƒ /api/delivery/settings                              0 B                0 B
+├ ƒ /api/delivery/signup                                0 B                0 B
+├ ƒ /api/delivery/toggle-status                         0 B                0 B
+├ ƒ /api/delivery/update-gps                            0 B                0 B
+├ ƒ /api/delivery/upload-profile-photo                  0 B                0 B
+├ ƒ /api/delivery/upload-vehicle-photos                 0 B                0 B
+├ ƒ /api/delivery/vehicle-photos/[photoId]              0 B                0 B
+├ ƒ /api/distance                                       0 B                0 B
+├ ƒ /api/dorpsplein/products/[id]/reviews               0 B                0 B
+├ ƒ /api/earnings/combined                              0 B                0 B
+├ ƒ /api/earnings/export                                0 B                0 B
+├ ƒ /api/favorites                                      0 B                0 B
+├ ƒ /api/favorites/status                               0 B                0 B
+├ ƒ /api/favorites/toggle                               0 B                0 B
+├ ƒ /api/feed                                           0 B                0 B
+├ ƒ /api/feed/media                                     0 B                0 B
+├ ƒ /api/feed/stats-preview                             0 B                0 B
+├ ƒ /api/follows                                        0 B                0 B
+├ ƒ /api/follows/fans                                   0 B                0 B
+├ ƒ /api/follows/status                                 0 B                0 B
+├ ƒ /api/follows/toggle                                 0 B                0 B
+├ ƒ /api/gamification/home-carousel                     0 B                0 B
+├ ƒ /api/gamification/leaderboard                       0 B                0 B
+├ ƒ /api/gamification/me                                0 B                0 B
+├ ƒ /api/gamification/onboarding/dismiss                0 B                0 B
+├ ƒ /api/gamification/ranking-promo                     0 B                0 B
+├ ○ /api/geocoding/countries                            0 B                0 B
+├ ƒ /api/geocoding/dutch                                0 B                0 B
+├ ƒ /api/geocoding/global                               0 B                0 B
+├ ƒ /api/geocoding/international                        0 B                0 B
+├ ƒ /api/home/community-pulse                           0 B                0 B
+├ ƒ /api/i18n/[lang]                                    0 B                0 B
+├ ƒ /api/inspiratie                                     0 B                0 B
+├ ƒ /api/inspiratie/[id]/reviews                        0 B                0 B
+├ ƒ /api/inspiratie/[id]/reviews/count                  0 B                0 B
+├ ƒ /api/internal/user-suspended                        0 B                0 B
+├ ƒ /api/marketplace/exchange-suggestions               0 B                0 B
+├ ƒ /api/marketplace/pending-accepted-values            0 B                0 B
+├ ƒ /api/messages                                       0 B                0 B
+├ ƒ /api/messages/[messageId]/delivered                 0 B                0 B
+├ ƒ /api/messages/[messageId]/read                      0 B                0 B
+├ ƒ /api/messages/all                                   0 B                0 B
+├ ƒ /api/messages/decrypt                               0 B                0 B
+├ ƒ /api/messages/encrypt                               0 B                0 B
+├ ƒ /api/messages/personal                              0 B                0 B
+├ ƒ /api/messages/unread-count                          0 B                0 B
+├ ƒ /api/moderation/analyze-image                       0 B                0 B
+├ ƒ /api/notifications                                  0 B                0 B
+├ ƒ /api/notifications/[id]/read                        0 B                0 B
+├ ƒ /api/notifications/mark-related-read                0 B                0 B
+├ ƒ /api/notifications/new-product                      0 B                0 B
+├ ƒ /api/notifications/new-products-check               0 B                0 B
+├ ƒ /api/notifications/orders                           0 B                0 B
+├ ƒ /api/notifications/preferences                      0 B                0 B
+├ ƒ /api/notifications/read-all                         0 B                0 B
+├ ƒ /api/notifications/seller-orders/ack                0 B                0 B
+├ ƒ /api/onboarding/analytics                           0 B                0 B
+├ ƒ /api/operations/communication-summary               0 B                0 B
+├ ƒ /api/orders                                         0 B                0 B
+├ ƒ /api/orders/[orderId]                               0 B                0 B
+├ ƒ /api/orders/[orderId]/complete                      0 B                0 B
+├ ƒ /api/orders/[orderId]/update                        0 B                0 B
+├ ƒ /api/payment/create                                 0 B                0 B
+├ ƒ /api/pitch-pdf                                      0 B                0 B
+├ ƒ /api/products                                       0 B                0 B
+├ ƒ /api/products/[id]                                  0 B                0 B
+├ ƒ /api/products/[id]/reviews                          0 B                0 B
+├ ƒ /api/products/create                                0 B                0 B
+├ ƒ /api/products/debug                                 0 B                0 B
+├ ƒ /api/products/feed                                  0 B                0 B
+├ ƒ /api/profile                                        0 B                0 B
+├ ƒ /api/profile/buyer                                  0 B                0 B
+├ ƒ /api/profile/contact                                0 B                0 B
+├ ƒ /api/profile/deals                                  0 B                0 B
+├ ƒ /api/profile/delete-account                         0 B                0 B
+├ ƒ /api/profile/dishes                                 0 B                0 B
+├ ƒ /api/profile/dishes/[id]                            0 B                0 B
+├ ƒ /api/profile/export-data                            0 B                0 B
+├ ƒ /api/profile/favorites                              0 B                0 B
+├ ƒ /api/profile/follows                                0 B                0 B
+├ ƒ /api/profile/garden                                 0 B                0 B
+├ ƒ /api/profile/garden/[id]                            0 B                0 B
+├ ƒ /api/profile/garden/photo/upload                    0 B                0 B
+├ ƒ /api/profile/items-with-reviews                     0 B                0 B
+├ ƒ /api/profile/me                                     0 B                0 B
+├ ƒ /api/profile/orders                                 0 B                0 B
+├ ƒ /api/profile/password                               0 B                0 B
+├ ƒ /api/profile/photo                                  0 B                0 B
+├ ƒ /api/profile/photo/upload                           0 B                0 B
+├ ƒ /api/profile/privacy                                0 B                0 B
+├ ƒ /api/profile/proposals                              0 B                0 B
+├ ƒ /api/profile/recipes/photo/upload                   0 B                0 B
+├ ƒ /api/profile/stats                                  0 B                0 B
+├ ƒ /api/profile/update                                 0 B                0 B
+├ ƒ /api/profile/username                               0 B                0 B
+├ ƒ /api/profile/workspace-photos                       0 B                0 B
+├ ƒ /api/proposals/[proposalId]                         0 B                0 B
+├ ƒ /api/proposals/[proposalId]/accept                  0 B                0 B
+├ ƒ /api/proposals/[proposalId]/cancel                  0 B                0 B
+├ ƒ /api/proposals/[proposalId]/counter                 0 B                0 B
+├ ƒ /api/proposals/[proposalId]/reject                  0 B                0 B
+├ ƒ /api/props/count                                    0 B                0 B
+├ ƒ /api/props/status                                   0 B                0 B
+├ ƒ /api/props/toggle                                   0 B                0 B
+├ ƒ /api/push/debug/status                              0 B                0 B
+├ ƒ /api/push/register                                  0 B                0 B
+├ ƒ /api/pusher/auth                                    0 B                0 B
+├ ƒ /api/recipes/[id]                                   0 B                0 B
+├ ƒ /api/recommendations/smart                          0 B                0 B
+├ ƒ /api/register                                       0 B                0 B
+├ ƒ /api/reports/create                                 0 B                0 B
+├ ƒ /api/reviews/[id]/responses                         0 B                0 B
+├ ƒ /api/reviews/count                                  0 B                0 B
+├ ƒ /api/reviews/create                                 0 B                0 B
+├ ƒ /api/reviews/token/[token]                          0 B                0 B
+├ ƒ /api/seller/[sellerId]                              0 B                0 B
+├ ƒ /api/seller/[sellerId]/recipes                      0 B                0 B
+├ ƒ /api/seller/[sellerId]/stats                        0 B                0 B
+├ ƒ /api/seller/action-center                           0 B                0 B
+├ ƒ /api/seller/dashboard/export                        0 B                0 B
+├ ƒ /api/seller/dashboard/orders                        0 B                0 B
+├ ƒ /api/seller/dashboard/products                      0 B                0 B
+├ ƒ /api/seller/dashboard/stats                         0 B                0 B
+├ ƒ /api/seller/delivery-settings                       0 B                0 B
+├ ƒ /api/seller/dynamic-location                        0 B                0 B
+├ ƒ /api/seller/earnings                                0 B                0 B
+├ ƒ /api/seller/fees                                    0 B                0 B
+├ ƒ /api/seller/payouts                                 0 B                0 B
+├ ƒ /api/seller/payouts/request                         0 B                0 B
+├ ƒ /api/seller/payouts/request-bank                    0 B                0 B
+├ ƒ /api/seller/products                                0 B                0 B
+├ ƒ /api/seller/profile                                 0 B                0 B
+├ ƒ /api/seller/refunds                                 0 B                0 B
+├ ƒ /api/seller/stripe/status                           0 B                0 B
+├ ƒ /api/seller/transactions                            0 B                0 B
+├ ƒ /api/seller/upload-profile-photo                    0 B                0 B
+├ ƒ /api/seller/upload-workplace-photos                 0 B                0 B
+├ ƒ /api/seller/workplace-photos                        0 B                0 B
+├ ƒ /api/seller/workplace-photos/[id]                   0 B                0 B
+├ ƒ /api/shipping/calculate-price                       0 B                0 B
+├ ƒ /api/shipping/create-label                          0 B                0 B
+├ ƒ /api/stripe/connect/onboard                         0 B                0 B
+├ ƒ /api/stripe/connect/webhook                         0 B                0 B
+├ ƒ /api/stripe/webhook                                 0 B                0 B
+├ ƒ /api/subscribe                                      0 B                0 B
+├ ƒ /api/subscribe/cancel                               0 B                0 B
+├ ƒ /api/subscribe/confirm                              0 B                0 B
+├ ƒ /api/subscribe/validate                             0 B                0 B
+├ ○ /api/test-products                                  0 B                0 B
+├ ○ /api/test-stripe                                    0 B                0 B
+├ ƒ /api/upload                                         0 B                0 B
+├ ƒ /api/upload/video-chunked/chunk                     0 B                0 B
+├ ƒ /api/upload/video-chunked/finalize                  0 B                0 B
+├ ƒ /api/upload/video-chunked/init                      0 B                0 B
+├ ƒ /api/upload/video-direct                            0 B                0 B
+├ ƒ /api/upload/video-token                             0 B                0 B
+├ ƒ /api/user/[userId]/items-with-reviews               0 B                0 B
+├ ƒ /api/user/[userId]/stats                            0 B                0 B
+├ ƒ /api/user/[userId]/trust-summary                    0 B                0 B
+├ ƒ /api/user/action-center                             0 B                0 B
+├ ƒ /api/user/beta-status                               0 B                0 B
+├ ƒ /api/user/home-ui                                   0 B                0 B
+├ ƒ /api/user/language                                  0 B                0 B
+├ ƒ /api/user/me                                        0 B                0 B
+├ ƒ /api/user/relationship-summary                      0 B                0 B
+├ ƒ /api/user/return-signals                            0 B                0 B
+├ ○ /api/users                                          0 B                0 B
+├ ƒ /api/users/online-status                            0 B                0 B
+├ ƒ /api/verify/company                                 0 B                0 B
+├ ƒ /api/video-proxy                                    0 B                0 B
+├ ƒ /api/webhooks/ectaroship                            0 B                0 B
+├ ƒ /api/workspace-content                              0 B                0 B
+├ ƒ /api/workspace-content/comments                     0 B                0 B
+├ ƒ /api/workspace-content/props                        0 B                0 B
+├ ƒ /api/workspace-content/upload-photos                0 B                0 B
+├ ƒ /app                                                2.59 kB        1.09 MB
+├ ○ /apple-icon.png                                     0 B                0 B
+├ ƒ /auth/resume-intent                                 1.25 kB        1.09 MB
+├ ƒ /auth/resume-interaction                            1.46 kB        1.09 MB
+├ ƒ /auth/social-success                                2.07 kB        1.09 MB
+├ ƒ /aviliate                                           6.16 kB         1.1 MB
+├ ƒ /aviliate/dashboard                                 3.75 kB         1.1 MB
+├ ƒ /aviliate/passive-income-calculator                 2.92 kB        1.09 MB
+├ ƒ /aviliate/promo-codes                               2.31 kB         640 kB
+├ ƒ /aw-settings-harness                                1.03 kB        1.09 MB
+├ ƒ /bezorger                                           141 B          1.09 MB
+├ ƒ /bezorger-worden                                    141 B          1.09 MB
+├ ● /bezorger/[username]                                6.17 kB         1.1 MB
+├ ƒ /bijverdienen-vanuit-huis                           141 B          1.09 MB
+├ ƒ /buurt-economie                                     141 B          1.09 MB
+├ ƒ /buurthulp                                          141 B          1.09 MB
+├ ƒ /changelog                                          141 B          1.09 MB
+├ ƒ /checkout                                           8.21 kB         1.1 MB
+├ ƒ /community-guidelines                               927 B          1.09 MB
+├ ƒ /constitution                                       141 B          1.09 MB
+├ ƒ /contact                                            1.94 kB        1.09 MB
+├ ƒ /deal-review/[communityOrderId]                     1.14 kB        1.09 MB
+├ ƒ /delete-account                                     1.3 kB         1.09 MB
+├ ƒ /delivery-review/[deliveryRequestId]                1.11 kB        1.09 MB
+├ ƒ /delivery/dashboard                                 11 kB           1.1 MB
+├ ƒ /delivery/instellingen                              3.73 kB        1.09 MB
+├ ƒ /delivery/profiel                                   141 B          1.09 MB
+├ ƒ /delivery/settings                                  8.79 kB         1.1 MB
+├ ƒ /delivery/signup                                    5.71 kB         1.1 MB
+├ ƒ /design/[id]                                        141 B          1.09 MB
+├ ƒ /docs                                               141 B          1.09 MB
+├ ● /docs/[slug]                                        140 B          1.09 MB
+├   ├ /docs/ranking
+├   ├ /docs/business-dna
+├   ├ /docs/hcp
+├   └ [+9 more paths]
+├ ƒ /dorpsplein                                         141 B          1.09 MB
+├ ● /en/[seoSlug]                                       141 B          1.09 MB
+├   ├ /en/buy-home-cooked-food
+├   ├ /en/order-food-from-local-cooks
+├   ├ /en/meals-at-home
+├   └ [+17 more paths]
+├ ƒ /en/seo-hub                                         141 B          1.09 MB
+├ ƒ /en/welkom/[code]                                   141 B          1.09 MB
+├ ƒ /eten-verkopen-[stad]                               141 B          1.09 MB
+├ ƒ /eten-verkopen-vanuit-huis                          141 B          1.09 MB
+├ ƒ /evidence                                           198 B          1.09 MB
+├ ƒ /faq                                                2.44 kB        1.09 MB
+├ ƒ /favorites                                          533 B          1.09 MB
+├ ƒ /forgot-password                                    1.36 kB        1.09 MB
+├ ƒ /garden/[id]                                        141 B          1.09 MB
+├ ƒ /geld-verdienen-met-koken                           141 B          1.09 MB
+├ ● /gemeenschap/[segment]                              1.49 kB        1.09 MB
+├   ├ /gemeenschap/keuken
+├   ├ /gemeenschap/tuin
+├   ├ /gemeenschap/studio
+├   └ [+2 more paths]
+├ ƒ /glossary                                           141 B          1.09 MB
+├ ƒ /hcp-ranglijsten                                    6.18 kB         1.1 MB
+├ ƒ /hoe-homecheff-werkt                                141 B          1.09 MB
+├ ƒ /how-homecheff-grows                                798 B          1.09 MB
+├ ○ /icon.png                                           0 B                0 B
+├ ƒ /inspiratie                                         141 B          1.09 MB
+├ ƒ /inspiratie/[id]                                    141 B          1.09 MB
+├ ƒ /login                                              5.03 kB         1.1 MB
+├ ƒ /lokaal-eten-verkopen                               141 B          1.09 MB
+├ ƒ /lokaal-verdienen                                   141 B          1.09 MB
+├ ƒ /lokale-producten-verkopen                          141 B          1.09 MB
+├ ● /maaltijden/[stad]                                  1.36 kB        1.09 MB
+├   ├ /maaltijden/vlaardingen
+├   ├ /maaltijden/rotterdam
+├   ├ /maaltijden/amsterdam
+├   └ [+13 more paths]
+├ ƒ /manifest                                           141 B          1.09 MB
+├ ƒ /messages                                           7.03 kB         1.1 MB
+├ ƒ /messages/[conversationId]                          1.62 kB        1.09 MB
+├ ƒ /mijn-hcp                                           9.75 kB         1.1 MB
+├ ƒ /notifications                                      2.31 kB        1.09 MB
+├ ƒ /onboarding/buyer                                   722 B          1.09 MB
+├ ƒ /onboarding/complete-profile                        1.97 kB        1.09 MB
+├ ƒ /onboarding/contact                                 803 B          1.09 MB
+├ ƒ /onboarding/interests                               1.26 kB        1.09 MB
+├ ƒ /onboarding/payments                                907 B          1.09 MB
+├ ƒ /onboarding/seller                                  883 B          1.09 MB
+├ ƒ /ontmoet-de-maker                                   141 B          1.09 MB
+├ ƒ /operations/vandaag                                 5.69 kB         1.1 MB
+├ ƒ /orders                                             4.41 kB         1.1 MB
+├ ƒ /orders/[orderId]                                   2.18 kB        1.09 MB
+├ ƒ /over-ons                                           1.78 kB        1.09 MB
+├ ƒ /payment/success                                    3.04 kB        1.09 MB
+├ ƒ /persoonlijk-vakmanschap                            141 B          1.09 MB
+├ ƒ /pitch                                              191 B          1.09 MB
+├ ƒ /place                                              1.18 kB        1.09 MB
+├ ƒ /pricing                                            2.95 kB        1.09 MB
+├ ƒ /principles                                         141 B          1.09 MB
+├ ƒ /privacy                                            1.64 kB        1.09 MB
+├ ƒ /product/[id]                                       140 B          1.09 MB
+├ ƒ /product/[id]/edit                                  2.22 kB        1.09 MB
+├ ƒ /profile                                            311 B          1.09 MB
+├ ƒ /profile/deals                                      5.9 kB          1.1 MB
+├ ƒ /profile/privacy                                    141 B          1.09 MB
+├ ƒ /r/[slug]                                           141 B          1.09 MB
+├ ƒ /recipe/[id]                                        141 B          1.09 MB
+├ ƒ /register                                           7.86 kB         1.1 MB
+├ ƒ /reports                                            615 B          1.09 MB
+├ ƒ /request/[slug]                                     141 B          1.09 MB
+├ ƒ /reservations                                       1.18 kB         639 kB
+├ ƒ /reset-password                                     1.76 kB        1.09 MB
+├ ƒ /review/[token]                                     1.99 kB        1.09 MB
+├ ƒ /roadmap                                            141 B          1.09 MB
+├ ○ /robots.txt                                         0 B                0 B
+├ ƒ /safety                                             1.21 kB        1.09 MB
+├ ƒ /sell                                               6.18 kB         1.1 MB
+├ ƒ /sell/new                                           5.28 kB         1.1 MB
+├ ƒ /sell/select-photos                                 2.16 kB        1.09 MB
+├ ƒ /seller/[sellerId]                                  8.29 kB         1.1 MB
+├ ƒ /seller/orders                                      415 B           638 kB
+├ ƒ /seller/stripe/refresh                              482 B           638 kB
+├ ƒ /seller/stripe/success                              948 B          1.09 MB
+├ ƒ /seo-hub                                            141 B          1.09 MB
+├ ƒ /settings                                           4.43 kB         1.1 MB
+├ ƒ /settings/app                                       2.94 kB        1.09 MB
+├ ○ /sitemap.xml                                        0 B                0 B
+├ ƒ /sms/send                                           141 B          1.09 MB
+├ ƒ /sms/verify                                         141 B          1.09 MB
+├ ƒ /social-login-success                               503 B           638 kB
+├ ƒ /statistics                                         191 B          1.09 MB
+├ ƒ /stories                                            674 B          1.09 MB
+├ ƒ /success                                            1.11 kB        1.09 MB
+├ ƒ /terms                                              1.44 kB        1.09 MB
+├ ƒ /thuisgekookt-eten-verkopen                         141 B          1.09 MB
+├ ƒ /timeline                                           642 B          1.09 MB
+├ ƒ /trust                                              141 B          1.09 MB
+├ ƒ /uitnodiging/[code]                                 141 B          1.09 MB
+├ ƒ /unieke-producten-verkopen                          141 B          1.09 MB
+├ ● /user/[username]                                    383 B          1.09 MB
+├ ƒ /verdienen-zonder-dropshipping                      141 B          1.09 MB
+├ ƒ /verdiensten                                        2.98 kB        1.09 MB
+├ ƒ /vergelijken                                        141 B          1.09 MB
+├ ● /vergelijken/[slug]                                 141 B          1.09 MB
+├   ├ /vergelijken/homecheff-vs-etsy
+├   ├ /vergelijken/homecheff-vs-marktplaats
+├   ├ /vergelijken/homecheff-vs-facebook-marketplace
+├   └ [+3 more paths]
+├ ƒ /verificatie/stripe-identity                        936 B           639 kB
+├ ƒ /verify-email                                       2.59 kB        1.09 MB
+├ ƒ /verkoper                                           407 B           638 kB
+├ ƒ /verkoper/analytics                                 2.29 kB        1.09 MB
+├ ƒ /verkoper/dashboard                                 8.67 kB         1.1 MB
+├ ƒ /verkoper/instellingen                              141 B          1.09 MB
+├ ƒ /verkoper/orders                                    4.41 kB         1.1 MB
+├ ƒ /verkoper/revenue                                   7.11 kB         1.1 MB
+├ ƒ /wat-is-homecheff                                   141 B          1.09 MB
+├ ƒ /wat-we-niet-zijn                                   141 B          1.09 MB
+├ ƒ /welkom/[code]                                      141 B          1.09 MB
+├ ƒ /werken-bij                                         1.49 kB        1.09 MB
+└ ƒ /zelfgemaakt-eten-verkopen                          141 B          1.09 MB
++ First Load JS shared by all                           638 kB
+  ├ chunks/nextjs-3de91431672a431f.js                   259 kB
+  └ chunks/vendors-c7c5873bac071a64.js                  376 kB
+  └ other shared chunks (total)                         2.43 kB
+
+
+ƒ Middleware                                            48 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
+ƒ  (Dynamic)  server-rendered on demand
+
