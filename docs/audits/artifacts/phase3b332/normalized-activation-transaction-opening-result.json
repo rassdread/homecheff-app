@@ -1,0 +1,15 @@
+{
+  "result": "controlled-workspace-host-activation-transaction-opened-not-prepared",
+  "lifecycle": "TRANSACTION_OPENED_NOT_PREPARED",
+  "transactionOpeningReady": true,
+  "transactionOpeningAuthorized": true,
+  "transactionOpeningStarted": true,
+  "transactionOpeningCompleted": true,
+  "issuanceTransactionState": "OPENED",
+  "issuanceTransactionOpened": true,
+  "issuanceTransactionPrepared": false,
+  "issuanceTransactionCommitted": false,
+  "issuanceTransactionAborted": false,
+  "issuancePipelineState": "NON_EXECUTABLE",
+  "activationCommitBoundaryState": "ENTERED"
+}

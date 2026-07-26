@@ -1,0 +1,15 @@
+{
+  "phase": "3B.3.32",
+  "title": "Controlled Workspace Host Activation Transaction Opening",
+  "result": "controlled-workspace-host-activation-transaction-opened-not-prepared",
+  "lifecycle": "TRANSACTION_OPENED_NOT_PREPARED",
+  "proofTarget": "ce41003696dd9a42b7f5c8f49a1482de345c4968",
+  "predecessorHead": "d1e1dd801e8793d96d4931ca4e3cde9bda30d21a",
+  "predecessorProofTarget": "6d186d70f02659faa2ac2f927551465a29f31255",
+  "bridgeVersion": 33,
+  "proofPort": 3053,
+  "verdict": "READY_FOR_PHASE_3B_3_33",
+  "freezeRepresentation": "freeze-branch-tip.txt records documentary tip (audit/artifacts commit). Branch tip may be a subsequent freeze-seal commit that must not embed its own hash.",
+  "phase3b333Started": false,
+  "pushed": false
+}

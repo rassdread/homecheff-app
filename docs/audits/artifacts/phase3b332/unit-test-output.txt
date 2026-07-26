@@ -1,0 +1,22 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-host-activation-transaction-opening
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-opening-tests.ts
+
+
+[phase3b332] activation transaction-opening descriptor + engine
+  ✓ successful deterministic transaction-opening descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.31)
+  ✓ fail-closed duplicate/opened/prepared/pipeline/auth/shell/ownership paths
+
+[phase3b332] contract + identity + prepared
+  ✓ transaction-opening contract
+  ✓ transaction-opening identity
+  ✓ transaction-opening prepared metadata
+
+[phase3b332] LIVE gate + host continuity
+  ✓ activation remains impossible (gate currentStep=3B.3.32, eligibleStep=3B.3.33)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate opened-not-prepared with PHASE_3B3_32 blocker; Workspace null; GeoFeed legacy
+
+adaptive-workspace Phase 3B.3.32 controlled workspace host activation transaction opening: 9 assertions ok
+
