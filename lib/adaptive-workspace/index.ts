@@ -1413,3 +1413,43 @@ export {
   validateFeedWorkspaceHostActivationTransactionOpeningReadinessPreparedContract,
 } from "./sealed/feed-workspace-host-activation-transaction-opening-readiness-prepared";
 export type { FeedWorkspaceHostActivationTransactionOpeningReadinessPreparedContract } from "./sealed/feed-workspace-host-activation-transaction-opening-readiness-prepared";
+
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_SCHEMA_VERSION,
+  PHASE_3B3_31_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_GUARDS,
+  evaluateControlledWorkspaceHostActivationTransactionOpeningAuthorization,
+  createControlledWorkspaceHostActivationTransactionOpeningAuthorizationDescriptor,
+  validateControlledWorkspaceHostActivationTransactionOpeningAuthorizationDescriptor,
+} from "./sealed/controlled-workspace-host-activation-transaction-opening-authorization";
+export type {
+  ControlledWorkspaceHostActivationTransactionOpeningAuthorizationState,
+  ControlledWorkspaceHostActivationTransactionOpeningAuthorizationResult,
+  ControlledWorkspaceHostActivationTransactionOpeningAuthorizationRecord,
+  ControlledWorkspaceHostActivationTransactionOpeningAuthorizationDescriptor,
+  ControlledWorkspaceHostActivationTransactionOpeningAuthorizationDiagnostics,
+  ControlledWorkspaceHostActivationTransactionOpeningAuthorizationEvaluation,
+  ControlledWorkspaceHostActivationTransactionOpeningAuthorizationInput,
+} from "./sealed/controlled-workspace-host-activation-transaction-opening-authorization";
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_CONTRACT_SCHEMA_VERSION,
+  createControlledWorkspaceHostActivationTransactionOpeningAuthorizationContract,
+  validateControlledWorkspaceHostActivationTransactionOpeningAuthorizationContract,
+} from "./sealed/controlled-workspace-host-activation-transaction-opening-authorization-contract";
+export type { ControlledWorkspaceHostActivationTransactionOpeningAuthorizationContract } from "./sealed/controlled-workspace-host-activation-transaction-opening-authorization-contract";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_IDENTITY_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationTransactionOpeningAuthorizationIdentity,
+  validateFeedWorkspaceHostActivationTransactionOpeningAuthorizationIdentity,
+} from "./sealed/feed-workspace-host-activation-transaction-opening-authorization-identity";
+export type { FeedWorkspaceHostActivationTransactionOpeningAuthorizationIdentity } from "./sealed/feed-workspace-host-activation-transaction-opening-authorization-identity";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_AUTHORIZATION_PREPARED_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationTransactionOpeningAuthorizationPreparedContract,
+  validateFeedWorkspaceHostActivationTransactionOpeningAuthorizationPreparedContract,
+} from "./sealed/feed-workspace-host-activation-transaction-opening-authorization-prepared";
+export type { FeedWorkspaceHostActivationTransactionOpeningAuthorizationPreparedContract } from "./sealed/feed-workspace-host-activation-transaction-opening-authorization-prepared";
