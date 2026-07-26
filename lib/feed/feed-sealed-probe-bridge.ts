@@ -1622,6 +1622,7 @@ export type FeedSealedProbeApi = {
     unsatisfiedGuardCount: 0;
     blockerCount: number;
     diagnostics: Record<string, unknown>;
+  }>;
   readControlledWorkspaceHostActivationTransactionOpening: () => Promise<{
     phase: "3B.3.32";
     candidateId: string;
@@ -4593,7 +4594,6 @@ export function installFeedSealedProbeBridge(): void {
         diagnostics: evaluation.diagnostics,
       };
     },
-,
     readHostActivationStateMachine: async () => {
       const mod = await import("@/lib/adaptive-workspace");
       const evaluation = mod.evaluateControlledHostActivationStateMachine();
