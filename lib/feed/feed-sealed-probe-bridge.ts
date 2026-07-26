@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 28;
+  version: 29;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -1125,7 +1125,119 @@ export type FeedSealedProbeApi = {
     blockerCount: number;
     diagnostics: Record<string, unknown>;
   }>;
-    readHostActivationStateMachine: () => Promise<{
+    
+    readControlledWorkspaceHostActivationGrantIssuance: () => Promise<{
+    phase: "3B.3.28";
+    candidateId: string;
+    registrationId: string;
+    selectionId: string;
+    activationReadinessId: string;
+    activationAuthorizationId: string;
+    activationGrantId: string;
+    activationGrantContractId: string;
+    activationGrantIssuanceId: string;
+    activationGrantIssuanceContractId: string;
+    candidateKind: "adaptive-workspace";
+    grantIssuanceState: "GRANTED_NOT_ACTIVATED";
+    grantIssuanceResult: "controlled-workspace-host-activation-grant-issued-not-activated";
+    grantIssuanceCompleted: true;
+    grantIssuanceGranted: true;
+    grantIssuanceBlocked: true;
+    grantIssuanceExecutable: false;
+    candidateSelected: true;
+    candidateReady: true;
+    candidateAuthorized: true;
+    candidateGranted: true;
+    candidateActivated: false;
+    candidateActive: false;
+    candidateExecutable: false;
+    grantPresent: true;
+    grantIssued: true;
+    grantValid: true;
+    grantImmutable: true;
+    grantUnique: true;
+    grantExecutable: false;
+    futureGrantPossible: true;
+    futureGrantIssued: true;
+    futureActivationPossible: true;
+    futureActivationAuthorized: true;
+    futureActivationStarted: false;
+    activationGrantIssuanceAllowed: false;
+    activationExecutionAllowed: false;
+    candidateCount: 1;
+    registeredCandidateCount: 1;
+    selectedCandidateCount: 1;
+    readyCandidateCount: 1;
+    authorizedCandidateCount: 1;
+    grantedCandidateCount: 1;
+    grantCount: 1;
+    grantIssuanceRecordCount: 1;
+    futureActivationTargetCount: 1;
+    futureGrantTargetCount: 1;
+    activeCandidateCount: 0;
+    activatedCandidateCount: 0;
+    executableCandidateCount: 0;
+    duplicateGrantCount: 0;
+    candidateIdentityUnique: true;
+    selectionIdentityUnique: true;
+    activationReadinessIdentityUnique: true;
+    activationAuthorizationIdentityUnique: true;
+    activationGrantIdentityUnique: true;
+    activationGrantIssuanceIdentityUnique: true;
+    candidateStructurallyCompatible: true;
+    runtimeCapabilityPresent: false;
+    runtimeHostInstancePresent: false;
+    activationHandlePresent: false;
+    executionHandlePresent: false;
+    tokenPresent: false;
+    credentialPresent: false;
+    certificatePresent: false;
+    permitPresent: false;
+    mountsGeoFeed: false;
+    containsGeoFeed: false;
+    wrapsGeoFeed: false;
+    duplicatesGeoFeed: false;
+    createsSecondGeoFeed: false;
+    shellRendered: false;
+    shellChildCount: 0;
+    shellDOMNodeCount: 0;
+    workspaceVisible: false;
+    workspaceHostMounted: false;
+    workspaceReactInstancePresent: false;
+    predecessorActivationAuthorizationResult: "controlled-workspace-host-activation-authorized-not-granted";
+    predecessorActivationAuthorizationState: "AUTHORIZED_NOT_GRANTED";
+    issuanceCommitBoundaryResult: "authorization-grant-issuance-commit-boundary-ready-not-entered";
+    issuanceCommitBoundaryState: "NOT_ENTERED";
+    issuanceCommitBoundaryEntered: false;
+    issuanceTransactionResult: "authorization-grant-issuance-transaction-ready-not-opened";
+    issuanceTransactionState: "NOT_OPENED";
+    issuanceTransactionOpened: false;
+    issuancePipelineResult: "authorization-grant-issuance-pipeline-ready-not-executable";
+    issuancePipelineExecutable: false;
+    owner: "legacy";
+    writer: "legacy";
+    renderer: "legacy";
+    runtimeId: string;
+    hostId: string;
+    mountCount: 1;
+    unmountCount: 0;
+    geoFeedRenderCount: 1;
+    activeInstanceCount: 1;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    activationBlocker: "PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY";
+    nextEligibleStep: "3B.3.29";
+    conditionCount: number;
+    satisfiedConditionCount: number;
+    unsatisfiedConditionCount: 0;
+    guardCount: number;
+    satisfiedGuardCount: number;
+    unsatisfiedGuardCount: 0;
+    blockerCount: number;
+    diagnostics: Record<string, unknown>;
+  }>;
+readHostActivationStateMachine: () => Promise<{
     phase: "3B.3.13";
     machineId: string;
     machineVersion: 1;
@@ -1419,7 +1531,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 28,
+    version: 29,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -3251,6 +3363,130 @@ export function installFeedSealedProbeBridge(): void {
         activationBlocker:
           "PHASE_3B3_27_CONTROLLED_WORKSPACE_HOST_ACTIVATION_AUTHORIZATION_ONLY" as const,
         nextEligibleStep: "3B.3.28" as const,
+        conditionCount: diag.conditionCount as number,
+        satisfiedConditionCount: diag.satisfiedConditionCount as number,
+        unsatisfiedConditionCount: 0 as const,
+        guardCount: diag.guardCount as number,
+        satisfiedGuardCount: diag.satisfiedGuardCount as number,
+        unsatisfiedGuardCount: 0 as const,
+        blockerCount: diag.blockerCount as number,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+
+    readControlledWorkspaceHostActivationGrantIssuance: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledWorkspaceHostActivationGrantIssuance();
+      const d = evaluation.descriptor;
+      const diag = evaluation.diagnostics;
+      return {
+        phase: "3B.3.28" as const,
+        candidateId: d.candidateId,
+        registrationId: d.registrationId,
+        selectionId: d.selectionId,
+        activationReadinessId: d.activationReadinessId,
+        activationAuthorizationId: d.activationAuthorizationId,
+        activationGrantId: d.activationGrantId,
+        activationGrantContractId: d.activationGrantContractId,
+        activationGrantIssuanceId: d.activationGrantIssuanceId,
+        activationGrantIssuanceContractId: d.activationGrantIssuanceContractId,
+        candidateKind: "adaptive-workspace" as const,
+        grantIssuanceState: "GRANTED_NOT_ACTIVATED" as const,
+        grantIssuanceResult:
+          "controlled-workspace-host-activation-grant-issued-not-activated" as const,
+        grantIssuanceCompleted: true as const,
+        grantIssuanceGranted: true as const,
+        grantIssuanceBlocked: true as const,
+        grantIssuanceExecutable: false as const,
+        candidateSelected: true as const,
+        candidateReady: true as const,
+        candidateAuthorized: true as const,
+        candidateGranted: true as const,
+        candidateActivated: false as const,
+        candidateActive: false as const,
+        candidateExecutable: false as const,
+        grantPresent: true as const,
+        grantIssued: true as const,
+        grantValid: true as const,
+        grantImmutable: true as const,
+        grantUnique: true as const,
+        grantExecutable: false as const,
+        futureGrantPossible: true as const,
+        futureGrantIssued: true as const,
+        futureActivationPossible: true as const,
+        futureActivationAuthorized: true as const,
+        futureActivationStarted: false as const,
+        activationGrantIssuanceAllowed: false as const,
+        activationExecutionAllowed: false as const,
+        candidateCount: 1 as const,
+        registeredCandidateCount: 1 as const,
+        selectedCandidateCount: 1 as const,
+        readyCandidateCount: 1 as const,
+        authorizedCandidateCount: 1 as const,
+        grantedCandidateCount: 1 as const,
+        grantCount: 1 as const,
+        grantIssuanceRecordCount: 1 as const,
+        futureActivationTargetCount: 1 as const,
+        futureGrantTargetCount: 1 as const,
+        activeCandidateCount: 0 as const,
+        activatedCandidateCount: 0 as const,
+        executableCandidateCount: 0 as const,
+        duplicateGrantCount: 0 as const,
+        candidateIdentityUnique: true as const,
+        selectionIdentityUnique: true as const,
+        activationReadinessIdentityUnique: true as const,
+        activationAuthorizationIdentityUnique: true as const,
+        activationGrantIdentityUnique: true as const,
+        activationGrantIssuanceIdentityUnique: true as const,
+        candidateStructurallyCompatible: true as const,
+        runtimeCapabilityPresent: false as const,
+        runtimeHostInstancePresent: false as const,
+        activationHandlePresent: false as const,
+        executionHandlePresent: false as const,
+        tokenPresent: false as const,
+        credentialPresent: false as const,
+        certificatePresent: false as const,
+        permitPresent: false as const,
+        mountsGeoFeed: false as const,
+        containsGeoFeed: false as const,
+        wrapsGeoFeed: false as const,
+        duplicatesGeoFeed: false as const,
+        createsSecondGeoFeed: false as const,
+        shellRendered: false as const,
+        shellChildCount: 0 as const,
+        shellDOMNodeCount: 0 as const,
+        workspaceVisible: false as const,
+        workspaceHostMounted: false as const,
+        workspaceReactInstancePresent: false as const,
+        predecessorActivationAuthorizationResult:
+          "controlled-workspace-host-activation-authorized-not-granted" as const,
+        predecessorActivationAuthorizationState: "AUTHORIZED_NOT_GRANTED" as const,
+        issuanceCommitBoundaryResult:
+          "authorization-grant-issuance-commit-boundary-ready-not-entered" as const,
+        issuanceCommitBoundaryState: "NOT_ENTERED" as const,
+        issuanceCommitBoundaryEntered: false as const,
+        issuanceTransactionResult:
+          "authorization-grant-issuance-transaction-ready-not-opened" as const,
+        issuanceTransactionState: "NOT_OPENED" as const,
+        issuanceTransactionOpened: false as const,
+        issuancePipelineResult:
+          "authorization-grant-issuance-pipeline-ready-not-executable" as const,
+        issuancePipelineExecutable: false as const,
+        owner: "legacy" as const,
+        writer: "legacy" as const,
+        renderer: "legacy" as const,
+        runtimeId: d.runtimeId,
+        hostId: d.hostId,
+        mountCount: 1 as const,
+        unmountCount: 0 as const,
+        geoFeedRenderCount: 1 as const,
+        activeInstanceCount: 1 as const,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        activationBlocker:
+          "PHASE_3B3_28_CONTROLLED_WORKSPACE_HOST_ACTIVATION_GRANT_ISSUANCE_ONLY" as const,
+        nextEligibleStep: "3B.3.29" as const,
         conditionCount: diag.conditionCount as number,
         satisfiedConditionCount: diag.satisfiedConditionCount as number,
         unsatisfiedConditionCount: 0 as const,
