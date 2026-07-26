@@ -1,0 +1,18 @@
+
+[phase3b336] activation transaction-commit-readiness sealed descriptor + engine
+  ✓ successful deterministic transaction-commit-readiness descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.35)
+  ✓ fail-closed not-prepared/committed/duplicate-commit-ready/pipeline/auth/shell/ownership paths
+
+[phase3b336] sealed contract + identity + prepared
+  ✓ transaction-commit-readiness contract
+  ✓ transaction-commit-readiness identity
+  ✓ transaction-commit-readiness prepared metadata
+
+[phase3b336] LIVE gate + host continuity
+  ✓ activation remains impossible (gate currentStep=3B.3.36, eligibleStep=3B.3.37)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate commit-ready-not-committed with PHASE_3B3_36 blocker; Workspace null; GeoFeed legacy
+
+adaptive-workspace Phase 3B.3.36 controlled workspace host activation transaction commit readiness: 9 assertions ok
+

@@ -1,0 +1,8 @@
+{
+  "forcedNegativeProofsOk": true,
+  "transactionCommitReadinessMetaOk": true,
+  "overallVerdict": "READY_FOR_PHASE_3B_3_37",
+  "passCount": null,
+  "bridgeVersion": 37,
+  "commit": "713e4f350ec3cef3bd62a474cc190739c99cea9a"
+}
