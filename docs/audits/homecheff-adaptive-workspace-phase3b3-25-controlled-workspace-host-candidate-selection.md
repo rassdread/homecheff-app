@@ -137,7 +137,7 @@ See `docs/audits/artifacts/phase3b325/changed-file-inventory.txt`.
 | Orchestrator probe path fix | `57c0197484455602b46377289097cfd8948ce2b8` |
 | Proof target | `a43376e6c32c849385bac6319715427e5e10477e` |
 | Proof artifacts + audit | `bb70269617d47ce7a8c68c8407cd4cd7549ce3da` |
-| Documentary tip | `PENDING_TIP` |
+| Documentary tip | `2ae7e9d7502af4279178e2fa6baad26452e887a6` |
 
 ## 55. Pre-existing dirty files left untouched
 
