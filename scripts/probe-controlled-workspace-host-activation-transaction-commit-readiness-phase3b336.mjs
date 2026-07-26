@@ -87,7 +87,7 @@ async function main() {
   mkdirSync(outDir, { recursive: true });
 
   const priorPath = join(process.cwd(),
-    "docs/audits/artifacts/phase3b335/phase3b3-34-controlled-workspace-host-activation-transaction-preparation-authorization-proof.json");
+    "docs/audits/artifacts/phase3b335/phase3b3-35-controlled-workspace-host-activation-transaction-preparation-proof.json");
   const prior = JSON.parse(readFileSync(priorPath, "utf8"));
   if (prior.overallVerdict !== "READY_FOR_PHASE_3B_3_36") {
     throw new Error(`Predecessor not ready: ${prior.overallVerdict}`);
@@ -335,7 +335,7 @@ async function main() {
       probe.hostContract.hostActivation === false &&
       probe.activationAttempt.allowed === false &&
       probe.activationAttempt.blockers.includes(
-        "PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY",
+        "PHASE_3B3_36_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_READINESS_ONLY",
       ) &&
       typeof diag.conditionCount === "number" &&
       diag.conditionCount > 0 &&
@@ -369,7 +369,7 @@ async function main() {
       bridgeVersion: probe.version,
       sourceProofReference: "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
       priorPhaseProofReference:
-        "docs/audits/artifacts/phase3b335/phase3b3-34-controlled-workspace-host-activation-transaction-preparation-authorization-proof.json",
+        "docs/audits/artifacts/phase3b335/phase3b3-35-controlled-workspace-host-activation-transaction-preparation-proof.json",
       controlledHostContractStatus: "valid",
       hostActivation: false,
       renderActivation: false,
