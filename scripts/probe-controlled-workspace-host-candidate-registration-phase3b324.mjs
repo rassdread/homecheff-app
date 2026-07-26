@@ -103,7 +103,22 @@ async function main() {
   const statuses = {};
 
   try {
-    await page.goto(baseUrl + "/", { waitUntil: "networkidle0", timeout: 120000 });
+    const res = await page.goto(`${baseUrl}/`, {
+      waitUntil: "domcontentloaded",
+      timeout: 120000,
+    });
+    if (!res || !res.ok()) {
+      throw new Error(`Navigation failed: ${res ? res.status() : "no response"}`);
+    }
+    await sleep(3000);
+    await page.waitForFunction(
+      () => {
+        const probe = window.__HC_FEED_SEALED_PROBE__;
+        const c = probe?.readCounters?.();
+        return Boolean(probe) && c?.mountCount >= 1 && probe.version >= 25;
+      },
+      { timeout: 120000 },
+    );
     await waitForObserverQuiet(page);
 
     const probe = await page.evaluate(async () => {
