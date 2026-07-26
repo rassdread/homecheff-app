@@ -19,6 +19,7 @@ import { PHASE_3B3_32_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_O
 import { PHASE_3B3_33_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_ONLY } from "./controlled-workspace-host-activation-transaction-preparation-readiness";
 import { PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY } from "./controlled-workspace-host-activation-transaction-preparation-authorization";
 import { PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY } from "./controlled-workspace-host-activation-transaction-preparation";
+import { PHASE_3B3_36_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_READINESS_ONLY } from "./controlled-workspace-host-activation-transaction-commit-readiness";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -47,8 +48,9 @@ export type ControlledFeedHostPlan = {
     typeof PHASE_3B3_33_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_ONLY,
     typeof PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY,
     typeof PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY,
+    typeof PHASE_3B3_36_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_READINESS_ONLY,
   ];
-  recommendedNextStep: "3B.3.36-controlled-workspace-host-activation";
+  recommendedNextStep: "3B.3.37-controlled-workspace-host-activation";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -189,8 +191,9 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
       PHASE_3B3_32_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_ONLY,
       PHASE_3B3_33_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_ONLY,
       PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY,
-      PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY],
-    recommendedNextStep: "3B.3.36-controlled-workspace-host-activation",
+      PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY,
+      PHASE_3B3_36_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_READINESS_ONLY],
+    recommendedNextStep: "3B.3.37-controlled-workspace-host-activation",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
