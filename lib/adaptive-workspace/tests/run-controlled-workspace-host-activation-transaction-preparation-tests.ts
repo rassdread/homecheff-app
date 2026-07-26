@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.34 — sealed-core unit tests for transaction preparation authorization.
- * Sealed + LIVE continuity for Phase 3B.3.34.
+ * Phase 3B.3.35 — sealed-core unit tests for transaction preparation.
+ * Sealed + LIVE continuity for Phase 3B.3.35.
  */
 import assert from "node:assert/strict";
 import { HardContractViolation } from "../schema/validation-error";
@@ -12,29 +12,28 @@ import { evaluateFeedHostActivationGate } from "../sealed/feed-host-activation-g
 import { FEED_DISCOVERY_HOST_CANDIDATE_METADATA } from "../registry/settings-manifests";
 import { FEED_DISCOVERY_STABLE_RUNTIME_ID } from "../sealed/controlled-host-registry";
 import {
-  createControlledWorkspaceHostActivationTransactionPreparationAuthorizationDescriptor,
-  evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization,
-  validateControlledWorkspaceHostActivationTransactionPreparationAuthorizationDescriptor,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_CONTRACT_ID,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_CONDITIONS,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_GUARDS,
-  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_BLOCKERS,
-  PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY,
-} from "../sealed/controlled-workspace-host-activation-transaction-preparation-authorization";
-import { PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY } from "../sealed/controlled-workspace-host-activation-transaction-preparation";
+  createControlledWorkspaceHostActivationTransactionPreparationDescriptor,
+  evaluateControlledWorkspaceHostActivationTransactionPreparation,
+  validateControlledWorkspaceHostActivationTransactionPreparationDescriptor,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_BLOCKERS,
+  PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY,
+} from "../sealed/controlled-workspace-host-activation-transaction-preparation";
 import {
-  createControlledWorkspaceHostActivationTransactionPreparationAuthorizationContract,
-  validateControlledWorkspaceHostActivationTransactionPreparationAuthorizationContract,
-} from "../sealed/controlled-workspace-host-activation-transaction-preparation-authorization-contract";
+  createControlledWorkspaceHostActivationTransactionPreparationContract,
+  validateControlledWorkspaceHostActivationTransactionPreparationContract,
+} from "../sealed/controlled-workspace-host-activation-transaction-preparation-contract";
 import {
-  createFeedWorkspaceHostActivationTransactionPreparationAuthorizationIdentity,
-  validateFeedWorkspaceHostActivationTransactionPreparationAuthorizationIdentity,
-} from "../sealed/feed-workspace-host-activation-transaction-preparation-authorization-identity";
+  createFeedWorkspaceHostActivationTransactionPreparationIdentity,
+  validateFeedWorkspaceHostActivationTransactionPreparationIdentity,
+} from "../sealed/feed-workspace-host-activation-transaction-preparation-identity";
 import {
-  createFeedWorkspaceHostActivationTransactionPreparationAuthorizationPreparedContract,
-  validateFeedWorkspaceHostActivationTransactionPreparationAuthorizationPreparedContract,
-} from "../sealed/feed-workspace-host-activation-transaction-preparation-authorization-prepared";
+  createFeedWorkspaceHostActivationTransactionPreparationPreparedContract,
+  validateFeedWorkspaceHostActivationTransactionPreparationPreparedContract,
+} from "../sealed/feed-workspace-host-activation-transaction-preparation-prepared";
 import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID,
@@ -56,6 +55,9 @@ import {
 import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_READINESS_ID,
 } from "../sealed/controlled-workspace-host-activation-transaction-preparation-readiness";
+import {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID,
+} from "../sealed/controlled-workspace-host-activation-transaction-preparation-authorization";
 
 let passed = 0;
 function ok(label: string) {
@@ -64,22 +66,22 @@ function ok(label: string) {
 }
 
 console.log(
-  "\n[phase3b334] activation transaction-preparation-authorization sealed descriptor + engine",
+  "\n[phase3b335] activation transaction-preparation sealed descriptor + engine",
 );
 
 {
-  const a = createControlledWorkspaceHostActivationTransactionPreparationAuthorizationDescriptor();
-  const b = createControlledWorkspaceHostActivationTransactionPreparationAuthorizationDescriptor();
-  assert.equal(a.currentPhase, "3B.3.34");
-  assert.equal(a.previousPhase, "3B.3.33");
-  assert.equal(a.nextEligibleStep, "3B.3.35");
+  const a = createControlledWorkspaceHostActivationTransactionPreparationDescriptor();
+  const b = createControlledWorkspaceHostActivationTransactionPreparationDescriptor();
+  assert.equal(a.currentPhase, "3B.3.35");
+  assert.equal(a.previousPhase, "3B.3.34");
+  assert.equal(a.nextEligibleStep, "3B.3.36");
   assert.equal(
-    a.transactionPreparationAuthorizationResult,
-    "controlled-workspace-host-activation-transaction-preparation-authorized-not-prepared",
+    a.transactionPreparationResult,
+    "controlled-workspace-host-activation-transaction-prepared-not-committed",
   );
   assert.equal(
-    a.transactionPreparationAuthorizationState,
-    "TRANSACTION_PREPARATION_AUTHORIZED_NOT_PREPARED",
+    a.transactionPreparationState,
+    "TRANSACTION_PREPARED_NOT_COMMITTED",
   );
   assert.equal(a.candidateId, CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID);
   assert.equal(a.registrationId, CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID);
@@ -114,13 +116,17 @@ console.log(
     CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID,
   );
   assert.equal(
-    a.activationTransactionPreparationAuthorizationContractId,
-    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_CONTRACT_ID,
+    a.activationTransactionPreparationId,
+    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ID,
+  );
+  assert.equal(
+    a.activationTransactionPreparationContractId,
+    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONTRACT_ID,
   );
   assert.equal(a.activationCommitBoundaryState, "ENTERED");
   assert.equal(a.issuanceTransactionState, "OPENED");
   assert.equal(a.issuanceTransactionOpened, true);
-  assert.equal(a.issuanceTransactionPrepared, false);
+  assert.equal(a.issuanceTransactionPrepared, true);
   assert.equal(a.issuancePipelineState, "NON_EXECUTABLE");
   assert.equal(a.transactionOpeningCompleted, true);
   assert.equal(a.transactionPreparationReady, true);
@@ -137,23 +143,23 @@ console.log(
   assert.equal(a.owner, "legacy");
   assert.equal(a.writer, "legacy");
   assert.equal(a.renderer, "legacy");
-  assert.equal(a.transactionPreparationAuthorizationCount, 1);
+  assert.equal(a.transactionPreparationCount, 1);
   assert.equal(
     a.activationBlocker,
-    PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY,
+    PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY,
   );
   assert.equal(stableStringify(a), stableStringify(b));
-  ok("successful deterministic transaction-preparation-authorization descriptor");
+  ok("successful deterministic transaction-preparation descriptor");
 }
 
 {
-  const evaluation = evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization();
+  const evaluation = evaluateControlledWorkspaceHostActivationTransactionPreparation();
   const d = evaluation.descriptor;
   const diag = evaluation.diagnostics;
-  assert.equal(d.currentPhase, "3B.3.34");
+  assert.equal(d.currentPhase, "3B.3.35");
   assert.equal(
-    d.transactionPreparationAuthorizationResult,
-    "controlled-workspace-host-activation-transaction-preparation-authorized-not-prepared",
+    d.transactionPreparationResult,
+    "controlled-workspace-host-activation-transaction-prepared-not-committed",
   );
   assert.equal(d.transactionPreparationReady, true);
   assert.equal(d.transactionPreparationAuthorized, true);
@@ -163,70 +169,70 @@ console.log(
   assert.equal(d.issuancePipelineState, "NON_EXECUTABLE");
   assert.equal(d.owner, "legacy");
   assert.equal(
-    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_CONDITIONS.length > 0,
+    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONDITIONS.length > 0,
     true,
   );
   assert.equal(
-    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_GUARDS.length > 0,
+    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_GUARDS.length > 0,
     true,
   );
   assert.equal(
-    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_BLOCKERS.length > 0,
+    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_BLOCKERS.length > 0,
     true,
   );
-  ok("engine diagnostics metadata only (chained from 3B.3.33)");
+  ok("engine diagnostics metadata only (chained from 3B.3.34)");
 }
 
 {
   const registry = createControlledHostRegistry();
   assert.throws(
     () =>
-      validateControlledWorkspaceHostActivationTransactionPreparationAuthorizationDescriptor({
-        ...createControlledWorkspaceHostActivationTransactionPreparationAuthorizationDescriptor(),
+      validateControlledWorkspaceHostActivationTransactionPreparationDescriptor({
+        ...createControlledWorkspaceHostActivationTransactionPreparationDescriptor(),
         candidateActivated: true,
       } as ReturnType<
-        typeof createControlledWorkspaceHostActivationTransactionPreparationAuthorizationDescriptor
+        typeof createControlledWorkspaceHostActivationTransactionPreparationDescriptor
       >),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization(registry, {
+      evaluateControlledWorkspaceHostActivationTransactionPreparation(registry, {
         issuanceTransactionPrepared: true,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization(registry, {
+      evaluateControlledWorkspaceHostActivationTransactionPreparation(registry, {
         issuancePipelineExecutable: true,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization(registry, {
-        transactionPreparationAuthorized: true,
+      evaluateControlledWorkspaceHostActivationTransactionPreparation(registry, {
+        transactionPreparationAuthorized: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization(registry, {
+      evaluateControlledWorkspaceHostActivationTransactionPreparation(registry, {
         transactionPreparationReady: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization(registry, {
+      evaluateControlledWorkspaceHostActivationTransactionPreparation(registry, {
         shellRendered: true,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization(registry, {
+      evaluateControlledWorkspaceHostActivationTransactionPreparation(registry, {
         owner: "workspace",
       }),
     HardContractViolation,
@@ -234,30 +240,30 @@ console.log(
   ok("fail-closed duplicate/prepared/pipeline/auth/shell/ownership paths");
 }
 
-console.log("\n[phase3b334] sealed contract + identity + prepared");
+console.log("\n[phase3b335] sealed contract + identity + prepared");
 
 {
-  const contract = createControlledWorkspaceHostActivationTransactionPreparationAuthorizationContract();
-  assert.equal(contract.phase, "3B.3.34");
-  assert.equal(contract.nextEligibleStep, "3B.3.35");
+  const contract = createControlledWorkspaceHostActivationTransactionPreparationContract();
+  assert.equal(contract.phase, "3B.3.35");
+  assert.equal(contract.nextEligibleStep, "3B.3.36");
   assert.equal(
-    contract.transactionPreparationAuthorizationState,
-    "TRANSACTION_PREPARATION_AUTHORIZED_NOT_PREPARED",
+    contract.transactionPreparationState,
+    "TRANSACTION_PREPARED_NOT_COMMITTED",
   );
   assert.throws(
     () =>
-      validateControlledWorkspaceHostActivationTransactionPreparationAuthorizationContract({
+      validateControlledWorkspaceHostActivationTransactionPreparationContract({
         ...contract,
         candidateActivated: true,
       } as typeof contract),
     HardContractViolation,
   );
-  ok("transaction-preparation-authorization contract");
+  ok("transaction-preparation contract");
 }
 
 {
-  const identity = createFeedWorkspaceHostActivationTransactionPreparationAuthorizationIdentity();
-  assert.equal(identity.phase, "3B.3.34");
+  const identity = createFeedWorkspaceHostActivationTransactionPreparationIdentity();
+  assert.equal(identity.phase, "3B.3.35");
   assert.equal(
     identity.activationTransactionOpeningId,
     CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_ID,
@@ -270,48 +276,52 @@ console.log("\n[phase3b334] sealed contract + identity + prepared");
     identity.activationTransactionPreparationAuthorizationId,
     CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID,
   );
+  assert.equal(
+    identity.activationTransactionPreparationId,
+    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ID,
+  );
   assert.throws(
     () =>
-      validateFeedWorkspaceHostActivationTransactionPreparationAuthorizationIdentity({
+      validateFeedWorkspaceHostActivationTransactionPreparationIdentity({
         ...identity,
         remountAllowed: true,
       } as typeof identity),
     HardContractViolation,
   );
-  ok("transaction-preparation-authorization identity");
+  ok("transaction-preparation identity");
 }
 
 {
-  const prepared = createFeedWorkspaceHostActivationTransactionPreparationAuthorizationPreparedContract({
-    evidenceCommit: "phase3b334-sealed-core",
-    evidenceArtifactPath: "docs/audits/artifacts/phase3b334/",
+  const prepared = createFeedWorkspaceHostActivationTransactionPreparationPreparedContract({
+    evidenceCommit: "phase3b335-sealed-core",
+    evidenceArtifactPath: "docs/audits/artifacts/phase3b335/",
     conditionCount:
-      CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_CONDITIONS.length,
+      CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONDITIONS.length,
     satisfiedConditionCount:
-      CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_CONDITIONS.length,
-    guardCount: CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_GUARDS.length,
+      CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONDITIONS.length,
+    guardCount: CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_GUARDS.length,
     satisfiedGuardCount:
-      CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_GUARDS.length,
+      CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_GUARDS.length,
   });
-  assert.equal(prepared.phase, "3B.3.34");
-  assert.equal(prepared.nextEligibleStep, "3B.3.35");
+  assert.equal(prepared.phase, "3B.3.35");
+  assert.equal(prepared.nextEligibleStep, "3B.3.36");
   assert.equal(prepared.transactionPreparationReady, true);
   assert.equal(prepared.transactionPreparationAuthorized, true);
   assert.equal(prepared.issuanceTransactionState, "OPENED");
-  assert.equal(prepared.issuanceTransactionPrepared, false);
+  assert.equal(prepared.issuanceTransactionPrepared, true);
   assert.equal(prepared.issuancePipelineState, "NON_EXECUTABLE");
   assert.throws(
     () =>
-      validateFeedWorkspaceHostActivationTransactionPreparationAuthorizationPreparedContract({
+      validateFeedWorkspaceHostActivationTransactionPreparationPreparedContract({
         ...prepared,
         candidateActivated: true,
       } as typeof prepared),
     HardContractViolation,
   );
-  ok("transaction-preparation-authorization prepared metadata");
+  ok("transaction-preparation prepared metadata");
 }
 
-console.log("\n[phase3b334] LIVE gate + host continuity");
+console.log("\n[phase3b335] LIVE gate + host continuity");
 
 {
   const gate = evaluateFeedHostActivationGate({
@@ -351,11 +361,11 @@ console.log("\n[phase3b334] LIVE gate + host continuity");
 
 {
   assert.ok(
-    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_BLOCKERS.includes(
-      PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ONLY,
+    CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_BLOCKERS.includes(
+      PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY,
     ),
   );
-  const evaluation = evaluateControlledWorkspaceHostActivationTransactionPreparationAuthorization();
+  const evaluation = evaluateControlledWorkspaceHostActivationTransactionPreparation();
   assert.equal(evaluation.descriptor.candidateGranted, true);
   assert.equal(evaluation.descriptor.candidateActivated, false);
   assert.equal(evaluation.descriptor.transactionOpeningCompleted, true);
@@ -363,15 +373,16 @@ console.log("\n[phase3b334] LIVE gate + host continuity");
   assert.equal(evaluation.descriptor.transactionPreparationAuthorized, true);
   assert.equal(evaluation.descriptor.issuanceTransactionState, "OPENED");
   assert.equal(evaluation.descriptor.issuanceTransactionOpened, true);
-  assert.equal(evaluation.descriptor.issuanceTransactionPrepared, false);
+  assert.equal(evaluation.descriptor.issuanceTransactionPrepared, true);
+  assert.equal(evaluation.descriptor.issuanceTransactionCommitted, false);
   assert.equal(evaluation.descriptor.issuancePipelineState, "NON_EXECUTABLE");
   assert.equal(evaluation.descriptor.workspaceCandidateRendered, false);
   assert.equal(evaluation.descriptor.owner, "legacy");
   assert.equal(evaluation.descriptor.writer, "legacy");
   assert.equal(evaluation.descriptor.renderer, "legacy");
-  ok("candidate preparation-authorized-not-prepared with PHASE_3B3_34 blocker; Workspace null; GeoFeed legacy");
+  ok("candidate prepared-not-committed with PHASE_3B3_35 blocker; Workspace null; GeoFeed legacy");
 }
 
 console.log(
-  `\nadaptive-workspace Phase 3B.3.34 controlled workspace host activation transaction preparation authorization: ${passed} assertions ok\n`,
+  `\nadaptive-workspace Phase 3B.3.35 controlled workspace host activation transaction preparation: ${passed} assertions ok\n`,
 );

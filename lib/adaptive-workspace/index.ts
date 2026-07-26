@@ -1573,3 +1573,43 @@ export {
   validateFeedWorkspaceHostActivationTransactionPreparationAuthorizationPreparedContract,
 } from "./sealed/feed-workspace-host-activation-transaction-preparation-authorization-prepared";
 export type { FeedWorkspaceHostActivationTransactionPreparationAuthorizationPreparedContract } from "./sealed/feed-workspace-host-activation-transaction-preparation-authorization-prepared";
+
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_SCHEMA_VERSION,
+  PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_GUARDS,
+  evaluateControlledWorkspaceHostActivationTransactionPreparation,
+  createControlledWorkspaceHostActivationTransactionPreparationDescriptor,
+  validateControlledWorkspaceHostActivationTransactionPreparationDescriptor,
+} from "./sealed/controlled-workspace-host-activation-transaction-preparation";
+export type {
+  ControlledWorkspaceHostActivationTransactionPreparationState,
+  ControlledWorkspaceHostActivationTransactionPreparationResult,
+  ControlledWorkspaceHostActivationTransactionPreparationRecord,
+  ControlledWorkspaceHostActivationTransactionPreparationDescriptor,
+  ControlledWorkspaceHostActivationTransactionPreparationDiagnostics,
+  ControlledWorkspaceHostActivationTransactionPreparationEvaluation,
+  ControlledWorkspaceHostActivationTransactionPreparationInput,
+} from "./sealed/controlled-workspace-host-activation-transaction-preparation";
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONTRACT_SCHEMA_VERSION,
+  createControlledWorkspaceHostActivationTransactionPreparationContract,
+  validateControlledWorkspaceHostActivationTransactionPreparationContract,
+} from "./sealed/controlled-workspace-host-activation-transaction-preparation-contract";
+export type { ControlledWorkspaceHostActivationTransactionPreparationContract } from "./sealed/controlled-workspace-host-activation-transaction-preparation-contract";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_IDENTITY_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationTransactionPreparationIdentity,
+  validateFeedWorkspaceHostActivationTransactionPreparationIdentity,
+} from "./sealed/feed-workspace-host-activation-transaction-preparation-identity";
+export type { FeedWorkspaceHostActivationTransactionPreparationIdentity } from "./sealed/feed-workspace-host-activation-transaction-preparation-identity";
+export {
+  FEED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_PREPARED_SCHEMA_VERSION,
+  createFeedWorkspaceHostActivationTransactionPreparationPreparedContract,
+  validateFeedWorkspaceHostActivationTransactionPreparationPreparedContract,
+} from "./sealed/feed-workspace-host-activation-transaction-preparation-prepared";
+export type { FeedWorkspaceHostActivationTransactionPreparationPreparedContract } from "./sealed/feed-workspace-host-activation-transaction-preparation-prepared";
