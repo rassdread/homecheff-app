@@ -164,7 +164,7 @@ Proof target: `28fea5989d94ee184bba4c6bead6fd9aed95b4d0`
 
 Audit/artifacts commit: `0b03dc7ef483f26c5c845c693df4f8b3a9e0306a`
 
-Documentary tip: `PENDING_TIP`
+Documentary tip: `faee0097eb4bf5477d6f049f0aab0070e93960e2`
 
 ## Rollback
 
