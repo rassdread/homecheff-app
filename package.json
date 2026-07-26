@@ -26,8 +26,8 @@
     "smoke-check": "node scripts/smoke-check.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "db:migration:validate": "tsx scripts/validate-migration-cutoff.ts --strict && tsx scripts/validate-dual-track-migration-config.ts",
-    "db:migrate:shared": "echo 'Shared Neon only — requires DATABASE_URL and human approval' && npx prisma migrate deploy --schema prisma/schema.prisma",
-    "db:migrate:greenfield": "echo 'Use GREENFIELD_DATABASE_URL — never DATABASE_URL' && npx prisma migrate deploy --schema prisma/schema.prisma",
+    "db:migrate:shared": "echo 'Shared Neon only \u2014 requires DATABASE_URL and human approval' && npx prisma migrate deploy --schema prisma/schema.prisma",
+    "db:migrate:greenfield": "echo 'Use GREENFIELD_DATABASE_URL \u2014 never DATABASE_URL' && npx prisma migrate deploy --schema prisma/schema.prisma",
     "db:greenfield:bootstrap": "tsx scripts/run-disposable-greenfield-test.ts --mode dry-run",
     "db:greenfield:test": "tsx scripts/run-disposable-greenfield-test.ts --mode greenfield",
     "db:simulate:shared-neon": "tsx scripts/simulate-shared-neon-migration-options.ts",
@@ -155,7 +155,10 @@
     "probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary": "node scripts/run-feed-host-activation-transition-authorization-grant-issuance-commit-boundary-proof-phase3b323.mjs",
     "test:adaptive-workspace-controlled-workspace-host-candidate-registration": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-registration-tests.ts",
     "validate:adaptive-workspace-controlled-workspace-host-candidate-registration": "npx tsx scripts/validate-adaptive-workspace-controlled-workspace-host-candidate-registration.ts",
-    "probe:adaptive-workspace-controlled-workspace-host-candidate-registration": "node scripts/run-controlled-workspace-host-candidate-registration-proof-phase3b324.mjs"
+    "probe:adaptive-workspace-controlled-workspace-host-candidate-registration": "node scripts/run-controlled-workspace-host-candidate-registration-proof-phase3b324.mjs",
+    "test:adaptive-workspace-controlled-workspace-host-candidate-selection": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-selection-tests.ts",
+    "validate:adaptive-workspace-controlled-workspace-host-candidate-selection": "npx tsx scripts/validate-adaptive-workspace-controlled-workspace-host-candidate-selection.ts",
+    "probe:adaptive-workspace-controlled-workspace-host-candidate-selection": "node scripts/run-controlled-workspace-host-candidate-selection-proof-phase3b325.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
