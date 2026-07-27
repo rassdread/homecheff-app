@@ -1,0 +1,8 @@
+overallVerdict=READY_FOR_PHASE_3B_3_39
+passCount=20/20
+transactionCommittedMetaOk=True
+forcedNegativeProofsOk=True
+bridgeVersion=39
+commit=18f33e62bcc7089037eda1888e723863a4c9cf53
+port=3059
+phase3b2Regression=READY_FOR_PHASE_3B_3 20/20
