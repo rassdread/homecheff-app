@@ -1,0 +1,1 @@
+NEXT_PUBLIC_FEED_SEALED_BASELINE=1 npm run build — PASS (via phase3b337 orchestrator)

@@ -1,0 +1,6 @@
+predecessor_phase=3B.3.36
+predecessor_head=10654dc07334935712b430338bbf378c50af3d34
+predecessor_proof_target=0c5b5f652d78fa01077b23656e8d480038480a0f
+predecessor_result=controlled-workspace-host-activation-transaction-commit-ready-not-committed
+predecessor_lifecycle=TRANSACTION_COMMIT_READY_NOT_COMMITTED
+predecessor_verdict=READY_FOR_PHASE_3B_3_37

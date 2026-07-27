@@ -1,0 +1,6 @@
+phase3b2: 20/20 READY_FOR_PHASE_3B_3
+phase3b337: 20/20 READY_FOR_PHASE_3B_3_38
+transactionCommitAuthorizationMetaOk=True
+forcedNegativeProofsOk=True
+bridgeVersion=38
+proofTarget=8d7f26e628b9073eb02e930347fbef94ad12498f
