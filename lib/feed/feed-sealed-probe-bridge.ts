@@ -3187,6 +3187,8 @@ export type FeedSealedProbeApi = {
     predecessorActivationTransactionCommitReadinessState: "TRANSACTION_COMMIT_READY_NOT_COMMITTED";
     predecessorActivationIssuancePipelineExecutionReadinessResult: "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed";
     predecessorActivationIssuancePipelineExecutionReadinessState: "PIPELINE_EXECUTION_READY_NOT_EXECUTED";
+    predecessorActivationIssuancePipelineExecutionAuthorizationResult: "controlled-workspace-host-activation-issuance-pipeline-execution-authorized-not-executed";
+    predecessorActivationIssuancePipelineExecutionAuthorizationState: "PIPELINE_EXECUTION_AUTHORIZED_NOT_EXECUTED";
     predecessorActivationTransactionCommitResult: "controlled-workspace-host-activation-transaction-committed-not-executed";
     predecessorActivationTransactionCommitState: "TRANSACTION_COMMITTED_NOT_EXECUTED";
     predecessorActivationTransactionCommitAuthorizationResult: "controlled-workspace-host-activation-transaction-commit-authorized-not-committed";
@@ -3216,8 +3218,8 @@ export type FeedSealedProbeApi = {
     hostActivation: false;
     renderActivation: false;
     canStartActivation: false;
-    activationBlocker: "PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY";
-    nextEligibleStep: "3B.3.41";
+    activationBlocker: "PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY";
+    nextEligibleStep: "3B.3.42";
     conditionCount: number;
     satisfiedConditionCount: number;
     unsatisfiedConditionCount: 0;
@@ -7621,6 +7623,10 @@ export function installFeedSealedProbeBridge(): void {
           "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" as const,
         predecessorActivationIssuancePipelineExecutionReadinessState:
           "PIPELINE_EXECUTION_READY_NOT_EXECUTED" as const,
+        predecessorActivationIssuancePipelineExecutionAuthorizationResult:
+          "controlled-workspace-host-activation-issuance-pipeline-execution-authorized-not-executed" as const,
+        predecessorActivationIssuancePipelineExecutionAuthorizationState:
+          "PIPELINE_EXECUTION_AUTHORIZED_NOT_EXECUTED" as const,
         predecessorActivationTransactionCommitResult:
           "controlled-workspace-host-activation-transaction-committed-not-executed" as const,
         predecessorActivationTransactionCommitState:
@@ -7659,8 +7665,8 @@ export function installFeedSealedProbeBridge(): void {
         renderActivation: false as const,
         canStartActivation: false as const,
         activationBlocker:
-          "PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY" as const,
-        nextEligibleStep: "3B.3.41" as const,
+          "PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY" as const,
+        nextEligibleStep: "3B.3.42" as const,
         conditionCount: diag.conditionCount as number,
         satisfiedConditionCount: diag.satisfiedConditionCount as number,
         unsatisfiedConditionCount: 0 as const,

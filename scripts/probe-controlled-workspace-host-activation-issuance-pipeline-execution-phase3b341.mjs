@@ -338,7 +338,7 @@ async function main() {
       reg.issuanceTransactionState === "OPENED" &&
       reg.issuanceTransactionOpened === true &&
       reg.issuanceTransactionPrepared === true &&
-      reg.nextEligibleStep === "3B.3.41" &&
+      reg.nextEligibleStep === "3B.3.42" &&
       reg.activationBlocker === "PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY" &&
       reg.predecessorActivationTransactionPreparationState === "TRANSACTION_PREPARED_NOT_COMMITTED" &&
       reg.predecessorActivationIssuancePipelineExecutionReadinessResult === "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" &&
