@@ -66,17 +66,25 @@ const RELEASE_IDS = [
 
 async function waitForObserverQuiet(page, quietMs = 1000, maxMs = 15000) {
   const start = Date.now();
-  let last = await page.evaluate(() => {
-    const p = window.__HC_FEED_SEALED_PROBE__;
-    return p ? p.readCounters().mountCount : 0;
-  });
+  async function mountCount() {
+    try {
+      return await page.evaluate(() => {
+        const p = window.__HC_FEED_SEALED_PROBE__;
+        return p ? p.readCounters().mountCount : 0;
+      });
+    } catch {
+      return -1;
+    }
+  }
+  let last = await mountCount();
   let quietStart = Date.now();
   while (Date.now() - start < maxMs) {
     await sleep(200);
-    const cur = await page.evaluate(() => {
-      const p = window.__HC_FEED_SEALED_PROBE__;
-      return p ? p.readCounters().mountCount : 0;
-    });
+    const cur = await mountCount();
+    if (cur < 0) {
+      quietStart = Date.now();
+      continue;
+    }
     if (cur !== last) { last = cur; quietStart = Date.now(); }
     else if (Date.now() - quietStart >= quietMs) return;
   }
@@ -418,7 +426,7 @@ async function main() {
       },
       nextEligibleStep: "3B.3.42",
       invariants,
-      overallVerdict: anyFail ? "NOT_READY_FOR_PHASE_3B_3_41" : "READY_FOR_PHASE_3B_3_41",
+      overallVerdict: anyFail ? "NOT_READY_FOR_PHASE_3B_3_42" : "READY_FOR_PHASE_3B_3_42",
     };
 
     const proofPath = join(outDir, "phase3b3-41-controlled-workspace-host-activation-issuance-pipeline-execution-proof.json");
