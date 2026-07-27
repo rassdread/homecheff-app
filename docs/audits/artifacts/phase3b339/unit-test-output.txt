@@ -1,0 +1,88 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-host-activation-issuance-pipeline-execution-readiness
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-issuance-pipeline-execution-readiness-tests.ts
+
+
+[phase3b339] activation transaction-commit sealed descriptor + engine
+  ✓ successful deterministic transaction-commit descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.38)
+  ✓ fail-closed not-prepared/committed/duplicate-commit-ready/pipeline/auth/shell/ownership paths
+
+[phase3b339] sealed contract + identity + prepared
+  ✓ transaction-commit contract
+  ✓ transaction-commit identity
+  ✓ transaction-commit prepared metadata
+
+[phase3b339] LIVE gate + host continuity (skipped until CP3 if SKIP_PHASE3B339_LIVE=1)
+  ✓ activation remains impossible (gate currentStep=3B.3.39, eligibleStep=3B.3.40)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate execution-ready-not-executed with PHASE_3B3_39 blocker; Workspace null; GeoFeed legacy
+
+adaptive-workspace Phase 3B.3.39 controlled workspace host activation transaction commit: 9 assertions ok
+
+
+> homecheff-app@0.1.0 test:adaptive-workspace-host-activation-transaction-commit
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-commit-tests.ts
+
+
+[phase3b338] activation transaction-commit sealed descriptor + engine
+  ✓ successful deterministic transaction-commit descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.37)
+  ✓ fail-closed not-prepared/committed/duplicate-commit-ready/pipeline/auth/shell/ownership paths
+
+[phase3b338] sealed contract + identity + prepared
+  ✓ transaction-commit contract
+  ✓ transaction-commit identity
+  ✓ transaction-commit prepared metadata
+
+[phase3b338] LIVE gate + host continuity
+  ✓ activation remains impossible (gate currentStep=3B.3.39, eligibleStep=3B.3.40)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate committed-not-executed with PHASE_3B3_38 blocker; Workspace null; GeoFeed legacy
+
+adaptive-workspace Phase 3B.3.38 controlled workspace host activation transaction commit: 9 assertions ok
+
+
+> homecheff-app@0.1.0 test:adaptive-workspace-host-activation-transaction-commit-authorization
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-commit-authorization-tests.ts
+
+
+[phase3b337] activation transaction-commit-authorization sealed descriptor + engine
+  ✓ successful deterministic transaction-commit-authorization descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.36)
+  ✓ fail-closed not-prepared/committed/duplicate-commit-ready/pipeline/auth/shell/ownership paths
+
+[phase3b337] sealed contract + identity + prepared
+  ✓ transaction-commit-authorization contract
+  ✓ transaction-commit-authorization identity
+  ✓ transaction-commit-authorization prepared metadata
+
+[phase3b337] LIVE gate + host continuity
+  ✓ activation remains impossible (gate currentStep=3B.3.39, eligibleStep=3B.3.40)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate commit-authorized-not-committed with PHASE_3B3_37 blocker; Workspace null; GeoFeed legacy
+
+adaptive-workspace Phase 3B.3.37 controlled workspace host activation transaction commit authorization: 9 assertions ok
+
+
+> homecheff-app@0.1.0 test:adaptive-workspace-host-activation-transaction-commit-readiness
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-commit-readiness-tests.ts
+
+
+[phase3b336] activation transaction-commit-readiness sealed descriptor + engine
+  ✓ successful deterministic transaction-commit-readiness descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.35)
+  ✓ fail-closed not-prepared/committed/duplicate-commit-ready/pipeline/auth/shell/ownership paths
+
+[phase3b336] sealed contract + identity + prepared
+  ✓ transaction-commit-readiness contract
+  ✓ transaction-commit-readiness identity
+  ✓ transaction-commit-readiness prepared metadata
+
+[phase3b336] LIVE gate + host continuity
+  ✓ activation remains impossible (gate currentStep=3B.3.39, eligibleStep=3B.3.40)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate commit-ready-not-committed; LIVE gate PHASE_3B3_37; Workspace null; GeoFeed legacy
+
+adaptive-workspace Phase 3B.3.36 controlled workspace host activation transaction commit readiness: 9 assertions ok
+

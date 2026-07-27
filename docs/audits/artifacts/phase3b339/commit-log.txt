@@ -1,0 +1,10 @@
+45ee6762 fix(adaptive-workspace): align Phase 3B.3.39 prepared proof metadata
+2a41dbac fix(adaptive-workspace): close Bridge v40 readiness type signature
+b50a0b04 feat(adaptive-workspace): Phase 3B.3.39 Bridge v40 proof infrastructure
+7eeb39d6 feat(adaptive-workspace): Phase 3B.3.39 issuance pipeline execution readiness
+fe99af00 chore(adaptive-workspace): Phase 3B.3.38 freeze seal
+a0278e50 docs(adaptive-workspace): Phase 3B.3.38 audit and proof artifacts
+18f33e62 fix(adaptive-workspace): Phase 3B.3.38 probe forced-negative committed assert
+f26dda80 feat(adaptive-workspace): Phase 3B.3.38 bridge v39 validator and proof
+7e9cf5fa feat(adaptive-workspace): Phase 3B.3.38 transaction commit sealed+LIVE
+714efe6b chore(adaptive-workspace): Phase 3B.3.37 freeze seal
