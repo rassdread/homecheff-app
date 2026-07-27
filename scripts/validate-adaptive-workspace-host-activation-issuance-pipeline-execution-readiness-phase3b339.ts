@@ -626,7 +626,7 @@ if (artifactsPresent) {
   assert.equal(proof.overallVerdict, "READY_FOR_PHASE_3B_3_40");
   assert.equal(proof.issuancePipelineExecutionReadyMetaOk, true);
   assert.equal(proof.forcedNegativeProofsOk, true);
-  assert.equal(proof.bridgeVersion ?? proof.version ?? 39, 39);
+  assert.equal(proof.bridgeVersion ?? proof.version ?? 40, 40);
   rejectUnresolved("proof.overallVerdict", proof.overallVerdict);
   const prepared = JSON.parse(readFileSync(preparedPath, "utf8"));
   validateFeedWorkspaceHostActivationIssuancePipelineExecutionReadinessPreparedContract(prepared);

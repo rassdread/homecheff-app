@@ -311,13 +311,13 @@ export function validateFeedWorkspaceHostActivationIssuancePipelineExecutionRead
   ) {
     throw new HardContractViolation(
       "FEED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_PREPARED_FLAGS",
-      "Prepared commit must be committed-not-executed without activation or pipeline execution",
+      "Prepared issuance pipeline execution readiness must be ready-not-executed without activation or pipeline execution",
     );
   }
   if (c.nextEligibleStep !== "3B.3.40") {
     throw new HardContractViolation(
       "FEED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_PREPARED_NEXT",
-      "nextEligibleStep must be 3B.3.39",
+      "nextEligibleStep must be 3B.3.40",
     );
   }
   if (c.issuanceCommitBoundaryState !== "NOT_ENTERED") {
