@@ -1,0 +1,13 @@
+{
+  "phase": "3B.3.40",
+  "branch": "workspace/phase3b340-controlled-workspace-host-activation-issuance-pipeline-execution-authorization",
+  "result": "controlled-workspace-host-activation-issuance-pipeline-execution-authorized-not-executed",
+  "lifecycle": "PIPELINE_EXECUTION_AUTHORIZED_NOT_EXECUTED",
+  "proofTarget": "313dd01f0260254f3e46f9a6d6762a1bd5e2a361",
+  "predecessorHead": "ffb0037c18f119ea4cb267b100d6341f779b6da5",
+  "predecessorProofTarget": "45ee6762e4aeaf7d6725d32340cc96ec9089a167",
+  "bridgeVersion": 41,
+  "proofPort": 3061,
+  "verdict": "READY_FOR_PHASE_3B_3_41",
+  "documentaryTip": "acfa556981d82e2553748be46c85be20351e1f35"
+}
