@@ -22,7 +22,7 @@ import {
   PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY,
   PHASE_3B3_26_CONTROLLED_WORKSPACE_HOST_ACTIVATION_READINESS_ONLY,
   PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
-  PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY,
+  PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY,
   PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
   createControlledHostRegistry,
   createControlledFeedHostContract,
@@ -340,12 +340,12 @@ console.log("\n[phase3b324] contract + identity + gate + host + prepared");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY,
+      PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.37");
-  assert.equal(gate.eligibleStep, "3B.3.38");
-  ok("activation remains impossible (gate currentStep=3B.3.37, eligibleStep=3B.3.38)");
+  assert.equal(gate.currentStep, "3B.3.38");
+  assert.equal(gate.eligibleStep, "3B.3.39");
+  ok("activation remains impossible (gate currentStep=3B.3.38, eligibleStep=3B.3.39)");
 }
 
 {
@@ -357,7 +357,7 @@ console.log("\n[phase3b324] contract + identity + gate + host + prepared");
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(host.nextEligibleStep, "3B.3.38");
+  assert.equal(host.nextEligibleStep, "3B.3.39");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
@@ -370,7 +370,7 @@ console.log("\n[phase3b324] contract + identity + gate + host + prepared");
   );
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY,
+      PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY,
     ),
   );
   assert.equal(

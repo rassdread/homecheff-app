@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.37 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY.
+ * Phase 3B.3.38 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
@@ -27,6 +27,7 @@ import { PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATI
 import { PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY } from "./controlled-workspace-host-activation-transaction-preparation";
 import { PHASE_3B3_36_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_READINESS_ONLY } from "./controlled-workspace-host-activation-transaction-commit-readiness";
 import { PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY } from "./controlled-workspace-host-activation-transaction-commit-authorization";
+import { PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY } from "./controlled-workspace-host-activation-transaction-commit";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -66,11 +67,12 @@ export { PHASE_3B3_34_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATI
 export { PHASE_3B3_35_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ONLY };
 export { PHASE_3B3_36_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_READINESS_ONLY };
 export { PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY };
+export { PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.37";
-  eligibleStep: "3B.3.38";
+  currentStep: "3B.3.38";
+  eligibleStep: "3B.3.39";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -166,10 +168,10 @@ export function evaluateFeedHostActivationGate(
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
   const blockers: string[] = [
-    PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY,
+    PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY,
   ];
   const reasons: string[] = [
-    "Phase 3B.3.37 authorizes Adaptive Workspace Host Activation transaction commit metadata only; commit remains deferred to 3B.3.38+",
+    "Phase 3B.3.38 commits Adaptive Workspace Host Activation issuance transaction metadata only; pipeline execution remains deferred to 3B.3.39+",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -418,8 +420,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.37",
-    eligibleStep: "3B.3.38",
+    currentStep: "3B.3.38",
+    eligibleStep: "3B.3.39",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

@@ -1679,4 +1679,37 @@ export {
   validateFeedWorkspaceHostActivationTransactionCommitAuthorizationPreparedContract,
 } from "./sealed/feed-workspace-host-activation-transaction-commit-authorization-prepared";
 export type { FeedWorkspaceHostActivationTransactionCommitAuthorizationPreparedContract } from "./sealed/feed-workspace-host-activation-transaction-commit-authorization-prepared";
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_SCHEMA_VERSION,
+  PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_GUARDS,
+  createControlledWorkspaceHostActivationTransactionCommitDescriptor,
+  evaluateControlledWorkspaceHostActivationTransactionCommit,
+  validateControlledWorkspaceHostActivationTransactionCommitDescriptor,
+} from "./sealed/controlled-workspace-host-activation-transaction-commit";
+export type {
+  ControlledWorkspaceHostActivationTransactionCommitDescriptor,
+  ControlledWorkspaceHostActivationTransactionCommitEvaluation,
+  ControlledWorkspaceHostActivationTransactionCommitState,
+  ControlledWorkspaceHostActivationTransactionCommitResult,
+} from "./sealed/controlled-workspace-host-activation-transaction-commit";
+export {
+  createControlledWorkspaceHostActivationTransactionCommitContract,
+  validateControlledWorkspaceHostActivationTransactionCommitContract,
+} from "./sealed/controlled-workspace-host-activation-transaction-commit-contract";
+export type { ControlledWorkspaceHostActivationTransactionCommitContract } from "./sealed/controlled-workspace-host-activation-transaction-commit-contract";
+export {
+  createFeedWorkspaceHostActivationTransactionCommitIdentity,
+  validateFeedWorkspaceHostActivationTransactionCommitIdentity,
+} from "./sealed/feed-workspace-host-activation-transaction-commit-identity";
+export type { FeedWorkspaceHostActivationTransactionCommitIdentity } from "./sealed/feed-workspace-host-activation-transaction-commit-identity";
+export {
+  createFeedWorkspaceHostActivationTransactionCommitPreparedContract,
+  validateFeedWorkspaceHostActivationTransactionCommitPreparedContract,
+} from "./sealed/feed-workspace-host-activation-transaction-commit-prepared";
+export type { FeedWorkspaceHostActivationTransactionCommitPreparedContract } from "./sealed/feed-workspace-host-activation-transaction-commit-prepared";
 
