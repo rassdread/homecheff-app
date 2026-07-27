@@ -30,7 +30,7 @@ import {
   PHASE_3B3_23_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_ISSUANCE_COMMIT_BOUNDARY_ONLY,
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
   PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
-  PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY,
+  PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY,
   createFeedHostRollbackContract,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -132,9 +132,9 @@ console.log("\n[phase3b32] identity + activation safety");
     observedRollbackTarget: "legacy",
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY));
-  assert.equal(gate.currentStep, "3B.3.38");
-  assert.equal(gate.eligibleStep, "3B.3.39");
+  assert.ok(gate.blockers.includes(PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY));
+  assert.equal(gate.currentStep, "3B.3.39");
+  assert.equal(gate.eligibleStep, "3B.3.40");
   ok("activation remains impossible under all override channels");
 }
 
