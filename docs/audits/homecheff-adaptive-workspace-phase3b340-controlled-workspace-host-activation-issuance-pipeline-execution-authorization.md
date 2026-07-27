@@ -105,6 +105,7 @@ Phase 3B.3.40 sealed + LIVE: **PASS** (9 assertions). Predecessor 3B.3.39 / 3B.3
 1. `469105e1672f02aa1d900cf2cebada89cee7805e` — sealed core + LIVE/gate continuity
 2. `c024f7037c4111390d4ba863ab104c557c0d3dc0` — bridge v41, validator, Chromium probe/orchestrator
 3. `313dd01f0260254f3e46f9a6d6762a1bd5e2a361` — proof predecessor metadata alignment (**proof target**)
+4. `f5e116aba6ebaebbc5e95c6c967f84eb289acbd0` — validator Bridge v41 assertion + documentary artifact pack
 
 ## Freeze
 

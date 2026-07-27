@@ -58,8 +58,8 @@
   "futureActivationStarted": false,
   "predecessorActivationTransactionPreparationState": "TRANSACTION_PREPARED_NOT_COMMITTED",
   "predecessorActivationTransactionPreparationResult": "controlled-workspace-host-activation-transaction-prepared-not-committed",
-  "predecessorActivationTransactionCommitState": "PIPELINE_EXECUTION_READY_NOT_EXECUTED",
-  "predecessorActivationTransactionCommitResult": "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed",
+  "predecessorActivationTransactionCommitState": "TRANSACTION_COMMITTED_NOT_EXECUTED",
+  "predecessorActivationTransactionCommitResult": "controlled-workspace-host-activation-transaction-committed-not-executed",
   "predecessorActivationCommitBoundaryEntryState": "COMMIT_BOUNDARY_ENTERED",
   "predecessorActivationCommitBoundaryEntryResult": "controlled-workspace-host-activation-commit-boundary-entered",
   "issuanceCommitBoundaryState": "NOT_ENTERED",
@@ -84,5 +84,9 @@
   "guardCount": 48,
   "satisfiedGuardCount": 48,
   "evidenceCommit": "313dd01f0260254f3e46f9a6d6762a1bd5e2a361",
-  "evidenceArtifactPath": "docs/audits/artifacts/phase3b340/phase3b3-40-controlled-workspace-host-activation-issuance-pipeline-execution-authorization-proof.json"
+  "evidenceArtifactPath": "docs/audits/artifacts/phase3b340/phase3b3-40-controlled-workspace-host-activation-issuance-pipeline-execution-authorization-proof.json",
+  "issuancePipelineExecutionReady": true,
+  "issuancePipelineExecutionAllowed": false,
+  "predecessorActivationIssuancePipelineExecutionReadinessState": "PIPELINE_EXECUTION_READY_NOT_EXECUTED",
+  "predecessorActivationIssuancePipelineExecutionReadinessResult": "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed"
 }
