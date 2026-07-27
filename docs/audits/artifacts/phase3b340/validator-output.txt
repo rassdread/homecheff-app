@@ -1,0 +1,2 @@
+validate-adaptive-workspace-host-activation-issuance-pipeline-execution-authorization-phase3b340: PASS
+fail-closed: 53
