@@ -2998,6 +2998,10 @@ export type FeedSealedProbeApi = {
     predecessorActivationTransactionPreparationState: "TRANSACTION_PREPARED_NOT_COMMITTED";
     predecessorActivationTransactionCommitReadinessResult: "controlled-workspace-host-activation-transaction-commit-ready-not-committed";
     predecessorActivationTransactionCommitReadinessState: "TRANSACTION_COMMIT_READY_NOT_COMMITTED";
+    predecessorActivationIssuancePipelineExecutionReadinessResult: "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed";
+    predecessorActivationIssuancePipelineExecutionReadinessState: "PIPELINE_EXECUTION_READY_NOT_EXECUTED";
+    predecessorActivationTransactionCommitResult: "controlled-workspace-host-activation-transaction-committed-not-executed";
+    predecessorActivationTransactionCommitState: "TRANSACTION_COMMITTED_NOT_EXECUTED";
     predecessorActivationTransactionCommitAuthorizationResult: "controlled-workspace-host-activation-transaction-commit-authorized-not-committed";
     predecessorActivationTransactionCommitAuthorizationState: "TRANSACTION_COMMIT_AUTHORIZED_NOT_COMMITTED";
     predecessorActivationCommitBoundaryEntryResult: "controlled-workspace-host-activation-commit-boundary-entered";
@@ -7219,6 +7223,10 @@ export function installFeedSealedProbeBridge(): void {
         predecessorActivationTransactionCommitReadinessResult:
           "controlled-workspace-host-activation-transaction-commit-ready-not-committed" as const,
         predecessorActivationTransactionCommitReadinessState: "TRANSACTION_COMMIT_READY_NOT_COMMITTED" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessResult:
+          "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessState:
+          "PIPELINE_EXECUTION_READY_NOT_EXECUTED" as const,
         predecessorActivationTransactionCommitResult:
           "controlled-workspace-host-activation-transaction-committed-not-executed" as const,
         predecessorActivationTransactionCommitState:

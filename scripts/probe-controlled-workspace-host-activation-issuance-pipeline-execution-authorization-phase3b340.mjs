@@ -332,8 +332,10 @@ async function main() {
       reg.nextEligibleStep === "3B.3.41" &&
       reg.activationBlocker === "PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY" &&
       reg.predecessorActivationTransactionPreparationState === "TRANSACTION_PREPARED_NOT_COMMITTED" &&
-      reg.predecessorActivationTransactionCommitResult === "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" &&
-      reg.predecessorActivationTransactionCommitState === "PIPELINE_EXECUTION_READY_NOT_EXECUTED" &&
+      reg.predecessorActivationIssuancePipelineExecutionReadinessResult === "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" &&
+      reg.predecessorActivationIssuancePipelineExecutionReadinessState === "PIPELINE_EXECUTION_READY_NOT_EXECUTED" &&
+      reg.predecessorActivationTransactionCommitResult === "controlled-workspace-host-activation-transaction-committed-not-executed" &&
+      reg.predecessorActivationTransactionCommitState === "TRANSACTION_COMMITTED_NOT_EXECUTED" &&
       reg.activationTransactionPreparationAuthorizationId === "feed.discovery.adaptive-workspace.host-activation-transaction-preparation-authorization.v1" &&
       reg.activationTransactionPreparationAuthorizationContractId === "feed.discovery.adaptive-workspace.host-activation-transaction-preparation-authorization.contract.v1" &&
       reg.activationTransactionPreparationAuthorizationIdentityUnique === true &&
