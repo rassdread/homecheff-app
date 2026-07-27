@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.40 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY.
+ * Phase 3B.3.41 — pure host activation gate.
+ * Always returns allowed=false with PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
@@ -30,6 +30,7 @@ import { PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AU
 import { PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY } from "./controlled-workspace-host-activation-transaction-commit";
 import { PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY } from "./controlled-workspace-host-activation-issuance-pipeline-execution-readiness";
 import { PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY } from "./controlled-workspace-host-activation-issuance-pipeline-execution-authorization";
+import { PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY } from "./controlled-workspace-host-activation-issuance-pipeline-execution";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -72,11 +73,12 @@ export { PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AU
 export { PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY };
 export { PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY };
 export { PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY };
+export { PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.40";
-  eligibleStep: "3B.3.41";
+  currentStep: "3B.3.41";
+  eligibleStep: "3B.3.42";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -172,10 +174,10 @@ export function evaluateFeedHostActivationGate(
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
   const blockers: string[] = [
-    PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
+    PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY,
   ];
   const reasons: string[] = [
-    "Phase 3B.3.40 declares Adaptive Workspace Host Activation issuance pipeline execution authorization metadata only; pipeline execution remains deferred to 3B.3.41+",
+    "Phase 3B.3.41 records Adaptive Workspace Host Activation issuance pipeline executed metadata only; activation remains deferred to 3B.3.42+",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -424,8 +426,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.40",
-    eligibleStep: "3B.3.41",
+    currentStep: "3B.3.41",
+    eligibleStep: "3B.3.42",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

@@ -34,6 +34,10 @@ import {
   stableStringify,
 } from "../index";
 
+import {
+  PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY,
+} from "../sealed/controlled-workspace-host-activation-issuance-pipeline-execution";
+
 let passed = 0;
 function ok(label: string) {
   passed += 1;
@@ -328,11 +332,11 @@ console.log("\n[phase3b318] contract + identity + activation safety");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
+      PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.40");
-  assert.equal(gate.eligibleStep, "3B.3.41");
+  assert.equal(gate.currentStep, "3B.3.41");
+  assert.equal(gate.eligibleStep, "3B.3.42");
   assert.equal(gate.transitionAuthorizationGrantReadinessStatus, "completed");
   ok("activation remains impossible");
 }
@@ -346,7 +350,7 @@ console.log("\n[phase3b318] contract + identity + activation safety");
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(host.nextEligibleStep, "3B.3.41");
+  assert.equal(host.nextEligibleStep, "3B.3.42");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_17_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_DECISION_ONLY,

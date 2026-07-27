@@ -201,7 +201,10 @@
     "probe:adaptive-workspace-host-activation-issuance-pipeline-execution-readiness": "node scripts/run-controlled-workspace-host-activation-issuance-pipeline-execution-readiness-proof-phase3b339.mjs",
     "test:adaptive-workspace-host-activation-issuance-pipeline-execution-authorization": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-issuance-pipeline-execution-authorization-tests.ts",
     "validate:adaptive-workspace-host-activation-issuance-pipeline-execution-authorization": "npx tsx scripts/validate-adaptive-workspace-host-activation-issuance-pipeline-execution-authorization-phase3b340.ts",
-    "probe:adaptive-workspace-host-activation-issuance-pipeline-execution-authorization": "node scripts/run-controlled-workspace-host-activation-issuance-pipeline-execution-authorization-proof-phase3b340.mjs"
+    "probe:adaptive-workspace-host-activation-issuance-pipeline-execution-authorization": "node scripts/run-controlled-workspace-host-activation-issuance-pipeline-execution-authorization-proof-phase3b340.mjs",
+    "test:adaptive-workspace-host-activation-issuance-pipeline-execution": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-issuance-pipeline-execution-tests.ts",
+    "validate:adaptive-workspace-host-activation-issuance-pipeline-execution": "npx tsx scripts/validate-adaptive-workspace-host-activation-issuance-pipeline-execution-phase3b341.ts",
+    "probe:adaptive-workspace-host-activation-issuance-pipeline-execution": "node scripts/run-controlled-workspace-host-activation-issuance-pipeline-execution-proof-phase3b341.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
