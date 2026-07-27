@@ -1,0 +1,27 @@
+{
+  "phase": "3B.3.41",
+  "validatorForcedNegativeCount": 54,
+  "chromiumForcedNegativeProofsOk": true,
+  "labelsSample": [
+    "missing predecessor commit-boundary grant",
+    "wrong predecessor result",
+    "wrong predecessor lifecycle",
+    "issuance transaction state not opened",
+    "transaction opening readiness absent",
+    "transaction preparation authorization duplicate",
+    "transaction opening authorization absent",
+    "transaction opening completed absent",
+    "transaction preparation authorized early",
+    "issuance transaction not prepared",
+    "duplicate issuance pipeline execution",
+    "missing issuance pipeline execution authorization",
+    "commit readiness absent",
+    "commit authorization absent",
+    "duplicate readiness records",
+    "issuance transaction aborted early",
+    "pipeline started early",
+    "pipeline executed early",
+    "missing candidate",
+    "duplicated candidate"
+  ]
+}
