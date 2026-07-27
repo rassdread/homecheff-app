@@ -205,7 +205,7 @@ async function main() {
     const forcedNegativeProofsOk = Object.values(forcedNegativeProofs).every((v) => v === true);
 
     const transactionCommitAuthorizationMetaOk =
-      probe.version === 37 &&
+      probe.version === 38 &&
       reg.phase === "3B.3.37" &&
       reg.candidateId === "feed.discovery.adaptive-workspace.host-candidate.v1" &&
       reg.registrationId === "feed.discovery.adaptive-workspace.host-candidate-registration.v1" &&
@@ -226,8 +226,9 @@ async function main() {
       reg.activationTransactionPreparationId === "feed.discovery.adaptive-workspace.host-activation-transaction-preparation.v1" &&
       reg.activationTransactionPreparationContractId === "feed.discovery.adaptive-workspace.host-activation-transaction-preparation.contract.v1" &&
       reg.activationTransactionCommitReadinessId === "feed.discovery.adaptive-workspace.host-activation-transaction-commit-readiness.v1" &&
+      reg.activationTransactionCommitReadinessContractId === "feed.discovery.adaptive-workspace.host-activation-transaction-commit-readiness.contract.v1" &&
       reg.activationTransactionCommitAuthorizationId === "feed.discovery.adaptive-workspace.host-activation-transaction-commit-authorization.v1" &&
-      reg.activationTransactionCommitReadinessContractId === "feed.discovery.adaptive-workspace.host-activation-transaction-commit-authorization.contract.v1" &&
+      reg.activationTransactionCommitAuthorizationContractId === "feed.discovery.adaptive-workspace.host-activation-transaction-commit-authorization.contract.v1" &&
       reg.transactionPreparationReady === true &&
       reg.transactionPreparationAuthorized === true &&
       reg.transactionCommitReady === true &&
