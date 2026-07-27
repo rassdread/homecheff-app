@@ -189,7 +189,10 @@
     "probe:adaptive-workspace-host-activation-transaction-preparation": "node scripts/run-controlled-workspace-host-activation-transaction-preparation-proof-phase3b335.mjs",
     "test:adaptive-workspace-host-activation-transaction-commit-readiness": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-commit-readiness-tests.ts",
     "validate:adaptive-workspace-host-activation-transaction-commit-readiness": "npx tsx scripts/validate-adaptive-workspace-host-activation-transaction-commit-readiness-phase3b336.ts",
-    "probe:adaptive-workspace-host-activation-transaction-commit-readiness": "node scripts/run-controlled-workspace-host-activation-transaction-commit-readiness-proof-phase3b336.mjs"
+    "probe:adaptive-workspace-host-activation-transaction-commit-readiness": "node scripts/run-controlled-workspace-host-activation-transaction-commit-readiness-proof-phase3b336.mjs",
+    "test:adaptive-workspace-host-activation-transaction-commit-authorization": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-commit-authorization-tests.ts",
+    "validate:adaptive-workspace-host-activation-transaction-commit-authorization": "npx tsx scripts/validate-adaptive-workspace-host-activation-transaction-commit-authorization-phase3b337.ts",
+    "probe:adaptive-workspace-host-activation-transaction-commit-authorization": "node scripts/run-controlled-workspace-host-activation-transaction-commit-authorization-proof-phase3b337.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
