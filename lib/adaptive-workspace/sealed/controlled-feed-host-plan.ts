@@ -23,6 +23,7 @@ import { PHASE_3B3_36_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_RE
 import { PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY } from "./controlled-workspace-host-activation-transaction-commit-authorization";
 import { PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY } from "./controlled-workspace-host-activation-transaction-commit";
 import { PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY } from "./controlled-workspace-host-activation-issuance-pipeline-execution-readiness";
+import { PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY } from "./controlled-workspace-host-activation-issuance-pipeline-execution-authorization";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -55,8 +56,9 @@ export type ControlledFeedHostPlan = {
     typeof PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY,
     typeof PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY,
     typeof PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY,
+    typeof PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
   ];
-  recommendedNextStep: "3B.3.40-controlled-workspace-host-activation";
+  recommendedNextStep: "3B.3.41-controlled-workspace-host-activation";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -201,8 +203,9 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
       PHASE_3B3_36_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_READINESS_ONLY,
       PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY,
       PHASE_3B3_38_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY,
-      PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY],
-    recommendedNextStep: "3B.3.40-controlled-workspace-host-activation",
+      PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY,
+      PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY],
+    recommendedNextStep: "3B.3.41-controlled-workspace-host-activation",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",

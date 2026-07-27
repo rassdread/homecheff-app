@@ -1746,4 +1746,37 @@ export {
 } from "./sealed/feed-workspace-host-activation-issuance-pipeline-execution-readiness-prepared";
 export type { FeedWorkspaceHostActivationIssuancePipelineExecutionReadinessPreparedContract } from "./sealed/feed-workspace-host-activation-issuance-pipeline-execution-readiness-prepared";
 
+export {
+  PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_BLOCKERS,
+  createControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationDescriptor,
+  evaluateControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorization,
+  validateControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationDescriptor,
+} from "./sealed/controlled-workspace-host-activation-issuance-pipeline-execution-authorization";
+export type {
+  ControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationDescriptor,
+  ControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationEvaluation,
+  ControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationState,
+  ControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationResult,
+} from "./sealed/controlled-workspace-host-activation-issuance-pipeline-execution-authorization";
+export {
+  createControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationContract,
+  validateControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationContract,
+} from "./sealed/controlled-workspace-host-activation-issuance-pipeline-execution-authorization-contract";
+export type { ControlledWorkspaceHostActivationIssuancePipelineExecutionAuthorizationContract } from "./sealed/controlled-workspace-host-activation-issuance-pipeline-execution-authorization-contract";
+export {
+  createFeedWorkspaceHostActivationIssuancePipelineExecutionAuthorizationIdentity,
+  validateFeedWorkspaceHostActivationIssuancePipelineExecutionAuthorizationIdentity,
+} from "./sealed/feed-workspace-host-activation-issuance-pipeline-execution-authorization-identity";
+export type { FeedWorkspaceHostActivationIssuancePipelineExecutionAuthorizationIdentity } from "./sealed/feed-workspace-host-activation-issuance-pipeline-execution-authorization-identity";
+export {
+  createFeedWorkspaceHostActivationIssuancePipelineExecutionAuthorizationPreparedContract,
+  validateFeedWorkspaceHostActivationIssuancePipelineExecutionAuthorizationPreparedContract,
+} from "./sealed/feed-workspace-host-activation-issuance-pipeline-execution-authorization-prepared";
+export type { FeedWorkspaceHostActivationIssuancePipelineExecutionAuthorizationPreparedContract } from "./sealed/feed-workspace-host-activation-issuance-pipeline-execution-authorization-prepared";
+
 

@@ -23,8 +23,8 @@ import {
   PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_AUTHORIZATION_ONLY,
 } from "../sealed/controlled-workspace-host-activation-transaction-commit-authorization";
 import {
-  PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY,
-} from "../sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness";
+  PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
+} from "../sealed/controlled-workspace-host-activation-issuance-pipeline-execution-authorization";
 import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ID,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONTRACT_ID,
@@ -401,23 +401,23 @@ console.log("\n[phase3b337] LIVE gate + host continuity");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY,
+      PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.39");
-  assert.equal(gate.eligibleStep, "3B.3.40");
-  ok("activation remains impossible (gate currentStep=3B.3.39, eligibleStep=3B.3.40)");
+  assert.equal(gate.currentStep, "3B.3.40");
+  assert.equal(gate.eligibleStep, "3B.3.41");
+  ok("activation remains impossible (gate currentStep=3B.3.40, eligibleStep=3B.3.41)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "3B.3.40");
+  assert.equal(host.nextEligibleStep, "3B.3.41");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_39_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY,
+      PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.40");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.41");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");
