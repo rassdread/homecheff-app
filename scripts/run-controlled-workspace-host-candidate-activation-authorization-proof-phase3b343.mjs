@@ -3,7 +3,7 @@
  * Phase 3B.3.43 orchestrator:
  * 1) production build with sealed baseline
  * 2) Phase 3B.2 Chromium proof rerun (20/20)
- * 3) Phase 3B.3.43 candidate-activation-readiness Chromium proof
+ * 3) Phase 3B.3.43 candidate-activation-authorization Chromium proof
  */
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
@@ -58,7 +58,7 @@ async function main() {
   );
   const prior = JSON.parse(readFileSync(priorPath, "utf8"));
   if (prior.overallVerdict !== "READY_FOR_PHASE_3B_3_43") {
-    throw new Error(`Phase 3B.3.41 predecessor proof required: ${prior.overallVerdict}`);
+    throw new Error(`Phase 3B.3.42 predecessor proof required: ${prior.overallVerdict}`);
   }
 
   if (process.env.SKIP_BUILD !== "1") {
@@ -115,7 +115,7 @@ async function main() {
     freeze.productionMode = true;
     writeFileSync(freezePath, JSON.stringify(freeze, null, 2) + "\n");
 
-    console.log("[phase3b343] Phase 3B.3.43 candidate-activation-readiness proof");
+    console.log("[phase3b343] Phase 3B.3.43 candidate-activation-authorization proof");
     await run("node", [
       "scripts/probe-controlled-workspace-host-candidate-activation-authorization-phase3b343.mjs",
       `--base-url=${baseUrl}`,
@@ -128,7 +128,7 @@ async function main() {
       readFileSync(
         join(
           out3b333,
-          "phase3b3-42-controlled-workspace-host-candidate-activation-authorization-proof.json",
+          "phase3b3-43-controlled-workspace-host-candidate-activation-authorization-proof.json",
         ),
         "utf8",
       ),
@@ -143,7 +143,7 @@ async function main() {
   } finally {
     server.kill("SIGTERM");
     writeFileSync(
-      join(out3b333, "phase3b3-41-server-log-tail.txt"),
+      join(out3b333, "phase3b3-43-server-log-tail.txt"),
       serverLog.slice(-8000),
     );
   }

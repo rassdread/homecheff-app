@@ -435,7 +435,7 @@ async function main() {
       overallVerdict: anyFail ? "NOT_READY_FOR_PHASE_3B_3_44" : "READY_FOR_PHASE_3B_3_44",
     };
 
-    const proofPath = join(outDir, "phase3b3-42-controlled-workspace-host-candidate-activation-authorization-proof.json");
+    const proofPath = join(outDir, "phase3b3-43-controlled-workspace-host-candidate-activation-authorization-proof.json");
     writeFileSync(proofPath, JSON.stringify(artifact, null, 2) + "\n");
 
     const prepared = {
@@ -530,12 +530,12 @@ async function main() {
       satisfiedGuardCount: diag.satisfiedGuardCount,
       evidenceCommit: commit,
       evidenceArtifactPath:
-        "docs/audits/artifacts/phase3b343/phase3b3-42-controlled-workspace-host-candidate-activation-authorization-proof.json",
+        "docs/audits/artifacts/phase3b343/phase3b3-43-controlled-workspace-host-candidate-activation-authorization-proof.json",
     };
 
 
     writeFileSync(
-      join(outDir, "phase3b3-42-controlled-workspace-host-candidate-activation-authorization-prepared.json"),
+      join(outDir, "phase3b3-43-controlled-workspace-host-candidate-activation-authorization-prepared.json"),
       JSON.stringify(prepared, null, 2) + "\n",
     );
 
@@ -557,7 +557,7 @@ async function main() {
       "",
     ].join("\n");
     writeFileSync(
-      join(outDir, "phase3b3-42-controlled-workspace-host-candidate-activation-authorization-summary.md"),
+      join(outDir, "phase3b3-43-controlled-workspace-host-candidate-activation-authorization-summary.md"),
       summary,
     );
 
