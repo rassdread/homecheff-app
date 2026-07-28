@@ -1,0 +1,1 @@
+validate-adaptive-workspace-host-candidate-activation-authorization-phase3b343: PASS

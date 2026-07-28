@@ -1,0 +1,19 @@
+{
+  "phase": "3B.3.43",
+  "title": "Controlled Workspace Host Candidate Activation Authorization",
+  "branch": "workspace/phase3b343-controlled-workspace-host-candidate-activation-authorization",
+  "predecessorFreezeHead": "a720a4d8f05903c59c0c5ed9dc301d70e6770d4b",
+  "implementationCommit": "b6bc468c4b8359ccf77841b9ffe74756ce197b5b",
+  "proofTargetCommit": "a6def223792c369ecd0d7235fb698d9378f9ef3a",
+  "result": "controlled-workspace-host-candidate-activation-authorized-not-activated",
+  "lifecycle": "CANDIDATE_ACTIVATION_AUTHORIZED_NOT_ACTIVATED",
+  "primaryBlocker": "PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY",
+  "primaryTransition": "candidateActivationAuthorized: false \u2192 true",
+  "transitionCount": 1,
+  "bridge": "v44",
+  "proofPort": 3064,
+  "finalVerdict": "READY_FOR_PHASE_3B_3_44",
+  "browserProofStatus": "proven",
+  "freezeStatus": "pending-freeze-commit",
+  "nothingPushed": true
+}

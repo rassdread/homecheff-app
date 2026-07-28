@@ -1,0 +1,8 @@
+a6def223 fix(adaptive-workspace): expose candidateActivationAuthorizationResult on Bridge v44
+b13cbdd3 fix(adaptive-workspace): correct Phase 3B.3.43 proof artifact filenames
+b6bc468c feat(adaptive-workspace): Phase 3B.3.43 candidate activation authorization metadata
+a720a4d8 chore(adaptive-workspace): freeze Phase 3B.3.42 branch tip
+1e73d41d docs(adaptive-workspace): Phase 3B.3.42 candidate activation readiness audit
+6406c509 fix(adaptive-workspace): normalize Phase 3B.3.42 proof artifact key
+1f824ded fix(adaptive-workspace): correct Phase 3B.3.42 proof artifact path
+112ec4f7 fix(adaptive-workspace): complete Phase 3B.3.42 bridge tip metadata
