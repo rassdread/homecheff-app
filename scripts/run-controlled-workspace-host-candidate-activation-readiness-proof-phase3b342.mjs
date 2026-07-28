@@ -128,7 +128,7 @@ async function main() {
       readFileSync(
         join(
           out3b333,
-          "phase3b3-41-controlled-workspace-host-candidate-activation-readiness-proof.json",
+          "phase3b3-42-controlled-workspace-host-candidate-activation-readiness-proof.json",
         ),
         "utf8",
       ),
