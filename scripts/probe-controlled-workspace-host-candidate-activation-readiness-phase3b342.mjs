@@ -203,7 +203,7 @@ async function main() {
       issuanceBoundaryNotEntered: reg.issuanceCommitBoundaryState === "NOT_ENTERED" && reg.issuanceCommitBoundaryEntered === false,
       transactionOpened: reg.issuanceTransactionState === "OPENED" && reg.issuanceTransactionOpened === true,
       transactionPrepared: reg.issuanceTransactionPrepared === true,
-      candidateActivationReadinessted: reg.issuanceTransactionCommitted === true,
+      transactionCommitted: reg.issuanceTransactionCommitted === true,
       transactionNotAborted: reg.issuanceTransactionAborted === false,
       pipelineNonExecutable: reg.issuancePipelineExecutable === false,
       futureActivationPossible: reg.futureActivationPossible === true,
@@ -346,8 +346,8 @@ async function main() {
       reg.nextEligibleStep === "3B.3.43" &&
       reg.activationBlocker === "PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY" &&
       reg.predecessorActivationTransactionPreparationState === "TRANSACTION_PREPARED_NOT_COMMITTED" &&
-      reg.predecessorActivationCandidateActivationReadinessReadinessResult === "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" &&
-      reg.predecessorActivationCandidateActivationReadinessReadinessState === "PIPELINE_EXECUTION_READY_NOT_EXECUTED" &&
+      reg.predecessorActivationIssuancePipelineExecutionReadinessResult === "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" &&
+      reg.predecessorActivationIssuancePipelineExecutionReadinessState === "PIPELINE_EXECUTION_READY_NOT_EXECUTED" &&
       reg.predecessorActivationTransactionCommitResult === "controlled-workspace-host-activation-transaction-committed-not-executed" &&
       reg.predecessorActivationTransactionCommitState === "TRANSACTION_COMMITTED_NOT_EXECUTED" &&
       reg.activationTransactionPreparationAuthorizationId === "feed.discovery.adaptive-workspace.host-activation-transaction-preparation-authorization.v1" &&
@@ -434,7 +434,7 @@ async function main() {
       overallVerdict: anyFail ? "NOT_READY_FOR_PHASE_3B_3_43" : "READY_FOR_PHASE_3B_3_43",
     };
 
-    const proofPath = join(outDir, "phase3b3-41-controlled-workspace-host-candidate-activation-readiness-proof.json");
+    const proofPath = join(outDir, "phase3b3-42-controlled-workspace-host-candidate-activation-readiness-proof.json");
     writeFileSync(proofPath, JSON.stringify(artifact, null, 2) + "\n");
 
     const prepared = {
@@ -501,8 +501,8 @@ async function main() {
       predecessorActivationTransactionPreparationResult: "controlled-workspace-host-activation-transaction-prepared-not-committed",
       predecessorActivationTransactionCommitState: "TRANSACTION_COMMITTED_NOT_EXECUTED",
       predecessorActivationTransactionCommitResult: "controlled-workspace-host-activation-transaction-committed-not-executed",
-      predecessorActivationCandidateActivationReadinessReadinessState: "PIPELINE_EXECUTION_READY_NOT_EXECUTED",
-      predecessorActivationCandidateActivationReadinessReadinessResult: "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed",
+      predecessorActivationIssuancePipelineExecutionReadinessState: "PIPELINE_EXECUTION_READY_NOT_EXECUTED",
+      predecessorActivationIssuancePipelineExecutionReadinessResult: "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed",
       predecessorActivationCommitBoundaryEntryState: "COMMIT_BOUNDARY_ENTERED",
       predecessorActivationCommitBoundaryEntryResult: "controlled-workspace-host-activation-commit-boundary-entered",
       issuanceCommitBoundaryState: "NOT_ENTERED",
@@ -529,12 +529,12 @@ async function main() {
       satisfiedGuardCount: diag.satisfiedGuardCount,
       evidenceCommit: commit,
       evidenceArtifactPath:
-        "docs/audits/artifacts/phase3b342/phase3b3-41-controlled-workspace-host-candidate-activation-readiness-proof.json",
+        "docs/audits/artifacts/phase3b342/phase3b3-42-controlled-workspace-host-candidate-activation-readiness-proof.json",
     };
 
 
     writeFileSync(
-      join(outDir, "phase3b3-41-controlled-workspace-host-candidate-activation-readiness-prepared.json"),
+      join(outDir, "phase3b3-42-controlled-workspace-host-candidate-activation-readiness-prepared.json"),
       JSON.stringify(prepared, null, 2) + "\n",
     );
 
@@ -556,7 +556,7 @@ async function main() {
       "",
     ].join("\n");
     writeFileSync(
-      join(outDir, "phase3b3-41-controlled-workspace-host-candidate-activation-readiness-summary.md"),
+      join(outDir, "phase3b3-42-controlled-workspace-host-candidate-activation-readiness-summary.md"),
       summary,
     );
 

@@ -3389,6 +3389,20 @@ export type FeedSealedProbeApi = {
     hostActivation: false;
     renderActivation: false;
     canStartActivation: false;
+    duplicateTransactionCommitCount: 0;
+    predecessorActivationTransactionPreparationResult: "controlled-workspace-host-activation-transaction-prepared-not-committed";
+    predecessorActivationTransactionPreparationState: "TRANSACTION_PREPARED_NOT_COMMITTED";
+    predecessorActivationIssuancePipelineExecutionReadinessResult: "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed";
+    predecessorActivationIssuancePipelineExecutionReadinessState: "PIPELINE_EXECUTION_READY_NOT_EXECUTED";
+    predecessorActivationIssuancePipelineExecutionAuthorizationResult: "controlled-workspace-host-activation-issuance-pipeline-execution-authorized-not-executed";
+    predecessorActivationIssuancePipelineExecutionAuthorizationState: "PIPELINE_EXECUTION_AUTHORIZED_NOT_EXECUTED";
+    predecessorActivationIssuancePipelineExecutionResult: "controlled-workspace-host-activation-issuance-pipeline-executed-not-activated";
+    predecessorActivationIssuancePipelineExecutionState: "PIPELINE_EXECUTED_NOT_ACTIVATED";
+    predecessorActivationTransactionCommitResult: "controlled-workspace-host-activation-transaction-committed-not-executed";
+    predecessorActivationTransactionCommitState: "TRANSACTION_COMMITTED_NOT_EXECUTED";
+    predecessorActivationCommitBoundaryEntryResult: "controlled-workspace-host-activation-commit-boundary-entered";
+    predecessorActivationCommitBoundaryEntryState: "COMMIT_BOUNDARY_ENTERED";
+    activationTransactionPreparationAuthorizationIdentityUnique: true;
     activationBlocker: "PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY";
     nextEligibleStep: "3B.3.43";
     conditionCount: number;
@@ -8014,6 +8028,30 @@ export function installFeedSealedProbeBridge(): void {
         hostActivation: false as const,
         renderActivation: false as const,
         canStartActivation: false as const,
+        duplicateTransactionCommitCount: 0 as const,
+        predecessorActivationTransactionPreparationResult:
+          "controlled-workspace-host-activation-transaction-prepared-not-committed" as const,
+        predecessorActivationTransactionPreparationState: "TRANSACTION_PREPARED_NOT_COMMITTED" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessResult:
+          "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessState:
+          "PIPELINE_EXECUTION_READY_NOT_EXECUTED" as const,
+        predecessorActivationIssuancePipelineExecutionAuthorizationResult:
+          "controlled-workspace-host-activation-issuance-pipeline-execution-authorized-not-executed" as const,
+        predecessorActivationIssuancePipelineExecutionAuthorizationState:
+          "PIPELINE_EXECUTION_AUTHORIZED_NOT_EXECUTED" as const,
+        predecessorActivationIssuancePipelineExecutionResult:
+          "controlled-workspace-host-activation-issuance-pipeline-executed-not-activated" as const,
+        predecessorActivationIssuancePipelineExecutionState:
+          "PIPELINE_EXECUTED_NOT_ACTIVATED" as const,
+        predecessorActivationTransactionCommitResult:
+          "controlled-workspace-host-activation-transaction-committed-not-executed" as const,
+        predecessorActivationTransactionCommitState:
+          "TRANSACTION_COMMITTED_NOT_EXECUTED" as const,
+        predecessorActivationCommitBoundaryEntryResult:
+          "controlled-workspace-host-activation-commit-boundary-entered" as const,
+        predecessorActivationCommitBoundaryEntryState: "COMMIT_BOUNDARY_ENTERED" as const,
+        activationTransactionPreparationAuthorizationIdentityUnique: true as const,
         activationBlocker:
           "PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY" as const,
         nextEligibleStep: "3B.3.43" as const,
