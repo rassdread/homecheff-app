@@ -1,0 +1,8 @@
+6406c509 fix(adaptive-workspace): normalize Phase 3B.3.42 proof artifact key
+1f824ded fix(adaptive-workspace): correct Phase 3B.3.42 proof artifact path
+112ec4f7 fix(adaptive-workspace): complete Phase 3B.3.42 bridge tip metadata
+2ebbf71e feat(adaptive-workspace): Phase 3B.3.42 candidate activation readiness metadata
+d599ec35 chore(adaptive-workspace): freeze Phase 3B.3.41 branch tip
+4e24e1ab docs(adaptive-workspace): Phase 3B.3.41 issuance pipeline execution audit
+96cd5fe8 fix(adaptive-workspace): correct Phase 3B.3.41 bridge tip metadata
+a57908f8 fix(adaptive-workspace): harden Phase 3B.3.41 Chromium probe settle
