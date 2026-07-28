@@ -31,6 +31,7 @@ import {
   PHASE_3B3_24_CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ONLY,
   PHASE_3B3_30_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ONLY,
   PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
+  PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   HardContractViolation,
@@ -150,9 +151,9 @@ console.log("\n[phase3b34] contract + identity + activation safety");
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY));
-  assert.equal(gate.currentStep, "3B.3.42");
-  assert.equal(gate.eligibleStep, "3B.3.43");
+  assert.ok(gate.blockers.includes(PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY));
+  assert.equal(gate.currentStep, "3B.3.43");
+  assert.equal(gate.eligibleStep, "3B.3.44");
   ok("activation remains impossible");
 }
 

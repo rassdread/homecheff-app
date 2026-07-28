@@ -1848,3 +1848,37 @@ export type { FeedWorkspaceHostCandidateActivationReadinessPreparedContract } fr
 
 
 
+
+export {
+  PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_BLOCKERS,
+  createControlledWorkspaceHostCandidateActivationAuthorizationDescriptor,
+  evaluateControlledWorkspaceHostCandidateActivationAuthorization,
+  validateControlledWorkspaceHostCandidateActivationAuthorizationDescriptor,
+} from "./sealed/controlled-workspace-host-candidate-activation-authorization";
+export type {
+  ControlledWorkspaceHostCandidateActivationAuthorizationDescriptor,
+  ControlledWorkspaceHostCandidateActivationAuthorizationEvaluation,
+  ControlledWorkspaceHostCandidateActivationAuthorizationState,
+  ControlledWorkspaceHostCandidateActivationAuthorizationResult,
+} from "./sealed/controlled-workspace-host-candidate-activation-authorization";
+export {
+  createControlledWorkspaceHostCandidateActivationAuthorizationContract,
+  validateControlledWorkspaceHostCandidateActivationAuthorizationContract,
+} from "./sealed/controlled-workspace-host-candidate-activation-authorization-contract";
+export type { ControlledWorkspaceHostCandidateActivationAuthorizationContract } from "./sealed/controlled-workspace-host-candidate-activation-authorization-contract";
+export {
+  createFeedWorkspaceHostCandidateActivationAuthorizationIdentity,
+  validateFeedWorkspaceHostCandidateActivationAuthorizationIdentity,
+} from "./sealed/feed-workspace-host-candidate-activation-authorization-identity";
+export type { FeedWorkspaceHostCandidateActivationAuthorizationIdentity } from "./sealed/feed-workspace-host-candidate-activation-authorization-identity";
+export {
+  createFeedWorkspaceHostCandidateActivationAuthorizationPreparedContract,
+  validateFeedWorkspaceHostCandidateActivationAuthorizationPreparedContract,
+} from "./sealed/feed-workspace-host-candidate-activation-authorization-prepared";
+export type { FeedWorkspaceHostCandidateActivationAuthorizationPreparedContract } from "./sealed/feed-workspace-host-candidate-activation-authorization-prepared";
+

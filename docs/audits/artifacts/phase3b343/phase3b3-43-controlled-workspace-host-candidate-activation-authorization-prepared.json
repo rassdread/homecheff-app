@@ -1,0 +1,47 @@
+{
+  "phase": "3B.3.43",
+  "title": "Controlled Workspace Host Candidate Activation Authorization",
+  "branch": "workspace/phase3b343-controlled-workspace-host-candidate-activation-authorization",
+  "authoritativePredecessor": {
+    "phase": "3B.3.42",
+    "branch": "workspace/phase3b342-controlled-workspace-host-candidate-activation-readiness",
+    "freezeHead": "a720a4d8f05903c59c0c5ed9dc301d70e6770d4b",
+    "result": "controlled-workspace-host-candidate-activation-ready-not-activated",
+    "lifecycle": "CANDIDATE_ACTIVATION_READY_NOT_ACTIVATED",
+    "blocker": "PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY",
+    "bridge": "v43",
+    "verdict": "READY_FOR_PHASE_3B_3_43"
+  },
+  "expectedResult": "controlled-workspace-host-candidate-activation-authorized-not-activated",
+  "expectedLifecycle": "CANDIDATE_ACTIVATION_AUTHORIZED_NOT_ACTIVATED",
+  "expectedBlocker": "PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY",
+  "primaryTransition": {
+    "field": "candidateActivationAuthorized",
+    "before": false,
+    "after": true,
+    "transitionCount": 1
+  },
+  "preserved": {
+    "candidateActivationReady": true,
+    "candidateActivated": false,
+    "candidateActive": false,
+    "candidateExecutable": false,
+    "issuancePipelineExecutionAllowed": false,
+    "issuancePipelineExecutable": false,
+    "issuancePipelineState": "NON_EXECUTABLE",
+    "issuanceTransactionState": "OPENED",
+    "WorkspaceRendered": false,
+    "runtimeCapabilityPresent": false,
+    "GeoFeedOwner": "legacy",
+    "GeoFeedMountCount": 1,
+    "GeoFeedRenderCount": 1,
+    "GeoFeedUnmountCount": 0
+  },
+  "bridgeVersion": "v44",
+  "bridgeReader": "readControlledWorkspaceHostCandidateActivationAuthorization",
+  "metaOkField": "candidateActivationAuthorizedMetaOk",
+  "proofPort": 3064,
+  "expectedFinalVerdict": "READY_FOR_PHASE_3B_3_44",
+  "candidateActivationAuthorizedClaimed": false,
+  "note": "Prepared pre-evaluation metadata only; does not claim authorization success or proof PASS."
+}

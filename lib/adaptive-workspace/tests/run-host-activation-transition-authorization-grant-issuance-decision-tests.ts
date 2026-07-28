@@ -37,6 +37,9 @@ import {
 import {
   PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY,
 } from "../sealed/controlled-workspace-host-candidate-activation-readiness";
+import {
+  PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
+} from "../sealed/controlled-workspace-host-candidate-activation-authorization";
 
 let passed = 0;
 function ok(label: string) {
@@ -381,11 +384,11 @@ console.log(
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY,
+      PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.42");
-  assert.equal(gate.eligibleStep, "3B.3.43");
+  assert.equal(gate.currentStep, "3B.3.43");
+  assert.equal(gate.eligibleStep, "3B.3.44");
   ok(
     "activation remains impossible (gate currentStep=3B.3.19, eligibleStep=3B.3.20)",
   );
@@ -400,7 +403,7 @@ console.log(
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(host.nextEligibleStep, "3B.3.43");
+  assert.equal(host.nextEligibleStep, "3B.3.44");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,
