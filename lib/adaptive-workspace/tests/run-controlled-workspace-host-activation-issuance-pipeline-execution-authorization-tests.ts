@@ -23,8 +23,8 @@ import {
   PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
 } from "../sealed/controlled-workspace-host-activation-issuance-pipeline-execution-authorization";
 import {
-  PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY,
-} from "../sealed/controlled-workspace-host-activation-issuance-pipeline-execution";
+  PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY,
+} from "../sealed/controlled-workspace-host-candidate-activation-readiness";
 import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ID,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_CONTRACT_ID,
@@ -479,23 +479,23 @@ if (process.env.SKIP_PHASE3B340_LIVE === "1") {
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY,
+      PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.41");
-  assert.equal(gate.eligibleStep, "3B.3.42");
-  ok("activation remains impossible (gate currentStep=3B.3.41, eligibleStep=3B.3.42)");
+  assert.equal(gate.currentStep, "3B.3.42");
+  assert.equal(gate.eligibleStep, "3B.3.43");
+  ok("activation remains impossible (gate currentStep=3B.3.42, eligibleStep=3B.3.43)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "3B.3.42");
+  assert.equal(host.nextEligibleStep, "3B.3.43");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.42");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.43");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

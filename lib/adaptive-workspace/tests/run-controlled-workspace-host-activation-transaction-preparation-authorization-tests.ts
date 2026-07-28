@@ -9,7 +9,7 @@ import { createControlledHostRegistry } from "../sealed/controlled-host-registry
 import { createControlledFeedHostContract } from "../sealed/create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "../sealed/feed-host-rollback-contract";
 import { evaluateFeedHostActivationGate,
-  PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY,
+  PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY,
 } from "../sealed/feed-host-activation-gate";
 import { FEED_DISCOVERY_HOST_CANDIDATE_METADATA } from "../registry/settings-manifests";
 import { FEED_DISCOVERY_STABLE_RUNTIME_ID } from "../sealed/controlled-host-registry";
@@ -329,23 +329,23 @@ console.log("\n[phase3b334] LIVE gate + host continuity");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_41_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_ONLY,
+      PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.41");
-  assert.equal(gate.eligibleStep, "3B.3.42");
-  ok("activation remains impossible (gate currentStep=3B.3.41, eligibleStep=3B.3.42)");
+  assert.equal(gate.currentStep, "3B.3.42");
+  assert.equal(gate.eligibleStep, "3B.3.43");
+  ok("activation remains impossible (gate currentStep=3B.3.42, eligibleStep=3B.3.43)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "3B.3.42");
+  assert.equal(host.nextEligibleStep, "3B.3.43");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.42");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.43");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

@@ -167,8 +167,8 @@ console.log("\n[phase3b31] activation gate");
   assert.equal(gate.allowed, false);
   assert.ok(gate.blockers.includes(PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY));
   assert.ok(gate.blockers.includes(PHASE_3B3_1_DORMANT_HOST_ONLY) === false);
-  assert.equal(gate.currentStep, "3B.3.41");
-  assert.equal(gate.eligibleStep, "3B.3.42");
+  assert.equal(gate.currentStep, "3B.3.42");
+  assert.equal(gate.eligibleStep, "3B.3.43");
   ok("gate always denied; force/env/query/cookie/storage ignored");
 }
 

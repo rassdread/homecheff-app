@@ -234,8 +234,8 @@ console.log("\n[phase3b316] contract + identity + activation safety");
   assert.ok(
     gate.blockers.includes(PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY),
   );
-  assert.equal(gate.currentStep, "3B.3.41");
-  assert.equal(gate.eligibleStep, "3B.3.42");
+  assert.equal(gate.currentStep, "3B.3.42");
+  assert.equal(gate.eligibleStep, "3B.3.43");
   ok("activation remains impossible");
 }
 
