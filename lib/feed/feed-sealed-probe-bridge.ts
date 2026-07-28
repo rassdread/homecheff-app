@@ -8301,7 +8301,7 @@ export function installFeedSealedProbeBridge(): void {
         activationCandidateActivationAuthorizationContractId: d.activationCandidateActivationAuthorizationContractId,
         candidateKind: "adaptive-workspace" as const,
         candidateActivationAuthorizationState: "CANDIDATE_ACTIVATION_AUTHORIZED_NOT_ACTIVATED" as const,
-        candidateActivationReadinessResult:
+        candidateActivationAuthorizationResult:
           "controlled-workspace-host-candidate-activation-authorized-not-activated" as const,
         transactionOpeningReady: true as const,
         transactionOpeningAuthorized: true as const,
