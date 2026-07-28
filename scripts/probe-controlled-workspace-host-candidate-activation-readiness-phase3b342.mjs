@@ -413,7 +413,7 @@ async function main() {
       hostRegistry: hr,
       hostContract: probe.hostContract,
       hostPlan: probe.hostPlan,
-      controlledWorkspaceHostActivationCandidateActivationReadiness: reg,
+      controlledWorkspaceHostCandidateActivationReadiness: reg,
       hostActivationTransitionAuthorizationGrantIssuanceCommitBoundary: cb,
       candidateActivationReadyMetaOk,
       forcedNegativeProofs,
