@@ -92,5 +92,8 @@
   "guardCount": 48,
   "satisfiedGuardCount": 48,
   "evidenceCommit": "2016ddeb423e665915c411ff4d4115e848695a80",
-  "evidenceArtifactPath": "docs/audits/artifacts/phase3b345/phase3b3-45-controlled-workspace-host-candidate-active-proof.json"
+  "evidenceArtifactPath": "docs/audits/artifacts/phase3b345/phase3b3-45-controlled-workspace-host-candidate-active-proof.json",
+  "predecessorFreeze": "a05ad10b4c5be068da0c043ff114a9d597f764d3",
+  "predecessorReproofTarget": "69e6ab57294975beeab6355d4c9885b487c0b175",
+  "predecessorReproofDocumentary": "c88876b2d1b6153468909f5af5abfb166e9fb9d3"
 }
