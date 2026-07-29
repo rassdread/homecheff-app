@@ -88,5 +88,9 @@
   "guardCount": 48,
   "satisfiedGuardCount": 48,
   "evidenceCommit": "b4f092d522e558938f38a8c36eaf0d05033d8883",
-  "evidenceArtifactPath": "docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-proof.json"
+  "evidenceArtifactPath": "docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-proof.json",
+  "candidateActive": false,
+  "candidateActivationReady": true,
+  "candidateActivationAuthorized": true,
+  "issuancePipelineExecuted": true
 }
