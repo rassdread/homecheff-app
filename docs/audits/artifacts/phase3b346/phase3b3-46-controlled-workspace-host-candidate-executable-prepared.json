@@ -87,7 +87,7 @@
   "satisfiedConditionCount": 130,
   "guardCount": 48,
   "satisfiedGuardCount": 48,
-  "evidenceCommit": "2d8e8be54913c6d713d1ee35e0a94e74e92b02c5",
+  "evidenceCommit": "1a1c75e45de4f5109cc9891e8a991c92b78fc0ee",
   "evidenceArtifactPath": "docs/audits/artifacts/phase3b346/phase3b3-46-controlled-workspace-host-candidate-executable-prepared.json",
   "predecessorFreeze": "2d8e8be54913c6d713d1ee35e0a94e74e92b02c5",
   "predecessorImplementation": "2016ddeb423e665915c411ff4d4115e848695a80",

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "phase": "3B.3.46",
   "branch": "workspace/phase3b346-controlled-workspace-host-candidate-executable",
-  "commit": "2d8e8be54913c6d713d1ee35e0a94e74e92b02c5",
+  "commit": "1a1c75e45de4f5109cc9891e8a991c92b78fc0ee",
   "browser": "chromium-puppeteer-core",
   "browserVersion": "Chrome/131.0.6778.33",
   "productionMode": true,
@@ -3891,5 +3891,8 @@
     "transitionCount": 1
   },
   "proofPort": 3067,
-  "reader": "readControlledWorkspaceHostCandidateExecutable"
+  "reader": "readControlledWorkspaceHostCandidateExecutable",
+  "implementationCommit": "1a1c75e45de4f5109cc9891e8a991c92b78fc0ee",
+  "documentaryCommit": "fe091acce0219b399738b191755d23a64431808e",
+  "proofTarget": "1a1c75e45de4f5109cc9891e8a991c92b78fc0ee"
 }
