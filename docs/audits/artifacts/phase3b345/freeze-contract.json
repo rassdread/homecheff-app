@@ -1,0 +1,12 @@
+{
+  "phase": "3B.3.45",
+  "title": "Controlled Workspace Host Candidate Active",
+  "result": "controlled-workspace-host-candidate-active-not-executable",
+  "lifecycle": "CANDIDATE_ACTIVE_NOT_EXECUTABLE",
+  "blocker": "PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY",
+  "implementationCommit": "2016ddeb423e665915c411ff4d4115e848695a80",
+  "documentaryCommit": "c9bd3d45c2f02e4faeb641babc1e49871e7d2bfc",
+  "freezeCommit": "pending",
+  "nextEligiblePhase": "3B.3.46",
+  "finalVerdict": "READY_FOR_PHASE_3B_3_46"
+}
