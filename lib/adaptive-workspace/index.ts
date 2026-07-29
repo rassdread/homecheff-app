@@ -1882,3 +1882,36 @@ export {
 } from "./sealed/feed-workspace-host-candidate-activation-authorization-prepared";
 export type { FeedWorkspaceHostCandidateActivationAuthorizationPreparedContract } from "./sealed/feed-workspace-host-candidate-activation-authorization-prepared";
 
+export {
+  PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_BLOCKERS,
+  createControlledWorkspaceHostCandidateActivationDescriptor,
+  evaluateControlledWorkspaceHostCandidateActivation,
+  validateControlledWorkspaceHostCandidateActivationDescriptor,
+} from "./sealed/controlled-workspace-host-candidate-activation";
+export type {
+  ControlledWorkspaceHostCandidateActivationDescriptor,
+  ControlledWorkspaceHostCandidateActivationEvaluation,
+  ControlledWorkspaceHostCandidateActivationState,
+  ControlledWorkspaceHostCandidateActivationResult,
+} from "./sealed/controlled-workspace-host-candidate-activation";
+export {
+  createControlledWorkspaceHostCandidateActivationContract,
+  validateControlledWorkspaceHostCandidateActivationContract,
+} from "./sealed/controlled-workspace-host-candidate-activation-contract";
+export type { ControlledWorkspaceHostCandidateActivationContract } from "./sealed/controlled-workspace-host-candidate-activation-contract";
+export {
+  createFeedWorkspaceHostCandidateActivationIdentity,
+  validateFeedWorkspaceHostCandidateActivationIdentity,
+} from "./sealed/feed-workspace-host-candidate-activation-identity";
+export type { FeedWorkspaceHostCandidateActivationIdentity } from "./sealed/feed-workspace-host-candidate-activation-identity";
+export {
+  createFeedWorkspaceHostCandidateActivationPreparedContract,
+  validateFeedWorkspaceHostCandidateActivationPreparedContract,
+} from "./sealed/feed-workspace-host-candidate-activation-prepared";
+export type { FeedWorkspaceHostCandidateActivationPreparedContract } from "./sealed/feed-workspace-host-candidate-activation-prepared";
+

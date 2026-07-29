@@ -1,3 +1,4 @@
+import { PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY } from "../sealed/controlled-workspace-host-candidate-activation";
 /**
  * Phase 3B.3.9 — host activation pipeline unit tests.
  */
@@ -222,9 +223,9 @@ console.log("\n[phase3b39] contract + identity + activation safety");
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   });
   assert.equal(gate.allowed, false);
-  assert.ok(gate.blockers.includes(PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY));
-  assert.equal(gate.currentStep, "3B.3.43");
-  assert.equal(gate.eligibleStep, "3B.3.44");
+  assert.ok(gate.blockers.includes(PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY));
+  assert.equal(gate.currentStep, "3B.3.44");
+  assert.equal(gate.eligibleStep, "3B.3.45");
   ok("activation remains impossible");
 }
 
