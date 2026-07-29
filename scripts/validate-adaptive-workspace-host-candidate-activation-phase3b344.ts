@@ -717,7 +717,7 @@ if (artifactsPresent) {
   assert.equal(proof.overallVerdict, "READY_FOR_PHASE_3B_3_45");
   assert.equal(proof.candidateActivatedMetaOk, true);
   assert.equal(proof.forcedNegativeProofsOk, true);
-  assert.equal(proof.bridgeVersion ?? proof.version ?? 44, 44);
+  assert.equal(proof.bridgeVersion ?? proof.version ?? 45, 45);
   rejectUnresolved("proof.overallVerdict", proof.overallVerdict);
   const prepared = JSON.parse(readFileSync(preparedPath, "utf8"));
   validateFeedWorkspaceHostCandidateActivationPreparedContract(prepared);
