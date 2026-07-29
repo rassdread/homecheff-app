@@ -128,27 +128,82 @@ No runtime capability, host instance, activation/execution handle, token, creden
 npm run test:adaptive-workspace-host-candidate-activation
 npx tsx scripts/validate-adaptive-workspace-host-candidate-activation-phase3b344.ts
 node scripts/run-controlled-workspace-host-candidate-activation-proof-phase3b344.mjs
+# package canonical entry:
+npm run probe:adaptive-workspace-host-candidate-activation
 ```
 
-## Proof results
+## Proof results (original Chromium at implementation tip)
 
 | Stage | Result |
 |-------|--------|
 | Dedicated tests | PASS (12 assertion groups) |
 | Validator | PASS |
-| Forced-negative cases (validator) | ≥30 labels |
+| Forced-negative cases (validator) | 56 labels |
 | Production sealed build | PASS |
 | Bridge v45 Chromium | 20/20 PASS (`candidateActivatedMetaOk=true`) |
 | Controlled Workspace Phase 3B.2 regression | 20/20 PASS |
+| Original Chromium proof target | `b4f092d522e558938f38a8c36eaf0d05033d8883` |
+| Final verdict (at that tip) | `READY_FOR_PHASE_3B_3_45` |
+
+Historical original Chromium artifact is preserved at:
+
+`docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-proof-original-b4f092d5.json`
+
+## Freeze-head reproof (required after post-proof corrections)
+
+### Why reproof was required
+
+After the original Chromium orchestrator ran against implementation commit `b4f092d5…`, two tracked corrections landed before the original freeze:
+
+| Commit | Role | Classification |
+|--------|------|----------------|
+| `e20bec80201531e6d318db3671fe1cbf40e7c75d` | Validator bridge expect 44→45 | proof-tooling |
+| `e95df863d8b6cc35215e989cc0678cec7b15a898` | Prepared artifact completeness flags | generated-artifact-only |
+| `69e6ab57294975beeab6355d4c9885b487c0b175` | Original freeze pack | documentary freeze |
+
+Inspection verdict was `BLOCKED_PENDING_PHASE_3B_3_44_REPROOF` because no complete proof artifact demonstrated a full rerun against the final tracked tip.
+
+### Reproof-target policy
+
+The reproof target is the exact commit whose complete tracked state is tested. Default (and selected) target:
+
+`69e6ab57294975beeab6355d4c9885b487c0b175` (original freeze HEAD)
+
+That tip already includes implementation, documentary artifacts, validator fix, prepared fix, and the original freeze pack. Post-implementation path diff vs `b4f092d5…` is validator expect + artifacts/docs/freeze only — no sealed/runtime semantic change.
+
+### Reproof commands and results
+
+```bash
+npm run test:adaptive-workspace-host-candidate-activation
+npx tsx scripts/validate-adaptive-workspace-host-candidate-activation-phase3b344.ts
+npm run probe:adaptive-workspace-host-candidate-activation
+```
+
+| Stage | Reproof result |
+|-------|----------------|
+| Dedicated tests | PASS (12 assertions) |
+| Validator | PASS (56 forced-negative labels; artifact checks included) |
+| Production sealed build | PASS |
+| Bridge v45 Chromium | 20/20 PASS (`candidateActivatedMetaOk=true`) |
+| Controlled Workspace Phase 3B.2 regression | 20/20 PASS |
+| Chromium forced-negative proofs | 49/49 PASS |
+| Proof artifact `commit` / `reproofTargetCommit` | `69e6ab57294975beeab6355d4c9885b487c0b175` |
 | Final verdict | `READY_FOR_PHASE_3B_3_45` |
+
+Eligibility for Phase **3B.3.45** is based on this successful freeze-head reproof against the final tracked state, not solely on the original Chromium artifact at `b4f092d5…`.
 
 ## Commits (implementation / proof / documentary)
 
 | Role | Hash |
 |------|------|
-| Implementation / proof target | `b4f092d522e558938f38a8c36eaf0d05033d8883` |
-| Documentary | recorded in Git after this audit lands |
-| Freeze | subsequent non-self-referential freeze tip (not embedded here) |
+| Implementation / original proof target | `b4f092d522e558938f38a8c36eaf0d05033d8883` |
+| Original documentary | `e5a38ecde109dcae2fe619ad8b3fc3462454bfba` |
+| Validator fix | `e20bec80201531e6d318db3671fe1cbf40e7c75d` |
+| Prepared artifact fix | `e95df863d8b6cc35215e989cc0678cec7b15a898` |
+| Original freeze | `69e6ab57294975beeab6355d4c9885b487c0b175` |
+| Reproof target | `69e6ab57294975beeab6355d4c9885b487c0b175` |
+| Reproof documentary | recorded in Git after this audit update lands |
+| Final freeze | subsequent non-self-referential freeze tip (not embedded here) |
 
 ## File manifest (Phase 3B.3.44)
 

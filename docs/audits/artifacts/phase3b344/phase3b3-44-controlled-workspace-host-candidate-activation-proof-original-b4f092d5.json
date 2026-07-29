@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "phase": "3B.3.44",
   "branch": "workspace/phase3b344-controlled-workspace-host-candidate-activation",
-  "commit": "69e6ab57294975beeab6355d4c9885b487c0b175",
+  "commit": "b4f092d522e558938f38a8c36eaf0d05033d8883",
   "browser": "chromium-puppeteer-core",
   "browserVersion": "Chrome/131.0.6778.33",
   "productionMode": true,
@@ -3870,13 +3870,5 @@
       "status": "PASS"
     }
   ],
-  "overallVerdict": "READY_FOR_PHASE_3B_3_45",
-  "originalImplementationCommit": "b4f092d522e558938f38a8c36eaf0d05033d8883",
-  "originalProofTargetCommit": "b4f092d522e558938f38a8c36eaf0d05033d8883",
-  "validatorFixCommit": "e20bec80201531e6d318db3671fe1cbf40e7c75d",
-  "preparedArtifactFixCommit": "e95df863d8b6cc35215e989cc0678cec7b15a898",
-  "originalFreezeCommit": "69e6ab57294975beeab6355d4c9885b487c0b175",
-  "reproofTargetCommit": "69e6ab57294975beeab6355d4c9885b487c0b175",
-  "proofKind": "freeze-head-reproof",
-  "originalProofArtifactPath": "docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-proof-original-b4f092d5.json"
+  "overallVerdict": "READY_FOR_PHASE_3B_3_45"
 }
