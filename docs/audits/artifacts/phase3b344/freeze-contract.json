@@ -1,0 +1,15 @@
+{
+  "phase": "3B.3.44",
+  "result": "controlled-workspace-host-candidate-activated-not-active",
+  "lifecycle": "CANDIDATE_ACTIVATED_NOT_ACTIVE",
+  "blocker": "PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY",
+  "candidateActivated": true,
+  "candidateActive": false,
+  "candidateExecutable": false,
+  "workspaceAbsent": true,
+  "runtimeAbsent": true,
+  "geoFeedLegacy110": true,
+  "bridge": "v45",
+  "verdict": "READY_FOR_PHASE_3B_3_45",
+  "nonSelfReferential": true
+}
