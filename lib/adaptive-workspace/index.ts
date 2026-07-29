@@ -1915,3 +1915,36 @@ export {
 } from "./sealed/feed-workspace-host-candidate-activation-prepared";
 export type { FeedWorkspaceHostCandidateActivationPreparedContract } from "./sealed/feed-workspace-host-candidate-activation-prepared";
 
+
+export {
+  PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_BLOCKERS,
+  createControlledWorkspaceHostCandidateActiveDescriptor,
+  evaluateControlledWorkspaceHostCandidateActive,
+  validateControlledWorkspaceHostCandidateActiveDescriptor,
+} from "./sealed/controlled-workspace-host-candidate-active";
+export type {
+  ControlledWorkspaceHostCandidateActiveDescriptor,
+  ControlledWorkspaceHostCandidateActiveEvaluation,
+  ControlledWorkspaceHostCandidateActiveState,
+  ControlledWorkspaceHostCandidateActiveResult,
+} from "./sealed/controlled-workspace-host-candidate-active";
+export {
+  createControlledWorkspaceHostCandidateActiveContract,
+  validateControlledWorkspaceHostCandidateActiveContract,
+} from "./sealed/controlled-workspace-host-candidate-active-contract";
+export type { ControlledWorkspaceHostCandidateActiveContract } from "./sealed/controlled-workspace-host-candidate-active-contract";
+export {
+  createFeedWorkspaceHostCandidateActiveIdentity,
+  validateFeedWorkspaceHostCandidateActiveIdentity,
+} from "./sealed/feed-workspace-host-candidate-active-identity";
+export type { FeedWorkspaceHostCandidateActiveIdentity } from "./sealed/feed-workspace-host-candidate-active-identity";
+export {
+  createFeedWorkspaceHostCandidateActivePreparedContract,
+  validateFeedWorkspaceHostCandidateActivePreparedContract,
+} from "./sealed/feed-workspace-host-candidate-active-prepared";
+export type { FeedWorkspaceHostCandidateActivePreparedContract } from "./sealed/feed-workspace-host-candidate-active-prepared";

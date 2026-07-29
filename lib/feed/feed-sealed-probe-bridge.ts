@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 45;
+  version: 46;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -3794,6 +3794,199 @@ export type FeedSealedProbeApi = {
     diagnostics: Record<string, unknown>;
   }>;
 
+  readControlledWorkspaceHostCandidateActive: () => Promise<{
+    phase: "3B.3.45";
+    candidateId: string;
+    registrationId: string;
+    selectionId: string;
+    activationReadinessId: string;
+    activationAuthorizationId: string;
+    activationGrantId: string;
+    activationGrantIssuanceId: string;
+    activationCommitBoundaryId: string;
+    activationCommitBoundaryContractId: string;
+    activationTransactionOpeningReadinessId: string;
+    activationTransactionOpeningReadinessContractId: string;
+    activationTransactionOpeningAuthorizationId: string;
+    activationTransactionOpeningAuthorizationContractId: string;
+    activationTransactionOpeningId: string;
+    activationTransactionOpeningContractId: string;
+    activationTransactionPreparationReadinessId: string;
+    activationTransactionPreparationReadinessContractId: string;
+    activationTransactionPreparationAuthorizationId: string;
+    activationTransactionPreparationAuthorizationContractId: string;
+    activationTransactionPreparationId: string;
+    activationTransactionPreparationContractId: string;
+    activationTransactionCommitReadinessId: string;
+    activationTransactionCommitReadinessContractId: string;
+    activationTransactionCommitAuthorizationId: string;
+    activationTransactionCommitAuthorizationContractId: string;
+    activationTransactionCommitId: string;
+    activationTransactionCommitContractId: string;
+    activationIssuancePipelineExecutionReadinessId: string;
+    activationIssuancePipelineExecutionReadinessContractId: string;
+    activationIssuancePipelineExecutionAuthorizationId: string;
+    activationIssuancePipelineExecutionAuthorizationContractId: string;
+    activationIssuancePipelineExecutionId: string;
+    activationIssuancePipelineExecutionContractId: string;
+    activationCandidateActivationReadinessId: string;
+    activationCandidateActivationReadinessContractId: string;
+    activationCandidateActivationAuthorizationId: string;
+    activationCandidateActivationAuthorizationContractId: string;
+    activationCandidateActivationId: string;
+    activationCandidateActivationContractId: string;
+    activationCandidateActiveId: string;
+    activationCandidateActiveContractId: string;
+    candidateKind: "adaptive-workspace";
+    candidateActivationState: "CANDIDATE_ACTIVE_NOT_EXECUTABLE";
+    candidateActivationResult: "controlled-workspace-host-candidate-active-not-executable";
+    transactionOpeningReady: true;
+    transactionOpeningAuthorized: true;
+    transactionOpeningStarted: true;
+    transactionOpeningCompleted: true;
+    transactionPreparationReady: true;
+    transactionPreparationAuthorized: true;
+    transactionCommitReady: true;
+    transactionCommitAuthorized: true;
+    issuancePipelineExecutionReady: true;
+    issuancePipelineExecutionAuthorized: true;
+    issuancePipelineExecuted: true;
+    candidateActivationReady: true;
+    candidateActivationAuthorized: true;
+    issuancePipelineExecutionAllowed: false;
+    issuancePipelineState: "NON_EXECUTABLE";
+    activationCommitBoundaryEntered: true;
+    activationCommitBoundaryState: "ENTERED";
+    activationCommitBoundaryArmed: false;
+    activationCommitBoundaryCrossed: false;
+    activationCommitBoundaryCommitted: false;
+    activationCommitBoundaryAborted: false;
+    activationCommitBoundaryExecutable: false;
+    activationCommitBoundaryBlocked: true;
+    activationTransactionOpeningAllowed: false;
+    activationExecutionAllowed: false;
+    transitionFrom: "NOT_ENTERED";
+    transitionTo: "ENTERED";
+    transitionLegal: true;
+    candidateSelected: true;
+    candidateReady: true;
+    candidateAuthorized: true;
+    candidateGranted: true;
+    candidateActivated: true;
+    candidateActive: true;
+    candidateExecutable: false;
+    grantPresent: true;
+    grantIssued: true;
+    grantValid: true;
+    grantImmutable: true;
+    grantUnique: true;
+    grantExecutable: false;
+    futureGrantPossible: true;
+    futureGrantIssued: true;
+    futureActivationPossible: true;
+    futureActivationAuthorized: true;
+    futureActivationStarted: false;
+    candidateCount: 1;
+    registeredCandidateCount: 1;
+    selectedCandidateCount: 1;
+    readyCandidateCount: 1;
+    authorizedCandidateCount: 1;
+    grantedCandidateCount: 1;
+    grantCount: 1;
+    transactionPreparationCount: 1;
+    transactionCommitCount: 1;
+    futureActivationTargetCount: 1;
+    activeCandidateCount: 0;
+    activatedCandidateCount: 1;
+    executableCandidateCount: 0;
+    candidateIdentityUnique: true;
+    selectionIdentityUnique: true;
+    activationReadinessIdentityUnique: true;
+    activationAuthorizationIdentityUnique: true;
+    activationGrantIdentityUnique: true;
+    activationGrantIssuanceIdentityUnique: true;
+    activationCommitBoundaryIdentityUnique: true;
+    activationTransactionOpeningReadinessIdentityUnique: true;
+    activationTransactionOpeningAuthorizationIdentityUnique: true;
+    activationTransactionOpeningIdentityUnique: true;
+    activationTransactionPreparationReadinessIdentityUnique: true;
+    activationTransactionPreparationAuthorizationIdentityUnique: true;
+    activationTransactionPreparationIdentityUnique: true;
+    activationTransactionCommitReadinessIdentityUnique: true;
+    activationTransactionCommitAuthorizationIdentityUnique: true;
+    activationTransactionCommitIdentityUnique: true;
+    activationIssuancePipelineExecutionReadinessIdentityUnique: true;
+    activationIssuancePipelineExecutionAuthorizationIdentityUnique: true;
+    activationIssuancePipelineExecutionIdentityUnique: true;
+    activationCandidateActivationReadinessIdentityUnique: true;
+    activationCandidateActivationAuthorizationIdentityUnique: true;
+    activationCandidateActivationIdentityUnique: true;
+    candidateStructurallyCompatible: true;
+    runtimeCapabilityPresent: false;
+    runtimeHostInstancePresent: false;
+    activationHandlePresent: false;
+    executionHandlePresent: false;
+    tokenPresent: false;
+    credentialPresent: false;
+    certificatePresent: false;
+    permitPresent: false;
+    mountsGeoFeed: false;
+    containsGeoFeed: false;
+    wrapsGeoFeed: false;
+    duplicatesGeoFeed: false;
+    createsSecondGeoFeed: false;
+    shellRendered: false;
+    shellChildCount: 0;
+    shellDOMNodeCount: 0;
+    workspaceVisible: false;
+    workspaceHostMounted: false;
+    workspaceReactInstancePresent: false;
+    issuanceCommitBoundaryState: "NOT_ENTERED";
+    issuanceCommitBoundaryEntered: false;
+    issuanceTransactionState: "OPENED";
+    issuanceTransactionOpened: true;
+    issuanceTransactionPrepared: true;
+    issuanceTransactionCommitted: true;
+    issuanceTransactionAborted: false;
+    issuancePipelineExecutable: false;
+    owner: "legacy";
+    writer: "legacy";
+    renderer: "legacy";
+    runtimeId: string;
+    hostId: string;
+    mountCount: 1;
+    unmountCount: 0;
+    geoFeedRenderCount: 1;
+    activeInstanceCount: 1;
+    hostActivation: false;
+    renderActivation: false;
+    canStartActivation: false;
+    duplicateTransactionCommitCount: 0;
+    predecessorActivationTransactionPreparationResult: "controlled-workspace-host-activation-transaction-prepared-not-committed";
+    predecessorActivationTransactionPreparationState: "TRANSACTION_PREPARED_NOT_COMMITTED";
+    predecessorActivationIssuancePipelineExecutionReadinessResult: "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed";
+    predecessorActivationIssuancePipelineExecutionReadinessState: "PIPELINE_EXECUTION_READY_NOT_EXECUTED";
+    predecessorActivationIssuancePipelineExecutionAuthorizationResult: "controlled-workspace-host-activation-issuance-pipeline-execution-authorized-not-executed";
+    predecessorActivationIssuancePipelineExecutionAuthorizationState: "PIPELINE_EXECUTION_AUTHORIZED_NOT_EXECUTED";
+    predecessorActivationIssuancePipelineExecutionResult: "controlled-workspace-host-activation-issuance-pipeline-executed-not-activated";
+    predecessorActivationIssuancePipelineExecutionState: "PIPELINE_EXECUTED_NOT_ACTIVATED";
+    predecessorActivationTransactionCommitResult: "controlled-workspace-host-activation-transaction-committed-not-executed";
+    predecessorActivationTransactionCommitState: "TRANSACTION_COMMITTED_NOT_EXECUTED";
+    predecessorActivationCommitBoundaryEntryResult: "controlled-workspace-host-activation-commit-boundary-entered";
+    predecessorActivationCommitBoundaryEntryState: "COMMIT_BOUNDARY_ENTERED";
+    activationTransactionPreparationAuthorizationIdentityUnique: true;
+    activationBlocker: "PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY";
+    nextEligibleStep: "3B.3.46";
+    conditionCount: number;
+    satisfiedConditionCount: number;
+    unsatisfiedConditionCount: 0;
+    guardCount: number;
+    satisfiedGuardCount: number;
+    unsatisfiedGuardCount: 0;
+    blockerCount: number;
+    diagnostics: Record<string, unknown>;
+  }>;
+
     readHostActivationStateMachine: () => Promise<{
     phase: "3B.3.13";
     machineId: string;
@@ -4088,7 +4281,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 45,
+    version: 46,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -8851,6 +9044,217 @@ export function installFeedSealedProbeBridge(): void {
         activationBlocker:
           "PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY" as const,
         nextEligibleStep: "3B.3.45" as const,
+        conditionCount: diag.conditionCount as number,
+        satisfiedConditionCount: diag.satisfiedConditionCount as number,
+        unsatisfiedConditionCount: 0 as const,
+        guardCount: diag.guardCount as number,
+        satisfiedGuardCount: diag.satisfiedGuardCount as number,
+        unsatisfiedGuardCount: 0 as const,
+        blockerCount: diag.blockerCount as number,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+
+    readControlledWorkspaceHostCandidateActive: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledWorkspaceHostCandidateActive();
+      const d = evaluation.descriptor;
+      const diag = evaluation.diagnostics;
+      return {
+        phase: "3B.3.45" as const,
+        candidateId: d.candidateId,
+        registrationId: d.registrationId,
+        selectionId: d.selectionId,
+        activationReadinessId: d.activationReadinessId,
+        activationAuthorizationId: d.activationAuthorizationId,
+        activationGrantId: d.activationGrantId,
+        activationGrantIssuanceId: d.activationGrantIssuanceId,
+        activationCommitBoundaryId: d.activationCommitBoundaryId,
+        activationCommitBoundaryContractId: d.activationCommitBoundaryContractId,
+        activationTransactionOpeningReadinessId: d.activationTransactionOpeningReadinessId,
+        activationTransactionOpeningReadinessContractId: d.activationTransactionOpeningReadinessContractId,
+        activationTransactionOpeningAuthorizationId: d.activationTransactionOpeningAuthorizationId,
+        activationTransactionOpeningAuthorizationContractId: d.activationTransactionOpeningAuthorizationContractId,
+        activationTransactionOpeningId: d.activationTransactionOpeningId,
+        activationTransactionOpeningContractId: d.activationTransactionOpeningContractId,
+        activationTransactionPreparationReadinessId: d.activationTransactionPreparationReadinessId,
+        activationTransactionPreparationReadinessContractId: d.activationTransactionPreparationReadinessContractId,
+        activationTransactionPreparationAuthorizationId: d.activationTransactionPreparationAuthorizationId,
+        activationTransactionPreparationAuthorizationContractId: d.activationTransactionPreparationAuthorizationContractId,
+        activationTransactionPreparationId: d.activationTransactionPreparationId,
+        activationTransactionPreparationContractId: d.activationTransactionPreparationContractId,
+        activationTransactionCommitReadinessId: d.activationTransactionCommitReadinessId,
+        activationTransactionCommitReadinessContractId: d.activationTransactionCommitReadinessContractId,
+        activationTransactionCommitAuthorizationId: d.activationTransactionCommitAuthorizationId,
+        activationTransactionCommitAuthorizationContractId: d.activationTransactionCommitAuthorizationContractId,
+        activationTransactionCommitId: d.activationTransactionCommitId,
+        activationTransactionCommitContractId: d.activationTransactionCommitContractId,
+        activationIssuancePipelineExecutionReadinessId: d.activationIssuancePipelineExecutionReadinessId,
+        activationIssuancePipelineExecutionReadinessContractId: d.activationIssuancePipelineExecutionReadinessContractId,
+        activationIssuancePipelineExecutionAuthorizationId: d.activationIssuancePipelineExecutionAuthorizationId,
+        activationIssuancePipelineExecutionAuthorizationContractId: d.activationIssuancePipelineExecutionAuthorizationContractId,
+        activationIssuancePipelineExecutionId: d.activationIssuancePipelineExecutionId,
+        activationIssuancePipelineExecutionContractId: d.activationIssuancePipelineExecutionContractId,
+        activationCandidateActivationReadinessId: d.activationCandidateActivationReadinessId,
+        activationCandidateActivationReadinessContractId: d.activationCandidateActivationReadinessContractId,
+        activationCandidateActivationAuthorizationId: d.activationCandidateActivationAuthorizationId,
+        activationCandidateActivationAuthorizationContractId: d.activationCandidateActivationAuthorizationContractId,
+        activationCandidateActivationId: d.activationCandidateActivationId,
+        activationCandidateActivationContractId: d.activationCandidateActivationContractId,
+        activationCandidateActiveId: d.activationCandidateActiveId,
+        activationCandidateActiveContractId: d.activationCandidateActiveContractId,
+        candidateKind: "adaptive-workspace" as const,
+        candidateActivationState: "CANDIDATE_ACTIVE_NOT_EXECUTABLE" as const,
+        candidateActivationResult:
+          "controlled-workspace-host-candidate-active-not-executable" as const,
+        transactionOpeningReady: true as const,
+        transactionOpeningAuthorized: true as const,
+        transactionOpeningStarted: true as const,
+        transactionOpeningCompleted: true as const,
+        transactionPreparationReady: true as const,
+        transactionPreparationAuthorized: true as const,
+        transactionCommitReady: true as const,
+        transactionCommitAuthorized: true as const,
+        issuancePipelineExecutionReady: true as const,
+        issuancePipelineExecutionAuthorized: true as const,
+        issuancePipelineExecuted: true as const,
+        candidateActivationReady: true as const,
+        candidateActivationAuthorized: true as const,
+        issuancePipelineExecutionAllowed: false as const,
+        issuancePipelineState: "NON_EXECUTABLE" as const,
+        activationCommitBoundaryEntered: true as const,
+        activationCommitBoundaryState: "ENTERED" as const,
+        activationCommitBoundaryArmed: false as const,
+        activationCommitBoundaryCrossed: false as const,
+        activationCommitBoundaryCommitted: false as const,
+        activationCommitBoundaryAborted: false as const,
+        activationCommitBoundaryExecutable: false as const,
+        activationCommitBoundaryBlocked: true as const,
+        activationTransactionOpeningAllowed: false as const,
+        activationExecutionAllowed: false as const,
+        transitionFrom: "NOT_ENTERED" as const,
+        transitionTo: "ENTERED" as const,
+        transitionLegal: true as const,
+        candidateSelected: true as const,
+        candidateReady: true as const,
+        candidateAuthorized: true as const,
+        candidateGranted: true as const,
+        candidateActivated: true as const,
+        candidateActive: true as const,
+        candidateExecutable: false as const,
+        grantPresent: true as const,
+        grantIssued: true as const,
+        grantValid: true as const,
+        grantImmutable: true as const,
+        grantUnique: true as const,
+        grantExecutable: false as const,
+        futureGrantPossible: true as const,
+        futureGrantIssued: true as const,
+        futureActivationPossible: true as const,
+        futureActivationAuthorized: true as const,
+        futureActivationStarted: false as const,
+        candidateCount: 1 as const,
+        registeredCandidateCount: 1 as const,
+        selectedCandidateCount: 1 as const,
+        readyCandidateCount: 1 as const,
+        authorizedCandidateCount: 1 as const,
+        grantedCandidateCount: 1 as const,
+        grantCount: 1 as const,
+        transactionPreparationCount: 1 as const,
+        transactionCommitCount: 1 as const,
+        futureActivationTargetCount: 1 as const,
+        activeCandidateCount: 0 as const,
+        activatedCandidateCount: 1 as const,
+        executableCandidateCount: 0 as const,
+        candidateIdentityUnique: true as const,
+        selectionIdentityUnique: true as const,
+        activationReadinessIdentityUnique: true as const,
+        activationAuthorizationIdentityUnique: true as const,
+        activationGrantIdentityUnique: true as const,
+        activationGrantIssuanceIdentityUnique: true as const,
+        activationCommitBoundaryIdentityUnique: true as const,
+        activationTransactionOpeningReadinessIdentityUnique: true as const,
+        activationTransactionOpeningAuthorizationIdentityUnique: true as const,
+        activationTransactionOpeningIdentityUnique: true as const,
+        activationTransactionPreparationReadinessIdentityUnique: true as const,
+        activationTransactionPreparationAuthorizationIdentityUnique: true as const,
+        activationTransactionPreparationIdentityUnique: true as const,
+        activationTransactionCommitReadinessIdentityUnique: true as const,
+        activationTransactionCommitAuthorizationIdentityUnique: true as const,
+        activationTransactionCommitIdentityUnique: true as const,
+        activationIssuancePipelineExecutionReadinessIdentityUnique: true as const,
+        activationIssuancePipelineExecutionAuthorizationIdentityUnique: true as const,
+        activationIssuancePipelineExecutionIdentityUnique: true as const,
+        activationCandidateActivationReadinessIdentityUnique: true as const,
+        activationCandidateActivationAuthorizationIdentityUnique: true as const,
+        activationCandidateActivationIdentityUnique: true as const,
+        candidateStructurallyCompatible: true as const,
+        runtimeCapabilityPresent: false as const,
+        runtimeHostInstancePresent: false as const,
+        activationHandlePresent: false as const,
+        executionHandlePresent: false as const,
+        tokenPresent: false as const,
+        credentialPresent: false as const,
+        certificatePresent: false as const,
+        permitPresent: false as const,
+        mountsGeoFeed: false as const,
+        containsGeoFeed: false as const,
+        wrapsGeoFeed: false as const,
+        duplicatesGeoFeed: false as const,
+        createsSecondGeoFeed: false as const,
+        shellRendered: false as const,
+        shellChildCount: 0 as const,
+        shellDOMNodeCount: 0 as const,
+        workspaceVisible: false as const,
+        workspaceHostMounted: false as const,
+        workspaceReactInstancePresent: false as const,
+        issuanceCommitBoundaryState: "NOT_ENTERED" as const,
+        issuanceCommitBoundaryEntered: false as const,
+        issuanceTransactionState: "OPENED" as const,
+        issuanceTransactionOpened: true as const,
+        issuanceTransactionPrepared: true as const,
+        issuanceTransactionCommitted: true as const,
+        issuanceTransactionAborted: false as const,
+        issuancePipelineExecutable: false as const,
+        owner: "legacy" as const,
+        writer: "legacy" as const,
+        renderer: "legacy" as const,
+        runtimeId: d.runtimeId,
+        hostId: d.hostId,
+        mountCount: 1 as const,
+        unmountCount: 0 as const,
+        geoFeedRenderCount: 1 as const,
+        activeInstanceCount: 1 as const,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        duplicateTransactionCommitCount: 0 as const,
+        predecessorActivationTransactionPreparationResult:
+          "controlled-workspace-host-activation-transaction-prepared-not-committed" as const,
+        predecessorActivationTransactionPreparationState: "TRANSACTION_PREPARED_NOT_COMMITTED" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessResult:
+          "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessState:
+          "PIPELINE_EXECUTION_READY_NOT_EXECUTED" as const,
+        predecessorActivationIssuancePipelineExecutionAuthorizationResult:
+          "controlled-workspace-host-activation-issuance-pipeline-execution-authorized-not-executed" as const,
+        predecessorActivationIssuancePipelineExecutionAuthorizationState:
+          "PIPELINE_EXECUTION_AUTHORIZED_NOT_EXECUTED" as const,
+        predecessorActivationIssuancePipelineExecutionResult:
+          "controlled-workspace-host-activation-issuance-pipeline-executed-not-activated" as const,
+        predecessorActivationIssuancePipelineExecutionState:
+          "PIPELINE_EXECUTED_NOT_ACTIVATED" as const,
+        predecessorActivationTransactionCommitResult:
+          "controlled-workspace-host-activation-transaction-committed-not-executed" as const,
+        predecessorActivationTransactionCommitState:
+          "TRANSACTION_COMMITTED_NOT_EXECUTED" as const,
+        predecessorActivationCommitBoundaryEntryResult:
+          "controlled-workspace-host-activation-commit-boundary-entered" as const,
+        predecessorActivationCommitBoundaryEntryState: "COMMIT_BOUNDARY_ENTERED" as const,
+        activationTransactionPreparationAuthorizationIdentityUnique: true as const,
+        activationBlocker:
+          "PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY" as const,
+        nextEligibleStep: "3B.3.46" as const,
         conditionCount: diag.conditionCount as number,
         satisfiedConditionCount: diag.satisfiedConditionCount as number,
         unsatisfiedConditionCount: 0 as const,

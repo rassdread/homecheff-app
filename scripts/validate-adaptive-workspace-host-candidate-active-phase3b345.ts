@@ -1,5 +1,5 @@
 /**
- * Phase 3B.3.44 static validator — controlled workspace host candidate activation authorization.
+ * Phase 3B.3.45 static validator — controlled workspace host candidate activation authorization.
  */
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
@@ -8,14 +8,14 @@ import { join } from "node:path";
 import {
   createControlledFeedHostContract,
   createControlledHostRegistry,
-  createControlledWorkspaceHostCandidateActivationDescriptor,
-  createControlledWorkspaceHostCandidateActivationContract,
-  evaluateControlledWorkspaceHostCandidateActivation,
-  createFeedWorkspaceHostCandidateActivationIdentity,
+  createControlledWorkspaceHostCandidateActiveDescriptor,
+  createControlledWorkspaceHostCandidateActiveContract,
+  evaluateControlledWorkspaceHostCandidateActive,
+  createFeedWorkspaceHostCandidateActiveIdentity,
   createControlledFeedHostPlan,
   createFeedHostRollbackContract,
   evaluateFeedHostActivationGate,
-  PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
+  PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ID,
@@ -49,32 +49,36 @@ import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_CONTRACT_ID,
-  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONDITIONS,
-  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_GUARDS,
-  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_BLOCKERS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_BLOCKERS,
   FEED_DISCOVERY_STABLE_RUNTIME_ID,
   FEED_DISCOVERY_HOST_CANDIDATE_METADATA,
   validateFeedBrowserProofArtifact,
   validateFeedDiscoveryFreezeContract,
   createFeedDiscoverySealedContract,
-  validateFeedWorkspaceHostCandidateActivationPreparedContract,
+  validateFeedWorkspaceHostCandidateActivePreparedContract,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONTRACT_ID,
   HardContractViolation,
   stableStringify,
 } from "../lib/adaptive-workspace";
 
 const root = process.cwd();
 
-const PREDECESSOR_PHASE = "3B.3.42";
+const PREDECESSOR_PHASE = "3B.3.44";
 const PREDECESSOR_BRANCH =
-  "workspace/phase3b342-controlled-workspace-host-candidate-activation-readiness";
+  "workspace/phase3b344-controlled-workspace-host-candidate-activation";
 const PREDECESSOR_HEAD =
-  "a720a4d8f05903c59c0c5ed9dc301d70e6770d4b";
+  "a05ad10b4c5be068da0c043ff114a9d597f764d3";
 const PREDECESSOR_PROOF_TARGET =
-  "6406c509efd5e2993093d168ea30f57e4c73cf52";
+  "69e6ab57294975beeab6355d4c9885b487c0b175";
 const PREDECESSOR_RESULT =
-  "controlled-workspace-host-candidate-activation-ready-not-activated";
-const PREDECESSOR_LIFECYCLE = "CANDIDATE_ACTIVATION_READY_NOT_ACTIVATED";
-const PREDECESSOR_VERDICT = "READY_FOR_PHASE_3B_3_43";
+  "controlled-workspace-host-candidate-activated-not-active";
+const PREDECESSOR_LIFECYCLE = "CANDIDATE_ACTIVATED_NOT_ACTIVE";
+const PREDECESSOR_VERDICT = "READY_FOR_PHASE_3B_3_45";
 
 const UNRESOLVED = [
   "UNRESOLVED_UNTIL_3B330_FROZEN",
@@ -100,22 +104,22 @@ function rejectUnresolved(label: string, value: unknown) {
 }
 
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-activation.ts",
+  "lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-active.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-activation-contract.ts",
+  "lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-active-contract.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-workspace-host-candidate-activation-identity.ts",
+  "lib/adaptive-workspace/sealed/feed-workspace-host-candidate-active-identity.ts",
 );
 mustExist(
-  "lib/adaptive-workspace/sealed/feed-workspace-host-candidate-activation-prepared.ts",
+  "lib/adaptive-workspace/sealed/feed-workspace-host-candidate-active-prepared.ts",
 );
 mustExist(
-  "scripts/probe-controlled-workspace-host-candidate-activation-phase3b344.mjs",
+  "scripts/probe-controlled-workspace-host-candidate-active-phase3b345.mjs",
 );
 mustExist(
-  "scripts/run-controlled-workspace-host-candidate-activation-proof-phase3b344.mjs",
+  "scripts/run-controlled-workspace-host-candidate-active-proof-phase3b345.mjs",
 );
 
 mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json");
@@ -123,10 +127,10 @@ mustExist("docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json");
 
 const priorProofPath = join(
   root,
-  "docs/audits/artifacts/phase3b342/phase3b3-42-controlled-workspace-host-candidate-activation-readiness-proof.json",
+  "docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-proof.json",
 );
 mustExist(
-  "docs/audits/artifacts/phase3b342/phase3b3-42-controlled-workspace-host-candidate-activation-readiness-proof.json",
+  "docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-proof.json",
 );
 const priorProof = JSON.parse(readFileSync(priorProofPath, "utf8"));
 assert.equal(priorProof.overallVerdict, PREDECESSOR_VERDICT);
@@ -149,19 +153,19 @@ rejectUnresolved("predecessorHead", PREDECESSOR_HEAD);
 
 const proofPath = join(
   root,
-  "docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-proof.json",
+  "docs/audits/artifacts/phase3b345/phase3b3-45-controlled-workspace-host-candidate-active-proof.json",
 );
 const preparedPath = join(
   root,
-  "docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-prepared.json",
+  "docs/audits/artifacts/phase3b345/phase3b3-45-controlled-workspace-host-candidate-active-prepared.json",
 );
 const auditPath =
-  "docs/audits/homecheff-adaptive-workspace-phase3b344-controlled-workspace-host-candidate-activation.md";
+  "docs/audits/homecheff-adaptive-workspace-phase3b345-controlled-workspace-host-candidate-active.md";
 const artifactsPresent = existsSync(proofPath) && existsSync(preparedPath);
-if (!artifactsPresent && process.env.REQUIRE_PHASE3B344_ARTIFACTS === "1") {
-  assert.fail("Phase 3B.3.44 proof/prepared artifacts required but missing");
+if (!artifactsPresent && process.env.REQUIRE_PHASE3B345_ARTIFACTS === "1") {
+  assert.fail("Phase 3B.3.45 proof/prepared artifacts required but missing");
 }
-if (artifactsPresent || process.env.REQUIRE_PHASE3B344_ARTIFACTS === "1") {
+if (artifactsPresent || process.env.REQUIRE_PHASE3B345_ARTIFACTS === "1") {
   mustExist(auditPath);
 }
 
@@ -170,7 +174,7 @@ assert.equal(host.hostActivation, false);
 assert.equal(host.nextEligibleStep, "3B.3.46");
 assert.ok(
   host.activationBlockers.includes(
-    PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
+    PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
   ),
 );
 
@@ -178,15 +182,15 @@ const registry = createControlledHostRegistry();
 assert.equal(registry.hostCount, 1);
 
 const descriptor =
-  createControlledWorkspaceHostCandidateActivationDescriptor();
-assert.equal(descriptor.phase, "3B.3.44");
+  createControlledWorkspaceHostCandidateActiveDescriptor();
+assert.equal(descriptor.phase, "3B.3.45");
 assert.equal(
   descriptor.candidateActivationResult,
-  "controlled-workspace-host-candidate-activated-not-active",
+  "controlled-workspace-host-candidate-active-not-executable",
 );
 assert.equal(
   descriptor.candidateActivationState,
-  "CANDIDATE_ACTIVATED_NOT_ACTIVE",
+  "CANDIDATE_ACTIVE_NOT_EXECUTABLE",
 );
 assert.equal(descriptor.activationCommitBoundaryState, "ENTERED");
 assert.equal(descriptor.activationCommitBoundaryEntered, true);
@@ -286,7 +290,7 @@ assert.equal(descriptor.candidateGranted, true);
 assert.equal(descriptor.grantPresent, true);
 assert.equal(descriptor.grantExecutable, false);
 assert.equal(descriptor.candidateActivated, true);
-assert.equal(descriptor.candidateActive, false);
+assert.equal(descriptor.candidateActive, true);
 assert.equal(descriptor.candidateExecutable, false);
 assert.equal(descriptor.grantedCandidateCount, 1);
 assert.equal(descriptor.grantCount, 1);
@@ -323,15 +327,15 @@ assert.equal(
 );
 assert.equal(
   descriptor.candidateActivationState,
-  "CANDIDATE_ACTIVATED_NOT_ACTIVE",
+  "CANDIDATE_ACTIVE_NOT_EXECUTABLE",
 );
 assert.equal(
   descriptor.candidateActivationResult,
-  "controlled-workspace-host-candidate-activated-not-active",
+  "controlled-workspace-host-candidate-active-not-executable",
 );
-assert.equal(descriptor.activationBlocker, "PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY");
-assert.equal(PREDECESSOR_LIFECYCLE, "CANDIDATE_ACTIVATION_READY_NOT_ACTIVATED");
-assert.equal(PREDECESSOR_RESULT, "controlled-workspace-host-candidate-activation-ready-not-activated");
+assert.equal(descriptor.activationBlocker, "PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY");
+assert.equal(PREDECESSOR_LIFECYCLE, "CANDIDATE_ACTIVATED_NOT_ACTIVE");
+assert.equal(PREDECESSOR_RESULT, "controlled-workspace-host-candidate-activated-not-active");
 assert.equal(
   descriptor.predecessorActivationTransactionCommitState,
   "TRANSACTION_COMMITTED_NOT_EXECUTED",
@@ -400,23 +404,23 @@ assert.equal(descriptor.mountCount, 1);
 assert.equal(descriptor.geoFeedRenderCount, 1);
 assert.equal(descriptor.shellRendered, false);
 assert.equal(descriptor.workspaceHostMounted, false);
-assert.equal(descriptor.nextEligibleStep, "3B.3.45");
+assert.equal(descriptor.nextEligibleStep, "3B.3.46");
 assert.equal(
   descriptor.activationBlocker,
-  PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
+  PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
 );
 assert.deepEqual(
   [...descriptor.conditions],
-  [...CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONDITIONS],
+  [...CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_CONDITIONS],
 );
 assert.deepEqual(
   [...descriptor.guards],
-  [...CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_GUARDS],
+  [...CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_GUARDS],
 );
 assert.equal(descriptor.unsatisfiedConditions.length, 0);
 assert.ok(
-  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_BLOCKERS.includes(
-    PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_BLOCKERS.includes(
+    PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
   ),
 );
 
@@ -424,13 +428,13 @@ rejectUnresolved("descriptor.candidateActivationResult", descriptor.candidateAct
 rejectUnresolved("descriptor.activationCommitBoundaryId", descriptor.activationCommitBoundaryId);
 rejectUnresolved("PREDECESSOR_PHASE", PREDECESSOR_PHASE);
 
-const evaluation = evaluateControlledWorkspaceHostCandidateActivation();
+const evaluation = evaluateControlledWorkspaceHostCandidateActive();
 assert.equal(evaluation.diagnostics.activationCommitBoundaryEntered, true);
-assert.equal(evaluation.diagnostics.currentPhase, "3B.3.44");
+assert.equal(evaluation.diagnostics.currentPhase, "3B.3.45");
 assert.equal(evaluation.diagnostics.nextEligibleStep, "3B.3.46");
 assert.equal(
   evaluation.diagnostics.predecessorActivationBlocker,
-  "PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY",
+  "PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY",
 );
 assert.equal(
   evaluation.diagnostics.satisfiedConditionCount,
@@ -493,8 +497,12 @@ const failClosedCases: Array<{ label: string; input: Record<string, unknown> }> 
     input: { candidateActivationReady: false },
   },
   {
-    label: "pre-advanced candidateActivated",
-    input: { candidateActivated: true },
+    label: "pre-advanced candidateActive",
+    input: { candidateActive: true },
+  },
+  {
+    label: "missing candidateActivated",
+    input: { candidateActivated: false },
   },
   {
     label: "missing candidateActivationAuthorized",
@@ -628,7 +636,7 @@ let forcedNegativePassCount = 0;
 for (const { label, input } of failClosedCases) {
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivation(
+      evaluateControlledWorkspaceHostCandidateActive(
         registry,
         input as never,
       ),
@@ -640,10 +648,10 @@ for (const { label, input } of failClosedCases) {
 assert.equal(forcedNegativePassCount, failClosedCases.length);
 assert.ok(forcedNegativePassCount >= 30, "expected at least 30 forced-negative cases");
 
-const contract = createControlledWorkspaceHostCandidateActivationContract();
-assert.equal(contract.phase, "3B.3.44");
-assert.equal(contract.nextEligibleStep, "3B.3.45");
-const identity = createFeedWorkspaceHostCandidateActivationIdentity();
+const contract = createControlledWorkspaceHostCandidateActiveContract();
+assert.equal(contract.phase, "3B.3.45");
+assert.equal(contract.nextEligibleStep, "3B.3.46");
+const identity = createFeedWorkspaceHostCandidateActiveIdentity();
 assert.equal(
   identity.activationTransactionOpeningReadinessId,
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_READINESS_ID,
@@ -679,19 +687,19 @@ assert.equal(gate.currentStep, "3B.3.45");
 assert.equal(gate.eligibleStep, "3B.3.46");
 assert.ok(
   gate.blockers.includes(
-    PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
+    PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
   ),
 );
 
 const plan = createControlledFeedHostPlan();
 assert.ok(
   plan.blockerSet.includes(
-    PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
+    PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
   ),
 );
 assert.equal(
   plan.recommendedNextStep,
-  "3B.3.45",
+  "3B.3.46",
 );
 assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
 assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.46");
@@ -714,14 +722,14 @@ createFeedDiscoverySealedContract();
 
 if (artifactsPresent) {
   const proof = JSON.parse(readFileSync(proofPath, "utf8"));
-  assert.equal(proof.overallVerdict, "READY_FOR_PHASE_3B_3_45");
-  assert.equal(proof.candidateActivatedMetaOk, true);
+  assert.equal(proof.overallVerdict, "READY_FOR_PHASE_3B_3_46");
+  assert.equal(proof.candidateActiveMetaOk, true);
   assert.equal(proof.forcedNegativeProofsOk, true);
-  assert.equal(proof.bridgeVersion ?? proof.version ?? 45, 45);
+  assert.equal(proof.bridgeVersion ?? proof.version ?? 46, 46);
   rejectUnresolved("proof.overallVerdict", proof.overallVerdict);
   const prepared = JSON.parse(readFileSync(preparedPath, "utf8"));
-  validateFeedWorkspaceHostCandidateActivationPreparedContract(prepared);
-  assert.equal(prepared.nextEligibleStep, "3B.3.45");
+  validateFeedWorkspaceHostCandidateActivePreparedContract(prepared);
+  assert.equal(prepared.nextEligibleStep, "3B.3.46");
   assert.equal(prepared.activationCommitBoundaryEntered, true);
   assert.equal(prepared.issuanceTransactionState, "OPENED");
   assert.equal(prepared.transactionOpeningReady, true);
@@ -736,5 +744,5 @@ if (artifactsPresent) {
 }
 
 console.log(
-  "validate-adaptive-workspace-host-candidate-activation-phase3b344: PASS",
+  "validate-adaptive-workspace-host-candidate-active-phase3b345: PASS",
 );
