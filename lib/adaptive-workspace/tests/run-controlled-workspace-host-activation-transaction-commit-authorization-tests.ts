@@ -12,7 +12,7 @@ import { evaluateFeedHostActivationGate,
   PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY,
 } from "../sealed/feed-host-activation-gate";
 import { PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
-  PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY } from "../sealed/controlled-workspace-host-candidate-activation";
+  PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "../sealed/controlled-workspace-host-candidate-activation";
 import {
   PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
 } from "../sealed/controlled-workspace-host-candidate-activation-authorization";
@@ -408,23 +408,23 @@ console.log("\n[phase3b337] LIVE gate + host continuity");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
+      PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.45");
-  assert.equal(gate.eligibleStep, "3B.3.46");
+  assert.equal(gate.currentStep, "3B.3.46");
+  assert.equal(gate.eligibleStep, "3B.3.47");
   ok("activation remains impossible (gate currentStep=3B.3.43, eligibleStep=3B.3.44)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "3B.3.46");
+  assert.equal(host.nextEligibleStep, "3B.3.47");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.46");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.47");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

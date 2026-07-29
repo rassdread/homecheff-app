@@ -1948,3 +1948,36 @@ export {
   validateFeedWorkspaceHostCandidateActivePreparedContract,
 } from "./sealed/feed-workspace-host-candidate-active-prepared";
 export type { FeedWorkspaceHostCandidateActivePreparedContract } from "./sealed/feed-workspace-host-candidate-active-prepared";
+
+export {
+  PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_BLOCKERS,
+  createControlledWorkspaceHostCandidateExecutableDescriptor,
+  evaluateControlledWorkspaceHostCandidateExecutable,
+  validateControlledWorkspaceHostCandidateExecutableDescriptor,
+} from "./sealed/controlled-workspace-host-candidate-executable";
+export type {
+  ControlledWorkspaceHostCandidateExecutableDescriptor,
+  ControlledWorkspaceHostCandidateExecutableEvaluation,
+  ControlledWorkspaceHostCandidateExecutableState,
+  ControlledWorkspaceHostCandidateExecutableResult,
+} from "./sealed/controlled-workspace-host-candidate-executable";
+export {
+  createControlledWorkspaceHostCandidateExecutableContract,
+  validateControlledWorkspaceHostCandidateExecutableContract,
+} from "./sealed/controlled-workspace-host-candidate-executable-contract";
+export type { ControlledWorkspaceHostCandidateExecutableContract } from "./sealed/controlled-workspace-host-candidate-executable-contract";
+export {
+  createFeedWorkspaceHostCandidateExecutableIdentity,
+  validateFeedWorkspaceHostCandidateExecutableIdentity,
+} from "./sealed/feed-workspace-host-candidate-executable-identity";
+export type { FeedWorkspaceHostCandidateExecutableIdentity } from "./sealed/feed-workspace-host-candidate-executable-identity";
+export {
+  createFeedWorkspaceHostCandidateExecutablePreparedContract,
+  validateFeedWorkspaceHostCandidateExecutablePreparedContract,
+} from "./sealed/feed-workspace-host-candidate-executable-prepared";
+export type { FeedWorkspaceHostCandidateExecutablePreparedContract } from "./sealed/feed-workspace-host-candidate-executable-prepared";
