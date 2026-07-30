@@ -73,13 +73,13 @@ export function validateControlledFeedHostContract(
   if (c.activeRenderOwner !== "workspace") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_RENDER_OWNER",
-      "activeRenderOwner must be workspace at the AW-R5 tip",
+      "activeRenderOwner must be workspace at the AW-R6 tip",
     );
   }
   if (c.activeWriter !== "workspace") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_WRITER",
-      "activeWriter must be workspace at the AW-R5 tip",
+      "activeWriter must be workspace at the AW-R6 tip",
     );
   }
   if (c.hostActivation !== false) {
@@ -170,10 +170,10 @@ export function validateControlledFeedHostContract(
       "freezeRequirement must be phase3b2-freeze-required",
     );
   }
-  if (c.nextEligibleStep !== "AW-R6") {
+  if (c.nextEligibleStep !== "none") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_NEXT",
-      "nextEligibleStep must be AW-R6",
+      "nextEligibleStep must be none; the condensed roadmap is complete after AW-R6",
     );
   }
 
@@ -270,6 +270,6 @@ export function validateControlledFeedHostContract(
     ],
     browserProofRequirement: "phase3b2-frozen-proof-required",
     freezeRequirement: "phase3b2-freeze-required",
-    nextEligibleStep: "AW-R6",
+    nextEligibleStep: "none",
   };
 }

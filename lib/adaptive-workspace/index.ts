@@ -2169,3 +2169,31 @@ export {
   validateControlledWorkspaceProductionReadinessIdentity,
 } from "./sealed/controlled-workspace-production-readiness-identity";
 export type { ControlledWorkspaceProductionReadinessIdentity } from "./sealed/controlled-workspace-production-readiness-identity";
+export {
+  ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE,
+  CONTROLLED_WORKSPACE_PRODUCTION_FEED_ON_BLOCKERS,
+  CONTROLLED_WORKSPACE_PRODUCTION_FEED_ON_CONDITIONS,
+  CONTROLLED_WORKSPACE_PRODUCTION_FEED_ON_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_PRODUCTION_FEED_ON_GUARDS,
+  CONTROLLED_WORKSPACE_PRODUCTION_FEED_ON_ID,
+  createControlledWorkspaceProductionFeedOnDescriptor,
+  createControlledWorkspaceProductionFeedOnRollbackContract,
+  evaluateControlledWorkspaceProductionFeedOn,
+  validateControlledWorkspaceProductionFeedOnDescriptor,
+} from "./sealed/controlled-workspace-production-feed-on";
+export type {
+  ControlledWorkspaceProductionFeedOnDescriptor,
+  ControlledWorkspaceProductionFeedOnEvaluation,
+  ControlledWorkspaceProductionFeedOnInput,
+  ControlledWorkspaceProductionFeedOnRollbackContract,
+} from "./sealed/controlled-workspace-production-feed-on";
+export {
+  createControlledWorkspaceProductionFeedOnContract,
+  validateControlledWorkspaceProductionFeedOnContract,
+} from "./sealed/controlled-workspace-production-feed-on-contract";
+export type { ControlledWorkspaceProductionFeedOnContract } from "./sealed/controlled-workspace-production-feed-on-contract";
+export {
+  createControlledWorkspaceProductionFeedOnIdentity,
+  validateControlledWorkspaceProductionFeedOnIdentity,
+} from "./sealed/controlled-workspace-production-feed-on-identity";
+export type { ControlledWorkspaceProductionFeedOnIdentity } from "./sealed/controlled-workspace-production-feed-on-identity";

@@ -41,6 +41,7 @@ import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspa
 import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "./controlled-workspace-live-authorization";
 import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "./controlled-workspace-execution";
 import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "./controlled-workspace-production-readiness";
+import { ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE } from "./controlled-workspace-production-feed-on";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -95,11 +96,12 @@ export { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY };
 export { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY };
 export { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "./controlled-workspace-geofeed-authority-transition";
 export { PHASE_AW_R5_PRODUCTION_READINESS_ONLY };
+export { ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "AW-R5";
-  eligibleStep: "AW-R6";
+  currentStep: "AW-R6";
+  eligibleStep: "none";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -194,9 +196,9 @@ export function evaluateFeedHostActivationGate(
   input: FeedHostActivationGateInput = {},
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
-  const blockers: string[] = [PHASE_AW_R5_PRODUCTION_READINESS_ONLY];
+  const blockers: string[] = [ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE];
   const reasons: string[] = [
-    "AW-R5 certifies production readiness metadata only; Feed ON and final activation remain blocked",
+    "AW-R6 production Feed ON committed; condensed roadmap complete; no next implementation stage",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -445,8 +447,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "AW-R5",
-    eligibleStep: "AW-R6",
+    currentStep: "AW-R6",
+    eligibleStep: "none",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

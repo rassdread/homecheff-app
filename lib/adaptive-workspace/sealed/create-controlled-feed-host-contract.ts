@@ -42,7 +42,7 @@ export function createControlledFeedHostContract(): ControlledFeedHostContract {
     requiredInvariantIds: [...FEED_SEALED_INVARIANT_IDS],
     browserProofRequirement: "phase3b2-frozen-proof-required",
     freezeRequirement: "phase3b2-freeze-required",
-    nextEligibleStep: "AW-R6",
+    nextEligibleStep: "none",
   };
   return validateControlledFeedHostContract(raw);
 }

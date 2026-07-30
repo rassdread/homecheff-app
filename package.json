@@ -236,8 +236,12 @@
     "validate:adaptive-workspace-geofeed-authority-transition": "npx tsx scripts/validate-adaptive-workspace-geofeed-authority-transition-aw-r4.ts",
     "probe:adaptive-workspace-geofeed-authority-transition": "node scripts/run-controlled-workspace-geofeed-authority-transition-proof-aw-r4.mjs",
     "test:adaptive-workspace-production-readiness": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-production-readiness-tests.ts",
+    "test:adaptive-workspace-production-feed-on-bridge": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-production-feed-on-bridge-tests.ts",
+    "test:adaptive-workspace-production-feed-on": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-production-feed-on-tests.ts",
     "validate:adaptive-workspace-production-readiness": "npx tsx scripts/validate-adaptive-workspace-production-readiness-aw-r5.ts",
-    "probe:adaptive-workspace-production-readiness": "node scripts/run-controlled-workspace-production-readiness-proof-aw-r5.mjs"
+    "validate:adaptive-workspace-production-feed-on": "npx tsx scripts/validate-adaptive-workspace-production-feed-on-aw-r6.ts",
+    "probe:adaptive-workspace-production-readiness": "node scripts/run-controlled-workspace-production-readiness-proof-aw-r5.mjs",
+    "probe:adaptive-workspace-production-feed-on": "node scripts/run-controlled-workspace-production-feed-on-proof-aw-r6.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

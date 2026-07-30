@@ -11,6 +11,7 @@ import {
   evaluateControlledWorkspaceHostCandidatePreActivationSeal,
 } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal";
 import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "../sealed/controlled-workspace-production-readiness";
+import { ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE } from "../sealed/controlled-workspace-production-feed-on";
 import { createControlledWorkspaceHostCandidatePreActivationSealContract } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal-contract";
 import { createFeedWorkspaceHostCandidatePreActivationSealIdentity } from "../sealed/feed-workspace-host-candidate-pre-activation-seal-identity";
 import { createFeedWorkspaceHostCandidatePreActivationSealPreparedContract } from "../sealed/feed-workspace-host-candidate-pre-activation-seal-prepared";
@@ -108,15 +109,15 @@ ok("contract, identity, prepared pack exact");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R5");
-assert.equal(gate.eligibleStep, "AW-R6");
+assert.equal(gate.currentStep, "AW-R6");
+assert.equal(gate.eligibleStep, "none");
 assert.ok(
-  gate.blockers.includes(PHASE_AW_R5_PRODUCTION_READINESS_ONLY),
+  gate.blockers.includes(ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE),
 );
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R6");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R6");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R6");
-ok("AW-R1 seal preserved under AW-R5 gate continuity");
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "none");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "none");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "none");
+ok("AW-R1 seal preserved under AW-R6 tip gate continuity");
 
 console.log(
   `\nadaptive-workspace AW-R1 controlled workspace host candidate pre-activation seal: ${passed} assertion groups ok\n`,

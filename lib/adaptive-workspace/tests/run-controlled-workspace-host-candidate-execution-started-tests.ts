@@ -23,6 +23,7 @@ import {
   PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
 } from "../sealed/controlled-workspace-host-candidate-execution-started";
 import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "../sealed/controlled-workspace-production-readiness";
+import { ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE } from "../sealed/controlled-workspace-production-feed-on";
 import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
@@ -616,23 +617,23 @@ if (process.env.SKIP_PHASE3B345_LIVE === "1") {
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_AW_R5_PRODUCTION_READINESS_ONLY,
+      ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE,
     ),
   );
-  assert.equal(gate.currentStep, "AW-R5");
-  assert.equal(gate.eligibleStep, "AW-R6");
-  ok("Feed ON remains impossible (gate AW-R5 to AW-R6)");
+  assert.equal(gate.currentStep, "AW-R6");
+  assert.equal(gate.eligibleStep, "none");
+  ok("further migration remains impossible (gate AW-R6 to none)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "AW-R6");
+  assert.equal(host.nextEligibleStep, "none");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_AW_R5_PRODUCTION_READINESS_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R6");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "none");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

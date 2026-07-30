@@ -12,6 +12,7 @@ import {
   createControlledWorkspaceProductionReadinessRollbackContract,
   evaluateControlledWorkspaceProductionReadiness,
 } from "../sealed/controlled-workspace-production-readiness";
+import { ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE } from "../sealed/controlled-workspace-production-feed-on";
 import { createControlledWorkspaceProductionReadinessContract } from "../sealed/controlled-workspace-production-readiness-contract";
 import { createControlledWorkspaceProductionReadinessIdentity } from "../sealed/controlled-workspace-production-readiness-identity";
 import { createControlledWorkspaceGeoFeedAuthorityTransitionDescriptor } from "../sealed/controlled-workspace-geofeed-authority-transition";
@@ -209,15 +210,15 @@ ok("rollback restores AW-R4 without identity loss");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R5");
-assert.equal(gate.eligibleStep, "AW-R6");
-assert.ok(gate.blockers.includes(PHASE_AW_R5_PRODUCTION_READINESS_ONLY));
+assert.equal(gate.currentStep, "AW-R6");
+assert.equal(gate.eligibleStep, "none");
+assert.ok(gate.blockers.includes(ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE));
 assert.equal(createControlledFeedHostContract().activeWriter, "workspace");
 assert.equal(createControlledFeedHostContract().activeRenderOwner, "workspace");
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R6");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R6");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R6");
-ok("AW-R5 gate remains literal false and points to AW-R6");
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "none");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "none");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "none");
+ok("AW-R5 sealed next remains AW-R6; live tip gate is AW-R6→none");
 
 console.log(
   `\nadaptive-workspace AW-R5 production readiness: ${passed} assertion groups ok\n`,

@@ -13,6 +13,7 @@ import {
   evaluateControlledWorkspaceGeoFeedAuthorityTransition,
 } from "../sealed/controlled-workspace-geofeed-authority-transition";
 import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "../sealed/controlled-workspace-production-readiness";
+import { ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE } from "../sealed/controlled-workspace-production-feed-on";
 import { createControlledWorkspaceGeoFeedAuthorityTransitionContract } from "../sealed/controlled-workspace-geofeed-authority-transition-contract";
 import { createControlledWorkspaceGeoFeedAuthorityTransitionIdentity } from "../sealed/controlled-workspace-geofeed-authority-transition-identity";
 import { createControlledWorkspaceExecutionDescriptor } from "../sealed/controlled-workspace-execution";
@@ -163,16 +164,16 @@ ok("rollback restores AW-R3 without identity loss");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R5");
-assert.equal(gate.eligibleStep, "AW-R6");
+assert.equal(gate.currentStep, "AW-R6");
+assert.equal(gate.eligibleStep, "none");
 assert.ok(gate.blockers.includes(PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY) === false);
-assert.ok(gate.blockers.includes(PHASE_AW_R5_PRODUCTION_READINESS_ONLY));
+assert.ok(gate.blockers.includes(ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE));
 assert.equal(createControlledFeedHostContract().activeWriter, "workspace");
 assert.equal(createControlledFeedHostContract().activeRenderOwner, "workspace");
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R6");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R6");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R6");
-ok("live tip gate blocks Feed ON and points to AW-R6");
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "none");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "none");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "none");
+ok("live tip gate is AW-R6→none with roadmap-complete blocker");
 
 console.log(
   `\nadaptive-workspace AW-R4 GeoFeed authority transition: ${passed} assertion groups ok\n`,

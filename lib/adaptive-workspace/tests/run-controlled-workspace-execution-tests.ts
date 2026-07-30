@@ -15,6 +15,7 @@ import { createControlledWorkspaceExecutionContract } from "../sealed/controlled
 import { createControlledWorkspaceExecutionIdentity } from "../sealed/controlled-workspace-execution-identity";
 import { createControlledWorkspaceExecutionPreparedContract } from "../sealed/controlled-workspace-execution-prepared";
 import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "../sealed/controlled-workspace-production-readiness";
+import { ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE } from "../sealed/controlled-workspace-production-feed-on";
 import { createControlledWorkspaceLiveAuthorizationDescriptor } from "../sealed/controlled-workspace-live-authorization";
 import { FEED_DISCOVERY_HOST_CANDIDATE_METADATA } from "../registry/settings-manifests";
 
@@ -190,15 +191,15 @@ ok("rollback restores the AW-R2-safe snapshot");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R5");
-assert.equal(gate.eligibleStep, "AW-R6");
+assert.equal(gate.currentStep, "AW-R6");
+assert.equal(gate.eligibleStep, "none");
 assert.ok(
-  gate.blockers.includes(PHASE_AW_R5_PRODUCTION_READINESS_ONLY),
+  gate.blockers.includes(ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE),
 );
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R6");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R6");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R6");
-ok("tip gate blocks Feed ON and points to AW-R6");
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "none");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "none");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "none");
+ok("tip gate is AW-R6→none; condensed roadmap complete");
 
 console.log(
   `\nadaptive-workspace AW-R3 controlled execution: ${passed} assertion groups ok\n`,

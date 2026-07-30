@@ -142,6 +142,7 @@ export const CONTROLLED_FEED_HOST_ACTIVATION_BLOCKERS = [
   "PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY",
   "PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY",
   "PHASE_AW_R5_PRODUCTION_READINESS_ONLY",
+  "ADAPTIVE_WORKSPACE_CONDENSED_ROADMAP_COMPLETE",
 ] as const;
 
 export type ControlledFeedHostActivationBlocker =
@@ -175,5 +176,5 @@ export type ControlledFeedHostContract = {
   requiredInvariantIds: readonly FeedSealedInvariantId[];
   browserProofRequirement: "phase3b2-frozen-proof-required";
   freezeRequirement: "phase3b2-freeze-required";
-  nextEligibleStep: "AW-R6";
+  nextEligibleStep: "none";
 };
