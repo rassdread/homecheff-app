@@ -1,6 +1,6 @@
 /**
- * AW-R1 — pure host activation gate.
- * Always returns allowed=false with PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY.
+ * AW-R2 — pure host activation gate.
+ * LIVE is authorized in metadata, but execution remains blocked.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
@@ -38,6 +38,7 @@ import { PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY } from "./
 import { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "./controlled-workspace-host-candidate-executable";
 import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "./controlled-workspace-host-candidate-execution-started";
 import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspace-host-candidate-pre-activation-seal";
+import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "./controlled-workspace-live-authorization";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -88,11 +89,12 @@ export { PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY }
 export { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY };
 export { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY };
 export { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY };
+export { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "AW-R1";
-  eligibleStep: "AW-R2";
+  currentStep: "AW-R2";
+  eligibleStep: "AW-R3";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -188,10 +190,10 @@ export function evaluateFeedHostActivationGate(
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
   const blockers: string[] = [
-    PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
+    PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
   ];
   const reasons: string[] = [
-    "AW-R1 seals Candidate Executed and Completed metadata only; LIVE runtime and Workspace remain deferred to AW-R2+",
+    "AW-R2 authorizes LIVE Allowed metadata only; execution, runtime and Workspace remain deferred to AW-R3+",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -440,8 +442,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "AW-R1",
-    eligibleStep: "AW-R2",
+    currentStep: "AW-R2",
+    eligibleStep: "AW-R3",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

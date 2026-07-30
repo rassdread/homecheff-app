@@ -2045,3 +2045,37 @@ export {
   validateFeedWorkspaceHostCandidatePreActivationSealPreparedContract,
 } from "./sealed/feed-workspace-host-candidate-pre-activation-seal-prepared";
 export type { FeedWorkspaceHostCandidatePreActivationSealPreparedContract } from "./sealed/feed-workspace-host-candidate-pre-activation-seal-prepared";
+export {
+  CONTROLLED_WORKSPACE_LIVE_AUTHORIZATION_BLOCKERS,
+  CONTROLLED_WORKSPACE_LIVE_AUTHORIZATION_CONDITIONS,
+  CONTROLLED_WORKSPACE_LIVE_AUTHORIZATION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_LIVE_AUTHORIZATION_GUARDS,
+  CONTROLLED_WORKSPACE_LIVE_AUTHORIZATION_ID,
+  CONTROLLED_WORKSPACE_LIVE_AUTHORIZATION_SCHEMA_VERSION,
+  PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
+  createControlledWorkspaceLiveAuthorizationDescriptor,
+  createControlledWorkspaceLiveAuthorizationRollbackContract,
+  evaluateControlledWorkspaceLiveAuthorization,
+  validateControlledWorkspaceLiveAuthorizationDescriptor,
+} from "./sealed/controlled-workspace-live-authorization";
+export type {
+  ControlledWorkspaceLiveAuthorizationDescriptor,
+  ControlledWorkspaceLiveAuthorizationEvaluation,
+  ControlledWorkspaceLiveAuthorizationInput,
+  ControlledWorkspaceLiveAuthorizationRollbackContract,
+} from "./sealed/controlled-workspace-live-authorization";
+export {
+  createControlledWorkspaceLiveAuthorizationContract,
+  validateControlledWorkspaceLiveAuthorizationContract,
+} from "./sealed/controlled-workspace-live-authorization-contract";
+export type { ControlledWorkspaceLiveAuthorizationContract } from "./sealed/controlled-workspace-live-authorization-contract";
+export {
+  createControlledWorkspaceLiveAuthorizationIdentity,
+  validateControlledWorkspaceLiveAuthorizationIdentity,
+} from "./sealed/controlled-workspace-live-authorization-identity";
+export type { ControlledWorkspaceLiveAuthorizationIdentity } from "./sealed/controlled-workspace-live-authorization-identity";
+export {
+  createControlledWorkspaceLiveAuthorizationPreparedContract,
+  validateControlledWorkspaceLiveAuthorizationPreparedContract,
+} from "./sealed/controlled-workspace-live-authorization-prepared";
+export type { ControlledWorkspaceLiveAuthorizationPreparedContract } from "./sealed/controlled-workspace-live-authorization-prepared";

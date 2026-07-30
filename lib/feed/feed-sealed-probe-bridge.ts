@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 49;
+  version: 50;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -4393,6 +4393,42 @@ export type FeedSealedProbeApi = {
       diagnostics: Record<string, unknown>;
     }
   >;
+  readControlledWorkspaceLiveAuthorization: () => Promise<
+    Record<string, unknown> & {
+      phase: "AW-R2";
+      previousPhase: "AW-R1";
+      nextEligibleStep: "AW-R3";
+      activationLiveAuthorizationId: "feed.discovery.adaptive-workspace.host-live-authorization.v1";
+      activationLiveAuthorizationContractId: "feed.discovery.adaptive-workspace.host-live-authorization.contract.v1";
+      candidateActivationState: "LIVE_AUTHORIZED_NOT_EXECUTABLE";
+      candidateActivationResult: "controlled-workspace-live-authorized-not-executable";
+      activationExecutionAllowed: true;
+      issuancePipelineExecutionAllowed: false;
+      issuancePipelineExecutable: false;
+      issuancePipelineState: "NON_EXECUTABLE";
+      issuanceTransactionState: "OPENED";
+      runtimeCapabilityPresent: false;
+      runtimeHostInstancePresent: false;
+      activationHandlePresent: false;
+      executionHandlePresent: false;
+      workspaceVisible: false;
+      workspaceHostMounted: false;
+      workspaceCandidateRendered: false;
+      workspaceReactInstancePresent: false;
+      owner: "legacy";
+      writer: "legacy";
+      renderer: "legacy";
+      mountCount: 1;
+      geoFeedRenderCount: 1;
+      unmountCount: 0;
+      hostActivation: false;
+      renderActivation: false;
+      canStartActivation: false;
+      activationBlocker: "PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY";
+      controlledLiveAuthorizationMetaOk: true;
+      diagnostics: Record<string, unknown>;
+    }
+  >;
 
     readHostActivationStateMachine: () => Promise<{
     phase: "3B.3.13";
@@ -4688,7 +4724,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 49,
+    version: 50,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -10313,6 +10349,100 @@ export function installFeedSealedProbeBridge(): void {
         activationTransactionPreparationAuthorizationIdentityUnique: true as const,
         activationBlocker: "PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY" as const,
         nextEligibleStep: "AW-R2" as const,
+        conditionCount: diag.conditionCount as number,
+        satisfiedConditionCount: diag.satisfiedConditionCount as number,
+        unsatisfiedConditionCount: 0 as const,
+        guardCount: diag.guardCount as number,
+        satisfiedGuardCount: diag.satisfiedGuardCount as number,
+        unsatisfiedGuardCount: 0 as const,
+        blockerCount: diag.blockerCount as number,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readControlledWorkspaceLiveAuthorization: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledWorkspaceLiveAuthorization(
+        undefined,
+        {
+          candidateActivationStarted: true,
+          candidateActivationExecuted: true,
+          candidateActivationCompleted: true,
+          activationExecutionAllowed: false,
+        },
+      );
+      const d = evaluation.descriptor;
+      const diag = evaluation.diagnostics as Record<string, unknown>;
+      return {
+        ...d,
+        phase: "AW-R2" as const,
+        previousPhase: "AW-R1" as const,
+        nextEligibleStep: "AW-R3" as const,
+        activationLiveAuthorizationId:
+          "feed.discovery.adaptive-workspace.host-live-authorization.v1" as const,
+        activationLiveAuthorizationContractId:
+          "feed.discovery.adaptive-workspace.host-live-authorization.contract.v1" as const,
+        candidateActivationState: "LIVE_AUTHORIZED_NOT_EXECUTABLE" as const,
+        candidateActivationResult:
+          "controlled-workspace-live-authorized-not-executable" as const,
+        activationExecutionAllowed: true as const,
+        issuancePipelineExecutionAllowed: false as const,
+        issuancePipelineExecutable: false as const,
+        issuancePipelineState: "NON_EXECUTABLE" as const,
+        issuanceTransactionState: "OPENED" as const,
+        issuanceTransactionOpened: true as const,
+        issuanceTransactionPrepared: true as const,
+        issuanceTransactionCommitted: true as const,
+        issuanceTransactionAborted: false as const,
+        issuanceCommitBoundaryState: "NOT_ENTERED" as const,
+        issuanceCommitBoundaryEntered: false as const,
+        runtimeCapabilityPresent: false as const,
+        runtimeHostInstancePresent: false as const,
+        activationHandlePresent: false as const,
+        executionHandlePresent: false as const,
+        mountsGeoFeed: false as const,
+        containsGeoFeed: false as const,
+        wrapsGeoFeed: false as const,
+        duplicatesGeoFeed: false as const,
+        createsSecondGeoFeed: false as const,
+        shellRendered: false as const,
+        shellChildCount: 0 as const,
+        shellDOMNodeCount: 0 as const,
+        workspaceVisible: false as const,
+        workspaceHostMounted: false as const,
+        workspaceCandidateRendered: false as const,
+        workspaceReactInstancePresent: false as const,
+        owner: "legacy" as const,
+        writer: "legacy" as const,
+        renderer: "legacy" as const,
+        runtimeId: d.runtimeId,
+        hostId: d.hostId,
+        mountCount: 1 as const,
+        geoFeedRenderCount: 1 as const,
+        unmountCount: 0 as const,
+        activeInstanceCount: 1 as const,
+        hostActivation: false as const,
+        renderActivation: false as const,
+        canStartActivation: false as const,
+        duplicateTransactionCommitCount: 0 as const,
+        predecessorActivationTransactionPreparationResult:
+          "controlled-workspace-host-activation-transaction-prepared-not-committed" as const,
+        predecessorActivationTransactionPreparationState:
+          "TRANSACTION_PREPARED_NOT_COMMITTED" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessResult:
+          "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessState:
+          "PIPELINE_EXECUTION_READY_NOT_EXECUTED" as const,
+        predecessorActivationTransactionCommitResult:
+          "controlled-workspace-host-activation-transaction-committed-not-executed" as const,
+        predecessorActivationTransactionCommitState:
+          "TRANSACTION_COMMITTED_NOT_EXECUTED" as const,
+        predecessorActivationCommitBoundaryEntryResult:
+          "controlled-workspace-host-activation-commit-boundary-entered" as const,
+        predecessorActivationCommitBoundaryEntryState:
+          "COMMIT_BOUNDARY_ENTERED" as const,
+        activationBlocker:
+          "PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY" as const,
+        controlledLiveAuthorizationMetaOk: true as const,
         conditionCount: diag.conditionCount as number,
         satisfiedConditionCount: diag.satisfiedConditionCount as number,
         unsatisfiedConditionCount: 0 as const,

@@ -7,10 +7,10 @@ import { createControlledFeedHostPlan } from "../sealed/controlled-feed-host-pla
 import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_PRE_ACTIVATION_SEAL_CONTRACT_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_PRE_ACTIVATION_SEAL_ID,
-  PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
   createControlledWorkspaceHostCandidatePreActivationSealDescriptor,
   evaluateControlledWorkspaceHostCandidatePreActivationSeal,
 } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal";
+import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "../sealed/controlled-workspace-live-authorization";
 import { createControlledWorkspaceHostCandidatePreActivationSealContract } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal-contract";
 import { createFeedWorkspaceHostCandidatePreActivationSealIdentity } from "../sealed/feed-workspace-host-candidate-pre-activation-seal-identity";
 import { createFeedWorkspaceHostCandidatePreActivationSealPreparedContract } from "../sealed/feed-workspace-host-candidate-pre-activation-seal-prepared";
@@ -108,13 +108,13 @@ ok("contract, identity, prepared pack exact");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R1");
-assert.equal(gate.eligibleStep, "AW-R2");
-assert.ok(gate.blockers.includes(PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY));
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R2");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R2");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R2");
-ok("AW-R1 gate and AW-R2 continuity");
+assert.equal(gate.currentStep, "AW-R2");
+assert.equal(gate.eligibleStep, "AW-R3");
+assert.ok(gate.blockers.includes(PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY));
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R3");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R3");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R3");
+ok("AW-R1 seal preserved under AW-R2 gate continuity");
 
 console.log(
   `\nadaptive-workspace AW-R1 controlled workspace host candidate pre-activation seal: ${passed} assertion groups ok\n`,

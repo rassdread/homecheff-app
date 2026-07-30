@@ -32,6 +32,7 @@ import { PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY } from "./
 import { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "./controlled-workspace-host-candidate-executable";
 import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "./controlled-workspace-host-candidate-execution-started";
 import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspace-host-candidate-pre-activation-seal";
+import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "./controlled-workspace-live-authorization";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -73,8 +74,9 @@ export type ControlledFeedHostPlan = {
     typeof PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY,
     typeof PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
     typeof PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
+    typeof PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
   ];
-  recommendedNextStep: "AW-R2";
+  recommendedNextStep: "AW-R3";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -228,8 +230,10 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
       PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
       PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY,
       PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
-      PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY],
-    recommendedNextStep: "AW-R2",
+      PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
+      PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
+    ],
+    recommendedNextStep: "AW-R3",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",

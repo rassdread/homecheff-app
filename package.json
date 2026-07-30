@@ -225,7 +225,10 @@
     "probe:adaptive-workspace-host-candidate-execution-started": "node scripts/run-controlled-workspace-host-candidate-execution-started-proof-phase3b347.mjs",
     "test:adaptive-workspace-host-candidate-pre-activation-seal": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-candidate-pre-activation-seal-tests.ts",
     "validate:adaptive-workspace-host-candidate-pre-activation-seal": "npx tsx scripts/validate-adaptive-workspace-host-candidate-pre-activation-seal-aw-r1.ts",
-    "probe:adaptive-workspace-host-candidate-pre-activation-seal": "node scripts/run-controlled-workspace-host-candidate-pre-activation-seal-proof-aw-r1.mjs"
+    "probe:adaptive-workspace-host-candidate-pre-activation-seal": "node scripts/run-controlled-workspace-host-candidate-pre-activation-seal-proof-aw-r1.mjs",
+    "test:adaptive-workspace-live-authorization": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-live-authorization-tests.ts",
+    "validate:adaptive-workspace-live-authorization": "npx tsx scripts/validate-adaptive-workspace-live-authorization-aw-r2.ts",
+    "probe:adaptive-workspace-live-authorization": "node scripts/run-controlled-workspace-live-authorization-proof-aw-r2.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
