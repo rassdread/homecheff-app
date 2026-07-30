@@ -116,3 +116,31 @@ export type {
   MessagesShadowScenario,
   CreateMessagesPanelRequestsResult,
 } from "./messages";
+
+export {
+  FEED_WORKSPACE_VISIBILITY_MODE_ENV,
+  FEED_WORKSPACE_PREVIEW_QUERY_PARAM,
+  parseFeedWorkspaceVisibilityMode,
+  resolveFeedWorkspaceVisibilityMode,
+  coerceFeedWorkspaceVisibilityMode,
+  isFeedWorkspaceLayoutVisible,
+  parseFeedWorkspacePreviewRequested,
+} from "./feed-workspace-visibility-mode";
+
+export type {
+  FeedWorkspaceVisibilityMode,
+  FeedWorkspaceVisibilityModeSource,
+  ResolvedFeedWorkspaceVisibilityMode,
+} from "./feed-workspace-visibility-mode";
+
+export {
+  FEED_WORKSPACE_LAYOUT_BANDS,
+  resolveFeedWorkspaceVisibleLayout,
+} from "./resolve-feed-workspace-visible-layout";
+
+export type {
+  FeedWorkspaceOrientation,
+  FeedWorkspaceLayoutMode,
+  FeedWorkspaceVisibleLayoutPlan,
+  FeedWorkspaceLayoutBands,
+} from "./resolve-feed-workspace-visible-layout";
