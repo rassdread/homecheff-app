@@ -6,7 +6,7 @@
   "implementationCommit": "aa693a51190799197a2a0580b9e7dc0db1ecf621",
   "proofTarget": "aa693a51190799197a2a0580b9e7dc0db1ecf621",
   "documentaryCommit": "f740f6350d01bbe7f1b3733610edbb6f275270d1",
-  "lineageDocumentaryCommit": "pending-lineage",
+  "lineageDocumentaryCommit": "d8c4a1bdb3ca2ce3acc8dbfcfe70f2c6bbf690e3",
   "freezeCommit": "pending",
   "result": "controlled-workspace-production-live-feed-on",
   "lifecycle": "PRODUCTION_LIVE_FEED_ON",

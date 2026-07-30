@@ -13,7 +13,7 @@ Non-self-referential discipline: `freezeCommit=pending` in committed freeze meta
 | AW-R5 | freeze | `ac34031c8e16b70593392c484902d5f007b6f916` |
 | AW-R6 | implementation | `aa693a51190799197a2a0580b9e7dc0db1ecf621` |
 | AW-R6 | documentary/proof | `f740f6350d01bbe7f1b3733610edbb6f275270d1` |
-| AW-R6 | lineage/roadmap | `pending-lineage` |
+| AW-R6 | lineage/roadmap | `d8c4a1bdb3ca2ce3acc8dbfcfe70f2c6bbf690e3` |
 | AW-R6 | freeze | `pending` |
 
 ## Integrity rules verified
