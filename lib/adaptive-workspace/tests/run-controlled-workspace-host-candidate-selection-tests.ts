@@ -1,6 +1,6 @@
-import { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "../sealed/controlled-workspace-host-candidate-active";
+import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "../sealed/controlled-workspace-host-candidate-active";
 import { PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
-  PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "../sealed/controlled-workspace-host-candidate-activation";
+  PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "../sealed/controlled-workspace-host-candidate-activation";
 /**
  * Phase 3B.3.25 — controlled workspace host candidate selection unit tests.
  */
@@ -284,11 +284,11 @@ console.log("\n[phase3b325] contract + identity + gate + host + prepared");
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY,
+      PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.46");
-  assert.equal(gate.eligibleStep, "3B.3.47");
+  assert.equal(gate.currentStep, "3B.3.47");
+  assert.equal(gate.eligibleStep, "3B.3.48");
   ok("activation remains impossible (gate currentStep=3B.3.43, eligibleStep=3B.3.44)");
 }
 
@@ -301,7 +301,7 @@ console.log("\n[phase3b325] contract + identity + gate + host + prepared");
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(host.nextEligibleStep, "3B.3.47");
+  assert.equal(host.nextEligibleStep, "3B.3.48");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_40_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_ONLY,

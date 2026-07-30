@@ -167,8 +167,8 @@ console.log("\n[phase3b35] contract + identity + activation safety");
   });
   assert.equal(gate.allowed, false);
   assert.ok(gate.blockers.includes(PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY));
-  assert.equal(gate.currentStep, "3B.3.46");
-  assert.equal(gate.eligibleStep, "3B.3.47");
+  assert.equal(gate.currentStep, "3B.3.47");
+  assert.equal(gate.eligibleStep, "3B.3.48");
   ok("activation remains impossible");
 }
 

@@ -1981,3 +1981,36 @@ export {
   validateFeedWorkspaceHostCandidateExecutablePreparedContract,
 } from "./sealed/feed-workspace-host-candidate-executable-prepared";
 export type { FeedWorkspaceHostCandidateExecutablePreparedContract } from "./sealed/feed-workspace-host-candidate-executable-prepared";
+
+export {
+  PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_BLOCKERS,
+  createControlledWorkspaceHostCandidateExecutionStartedDescriptor,
+  evaluateControlledWorkspaceHostCandidateExecutionStarted,
+  validateControlledWorkspaceHostCandidateExecutionStartedDescriptor,
+} from "./sealed/controlled-workspace-host-candidate-execution-started";
+export type {
+  ControlledWorkspaceHostCandidateExecutionStartedDescriptor,
+  ControlledWorkspaceHostCandidateExecutionStartedEvaluation,
+  ControlledWorkspaceHostCandidateExecutionStartedState,
+  ControlledWorkspaceHostCandidateExecutionStartedResult,
+} from "./sealed/controlled-workspace-host-candidate-execution-started";
+export {
+  createControlledWorkspaceHostCandidateExecutionStartedContract,
+  validateControlledWorkspaceHostCandidateExecutionStartedContract,
+} from "./sealed/controlled-workspace-host-candidate-execution-started-contract";
+export type { ControlledWorkspaceHostCandidateExecutionStartedContract } from "./sealed/controlled-workspace-host-candidate-execution-started-contract";
+export {
+  createFeedWorkspaceHostCandidateExecutionStartedIdentity,
+  validateFeedWorkspaceHostCandidateExecutionStartedIdentity,
+} from "./sealed/feed-workspace-host-candidate-execution-started-identity";
+export type { FeedWorkspaceHostCandidateExecutionStartedIdentity } from "./sealed/feed-workspace-host-candidate-execution-started-identity";
+export {
+  createFeedWorkspaceHostCandidateExecutionStartedPreparedContract,
+  validateFeedWorkspaceHostCandidateExecutionStartedPreparedContract,
+} from "./sealed/feed-workspace-host-candidate-execution-started-prepared";
+export type { FeedWorkspaceHostCandidateExecutionStartedPreparedContract } from "./sealed/feed-workspace-host-candidate-execution-started-prepared";

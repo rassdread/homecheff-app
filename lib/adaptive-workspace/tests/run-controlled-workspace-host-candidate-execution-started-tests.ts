@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.43 — sealed-core unit tests for candidate activation authorization.
- * Sealed + LIVE continuity for Phase 3B.3.43.
+ * Phase 3B.3.47 — sealed-core unit tests for candidate activation authorization.
+ * Sealed + LIVE continuity for Phase 3B.3.47.
  */
 import assert from "node:assert/strict";
 import { HardContractViolation } from "../schema/validation-error";
@@ -8,21 +8,31 @@ import { stableStringify } from "../resolver/canonicalize-layout-plan";
 import { createControlledHostRegistry } from "../sealed/controlled-host-registry";
 import { createControlledFeedHostContract } from "../sealed/create-controlled-feed-host-contract";
 import { createFeedHostRollbackContract } from "../sealed/feed-host-rollback-contract";
-import { evaluateFeedHostActivationGate, PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "../sealed/feed-host-activation-gate";
-import { PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
-  PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "../sealed/controlled-workspace-host-candidate-activation";
+import { evaluateFeedHostActivationGate } from "../sealed/feed-host-activation-gate";
 import { FEED_DISCOVERY_HOST_CANDIDATE_METADATA } from "../registry/settings-manifests";
 import { FEED_DISCOVERY_STABLE_RUNTIME_ID } from "../sealed/controlled-host-registry";
 import {
-  createControlledWorkspaceHostCandidateActivationAuthorizationDescriptor,
-  evaluateControlledWorkspaceHostCandidateActivationAuthorization,
-  validateControlledWorkspaceHostCandidateActivationAuthorizationDescriptor,
+  createControlledWorkspaceHostCandidateExecutionStartedDescriptor,
+  evaluateControlledWorkspaceHostCandidateExecutionStarted,
+  validateControlledWorkspaceHostCandidateExecutionStartedDescriptor,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_BLOCKERS,
+  PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
+} from "../sealed/controlled-workspace-host-candidate-execution-started";
+import {
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
+} from "../sealed/controlled-workspace-host-candidate-activation";
+import {
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_CONTRACT_ID,
+} from "../sealed/controlled-workspace-host-candidate-activation-readiness";
+import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONTRACT_ID,
-  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONDITIONS,
-  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_GUARDS,
-  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_BLOCKERS,
-  PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
 } from "../sealed/controlled-workspace-host-candidate-activation-authorization";
 import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ID,
@@ -49,17 +59,17 @@ import {
   CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID,
 } from "../sealed/controlled-workspace-host-activation-transaction-commit";
 import {
-  createControlledWorkspaceHostCandidateActivationAuthorizationContract,
-  validateControlledWorkspaceHostCandidateActivationAuthorizationContract,
-} from "../sealed/controlled-workspace-host-candidate-activation-authorization-contract";
+  createControlledWorkspaceHostCandidateExecutionStartedContract,
+  validateControlledWorkspaceHostCandidateExecutionStartedContract,
+} from "../sealed/controlled-workspace-host-candidate-execution-started-contract";
 import {
-  createFeedWorkspaceHostCandidateActivationAuthorizationIdentity,
-  validateFeedWorkspaceHostCandidateActivationAuthorizationIdentity,
-} from "../sealed/feed-workspace-host-candidate-activation-authorization-identity";
+  createFeedWorkspaceHostCandidateExecutionStartedIdentity,
+  validateFeedWorkspaceHostCandidateExecutionStartedIdentity,
+} from "../sealed/feed-workspace-host-candidate-execution-started-identity";
 import {
-  createFeedWorkspaceHostCandidateActivationAuthorizationPreparedContract,
-  validateFeedWorkspaceHostCandidateActivationAuthorizationPreparedContract,
-} from "../sealed/feed-workspace-host-candidate-activation-authorization-prepared";
+  createFeedWorkspaceHostCandidateExecutionStartedPreparedContract,
+  validateFeedWorkspaceHostCandidateExecutionStartedPreparedContract,
+} from "../sealed/feed-workspace-host-candidate-execution-started-prepared";
 import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID,
@@ -92,22 +102,22 @@ function ok(label: string) {
 }
 
 console.log(
-  "\n[phase3b343] activation candidate-activation-readiness sealed descriptor + engine",
+  "\n[phase3b347] activation candidate-execution-started sealed descriptor + engine",
 );
 
 {
-  const a = createControlledWorkspaceHostCandidateActivationAuthorizationDescriptor();
-  const b = createControlledWorkspaceHostCandidateActivationAuthorizationDescriptor();
-  assert.equal(a.currentPhase, "3B.3.43");
-  assert.equal(a.previousPhase, "3B.3.42");
-  assert.equal(a.nextEligibleStep, "3B.3.44");
+  const a = createControlledWorkspaceHostCandidateExecutionStartedDescriptor();
+  const b = createControlledWorkspaceHostCandidateExecutionStartedDescriptor();
+  assert.equal(a.currentPhase, "3B.3.47");
+  assert.equal(a.previousPhase, "3B.3.46");
+  assert.equal(a.nextEligibleStep, "3B.3.48");
   assert.equal(
-    a.candidateActivationAuthorizationResult,
-    "controlled-workspace-host-candidate-activation-authorized-not-activated",
+    a.candidateActivationResult,
+    "controlled-workspace-host-candidate-execution-started-not-executed",
   );
   assert.equal(
-    a.candidateActivationAuthorizationState,
-    "CANDIDATE_ACTIVATION_AUTHORIZED_NOT_ACTIVATED",
+    a.candidateActivationState,
+    "CANDIDATE_EXECUTION_STARTED_NOT_EXECUTED",
   );
   assert.equal(a.candidateId, CONTROLLED_WORKSPACE_HOST_CANDIDATE_ID);
   assert.equal(a.registrationId, CONTROLLED_WORKSPACE_HOST_CANDIDATE_REGISTRATION_ID);
@@ -190,12 +200,28 @@ console.log(
     CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_AUTHORIZATION_CONTRACT_ID,
   );
   assert.equal(
+    a.activationCandidateActivationReadinessId,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ID,
+  );
+  assert.equal(
+    a.activationCandidateActivationReadinessContractId,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_CONTRACT_ID,
+  );
+  assert.equal(
     a.activationCandidateActivationAuthorizationId,
     CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ID,
   );
   assert.equal(
     a.activationCandidateActivationAuthorizationContractId,
     CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONTRACT_ID,
+  );
+  assert.equal(
+    a.activationCandidateActivationId,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
+  );
+  assert.equal(
+    a.activationCandidateActivationContractId,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
   );
   assert.equal(a.activationCommitBoundaryState, "ENTERED");
   assert.equal(a.issuanceTransactionState, "OPENED");
@@ -215,9 +241,9 @@ console.log(
   assert.equal(a.candidateActivationAuthorized, true);
   assert.equal(a.issuancePipelineExecutionAllowed, false);
   assert.equal(a.issuancePipelineExecutable, false);
-  assert.equal(a.candidateActivated, false);
-  assert.equal(a.candidateActive, false);
-  assert.equal(a.candidateExecutable, false);
+  assert.equal(a.candidateActivated, true);
+  assert.equal(a.candidateActive, true);
+  assert.equal(a.candidateExecutable, true);
   assert.equal(a.workspaceCandidateRendered, false);
   assert.equal(a.workspaceHostMounted, false);
   assert.equal(a.workspaceVisible, false);
@@ -230,20 +256,20 @@ console.log(
   assert.equal(a.transactionCommitCount, 1);
   assert.equal(
     a.activationBlocker,
-    PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
+    PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
   );
   assert.equal(stableStringify(a), stableStringify(b));
   ok("successful deterministic execution descriptor");
 }
 
 {
-  const evaluation = evaluateControlledWorkspaceHostCandidateActivationAuthorization();
+  const evaluation = evaluateControlledWorkspaceHostCandidateExecutionStarted();
   const d = evaluation.descriptor;
   const diag = evaluation.diagnostics;
-  assert.equal(d.currentPhase, "3B.3.43");
+  assert.equal(d.currentPhase, "3B.3.47");
   assert.equal(
-    d.candidateActivationAuthorizationResult,
-    "controlled-workspace-host-candidate-activation-authorized-not-activated",
+    d.candidateActivationResult,
+    "controlled-workspace-host-candidate-execution-started-not-executed",
   );
   assert.equal(d.transactionPreparationReady, true);
   assert.equal(d.transactionPreparationAuthorized, true);
@@ -259,112 +285,164 @@ console.log(
   assert.equal(diag.issuancePipelineExecuted, true);
   assert.equal(d.owner, "legacy");
   assert.equal(
-    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONDITIONS.length > 0,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_CONDITIONS.length > 0,
     true,
   );
   assert.equal(
-    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_GUARDS.length > 0,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_GUARDS.length > 0,
     true,
   );
   assert.equal(
-    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_BLOCKERS.length > 0,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_BLOCKERS.length > 0,
     true,
   );
-  ok("engine diagnostics metadata only (chained from 3B.3.42)");
+  ok("engine diagnostics metadata only (chained from 3B.3.46)");
 }
 
 {
   const registry = createControlledHostRegistry();
   assert.throws(
     () =>
-      validateControlledWorkspaceHostCandidateActivationAuthorizationDescriptor({
-        ...createControlledWorkspaceHostCandidateActivationAuthorizationDescriptor(),
-        candidateActivated: true,
+      validateControlledWorkspaceHostCandidateExecutionStartedDescriptor({
+        ...createControlledWorkspaceHostCandidateExecutionStartedDescriptor(),
+        candidateActivated: false,
       } as ReturnType<
-        typeof createControlledWorkspaceHostCandidateActivationAuthorizationDescriptor
+        typeof createControlledWorkspaceHostCandidateExecutionStartedDescriptor
       >),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      validateControlledWorkspaceHostCandidateExecutionStartedDescriptor({
+        ...createControlledWorkspaceHostCandidateExecutionStartedDescriptor(),
+        candidateActive: false,
+      } as ReturnType<
+        typeof createControlledWorkspaceHostCandidateExecutionStartedDescriptor
+      >),
+    HardContractViolation,
+  );
+  assert.throws(
+    () =>
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         issuanceTransactionPrepared: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         issuanceTransactionCommitted: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         transactionCommitAuthorized: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
-        candidateActivationAuthorized: true,
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
+        candidateActivationStarted: true,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
+        candidateActivationStarted: false,
+      }),
+    HardContractViolation,
+  );
+  assert.throws(
+    () =>
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
+        candidateActivationExecuted: true,
+      }),
+    HardContractViolation,
+  );
+  assert.throws(
+    () =>
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
+        candidateActivationCompleted: false,
+      }),
+    HardContractViolation,
+  );
+  assert.throws(
+    () =>
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
+        candidateExecutable: false,
+      }),
+    HardContractViolation,
+  );
+  assert.throws(
+    () =>
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
+        candidateActivated: false,
+      }),
+    HardContractViolation,
+  );
+  assert.throws(
+    () =>
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
+        candidateActivationAuthorized: false,
+      }),
+    HardContractViolation,
+  );
+  assert.throws(
+    () =>
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         transactionCommitReady: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         issuancePipelineExecutable: true,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         issuancePipelineExecutionAllowed: true,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         issuancePipelineExecutionReady: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         transactionPreparationAuthorized: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         transactionPreparationReady: false,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         shellRendered: true,
       }),
     HardContractViolation,
   );
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(registry, {
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(registry, {
         owner: "workspace",
       }),
     HardContractViolation,
@@ -373,23 +451,29 @@ console.log(
 }
 
 
-console.log("\n[phase3b343] Started/Completed semantics (absent from 3B.3.43 contract surface)");
+console.log("\n[phase3b347] Started semantics (absent→true); Executed/Completed remain absent");
 {
-  const a = createControlledWorkspaceHostCandidateActivationAuthorizationDescriptor();
+  const a = createControlledWorkspaceHostCandidateExecutionStartedDescriptor();
   assert.equal(
-    Object.prototype.hasOwnProperty.call(a, "issuancePipelineStarted"),
+    Object.prototype.hasOwnProperty.call(a, "candidateActivationStarted"),
+    true,
+  );
+  assert.equal(a.candidateActivationStarted, true);
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(a, "candidateActivationExecuted"),
     false,
   );
   assert.equal(
-    Object.prototype.hasOwnProperty.call(a, "issuancePipelineCompleted"),
+    Object.prototype.hasOwnProperty.call(a, "candidateActivationCompleted"),
     false,
   );
-  ok("issuancePipelineStarted absent from Phase 3B.3.43 descriptor (not advanced)");
-  ok("issuancePipelineCompleted absent from Phase 3B.3.43 descriptor (not advanced)");
-  // Fail-closed inputs still reject Started/Executed-before
+  assert.equal(a.candidateExecutable, true);
+  ok("candidateActivationStarted own-property true (absent→true transition)");
+  ok("candidateActivationExecuted absent");
+  ok("candidateActivationCompleted absent");
   assert.throws(
     () =>
-      evaluateControlledWorkspaceHostCandidateActivationAuthorization(
+      evaluateControlledWorkspaceHostCandidateExecutionStarted(
         createControlledHostRegistry(),
         { issuancePipelineStarted: true },
       ),
@@ -398,30 +482,38 @@ console.log("\n[phase3b343] Started/Completed semantics (absent from 3B.3.43 con
   ok("issuancePipelineStarted=true input remains fail-closed");
 }
 
-console.log("\n[phase3b343] sealed contract + identity + prepared");
+console.log("\n[phase3b347] sealed contract + identity + prepared");
 
 {
-  const contract = createControlledWorkspaceHostCandidateActivationAuthorizationContract();
-  assert.equal(contract.phase, "3B.3.43");
-  assert.equal(contract.nextEligibleStep, "3B.3.44");
+  const contract = createControlledWorkspaceHostCandidateExecutionStartedContract();
+  assert.equal(contract.phase, "3B.3.47");
+  assert.equal(contract.nextEligibleStep, "3B.3.48");
   assert.equal(
-    contract.candidateActivationAuthorizationState,
-    "CANDIDATE_ACTIVATION_AUTHORIZED_NOT_ACTIVATED",
+    contract.candidateActivationState,
+    "CANDIDATE_EXECUTION_STARTED_NOT_EXECUTED",
   );
   assert.throws(
     () =>
-      validateControlledWorkspaceHostCandidateActivationAuthorizationContract({
+      validateControlledWorkspaceHostCandidateExecutionStartedContract({
         ...contract,
-        candidateActivated: true,
+        candidateActivated: false,
       } as typeof contract),
     HardContractViolation,
   );
-  ok("authorization contract");
+  assert.throws(
+    () =>
+      validateControlledWorkspaceHostCandidateExecutionStartedContract({
+        ...contract,
+        candidateActive: false,
+      } as typeof contract),
+    HardContractViolation,
+  );
+  ok("activation contract");
 }
 
 {
-  const identity = createFeedWorkspaceHostCandidateActivationAuthorizationIdentity();
-  assert.equal(identity.phase, "3B.3.43");
+  const identity = createFeedWorkspaceHostCandidateExecutionStartedIdentity();
+  assert.equal(identity.phase, "3B.3.47");
   assert.equal(
     identity.activationTransactionOpeningId,
     CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_OPENING_ID,
@@ -455,34 +547,34 @@ console.log("\n[phase3b343] sealed contract + identity + prepared");
     CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ID,
   );
   assert.equal(
-    identity.activationCandidateActivationAuthorizationId,
-    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ID,
+    identity.activationCandidateActivationId,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
   );
   assert.throws(
     () =>
-      validateFeedWorkspaceHostCandidateActivationAuthorizationIdentity({
+      validateFeedWorkspaceHostCandidateExecutionStartedIdentity({
         ...identity,
         remountAllowed: true,
       } as typeof identity),
     HardContractViolation,
   );
-  ok("authorization identity");
+  ok("activation identity");
 }
 
 {
-  const prepared = createFeedWorkspaceHostCandidateActivationAuthorizationPreparedContract({
-    evidenceCommit: "phase3b343-sealed-core",
-    evidenceArtifactPath: "docs/audits/artifacts/phase3b343/",
+  const prepared = createFeedWorkspaceHostCandidateExecutionStartedPreparedContract({
+    evidenceCommit: "phase3b347-sealed-core",
+    evidenceArtifactPath: "docs/audits/artifacts/phase3b347/",
     conditionCount:
-      CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONDITIONS.length,
+      CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_CONDITIONS.length,
     satisfiedConditionCount:
-      CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_CONDITIONS.length,
-    guardCount: CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_GUARDS.length,
+      CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_CONDITIONS.length,
+    guardCount: CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_GUARDS.length,
     satisfiedGuardCount:
-      CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_GUARDS.length,
+      CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_GUARDS.length,
   });
-  assert.equal(prepared.phase, "3B.3.43");
-  assert.equal(prepared.nextEligibleStep, "3B.3.44");
+  assert.equal(prepared.phase, "3B.3.47");
+  assert.equal(prepared.nextEligibleStep, "3B.3.48");
   assert.equal(prepared.transactionPreparationReady, true);
   assert.equal(prepared.transactionPreparationAuthorized, true);
   assert.equal(prepared.transactionCommitReady, true);
@@ -493,21 +585,21 @@ console.log("\n[phase3b343] sealed contract + identity + prepared");
   assert.equal(prepared.issuancePipelineState, "NON_EXECUTABLE");
   assert.throws(
     () =>
-      validateFeedWorkspaceHostCandidateActivationAuthorizationPreparedContract({
+      validateFeedWorkspaceHostCandidateExecutionStartedPreparedContract({
         ...prepared,
-        candidateActivated: true,
+        candidateActivated: false,
       } as typeof prepared),
     HardContractViolation,
   );
-  ok("authorization prepared metadata");
+  ok("activation prepared metadata");
 }
 
 
 
-console.log("\n[phase3b343] LIVE gate + host continuity (skipped until CP3 if SKIP_PHASE3B343_LIVE=1)");
+console.log("\n[phase3b347] LIVE gate + host continuity (skipped until CP3 if SKIP_PHASE3B345_LIVE=1)");
 
-if (process.env.SKIP_PHASE3B343_LIVE === "1") {
-  console.log("  · LIVE assertions skipped (SKIP_PHASE3B343_LIVE=1)");
+if (process.env.SKIP_PHASE3B345_LIVE === "1") {
+  console.log("  · LIVE assertions skipped (SKIP_PHASE3B345_LIVE=1)");
 } else {
 {
   const gate = evaluateFeedHostActivationGate({
@@ -528,7 +620,7 @@ if (process.env.SKIP_PHASE3B343_LIVE === "1") {
   );
   assert.equal(gate.currentStep, "3B.3.47");
   assert.equal(gate.eligibleStep, "3B.3.48");
-  ok("activation remains impossible (gate currentStep=3B.3.43, eligibleStep=3B.3.43)");
+  ok("activation remains impossible (gate currentStep=3B.3.47, eligibleStep=3B.3.48)");
 }
 
 {
@@ -536,7 +628,7 @@ if (process.env.SKIP_PHASE3B343_LIVE === "1") {
   assert.equal(host.nextEligibleStep, "3B.3.48");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
+      PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
     ),
   );
   assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.48");
@@ -547,13 +639,32 @@ if (process.env.SKIP_PHASE3B343_LIVE === "1") {
 
 {
   assert.ok(
-    CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_BLOCKERS.includes(
-      PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
+    CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_BLOCKERS.includes(
+      PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
     ),
   );
-  const evaluation = evaluateControlledWorkspaceHostCandidateActivationAuthorization();
+  const evaluation = evaluateControlledWorkspaceHostCandidateExecutionStarted();
   assert.equal(evaluation.descriptor.candidateGranted, true);
-  assert.equal(evaluation.descriptor.candidateActivated, false);
+  assert.equal(evaluation.descriptor.candidateActivated, true);
+  assert.equal(evaluation.descriptor.candidateActive, true);
+  assert.equal(evaluation.descriptor.candidateExecutable, true);
+  assert.equal(evaluation.descriptor.candidateActivationStarted, true);
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(
+      evaluation.descriptor,
+      "candidateActivationExecuted",
+    ),
+    false,
+  );
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(
+      evaluation.descriptor,
+      "candidateActivationCompleted",
+    ),
+    false,
+  );
+  assert.equal(evaluation.descriptor.candidateActivationReady, true);
+  assert.equal(evaluation.descriptor.candidateActivationAuthorized, true);
   assert.equal(evaluation.descriptor.transactionOpeningCompleted, true);
   assert.equal(evaluation.descriptor.transactionPreparationReady, true);
   assert.equal(evaluation.descriptor.transactionPreparationAuthorized, true);
@@ -574,10 +685,10 @@ if (process.env.SKIP_PHASE3B343_LIVE === "1") {
   assert.equal(evaluation.descriptor.owner, "legacy");
   assert.equal(evaluation.descriptor.writer, "legacy");
   assert.equal(evaluation.descriptor.renderer, "legacy");
-  ok("candidate authorized-not-activated with PHASE_3B3_43 blocker; Workspace null; GeoFeed legacy");
+  ok("candidate execution-started-not-executed with PHASE_3B3_47 blocker; Workspace null; GeoFeed legacy");
 }
 }
 
 console.log(
-  `\nadaptive-workspace Phase 3B.3.43 controlled workspace host candidate activation authorization: ${passed} assertions ok\n`,
+  `\nadaptive-workspace Phase 3B.3.47 controlled workspace host candidate execution started: ${passed} assertions ok\n`,
 );

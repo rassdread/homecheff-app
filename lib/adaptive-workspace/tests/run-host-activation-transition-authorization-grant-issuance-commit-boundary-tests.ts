@@ -1,11 +1,11 @@
-import { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "../sealed/controlled-workspace-host-candidate-active";
 import { PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
-  PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "../sealed/controlled-workspace-host-candidate-activation";
+  PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "../sealed/controlled-workspace-host-candidate-activation";
 /**
  * Phase 3B.3.23 — host activation transition authorization grant issuance
  * decision unit tests.
  */
 import assert from "node:assert/strict";
+import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "../sealed/feed-host-activation-gate";
 import {
   createControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundaryDescriptor,
   evaluateControlledHostActivationTransitionAuthorizationGrantIssuanceCommitBoundary,
@@ -425,11 +425,11 @@ console.log(
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY,
+      PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.46");
-  assert.equal(gate.eligibleStep, "3B.3.47");
+  assert.equal(gate.currentStep, "3B.3.47");
+  assert.equal(gate.eligibleStep, "3B.3.48");
   ok(
     "activation remains impossible (gate currentStep=3B.3.25, eligibleStep=3B.3.26)",
   );
@@ -444,7 +444,7 @@ console.log(
   assert.equal(host.hostActivation, false);
   assert.equal(registry.hostCount, 1);
   assert.equal(rollback.rollbackReadiness, "prepared-not-active");
-  assert.equal(host.nextEligibleStep, "3B.3.47");
+  assert.equal(host.nextEligibleStep, "3B.3.48");
   assert.ok(
     host.activationBlockers.includes(
       PHASE_3B3_18_HOST_ACTIVATION_TRANSITION_AUTHORIZATION_GRANT_READINESS_ONLY,

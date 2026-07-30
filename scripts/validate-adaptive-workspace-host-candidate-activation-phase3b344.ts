@@ -167,7 +167,7 @@ if (artifactsPresent || process.env.REQUIRE_PHASE3B344_ARTIFACTS === "1") {
 
 const host = createControlledFeedHostContract();
 assert.equal(host.hostActivation, false);
-assert.equal(host.nextEligibleStep, "3B.3.47");
+assert.equal(host.nextEligibleStep, "3B.3.48");
 assert.ok(
   host.activationBlockers.includes(
     PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
@@ -675,8 +675,8 @@ const gate = evaluateFeedHostActivationGate({
   observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
 } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "3B.3.46");
-assert.equal(gate.eligibleStep, "3B.3.47");
+assert.equal(gate.currentStep, "3B.3.47");
+assert.equal(gate.eligibleStep, "3B.3.48");
 assert.ok(
   gate.blockers.includes(
     PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
@@ -694,7 +694,7 @@ assert.equal(
   "3B.3.45",
 );
 assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.47");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.48");
 
 const proofArtifact = JSON.parse(
   readFileSync(
