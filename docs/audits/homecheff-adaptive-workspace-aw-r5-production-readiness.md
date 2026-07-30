@@ -117,7 +117,7 @@ AW-R6 not started. No Feed ON. No production promotion. No authority remount. No
 |-------|-------|
 | Branch | `workspace/aw-r5-production-readiness` |
 | Implementation commit | `86c7d4630447bee31543b9e7015729a291c86979` |
-| Documentary commit | `pending-docs` |
+| Documentary commit | `58facac0f1bcd6359f5486c73cff732749d5fbdb` |
 | Lineage documentary commit | `pending-lineage` |
 | Freeze commit | `pending` |
 

@@ -5,7 +5,7 @@
   "predecessorFreeze": "fe4ad5e54e7f5408a826398059d60f278c8fe7be",
   "implementationCommit": "86c7d4630447bee31543b9e7015729a291c86979",
   "proofTarget": "86c7d4630447bee31543b9e7015729a291c86979",
-  "documentaryCommit": "pending-docs",
+  "documentaryCommit": "58facac0f1bcd6359f5486c73cff732749d5fbdb",
   "lineageDocumentaryCommit": "pending-lineage",
   "freezeCommit": "pending",
   "result": "controlled-workspace-production-ready-feed-off",
