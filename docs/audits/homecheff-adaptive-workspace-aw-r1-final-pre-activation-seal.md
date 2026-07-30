@@ -102,8 +102,8 @@ Engine: pure `evaluateControlledWorkspaceHostCandidatePreActivationSeal(registry
 | Field | Value |
 |-------|-------|
 | Branch | `workspace/aw-r1-final-pre-activation-seal` |
-| Implementation commit | `pending-impl` |
-| Documentary commit | `pending-docs` |
+| Implementation commit | `264340b1a2ca1d52c2850a66dadb93dcdeed2591` |
+| Documentary commit | `e323aff5d46eba1fb9e3d75938c5e2c17cf6eede` |
 | Lineage documentary commit | `pending-lineage` |
 | Freeze commit | `pending` |
 
