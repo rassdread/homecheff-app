@@ -1,0 +1,1228 @@
+{
+  "phase": "aw-visible-workspace-hardening",
+  "commit": "c71efcd7896c75ab6f87e679b48893a016399c93",
+  "baseUrl": "http://127.0.0.1:3080",
+  "capturedAt": "2026-07-30T21:52:04.570Z",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "mobile-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/mobile-portrait-390x844.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "supportingPanels": 0,
+        "usableWidth": 366,
+        "usableHeight": 844,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:366x844:mobile-portrait:p0",
+        "workspaceBounds": {
+          "x": 12,
+          "y": 370,
+          "width": 366,
+          "height": 2670
+        },
+        "feedBounds": {
+          "x": 12,
+          "y": 370,
+          "width": 366,
+          "height": 2670
+        },
+        "startRailBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "endRailBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "visibleRailCount": 0,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 8,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "mobile-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/mobile-landscape-844x390.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "usableWidth": 812,
+        "usableHeight": 390,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:812x390:tablet-landscape:p1",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 236,
+          "width": 812,
+          "height": 310
+        },
+        "feedBounds": {
+          "x": 16,
+          "y": 236,
+          "width": 536,
+          "height": 3006
+        },
+        "startRailBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "endRailBounds": {
+          "x": 568,
+          "y": 236,
+          "width": 260,
+          "height": 982
+        },
+        "visibleRailCount": 1,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "large-mobile-portrait",
+        "width": 430,
+        "height": 932
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/large-mobile-portrait-430x932.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "supportingPanels": 0,
+        "usableWidth": 406,
+        "usableHeight": 932,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:406x932:mobile-portrait:p0",
+        "workspaceBounds": {
+          "x": 12,
+          "y": 354,
+          "width": 406,
+          "height": 2720
+        },
+        "feedBounds": {
+          "x": 12,
+          "y": 354,
+          "width": 406,
+          "height": 2720
+        },
+        "startRailBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "endRailBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "visibleRailCount": 0,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 8,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "large-mobile-landscape",
+        "width": 932,
+        "height": 430
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/large-mobile-landscape-932x430.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "usableWidth": 900,
+        "usableHeight": 430,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:900x430:tablet-landscape:p1",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 236,
+          "width": 900,
+          "height": 350
+        },
+        "feedBounds": {
+          "x": 16,
+          "y": 236,
+          "width": 624,
+          "height": 3368
+        },
+        "startRailBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "endRailBounds": {
+          "x": 656,
+          "y": 236,
+          "width": 260,
+          "height": 982
+        },
+        "visibleRailCount": 1,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/tablet-portrait-768x1024.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-portrait",
+        "orientation": "portrait",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "usableWidth": 736,
+        "usableHeight": 1024,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:736x1024:tablet-portrait:p1",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 236,
+          "width": 736,
+          "height": 944
+        },
+        "feedBounds": {
+          "x": 16,
+          "y": 236,
+          "width": 460,
+          "height": 506
+        },
+        "startRailBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "endRailBounds": {
+          "x": 492,
+          "y": 236,
+          "width": 260,
+          "height": 982
+        },
+        "visibleRailCount": 1,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 0,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 1,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/tablet-landscape-1024x768.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "usableWidth": 992,
+        "usableHeight": 768,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:992x768:tablet-landscape:p1",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 992,
+          "height": 688
+        },
+        "feedBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 716,
+          "height": 8994
+        },
+        "startRailBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "endRailBounds": {
+          "x": 748,
+          "y": 631,
+          "width": 260,
+          "height": 982
+        },
+        "visibleRailCount": 1,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "laptop",
+        "width": 1280,
+        "height": 800
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/laptop-1280x800.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "desktop",
+        "orientation": "landscape",
+        "profile": "EXPANDED",
+        "supportingPanels": 2,
+        "usableWidth": 1248,
+        "usableHeight": 800,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:1248x800:desktop:p2",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 1248,
+          "height": 720
+        },
+        "feedBounds": {
+          "x": 292,
+          "y": 631,
+          "width": 656,
+          "height": 8580
+        },
+        "startRailBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 260,
+          "height": 599
+        },
+        "endRailBounds": {
+          "x": 964,
+          "y": 631,
+          "width": 300,
+          "height": 962
+        },
+        "visibleRailCount": 2,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": {
+        "workspacePresent": false,
+        "hostPresent": false,
+        "legacySticky": true,
+        "previewForced": false
+      }
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/desktop-1440x900.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "desktop",
+        "orientation": "landscape",
+        "profile": "EXPANDED",
+        "supportingPanels": 2,
+        "usableWidth": 1408,
+        "usableHeight": 900,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:1408x900:desktop:p2",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 1408,
+          "height": 820
+        },
+        "feedBounds": {
+          "x": 340,
+          "y": 631,
+          "width": 720,
+          "height": 9060
+        },
+        "startRailBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 260,
+          "height": 599
+        },
+        "endRailBounds": {
+          "x": 1124,
+          "y": 631,
+          "width": 300,
+          "height": 962
+        },
+        "visibleRailCount": 2,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "wide-desktop",
+        "width": 1728,
+        "height": 1117
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/wide-desktop-1728x1117.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "desktop-wide",
+        "orientation": "landscape",
+        "profile": "PROFESSIONAL",
+        "supportingPanels": 2,
+        "usableWidth": 1696,
+        "usableHeight": 1117,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:1696x1117:desktop-wide:p2",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 1696,
+          "height": 1037
+        },
+        "feedBounds": {
+          "x": 484,
+          "y": 631,
+          "width": 720,
+          "height": 9060
+        },
+        "startRailBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 300,
+          "height": 571
+        },
+        "endRailBounds": {
+          "x": 1372,
+          "y": 631,
+          "width": 340,
+          "height": 962
+        },
+        "visibleRailCount": 2,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 6,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "full-hd",
+        "width": 1920,
+        "height": 1080
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/full-hd-1920x1080.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "desktop-wide",
+        "orientation": "landscape",
+        "profile": "PROFESSIONAL",
+        "supportingPanels": 2,
+        "usableWidth": 1888,
+        "usableHeight": 1080,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:1888x1080:desktop-wide:p2",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 1888,
+          "height": 1000
+        },
+        "feedBounds": {
+          "x": 580,
+          "y": 631,
+          "width": 720,
+          "height": 9060
+        },
+        "startRailBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 300,
+          "height": 571
+        },
+        "endRailBounds": {
+          "x": 1564,
+          "y": 631,
+          "width": 340,
+          "height": 962
+        },
+        "visibleRailCount": 2,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "qhd",
+        "width": 2560,
+        "height": 1440
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/qhd-2560x1440.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "desktop-wide",
+        "orientation": "landscape",
+        "profile": "PROFESSIONAL",
+        "supportingPanels": 2,
+        "usableWidth": 2528,
+        "usableHeight": 1440,
+        "feedMaxWidth": 720,
+        "stabilityToken": "feed-ws:2528x1440:desktop-wide:p2",
+        "workspaceBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 2528,
+          "height": 1360
+        },
+        "feedBounds": {
+          "x": 900,
+          "y": 631,
+          "width": 720,
+          "height": 9060
+        },
+        "startRailBounds": {
+          "x": 16,
+          "y": 631,
+          "width": 300,
+          "height": 571
+        },
+        "endRailBounds": {
+          "x": 2204,
+          "y": 631,
+          "width": 340,
+          "height": 962
+        },
+        "visibleRailCount": 2,
+        "stableFeedSlot": true,
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "intersectionObserverCreateCount": 1,
+          "lastRequestKeyHash": "fbd314f0"
+        },
+        "overflowX": false
+      },
+      "feedRequestCount": 6,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    }
+  ],
+  "resizeJourney": {
+    "steps": [
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "mobile-portrait",
+          "orientation": "portrait",
+          "profile": "COMPACT",
+          "supportingPanels": 0,
+          "usableWidth": 366,
+          "usableHeight": 844,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:366x844:mobile-portrait:p0",
+          "workspaceBounds": {
+            "x": 12,
+            "y": 370,
+            "width": 366,
+            "height": 2572
+          },
+          "feedBounds": {
+            "x": 12,
+            "y": 370,
+            "width": 366,
+            "height": 2572
+          },
+          "startRailBounds": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "endRailBounds": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "visibleRailCount": 0,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      },
+      {
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "tablet-landscape",
+          "orientation": "landscape",
+          "profile": "COMFORT",
+          "supportingPanels": 1,
+          "usableWidth": 812,
+          "usableHeight": 390,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:812x390:tablet-landscape:p1",
+          "workspaceBounds": {
+            "x": 16,
+            "y": 236,
+            "width": 812,
+            "height": 310
+          },
+          "feedBounds": {
+            "x": 16,
+            "y": 236,
+            "width": 536,
+            "height": 6626
+          },
+          "startRailBounds": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "endRailBounds": {
+            "x": 568,
+            "y": 236,
+            "width": 260,
+            "height": 982
+          },
+          "visibleRailCount": 1,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      },
+      {
+        "viewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "tablet-portrait",
+          "orientation": "portrait",
+          "profile": "COMFORT",
+          "supportingPanels": 1,
+          "usableWidth": 736,
+          "usableHeight": 1024,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:736x1024:tablet-portrait:p1",
+          "workspaceBounds": {
+            "x": 16,
+            "y": 236,
+            "width": 736,
+            "height": 944
+          },
+          "feedBounds": {
+            "x": 16,
+            "y": 236,
+            "width": 460,
+            "height": 2778
+          },
+          "startRailBounds": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "endRailBounds": {
+            "x": 492,
+            "y": 236,
+            "width": 260,
+            "height": 982
+          },
+          "visibleRailCount": 1,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      },
+      {
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "tablet-landscape",
+          "orientation": "landscape",
+          "profile": "COMFORT",
+          "supportingPanels": 1,
+          "usableWidth": 992,
+          "usableHeight": 768,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:992x768:tablet-landscape:p1",
+          "workspaceBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 992,
+            "height": 688
+          },
+          "feedBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 716,
+            "height": 8994
+          },
+          "startRailBounds": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "endRailBounds": {
+            "x": 748,
+            "y": 631,
+            "width": 260,
+            "height": 982
+          },
+          "visibleRailCount": 1,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      },
+      {
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "desktop",
+          "orientation": "landscape",
+          "profile": "EXPANDED",
+          "supportingPanels": 2,
+          "usableWidth": 1248,
+          "usableHeight": 800,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:1248x800:desktop:p2",
+          "workspaceBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 1248,
+            "height": 720
+          },
+          "feedBounds": {
+            "x": 292,
+            "y": 631,
+            "width": 656,
+            "height": 8580
+          },
+          "startRailBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 260,
+            "height": 599
+          },
+          "endRailBounds": {
+            "x": 964,
+            "y": 631,
+            "width": 300,
+            "height": 962
+          },
+          "visibleRailCount": 2,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      },
+      {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "desktop",
+          "orientation": "landscape",
+          "profile": "EXPANDED",
+          "supportingPanels": 2,
+          "usableWidth": 1408,
+          "usableHeight": 900,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:1408x900:desktop:p2",
+          "workspaceBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 1408,
+            "height": 820
+          },
+          "feedBounds": {
+            "x": 340,
+            "y": 631,
+            "width": 720,
+            "height": 9060
+          },
+          "startRailBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 260,
+            "height": 599
+          },
+          "endRailBounds": {
+            "x": 1124,
+            "y": 631,
+            "width": 300,
+            "height": 962
+          },
+          "visibleRailCount": 2,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      },
+      {
+        "viewport": {
+          "width": 1728,
+          "height": 1117
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "desktop-wide",
+          "orientation": "landscape",
+          "profile": "PROFESSIONAL",
+          "supportingPanels": 2,
+          "usableWidth": 1696,
+          "usableHeight": 1117,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:1696x1117:desktop-wide:p2",
+          "workspaceBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 1696,
+            "height": 1037
+          },
+          "feedBounds": {
+            "x": 484,
+            "y": 631,
+            "width": 720,
+            "height": 9060
+          },
+          "startRailBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 300,
+            "height": 571
+          },
+          "endRailBounds": {
+            "x": 1372,
+            "y": 631,
+            "width": 340,
+            "height": 962
+          },
+          "visibleRailCount": 2,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      },
+      {
+        "viewport": {
+          "width": 2560,
+          "height": 1440
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "desktop-wide",
+          "orientation": "landscape",
+          "profile": "PROFESSIONAL",
+          "supportingPanels": 2,
+          "usableWidth": 2528,
+          "usableHeight": 1440,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:2528x1440:desktop-wide:p2",
+          "workspaceBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 2528,
+            "height": 1360
+          },
+          "feedBounds": {
+            "x": 900,
+            "y": 631,
+            "width": 720,
+            "height": 9060
+          },
+          "startRailBounds": {
+            "x": 16,
+            "y": 631,
+            "width": 300,
+            "height": 571
+          },
+          "endRailBounds": {
+            "x": 2204,
+            "y": 631,
+            "width": 340,
+            "height": 962
+          },
+          "visibleRailCount": 2,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "metrics": {
+          "workspacePresent": true,
+          "hostPresent": true,
+          "layoutMode": "mobile-portrait",
+          "orientation": "portrait",
+          "profile": "COMPACT",
+          "supportingPanels": 0,
+          "usableWidth": 366,
+          "usableHeight": 844,
+          "feedMaxWidth": 720,
+          "stabilityToken": "feed-ws:366x844:mobile-portrait:p0",
+          "workspaceBounds": {
+            "x": 12,
+            "y": 370,
+            "width": 366,
+            "height": 2572
+          },
+          "feedBounds": {
+            "x": 12,
+            "y": 370,
+            "width": 366,
+            "height": 2572
+          },
+          "startRailBounds": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "endRailBounds": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "visibleRailCount": 0,
+          "stableFeedSlot": true,
+          "visibilityMode": "preview",
+          "feedDataOwner": "geofeed",
+          "sealed": {
+            "mountCount": 1,
+            "unmountCount": 0,
+            "activeInstanceCount": 1,
+            "requestStartCount": 1,
+            "requestKeyTransitionCount": 0,
+            "paginationResetCount": 0,
+            "intersectionObserverCreateCount": 1,
+            "lastRequestKeyHash": "fbd314f0"
+          },
+          "overflowX": false
+        }
+      }
+    ],
+    "feedRequestCount": 9,
+    "consoleErrors": [],
+    "hydrationWarnings": []
+  },
+  "failures": [],
+  "overallVerdict": "READY_TO_MERGE_FOR_CONTROLLED_PRODUCTION_ACTIVATION"
+}

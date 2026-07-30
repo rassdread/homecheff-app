@@ -20,13 +20,16 @@ import {
 } from "@/lib/feed/feed-performance-baseline";
 import GeoFeed, { FeedContent } from "@/components/home/HomeGeoFeedDynamic";
 import FeedControlledHostShell from "@/components/adaptive-workspace/FeedControlledHostShell";
+import FeedWorkspaceVisibleLayout from "@/components/adaptive-workspace/FeedWorkspaceVisibleLayout";
 import { createControlledFeedHostContract } from "@/lib/adaptive-workspace/sealed/create-controlled-feed-host-contract";
 import { createControlledFeedHostShadowPlacement } from "@/lib/adaptive-workspace/sealed/controlled-feed-host-shadow-placement";
 import { createFeedDiscoveryControlledHostDescriptor } from "@/lib/adaptive-workspace/sealed/controlled-host-registry";
+import type { FeedWorkspaceVisibilityMode } from "@/lib/adaptive-workspace-react";
+import { isFeedWorkspaceLayoutVisible } from "@/lib/adaptive-workspace-react";
 
 import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
 
-/** Phase 3B.3.2/3B.3.3 — module-stable metadata; shell remains null (zero DOM). */
+/** Phase 3B.3.2/3B.3.3 — module-stable metadata. */
 const FEED_CONTROLLED_HOST_CONTRACT = createControlledFeedHostContract();
 const FEED_HOST_SHADOW_PLACEMENT = createControlledFeedHostShadowPlacement();
 const FEED_HOST_DESCRIPTOR = createFeedDiscoveryControlledHostDescriptor();
@@ -77,13 +80,13 @@ function pickFirstName(
 }
 
 type Props = {
-  /** SSR session hint from getServerSession — enables anonymous feed fast-path. */
   ssrAuthHint?: SsrAuthHint;
   initialFeedChip?: HomeFeedChip;
   initialFeedCategory?: string;
   initialFeedPlace?: string;
-  /** SSR ?stickyTest=1 — minimal sticky proof grid */
   stickyTestMode?: boolean;
+  feedWorkspaceVisibilityMode?: FeedWorkspaceVisibilityMode;
+  feedWorkspacePreviewRequested?: boolean;
 };
 
 export default function HomePageClient({
@@ -92,11 +95,18 @@ export default function HomePageClient({
   initialFeedCategory,
   initialFeedPlace,
   stickyTestMode = false,
+  feedWorkspaceVisibilityMode = "off",
+  feedWorkspacePreviewRequested = false,
 }: Props) {
   const { t, tOr, language } = useTranslation();
   const { data: session } = useSession();
   const visibleHomePromotionIds = useVisibleHomePromotionIds();
   const { narrow: isNarrowHome } = useNarrowViewportResolved();
+
+  const layoutVisible = isFeedWorkspaceLayoutVisible({
+    mode: feedWorkspaceVisibilityMode,
+    previewRequested: feedWorkspacePreviewRequested,
+  });
 
   useEffect(() => {
     installFeedPerfBaselineReporter();
@@ -116,8 +126,8 @@ export default function HomePageClient({
     ) {
       return;
     }
-    const t = window.setTimeout(() => scrollToHomeFeed(), 400);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => scrollToHomeFeed(), 400);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const firstName = pickFirstName(session?.user);
@@ -145,15 +155,102 @@ export default function HomePageClient({
   const stickyAsideClass =
     'sticky top-20 z-[1] self-start max-h-[calc(100vh-5rem)] overflow-y-auto pb-3';
 
-  /** Phase 3F.5: single GeoFeed instance; layout toggles via prop (no unmount/remount). */
+  /** Legacy OFF path only — Phase 3F.5 composed desktop grid. */
   const showDesktopComposedLayout = !isNarrowHome && !stickyTestMode;
+
+  const mobileChrome = (
+    <div className="min-w-0 lg:hidden">
+      {session?.user ? (
+        <div className="mb-3">
+          <UserActionCenter variant="mobileCompact" />
+        </div>
+      ) : null}
+      <HomeMobileEcosystemStrip
+        isLoggedIn={Boolean(session?.user)}
+        className="mb-3"
+      />
+    </div>
+  );
+
+  const legacyFeedTree = (
+    <>
+      {mobileChrome}
+      <GeoFeed
+        {...geoFeedProps}
+        homeComposedLayout={showDesktopComposedLayout}
+      >
+        {showDesktopComposedLayout ? (
+          <section
+            className="hc-home-sticky-grid hc-home-desktop-shell lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] gap-5 xl:gap-6 lg:items-stretch lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] lg:min-h-[28rem]"
+            aria-label={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
+          >
+            <aside data-sticky-prod="left" className={desktopColScrollClass}>
+              <HomeDesktopLeftSidebar />
+            </aside>
+            <div
+              id="homecheff-feed-desktop"
+              className={`${desktopColScrollClass} min-w-0 space-y-4 hc-home-feed-grid`}
+            >
+              <FeedContent />
+            </div>
+            <aside data-sticky-prod="right" className={desktopColScrollClass}>
+              <HomeDesktopSidebar welcomeLine={welcomeLine} />
+            </aside>
+          </section>
+        ) : null}
+      </GeoFeed>
+      <FeedControlledHostShell
+        contract={FEED_CONTROLLED_HOST_CONTRACT}
+        placement={FEED_HOST_SHADOW_PLACEMENT}
+        hostDescriptor={FEED_HOST_DESCRIPTOR}
+        visibilityMode={feedWorkspaceVisibilityMode}
+        layoutVisible={false}
+      />
+    </>
+  );
+
+  /**
+   * Hardened PREVIEW/ON tree — one permanent GeoFeed parent chain:
+   * Shell → VisibleLayout → primary slot → GeoFeed
+   * Crossing lg / orientation only toggles rails + grid CSS, not GeoFeed identity.
+   * homeComposedLayout=false so GeoFeed never hits the mobile+composed null path.
+   */
+  const visibleWorkspaceTree = (
+    <>
+      {mobileChrome}
+      <FeedControlledHostShell
+        contract={FEED_CONTROLLED_HOST_CONTRACT}
+        placement={FEED_HOST_SHADOW_PLACEMENT}
+        hostDescriptor={FEED_HOST_DESCRIPTOR}
+        visibilityMode={feedWorkspaceVisibilityMode}
+        layoutVisible
+      >
+        <FeedWorkspaceVisibleLayout
+          ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
+          primary={<GeoFeed {...geoFeedProps} homeComposedLayout={false} />}
+          startPanel={<HomeDesktopLeftSidebar />}
+          endPanel={<HomeDesktopSidebar welcomeLine={welcomeLine} />}
+        />
+      </FeedControlledHostShell>
+    </>
+  );
+
+  const pageShellClass = layoutVisible
+    ? "hc-home-page-shell hc-aw-full-bleed w-full max-w-none mx-auto px-3 sm:px-4 py-3 sm:py-5"
+    : "hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-3 sm:py-5";
 
   return (
     <>
       <PostAuthPersonaBanner />
       <div className="min-h-[60vh] hc-dorpsplein-page">
-        <div className="hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-3 sm:py-5">
-          <div className="max-w-3xl lg:max-w-none mx-auto mb-2 sm:mb-4 lg:mb-4">
+        <div className={pageShellClass}>
+          <div
+            className={
+              layoutVisible
+                ? "max-w-3xl lg:max-w-[720px] mx-auto mb-2 sm:mb-4 lg:mb-4"
+                : "max-w-3xl lg:max-w-none mx-auto mb-2 sm:mb-4 lg:mb-4"
+            }
+          >
             <HomeHeroSection />
           </div>
 
@@ -174,56 +271,7 @@ export default function HomePageClient({
             </section>
           ) : null}
 
-          {!stickyTestMode ? (
-            <>
-              <div className="min-w-0 lg:hidden">
-                  {session?.user ? (
-                    <div className="mb-3">
-                      <UserActionCenter variant="mobileCompact" />
-                    </div>
-                  ) : null}
-                  <HomeMobileEcosystemStrip
-                    isLoggedIn={Boolean(session?.user)}
-                    className="mb-3"
-                  />
-                </div>
-
-              <GeoFeed
-                {...geoFeedProps}
-                homeComposedLayout={showDesktopComposedLayout}
-              >
-                {showDesktopComposedLayout ? (
-                  <section
-                    className="hc-home-sticky-grid hc-home-desktop-shell lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] gap-5 xl:gap-6 lg:items-stretch lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] lg:min-h-[28rem]"
-                    aria-label={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
-                  >
-                    <aside data-sticky-prod="left" className={desktopColScrollClass}>
-                      <HomeDesktopLeftSidebar />
-                    </aside>
-                    <div
-                      id="homecheff-feed-desktop"
-                      className={`${desktopColScrollClass} min-w-0 space-y-4 hc-home-feed-grid`}
-                    >
-                      <FeedContent />
-                    </div>
-                    <aside data-sticky-prod="right" className={desktopColScrollClass}>
-                      <HomeDesktopSidebar welcomeLine={welcomeLine} />
-                    </aside>
-                  </section>
-                ) : null}
-              </GeoFeed>
-              {/*
-                Phase 3B.3.2 Controlled Host Shadow Placement:
-                sibling AFTER GeoFeed so GeoFeed keeps its React sibling index.
-                Shell always returns null — zero DOM / zero remount of GeoFeed.
-              */}
-              <FeedControlledHostShell
-                contract={FEED_CONTROLLED_HOST_CONTRACT}
-                placement={FEED_HOST_SHADOW_PLACEMENT}
-                hostDescriptor={FEED_HOST_DESCRIPTOR}
-              />
-            </>
-          ) : null}
+          {!stickyTestMode ? (layoutVisible ? visibleWorkspaceTree : legacyFeedTree) : null}
         </div>
       </div>
       <OnboardingTour pageId="home" autoStart={false} />

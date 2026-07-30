@@ -8,6 +8,10 @@ import {
 } from '@/lib/marketplace/canonical-model';
 import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
 import type { SsrAuthHint } from '@/lib/feed/anonymous-session-fast-path';
+import {
+  parseFeedWorkspacePreviewRequested,
+  resolveFeedWorkspaceVisibilityMode,
+} from '@/lib/adaptive-workspace-react';
 
 export const revalidate = 60;
 
@@ -63,7 +67,13 @@ function resolveHomeFeedDeepLink(
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams?: { chip?: string; vertical?: string; place?: string; stickyTest?: string };
+  searchParams?: {
+    chip?: string;
+    vertical?: string;
+    place?: string;
+    stickyTest?: string;
+    awFeedWorkspace?: string;
+  };
 }) {
   let ssrAuthHint: SsrAuthHint = 'anonymous';
   try {
@@ -81,6 +91,10 @@ export default async function HomePage({
   );
   const initialFeedPlace = searchParams?.place?.trim().slice(0, 200) || undefined;
   const stickyTestMode = searchParams?.stickyTest != null && searchParams.stickyTest !== '0';
+  const { mode: feedWorkspaceVisibilityMode } = resolveFeedWorkspaceVisibilityMode();
+  const feedWorkspacePreviewRequested = parseFeedWorkspacePreviewRequested(
+    searchParams?.awFeedWorkspace,
+  );
 
   return (
     <HomePageClient
@@ -89,6 +103,8 @@ export default async function HomePage({
       initialFeedCategory={initialFeedCategory}
       initialFeedPlace={initialFeedPlace}
       stickyTestMode={stickyTestMode}
+      feedWorkspaceVisibilityMode={feedWorkspaceVisibilityMode}
+      feedWorkspacePreviewRequested={feedWorkspacePreviewRequested}
     />
   );
 }
