@@ -48,4 +48,16 @@ Authority state machine `COMMIT_READY→ACTIVE` remains blocked. This slice is
 
 Fail closed: missing/invalid → `off`.
 
-Rollback: set env to `off` (or unset) and redeploy / restart.
+Outer Workspace:
+- Uses available viewport/container width
+- Controls rails and layout regions
+
+Inner feed column:
+- Retains readable `feedColumnMaxWidthPx` (default 720)
+- Remains centered within its grid area
+
+## Authority
+
+See `homecheff-adaptive-workspace-presentation-only-authority.md`.
+Visibility ON ≠ Controlled Host ACTIVE.
+
