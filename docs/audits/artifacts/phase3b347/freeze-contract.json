@@ -1,0 +1,10 @@
+{
+  "phase": "3B.3.47",
+  "freezeCommit": "pending",
+  "implementationCommit": "a333f7051a60f515a3784dcfbf9a52ee2cb16dad",
+  "proofTarget": "a333f7051a60f515a3784dcfbf9a52ee2cb16dad",
+  "bridgeVersion": "v48",
+  "candidateActivationStarted": true,
+  "candidateActivationStartedMetaOk": true,
+  "finalVerdict": "READY_FOR_PHASE_3B_3_48"
+}
