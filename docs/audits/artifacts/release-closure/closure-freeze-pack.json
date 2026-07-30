@@ -13,7 +13,7 @@
   "deployment": false,
   "closureFreeze": "pending",
   "documentationCommit": "f411e19802c4da267efe62cb587808ea6ac7534f",
-  "handoffCommit": "pending-handoff",
+  "handoffCommit": "e5eadc27362fac8c4f505e132fbbd6efe4302e57",
   "lineageCommit": "pending-lineage",
   "finalVerdict": "ADAPTIVE_WORKSPACE_RELEASE_CLOSURE_COMPLETE"
 }
