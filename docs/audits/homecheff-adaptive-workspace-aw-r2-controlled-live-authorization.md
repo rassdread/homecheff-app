@@ -122,7 +122,7 @@ Engine: pure `evaluateControlledWorkspaceLiveAuthorization(registry, input?)`.
 | Branch | `workspace/aw-r2-controlled-live-authorization` |
 | Implementation commit | `002586b455849e9f4be4eec9d87548fb72a87438` |
 | Documentary commit | `8dfdb08354a640c23d6d31cf062c2efbe665f122` |
-| Lineage documentary commit | `pending-lineage` |
+| Lineage documentary commit | `96e270f6dd8b5aea2fdf2931e7345e60353791c7` |
 | Freeze commit | `pending` |
 
 ## Release verdict
