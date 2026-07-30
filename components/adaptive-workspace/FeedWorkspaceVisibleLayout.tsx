@@ -3,11 +3,11 @@
 /**
  * Visible Feed Workspace layout shell — presentation only.
  *
- * Mechanism B: composed as GeoFeed children (desktop) or as an outer grid
- * around a single GeoFeed (sub-lg landscape). Does not own feed requests.
+ * Stable-mount architecture: three permanent region slots (start / primary / end).
+ * Rails hide via `hidden` without unmounting the primary slot, so GeoFeed keeps
+ * a fixed React sibling index across AvailableSpace / orientation changes.
  *
- * AvailableSpace: width from workspace container; height from visual viewport
- * (not intrinsic content height — avoids landscape→tall-portrait misclassify).
+ * AvailableSpace: width from workspace container; height from visual viewport.
  */
 
 import React, {
@@ -29,14 +29,14 @@ import {
 } from "@/lib/adaptive-workspace-react";
 
 export type FeedWorkspaceVisibleLayoutProps = {
-  /** Primary feed column (FeedContent or GeoFeed itself). */
+  /**
+   * Permanent primary slot content (stable GeoFeed from parent).
+   */
   primary: ReactNode;
   startPanel?: ReactNode;
   endPanel?: ReactNode;
-  /** Optional SSR/seed measurement for hydration-stable first paint. */
   initialWidthPx?: number;
   initialHeightPx?: number;
-  /** Aria label for the workspace section. */
   ariaLabel?: string;
   onPlanChange?: (plan: FeedWorkspaceVisibleLayoutPlan) => void;
 };
@@ -120,6 +120,12 @@ export default function FeedWorkspaceVisibleLayout({
 
   const multiCol = plan.supportingPanelCount > 0;
 
+  const gridTemplateAreas = plan.showStartPanel
+    ? '"start primary end"'
+    : plan.showEndPanel
+      ? '"primary end"'
+      : '"primary"';
+
   return (
     <section
       ref={rootRef}
@@ -129,17 +135,30 @@ export default function FeedWorkspaceVisibleLayout({
       data-aw-profile={plan.profile}
       data-aw-supporting-panels={String(plan.supportingPanelCount)}
       data-aw-stability-token={plan.stabilityToken}
+      data-aw-feed-max-width={String(plan.feedColumnMaxWidthPx)}
+      data-aw-usable-width={String(plan.usableWidthPx)}
+      data-aw-usable-height={String(plan.usableHeightPx)}
       aria-label={ariaLabel}
       className={
         multiCol
           ? "hc-aw-feed-workspace w-full min-w-0 grid gap-4 items-stretch max-h-[calc(100dvh-5rem)] min-h-[12rem] h-[calc(100dvh-5rem)]"
-          : "hc-aw-feed-workspace w-full min-w-0"
+          : "hc-aw-feed-workspace w-full min-w-0 grid gap-4"
       }
-      style={
-        multiCol ? { gridTemplateColumns: plan.gridTemplateColumns } : undefined
-      }
+      style={{
+        gridTemplateColumns: multiCol
+          ? plan.gridTemplateColumns
+          : "minmax(0,1fr)",
+        gridTemplateAreas,
+      }}
     >
-      {plan.showStartPanel && startPanel ? (
+      {/* Permanent slot 1 — start rail (hidden, not unmounted, when unused). */}
+      <div
+        key="aw-slot-start"
+        data-aw-slot-host="start"
+        className={plan.showStartPanel ? "min-w-0" : "hidden"}
+        style={{ gridArea: plan.showStartPanel ? "start" : undefined }}
+        aria-hidden={!plan.showStartPanel}
+      >
         <WorkspaceRegion regionId="supporting-start">
           <WorkspaceSlot slotId="feed.supporting.start">
             <WorkspacePanel
@@ -148,34 +167,55 @@ export default function FeedWorkspaceVisibleLayout({
               widgetId="home.desktop.left"
               mode="rail"
             >
-              <aside data-aw-rail="start" className={colScroll}>
+              <aside
+                data-aw-rail="start"
+                data-aw-rail-width={String(plan.startRailWidthPx)}
+                className={colScroll}
+              >
                 {startPanel}
               </aside>
             </WorkspacePanel>
           </WorkspaceSlot>
         </WorkspaceRegion>
-      ) : null}
+      </div>
 
-      <WorkspaceRegion regionId="primary-stage">
-        <WorkspaceSlot slotId="feed.primary">
-          <WorkspacePanel
-            panelId="feed.panel.primary"
-            slotId="feed.primary"
-            widgetId="feed.discovery"
-            mode="stage"
-          >
-            <div
-              id="homecheff-feed-desktop"
-              data-aw-primary-feed=""
-              className={`${colScroll} min-w-0 space-y-4 hc-home-feed-grid`}
+      {/* Permanent slot 2 — primary feed (GeoFeed). Never conditionally removed. */}
+      <div
+        key="aw-slot-primary"
+        data-aw-slot-host="primary"
+        className="min-w-0"
+        style={{ gridArea: "primary" }}
+      >
+        <WorkspaceRegion regionId="primary-stage">
+          <WorkspaceSlot slotId="feed.primary">
+            <WorkspacePanel
+              panelId="feed.panel.primary"
+              slotId="feed.primary"
+              widgetId="feed.discovery"
+              mode="stage"
             >
-              {primary}
-            </div>
-          </WorkspacePanel>
-        </WorkspaceSlot>
-      </WorkspaceRegion>
+              <div
+                id="homecheff-feed-desktop"
+                data-aw-primary-feed=""
+                data-aw-stable-feed-slot="1"
+                className={`${colScroll} min-w-0 w-full mx-auto space-y-4 hc-home-feed-grid`}
+                style={{ maxWidth: plan.feedColumnMaxWidthPx }}
+              >
+                {primary}
+              </div>
+            </WorkspacePanel>
+          </WorkspaceSlot>
+        </WorkspaceRegion>
+      </div>
 
-      {plan.showEndPanel && endPanel ? (
+      {/* Permanent slot 3 — end rail (hidden when unused). */}
+      <div
+        key="aw-slot-end"
+        data-aw-slot-host="end"
+        className={plan.showEndPanel ? "min-w-0" : "hidden"}
+        style={{ gridArea: plan.showEndPanel ? "end" : undefined }}
+        aria-hidden={!plan.showEndPanel}
+      >
         <WorkspaceRegion regionId="supporting-end">
           <WorkspaceSlot slotId="feed.supporting.end">
             <WorkspacePanel
@@ -184,13 +224,17 @@ export default function FeedWorkspaceVisibleLayout({
               widgetId="home.desktop.right"
               mode="rail"
             >
-              <aside data-aw-rail="end" className={colScroll}>
+              <aside
+                data-aw-rail="end"
+                data-aw-rail-width={String(plan.endRailWidthPx)}
+                className={colScroll}
+              >
                 {endPanel}
               </aside>
             </WorkspacePanel>
           </WorkspaceSlot>
         </WorkspaceRegion>
-      ) : null}
+      </div>
     </section>
   );
 }

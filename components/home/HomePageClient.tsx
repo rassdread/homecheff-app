@@ -80,19 +80,12 @@ function pickFirstName(
 }
 
 type Props = {
-  /** SSR session hint from getServerSession — enables anonymous feed fast-path. */
   ssrAuthHint?: SsrAuthHint;
   initialFeedChip?: HomeFeedChip;
   initialFeedCategory?: string;
   initialFeedPlace?: string;
-  /** SSR ?stickyTest=1 — minimal sticky proof grid */
   stickyTestMode?: boolean;
-  /**
-   * Server-resolved feed workspace visibility mode.
-   * Source: HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE (fail closed → off).
-   */
   feedWorkspaceVisibilityMode?: FeedWorkspaceVisibilityMode;
-  /** SSR ?awFeedWorkspace=1 — authorizes PREVIEW visibility. */
   feedWorkspacePreviewRequested?: boolean;
 };
 
@@ -133,8 +126,8 @@ export default function HomePageClient({
     ) {
       return;
     }
-    const t = window.setTimeout(() => scrollToHomeFeed(), 400);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => scrollToHomeFeed(), 400);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const firstName = pickFirstName(session?.user);
@@ -162,7 +155,7 @@ export default function HomePageClient({
   const stickyAsideClass =
     'sticky top-20 z-[1] self-start max-h-[calc(100vh-5rem)] overflow-y-auto pb-3';
 
-  /** Phase 3F.5: single GeoFeed instance; layout toggles via prop (no unmount/remount). */
+  /** Legacy OFF path only — Phase 3F.5 composed desktop grid. */
   const showDesktopComposedLayout = !isNarrowHome && !stickyTestMode;
 
   const mobileChrome = (
@@ -217,31 +210,12 @@ export default function HomePageClient({
   );
 
   /**
-   * Visible AW slice (mechanism B):
-   * - Desktop composed: GeoFeed hosts AW layout children (FeedContent + rails).
-   * - Sub-lg: outer AW grid hosts one GeoFeed + optional end rail (landscape).
-   * GeoFeed remains a single mount; no portal / no second request owner.
+   * Hardened PREVIEW/ON tree — one permanent GeoFeed parent chain:
+   * Shell → VisibleLayout → primary slot → GeoFeed
+   * Crossing lg / orientation only toggles rails + grid CSS, not GeoFeed identity.
+   * homeComposedLayout=false so GeoFeed never hits the mobile+composed null path.
    */
-  const visibleWorkspaceTree = showDesktopComposedLayout ? (
-    <>
-      {mobileChrome}
-      <GeoFeed {...geoFeedProps} homeComposedLayout>
-        <FeedWorkspaceVisibleLayout
-          ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
-          primary={<FeedContent />}
-          startPanel={<HomeDesktopLeftSidebar />}
-          endPanel={<HomeDesktopSidebar welcomeLine={welcomeLine} />}
-        />
-      </GeoFeed>
-      <FeedControlledHostShell
-        contract={FEED_CONTROLLED_HOST_CONTRACT}
-        placement={FEED_HOST_SHADOW_PLACEMENT}
-        hostDescriptor={FEED_HOST_DESCRIPTOR}
-        visibilityMode={feedWorkspaceVisibilityMode}
-        layoutVisible
-      />
-    </>
-  ) : (
+  const visibleWorkspaceTree = (
     <>
       {mobileChrome}
       <FeedControlledHostShell
@@ -261,12 +235,22 @@ export default function HomePageClient({
     </>
   );
 
+  const pageShellClass = layoutVisible
+    ? "hc-home-page-shell hc-aw-full-bleed w-full max-w-none mx-auto px-3 sm:px-4 py-3 sm:py-5"
+    : "hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-3 sm:py-5";
+
   return (
     <>
       <PostAuthPersonaBanner />
       <div className="min-h-[60vh] hc-dorpsplein-page">
-        <div className="hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-3 sm:py-5">
-          <div className="max-w-3xl lg:max-w-none mx-auto mb-2 sm:mb-4 lg:mb-4">
+        <div className={pageShellClass}>
+          <div
+            className={
+              layoutVisible
+                ? "max-w-3xl lg:max-w-[720px] mx-auto mb-2 sm:mb-4 lg:mb-4"
+                : "max-w-3xl lg:max-w-none mx-auto mb-2 sm:mb-4 lg:mb-4"
+            }
+          >
             <HomeHeroSection />
           </div>
 

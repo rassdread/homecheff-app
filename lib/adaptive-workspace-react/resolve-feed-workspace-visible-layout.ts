@@ -5,6 +5,9 @@
  * Orientation derived from width vs height only.
  *
  * Panel budget is presentation-only — does not touch GeoFeed ownership.
+ *
+ * Outer Workspace uses full AvailableSpace; the feed column keeps a readable
+ * max width so ultra-wide screens grow rails, not card stretch.
  */
 
 export type FeedWorkspaceOrientation = "portrait" | "landscape";
@@ -27,6 +30,15 @@ export type FeedWorkspaceVisibleLayoutPlan = {
   showEndPanel: boolean;
   /** CSS grid template columns for the workspace shell. */
   gridTemplateColumns: string;
+  /** Preferred start rail track (px) when shown. */
+  startRailWidthPx: number;
+  /** Preferred end rail track (px) when shown. */
+  endRailWidthPx: number;
+  /**
+   * Readable max width for the primary feed column inside its grid area.
+   * Does not cap the outer Workspace.
+   */
+  feedColumnMaxWidthPx: number;
   usableWidthPx: number;
   usableHeightPx: number;
   stabilityToken: string;
@@ -42,6 +54,8 @@ export type FeedWorkspaceLayoutBands = {
   expandedMaxExclusive: number;
   /** Min width to allow a landscape side panel despite short height. */
   landscapePanelMinWidthPx: number;
+  /** Readable feed column max (does not limit outer Workspace). */
+  feedColumnMaxWidthPx: number;
 };
 
 export const FEED_WORKSPACE_LAYOUT_BANDS: FeedWorkspaceLayoutBands = {
@@ -49,6 +63,7 @@ export const FEED_WORKSPACE_LAYOUT_BANDS: FeedWorkspaceLayoutBands = {
   comfortMaxExclusive: 1024,
   expandedMaxExclusive: 1440,
   landscapePanelMinWidthPx: 640,
+  feedColumnMaxWidthPx: 720,
 };
 
 function orientationOf(
@@ -111,7 +126,6 @@ export function resolveFeedWorkspaceVisibleLayout(args: {
     orientation === "landscape" &&
     widthPx >= bands.landscapePanelMinWidthPx
   ) {
-    // Compact-width landscape: one contextual end panel (work-oriented).
     supportingPanelCount = 1;
     profile = "COMFORT";
   }
@@ -119,14 +133,25 @@ export function resolveFeedWorkspaceVisibleLayout(args: {
   const showStartPanel = supportingPanelCount >= 2;
   const showEndPanel = supportingPanelCount >= 1;
 
+  const startRailWidthPx =
+    layoutMode === "desktop-wide" ? 300 : supportingPanelCount >= 2 ? 260 : 0;
+  const endRailWidthPx =
+    supportingPanelCount === 0
+      ? 0
+      : layoutMode === "desktop-wide"
+        ? 340
+        : supportingPanelCount >= 2
+          ? 300
+          : 260;
+
   let gridTemplateColumns = "minmax(0,1fr)";
   if (supportingPanelCount === 1) {
-    gridTemplateColumns = "minmax(0,1fr) minmax(200px,280px)";
+    gridTemplateColumns = `minmax(0,1fr) minmax(200px,${endRailWidthPx}px)`;
   } else if (supportingPanelCount >= 2) {
-    gridTemplateColumns =
-      "minmax(220px,280px) minmax(0,1fr) minmax(240px,320px)";
+    gridTemplateColumns = `minmax(220px,${startRailWidthPx}px) minmax(0,1fr) minmax(240px,${endRailWidthPx}px)`;
   }
 
+  const feedColumnMaxWidthPx = bands.feedColumnMaxWidthPx;
   const stabilityToken = `feed-ws:${widthPx}x${heightPx}:${layoutMode}:p${supportingPanelCount}`;
 
   return {
@@ -137,6 +162,9 @@ export function resolveFeedWorkspaceVisibleLayout(args: {
     showStartPanel,
     showEndPanel,
     gridTemplateColumns,
+    startRailWidthPx,
+    endRailWidthPx,
+    feedColumnMaxWidthPx,
     usableWidthPx: widthPx,
     usableHeightPx: heightPx,
     stabilityToken,
