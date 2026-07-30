@@ -1,6 +1,6 @@
 /**
- * Phase 3B.3.47 — pure host activation gate.
- * Always returns allowed=false with PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY.
+ * AW-R1 — pure host activation gate.
+ * Always returns allowed=false with PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
@@ -37,6 +37,7 @@ import { PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY } from
 import { PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY } from "./controlled-workspace-host-candidate-active";
 import { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "./controlled-workspace-host-candidate-executable";
 import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "./controlled-workspace-host-candidate-execution-started";
+import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspace-host-candidate-pre-activation-seal";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -86,11 +87,12 @@ export { PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY };
 export { PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY }
 export { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY };
 export { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY };
+export { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "3B.3.47";
-  eligibleStep: "3B.3.48";
+  currentStep: "AW-R1";
+  eligibleStep: "AW-R2";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -186,10 +188,10 @@ export function evaluateFeedHostActivationGate(
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
   const blockers: string[] = [
-    PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
+    PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
   ];
   const reasons: string[] = [
-    "Phase 3B.3.47 records Candidate Execution Started metadata only; Executed/Completed/runtime/Workspace deferred to 3B.3.48+",
+    "AW-R1 seals Candidate Executed and Completed metadata only; LIVE runtime and Workspace remain deferred to AW-R2+",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -438,8 +440,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "3B.3.47",
-    eligibleStep: "3B.3.48",
+    currentStep: "AW-R1",
+    eligibleStep: "AW-R2",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

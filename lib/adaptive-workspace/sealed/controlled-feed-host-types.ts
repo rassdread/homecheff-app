@@ -137,6 +137,7 @@ export const CONTROLLED_FEED_HOST_ACTIVATION_BLOCKERS = [
   "PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY",
   "PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY",
   "PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY",
+  "PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY",
 ] as const;
 
 export type ControlledFeedHostActivationBlocker =
@@ -170,5 +171,5 @@ export type ControlledFeedHostContract = {
   requiredInvariantIds: readonly FeedSealedInvariantId[];
   browserProofRequirement: "phase3b2-frozen-proof-required";
   freezeRequirement: "phase3b2-freeze-required";
-  nextEligibleStep: "3B.3.48";
+  nextEligibleStep: "AW-R2";
 };

@@ -22,6 +22,7 @@ import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_BLOCKERS,
   PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
 } from "../sealed/controlled-workspace-host-candidate-execution-started";
+import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal";
 import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
@@ -615,23 +616,23 @@ if (process.env.SKIP_PHASE3B345_LIVE === "1") {
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
+      PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "3B.3.47");
-  assert.equal(gate.eligibleStep, "3B.3.48");
-  ok("activation remains impossible (gate currentStep=3B.3.47, eligibleStep=3B.3.48)");
+  assert.equal(gate.currentStep, "AW-R1");
+  assert.equal(gate.eligibleStep, "AW-R2");
+  ok("activation remains impossible (gate currentStep=AW-R1, eligibleStep=AW-R2)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "3B.3.48");
+  assert.equal(host.nextEligibleStep, "AW-R2");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
+      PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "3B.3.48");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R2");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

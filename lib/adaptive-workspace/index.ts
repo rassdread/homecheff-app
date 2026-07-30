@@ -2014,3 +2014,34 @@ export {
   validateFeedWorkspaceHostCandidateExecutionStartedPreparedContract,
 } from "./sealed/feed-workspace-host-candidate-execution-started-prepared";
 export type { FeedWorkspaceHostCandidateExecutionStartedPreparedContract } from "./sealed/feed-workspace-host-candidate-execution-started-prepared";
+export {
+  PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_PRE_ACTIVATION_SEAL_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_PRE_ACTIVATION_SEAL_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_PRE_ACTIVATION_SEAL_CONDITIONS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_PRE_ACTIVATION_SEAL_GUARDS,
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_PRE_ACTIVATION_SEAL_BLOCKERS,
+  createControlledWorkspaceHostCandidatePreActivationSealDescriptor,
+  evaluateControlledWorkspaceHostCandidatePreActivationSeal,
+  validateControlledWorkspaceHostCandidatePreActivationSealDescriptor,
+} from "./sealed/controlled-workspace-host-candidate-pre-activation-seal";
+export type {
+  ControlledWorkspaceHostCandidatePreActivationSealDescriptor,
+  ControlledWorkspaceHostCandidatePreActivationSealEvaluation,
+  ControlledWorkspaceHostCandidatePreActivationSealInput,
+} from "./sealed/controlled-workspace-host-candidate-pre-activation-seal";
+export {
+  createControlledWorkspaceHostCandidatePreActivationSealContract,
+  validateControlledWorkspaceHostCandidatePreActivationSealContract,
+} from "./sealed/controlled-workspace-host-candidate-pre-activation-seal-contract";
+export type { ControlledWorkspaceHostCandidatePreActivationSealContract } from "./sealed/controlled-workspace-host-candidate-pre-activation-seal-contract";
+export {
+  createFeedWorkspaceHostCandidatePreActivationSealIdentity,
+  validateFeedWorkspaceHostCandidatePreActivationSealIdentity,
+} from "./sealed/feed-workspace-host-candidate-pre-activation-seal-identity";
+export type { FeedWorkspaceHostCandidatePreActivationSealIdentity } from "./sealed/feed-workspace-host-candidate-pre-activation-seal-identity";
+export {
+  createFeedWorkspaceHostCandidatePreActivationSealPreparedContract,
+  validateFeedWorkspaceHostCandidatePreActivationSealPreparedContract,
+} from "./sealed/feed-workspace-host-candidate-pre-activation-seal-prepared";
+export type { FeedWorkspaceHostCandidatePreActivationSealPreparedContract } from "./sealed/feed-workspace-host-candidate-pre-activation-seal-prepared";

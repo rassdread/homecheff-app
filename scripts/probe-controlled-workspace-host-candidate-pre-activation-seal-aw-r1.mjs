@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Phase 3B.3.47 — Chromium proof: Controlled Workspace Host Candidate Execution Started Authorization.
+ * AW-R1 — Chromium proof: Controlled Workspace Host Candidate Pre-Activation Seal.
  */
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -10,10 +10,10 @@ import { homedir } from "node:os";
 const require = createRequire(import.meta.url);
 
 function parseArgs(argv) {
-  let baseUrl = "http://127.0.0.1:3068";
+  let baseUrl = "http://127.0.0.1:3069";
   let commit = "unknown";
   let branch = "BR";
-  let outDir = join(process.cwd(), "docs/audits/artifacts/phase3b347");
+  let outDir = join(process.cwd(), "docs/audits/artifacts/aw-r1");
   for (const a of argv) {
     if (a.startsWith("--base-url=")) baseUrl = a.slice("--base-url=".length);
     if (a.startsWith("--commit=")) commit = a.slice("--commit=".length);
@@ -31,6 +31,7 @@ function resolveChromium() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) return process.env.PUPPETEER_EXECUTABLE_PATH;
   const candidates = [
     join(homedir(), "Library/Caches/ms-playwright/chromium-1148/chrome-mac/Chromium.app/Contents/MacOS/Chromium"),
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   ];
   for (const c of candidates) if (existsSync(c)) return c;
   throw new Error("Chromium not found");
@@ -95,9 +96,9 @@ async function main() {
   mkdirSync(outDir, { recursive: true });
 
   const priorPath = join(process.cwd(),
-    "docs/audits/artifacts/phase3b346/phase3b3-46-controlled-workspace-host-candidate-executable-proof.json");
+    "docs/audits/artifacts/phase3b347/phase3b3-47-controlled-workspace-host-candidate-execution-started-proof.json");
   const prior = JSON.parse(readFileSync(priorPath, "utf8"));
-  if (prior.overallVerdict !== "READY_FOR_PHASE_3B_3_47") {
+  if (prior.overallVerdict !== "READY_FOR_PHASE_3B_3_48") {
     throw new Error(`Predecessor not ready: ${prior.overallVerdict}`);
   }
 
@@ -123,7 +124,7 @@ async function main() {
       () => {
         const probe = window.__HC_FEED_SEALED_PROBE__;
         const c = probe?.readCounters?.();
-        return Boolean(probe) && c?.mountCount >= 1 && probe.version >= 48;
+        return Boolean(probe) && c?.mountCount >= 1 && probe.version >= 49;
       },
       { timeout: 120000 },
     );
@@ -135,7 +136,7 @@ async function main() {
       const counters = api.readCounters();
       const hostContract = await api.readControlledHostContract();
       const hostRegistry = await api.readHostRegistry();
-      const candidateActivationReadiness = await api.readControlledWorkspaceHostCandidateExecutionStarted();
+      const candidateActivationReadiness = await api.readControlledWorkspaceHostCandidatePreActivationSeal();
       const commitBoundary = await api.readHostActivationTransitionAuthorizationGrantIssuanceCommitBoundary();
       const activationAttempt = await api.attemptHostActivation(true);
       const hostPlan = await api.readHostPlan();
@@ -192,8 +193,8 @@ async function main() {
       candidateStillNonExecuted: reg.candidateExecutable === true,
       candidateExecutableDeclared: reg.candidateExecutable === true,
       candidateActivationStartedDeclared: reg.candidateActivationStarted === true,
-      candidateActivationExecutedAbsent: !Object.prototype.hasOwnProperty.call(reg, "candidateActivationExecuted"),
-      candidateActivationCompletedAbsent: !Object.prototype.hasOwnProperty.call(reg, "candidateActivationCompleted"),
+      candidateActivationExecutedSealed: reg.candidateActivationExecuted === true,
+      candidateActivationCompletedSealed: reg.candidateActivationCompleted === true,
       noRuntimeCapability: reg.runtimeCapabilityPresent === false,
       noRuntimeHostInstance: reg.runtimeHostInstancePresent === false,
       noActivationHandle: reg.activationHandlePresent === false,
@@ -216,9 +217,9 @@ async function main() {
     };
     const forcedNegativeProofsOk = Object.values(forcedNegativeProofs).every((v) => v === true);
 
-    const candidateActivationStartedMetaOk =
-      probe.version >= 48 &&
-      reg.phase === "3B.3.47" &&
+    const candidatePreActivationSealMetaOk =
+      probe.version >= 49 &&
+      reg.phase === "AW-R1" &&
       reg.candidateId === "feed.discovery.adaptive-workspace.host-candidate.v1" &&
       reg.registrationId === "feed.discovery.adaptive-workspace.host-candidate-registration.v1" &&
       reg.selectionId === "feed.discovery.adaptive-workspace.host-candidate-selection.v1" &&
@@ -261,6 +262,8 @@ async function main() {
       reg.activationCandidateExecutableContractId === "feed.discovery.adaptive-workspace.host-candidate-executable.contract.v1" &&
       reg.activationCandidateExecutionStartedId === "feed.discovery.adaptive-workspace.host-candidate-execution-started.v1" &&
       reg.activationCandidateExecutionStartedContractId === "feed.discovery.adaptive-workspace.host-candidate-execution-started.contract.v1" &&
+      reg.activationCandidatePreActivationSealId === "feed.discovery.adaptive-workspace.host-candidate-pre-activation-seal.v1" &&
+      reg.activationCandidatePreActivationSealContractId === "feed.discovery.adaptive-workspace.host-candidate-pre-activation-seal.contract.v1" &&
       reg.issuancePipelineExecutionReady === true &&
       reg.issuancePipelineExecutionAuthorized === true &&
       reg.issuancePipelineExecuted === true &&
@@ -274,8 +277,8 @@ async function main() {
       reg.issuanceTransactionCommitted === true &&
       reg.issuanceTransactionAborted === false &&
       reg.issuanceTransactionState === "OPENED" &&
-      reg.candidateActivationState === "CANDIDATE_EXECUTION_STARTED_NOT_EXECUTED" &&
-      reg.candidateActivationResult === "controlled-workspace-host-candidate-execution-started-not-executed" &&
+      reg.candidateActivationState === "CANDIDATE_PRE_ACTIVATION_SEALED_NOT_LIVE" &&
+      reg.candidateActivationResult === "controlled-workspace-host-candidate-pre-activation-sealed-not-live" &&
       reg.transactionOpeningCompleted === true &&
       reg.activationCommitBoundaryEntered === true &&
       reg.activationCommitBoundaryState === "ENTERED" &&
@@ -307,8 +310,8 @@ async function main() {
       reg.candidateActive === true &&
       reg.candidateExecutable === true &&
       reg.candidateActivationStarted === true &&
-      !Object.prototype.hasOwnProperty.call(reg, "candidateActivationExecuted") &&
-      !Object.prototype.hasOwnProperty.call(reg, "candidateActivationCompleted") &&
+      reg.candidateActivationExecuted === true &&
+      reg.candidateActivationCompleted === true &&
       reg.candidateCount === 1 &&
       reg.grantedCandidateCount === 1 &&
       reg.grantCount === 1 &&
@@ -361,8 +364,8 @@ async function main() {
       reg.issuanceTransactionState === "OPENED" &&
       reg.issuanceTransactionOpened === true &&
       reg.issuanceTransactionPrepared === true &&
-      reg.nextEligibleStep === "3B.3.48" &&
-      reg.activationBlocker === "PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY" &&
+      reg.nextEligibleStep === "AW-R2" &&
+      reg.activationBlocker === "PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY" &&
       reg.predecessorActivationTransactionPreparationState === "TRANSACTION_PREPARED_NOT_COMMITTED" &&
       reg.predecessorActivationIssuancePipelineExecutionReadinessResult === "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" &&
       reg.predecessorActivationIssuancePipelineExecutionReadinessState === "PIPELINE_EXECUTION_READY_NOT_EXECUTED" &&
@@ -385,7 +388,7 @@ async function main() {
       probe.hostContract.hostActivation === false &&
       probe.activationAttempt.allowed === false &&
       probe.activationAttempt.blockers.includes(
-        "PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY",
+        "PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY",
       ) &&
       typeof diag.conditionCount === "number" &&
       diag.conditionCount > 0 &&
@@ -405,12 +408,12 @@ async function main() {
     const passCount = invariants.filter((i) => i.status === "PASS").length;
     const anyFail =
       invariants.some((i) => i.status !== "PASS") ||
-      !candidateActivationStartedMetaOk ||
+      !candidatePreActivationSealMetaOk ||
       !forcedNegativeProofsOk;
 
     const artifact = {
       schemaVersion: 1,
-      phase: "3B.3.47",
+      phase: "AW-R1",
       branch,
       commit,
       browser: "chromium-puppeteer-core",
@@ -419,7 +422,7 @@ async function main() {
       bridgeVersion: probe.version,
       sourceProofReference: "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
       priorPhaseProofReference:
-        "docs/audits/artifacts/phase3b344/phase3b3-44-controlled-workspace-host-candidate-activation-proof.json",
+        "docs/audits/artifacts/phase3b347/phase3b3-47-controlled-workspace-host-candidate-execution-started-proof.json",
       controlledHostContractStatus: "valid",
       hostActivation: false,
       renderActivation: false,
@@ -433,7 +436,7 @@ async function main() {
       hostPlan: probe.hostPlan,
       controlledWorkspaceHostCandidateActivationReadiness: reg,
       hostActivationTransitionAuthorizationGrantIssuanceCommitBoundary: cb,
-      candidateActivationStartedMetaOk,
+      candidatePreActivationSealMetaOk,
       forcedNegativeProofs,
       forcedNegativeProofsOk,
       activationAttempt: {
@@ -447,18 +450,18 @@ async function main() {
         activeInstanceCount: counters.activeInstanceCount,
         geoFeedRenderCount: reg.geoFeedRenderCount,
       },
-      nextEligibleStep: "3B.3.48",
+      nextEligibleStep: "AW-R2",
       invariants,
-      overallVerdict: anyFail ? "NOT_READY_FOR_PHASE_3B_3_48" : "READY_FOR_PHASE_3B_3_48",
+      overallVerdict: anyFail ? "NOT_READY_FOR_AW_R2" : "READY_FOR_AW_R2",
     };
 
-    const proofPath = join(outDir, "phase3b3-47-controlled-workspace-host-candidate-execution-started-proof.json");
+    const proofPath = join(outDir, "aw-r1-controlled-workspace-host-candidate-pre-activation-seal-proof.json");
     writeFileSync(proofPath, JSON.stringify(artifact, null, 2) + "\n");
 
     const prepared = {
       schemaVersion: 1,
-      phase: "3B.3.47",
-      status: "controlled-workspace-host-candidate-execution-started-prepared",
+      phase: "AW-R1",
+      status: "controlled-workspace-host-candidate-pre-activation-seal-prepared",
       candidateActivationReadinessContract: "valid",
       identityContract: "valid",
       diagnosticsReadable: true,
@@ -479,8 +482,13 @@ async function main() {
       activationTransactionCommitAuthorizationId: "feed.discovery.adaptive-workspace.host-activation-transaction-commit-authorization.v1",
       activationTransactionCommitId: "feed.discovery.adaptive-workspace.host-activation-transaction-commit.v1",
       activationCandidateActivationId: "feed.discovery.adaptive-workspace.host-candidate-activation.v1",
-      candidateActivationState: "CANDIDATE_EXECUTION_STARTED_NOT_EXECUTED",
-      candidateActivationResult: "controlled-workspace-host-candidate-execution-started-not-executed",
+      activationCandidatePreActivationSealId: "feed.discovery.adaptive-workspace.host-candidate-pre-activation-seal.v1",
+      activationCandidatePreActivationSealContractId: "feed.discovery.adaptive-workspace.host-candidate-pre-activation-seal.contract.v1",
+      candidateActivationStarted: true,
+      candidateActivationExecuted: true,
+      candidateActivationCompleted: true,
+      candidateActivationState: "CANDIDATE_PRE_ACTIVATION_SEALED_NOT_LIVE",
+      candidateActivationResult: "controlled-workspace-host-candidate-pre-activation-sealed-not-live",
       candidateSelected: true,
       candidateReady: true,
       candidateAuthorized: true,
@@ -544,24 +552,24 @@ async function main() {
       shellRendered: false,
       browserProof: anyFail ? "fail" : "pass",
       existing20Invariants: passCount === 20 ? "pass" : "fail",
-      nextEligibleStep: "3B.3.48",
+      nextEligibleStep: "AW-R2",
       conditionCount: diag.conditionCount,
       satisfiedConditionCount: diag.satisfiedConditionCount,
       guardCount: diag.guardCount,
       satisfiedGuardCount: diag.satisfiedGuardCount,
       evidenceCommit: commit,
       evidenceArtifactPath:
-        "docs/audits/artifacts/phase3b347/phase3b3-47-controlled-workspace-host-candidate-execution-started-proof.json",
+        "docs/audits/artifacts/aw-r1/aw-r1-controlled-workspace-host-candidate-pre-activation-seal-proof.json",
     };
 
 
     writeFileSync(
-      join(outDir, "phase3b3-47-controlled-workspace-host-candidate-execution-started-prepared.json"),
+      join(outDir, "aw-r1-controlled-workspace-host-candidate-pre-activation-seal-prepared.json"),
       JSON.stringify(prepared, null, 2) + "\n",
     );
 
     const summary = [
-      "# Phase 3B.3.47 Controlled Workspace Host Candidate Execution Started Authorization Proof Summary",
+      "# AW-R1 Controlled Workspace Host Candidate Pre-Activation Seal Proof Summary",
       "",
       `- Verdict: **${artifact.overallVerdict}**`,
       `- Commit: \`${commit}\``,
@@ -574,11 +582,11 @@ async function main() {
       `- Forced negative proofs: ${forcedNegativeProofsOk ? "all pass" : "FAIL"}`,
       `- Mount/unmount: ${counters.mountCount}/${counters.unmountCount}`,
       `- Invariants PASS: ${passCount}/20`,
-      `- candidateActivationStartedMetaOk: ${candidateActivationStartedMetaOk}`,
+      `- candidatePreActivationSealMetaOk: ${candidatePreActivationSealMetaOk}`,
       "",
     ].join("\n");
     writeFileSync(
-      join(outDir, "phase3b3-47-controlled-workspace-host-candidate-execution-started-summary.md"),
+      join(outDir, "aw-r1-controlled-workspace-host-candidate-pre-activation-seal-summary.md"),
       summary,
     );
 
@@ -588,7 +596,7 @@ async function main() {
       verdict: artifact.overallVerdict,
       passCount,
       fail: invariants.filter((i) => i.status !== "PASS").map((i) => i.id),
-      candidateActivationStartedMetaOk,
+      candidatePreActivationSealMetaOk,
       forcedNegativeProofsOk,
     }, null, 2));
 

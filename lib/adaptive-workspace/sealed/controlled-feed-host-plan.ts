@@ -31,6 +31,7 @@ import { PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY } from
 import { PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY } from "./controlled-workspace-host-candidate-active";
 import { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from "./controlled-workspace-host-candidate-executable";
 import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "./controlled-workspace-host-candidate-execution-started";
+import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspace-host-candidate-pre-activation-seal";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -70,8 +71,10 @@ export type ControlledFeedHostPlan = {
     typeof PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
     typeof PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
     typeof PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY,
+    typeof PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
+    typeof PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY,
   ];
-  recommendedNextStep: "3B.3.48";
+  recommendedNextStep: "AW-R2";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -222,9 +225,11 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
       PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY,
       PHASE_3B3_43_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_AUTHORIZATION_ONLY,
       PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY,
+      PHASE_3B3_45_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ONLY,
       PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY,
-      PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY],
-    recommendedNextStep: "3B.3.48",
+      PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
+      PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY],
+    recommendedNextStep: "AW-R2",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",
