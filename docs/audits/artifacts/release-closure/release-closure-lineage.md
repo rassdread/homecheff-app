@@ -30,7 +30,7 @@ Non-self-referential: `closureFreeze=pending` in committed closure metadata.
 | --- | --- |
 | Release documentation | `f411e19802c4da267efe62cb587808ea6ac7534f` |
 | Handoff / proof | `e5eadc27362fac8c4f505e132fbbd6efe4302e57` |
-| Closure lineage | `pending-lineage` |
+| Closure lineage | `61675de9766219368fe485950375b86146f4b1aa` |
 | Closure freeze | `pending` |
 
 ## Status
