@@ -211,6 +211,54 @@ console.log("\n[feed-workspace-visibility] AvailableSpace layout matrix");
   ok("stability token deterministic; no timestamps");
 }
 
+console.log("\n[feed-workspace-visibility] flag edge cases");
+
+{
+  for (const raw of ["", " ", "enabled", "true", "1", "ONN"]) {
+    assert.equal(
+      resolveFeedWorkspaceVisibilityMode({ raw, isOverride: true }).mode,
+      "off",
+      `expected off for ${JSON.stringify(raw)}`,
+    );
+  }
+  assert.equal(coerceFeedWorkspaceVisibilityMode("Off"), "off");
+  assert.equal(coerceFeedWorkspaceVisibilityMode("SHADOW"), "shadow");
+  assert.equal(coerceFeedWorkspaceVisibilityMode("PreView"), "preview");
+  // Query cannot force ON when mode is off
+  assert.equal(
+    isFeedWorkspaceLayoutVisible({ mode: "off", previewRequested: true }),
+    false,
+  );
+  // Query cannot force visibility when mode is on... wait ON doesn't need query
+  assert.equal(
+    isFeedWorkspaceLayoutVisible({ mode: "on", previewRequested: false }),
+    true,
+  );
+  ok("invalid/empty → off; case-insensitive valid; query cannot force ON from off");
+}
+
+console.log("\n[feed-workspace-visibility] ultra-wide feed column cap");
+
+{
+  for (const [w, h, mode] of [
+    [1280, 800, "desktop"],
+    [1440, 900, "desktop-wide"],
+    [1728, 1117, "desktop-wide"],
+    [1920, 1080, "desktop-wide"],
+    [2560, 1440, "desktop-wide"],
+  ] as const) {
+    const plan = resolveFeedWorkspaceVisibleLayout({
+      usableWidthPx: w,
+      usableHeightPx: h,
+    });
+    assert.equal(plan.layoutMode, mode, `${w}x${h}`);
+    assert.equal(plan.supportingPanelCount, 2);
+    assert.equal(plan.feedColumnMaxWidthPx, 720);
+    assert.ok(plan.usableWidthPx >= plan.feedColumnMaxWidthPx);
+  }
+  ok("wide viewports: desktop-wide + feedColumnMaxWidthPx=720");
+}
+
 console.log("\n[feed-workspace-visibility] source contracts");
 
 {
@@ -232,13 +280,27 @@ console.log("\n[feed-workspace-visibility] source contracts");
   assert.match(homeSrc, /isFeedWorkspaceLayoutVisible/);
   assert.match(homeSrc, /legacyFeedTree/);
   assert.match(homeSrc, /visibleWorkspaceTree/);
+  assert.match(homeSrc, /hc-aw-full-bleed/);
+  assert.match(homeSrc, /max-w-none/);
   assert.equal(/userAgent|navigator\.userAgent/.test(homeSrc), false);
   assert.equal(
     (homeSrc.match(/from "@\/components\/home\/HomeGeoFeedDynamic"/g) || [])
       .length,
     1,
   );
-  ok("homepage OFF/ON trees; no UA; single GeoFeed import");
+  // Visible tree must not branch GeoFeed on showDesktopComposedLayout
+  const visibleBlock = homeSrc.slice(
+    homeSrc.indexOf("const visibleWorkspaceTree"),
+    homeSrc.indexOf("const pageShellClass"),
+  );
+  assert.match(visibleBlock, /homeComposedLayout=\{false\}/);
+  assert.equal(/showDesktopComposedLayout/.test(visibleBlock), false);
+  assert.equal(
+    (visibleBlock.match(/<GeoFeed/g) || []).length,
+    1,
+    "exactly one GeoFeed in visible tree",
+  );
+  ok("stable visible tree: one GeoFeed; full-bleed; no lg branch");
 
   const pageSrc = readFileSync(join(root, "app/page.tsx"), "utf8");
   assert.match(pageSrc, /resolveFeedWorkspaceVisibilityMode/);
@@ -255,9 +317,23 @@ console.log("\n[feed-workspace-visibility] source contracts");
   );
   assert.match(layoutSrc, /resolveFeedWorkspaceVisibleLayout/);
   assert.match(layoutSrc, /ResizeObserver/);
+  assert.match(layoutSrc, /data-aw-stable-feed-slot/);
+  assert.match(layoutSrc, /aw-slot-primary/);
+  assert.match(layoutSrc, /feedColumnMaxWidthPx/);
   assert.equal(/userAgent|navigator\.userAgent/.test(layoutSrc), false);
   assert.equal(/matchMedia/.test(layoutSrc), false);
-  ok("visible layout uses AvailableSpace RO; no matchMedia/UA");
+  ok("visible layout: stable slots + AvailableSpace; no matchMedia/UA");
+
+  const authDoc = readFileSync(
+    join(
+      root,
+      "docs/architecture/homecheff-adaptive-workspace-presentation-only-authority.md",
+    ),
+    "utf8",
+  );
+  assert.match(authDoc, /PRESENTATION-ONLY WORKSPACE ACTIVATION/);
+  assert.match(authDoc, /COMMIT_READY/);
+  ok("presentation-only authority doc present");
 }
 
 console.log(`\n[feed-workspace-visibility] ${passed} passed\n`);

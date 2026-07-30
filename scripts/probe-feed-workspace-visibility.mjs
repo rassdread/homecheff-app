@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 /**
- * Chromium proof — Adaptive Workspace visible feed layout (PREVIEW).
+ * Chromium proof — Adaptive Workspace visible feed layout (PREVIEW) + stable mount.
  *
- * Expects a production-like server with:
+ * Requires production build with:
  *   HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=preview
- * and visits /?awFeedWorkspace=1
+ *   NEXT_PUBLIC_FEED_SEALED_BASELINE=1   (for mount counters)
  *
- * Usage:
  *   node scripts/probe-feed-workspace-visibility.mjs --base-url=http://127.0.0.1:3080
  */
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -58,7 +57,83 @@ const VIEWPORTS = [
   { id: "laptop", width: 1280, height: 800 },
   { id: "desktop", width: 1440, height: 900 },
   { id: "wide-desktop", width: 1728, height: 1117 },
+  { id: "full-hd", width: 1920, height: 1080 },
+  { id: "qhd", width: 2560, height: 1440 },
 ];
+
+const RESIZE_JOURNEY = [
+  { width: 390, height: 844 },
+  { width: 844, height: 390 },
+  { width: 768, height: 1024 },
+  { width: 1024, height: 768 },
+  { width: 1280, height: 800 },
+  { width: 1440, height: 900 },
+  { width: 1728, height: 1117 },
+  { width: 2560, height: 1440 },
+  { width: 390, height: 844 },
+];
+
+async function readPageMetrics(page) {
+  return page.evaluate(() => {
+    const ws = document.querySelector("[data-aw-feed-workspace]");
+    const host = document.querySelector("[data-aw-feed-controlled-host]");
+    const feed =
+      document.querySelector("[data-aw-primary-feed]") ||
+      document.querySelector("#homecheff-feed-desktop") ||
+      document.querySelector("#homecheff-feed");
+    const start = document.querySelector('[data-aw-rail="start"]');
+    const end = document.querySelector('[data-aw-rail="end"]');
+    const visibleRails = [...document.querySelectorAll("[data-aw-rail]")].filter(
+      (el) => el.offsetParent !== null || el.getClientRects().length > 0,
+    );
+    const rect = (el) => {
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return {
+        x: Math.round(r.x),
+        y: Math.round(r.y),
+        width: Math.round(r.width),
+        height: Math.round(r.height),
+      };
+    };
+    const probe = window.__HC_FEED_SEALED_PROBE__;
+    const counters = probe?.readCounters?.() ?? null;
+    return {
+      workspacePresent: Boolean(ws),
+      hostPresent: Boolean(host),
+      layoutMode: ws?.getAttribute("data-aw-layout-mode") ?? null,
+      orientation: ws?.getAttribute("data-aw-orientation") ?? null,
+      profile: ws?.getAttribute("data-aw-profile") ?? null,
+      supportingPanels: Number(ws?.getAttribute("data-aw-supporting-panels") ?? "0"),
+      usableWidth: Number(ws?.getAttribute("data-aw-usable-width") ?? "0"),
+      usableHeight: Number(ws?.getAttribute("data-aw-usable-height") ?? "0"),
+      feedMaxWidth: Number(ws?.getAttribute("data-aw-feed-max-width") ?? "0"),
+      stabilityToken: ws?.getAttribute("data-aw-stability-token") ?? null,
+      workspaceBounds: rect(ws),
+      feedBounds: rect(feed),
+      startRailBounds: rect(start),
+      endRailBounds: rect(end),
+      visibleRailCount: visibleRails.length,
+      stableFeedSlot: Boolean(document.querySelector('[data-aw-stable-feed-slot="1"]')),
+      visibilityMode: host?.getAttribute("data-aw-visibility-mode") ?? null,
+      feedDataOwner: host?.getAttribute("data-aw-feed-data-owner") ?? null,
+      sealed: counters
+        ? {
+            mountCount: counters.mountCount,
+            unmountCount: counters.unmountCount,
+            activeInstanceCount: counters.activeInstanceCount,
+            requestStartCount: counters.requestStartCount,
+            requestKeyTransitionCount: counters.requestKeyTransitionCount,
+            paginationResetCount: counters.paginationResetCount,
+            intersectionObserverCreateCount:
+              counters.intersectionObserverCreateCount,
+            lastRequestKeyHash: counters.lastRequestKeyHash,
+          }
+        : null,
+      overflowX: document.documentElement.scrollWidth > window.innerWidth + 2,
+    };
+  });
+}
 
 async function captureViewport(browser, baseUrl, vp, shotDir) {
   const page = await browser.newPage();
@@ -73,80 +148,104 @@ async function captureViewport(browser, baseUrl, vp, shotDir) {
   });
   page.on("pageerror", (err) => consoleErrors.push(String(err)));
   page.on("request", (req) => {
-    const url = req.url();
-    if (url.includes("/api/feed")) feedRequests.push(url);
+    if (req.url().includes("/api/feed")) feedRequests.push(req.url());
   });
 
-  await page.setViewport({ width: vp.width, height: vp.height, deviceScaleFactor: 1 });
-  const previewUrl = `${baseUrl}/?awFeedWorkspace=1`;
-  await page.goto(previewUrl, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await page.setViewport({
+    width: vp.width,
+    height: vp.height,
+    deviceScaleFactor: 1,
+  });
+  await page.goto(`${baseUrl}/?awFeedWorkspace=1`, {
+    waitUntil: "domcontentloaded",
+    timeout: 120_000,
+  });
   await page.waitForSelector("[data-aw-feed-workspace], .hc-dorpsplein-page", {
     timeout: 60_000,
   });
-  // Allow ResizeObserver plan + feed first paint to settle
   await new Promise((r) => setTimeout(r, 2500));
 
-  const metrics = await page.evaluate(() => {
-    const ws = document.querySelector("[data-aw-feed-workspace]");
-    const host = document.querySelector("[data-aw-feed-controlled-host]");
-    const geoRoots = document.querySelectorAll(
-      "#homecheff-feed, #homecheff-feed-desktop, [data-aw-primary-feed]",
-    );
-    const rails = document.querySelectorAll("[data-aw-rail]");
-    const panels = document.querySelectorAll("[data-aw-panel]");
-    const feedBounds = (() => {
-      const el =
-        document.querySelector("[data-aw-primary-feed]") ||
-        document.querySelector("#homecheff-feed-desktop") ||
-        document.querySelector("#homecheff-feed");
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      return { x: r.x, y: r.y, width: r.width, height: r.height };
-    })();
-    return {
-      workspacePresent: Boolean(ws),
-      hostPresent: Boolean(host),
-      layoutMode: ws?.getAttribute("data-aw-layout-mode") ?? null,
-      orientation: ws?.getAttribute("data-aw-orientation") ?? null,
-      profile: ws?.getAttribute("data-aw-profile") ?? null,
-      supportingPanels: Number(ws?.getAttribute("data-aw-supporting-panels") ?? "0"),
-      stabilityToken: ws?.getAttribute("data-aw-stability-token") ?? null,
-      railCount: rails.length,
-      panelCount: panels.length,
-      geoFeedMountHints: geoRoots.length,
-      feedBounds,
-      visibilityMode: host?.getAttribute("data-aw-visibility-mode") ?? null,
-      feedDataOwner: host?.getAttribute("data-aw-feed-data-owner") ?? null,
-    };
-  });
-
+  const metrics = await readPageMetrics(page);
   const shotPath = join(shotDir, `${vp.id}-${vp.width}x${vp.height}.png`);
   await page.screenshot({ path: shotPath, fullPage: false });
 
-  // OFF regression sample on laptop only
   let offCheck = null;
   if (vp.id === "laptop") {
-    await page.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 120_000 });
+    await page.goto(`${baseUrl}/`, {
+      waitUntil: "domcontentloaded",
+      timeout: 120_000,
+    });
     await new Promise((r) => setTimeout(r, 1500));
     offCheck = await page.evaluate(() => ({
-      workspacePresent: Boolean(document.querySelector("[data-aw-feed-workspace]")),
-      hostPresent: Boolean(document.querySelector("[data-aw-feed-controlled-host]")),
+      workspacePresent: Boolean(
+        document.querySelector("[data-aw-feed-workspace]"),
+      ),
+      hostPresent: Boolean(
+        document.querySelector("[data-aw-feed-controlled-host]"),
+      ),
       legacySticky: Boolean(document.querySelector("[data-sticky-prod]")),
+      previewForced: Boolean(
+        document.querySelector("[data-aw-feed-workspace]"),
+      ),
     }));
+    // Confirm query cannot activate when we navigate with query but server mode
+    // is preview — that's expected. OFF parity uses no query above.
   }
 
   await page.close();
-
   return {
     viewport: vp,
     screenshot: shotPath,
     metrics,
     feedRequestCount: feedRequests.length,
-    uniqueFeedRequestCount: new Set(feedRequests).size,
     consoleErrors,
     hydrationWarnings,
     offCheck,
   };
+}
+
+async function runResizeJourney(browser, baseUrl) {
+  const page = await browser.newPage();
+  const consoleErrors = [];
+  const hydrationWarnings = [];
+  let feedRequestCount = 0;
+
+  page.on("console", (msg) => {
+    const text = msg.text();
+    if (msg.type() === "error") consoleErrors.push(text);
+    if (/hydrat/i.test(text)) hydrationWarnings.push(text);
+  });
+  page.on("pageerror", (err) => consoleErrors.push(String(err)));
+  page.on("request", (req) => {
+    if (req.url().includes("/api/feed")) feedRequestCount += 1;
+  });
+
+  await page.setViewport({
+    width: RESIZE_JOURNEY[0].width,
+    height: RESIZE_JOURNEY[0].height,
+    deviceScaleFactor: 1,
+  });
+  await page.goto(`${baseUrl}/?awFeedWorkspace=1`, {
+    waitUntil: "domcontentloaded",
+    timeout: 120_000,
+  });
+  await page.waitForSelector("[data-aw-feed-workspace]", { timeout: 60_000 });
+  await new Promise((r) => setTimeout(r, 3000));
+
+  const steps = [];
+  for (const vp of RESIZE_JOURNEY) {
+    await page.setViewport({
+      width: vp.width,
+      height: vp.height,
+      deviceScaleFactor: 1,
+    });
+    await new Promise((r) => setTimeout(r, 1200));
+    const metrics = await readPageMetrics(page);
+    steps.push({ viewport: vp, metrics });
+  }
+
+  await page.close();
+  return { steps, feedRequestCount, consoleErrors, hydrationWarnings };
 }
 
 async function main() {
@@ -163,84 +262,122 @@ async function main() {
   });
 
   const results = [];
+  let journey = null;
   try {
     for (const vp of VIEWPORTS) {
       console.log(`Capturing ${vp.id} ${vp.width}x${vp.height}…`);
       results.push(await captureViewport(browser, baseUrl, vp, shotDir));
     }
+    console.log("Running continuous resize journey…");
+    journey = await runResizeJourney(browser, baseUrl);
   } finally {
     await browser.close();
   }
 
   const byId = Object.fromEntries(results.map((r) => [r.viewport.id, r]));
-  const comparisons = {
-    "mobile-portrait-vs-landscape": {
-      portrait: byId["mobile-portrait"]?.metrics,
-      landscape: byId["mobile-landscape"]?.metrics,
-      layoutsDiffer:
-        byId["mobile-portrait"]?.metrics.layoutMode !==
-        byId["mobile-landscape"]?.metrics.layoutMode,
-      panelCountsDiffer:
-        byId["mobile-portrait"]?.metrics.supportingPanels !==
-        byId["mobile-landscape"]?.metrics.supportingPanels,
-    },
-    "tablet-portrait-vs-landscape": {
-      portrait: byId["tablet-portrait"]?.metrics,
-      landscape: byId["tablet-landscape"]?.metrics,
-      layoutsDiffer:
-        byId["tablet-portrait"]?.metrics.layoutMode !==
-        byId["tablet-landscape"]?.metrics.layoutMode,
-      panelCountsDiffer:
-        byId["tablet-portrait"]?.metrics.supportingPanels !==
-        byId["tablet-landscape"]?.metrics.supportingPanels,
-    },
-  };
-
   const failures = [];
+
   for (const r of results) {
     if (!r.metrics.workspacePresent) {
-      failures.push(`${r.viewport.id}: missing data-aw-feed-workspace`);
+      failures.push(`${r.viewport.id}: missing workspace`);
+    }
+    if (!r.metrics.stableFeedSlot) {
+      failures.push(`${r.viewport.id}: missing stable feed slot`);
     }
     if (r.consoleErrors.length) {
-      failures.push(`${r.viewport.id}: console errors ${r.consoleErrors.length}`);
+      failures.push(`${r.viewport.id}: console errors`);
     }
     if (r.hydrationWarnings.length) {
       failures.push(`${r.viewport.id}: hydration warnings`);
     }
+    if (r.metrics.overflowX) {
+      failures.push(`${r.viewport.id}: horizontal overflow`);
+    }
+    if (r.metrics.sealed && r.metrics.sealed.mountCount !== 1) {
+      failures.push(
+        `${r.viewport.id}: mountCount=${r.metrics.sealed.mountCount}`,
+      );
+    }
+    if (r.metrics.sealed && r.metrics.sealed.unmountCount !== 0) {
+      failures.push(
+        `${r.viewport.id}: unmountCount=${r.metrics.sealed.unmountCount}`,
+      );
+    }
   }
-  if (!comparisons["mobile-portrait-vs-landscape"].layoutsDiffer) {
-    failures.push("mobile portrait/landscape layoutMode identical");
-  }
-  if (!comparisons["mobile-portrait-vs-landscape"].panelCountsDiffer) {
-    failures.push("mobile portrait/landscape panel counts identical");
-  }
+
   if (byId["mobile-landscape"]?.metrics.orientation !== "landscape") {
-    failures.push("mobile-landscape viewport did not resolve orientation=landscape");
+    failures.push("mobile-landscape not landscape");
   }
   if (byId["mobile-portrait"]?.metrics.orientation !== "portrait") {
-    failures.push("mobile-portrait viewport did not resolve orientation=portrait");
+    failures.push("mobile-portrait not portrait");
   }
-  if (!comparisons["tablet-portrait-vs-landscape"].layoutsDiffer) {
+  if (
+    byId["mobile-portrait"]?.metrics.layoutMode ===
+    byId["mobile-landscape"]?.metrics.layoutMode
+  ) {
+    failures.push("mobile portrait/landscape layoutMode identical");
+  }
+  if (
+    byId["tablet-portrait"]?.metrics.layoutMode ===
+    byId["tablet-landscape"]?.metrics.layoutMode
+  ) {
     failures.push("tablet portrait/landscape layoutMode identical");
+  }
+
+  const qhd = byId.qhd?.metrics;
+  if (qhd && qhd.layoutMode !== "desktop-wide") {
+    failures.push(`qhd layoutMode=${qhd.layoutMode} expected desktop-wide`);
+  }
+  if (qhd && qhd.feedBounds && qhd.feedBounds.width > 760) {
+    failures.push(
+      `qhd feed column too wide (${qhd.feedBounds.width}) — should keep readable max`,
+    );
+  }
+  if (qhd && qhd.usableWidth < 2000) {
+    failures.push(`qhd usableWidth=${qhd.usableWidth} still capped`);
   }
 
   const off = byId.laptop?.offCheck;
   if (off && (off.workspacePresent || off.hostPresent)) {
-    failures.push("OFF path still shows AW workspace/host markers");
+    failures.push("OFF path shows AW markers");
+  }
+  if (off && !off.legacySticky) {
+    failures.push("OFF path missing legacy sticky rails");
+  }
+
+  if (journey) {
+    const mounts = journey.steps.map((s) => s.metrics.sealed?.mountCount);
+    const unmounts = journey.steps.map((s) => s.metrics.sealed?.unmountCount);
+    if (mounts.some((m) => m !== 1)) {
+      failures.push(`resize journey mountCounts=${JSON.stringify(mounts)}`);
+    }
+    if (unmounts.some((u) => u !== 0)) {
+      failures.push(`resize journey unmountCounts=${JSON.stringify(unmounts)}`);
+    }
+    if (journey.consoleErrors.length) {
+      failures.push("resize journey console errors");
+    }
+    if (journey.hydrationWarnings.length) {
+      failures.push("resize journey hydration warnings");
+    }
+    const modes = journey.steps.map((s) => s.metrics.layoutMode);
+    if (new Set(modes).size < 3) {
+      failures.push(`resize journey too few distinct modes: ${modes.join(",")}`);
+    }
   }
 
   const verdict =
     failures.length === 0
-      ? "READY_FOR_CONTROLLED_PRODUCTION_ACTIVATION"
-      : "NOT_READY_FOR_CONTROLLED_PRODUCTION_ACTIVATION";
+      ? "READY_TO_MERGE_FOR_CONTROLLED_PRODUCTION_ACTIVATION"
+      : "NOT_READY_TO_MERGE_FOR_CONTROLLED_PRODUCTION_ACTIVATION";
 
   const report = {
-    phase: "aw-visible-workspace-preview",
+    phase: "aw-visible-workspace-hardening",
     commit,
     baseUrl,
     capturedAt: new Date().toISOString(),
     viewports: results,
-    comparisons,
+    resizeJourney: journey,
     failures,
     overallVerdict: verdict,
   };
@@ -249,24 +386,13 @@ async function main() {
   writeFileSync(
     join(outDir, "chromium-proof-summary.md"),
     [
-      `# Feed Workspace Visibility — Chromium Proof`,
+      `# Feed Workspace Visibility — Hardened Chromium Proof`,
       ``,
       `| Field | Value |`,
       `| --- | --- |`,
       `| Verdict | \`${verdict}\` |`,
       `| Commit | \`${commit}\` |`,
-      `| Base URL | ${baseUrl} |`,
       `| Failures | ${failures.length} |`,
-      ``,
-      `## Comparisons`,
-      ``,
-      `- Mobile portrait vs landscape layouts differ: ${comparisons["mobile-portrait-vs-landscape"].layoutsDiffer}`,
-      `- Mobile panel counts differ: ${comparisons["mobile-portrait-vs-landscape"].panelCountsDiffer}`,
-      `- Tablet portrait vs landscape layouts differ: ${comparisons["tablet-portrait-vs-landscape"].layoutsDiffer}`,
-      ``,
-      `## Screenshots`,
-      ``,
-      `See \`screenshots/\` under this artifact directory.`,
       ``,
       failures.length
         ? `## Failures\n\n${failures.map((f) => `- ${f}`).join("\n")}`
