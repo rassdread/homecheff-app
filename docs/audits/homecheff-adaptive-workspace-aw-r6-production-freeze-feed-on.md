@@ -263,7 +263,7 @@ Non-self-referential: committed freeze metadata uses `freezeCommit=pending`. Bra
 |-------|-------|
 | Branch | `workspace/aw-r6-production-freeze-feed-on` |
 | Implementation commit | `aa693a51190799197a2a0580b9e7dc0db1ecf621` |
-| Documentary commit | `pending-docs` |
+| Documentary commit | `f740f6350d01bbe7f1b3733610edbb6f275270d1` |
 | Lineage documentary commit | `pending-lineage` |
 | Freeze commit | `pending` |
 

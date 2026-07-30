@@ -188,3 +188,42 @@ Authoritative document:
 `docs/architecture/homecheff-adaptive-workspace-condensed-implementation-roadmap.md`
 
 That roadmap **supplements** this platform contract. It does **not** weaken U1–U25 or F1–F6, does **not** rewrite Settings freeze history, and does **not** by itself authorize LIVE unlock, Workspace presence, GeoFeed authority transfer, or Feed ON.
+
+---
+
+## Appendix — AW-R6 final production contract (proven)
+
+The condensed roadmap is **complete** at AW-R6. The following production contract is authoritative for the Feed / Controlled Workspace Host path at the AW-R6 freeze tip. It does **not** broaden beyond proven AW-R6 behavior.
+
+| Rule | Value |
+| --- | --- |
+| Workspace is the production authority | yes |
+| GeoFeed remains one stable runtime | yes · mount/render/unmount **1/1/0** |
+| Workspace sole owner | yes |
+| Workspace sole writer | yes |
+| Workspace sole renderer | yes |
+| Workspace sole request authority | yes |
+| Workspace sole pagination authority | yes |
+| Workspace sole cache authority | yes |
+| Workspace sole observer authority | yes |
+| Legacy authority inactive | yes |
+| Feed ON | true |
+| Production promotion | true |
+| renderActivation | true |
+| Stable identity mandatory | yes |
+| Stable mount mandatory | yes |
+| Single writer mandatory | yes |
+| Single renderer mandatory | yes |
+| Fail closed mandatory | yes |
+| Rollback first remains mandatory | yes |
+| Browser proof before activation remains mandatory | yes |
+| Immediate Feed OFF rollback target | **AW-R5** |
+| Authority-transition recovery checkpoint | **AW-R4** |
+| Controlled-execution recovery checkpoint | **AW-R3** |
+| Condensed roadmap complete | yes |
+| Next implementation stage | none (no AW-R7) |
+| Future architecture changes | require separate authorization beyond AW-R6 |
+
+Bridge / reader / MetaOk at AW-R6: **v54** / `readControlledWorkspaceProductionFeedOn` / `productionFeedOnMetaOk=true`.
+
+Historical negative capability: `attemptFeedOn` remains permanently **allowed:false**; Feed ON is proven via the sealed AW-R6 state, not the historical action path.

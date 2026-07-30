@@ -3,11 +3,11 @@
 | Field | Value |
 | --- | --- |
 | Document id | `homecheff-adaptive-workspace-condensed-implementation-roadmap` |
-| Status | **AUTHORITATIVE ROADMAP FOR REMAINING ADAPTIVE WORKSPACE IMPLEMENTATION** |
-| Scope | Future work **after** frozen Phase 3B.3.47 |
+| Status | **CONDENSED ROADMAP COMPLETE (AW-R1–AW-R6)** |
+| Scope | Feed / Controlled Workspace Host path after frozen Phase 3B.3.47 through AW-R6 |
 | Date | 2026-07-30 |
 | Kind | Architecture decision / implementation roadmap (documentation only) |
-| Implementation | **None in this document** — no runtime, flags, or activation authorized here |
+| Implementation | Runtime activation is authorized only by the sealed AW-R6 freeze tip — not by this document alone |
 
 ---
 
@@ -234,6 +234,41 @@ Primary stage identity for future work is **AW-R\***. Repository-native subphase
 | **Proofs** | Freeze pack integrity; lineage completeness; promotion checklist signed off; F1 mode env created only as designed by platform contract |
 | **Rollback** | Documented production rollback to OFF/SHADOW; verified |
 
+#### AW-R6 completion record (do not rewrite AW-R1–AW-R5 history)
+
+| Field | Value |
+| --- | --- |
+| Status | **COMPLETE** |
+| Lifecycle | `PRODUCTION_LIVE_FEED_ON` |
+| Result | `controlled-workspace-production-live-feed-on` |
+| Pipeline | `PRODUCTION_ON` |
+| Transaction | `PRODUCTION_COMMITTED` |
+| Feed ON | true |
+| Production promotion | true |
+| Workspace authority | sole (owner/writer/renderer/request/pagination/cache/observer) |
+| Legacy authority | inactive |
+| GeoFeed | 1 instance · mount/render/unmount **1/1/0** |
+| Rollback to AW-R5 | proven |
+| Final production freeze | created (non-self-referential `freezeCommit=pending`) |
+| Condensed roadmap | **complete** |
+| AW-R7 | **does not exist** |
+| Next implementation stage | **none** |
+| Next administrative action | Release Closure against the exact AW-R6 freeze tip (not part of AW-R6) |
+| Predecessor freeze | `ac34031c8e16b70593392c484902d5f007b6f916` (AW-R5) |
+| Audit | `docs/audits/homecheff-adaptive-workspace-aw-r6-production-freeze-feed-on.md` |
+| Proof set | `docs/audits/artifacts/aw-r6/` |
+
+**Stage completion summary**
+
+| Stage | Status |
+| --- | --- |
+| AW-R1 | complete |
+| AW-R2 | complete |
+| AW-R3 | complete |
+| AW-R4 | complete |
+| AW-R5 | complete |
+| AW-R6 | complete |
+
 ---
 
 ## 14. GeoFeed authority rules
@@ -321,12 +356,17 @@ Until then, status remains **partial / in migration**, even if candidate lifecyc
 
 ## 20. Next action
 
-1. Keep Phase 3B.3.47 freeze `18c178a6aaaa537f57cce8ecb0eb8bfb17e77c59` as immutable predecessor.
-2. Open implementation for **AW-R1 — Final Pre-Activation Seal** on a new branch from that freeze (or from this docs commit once merged locally as preferred base).
-3. Do **not** start AW-R2+ until AW-R1 exit criteria and proofs pass.
-4. Do **not** interpret this document as activation authorization.
+Historical planning note (preserved): AW-R1 was the immediate next stage after Phase 3B.3.47 when this roadmap was first established.
 
-**Immediate next stage:** `AW-R1`.
+**Current status after AW-R6 freeze:**
+
+1. Keep Phase 3B.3.47 freeze `18c178a6aaaa537f57cce8ecb0eb8bfb17e77c59` and AW-R1–AW-R5 freezes as immutable lineage.
+2. Condensed implementation roadmap **AW-R1 through AW-R6 is complete**.
+3. There is **no AW-R7** and **no next implementation stage**.
+4. The only next action is **Release Closure** against the exact AW-R6 freeze tip (administrative; not an implementation stage).
+5. Do **not** interpret this document alone as a substitute for the sealed AW-R6 freeze tip.
+
+**Immediate next stage:** `none` (Release Closure only).
 
 ---
 
@@ -335,7 +375,7 @@ Until then, status remains **partial / in migration**, even if candidate lifecyc
 | Item | Value |
 | --- | --- |
 | Preferred path | `docs/architecture/homecheff-adaptive-workspace-condensed-implementation-roadmap.md` |
-| SSOT mark | AUTHORITATIVE ROADMAP FOR REMAINING ADAPTIVE WORKSPACE IMPLEMENTATION |
-| Authorizes runtime change? | **No** |
-| Authorizes Feed ON? | **No** (only AW-R6 after proofs) |
+| SSOT mark | CONDENSED ROADMAP COMPLETE (AW-R1–AW-R6) |
+| Authorizes runtime change? | Only via sealed AW-R6 freeze tip |
+| Authorizes Feed ON? | **Yes at AW-R6 freeze tip** (sealed reader / MetaOk); this document records completion |
 | Push required? | No (local docs commit unless release process says otherwise) |
