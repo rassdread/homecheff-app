@@ -1,0 +1,420 @@
+{
+  "schema": "homecheff-aw-visible-workspace-activation-artifact-manifest-v1",
+  "generatedAt": "2026-07-30T22:52:00.000Z",
+  "productionMergeCommit": "7f071b929c937bbb7e3a227ca8f24e97101d3858",
+  "finalVerdict": "ADAPTIVE_WORKSPACE_PRODUCTION_SUCCESS",
+  "note": "This manifest does not include its own SHA-256. Entries sorted by path. Exclude: probe-run.log, FREEZE_RECORD.md (later), ARTIFACT_MANIFEST.json.",
+  "artifactCount": 41,
+  "artifacts": [
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/FILE_CLASSIFICATION.md",
+      "relativePath": "FILE_CLASSIFICATION.md",
+      "sizeBytes": 3374,
+      "sha256": "33c8146253f85dbb998a17fed2c80dd0df5a3b550ed9d753339f922b097cbead",
+      "purpose": "closeout-classification",
+      "gate": null,
+      "source": null,
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/RELEASE_RECORD.md",
+      "relativePath": "RELEASE_RECORD.md",
+      "sizeBytes": 7124,
+      "sha256": "6ce8af0c9c809524871275c455e8539e508ed237565ce9cb83fbe38eb7f732ba",
+      "purpose": "release-record",
+      "gate": null,
+      "source": null,
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/SCREENSHOT_INDEX.md",
+      "relativePath": "SCREENSHOT_INDEX.md",
+      "sizeBytes": 3473,
+      "sha256": "4bed07ad3c0b814f1dfbbdc6f0d0031c48716ce61a8cb0f5b5661e80c86c8846",
+      "purpose": "screenshot-index",
+      "gate": null,
+      "source": null,
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/chromium-proof-summary.md",
+      "relativePath": "gate1-local-proof/chromium-proof-summary.md",
+      "sizeBytes": 250,
+      "sha256": "6e3b92cbaa8e39074e8347d0b37dbab197944d757efd199d0cad902852c7f599",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/chromium-proof.json",
+      "relativePath": "gate1-local-proof/chromium-proof.json",
+      "sizeBytes": 33677,
+      "sha256": "fb65c0416c20bf84ea215c4092da572209dae4f56ab4d5cb3cee0a9658cce914",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/desktop-1440x900.png",
+      "relativePath": "gate1-local-proof/screenshots/desktop-1440x900.png",
+      "sizeBytes": 367845,
+      "sha256": "dcdf8696265537c87a2cc958ea1dffee3fd3f047865cd03e583b3d1836b15b50",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "desktop-1440x900"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/full-hd-1920x1080.png",
+      "relativePath": "gate1-local-proof/screenshots/full-hd-1920x1080.png",
+      "sizeBytes": 408357,
+      "sha256": "128d6e2303d07d1505c409a30c9008e4837ca5305a2d62deda07a5946c426c7c",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "full-hd-1920x1080"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/laptop-1280x800.png",
+      "relativePath": "gate1-local-proof/screenshots/laptop-1280x800.png",
+      "sizeBytes": 347831,
+      "sha256": "4350332672e1ecdcad507521a6d6d95d274b27cd8faf5d01a08a1f9e0c56680d",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "laptop-1280x800"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/large-mobile-landscape-932x430.png",
+      "relativePath": "gate1-local-proof/screenshots/large-mobile-landscape-932x430.png",
+      "sizeBytes": 109495,
+      "sha256": "3891eb273de4e77d61f490d713959bbd1cd79749213b56f9177dc76172d3e5f5",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "large-mobile-landscape-932x430"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/large-mobile-portrait-430x932.png",
+      "relativePath": "gate1-local-proof/screenshots/large-mobile-portrait-430x932.png",
+      "sizeBytes": 130233,
+      "sha256": "bf276aefa3fb867f4ad291593a2da2178a2e64993861b4673d4909253f7750c6",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "large-mobile-portrait-430x932"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/mobile-landscape-844x390.png",
+      "relativePath": "gate1-local-proof/screenshots/mobile-landscape-844x390.png",
+      "sizeBytes": 99626,
+      "sha256": "7e6a7106cf4c38465f0738028de2983e99e9163822415d5af32c9ae1b09f10b5",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "mobile-landscape-844x390"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/mobile-portrait-390x844.png",
+      "relativePath": "gate1-local-proof/screenshots/mobile-portrait-390x844.png",
+      "sizeBytes": 109401,
+      "sha256": "26477720a75cd56f631f3fb5f6a83c44f4505910d49ca7ef33f8aa1155025bcc",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "mobile-portrait-390x844"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/qhd-2560x1440.png",
+      "relativePath": "gate1-local-proof/screenshots/qhd-2560x1440.png",
+      "sizeBytes": 518803,
+      "sha256": "1a65e4408d65ccd27937bc0ba9e45b85749188c40ba912ba382908953bcae4bf",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "qhd-2560x1440"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/tablet-landscape-1024x768.png",
+      "relativePath": "gate1-local-proof/screenshots/tablet-landscape-1024x768.png",
+      "sizeBytes": 307611,
+      "sha256": "373894b45e439b0140438a6a6c9e75e9d3b281dbe69e71bbbcab49afec76d1c9",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "tablet-landscape-1024x768"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/tablet-portrait-768x1024.png",
+      "relativePath": "gate1-local-proof/screenshots/tablet-portrait-768x1024.png",
+      "sizeBytes": 245251,
+      "sha256": "1fb8a6ada69322c911a10a117ce4a525e41e5951b385d90549ea5be3ef225d16",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "tablet-portrait-768x1024"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate1-local-proof/screenshots/wide-desktop-1728x1117.png",
+      "relativePath": "gate1-local-proof/screenshots/wide-desktop-1728x1117.png",
+      "sizeBytes": 410583,
+      "sha256": "871a771c314bbf9448f1efb0403e0233628bd13ff3896975e92e33c09cd5074a",
+      "purpose": "gate1-local-proof",
+      "gate": "gate1",
+      "source": "local",
+      "viewport": "wide-desktop-1728x1117"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/production-smoke-summary.md",
+      "relativePath": "gate10-production-smoke/production-smoke-summary.md",
+      "sizeBytes": 370,
+      "sha256": "bea91cddbcea61d4e9485d82658fd12d84a4758206a565cfef198ea45463a3f0",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/production-smoke.json",
+      "relativePath": "gate10-production-smoke/production-smoke.json",
+      "sizeBytes": 23000,
+      "sha256": "541e17f210367799c1d506bb19d66172c45e9532e5a95d5d98ff2c913afae73b",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/screenshots/desktop-1440x900.png",
+      "relativePath": "gate10-production-smoke/screenshots/desktop-1440x900.png",
+      "sizeBytes": 358265,
+      "sha256": "b117fd6f8e9ae6e31a6df6711583e80e35350a46dbf23503911b0e3dfa71afdd",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": "desktop-1440x900"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/screenshots/full-hd-1920x1080.png",
+      "relativePath": "gate10-production-smoke/screenshots/full-hd-1920x1080.png",
+      "sizeBytes": 402737,
+      "sha256": "34c5e4eb7cb19459e25927a4dd8be277b355b3ef6d4e0fb41254ecc7ccafc641",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": "full-hd-1920x1080"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/screenshots/mobile-landscape-844x390.png",
+      "relativePath": "gate10-production-smoke/screenshots/mobile-landscape-844x390.png",
+      "sizeBytes": 97105,
+      "sha256": "720411e4bdae30133523fe4b4d6e5b98da2d7025631ebb7ce7b0d16005eb6832",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": "mobile-landscape-844x390"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/screenshots/mobile-portrait-390x844.png",
+      "relativePath": "gate10-production-smoke/screenshots/mobile-portrait-390x844.png",
+      "sizeBytes": 109322,
+      "sha256": "c7d9b031deef937b81da33d3b910b863364538e6a0204c01213509f7d79a3d64",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": "mobile-portrait-390x844"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/screenshots/qhd-2560x1440.png",
+      "relativePath": "gate10-production-smoke/screenshots/qhd-2560x1440.png",
+      "sizeBytes": 511027,
+      "sha256": "3b833ea8095341965b8283a52ca2f13bf2066aacab7bef3e4eeb4552386385f2",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": "qhd-2560x1440"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/screenshots/tablet-landscape-1024x768.png",
+      "relativePath": "gate10-production-smoke/screenshots/tablet-landscape-1024x768.png",
+      "sizeBytes": 302818,
+      "sha256": "b408b26961eff7155943d5a2781d9881bee39f7c5906e8f275bc3f5db25f7381",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": "tablet-landscape-1024x768"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate10-production-smoke/screenshots/tablet-portrait-768x1024.png",
+      "relativePath": "gate10-production-smoke/screenshots/tablet-portrait-768x1024.png",
+      "sizeBytes": 170282,
+      "sha256": "3defec4ba7464b11bc73ab17e8285b39372ac8250b3da541bca0b91ab33ce1e5",
+      "purpose": "gate10-production-smoke",
+      "gate": "gate10",
+      "source": "production-on",
+      "viewport": "tablet-portrait-768x1024"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate5-off-parity/off-parity.json",
+      "relativePath": "gate5-off-parity/off-parity.json",
+      "sizeBytes": 1231,
+      "sha256": "b6d3b9114a1a1faa12b351122a6b634af59fb0a275eacce17726812df8c7b2b0",
+      "purpose": "gate5-off-parity",
+      "gate": "gate5",
+      "source": "production-off",
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate5-off-parity/screenshots/off-query-1280.png",
+      "relativePath": "gate5-off-parity/screenshots/off-query-1280.png",
+      "sizeBytes": 350859,
+      "sha256": "3078c1a46e1f5702a91629d818394c0b63555fb56de8f4a1fa74485276084c79",
+      "purpose": "gate5-off-parity",
+      "gate": "gate5",
+      "source": "production-off",
+      "viewport": "off-query-1280"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate5-off-parity/screenshots/off-root-1280.png",
+      "relativePath": "gate5-off-parity/screenshots/off-root-1280.png",
+      "sizeBytes": 348555,
+      "sha256": "1d4604f509476dea8c768953c9a7d9495e66f5f23586f044b0c55d6a183c0a68",
+      "purpose": "gate5-off-parity",
+      "gate": "gate5",
+      "source": "production-off",
+      "viewport": "off-root-1280"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/chromium-proof-summary.md",
+      "relativePath": "gate7-preview-proof/chromium-proof-summary.md",
+      "sizeBytes": 716,
+      "sha256": "28ac2869b5fb71e0ace55e5570dbe8662fea9244b63ad57c5082345f152df725",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/chromium-proof.json",
+      "relativePath": "gate7-preview-proof/chromium-proof.json",
+      "sizeBytes": 37050,
+      "sha256": "d2c133ec4412ef3dbe335c1f4df5812535acdfd3399e6618c94f9fe89af519c3",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": null
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/desktop-1440x900.png",
+      "relativePath": "gate7-preview-proof/screenshots/desktop-1440x900.png",
+      "sizeBytes": 368545,
+      "sha256": "82320ac29eeb18710cfdfe34ca312d59e3f5c28440f38855f03ef999e2b6c9cb",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "desktop-1440x900"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/full-hd-1920x1080.png",
+      "relativePath": "gate7-preview-proof/screenshots/full-hd-1920x1080.png",
+      "sizeBytes": 409408,
+      "sha256": "87ca522ba049c32e2f48add098e7222c652c0f06b740c7ad012b87b05f6b8a58",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "full-hd-1920x1080"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/laptop-1280x800.png",
+      "relativePath": "gate7-preview-proof/screenshots/laptop-1280x800.png",
+      "sizeBytes": 348776,
+      "sha256": "0bebaa07c2641330e142ffe746dfa8fce0e2115fd2549a152ef1191d07e9539e",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "laptop-1280x800"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/large-mobile-landscape-932x430.png",
+      "relativePath": "gate7-preview-proof/screenshots/large-mobile-landscape-932x430.png",
+      "sizeBytes": 110522,
+      "sha256": "5e1911bb59fc1643a72a38e947a3fae8bdbb96dca3917d9770ad926389530fae",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "large-mobile-landscape-932x430"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/large-mobile-portrait-430x932.png",
+      "relativePath": "gate7-preview-proof/screenshots/large-mobile-portrait-430x932.png",
+      "sizeBytes": 126652,
+      "sha256": "a5853e5c192fa831f05e2099529521633d0235ba482bc659d70620d8285e7e73",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "large-mobile-portrait-430x932"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/mobile-landscape-844x390.png",
+      "relativePath": "gate7-preview-proof/screenshots/mobile-landscape-844x390.png",
+      "sizeBytes": 100569,
+      "sha256": "3df639742cc96005f7dee225e0e101462bf8c6f1f2f53cb6d37121b81ba43fb2",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "mobile-landscape-844x390"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/mobile-portrait-390x844.png",
+      "relativePath": "gate7-preview-proof/screenshots/mobile-portrait-390x844.png",
+      "sizeBytes": 107082,
+      "sha256": "014d5af75789364d165cd80f903bf6b4c2c33bfe0ee2e18ba31d58a4ba0bce61",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "mobile-portrait-390x844"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/qhd-2560x1440.png",
+      "relativePath": "gate7-preview-proof/screenshots/qhd-2560x1440.png",
+      "sizeBytes": 520202,
+      "sha256": "a6c00e6b7b2f3b15b96aeff7b0754d5cf7ab70ad4c58ea5ac6ce15e64968bd1a",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "qhd-2560x1440"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/tablet-landscape-1024x768.png",
+      "relativePath": "gate7-preview-proof/screenshots/tablet-landscape-1024x768.png",
+      "sizeBytes": 308231,
+      "sha256": "3b84ab62fceb52a5c6ddd65c2ad4eae4211cd7c2f403b88c2a163488f5f00aab",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "tablet-landscape-1024x768"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/tablet-portrait-768x1024.png",
+      "relativePath": "gate7-preview-proof/screenshots/tablet-portrait-768x1024.png",
+      "sizeBytes": 172734,
+      "sha256": "415fc9c743fa647b3ff2ee07406df3cfbd398c48e285b580bf567e4d8404ab68",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "tablet-portrait-768x1024"
+    },
+    {
+      "path": "docs/audits/aw-visible-workspace-production-activation/gate7-preview-proof/screenshots/wide-desktop-1728x1117.png",
+      "relativePath": "gate7-preview-proof/screenshots/wide-desktop-1728x1117.png",
+      "sizeBytes": 411532,
+      "sha256": "998edf21aee3865c79b5390ffec2b6b2c0584d1a5be180057ddbee6a138e56ec",
+      "purpose": "gate7-preview-proof",
+      "gate": "gate7",
+      "source": "preview",
+      "viewport": "wide-desktop-1728x1117"
+    }
+  ]
+}

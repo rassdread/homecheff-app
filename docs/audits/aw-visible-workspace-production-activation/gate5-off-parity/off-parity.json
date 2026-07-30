@@ -1,0 +1,43 @@
+{
+  "gate": "GATE_5_PRODUCTION_OFF_PARITY",
+  "productionCommit": "7f071b929c937bbb7e3a227ca8f24e97101d3858",
+  "deployment": "dpl_6FbjmWaP7cqRuK2QPy54PourYfcL",
+  "results": [
+    {
+      "path": "/",
+      "metrics": {
+        "awWorkspace": false,
+        "awHost": false,
+        "awFullBleed": false,
+        "legacySticky": true,
+        "stickyGrid": true,
+        "feedDesktop": true,
+        "feedMobile": false,
+        "overflowX": false
+      },
+      "consoleErrors": [],
+      "hydration": [],
+      "feedRequestCount": 1,
+      "shot": "docs/audits/aw-visible-workspace-production-activation/gate5-off-parity/screenshots/off-root-1280.png"
+    },
+    {
+      "path": "/?awFeedWorkspace=1",
+      "metrics": {
+        "awWorkspace": false,
+        "awHost": false,
+        "awFullBleed": false,
+        "legacySticky": true,
+        "stickyGrid": true,
+        "feedDesktop": true,
+        "feedMobile": false,
+        "overflowX": false
+      },
+      "consoleErrors": [],
+      "hydration": [],
+      "feedRequestCount": 1,
+      "shot": "docs/audits/aw-visible-workspace-production-activation/gate5-off-parity/screenshots/off-query-1280.png"
+    }
+  ],
+  "failures": [],
+  "verdict": "PRODUCTION_OFF_PARITY_PASS"
+}
