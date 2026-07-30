@@ -1,0 +1,107 @@
+{
+  "phase": "AW-R3",
+  "title": "Controlled Execution",
+  "branch": "workspace/aw-r3-controlled-execution",
+  "predecessorFreeze": "df9b9b9a86ee31db79a546a2ebfa4c33036e6738",
+  "implementationCommit": "a58caed6f61ced4f55e986a493ba431058d9ab2b",
+  "proofTarget": "a58caed6f61ced4f55e986a493ba431058d9ab2b",
+  "documentaryCommit": "pending-docs",
+  "lineageDocumentaryCommit": "pending-lineage",
+  "freezeCommit": "pending",
+  "result": "controlled-workspace-executing-geofeed-legacy-authority",
+  "lifecycle": "CONTROLLED_EXECUTION_WITH_LEGACY_GEOFEED_AUTHORITY",
+  "blocker": "PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY",
+  "transition": {
+    "capabilityStage": "Controlled Execution",
+    "transitionCount": 1,
+    "fields": [
+      {
+        "field": "issuancePipelineExecutable",
+        "before": false,
+        "after": true
+      },
+      {
+        "field": "issuancePipelineExecutionAllowed",
+        "before": false,
+        "after": true
+      },
+      {
+        "field": "issuancePipelineState",
+        "before": "NON_EXECUTABLE",
+        "after": "CONTROLLED_EXECUTABLE"
+      },
+      {
+        "field": "issuanceTransactionState",
+        "before": "OPENED",
+        "after": "CONTROLLED_EXECUTION"
+      },
+      {
+        "field": "workspaceVisible",
+        "before": false,
+        "after": true
+      },
+      {
+        "field": "workspaceHostMounted",
+        "before": false,
+        "after": true
+      },
+      {
+        "field": "runtimeCapabilityPresent",
+        "before": false,
+        "after": true
+      },
+      {
+        "field": "hostActivation",
+        "before": false,
+        "after": true
+      },
+      {
+        "field": "canStartActivation",
+        "before": false,
+        "after": true
+      }
+    ]
+  },
+  "candidateLifecycleFullySealed": true,
+  "Allowed": true,
+  "Executable": true,
+  "issuancePipelineState": "CONTROLLED_EXECUTABLE",
+  "issuanceTransactionState": "CONTROLLED_EXECUTION",
+  "WorkspacePresent": true,
+  "RuntimePresent": true,
+  "renderActivation": false,
+  "feedOnAuthorized": false,
+  "productionPromotionAuthorized": false,
+  "geoFeedAuthorityTransferred": false,
+  "GeoFeedOwner": "legacy",
+  "GeoFeedWriter": "legacy",
+  "GeoFeedRenderer": "legacy",
+  "GeoFeedMountCount": 1,
+  "GeoFeedRenderCount": 1,
+  "GeoFeedUnmountCount": 0,
+  "stableMountId": "feed.discovery.controlled-host.stable-mount.v1",
+  "bridgeVersion": "v51",
+  "reader": "readControlledWorkspaceExecution",
+  "controlledWorkspaceExecutionMetaOk": true,
+  "proofPort": 3071,
+  "currentStep": "AW-R3",
+  "eligibleStep": "AW-R4",
+  "gateAllowed": false,
+  "rollbackTargetPhase": "AW-R2",
+  "rollbackMode": "metadata-gate-only",
+  "dedicatedTests": "PASS \u2014 9 assertion groups",
+  "validator": "PASS",
+  "productionBuild": "PASS",
+  "chromium": "20/20 PASS",
+  "forcedNegativeChromium": "69/69 PASS",
+  "controlledWorkspaceRegression": "20/20 PASS",
+  "geoFeedRegression": "legacy 1/1/0 PASS",
+  "recursiveCapabilityAudit": "PASS",
+  "performanceRegressionGuard": "PASS",
+  "stableMountProof": "PASS",
+  "runtimeHandleProof": "PASS",
+  "rollbackProof": "PASS",
+  "failureAtomicityProof": "PASS",
+  "finalVerdict": "READY_FOR_AW_R4",
+  "pushStatus": "Nothing pushed"
+}

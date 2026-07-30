@@ -1,0 +1,3 @@
+workspace/aw-r3-controlled-execution
+freezeCommit=pending
+verdict=READY_FOR_AW_R4
