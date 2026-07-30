@@ -7,7 +7,6 @@ import { createControlledFeedHostPlan } from "../sealed/controlled-feed-host-pla
 import {
   CONTROLLED_WORKSPACE_EXECUTION_CONTRACT_ID,
   CONTROLLED_WORKSPACE_EXECUTION_ID,
-  PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY,
   createControlledWorkspaceExecutionDescriptor,
   createControlledWorkspaceExecutionRollbackContract,
   evaluateControlledWorkspaceExecution,
@@ -15,6 +14,7 @@ import {
 import { createControlledWorkspaceExecutionContract } from "../sealed/controlled-workspace-execution-contract";
 import { createControlledWorkspaceExecutionIdentity } from "../sealed/controlled-workspace-execution-identity";
 import { createControlledWorkspaceExecutionPreparedContract } from "../sealed/controlled-workspace-execution-prepared";
+import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "../sealed/controlled-workspace-geofeed-authority-transition";
 import { createControlledWorkspaceLiveAuthorizationDescriptor } from "../sealed/controlled-workspace-live-authorization";
 import { FEED_DISCOVERY_HOST_CANDIDATE_METADATA } from "../registry/settings-manifests";
 
@@ -190,13 +190,15 @@ ok("rollback restores the AW-R2-safe snapshot");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R3");
-assert.equal(gate.eligibleStep, "AW-R4");
-assert.ok(gate.blockers.includes(PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY));
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R4");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R4");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R4");
-ok("AW-R3 gate blocks GeoFeed takeover and points to AW-R4");
+assert.equal(gate.currentStep, "AW-R4");
+assert.equal(gate.eligibleStep, "AW-R5");
+assert.ok(
+  gate.blockers.includes(PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY),
+);
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R5");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R5");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R5");
+ok("tip gate blocks production promotion and points to AW-R5");
 
 console.log(
   `\nadaptive-workspace AW-R3 controlled execution: ${passed} assertion groups ok\n`,

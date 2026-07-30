@@ -15,7 +15,7 @@ import { createControlledWorkspaceLiveAuthorizationContract } from "../sealed/co
 import { createControlledWorkspaceLiveAuthorizationIdentity } from "../sealed/controlled-workspace-live-authorization-identity";
 import { createControlledWorkspaceLiveAuthorizationPreparedContract } from "../sealed/controlled-workspace-live-authorization-prepared";
 import { FEED_DISCOVERY_HOST_CANDIDATE_METADATA } from "../registry/settings-manifests";
-import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "../sealed/controlled-workspace-execution";
+import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "../sealed/controlled-workspace-geofeed-authority-transition";
 
 let passed = 0;
 const ok = (label: string) => {
@@ -148,12 +148,14 @@ ok("metadata-only rollback restores AW-R1 Allowed=false");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R3");
-assert.equal(gate.eligibleStep, "AW-R4");
-assert.ok(gate.blockers.includes(PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY));
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R4");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R4");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R4");
+assert.equal(gate.currentStep, "AW-R4");
+assert.equal(gate.eligibleStep, "AW-R5");
+assert.ok(
+  gate.blockers.includes(PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY),
+);
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R5");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R5");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R5");
 ok("AW-R2 descriptor and AW-R3 gate continuity");
 
 console.log(

@@ -2113,3 +2113,31 @@ export {
   validateControlledWorkspaceExecutionPreparedContract,
 } from "./sealed/controlled-workspace-execution-prepared";
 export type { ControlledWorkspaceExecutionPreparedContract } from "./sealed/controlled-workspace-execution-prepared";
+export {
+  CONTROLLED_WORKSPACE_GEOFEED_AUTHORITY_TRANSITION_BLOCKERS,
+  CONTROLLED_WORKSPACE_GEOFEED_AUTHORITY_TRANSITION_CONDITIONS,
+  CONTROLLED_WORKSPACE_GEOFEED_AUTHORITY_TRANSITION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_GEOFEED_AUTHORITY_TRANSITION_GUARDS,
+  CONTROLLED_WORKSPACE_GEOFEED_AUTHORITY_TRANSITION_ID,
+  PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
+  createControlledWorkspaceGeoFeedAuthorityTransitionDescriptor,
+  createControlledWorkspaceGeoFeedAuthorityTransitionRollbackContract,
+  evaluateControlledWorkspaceGeoFeedAuthorityTransition,
+  validateControlledWorkspaceGeoFeedAuthorityTransitionDescriptor,
+} from "./sealed/controlled-workspace-geofeed-authority-transition";
+export type {
+  ControlledWorkspaceGeoFeedAuthorityTransitionDescriptor,
+  ControlledWorkspaceGeoFeedAuthorityTransitionEvaluation,
+  ControlledWorkspaceGeoFeedAuthorityTransitionInput,
+  ControlledWorkspaceGeoFeedAuthorityTransitionRollbackContract,
+} from "./sealed/controlled-workspace-geofeed-authority-transition";
+export {
+  createControlledWorkspaceGeoFeedAuthorityTransitionContract,
+  validateControlledWorkspaceGeoFeedAuthorityTransitionContract,
+} from "./sealed/controlled-workspace-geofeed-authority-transition-contract";
+export type { ControlledWorkspaceGeoFeedAuthorityTransitionContract } from "./sealed/controlled-workspace-geofeed-authority-transition-contract";
+export {
+  createControlledWorkspaceGeoFeedAuthorityTransitionIdentity,
+  validateControlledWorkspaceGeoFeedAuthorityTransitionIdentity,
+} from "./sealed/controlled-workspace-geofeed-authority-transition-identity";
+export type { ControlledWorkspaceGeoFeedAuthorityTransitionIdentity } from "./sealed/controlled-workspace-geofeed-authority-transition-identity";

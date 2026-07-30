@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 51;
+  version: 52;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -31,15 +31,15 @@ export type FeedSealedProbeApi = {
   attemptHostActivation: (force?: unknown) => Promise<{
     allowed: false;
     blockers: readonly string[];
-    currentStep: "3B.3.20";
-    eligibleStep: "3B.3.21";
+    currentStep: "AW-R4";
+    eligibleStep: "AW-R5";
   }>;
   readControlledHostContract: () => Promise<{
     hostActivation: false;
     renderActivation: false;
-    activeRenderOwner: "legacy";
-    activeWriter: "legacy";
-    nextEligibleStep: "3B.3.20";
+    activeRenderOwner: "workspace";
+    activeWriter: "workspace";
+    nextEligibleStep: "AW-R5";
     hostClassification: "controlled-host-candidate";
   }>;
   readHostPlan: () => Promise<{
@@ -4479,6 +4479,53 @@ export type FeedSealedProbeApi = {
       diagnostics: Record<string, unknown>;
     }
   >;
+  readControlledWorkspaceGeoFeedAuthorityTransition: () => Promise<
+    Record<string, unknown> & {
+      phase: "AW-R4";
+      previousPhase: "AW-R3";
+      nextEligibleStep: "AW-R5";
+      activationGeoFeedAuthorityTransitionId: "feed.discovery.adaptive-workspace.host-geofeed-authority-transition.v1";
+      activationGeoFeedAuthorityTransitionContractId: "feed.discovery.adaptive-workspace.host-geofeed-authority-transition.contract.v1";
+      candidateActivationState: "GEOFEED_AUTHORITY_TRANSITIONED_NOT_PRODUCTION_ON";
+      candidateActivationResult: "controlled-workspace-geofeed-authority-transitioned-not-production-on";
+      issuancePipelineState: "AUTHORITY_TRANSITIONED";
+      issuanceTransactionState: "AUTHORITY_COMMITTED";
+      owner: "workspace";
+      writer: "workspace";
+      renderer: "workspace";
+      requestAuthority: "workspace";
+      paginationAuthority: "workspace";
+      cacheAuthority: "workspace";
+      observerAuthority: "workspace";
+      lifecycleAuthority: "workspace";
+      legacyAuthorityActive: false;
+      targetAuthorityActive: true;
+      authorityCommitBoundary: "COMMITTED";
+      dualOwnerForbidden: true;
+      dualWriterForbidden: true;
+      dualRendererForbidden: true;
+      stableMountId: "feed.discovery.controlled-host.stable-mount.v1";
+      stableMountIdentityPreserved: true;
+      requestIdentityPreserved: true;
+      feedStatePreserved: true;
+      geoFeedInstanceCount: 1;
+      geoFeedAuthorityTransferred: true;
+      renderActivation: true;
+      feedOnAuthorized: false;
+      productionPromotionAuthorized: false;
+      containsGeoFeed: false;
+      mountsGeoFeed: false;
+      wrapsGeoFeed: false;
+      duplicatesGeoFeed: false;
+      createsSecondGeoFeed: false;
+      mountCount: 1;
+      geoFeedRenderCount: 1;
+      unmountCount: 0;
+      activationBlocker: "PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY";
+      geoFeedAuthorityTransitionMetaOk: true;
+      diagnostics: Record<string, unknown>;
+    }
+  >;
 
     readHostActivationStateMachine: () => Promise<{
     phase: "3B.3.13";
@@ -4774,7 +4821,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 51,
+    version: 52,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -4829,8 +4876,8 @@ export function installFeedSealedProbeBridge(): void {
         phase3b318ProofValid: true,
         phase3b319ProofValid: true,
         phase3b320ProofValid: true,
-        observedWriter: "legacy",
-        observedRenderOwner: "legacy",
+        observedWriter: "workspace",
+        observedRenderOwner: "workspace",
         observedMountCount: 1,
         observedRollbackTarget: "legacy",
         observedRegistrationState: "registered",
@@ -4856,8 +4903,8 @@ export function installFeedSealedProbeBridge(): void {
       return {
         allowed: false as const,
         blockers: gate.blockers,
-        currentStep: "3B.3.20" as const,
-        eligibleStep: "3B.3.21" as const,
+        currentStep: "AW-R4" as const,
+        eligibleStep: "AW-R5" as const,
       };
     },
     readControlledHostContract: async () => {
@@ -4866,9 +4913,9 @@ export function installFeedSealedProbeBridge(): void {
       return {
         hostActivation: false as const,
         renderActivation: false as const,
-        activeRenderOwner: "legacy" as const,
-        activeWriter: "legacy" as const,
-        nextEligibleStep: "3B.3.20" as const,
+        activeRenderOwner: c.activeRenderOwner,
+        activeWriter: c.activeWriter,
+        nextEligibleStep: c.nextEligibleStep,
         hostClassification: "controlled-host-candidate" as const,
       };
     },
@@ -10599,6 +10646,106 @@ export function installFeedSealedProbeBridge(): void {
         activationBlocker:
           "PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY" as const,
         controlledWorkspaceExecutionMetaOk: true as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readControlledWorkspaceGeoFeedAuthorityTransition: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation =
+        mod.evaluateControlledWorkspaceGeoFeedAuthorityTransition(undefined, {
+          activationExecutionAllowed: true,
+          issuancePipelineExecutionAllowed: true,
+          issuancePipelineExecutable: true,
+          issuancePipelineState: "CONTROLLED_EXECUTABLE",
+          issuanceTransactionState: "CONTROLLED_EXECUTION",
+          workspaceVisible: true,
+          workspaceHostMounted: true,
+          workspaceCandidateRendered: true,
+          workspaceReactInstancePresent: true,
+          runtimeCapabilityPresent: true,
+          runtimeHostInstancePresent: true,
+          activationHandlePresent: true,
+          executionHandlePresent: true,
+          owner: "legacy",
+          writer: "legacy",
+          renderer: "legacy",
+          geoFeedAuthorityTransferred: false,
+          renderActivation: false,
+          feedOnAuthorized: false,
+        });
+      const d = evaluation.descriptor;
+      return {
+        ...d,
+        phase: "AW-R4" as const,
+        previousPhase: "AW-R3" as const,
+        nextEligibleStep: "AW-R5" as const,
+        activationGeoFeedAuthorityTransitionId:
+          "feed.discovery.adaptive-workspace.host-geofeed-authority-transition.v1" as const,
+        activationGeoFeedAuthorityTransitionContractId:
+          "feed.discovery.adaptive-workspace.host-geofeed-authority-transition.contract.v1" as const,
+        activationControlledExecutionId:
+          "feed.discovery.adaptive-workspace.host-controlled-execution.v1" as const,
+        activationControlledExecutionContractId:
+          "feed.discovery.adaptive-workspace.host-controlled-execution.contract.v1" as const,
+        candidateActivationState:
+          "GEOFEED_AUTHORITY_TRANSITIONED_NOT_PRODUCTION_ON" as const,
+        candidateActivationResult:
+          "controlled-workspace-geofeed-authority-transitioned-not-production-on" as const,
+        activationExecutionAllowed: true as const,
+        issuancePipelineExecutionAllowed: true as const,
+        issuancePipelineExecutable: true as const,
+        issuancePipelineState: "AUTHORITY_TRANSITIONED" as const,
+        issuanceTransactionState: "AUTHORITY_COMMITTED" as const,
+        workspaceVisible: true as const,
+        workspaceHostMounted: true as const,
+        workspaceCandidateRendered: true as const,
+        workspaceReactInstancePresent: true as const,
+        runtimeCapabilityPresent: true as const,
+        runtimeHostInstancePresent: true as const,
+        activationHandlePresent: true as const,
+        executionHandlePresent: true as const,
+        owner: "workspace" as const,
+        writer: "workspace" as const,
+        renderer: "workspace" as const,
+        requestAuthority: "workspace" as const,
+        paginationAuthority: "workspace" as const,
+        cacheAuthority: "workspace" as const,
+        observerAuthority: "workspace" as const,
+        lifecycleAuthority: "workspace" as const,
+        legacyAuthorityActive: false as const,
+        targetAuthorityActive: true as const,
+        authorityCommitBoundary: "COMMITTED" as const,
+        dualOwnerForbidden: true as const,
+        dualWriterForbidden: true as const,
+        dualRendererForbidden: true as const,
+        stableMountId:
+          "feed.discovery.controlled-host.stable-mount.v1" as const,
+        stableMountIdentityPreserved: true as const,
+        requestIdentityPreserved: true as const,
+        feedStatePreserved: true as const,
+        geoFeedInstanceCount: 1 as const,
+        geoFeedAuthorityTransferred: true as const,
+        renderActivation: true as const,
+        feedOnAuthorized: false as const,
+        productionPromotionAuthorized: false as const,
+        containsGeoFeed: false as const,
+        mountsGeoFeed: false as const,
+        wrapsGeoFeed: false as const,
+        duplicatesGeoFeed: false as const,
+        createsSecondGeoFeed: false as const,
+        mountCount: 1 as const,
+        geoFeedRenderCount: 1 as const,
+        unmountCount: 0 as const,
+        rollbackTargetPhase: "AW-R3" as const,
+        rollbackMode: "metadata-gate-only" as const,
+        rollbackPreservesGeoFeedIdentity: true as const,
+        rollbackPreservesRequestIdentity: true as const,
+        rollbackRestoresLegacyAuthority: true as const,
+        predecessorIssuancePipelineState: "CONTROLLED_EXECUTABLE" as const,
+        predecessorIssuanceTransactionState: "CONTROLLED_EXECUTION" as const,
+        activationBlocker:
+          "PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY" as const,
+        geoFeedAuthorityTransitionMetaOk: true as const,
         diagnostics: evaluation.diagnostics,
       };
     },

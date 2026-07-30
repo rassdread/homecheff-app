@@ -22,7 +22,7 @@ import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_BLOCKERS,
   PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
 } from "../sealed/controlled-workspace-host-candidate-execution-started";
-import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "../sealed/controlled-workspace-execution";
+import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "../sealed/controlled-workspace-geofeed-authority-transition";
 import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
@@ -608,31 +608,31 @@ if (process.env.SKIP_PHASE3B345_LIVE === "1") {
     phase3b2ProofValid: true,
     phase3b2FreezeValid: true,
     phase3b32ProofValid: true,
-    observedWriter: "legacy",
-    observedRenderOwner: "legacy",
+    observedWriter: "workspace",
+    observedRenderOwner: "workspace",
     observedMountCount: 1,
     observedRuntimeId: FEED_DISCOVERY_STABLE_RUNTIME_ID,
   } as Parameters<typeof evaluateFeedHostActivationGate>[0]);
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY,
+      PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "AW-R3");
-  assert.equal(gate.eligibleStep, "AW-R4");
-  ok("GeoFeed takeover remains impossible (gate AW-R3 to AW-R4)");
+  assert.equal(gate.currentStep, "AW-R4");
+  assert.equal(gate.eligibleStep, "AW-R5");
+  ok("production promotion remains impossible (gate AW-R4 to AW-R5)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "AW-R4");
+  assert.equal(host.nextEligibleStep, "AW-R5");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY,
+      PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R4");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R5");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

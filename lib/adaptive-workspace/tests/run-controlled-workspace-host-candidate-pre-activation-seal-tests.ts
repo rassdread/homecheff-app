@@ -10,7 +10,7 @@ import {
   createControlledWorkspaceHostCandidatePreActivationSealDescriptor,
   evaluateControlledWorkspaceHostCandidatePreActivationSeal,
 } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal";
-import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "../sealed/controlled-workspace-execution";
+import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "../sealed/controlled-workspace-geofeed-authority-transition";
 import { createControlledWorkspaceHostCandidatePreActivationSealContract } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal-contract";
 import { createFeedWorkspaceHostCandidatePreActivationSealIdentity } from "../sealed/feed-workspace-host-candidate-pre-activation-seal-identity";
 import { createFeedWorkspaceHostCandidatePreActivationSealPreparedContract } from "../sealed/feed-workspace-host-candidate-pre-activation-seal-prepared";
@@ -108,12 +108,14 @@ ok("contract, identity, prepared pack exact");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R3");
-assert.equal(gate.eligibleStep, "AW-R4");
-assert.ok(gate.blockers.includes(PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY));
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R4");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R4");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R4");
+assert.equal(gate.currentStep, "AW-R4");
+assert.equal(gate.eligibleStep, "AW-R5");
+assert.ok(
+  gate.blockers.includes(PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY),
+);
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R5");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R5");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R5");
 ok("AW-R1 seal preserved under AW-R2 gate continuity");
 
 console.log(

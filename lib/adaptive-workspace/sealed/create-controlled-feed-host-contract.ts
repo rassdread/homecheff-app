@@ -18,8 +18,8 @@ export function createControlledFeedHostContract(): ControlledFeedHostContract {
     runtimeClassification: "sealed-runtime",
     hostClassification: "controlled-host-candidate",
     hostVersion: 1,
-    activeRenderOwner: "legacy",
-    activeWriter: "legacy",
+    activeRenderOwner: "workspace",
+    activeWriter: "workspace",
     hostActivation: false,
     renderActivation: false,
     shadowActivation: true,
@@ -42,7 +42,7 @@ export function createControlledFeedHostContract(): ControlledFeedHostContract {
     requiredInvariantIds: [...FEED_SEALED_INVARIANT_IDS],
     browserProofRequirement: "phase3b2-frozen-proof-required",
     freezeRequirement: "phase3b2-freeze-required",
-    nextEligibleStep: "AW-R4",
+    nextEligibleStep: "AW-R5",
   };
   return validateControlledFeedHostContract(raw);
 }

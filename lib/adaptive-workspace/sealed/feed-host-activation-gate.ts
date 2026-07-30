@@ -40,6 +40,7 @@ import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY
 import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspace-host-candidate-pre-activation-seal";
 import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "./controlled-workspace-live-authorization";
 import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "./controlled-workspace-execution";
+import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "./controlled-workspace-geofeed-authority-transition";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -92,18 +93,19 @@ export { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY
 export { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY };
 export { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY };
 export { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY };
+export { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "AW-R3";
-  eligibleStep: "AW-R4";
+  currentStep: "AW-R4";
+  eligibleStep: "AW-R5";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
   freezeStatus: "required" | "present" | "missing" | "invalid";
-  writerStatus: "legacy" | "mismatch";
-  renderOwnerStatus: "legacy" | "mismatch";
-  mountStatus: "single-legacy" | "mismatch";
+  writerStatus: "workspace" | "mismatch";
+  renderOwnerStatus: "workspace" | "mismatch";
+  mountStatus: "single-workspace" | "mismatch";
   rollbackStatus: "prepared-not-active" | "mismatch";
   registrationStatus: "registered" | "mismatch";
   eligibilityStatus: "eligible" | "mismatch";
@@ -191,9 +193,11 @@ export function evaluateFeedHostActivationGate(
   input: FeedHostActivationGateInput = {},
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
-  const blockers: string[] = [PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY];
+  const blockers: string[] = [
+    PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
+  ];
   const reasons: string[] = [
-    "AW-R3 enables controlled Workspace execution metadata only; legacy GeoFeed render authority remains sealed until AW-R4",
+    "AW-R4 transfers GeoFeed authority metadata only; production promotion and Feed ON remain blocked",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -234,27 +238,27 @@ export function evaluateFeedHostActivationGate(
     blockers.push("missing-proof", "proof-fail");
   }
 
-  let writerStatus: FeedHostActivationGateResult["writerStatus"] = "legacy";
+  let writerStatus: FeedHostActivationGateResult["writerStatus"] = "workspace";
   if (
-    input.observedWriter === "workspace" ||
-    contract.activeWriter !== "legacy"
+    input.observedWriter === "legacy" ||
+    contract.activeWriter !== "workspace"
   ) {
     writerStatus = "mismatch";
     blockers.push("active-workspace-writer");
   }
 
   let renderOwnerStatus: FeedHostActivationGateResult["renderOwnerStatus"] =
-    "legacy";
+    "workspace";
   if (
-    input.observedRenderOwner === "workspace" ||
-    contract.activeRenderOwner !== "legacy"
+    input.observedRenderOwner === "legacy" ||
+    contract.activeRenderOwner !== "workspace"
   ) {
     renderOwnerStatus = "mismatch";
     blockers.push("active-workspace-renderer");
   }
 
   let mountStatus: FeedHostActivationGateResult["mountStatus"] =
-    "single-legacy";
+    "single-workspace";
   if (
     typeof input.observedMountCount === "number" &&
     input.observedMountCount !== 1
@@ -442,8 +446,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "AW-R3",
-    eligibleStep: "AW-R4",
+    currentStep: "AW-R4",
+    eligibleStep: "AW-R5",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

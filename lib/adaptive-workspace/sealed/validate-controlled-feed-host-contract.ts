@@ -70,16 +70,16 @@ export function validateControlledFeedHostContract(
       "hostVersion must be 1",
     );
   }
-  if (c.activeRenderOwner !== "legacy") {
+  if (c.activeRenderOwner !== "workspace") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_RENDER_OWNER",
-      "activeRenderOwner must be legacy through Phase 3B.3.2",
+      "activeRenderOwner must be workspace at the AW-R4 tip",
     );
   }
-  if (c.activeWriter !== "legacy") {
+  if (c.activeWriter !== "workspace") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_WRITER",
-      "activeWriter must be legacy through Phase 3B.3.2",
+      "activeWriter must be workspace at the AW-R4 tip",
     );
   }
   if (c.hostActivation !== false) {
@@ -170,10 +170,10 @@ export function validateControlledFeedHostContract(
       "freezeRequirement must be phase3b2-freeze-required",
     );
   }
-  if (c.nextEligibleStep !== "AW-R4") {
+  if (c.nextEligibleStep !== "AW-R5") {
     throw new HardContractViolation(
       "FEED_HOST_CONTRACT_NEXT",
-      "nextEligibleStep must be AW-R4",
+      "nextEligibleStep must be AW-R5",
     );
   }
 
@@ -244,8 +244,8 @@ export function validateControlledFeedHostContract(
     runtimeClassification: "sealed-runtime",
     hostClassification: "controlled-host-candidate",
     hostVersion: 1,
-    activeRenderOwner: "legacy",
-    activeWriter: "legacy",
+    activeRenderOwner: "workspace",
+    activeWriter: "workspace",
     hostActivation: false,
     renderActivation: false,
     shadowActivation: true,
@@ -270,6 +270,6 @@ export function validateControlledFeedHostContract(
     ],
     browserProofRequirement: "phase3b2-frozen-proof-required",
     freezeRequirement: "phase3b2-freeze-required",
-    nextEligibleStep: "AW-R4",
+    nextEligibleStep: "AW-R5",
   };
 }

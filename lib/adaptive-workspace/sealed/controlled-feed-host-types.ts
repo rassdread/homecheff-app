@@ -43,8 +43,8 @@ export const CONTROLLED_FEED_HOST_ACTIVATION_PREREQUISITES = [
   "phase3b2-frozen-proof-required",
   "phase3b2-freeze-required",
   "all-20-release-blocking-invariants-pass",
-  "render-owner-legacy",
-  "writer-legacy",
+  "render-owner-workspace",
+  "writer-workspace",
   "single-geofeed-mount",
   "no-forbidden-keys",
   "no-second-renderer",
@@ -140,6 +140,7 @@ export const CONTROLLED_FEED_HOST_ACTIVATION_BLOCKERS = [
   "PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY",
   "PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY",
   "PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY",
+  "PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY",
 ] as const;
 
 export type ControlledFeedHostActivationBlocker =
@@ -173,5 +174,5 @@ export type ControlledFeedHostContract = {
   requiredInvariantIds: readonly FeedSealedInvariantId[];
   browserProofRequirement: "phase3b2-frozen-proof-required";
   freezeRequirement: "phase3b2-freeze-required";
-  nextEligibleStep: "AW-R4";
+  nextEligibleStep: "AW-R5";
 };

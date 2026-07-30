@@ -231,7 +231,10 @@
     "probe:adaptive-workspace-live-authorization": "node scripts/run-controlled-workspace-live-authorization-proof-aw-r2.mjs",
     "test:adaptive-workspace-controlled-execution": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-execution-tests.ts",
     "validate:adaptive-workspace-controlled-execution": "npx tsx scripts/validate-adaptive-workspace-controlled-execution-aw-r3.ts",
-    "probe:adaptive-workspace-controlled-execution": "node scripts/run-controlled-workspace-execution-proof-aw-r3.mjs"
+    "probe:adaptive-workspace-controlled-execution": "node scripts/run-controlled-workspace-execution-proof-aw-r3.mjs",
+    "test:adaptive-workspace-geofeed-authority-transition": "npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-geofeed-authority-transition-tests.ts",
+    "validate:adaptive-workspace-geofeed-authority-transition": "npx tsx scripts/validate-adaptive-workspace-geofeed-authority-transition-aw-r4.ts",
+    "probe:adaptive-workspace-geofeed-authority-transition": "node scripts/run-controlled-workspace-geofeed-authority-transition-proof-aw-r4.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
