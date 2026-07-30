@@ -79,12 +79,12 @@ async function captureViewport(browser, baseUrl, vp, shotDir) {
 
   await page.setViewport({ width: vp.width, height: vp.height, deviceScaleFactor: 1 });
   const previewUrl = `${baseUrl}/?awFeedWorkspace=1`;
-  await page.goto(previewUrl, { waitUntil: "networkidle2", timeout: 120_000 });
+  await page.goto(previewUrl, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await page.waitForSelector("[data-aw-feed-workspace], .hc-dorpsplein-page", {
     timeout: 60_000,
   });
-  // Allow ResizeObserver plan to settle
-  await new Promise((r) => setTimeout(r, 800));
+  // Allow ResizeObserver plan + feed first paint to settle
+  await new Promise((r) => setTimeout(r, 2500));
 
   const metrics = await page.evaluate(() => {
     const ws = document.querySelector("[data-aw-feed-workspace]");
@@ -126,8 +126,8 @@ async function captureViewport(browser, baseUrl, vp, shotDir) {
   // OFF regression sample on laptop only
   let offCheck = null;
   if (vp.id === "laptop") {
-    await page.goto(baseUrl + "/", { waitUntil: "networkidle2", timeout: 120_000 });
-    await new Promise((r) => setTimeout(r, 500));
+    await page.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 120_000 });
+    await new Promise((r) => setTimeout(r, 1500));
     offCheck = await page.evaluate(() => ({
       workspacePresent: Boolean(document.querySelector("[data-aw-feed-workspace]")),
       hostPresent: Boolean(document.querySelector("[data-aw-feed-controlled-host]")),
@@ -213,6 +213,12 @@ async function main() {
   }
   if (!comparisons["mobile-portrait-vs-landscape"].panelCountsDiffer) {
     failures.push("mobile portrait/landscape panel counts identical");
+  }
+  if (byId["mobile-landscape"]?.metrics.orientation !== "landscape") {
+    failures.push("mobile-landscape viewport did not resolve orientation=landscape");
+  }
+  if (byId["mobile-portrait"]?.metrics.orientation !== "portrait") {
+    failures.push("mobile-portrait viewport did not resolve orientation=portrait");
   }
   if (!comparisons["tablet-portrait-vs-landscape"].layoutsDiffer) {
     failures.push("tablet portrait/landscape layoutMode identical");

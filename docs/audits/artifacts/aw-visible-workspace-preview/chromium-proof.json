@@ -1,0 +1,401 @@
+{
+  "phase": "aw-visible-workspace-preview",
+  "commit": "04cdfea0944614793e851fe0e219e863dd94d93c",
+  "baseUrl": "http://127.0.0.1:3080",
+  "capturedAt": "2026-07-30T21:33:39.337Z",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "mobile-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/mobile-portrait-390x844.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "supportingPanels": 0,
+        "stabilityToken": "feed-ws:366x844:mobile-portrait:p0",
+        "railCount": 0,
+        "panelCount": 1,
+        "geoFeedMountHints": 2,
+        "feedBounds": {
+          "x": 12,
+          "y": 370.375,
+          "width": 366,
+          "height": 2670.15625
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 7,
+      "uniqueFeedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "mobile-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/mobile-landscape-844x390.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "stabilityToken": "feed-ws:812x390:tablet-landscape:p1",
+        "railCount": 1,
+        "panelCount": 2,
+        "geoFeedMountHints": 2,
+        "feedBounds": {
+          "x": 16,
+          "y": 235.75,
+          "width": 516,
+          "height": 3044.40625
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 7,
+      "uniqueFeedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "large-mobile-portrait",
+        "width": 430,
+        "height": 932
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/large-mobile-portrait-430x932.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "supportingPanels": 0,
+        "stabilityToken": "feed-ws:406x932:mobile-portrait:p0",
+        "railCount": 0,
+        "panelCount": 1,
+        "geoFeedMountHints": 2,
+        "feedBounds": {
+          "x": 12,
+          "y": 353.875,
+          "width": 406,
+          "height": 2621.53125
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 8,
+      "uniqueFeedRequestCount": 8,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "large-mobile-landscape",
+        "width": 932,
+        "height": 430
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/large-mobile-landscape-932x430.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "stabilityToken": "feed-ws:900x430:tablet-landscape:p1",
+        "railCount": 1,
+        "panelCount": 2,
+        "geoFeedMountHints": 2,
+        "feedBounds": {
+          "x": 16,
+          "y": 235.75,
+          "width": 604,
+          "height": 3308.40625
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 7,
+      "uniqueFeedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/tablet-portrait-768x1024.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-portrait",
+        "orientation": "portrait",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "stabilityToken": "feed-ws:736x1024:tablet-portrait:p1",
+        "railCount": 1,
+        "panelCount": 2,
+        "geoFeedMountHints": 2,
+        "feedBounds": {
+          "x": 16,
+          "y": 235.75,
+          "width": 440,
+          "height": 2816.40625
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 8,
+      "uniqueFeedRequestCount": 8,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/tablet-landscape-1024x768.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "stabilityToken": "feed-ws:992x768:tablet-landscape:p1",
+        "railCount": 1,
+        "panelCount": 2,
+        "geoFeedMountHints": 1,
+        "feedBounds": {
+          "x": 16,
+          "y": 456.46875,
+          "width": 696,
+          "height": 7159.4375
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 7,
+      "uniqueFeedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "laptop",
+        "width": 1280,
+        "height": 800
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/laptop-1280x800.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "desktop",
+        "orientation": "landscape",
+        "profile": "EXPANDED",
+        "supportingPanels": 2,
+        "stabilityToken": "feed-ws:1248x800:desktop:p2",
+        "railCount": 2,
+        "panelCount": 3,
+        "geoFeedMountHints": 1,
+        "feedBounds": {
+          "x": 312,
+          "y": 456.46875,
+          "width": 616,
+          "height": 694.5625
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 7,
+      "uniqueFeedRequestCount": 6,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": {
+        "workspacePresent": false,
+        "hostPresent": false,
+        "legacySticky": true
+      }
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/desktop-1440x900.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "desktop",
+        "orientation": "landscape",
+        "profile": "EXPANDED",
+        "supportingPanels": 2,
+        "stabilityToken": "feed-ws:1288x900:desktop:p2",
+        "railCount": 2,
+        "panelCount": 3,
+        "geoFeedMountHints": 1,
+        "feedBounds": {
+          "x": 372,
+          "y": 456.46875,
+          "width": 656,
+          "height": 6895.4375
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 7,
+      "uniqueFeedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    },
+    {
+      "viewport": {
+        "id": "wide-desktop",
+        "width": 1728,
+        "height": 1117
+      },
+      "screenshot": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/aw-visible-workspace-preview/screenshots/wide-desktop-1728x1117.png",
+      "metrics": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "desktop",
+        "orientation": "landscape",
+        "profile": "EXPANDED",
+        "supportingPanels": 2,
+        "stabilityToken": "feed-ws:1288x1117:desktop:p2",
+        "railCount": 2,
+        "panelCount": 3,
+        "geoFeedMountHints": 1,
+        "feedBounds": {
+          "x": 516,
+          "y": 456.46875,
+          "width": 656,
+          "height": 6895.4375
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "feedRequestCount": 7,
+      "uniqueFeedRequestCount": 7,
+      "consoleErrors": [],
+      "hydrationWarnings": [],
+      "offCheck": null
+    }
+  ],
+  "comparisons": {
+    "mobile-portrait-vs-landscape": {
+      "portrait": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "supportingPanels": 0,
+        "stabilityToken": "feed-ws:366x844:mobile-portrait:p0",
+        "railCount": 0,
+        "panelCount": 1,
+        "geoFeedMountHints": 2,
+        "feedBounds": {
+          "x": 12,
+          "y": 370.375,
+          "width": 366,
+          "height": 2670.15625
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "landscape": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "stabilityToken": "feed-ws:812x390:tablet-landscape:p1",
+        "railCount": 1,
+        "panelCount": 2,
+        "geoFeedMountHints": 2,
+        "feedBounds": {
+          "x": 16,
+          "y": 235.75,
+          "width": 516,
+          "height": 3044.40625
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "layoutsDiffer": true,
+      "panelCountsDiffer": true
+    },
+    "tablet-portrait-vs-landscape": {
+      "portrait": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-portrait",
+        "orientation": "portrait",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "stabilityToken": "feed-ws:736x1024:tablet-portrait:p1",
+        "railCount": 1,
+        "panelCount": 2,
+        "geoFeedMountHints": 2,
+        "feedBounds": {
+          "x": 16,
+          "y": 235.75,
+          "width": 440,
+          "height": 2816.40625
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "landscape": {
+        "workspacePresent": true,
+        "hostPresent": true,
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "supportingPanels": 1,
+        "stabilityToken": "feed-ws:992x768:tablet-landscape:p1",
+        "railCount": 1,
+        "panelCount": 2,
+        "geoFeedMountHints": 1,
+        "feedBounds": {
+          "x": 16,
+          "y": 456.46875,
+          "width": 696,
+          "height": 7159.4375
+        },
+        "visibilityMode": "preview",
+        "feedDataOwner": "geofeed"
+      },
+      "layoutsDiffer": true,
+      "panelCountsDiffer": false
+    }
+  },
+  "failures": [],
+  "overallVerdict": "READY_FOR_CONTROLLED_PRODUCTION_ACTIVATION"
+}

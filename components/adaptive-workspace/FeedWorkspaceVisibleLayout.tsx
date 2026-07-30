@@ -5,6 +5,9 @@
  *
  * Mechanism B: composed as GeoFeed children (desktop) or as an outer grid
  * around a single GeoFeed (sub-lg landscape). Does not own feed requests.
+ *
+ * AvailableSpace: width from workspace container; height from visual viewport
+ * (not intrinsic content height — avoids landscape→tall-portrait misclassify).
  */
 
 import React, {
@@ -46,6 +49,13 @@ function seedMeasurement(
   return normalizeWorkspaceMeasurement({ widthPx, heightPx });
 }
 
+function readViewportHeightPx(): number {
+  if (typeof window === "undefined") return 800;
+  return Math.floor(
+    window.visualViewport?.height ?? window.innerHeight ?? 800,
+  );
+}
+
 export default function FeedWorkspaceVisibleLayout({
   primary,
   startPanel,
@@ -62,7 +72,7 @@ export default function FeedWorkspaceVisibleLayout({
 
   useLayoutEffect(() => {
     const el = rootRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
+    if (!el) return;
 
     const apply = (widthPx: number, heightPx: number) => {
       setMeasurement((prev) => {
@@ -71,18 +81,29 @@ export default function FeedWorkspaceVisibleLayout({
       });
     };
 
-    apply(el.clientWidth, el.clientHeight);
-
-    const ro = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      const box = entry.contentBoxSize?.[0];
-      const widthPx = box?.inlineSize ?? entry.contentRect.width;
-      const heightPx = box?.blockSize ?? entry.contentRect.height;
+    const measure = () => {
+      const widthPx = el.clientWidth || window.innerWidth;
+      const heightPx = readViewportHeightPx();
       apply(widthPx, heightPx);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
+    };
+
+    measure();
+
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => measure())
+        : null;
+    ro?.observe(el);
+
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+
+    return () => {
+      ro?.disconnect();
+      vv?.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
+    };
   }, []);
 
   const plan: FeedWorkspaceVisibleLayoutPlan = resolveFeedWorkspaceVisibleLayout({
@@ -97,6 +118,8 @@ export default function FeedWorkspaceVisibleLayout({
   const colScroll =
     "min-h-0 overflow-y-auto overscroll-y-contain pb-3 [-webkit-overflow-scrolling:touch]";
 
+  const multiCol = plan.supportingPanelCount > 0;
+
   return (
     <section
       ref={rootRef}
@@ -108,14 +131,12 @@ export default function FeedWorkspaceVisibleLayout({
       data-aw-stability-token={plan.stabilityToken}
       aria-label={ariaLabel}
       className={
-        plan.supportingPanelCount === 0
-          ? "hc-aw-feed-workspace w-full min-w-0"
-          : "hc-aw-feed-workspace w-full min-w-0 grid gap-4 lg:gap-5 lg:items-stretch lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] lg:min-h-[28rem]"
+        multiCol
+          ? "hc-aw-feed-workspace w-full min-w-0 grid gap-4 items-stretch max-h-[calc(100dvh-5rem)] min-h-[12rem] h-[calc(100dvh-5rem)]"
+          : "hc-aw-feed-workspace w-full min-w-0"
       }
       style={
-        plan.supportingPanelCount > 0
-          ? { gridTemplateColumns: plan.gridTemplateColumns }
-          : undefined
+        multiCol ? { gridTemplateColumns: plan.gridTemplateColumns } : undefined
       }
     >
       {plan.showStartPanel && startPanel ? (
@@ -127,10 +148,7 @@ export default function FeedWorkspaceVisibleLayout({
               widgetId="home.desktop.left"
               mode="rail"
             >
-              <aside
-                data-aw-rail="start"
-                className={colScroll}
-              >
+              <aside data-aw-rail="start" className={colScroll}>
                 {startPanel}
               </aside>
             </WorkspacePanel>
