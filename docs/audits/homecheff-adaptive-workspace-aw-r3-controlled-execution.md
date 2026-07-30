@@ -101,7 +101,7 @@ AW-R4+ not started. No GeoFeed ownership/writer/renderer transfer. No remount. N
 | Branch | `workspace/aw-r3-controlled-execution` |
 | Implementation commit | `a58caed6f61ced4f55e986a493ba431058d9ab2b` |
 | Documentary commit | `ff0e22f77bc291ad95940f8fb92c86c56cee65ba` |
-| Lineage documentary commit | `pending-lineage` |
+| Lineage documentary commit | `34d84d6b8c24f6237fdfb58a4c27d55d33442b55` |
 | Freeze commit | `pending` |
 
 ## Release verdict

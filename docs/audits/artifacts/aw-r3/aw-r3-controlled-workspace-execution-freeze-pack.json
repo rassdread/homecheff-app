@@ -6,7 +6,7 @@
   "implementationCommit": "a58caed6f61ced4f55e986a493ba431058d9ab2b",
   "proofTarget": "a58caed6f61ced4f55e986a493ba431058d9ab2b",
   "documentaryCommit": "ff0e22f77bc291ad95940f8fb92c86c56cee65ba",
-  "lineageDocumentaryCommit": "pending-lineage",
+  "lineageDocumentaryCommit": "34d84d6b8c24f6237fdfb58a4c27d55d33442b55",
   "freezeCommit": "pending",
   "result": "controlled-workspace-executing-geofeed-legacy-authority",
   "lifecycle": "CONTROLLED_EXECUTION_WITH_LEGACY_GEOFEED_AUTHORITY",
