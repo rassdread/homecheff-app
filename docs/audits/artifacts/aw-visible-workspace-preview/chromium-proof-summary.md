@@ -1,21 +1,10 @@
-# Feed Workspace Visibility — Chromium Proof
+# Feed Workspace Visibility — Hardened Chromium Proof
 
 | Field | Value |
 | --- | --- |
-| Verdict | `READY_FOR_CONTROLLED_PRODUCTION_ACTIVATION` |
-| Commit | `04cdfea0944614793e851fe0e219e863dd94d93c` |
-| Base URL | http://127.0.0.1:3080 |
+| Verdict | `READY_TO_MERGE_FOR_CONTROLLED_PRODUCTION_ACTIVATION` |
+| Commit | `c71efcd7896c75ab6f87e679b48893a016399c93` |
 | Failures | 0 |
-
-## Comparisons
-
-- Mobile portrait vs landscape layouts differ: true
-- Mobile panel counts differ: true
-- Tablet portrait vs landscape layouts differ: true
-
-## Screenshots
-
-See `screenshots/` under this artifact directory.
 
 ## Failures
 
