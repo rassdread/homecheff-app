@@ -12,6 +12,7 @@ import {
   createControlledWorkspaceGeoFeedAuthorityTransitionRollbackContract,
   evaluateControlledWorkspaceGeoFeedAuthorityTransition,
 } from "../sealed/controlled-workspace-geofeed-authority-transition";
+import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "../sealed/controlled-workspace-production-readiness";
 import { createControlledWorkspaceGeoFeedAuthorityTransitionContract } from "../sealed/controlled-workspace-geofeed-authority-transition-contract";
 import { createControlledWorkspaceGeoFeedAuthorityTransitionIdentity } from "../sealed/controlled-workspace-geofeed-authority-transition-identity";
 import { createControlledWorkspaceExecutionDescriptor } from "../sealed/controlled-workspace-execution";
@@ -162,15 +163,16 @@ ok("rollback restores AW-R3 without identity loss");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R4");
-assert.equal(gate.eligibleStep, "AW-R5");
-assert.ok(gate.blockers.includes(PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY));
+assert.equal(gate.currentStep, "AW-R5");
+assert.equal(gate.eligibleStep, "AW-R6");
+assert.ok(gate.blockers.includes(PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY) === false);
+assert.ok(gate.blockers.includes(PHASE_AW_R5_PRODUCTION_READINESS_ONLY));
 assert.equal(createControlledFeedHostContract().activeWriter, "workspace");
 assert.equal(createControlledFeedHostContract().activeRenderOwner, "workspace");
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R5");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R5");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R5");
-ok("AW-R4 gate remains literal false and points to AW-R5");
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R6");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R6");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R6");
+ok("live tip gate blocks Feed ON and points to AW-R6");
 
 console.log(
   `\nadaptive-workspace AW-R4 GeoFeed authority transition: ${passed} assertion groups ok\n`,

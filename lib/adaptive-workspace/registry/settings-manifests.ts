@@ -109,7 +109,7 @@ export const FEED_DISCOVERY_HOST_CANDIDATE_METADATA = {
   activeWriter: "workspace" as const,
   rendererRegistered: false as const,
   childFactoryRegistered: false as const,
-  nextEligibleStep: "AW-R5" as const,
+  nextEligibleStep: "AW-R6" as const,
   shadowPlacementState: "shadow-registered" as const,
   placementMode: "sibling-after-legacy-mount" as const,
   registrationState: "registered" as const,

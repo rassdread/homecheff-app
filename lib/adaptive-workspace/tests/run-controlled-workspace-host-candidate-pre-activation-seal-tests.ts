@@ -10,7 +10,7 @@ import {
   createControlledWorkspaceHostCandidatePreActivationSealDescriptor,
   evaluateControlledWorkspaceHostCandidatePreActivationSeal,
 } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal";
-import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "../sealed/controlled-workspace-geofeed-authority-transition";
+import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "../sealed/controlled-workspace-production-readiness";
 import { createControlledWorkspaceHostCandidatePreActivationSealContract } from "../sealed/controlled-workspace-host-candidate-pre-activation-seal-contract";
 import { createFeedWorkspaceHostCandidatePreActivationSealIdentity } from "../sealed/feed-workspace-host-candidate-pre-activation-seal-identity";
 import { createFeedWorkspaceHostCandidatePreActivationSealPreparedContract } from "../sealed/feed-workspace-host-candidate-pre-activation-seal-prepared";
@@ -108,15 +108,15 @@ ok("contract, identity, prepared pack exact");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R4");
-assert.equal(gate.eligibleStep, "AW-R5");
+assert.equal(gate.currentStep, "AW-R5");
+assert.equal(gate.eligibleStep, "AW-R6");
 assert.ok(
-  gate.blockers.includes(PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY),
+  gate.blockers.includes(PHASE_AW_R5_PRODUCTION_READINESS_ONLY),
 );
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R5");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R5");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R5");
-ok("AW-R1 seal preserved under AW-R2 gate continuity");
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R6");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R6");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R6");
+ok("AW-R1 seal preserved under AW-R5 gate continuity");
 
 console.log(
   `\nadaptive-workspace AW-R1 controlled workspace host candidate pre-activation seal: ${passed} assertion groups ok\n`,

@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 52;
+  version: 53;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -4526,6 +4526,57 @@ export type FeedSealedProbeApi = {
       diagnostics: Record<string, unknown>;
     }
   >;
+  readControlledWorkspaceProductionReadiness: () => Promise<
+    Record<string, unknown> & {
+      phase: "AW-R5";
+      previousPhase: "AW-R4";
+      nextEligibleStep: "AW-R6";
+      activationProductionReadinessId: "feed.discovery.adaptive-workspace.host-production-readiness.v1";
+      activationProductionReadinessContractId: "feed.discovery.adaptive-workspace.host-production-readiness.contract.v1";
+      candidateActivationState: "PRODUCTION_READY_NOT_RELEASED";
+      candidateActivationResult: "controlled-workspace-production-ready-feed-off";
+      issuancePipelineState: "AUTHORITY_TRANSITIONED";
+      issuanceTransactionState: "AUTHORITY_COMMITTED";
+      owner: "workspace";
+      writer: "workspace";
+      renderer: "workspace";
+      requestAuthority: "workspace";
+      paginationAuthority: "workspace";
+      cacheAuthority: "workspace";
+      observerAuthority: "workspace";
+      lifecycleAuthority: "workspace";
+      legacyAuthorityActive: false;
+      targetAuthorityActive: true;
+      authorityCommitBoundary: "COMMITTED";
+      dualOwnerForbidden: true;
+      dualWriterForbidden: true;
+      dualRendererForbidden: true;
+      stableMountId: "feed.discovery.controlled-host.stable-mount.v1";
+      stableMountIdentityPreserved: true;
+      requestIdentityPreserved: true;
+      feedStatePreserved: true;
+      geoFeedInstanceCount: 1;
+      geoFeedAuthorityTransferred: true;
+      renderActivation: true;
+      feedOnAuthorized: false;
+      productionPromotionAuthorized: false;
+      productionReadinessCertified: true;
+      architectureProductionReady: true;
+      releaseBlockersRemain: false;
+      readyForFinalActivation: true;
+      containsGeoFeed: false;
+      mountsGeoFeed: false;
+      wrapsGeoFeed: false;
+      duplicatesGeoFeed: false;
+      createsSecondGeoFeed: false;
+      mountCount: 1;
+      geoFeedRenderCount: 1;
+      unmountCount: 0;
+      activationBlocker: "PHASE_AW_R5_PRODUCTION_READINESS_ONLY";
+      productionReadinessMetaOk: true;
+      diagnostics: Record<string, unknown>;
+    }
+  >;
 
     readHostActivationStateMachine: () => Promise<{
     phase: "3B.3.13";
@@ -4821,7 +4872,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 52,
+    version: 53,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -10746,6 +10797,119 @@ export function installFeedSealedProbeBridge(): void {
         activationBlocker:
           "PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY" as const,
         geoFeedAuthorityTransitionMetaOk: true as const,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readControlledWorkspaceProductionReadiness: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation =
+        mod.evaluateControlledWorkspaceProductionReadiness(undefined, {
+          activationExecutionAllowed: true,
+          issuancePipelineExecutionAllowed: true,
+          issuancePipelineExecutable: true,
+          issuancePipelineState: "AUTHORITY_TRANSITIONED",
+          issuanceTransactionState: "AUTHORITY_COMMITTED",
+          workspaceVisible: true,
+          workspaceHostMounted: true,
+          workspaceCandidateRendered: true,
+          workspaceReactInstancePresent: true,
+          runtimeCapabilityPresent: true,
+          runtimeHostInstancePresent: true,
+          activationHandlePresent: true,
+          executionHandlePresent: true,
+          owner: "workspace",
+          writer: "workspace",
+          renderer: "workspace",
+          requestAuthority: "workspace",
+          paginationAuthority: "workspace",
+          cacheAuthority: "workspace",
+          observerAuthority: "workspace",
+          lifecycleAuthority: "workspace",
+          geoFeedAuthorityTransferred: true,
+          renderActivation: true,
+          feedOnAuthorized: false,
+          productionPromotionAuthorized: false,
+        });
+      const d = evaluation.descriptor;
+      return {
+        ...d,
+        phase: "AW-R5" as const,
+        previousPhase: "AW-R4" as const,
+        nextEligibleStep: "AW-R6" as const,
+        activationProductionReadinessId:
+          "feed.discovery.adaptive-workspace.host-production-readiness.v1" as const,
+        activationProductionReadinessContractId:
+          "feed.discovery.adaptive-workspace.host-production-readiness.contract.v1" as const,
+        activationGeoFeedAuthorityTransitionId:
+          d.activationGeoFeedAuthorityTransitionId,
+        activationGeoFeedAuthorityTransitionContractId:
+          d.activationGeoFeedAuthorityTransitionContractId,
+        activationControlledExecutionId:
+          "feed.discovery.adaptive-workspace.host-controlled-execution.v1" as const,
+        activationControlledExecutionContractId:
+          "feed.discovery.adaptive-workspace.host-controlled-execution.contract.v1" as const,
+        candidateActivationState: "PRODUCTION_READY_NOT_RELEASED" as const,
+        candidateActivationResult:
+          "controlled-workspace-production-ready-feed-off" as const,
+        activationExecutionAllowed: true as const,
+        issuancePipelineExecutionAllowed: true as const,
+        issuancePipelineExecutable: true as const,
+        issuancePipelineState: "AUTHORITY_TRANSITIONED" as const,
+        issuanceTransactionState: "AUTHORITY_COMMITTED" as const,
+        workspaceVisible: true as const,
+        workspaceHostMounted: true as const,
+        workspaceCandidateRendered: true as const,
+        workspaceReactInstancePresent: true as const,
+        runtimeCapabilityPresent: true as const,
+        runtimeHostInstancePresent: true as const,
+        activationHandlePresent: true as const,
+        executionHandlePresent: true as const,
+        owner: "workspace" as const,
+        writer: "workspace" as const,
+        renderer: "workspace" as const,
+        requestAuthority: "workspace" as const,
+        paginationAuthority: "workspace" as const,
+        cacheAuthority: "workspace" as const,
+        observerAuthority: "workspace" as const,
+        lifecycleAuthority: "workspace" as const,
+        legacyAuthorityActive: false as const,
+        targetAuthorityActive: true as const,
+        authorityCommitBoundary: "COMMITTED" as const,
+        dualOwnerForbidden: true as const,
+        dualWriterForbidden: true as const,
+        dualRendererForbidden: true as const,
+        stableMountId:
+          "feed.discovery.controlled-host.stable-mount.v1" as const,
+        stableMountIdentityPreserved: true as const,
+        requestIdentityPreserved: true as const,
+        feedStatePreserved: true as const,
+        geoFeedInstanceCount: 1 as const,
+        geoFeedAuthorityTransferred: true as const,
+        renderActivation: true as const,
+        feedOnAuthorized: false as const,
+        productionPromotionAuthorized: false as const,
+        productionReadinessCertified: true as const,
+        architectureProductionReady: true as const,
+        releaseBlockersRemain: false as const,
+        readyForFinalActivation: true as const,
+        containsGeoFeed: false as const,
+        mountsGeoFeed: false as const,
+        wrapsGeoFeed: false as const,
+        duplicatesGeoFeed: false as const,
+        createsSecondGeoFeed: false as const,
+        mountCount: 1 as const,
+        geoFeedRenderCount: 1 as const,
+        unmountCount: 0 as const,
+        rollbackTargetPhase: "AW-R4" as const,
+        rollbackMode: "metadata-gate-only" as const,
+        rollbackPreservesGeoFeedIdentity: true as const,
+        rollbackPreservesRequestIdentity: true as const,
+        rollbackRestoresWorkspaceAuthority: true as const,
+        predecessorIssuancePipelineState: "AUTHORITY_TRANSITIONED" as const,
+        predecessorIssuanceTransactionState: "AUTHORITY_COMMITTED" as const,
+        activationBlocker:
+          "PHASE_AW_R5_PRODUCTION_READINESS_ONLY" as const,
+        productionReadinessMetaOk: true as const,
         diagnostics: evaluation.diagnostics,
       };
     },

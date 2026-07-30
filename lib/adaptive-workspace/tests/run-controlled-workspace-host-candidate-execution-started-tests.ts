@@ -22,7 +22,7 @@ import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_BLOCKERS,
   PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
 } from "../sealed/controlled-workspace-host-candidate-execution-started";
-import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "../sealed/controlled-workspace-geofeed-authority-transition";
+import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "../sealed/controlled-workspace-production-readiness";
 import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
@@ -616,23 +616,23 @@ if (process.env.SKIP_PHASE3B345_LIVE === "1") {
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
+      PHASE_AW_R5_PRODUCTION_READINESS_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "AW-R4");
-  assert.equal(gate.eligibleStep, "AW-R5");
-  ok("production promotion remains impossible (gate AW-R4 to AW-R5)");
+  assert.equal(gate.currentStep, "AW-R5");
+  assert.equal(gate.eligibleStep, "AW-R6");
+  ok("Feed ON remains impossible (gate AW-R5 to AW-R6)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "AW-R5");
+  assert.equal(host.nextEligibleStep, "AW-R6");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
+      PHASE_AW_R5_PRODUCTION_READINESS_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R5");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R6");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

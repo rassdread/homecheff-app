@@ -40,7 +40,7 @@ import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY
 import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspace-host-candidate-pre-activation-seal";
 import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "./controlled-workspace-live-authorization";
 import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "./controlled-workspace-execution";
-import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "./controlled-workspace-geofeed-authority-transition";
+import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "./controlled-workspace-production-readiness";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -93,12 +93,13 @@ export { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY
 export { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY };
 export { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY };
 export { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY };
-export { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY };
+export { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "./controlled-workspace-geofeed-authority-transition";
+export { PHASE_AW_R5_PRODUCTION_READINESS_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "AW-R4";
-  eligibleStep: "AW-R5";
+  currentStep: "AW-R5";
+  eligibleStep: "AW-R6";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -193,11 +194,9 @@ export function evaluateFeedHostActivationGate(
   input: FeedHostActivationGateInput = {},
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
-  const blockers: string[] = [
-    PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
-  ];
+  const blockers: string[] = [PHASE_AW_R5_PRODUCTION_READINESS_ONLY];
   const reasons: string[] = [
-    "AW-R4 transfers GeoFeed authority metadata only; production promotion and Feed ON remain blocked",
+    "AW-R5 certifies production readiness metadata only; Feed ON and final activation remain blocked",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -446,8 +445,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "AW-R4",
-    eligibleStep: "AW-R5",
+    currentStep: "AW-R5",
+    eligibleStep: "AW-R6",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

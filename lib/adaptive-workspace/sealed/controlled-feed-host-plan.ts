@@ -35,6 +35,7 @@ import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspa
 import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "./controlled-workspace-live-authorization";
 import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "./controlled-workspace-execution";
 import { PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY } from "./controlled-workspace-geofeed-authority-transition";
+import { PHASE_AW_R5_PRODUCTION_READINESS_ONLY } from "./controlled-workspace-production-readiness";
 
 export type ControlledFeedHostPlan = {
   widgetId: "feed.discovery";
@@ -79,8 +80,9 @@ export type ControlledFeedHostPlan = {
     typeof PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
     typeof PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY,
     typeof PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
+    typeof PHASE_AW_R5_PRODUCTION_READINESS_ONLY,
   ];
-  recommendedNextStep: "AW-R5";
+  recommendedNextStep: "AW-R6";
   placementState: "shadow-registered";
   registrationState: "registered";
   eligibilityState: "eligible";
@@ -238,8 +240,9 @@ export function createControlledFeedHostPlan(): ControlledFeedHostPlan {
       PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
       PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY,
       PHASE_AW_R4_GEOFEED_AUTHORITY_TRANSITION_ONLY,
+      PHASE_AW_R5_PRODUCTION_READINESS_ONLY,
     ],
-    recommendedNextStep: "AW-R5",
+    recommendedNextStep: "AW-R6",
     placementState: "shadow-registered",
     registrationState: "registered",
     eligibilityState: "eligible",

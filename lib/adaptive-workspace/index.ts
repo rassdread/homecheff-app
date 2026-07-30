@@ -2141,3 +2141,31 @@ export {
   validateControlledWorkspaceGeoFeedAuthorityTransitionIdentity,
 } from "./sealed/controlled-workspace-geofeed-authority-transition-identity";
 export type { ControlledWorkspaceGeoFeedAuthorityTransitionIdentity } from "./sealed/controlled-workspace-geofeed-authority-transition-identity";
+export {
+  CONTROLLED_WORKSPACE_PRODUCTION_READINESS_BLOCKERS,
+  CONTROLLED_WORKSPACE_PRODUCTION_READINESS_CONDITIONS,
+  CONTROLLED_WORKSPACE_PRODUCTION_READINESS_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_PRODUCTION_READINESS_GUARDS,
+  CONTROLLED_WORKSPACE_PRODUCTION_READINESS_ID,
+  PHASE_AW_R5_PRODUCTION_READINESS_ONLY,
+  createControlledWorkspaceProductionReadinessDescriptor,
+  createControlledWorkspaceProductionReadinessRollbackContract,
+  evaluateControlledWorkspaceProductionReadiness,
+  validateControlledWorkspaceProductionReadinessDescriptor,
+} from "./sealed/controlled-workspace-production-readiness";
+export type {
+  ControlledWorkspaceProductionReadinessDescriptor,
+  ControlledWorkspaceProductionReadinessEvaluation,
+  ControlledWorkspaceProductionReadinessInput,
+  ControlledWorkspaceProductionReadinessRollbackContract,
+} from "./sealed/controlled-workspace-production-readiness";
+export {
+  createControlledWorkspaceProductionReadinessContract,
+  validateControlledWorkspaceProductionReadinessContract,
+} from "./sealed/controlled-workspace-production-readiness-contract";
+export type { ControlledWorkspaceProductionReadinessContract } from "./sealed/controlled-workspace-production-readiness-contract";
+export {
+  createControlledWorkspaceProductionReadinessIdentity,
+  validateControlledWorkspaceProductionReadinessIdentity,
+} from "./sealed/controlled-workspace-production-readiness-identity";
+export type { ControlledWorkspaceProductionReadinessIdentity } from "./sealed/controlled-workspace-production-readiness-identity";
