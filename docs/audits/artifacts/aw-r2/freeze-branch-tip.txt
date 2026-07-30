@@ -1,0 +1,3 @@
+workspace/aw-r2-controlled-live-authorization
+freezeCommit=pending
+verdict=READY_FOR_AW_R3
