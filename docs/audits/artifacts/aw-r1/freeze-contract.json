@@ -1,0 +1,11 @@
+{
+  "phase": "AW-R1",
+  "freezeCommit": "pending",
+  "implementationCommit": "264340b1a2ca1d52c2850a66dadb93dcdeed2591",
+  "proofTarget": "264340b1a2ca1d52c2850a66dadb93dcdeed2591",
+  "bridgeVersion": "v49",
+  "candidateActivationExecuted": true,
+  "candidateActivationCompleted": true,
+  "candidatePreActivationSealMetaOk": true,
+  "finalVerdict": "READY_FOR_AW_R2"
+}

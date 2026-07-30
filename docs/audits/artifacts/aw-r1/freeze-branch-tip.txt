@@ -1,0 +1,3 @@
+workspace/aw-r1-final-pre-activation-seal
+freezeCommit=pending
+verdict=READY_FOR_AW_R2
