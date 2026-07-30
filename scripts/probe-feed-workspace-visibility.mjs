@@ -22,12 +22,31 @@ function parseArgs(argv) {
     process.cwd(),
     "docs/audits/artifacts/aw-visible-workspace-preview",
   );
+  let protectionBypass =
+    process.env.VERCEL_AUTOMATION_BYPASS_SECRET ||
+    process.env.X_VERCEL_PROTECTION_BYPASS ||
+    "";
   for (const arg of argv) {
     if (arg.startsWith("--base-url=")) baseUrl = arg.slice(11);
     if (arg.startsWith("--commit=")) commit = arg.slice(9);
     if (arg.startsWith("--out-dir=")) outDir = arg.slice(10);
+    if (arg.startsWith("--protection-bypass=")) {
+      protectionBypass = arg.slice("--protection-bypass=".length);
+    }
   }
-  return { baseUrl: baseUrl.replace(/\/$/, ""), commit, outDir };
+  return {
+    baseUrl: baseUrl.replace(/\/$/, ""),
+    commit,
+    outDir,
+    protectionBypass,
+  };
+}
+
+function withBypassQuery(url, protectionBypass) {
+  if (!protectionBypass) return url;
+  const u = new URL(url);
+  u.searchParams.set("x-vercel-protection-bypass", protectionBypass);
+  return u.toString();
 }
 
 function resolveChromium() {
@@ -69,6 +88,7 @@ const RESIZE_JOURNEY = [
   { width: 1280, height: 800 },
   { width: 1440, height: 900 },
   { width: 1728, height: 1117 },
+  { width: 1920, height: 1080 },
   { width: 2560, height: 1440 },
   { width: 390, height: 844 },
 ];
@@ -135,15 +155,27 @@ async function readPageMetrics(page) {
   });
 }
 
-async function captureViewport(browser, baseUrl, vp, shotDir) {
+async function captureViewport(browser, baseUrl, vp, shotDir, protectionBypass) {
   const page = await browser.newPage();
   const consoleErrors = [];
   const hydrationWarnings = [];
   const feedRequests = [];
 
+  if (protectionBypass) {
+    await page.setExtraHTTPHeaders({
+      "x-vercel-protection-bypass": protectionBypass,
+      "x-vercel-set-bypass-cookie": "true",
+    });
+  }
+
   page.on("console", (msg) => {
     const text = msg.text();
-    if (msg.type() === "error") consoleErrors.push(text);
+    if (msg.type() === "error") {
+      // Preview Deployment Protection / vercel.live toolbar is blocked by app CSP.
+      // Not a release-caused application error.
+      if (/vercel\.live\/_next-live\/feedback/i.test(text)) return;
+      consoleErrors.push(text);
+    }
     if (/hydrat/i.test(text)) hydrationWarnings.push(text);
   });
   page.on("pageerror", (err) => consoleErrors.push(String(err)));
@@ -156,10 +188,13 @@ async function captureViewport(browser, baseUrl, vp, shotDir) {
     height: vp.height,
     deviceScaleFactor: 1,
   });
-  await page.goto(`${baseUrl}/?awFeedWorkspace=1`, {
-    waitUntil: "domcontentloaded",
-    timeout: 120_000,
-  });
+  await page.goto(
+    withBypassQuery(`${baseUrl}/?awFeedWorkspace=1`, protectionBypass),
+    {
+      waitUntil: "domcontentloaded",
+      timeout: 120_000,
+    },
+  );
   await page.waitForSelector("[data-aw-feed-workspace], .hc-dorpsplein-page", {
     timeout: 60_000,
   });
@@ -171,7 +206,7 @@ async function captureViewport(browser, baseUrl, vp, shotDir) {
 
   let offCheck = null;
   if (vp.id === "laptop") {
-    await page.goto(`${baseUrl}/`, {
+    await page.goto(withBypassQuery(`${baseUrl}/`, protectionBypass), {
       waitUntil: "domcontentloaded",
       timeout: 120_000,
     });
@@ -204,15 +239,25 @@ async function captureViewport(browser, baseUrl, vp, shotDir) {
   };
 }
 
-async function runResizeJourney(browser, baseUrl) {
+async function runResizeJourney(browser, baseUrl, protectionBypass) {
   const page = await browser.newPage();
   const consoleErrors = [];
   const hydrationWarnings = [];
   let feedRequestCount = 0;
 
+  if (protectionBypass) {
+    await page.setExtraHTTPHeaders({
+      "x-vercel-protection-bypass": protectionBypass,
+      "x-vercel-set-bypass-cookie": "true",
+    });
+  }
+
   page.on("console", (msg) => {
     const text = msg.text();
-    if (msg.type() === "error") consoleErrors.push(text);
+    if (msg.type() === "error") {
+      if (/vercel\.live\/_next-live\/feedback/i.test(text)) return;
+      consoleErrors.push(text);
+    }
     if (/hydrat/i.test(text)) hydrationWarnings.push(text);
   });
   page.on("pageerror", (err) => consoleErrors.push(String(err)));
@@ -225,10 +270,13 @@ async function runResizeJourney(browser, baseUrl) {
     height: RESIZE_JOURNEY[0].height,
     deviceScaleFactor: 1,
   });
-  await page.goto(`${baseUrl}/?awFeedWorkspace=1`, {
-    waitUntil: "domcontentloaded",
-    timeout: 120_000,
-  });
+  await page.goto(
+    withBypassQuery(`${baseUrl}/?awFeedWorkspace=1`, protectionBypass),
+    {
+      waitUntil: "domcontentloaded",
+      timeout: 120_000,
+    },
+  );
   await page.waitForSelector("[data-aw-feed-workspace]", { timeout: 60_000 });
   await new Promise((r) => setTimeout(r, 3000));
 
@@ -249,7 +297,9 @@ async function runResizeJourney(browser, baseUrl) {
 }
 
 async function main() {
-  const { baseUrl, commit, outDir } = parseArgs(process.argv.slice(2));
+  const { baseUrl, commit, outDir, protectionBypass } = parseArgs(
+    process.argv.slice(2),
+  );
   mkdirSync(outDir, { recursive: true });
   const shotDir = join(outDir, "screenshots");
   mkdirSync(shotDir, { recursive: true });
@@ -266,10 +316,12 @@ async function main() {
   try {
     for (const vp of VIEWPORTS) {
       console.log(`Capturing ${vp.id} ${vp.width}x${vp.height}…`);
-      results.push(await captureViewport(browser, baseUrl, vp, shotDir));
+      results.push(
+        await captureViewport(browser, baseUrl, vp, shotDir, protectionBypass),
+      );
     }
     console.log("Running continuous resize journey…");
-    journey = await runResizeJourney(browser, baseUrl);
+    journey = await runResizeJourney(browser, baseUrl, protectionBypass);
   } finally {
     await browser.close();
   }
@@ -368,11 +420,11 @@ async function main() {
 
   const verdict =
     failures.length === 0
-      ? "READY_TO_MERGE_FOR_CONTROLLED_PRODUCTION_ACTIVATION"
-      : "NOT_READY_TO_MERGE_FOR_CONTROLLED_PRODUCTION_ACTIVATION";
+      ? "DEPLOYED_PREVIEW_PASS"
+      : "DEPLOYED_PREVIEW_FAIL";
 
   const report = {
-    phase: "aw-visible-workspace-hardening",
+    phase: "aw-visible-workspace-deployed-preview-proof",
     commit,
     baseUrl,
     capturedAt: new Date().toISOString(),
