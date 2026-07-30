@@ -156,7 +156,7 @@ AW-R5/AW-R6 not started. No production Feed ON. No production promotion. No remo
 | Branch | `workspace/aw-r4-geofeed-authority-transition` |
 | Implementation commit | `28c8abe858e8cefe73c66e884048cb4526456448` |
 | Documentary commit | `a68b9d2b327551148246e1c49806c8372afe749c` |
-| Lineage documentary commit | `pending-lineage` |
+| Lineage documentary commit | `7817d6b679f919c5210f0ca4acf884c248050741` |
 | Freeze commit | `pending` |
 
 ## Release verdict
