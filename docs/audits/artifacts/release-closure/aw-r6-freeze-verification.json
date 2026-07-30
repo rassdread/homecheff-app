@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "awR6Freeze": "be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170",
+  "freezeCommitField": "pending",
+  "nonSelfReferential": true,
+  "finalVerdict": "ADAPTIVE_WORKSPACE_PRODUCTION_LIVE_FROZEN",
+  "feedOnAuthorized": true,
+  "productionPromotionAuthorized": true,
+  "result": "PASS"
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "tagName": "adaptive-workspace-production-v1",
+  "tagTarget": "be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170",
+  "annotatedMessage": "Adaptive Workspace Production v1 — AW-R6 production freeze",
+  "verifyCommand": "git rev-parse adaptive-workspace-production-v1^{}",
+  "pushCommand": "git push origin adaptive-workspace-production-v1",
+  "status": "CREATED_LOCALLY_NOT_PUSHED",
+  "push": false,
+  "localTagExists": true,
+  "verifiedTarget": "be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170"
+}

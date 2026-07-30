@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "comparedTo": "be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170",
+  "unexpectedRuntimeFiles": [],
+  "expectedRuntimeDelta": "none",
+  "permittedDelta": "documentation / release metadata / handoff / changelog / tag proposal / readiness / checklists / closure validators / closure proof artifacts",
+  "result": "PASS",
+  "workingTreeChangedVsFreeze": [
+    "docs/architecture/homecheff-adaptive-workspace-condensed-implementation-roadmap.md",
+    "docs/architecture/homecheff-adaptive-workspace-platform-contract-v1.md"
+  ]
+}

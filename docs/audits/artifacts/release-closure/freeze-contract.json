@@ -1,0 +1,6 @@
+{
+  "title": "Adaptive Workspace Release Closure",
+  "closureFreeze": "pending",
+  "productionRuntimeFreeze": "be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170",
+  "finalVerdict": "ADAPTIVE_WORKSPACE_RELEASE_CLOSURE_COMPLETE"
+}

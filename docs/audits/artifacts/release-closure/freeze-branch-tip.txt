@@ -1,0 +1,3 @@
+branch=workspace/adaptive-workspace-release-closure
+productionRuntimeFreeze=be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170
+closureFreeze=pending
