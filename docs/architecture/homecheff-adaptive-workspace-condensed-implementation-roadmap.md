@@ -255,6 +255,10 @@ Primary stage identity for future work is **AW-R\***. Repository-native subphase
 | Next implementation stage | **none** |
 | Next administrative action | Release Closure against the exact AW-R6 freeze tip (not part of AW-R6) |
 | Predecessor freeze | `ac34031c8e16b70593392c484902d5f007b6f916` (AW-R5) |
+| AW-R6 production freeze | `be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170` |
+| Adaptive Workspace migration | **complete** |
+| Production activation / Feed ON / promotion | **complete** |
+| Release Closure | recorded on branch `workspace/adaptive-workspace-release-closure` (`closureFreeze=pending` until closure freeze commit) |
 | Audit | `docs/audits/homecheff-adaptive-workspace-aw-r6-production-freeze-feed-on.md` |
 | Proof set | `docs/audits/artifacts/aw-r6/` |
 
@@ -268,6 +272,8 @@ Primary stage identity for future work is **AW-R\***. Repository-native subphase
 | AW-R4 | complete |
 | AW-R5 | complete |
 | AW-R6 | complete |
+
+Future work starts from the AW-R6 production baseline `be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170`. There is **no AW-R7** and **no next migration stage**.
 
 ---
 
@@ -358,15 +364,16 @@ Until then, status remains **partial / in migration**, even if candidate lifecyc
 
 Historical planning note (preserved): AW-R1 was the immediate next stage after Phase 3B.3.47 when this roadmap was first established.
 
-**Current status after AW-R6 freeze:**
+**Current status after AW-R6 freeze and Release Closure documentation:**
 
 1. Keep Phase 3B.3.47 freeze `18c178a6aaaa537f57cce8ecb0eb8bfb17e77c59` and AW-R1–AW-R5 freezes as immutable lineage.
 2. Condensed implementation roadmap **AW-R1 through AW-R6 is complete**.
-3. There is **no AW-R7** and **no next implementation stage**.
-4. The only next action is **Release Closure** against the exact AW-R6 freeze tip (administrative; not an implementation stage).
-5. Do **not** interpret this document alone as a substitute for the sealed AW-R6 freeze tip.
+3. AW-R6 production freeze is authoritative: `be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170`.
+4. There is **no AW-R7** and **no next migration stage**.
+5. Release Closure is administrative only; it does not change runtime.
+6. Future work starts from the AW-R6 production baseline (or a separately authorized branch).
 
-**Immediate next stage:** `none` (Release Closure only).
+**Immediate next migration stage:** `none`.
 
 ---
 
@@ -378,4 +385,5 @@ Historical planning note (preserved): AW-R1 was the immediate next stage after P
 | SSOT mark | CONDENSED ROADMAP COMPLETE (AW-R1–AW-R6) |
 | Authorizes runtime change? | Only via sealed AW-R6 freeze tip |
 | Authorizes Feed ON? | **Yes at AW-R6 freeze tip** (sealed reader / MetaOk); this document records completion |
+| Release Closure | Administrative; `closureFreeze=pending` until closure freeze commit |
 | Push required? | No (local docs commit unless release process says otherwise) |

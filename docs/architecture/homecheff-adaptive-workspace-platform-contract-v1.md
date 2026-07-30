@@ -227,3 +227,13 @@ The condensed roadmap is **complete** at AW-R6. The following production contrac
 Bridge / reader / MetaOk at AW-R6: **v54** / `readControlledWorkspaceProductionFeedOn` / `productionFeedOnMetaOk=true`.
 
 Historical negative capability: `attemptFeedOn` remains permanently **allowed:false**; Feed ON is proven via the sealed AW-R6 state, not the historical action path.
+
+### Release Closure status (administrative)
+
+| Field | Value |
+| --- | --- |
+| Migration roadmap | complete |
+| Production runtime freeze | `be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170` |
+| Future architecture changes | require separate approval beyond AW-R6 |
+| Release Closure | administrative completion; does not alter AW-R6 runtime semantics |
+| closureFreeze | pending (until Release Closure freeze commit) |
