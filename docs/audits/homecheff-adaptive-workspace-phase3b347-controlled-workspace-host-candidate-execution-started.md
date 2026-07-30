@@ -6,7 +6,9 @@ Phase **3B.3.47** — Controlled Workspace Host Candidate Execution Started.
 
 Predecessor: Phase **3B.3.46** (final freeze `2fa240cb637e70daab96531fa969239b147acd6c`; proof target `1a1c75e45de4f5109cc9891e8a991c92b78fc0ee`).
 
-Next eligible: **3B.3.48** (sequential only; title not yet confirmed; **not implemented**).
+Next eligible: **3B.3.48** (sequential readiness pointer only; title not confirmed under the former one-boolean model; **not implemented** as an isolated metadata-boolean phase).
+
+**Forward reference (post-freeze planning):** Remaining Adaptive Workspace Feed / Controlled Host work after this freeze follows the condensed capability roadmap **AW-R1 through AW-R6** in `docs/architecture/homecheff-adaptive-workspace-condensed-implementation-roadmap.md`. That document supersedes only the implied one-boolean continuation format; it does not rewrite this audit, its proofs, or this freeze. Immediate next stage: **AW-R1 — Final Pre-Activation Seal**. This note does not authorize activation.
 
 ## Objective
 

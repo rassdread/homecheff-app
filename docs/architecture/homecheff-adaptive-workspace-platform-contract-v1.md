@@ -176,3 +176,15 @@ Phase 2G evidence remains the browser proof for Settings ON:
 - Chromium production-like matrix green
 - Single-writer / hydration / continuity proven on harness
 - Authenticated SettingsHubClient live session deferred (documented limitation)
+
+---
+
+## Appendix — Remaining Feed / Controlled Host roadmap (forward reference)
+
+After frozen Phase **3B.3.47** (`18c178a6aaaa537f57cce8ecb0eb8bfb17e77c59`), remaining Adaptive Workspace Feed / Controlled Host implementation is organized by capability stages **AW-R1 through AW-R6**.
+
+Authoritative document:
+
+`docs/architecture/homecheff-adaptive-workspace-condensed-implementation-roadmap.md`
+
+That roadmap **supplements** this platform contract. It does **not** weaken U1–U25 or F1–F6, does **not** rewrite Settings freeze history, and does **not** by itself authorize LIVE unlock, Workspace presence, GeoFeed authority transfer, or Feed ON.
