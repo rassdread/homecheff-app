@@ -1,0 +1,10 @@
+{
+  "grantPresent": true,
+  "grantIssued": true,
+  "grantValid": true,
+  "grantImmutable": true,
+  "grantUnique": true,
+  "grantExecutable": false,
+  "grantedCandidateCount": 1,
+  "grantCount": 1
+}

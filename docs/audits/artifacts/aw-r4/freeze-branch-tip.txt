@@ -1,0 +1,3 @@
+branch=workspace/aw-r4-geofeed-authority-transition
+freezeCommit=pending
+predecessorFreeze=227c2ee6cb89e5a838d9df2e45c08dd2073ea152

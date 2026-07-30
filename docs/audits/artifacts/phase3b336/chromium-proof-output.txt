@@ -1,0 +1,23 @@
+
+> homecheff-app@0.1.0 probe:adaptive-workspace-host-activation-transaction-commit-readiness
+> node scripts/run-controlled-workspace-host-activation-transaction-commit-readiness-proof-phase3b336.mjs
+
+[phase3b336] Phase 3B.2 proof rerun
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "fail": []
+}
+[phase3b336] Phase 3B.3.36 transaction-commit-readiness proof
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b336/phase3b3-36-controlled-workspace-host-activation-transaction-commit-readiness-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3_37",
+  "passCount": 20,
+  "fail": [],
+  "transactionCommitReadinessMetaOk": true,
+  "forcedNegativeProofsOk": true
+}
+[phase3b336] READY_FOR_PHASE_3B_3_37

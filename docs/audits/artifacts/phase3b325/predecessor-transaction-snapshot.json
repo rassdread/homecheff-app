@@ -1,0 +1,5 @@
+{
+  "issuanceTransactionResult": "authorization-grant-issuance-transaction-ready-not-opened",
+  "issuanceTransactionState": "NOT_OPENED",
+  "issuanceTransactionOpened": false
+}

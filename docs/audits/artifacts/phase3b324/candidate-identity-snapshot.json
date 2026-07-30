@@ -1,0 +1,6 @@
+{
+  "candidateId": "feed.discovery.adaptive-workspace.host-candidate.v1",
+  "hostId": "feed.discovery.controlled-host",
+  "runtimeId": "feed.discovery.legacy-single-mount.v1",
+  "candidateKind": "adaptive-workspace"
+}

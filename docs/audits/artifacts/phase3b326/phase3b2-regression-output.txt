@@ -1,0 +1,4 @@
+Phase 3B.2 Chromium regression (rerun during Phase 3B.3.26)
+overallVerdict=READY_FOR_PHASE_3B_3
+passCount=20/20
+commit=28fea5989d94ee184bba4c6bead6fd9aed95b4d0

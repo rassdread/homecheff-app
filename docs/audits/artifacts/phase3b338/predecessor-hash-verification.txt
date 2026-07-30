@@ -1,0 +1,9 @@
+predecessor_phase=3B.3.37
+predecessor_branch=workspace/phase3b337-controlled-workspace-host-activation-transaction-commit-authorization
+predecessor_frozen_head=714efe6b815d336a30fae35f7c8fd8583f1fe533
+predecessor_proof_target=8d7f26e628b9073eb02e930347fbef94ad12498f
+predecessor_result=controlled-workspace-host-activation-transaction-commit-authorized-not-committed
+predecessor_lifecycle=TRANSACTION_COMMIT_AUTHORIZED_NOT_COMMITTED
+predecessor_bridge=v38
+predecessor_proof_port=3058
+predecessor_verdict=READY_FOR_PHASE_3B_3_38

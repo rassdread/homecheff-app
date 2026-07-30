@@ -1,0 +1,8 @@
+{
+  "result": "controlled-workspace-host-activation-transaction-preparation-ready-not-prepared",
+  "state": "TRANSACTION_PREPARATION_READY_NOT_PREPARED",
+  "transactionPreparationReady": true,
+  "transactionPreparationAuthorized": false,
+  "issuanceTransactionState": "OPENED",
+  "issuancePipelineState": "NON_EXECUTABLE"
+}

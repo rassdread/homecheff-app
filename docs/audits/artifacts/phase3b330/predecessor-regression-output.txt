@@ -1,0 +1,64 @@
+=== run-controlled-workspace-host-activation-commit-boundary-entry-tests.ts ===
+r + engine
+  ✓ successful deterministic commit-boundary entry descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.28)
+  ✓ fail-closed duplicate/activated/capability/shell/ownership/boundary/second-entry/illegal-transition paths
+
+[phase3b329] contract + identity + gate + host + prepared
+  ✓ commit-boundary entry contract fail-closed
+  ✓ commit-boundary entry identity forbids remount and further boundary progression
+  ✓ activation remains impossible (gate currentStep=3B.3.30, eligibleStep=3B.3.31)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared commit-boundary entry fail-closed
+  ✓ candidate entered-not-armed with PHASE_3B3_29 blocker
+
+adaptive-workspace Phase 3B.3.29 controlled workspace host activation commit boundary entry: 9 assertions ok
+
+
+=== run-controlled-workspace-host-activation-grant-issuance-tests.ts ===
+
+[phase3b328] activation grant issuance descriptor + engine
+  ✓ successful deterministic grant issuance descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.27)
+  ✓ fail-closed grant-executable/duplicate/capability/shell/ownership/boundary paths
+
+[phase3b328] contract + identity + gate + host + prepared
+  ✓ grant issuance contract fail-closed
+  ✓ grant issuance identity forbids remount and further grant issuance
+  ✓ activation remains impossible (gate currentStep=3B.3.30, eligibleStep=3B.3.31)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared grant issuance fail-closed
+  ✓ candidate granted-not-activated with PHASE_3B3_28 blocker
+
+adaptive-workspace Phase 3B.3.28 controlled workspace host activation grant issuance: 9 assertions ok
+
+
+=== run-host-activation-transition-authorization-grant-issuance-transaction-tests.ts ===
+line engine + diagnostics metadata only (currentPhase 3B.3.22, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b322] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance pipeline contract fail-closed
+  ✓ authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.23, eligibleStep=3B.3.24)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance pipeline fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_22 blocker
+
+adaptive-workspace Phase 3B.3.22 host activation transition authorization grant issuance pipeline: 9 assertions ok
+
+
+=== run-host-activation-transition-authorization-grant-issuance-pipeline-tests.ts ===
+line engine + diagnostics metadata only (currentPhase 3B.3.21, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b321] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance pipeline contract fail-closed
+  ✓ authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.22, eligibleStep=3B.3.23)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance pipeline fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_21 blocker
+
+adaptive-workspace Phase 3B.3.21 host activation transition authorization grant issuance pipeline: 9 assertions ok
+

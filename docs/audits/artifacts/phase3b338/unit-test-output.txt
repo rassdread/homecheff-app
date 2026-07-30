@@ -1,0 +1,22 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-host-activation-transaction-commit
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-transaction-commit-tests.ts
+
+
+[phase3b338] activation transaction-commit sealed descriptor + engine
+  ✓ successful deterministic transaction-commit descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.37)
+  ✓ fail-closed not-prepared/committed/duplicate-commit-ready/pipeline/auth/shell/ownership paths
+
+[phase3b338] sealed contract + identity + prepared
+  ✓ transaction-commit contract
+  ✓ transaction-commit identity
+  ✓ transaction-commit prepared metadata
+
+[phase3b338] LIVE gate + host continuity
+  ✓ activation remains impossible (gate currentStep=3B.3.38, eligibleStep=3B.3.39)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate committed-not-executed with PHASE_3B3_38 blocker; Workspace null; GeoFeed legacy
+
+adaptive-workspace Phase 3B.3.38 controlled workspace host activation transaction commit: 9 assertions ok
+

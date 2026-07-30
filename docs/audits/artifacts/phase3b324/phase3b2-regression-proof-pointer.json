@@ -1,0 +1,6 @@
+{
+  "overallVerdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "source": "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "commit": "295b6a4934efd91dc8a11ed4c01a2198a0bf3d3f"
+}

@@ -1,0 +1,9 @@
+{
+  "sourceTransactionParticipantCount": 30,
+  "coveredTransactionParticipantCount": 30,
+  "uncoveredTransactionParticipantCount": 0,
+  "duplicateCoveredTransactionParticipantCount": 0,
+  "unknownReferencedTransactionParticipantCount": 0,
+  "transactionParticipantCoverageComplete": true,
+  "transactionParticipantCoverageExact": true
+}

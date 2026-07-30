@@ -1,0 +1,23 @@
+
+> homecheff-app@0.1.0 probe:adaptive-workspace-controlled-workspace-host-candidate-registration
+> node scripts/run-controlled-workspace-host-candidate-registration-proof-phase3b324.mjs
+
+[phase3b324] Phase 3B.2 proof rerun
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "fail": []
+}
+[phase3b324] Phase 3B.3.24 candidate registration proof
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b324/phase3b3-24-controlled-workspace-host-candidate-registration-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3_25",
+  "passCount": 20,
+  "fail": [],
+  "candidateRegistrationMetaOk": true,
+  "forcedNegativeProofsOk": true
+}
+[phase3b324] READY_FOR_PHASE_3B_3_25

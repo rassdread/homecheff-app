@@ -1,0 +1,16 @@
+{
+  "phase": "3B.3.30",
+  "transactionOpeningReadinessState": "TRANSACTION_OPENING_READY_NOT_OPENED",
+  "transactionOpeningReadinessResult": "controlled-workspace-host-activation-transaction-opening-ready-not-opened",
+  "transactionOpeningReady": true,
+  "transactionOpeningAuthorized": false,
+  "transactionOpeningStarted": false,
+  "transactionOpeningCompleted": false,
+  "activationCommitBoundaryState": "ENTERED",
+  "issuanceTransactionState": "NOT_OPENED",
+  "issuancePipelineState": "NON_EXECUTABLE",
+  "candidateGranted": true,
+  "candidateActivated": false,
+  "candidateActive": false,
+  "candidateExecutable": false
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.21",
+  "sourcePlanStepCount": 30,
+  "coveredPlanStepCount": 30,
+  "uncoveredPlanStepCount": 0,
+  "duplicateCoveredPlanStepCount": 0,
+  "unknownReferencedPlanStepCount": 0,
+  "planCoverageComplete": true,
+  "planCoverageExact": true,
+  "uniqueCoveredIds": 30,
+  "coverageListLength": 30
+}

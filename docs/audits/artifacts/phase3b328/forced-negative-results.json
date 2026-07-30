@@ -1,0 +1,80 @@
+{
+  "allPass": true,
+  "negatives": {
+    "candidate-missing": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-invalid-candidate"
+    },
+    "candidate-duplicated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-invalid-candidate"
+    },
+    "grant-executable": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-grant-executable"
+    },
+    "runtime-capability": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-runtime-capability"
+    },
+    "runtime-host": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-runtime-host"
+    },
+    "activation-handle": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-activation-handle"
+    },
+    "workspace-rendered": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-shell"
+    },
+    "geofeed-duplicated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-second-geofeed"
+    },
+    "owner-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-ownership"
+    },
+    "writer-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-writer"
+    },
+    "renderer-changed": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-renderer"
+    },
+    "commit-boundary-entered": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-commit-boundary"
+    },
+    "transaction-opened": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-transaction"
+    },
+    "pipeline-executable": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-pipeline"
+    },
+    "candidate-activated": {
+      "expected": "HardContractViolation",
+      "passed": true,
+      "message": "controlled-workspace-host-activation-grant-issuance-blocked-invalid-candidate"
+    }
+  }
+}

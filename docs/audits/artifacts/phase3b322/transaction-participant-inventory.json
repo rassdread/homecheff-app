@@ -1,0 +1,515 @@
+{
+  "transactionParticipantCount": 30,
+  "participants": [
+    {
+      "ordinal": 1,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "frozen-predecessor-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "issuance-plan-intake-stage"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "plan-structure-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "plan-dependency-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "issuance-decision-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "grant-readiness-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 7,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "authorization-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "preflight-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 9,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "transition-selection-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 10,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "state-and-graph-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 11,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "commit-boundary-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 12,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "runtime-identity-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 13,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "runtime-mount-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 14,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "geofeed-singularity-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 15,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "workspace-shell-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 16,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "legacy-ownership-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 17,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "grant-absence-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 18,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "authority-absence-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 19,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "credential-absence-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 20,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "executable-path-absence-validation-stage"
+      ]
+    },
+    {
+      "ordinal": 21,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "hypothetical-grant-construction-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 22,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "hypothetical-grant-issuance-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 23,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "hypothetical-grant-persistence-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 24,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "hypothetical-grant-application-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 25,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "hypothetical-authority-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 26,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "hypothetical-transition-authorization-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 27,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "hypothetical-activation-boundary-stage"
+      ]
+    },
+    {
+      "ordinal": 28,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "rollback-description-stage"
+      ]
+    },
+    {
+      "ordinal": 29,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "final-fail-closed-verification-stage"
+      ]
+    },
+    {
+      "ordinal": 30,
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "inputPipelineStageIds": [
+        "pipeline-completion-declaration-stage"
+      ]
+    }
+  ]
+}

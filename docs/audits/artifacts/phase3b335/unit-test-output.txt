@@ -1,0 +1,18 @@
+
+[phase3b335] activation transaction-preparation sealed descriptor + engine
+  ✓ successful deterministic transaction-preparation descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.34)
+  ✓ fail-closed duplicate/prepared/pipeline/auth/shell/ownership paths
+
+[phase3b335] sealed contract + identity + prepared
+  ✓ transaction-preparation contract
+  ✓ transaction-preparation identity
+  ✓ transaction-preparation prepared metadata
+
+[phase3b335] LIVE gate + host continuity
+  ✓ activation remains impossible (gate currentStep=3B.3.35, eligibleStep=3B.3.36)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ candidate prepared-not-committed with PHASE_3B3_35 blocker; Workspace null; GeoFeed legacy
+
+adaptive-workspace Phase 3B.3.35 controlled workspace host activation transaction preparation: 9 assertions ok
+

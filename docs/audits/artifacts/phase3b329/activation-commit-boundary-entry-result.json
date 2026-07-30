@@ -1,0 +1,16 @@
+{
+  "activationCommitBoundaryState": "ENTERED",
+  "candidateActivated": false,
+  "candidateActive": false,
+  "candidateExecutable": false,
+  "candidateGranted": true,
+  "commitBoundaryEntryCount": 1,
+  "issuancePipelineExecutable": false,
+  "issuanceTransactionState": "NOT_OPENED",
+  "lifecycle": "COMMIT_BOUNDARY_ENTERED",
+  "proofTarget": "541ae81afee1bb281a5fabdb7c9521f956a8c6e3",
+  "result": "controlled-workspace-host-activation-commit-boundary-entered",
+  "transitionFrom": "NOT_ENTERED",
+  "transitionTo": "ENTERED",
+  "verdict": "READY_FOR_PHASE_3B_3_30"
+}

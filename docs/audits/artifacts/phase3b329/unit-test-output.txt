@@ -1,0 +1,20 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-host-activation-commit-boundary-entry
+> npx tsx lib/adaptive-workspace/tests/run-controlled-workspace-host-activation-commit-boundary-entry-tests.ts
+
+
+[phase3b329] activation commit-boundary entry descriptor + engine
+  ✓ successful deterministic commit-boundary entry descriptor
+  ✓ engine diagnostics metadata only (chained from 3B.3.28)
+  ✓ fail-closed duplicate/activated/capability/shell/ownership/boundary/second-entry/illegal-transition paths
+
+[phase3b329] contract + identity + gate + host + prepared
+  ✓ commit-boundary entry contract fail-closed
+  ✓ commit-boundary entry identity forbids remount and further boundary progression
+  ✓ activation remains impossible (gate currentStep=3B.3.29, eligibleStep=3B.3.30)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared commit-boundary entry fail-closed
+  ✓ candidate entered-not-armed with PHASE_3B3_29 blocker
+
+adaptive-workspace Phase 3B.3.29 controlled workspace host activation commit boundary entry: 9 assertions ok
+

@@ -1,0 +1,2 @@
+predecessor HEAD ffb0037c18f119ea4cb267b100d6341f779b6da5 is ancestor: yes
+predecessor proof 45ee6762e4aeaf7d6725d32340cc96ec9089a167

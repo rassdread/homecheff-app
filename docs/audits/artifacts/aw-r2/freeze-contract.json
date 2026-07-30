@@ -1,0 +1,12 @@
+{
+  "phase": "AW-R2",
+  "freezeCommit": "pending",
+  "implementationCommit": "002586b455849e9f4be4eec9d87548fb72a87438",
+  "proofTarget": "002586b455849e9f4be4eec9d87548fb72a87438",
+  "bridgeVersion": "v50",
+  "Allowed": true,
+  "activationExecutionAllowed": true,
+  "Executable": false,
+  "controlledLiveAuthorizationMetaOk": true,
+  "finalVerdict": "READY_FOR_AW_R3"
+}

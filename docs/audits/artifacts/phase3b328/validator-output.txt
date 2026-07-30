@@ -1,0 +1,5 @@
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-host-activation-grant-issuance
+> npx tsx scripts/validate-adaptive-workspace-host-activation-grant-issuance-phase3b328.ts
+
+validate-adaptive-workspace-host-activation-grant-issuance-phase3b328: PASS

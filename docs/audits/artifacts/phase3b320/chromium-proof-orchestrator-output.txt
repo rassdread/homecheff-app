@@ -1,0 +1,23 @@
+
+> homecheff-app@0.1.0 probe:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan
+> node scripts/run-feed-host-activation-transition-authorization-grant-issuance-plan-proof-phase3b320.mjs
+
+[phase3b320] Phase 3B.2 proof rerun
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "fail": []
+}
+[phase3b320] Phase 3B.3.20 host activation transition authorization grant issuance plan proof
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b320/phase3b3-20-feed-host-activation-transition-authorization-grant-issuance-plan-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3_21",
+  "passCount": 20,
+  "fail": [],
+  "issuancePlanMetaOk": true,
+  "forcedNegativeProofsOk": true
+}
+[phase3b320] READY_FOR_PHASE_3B_3_21

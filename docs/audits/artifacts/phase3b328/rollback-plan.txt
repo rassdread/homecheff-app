@@ -1,0 +1,17 @@
+Phase 3B.3.28 Rollback Plan
+===========================
+
+Restore Phase 3B.3.27 exactly:
+
+  git checkout 0eb38d757f5dada48727eea72e63a378f6c1647b
+
+Restored state:
+  currentPhase=3B.3.27
+  nextEligibleStep=3B.3.28
+  bridge=v28
+  result=controlled-workspace-host-activation-authorized-not-granted
+  state=AUTHORIZED_NOT_GRANTED
+  candidateGranted=false
+  grantPresent=false
+
+No runtime cleanup required.

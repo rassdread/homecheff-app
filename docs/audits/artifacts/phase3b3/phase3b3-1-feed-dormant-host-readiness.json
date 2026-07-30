@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.1",
+  "status": "dormant-host-prepared",
+  "controlledHostContract": "valid",
+  "dormantShell": "valid",
+  "hostActivation": false,
+  "renderActivation": false,
+  "writer": "legacy",
+  "renderOwner": "legacy",
+  "rollbackFoundation": "prepared",
+  "browserProof": "pass",
+  "existing20Invariants": "pass",
+  "nextEligibleStep": "3B.3.2",
+  "activeHostMigration": false,
+  "activeRendererMigration": false,
+  "evidenceCommit": "ab66dbed5df4225f4f23d874d7eb5622c2a35ab9",
+  "evidenceArtifactPath": "docs/audits/artifacts/phase3b3/phase3b3-1-feed-dormant-host-proof.json"
+}

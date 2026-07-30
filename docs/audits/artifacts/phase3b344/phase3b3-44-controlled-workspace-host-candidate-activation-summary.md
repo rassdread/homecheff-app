@@ -1,0 +1,26 @@
+# Phase 3B.3.44 Controlled Workspace Host Candidate Activation Proof Summary
+
+- Verdict: **READY_FOR_PHASE_3B_3_45**
+- Reproof kind: freeze-head reproof against final tracked state
+- Original implementation / original proof target: `b4f092d522e558938f38a8c36eaf0d05033d8883`
+- Validator fix: `e20bec80201531e6d318db3671fe1cbf40e7c75d`
+- Prepared artifact fix: `e95df863d8b6cc35215e989cc0678cec7b15a898`
+- Original freeze: `69e6ab57294975beeab6355d4c9885b487c0b175`
+- Reproof target: `69e6ab57294975beeab6355d4c9885b487c0b175`
+- Branch: `workspace/phase3b344-controlled-workspace-host-candidate-activation`
+- Predecessor freeze: `fc3870a68f164249f990dcbea93baa914da676c9`
+- Result: `controlled-workspace-host-candidate-activated-not-active`
+- Lifecycle: `CANDIDATE_ACTIVATED_NOT_ACTIVE`
+- Blocker: `PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY`
+- Transition: `candidateActivated false→true` (count=1)
+- Preserved: Ready=true, Authorized=true, Active=false, Executable=false, Allowed=false, NON_EXECUTABLE, OPENED
+- Started/Executed/Completed: absent
+- Workspace: absent; Runtime: absent; GeoFeed: legacy 1/1/0
+- Bridge: v45 / `readControlledWorkspaceHostCandidateActivation` / `candidateActivatedMetaOk=true`
+- Port: 3065
+- Dedicated tests: PASS (12 assertions); Validator: PASS (56 forced-negative labels)
+- Chromium: 20/20 PASS; Controlled Workspace regression: 20/20 PASS
+- Forced-negative Chromium proofs: 49/49 PASS
+- Historical original Chromium artifact preserved at `*-proof-original-b4f092d5.json`
+- Next: 3B.3.45
+- Push status: Nothing pushed

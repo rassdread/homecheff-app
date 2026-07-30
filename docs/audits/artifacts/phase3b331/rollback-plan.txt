@@ -1,0 +1,14 @@
+Rollback target: 7230f7c148d7b1172e7422d383f1162d3ae7181e
+Restore:
+  currentPhase=3B.3.30
+  nextEligibleStep=3B.3.31
+  result=controlled-workspace-host-activation-transaction-opening-ready-not-opened
+  lifecycle=TRANSACTION_OPENING_READY_NOT_OPENED
+  transactionOpeningReady=true
+  transactionOpeningAuthorized=false
+  transactionOpeningStarted=false
+  transactionOpeningCompleted=false
+  issuanceTransactionState=NOT_OPENED
+  issuancePipelineState=NON_EXECUTABLE
+  bridge=v31
+No runtime/DB/storage/cache/DOM/React cleanup required.

@@ -1,0 +1,5 @@
+{
+  "activationTransactionOpeningReadinessId": "feed.discovery.adaptive-workspace.host-activation-transaction-opening-readiness.v1",
+  "activationTransactionOpeningReadinessContractId": "feed.discovery.adaptive-workspace.host-activation-transaction-opening-readiness.contract.v1",
+  "activationCommitBoundaryId": "feed.discovery.adaptive-workspace.host-activation-commit-boundary.v1"
+}

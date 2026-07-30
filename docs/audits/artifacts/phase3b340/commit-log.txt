@@ -1,0 +1,3 @@
+313dd01f fix(adaptive-workspace): align Phase 3B.3.40 authorization proof predecessor metadata
+c024f703 feat(adaptive-workspace): Phase 3B.3.40 Bridge v41 proof infrastructure
+469105e1 feat(adaptive-workspace): Phase 3B.3.40 issuance pipeline execution authorization

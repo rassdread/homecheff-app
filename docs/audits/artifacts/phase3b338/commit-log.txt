@@ -1,0 +1,3 @@
+18f33e62 fix(adaptive-workspace): Phase 3B.3.38 probe forced-negative committed assert
+f26dda80 feat(adaptive-workspace): Phase 3B.3.38 bridge v39 validator and proof
+7e9cf5fa feat(adaptive-workspace): Phase 3B.3.38 transaction commit sealed+LIVE

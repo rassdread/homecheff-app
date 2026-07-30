@@ -1,0 +1,2 @@
+branch=workspace/phase3b341-controlled-workspace-host-activation-issuance-pipeline-execution
+HEAD=96cd5fe85b77862f540b2414d97946ee2273795a

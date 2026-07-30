@@ -1,0 +1,295 @@
+{
+  "phase2g-browser-invalid.json": {
+    "pass": true,
+    "summary": {
+      "modeOk": true,
+      "contOk": true,
+      "viewportOk": true,
+      "boundaryOk": true,
+      "isolationOk": true,
+      "hydrationOk": true
+    },
+    "measuredAt": "2026-07-19T10:39:02.179Z",
+    "browser": "chromium-puppeteer",
+    "expectedMode": "off",
+    "continuity": {
+      "step": "continuity",
+      "mounts": 1,
+      "unmounts": 0,
+      "inputValue": "phase2g-continuity",
+      "disclosureOpen": true,
+      "focusId": "aw-harness-input",
+      "scrollBefore": 200,
+      "scrollAfter": 200,
+      "resolveBefore": 0,
+      "resolveAfterIdentical": 0,
+      "resolveDelta": 0,
+      "profile": ""
+    },
+    "viewportCount": 11,
+    "isolation": [
+      {
+        "route": "/",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/notifications",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/messages",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/profile",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      }
+    ],
+    "settingsSmoke": {
+      "status": 200,
+      "url": "http://127.0.0.1:3020/settings",
+      "redirectedToLogin": false
+    },
+    "consoleIssueCount": 0
+  },
+  "phase2g-browser-off.json": {
+    "pass": true,
+    "summary": {
+      "modeOk": true,
+      "contOk": true,
+      "viewportOk": true,
+      "boundaryOk": true,
+      "isolationOk": true,
+      "hydrationOk": true
+    },
+    "measuredAt": "2026-07-19T10:38:44.718Z",
+    "browser": "chromium-puppeteer",
+    "expectedMode": "off",
+    "continuity": {
+      "step": "continuity",
+      "mounts": 1,
+      "unmounts": 0,
+      "inputValue": "phase2g-continuity",
+      "disclosureOpen": true,
+      "focusId": "aw-harness-input",
+      "scrollBefore": 200,
+      "scrollAfter": 200,
+      "resolveBefore": 0,
+      "resolveAfterIdentical": 0,
+      "resolveDelta": 0,
+      "profile": ""
+    },
+    "viewportCount": 11,
+    "isolation": [
+      {
+        "route": "/",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/notifications",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/messages",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/profile",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      }
+    ],
+    "settingsSmoke": {
+      "status": 200,
+      "url": "http://127.0.0.1:3019/settings",
+      "redirectedToLogin": false
+    },
+    "consoleIssueCount": 0
+  },
+  "phase2g-browser-on.json": {
+    "pass": true,
+    "summary": {
+      "modeOk": true,
+      "contOk": true,
+      "viewportOk": true,
+      "boundaryOk": true,
+      "isolationOk": true,
+      "hydrationOk": true
+    },
+    "measuredAt": "2026-07-19T10:39:27.524Z",
+    "browser": "chromium-puppeteer",
+    "expectedMode": "on",
+    "continuity": {
+      "step": "continuity",
+      "mounts": 1,
+      "unmounts": 0,
+      "inputValue": "phase2g-continuity",
+      "disclosureOpen": true,
+      "focusId": "aw-harness-input",
+      "scrollBefore": 200,
+      "scrollAfter": 200,
+      "resolveBefore": 10,
+      "resolveAfterIdentical": 10,
+      "resolveDelta": 0,
+      "profile": "EXPANDED"
+    },
+    "viewportCount": 11,
+    "isolation": [
+      {
+        "route": "/",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/notifications",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/messages",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/profile",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      }
+    ],
+    "settingsSmoke": {
+      "status": 200,
+      "url": "http://127.0.0.1:3017/settings",
+      "redirectedToLogin": false,
+      "aborted": false
+    },
+    "consoleIssueCount": 1
+  },
+  "phase2g-browser-shadow.json": {
+    "pass": true,
+    "summary": {
+      "modeOk": true,
+      "contOk": true,
+      "viewportOk": true,
+      "boundaryOk": true,
+      "isolationOk": true,
+      "hydrationOk": true
+    },
+    "measuredAt": "2026-07-19T10:38:16.173Z",
+    "browser": "chromium-puppeteer",
+    "expectedMode": "shadow",
+    "continuity": {
+      "step": "continuity",
+      "mounts": 1,
+      "unmounts": 0,
+      "inputValue": "phase2g-continuity",
+      "disclosureOpen": true,
+      "focusId": "aw-harness-input",
+      "scrollBefore": 200,
+      "scrollAfter": 200,
+      "resolveBefore": 10,
+      "resolveAfterIdentical": 10,
+      "resolveDelta": 0,
+      "profile": "EXPANDED"
+    },
+    "viewportCount": 11,
+    "isolation": [
+      {
+        "route": "/",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/notifications",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/messages",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      },
+      {
+        "route": "/profile",
+        "status": 200,
+        "onRoot": false,
+        "harness": false,
+        "region": 0,
+        "settingsHubHost": 0,
+        "isolated": true
+      }
+    ],
+    "settingsSmoke": {
+      "status": 200,
+      "url": "http://127.0.0.1:3018/settings",
+      "redirectedToLogin": false
+    },
+    "consoleIssueCount": 0
+  }
+}

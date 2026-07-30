@@ -1,0 +1,926 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.9",
+  "branch": "workspace/phase3b39-controlled-host-activation-pipeline",
+  "commit": "a086f3ab524da8e496461b19959df04f3a263fc3",
+  "browser": "chromium-puppeteer-core",
+  "browserVersion": "Chrome/131.0.6778.33",
+  "productionMode": true,
+  "sourceProofReference": "docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "sourceFreezeReference": "docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json",
+  "controlledHostContractStatus": "valid",
+  "hostActivation": false,
+  "renderActivation": false,
+  "canStartActivation": false,
+  "activeRenderOwner": "legacy",
+  "activeWriter": "legacy",
+  "shellChildCount": 0,
+  "shellDOMNodeCount": 0,
+  "rendererRegistrationCount": 0,
+  "hostRegistry": {
+    "phase": "3B.3.3",
+    "hostCount": 1,
+    "containsRuntimeObjects": false,
+    "containsReactInstances": false,
+    "hostId": "feed.discovery.controlled-host",
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "registrationState": "registered",
+    "owner": "legacy",
+    "writer": "legacy",
+    "renderer": "legacy",
+    "activationState": "dormant",
+    "hostActivation": false,
+    "renderActivation": false
+  },
+  "hostRegistration": {
+    "phase": "3B.3.3",
+    "registrationState": "registered",
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "activationRestriction": "PHASE_3B3_3_HOST_REGISTRATION_ONLY",
+    "nextEligibleStep": "3B.3.4"
+  },
+  "hostEligibility": {
+    "phase": "3B.3.4",
+    "eligibilityState": "eligible",
+    "eligibilityReason": "registered-stable-legacy-host-prerequisites-met",
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "canStartActivation": false,
+    "activationBlocker": "PHASE_3B3_4_HOST_ELIGIBILITY_ONLY",
+    "nextEligibleStep": "3B.3.5",
+    "diagnostics": {
+      "registryHostCount": 1,
+      "runtimeIdStable": true,
+      "ownershipLegacy": true,
+      "rendererLegacy": true,
+      "rollbackPrepared": true,
+      "activationBlocked": true
+    }
+  },
+  "hostActivationReadiness": {
+    "phase": "3B.3.5",
+    "readinessState": "ready",
+    "readinessReasons": [
+      "exactly-one-registered-host",
+      "shadow-placement-registered",
+      "eligibility-satisfied",
+      "stable-runtime-id",
+      "legacy-owner-writer-renderer",
+      "rollback-prepared-not-active",
+      "single-mount-identity-preserved"
+    ],
+    "readinessBlockers": [
+      "PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY"
+    ],
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "canStartActivation": false,
+    "activationBlocker": "PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY",
+    "nextEligibleStep": "3B.3.6",
+    "diagnostics": {
+      "readinessSatisfied": true,
+      "activationBlocked": true,
+      "canStartActivation": false,
+      "currentPhase": "3B.3.5",
+      "nextEligibleStep": "3B.3.6",
+      "activeBlockers": [
+        "PHASE_3B3_5_HOST_ACTIVATION_READINESS_ONLY"
+      ],
+      "satisfiedConditions": [
+        "exactly-one-registered-host",
+        "shadow-placement-registered",
+        "eligibility-satisfied",
+        "stable-runtime-id",
+        "legacy-owner-writer-renderer",
+        "rollback-prepared-not-active",
+        "single-mount-identity-preserved"
+      ],
+      "missingConditionsForActivation": [
+        "activation-executor-not-authorized",
+        "host-activation-flag-must-remain-false-until-3b3-6",
+        "can-start-activation-must-remain-false"
+      ],
+      "registryHostCount": 1,
+      "runtimeIdStable": true,
+      "ownershipLegacy": true,
+      "rendererLegacy": true,
+      "rollbackPrepared": true,
+      "placementRegistered": true,
+      "eligibilitySatisfied": true
+    }
+  },
+  "hostShadowActivationSimulation": {
+    "phase": "3B.3.6",
+    "simulationState": "completed",
+    "simulationResult": "dry-run-complete-would-activate",
+    "wouldActivate": true,
+    "simulationReasons": [
+      "exactly-one-registered-host",
+      "shadow-placement-registered",
+      "eligibility-satisfied",
+      "activation-readiness-satisfied",
+      "stable-runtime-id",
+      "legacy-owner-writer-renderer",
+      "rollback-prepared-not-active",
+      "single-mount-identity-preserved",
+      "intent-evaluation-allows-future-activation"
+    ],
+    "simulationBlockers": [
+      "PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY"
+    ],
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "canStartActivation": false,
+    "activationBlocker": "PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY",
+    "nextEligibleStep": "3B.3.7",
+    "diagnostics": {
+      "simulationCompleted": true,
+      "wouldActivate": true,
+      "whyWouldActivate": "prerequisites-and-readiness-satisfied-for-future-intent",
+      "activationBlocked": true,
+      "canStartActivation": false,
+      "currentPhase": "3B.3.6",
+      "nextEligibleStep": "3B.3.7",
+      "activeBlockers": [
+        "PHASE_3B3_6_HOST_SHADOW_ACTIVATION_SIMULATION_ONLY"
+      ],
+      "readinessStatus": "ready",
+      "eligibilityStatus": "eligible",
+      "satisfiedConditions": [
+        "exactly-one-registered-host",
+        "shadow-placement-registered",
+        "eligibility-satisfied",
+        "activation-readiness-satisfied",
+        "stable-runtime-id",
+        "legacy-owner-writer-renderer",
+        "rollback-prepared-not-active",
+        "single-mount-identity-preserved",
+        "intent-evaluation-allows-future-activation"
+      ],
+      "missingConditionsForExecution": [
+        "activation-executor-not-authorized",
+        "shadow-simulation-only-no-runtime-mutation",
+        "can-start-activation-must-remain-false"
+      ],
+      "registryHostCount": 1,
+      "runtimeIdStable": true,
+      "ownershipLegacy": true,
+      "rendererLegacy": true,
+      "rollbackPrepared": true
+    }
+  },
+  "hostActivationDecision": {
+    "phase": "3B.3.7",
+    "decisionState": "completed",
+    "decisionResult": "ALLOW",
+    "wouldActivate": true,
+    "confidence": "high",
+    "decisionReasons": [
+      "exactly-one-registered-host",
+      "shadow-placement-registered",
+      "eligibility-satisfied",
+      "activation-readiness-satisfied",
+      "shadow-simulation-completed-would-activate",
+      "stable-runtime-id",
+      "legacy-owner-writer-renderer",
+      "rollback-prepared-not-active",
+      "single-mount-identity-preserved",
+      "deterministic-metadata-consensus-allow"
+    ],
+    "decisionBlockers": [
+      "PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY"
+    ],
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "canStartActivation": false,
+    "activationBlocker": "PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY",
+    "nextEligibleStep": "3B.3.8",
+    "diagnostics": {
+      "decisionCompleted": true,
+      "decisionResult": "ALLOW",
+      "wouldActivate": true,
+      "confidence": "high",
+      "usedConditions": [
+        "exactly-one-registered-host",
+        "shadow-placement-registered",
+        "eligibility-satisfied",
+        "activation-readiness-satisfied",
+        "shadow-simulation-completed-would-activate",
+        "stable-runtime-id",
+        "legacy-owner-writer-renderer",
+        "rollback-prepared-not-active",
+        "single-mount-identity-preserved",
+        "deterministic-metadata-consensus-allow"
+      ],
+      "decisionInputSources": [
+        "controlled-host-registry",
+        "controlled-feed-host-shadow-placement",
+        "controlled-host-eligibility",
+        "controlled-host-activation-readiness",
+        "controlled-host-shadow-activation-simulation",
+        "feed-host-rollback-contract"
+      ],
+      "activationBlocked": true,
+      "canStartActivation": false,
+      "currentPhase": "3B.3.7",
+      "nextEligibleStep": "3B.3.8",
+      "activeBlockers": [
+        "PHASE_3B3_7_HOST_ACTIVATION_DECISION_ONLY"
+      ],
+      "readinessStatus": "ready",
+      "eligibilityStatus": "eligible",
+      "simulationStatus": "completed",
+      "missingConditionsForExecution": [
+        "activation-executor-not-authorized",
+        "decision-only-no-runtime-mutation",
+        "can-start-activation-must-remain-false"
+      ],
+      "registryHostCount": 1,
+      "runtimeIdStable": true,
+      "ownershipLegacy": true,
+      "rendererLegacy": true,
+      "rollbackPrepared": true
+    }
+  },
+  "hostActivationPlan": {
+    "phase": "3B.3.8",
+    "planId": "feed.discovery.controlled-host.activation-plan.v1",
+    "planVersion": 1,
+    "planState": "completed",
+    "planResult": "plan-complete-not-executable",
+    "decisionResult": "ALLOW",
+    "wouldActivate": true,
+    "plannedSteps": [
+      "verify-exactly-one-registered-host",
+      "verify-shadow-placement-registered",
+      "verify-eligibility-eligible",
+      "verify-activation-readiness-ready",
+      "verify-shadow-simulation-completed",
+      "verify-decision-allow",
+      "verify-stable-runtime-id",
+      "verify-legacy-owner-writer-renderer",
+      "verify-rollback-prepared-not-active",
+      "hold-activation-pending-future-authorization"
+    ],
+    "preconditions": [
+      "exactly-one-registered-host",
+      "shadow-placement-registered",
+      "eligibility-satisfied",
+      "activation-readiness-satisfied",
+      "shadow-simulation-completed-would-activate",
+      "decision-allow-high-confidence",
+      "stable-runtime-id",
+      "legacy-owner-writer-renderer",
+      "rollback-prepared-not-active",
+      "single-mount-identity-preserved"
+    ],
+    "validationPoints": [
+      "registry-host-count-equals-one",
+      "runtime-id-equals-stable-legacy",
+      "decision-result-allow",
+      "would-activate-true",
+      "host-activation-false",
+      "render-activation-false",
+      "can-start-activation-false",
+      "owner-writer-renderer-legacy",
+      "rollback-prepared-not-active",
+      "all-20-release-blocking-invariants"
+    ],
+    "rollbackCheckpoints": [
+      "pre-plan-legacy-owner",
+      "pre-plan-legacy-writer",
+      "pre-plan-legacy-renderer",
+      "pre-plan-prepared-not-active-rollback",
+      "pre-plan-single-mount-identity"
+    ],
+    "abortConditions": [
+      "host-count-not-one",
+      "runtime-id-changed",
+      "decision-not-allow",
+      "ownership-not-legacy",
+      "renderer-not-legacy",
+      "rollback-not-prepared",
+      "forced-activation-attempt",
+      "executor-or-scheduler-present"
+    ],
+    "invariants": [
+      "FEED_GEOFEED_SINGLE_MOUNT",
+      "FEED_GEOFEED_ZERO_UNMOUNT_DURING_STABLE_SESSION",
+      "FEED_NO_WORKSPACE_REQUEST_IDENTITY_INPUT",
+      "FEED_REQUEST_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "FEED_NATIVE_PAINT_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "FEED_PREPARED_BATCH_IDENTITY_STABLE",
+      "FEED_PAGINATION_CURSOR_NOT_RESET_BY_WORKSPACE",
+      "FEED_RESULT_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "FEED_FILTER_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "FEED_INTERSECTION_OBSERVER_OWNERSHIP_UNCHANGED",
+      "FEED_RESIZE_OBSERVER_OWNERSHIP_UNCHANGED",
+      "FEED_SCROLL_OWNERSHIP_UNCHANGED",
+      "FEED_TILE_IDENTITY_UNCHANGED",
+      "FEED_SKELETON_OWNERSHIP_UNCHANGED",
+      "FEED_LOADING_BEHAVIOR_UNCHANGED",
+      "FEED_VISIBLE_DOM_UNCHANGED",
+      "FEED_SSR_BEHAVIOR_UNCHANGED",
+      "FEED_HYDRATION_CLEAN",
+      "FEED_NO_ADDITIONAL_API_REQUESTS",
+      "FEED_LEGACY_SINGLE_WRITER"
+    ],
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "canStartActivation": false,
+    "activationBlocker": "PHASE_3B3_8_HOST_ACTIVATION_PLAN_ONLY",
+    "nextEligibleStep": "3B.3.9",
+    "diagnostics": {
+      "planCompleted": true,
+      "planResult": "plan-complete-not-executable",
+      "decisionResult": "ALLOW",
+      "wouldActivate": true,
+      "plannedStepCount": 10,
+      "plannedSteps": [
+        "verify-exactly-one-registered-host",
+        "verify-shadow-placement-registered",
+        "verify-eligibility-eligible",
+        "verify-activation-readiness-ready",
+        "verify-shadow-simulation-completed",
+        "verify-decision-allow",
+        "verify-stable-runtime-id",
+        "verify-legacy-owner-writer-renderer",
+        "verify-rollback-prepared-not-active",
+        "hold-activation-pending-future-authorization"
+      ],
+      "preconditions": [
+        "exactly-one-registered-host",
+        "shadow-placement-registered",
+        "eligibility-satisfied",
+        "activation-readiness-satisfied",
+        "shadow-simulation-completed-would-activate",
+        "decision-allow-high-confidence",
+        "stable-runtime-id",
+        "legacy-owner-writer-renderer",
+        "rollback-prepared-not-active",
+        "single-mount-identity-preserved"
+      ],
+      "validationPoints": [
+        "registry-host-count-equals-one",
+        "runtime-id-equals-stable-legacy",
+        "decision-result-allow",
+        "would-activate-true",
+        "host-activation-false",
+        "render-activation-false",
+        "can-start-activation-false",
+        "owner-writer-renderer-legacy",
+        "rollback-prepared-not-active",
+        "all-20-release-blocking-invariants"
+      ],
+      "rollbackCheckpoints": [
+        "pre-plan-legacy-owner",
+        "pre-plan-legacy-writer",
+        "pre-plan-legacy-renderer",
+        "pre-plan-prepared-not-active-rollback",
+        "pre-plan-single-mount-identity"
+      ],
+      "abortConditions": [
+        "host-count-not-one",
+        "runtime-id-changed",
+        "decision-not-allow",
+        "ownership-not-legacy",
+        "renderer-not-legacy",
+        "rollback-not-prepared",
+        "forced-activation-attempt",
+        "executor-or-scheduler-present"
+      ],
+      "invariants": [
+        "FEED_GEOFEED_SINGLE_MOUNT",
+        "FEED_GEOFEED_ZERO_UNMOUNT_DURING_STABLE_SESSION",
+        "FEED_NO_WORKSPACE_REQUEST_IDENTITY_INPUT",
+        "FEED_REQUEST_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+        "FEED_NATIVE_PAINT_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+        "FEED_PREPARED_BATCH_IDENTITY_STABLE",
+        "FEED_PAGINATION_CURSOR_NOT_RESET_BY_WORKSPACE",
+        "FEED_RESULT_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+        "FEED_FILTER_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+        "FEED_INTERSECTION_OBSERVER_OWNERSHIP_UNCHANGED",
+        "FEED_RESIZE_OBSERVER_OWNERSHIP_UNCHANGED",
+        "FEED_SCROLL_OWNERSHIP_UNCHANGED",
+        "FEED_TILE_IDENTITY_UNCHANGED",
+        "FEED_SKELETON_OWNERSHIP_UNCHANGED",
+        "FEED_LOADING_BEHAVIOR_UNCHANGED",
+        "FEED_VISIBLE_DOM_UNCHANGED",
+        "FEED_SSR_BEHAVIOR_UNCHANGED",
+        "FEED_HYDRATION_CLEAN",
+        "FEED_NO_ADDITIONAL_API_REQUESTS",
+        "FEED_LEGACY_SINGLE_WRITER"
+      ],
+      "planInputSources": [
+        "controlled-host-registry",
+        "controlled-feed-host-shadow-placement",
+        "controlled-host-eligibility",
+        "controlled-host-activation-readiness",
+        "controlled-host-shadow-activation-simulation",
+        "controlled-host-activation-decision",
+        "feed-host-rollback-contract"
+      ],
+      "activationBlocked": true,
+      "canStartActivation": false,
+      "currentPhase": "3B.3.8",
+      "nextEligibleStep": "3B.3.9",
+      "activeBlockers": [
+        "PHASE_3B3_8_HOST_ACTIVATION_PLAN_ONLY"
+      ],
+      "readinessStatus": "ready",
+      "eligibilityStatus": "eligible",
+      "simulationStatus": "completed",
+      "decisionStatus": "completed",
+      "missingConditionsForExecution": [
+        "activation-executor-not-authorized",
+        "activation-plan-only-no-runtime-mutation",
+        "can-start-activation-must-remain-false",
+        "scheduler-not-authorized"
+      ],
+      "registryHostCount": 1,
+      "runtimeIdStable": true,
+      "ownershipLegacy": true,
+      "rendererLegacy": true,
+      "rollbackPrepared": true
+    }
+  },
+  "hostActivationPipeline": {
+    "phase": "3B.3.9",
+    "pipelineId": "feed.discovery.controlled-host.activation-pipeline.v1",
+    "pipelineVersion": 1,
+    "pipelineState": "completed",
+    "pipelineResult": "pipeline-complete-not-executable",
+    "decisionResult": "ALLOW",
+    "planResult": "plan-complete-not-executable",
+    "wouldActivate": true,
+    "pipelineStages": [
+      "stage-registry-verify",
+      "stage-placement-verify",
+      "stage-eligibility-verify",
+      "stage-readiness-verify",
+      "stage-simulation-verify",
+      "stage-decision-verify",
+      "stage-plan-verify",
+      "stage-identity-ownership-verify",
+      "stage-rollback-verify",
+      "stage-hold-pending-authorization"
+    ],
+    "stageOrder": [
+      "stage-registry-verify",
+      "stage-placement-verify",
+      "stage-eligibility-verify",
+      "stage-readiness-verify",
+      "stage-simulation-verify",
+      "stage-decision-verify",
+      "stage-plan-verify",
+      "stage-identity-ownership-verify",
+      "stage-rollback-verify",
+      "stage-hold-pending-authorization"
+    ],
+    "stageDependencies": [
+      "stage-registry-verify<-none",
+      "stage-placement-verify<-stage-registry-verify",
+      "stage-eligibility-verify<-stage-placement-verify",
+      "stage-readiness-verify<-stage-eligibility-verify",
+      "stage-simulation-verify<-stage-readiness-verify",
+      "stage-decision-verify<-stage-simulation-verify",
+      "stage-plan-verify<-stage-decision-verify",
+      "stage-identity-ownership-verify<-stage-plan-verify",
+      "stage-rollback-verify<-stage-identity-ownership-verify",
+      "stage-hold-pending-authorization<-stage-rollback-verify"
+    ],
+    "entryConditions": [
+      "exactly-one-registered-host",
+      "shadow-placement-registered",
+      "eligibility-satisfied",
+      "activation-readiness-satisfied",
+      "shadow-simulation-completed-would-activate",
+      "decision-allow",
+      "plan-complete-not-executable",
+      "stable-runtime-id",
+      "legacy-owner-writer-renderer",
+      "rollback-prepared-not-active"
+    ],
+    "exitConditions": [
+      "all-pipeline-stages-described",
+      "no-stage-executed",
+      "activation-still-blocked",
+      "can-start-activation-false",
+      "executor-unauthorized",
+      "scheduler-unauthorized"
+    ],
+    "validationPoints": [
+      "registry-host-count-equals-one",
+      "runtime-id-equals-stable-legacy",
+      "decision-result-allow",
+      "plan-result-complete-not-executable",
+      "would-activate-true",
+      "stage-order-matches-pipeline-stages",
+      "stage-dependencies-linear-complete",
+      "host-activation-false",
+      "render-activation-false",
+      "can-start-activation-false",
+      "owner-writer-renderer-legacy",
+      "rollback-prepared-not-active",
+      "all-20-release-blocking-invariants"
+    ],
+    "rollbackCheckpoints": [
+      "pre-pipeline-legacy-owner",
+      "pre-pipeline-legacy-writer",
+      "pre-pipeline-legacy-renderer",
+      "pre-pipeline-prepared-not-active-rollback",
+      "pre-pipeline-single-mount-identity",
+      "pre-pipeline-plan-complete"
+    ],
+    "abortConditions": [
+      "host-count-not-one",
+      "runtime-id-changed",
+      "decision-not-allow",
+      "plan-not-complete",
+      "stage-order-tampered",
+      "ownership-not-legacy",
+      "renderer-not-legacy",
+      "rollback-not-prepared",
+      "forced-activation-attempt",
+      "executor-or-scheduler-present"
+    ],
+    "invariants": [
+      "FEED_GEOFEED_SINGLE_MOUNT",
+      "FEED_GEOFEED_ZERO_UNMOUNT_DURING_STABLE_SESSION",
+      "FEED_NO_WORKSPACE_REQUEST_IDENTITY_INPUT",
+      "FEED_REQUEST_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "FEED_NATIVE_PAINT_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "FEED_PREPARED_BATCH_IDENTITY_STABLE",
+      "FEED_PAGINATION_CURSOR_NOT_RESET_BY_WORKSPACE",
+      "FEED_RESULT_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "FEED_FILTER_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "FEED_INTERSECTION_OBSERVER_OWNERSHIP_UNCHANGED",
+      "FEED_RESIZE_OBSERVER_OWNERSHIP_UNCHANGED",
+      "FEED_SCROLL_OWNERSHIP_UNCHANGED",
+      "FEED_TILE_IDENTITY_UNCHANGED",
+      "FEED_SKELETON_OWNERSHIP_UNCHANGED",
+      "FEED_LOADING_BEHAVIOR_UNCHANGED",
+      "FEED_VISIBLE_DOM_UNCHANGED",
+      "FEED_SSR_BEHAVIOR_UNCHANGED",
+      "FEED_HYDRATION_CLEAN",
+      "FEED_NO_ADDITIONAL_API_REQUESTS",
+      "FEED_LEGACY_SINGLE_WRITER"
+    ],
+    "runtimeId": "feed.discovery.legacy-single-mount.v1",
+    "hostActivation": false,
+    "renderActivation": false,
+    "canStartActivation": false,
+    "activationBlocker": "PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY",
+    "nextEligibleStep": "3B.3.10",
+    "diagnostics": {
+      "pipelineCompleted": true,
+      "pipelineResult": "pipeline-complete-not-executable",
+      "stageCount": 10,
+      "stageOrder": [
+        "stage-registry-verify",
+        "stage-placement-verify",
+        "stage-eligibility-verify",
+        "stage-readiness-verify",
+        "stage-simulation-verify",
+        "stage-decision-verify",
+        "stage-plan-verify",
+        "stage-identity-ownership-verify",
+        "stage-rollback-verify",
+        "stage-hold-pending-authorization"
+      ],
+      "stageDependencies": [
+        "stage-registry-verify<-none",
+        "stage-placement-verify<-stage-registry-verify",
+        "stage-eligibility-verify<-stage-placement-verify",
+        "stage-readiness-verify<-stage-eligibility-verify",
+        "stage-simulation-verify<-stage-readiness-verify",
+        "stage-decision-verify<-stage-simulation-verify",
+        "stage-plan-verify<-stage-decision-verify",
+        "stage-identity-ownership-verify<-stage-plan-verify",
+        "stage-rollback-verify<-stage-identity-ownership-verify",
+        "stage-hold-pending-authorization<-stage-rollback-verify"
+      ],
+      "validationPoints": [
+        "registry-host-count-equals-one",
+        "runtime-id-equals-stable-legacy",
+        "decision-result-allow",
+        "plan-result-complete-not-executable",
+        "would-activate-true",
+        "stage-order-matches-pipeline-stages",
+        "stage-dependencies-linear-complete",
+        "host-activation-false",
+        "render-activation-false",
+        "can-start-activation-false",
+        "owner-writer-renderer-legacy",
+        "rollback-prepared-not-active",
+        "all-20-release-blocking-invariants"
+      ],
+      "rollbackCheckpoints": [
+        "pre-pipeline-legacy-owner",
+        "pre-pipeline-legacy-writer",
+        "pre-pipeline-legacy-renderer",
+        "pre-pipeline-prepared-not-active-rollback",
+        "pre-pipeline-single-mount-identity",
+        "pre-pipeline-plan-complete"
+      ],
+      "abortConditions": [
+        "host-count-not-one",
+        "runtime-id-changed",
+        "decision-not-allow",
+        "plan-not-complete",
+        "stage-order-tampered",
+        "ownership-not-legacy",
+        "renderer-not-legacy",
+        "rollback-not-prepared",
+        "forced-activation-attempt",
+        "executor-or-scheduler-present"
+      ],
+      "invariants": [
+        "FEED_GEOFEED_SINGLE_MOUNT",
+        "FEED_GEOFEED_ZERO_UNMOUNT_DURING_STABLE_SESSION",
+        "FEED_NO_WORKSPACE_REQUEST_IDENTITY_INPUT",
+        "FEED_REQUEST_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+        "FEED_NATIVE_PAINT_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+        "FEED_PREPARED_BATCH_IDENTITY_STABLE",
+        "FEED_PAGINATION_CURSOR_NOT_RESET_BY_WORKSPACE",
+        "FEED_RESULT_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+        "FEED_FILTER_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+        "FEED_INTERSECTION_OBSERVER_OWNERSHIP_UNCHANGED",
+        "FEED_RESIZE_OBSERVER_OWNERSHIP_UNCHANGED",
+        "FEED_SCROLL_OWNERSHIP_UNCHANGED",
+        "FEED_TILE_IDENTITY_UNCHANGED",
+        "FEED_SKELETON_OWNERSHIP_UNCHANGED",
+        "FEED_LOADING_BEHAVIOR_UNCHANGED",
+        "FEED_VISIBLE_DOM_UNCHANGED",
+        "FEED_SSR_BEHAVIOR_UNCHANGED",
+        "FEED_HYDRATION_CLEAN",
+        "FEED_NO_ADDITIONAL_API_REQUESTS",
+        "FEED_LEGACY_SINGLE_WRITER"
+      ],
+      "pipelineInputSources": [
+        "controlled-host-registry",
+        "controlled-feed-host-shadow-placement",
+        "controlled-host-eligibility",
+        "controlled-host-activation-readiness",
+        "controlled-host-shadow-activation-simulation",
+        "controlled-host-activation-decision",
+        "controlled-host-activation-plan",
+        "feed-host-rollback-contract"
+      ],
+      "decisionResult": "ALLOW",
+      "planResult": "plan-complete-not-executable",
+      "wouldActivate": true,
+      "activationBlocked": true,
+      "canStartActivation": false,
+      "currentPhase": "3B.3.9",
+      "nextEligibleStep": "3B.3.10",
+      "activeBlockers": [
+        "PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY"
+      ],
+      "readinessStatus": "ready",
+      "eligibilityStatus": "eligible",
+      "simulationStatus": "completed",
+      "decisionStatus": "completed",
+      "planStatus": "completed",
+      "missingConditionsForExecution": [
+        "activation-executor-not-authorized",
+        "activation-pipeline-only-no-runtime-mutation",
+        "can-start-activation-must-remain-false",
+        "scheduler-not-authorized",
+        "no-pipeline-stage-may-execute"
+      ],
+      "registryHostCount": 1,
+      "runtimeIdStable": true,
+      "ownershipLegacy": true,
+      "rendererLegacy": true,
+      "rollbackPrepared": true
+    }
+  },
+  "shadowPlacement": {
+    "phase": "3B.3.2",
+    "placementState": "shadow-registered",
+    "placementMode": "sibling-after-legacy-mount",
+    "hostActivation": false,
+    "renderActivation": false,
+    "activeWriter": "legacy",
+    "activeRenderOwner": "legacy",
+    "registrationVisibleInMetadata": true,
+    "rollbackTarget": "legacy",
+    "nextEligibleStep": "3B.3.3",
+    "activationBlocker": "PHASE_3B3_2_SHADOW_PLACEMENT_ONLY"
+  },
+  "shadowPlacementIdentity": {
+    "expectedMountCount": 1,
+    "expectedUnmountCount": 0,
+    "expectedRendererRegistrationCount": 0,
+    "identityTransitionAllowed": false
+  },
+  "pipelineMetaOk": true,
+  "activationAttempt": {
+    "blocked": true,
+    "allowed": false,
+    "blockers": [
+      "PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY"
+    ]
+  },
+  "rollbackTarget": "legacy",
+  "rollbackReadiness": "prepared-not-active",
+  "nextEligibleStep": "3B.3.10",
+  "hostPlan": {
+    "activationState": "dormant",
+    "hostActivation": false,
+    "renderActivation": false,
+    "canStartActivation": false,
+    "placementState": "shadow-registered",
+    "registrationState": "registered",
+    "eligibilityState": "eligible",
+    "readinessState": "ready",
+    "simulationState": "completed",
+    "wouldActivate": true,
+    "decisionState": "completed",
+    "decisionResult": "ALLOW",
+    "confidence": "high",
+    "planState": "completed",
+    "planResult": "plan-complete-not-executable",
+    "pipelineState": "completed",
+    "pipelineResult": "pipeline-complete-not-executable",
+    "recommendedNextStep": "3B.3.10-controlled-host-activation-candidate"
+  },
+  "hostContract": {
+    "hostActivation": false,
+    "renderActivation": false,
+    "activeRenderOwner": "legacy",
+    "activeWriter": "legacy",
+    "nextEligibleStep": "3B.3.10",
+    "hostClassification": "controlled-host-candidate"
+  },
+  "scenarios": [
+    "HOST_ACTIVATION_PIPELINE",
+    "DECISION_METADATA_VISIBLE",
+    "DECISION_DIAGNOSTICS_VISIBLE",
+    "DECISION_RESULT_VISIBLE",
+    "WOULD_ACTIVATE_VISIBLE",
+    "REGISTRY_METADATA_ONLY",
+    "FORCED_ACTIVATION_ATTEMPT",
+    "RESIZE_CHROME",
+    "SCROLL_CONTINUITY",
+    "IDENTITY_STABLE",
+    "RUNTIME_ID_STABLE"
+  ],
+  "invariants": [
+    {
+      "id": "FEED_GEOFEED_SINGLE_MOUNT",
+      "expected": "mountCount=1",
+      "observed": "final=1",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_GEOFEED_ZERO_UNMOUNT_DURING_STABLE_SESSION",
+      "expected": "unmount=0",
+      "observed": "unmount=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NO_WORKSPACE_REQUEST_IDENTITY_INPUT",
+      "expected": "no workspace tokens in key hash",
+      "observed": "hash=fbd314f0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_REQUEST_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "expected": "no rk transition on shadow",
+      "observed": "delta=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NATIVE_PAINT_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "expected": "paint transitions=0",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_PREPARED_BATCH_IDENTITY_STABLE",
+      "expected": "batch hash stable",
+      "observed": "hash=cb373250",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_PAGINATION_CURSOR_NOT_RESET_BY_WORKSPACE",
+      "expected": "paginationReset unchanged",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_RESULT_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "expected": "result cache init stable",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_FILTER_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "expected": "filter cache init stable",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_INTERSECTION_OBSERVER_OWNERSHIP_UNCHANGED",
+      "expected": "IO create unchanged under shadow",
+      "observed": "count=1",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_RESIZE_OBSERVER_OWNERSHIP_UNCHANGED",
+      "expected": "no Feed RO",
+      "observed": "count=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SCROLL_OWNERSHIP_UNCHANGED",
+      "expected": "no jump-to-top",
+      "observed": "before=500 after=500",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_TILE_IDENTITY_UNCHANGED",
+      "expected": "tiles equal after shadow",
+      "observed": "n=14",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SKELETON_OWNERSHIP_UNCHANGED",
+      "expected": "no host skeleton",
+      "observed": "ok",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_LOADING_BEHAVIOR_UNCHANGED",
+      "expected": "no host loading",
+      "observed": "ok",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_VISIBLE_DOM_UNCHANGED",
+      "expected": "DOM signature equal; no host DOM",
+      "observed": "hostDom=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_SSR_BEHAVIOR_UNCHANGED",
+      "expected": "SSR ok + single mount",
+      "observed": "status=200",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_HYDRATION_CLEAN",
+      "expected": "no hydration errors",
+      "observed": "n=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_NO_ADDITIONAL_API_REQUESTS",
+      "expected": "shadow/force host request delta 0",
+      "observed": "shadowDelta=0 forceDelta=0",
+      "status": "PASS",
+      "releaseBlocking": true
+    },
+    {
+      "id": "FEED_LEGACY_SINGLE_WRITER",
+      "expected": "legacy writer; host activation pipeline; activation blocked",
+      "observed": "{\"activationAttempt\":{\"allowed\":false,\"blockers\":[\"PHASE_3B3_9_HOST_ACTIVATION_PIPELINE_ONLY\"],\"currentStep\":\"3B.3.9\",\"eligibleStep\":\"3B.3.10\"},\"placementState\":\"shadow-registered\"}",
+      "status": "PASS",
+      "releaseBlocking": true
+    }
+  ],
+  "mountUnmount": {
+    "mountCount": 1,
+    "unmountCount": 0,
+    "activeInstanceCount": 1
+  },
+  "feedNetworkCount": 20,
+  "overallVerdict": "READY_FOR_PHASE_3B_3_10"
+}

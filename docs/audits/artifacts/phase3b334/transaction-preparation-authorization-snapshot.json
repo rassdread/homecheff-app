@@ -1,0 +1,7 @@
+{
+  "transactionPreparationReady": true,
+  "transactionPreparationAuthorized": true,
+  "issuanceTransactionState": "OPENED",
+  "issuanceTransactionPrepared": false,
+  "issuancePipelineExecutable": false
+}

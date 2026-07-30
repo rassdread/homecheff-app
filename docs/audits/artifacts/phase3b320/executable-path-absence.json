@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.20",
+  "proofTarget": "3a0857e55a96ecaebafa5ed3568cc41d1b5e4201",
+  "executableHandlePresent": false,
+  "runtimeCapabilityPresent": false,
+  "commandPresent": false,
+  "dispatcherPresent": false,
+  "queuePresent": false,
+  "schedulerAllowed": false,
+  "executorAllowed": false,
+  "issuancePlanExecutable": false,
+  "issuancePlanExecutionAllowed": false,
+  "issuancePlanExecutionImpossible": true,
+  "executionImpossible": true
+}

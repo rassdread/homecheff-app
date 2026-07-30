@@ -1,0 +1,23 @@
+
+> homecheff-app@0.1.0 probe:adaptive-workspace-controlled-workspace-host-candidate-selection
+> node scripts/run-controlled-workspace-host-candidate-selection-proof-phase3b325.mjs
+
+[phase3b325] Phase 3B.2 proof rerun
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "fail": []
+}
+[phase3b325] Phase 3B.3.25 candidate selection proof
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b325/phase3b3-25-controlled-workspace-host-candidate-selection-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3_26",
+  "passCount": 20,
+  "fail": [],
+  "candidateSelectionMetaOk": true,
+  "forcedNegativeProofsOk": true
+}
+[phase3b325] READY_FOR_PHASE_3B_3_26

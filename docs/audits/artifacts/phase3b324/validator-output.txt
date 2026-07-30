@@ -1,0 +1,5 @@
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-controlled-workspace-host-candidate-registration
+> npx tsx scripts/validate-adaptive-workspace-controlled-workspace-host-candidate-registration.ts
+
+validate-adaptive-workspace-controlled-workspace-host-candidate-registration: ok (with artifacts)

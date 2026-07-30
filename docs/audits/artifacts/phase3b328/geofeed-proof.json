@@ -1,0 +1,9 @@
+{
+  "mountsGeoFeed": false,
+  "containsGeoFeed": false,
+  "wrapsGeoFeed": false,
+  "duplicatesGeoFeed": false,
+  "createsSecondGeoFeed": false,
+  "geoFeedRenderCount": 1,
+  "mountCount": 1
+}

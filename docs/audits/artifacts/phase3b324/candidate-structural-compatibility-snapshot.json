@@ -1,0 +1,9 @@
+{
+  "candidateStructurallyCompatible": true,
+  "candidateRuntimeCompatible": true,
+  "candidateSelectionEligibleInFuture": true,
+  "candidateSelectionEligibleNow": false,
+  "candidateActivationEligibleNow": false,
+  "candidateRuntimeAdoptionEligibleNow": false,
+  "futureSelectionTarget": true
+}

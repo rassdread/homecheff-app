@@ -1,0 +1,12 @@
+{
+  "phase": "3B.3.38",
+  "branch": "workspace/phase3b338-controlled-workspace-host-activation-transaction-commit",
+  "result": "controlled-workspace-host-activation-transaction-committed-not-executed",
+  "lifecycle": "TRANSACTION_COMMITTED_NOT_EXECUTED",
+  "proofTarget": "18f33e62bcc7089037eda1888e723863a4c9cf53",
+  "predecessorHead": "714efe6b815d336a30fae35f7c8fd8583f1fe533",
+  "bridgeVersion": 39,
+  "proofPort": 3059,
+  "verdict": "READY_FOR_PHASE_3B_3_39",
+  "documentaryTip": "a0278e5095bad921de46eff7ca894a772b176db6"
+}

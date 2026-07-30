@@ -1,0 +1,1717 @@
+{
+  "transactionParticipantCount": 30,
+  "blockedTransactionParticipantCount": 30,
+  "completedTransactionParticipantCount": 0,
+  "executableTransactionParticipantCount": 0,
+  "invalidTransactionParticipantCount": 0,
+  "participants": [
+    {
+      "participantId": "frozen-predecessor-validation-participant",
+      "ordinal": 1,
+      "phase": "3B.3.23",
+      "title": "Frozen predecessor validation participant",
+      "purpose": "Covers validation of Phase 3B.3.20 completion and freeze state.",
+      "category": "predecessor-validation",
+      "inputTransactionParticipantIds": [
+        "frozen-predecessor-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers validation of Phase 3B.3.20 completion and freeze state."
+      }
+    },
+    {
+      "participantId": "issuance-plan-intake-participant",
+      "ordinal": 2,
+      "phase": "3B.3.23",
+      "title": "Issuance-plan intake participant",
+      "purpose": "Covers plan identity, contract identity, policy identity and plan readiness.",
+      "category": "plan-intake",
+      "inputTransactionParticipantIds": [
+        "issuance-plan-intake-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "frozen-predecessor-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers plan identity, contract identity, policy identity and plan readiness."
+      }
+    },
+    {
+      "participantId": "plan-structure-validation-participant",
+      "ordinal": 3,
+      "phase": "3B.3.23",
+      "title": "Plan-structure validation participant",
+      "purpose": "Covers step count, contiguous ordinals, unique IDs and valid prerequisites.",
+      "category": "plan-structure",
+      "inputTransactionParticipantIds": [
+        "plan-structure-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "issuance-plan-intake-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers step count, contiguous ordinals, unique IDs and valid prerequisites."
+      }
+    },
+    {
+      "participantId": "plan-dependency-validation-participant",
+      "ordinal": 4,
+      "phase": "3B.3.23",
+      "title": "Plan-dependency validation participant",
+      "purpose": "Covers acyclicity and stable prerequisite graph.",
+      "category": "plan-dependency",
+      "inputTransactionParticipantIds": [
+        "plan-dependency-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "plan-structure-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers acyclicity and stable prerequisite graph."
+      }
+    },
+    {
+      "participantId": "issuance-decision-validation-participant",
+      "ordinal": 5,
+      "phase": "3B.3.23",
+      "title": "Issuance-decision validation participant",
+      "purpose": "Covers eligibility, blocked state and exact decision result.",
+      "category": "issuance-decision",
+      "inputTransactionParticipantIds": [
+        "issuance-decision-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "plan-dependency-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers eligibility, blocked state and exact decision result."
+      }
+    },
+    {
+      "participantId": "grant-readiness-validation-participant",
+      "ordinal": 6,
+      "phase": "3B.3.23",
+      "title": "Grant-readiness validation participant",
+      "purpose": "Covers grant-ready but not-issued metadata.",
+      "category": "grant-readiness",
+      "inputTransactionParticipantIds": [
+        "grant-readiness-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "issuance-decision-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers grant-ready but not-issued metadata."
+      }
+    },
+    {
+      "participantId": "authorization-validation-participant",
+      "ordinal": 7,
+      "phase": "3B.3.23",
+      "title": "Authorization validation participant",
+      "purpose": "Covers authorization eligibility while authorization remains ungranted and unapplied.",
+      "category": "authorization",
+      "inputTransactionParticipantIds": [
+        "authorization-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "grant-readiness-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers authorization eligibility while authorization remains ungranted and unapplied."
+      }
+    },
+    {
+      "participantId": "preflight-validation-participant",
+      "ordinal": 8,
+      "phase": "3B.3.23",
+      "title": "Preflight validation participant",
+      "purpose": "Covers preflight-ready while transition remains unauthorized.",
+      "category": "preflight",
+      "inputTransactionParticipantIds": [
+        "preflight-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "authorization-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers preflight-ready while transition remains unauthorized."
+      }
+    },
+    {
+      "participantId": "transition-selection-validation-participant",
+      "ordinal": 9,
+      "phase": "3B.3.23",
+      "title": "Transition-selection validation participant",
+      "purpose": "Covers COMMIT_READY->ACTIVE metadata.",
+      "category": "selection",
+      "inputTransactionParticipantIds": [
+        "transition-selection-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "preflight-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers COMMIT_READY->ACTIVE metadata."
+      }
+    },
+    {
+      "participantId": "state-and-graph-validation-participant",
+      "ordinal": 10,
+      "phase": "3B.3.23",
+      "title": "State-and-graph validation participant",
+      "purpose": "Covers current state and graph node remaining COMMIT_READY.",
+      "category": "state-graph",
+      "inputTransactionParticipantIds": [
+        "state-and-graph-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "transition-selection-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers current state and graph node remaining COMMIT_READY."
+      }
+    },
+    {
+      "participantId": "commit-boundary-validation-participant",
+      "ordinal": 11,
+      "phase": "3B.3.23",
+      "title": "Commit-boundary validation participant",
+      "purpose": "Covers protocol, transaction, commit and rollback remaining unexecuted.",
+      "category": "commit-boundary",
+      "inputTransactionParticipantIds": [
+        "commit-boundary-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "state-and-graph-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers protocol, transaction, commit and rollback remaining unexecuted."
+      }
+    },
+    {
+      "participantId": "runtime-identity-validation-participant",
+      "ordinal": 12,
+      "phase": "3B.3.23",
+      "title": "Runtime-identity validation participant",
+      "purpose": "Covers stable hostId, runtimeId and linked identities.",
+      "category": "runtime-identity",
+      "inputTransactionParticipantIds": [
+        "runtime-identity-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "commit-boundary-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers stable hostId, runtimeId and linked identities."
+      }
+    },
+    {
+      "participantId": "runtime-mount-validation-participant",
+      "ordinal": 13,
+      "phase": "3B.3.23",
+      "title": "Runtime-mount validation participant",
+      "purpose": "Covers mount=1 and unmount=0.",
+      "category": "runtime-mount",
+      "inputTransactionParticipantIds": [
+        "runtime-mount-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "runtime-identity-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers mount=1 and unmount=0."
+      }
+    },
+    {
+      "participantId": "geofeed-singularity-validation-participant",
+      "ordinal": 14,
+      "phase": "3B.3.23",
+      "title": "Sealed-feed singularity validation participant",
+      "purpose": "Covers one active sealed feed instance and one renderer.",
+      "category": "geofeed-singularity",
+      "inputTransactionParticipantIds": [
+        "geofeed-singularity-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "runtime-mount-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers one active sealed feed instance and one renderer."
+      }
+    },
+    {
+      "participantId": "workspace-shell-validation-participant",
+      "ordinal": 15,
+      "phase": "3B.3.23",
+      "title": "Workspace-shell validation participant",
+      "purpose": "Covers null shell, zero children and zero DOM nodes.",
+      "category": "workspace-shell",
+      "inputTransactionParticipantIds": [
+        "workspace-shell-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "geofeed-singularity-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers null shell, zero children and zero DOM nodes."
+      }
+    },
+    {
+      "participantId": "legacy-ownership-validation-participant",
+      "ordinal": 16,
+      "phase": "3B.3.23",
+      "title": "Legacy-ownership validation participant",
+      "purpose": "Covers owner, writer and renderer remaining legacy.",
+      "category": "ownership",
+      "inputTransactionParticipantIds": [
+        "legacy-ownership-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "workspace-shell-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers owner, writer and renderer remaining legacy."
+      }
+    },
+    {
+      "participantId": "grant-absence-validation-participant",
+      "ordinal": 17,
+      "phase": "3B.3.23",
+      "title": "Grant-absence validation participant",
+      "purpose": "Covers the complete grant lifecycle remaining absent.",
+      "category": "grant-absence",
+      "inputTransactionParticipantIds": [
+        "grant-absence-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "legacy-ownership-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers the complete grant lifecycle remaining absent."
+      }
+    },
+    {
+      "participantId": "authority-absence-validation-participant",
+      "ordinal": 18,
+      "phase": "3B.3.23",
+      "title": "Authority-absence validation participant",
+      "purpose": "Covers authority/provider/service absence.",
+      "category": "authority-absence",
+      "inputTransactionParticipantIds": [
+        "authority-absence-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "grant-absence-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers authority/provider/service absence."
+      }
+    },
+    {
+      "participantId": "credential-absence-validation-participant",
+      "ordinal": 19,
+      "phase": "3B.3.23",
+      "title": "Credential-absence validation participant",
+      "purpose": "Covers token, secret, signature, nonce, credential, certificate and permit absence.",
+      "category": "credential-absence",
+      "inputTransactionParticipantIds": [
+        "credential-absence-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "authority-absence-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers token, secret, signature, nonce, credential, certificate and permit absence."
+      }
+    },
+    {
+      "participantId": "executable-path-absence-validation-participant",
+      "ordinal": 20,
+      "phase": "3B.3.23",
+      "title": "Executable-path absence validation participant",
+      "purpose": "Covers callback, handle, capability, command, dispatcher, queue, scheduler and executor absence.",
+      "category": "executable-path-absence",
+      "inputTransactionParticipantIds": [
+        "executable-path-absence-validation-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "credential-absence-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Covers callback, handle, capability, command, dispatcher, queue, scheduler and executor absence."
+      }
+    },
+    {
+      "participantId": "hypothetical-grant-construction-boundary-participant",
+      "ordinal": 21,
+      "phase": "3B.3.23",
+      "title": "Hypothetical grant-construction boundary participant",
+      "purpose": "Descriptive only. Grant construction remains forbidden.",
+      "category": "hypothetical-boundary",
+      "inputTransactionParticipantIds": [
+        "hypothetical-grant-construction-boundary-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "executable-path-absence-validation-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Descriptive only. Grant construction remains forbidden."
+      }
+    },
+    {
+      "participantId": "hypothetical-grant-issuance-boundary-participant",
+      "ordinal": 22,
+      "phase": "3B.3.23",
+      "title": "Hypothetical grant-issuance boundary participant",
+      "purpose": "Descriptive only. Grant issuance remains forbidden.",
+      "category": "hypothetical-boundary",
+      "inputTransactionParticipantIds": [
+        "hypothetical-grant-issuance-boundary-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "hypothetical-grant-construction-boundary-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Descriptive only. Grant issuance remains forbidden."
+      }
+    },
+    {
+      "participantId": "hypothetical-grant-persistence-boundary-participant",
+      "ordinal": 23,
+      "phase": "3B.3.23",
+      "title": "Hypothetical grant-persistence boundary participant",
+      "purpose": "Descriptive only. Grant persistence remains forbidden.",
+      "category": "hypothetical-boundary",
+      "inputTransactionParticipantIds": [
+        "hypothetical-grant-persistence-boundary-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "hypothetical-grant-issuance-boundary-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Descriptive only. Grant persistence remains forbidden."
+      }
+    },
+    {
+      "participantId": "hypothetical-grant-application-boundary-participant",
+      "ordinal": 24,
+      "phase": "3B.3.23",
+      "title": "Hypothetical grant-application boundary participant",
+      "purpose": "Descriptive only. Grant application remains forbidden.",
+      "category": "hypothetical-boundary",
+      "inputTransactionParticipantIds": [
+        "hypothetical-grant-application-boundary-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "hypothetical-grant-persistence-boundary-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Descriptive only. Grant application remains forbidden."
+      }
+    },
+    {
+      "participantId": "hypothetical-authority-boundary-participant",
+      "ordinal": 25,
+      "phase": "3B.3.23",
+      "title": "Hypothetical authority boundary participant",
+      "purpose": "Descriptive only. Authority creation, enablement, delegation and transfer remain forbidden.",
+      "category": "hypothetical-boundary",
+      "inputTransactionParticipantIds": [
+        "hypothetical-authority-boundary-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "hypothetical-grant-application-boundary-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Descriptive only. Authority creation, enablement, delegation and transfer remain forbidden."
+      }
+    },
+    {
+      "participantId": "hypothetical-transition-authorization-boundary-participant",
+      "ordinal": 26,
+      "phase": "3B.3.23",
+      "title": "Hypothetical transition-authorization boundary participant",
+      "purpose": "Descriptive only. Transition authorization remains forbidden.",
+      "category": "hypothetical-boundary",
+      "inputTransactionParticipantIds": [
+        "hypothetical-transition-authorization-boundary-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "hypothetical-authority-boundary-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Descriptive only. Transition authorization remains forbidden."
+      }
+    },
+    {
+      "participantId": "hypothetical-activation-boundary-participant",
+      "ordinal": 27,
+      "phase": "3B.3.23",
+      "title": "Hypothetical activation boundary participant",
+      "purpose": "Descriptive only. Activation remains forbidden.",
+      "category": "hypothetical-boundary",
+      "inputTransactionParticipantIds": [
+        "hypothetical-activation-boundary-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "hypothetical-transition-authorization-boundary-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Descriptive only. Activation remains forbidden."
+      }
+    },
+    {
+      "participantId": "rollback-description-participant",
+      "ordinal": 28,
+      "phase": "3B.3.23",
+      "title": "Rollback-description participant",
+      "purpose": "Descriptive rollback metadata only. No rollback command or execution path.",
+      "category": "rollback-description",
+      "inputTransactionParticipantIds": [
+        "rollback-description-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "hypothetical-activation-boundary-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Descriptive rollback metadata only. No rollback command or execution path."
+      }
+    },
+    {
+      "participantId": "final-fail-closed-verification-participant",
+      "ordinal": 29,
+      "phase": "3B.3.23",
+      "title": "Final fail-closed verification participant",
+      "purpose": "Reasserts all blocked, absent and false flags.",
+      "category": "fail-closed",
+      "inputTransactionParticipantIds": [
+        "final-fail-closed-verification-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "rollback-description-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Reasserts all blocked, absent and false flags."
+      }
+    },
+    {
+      "participantId": "transaction-readiness-declaration-participant",
+      "ordinal": 30,
+      "phase": "3B.3.23",
+      "title": "Transaction readiness declaration participant",
+      "purpose": "Declares metadata pipeline completion only. Final result: authorization-grant-issuance-commit-boundary-ready-not-entered",
+      "category": "pipeline-completion",
+      "inputTransactionParticipantIds": [
+        "transaction-readiness-declaration-participant"
+      ],
+      "prerequisiteParticipantIds": [
+        "final-fail-closed-verification-participant"
+      ],
+      "expectedInputMetadataKeys": [
+        "issuanceTransactionResult",
+        "issuancePlanResult",
+        "issuanceDecisionResult",
+        "grantReadinessResult",
+        "authorizationDecisionResult",
+        "selectedTransition",
+        "currentState",
+        "currentNode"
+      ],
+      "expectedOutputMetadataKeys": [
+        "issuanceCommitBoundaryResult",
+        "issuanceCommitBoundaryState",
+        "blocked",
+        "executable",
+        "transactionParticipantCoverageExact"
+      ],
+      "validationConditionIds": [
+        "issuance-transaction-metadata-only"
+      ],
+      "guardIds": [
+        "all-participants-blocked-guard"
+      ],
+      "blockerIds": [
+        "PHASE_3B3_23_ISSUANCE_TRANSACTION_OPEN_FORBIDDEN"
+      ],
+      "blocked": true,
+      "executable": false,
+      "executionAllowed": false,
+      "enlisted": false,
+      "invoked": false,
+      "prepared": false,
+      "committed": false,
+      "aborted": false,
+      "rolledBack": false,
+      "compensated": false,
+      "completed": false,
+      "status": "commit-boundary-participant-blocked-not-executable",
+      "diagnostics": {
+        "descriptiveOnly": true,
+        "executionForbidden": true,
+        "note": "Declares metadata pipeline completion only. Final result: authorization-grant-issuance-commit-boundary-ready-not-entered"
+      }
+    }
+  ]
+}

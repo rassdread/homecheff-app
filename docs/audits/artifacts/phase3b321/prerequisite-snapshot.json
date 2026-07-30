@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.21",
+  "edges": [
+    {
+      "from": "frozen-predecessor-validation-stage",
+      "prerequisites": []
+    },
+    {
+      "from": "issuance-plan-intake-stage",
+      "prerequisites": [
+        "frozen-predecessor-validation-stage"
+      ]
+    },
+    {
+      "from": "plan-structure-validation-stage",
+      "prerequisites": [
+        "issuance-plan-intake-stage"
+      ]
+    },
+    {
+      "from": "plan-dependency-validation-stage",
+      "prerequisites": [
+        "plan-structure-validation-stage"
+      ]
+    },
+    {
+      "from": "issuance-decision-validation-stage",
+      "prerequisites": [
+        "plan-dependency-validation-stage"
+      ]
+    },
+    {
+      "from": "grant-readiness-validation-stage",
+      "prerequisites": [
+        "issuance-decision-validation-stage"
+      ]
+    },
+    {
+      "from": "authorization-validation-stage",
+      "prerequisites": [
+        "grant-readiness-validation-stage"
+      ]
+    },
+    {
+      "from": "preflight-validation-stage",
+      "prerequisites": [
+        "authorization-validation-stage"
+      ]
+    },
+    {
+      "from": "transition-selection-validation-stage",
+      "prerequisites": [
+        "preflight-validation-stage"
+      ]
+    },
+    {
+      "from": "state-and-graph-validation-stage",
+      "prerequisites": [
+        "transition-selection-validation-stage"
+      ]
+    },
+    {
+      "from": "commit-boundary-validation-stage",
+      "prerequisites": [
+        "state-and-graph-validation-stage"
+      ]
+    },
+    {
+      "from": "runtime-identity-validation-stage",
+      "prerequisites": [
+        "commit-boundary-validation-stage"
+      ]
+    },
+    {
+      "from": "runtime-mount-validation-stage",
+      "prerequisites": [
+        "runtime-identity-validation-stage"
+      ]
+    },
+    {
+      "from": "geofeed-singularity-validation-stage",
+      "prerequisites": [
+        "runtime-mount-validation-stage"
+      ]
+    },
+    {
+      "from": "workspace-shell-validation-stage",
+      "prerequisites": [
+        "geofeed-singularity-validation-stage"
+      ]
+    },
+    {
+      "from": "legacy-ownership-validation-stage",
+      "prerequisites": [
+        "workspace-shell-validation-stage"
+      ]
+    },
+    {
+      "from": "grant-absence-validation-stage",
+      "prerequisites": [
+        "legacy-ownership-validation-stage"
+      ]
+    },
+    {
+      "from": "authority-absence-validation-stage",
+      "prerequisites": [
+        "grant-absence-validation-stage"
+      ]
+    },
+    {
+      "from": "credential-absence-validation-stage",
+      "prerequisites": [
+        "authority-absence-validation-stage"
+      ]
+    },
+    {
+      "from": "executable-path-absence-validation-stage",
+      "prerequisites": [
+        "credential-absence-validation-stage"
+      ]
+    },
+    {
+      "from": "hypothetical-grant-construction-boundary-stage",
+      "prerequisites": [
+        "executable-path-absence-validation-stage"
+      ]
+    },
+    {
+      "from": "hypothetical-grant-issuance-boundary-stage",
+      "prerequisites": [
+        "hypothetical-grant-construction-boundary-stage"
+      ]
+    },
+    {
+      "from": "hypothetical-grant-persistence-boundary-stage",
+      "prerequisites": [
+        "hypothetical-grant-issuance-boundary-stage"
+      ]
+    },
+    {
+      "from": "hypothetical-grant-application-boundary-stage",
+      "prerequisites": [
+        "hypothetical-grant-persistence-boundary-stage"
+      ]
+    },
+    {
+      "from": "hypothetical-authority-boundary-stage",
+      "prerequisites": [
+        "hypothetical-grant-application-boundary-stage"
+      ]
+    },
+    {
+      "from": "hypothetical-transition-authorization-boundary-stage",
+      "prerequisites": [
+        "hypothetical-authority-boundary-stage"
+      ]
+    },
+    {
+      "from": "hypothetical-activation-boundary-stage",
+      "prerequisites": [
+        "hypothetical-transition-authorization-boundary-stage"
+      ]
+    },
+    {
+      "from": "rollback-description-stage",
+      "prerequisites": [
+        "hypothetical-activation-boundary-stage"
+      ]
+    },
+    {
+      "from": "final-fail-closed-verification-stage",
+      "prerequisites": [
+        "rollback-description-stage"
+      ]
+    },
+    {
+      "from": "pipeline-completion-declaration-stage",
+      "prerequisites": [
+        "final-fail-closed-verification-stage"
+      ]
+    }
+  ]
+}

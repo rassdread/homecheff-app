@@ -1,0 +1,20 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-plan-tests.ts
+
+
+[phase3b320] activation transition authorization grant issuance plan descriptor + engine
+  ✓ authorization grant issuance plan descriptor deterministic
+  ✓ authorization grant issuance plan engine + diagnostics metadata only (currentPhase 3B.3.20, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b320] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance plan contract fail-closed
+  ✓ authorization grant issuance plan identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.20, eligibleStep=3B.3.21)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance plan fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_20 blocker
+
+adaptive-workspace Phase 3B.3.20 host activation transition authorization grant issuance plan: 9 assertions ok
+

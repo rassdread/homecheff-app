@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.20",
+  "proofTarget": "3a0857e55a96ecaebafa5ed3568cc41d1b5e4201",
+  "edgeCount": 29,
+  "edges": [
+    {
+      "prerequisiteId": "validate-frozen-predecessor",
+      "stepId": "validate-issuance-decision"
+    },
+    {
+      "prerequisiteId": "validate-issuance-decision",
+      "stepId": "validate-grant-readiness"
+    },
+    {
+      "prerequisiteId": "validate-grant-readiness",
+      "stepId": "validate-authorization-decision"
+    },
+    {
+      "prerequisiteId": "validate-authorization-decision",
+      "stepId": "validate-transition-preflight"
+    },
+    {
+      "prerequisiteId": "validate-transition-preflight",
+      "stepId": "validate-selected-transition"
+    },
+    {
+      "prerequisiteId": "validate-selected-transition",
+      "stepId": "validate-state-and-graph-position"
+    },
+    {
+      "prerequisiteId": "validate-state-and-graph-position",
+      "stepId": "validate-commit-boundary"
+    },
+    {
+      "prerequisiteId": "validate-commit-boundary",
+      "stepId": "validate-runtime-ownership"
+    },
+    {
+      "prerequisiteId": "validate-runtime-ownership",
+      "stepId": "validate-stable-runtime-identity"
+    },
+    {
+      "prerequisiteId": "validate-stable-runtime-identity",
+      "stepId": "validate-stable-mount"
+    },
+    {
+      "prerequisiteId": "validate-stable-mount",
+      "stepId": "validate-single-geofeed"
+    },
+    {
+      "prerequisiteId": "validate-single-geofeed",
+      "stepId": "validate-null-workspace-shell"
+    },
+    {
+      "prerequisiteId": "validate-null-workspace-shell",
+      "stepId": "validate-grant-absence"
+    },
+    {
+      "prerequisiteId": "validate-grant-absence",
+      "stepId": "validate-authority-absence"
+    },
+    {
+      "prerequisiteId": "validate-authority-absence",
+      "stepId": "validate-credential-absence"
+    },
+    {
+      "prerequisiteId": "validate-credential-absence",
+      "stepId": "validate-executable-path-absence"
+    },
+    {
+      "prerequisiteId": "validate-executable-path-absence",
+      "stepId": "validate-transition-remains-unauthorized"
+    },
+    {
+      "prerequisiteId": "validate-transition-remains-unauthorized",
+      "stepId": "validate-activation-remains-impossible"
+    },
+    {
+      "prerequisiteId": "validate-activation-remains-impossible",
+      "stepId": "validate-commit-and-rollback-unexecuted"
+    },
+    {
+      "prerequisiteId": "validate-commit-and-rollback-unexecuted",
+      "stepId": "describe-hypothetical-grant-construction-boundary"
+    },
+    {
+      "prerequisiteId": "describe-hypothetical-grant-construction-boundary",
+      "stepId": "describe-hypothetical-grant-issuance-boundary"
+    },
+    {
+      "prerequisiteId": "describe-hypothetical-grant-issuance-boundary",
+      "stepId": "describe-hypothetical-grant-persistence-boundary"
+    },
+    {
+      "prerequisiteId": "describe-hypothetical-grant-persistence-boundary",
+      "stepId": "describe-hypothetical-grant-application-boundary"
+    },
+    {
+      "prerequisiteId": "describe-hypothetical-grant-application-boundary",
+      "stepId": "describe-hypothetical-authority-boundary"
+    },
+    {
+      "prerequisiteId": "describe-hypothetical-authority-boundary",
+      "stepId": "describe-hypothetical-transition-authorization-boundary"
+    },
+    {
+      "prerequisiteId": "describe-hypothetical-transition-authorization-boundary",
+      "stepId": "describe-hypothetical-activation-boundary"
+    },
+    {
+      "prerequisiteId": "describe-hypothetical-activation-boundary",
+      "stepId": "describe-rollback-boundary"
+    },
+    {
+      "prerequisiteId": "describe-rollback-boundary",
+      "stepId": "reassert-final-fail-closed-state"
+    },
+    {
+      "prerequisiteId": "reassert-final-fail-closed-state",
+      "stepId": "declare-plan-complete-but-non-executable"
+    }
+  ],
+  "unknownPrerequisites": [],
+  "allPrerequisitesValid": true
+}

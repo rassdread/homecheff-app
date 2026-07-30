@@ -1,0 +1,17 @@
+{
+  "grantIssuanceResult": "controlled-workspace-host-activation-grant-issued-not-activated",
+  "grantIssuanceState": "GRANTED_NOT_ACTIVATED",
+  "candidateGranted": true,
+  "grantPresent": true,
+  "grantExecutable": false,
+  "futureGrantIssued": true,
+  "activationGrantIssuanceAllowed": false,
+  "currentPhase": "3B.3.28",
+  "previousPhase": "3B.3.27",
+  "nextEligibleStep": "3B.3.29",
+  "conditionCount": 106,
+  "satisfiedConditionCount": 106,
+  "guardCount": 36,
+  "satisfiedGuardCount": 36,
+  "blockerCount": 53
+}

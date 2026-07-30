@@ -1,0 +1,20 @@
+{
+  "phase": "AW-R4",
+  "freezeCommit": "pending",
+  "implementationCommit": "28c8abe858e8cefe73c66e884048cb4526456448",
+  "proofTarget": "28c8abe858e8cefe73c66e884048cb4526456448",
+  "bridgeVersion": "v52",
+  "Allowed": true,
+  "Executable": true,
+  "issuancePipelineState": "AUTHORITY_TRANSITIONED",
+  "issuanceTransactionState": "AUTHORITY_COMMITTED",
+  "WorkspacePresent": true,
+  "RuntimePresent": true,
+  "GeoFeedOwner": "workspace",
+  "GeoFeedWriter": "workspace",
+  "GeoFeedRenderer": "workspace",
+  "renderActivation": true,
+  "feedOnAuthorized": false,
+  "geoFeedAuthorityTransitionMetaOk": true,
+  "finalVerdict": "READY_FOR_AW_R5"
+}

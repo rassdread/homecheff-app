@@ -1,0 +1,81 @@
+=== 328 PASS ===
+validate-adaptive-workspace-host-activation-grant-issuance-phase3b328: PASS
+
+=== 327 PASS ===
+validate-adaptive-workspace-host-activation-authorization-phase3b327: PASS
+
+=== 326 PASS ===
+validate-adaptive-workspace-host-activation-readiness-phase3b326: PASS
+
+=== 325 PASS ===
+validate-adaptive-workspace-controlled-workspace-host-candidate-selection: ok (with artifacts)
+
+=== 324 PASS ===
+validate-adaptive-workspace-controlled-workspace-host-candidate-registration: ok (with artifacts)
+
+=== 323 PASS ===
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-commit-boundary
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-commit-boundary-tests.ts
+
+
+[phase3b323] activation transition authorization grant issuance pipeline descriptor + engine
+  ✓ authorization grant issuance plan descriptor deterministic
+  ✓ authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.23, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b323] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance pipeline contract fail-closed
+  ✓ authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.25, eligibleStep=3B.3.26)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance pipeline fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_23 blocker
+
+adaptive-workspace Phase 3B.3.23 host activation transition authorization grant issuance pipeline: 9 assertions ok
+
+
+=== 322 PASS ===
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-transaction
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-transaction-tests.ts
+
+
+[phase3b322] activation transition authorization grant issuance pipeline descriptor + engine
+  ✓ authorization grant issuance plan descriptor deterministic
+  ✓ authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.22, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b322] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance pipeline contract fail-closed
+  ✓ authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.23, eligibleStep=3B.3.24)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance pipeline fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_22 blocker
+
+adaptive-workspace Phase 3B.3.22 host activation transition authorization grant issuance pipeline: 9 assertions ok
+
+
+=== 321 PASS ===
+
+> homecheff-app@0.1.0 test:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-pipeline
+> npx tsx lib/adaptive-workspace/tests/run-host-activation-transition-authorization-grant-issuance-pipeline-tests.ts
+
+
+[phase3b321] activation transition authorization grant issuance pipeline descriptor + engine
+  ✓ authorization grant issuance plan descriptor deterministic
+  ✓ authorization grant issuance pipeline engine + diagnostics metadata only (currentPhase 3B.3.21, chained from 3B.3.18)
+  ✓ authorization grant issuance plan descriptor fail-closed
+
+[phase3b321] contract + identity + gate + host metadata + prepared + permanent block
+  ✓ authorization grant issuance pipeline contract fail-closed
+  ✓ authorization grant issuance pipeline identity forbids grant creation/issuance/materialization/authority
+  ✓ activation remains impossible (gate currentStep=3B.3.22, eligibleStep=3B.3.23)
+  ✓ owner/writer/renderer/registry/rollback/host metadata unchanged
+  ✓ prepared authorization grant issuance pipeline fail-closed
+  ✓ grant issuance permanently blocked with PHASE_3B3_21 blocker
+
+adaptive-workspace Phase 3B.3.21 host activation transition authorization grant issuance pipeline: 9 assertions ok
+
+

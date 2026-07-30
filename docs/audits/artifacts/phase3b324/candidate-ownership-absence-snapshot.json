@@ -1,0 +1,9 @@
+{
+  "candidateOwner": "none",
+  "ownsRuntime": false,
+  "ownsFeed": false,
+  "ownsRequests": false,
+  "ownsCache": false,
+  "ownsObservers": false,
+  "liveOwner": "legacy"
+}

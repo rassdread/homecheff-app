@@ -1,0 +1,82 @@
+#!/usr/bin/env node
+import { spawn } from "node:child_process";
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
+
+const root = process.cwd();
+const port = process.env.AW_R1_PORT || "3069";
+if (!process.env.PUPPETEER_EXECUTABLE_PATH) {
+  process.env.PUPPETEER_EXECUTABLE_PATH =
+    process.env.HOME +
+    "/Library/Caches/ms-playwright/chromium-1148/chrome-mac/Chromium.app/Contents/MacOS/Chromium";
+}
+const outDir = join(root, "docs/audits/artifacts/aw-r1");
+mkdirSync(outDir, { recursive: true });
+
+function run(command, args, env = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: root,
+      env: { ...process.env, ...env },
+      stdio: "inherit",
+    });
+    child.on("exit", (code) =>
+      code === 0
+        ? resolve()
+        : reject(new Error(`${command} ${args.join(" ")} exited ${code}`)),
+    );
+  });
+}
+
+if (process.env.SKIP_BUILD !== "1") {
+  await run("npm", ["run", "build"], {
+    NEXT_PUBLIC_FEED_SEALED_BASELINE: "1",
+    NEXT_TELEMETRY_DISABLED: "1",
+  });
+}
+
+const server = spawn(
+  "npx",
+  ["next", "start", "-p", port, "-H", "127.0.0.1"],
+  {
+    cwd: root,
+    env: {
+      ...process.env,
+      NODE_ENV: "production",
+      NEXT_PUBLIC_FEED_SEALED_BASELINE: "1",
+    },
+    stdio: "inherit",
+  },
+);
+try {
+  const baseUrl = `http://127.0.0.1:${port}`;
+  for (let attempt = 0; attempt < 90; attempt += 1) {
+    try {
+      const response = await fetch(baseUrl);
+      if (response.status > 0) break;
+    } catch {
+      if (attempt === 89) throw new Error(`Server not ready at ${baseUrl}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  const commit = (
+    await new Promise((resolve, reject) => {
+      const git = spawn("git", ["rev-parse", "HEAD"], { cwd: root });
+      let output = "";
+      git.stdout.on("data", (data) => (output += data));
+      git.on("exit", (code) =>
+        code === 0 ? resolve(output.trim()) : reject(new Error("git rev-parse failed")),
+      );
+    })
+  );
+  await run("node", [
+    "scripts/probe-controlled-workspace-host-candidate-pre-activation-seal-aw-r1.mjs",
+    `--base-url=${baseUrl}`,
+    `--commit=${commit}`,
+    "--branch=workspace/aw-r1-final-pre-activation-seal",
+    `--out-dir=${outDir}`,
+  ]);
+  console.log("[aw-r1] READY_FOR_AW_R2");
+} finally {
+  server.kill("SIGTERM");
+}

@@ -1,0 +1,30 @@
+  ├ chunks/nextjs-3de91431672a431f.js                   259 kB
+  └ chunks/vendors-4fcc17767576a4d3.js                  376 kB
+  └ other shared chunks (total)                         2.43 kB
+
+
+ƒ Middleware                                            48 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
+ƒ  (Dynamic)  server-rendered on demand
+
+[phase3b341] Phase 3B.2 proof rerun
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3",
+  "passCount": 20,
+  "fail": []
+}
+[phase3b341] Phase 3B.3.41 issuance-pipeline-execution proof
+{
+  "ok": true,
+  "outPath": "/Users/sergioarrias/Homecheff-app git/docs/audits/artifacts/phase3b341/phase3b3-41-controlled-workspace-host-activation-issuance-pipeline-execution-proof.json",
+  "verdict": "READY_FOR_PHASE_3B_3_42",
+  "passCount": 20,
+  "fail": [],
+  "issuancePipelineExecutedMetaOk": true,
+  "forcedNegativeProofsOk": true
+}
+[phase3b341] READY_FOR_PHASE_3B_3_42

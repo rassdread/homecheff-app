@@ -1,0 +1,5 @@
+Rollback Phase 3B.3.29:
+1. Reset branch to predecessor tip 2af07c062edd176fcf6631461d6a9e3d93bcce2c
+2. Or revert commits 0a4dd98e628ec29ff543e9ad649ba448b09ef988..541ae81afee1bb281a5fabdb7c9521f956a8c6e3 (and later documentary commits)
+3. Do not push while recovering
+4. Preserve unrelated dirty/untracked files

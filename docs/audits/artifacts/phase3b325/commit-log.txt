@@ -1,0 +1,4 @@
+a43376e fix(workspace): align Phase 3B.3.25 probe metaOk with selection bridge fields
+57c0197 fix(workspace): point Phase 3B.3.25 orchestrator at selection probe script
+25184dd test(workspace): add Phase 3B.3.25 candidate selection proofs and bridge v26
+b359a52 feat(workspace): add Phase 3B.3.25 controlled workspace host candidate selection

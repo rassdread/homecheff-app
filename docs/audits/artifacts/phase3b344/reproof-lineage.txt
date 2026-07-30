@@ -1,0 +1,23 @@
+phase=3B.3.44
+title=Controlled Workspace Host Candidate Activation
+reason=Full Chromium/orchestrator proof originally ran at b4f092d5; validator bridge fix (e20bec80) and prepared artifact completeness fix (e95df863) landed before original freeze (69e6ab57) without a complete proof artifact at the final tip.
+policy=reproofTarget=exact commit whose complete tracked state is tested (original freeze HEAD including tooling+artifact fixes)
+originalImplementationCommit=b4f092d522e558938f38a8c36eaf0d05033d8883
+originalProofTargetCommit=b4f092d522e558938f38a8c36eaf0d05033d8883
+validatorFixCommit=e20bec80201531e6d318db3671fe1cbf40e7c75d
+preparedArtifactFixCommit=e95df863d8b6cc35215e989cc0678cec7b15a898
+originalFreezeCommit=69e6ab57294975beeab6355d4c9885b487c0b175
+reproofTargetCommit=69e6ab57294975beeab6355d4c9885b487c0b175
+commands=
+  npm run test:adaptive-workspace-host-candidate-activation
+  npx tsx scripts/validate-adaptive-workspace-host-candidate-activation-phase3b344.ts
+  npm run probe:adaptive-workspace-host-candidate-activation
+results=
+  dedicatedTests=PASS 12 assertions
+  validator=PASS 56 forced-negative labels
+  productionBuild=PASS
+  chromium=20/20 PASS
+  controlledWorkspaceRegression=20/20 PASS
+  forcedNegativeChromiumProofs=49/49 PASS
+  candidateActivatedMetaOk=true
+  overallVerdict=READY_FOR_PHASE_3B_3_45

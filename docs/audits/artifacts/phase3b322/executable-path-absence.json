@@ -1,0 +1,10 @@
+{
+  "executableHandlePresent": false,
+  "runtimeCapabilityPresent": false,
+  "commandPresent": false,
+  "dispatcherPresent": false,
+  "queuePresent": false,
+  "schedulerPresent": false,
+  "executorPresent": false,
+  "executionImpossible": true
+}

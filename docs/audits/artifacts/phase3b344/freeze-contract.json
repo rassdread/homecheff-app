@@ -1,0 +1,13 @@
+{
+  "phase": "3B.3.44",
+  "title": "Controlled Workspace Host Candidate Activation",
+  "result": "controlled-workspace-host-candidate-activated-not-active",
+  "lifecycle": "CANDIDATE_ACTIVATED_NOT_ACTIVE",
+  "blocker": "PHASE_3B3_44_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ONLY",
+  "reproofTargetCommit": "69e6ab57294975beeab6355d4c9885b487c0b175",
+  "reproofDocumentaryCommit": "c88876b2d1b6153468909f5af5abfb166e9fb9d3",
+  "originalFreezeCommit": "69e6ab57294975beeab6355d4c9885b487c0b175",
+  "freezeCommit": "pending",
+  "nextEligiblePhase": "3B.3.45",
+  "finalVerdict": "READY_FOR_PHASE_3B_3_45"
+}

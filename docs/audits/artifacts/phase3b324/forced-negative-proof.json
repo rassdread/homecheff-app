@@ -1,0 +1,23 @@
+{
+  "predecessorWrongPhase": "blocked",
+  "predecessorWrongResult": "blocked",
+  "predecessorNotNotEntered": "blocked",
+  "boundaryEntryDetected": "blocked",
+  "boundaryArmingDetected": "blocked",
+  "boundaryCommitDetected": "blocked",
+  "candidateIdentityMissingOrInvalid": "blocked",
+  "duplicateCandidate": "blocked",
+  "zeroCandidates": "blocked",
+  "selectedCandidate": "blocked",
+  "activatedCandidate": "blocked",
+  "authorizedOrGranted": "blocked",
+  "runtimeCapability": "blocked",
+  "runtimeHostInstance": "blocked",
+  "geofeedContainment": "blocked",
+  "shellNonNull": "blocked",
+  "ownershipChange": "blocked",
+  "mountSingularityInvalid": "blocked",
+  "mutationPermission": "blocked",
+  "unitSuiteForcedNegatives": "pass",
+  "chromiumForcedNegativeProofsOk": true
+}

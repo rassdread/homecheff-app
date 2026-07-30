@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "order": [
+    {
+      "role": "AW-R1",
+      "hash": "c281c27173e3393f97b8e4cad703563dc0fb77f3"
+    },
+    {
+      "role": "AW-R2",
+      "hash": "df9b9b9a86ee31db79a546a2ebfa4c33036e6738"
+    },
+    {
+      "role": "AW-R3",
+      "hash": "227c2ee6cb89e5a838d9df2e45c08dd2073ea152"
+    },
+    {
+      "role": "AW-R4",
+      "hash": "fe4ad5e54e7f5408a826398059d60f278c8fe7be"
+    },
+    {
+      "role": "AW-R5",
+      "hash": "ac34031c8e16b70593392c484902d5f007b6f916"
+    },
+    {
+      "role": "AW-R6-impl",
+      "hash": "aa693a51190799197a2a0580b9e7dc0db1ecf621"
+    },
+    {
+      "role": "AW-R6-docs",
+      "hash": "f740f6350d01bbe7f1b3733610edbb6f275270d1"
+    },
+    {
+      "role": "AW-R6-lineage",
+      "hash": "d8c4a1bdb3ca2ce3acc8dbfcfe70f2c6bbf690e3"
+    },
+    {
+      "role": "AW-R6-freeze",
+      "hash": "be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170"
+    }
+  ],
+  "result": "PASS"
+}

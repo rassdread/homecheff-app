@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-validator",
+  "validator": "validate-adaptive-workspace-production-feed-on-aw-r6",
+  "predecessorFreeze": "ac34031c8e16b70593392c484902d5f007b6f916",
+  "head": "ac34031c8e16b70593392c484902d5f007b6f916",
+  "bridgeExpected": 54,
+  "reader": "readControlledWorkspaceProductionFeedOn",
+  "metaOk": "productionFeedOnMetaOk",
+  "productionFeedOnMetaOk": true,
+  "positive": "PASS",
+  "negativeCases": 46,
+  "descriptorNegatives": 42,
+  "scriptNegatives": 4,
+  "negativePass": 46,
+  "readOnly": true,
+  "requestStarted": false,
+  "remount": false,
+  "attemptFeedOn": "permanent-allowed-false",
+  "rollbackTarget": "AW-R5",
+  "mountRenderUnmount": [
+    1,
+    1,
+    0
+  ],
+  "finalVerdict": "ADAPTIVE_WORKSPACE_PRODUCTION_LIVE_VALIDATED"
+}

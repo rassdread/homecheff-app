@@ -1,0 +1,5 @@
+{
+  "issuanceCommitBoundaryResult": "authorization-grant-issuance-commit-boundary-ready-not-entered",
+  "issuanceCommitBoundaryState": "NOT_ENTERED",
+  "issuanceCommitBoundaryEntered": false
+}

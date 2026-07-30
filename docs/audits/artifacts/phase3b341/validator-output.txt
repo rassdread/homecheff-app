@@ -1,0 +1,24 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: missing docs/audits/homecheff-adaptive-workspace-phase3b341-controlled-workspace-host-activation-issuance-pipeline-execution.md
+    at mustExist (/Users/sergioarrias/Homecheff-app git/scripts/validate-adaptive-workspace-host-activation-issuance-pipeline-execution-phase3b341.ts:85:10)
+    at assert (/Users/sergioarrias/Homecheff-app git/scripts/validate-adaptive-workspace-host-activation-issuance-pipeline-execution-phase3b341.ts:161:3)
+    at Object.<anonymous> (/Users/sergioarrias/Homecheff-app git/scripts/validate-adaptive-workspace-host-activation-issuance-pipeline-execution-phase3b341.ts:692:1)
+    at Module._compile (node:internal/modules/cjs/loader:1705:14)
+    at Object.transformer (/Users/sergioarrias/Homecheff-app git/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at cjsLoader (node:internal/modules/esm/translators:309:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

@@ -1,0 +1,5 @@
+ce410036 fix(adaptive-workspace): correct Phase 3B.3.32 probe prior reference
+cef629f7 fix(adaptive-workspace): correct Phase 3B.3.32 proof orchestrator paths
+266ec210 fix(adaptive-workspace): repair bridge v33 type/impl syntax
+1f914a8f feat(adaptive-workspace): Phase 3B.3.32 bridge v33 validator and proof
+8a82a268 feat(adaptive-workspace): Phase 3B.3.32 transaction opening sealed+LIVE

@@ -1,0 +1,418 @@
+{
+  "measuredAt": "2026-07-19T10:39:02.179Z",
+  "baseUrl": "http://127.0.0.1:3020",
+  "expectedMode": "off",
+  "browser": "chromium-puppeteer",
+  "viewports": [
+    {
+      "name": "desktop-1440x900",
+      "width": 1440,
+      "height": 900,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "desktop-1280x720",
+      "width": 1280,
+      "height": 720,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "desktop-1024x768",
+      "width": 1024,
+      "height": 768,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "tablet-820x1180",
+      "width": 820,
+      "height": 1180,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "tablet-768x1024",
+      "width": 768,
+      "height": 1024,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "mobile-430x932",
+      "width": 430,
+      "height": 932,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "mobile-390x844",
+      "width": 390,
+      "height": 844,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "mobile-360x800",
+      "width": 360,
+      "height": 800,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "short-1280x600",
+      "width": 1280,
+      "height": 600,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "short-1024x576",
+      "width": 1024,
+      "height": 576,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    },
+    {
+      "name": "short-430x650",
+      "width": 430,
+      "height": 650,
+      "mounts": 1,
+      "unmounts": 0,
+      "children": 1,
+      "onRoot": false,
+      "shadowRoot": true,
+      "profile": "",
+      "visible": true
+    }
+  ],
+  "profileBoundaries": [
+    {
+      "name": "compact-1",
+      "width": 719,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "compact",
+      "width": 720,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "compact+1",
+      "width": 721,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "comfort-1",
+      "width": 1023,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "comfort",
+      "width": 1024,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "comfort+1",
+      "width": 1025,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "expanded-1",
+      "width": 1439,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "expanded",
+      "width": 1440,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "expanded+1",
+      "width": 1441,
+      "height": 800,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    },
+    {
+      "name": "short-h",
+      "width": 1280,
+      "height": 479,
+      "profile": "",
+      "mounts": 1,
+      "unmounts": 0,
+      "regionIdsOk": true
+    }
+  ],
+  "continuity": [
+    {
+      "step": "after-local-state",
+      "before": {
+        "harnessPresent": true,
+        "onRoot": false,
+        "shadowRoot": true,
+        "regions": 0,
+        "slots": 0,
+        "panels": 0,
+        "hosts": 0,
+        "children": 1,
+        "mains": 2,
+        "mode": "off",
+        "activation": "false",
+        "profile": "",
+        "resolveCount": 0,
+        "probe": {
+          "mounts": 1,
+          "unmounts": 0,
+          "renders": 1
+        },
+        "maxWidthClass": true,
+        "paddingClass": true,
+        "sensitiveLeak": false,
+        "activeElementTag": "BUTTON",
+        "activeElementId": "",
+        "scrollY": 0
+      }
+    },
+    {
+      "step": "continuity",
+      "mounts": 1,
+      "unmounts": 0,
+      "inputValue": "phase2g-continuity",
+      "disclosureOpen": true,
+      "focusId": "aw-harness-input",
+      "scrollBefore": 200,
+      "scrollAfter": 200,
+      "resolveBefore": 0,
+      "resolveAfterIdentical": 0,
+      "resolveDelta": 0,
+      "profile": ""
+    }
+  ],
+  "isolation": [
+    {
+      "route": "/",
+      "status": 200,
+      "onRoot": false,
+      "harness": false,
+      "region": 0,
+      "settingsHubHost": 0,
+      "isolated": true
+    },
+    {
+      "route": "/notifications",
+      "status": 200,
+      "onRoot": false,
+      "harness": false,
+      "region": 0,
+      "settingsHubHost": 0,
+      "isolated": true
+    },
+    {
+      "route": "/messages",
+      "status": 200,
+      "onRoot": false,
+      "harness": false,
+      "region": 0,
+      "settingsHubHost": 0,
+      "isolated": true
+    },
+    {
+      "route": "/profile",
+      "status": 200,
+      "onRoot": false,
+      "harness": false,
+      "region": 0,
+      "settingsHubHost": 0,
+      "isolated": true
+    }
+  ],
+  "consoleIssues": [],
+  "modeChecks": {
+    "snap": {
+      "harnessPresent": true,
+      "onRoot": false,
+      "shadowRoot": true,
+      "regions": 0,
+      "slots": 0,
+      "panels": 0,
+      "hosts": 0,
+      "children": 1,
+      "mains": 2,
+      "mode": "off",
+      "activation": "false",
+      "profile": "",
+      "resolveCount": 0,
+      "probe": {
+        "mounts": 1,
+        "unmounts": 0,
+        "renders": 1
+      },
+      "maxWidthClass": true,
+      "paddingClass": true,
+      "sensitiveLeak": false,
+      "activeElementTag": "BODY",
+      "activeElementId": "",
+      "scrollY": 0
+    },
+    "checks": [
+      {
+        "id": "harness-present",
+        "ok": true,
+        "detail": "harness page mounted"
+      },
+      {
+        "id": "single-child",
+        "ok": true,
+        "detail": "children=1"
+      },
+      {
+        "id": "mounts-1",
+        "ok": true,
+        "detail": "mounts=1"
+      },
+      {
+        "id": "unmounts-0",
+        "ok": true,
+        "detail": "unmounts=0"
+      },
+      {
+        "id": "no-sensitive",
+        "ok": true,
+        "detail": "diagnostics/DOM leak check"
+      },
+      {
+        "id": "max-w-5xl",
+        "ok": true,
+        "detail": "visual parity class"
+      },
+      {
+        "id": "px-4",
+        "ok": true,
+        "detail": "visual parity padding"
+      },
+      {
+        "id": "off-shadow-root",
+        "ok": true,
+        "detail": "legacy off path"
+      },
+      {
+        "id": "mode-off",
+        "ok": true,
+        "detail": "mode=off"
+      },
+      {
+        "id": "regions-0",
+        "ok": true,
+        "detail": "regions=0"
+      }
+    ]
+  },
+  "screenshots": [
+    "/tmp/phase2g-artifacts/phase2g-off-desktop-1440x900.png",
+    "/tmp/phase2g-artifacts/phase2g-off-desktop-1024x768.png",
+    "/tmp/phase2g-artifacts/phase2g-off-mobile-390x844.png",
+    "/tmp/phase2g-artifacts/phase2g-off-short-1280x600.png",
+    "/tmp/phase2g-artifacts/phase2g-off-short-430x650.png"
+  ],
+  "pass": true,
+  "initialStatus": 200,
+  "settingsSmoke": {
+    "status": 200,
+    "url": "http://127.0.0.1:3020/settings",
+    "redirectedToLogin": false
+  },
+  "summary": {
+    "modeOk": true,
+    "contOk": true,
+    "viewportOk": true,
+    "boundaryOk": true,
+    "isolationOk": true,
+    "hydrationOk": true
+  }
+}

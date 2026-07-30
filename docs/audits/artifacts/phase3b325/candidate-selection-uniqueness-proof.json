@@ -1,0 +1,13 @@
+{
+  "candidateCount": 1,
+  "registeredCandidateCount": 1,
+  "selectedCandidateCount": 1,
+  "futureActivationTargetCount": 1,
+  "activeCandidateCount": 0,
+  "executableCandidateCount": 0,
+  "singleCandidateExact": true,
+  "singleSelectionExact": true,
+  "candidateIdentityUnique": true,
+  "registrationIdentityUnique": true,
+  "selectionIdentityUnique": true
+}

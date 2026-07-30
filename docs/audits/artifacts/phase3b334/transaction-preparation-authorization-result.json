@@ -1,0 +1,6 @@
+{
+  "result": "controlled-workspace-host-activation-transaction-preparation-authorized-not-prepared",
+  "lifecycle": "TRANSACTION_PREPARATION_AUTHORIZED_NOT_PREPARED",
+  "transactionPreparationReady": true,
+  "transactionPreparationAuthorized": true
+}

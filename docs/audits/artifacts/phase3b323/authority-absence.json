@@ -1,0 +1,9 @@
+{
+  "grantAuthorityAvailable": false,
+  "grantAuthorityEnabled": false,
+  "grantAuthorityDelegated": false,
+  "grantAuthorityTransferred": false,
+  "authorizationGranted": false,
+  "authorizationApplied": false,
+  "transitionAuthorized": false
+}

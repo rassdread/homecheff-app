@@ -1,0 +1,21 @@
+{
+  "activationAuthorizationResult": "controlled-workspace-host-activation-authorized-not-granted",
+  "activationAuthorizationState": "AUTHORIZED_NOT_GRANTED",
+  "candidateAuthorized": true,
+  "candidateGranted": false,
+  "candidateReady": true,
+  "candidateSelected": true,
+  "futureActivationAuthorized": true,
+  "futureGrantPossible": true,
+  "futureGrantIssued": false,
+  "activationGrantIssuanceAllowed": false,
+  "activationAuthorizationExecutable": false,
+  "currentPhase": "3B.3.27",
+  "previousPhase": "3B.3.26",
+  "nextEligibleStep": "3B.3.28",
+  "conditionCount": 91,
+  "satisfiedConditionCount": 91,
+  "guardCount": 33,
+  "satisfiedGuardCount": 33,
+  "blockerCount": 51
+}

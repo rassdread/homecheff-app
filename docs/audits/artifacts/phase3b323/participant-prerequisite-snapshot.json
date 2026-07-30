@@ -1,0 +1,212 @@
+{
+  "participants": [
+    {
+      "participantId": "frozen-predecessor-validation-participant",
+      "ordinal": 1,
+      "prerequisiteParticipantIds": []
+    },
+    {
+      "participantId": "issuance-plan-intake-participant",
+      "ordinal": 2,
+      "prerequisiteParticipantIds": [
+        "frozen-predecessor-validation-participant"
+      ]
+    },
+    {
+      "participantId": "plan-structure-validation-participant",
+      "ordinal": 3,
+      "prerequisiteParticipantIds": [
+        "issuance-plan-intake-participant"
+      ]
+    },
+    {
+      "participantId": "plan-dependency-validation-participant",
+      "ordinal": 4,
+      "prerequisiteParticipantIds": [
+        "plan-structure-validation-participant"
+      ]
+    },
+    {
+      "participantId": "issuance-decision-validation-participant",
+      "ordinal": 5,
+      "prerequisiteParticipantIds": [
+        "plan-dependency-validation-participant"
+      ]
+    },
+    {
+      "participantId": "grant-readiness-validation-participant",
+      "ordinal": 6,
+      "prerequisiteParticipantIds": [
+        "issuance-decision-validation-participant"
+      ]
+    },
+    {
+      "participantId": "authorization-validation-participant",
+      "ordinal": 7,
+      "prerequisiteParticipantIds": [
+        "grant-readiness-validation-participant"
+      ]
+    },
+    {
+      "participantId": "preflight-validation-participant",
+      "ordinal": 8,
+      "prerequisiteParticipantIds": [
+        "authorization-validation-participant"
+      ]
+    },
+    {
+      "participantId": "transition-selection-validation-participant",
+      "ordinal": 9,
+      "prerequisiteParticipantIds": [
+        "preflight-validation-participant"
+      ]
+    },
+    {
+      "participantId": "state-and-graph-validation-participant",
+      "ordinal": 10,
+      "prerequisiteParticipantIds": [
+        "transition-selection-validation-participant"
+      ]
+    },
+    {
+      "participantId": "commit-boundary-validation-participant",
+      "ordinal": 11,
+      "prerequisiteParticipantIds": [
+        "state-and-graph-validation-participant"
+      ]
+    },
+    {
+      "participantId": "runtime-identity-validation-participant",
+      "ordinal": 12,
+      "prerequisiteParticipantIds": [
+        "commit-boundary-validation-participant"
+      ]
+    },
+    {
+      "participantId": "runtime-mount-validation-participant",
+      "ordinal": 13,
+      "prerequisiteParticipantIds": [
+        "runtime-identity-validation-participant"
+      ]
+    },
+    {
+      "participantId": "geofeed-singularity-validation-participant",
+      "ordinal": 14,
+      "prerequisiteParticipantIds": [
+        "runtime-mount-validation-participant"
+      ]
+    },
+    {
+      "participantId": "workspace-shell-validation-participant",
+      "ordinal": 15,
+      "prerequisiteParticipantIds": [
+        "geofeed-singularity-validation-participant"
+      ]
+    },
+    {
+      "participantId": "legacy-ownership-validation-participant",
+      "ordinal": 16,
+      "prerequisiteParticipantIds": [
+        "workspace-shell-validation-participant"
+      ]
+    },
+    {
+      "participantId": "grant-absence-validation-participant",
+      "ordinal": 17,
+      "prerequisiteParticipantIds": [
+        "legacy-ownership-validation-participant"
+      ]
+    },
+    {
+      "participantId": "authority-absence-validation-participant",
+      "ordinal": 18,
+      "prerequisiteParticipantIds": [
+        "grant-absence-validation-participant"
+      ]
+    },
+    {
+      "participantId": "credential-absence-validation-participant",
+      "ordinal": 19,
+      "prerequisiteParticipantIds": [
+        "authority-absence-validation-participant"
+      ]
+    },
+    {
+      "participantId": "executable-path-absence-validation-participant",
+      "ordinal": 20,
+      "prerequisiteParticipantIds": [
+        "credential-absence-validation-participant"
+      ]
+    },
+    {
+      "participantId": "hypothetical-grant-construction-boundary-participant",
+      "ordinal": 21,
+      "prerequisiteParticipantIds": [
+        "executable-path-absence-validation-participant"
+      ]
+    },
+    {
+      "participantId": "hypothetical-grant-issuance-boundary-participant",
+      "ordinal": 22,
+      "prerequisiteParticipantIds": [
+        "hypothetical-grant-construction-boundary-participant"
+      ]
+    },
+    {
+      "participantId": "hypothetical-grant-persistence-boundary-participant",
+      "ordinal": 23,
+      "prerequisiteParticipantIds": [
+        "hypothetical-grant-issuance-boundary-participant"
+      ]
+    },
+    {
+      "participantId": "hypothetical-grant-application-boundary-participant",
+      "ordinal": 24,
+      "prerequisiteParticipantIds": [
+        "hypothetical-grant-persistence-boundary-participant"
+      ]
+    },
+    {
+      "participantId": "hypothetical-authority-boundary-participant",
+      "ordinal": 25,
+      "prerequisiteParticipantIds": [
+        "hypothetical-grant-application-boundary-participant"
+      ]
+    },
+    {
+      "participantId": "hypothetical-transition-authorization-boundary-participant",
+      "ordinal": 26,
+      "prerequisiteParticipantIds": [
+        "hypothetical-authority-boundary-participant"
+      ]
+    },
+    {
+      "participantId": "hypothetical-activation-boundary-participant",
+      "ordinal": 27,
+      "prerequisiteParticipantIds": [
+        "hypothetical-transition-authorization-boundary-participant"
+      ]
+    },
+    {
+      "participantId": "rollback-description-participant",
+      "ordinal": 28,
+      "prerequisiteParticipantIds": [
+        "hypothetical-activation-boundary-participant"
+      ]
+    },
+    {
+      "participantId": "final-fail-closed-verification-participant",
+      "ordinal": 29,
+      "prerequisiteParticipantIds": [
+        "rollback-description-participant"
+      ]
+    },
+    {
+      "participantId": "transaction-readiness-declaration-participant",
+      "ordinal": 30,
+      "prerequisiteParticipantIds": [
+        "final-fail-closed-verification-participant"
+      ]
+    }
+  ]
+}

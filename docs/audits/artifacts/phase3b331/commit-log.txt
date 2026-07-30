@@ -1,0 +1,6 @@
+6d186d7 fix(workspace): align predecessor continuity metadata nextEligibleStep to 3B.3.32
+d21f94e fix(workspace): expect bridgeVersion 32 in Phase 3B.3.31 artifact validator
+3fcab44 fix(workspace): close Phase 3B.3.31 bridge readiness type before authorization method
+958521f fix(workspace): align Phase 3B.3.31 probe nextEligibleStep and authorization flags
+2d81435 test(workspace): add Phase 3B.3.31 bridge v32, validator, and Chromium proof
+1b521ee feat(workspace): add Phase 3B.3.31 transaction-opening authorization contracts and LIVE gate

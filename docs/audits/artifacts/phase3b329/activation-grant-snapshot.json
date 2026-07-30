@@ -1,0 +1,10 @@
+{
+  "activationGrantId": "feed.discovery.adaptive-workspace.host-activation-grant.v1",
+  "grantCount": 1,
+  "grantExecutable": false,
+  "grantImmutable": true,
+  "grantIssued": true,
+  "grantPresent": true,
+  "grantUnique": true,
+  "grantValid": true
+}

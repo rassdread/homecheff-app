@@ -1,0 +1,5 @@
+{
+  "activationGrantIssuanceId": "feed.discovery.adaptive-workspace.host-activation-grant-issuance.v1",
+  "predecessorResult": "controlled-workspace-host-activation-grant-issued-not-activated",
+  "predecessorState": "GRANTED_NOT_ACTIVATED"
+}

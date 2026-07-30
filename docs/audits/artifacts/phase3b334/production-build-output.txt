@@ -1,0 +1,113 @@
+
+├ ƒ /glossary                                           141 B           1.1 MB
+├ ƒ /hcp-ranglijsten                                    6.18 kB        1.11 MB
+├ ƒ /hoe-homecheff-werkt                                141 B           1.1 MB
+├ ƒ /how-homecheff-grows                                798 B           1.1 MB
+├ ○ /icon.png                                           0 B                0 B
+├ ƒ /inspiratie                                         141 B           1.1 MB
+├ ƒ /inspiratie/[id]                                    141 B           1.1 MB
+├ ƒ /login                                              5.03 kB         1.1 MB
+├ ƒ /lokaal-eten-verkopen                               141 B           1.1 MB
+├ ƒ /lokaal-verdienen                                   141 B           1.1 MB
+├ ƒ /lokale-producten-verkopen                          141 B           1.1 MB
+├ ● /maaltijden/[stad]                                  1.36 kB         1.1 MB
+├   ├ /maaltijden/vlaardingen
+├   ├ /maaltijden/rotterdam
+├   ├ /maaltijden/amsterdam
+├   └ [+13 more paths]
+├ ƒ /manifest                                           141 B           1.1 MB
+├ ƒ /messages                                           7.03 kB        1.11 MB
+├ ƒ /messages/[conversationId]                          1.62 kB         1.1 MB
+├ ƒ /mijn-hcp                                           9.75 kB        1.11 MB
+├ ƒ /notifications                                      2.31 kB         1.1 MB
+├ ƒ /onboarding/buyer                                   722 B           1.1 MB
+├ ƒ /onboarding/complete-profile                        1.97 kB         1.1 MB
+├ ƒ /onboarding/contact                                 803 B           1.1 MB
+├ ƒ /onboarding/interests                               1.26 kB         1.1 MB
+├ ƒ /onboarding/payments                                907 B           1.1 MB
+├ ƒ /onboarding/seller                                  883 B           1.1 MB
+├ ƒ /ontmoet-de-maker                                   141 B           1.1 MB
+├ ƒ /operations/vandaag                                 5.69 kB        1.11 MB
+├ ƒ /orders                                             4.41 kB         1.1 MB
+├ ƒ /orders/[orderId]                                   2.18 kB         1.1 MB
+├ ƒ /over-ons                                           1.78 kB         1.1 MB
+├ ƒ /payment/success                                    3.04 kB         1.1 MB
+├ ƒ /persoonlijk-vakmanschap                            141 B           1.1 MB
+├ ƒ /pitch                                              191 B           1.1 MB
+├ ƒ /place                                              1.18 kB         1.1 MB
+├ ƒ /pricing                                            2.95 kB         1.1 MB
+├ ƒ /principles                                         141 B           1.1 MB
+├ ƒ /privacy                                            1.64 kB         1.1 MB
+├ ƒ /product/[id]                                       140 B           1.1 MB
+├ ƒ /product/[id]/edit                                  2.22 kB         1.1 MB
+├ ƒ /profile                                            311 B           1.1 MB
+├ ƒ /profile/deals                                      5.9 kB         1.11 MB
+├ ƒ /profile/privacy                                    141 B           1.1 MB
+├ ƒ /r/[slug]                                           141 B           1.1 MB
+├ ƒ /recipe/[id]                                        141 B           1.1 MB
+├ ƒ /register                                           7.86 kB        1.11 MB
+├ ƒ /reports                                            615 B           1.1 MB
+├ ƒ /request/[slug]                                     141 B           1.1 MB
+├ ƒ /reservations                                       1.18 kB         639 kB
+├ ƒ /reset-password                                     1.76 kB         1.1 MB
+├ ƒ /review/[token]                                     1.99 kB         1.1 MB
+├ ƒ /roadmap                                            141 B           1.1 MB
+├ ○ /robots.txt                                         0 B                0 B
+├ ƒ /safety                                             1.21 kB         1.1 MB
+├ ƒ /sell                                               6.18 kB        1.11 MB
+├ ƒ /sell/new                                           5.28 kB         1.1 MB
+├ ƒ /sell/select-photos                                 2.16 kB         1.1 MB
+├ ƒ /seller/[sellerId]                                  8.29 kB        1.11 MB
+├ ƒ /seller/orders                                      415 B           638 kB
+├ ƒ /seller/stripe/refresh                              482 B           638 kB
+├ ƒ /seller/stripe/success                              948 B           1.1 MB
+├ ƒ /seo-hub                                            141 B           1.1 MB
+├ ƒ /settings                                           4.43 kB         1.1 MB
+├ ƒ /settings/app                                       2.94 kB         1.1 MB
+├ ○ /sitemap.xml                                        0 B                0 B
+├ ƒ /sms/send                                           141 B           1.1 MB
+├ ƒ /sms/verify                                         141 B           1.1 MB
+├ ƒ /social-login-success                               503 B           638 kB
+├ ƒ /statistics                                         191 B           1.1 MB
+├ ƒ /stories                                            674 B           1.1 MB
+├ ƒ /success                                            1.11 kB         1.1 MB
+├ ƒ /terms                                              1.44 kB         1.1 MB
+├ ƒ /thuisgekookt-eten-verkopen                         141 B           1.1 MB
+├ ƒ /timeline                                           642 B           1.1 MB
+├ ƒ /trust                                              141 B           1.1 MB
+├ ƒ /uitnodiging/[code]                                 141 B           1.1 MB
+├ ƒ /unieke-producten-verkopen                          141 B           1.1 MB
+├ ● /user/[username]                                    383 B           1.1 MB
+├ ƒ /verdienen-zonder-dropshipping                      141 B           1.1 MB
+├ ƒ /verdiensten                                        2.98 kB         1.1 MB
+├ ƒ /vergelijken                                        141 B           1.1 MB
+├ ● /vergelijken/[slug]                                 141 B           1.1 MB
+├   ├ /vergelijken/homecheff-vs-etsy
+├   ├ /vergelijken/homecheff-vs-marktplaats
+├   ├ /vergelijken/homecheff-vs-facebook-marketplace
+├   └ [+3 more paths]
+├ ƒ /verificatie/stripe-identity                        936 B           639 kB
+├ ƒ /verify-email                                       2.59 kB         1.1 MB
+├ ƒ /verkoper                                           407 B           638 kB
+├ ƒ /verkoper/analytics                                 2.29 kB         1.1 MB
+├ ƒ /verkoper/dashboard                                 8.67 kB        1.11 MB
+├ ƒ /verkoper/instellingen                              141 B           1.1 MB
+├ ƒ /verkoper/orders                                    4.41 kB         1.1 MB
+├ ƒ /verkoper/revenue                                   7.11 kB        1.11 MB
+├ ƒ /wat-is-homecheff                                   141 B           1.1 MB
+├ ƒ /wat-we-niet-zijn                                   141 B           1.1 MB
+├ ƒ /welkom/[code]                                      141 B           1.1 MB
+├ ƒ /werken-bij                                         1.49 kB         1.1 MB
+└ ƒ /zelfgemaakt-eten-verkopen                          141 B           1.1 MB
++ First Load JS shared by all                           638 kB
+  ├ chunks/nextjs-3de91431672a431f.js                   259 kB
+  └ chunks/vendors-4fcc17767576a4d3.js                  376 kB
+  └ other shared chunks (total)                         2.43 kB
+
+
+ƒ Middleware                                            48 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
+ƒ  (Dynamic)  server-rendered on demand
+

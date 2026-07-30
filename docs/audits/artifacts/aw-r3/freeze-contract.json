@@ -1,0 +1,16 @@
+{
+  "phase": "AW-R3",
+  "freezeCommit": "pending",
+  "implementationCommit": "a58caed6f61ced4f55e986a493ba431058d9ab2b",
+  "proofTarget": "a58caed6f61ced4f55e986a493ba431058d9ab2b",
+  "bridgeVersion": "v51",
+  "Allowed": true,
+  "Executable": true,
+  "issuancePipelineState": "CONTROLLED_EXECUTABLE",
+  "issuanceTransactionState": "CONTROLLED_EXECUTION",
+  "WorkspacePresent": true,
+  "RuntimePresent": true,
+  "GeoFeedOwner": "legacy",
+  "controlledWorkspaceExecutionMetaOk": true,
+  "finalVerdict": "READY_FOR_AW_R4"
+}

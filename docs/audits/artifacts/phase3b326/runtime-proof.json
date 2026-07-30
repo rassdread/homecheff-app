@@ -1,0 +1,10 @@
+{
+  "mountCount": 1,
+  "unmountCount": 0,
+  "activeInstanceCount": 1,
+  "owner": "legacy",
+  "writer": "legacy",
+  "renderer": "legacy",
+  "hostActivation": false,
+  "renderActivation": false
+}

@@ -1,0 +1,6 @@
+branch=workspace/phase3b347-controlled-workspace-host-candidate-execution-started
+predecessorFreeze=2fa240cb637e70daab96531fa969239b147acd6c
+implementation=a333f7051a60f515a3784dcfbf9a52ee2cb16dad
+documentary=f40c2c8da68452667909d2fe4353e120cc332349
+lineageDocumentary=f5d79507b74671187e2984352af90950bd4dbc99
+freezeCommit=pending

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-build",
+  "result": "PASS",
+  "sealedBaseline": true,
+  "NEXT_PUBLIC_FEED_SEALED_BASELINE": "1",
+  "newReleaseBlockingWarnings": [],
+  "baselineWarnings": [
+    "'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID').",
+    "'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID').",
+    "'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY').",
+    "'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY' is not exported from './controlled-workspace-host-activation-transaction-commit' (imported as 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY').",
+    "'CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID' is not exported from './controlled-workspace-host-candidate-active' (imported as 'CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID').",
+    "'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID' is not exported from './controlled-workspace-host-activation-transaction-preparation' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID')."
+  ],
+  "baselineWarningCount": 6,
+  "note": "standalone next-start warning is repository-baseline; Chromium orch succeeded on 3074"
+}

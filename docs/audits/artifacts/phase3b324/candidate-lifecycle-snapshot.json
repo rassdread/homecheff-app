@@ -1,0 +1,12 @@
+{
+  "registered": true,
+  "selected": false,
+  "nominated": false,
+  "approved": false,
+  "authorized": false,
+  "granted": false,
+  "activated": false,
+  "active": false,
+  "executable": false,
+  "state": "REGISTERED_NOT_SELECTED"
+}

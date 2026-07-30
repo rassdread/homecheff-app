@@ -1,0 +1,8 @@
+{
+  "candidateId": "feed.discovery.adaptive-workspace.host-candidate.v1",
+  "registrationId": "feed.discovery.adaptive-workspace.host-candidate-registration.v1",
+  "selected": true,
+  "ready": true,
+  "authorized": true,
+  "granted": false
+}

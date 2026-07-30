@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-controlled-workspace-regression",
+  "total": "20/20",
+  "result": "PASS",
+  "historicalOffFixtures": "deterministic (sealed OFF predecessors remain Feed OFF)",
+  "historicalShadowFixtures": "deterministic",
+  "awR3": "reproducible",
+  "awR4": "reproducible",
+  "awR5": "reproducible",
+  "awR6Terminal": "valid",
+  "awR7": "does-not-exist",
+  "availableSpaceRegression": false,
+  "resolverRegression": false,
+  "hostPlacementRegression": false,
+  "invariants": [
+    {
+      "id": "FEED_GEOFEED_SINGLE_MOUNT",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_GEOFEED_ZERO_UNMOUNT_DURING_STABLE_SESSION",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_NO_WORKSPACE_REQUEST_IDENTITY_INPUT",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_REQUEST_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_NATIVE_PAINT_KEY_STABLE_UNDER_WORKSPACE_CHANGES",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_PREPARED_BATCH_IDENTITY_STABLE",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_PAGINATION_CURSOR_NOT_RESET_BY_WORKSPACE",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_RESULT_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_FILTER_CACHE_NOT_REINITIALIZED_BY_WORKSPACE",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_INTERSECTION_OBSERVER_OWNERSHIP_UNCHANGED",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_RESIZE_OBSERVER_OWNERSHIP_UNCHANGED",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_SCROLL_OWNERSHIP_UNCHANGED",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_TILE_IDENTITY_UNCHANGED",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_SKELETON_OWNERSHIP_UNCHANGED",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_LOADING_BEHAVIOR_UNCHANGED",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_VISIBLE_DOM_UNCHANGED",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_SSR_BEHAVIOR_UNCHANGED",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_HYDRATION_CLEAN",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_NO_ADDITIONAL_API_REQUESTS",
+      "status": "PASS"
+    },
+    {
+      "id": "FEED_LEGACY_SINGLE_WRITER",
+      "status": "PASS"
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+=== validate:adaptive-workspace-feed-dormant-host ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-dormant-host
+> npx tsx scripts/validate-adaptive-workspace-feed-dormant-host.ts
+
+validate-adaptive-workspace-feed-dormant-host: ok
+PASS validate:adaptive-workspace-feed-dormant-host
+=== validate:adaptive-workspace-feed-shadow-placement ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-shadow-placement
+> npx tsx scripts/validate-adaptive-workspace-feed-shadow-placement.ts
+
+validate-adaptive-workspace-feed-shadow-placement: ok
+PASS validate:adaptive-workspace-feed-shadow-placement
+=== validate:adaptive-workspace-feed-host-registration ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-host-registration
+> npx tsx scripts/validate-adaptive-workspace-feed-host-registration.ts
+
+validate-adaptive-workspace-feed-host-registration: ok
+PASS validate:adaptive-workspace-feed-host-registration
+=== validate:adaptive-workspace-feed-eligibility ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-eligibility
+> npx tsx scripts/validate-adaptive-workspace-feed-eligibility.ts
+
+validate-adaptive-workspace-feed-eligibility: ok
+PASS validate:adaptive-workspace-feed-eligibility
+=== validate:adaptive-workspace-feed-activation-readiness ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-readiness
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-readiness.ts
+
+validate-adaptive-workspace-feed-activation-readiness: ok
+PASS validate:adaptive-workspace-feed-activation-readiness
+=== validate:adaptive-workspace-feed-shadow-activation-simulation ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-shadow-activation-simulation
+> npx tsx scripts/validate-adaptive-workspace-feed-shadow-activation-simulation.ts
+
+validate-adaptive-workspace-feed-shadow-activation-simulation: ok
+PASS validate:adaptive-workspace-feed-shadow-activation-simulation
+=== validate:adaptive-workspace-feed-activation-decision ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-decision
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-decision.ts
+
+validate-adaptive-workspace-feed-activation-decision: ok
+PASS validate:adaptive-workspace-feed-activation-decision
+=== validate:adaptive-workspace-feed-activation-plan ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-plan
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-plan.ts
+
+validate-adaptive-workspace-feed-activation-plan: ok
+PASS validate:adaptive-workspace-feed-activation-plan
+=== validate:adaptive-workspace-feed-activation-pipeline ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-pipeline
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-pipeline.ts
+
+validate-adaptive-workspace-feed-activation-pipeline: ok
+PASS validate:adaptive-workspace-feed-activation-pipeline
+=== validate:adaptive-workspace-feed-activation-transaction ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transaction
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transaction.ts
+
+validate-adaptive-workspace-feed-activation-transaction: ok
+PASS validate:adaptive-workspace-feed-activation-transaction
+=== validate:adaptive-workspace-feed-activation-commit-readiness ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-commit-readiness
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-commit-readiness.ts
+
+validate-adaptive-workspace-feed-activation-commit-readiness: ok
+PASS validate:adaptive-workspace-feed-activation-commit-readiness
+=== validate:adaptive-workspace-feed-activation-commit-protocol ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-commit-protocol
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-commit-protocol.ts
+
+validate-adaptive-workspace-feed-activation-commit-protocol: ok
+PASS validate:adaptive-workspace-feed-activation-commit-protocol
+=== validate:adaptive-workspace-feed-activation-state-machine ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-state-machine
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-state-machine.ts
+
+validate-adaptive-workspace-feed-activation-state-machine: ok (with artifacts)
+PASS validate:adaptive-workspace-feed-activation-state-machine
+=== validate:adaptive-workspace-feed-activation-transition-graph ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-graph
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-graph.ts
+
+validate-adaptive-workspace-feed-activation-transition-graph: ok (with artifacts)
+PASS validate:adaptive-workspace-feed-activation-transition-graph
+=== validate:adaptive-workspace-feed-activation-transition-selection ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-selection
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-selection.ts
+
+validate-adaptive-workspace-feed-activation-transition-selection: ok (with artifacts)
+PASS validate:adaptive-workspace-feed-activation-transition-selection
+=== validate:adaptive-workspace-feed-activation-transition-preflight ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-preflight
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-preflight.ts
+
+validate-adaptive-workspace-feed-activation-transition-preflight: ok (with artifacts)
+PASS validate:adaptive-workspace-feed-activation-transition-preflight
+=== validate:adaptive-workspace-feed-activation-transition-authorization-decision ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-decision
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-decision.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-decision: ok (with artifacts)
+PASS validate:adaptive-workspace-feed-activation-transition-authorization-decision
+=== validate:adaptive-workspace-feed-activation-transition-authorization-grant-readiness ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-readiness
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-readiness.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-readiness: ok (with artifacts)
+PASS validate:adaptive-workspace-feed-activation-transition-authorization-grant-readiness
+=== validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision: ok (with artifacts)
+PASS validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-decision
+=== validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan ===
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan: ok (with artifacts)
+PASS validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan
+REGRESSION_FAIL=0

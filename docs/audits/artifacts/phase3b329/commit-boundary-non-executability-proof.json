@@ -1,0 +1,8 @@
+{
+  "aborted": false,
+  "armed": false,
+  "committed": false,
+  "crossed": false,
+  "executable": false,
+  "pass": true
+}

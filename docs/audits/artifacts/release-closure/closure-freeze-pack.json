@@ -1,0 +1,19 @@
+{
+  "title": "Adaptive Workspace Release Closure",
+  "lifecycle": "ADAPTIVE_WORKSPACE_RELEASE_CLOSED",
+  "result": "adaptive-workspace-release-closure-complete",
+  "terminalMarker": "ADAPTIVE_WORKSPACE_MIGRATION_AND_RELEASE_CLOSURE_COMPLETE",
+  "productionRuntimeFreeze": "be42e9fd73f9dbf09d64dbbb3ccc6eb5e5413170",
+  "roadmap": "complete",
+  "releaseClosure": "complete",
+  "nextMigrationStage": "none",
+  "awR7": "absent",
+  "push": false,
+  "merge": false,
+  "deployment": false,
+  "closureFreeze": "pending",
+  "documentationCommit": "f411e19802c4da267efe62cb587808ea6ac7534f",
+  "handoffCommit": "e5eadc27362fac8c4f505e132fbbd6efe4302e57",
+  "lineageCommit": "61675de9766219368fe485950375b86146f4b1aa",
+  "finalVerdict": "ADAPTIVE_WORKSPACE_RELEASE_CLOSURE_COMPLETE"
+}

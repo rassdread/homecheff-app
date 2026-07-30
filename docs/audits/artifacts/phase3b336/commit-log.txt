@@ -1,0 +1,4 @@
+0c5b5f65 fix(adaptive-workspace): Phase 3B.3.36 prepared artifact and bridge version asserts
+713e4f35 fix(adaptive-workspace): Phase 3B.3.36 probe predecessor path and gate blocker
+1d926c1b feat(adaptive-workspace): Phase 3B.3.36 bridge v37 validator and proof
+dca29180 feat(adaptive-workspace): Phase 3B.3.36 transaction commit readiness sealed+LIVE

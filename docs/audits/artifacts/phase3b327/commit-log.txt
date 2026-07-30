@@ -1,0 +1,2 @@
+323af2e test(workspace): add Phase 3B.3.27 authorization suite, validator, and bridge v28
+3473568 feat(workspace): add Phase 3B.3.27 activation authorization contracts and LIVE gate

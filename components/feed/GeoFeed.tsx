@@ -179,6 +179,18 @@ import {
   isFeedPerfBaselineEnabled,
 } from "@/lib/feed/feed-performance-baseline";
 import {
+  feedSealedNoteGeoFeedMount,
+  feedSealedNoteGeoFeedUnmount,
+  feedSealedNoteIntersectionObserverCreate,
+  feedSealedNoteNativePaintKeyAbsent,
+  feedSealedNotePaginationCursor,
+  feedSealedNotePaginationReset,
+  feedSealedNotePreparedBatchIdentity,
+  feedSealedNoteRequestKey,
+  feedSealedNoteRequestStart,
+} from "@/lib/feed/feed-sealed-runtime-instrumentation";
+import { installFeedSealedProbeBridge } from "@/lib/feed/feed-sealed-probe-bridge";
+import {
   isAwaitingSessionResolution,
   recordSessionFastPathObservability,
   shouldBypassSessionLoadingGate,
@@ -978,8 +990,14 @@ export default function GeoFeed({
 
   useEffect(() => {
     feedPerfIncrementGeoFeedMount();
+    feedSealedNoteGeoFeedMount();
+    feedSealedNoteNativePaintKeyAbsent();
     installFeedPerfBaselineReporter();
+    installFeedSealedProbeBridge();
     feedPerfMark("nav:start");
+    return () => {
+      feedSealedNoteGeoFeedUnmount();
+    };
   }, []);
 
   useEffect(() => {
@@ -1969,6 +1987,9 @@ export default function GeoFeed({
     }
 
     setFeedHasMore(false);
+    if (itemsRef.current.length > 0) {
+      feedSealedNotePaginationReset();
+    }
 
     const params = buildGeoFeedApiParams(
       {
@@ -1994,6 +2015,7 @@ export default function GeoFeed({
     latestFeedRequestKeyRef.current = requestKey;
     feedPrefetchCacheRef.current.setRequestKey(requestKey);
     preparedRecircBatchRef.current = null;
+    feedSealedNoteRequestKey(requestKey);
 
     setRecirculatedRows([]);
     setCompositionState((prev) => resetFeedCompositionState(prev, requestKey));
@@ -2075,6 +2097,7 @@ export default function GeoFeed({
     feedPerfIncrementFeedFetch(
       feedInteractionStartedRef.current ? "refresh" : "initial",
     );
+    feedSealedNoteRequestStart();
     recordSessionFastPathObservability({
       feedFetchReason: feedInteractionStartedRef.current ? "refresh" : "initial",
     });
@@ -2297,7 +2320,18 @@ export default function GeoFeed({
             skipUsed: 0,
           });
           setCompositionState(nextComp);
-          setFeedHasMore(apiHasMore || composedFeedCanContinue(nextComp));
+          const composedHasMore =
+            apiHasMore || composedFeedCanContinue(nextComp);
+          setFeedHasMore(composedHasMore);
+          feedSealedNotePreparedBatchIdentity({
+            itemCount: valid.length,
+            firstId: valid[0]?.id ?? null,
+            lastId: valid[valid.length - 1]?.id ?? null,
+          });
+          feedSealedNotePaginationCursor({
+            hasMore: composedHasMore,
+            itemCount: valid.length,
+          });
           setDiscoveryFeed(
             data.discovery && data.discovery.version === 1
               ? data.discovery
@@ -2312,7 +2346,7 @@ export default function GeoFeed({
                 ? data.discovery
                 : null,
             apiViewerCoords: viewerFromApi,
-            feedHasMore: apiHasMore || composedFeedCanContinue(nextComp),
+            feedHasMore: composedHasMore,
           });
           const startedAt = filterTransitionStartedAtRef.current;
           if (startedAt != null) {
@@ -2508,6 +2542,7 @@ export default function GeoFeed({
       setCompositionState(next);
       setFeedHasMore(apiHasMore || composedFeedCanContinue(next));
       feedPerfIncrementFeedFetch("refresh");
+      feedSealedNoteRequestStart();
 
       const latency = Date.now() - appendStartedAt;
       const diag = feedPrefetchCacheRef.current.diag;
@@ -3012,6 +3047,7 @@ export default function GeoFeed({
         threshold: 0,
       },
     );
+    feedSealedNoteIntersectionObserverCreate();
     obs.observe(el);
     if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
       console.info("[hc-native-scroll]", "observer-attached", {
@@ -3673,7 +3709,7 @@ export default function GeoFeed({
    * Desktop never hits this path (nativeMounted === false).
    */
   const [nativeFeedRenderMore, setNativeFeedRenderMore] = useState(false);
-  const nativePaintKey = `${appliedScope}|${appliedCategory}|${appliedPlace}|${appliedRadius}|${appliedQ}`;
+  const nativeFirstPaintSliceKey = `${appliedScope}|${appliedCategory}|${appliedPlace}|${appliedRadius}|${appliedQ}`;
 
   useEffect(() => {
     if (!nativeMounted) {
@@ -3685,7 +3721,7 @@ export default function GeoFeed({
     nativeFeedRenderMoreRef.current = false;
     if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
       console.info("[hc-native-scroll]", "first-paint-slice", {
-        paintKey: nativePaintKey,
+        paintKey: nativeFirstPaintSliceKey,
       });
     }
     let cancelled = false;
@@ -3713,7 +3749,7 @@ export default function GeoFeed({
       if (timeoutId != null) window.clearTimeout(timeoutId);
     };
     // Intentionally NOT composedDisplayRows — pagination must not re-collapse.
-  }, [nativeMounted, nativePaintKey]);
+  }, [nativeMounted, nativeFirstPaintSliceKey]);
 
   const feedRowsToRender = useMemo(() => {
     if (!nativeMounted) return composedDisplayRows;

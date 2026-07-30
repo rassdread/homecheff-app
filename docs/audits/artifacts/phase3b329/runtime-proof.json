@@ -1,0 +1,7 @@
+{
+  "canStartActivation": false,
+  "hostActivation": false,
+  "pass": true,
+  "renderActivation": false,
+  "runtimeId": "feed.discovery.legacy-single-mount.v1"
+}

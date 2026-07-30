@@ -1,0 +1,80 @@
+├ ƒ /payment/success                                    3.04 kB        1.07 MB
+├ ƒ /persoonlijk-vakmanschap                            141 B          1.07 MB
+├ ƒ /pitch                                              191 B          1.07 MB
+├ ƒ /place                                              1.18 kB        1.07 MB
+├ ƒ /pricing                                            2.95 kB        1.07 MB
+├ ƒ /principles                                         141 B          1.07 MB
+├ ƒ /privacy                                            1.64 kB        1.07 MB
+├ ƒ /product/[id]                                       140 B          1.07 MB
+├ ƒ /product/[id]/edit                                  2.22 kB        1.07 MB
+├ ƒ /profile                                            311 B          1.07 MB
+├ ƒ /profile/deals                                      5.9 kB         1.08 MB
+├ ƒ /profile/privacy                                    141 B          1.07 MB
+├ ƒ /r/[slug]                                           141 B          1.07 MB
+├ ƒ /recipe/[id]                                        141 B          1.07 MB
+├ ƒ /register                                           7.86 kB        1.08 MB
+├ ƒ /reports                                            615 B          1.07 MB
+├ ƒ /request/[slug]                                     141 B          1.07 MB
+├ ƒ /reservations                                       1.18 kB         639 kB
+├ ƒ /reset-password                                     1.76 kB        1.07 MB
+├ ƒ /review/[token]                                     1.99 kB        1.07 MB
+├ ƒ /roadmap                                            141 B          1.07 MB
+├ ○ /robots.txt                                         0 B                0 B
+├ ƒ /safety                                             1.21 kB        1.07 MB
+├ ƒ /sell                                               6.18 kB        1.08 MB
+├ ƒ /sell/new                                           5.28 kB        1.08 MB
+├ ƒ /sell/select-photos                                 2.16 kB        1.07 MB
+├ ƒ /seller/[sellerId]                                  8.29 kB        1.08 MB
+├ ƒ /seller/orders                                      415 B           638 kB
+├ ƒ /seller/stripe/refresh                              482 B           638 kB
+├ ƒ /seller/stripe/success                              948 B          1.07 MB
+├ ƒ /seo-hub                                            141 B          1.07 MB
+├ ƒ /settings                                           4.43 kB        1.08 MB
+├ ƒ /settings/app                                       2.94 kB        1.07 MB
+├ ○ /sitemap.xml                                        0 B                0 B
+├ ƒ /sms/send                                           141 B          1.07 MB
+├ ƒ /sms/verify                                         141 B          1.07 MB
+├ ƒ /social-login-success                               503 B           638 kB
+├ ƒ /statistics                                         191 B          1.07 MB
+├ ƒ /stories                                            674 B          1.07 MB
+├ ƒ /success                                            1.11 kB        1.07 MB
+├ ƒ /terms                                              1.44 kB        1.07 MB
+├ ƒ /thuisgekookt-eten-verkopen                         141 B          1.07 MB
+├ ƒ /timeline                                           642 B          1.07 MB
+├ ƒ /trust                                              141 B          1.07 MB
+├ ƒ /uitnodiging/[code]                                 141 B          1.07 MB
+├ ƒ /unieke-producten-verkopen                          141 B          1.07 MB
+├ ● /user/[username]                                    383 B          1.07 MB
+├ ƒ /verdienen-zonder-dropshipping                      141 B          1.07 MB
+├ ƒ /verdiensten                                        2.98 kB        1.07 MB
+├ ƒ /vergelijken                                        141 B          1.07 MB
+├ ● /vergelijken/[slug]                                 141 B          1.07 MB
+├   ├ /vergelijken/homecheff-vs-etsy
+├   ├ /vergelijken/homecheff-vs-marktplaats
+├   ├ /vergelijken/homecheff-vs-facebook-marketplace
+├   └ [+3 more paths]
+├ ƒ /verificatie/stripe-identity                        936 B           639 kB
+├ ƒ /verify-email                                       2.59 kB        1.07 MB
+├ ƒ /verkoper                                           407 B           638 kB
+├ ƒ /verkoper/analytics                                 2.29 kB        1.07 MB
+├ ƒ /verkoper/dashboard                                 8.67 kB        1.08 MB
+├ ƒ /verkoper/instellingen                              141 B          1.07 MB
+├ ƒ /verkoper/orders                                    4.41 kB        1.08 MB
+├ ƒ /verkoper/revenue                                   7.11 kB        1.08 MB
+├ ƒ /wat-is-homecheff                                   141 B          1.07 MB
+├ ƒ /wat-we-niet-zijn                                   141 B          1.07 MB
+├ ƒ /welkom/[code]                                      141 B          1.07 MB
+├ ƒ /werken-bij                                         1.49 kB        1.07 MB
+└ ƒ /zelfgemaakt-eten-verkopen                          141 B          1.07 MB
++ First Load JS shared by all                           638 kB
+  ├ chunks/nextjs-3de91431672a431f.js                   259 kB
+  └ chunks/vendors-c7c5873bac071a64.js                  376 kB
+  └ other shared chunks (total)                         2.43 kB
+
+
+ƒ Middleware                                            48 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -1,0 +1,19 @@
+{
+  "hostId": "feed.discovery.controlled-host",
+  "runtimeId": "feed.discovery.legacy-single-mount.v1",
+  "machineId": "feed.discovery.controlled-host.activation-state-machine.v1",
+  "graphId": "feed.discovery.controlled-host.activation-transition-graph.v1",
+  "selectionId": "feed.discovery.controlled-host.activation-transition-selection.v1",
+  "preflightId": "feed.discovery.controlled-host.activation-transition-preflight.v1",
+  "authorizationDecisionId": "feed.discovery.controlled-host.activation-transition-authorization-decision.v1",
+  "grantReadinessId": "feed.discovery.controlled-host.activation-transition-authorization-grant-readiness.v1",
+  "grantIssuanceDecisionId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-decision.v1",
+  "grantIssuancePlanId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-plan.v1",
+  "grantIssuancePipelineId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-pipeline.v1",
+  "grantIssuanceTransactionId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-transaction.v1",
+  "issuanceTransactionId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-transaction.v1",
+  "issuanceTransactionContractId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-transaction.contract.v1",
+  "issuanceTransactionPolicyId": "sealed-authorization-grant-issuance-transaction-policy",
+  "protocolId": "feed.discovery.controlled-host.activation-commit-protocol.v1",
+  "transactionId": "feed.discovery.controlled-host.activation-transaction.v1"
+}

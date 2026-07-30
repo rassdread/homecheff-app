@@ -1,0 +1,5 @@
+295b6a4 fix(workspace): align Phase 3B.3.24 probe with sealed counter fields
+9d9f367 fix(workspace): harden Phase 3B.3.24 Chromium probe navigation
+85190a0 test(workspace): add Phase 3B.3.24 candidate registration proofs and bridge v25
+6bc51b6 feat(workspace): add Phase 3B.3.24 controlled workspace host candidate registration
+96e875a docs(workspace): finalize Phase 3B.3.23 tip hash pointer

@@ -1,0 +1,11 @@
+{
+  "result": "controlled-workspace-host-activation-transaction-opening-authorized-not-opened",
+  "lifecycle": "TRANSACTION_OPENING_AUTHORIZED_NOT_OPENED",
+  "transactionOpeningReady": true,
+  "transactionOpeningAuthorized": true,
+  "transactionOpeningStarted": false,
+  "transactionOpeningCompleted": false,
+  "activationCommitBoundaryState": "ENTERED",
+  "issuanceTransactionState": "NOT_OPENED",
+  "issuancePipelineState": "NON_EXECUTABLE"
+}

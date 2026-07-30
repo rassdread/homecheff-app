@@ -1,0 +1,8 @@
+{
+  "activationCommitBoundaryState": "ENTERED",
+  "entered": true,
+  "armed": false,
+  "crossed": false,
+  "committed": false,
+  "aborted": false
+}

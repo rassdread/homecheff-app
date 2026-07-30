@@ -1,0 +1,13 @@
+{
+  "currentPhase": "3B.3.25",
+  "previousPhase": "3B.3.24",
+  "nextEligibleStep": "3B.3.26",
+  "activationBlocker": "PHASE_3B3_25_CONTROLLED_WORKSPACE_HOST_CANDIDATE_SELECTION_ONLY",
+  "diagnostics": {
+    "conditionCount": 122,
+    "satisfiedConditionCount": 122,
+    "guardCount": 40,
+    "satisfiedGuardCount": 40,
+    "blockerCount": 55
+  }
+}

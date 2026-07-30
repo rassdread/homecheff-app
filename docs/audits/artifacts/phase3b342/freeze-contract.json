@@ -1,0 +1,23 @@
+{
+  "phase": "3B.3.42",
+  "title": "Controlled Workspace Host Candidate Activation Readiness",
+  "branch": "workspace/phase3b342-controlled-workspace-host-candidate-activation-readiness",
+  "predecessorFreezeHead": "d599ec35d27e9a754c435ca879e2049f022ad21c",
+  "proofTarget": "6406c509efd5e2993093d168ea30f57e4c73cf52",
+  "result": "controlled-workspace-host-candidate-activation-ready-not-activated",
+  "lifecycle": "CANDIDATE_ACTIVATION_READY_NOT_ACTIVATED",
+  "primaryBlocker": "PHASE_3B3_42_CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_READINESS_ONLY",
+  "primaryTransition": {
+    "field": "candidateActivationReady",
+    "from": false,
+    "to": true
+  },
+  "bridgeVersion": 43,
+  "proofPort": 3063,
+  "chromiumProof": "20/20 PASS",
+  "controlledWorkspaceRegression": "20/20 PASS",
+  "finalVerdict": "READY_FOR_PHASE_3B_3_43",
+  "nextEligiblePhase": "3B.3.43",
+  "nothingPushed": true,
+  "documentaryCommit": "1e73d41d4517ad7f238ffeb2bbd86139a84a0775"
+}

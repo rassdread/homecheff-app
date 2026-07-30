@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.21",
+  "hostId": "feed.discovery.controlled-host",
+  "runtimeId": "feed.discovery.legacy-single-mount.v1",
+  "issuancePipelineId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-pipeline.v1",
+  "issuancePipelineVersion": 1,
+  "selectedTransition": "COMMIT_READY->ACTIVE",
+  "currentState": "COMMIT_READY",
+  "currentGraphNode": "COMMIT_READY"
+}

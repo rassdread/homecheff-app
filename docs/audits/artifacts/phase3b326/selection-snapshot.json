@@ -1,0 +1,7 @@
+{
+  "selectionId": "feed.discovery.adaptive-workspace.host-candidate-selection.v1",
+  "predecessorResult": "controlled-workspace-host-candidate-selected-not-activated",
+  "predecessorState": "SELECTED_NOT_ACTIVATED",
+  "selectionDescriptorResult": "controlled-workspace-host-candidate-selected-not-activated",
+  "selectionDescriptorState": "SELECTED_NOT_ACTIVATED"
+}

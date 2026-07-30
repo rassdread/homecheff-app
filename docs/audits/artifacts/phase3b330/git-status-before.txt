@@ -1,0 +1,1 @@
+proof-target clean except unrelated dirty category C

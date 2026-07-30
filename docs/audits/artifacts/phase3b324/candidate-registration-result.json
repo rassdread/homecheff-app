@@ -1,0 +1,7 @@
+{
+  "result": "controlled-workspace-host-candidate-registered-not-selected",
+  "state": "REGISTERED_NOT_SELECTED",
+  "phase": "3B.3.24",
+  "previousPhase": "3B.3.23",
+  "nextEligibleStep": "3B.3.25"
+}

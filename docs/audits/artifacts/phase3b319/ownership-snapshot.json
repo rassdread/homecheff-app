@@ -1,0 +1,11 @@
+{
+  "owner": "legacy",
+  "writer": "legacy",
+  "ownershipLegacy": true,
+  "writerLegacy": true,
+  "rendererLegacy": true,
+  "ownershipTransferred": false,
+  "writerTransferred": false,
+  "rendererTransferred": false,
+  "renderer": "legacy"
+}

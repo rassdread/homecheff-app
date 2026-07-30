@@ -1,0 +1,6 @@
+{
+  "commitBoundaryId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-commit-boundary.v1",
+  "issuanceTransactionId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-transaction.v1",
+  "runtimeId": "feed.discovery.legacy-single-mount.v1",
+  "hostId": "feed.discovery.controlled-host"
+}

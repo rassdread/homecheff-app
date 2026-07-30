@@ -1,0 +1,15 @@
+{
+  "issuanceCommitBoundaryState": "NOT_ENTERED",
+  "issuanceCommitBoundaryEntered": false,
+  "issuanceCommitBoundaryArmed": false,
+  "boundaryCrossed": false,
+  "issuanceCommitBoundaryPrepared": false,
+  "issuanceCommitBoundaryCommitted": false,
+  "issuanceCommitBoundaryAborted": false,
+  "issuanceCommitBoundaryRolledBack": false,
+  "issuanceCommitBoundaryCompensated": false,
+  "commitRequested": false,
+  "commitInvoked": false,
+  "commitStarted": false,
+  "commitPrepared": false
+}

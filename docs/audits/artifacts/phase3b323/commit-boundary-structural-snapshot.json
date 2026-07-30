@@ -1,0 +1,31 @@
+{
+  "boundaries": {
+    "startBoundary": "describe-only-not-opened",
+    "prepareBoundary": "describe-only-not-prepared",
+    "commitBoundary": "describe-only-commit-impossible",
+    "abortBoundary": "describe-only-abort-impossible",
+    "rollbackBoundary": "describe-only-rollback-execution-impossible",
+    "compensationBoundary": "describe-only-compensation-impossible",
+    "atomicityDescription": "hypothetical-all-or-nothing-without-mutation",
+    "consistencyDescription": "invariant-preservation-without-runtime-enforcement",
+    "isolationDescription": "no-ownership-or-writer-transfer-permitted",
+    "durabilityDescription": "no-persistence-in-this-phase",
+    "mutationSetBoundary": "describe-only-no-mutation-set",
+    "writeSetBoundary": "describe-only-no-write-set",
+    "journalBoundary": "describe-only-no-journal",
+    "lockBoundary": "describe-only-no-lock",
+    "reservationBoundary": "describe-only-no-reservation",
+    "grantBoundary": "no-grant-creation-or-issuance",
+    "authorityBoundary": "no-authority-creation-or-enablement",
+    "transitionBoundary": "no-transition-authorization-or-execution",
+    "activationBoundary": "no-activation",
+    "runtimeBoundary": "geofeed-legacy-owned-unchanged"
+  },
+  "issuanceCommitBoundaryResult": "authorization-grant-issuance-commit-boundary-ready-not-entered",
+  "issuanceCommitBoundaryState": "NOT_ENTERED",
+  "completed": true,
+  "ready": true,
+  "blocked": true,
+  "executable": false,
+  "wouldEnterIssuanceCommitBoundary": true
+}

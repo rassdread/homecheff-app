@@ -1,0 +1,19 @@
+{
+  "hostId": "feed.discovery.controlled-host",
+  "runtimeId": "feed.discovery.legacy-single-mount.v1",
+  "issuanceDecisionId": "feed.discovery.controlled-host.activation-transition-authorization-grant-issuance-decision.v1",
+  "issuanceDecisionVersion": 1,
+  "issuancePolicyIdentityValid": true,
+  "grantReadinessIdentityValid": true,
+  "authorizationDecisionIdentityValid": true,
+  "preflightIdentityValid": true,
+  "selectionIdentityValid": true,
+  "graphIdentityValid": true,
+  "machineIdentityValid": true,
+  "protocolIdentityValid": true,
+  "transactionIdentityValid": true,
+  "hostIdentityValid": true,
+  "runtimeIdentityValid": true,
+  "authorizationPolicyIdentityValid": true,
+  "grantPolicyIdentityValid": true
+}

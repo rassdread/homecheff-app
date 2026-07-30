@@ -1,0 +1,7 @@
+predecessorPhase=3B.3.28
+predecessorHead=2af07c062edd176fcf6631461d6a9e3d93bcce2c
+predecessorProofTarget=7b2bb2fbfc6c4edc52ac7552e31513ce34710fc3
+predecessorResult=controlled-workspace-host-activation-grant-issued-not-activated
+predecessorLifecycle=GRANTED_NOT_ACTIVATED
+predecessorVerdict=READY_FOR_PHASE_3B_3_29
+ancestorCheck=OK

@@ -1,0 +1,2 @@
+documentaryTip=4e24e1ab3f9bc53d87646f1d65b655bf172c5fc1
+proofTarget=96cd5fe85b77862f540b2414d97946ee2273795a

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "phase": "3B.3.20",
+  "proofTarget": "3a0857e55a96ecaebafa5ed3568cc41d1b5e4201",
+  "issuancePlanResult": "authorization-grant-issuance-plan-ready-not-executable",
+  "issuanceDecisionResult": "authorization-grant-issuance-eligible-not-issued",
+  "grantReadinessResult": "authorization-grant-ready-not-issued",
+  "authorizationDecisionResult": "authorization-eligible-not-granted",
+  "preflightResult": "transition-preflight-ready-not-authorized",
+  "selectedTransition": "COMMIT_READY->ACTIVE",
+  "sourceState": "COMMIT_READY",
+  "targetState": "ACTIVE",
+  "currentState": "COMMIT_READY",
+  "currentGraphNode": "COMMIT_READY",
+  "issuanceEligible": true,
+  "issuanceBlocked": true,
+  "grantReady": true,
+  "grantBlocked": true,
+  "authorizationEligible": true,
+  "authorizationGranted": false,
+  "transitionAuthorized": false
+}

@@ -1,0 +1,16 @@
+{
+  "issuanceDecisionExecuted": false,
+  "grantReadinessExecuted": false,
+  "authorizationDecisionExecuted": false,
+  "transitionAuthorized": false,
+  "transitionExecuted": false,
+  "protocolExecuted": false,
+  "transactionCommitted": false,
+  "commitExecuted": false,
+  "rollbackExecuted": false,
+  "schedulerAllowed": false,
+  "executorAllowed": false,
+  "canStartActivation": false,
+  "issuanceImpossible": true,
+  "executionImpossible": true
+}

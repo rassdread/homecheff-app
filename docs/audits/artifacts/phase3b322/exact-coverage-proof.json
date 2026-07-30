@@ -1,0 +1,9 @@
+{
+  "pipelineCoverageComplete": true,
+  "pipelineCoverageExact": true,
+  "sourcePipelineStageCount": 30,
+  "coveredPipelineStageCount": 30,
+  "uncoveredPipelineStageCount": 0,
+  "duplicateCoveredPipelineStageCount": 0,
+  "unknownReferencedPipelineStageCount": 0
+}

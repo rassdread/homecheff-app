@@ -1,0 +1,9 @@
+{
+  "hostActivation": false,
+  "renderActivation": false,
+  "canStartActivation": false,
+  "mountCount": 1,
+  "unmountCount": 0,
+  "activeInstanceCount": 1,
+  "runtimeId": "feed.discovery.legacy-single-mount.v1"
+}

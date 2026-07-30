@@ -1,0 +1,5 @@
+
+> homecheff-app@0.1.0 validate:adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan
+> npx tsx scripts/validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan.ts
+
+validate-adaptive-workspace-feed-activation-transition-authorization-grant-issuance-plan: ok (with artifacts)

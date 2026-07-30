@@ -1,0 +1,2 @@
+NEXT_PUBLIC_FEED_SEALED_BASELINE=1 npm run build — PASS (captured during Phase 3B.3.25 orchestrator run prior to probe path fix).
+Subsequent proof reruns used SKIP_BUILD=1 against that production build.

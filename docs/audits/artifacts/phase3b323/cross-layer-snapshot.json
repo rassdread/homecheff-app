@@ -1,0 +1,9 @@
+{
+  "currentPhase": "3B.3.23",
+  "previousPhase": "3B.3.22",
+  "nextEligibleStep": "3B.3.24",
+  "predecessorTransactionState": "NOT_OPENED",
+  "predecessorTransactionResult": "authorization-grant-issuance-transaction-ready-not-opened",
+  "selectedTransition": "COMMIT_READY->ACTIVE",
+  "currentState": "COMMIT_READY"
+}

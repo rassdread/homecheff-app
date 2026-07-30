@@ -1,0 +1,13 @@
+{
+  "phase": "3B.3.41",
+  "branch": "workspace/phase3b341-controlled-workspace-host-activation-issuance-pipeline-execution",
+  "result": "controlled-workspace-host-activation-issuance-pipeline-executed-not-activated",
+  "lifecycle": "PIPELINE_EXECUTED_NOT_ACTIVATED",
+  "proofTarget": "96cd5fe85b77862f540b2414d97946ee2273795a",
+  "predecessorHead": "0fcb6c11eabaea50f7c1138db9c170a033e75960",
+  "predecessorProofTarget": "313dd01f0260254f3e46f9a6d6762a1bd5e2a361",
+  "bridgeVersion": 42,
+  "proofPort": 3062,
+  "verdict": "READY_FOR_PHASE_3B_3_42",
+  "documentaryTip": "4e24e1ab3f9bc53d87646f1d65b655bf172c5fc1"
+}
