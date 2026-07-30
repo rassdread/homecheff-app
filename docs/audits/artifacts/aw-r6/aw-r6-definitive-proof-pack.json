@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "definitive-aw-r6-technical-proof-pack",
+  "status": "AW_R6_DEFINITIVE_PROOF_SET",
+  "head": "ac34031c8e16b70593392c484902d5f007b6f916",
+  "commits": "none",
+  "validator": {
+    "schemaVersion": 1,
+    "phase": "AW-R6",
+    "kind": "pre-freeze-technical-validator",
+    "validator": "validate-adaptive-workspace-production-feed-on-aw-r6",
+    "predecessorFreeze": "ac34031c8e16b70593392c484902d5f007b6f916",
+    "head": "ac34031c8e16b70593392c484902d5f007b6f916",
+    "bridgeExpected": 54,
+    "reader": "readControlledWorkspaceProductionFeedOn",
+    "metaOk": "productionFeedOnMetaOk",
+    "productionFeedOnMetaOk": true,
+    "positive": "PASS",
+    "negativeCases": 46,
+    "descriptorNegatives": 42,
+    "scriptNegatives": 4,
+    "negativePass": 46,
+    "readOnly": true,
+    "requestStarted": false,
+    "remount": false,
+    "attemptFeedOn": "permanent-allowed-false",
+    "rollbackTarget": "AW-R5",
+    "mountRenderUnmount": [
+      1,
+      1,
+      0
+    ],
+    "finalVerdict": "ADAPTIVE_WORKSPACE_PRODUCTION_LIVE_VALIDATED"
+  },
+  "chromium": {
+    "schemaVersion": 1,
+    "phase": "AW-R6",
+    "kind": "pre-freeze-technical-chromium",
+    "port": 3074,
+    "bridgeVersion": 54,
+    "invariants": "20/20",
+    "forcedNegatives": "85/85",
+    "productionFeedOnMetaOk": true,
+    "overallVerdict": "ADAPTIVE_WORKSPACE_PRODUCTION_LIVE_FROZEN",
+    "result": "PASS",
+    "proofPath": "docs/audits/artifacts/aw-r6/aw-r6-controlled-workspace-production-feed-on-proof.json"
+  },
+  "forcedNegative": {
+    "old": "82/82",
+    "neu": "85/85",
+    "result": "PASS"
+  },
+  "build": "PASS",
+  "controlledWorkspaceRegression": "20/20",
+  "geofeed": [
+    1,
+    1,
+    0
+  ],
+  "recursive": "PASS",
+  "performance": "PASS",
+  "stress": "PASS",
+  "rollback": "PASS",
+  "categoryC": "PRESERVED",
+  "attemptFeedOn": "permanent-allowed-false",
+  "verdict": "ADAPTIVE_WORKSPACE_PRODUCTION_LIVE_FROZEN",
+  "promotedFrom": "AW-R6 Step 4 pre-freeze technical proofs",
+  "definitive": true
+}

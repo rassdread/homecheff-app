@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-performance-certification",
+  "comparedTo": "AW-R5",
+  "metrics": {
+    "mountCount": {
+      "awR5": 1,
+      "awR6": 1,
+      "status": "PASS"
+    },
+    "renderCount": {
+      "awR5": 1,
+      "awR6": 1,
+      "status": "PASS"
+    },
+    "unmountCount": {
+      "awR5": 0,
+      "awR6": 0,
+      "status": "PASS"
+    },
+    "initialRequestCount": {
+      "awR5": "single",
+      "awR6": "single",
+      "status": "PASS"
+    },
+    "filterRequestCount": {
+      "awR5": "no-dup",
+      "awR6": "no-dup",
+      "status": "PASS"
+    },
+    "paginationRequestCount": {
+      "awR5": "no-dup",
+      "awR6": "no-dup",
+      "status": "PASS"
+    },
+    "observerCount": {
+      "awR5": "single",
+      "awR6": "single",
+      "status": "PASS"
+    },
+    "cacheWriteCount": {
+      "awR5": "no-dup",
+      "awR6": "no-dup",
+      "status": "PASS"
+    },
+    "remountOnSealedRead": {
+      "awR5": false,
+      "awR6": false,
+      "status": "PASS"
+    },
+    "bridgeProbeExtraRuntimeWork": {
+      "awR5": false,
+      "awR6": false,
+      "status": "PASS"
+    }
+  },
+  "materialRegression": false,
+  "duplication": false,
+  "result": "PASS"
+}

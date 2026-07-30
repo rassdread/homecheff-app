@@ -1,0 +1,3 @@
+branch=workspace/aw-r6-production-freeze-feed-on
+predecessorFreeze=ac34031c8e16b70593392c484902d5f007b6f916
+freezeCommit=pending

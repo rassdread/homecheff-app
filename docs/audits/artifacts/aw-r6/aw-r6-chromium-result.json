@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-chromium",
+  "port": 3074,
+  "bridgeVersion": 54,
+  "invariants": "20/20",
+  "forcedNegatives": "85/85",
+  "productionFeedOnMetaOk": true,
+  "overallVerdict": "ADAPTIVE_WORKSPACE_PRODUCTION_LIVE_FROZEN",
+  "result": "PASS",
+  "proofPath": "docs/audits/artifacts/aw-r6/aw-r6-controlled-workspace-production-feed-on-proof.json"
+}

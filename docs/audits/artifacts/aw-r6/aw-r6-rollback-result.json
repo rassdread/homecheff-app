@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-rollback",
+  "target": "AW-R5",
+  "afterRollback": {
+    "stage": "AW-R5",
+    "lifecycle": "PRODUCTION_READY_NOT_RELEASED",
+    "result": "controlled-workspace-production-ready-feed-off",
+    "pipeline": "AUTHORITY_TRANSITIONED",
+    "transaction": "AUTHORITY_COMMITTED",
+    "feedOnAuthorized": false,
+    "productionPromotionAuthorized": false,
+    "productionReadinessCertified": true,
+    "releaseBlockersRemain": false,
+    "workspaceAuthorityActive": true,
+    "legacyInactive": true,
+    "geoFeed": "1/1/0 continuity preserved",
+    "stableMountPreserved": true,
+    "requestIdentityPreserved": true
+  },
+  "continuity": {
+    "noDuplicateRequest": true,
+    "noDuplicateObserver": true,
+    "noDuplicateCacheWriter": true,
+    "noBlankFeed": true
+  },
+  "result": "PASS",
+  "source": "createControlledWorkspaceProductionFeedOnRollbackContract + dedicated tests"
+}

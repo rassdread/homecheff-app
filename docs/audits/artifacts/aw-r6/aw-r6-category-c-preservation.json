@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-category-c-preservation",
+  "before": "ff92265bc630d83a35cfcdc7bdfec2c2d77b994f  docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json\ndaae9f1596776ca2b51378210769c5405cee1c9b  docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof-summary.md\nab0150597e2862da1a5d5ee5b849b5052329f823  docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json",
+  "after": "ff92265bc630d83a35cfcdc7bdfec2c2d77b994f  docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof.json\ndaae9f1596776ca2b51378210769c5405cee1c9b  docs/audits/artifacts/phase3b2/phase3b2-feed-browser-proof-summary.md\nab0150597e2862da1a5d5ee5b849b5052329f823  docs/audits/artifacts/phase3b2/phase3b2-feed-freeze-contract.json",
+  "changedDuringValidation": false,
+  "staged": false,
+  "deleted": false,
+  "normalized": false,
+  "presentInGeneratedAwR6Output": false,
+  "status": "PRESERVED",
+  "note": "Category C may regenerate during sealed Chromium; left unstaged. Never added to AW-R6 commits."
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-geofeed-production-regression",
+  "mountRenderUnmount": [
+    1,
+    1,
+    0
+  ],
+  "instanceCount": 1,
+  "owner": "workspace",
+  "writer": "workspace",
+  "renderer": "workspace",
+  "requestAuthority": "workspace",
+  "paginationAuthority": "workspace",
+  "cacheAuthority": "workspace",
+  "observerAuthority": "workspace",
+  "legacyAuthorityActive": false,
+  "feedOnAuthorized": true,
+  "productionPromotionAuthorized": true,
+  "remount": false,
+  "requestReset": false,
+  "filterReset": false,
+  "paginationReset": false,
+  "cacheReset": false,
+  "observerDuplication": false,
+  "result": "PASS"
+}

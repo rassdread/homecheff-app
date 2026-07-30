@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "phase": "AW-R6",
+  "kind": "pre-freeze-technical-stress-validation",
+  "scenarios": [
+    "rapid filter switches (fail-closed continuity)",
+    "rapid pagination (no duplicate pagination)",
+    "repeated refresh",
+    "soft navigation",
+    "hard reload (production Chromium restart path)",
+    "route leave/return (suite-supported)",
+    "repeated Workspace init (deterministic descriptor)",
+    "repeated sealed reader calls (immutable)",
+    "repeated probe calls (no remount)",
+    "rollback to AW-R5",
+    "isolated reactivation after rollback (metadata-safe)"
+  ],
+  "proofs": {
+    "noDuplicateRequests": true,
+    "noDuplicatePagination": true,
+    "noDuplicateObservers": true,
+    "noDuplicateCacheWrites": true,
+    "noRemount": true,
+    "noStaleLegacyCallbacks": true,
+    "noStaleRuntimeHandles": true,
+    "noBlankFeed": true,
+    "noFeedReset": true,
+    "noInconsistentFeedOn": true,
+    "noMetaOkFlapping": true
+  },
+  "result": "PASS"
+}
