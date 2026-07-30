@@ -1,6 +1,6 @@
 /**
- * AW-R2 — pure host activation gate.
- * LIVE is authorized in metadata, but execution remains blocked.
+ * AW-R3 — pure GeoFeed authority activation gate.
+ * Workspace execution metadata is active, but GeoFeed takeover remains blocked.
  */
 
 import type { ControlledFeedHostContract } from "./controlled-feed-host-types";
@@ -39,6 +39,7 @@ import { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY } from
 import { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY } from "./controlled-workspace-host-candidate-execution-started";
 import { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY } from "./controlled-workspace-host-candidate-pre-activation-seal";
 import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "./controlled-workspace-live-authorization";
+import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "./controlled-workspace-execution";
 
 export const PHASE_3B3_1_DORMANT_HOST_ONLY =
   "PHASE_3B3_1_DORMANT_HOST_ONLY" as const;
@@ -90,11 +91,12 @@ export { PHASE_3B3_46_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTABLE_ONLY };
 export { PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY };
 export { PHASE_AW_R1_FINAL_PRE_ACTIVATION_SEAL_ONLY };
 export { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY };
+export { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY };
 
 export type FeedHostActivationGateResult = {
   allowed: false;
-  currentStep: "AW-R2";
-  eligibleStep: "AW-R3";
+  currentStep: "AW-R3";
+  eligibleStep: "AW-R4";
   reasons: readonly string[];
   blockers: readonly string[];
   proofStatus: "required" | "present" | "missing" | "invalid";
@@ -189,11 +191,9 @@ export function evaluateFeedHostActivationGate(
   input: FeedHostActivationGateInput = {},
 ): FeedHostActivationGateResult {
   const contract = input.contract ?? createControlledFeedHostContract();
-  const blockers: string[] = [
-    PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
-  ];
+  const blockers: string[] = [PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY];
   const reasons: string[] = [
-    "AW-R2 authorizes LIVE Allowed metadata only; execution, runtime and Workspace remain deferred to AW-R3+",
+    "AW-R3 enables controlled Workspace execution metadata only; legacy GeoFeed render authority remains sealed until AW-R4",
   ];
 
   let proofStatus: FeedHostActivationGateResult["proofStatus"] = "required";
@@ -442,8 +442,8 @@ export function evaluateFeedHostActivationGate(
 
   return {
     allowed: false,
-    currentStep: "AW-R2",
-    eligibleStep: "AW-R3",
+    currentStep: "AW-R3",
+    eligibleStep: "AW-R4",
     reasons,
     blockers: [...new Set(blockers)],
     proofStatus,

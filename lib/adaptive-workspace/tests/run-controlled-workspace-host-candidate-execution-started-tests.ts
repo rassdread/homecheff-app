@@ -22,7 +22,7 @@ import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_BLOCKERS,
   PHASE_3B3_47_CONTROLLED_WORKSPACE_HOST_CANDIDATE_EXECUTION_STARTED_ONLY,
 } from "../sealed/controlled-workspace-host-candidate-execution-started";
-import { PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY } from "../sealed/controlled-workspace-live-authorization";
+import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "../sealed/controlled-workspace-execution";
 import {
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_ID,
   CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID,
@@ -616,23 +616,23 @@ if (process.env.SKIP_PHASE3B345_LIVE === "1") {
   assert.equal(gate.allowed, false);
   assert.ok(
     gate.blockers.includes(
-      PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
+      PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY,
     ),
   );
-  assert.equal(gate.currentStep, "AW-R2");
-  assert.equal(gate.eligibleStep, "AW-R3");
-  ok("activation remains impossible (gate currentStep=AW-R2, eligibleStep=AW-R3)");
+  assert.equal(gate.currentStep, "AW-R3");
+  assert.equal(gate.eligibleStep, "AW-R4");
+  ok("GeoFeed takeover remains impossible (gate AW-R3 to AW-R4)");
 }
 
 {
   const host = createControlledFeedHostContract();
-  assert.equal(host.nextEligibleStep, "AW-R3");
+  assert.equal(host.nextEligibleStep, "AW-R4");
   assert.ok(
     host.activationBlockers.includes(
-      PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
+      PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY,
     ),
   );
-  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R3");
+  assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R4");
   assert.equal(createFeedHostRollbackContract().rollbackReadiness, "prepared-not-active");
   assert.equal(createControlledHostRegistry().hostCount, 1);
   ok("owner/writer/renderer/registry/rollback/host metadata unchanged");

@@ -7,7 +7,6 @@ import { createControlledFeedHostPlan } from "../sealed/controlled-feed-host-pla
 import {
   CONTROLLED_WORKSPACE_LIVE_AUTHORIZATION_CONTRACT_ID,
   CONTROLLED_WORKSPACE_LIVE_AUTHORIZATION_ID,
-  PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY,
   createControlledWorkspaceLiveAuthorizationRollbackContract,
   createControlledWorkspaceLiveAuthorizationDescriptor,
   evaluateControlledWorkspaceLiveAuthorization,
@@ -16,6 +15,7 @@ import { createControlledWorkspaceLiveAuthorizationContract } from "../sealed/co
 import { createControlledWorkspaceLiveAuthorizationIdentity } from "../sealed/controlled-workspace-live-authorization-identity";
 import { createControlledWorkspaceLiveAuthorizationPreparedContract } from "../sealed/controlled-workspace-live-authorization-prepared";
 import { FEED_DISCOVERY_HOST_CANDIDATE_METADATA } from "../registry/settings-manifests";
+import { PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY } from "../sealed/controlled-workspace-execution";
 
 let passed = 0;
 const ok = (label: string) => {
@@ -148,13 +148,13 @@ ok("metadata-only rollback restores AW-R1 Allowed=false");
 
 const gate = evaluateFeedHostActivationGate();
 assert.equal(gate.allowed, false);
-assert.equal(gate.currentStep, "AW-R2");
-assert.equal(gate.eligibleStep, "AW-R3");
-assert.ok(gate.blockers.includes(PHASE_AW_R2_CONTROLLED_LIVE_AUTHORIZATION_ONLY));
-assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R3");
-assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R3");
-assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R3");
-ok("AW-R2 gate and AW-R2 continuity");
+assert.equal(gate.currentStep, "AW-R3");
+assert.equal(gate.eligibleStep, "AW-R4");
+assert.ok(gate.blockers.includes(PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY));
+assert.equal(createControlledFeedHostContract().nextEligibleStep, "AW-R4");
+assert.equal(createControlledFeedHostPlan().recommendedNextStep, "AW-R4");
+assert.equal(FEED_DISCOVERY_HOST_CANDIDATE_METADATA.nextEligibleStep, "AW-R4");
+ok("AW-R2 descriptor and AW-R3 gate continuity");
 
 console.log(
   `\nadaptive-workspace AW-R2 controlled workspace live authorization: ${passed} assertion groups ok\n`,

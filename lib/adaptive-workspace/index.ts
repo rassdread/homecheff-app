@@ -2079,3 +2079,37 @@ export {
   validateControlledWorkspaceLiveAuthorizationPreparedContract,
 } from "./sealed/controlled-workspace-live-authorization-prepared";
 export type { ControlledWorkspaceLiveAuthorizationPreparedContract } from "./sealed/controlled-workspace-live-authorization-prepared";
+export {
+  CONTROLLED_WORKSPACE_EXECUTION_SCHEMA_VERSION,
+  PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY,
+  CONTROLLED_WORKSPACE_EXECUTION_ID,
+  CONTROLLED_WORKSPACE_EXECUTION_CONTRACT_ID,
+  CONTROLLED_WORKSPACE_EXECUTION_CONDITIONS,
+  CONTROLLED_WORKSPACE_EXECUTION_GUARDS,
+  CONTROLLED_WORKSPACE_EXECUTION_BLOCKERS,
+  createControlledWorkspaceExecutionDescriptor,
+  createControlledWorkspaceExecutionRollbackContract,
+  evaluateControlledWorkspaceExecution,
+  validateControlledWorkspaceExecutionDescriptor,
+} from "./sealed/controlled-workspace-execution";
+export type {
+  ControlledWorkspaceExecutionDescriptor,
+  ControlledWorkspaceExecutionEvaluation,
+  ControlledWorkspaceExecutionInput,
+  ControlledWorkspaceExecutionRollbackContract,
+} from "./sealed/controlled-workspace-execution";
+export {
+  createControlledWorkspaceExecutionContract,
+  validateControlledWorkspaceExecutionContract,
+} from "./sealed/controlled-workspace-execution-contract";
+export type { ControlledWorkspaceExecutionContract } from "./sealed/controlled-workspace-execution-contract";
+export {
+  createControlledWorkspaceExecutionIdentity,
+  validateControlledWorkspaceExecutionIdentity,
+} from "./sealed/controlled-workspace-execution-identity";
+export type { ControlledWorkspaceExecutionIdentity } from "./sealed/controlled-workspace-execution-identity";
+export {
+  createControlledWorkspaceExecutionPreparedContract,
+  validateControlledWorkspaceExecutionPreparedContract,
+} from "./sealed/controlled-workspace-execution-prepared";
+export type { ControlledWorkspaceExecutionPreparedContract } from "./sealed/controlled-workspace-execution-prepared";

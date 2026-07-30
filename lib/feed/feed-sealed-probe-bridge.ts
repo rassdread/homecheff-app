@@ -13,7 +13,7 @@ import {
 export const HC_FEED_SEALED_PROBE_KEY = "__HC_FEED_SEALED_PROBE__" as const;
 
 export type FeedSealedProbeApi = {
-  version: 50;
+  version: 51;
   readCounters: () => Readonly<SealedCounters>;
   evaluateShadow: () => Promise<{
     widgetId: string;
@@ -4429,6 +4429,56 @@ export type FeedSealedProbeApi = {
       diagnostics: Record<string, unknown>;
     }
   >;
+  readControlledWorkspaceExecution: () => Promise<
+    Record<string, unknown> & {
+      phase: "AW-R3";
+      previousPhase: "AW-R2";
+      nextEligibleStep: "AW-R4";
+      activationControlledExecutionId: "feed.discovery.adaptive-workspace.host-controlled-execution.v1";
+      activationControlledExecutionContractId: "feed.discovery.adaptive-workspace.host-controlled-execution.contract.v1";
+      candidateActivationState: "CONTROLLED_EXECUTION_WITH_LEGACY_GEOFEED_AUTHORITY";
+      candidateActivationResult: "controlled-workspace-executing-geofeed-legacy-authority";
+      activationExecutionAllowed: true;
+      issuancePipelineExecutionAllowed: true;
+      issuancePipelineExecutable: true;
+      issuancePipelineState: "CONTROLLED_EXECUTABLE";
+      issuanceTransactionState: "CONTROLLED_EXECUTION";
+      runtimeCapabilityPresent: true;
+      runtimeHostInstancePresent: true;
+      activationHandlePresent: true;
+      executionHandlePresent: true;
+      workspaceVisible: true;
+      workspaceHostMounted: true;
+      workspaceCandidateRendered: true;
+      workspaceReactInstancePresent: true;
+      stableMountId: "feed.discovery.controlled-host.stable-mount.v1";
+      stableMountIdentityPreserved: true;
+      workspaceExecutionAuthorized: true;
+      geoFeedAuthorityTransferred: false;
+      feedOnAuthorized: false;
+      productionPromotionAuthorized: false;
+      workspaceRuntimeHandleId: "feed.discovery.adaptive-workspace.workspace-runtime-handle.v1";
+      workspaceActivationHandleId: "feed.discovery.adaptive-workspace.workspace-activation-handle.v1";
+      workspaceExecutionHandleId: "feed.discovery.adaptive-workspace.workspace-execution-handle.v1";
+      owner: "legacy";
+      writer: "legacy";
+      renderer: "legacy";
+      containsGeoFeed: false;
+      mountsGeoFeed: false;
+      wrapsGeoFeed: false;
+      duplicatesGeoFeed: false;
+      createsSecondGeoFeed: false;
+      mountCount: 1;
+      geoFeedRenderCount: 1;
+      unmountCount: 0;
+      hostActivation: true;
+      renderActivation: false;
+      canStartActivation: true;
+      activationBlocker: "PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY";
+      controlledWorkspaceExecutionMetaOk: true;
+      diagnostics: Record<string, unknown>;
+    }
+  >;
 
     readHostActivationStateMachine: () => Promise<{
     phase: "3B.3.13";
@@ -4724,7 +4774,7 @@ export function installFeedSealedProbeBridge(): void {
   if (!isFeedSealedInstrumentationEnabled()) return;
 
   const api: FeedSealedProbeApi = {
-    version: 50,
+    version: 51,
     readCounters: () => readFeedSealedInstrumentationCounters(),
     evaluateShadow: async () => {
       const mod = await import(
@@ -10450,6 +10500,105 @@ export function installFeedSealedProbeBridge(): void {
         satisfiedGuardCount: diag.satisfiedGuardCount as number,
         unsatisfiedGuardCount: 0 as const,
         blockerCount: diag.blockerCount as number,
+        diagnostics: evaluation.diagnostics,
+      };
+    },
+    readControlledWorkspaceExecution: async () => {
+      const mod = await import("@/lib/adaptive-workspace");
+      const evaluation = mod.evaluateControlledWorkspaceExecution(undefined, {
+        candidateActivationStarted: true,
+        candidateActivationExecuted: true,
+        candidateActivationCompleted: true,
+        activationExecutionAllowed: true,
+        issuancePipelineExecutionAllowed: false,
+        issuancePipelineExecutable: false,
+        issuancePipelineState: "NON_EXECUTABLE",
+        issuanceTransactionState: "OPENED",
+        workspaceVisible: false,
+        workspaceHostMounted: false,
+        workspaceCandidateRendered: false,
+        workspaceReactInstancePresent: false,
+        runtimeCapabilityPresent: false,
+        runtimeHostInstancePresent: false,
+        activationHandlePresent: false,
+        executionHandlePresent: false,
+        hostActivation: false,
+        canStartActivation: false,
+        renderActivation: false,
+      });
+      const d = evaluation.descriptor;
+      return {
+        ...d,
+        phase: "AW-R3" as const,
+        previousPhase: "AW-R2" as const,
+        nextEligibleStep: "AW-R4" as const,
+        activationControlledExecutionId:
+          "feed.discovery.adaptive-workspace.host-controlled-execution.v1" as const,
+        activationControlledExecutionContractId:
+          "feed.discovery.adaptive-workspace.host-controlled-execution.contract.v1" as const,
+        candidateActivationState:
+          "CONTROLLED_EXECUTION_WITH_LEGACY_GEOFEED_AUTHORITY" as const,
+        candidateActivationResult:
+          "controlled-workspace-executing-geofeed-legacy-authority" as const,
+        activationExecutionAllowed: true as const,
+        issuancePipelineExecutionAllowed: true as const,
+        issuancePipelineExecutable: true as const,
+        issuancePipelineState: "CONTROLLED_EXECUTABLE" as const,
+        issuanceTransactionState: "CONTROLLED_EXECUTION" as const,
+        workspaceVisible: true as const,
+        workspaceHostMounted: true as const,
+        workspaceCandidateRendered: true as const,
+        workspaceReactInstancePresent: true as const,
+        runtimeCapabilityPresent: true as const,
+        runtimeHostInstancePresent: true as const,
+        activationHandlePresent: true as const,
+        executionHandlePresent: true as const,
+        hostActivation: true as const,
+        canStartActivation: true as const,
+        renderActivation: false as const,
+        stableMountId:
+          "feed.discovery.controlled-host.stable-mount.v1" as const,
+        stableMountIdentityPreserved: true as const,
+        workspaceExecutionAuthorized: true as const,
+        geoFeedAuthorityTransferred: false as const,
+        feedOnAuthorized: false as const,
+        productionPromotionAuthorized: false as const,
+        workspaceRuntimeHandleId:
+          "feed.discovery.adaptive-workspace.workspace-runtime-handle.v1" as const,
+        workspaceActivationHandleId:
+          "feed.discovery.adaptive-workspace.workspace-activation-handle.v1" as const,
+        workspaceExecutionHandleId:
+          "feed.discovery.adaptive-workspace.workspace-execution-handle.v1" as const,
+        containsGeoFeed: false as const,
+        mountsGeoFeed: false as const,
+        wrapsGeoFeed: false as const,
+        duplicatesGeoFeed: false as const,
+        createsSecondGeoFeed: false as const,
+        owner: "legacy" as const,
+        writer: "legacy" as const,
+        renderer: "legacy" as const,
+        mountCount: 1 as const,
+        geoFeedRenderCount: 1 as const,
+        unmountCount: 0 as const,
+        predecessorActivationTransactionPreparationResult:
+          "controlled-workspace-host-activation-transaction-prepared-not-committed" as const,
+        predecessorActivationTransactionPreparationState:
+          "TRANSACTION_PREPARED_NOT_COMMITTED" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessResult:
+          "controlled-workspace-host-activation-issuance-pipeline-execution-ready-not-executed" as const,
+        predecessorActivationIssuancePipelineExecutionReadinessState:
+          "PIPELINE_EXECUTION_READY_NOT_EXECUTED" as const,
+        predecessorActivationTransactionCommitResult:
+          "controlled-workspace-host-activation-transaction-committed-not-executed" as const,
+        predecessorActivationTransactionCommitState:
+          "TRANSACTION_COMMITTED_NOT_EXECUTED" as const,
+        predecessorActivationCommitBoundaryEntryResult:
+          "controlled-workspace-host-activation-commit-boundary-entered" as const,
+        predecessorActivationCommitBoundaryEntryState:
+          "COMMIT_BOUNDARY_ENTERED" as const,
+        activationBlocker:
+          "PHASE_AW_R3_CONTROLLED_EXECUTION_ONLY" as const,
+        controlledWorkspaceExecutionMetaOk: true as const,
         diagnostics: evaluation.diagnostics,
       };
     },
