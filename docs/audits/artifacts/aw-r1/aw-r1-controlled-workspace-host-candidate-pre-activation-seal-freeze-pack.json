@@ -6,7 +6,7 @@
   "implementationCommit": "264340b1a2ca1d52c2850a66dadb93dcdeed2591",
   "proofTarget": "264340b1a2ca1d52c2850a66dadb93dcdeed2591",
   "documentaryCommit": "e323aff5d46eba1fb9e3d75938c5e2c17cf6eede",
-  "lineageDocumentaryCommit": "pending-lineage",
+  "lineageDocumentaryCommit": "8fe89c749f4712120c3c2b5ae6dabcf7e44a2542",
   "freezeCommit": "pending",
   "result": "controlled-workspace-host-candidate-pre-activation-sealed-not-live",
   "lifecycle": "CANDIDATE_PRE_ACTIVATION_SEALED_NOT_LIVE",
