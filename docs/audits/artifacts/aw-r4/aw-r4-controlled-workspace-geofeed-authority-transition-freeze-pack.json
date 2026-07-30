@@ -5,7 +5,7 @@
   "predecessorFreeze": "227c2ee6cb89e5a838d9df2e45c08dd2073ea152",
   "implementationCommit": "28c8abe858e8cefe73c66e884048cb4526456448",
   "proofTarget": "28c8abe858e8cefe73c66e884048cb4526456448",
-  "documentaryCommit": "pending-docs",
+  "documentaryCommit": "a68b9d2b327551148246e1c49806c8372afe749c",
   "lineageDocumentaryCommit": "pending-lineage",
   "freezeCommit": "pending",
   "result": "controlled-workspace-geofeed-authority-transitioned-not-production-on",
