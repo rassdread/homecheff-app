@@ -256,7 +256,10 @@ begin("layout source: permanent slots + mount diagnostics + no Mode keys");
   for (const re of CONTINUITY_FORBIDDEN_SOURCE_PATTERNS) {
     assert.equal(re.test(src), false, String(re));
   }
-  assert.match(src, /data-wx-phase="1b\.2"/);
+  assert.match(src, /data-wx-phase="1b\.3"/);
+  assert.match(src, /data-wx-capability/);
+  assert.match(src, /WORKSPACE_TRANSITION_CONTINUITY/);
+  // Continuity contract remains; phase advances with capability diagnostics.
   assert.match(src, /data-wx-continuity/);
   assert.match(src, /data-wx-continuity-remount="0"/);
   assert.match(src, /data-aw-stable-feed-slot="1"/);

@@ -11,9 +11,10 @@
  * WX Phase 1B.1: Workspace Mode Engine diagnostics only (no layout/capability changes).
  * WX Phase 1B.2: Transition Continuity — Mode/Posture changes MUST NOT remount primary,
  *                reload feed, or reset scroll/filters. Fail-closed last stable space.
+ * WX Phase 1B.3: Capability Activation Framework diagnostics only (no visual activation).
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
- * NEVER key primary (or any slot) by Mode / posture / mode token.
+ * NEVER key primary (or any slot) by Mode / posture / mode token / capability state.
  */
 
 import React, {
@@ -30,6 +31,7 @@ import {
   coalesceMeasurement,
   normalizeWorkspaceMeasurement,
   resolveFeedWorkspaceVisibleLayout,
+  resolveWorkspaceCapabilitiesFromModePlan,
   resolveWorkspaceMode,
   WORKSPACE_TRANSITION_CONTINUITY,
   type FeedWorkspaceVisibleLayoutPlan,
@@ -175,6 +177,9 @@ export default function FeedWorkspaceVisibleLayout({
     usableHeightPx: plan.usableHeightPx,
   });
 
+  /** WX 1B.3 — capability activation plan; diagnostics only (no visual activation). */
+  const capabilityPlan = resolveWorkspaceCapabilitiesFromModePlan(modePlan);
+
   const previousMode = previousModeRef.current;
   const modeChanged =
     previousMode != null && previousMode.mode !== modePlan.mode;
@@ -219,7 +224,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.2"
+      data-wx-phase="1b.3"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -231,6 +236,35 @@ export default function FeedWorkspaceVisibleLayout({
       data-wx-landscape-carve-out={modePlan.landscapeCarveOut ? "1" : "0"}
       data-wx-mode-changed={modeChanged ? "1" : "0"}
       data-wx-posture-changed={postureChanged ? "1" : "0"}
+      data-wx-capability={capabilityPlan.contractId}
+      data-wx-cap-token={capabilityPlan.stabilityToken}
+      data-wx-cap-available={String(capabilityPlan.availableCount)}
+      data-wx-cap-unavailable={String(capabilityPlan.unavailableCount)}
+      data-wx-cap-reserved={String(capabilityPlan.reservedCount)}
+      data-wx-cap-navigation={capabilityPlan.capabilities.navigation}
+      data-wx-cap-discovery={capabilityPlan.capabilities.discovery}
+      data-wx-cap-search={capabilityPlan.capabilities.search}
+      data-wx-cap-filters={capabilityPlan.capabilities.filters}
+      data-wx-cap-panels={capabilityPlan.capabilities.panels}
+      data-wx-cap-workspace-density={
+        capabilityPlan.capabilities["workspace-density"]
+      }
+      data-wx-cap-inspector={capabilityPlan.capabilities.inspector}
+      data-wx-cap-selection={capabilityPlan.capabilities.selection}
+      data-wx-cap-workspace-memory={
+        capabilityPlan.capabilities["workspace-memory"]
+      }
+      data-wx-cap-contextual-assistance={
+        capabilityPlan.capabilities["contextual-assistance"]
+      }
+      data-wx-cap-professional-workspace={
+        capabilityPlan.capabilities["professional-workspace"]
+      }
+      data-wx-cap-ai-collaboration={
+        capabilityPlan.capabilities["ai-collaboration"]
+      }
+      data-wx-cap-extensions={capabilityPlan.capabilities.extensions}
+      data-wx-cap-visual-activation="0"
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
