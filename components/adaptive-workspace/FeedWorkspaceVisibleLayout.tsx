@@ -73,6 +73,10 @@ const railChromeClass =
 const railScrollClass =
   "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 py-2.5 [-webkit-overflow-scrolling:touch]";
 
+/** Diagnostics-only mount sequence — increments once per actual React mount. */
+let wxShellMountSeq = 0;
+let wxPrimaryMountSeq = 0;
+
 export default function FeedWorkspaceVisibleLayout({
   primary,
   startPanel,
@@ -88,6 +92,16 @@ export default function FeedWorkspaceVisibleLayout({
     null,
   );
   const previousModeRef = useRef<WorkspaceModePlan | null>(null);
+  /** Stable for the life of this shell instance; changes only on remount. */
+  const [shellMountId] = useState(() => {
+    wxShellMountSeq += 1;
+    return `wx-shell-mount:${wxShellMountSeq}`;
+  });
+  /** Stable for the life of the primary slot host; changes only on remount. */
+  const [primaryMountId] = useState(() => {
+    wxPrimaryMountSeq += 1;
+    return `wx-primary-mount:${wxPrimaryMountSeq}`;
+  });
   const [measurement, setMeasurement] = useState<NormalizedMeasurement | null>(
     () => seedMeasurement(initialWidthPx, initialHeightPx),
   );
@@ -208,6 +222,7 @@ export default function FeedWorkspaceVisibleLayout({
       data-wx-phase="1b.2"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
+      data-wx-shell-mount-id={shellMountId}
       data-wx-fail-closed={usedLastStable ? "1" : "0"}
       data-wx-mode={modePlan.mode}
       data-wx-posture={modePlan.posture}
@@ -282,6 +297,7 @@ export default function FeedWorkspaceVisibleLayout({
         key={WORKSPACE_TRANSITION_CONTINUITY.primarySlotKey}
         data-aw-slot-host="primary"
         data-wx-continuity-primary="1"
+        data-wx-primary-mount-id={primaryMountId}
         className="min-w-0 min-h-0"
         style={{ gridArea: "primary" }}
       >

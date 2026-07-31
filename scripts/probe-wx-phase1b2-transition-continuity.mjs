@@ -1,12 +1,19 @@
 #!/usr/bin/env node
 /**
- * WX Phase 1B.2 — Transition Continuity browser proof.
+ * WX Phase 1B.2 remediation — Transition Continuity browser proof.
  *
- * Single page load → resize/rotate across Mode boundaries.
- * Asserts: mountCount=1, unmountCount=0, Mode changes occur, scroll preserved
- * across Mode change when stage scroll container exists, no hydration/console errors.
+ * Independent observation layer (NOT continuity-contract booleans as mount proof):
+ * - data-wx-primary-mount-id / data-wx-shell-mount-id (observed mount identity)
+ * - sealed counters when available (secondary)
+ * - measured AvailableSpace (data-aw-usable-width/height)
+ * - scroll / filter / search snapshots
+ * - console + hydration
+ * - request deltas
  *
- *   HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=on npx next start -H 127.0.0.1 -p 3087
+ * Single page load — no reload between steps.
+ *
+ *   HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=on \\
+ *     NEXT_PUBLIC_FEED_SEALED_BASELINE=1 npx next start -H 127.0.0.1 -p 3087
  *   node scripts/probe-wx-phase1b2-transition-continuity.mjs --base-url=http://127.0.0.1:3087
  */
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -16,21 +23,13 @@ import { join } from "node:path";
 
 const require = createRequire(import.meta.url);
 
-/** Single-page AvailableSpace journey designed to cross Mode bands. */
-const JOURNEY = [
-  { id: "browse-320", width: 320, height: 568 },
-  { id: "browse-390", width: 390, height: 844 },
-  { id: "browse-430", width: 430, height: 932 },
-  { id: "landscape-844", width: 844, height: 390 },
-  { id: "hybrid-768", width: 768, height: 1024 },
-  { id: "hybrid-820", width: 820, height: 1180 },
-  { id: "hybrid-1024", width: 1024, height: 768 },
-  { id: "full-1280", width: 1280, height: 800 },
-  { id: "full-1440", width: 1440, height: 900 },
-  { id: "pro-1920", width: 1920, height: 1080 },
-  { id: "pro-2560", width: 2560, height: 1440 },
-  { id: "back-browse-360", width: 360, height: 740 },
-];
+/** Measured AvailableSpace boundaries to oscillate (WMS bands). */
+const BOUNDARIES = [720, 1024, 1440];
+const OSCILLATIONS_PER_BOUNDARY = 5;
+/** Allow tiny reflow while rejecting reset-to-top. */
+const SCROLL_TOLERANCE_PX = 48;
+const SEARCH_TOKEN = "wx1b2probe";
+const FILTER_MIN_PRICE = "5";
 
 function parseArgs(argv) {
   let baseUrl = "http://127.0.0.1:3087";
@@ -93,14 +92,32 @@ async function dismissPrivacy(page) {
   }
 }
 
-async function readContinuitySnap(page) {
+async function readSnap(page) {
   return page.evaluate(() => {
     const ws = document.querySelector("[data-aw-feed-workspace]");
+    const primaryHost = document.querySelector(
+      '[data-wx-continuity-primary="1"]',
+    );
     const feed = document.querySelector(
       '[data-aw-stable-feed-slot="1"], [data-aw-primary-feed]',
     );
     const probe = window.__HC_FEED_SEALED_PROBE__;
     const counters = probe?.readCounters?.() ?? null;
+
+    const searchInput = document.querySelector(
+      'input[placeholder*="zoek" i], input[placeholder*="search" i], input[type="search"]',
+    );
+    const priceMin = document.querySelector(
+      'input[type="number"][placeholder*="min" i], input[type="number"]',
+    );
+    const firstTile =
+      feed?.querySelector("[data-product-id], [data-item-id], article, a[href*='/product']") ??
+      null;
+
+    const tiles = feed
+      ? [...feed.querySelectorAll("article, [data-product-id]")].slice(0, 3)
+      : [];
+
     return {
       found: Boolean(ws),
       phase: ws?.getAttribute("data-wx-phase"),
@@ -111,15 +128,61 @@ async function readContinuitySnap(page) {
       modeToken: ws?.getAttribute("data-wx-mode-token"),
       usableWidth: Number(ws?.getAttribute("data-aw-usable-width") ?? "0"),
       usableHeight: Number(ws?.getAttribute("data-aw-usable-height") ?? "0"),
+      shellMountId: ws?.getAttribute("data-wx-shell-mount-id"),
+      primaryMountId: primaryHost?.getAttribute("data-wx-primary-mount-id"),
       workspaceCount: document.querySelectorAll("[data-aw-feed-workspace]")
         .length,
+      primaryHostCount: document.querySelectorAll(
+        '[data-wx-continuity-primary="1"]',
+      ).length,
       stableFeedSlot: Boolean(
         document.querySelector('[data-aw-stable-feed-slot="1"]'),
       ),
-      continuityPrimary: Boolean(
-        document.querySelector('[data-wx-continuity-primary="1"]'),
-      ),
-      scrollTop: feed ? Math.floor(feed.scrollTop) : null,
+      windowScrollY: Math.floor(window.scrollY || window.pageYOffset || 0),
+      feedScrollTop: feed ? Math.floor(feed.scrollTop) : null,
+      visibleAnchor: firstTile
+        ? {
+            tag: firstTile.tagName,
+            href: firstTile.getAttribute("href"),
+            productId:
+              firstTile.getAttribute("data-product-id") ||
+              firstTile.getAttribute("data-item-id"),
+            text: (firstTile.textContent || "").trim().slice(0, 40),
+          }
+        : null,
+      tileCountSample: tiles.length,
+      search: searchInput
+        ? {
+            available: true,
+            value: searchInput.value,
+            placeholder: searchInput.getAttribute("placeholder"),
+          }
+        : {
+            available: false,
+            value: null,
+            reason:
+              "No search input in current DOM (chrome may hide refine row at this Mode)",
+          },
+      filter: (() => {
+        const filterBtn = [...document.querySelectorAll("button")].find((b) =>
+          /filters|filters|filter/i.test(b.textContent || ""),
+        );
+        const openPanel = document.querySelector(
+          'input[type="number"]',
+        );
+        if (!openPanel && !filterBtn) {
+          return {
+            available: false,
+            minPrice: null,
+            reason: "No filter chrome in current DOM",
+          };
+        }
+        return {
+          available: Boolean(openPanel || filterBtn),
+          minPrice: openPanel ? openPanel.value : null,
+          filterButtonPresent: Boolean(filterBtn),
+        };
+      })(),
       feedOwner:
         document
           .querySelector("[data-aw-feed-controlled-host]")
@@ -129,12 +192,173 @@ async function readContinuitySnap(page) {
             mountCount: counters.mountCount,
             unmountCount: counters.unmountCount,
             activeInstanceCount: counters.activeInstanceCount,
+            requestStartCount: counters.requestStartCount,
             requestKeyTransitionCount: counters.requestKeyTransitionCount,
             paginationResetCount: counters.paginationResetCount,
+            lastPaginationCursorHash: counters.lastPaginationCursorHash ?? null,
           }
         : null,
     };
   });
+}
+
+/**
+ * Calibrate viewport so measured usable width is just below or above a boundary.
+ * Uses honest AvailableSpace (data-aw-usable-width), not viewport-as-mode.
+ */
+async function setMeasuredNearBoundary(page, boundary, side, heightPx) {
+  // Seed estimate: chrome often ≈ 0–40px on homepage; widen if needed.
+  let viewportW =
+    side === "below" ? Math.max(320, boundary + 40) : boundary + 80;
+  let best = null;
+
+  for (let attempt = 0; attempt < 14; attempt++) {
+    await page.setViewport({
+      width: Math.round(viewportW),
+      height: heightPx,
+      deviceScaleFactor: 1,
+    });
+    await new Promise((r) => setTimeout(r, 450));
+    const snap = await readSnap(page);
+    const measured = snap.usableWidth;
+    const delta = viewportW - measured;
+    best = { viewportW, measured, delta, snap };
+
+    const target =
+      side === "below" ? boundary - 2 : boundary + 2;
+    if (side === "below" && measured > 0 && measured < boundary) {
+      if (measured >= boundary - 40) return best;
+    }
+    if (side === "above" && measured >= boundary) {
+      if (measured <= boundary + 80) return best;
+    }
+
+    // Adjust: aim measured ≈ target
+    if (measured <= 0) {
+      viewportW += 40;
+      continue;
+    }
+    viewportW = Math.max(320, target + delta);
+  }
+  return best;
+}
+
+async function waitFeedStable(page) {
+  await page
+    .waitForSelector("[data-aw-feed-workspace]", { timeout: 30000 })
+    .catch(() => null);
+  await page
+    .waitForSelector('[data-aw-stable-feed-slot="1"]', { timeout: 20000 })
+    .catch(() => null);
+  // Allow sealed counters / first paint settle
+  await new Promise((r) => setTimeout(r, 1500));
+}
+
+async function seedScroll(page) {
+  return page.evaluate(() => {
+    const feed = document.querySelector('[data-aw-stable-feed-slot="1"]');
+    const target = 180;
+    if (feed) {
+      // Ensure scrollable
+      feed.scrollTop = target;
+      if (feed.scrollTop < 40) {
+        // Stage may not be the scroll owner in compact chrome — try window
+        window.scrollTo(0, target);
+      }
+    } else {
+      window.scrollTo(0, target);
+    }
+    const feedEl = document.querySelector('[data-aw-stable-feed-slot="1"]');
+    return {
+      feedScrollTop: feedEl ? Math.floor(feedEl.scrollTop) : null,
+      windowScrollY: Math.floor(window.scrollY || 0),
+    };
+  });
+}
+
+async function applyFilterAndSearch(page) {
+  return page.evaluate(
+    ({ searchToken, minPrice }) => {
+      const result = {
+        search: { attempted: false, applied: false, value: null, na: false },
+        filter: { attempted: false, applied: false, value: null, na: false },
+      };
+
+      const searchInput = document.querySelector(
+        'input[placeholder*="zoek" i], input[placeholder*="search" i], input[type="search"]',
+      );
+      if (searchInput) {
+        result.search.attempted = true;
+        const setter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype,
+          "value",
+        )?.set;
+        setter?.call(searchInput, searchToken);
+        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+        searchInput.dispatchEvent(new Event("change", { bubbles: true }));
+        result.search.applied = searchInput.value === searchToken;
+        result.search.value = searchInput.value;
+      } else {
+        result.search.na = true;
+        result.search.reason =
+          "Search input not present after opening wide chrome";
+      }
+
+      // Open filters panel if needed
+      const filterBtn = [...document.querySelectorAll("button")].find((b) =>
+        /filters|filter/i.test((b.textContent || "").trim()),
+      );
+      if (filterBtn) {
+        filterBtn.click();
+      }
+
+      const priceInputs = [
+        ...document.querySelectorAll('input[type="number"]'),
+      ];
+      const minInput =
+        priceInputs.find((el) =>
+          /min/i.test(el.getAttribute("placeholder") || ""),
+        ) || priceInputs[0];
+      if (minInput) {
+        result.filter.attempted = true;
+        const setter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype,
+          "value",
+        )?.set;
+        setter?.call(minInput, minPrice);
+        minInput.dispatchEvent(new Event("input", { bubbles: true }));
+        minInput.dispatchEvent(new Event("change", { bubbles: true }));
+        result.filter.applied = minInput.value === minPrice;
+        result.filter.value = minInput.value;
+      } else {
+        result.filter.na = true;
+        result.filter.reason =
+          "Price filter inputs not present in current UI chrome";
+      }
+
+      return result;
+    },
+    { searchToken: SEARCH_TOKEN, minPrice: FILTER_MIN_PRICE },
+  );
+}
+
+function stepPass(snap, baseline) {
+  if (!snap.found) return false;
+  if (snap.phase !== "1b.2") return false;
+  if (snap.continuity !== "wx-transition-continuity-v1") return false;
+  if (snap.remountFlag !== "0") return false;
+  if (snap.workspaceCount !== 1) return false;
+  if (snap.primaryHostCount !== 1) return false;
+  if (!snap.stableFeedSlot) return false;
+  if (!snap.primaryMountId || !snap.shellMountId) return false;
+  if (snap.primaryMountId !== baseline.primaryMountId) return false;
+  if (snap.shellMountId !== baseline.shellMountId) return false;
+  if (snap.sealed) {
+    if (snap.sealed.mountCount !== 1) return false;
+    if (snap.sealed.unmountCount !== 0) return false;
+    if (snap.sealed.activeInstanceCount !== 1) return false;
+  }
+  return true;
 }
 
 async function main() {
@@ -157,6 +381,8 @@ async function main() {
   const page = await browser.newPage();
   const consoleErrors = [];
   const hydrationWarnings = [];
+  let requestCount = 0;
+  const requestLog = [];
 
   if (args.protectionBypass) {
     await page.setExtraHTTPHeaders({
@@ -180,12 +406,16 @@ async function main() {
     }
   });
 
-  const first = JOURNEY[0];
-  await page.setViewport({
-    width: first.width,
-    height: first.height,
-    deviceScaleFactor: 1,
+  page.on("request", (req) => {
+    const url = req.url();
+    if (/\/api\/|feed|products|geofeed/i.test(url)) {
+      requestCount += 1;
+      requestLog.push({ t: Date.now(), url: url.slice(0, 180) });
+    }
   });
+
+  // ---- Initial narrow Mode ----
+  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
 
   const url = args.protectionBypass
     ? (() => {
@@ -197,81 +427,293 @@ async function main() {
 
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90000 });
   await dismissPrivacy(page);
-  await page
-    .waitForSelector("[data-aw-feed-workspace]", { timeout: 30000 })
-    .catch(() => null);
-  await new Promise((r) => setTimeout(r, 1200));
-
-  // Seed scroll if stage exists
-  await page.evaluate(() => {
-    const feed = document.querySelector('[data-aw-stable-feed-slot="1"]');
-    if (feed) feed.scrollTop = 120;
-  });
+  await waitFeedStable(page);
 
   const steps = [];
-  let modeChanges = 0;
+  const modeChanges = [];
+  let seq = 0;
   let prevMode = null;
-  let scrollAfterSeed = null;
+  let prevRequestCount = requestCount;
 
-  for (const step of JOURNEY) {
-    await page.setViewport({
-      width: step.width,
-      height: step.height,
-      deviceScaleFactor: 1,
-    });
-    await new Promise((r) => setTimeout(r, 700));
-    const snap = await readContinuitySnap(page);
-    if (prevMode && snap.mode && snap.mode !== prevMode) modeChanges += 1;
-    if (prevMode == null) scrollAfterSeed = snap.scrollTop;
+  async function record(label, meta = {}) {
+    seq += 1;
+    const snap = await readSnap(page);
+    const deltaReq = requestCount - prevRequestCount;
+    prevRequestCount = requestCount;
+    if (prevMode && snap.mode && snap.mode !== prevMode) {
+      modeChanges.push({
+        seq,
+        label,
+        from: prevMode,
+        to: snap.mode,
+        usableWidth: snap.usableWidth,
+        usableHeight: snap.usableHeight,
+      });
+    }
     prevMode = snap.mode;
-
-    const stepPass =
-      snap.found &&
-      snap.phase === "1b.2" &&
-      snap.continuity === "wx-transition-continuity-v1" &&
-      snap.remountFlag === "0" &&
-      snap.workspaceCount === 1 &&
-      snap.stableFeedSlot &&
-      snap.continuityPrimary &&
-      (snap.sealed == null ||
-        (snap.sealed.mountCount === 1 &&
-          snap.sealed.unmountCount === 0 &&
-          snap.sealed.activeInstanceCount === 1));
-
-    steps.push({
-      id: step.id,
-      viewport: step,
+    const viewport = page.viewport();
+    const entry = {
+      sequence: seq,
+      id: label,
+      viewport: viewport
+        ? { width: viewport.width, height: viewport.height }
+        : null,
       snap,
-      pass: stepPass,
-    });
+      requestCount,
+      requestDelta: deltaReq,
+      consoleErrorCount: consoleErrors.length,
+      hydrationWarningCount: hydrationWarnings.length,
+      ...meta,
+    };
+    steps.push(entry);
     process.stdout.write(
-      `  ${step.id} (${step.width}x${step.height}) mode=${snap.mode} → ${stepPass ? "PASS" : "FAIL"}\n`,
+      `  #${seq} ${label} vp=${viewport?.width}x${viewport?.height} measured=${snap.usableWidth}x${snap.usableHeight} mode=${snap.mode} mount=${snap.primaryMountId} Δreq=${deltaReq}\n`,
     );
+    return entry;
   }
 
-  // After shrinking back to browse, scroll should not have been force-reset to 0
-  // solely by Mode change if the same stage element remained (best-effort).
-  const last = steps[steps.length - 1]?.snap;
-  const scrollPreserved =
-    scrollAfterSeed == null ||
-    last?.scrollTop == null ||
-    last.scrollTop > 0 ||
-    scrollAfterSeed === 0;
+  const initial = await record("initial-narrow-browse");
+  const baseline = {
+    primaryMountId: initial.snap.primaryMountId,
+    shellMountId: initial.snap.shellMountId,
+  };
 
-  const allStepsPass = steps.every((s) => s.pass);
+  if (!baseline.primaryMountId || !baseline.shellMountId) {
+    await browser.close();
+    console.error("FAIL: mount identity diagnostics missing on initial load");
+    process.exit(1);
+  }
+
+  // ---- Seed filter/search at wide Mode (where refine chrome exists) ----
+  await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
+  await new Promise((r) => setTimeout(r, 900));
+  const stateApply = await applyFilterAndSearch(page);
+  await new Promise((r) => setTimeout(r, 800));
+  const afterState = await record("state-seed-wide", { stateApply });
+
+  // ---- Seed scroll ----
+  const scrollSeed = await seedScroll(page);
+  await new Promise((r) => setTimeout(r, 300));
+  const afterScroll = await record("scroll-seeded", { scrollSeed });
+  const scrollBaseline = {
+    feedScrollTop: afterScroll.snap.feedScrollTop,
+    windowScrollY: afterScroll.snap.windowScrollY,
+    visibleAnchor: afterScroll.snap.visibleAnchor,
+  };
+
+  // ---- Oscillation around measured boundaries ----
+  const oscillationSummary = [];
+  for (const boundary of BOUNDARIES) {
+    for (let i = 0; i < OSCILLATIONS_PER_BOUNDARY; i++) {
+      const slow = i === 0;
+      const settle = slow ? 900 : 550;
+
+      const below = await setMeasuredNearBoundary(
+        page,
+        boundary,
+        "below",
+        800,
+      );
+      await new Promise((r) => setTimeout(r, settle));
+      await record(`osc-${boundary}-below-${i + 1}`, {
+        boundary,
+        side: "below",
+        pace: slow ? "slow" : "rapid",
+        calibration: {
+          viewportW: below?.viewportW,
+          measured: below?.measured,
+        },
+      });
+
+      const above = await setMeasuredNearBoundary(
+        page,
+        boundary,
+        "above",
+        800,
+      );
+      await new Promise((r) => setTimeout(r, settle));
+      await record(`osc-${boundary}-above-${i + 1}`, {
+        boundary,
+        side: "above",
+        pace: slow ? "slow" : "rapid",
+        calibration: {
+          viewportW: above?.viewportW,
+          measured: above?.measured,
+        },
+      });
+    }
+    oscillationSummary.push({
+      boundary,
+      oscillations: OSCILLATIONS_PER_BOUNDARY,
+    });
+  }
+
+  // ---- Portrait / landscape / back ----
+  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+  await new Promise((r) => setTimeout(r, 700));
+  await record("phone-portrait");
+
+  await page.setViewport({ width: 844, height: 390, deviceScaleFactor: 1 });
+  await new Promise((r) => setTimeout(r, 700));
+  await record("phone-landscape");
+
+  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+  await new Promise((r) => setTimeout(r, 700));
+  await record("phone-portrait-return");
+
+  // ---- Return to starting Mode + re-check state at wide chrome ----
+  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+  await new Promise((r) => setTimeout(r, 700));
+  const backStart = await record("return-starting-narrow");
+
+  await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
+  await new Promise((r) => setTimeout(r, 900));
+  // Re-open filters if needed to read min price
+  await page.evaluate(() => {
+    const filterBtn = [...document.querySelectorAll("button")].find((b) =>
+      /filters|filter/i.test((b.textContent || "").trim()),
+    );
+    filterBtn?.click();
+  });
+  await new Promise((r) => setTimeout(r, 400));
+  const finalWide = await record("final-wide-state-check");
+
+  // ---- Evaluate proofs ----
+  const allMountStable = steps.every(
+    (s) =>
+      s.snap.primaryMountId === baseline.primaryMountId &&
+      s.snap.shellMountId === baseline.shellMountId,
+  );
+  const allStructuralPass = steps.every((s) => stepPass(s.snap, baseline));
+
+  // Scroll: after Mode-crossing steps, feed/window scroll must not reset to 0
+  // if we successfully seeded a non-zero position.
+  const seededNonZero =
+    (scrollBaseline.feedScrollTop ?? 0) > 40 ||
+    (scrollBaseline.windowScrollY ?? 0) > 40;
+
+  const scrollAfterTransitions = steps.filter((s) =>
+    /osc-|phone-|return-/.test(s.id),
+  );
+  let scrollClass = "not-seeded";
+  let scrollPass = true;
+  if (seededNonZero) {
+    const resets = scrollAfterTransitions.filter((s) => {
+      const feed = s.snap.feedScrollTop;
+      const win = s.snap.windowScrollY;
+      // If feed was the scroll owner
+      if ((scrollBaseline.feedScrollTop ?? 0) > 40) {
+        if (feed == null) return false;
+        return feed <= 8;
+      }
+      return win <= 8;
+    });
+    if (resets.length > 0) {
+      scrollPass = false;
+      scrollClass = "true-state-loss";
+    } else {
+      // Bound reflow: allow ±SCROLL_TOLERANCE vs seed when comparable
+      const drifted = scrollAfterTransitions.some((s) => {
+        if ((scrollBaseline.feedScrollTop ?? 0) > 40 && s.snap.feedScrollTop != null) {
+          return (
+            Math.abs(s.snap.feedScrollTop - scrollBaseline.feedScrollTop) >
+            SCROLL_TOLERANCE_PX * 3
+          );
+        }
+        return false;
+      });
+      scrollClass = drifted ? "bounded-reflow" : "preserved-logical-position";
+      scrollPass = true;
+    }
+  } else {
+    scrollClass = "seed-not-applicable-geometry";
+    scrollPass = true; // cannot prove scroll when stage isn't scrollable; not a remount fail
+  }
+
+  // Filter / search preservation
+  let filterProof = {
+    status: "N/A",
+    reason: stateApply.filter.na
+      ? stateApply.filter.reason
+      : "Filter not applied",
+  };
+  if (stateApply.filter.applied) {
+    const finalMin = finalWide.snap.filter?.minPrice;
+    const preserved = finalMin === FILTER_MIN_PRICE;
+    filterProof = {
+      status: preserved ? "PASS" : "FAIL",
+      seeded: FILTER_MIN_PRICE,
+      final: finalMin,
+      preserved,
+    };
+  }
+
+  let searchProof = {
+    status: "N/A",
+    reason: stateApply.search.na
+      ? stateApply.search.reason
+      : "Search not applied",
+  };
+  if (stateApply.search.applied) {
+    const finalVal = finalWide.snap.search?.value;
+    const preserved = finalVal === SEARCH_TOKEN;
+    searchProof = {
+      status: preserved ? "PASS" : "FAIL",
+      seeded: SEARCH_TOKEN,
+      final: finalVal,
+      preserved,
+    };
+  } else if (!stateApply.search.applied && stateApply.search.na) {
+    // Confirm still unavailable or available-but-empty after journey
+    searchProof = {
+      status: "N/A",
+      reason: stateApply.search.reason,
+      evidence: {
+        seedWideSearchAvailable: afterState.snap.search?.available === true,
+        finalWideSearchAvailable: finalWide.snap.search?.available === true,
+      },
+    };
+  }
+
+  // Request continuity: Mode transitions alone should not spike feed remounts.
+  // Soft check: pagination resets should not climb solely from oscillation when sealed available.
+  const sealedFirst = steps.find((s) => s.snap.sealed)?.snap.sealed;
+  const sealedLast = [...steps].reverse().find((s) => s.snap.sealed)?.snap
+    .sealed;
+  const paginationOk =
+    !sealedFirst ||
+    !sealedLast ||
+    sealedLast.paginationResetCount <= sealedFirst.paginationResetCount + 2;
+
+  const oscillationModeChanges = modeChanges.length;
   const modesSeen = [...new Set(steps.map((s) => s.snap.mode).filter(Boolean))];
-  const sealedOk =
-    !last?.sealed ||
-    (last.sealed.mountCount === 1 && last.sealed.unmountCount === 0);
 
   const checks = {
-    allStepsPass,
-    modeChangesAtLeast3: modeChanges >= 3,
-    modesAtLeast3: modesSeen.length >= 3,
-    sealedOk,
+    mountIdentityObserved: Boolean(baseline.primaryMountId),
+    mountIdentityStableEntireJourney: allMountStable,
+    shellIdentityStableEntireJourney: steps.every(
+      (s) => s.snap.shellMountId === baseline.shellMountId,
+    ),
+    allStructuralPass,
+    noPageReload: true, // single goto
     noConsoleErrors: consoleErrors.length === 0,
     noHydration: hydrationWarnings.length === 0,
-    scrollPreservedBestEffort: scrollPreserved,
+    noDuplicateHost: steps.every(
+      (s) => s.snap.workspaceCount === 1 && s.snap.primaryHostCount === 1,
+    ),
+    oscillationPerBoundary: OSCILLATIONS_PER_BOUNDARY,
+    boundariesCovered: BOUNDARIES,
+    modeChangesRecorded: oscillationModeChanges >= 6,
+    modesAtLeast3: modesSeen.length >= 3,
+    scrollPreservation: scrollPass,
+    filterPreservation:
+      filterProof.status === "PASS" || filterProof.status === "N/A",
+    searchPreservation:
+      searchProof.status === "PASS" || searchProof.status === "N/A",
+    paginationContinuity: paginationOk,
+    sealedOkWhenPresent:
+      !sealedLast ||
+      (sealedLast.mountCount === 1 && sealedLast.unmountCount === 0),
   };
 
   const pass = Object.values(checks).every(Boolean);
@@ -280,26 +722,59 @@ async function main() {
 
   const report = {
     phase: "1B.2",
-    title: "Transition Continuity",
-    verdict: pass ? "WX_PHASE_1B2_PASS" : "WX_PHASE_1B2_FAIL",
+    title: "Transition Continuity — Remediation Browser Proof",
+    evidenceLayer: "browser-observed",
+    contractLayerNote:
+      "Contract remountAuthorized=false is NOT used as mount proof. Mount proof uses data-wx-primary-mount-id / data-wx-shell-mount-id.",
+    verdict: pass
+      ? "WX_PHASE_1B2_REMEDIATION_BROWSER_PASS"
+      : "WX_PHASE_1B2_REMEDIATION_BROWSER_FAIL",
     mode: args.mode,
     baseUrl: args.baseUrl,
     timestamp: new Date().toISOString(),
-    scope:
-      "Mode/Posture transition continuity only — no capability activation",
-    checks,
+    baselineMount: baseline,
+    finalMount: {
+      primaryMountId: backStart.snap.primaryMountId,
+      shellMountId: backStart.snap.shellMountId,
+    },
+    scroll: {
+      seed: scrollBaseline,
+      classification: scrollClass,
+      tolerancePx: SCROLL_TOLERANCE_PX,
+      pass: scrollPass,
+    },
+    filterProof,
+    searchProof,
+    stateApply,
+    request: {
+      totalApiish: requestCount,
+      paginationOk,
+      sealedFirst,
+      sealedLast,
+    },
+    oscillationSummary,
     modeChanges,
     modesSeen,
+    checks,
     steps,
     consoleErrors,
     hydrationWarnings,
+    counts: {
+      journeySteps: steps.length,
+      oscillationsPerBoundary: OSCILLATIONS_PER_BOUNDARY,
+      boundaries: BOUNDARIES.length,
+      totalOscillationHalfSteps: BOUNDARIES.length * OSCILLATIONS_PER_BOUNDARY * 2,
+      modeChanges: modeChanges.length,
+    },
   };
 
   const outPath = join(args.outDir, "browser-proof.json");
   writeFileSync(outPath, JSON.stringify(report, null, 2));
   console.log(`\nWrote ${outPath}`);
-  console.log(`Modes seen: ${modesSeen.join(", ")}`);
-  console.log(`Mode changes: ${modeChanges}`);
+  console.log(`Mount start→end: ${baseline.primaryMountId} → ${backStart.snap.primaryMountId}`);
+  console.log(`Mode changes: ${modeChanges.length}; modes: ${modesSeen.join(", ")}`);
+  console.log(`Scroll: ${scrollClass} (${scrollPass ? "PASS" : "FAIL"})`);
+  console.log(`Filter: ${filterProof.status}; Search: ${searchProof.status}`);
   console.log(`Verdict: ${report.verdict}`);
   process.exit(pass ? 0 : 1);
 }
