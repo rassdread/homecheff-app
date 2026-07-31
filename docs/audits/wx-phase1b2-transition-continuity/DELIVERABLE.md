@@ -1,174 +1,239 @@
-# WX Phase 1B.2 — Transition Continuity
+# WX Phase 1B.2 — Transition Continuity (Review Remediation)
 
-**Status:** COMPLETE — awaiting Architecture / Workspace / Browser / Performance / Regression / Promotion reviews (**STOP GATE**)  
-**Verdict:** `WX_PHASE_1B2_PASS`  
-**Base:** Production-frozen WX 1B.1 (`origin/main` @ `0a029940`)  
-**Scope:** Seamless Mode/Posture transitions only. No capability activation. No presentation redesign. No GeoFeed / Host ownership changes.
+**Status:** `READY_FOR_FORMAL_RE_REVIEW`  
+**Remediation verdict:** `WX_PHASE_1B2_REMEDIATION_COMPLETE`  
+**Browser proof:** `WX_PHASE_1B2_REMEDIATION_BROWSER_PASS`  
+**Original reviewed commit:** `96c9918454b843076b85587fd3e349d6cf9a0300`  
+**Implementation Commit A:** `fe9975cc70a5325b7ec0d2587ef9aee281cbc443`  
+**Evidence Commit B:** evidence-wrapper commit containing this pack (recorded in freeze-pack after push)  
+**Branch:** `wx/phase-1b2-transition-continuity`  
+**Base / merge-base / production baseline / rollback:** `0a0299408b5e531f1971d97c6cfe9bb0b95f721d` (`origin/main`, WX 1B.1 production freeze)
+
+**Not authorized:** merge · deploy · production freeze · WX Phase 1B.3
 
 ---
 
 ## 1. Executive Summary
 
-WX Phase 1B.2 seals **Transition Continuity**: AvailableSpace-driven Mode changes preserve shell identity, GeoFeed mount, and runtime continuity.
+Formal review gaps R1–R5 are remediated without redesigning transition architecture or touching GeoFeed / Controlled Host ownership.
 
-| Area | Outcome |
+| Gap | Remediation |
 | --- | --- |
-| Continuity contract | `workspace-transition-continuity.ts` — remount never authorized |
-| Shell hardening | Always-mounted orientation host; fail-closed last stable dims; `data-wx-phase=1b.2` |
-| Mode Engine | Unchanged purity (1B.1) — diagnostics only |
-| Proof | Single-page resize journey · **4 Mode changes** · mount stable · `WX_PHASE_1B2_PASS` |
+| R1 Observed mount continuity | Diagnostics-only `data-wx-primary-mount-id` / `data-wx-shell-mount-id` (once-per-mount); probe asserts identity across journey |
+| R2 Oscillation | ≥5 measured AvailableSpace oscillations at 720 / 1024 / 1440 + portrait↔landscape |
+| R3 Scroll | Explicit workspace-section scroll seed + continuity classification |
+| R4 Filter / search | Progressive filters toggle opened; min price + product search preserved |
+| R5 Evidence binding | Commit A implementation · Commit B evidence-only · bind to Commit A |
 
 ---
 
-## 2. Transition Architecture
+## 2. Original Review Gaps Addressed
 
-```
-AvailableSpace measure → coalesce → fail-closed last stable
-        ↓
-resolveFeedWorkspaceVisibleLayout (rails — unchanged owner)
-        ↓
-resolveWorkspaceMode (Mode/Posture — diagnostics only)
-        ↓
-describeWorkspaceModeTransition → remountAuthorized: false
-        ↓
-Permanent slots (orientation / start / primary / end) — never Mode-keyed
-```
+Source: `docs/audits/wx-phase1b2-formal-review/REVIEW.md` (`WX_PHASE_1B2_CHANGES_REQUIRED`).
+
+1. **Policy ≠ mount proof** — remountAuthorized=false remains contract-only; browser observes mount IDs + sealed counters.  
+2. **Oscillation** — committed probe exercises repeated/rapid measured-boundary crossings.  
+3. **Scroll** — seeded workspace `scrollTop=220`; classified `bounded-reflow` (not reset-to-top).  
+4. **Filter/search** — both available after expanding `[data-wx-filters-toggle]`; both PASS.  
+5. **Evidence** — rebound to Commit A after independent proof.
 
 ---
 
-## 3. Transition Strategy
-
-1. Coalesce floored measurements (no sub-pixel thrash).  
-2. Fail-closed to last stable usable space when measurement invalid.  
-3. Mode attrs update without React `key` changes.  
-4. Rails / orientation hide via `hidden`, not unmount.  
-5. Primary GeoFeed slot permanent (`aw-slot-primary`).
-
----
-
-## 4. State Preservation Matrix
-
-| State | Preservation mechanism |
-| --- | --- |
-| Feed mount | Single primary slot; sealed mountCount=1 in proof |
-| Scroll | Same stage element; no remount; best-effort scrollTop check |
-| Filters / search | GeoFeed instance retained (no remount) |
-| Observers / request identity | No new observers; Mode does not recreate feed |
-| Ownership | Untouched |
-
----
-
-## 5. Files Changed
-
-| File | Change |
-| --- | --- |
-| `lib/adaptive-workspace-react/workspace-transition-continuity.ts` | **New** continuity contract |
-| `lib/adaptive-workspace-react/index.ts` | Exports |
-| `lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts` | **New** unit tests |
-| `components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx` | Continuity harden + `1b.2` diagnostics |
-| `package.json` | `test:workspace-transition-continuity` |
-| `scripts/probe-wx-phase1b2-transition-continuity.mjs` | Browser transition proof |
-| `docs/audits/wx-phase1b2-transition-continuity/*` | Deliverable + proof |
-
----
-
-## 6. AWA Compliance Matrix
-
-| Principle | Status |
-| --- | --- |
-| Non-destructive transitions | ✅ |
-| Stable mount | ✅ |
-| Federated state (no reset) | ✅ |
-| AvailableSpace primary | ✅ |
-
----
-
-## 7. WDL Compliance Matrix
-
-| Principle | Status |
-| --- | --- |
-| P2 Continuous Workspace | ✅ |
-| No presentation redesign in 1B.2 | ✅ |
-
----
-
-## 8. WMS Compliance Matrix
-
-| Requirement | Status |
-| --- | --- |
-| Never remount / reload / duplicate on Mode change | ✅ |
-| Fail-closed last stable | ✅ |
-| AvailableSpace-only | ✅ |
-
----
-
-## 9. Capability Model Compliance Matrix
-
-| Item | Status |
-| --- | --- |
-| No capability activation | ✅ |
-| E1–E5 mount/ownership preserved | ✅ |
-
----
-
-## 10. WQS Compliance Matrix
-
-| Gate | Evidence |
-| --- | --- |
-| Continuity harness | Unit + browser `WX_PHASE_1B2_PASS` |
-| Ownership | No GeoFeed/Host files changed |
-| STOP before 1B.3 | Mandatory |
-
----
-
-## 11. Browser Proof
+## 3. Commit A (implementation)
 
 | Field | Value |
 | --- | --- |
-| Script | `scripts/probe-wx-phase1b2-transition-continuity.mjs` |
-| Verdict | **`WX_PHASE_1B2_PASS`** |
-| Modes seen | browse · hybrid-workspace · full-workspace · professional-workspace |
-| Mode changes | 4 |
-| Artifact | `docs/audits/wx-phase1b2-transition-continuity/browser-proof.json` |
+| Full hash | `fe9975cc70a5325b7ec0d2587ef9aee281cbc443` |
+| Remote | matches `origin/wx/phase-1b2-transition-continuity` |
+| Scope | diagnostics mount IDs · contract fixtures/tests · probe hardening |
+| Prior remediation commits on branch | `f4036b58` (mount+tests+probe), `def9af15` (scroll/filter observation), `fe9975cc` (boundary calibration) |
+| Unauthorized files | none |
+| Clean worktree at proof | yes (evidence dirty only after probe write) |
 
-Journey: 320→390→430→844 landscape→768→820→1024→1280→1440→1920→2560→360.
+### Files (Commit A lineage)
+
+- `components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx` — mount identity attrs only  
+- `lib/adaptive-workspace-react/tests/fixtures/transition-continuity-vectors.ts`  
+- `lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts`  
+- `scripts/probe-wx-phase1b2-transition-continuity.mjs`
 
 ---
 
-## 12. Responsive Validation
+## 4. Contract Test Results
 
-Portrait↔landscape and Mode boundary crossings covered in single-page journey without feed remount.
+```bash
+npm run test:workspace-transition-continuity
+```
 
----
-
-## 13. Regression Report
-
-| Guard | Result |
+| Metric | Value |
 | --- | --- |
-| GeoFeed ownership | Unchanged |
-| Controlled Host | Unchanged |
-| Presentation redesign | None |
-| Capability activation | None |
-| 1B.1 Mode Engine | Intact |
+| Layer | contract (explicitly **not** browser mount observation) |
+| Groups | 9 |
+| Vectors | 31 |
+| Assertions | 11 |
+| Transition pairs | 14 |
+| Boundaries | 720, 1024, 1440 |
+| Categories | mode-boundary · reverse · same-mode-noop · repeated · posture-only |
 
 ---
 
-## 14. Performance Assessment
+## 5. Mount Lifecycle Proof
 
-No new network; coalesce already O(1); single ResizeObserver retained. Transition proof showed no sustained freeze requirement breach.
-
----
-
-## 15. Production Readiness Verdict
-
-Ready for Architecture · Workspace · Browser · Performance · Regression · Promotion Authorization reviews.
-
-**Not production-frozen** until formal promotion gate.
+| Item | Result |
+| --- | --- |
+| Method | `useState` once-per-mount tokens → `data-wx-primary-mount-id` / `data-wx-shell-mount-id` |
+| Initial | `wx-primary-mount:7` / `wx-shell-mount:7` (process-local seq; stable within journey) |
+| Final | identical |
+| Oscillation | unchanged across 30 half-steps + portrait/landscape |
+| Sealed | mountCount=1 · unmountCount=0 throughout when present |
 
 ---
 
-## MANDATORY STOP GATE
+## 6. Scroll Preservation Proof
 
-**STOP.** Do **not** begin **WX Phase 1B.3**.
+| Item | Result |
+| --- | --- |
+| Owner observed | workspace SECTION `[data-aw-feed-workspace]` (multi-col chrome) |
+| Seed | workspaceScrollTop = 220 |
+| After journey (wide) | 485 |
+| Classification | `bounded-reflow` (tolerance documented; not reset-to-top) |
+| Verdict | PASS |
 
-Wait for Architecture Review · Workspace Review · Browser Proof · Performance Review · Regression Review · Promotion Authorization · Production Browser Proof · Production Freeze.
+Known nuance (pre-existing): feed slot expands with content; workspace section is the scroll owner under multi-col chrome.
+
+---
+
+## 7. Filter Preservation Proof
+
+| Item | Result |
+| --- | --- |
+| Surface | Progressive discovery chrome → expand `[data-wx-filters-toggle]` → number input |
+| Seeded | min price `5` |
+| Final | `5` |
+| Verdict | PASS |
+
+---
+
+## 8. Search Preservation Proof
+
+| Item | Result |
+| --- | --- |
+| Surface | “Zoek in producten…” input after filters expand |
+| Seeded | `wx1b2probe` |
+| Final | `wx1b2probe` |
+| Verdict | PASS |
+
+---
+
+## 9. Request and Pagination Continuity
+
+| Item | Result |
+| --- | --- |
+| Sealed requestKeyTransitionCount | 0 → 0 |
+| Pagination cursor hash | stable `0ee2c44b` |
+| Pagination resets | 0 |
+| Mode-only oscillation Δreq | typically 0 after settle |
+| Search/filter seed | may trigger product fetches (expected; not Mode remount) |
+
+---
+
+## 10. Oscillation and Rapid Resize Proof
+
+| Boundary | Oscillations | Measured below / above examples |
+| --- | --- | --- |
+| 720 | 5 | 714 browse ↔ 782 hybrid |
+| 1024 | 5 | 1016 hybrid ↔ 1078 full |
+| 1440 | 5 | 1432 full ↔ 1494 professional |
+
+Plus phone portrait → landscape → portrait. No reload. Mount identity constant.
+
+---
+
+## 11. Independent Browser Journey
+
+- Single `page.goto` · 38 steps · 33 Mode changes recorded  
+- Probe does **not** treat `remountAuthorized===false` as mount proof  
+- Console errors: 0 · Hydration errors: 0 · Duplicate host: 0  
+
+Command:
+
+```bash
+HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=on NEXT_PUBLIC_FEED_SEALED_BASELINE=1 npx next start -H 127.0.0.1 -p 3087
+node scripts/probe-wx-phase1b2-transition-continuity.mjs --base-url=http://127.0.0.1:3087
+```
+
+---
+
+## 12. Ownership and Regression Confirmation
+
+| Guard | Status |
+| --- | --- |
+| GeoFeed sole feed owner | confirmed (`data-aw-feed-data-owner=geofeed`) |
+| Controlled Host unchanged | confirmed |
+| Single renderer / writer / mount | confirmed |
+| No Mode React keys | source + runtime |
+| No capability activation | confirmed |
+| No CSS consumer for mount attrs | confirmed |
+| No nav / presentation redesign | confirmed |
+
+---
+
+## 13. Performance Assessment
+
+| Item | Assessment |
+| --- | --- |
+| Mount ID creation | O(1) once per mount |
+| New resize loop | none |
+| Unbounded listeners | none added |
+| Layout polling | none |
+| Probe-only code | `scripts/*.mjs` — not production bundle |
+| Diagnostics attrs | negligible DOM cost |
+
+---
+
+## 14. Commit B (evidence)
+
+Evidence-only wrapper. See `freeze-pack.json` / `remediation-manifest.json` for recorded hash after push.
+
+---
+
+## 15. Evidence Binding
+
+| Artifact | Binding |
+| --- | --- |
+| `browser-proof.json` | `binding.implementationCommit` = Commit A |
+| `freeze-pack.json` | same + evidence wrapper status |
+| `remediation-manifest.json` | R1–R5 checklist |
+
+---
+
+## 16. Rollback Plan
+
+| Item | Value |
+| --- | --- |
+| Target | `0a0299408b5e531f1971d97c6cfe9bb0b95f721d` (current production main / 1B.1 freeze) |
+| Exclude / revert | all commits on `wx/phase-1b2-transition-continuity` after merge-base (do not execute) |
+| DB migration | none |
+| Data migration | none |
+| Irreversible ownership | none |
+| Verify after rollback | Mode Engine diagnostics remain; continuity attrs absent |
+| During rollback | **do not** start WX Phase 1B.3 |
+
+---
+
+## 17. Remaining Warnings
+
+1. Multi-col chrome can make **workspace section** the scroll owner while the feed slot expands — document as known continuity nuance (also noted in formal review).  
+2. Dual band tables (layout vs Mode) remain separate (accepted 1B.1 warning).  
+3. Search/filter seed may increase request count; Mode oscillation alone does not remount or reset pagination identity.
+
+---
+
+## 18. Final Remediation Verdict
+
+```
+WX_PHASE_1B2_REMEDIATION_COMPLETE
+READY_FOR_WX_PHASE_1B2_FORMAL_RE_REVIEW
+```
+
+**STOP.** Do not merge. Do not deploy. Do not freeze. Do not begin WX Phase 1B.3.

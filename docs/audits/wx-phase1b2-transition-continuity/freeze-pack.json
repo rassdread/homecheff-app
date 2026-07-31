@@ -1,59 +1,70 @@
 {
   "phase": "WX-1B.2",
-  "title": "Transition Continuity",
-  "verdict": "WX_PHASE_1B2_PASS",
-  "status": "AWAITING_FORMAL_REVIEW",
-  "timestamp": "2026-07-31T14:20:00.000Z",
+  "title": "Transition Continuity — Review Remediation",
+  "verdict": "WX_PHASE_1B2_REMEDIATION_COMPLETE",
+  "status": "READY_FOR_FORMAL_RE_REVIEW",
+  "timestamp": "2026-07-31T15:06:42Z",
+  "branch": "wx/phase-1b2-transition-continuity",
+  "originalReviewedCommit": "96c9918454b843076b85587fd3e349d6cf9a0300",
+  "implementationCommit": "fe9975cc70a5325b7ec0d2587ef9aee281cbc443",
+  "evidenceCommit": "41a4722b83a6a8ab7db6c0f7426594dfa49ce00b",
+  "evidenceCommitNote": "Replaced with Commit B full hash after evidence push; not claimed inside Commit A.",
   "baseMain": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "mergeBase": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "productionBaseline": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "rollbackTarget": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
   "wxPhase1b1": "PRODUCTION_FROZEN",
+  "noMerge": true,
+  "noDeployment": true,
+  "noProductionFreeze": true,
+  "noPhase1b3": true,
+  "cleanIsolatedWorktreeAtProof": true,
+  "testCommand": "npm run test:workspace-transition-continuity",
+  "testCounts": {
+    "groups": 9,
+    "vectors": 31,
+    "assertions": 11,
+    "transitionPairs": 14
+  },
+  "browserJourneyCounts": {
+    "steps": 38,
+    "oscillationsPerBoundary": 5,
+    "boundaries": [720, 1024, 1440],
+    "totalOscillationHalfSteps": 30,
+    "modeChanges": 33
+  },
+  "browserProofVerdict": "WX_PHASE_1B2_REMEDIATION_BROWSER_PASS",
   "scope": {
     "includes": [
-      "transition continuity contract",
-      "fail-closed last stable AvailableSpace",
-      "permanent orientation host",
-      "Mode transition unit vectors",
-      "single-page resize/rotate browser proof"
+      "observed mount-identity diagnostics",
+      "fixture-backed continuity contract tests",
+      "measured-boundary oscillation browser proof",
+      "scroll / filter / search preservation proof"
     ],
     "excludes": [
       "capability activation (1B.3)",
-      "landscape work chrome (1B.4)",
-      "GeoFeed ownership",
-      "Controlled Host",
-      "presentation redesign"
+      "GeoFeed ownership changes",
+      "Controlled Host changes",
+      "presentation / CSS redesign",
+      "merge / deploy / freeze"
     ]
   },
   "artifacts": {
-    "contract": "lib/adaptive-workspace-react/workspace-transition-continuity.ts",
-    "tests": "lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts",
-    "probe": "scripts/probe-wx-phase1b2-transition-continuity.mjs",
+    "deliverable": "docs/audits/wx-phase1b2-transition-continuity/DELIVERABLE.md",
     "browserProof": "docs/audits/wx-phase1b2-transition-continuity/browser-proof.json",
-    "deliverable": "docs/audits/wx-phase1b2-transition-continuity/DELIVERABLE.md"
-  },
-  "browserProof": {
-    "verdict": "WX_PHASE_1B2_PASS",
-    "modeChanges": 4,
-    "modesSeen": [
-      "browse",
-      "hybrid-workspace",
-      "full-workspace",
-      "professional-workspace"
-    ]
+    "remediationManifest": "docs/audits/wx-phase1b2-transition-continuity/remediation-manifest.json",
+    "probe": "scripts/probe-wx-phase1b2-transition-continuity.mjs"
   },
   "rollback": {
     "target": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
-    "notes": "Revert continuity wiring only; restores 1B.1 production baseline behaviour"
+    "databaseMigration": false,
+    "dataMigration": false,
+    "irreversibleOwnershipTransfer": false,
+    "prohibitPhase1b3DuringRollback": true,
+    "notes": "Do not execute rollback in this phase; document only."
   },
   "stopGate": {
     "nextPhaseBlocked": "WX-1B.3",
-    "requiredApprovals": [
-      "Architecture Review",
-      "Workspace Review",
-      "Browser Proof",
-      "Performance Review",
-      "Regression Review",
-      "Promotion Authorization",
-      "Production Browser Proof",
-      "Production Freeze"
-    ]
+    "requiredNext": "Independent formal re-review of Commit A + Commit B"
   }
 }
