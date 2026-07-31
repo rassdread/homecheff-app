@@ -231,12 +231,12 @@ async function setMeasuredNearBoundary(page, boundary, side, heightPx) {
     best = { viewportW, measured, delta, snap };
 
     const target =
-      side === "below" ? boundary - 2 : boundary + 2;
+      side === "below" ? boundary - 8 : boundary + 8;
     if (side === "below" && measured > 0 && measured < boundary) {
-      if (measured >= boundary - 40) return best;
+      if (measured >= boundary - 60) return best;
     }
     if (side === "above" && measured >= boundary) {
-      if (measured <= boundary + 80) return best;
+      if (measured <= boundary + 100) return best;
     }
 
     // Adjust: aim measured ≈ target
