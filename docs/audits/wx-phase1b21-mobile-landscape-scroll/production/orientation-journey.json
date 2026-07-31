@@ -1,0 +1,195 @@
+{
+  "phase": "1b.2.1",
+  "domain": "https://homecheff.eu",
+  "timestamp": "2026-07-31T17:36:47.332Z",
+  "reloadCount": 0,
+  "mountBaseline": {
+    "shell": "wx-shell-mount:1",
+    "primary": "wx-primary-mount:1"
+  },
+  "steps": [
+    {
+      "id": "j-p390a",
+      "viewport": {
+        "id": "j-p390a",
+        "width": 390,
+        "height": 844
+      },
+      "mode": "browse",
+      "posture": "portrait",
+      "panels": "0",
+      "multiCol": false,
+      "scrollOwner": "document/window",
+      "beforeTop": 0,
+      "afterTop": 0,
+      "windowBefore": 0,
+      "windowAfter": 405,
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 0,
+        "moved": false,
+        "skipped": false
+      },
+      "mountStable": true,
+      "pass": true
+    },
+    {
+      "id": "j-l844",
+      "viewport": {
+        "id": "j-l844",
+        "width": 844,
+        "height": 390
+      },
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "panels": "1",
+      "multiCol": true,
+      "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]",
+      "beforeTop": 0,
+      "afterTop": 375,
+      "windowBefore": 177,
+      "windowAfter": 177,
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 375,
+        "moved": true,
+        "skipped": false
+      },
+      "mountStable": true,
+      "pass": true
+    },
+    {
+      "id": "j-p390b",
+      "viewport": {
+        "id": "j-p390b",
+        "width": 390,
+        "height": 844
+      },
+      "mode": "browse",
+      "posture": "portrait",
+      "panels": "0",
+      "multiCol": false,
+      "scrollOwner": "document/window",
+      "beforeTop": 0,
+      "afterTop": 0,
+      "windowBefore": 157,
+      "windowAfter": 397,
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 0,
+        "moved": false,
+        "skipped": false
+      },
+      "mountStable": true,
+      "pass": true
+    },
+    {
+      "id": "j-l932",
+      "viewport": {
+        "id": "j-l932",
+        "width": 932,
+        "height": 430
+      },
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "panels": "1",
+      "multiCol": true,
+      "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]",
+      "beforeTop": 0,
+      "afterTop": 375,
+      "windowBefore": 177,
+      "windowAfter": 177,
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 375,
+        "moved": true,
+        "skipped": false
+      },
+      "mountStable": true,
+      "pass": true
+    },
+    {
+      "id": "j-p430",
+      "viewport": {
+        "id": "j-p430",
+        "width": 430,
+        "height": 932
+      },
+      "mode": "browse",
+      "posture": "portrait",
+      "panels": "0",
+      "multiCol": false,
+      "scrollOwner": "document/window",
+      "beforeTop": 0,
+      "afterTop": 0,
+      "windowBefore": 157,
+      "windowAfter": 397,
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 0,
+        "moved": false,
+        "skipped": false
+      },
+      "mountStable": true,
+      "pass": true
+    },
+    {
+      "id": "j-l812",
+      "viewport": {
+        "id": "j-l812",
+        "width": 812,
+        "height": 375
+      },
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "panels": "1",
+      "multiCol": true,
+      "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]",
+      "beforeTop": 0,
+      "afterTop": 375,
+      "windowBefore": 177,
+      "windowAfter": 177,
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 375,
+        "moved": true,
+        "skipped": false
+      },
+      "mountStable": true,
+      "pass": true
+    },
+    {
+      "id": "j-p375",
+      "viewport": {
+        "id": "j-p375",
+        "width": 375,
+        "height": 812
+      },
+      "mode": "browse",
+      "posture": "portrait",
+      "panels": "0",
+      "multiCol": false,
+      "scrollOwner": "document/window",
+      "beforeTop": 0,
+      "afterTop": 0,
+      "windowBefore": 157,
+      "windowAfter": 397,
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 0,
+        "moved": false,
+        "skipped": false
+      },
+      "mountStable": true,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

@@ -1,0 +1,2222 @@
+{
+  "phase": "1b.2.1",
+  "domain": "https://homecheff.eu",
+  "timestamp": "2026-07-31T17:36:47.331Z",
+  "expectedMergeCommit": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+  "verdict": "WX_PHASE_1B2_1_LIVE_PRODUCTION_PROOF_PASS",
+  "touchFirst": true,
+  "phoneResults": [
+    {
+      "id": "p390",
+      "viewport": {
+        "id": "p390",
+        "width": 390,
+        "height": 844
+      },
+      "landscape": false,
+      "multiCol": false,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "panels": "0",
+        "multiCol": false,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 0,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "visible",
+          "height": "515.844px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 516,
+          "scrollHeight": 516,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "visible",
+          "height": "424.25px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 424,
+          "scrollHeight": 424,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "424.25px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 424,
+          "scrollHeight": 424,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "424.25px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 424,
+          "scrollHeight": 424,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "424.25px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 424,
+          "scrollHeight": 424,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "scrollOwner": "document/window"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "panels": "0",
+        "multiCol": false,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 157,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "visible",
+          "height": "460.844px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 461,
+          "scrollHeight": 461,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "visible",
+          "height": "369.25px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 369,
+          "scrollHeight": 369,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "369.25px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 369,
+          "scrollHeight": 369,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "369.25px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 369,
+          "scrollHeight": 369,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "369.25px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 369,
+          "scrollHeight": 369,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "scrollOwner": "document/window"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 0,
+        "moved": false,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 0,
+        "after": 157,
+        "moved": true
+      },
+      "feedMoved": false,
+      "feedCanScroll": false
+    },
+    {
+      "id": "l844",
+      "viewport": {
+        "id": "l844",
+        "width": 844,
+        "height": 390
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 157,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "310px",
+          "maxHeight": "310px",
+          "minHeight": "192px",
+          "clientHeight": 308,
+          "scrollHeight": 308,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "143.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 143,
+          "scrollHeight": 143,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "143.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 143,
+          "scrollHeight": 143,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "143.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 143,
+          "scrollHeight": 143,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "143.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 143,
+          "scrollHeight": 2920,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "310px",
+          "maxHeight": "310px",
+          "minHeight": "192px",
+          "clientHeight": 308,
+          "scrollHeight": 308,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "143.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 143,
+          "scrollHeight": 143,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "143.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 143,
+          "scrollHeight": 143,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "143.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 143,
+          "scrollHeight": 143,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "143.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 143,
+          "scrollHeight": 2920,
+          "scrollTop": 375,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 375,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 157,
+        "after": 177,
+        "moved": true
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    },
+    {
+      "id": "p430",
+      "viewport": {
+        "id": "p430",
+        "width": 430,
+        "height": 932
+      },
+      "landscape": false,
+      "multiCol": false,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "panels": "0",
+        "multiCol": false,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "visible",
+          "height": "2728.66px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2729,
+          "scrollHeight": 2729,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "visible",
+          "height": "2524.09px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2524,
+          "scrollHeight": 2524,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "2524.09px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2524,
+          "scrollHeight": 2524,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "2524.09px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2524,
+          "scrollHeight": 2524,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "2524.09px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2524,
+          "scrollHeight": 2524,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "scrollOwner": "document/window"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "panels": "0",
+        "multiCol": false,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 417,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "visible",
+          "height": "2728.66px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2729,
+          "scrollHeight": 2729,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "visible",
+          "height": "2524.09px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2524,
+          "scrollHeight": 2524,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "2524.09px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2524,
+          "scrollHeight": 2524,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "2524.09px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2524,
+          "scrollHeight": 2524,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "2524.09px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2524,
+          "scrollHeight": 2524,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "scrollOwner": "document/window"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 0,
+        "moved": false,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 177,
+        "after": 417,
+        "moved": true
+      },
+      "feedMoved": false,
+      "feedCanScroll": false
+    },
+    {
+      "id": "l932",
+      "viewport": {
+        "id": "l932",
+        "width": 932,
+        "height": 430
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "350px",
+          "maxHeight": "350px",
+          "minHeight": "192px",
+          "clientHeight": 348,
+          "scrollHeight": 348,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "183.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 183,
+          "scrollHeight": 183,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "183.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 183,
+          "scrollHeight": 183,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "183.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 183,
+          "scrollHeight": 183,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "183.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 183,
+          "scrollHeight": 3184,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "350px",
+          "maxHeight": "350px",
+          "minHeight": "192px",
+          "clientHeight": 348,
+          "scrollHeight": 348,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "183.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 183,
+          "scrollHeight": 183,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "183.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 183,
+          "scrollHeight": 183,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "183.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 183,
+          "scrollHeight": 183,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "183.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 183,
+          "scrollHeight": 3184,
+          "scrollTop": 375,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 375,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 177,
+        "after": 177,
+        "moved": false
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    },
+    {
+      "id": "p375",
+      "viewport": {
+        "id": "p375",
+        "width": 375,
+        "height": 812
+      },
+      "landscape": false,
+      "multiCol": false,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "panels": "0",
+        "multiCol": false,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "visible",
+          "height": "2653.41px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2653,
+          "scrollHeight": 2653,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "visible",
+          "height": "2448.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2449,
+          "scrollHeight": 2449,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "2448.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2449,
+          "scrollHeight": 2449,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "2448.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2449,
+          "scrollHeight": 2449,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "2448.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2449,
+          "scrollHeight": 2449,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "scrollOwner": "document/window"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "panels": "0",
+        "multiCol": false,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 417,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "visible",
+          "height": "2653.41px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2653,
+          "scrollHeight": 2653,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "visible",
+          "height": "2448.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2449,
+          "scrollHeight": 2449,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "2448.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2449,
+          "scrollHeight": 2449,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "2448.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2449,
+          "scrollHeight": 2449,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "2448.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2449,
+          "scrollHeight": 2449,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "scrollOwner": "document/window"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 0,
+        "moved": false,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 177,
+        "after": 417,
+        "moved": true
+      },
+      "feedMoved": false,
+      "feedCanScroll": false
+    },
+    {
+      "id": "l812",
+      "viewport": {
+        "id": "l812",
+        "width": 812,
+        "height": 375
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "295px",
+          "maxHeight": "295px",
+          "minHeight": "192px",
+          "clientHeight": 293,
+          "scrollHeight": 293,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "128.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 128,
+          "scrollHeight": 128,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "128.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 128,
+          "scrollHeight": 128,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "128.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 128,
+          "scrollHeight": 128,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "128.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 128,
+          "scrollHeight": 2824,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "295px",
+          "maxHeight": "295px",
+          "minHeight": "192px",
+          "clientHeight": 293,
+          "scrollHeight": 293,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "128.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 128,
+          "scrollHeight": 128,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "128.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 128,
+          "scrollHeight": 128,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "128.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 128,
+          "scrollHeight": 128,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "128.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 128,
+          "scrollHeight": 2824,
+          "scrollTop": 364,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 364,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 177,
+        "after": 177,
+        "moved": false
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    },
+    {
+      "id": "p360",
+      "viewport": {
+        "id": "p360",
+        "width": 360,
+        "height": 740
+      },
+      "landscape": false,
+      "multiCol": false,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "panels": "0",
+        "multiCol": false,
+        "shellMountId": "wx-shell-mount:3",
+        "primaryMountId": "wx-primary-mount:3",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "visible",
+          "height": "2608.41px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2608,
+          "scrollHeight": 2608,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "visible",
+          "height": "2403.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2404,
+          "scrollHeight": 2404,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "2403.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2404,
+          "scrollHeight": 2404,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "2403.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2404,
+          "scrollHeight": 2404,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "2403.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2404,
+          "scrollHeight": 2404,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "scrollOwner": "document/window"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "panels": "0",
+        "multiCol": false,
+        "shellMountId": "wx-shell-mount:3",
+        "primaryMountId": "wx-primary-mount:3",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 1789,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "visible",
+          "height": "2620.41px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2620,
+          "scrollHeight": 2620,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "visible",
+          "height": "2415.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2416,
+          "scrollHeight": 2416,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "2415.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2416,
+          "scrollHeight": 2416,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "2415.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2416,
+          "scrollHeight": 2416,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "2415.84px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 2416,
+          "scrollHeight": 2416,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "scrollOwner": "document/window"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 0,
+        "moved": false,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 1278,
+        "after": 1789,
+        "moved": true
+      },
+      "feedMoved": false,
+      "feedCanScroll": false
+    },
+    {
+      "id": "l740",
+      "viewport": {
+        "id": "l740",
+        "width": 740,
+        "height": 360
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:3",
+        "primaryMountId": "wx-primary-mount:3",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 165,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "280px",
+          "maxHeight": "280px",
+          "minHeight": "192px",
+          "clientHeight": 278,
+          "scrollHeight": 278,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "113.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 113,
+          "scrollHeight": 113,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "113.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 113,
+          "scrollHeight": 113,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "113.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 113,
+          "scrollHeight": 113,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "113.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 113,
+          "scrollHeight": 2608,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:3",
+        "primaryMountId": "wx-primary-mount:3",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 165,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "280px",
+          "maxHeight": "280px",
+          "minHeight": "192px",
+          "clientHeight": 278,
+          "scrollHeight": 278,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "113.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 113,
+          "scrollHeight": 113,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "113.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 113,
+          "scrollHeight": 113,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "113.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 113,
+          "scrollHeight": 113,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "113.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 113,
+          "scrollHeight": 2608,
+          "scrollTop": 305,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 305,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 165,
+        "after": 165,
+        "moved": false
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    }
+  ],
+  "regressionResults": [
+    {
+      "id": "t768",
+      "viewport": {
+        "id": "t768",
+        "width": 768,
+        "height": 1024
+      },
+      "landscape": false,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "layoutMode": "tablet-portrait",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:4",
+        "primaryMountId": "wx-primary-mount:4",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 165,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "944px",
+          "maxHeight": "944px",
+          "minHeight": "192px",
+          "clientHeight": 942,
+          "scrollHeight": 942,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "777.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 777,
+          "scrollHeight": 777,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "777.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 777,
+          "scrollHeight": 777,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "777.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 777,
+          "scrollHeight": 777,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "777.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 777,
+          "scrollHeight": 2692,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "layoutMode": "tablet-portrait",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:4",
+        "primaryMountId": "wx-primary-mount:4",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 177,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "944px",
+          "maxHeight": "944px",
+          "minHeight": "192px",
+          "clientHeight": 942,
+          "scrollHeight": 942,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "777.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 777,
+          "scrollHeight": 777,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "777.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 777,
+          "scrollHeight": 777,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "777.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 777,
+          "scrollHeight": 777,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "777.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 777,
+          "scrollHeight": 2692,
+          "scrollTop": 375,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 375,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 165,
+        "after": 177,
+        "moved": true
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    },
+    {
+      "id": "t1024",
+      "viewport": {
+        "id": "t1024",
+        "width": 1024,
+        "height": 768
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 0,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "688px",
+          "maxHeight": "688px",
+          "minHeight": "192px",
+          "clientHeight": 686,
+          "scrollHeight": 686,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "521.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 521,
+          "scrollHeight": 521,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "521.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 521,
+          "scrollHeight": 521,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "521.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 521,
+          "scrollHeight": 521,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "521.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 521,
+          "scrollHeight": 7204,
+          "scrollTop": 375,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "panels": "1",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 1,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "688px",
+          "maxHeight": "688px",
+          "minHeight": "192px",
+          "clientHeight": 686,
+          "scrollHeight": 686,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "521.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 521,
+          "scrollHeight": 521,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "521.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 521,
+          "scrollHeight": 521,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "521.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 521,
+          "scrollHeight": 521,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "521.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 521,
+          "scrollHeight": 7204,
+          "scrollTop": 750,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 375,
+        "afterTop": 750,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 0,
+        "after": 1,
+        "moved": false
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    },
+    {
+      "id": "d1280",
+      "viewport": {
+        "id": "d1280",
+        "width": 1280,
+        "height": 800
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop",
+        "panels": "2",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 0,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "720px",
+          "maxHeight": "720px",
+          "minHeight": "192px",
+          "clientHeight": 718,
+          "scrollHeight": 718,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "553.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 553,
+          "scrollHeight": 553,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "553.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 553,
+          "scrollHeight": 553,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "553.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 553,
+          "scrollHeight": 553,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "553.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 553,
+          "scrollHeight": 7045,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop",
+        "panels": "2",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 1,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "720px",
+          "maxHeight": "720px",
+          "minHeight": "192px",
+          "clientHeight": 718,
+          "scrollHeight": 718,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "553.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 553,
+          "scrollHeight": 553,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "553.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 553,
+          "scrollHeight": 553,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "553.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 553,
+          "scrollHeight": 553,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "553.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 553,
+          "scrollHeight": 7045,
+          "scrollTop": 375,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 375,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 0,
+        "after": 1,
+        "moved": false
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    },
+    {
+      "id": "d1440",
+      "viewport": {
+        "id": "d1440",
+        "width": 1440,
+        "height": 900
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop",
+        "panels": "2",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:4",
+        "primaryMountId": "wx-primary-mount:4",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 0,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "820px",
+          "maxHeight": "820px",
+          "minHeight": "192px",
+          "clientHeight": 818,
+          "scrollHeight": 818,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "653.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 653,
+          "scrollHeight": 653,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "653.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 653,
+          "scrollHeight": 653,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "653.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 653,
+          "scrollHeight": 653,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "653.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 653,
+          "scrollHeight": 7240,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop",
+        "panels": "2",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:4",
+        "primaryMountId": "wx-primary-mount:4",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 1,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "820px",
+          "maxHeight": "820px",
+          "minHeight": "192px",
+          "clientHeight": 818,
+          "scrollHeight": 818,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "653.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 653,
+          "scrollHeight": 653,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "653.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 653,
+          "scrollHeight": 653,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "653.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 653,
+          "scrollHeight": 653,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "653.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 653,
+          "scrollHeight": 7240,
+          "scrollTop": 305,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 305,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 0,
+        "after": 1,
+        "moved": false
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    },
+    {
+      "id": "d1920",
+      "viewport": {
+        "id": "d1920",
+        "width": 1920,
+        "height": 1080
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop-wide",
+        "panels": "2",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:5",
+        "primaryMountId": "wx-primary-mount:5",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 0,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "1000px",
+          "maxHeight": "1000px",
+          "minHeight": "192px",
+          "clientHeight": 998,
+          "scrollHeight": 998,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "833.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 833,
+          "scrollHeight": 833,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "833.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 833,
+          "scrollHeight": 833,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "833.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 833,
+          "scrollHeight": 833,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "833.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 833,
+          "scrollHeight": 7240,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop-wide",
+        "panels": "2",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:5",
+        "primaryMountId": "wx-primary-mount:5",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 1,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "1000px",
+          "maxHeight": "1000px",
+          "minHeight": "192px",
+          "clientHeight": 998,
+          "scrollHeight": 998,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "833.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 833,
+          "scrollHeight": 833,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "833.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 833,
+          "scrollHeight": 833,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "833.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 833,
+          "scrollHeight": 833,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "833.109px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 833,
+          "scrollHeight": 7240,
+          "scrollTop": 375,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 375,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 0,
+        "after": 1,
+        "moved": false
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    },
+    {
+      "id": "d2560",
+      "viewport": {
+        "id": "d2560",
+        "width": 2560,
+        "height": 1440
+      },
+      "landscape": true,
+      "multiCol": true,
+      "pass": true,
+      "before": {
+        "phase": "1b.2",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop-wide",
+        "panels": "2",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 0,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "1360px",
+          "maxHeight": "1360px",
+          "minHeight": "192px",
+          "clientHeight": 1358,
+          "scrollHeight": 1358,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "1193.11px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 1193,
+          "scrollHeight": 1193,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "1193.11px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 1193,
+          "scrollHeight": 1193,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "1193.11px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 1193,
+          "scrollHeight": 1193,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "1193.11px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 1193,
+          "scrollHeight": 7240,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "after": {
+        "phase": "1b.2",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop-wide",
+        "panels": "2",
+        "multiCol": true,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "hostCount": 1,
+        "workspaceCount": 1,
+        "feedOwner": "geofeed",
+        "windowY": 1,
+        "horizontalOverflow": false,
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "1360px",
+          "maxHeight": "1360px",
+          "minHeight": "192px",
+          "clientHeight": 1358,
+          "scrollHeight": 1358,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "primaryHost": {
+          "overflowY": "hidden",
+          "height": "1193.11px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 1193,
+          "scrollHeight": 1193,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "region": {
+          "overflowY": "visible",
+          "height": "1193.11px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 1193,
+          "scrollHeight": 1193,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "panel": {
+          "overflowY": "visible",
+          "height": "1193.11px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 1193,
+          "scrollHeight": 1193,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "feed": {
+          "overflowY": "auto",
+          "height": "1193.11px",
+          "maxHeight": "none",
+          "minHeight": "0px",
+          "clientHeight": 1193,
+          "scrollHeight": 7240,
+          "scrollTop": 305,
+          "canScrollY": true
+        },
+        "scrollOwner": "#homecheff-feed-desktop/[data-aw-primary-feed]"
+      },
+      "touch": {
+        "gesture": "touch-drag",
+        "beforeTop": 0,
+        "afterTop": 305,
+        "moved": true,
+        "skipped": false
+      },
+      "windowScroll": {
+        "before": 0,
+        "after": 1,
+        "moved": false
+      },
+      "feedMoved": true,
+      "feedCanScroll": true
+    }
+  ],
+  "mountBaseline": {
+    "shell": "wx-shell-mount:1",
+    "primary": "wx-primary-mount:1"
+  },
+  "consoleErrors": [],
+  "checks": {
+    "landscapePass": true,
+    "regressionPass": true,
+    "journeyPass": true,
+    "has1280": true,
+    "has1440": true
+  }
+}

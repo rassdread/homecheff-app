@@ -1,0 +1,83 @@
+{
+  "incident": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL",
+  "status": "PRODUCTION_FROZEN",
+  "verdict": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_PRODUCTION_SUCCESS",
+  "formalReview": "WX_PHASE_1B2_1_SCROLL_FIX_REVIEW_PASS_WITH_WARNINGS",
+  "branch": "wx/phase-1b2-1-mobile-landscape-scroll",
+  "implementationCommit": "d1e9b90b8b473f8c31e2234afcf2df7638ad0fee",
+  "evidenceCommit": "4642f83852199e8bc7e5214b43adfb81097ce8d7",
+  "preMergeOriginMain": "a17cbbf6ff58d3010d3911a5917c7706c0bc6524",
+  "mergeCommit": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+  "mergeParents": [
+    "a17cbbf6ff58d3010d3911a5917c7706c0bc6524",
+    "4642f83852199e8bc7e5214b43adfb81097ce8d7"
+  ],
+  "originMainAtRuntime": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+  "rollbackRuntime": "5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4",
+  "vercelProject": "homecheff-app",
+  "vercelProjectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+  "deploymentId": "dpl_A3vWYojNUsrMG8ykkVCKUL7euiZ6",
+  "deploymentUrl": "https://homecheff-f0tt5ek6n-sergio-s-projects-f7b64ee1.vercel.app",
+  "aliases": [
+    "https://homecheff.eu",
+    "https://homecheff.nl",
+    "https://www.homecheff.eu",
+    "https://www.homecheff.nl"
+  ],
+  "deployedGitCommitSha": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+  "runtimeObservedHash": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+  "deployStartUtc": "2026-07-31T17:30:27Z",
+  "deployEndUtc": "2026-07-31T17:33:55Z",
+  "liveProofVerdict": "WX_PHASE_1B2_1_LIVE_PRODUCTION_PROOF_PASS",
+  "orientationJourneyPass": true,
+  "touchFirst": true,
+  "matrixIncludes1280": true,
+  "matrixIncludes1440": true,
+  "scrollOwnerLandscape": "#homecheff-feed-desktop/[data-aw-primary-feed]",
+  "sampleHeightChain_l740": {
+    "workspace": {
+      "overflowY": "hidden",
+      "height": "280px",
+      "maxHeight": "280px",
+      "minHeight": "192px",
+      "clientHeight": 278,
+      "scrollHeight": 278,
+      "scrollTop": 0,
+      "canScrollY": false
+    },
+    "primaryHost": {
+      "overflowY": "hidden",
+      "height": "113.109px",
+      "maxHeight": "none",
+      "minHeight": "0px",
+      "clientHeight": 113,
+      "scrollHeight": 113,
+      "scrollTop": 0,
+      "canScrollY": false
+    },
+    "feed": {
+      "overflowY": "auto",
+      "height": "113.109px",
+      "maxHeight": "none",
+      "minHeight": "0px",
+      "clientHeight": 113,
+      "scrollHeight": 2608,
+      "scrollTop": 0,
+      "canScrollY": true
+    },
+    "touch": {
+      "gesture": "touch-drag",
+      "beforeTop": 0,
+      "afterTop": 305,
+      "moved": true,
+      "skipped": false
+    }
+  },
+  "mountBaseline": {
+    "shell": "wx-shell-mount:1",
+    "primary": "wx-primary-mount:1"
+  },
+  "phase1b3Promoted": false,
+  "phase1b4Started": false,
+  "freezeTimestampUtc": "2026-07-31T17:37:14Z"
+}
