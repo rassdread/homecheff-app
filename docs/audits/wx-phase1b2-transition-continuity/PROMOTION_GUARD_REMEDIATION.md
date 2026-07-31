@@ -8,7 +8,7 @@
 | --- | --- |
 | Original blocked tip | `464267423e7d3011c1b7638d44411fc930ba5a0f` |
 | Remediation Commit C | `686f0ee1aaab3ebcbca20f9fa67edc88804f70a2` |
-| Evidence Commit D | a72910afb6569835b3d543bdb4957ecbec24e7f3 |
+| Evidence Commit D (primary wrapper) | `80a5ad0316cc37fa91feb3db8998e15b825af063` |
 | Production / unchanged | `0a0299408b5e531f1971d97c6cfe9bb0b95f721d` |
 | Branch | `wx/phase-1b2-transition-continuity` |
 | Merge | **no** |
