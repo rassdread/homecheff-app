@@ -1,0 +1,231 @@
+{
+  "phase": "wx-phase1a-workspace-foundations",
+  "baseUrl": "https://homecheff.eu",
+  "capturedAt": "2026-07-31T00:36:52.159Z",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/production/screenshots/phone-portrait-390x844.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "mobile-portrait",
+        "supportingPanels": "0",
+        "primaryActionPresent": true,
+        "primaryActionText": "",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 9,
+          "y": 134,
+          "width": 372,
+          "height": 469,
+          "bottom": 602
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/production/screenshots/phone-landscape-844x390.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 13,
+          "y": 174,
+          "width": 546,
+          "height": 533,
+          "bottom": 707
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/production/screenshots/tablet-portrait-768x1024.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-portrait",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 13,
+          "y": 174,
+          "width": 470,
+          "height": 504,
+          "bottom": 678
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/production/screenshots/tablet-landscape-1024x768.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 16,
+          "y": 174,
+          "width": 720,
+          "height": 921,
+          "bottom": 1094
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/production/screenshots/desktop-1440x900.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 340,
+          "y": 174,
+          "width": 720,
+          "height": 772,
+          "bottom": 946
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "width": 2560,
+        "height": 1440
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/production/screenshots/ultrawide-2560x1440.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop-wide",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 900,
+          "y": 174,
+          "width": 720,
+          "height": 772,
+          "bottom": 946
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    }
+  ],
+  "failures": [],
+  "overallVerdict": "WX_PHASE_1A_PASS"
+}

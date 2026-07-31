@@ -1,0 +1,36 @@
+{
+  "title": "WX Phase 1A Production Freeze",
+  "verdict": "WX_PHASE_1A_PRODUCTION_SUCCESS",
+  "freezeCommit": "pending",
+  "productionCommit": "d2b533650572d2ce15ebca3b1d01e4343d3cede7",
+  "deploymentId": "dpl_39kNGiubK3hstdW8rapJ8Kx1g9To",
+  "deploymentUrl": "https://homecheff-4pfhqwzdd-sergio-s-projects-f7b64ee1.vercel.app",
+  "aliases": [
+    "homecheff.eu",
+    "homecheff.nl",
+    "www.homecheff.eu",
+    "www.homecheff.nl"
+  ],
+  "visibilityMode": "on",
+  "browserProof": {
+    "verdict": "WX_PHASE_1A_PASS",
+    "baseUrl": "https://homecheff.eu",
+    "capturedAt": "2026-07-31T00:36:52.159Z",
+    "failures": 0,
+    "artifactDir": "docs/audits/wx-phase1a-workspace-foundations/production"
+  },
+  "ownership": {
+    "feedDataOwner": "geofeed",
+    "controlledHost": "COMMIT_READY",
+    "hostActiveAuthorized": false
+  },
+  "deferred": [
+    "WX 1B+ search mental model (P7/P8)",
+    "WX 1B+ nav IA regroup (P9/P12)",
+    "WX 1B+ contextual rails / surface-plan bridge (S3/P13)",
+    "WX 1B+ landscape work posture (P10)",
+    "WX 1B+ AvailableSpace productivity density (P11)",
+    "WX 1B+ motion/typography/visual identity (P16–P19)"
+  ],
+  "stopGate": "Do not start WX Phase 1B without explicit approval after independent Production review."
+}
