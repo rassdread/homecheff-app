@@ -26,7 +26,7 @@ export default function WorkspacePanel({
       data-aw-panel-slot={slotId}
       data-aw-panel-widget={widgetId}
       data-aw-panel-mode={mode}
-      className="w-full min-w-0"
+      className="w-full min-w-0 h-full min-h-0"
     >
       {children}
     </div>
