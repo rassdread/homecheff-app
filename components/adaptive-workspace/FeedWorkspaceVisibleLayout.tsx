@@ -9,8 +9,11 @@
  *
  * WX Phase 1A.1: full-width orientation strip + continuous Workspace frame chrome.
  * WX Phase 1B.1: Workspace Mode Engine diagnostics only (no layout/capability changes).
+ * WX Phase 1B.2: Transition Continuity — Mode/Posture changes MUST NOT remount primary,
+ *                reload feed, or reset scroll/filters. Fail-closed last stable space.
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
+ * NEVER key primary (or any slot) by Mode / posture / mode token.
  */
 
 import React, {
@@ -28,8 +31,10 @@ import {
   normalizeWorkspaceMeasurement,
   resolveFeedWorkspaceVisibleLayout,
   resolveWorkspaceMode,
+  WORKSPACE_TRANSITION_CONTINUITY,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
+  type WorkspaceModePlan,
 } from "@/lib/adaptive-workspace-react";
 
 export type FeedWorkspaceVisibleLayoutProps = {
@@ -79,6 +84,10 @@ export default function FeedWorkspaceVisibleLayout({
   onPlanChange,
 }: FeedWorkspaceVisibleLayoutProps) {
   const rootRef = useRef<HTMLElement | null>(null);
+  const lastStableRef = useRef<{ widthPx: number; heightPx: number } | null>(
+    null,
+  );
+  const previousModeRef = useRef<WorkspaceModePlan | null>(null);
   const [measurement, setMeasurement] = useState<NormalizedMeasurement | null>(
     () => seedMeasurement(initialWidthPx, initialHeightPx),
   );
@@ -119,16 +128,45 @@ export default function FeedWorkspaceVisibleLayout({
     };
   }, []);
 
+  // Prefer live measurement; otherwise last stable / defaults (WMS fail-closed).
+  const usableWidthPx =
+    measurement?.widthPx ??
+    lastStableRef.current?.widthPx ??
+    initialWidthPx ??
+    1280;
+  const usableHeightPx =
+    measurement?.heightPx ??
+    lastStableRef.current?.heightPx ??
+    initialHeightPx ??
+    800;
+
+  const usedLastStable =
+    measurement == null && lastStableRef.current != null;
+
+  if (measurement) {
+    lastStableRef.current = {
+      widthPx: measurement.widthPx,
+      heightPx: measurement.heightPx,
+    };
+  }
+
   const plan: FeedWorkspaceVisibleLayoutPlan = resolveFeedWorkspaceVisibleLayout({
-    usableWidthPx: measurement?.widthPx ?? initialWidthPx ?? 1280,
-    usableHeightPx: measurement?.heightPx ?? initialHeightPx ?? 800,
+    usableWidthPx,
+    usableHeightPx,
   });
 
-  /** WX 1B.1 — authoritative Mode identity; does not drive layout in this phase. */
+  /** WX 1B.1 — authoritative Mode identity; does not drive layout. */
   const modePlan = resolveWorkspaceMode({
     usableWidthPx: plan.usableWidthPx,
     usableHeightPx: plan.usableHeightPx,
   });
+
+  const previousMode = previousModeRef.current;
+  const modeChanged =
+    previousMode != null && previousMode.mode !== modePlan.mode;
+  const postureChanged =
+    previousMode != null && previousMode.posture !== modePlan.posture;
+  previousModeRef.current = modePlan;
 
   useEffect(() => {
     onPlanChange?.(plan);
@@ -138,6 +176,8 @@ export default function FeedWorkspaceVisibleLayout({
   const hasOrientation = Boolean(orientation);
 
   const gridTemplateAreas = (() => {
+    // Orientation host is always mounted for continuity; reserve grid row when
+    // orientation content is provided (Home always passes it).
     if (plan.showStartPanel) {
       return hasOrientation
         ? '"orient orient orient" "start primary end"'
@@ -165,12 +205,17 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.1"
+      data-wx-phase="1b.2"
+      data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
+      data-wx-continuity-remount="0"
+      data-wx-fail-closed={usedLastStable ? "1" : "0"}
       data-wx-mode={modePlan.mode}
       data-wx-posture={modePlan.posture}
       data-wx-mode-token={modePlan.stabilityToken}
       data-wx-height-demoted={modePlan.heightDemoted ? "1" : "0"}
       data-wx-landscape-carve-out={modePlan.landscapeCarveOut ? "1" : "0"}
+      data-wx-mode-changed={modeChanged ? "1" : "0"}
+      data-wx-posture-changed={postureChanged ? "1" : "0"}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
@@ -191,21 +236,21 @@ export default function FeedWorkspaceVisibleLayout({
         gridTemplateRows,
       }}
     >
-      {hasOrientation ? (
-        <div
-          key="aw-slot-orientation"
-          data-aw-slot-host="orientation"
-          data-wx-orientation-host=""
-          className="min-w-0"
-          style={{ gridArea: "orient" }}
-        >
-          {orientation}
-        </div>
-      ) : null}
+      {/* Permanent orientation host — hidden when unused (never toggles sibling index of primary). */}
+      <div
+        key={WORKSPACE_TRANSITION_CONTINUITY.orientationSlotKey}
+        data-aw-slot-host="orientation"
+        data-wx-orientation-host=""
+        className={hasOrientation ? "min-w-0" : "hidden"}
+        style={{ gridArea: hasOrientation ? "orient" : undefined }}
+        aria-hidden={!hasOrientation}
+      >
+        {orientation}
+      </div>
 
       {/* Permanent slot 1 — start rail (hidden, not unmounted, when unused). */}
       <div
-        key="aw-slot-start"
+        key={WORKSPACE_TRANSITION_CONTINUITY.startSlotKey}
         data-aw-slot-host="start"
         className={plan.showStartPanel ? "min-w-0 min-h-0" : "hidden"}
         style={{ gridArea: plan.showStartPanel ? "start" : undefined }}
@@ -232,10 +277,11 @@ export default function FeedWorkspaceVisibleLayout({
         </WorkspaceRegion>
       </div>
 
-      {/* Permanent slot 2 — primary feed (GeoFeed). Never conditionally removed. */}
+      {/* Permanent slot 2 — primary feed (GeoFeed). Never conditionally removed. Never keyed by Mode. */}
       <div
-        key="aw-slot-primary"
+        key={WORKSPACE_TRANSITION_CONTINUITY.primarySlotKey}
         data-aw-slot-host="primary"
+        data-wx-continuity-primary="1"
         className="min-w-0 min-h-0"
         style={{ gridArea: "primary" }}
       >
@@ -268,7 +314,7 @@ export default function FeedWorkspaceVisibleLayout({
 
       {/* Permanent slot 3 — end rail (hidden when unused). */}
       <div
-        key="aw-slot-end"
+        key={WORKSPACE_TRANSITION_CONTINUITY.endSlotKey}
         data-aw-slot-host="end"
         className={plan.showEndPanel ? "min-w-0 min-h-0" : "hidden"}
         style={{ gridArea: plan.showEndPanel ? "end" : undefined }}

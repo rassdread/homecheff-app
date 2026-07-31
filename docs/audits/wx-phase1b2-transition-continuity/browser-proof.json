@@ -1,0 +1,341 @@
+{
+  "phase": "1B.2",
+  "title": "Transition Continuity",
+  "verdict": "WX_PHASE_1B2_PASS",
+  "mode": "local",
+  "baseUrl": "http://127.0.0.1:3087",
+  "timestamp": "2026-07-31T14:15:04.476Z",
+  "scope": "Mode/Posture transition continuity only — no capability activation",
+  "checks": {
+    "allStepsPass": true,
+    "modeChangesAtLeast3": true,
+    "modesAtLeast3": true,
+    "sealedOk": true,
+    "noConsoleErrors": true,
+    "noHydration": true,
+    "scrollPreservedBestEffort": true
+  },
+  "modeChanges": 4,
+  "modesSeen": [
+    "browse",
+    "hybrid-workspace",
+    "full-workspace",
+    "professional-workspace"
+  ],
+  "steps": [
+    {
+      "id": "browse-320",
+      "viewport": {
+        "id": "browse-320",
+        "width": 320,
+        "height": 568
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:320x568:browse:portrait:hd0",
+        "usableWidth": 320,
+        "usableHeight": 568,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "browse-390",
+      "viewport": {
+        "id": "browse-390",
+        "width": 390,
+        "height": 844
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:390x844:browse:portrait:hd0",
+        "usableWidth": 390,
+        "usableHeight": 844,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "browse-430",
+      "viewport": {
+        "id": "browse-430",
+        "width": 430,
+        "height": 932
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:430x932:browse:portrait:hd0",
+        "usableWidth": 430,
+        "usableHeight": 932,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "landscape-844",
+      "viewport": {
+        "id": "landscape-844",
+        "width": 844,
+        "height": 390
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:826x390:hybrid-workspace:landscape:hd0",
+        "usableWidth": 826,
+        "usableHeight": 390,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "hybrid-768",
+      "viewport": {
+        "id": "hybrid-768",
+        "width": 768,
+        "height": 1024
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:750x1024:hybrid-workspace:portrait:hd0",
+        "usableWidth": 750,
+        "usableHeight": 1024,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "hybrid-820",
+      "viewport": {
+        "id": "hybrid-820",
+        "width": 820,
+        "height": 1180
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:802x1180:hybrid-workspace:portrait:hd0",
+        "usableWidth": 802,
+        "usableHeight": 1180,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "hybrid-1024",
+      "viewport": {
+        "id": "hybrid-1024",
+        "width": 1024,
+        "height": 768
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:998x768:hybrid-workspace:landscape:hd0",
+        "usableWidth": 998,
+        "usableHeight": 768,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "full-1280",
+      "viewport": {
+        "id": "full-1280",
+        "width": 1280,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1254x800:full-workspace:landscape:hd0",
+        "usableWidth": 1254,
+        "usableHeight": 800,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "full-1440",
+      "viewport": {
+        "id": "full-1440",
+        "width": 1440,
+        "height": 900
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1414x900:full-workspace:landscape:hd0",
+        "usableWidth": 1414,
+        "usableHeight": 900,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "pro-1920",
+      "viewport": {
+        "id": "pro-1920",
+        "width": 1920,
+        "height": 1080
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1894x1080:professional-workspace:landscape:hd0",
+        "usableWidth": 1894,
+        "usableHeight": 1080,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "pro-2560",
+      "viewport": {
+        "id": "pro-2560",
+        "width": 2560,
+        "height": 1440
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:2534x1440:professional-workspace:landscape:hd0",
+        "usableWidth": 2534,
+        "usableHeight": 1440,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    },
+    {
+      "id": "back-browse-360",
+      "viewport": {
+        "id": "back-browse-360",
+        "width": 360,
+        "height": 740
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:360x740:browse:portrait:hd0",
+        "usableWidth": 360,
+        "usableHeight": 740,
+        "workspaceCount": 1,
+        "stableFeedSlot": true,
+        "continuityPrimary": true,
+        "scrollTop": 0,
+        "feedOwner": "geofeed",
+        "sealed": null
+      },
+      "pass": true
+    }
+  ],
+  "consoleErrors": [],
+  "hydrationWarnings": []
+}
