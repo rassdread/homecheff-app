@@ -5,7 +5,7 @@
 **Browser proof:** `WX_PHASE_1B2_REMEDIATION_BROWSER_PASS`  
 **Original reviewed commit:** `96c9918454b843076b85587fd3e349d6cf9a0300`  
 **Implementation Commit A:** `fe9975cc70a5325b7ec0d2587ef9aee281cbc443`  
-**Evidence Commit B:** evidence-wrapper commit containing this pack (recorded in freeze-pack after push)  
+**Evidence Commit B (primary wrapper):** `57e0600fc372d93780e2068e4038244d924d03e9` (tip may include a stamp-correction docs commit only)
 **Branch:** `wx/phase-1b2-transition-continuity`  
 **Base / merge-base / production baseline / rollback:** `0a0299408b5e531f1971d97c6cfe9bb0b95f721d` (`origin/main`, WX 1B.1 production freeze)
 

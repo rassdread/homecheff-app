@@ -2764,8 +2764,8 @@
   },
   "binding": {
     "implementationCommit": "fe9975cc70a5325b7ec0d2587ef9aee281cbc443",
-    "evidenceCommit": "41a4722b83a6a8ab7db6c0f7426594dfa49ce00b",
-    "evidenceCommitNote": "Hash is the git commit that contains this evidence pack (Commit B). Not self-referential inside the implementation commit.",
+    "evidenceCommit": "57e0600fc372d93780e2068e4038244d924d03e9",
+    "evidenceCommitNote": "Primary evidence-wrapper commit. Tip may include stamp correction only.",
     "originalReviewedCommit": "96c9918454b843076b85587fd3e349d6cf9a0300",
     "branch": "wx/phase-1b2-transition-continuity",
     "baseMain": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
