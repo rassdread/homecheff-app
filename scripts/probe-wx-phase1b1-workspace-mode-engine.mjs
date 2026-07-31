@@ -2,7 +2,8 @@
 /**
  * WX Phase 1B.1 — Workspace Mode Engine browser proof (Mode resolution only).
  *
- * Does NOT validate capability activation or layout changes.
+ * Expectations are a static, reviewable viewport fixture matrix.
+ * This probe does NOT mirror resolveWorkspaceMode threshold logic.
  *
  *   HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=on npx next start -H 127.0.0.1 -p 3083
  *   node scripts/probe-wx-phase1b1-workspace-mode-engine.mjs --base-url=http://127.0.0.1:3083
@@ -11,40 +12,155 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { join } from "node:path";
+
 const require = createRequire(import.meta.url);
 
-/** Mirror of resolveWorkspaceMode for expected Mode (kept in sync with engine bands). */
-function expectMode(widthPx, heightPx) {
-  const w = Math.max(0, Math.floor(widthPx));
-  const h = Math.max(0, Math.floor(heightPx));
-  const posture = w > h ? "landscape" : "portrait";
-  const compactMaxExclusive = 720;
-  const comfortMaxExclusive = 1024;
-  const expandedMaxExclusive = 1440;
-  const landscapePanelMinWidthPx = 640;
-  const shortHeightMaxExclusive = 480;
-
-  let mode;
-  let carve = false;
-  if (w >= expandedMaxExclusive) mode = "professional-workspace";
-  else if (w >= comfortMaxExclusive) mode = "full-workspace";
-  else if (w >= compactMaxExclusive) mode = "hybrid-workspace";
-  else if (posture === "landscape" && w >= landscapePanelMinWidthPx) {
-    mode = "compact-workspace";
-    carve = true;
-  } else mode = "browse";
-
-  let demoted = false;
-  if (
-    h < shortHeightMaxExclusive &&
-    (mode === "professional-workspace" || mode === "full-workspace")
-  ) {
-    mode =
-      mode === "professional-workspace" ? "full-workspace" : "hybrid-workspace";
-    demoted = true;
-  }
-  return { mode, posture, carve, demoted };
-}
+/**
+ * Static browser expectation matrix (AUTHORIZED_PROBE_REMEDIATION).
+ *
+ * `mode` / `posture` / carve / demote are independently authored fixtures for
+ * each viewport id under the current homepage chrome.
+ *
+ * `measuredWidth` bounds assert AvailableSpace honesty: Mode follows measured
+ * Workspace width ranges, not marketing viewport labels alone.
+ */
+const VIEWPORT_EXPECTATIONS = [
+  {
+    id: "w320",
+    width: 320,
+    height: 568,
+    mode: "browse",
+    posture: "portrait",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 300,
+    measuredWidthMax: 320,
+  },
+  {
+    id: "w360",
+    width: 360,
+    height: 740,
+    mode: "browse",
+    posture: "portrait",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 340,
+    measuredWidthMax: 360,
+  },
+  {
+    id: "w390",
+    width: 390,
+    height: 844,
+    mode: "browse",
+    posture: "portrait",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 370,
+    measuredWidthMax: 390,
+  },
+  {
+    id: "w430",
+    width: 430,
+    height: 932,
+    mode: "browse",
+    posture: "portrait",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 410,
+    measuredWidthMax: 430,
+  },
+  {
+    id: "phone-landscape",
+    width: 844,
+    height: 390,
+    mode: "hybrid-workspace",
+    posture: "landscape",
+    carve: false,
+    demoted: false,
+    // Shell chrome reduces usable width; still Hybrid (≥720 measured).
+    measuredWidthMin: 720,
+    measuredWidthMax: 844,
+  },
+  {
+    id: "w768",
+    width: 768,
+    height: 1024,
+    mode: "hybrid-workspace",
+    posture: "portrait",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 720,
+    measuredWidthMax: 768,
+  },
+  {
+    id: "w820",
+    width: 820,
+    height: 1180,
+    mode: "hybrid-workspace",
+    posture: "portrait",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 720,
+    measuredWidthMax: 820,
+  },
+  {
+    id: "w1024",
+    width: 1024,
+    height: 768,
+    // Nominal 1024 viewport often measures <1024 → Hybrid (AvailableSpace honesty).
+    mode: "hybrid-workspace",
+    posture: "landscape",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 720,
+    measuredWidthMax: 1023,
+  },
+  {
+    id: "w1280",
+    width: 1280,
+    height: 800,
+    mode: "full-workspace",
+    posture: "landscape",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 1024,
+    measuredWidthMax: 1280,
+  },
+  {
+    id: "w1440",
+    width: 1440,
+    height: 900,
+    // Nominal 1440 often measures <1440 → Full (not Professional by viewport label).
+    mode: "full-workspace",
+    posture: "landscape",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 1024,
+    measuredWidthMax: 1439,
+  },
+  {
+    id: "w1920",
+    width: 1920,
+    height: 1080,
+    mode: "professional-workspace",
+    posture: "landscape",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 1440,
+    measuredWidthMax: 1920,
+  },
+  {
+    id: "w2560",
+    width: 2560,
+    height: 1440,
+    mode: "professional-workspace",
+    posture: "landscape",
+    carve: false,
+    demoted: false,
+    measuredWidthMin: 1440,
+    measuredWidthMax: 2560,
+  },
+];
 
 function parseArgs(argv) {
   let baseUrl = "http://127.0.0.1:3083";
@@ -90,21 +206,6 @@ function resolveChromium() {
   throw new Error("Chrome/Chromium not found");
 }
 
-const VIEWPORTS = [
-  { id: "w320", width: 320, height: 568 },
-  { id: "w360", width: 360, height: 740 },
-  { id: "w390", width: 390, height: 844 },
-  { id: "w430", width: 430, height: 932 },
-  { id: "phone-landscape", width: 844, height: 390 },
-  { id: "w768", width: 768, height: 1024 },
-  { id: "w820", width: 820, height: 1180 },
-  { id: "w1024", width: 1024, height: 768 },
-  { id: "w1280", width: 1280, height: 800 },
-  { id: "w1440", width: 1440, height: 900 },
-  { id: "w1920", width: 1920, height: 1080 },
-  { id: "w2560", width: 2560, height: 1440 },
-];
-
 async function dismissPrivacy(page) {
   try {
     await page.evaluate(() => {
@@ -122,7 +223,7 @@ async function dismissPrivacy(page) {
   }
 }
 
-async function probeViewport(browser, baseUrl, protectionBypass, vp) {
+async function probeViewport(browser, baseUrl, protectionBypass, fixture) {
   const page = await browser.newPage();
   const consoleErrors = [];
   const consoleWarnings = [];
@@ -151,7 +252,7 @@ async function probeViewport(browser, baseUrl, protectionBypass, vp) {
     }
   });
 
-  await page.setViewport({ width: vp.width, height: vp.height });
+  await page.setViewport({ width: fixture.width, height: fixture.height });
   const url = protectionBypass
     ? (() => {
         const u = new URL(baseUrl + "/");
@@ -172,12 +273,7 @@ async function probeViewport(browser, baseUrl, protectionBypass, vp) {
     if (!root) {
       return { found: false };
     }
-    const geofeedHosts = document.querySelectorAll(
-      "[data-geofeed-owner], [data-feed-runtime], [data-hc-geofeed]",
-    ).length;
-    const feedRoots = document.querySelectorAll(
-      "[data-testid='geofeed'], [data-geofeed], .geofeed-root",
-    ).length;
+    const primary = document.querySelector("[data-aw-stable-feed-slot='1']");
     return {
       found: true,
       phase: root.getAttribute("data-wx-phase"),
@@ -196,32 +292,47 @@ async function probeViewport(browser, baseUrl, protectionBypass, vp) {
       ),
       workspaceCount: document.querySelectorAll("[data-aw-feed-workspace]")
         .length,
-      geofeedHostHints: geofeedHosts,
-      feedRootHints: feedRoots,
+      stableFeedSlot: Boolean(primary),
     };
   });
 
   await page.close();
 
-  const expected = expectMode(
-    snap.found ? snap.clientWidth : vp.width,
-    snap.found ? snap.clientHeight : vp.height,
-  );
+  const expected = {
+    mode: fixture.mode,
+    posture: fixture.posture,
+    carve: fixture.carve,
+    demoted: fixture.demoted,
+    measuredWidthMin: fixture.measuredWidthMin,
+    measuredWidthMax: fixture.measuredWidthMax,
+  };
+
+  const measuredInRange =
+    snap.found &&
+    snap.clientWidth >= fixture.measuredWidthMin &&
+    snap.clientWidth <= fixture.measuredWidthMax;
+
+  const tokenConsistent =
+    !snap.found ||
+    (typeof snap.modeToken === "string" &&
+      snap.modeToken.includes(`:${fixture.mode}:`) &&
+      snap.modeToken.includes(`:${fixture.posture}:`));
 
   const checks = {
     workspaceFound: snap.found === true,
     phase1b1: snap.phase === "1b.1",
     singleWorkspace: snap.workspaceCount === 1,
-    modeMatches:
-      snap.found &&
-      snap.mode === expected.mode &&
-      snap.posture === expected.posture,
+    stableFeedSlot: snap.stableFeedSlot === true,
+    modeMatches: snap.found && snap.mode === expected.mode,
+    postureMatches: snap.found && snap.posture === expected.posture,
     carveMatches:
       !snap.found ||
       snap.landscapeCarveOut === (expected.carve ? "1" : "0"),
     demotedMatches:
       !snap.found ||
       snap.heightDemoted === (expected.demoted ? "1" : "0"),
+    measuredWidthInFixtureBand: measuredInRange,
+    tokenConsistent,
     noHydration: hydrationWarnings.length === 0,
     noConsoleErrors: consoleErrors.length === 0,
   };
@@ -229,8 +340,8 @@ async function probeViewport(browser, baseUrl, protectionBypass, vp) {
   const pass = Object.values(checks).every(Boolean);
 
   return {
-    id: vp.id,
-    viewport: vp,
+    id: fixture.id,
+    viewport: { id: fixture.id, width: fixture.width, height: fixture.height },
     expected,
     snap,
     checks,
@@ -259,13 +370,15 @@ async function main() {
   });
 
   const results = [];
-  for (const vp of VIEWPORTS) {
-    process.stdout.write(`  probe ${vp.id} (${vp.width}x${vp.height})… `);
+  for (const fixture of VIEWPORT_EXPECTATIONS) {
+    process.stdout.write(
+      `  probe ${fixture.id} (${fixture.width}x${fixture.height})… `,
+    );
     const r = await probeViewport(
       browser,
       args.baseUrl,
       args.protectionBypass,
-      vp,
+      fixture,
     );
     results.push(r);
     console.log(r.pass ? "PASS" : "FAIL");
@@ -278,7 +391,7 @@ async function main() {
         "got:",
         r.snap?.mode,
         r.snap?.posture,
-        "w:",
+        "measuredW:",
         r.snap?.clientWidth,
       );
     }
@@ -294,6 +407,7 @@ async function main() {
     mode: args.mode,
     baseUrl: args.baseUrl,
     timestamp: new Date().toISOString(),
+    oracle: "static-viewport-fixture-matrix",
     scope:
       "Mode resolution diagnostics only — no capability activation validation",
     results,
