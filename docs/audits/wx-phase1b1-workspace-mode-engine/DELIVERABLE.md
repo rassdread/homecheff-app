@@ -1,23 +1,27 @@
 # WX Phase 1B.1 — Workspace Mode Engine
 
-**Status:** COMPLETE — awaiting Architecture / Workspace / Browser / Performance / Regression / Production approval (**STOP GATE**)  
-**Verdict:** `WX_PHASE_1B1_PASS`  
-**Scope:** Deterministic Workspace Mode + Posture resolution only. No capability activation. No layout/presentation changes. No GeoFeed / Host ownership changes.
+**Status:** `READY_FOR_FORMAL_RE_REVIEW`  
+**Implementation commit (Commit A):** `8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7`  
+**Evidence wrapper:** this document / freeze-pack / browser-proof (Commit B — not the implementation commit)  
+**Production rollback target:** `4dd1d3ee52ae56782043c049e0d97e4cea05866e`  
+**Branch:** `wx/phase-1b1-workspace-mode-engine`  
+**Remote implementation hash:** `8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7`
+
+**Not claimed:** `PRODUCTION_FROZEN` · `PRODUCTION_SUCCESS` · `READY_FOR_WX_PHASE_1B2`
 
 ---
 
 ## 1. Executive Summary
 
-WX Phase 1B.1 introduces a single authoritative **Workspace Mode Engine**: a pure, side-effect-free resolver that maps AvailableSpace (`usableWidthPx` × `usableHeightPx`) to WMS Modes and Posture.
+WX Phase 1B.1 establishes a pure Workspace Mode Engine and diagnostics. Formal review required remediation of boundary tests, probe oracle independence, and evidence binding. Remediation Commit A closes those blockers without changing production Mode behaviour.
 
 | Area | Outcome |
 | --- | --- |
-| Mode Engine | `resolveWorkspaceMode` — Browse · Compact · Hybrid · Full · Professional + portrait/landscape |
-| Authority | Single resolver; diagnostics on `[data-aw-feed-workspace]` (`data-wx-mode`, `data-wx-posture`, …) |
-| Capabilities | **None** activated |
-| Presentation | **Unchanged** — Mode does not drive grid/rails/CSS in 1B.1 |
-| Ownership | GeoFeed + Controlled Host unchanged |
-| Proof | Unit vectors pass · browser matrix 320–2560 + phone landscape → `WX_PHASE_1B1_PASS` |
+| Mode Engine | Unchanged pure `resolveWorkspaceMode` |
+| Tests | 27 independent vectors · 219 assertions · below/at/above all thresholds |
+| Probe | Static viewport fixture matrix (no mirrored resolver) |
+| Browser proof | 12/12 `WX_PHASE_1B1_PASS` against exact Commit A |
+| Ownership / presentation | Unchanged |
 
 ---
 
@@ -27,212 +31,90 @@ WX Phase 1B.1 introduces a single authoritative **Workspace Mode Engine**: a pur
 | --- | --- |
 | Module | `lib/adaptive-workspace-react/resolve-workspace-mode.ts` |
 | API | `resolveWorkspaceMode(input) → WorkspaceModePlan` |
-| Inputs | AvailableSpace dims (+ optional forward-compat interaction/density that **must not** alter Mode in 1B.1) |
-| Outputs | `mode`, `posture`, `workingAreaPx`, `heightDemoted`, `landscapeCarveOut`, `profileAffinity`, `stabilityToken` |
-| Bands | Aligned with `FEED_WORKSPACE_LAYOUT_BANDS` (720 / 1024 / 1440 / landscape carve-out ≥640) |
-| Wiring | `FeedWorkspaceVisibleLayout` calls the engine for diagnostics only; layout still from `resolveFeedWorkspaceVisibleLayout` |
+| Layout owner | Still `resolveFeedWorkspaceVisibleLayout` |
+| Mode owner | `resolveWorkspaceMode` only |
+| Diagnostics | `data-wx-mode` / `data-wx-posture` / token / carve / demote / `data-wx-phase=1b.1` |
+
+**Accepted bounded warning:** `FEED_WORKSPACE_LAYOUT_BANDS` and `WORKSPACE_MODE_BANDS` remain separate tables (layout/rails vs semantic Mode). Not consolidated in this phase.
 
 ---
 
-## 3. Architecture Decisions
-
-| ID | Decision | Rationale |
-| --- | --- | --- |
-| AD-1 | Pure function, no React, no DOM | Testable · UI-independent · WMS purity |
-| AD-2 | Consume AvailableSpace; never modify it | Engine is a reader, not a measurement owner |
-| AD-3 | Mode does not drive layout in 1B.1 | Avoids presentation / capability leakage; layout remains existing visible-layout plan |
-| AD-4 | Reuse numeric bands from feed visible-layout | Deterministic continuity with frozen 1A.x shell; WMS product language (Mode names) is the public vocabulary |
-| AD-5 | Short-height demotes Full/Professional one step | WMS §4.4 honesty without inventing device forks |
-| AD-6 | Interaction/density recorded but ignored for Mode | Forward-compatible API without 1B.1 behaviour change |
-| AD-7 | Diagnostics via `data-wx-*` only | Browser-provable without CSS or chrome redesign |
-
----
-
-## 4. Workspace Mode Resolution Strategy
-
-```
-width ≥ 1440 → professional-workspace
-width ≥ 1024 → full-workspace
-width ≥ 720  → hybrid-workspace
-else if landscape AND width ≥ 640 → compact-workspace (carve-out)
-else → browse
-
-posture = width > height ? landscape : portrait
-
-if height < 480 AND mode ∈ {professional, full}:
-  demote one step (Professional→Full, Full→Hybrid)
-```
-
-Same floors of AvailableSpace always yield the same Mode + Posture. No UA, OS, device names, randomness, or async switching.
-
----
-
-## 5. Files Changed
-
-| File | Change |
-| --- | --- |
-| `lib/adaptive-workspace-react/resolve-workspace-mode.ts` | **New** Mode Engine |
-| `lib/adaptive-workspace-react/index.ts` | Re-exports |
-| `lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts` | **New** unit/vector tests |
-| `components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx` | Diagnostics attributes + `data-wx-phase=1b.1` only |
-| `package.json` | `test:workspace-mode-engine`; fold into `test:adaptive-workspace-react` |
-| `scripts/probe-wx-phase1b1-workspace-mode-engine.mjs` | Browser Mode-resolution proof |
-| `docs/audits/wx-phase1b1-workspace-mode-engine/*` | Deliverable + proof |
-
-**Not changed:** GeoFeed, Controlled Host, AvailableSpace algorithms, rails/grid logic, navigation, CSS presentation (no layout CSS edits).
-
----
-
-## 6. Architecture Compliance Matrix (AWA)
-
-| Principle | 1B.1 status |
-| --- | --- |
-| AvailableSpace primary | ✅ Mode from usable width/height only |
-| Deterministic resolution | ✅ Pure function + stability token |
-| No brand/model/UA exceptions | ✅ Source scan + API has no UA fields |
-| Single ownership (GeoFeed / Host) | ✅ Untouched |
-| Stable mount / no remount on Mode | ✅ Mode is diagnostic; layout plan owner unchanged |
-| Progressive disclosure of behaviour | ✅ Mode identity only; capabilities deferred |
-
----
-
-## 7. WDL Compliance Matrix
-
-| Principle | 1B.1 status |
-| --- | --- |
-| P10 Responsive modes via WMS | ✅ Mode names replace device vocabulary for identity |
-| P11 AvailableSpace | ✅ Consumed; not mutated |
-| Presentation continuity (1A.x) | ✅ No chrome/layout redesign |
-| Orientation as Workspace chrome | ✅ Unchanged; posture labeled only |
-
----
-
-## 8. WMS Compliance Matrix
-
-| Requirement | 1B.1 status |
-| --- | --- |
-| Five Modes | ✅ browse · compact-workspace · hybrid-workspace · full-workspace · professional-workspace |
-| Posture orthogonal | ✅ portrait \| landscape |
-| AvailableSpace-only entry | ✅ |
-| Landscape Compact carve-out story | ✅ width &lt;720 · landscape · ≥640 |
-| Mid landscape → Hybrid band | ✅ e.g. 844×390 → hybrid-workspace |
-| Short-height honesty | ✅ demote Full/Professional |
-| Deterministic same-input → same Mode | ✅ unit + browser |
-| Capabilities not Mode Engine work | ✅ none activated |
-
----
-
-## 9. Capability Model Compliance Matrix
-
-| Capability / surface | 1B.1 |
-| --- | --- |
-| Assist / dual rails / inspector / selection | ❌ not activated |
-| Context Memory / AI / Collaboration / Extensions (RES) | ❌ locked; not touched |
-| Progressive unlock framework | ❌ deferred to 1B.3+ |
-| Engine may record affinity flags only | ✅ `landscapeCarveOut`, `profileAffinity` diagnostic |
-
----
-
-## 10. WQS Compliance Matrix
-
-| Gate | Evidence |
-| --- | --- |
-| Architecture citation | This deliverable + WMS/WDL/AWA matrices |
-| AvailableSpace-first | Engine + probe compare measured `clientWidth`/`height` |
-| No device forks | Unit source scan |
-| Local unit proof | `npm run test:workspace-mode-engine` — pass |
-| Browser proof | `browser-proof.json` — `WX_PHASE_1B1_PASS` |
-| No ownership regression | Host/GeoFeed files untouched; single workspace root asserted |
-| No presentation regression | Layout still from prior resolver; no CSS capability chrome |
-| STOP before next phase | **Mandatory** — no 1B.2 until approval |
-
----
-
-## 11. Browser Proof
+## 3. Remediation Evidence (Commit A → Commit B)
 
 | Field | Value |
 | --- | --- |
-| Script | `scripts/probe-wx-phase1b1-workspace-mode-engine.mjs` |
-| Server | `HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=on` · `http://127.0.0.1:3083` |
-| Artifact | `docs/audits/wx-phase1b1-workspace-mode-engine/browser-proof.json` |
-| Verdict | **`WX_PHASE_1B1_PASS`** |
-| Assertions | `data-wx-phase=1b.1` · Mode/Posture match engine · single workspace · no hydration warnings · no console errors |
+| Implementation commit | `8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7` |
+| Implementation parent | `ae47cd332949db6c94d7c4cfac08a6865bfa492a` |
+| Production base / rollback | `4dd1d3ee52ae56782043c049e0d97e4cea05866e` |
+| Test command | `npm run test:workspace-mode-engine` |
+| Check groups | 7 |
+| Vectors | 27 |
+| Assertions | 219 |
+| Thresholds | 720 · 1024 · 1440 · 640 · 480 (below/at/above) |
+| Browser | Independent worktree `/Users/sergioarrias/homecheff-wx-1b1-remediation-a` · clean at checkout · port 3085 |
+| Browser verdict | `WX_PHASE_1B1_PASS` · oracle `static-viewport-fixture-matrix` |
+| Proof timestamp | see `browser-proof.json` |
+| Merge | **not performed** |
+| Production deploy | **not performed** |
+| Phase 1B.2 | **not performed** |
 
-Observed Modes (**measured AvailableSpace** = workspace `clientWidth`, not marketing viewport):
+---
 
-| Viewport | Measured width ≈ | Mode | Posture |
+## 4. Rollback Plan (do not execute)
+
+| Item | Detail |
+| --- | --- |
+| Exact rollback target | `4dd1d3ee52ae56782043c049e0d97e4cea05866e` |
+| Commits to exclude/revert | `ae47cd33` (engine) · `8cbce381` (test/probe remediation) · subsequent evidence Commit B |
+| Database migration | **None** |
+| Data migration | **None** |
+| Permanent runtime ownership transfer | **None** |
+| Effect | Restores pre-1B.1 production baseline (`data-wx-phase=1a.1`, no Mode Engine diagnostics) |
+| Verification after rollback | Homepage loads · feed mounts once · no `data-wx-mode` · no console/hydration errors |
+| During rollback | **Do not** begin WX Phase 1B.2 |
+
+---
+
+## 5. Architecture Reference Lineage (read-only)
+
+These were **not** modified by remediation. Formal review noted they were untracked WIP:
+
+| Document | Path | SHA-256 (review/remediation time) | Tracked in Commit A? |
 | --- | --- | --- | --- |
-| 320–430 portrait | = viewport | browse | portrait |
-| 844×390 landscape | ~826 | hybrid-workspace | landscape |
-| 768 / 820 portrait | ~750 / ~802 | hybrid-workspace | portrait |
-| 1024 landscape | ~998 (&lt;1024 band) | hybrid-workspace | landscape |
-| 1280 | ~1254 | full-workspace | landscape |
-| 1440 | ~1414 (&lt;1440 band) | full-workspace | landscape |
-| 1920 / 2560 | ~1894 / ~2534 | professional-workspace | landscape |
+| WMS v1.0 | `/Users/sergioarrias/Homecheff-app git/docs/architecture/homecheff-workspace-modes-specification-v1.md` | `4ee0e0bbe9f716054ca7f62ec3c5575725da527797056a817b544ba0c3e06906` | No |
+| WMS v1.1 | `…/homecheff-workspace-modes-specification-v1.1.md` | `c5de45efae8afd519e981c688616ad4c25eaf3f3006044f68b8a7771a2adc145` | No |
+| WQS v1 | `…/homecheff-workspace-quality-standard-v1.md` | `621d893d6fd6a24934a58e6309b71d4d9dba2a70cb6f4944e063b1ccad9f5880` | No |
+| 1B Master Spec | `…/homecheff-wx-phase1b-master-specification.md` | `3e3520d9ff9ddffed4687346e9cd667b5eb7b946b36f1e4bddcc22d41dc64f00` | No |
+| WDL v1 | tracked in repo at Commit A | (in tree) | Yes |
+| AWA platform contract | tracked in repo at Commit A | (in tree) | Yes |
 
-Shell chrome slightly reduces usable width vs CSS viewport; Mode follows AvailableSpace honesty (WMS), not device viewport labels.
-
----
-
-## 12. Responsive Validation
-
-Portrait and landscape postures resolve correctly across the required matrix. Validation is **Mode resolution only** — not capability activation, landscape work chrome, or density systems (later phases).
+**Bounded documentation-lineage warning:** WMS/WQS/Master Spec remain untracked local references until a separate architecture commit freezes them.
 
 ---
 
-## 13. Regression Report
+## 6. Files (implementation vs evidence)
 
-| Guard | Result |
+### Commit A (implementation remediation — tests/probe only)
+
+| File | Class |
 | --- | --- |
-| GeoFeed ownership | Unchanged (no feed ownership edits) |
-| Controlled Host | Unchanged |
-| Single renderer / writer / mount | Single `[data-aw-feed-workspace]`; Mode does not remount primary |
-| Layout plan owner | Still `resolveFeedWorkspaceVisibleLayout` |
-| Feed reload on Mode | Not introduced (Mode is pure + attribute emit) |
-| Hydration / console | Clean on all probe viewports |
-| 1A / 1A.1 / 1A.2 presentation | No intentional chrome/CSS presentation edits in 1B.1 |
+| `lib/adaptive-workspace-react/tests/fixtures/workspace-mode-engine-vectors.ts` | AUTHORIZED_TEST_REMEDIATION |
+| `lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts` | AUTHORIZED_TEST_REMEDIATION |
+| `scripts/probe-wx-phase1b1-workspace-mode-engine.mjs` | AUTHORIZED_PROBE_REMEDIATION |
 
----
+### Commit B (evidence only — this pack)
 
-## 14. Performance Impact Assessment
-
-| Factor | Assessment |
+| File | Class |
 | --- | --- |
-| Resolver cost | O(1) arithmetic — negligible vs feed/i18n network |
-| Extra network | None |
-| Extra observers | None (reuses existing measurement) |
-| Remount / reload risk | None in this phase |
+| `docs/audits/wx-phase1b1-workspace-mode-engine/DELIVERABLE.md` | AUTHORIZED_EVIDENCE_REMEDIATION |
+| `docs/audits/wx-phase1b1-workspace-mode-engine/browser-proof.json` | AUTHORIZED_EVIDENCE_REMEDIATION |
+| `docs/audits/wx-phase1b1-workspace-mode-engine/freeze-pack.json` | AUTHORIZED_EVIDENCE_REMEDIATION |
+| `docs/audits/wx-phase1b1-workspace-mode-engine/REMEDIATION_MANIFEST.md` | AUTHORIZED_EVIDENCE_REMEDIATION |
 
 ---
 
-## 15. Production Readiness Verdict
+## 7. STOP GATE
 
-| Criterion | Status |
-| --- | --- |
-| Single authoritative Mode Engine | ✅ |
-| Deterministic resolution | ✅ |
-| No capability activation | ✅ |
-| No presentation / ownership / feed behaviour change | ✅ |
-| Local unit + browser proof | ✅ `WX_PHASE_1B1_PASS` |
-| Production deploy | **Not required for freeze of engine identity**; deploy only after formal Production Approval if desired for live diagnostics |
+**STOP.** Do not merge. Do not deploy. Do not begin WX Phase 1B.2. Do not declare production freeze.
 
-**Phase verdict:** Ready for Architecture Review · Workspace Review · Browser Proof Review · Performance Review · Regression Review · Production Approval.
-
----
-
-## MANDATORY STOP GATE
-
-**STOP.**
-
-Do **not** begin **WX Phase 1B.2 — Transition Continuity**.
-
-Wait for:
-
-1. Architecture Review  
-2. Workspace Review  
-3. Browser Proof  
-4. Performance Review  
-5. Regression Review  
-6. Production Approval  
-
-Only after formal approval and freeze may WX Phase 1B.2 be authored.
+Wait for independent formal re-review of Commit A (`8cbce381`) and Commit B (evidence wrapper).

@@ -2,9 +2,10 @@
   "phase": "1B.1",
   "title": "Workspace Mode Engine",
   "verdict": "WX_PHASE_1B1_PASS",
-  "mode": "production",
-  "baseUrl": "http://127.0.0.1:3083",
-  "timestamp": "2026-07-31T13:01:15.501Z",
+  "mode": "remediation-commit-a",
+  "baseUrl": "http://127.0.0.1:3085",
+  "timestamp": "2026-07-31T13:43:02.337Z",
+  "oracle": "static-viewport-fixture-matrix",
   "scope": "Mode resolution diagnostics only — no capability activation validation",
   "results": [
     {
@@ -18,7 +19,9 @@
         "mode": "browse",
         "posture": "portrait",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 300,
+        "measuredWidthMax": 320
       },
       "snap": {
         "found": true,
@@ -35,16 +38,19 @@
         "clientWidth": 320,
         "clientHeight": 568,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -64,7 +70,9 @@
         "mode": "browse",
         "posture": "portrait",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 340,
+        "measuredWidthMax": 360
       },
       "snap": {
         "found": true,
@@ -81,16 +89,19 @@
         "clientWidth": 360,
         "clientHeight": 740,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -110,7 +121,9 @@
         "mode": "browse",
         "posture": "portrait",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 370,
+        "measuredWidthMax": 390
       },
       "snap": {
         "found": true,
@@ -127,16 +140,19 @@
         "clientWidth": 390,
         "clientHeight": 844,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -156,7 +172,9 @@
         "mode": "browse",
         "posture": "portrait",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 410,
+        "measuredWidthMax": 430
       },
       "snap": {
         "found": true,
@@ -173,16 +191,19 @@
         "clientWidth": 430,
         "clientHeight": 932,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -202,7 +223,9 @@
         "mode": "hybrid-workspace",
         "posture": "landscape",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 720,
+        "measuredWidthMax": 844
       },
       "snap": {
         "found": true,
@@ -219,16 +242,19 @@
         "clientWidth": 826,
         "clientHeight": 390,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -248,7 +274,9 @@
         "mode": "hybrid-workspace",
         "posture": "portrait",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 720,
+        "measuredWidthMax": 768
       },
       "snap": {
         "found": true,
@@ -265,16 +293,19 @@
         "clientWidth": 750,
         "clientHeight": 1024,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -294,7 +325,9 @@
         "mode": "hybrid-workspace",
         "posture": "portrait",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 720,
+        "measuredWidthMax": 820
       },
       "snap": {
         "found": true,
@@ -311,16 +344,19 @@
         "clientWidth": 802,
         "clientHeight": 1180,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -340,7 +376,9 @@
         "mode": "hybrid-workspace",
         "posture": "landscape",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 720,
+        "measuredWidthMax": 1023
       },
       "snap": {
         "found": true,
@@ -357,16 +395,19 @@
         "clientWidth": 998,
         "clientHeight": 768,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -386,7 +427,9 @@
         "mode": "full-workspace",
         "posture": "landscape",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 1024,
+        "measuredWidthMax": 1280
       },
       "snap": {
         "found": true,
@@ -403,16 +446,19 @@
         "clientWidth": 1254,
         "clientHeight": 800,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -432,7 +478,9 @@
         "mode": "full-workspace",
         "posture": "landscape",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 1024,
+        "measuredWidthMax": 1439
       },
       "snap": {
         "found": true,
@@ -449,16 +497,19 @@
         "clientWidth": 1414,
         "clientHeight": 900,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -478,7 +529,9 @@
         "mode": "professional-workspace",
         "posture": "landscape",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 1440,
+        "measuredWidthMax": 1920
       },
       "snap": {
         "found": true,
@@ -495,16 +548,19 @@
         "clientWidth": 1894,
         "clientHeight": 1080,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -524,7 +580,9 @@
         "mode": "professional-workspace",
         "posture": "landscape",
         "carve": false,
-        "demoted": false
+        "demoted": false,
+        "measuredWidthMin": 1440,
+        "measuredWidthMax": 2560
       },
       "snap": {
         "found": true,
@@ -541,16 +599,19 @@
         "clientWidth": 2534,
         "clientHeight": 1440,
         "workspaceCount": 1,
-        "geofeedHostHints": 0,
-        "feedRootHints": 0
+        "stableFeedSlot": true
       },
       "checks": {
         "workspaceFound": true,
         "phase1b1": true,
         "singleWorkspace": true,
+        "stableFeedSlot": true,
         "modeMatches": true,
+        "postureMatches": true,
         "carveMatches": true,
         "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
         "noHydration": true,
         "noConsoleErrors": true
       },
@@ -626,5 +687,25 @@
         "width": 2534
       }
     }
+  },
+  "evidenceBinding": {
+    "implementationCommit": "8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7",
+    "implementationParent": "ae47cd332949db6c94d7c4cfac08a6865bfa492a",
+    "productionBase": "4dd1d3ee52ae56782043c049e0d97e4cea05866e",
+    "rollbackTarget": "4dd1d3ee52ae56782043c049e0d97e4cea05866e",
+    "branch": "wx/phase-1b1-workspace-mode-engine",
+    "remoteImplementationHash": "8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7",
+    "proofWorktree": "/Users/sergioarrias/homecheff-wx-1b1-remediation-a",
+    "proofWorktreeCleanAtCheckout": true,
+    "testCommand": "npm run test:workspace-mode-engine",
+    "testCheckGroups": 7,
+    "testVectors": 27,
+    "testAssertions": 219,
+    "browserMatrix": "12/12 PASS",
+    "oracle": "static-viewport-fixture-matrix",
+    "mergePerformed": false,
+    "productionDeploymentPerformed": false,
+    "phase1b2WorkPerformed": false,
+    "status": "READY_FOR_FORMAL_RE_REVIEW"
   }
 }

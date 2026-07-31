@@ -1,15 +1,25 @@
 {
   "phase": "WX-1B.1",
   "title": "Workspace Mode Engine",
+  "status": "READY_FOR_FORMAL_RE_REVIEW",
   "verdict": "WX_PHASE_1B1_PASS",
-  "status": "AWAITING_FORMAL_APPROVAL_AND_FREEZE",
-  "timestamp": "2026-07-31T13:01:15.501Z",
+  "artifactRole": "evidence-wrapper",
+  "implementationCommit": "8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7",
+  "implementationParent": "ae47cd332949db6c94d7c4cfac08a6865bfa492a",
+  "implementationOriginal": "ae47cd332949db6c94d7c4cfac08a6865bfa492a",
+  "productionBase": "4dd1d3ee52ae56782043c049e0d97e4cea05866e",
+  "rollbackTarget": "4dd1d3ee52ae56782043c049e0d97e4cea05866e",
+  "branch": "wx/phase-1b1-workspace-mode-engine",
+  "remoteImplementationHash": "8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7",
+  "timestamp": "2026-07-31T13:43:52.158Z",
+  "proofTimestamp": "2026-07-31T13:43:02.337Z",
   "scope": {
     "includes": [
       "pure resolveWorkspaceMode",
       "data-wx-mode / data-wx-posture diagnostics",
-      "unit vectors",
-      "browser Mode resolution proof"
+      "independent boundary fixtures",
+      "static browser expectation matrix",
+      "unit vectors + browser Mode resolution proof"
     ],
     "excludes": [
       "capability activation",
@@ -18,25 +28,64 @@
       "transition continuity harness (1B.2)",
       "GeoFeed ownership",
       "Controlled Host",
-      "CSS presentation redesign"
+      "CSS presentation redesign",
+      "production freeze",
+      "merge to main",
+      "production deployment"
     ]
+  },
+  "tests": {
+    "command": "npm run test:workspace-mode-engine",
+    "checkGroups": 7,
+    "vectors": 27,
+    "assertions": 219,
+    "thresholdsCovered": [
+      720,
+      1024,
+      1440,
+      640,
+      480
+    ]
+  },
+  "browserProof": {
+    "command": "node scripts/probe-wx-phase1b1-workspace-mode-engine.mjs",
+    "oracle": "static-viewport-fixture-matrix",
+    "result": "WX_PHASE_1B1_PASS",
+    "matrix": "12/12"
+  },
+  "rollback": {
+    "target": "4dd1d3ee52ae56782043c049e0d97e4cea05866e",
+    "excludeOrRevertCommits": [
+      "ae47cd332949db6c94d7c4cfac08a6865bfa492a",
+      "8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7"
+    ],
+    "databaseMigration": false,
+    "dataMigration": false,
+    "runtimeOwnershipTransfer": false,
+    "restoresPre1b1Baseline": true,
+    "prohibitPhase1b2DuringRollback": true
+  },
+  "declarations": {
+    "mergePerformed": false,
+    "productionDeploymentPerformed": false,
+    "phase1b2WorkPerformed": false,
+    "productionFrozen": false
   },
   "artifacts": {
     "engine": "lib/adaptive-workspace-react/resolve-workspace-mode.ts",
     "tests": "lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts",
+    "fixtures": "lib/adaptive-workspace-react/tests/fixtures/workspace-mode-engine-vectors.ts",
     "probe": "scripts/probe-wx-phase1b1-workspace-mode-engine.mjs",
     "browserProof": "docs/audits/wx-phase1b1-workspace-mode-engine/browser-proof.json",
-    "deliverable": "docs/audits/wx-phase1b1-workspace-mode-engine/DELIVERABLE.md"
+    "deliverable": "docs/audits/wx-phase1b1-workspace-mode-engine/DELIVERABLE.md",
+    "remediationManifest": "docs/audits/wx-phase1b1-workspace-mode-engine/REMEDIATION_MANIFEST.md"
   },
+  "acceptedWarnings": [
+    "Dual band tables: FEED_WORKSPACE_LAYOUT_BANDS (layout/rails) vs WORKSPACE_MODE_BANDS (semantic Mode) remain separate owners for 1B.1",
+    "WMS/WQS/1B Master Spec remain untracked local WIP references — not modified in this remediation"
+  ],
   "stopGate": {
     "nextPhaseBlocked": "WX-1B.2",
-    "requiredApprovals": [
-      "Architecture Review",
-      "Workspace Review",
-      "Browser Proof",
-      "Performance Review",
-      "Regression Review",
-      "Production Approval"
-    ]
+    "requiredNext": "independent formal re-review of Commit A + Commit B"
   }
 }
