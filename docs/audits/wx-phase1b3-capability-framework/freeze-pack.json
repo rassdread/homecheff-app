@@ -1,0 +1,24 @@
+{
+  "phase": "1b.3",
+  "title": "WX Phase 1B.3 Capability Activation Framework",
+  "status": "READY_FOR_FORMAL_REVIEW",
+  "browserVerdict": "WX_PHASE_1B3_BROWSER_PASS",
+  "contractId": "wx-capability-activation-v1",
+  "branch": "wx/phase-1b3-capability-framework",
+  "baseCommit": "a17cbbf6ff58d3010d3911a5917c7706c0bc6524",
+  "rollbackTarget": "a17cbbf6ff58d3010d3911a5917c7706c0bc6524",
+  "visualActivationAuthorized": false,
+  "mergeAuthorized": false,
+  "deployAuthorized": false,
+  "phase1b4Authorized": false,
+  "capabilityIds": 13,
+  "reservedIds": 5,
+  "testCommand": "npm run test:workspace-capability-framework",
+  "probeCommand": "node scripts/probe-wx-phase1b3-capability-framework.mjs --base-url=<local>",
+  "artifacts": [
+    "docs/audits/wx-phase1b3-capability-framework/DELIVERABLE.md",
+    "docs/audits/wx-phase1b3-capability-framework/browser-proof.json",
+    "docs/audits/wx-phase1b3-capability-framework/freeze-pack.json"
+  ],
+  "implementationCommit": "b0b3d78302695533767f948ba3167a4134d6f062"
+}
