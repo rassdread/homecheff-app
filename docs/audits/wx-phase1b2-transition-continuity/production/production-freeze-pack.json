@@ -1,0 +1,65 @@
+{
+  "phase": "WX-1B.2",
+  "title": "Transition Continuity — Production Freeze",
+  "verdict": "WX_PHASE_1B2_PRODUCTION_SUCCESS",
+  "status": "PRODUCTION_FROZEN",
+  "timestamp": "2026-07-31T16:13:46.652Z",
+  "branch": "wx/phase-1b2-transition-continuity",
+  "originalImplementationCommit": "96c9918454b843076b85587fd3e349d6cf9a0300",
+  "remediationImplementationCommit": "fe9975cc70a5325b7ec0d2587ef9aee281cbc443",
+  "guardRemediationCommit": "686f0ee1aaab3ebcbca20f9fa67edc88804f70a2",
+  "evidenceCommits": [
+    "57e0600fc372d93780e2068e4038244d924d03e9",
+    "464267423e7d3011c1b7638d44411fc930ba5a0f",
+    "80a5ad0316cc37fa91feb3db8998e15b825af063",
+    "bccd42f7c4170c17a4740e6dd8454827b2048398"
+  ],
+  "featureTip": "bccd42f7c4170c17a4740e6dd8454827b2048398",
+  "mergeCommit": "5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4",
+  "mergeParents": [
+    "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+    "bccd42f7c4170c17a4740e6dd8454827b2048398"
+  ],
+  "originMainAtFreezeRuntime": "5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4",
+  "deployment": {
+    "provider": "Vercel",
+    "id": "dpl_B7wxJFSfdYuTg3nBTRQzcDLH71Et",
+    "url": "https://homecheff-eihq5cwip-sergio-s-projects-f7b64ee1.vercel.app",
+    "aliases": [
+      "https://homecheff.eu",
+      "https://homecheff.nl",
+      "https://www.homecheff.eu",
+      "https://www.homecheff.nl"
+    ],
+    "startUtc": "2026-07-31T16:06:54Z",
+    "completionUtc": "2026-07-31T16:10:43Z",
+    "status": "READY"
+  },
+  "deployedHash": "5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4",
+  "runtimeObservedHash": "5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4",
+  "productionBrowserProof": {
+    "verdict": "WX_PHASE_1B2_PRODUCTION_BROWSER_PASS",
+    "steps": 38,
+    "oscillationsPerBoundary": 5,
+    "totalOscillationHalfSteps": 30,
+    "modeChanges": 33,
+    "scroll": "bounded-reflow 220→final wide non-zero",
+    "filter": "5 preserved",
+    "search": "wx1b2probe preserved",
+    "mount": "wx-primary-mount:2 stable",
+    "shell": "wx-shell-mount:2 stable"
+  },
+  "ownership": {
+    "feedOwner": "geofeed",
+    "controlledHostUnchanged": true,
+    "singleMount": true
+  },
+  "rollbackTarget": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "preMergeMain": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "noPhase1b3": true,
+  "noPhase1b4": true,
+  "freezeCommit": "3e758374bceef93ccc5fa43649456e3afaccf97f",
+  "note": "Production runtime commit is the merge commit; freeze commit is docs-only tip after this pack.",
+  "freezeCommitNote": "Documentation-only freeze commit. Production runtime remains merge 5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4.",
+  "productionRuntimeCommit": "5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4"
+}
