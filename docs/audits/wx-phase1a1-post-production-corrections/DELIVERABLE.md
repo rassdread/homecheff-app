@@ -1,14 +1,15 @@
 # WX Phase 1A.1 — Post-Production Corrections
 
-**Status:** COMPLETE — awaiting independent Production review (STOP GATE)  
-**Verdict:** `WX_PHASE_1A1_PASS` (Production Browser Proof)  
+**Status:** FROZEN — `WX_PHASE_1A1_PRODUCTION_SUCCESS`  
+**Verdict:** `WX_PHASE_1A1_PRODUCTION_SUCCESS`  
 **Scope:** Presentation-only corrections to WX Phase 1A. No Phase 1B. No ownership changes.
 
 | Field | Value |
 | --- | --- |
 | Commit | `0c9b1d7fc8d023def4a22473df554ba896a8b517` |
-| Deployment | `dpl_4PP4aVEGHaCVWaQzxTXJ3hqfhHpz` |
+| Deployment | `dpl_HcYsgdox5Q1wjMLHC3VTjw6CXvqT` (aliases) · promo `dpl_4PP4aVEGHaCVWaQzxTXJ3hqfhHpz` |
 | Live | https://homecheff.eu |
+| Freeze | `PRODUCTION_FREEZE.md` · `production-freeze-pack.json` |
 | Proof | `docs/audits/wx-phase1a1-post-production-corrections/production/` |
 
 ## 1. Executive summary
@@ -48,10 +49,10 @@ Ownership unchanged: GeoFeed sole runtime owner · Host `COMMIT_READY`.
 
 | Field | Value |
 | --- | --- |
-| Verdict | `WX_PHASE_1A1_PASS` |
+| Verdict | `WX_PHASE_1A1_PRODUCTION_SUCCESS` |
 | Base URL | `https://homecheff.eu` |
-| Captured | `2026-07-31T01:11:20.535Z` |
-| Viewports | phone portrait/landscape · tablet portrait/landscape · desktop · ultrawide |
+| Captured | see `production/browser-proof.json` + `production/production-nl-browser-proof.json` |
+| Viewports | phone portrait/landscape · tablet portrait/landscape · desktop 1280/1440 · ultrawide 1920/2560 |
 | Failures | 0 |
 
 ## 5. WDL compliance

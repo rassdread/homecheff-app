@@ -1,0 +1,85 @@
+{
+  "phase": "wx-phase1a1-post-production-corrections",
+  "freezeTitle": "WX Phase 1A.1 — Production Freeze",
+  "verdict": "WX_PHASE_1A1_PRODUCTION_SUCCESS",
+  "frozenAt": "2026-07-31T11:22:10Z",
+  "implementationCommit": "0c9b1d7fc8d023def4a22473df554ba896a8b517",
+  "relatedDocsCommits": [
+    "038b9974",
+    "4830dffb"
+  ],
+  "branch": "main",
+  "visibilityMode": "on",
+  "deployment": {
+    "id": "dpl_HcYsgdox5Q1wjMLHC3VTjw6CXvqT",
+    "implementationPromotionId": "dpl_4PP4aVEGHaCVWaQzxTXJ3hqfhHpz",
+    "url": "https://homecheff-8ywu750dj-sergio-s-projects-f7b64ee1.vercel.app",
+    "readyState": "READY",
+    "target": "production",
+    "aliases": [
+      "homecheff.eu",
+      "www.homecheff.eu",
+      "homecheff.nl",
+      "www.homecheff.nl"
+    ],
+    "health": {
+      "homecheff.eu": 200,
+      "www.homecheff.eu": 200,
+      "homecheff.nl": 307,
+      "www.homecheff.nl": 307
+    }
+  },
+  "browserProof": {
+    "verdict": "WX_PHASE_1A1_PRODUCTION_SUCCESS",
+    "baseUrl": "https://homecheff.eu",
+    "artifacts": [
+      "docs/audits/wx-phase1a1-post-production-corrections/production/browser-proof.json",
+      "docs/audits/wx-phase1a1-post-production-corrections/production/production-nl-browser-proof.json"
+    ],
+    "viewports": [
+      "phone-portrait-390x844",
+      "phone-landscape-844x390",
+      "tablet-portrait-768x1024",
+      "tablet-landscape-1024x768",
+      "desktop-1280x800",
+      "desktop-1440x900",
+      "ultrawide-1920x1080",
+      "ultrawide-2560x1440"
+    ],
+    "failures": 0
+  },
+  "ownership": {
+    "feedDataOwner": "geofeed",
+    "controlledHost": "COMMIT_READY",
+    "runtimeOwnershipChanged": false
+  },
+  "regressionResolution": {
+    "navLabelsReadable": "PASS",
+    "orientationStripStronger": "PASS",
+    "floatingBrandFooterRemoved": "PASS",
+    "workspaceFrameContinuous": "PASS"
+  },
+  "wdl": {
+    "P2": "improved",
+    "P3": "improved",
+    "P4": "strengthened",
+    "P5": "preserved",
+    "P6": "restored",
+    "P14": "improved",
+    "P15": "improved"
+  },
+  "deferredToPhase1BPlus": [
+    "Search mental model redesign (P7/P8)",
+    "Navigation IA regroup beyond Create dominance (P9/P12)",
+    "Contextual rails / Surface Plan (S3/P13)",
+    "Landscape work-posture redesign (P10)",
+    "AvailableSpace productivity densification (P11)",
+    "Workspace memory",
+    "Motion / typography / visual identity systems (P16–P19)"
+  ],
+  "rollback": {
+    "preferred": "Set HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=off (or unset) on Production and redeploy",
+    "hard": "Revert 0c9b1d7f on main and push (no force-push)"
+  },
+  "stopGate": "Do not begin WX Phase 1B until explicit approval after independent live visual review."
+}

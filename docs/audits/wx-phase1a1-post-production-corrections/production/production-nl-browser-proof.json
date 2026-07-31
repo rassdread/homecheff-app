@@ -1,0 +1,614 @@
+{
+  "phase": "wx-phase1a1-production-live-nl-proof",
+  "baseUrl": "https://homecheff.eu",
+  "capturedAt": "2026-07-31T11:21:33.886Z",
+  "language": "nl",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "metrics": {
+        "phase": "1a.1",
+        "frame": false,
+        "orientationHeight": 197,
+        "orientationMeta": true,
+        "orientationSpans": true,
+        "primary": {
+          "text": "Verkoop of deel",
+          "truncated": false,
+          "scrollWidth": 0,
+          "clientWidth": 0
+        },
+        "login": {
+          "text": "Inloggen",
+          "truncated": false,
+          "scrollWidth": 66,
+          "clientWidth": 66
+        },
+        "register": {
+          "text": "Aanmelden",
+          "truncated": false,
+          "scrollWidth": 85,
+          "clientWidth": 85
+        },
+        "footerVisible": false,
+        "owner": "geofeed",
+        "visibility": "on",
+        "mountCount": null,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navBad": false,
+        "railChrome": 2,
+        "firstTileInView": false
+      },
+      "topShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-phone-portrait-top.png",
+      "scrollShot": null,
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "metrics": {
+        "phase": "1a.1",
+        "frame": true,
+        "orientationHeight": 165,
+        "orientationMeta": true,
+        "orientationSpans": true,
+        "primary": {
+          "text": "Verkoop of deel",
+          "truncated": false,
+          "scrollWidth": 0,
+          "clientWidth": 0
+        },
+        "login": {
+          "text": "Inloggen",
+          "truncated": false,
+          "scrollWidth": 82,
+          "clientWidth": 82
+        },
+        "register": {
+          "text": "Aanmelden",
+          "truncated": false,
+          "scrollWidth": 103,
+          "clientWidth": 103
+        },
+        "footerVisible": false,
+        "owner": "geofeed",
+        "visibility": "on",
+        "mountCount": null,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navBad": false,
+        "railChrome": 2,
+        "firstTileInView": false
+      },
+      "topShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-phone-landscape-top.png",
+      "scrollShot": null,
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "metrics": {
+        "phase": "1a.1",
+        "frame": true,
+        "orientationHeight": 165,
+        "orientationMeta": true,
+        "orientationSpans": true,
+        "primary": {
+          "text": "Verkoop of deel",
+          "truncated": false,
+          "scrollWidth": 0,
+          "clientWidth": 0
+        },
+        "login": {
+          "text": "Inloggen",
+          "truncated": false,
+          "scrollWidth": 82,
+          "clientWidth": 82
+        },
+        "register": {
+          "text": "Aanmelden",
+          "truncated": false,
+          "scrollWidth": 103,
+          "clientWidth": 103
+        },
+        "footerVisible": false,
+        "owner": "geofeed",
+        "visibility": "on",
+        "mountCount": null,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navBad": false,
+        "railChrome": 2,
+        "firstTileInView": true
+      },
+      "topShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-tablet-portrait-top.png",
+      "scrollShot": null,
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "metrics": {
+        "phase": "1a.1",
+        "frame": true,
+        "orientationHeight": 165,
+        "orientationMeta": true,
+        "orientationSpans": true,
+        "primary": {
+          "text": "Verkoop of deel",
+          "truncated": false,
+          "scrollWidth": 137,
+          "clientWidth": 137
+        },
+        "login": {
+          "text": "Inloggen",
+          "truncated": false,
+          "scrollWidth": 70,
+          "clientWidth": 70
+        },
+        "register": {
+          "text": "Aanmelden",
+          "truncated": false,
+          "scrollWidth": 90,
+          "clientWidth": 90
+        },
+        "footerVisible": false,
+        "owner": "geofeed",
+        "visibility": "on",
+        "mountCount": null,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navBad": false,
+        "railChrome": 2,
+        "firstTileInView": true
+      },
+      "topShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-tablet-landscape-top.png",
+      "scrollShot": null,
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "desktop-1280",
+        "width": 1280,
+        "height": 800
+      },
+      "metrics": {
+        "phase": "1a.1",
+        "frame": true,
+        "orientationHeight": 165,
+        "orientationMeta": true,
+        "orientationSpans": true,
+        "primary": {
+          "text": "Verkoop of deel",
+          "truncated": false,
+          "scrollWidth": 154,
+          "clientWidth": 154
+        },
+        "login": {
+          "text": "Inloggen",
+          "truncated": false,
+          "scrollWidth": 86,
+          "clientWidth": 86
+        },
+        "register": {
+          "text": "Aanmelden",
+          "truncated": false,
+          "scrollWidth": 107,
+          "clientWidth": 107
+        },
+        "footerVisible": false,
+        "owner": "geofeed",
+        "visibility": "on",
+        "mountCount": null,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navBad": false,
+        "railChrome": 2,
+        "firstTileInView": true,
+        "footerVisibleDuringScroll": false
+      },
+      "topShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-desktop-1280-top.png",
+      "scrollShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-desktop-1280-scroll.png",
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "desktop-1440",
+        "width": 1440,
+        "height": 900
+      },
+      "metrics": {
+        "phase": "1a.1",
+        "frame": true,
+        "orientationHeight": 165,
+        "orientationMeta": true,
+        "orientationSpans": true,
+        "primary": {
+          "text": "Verkoop of deel",
+          "truncated": false,
+          "scrollWidth": 154,
+          "clientWidth": 154
+        },
+        "login": {
+          "text": "Inloggen",
+          "truncated": false,
+          "scrollWidth": 86,
+          "clientWidth": 86
+        },
+        "register": {
+          "text": "Aanmelden",
+          "truncated": false,
+          "scrollWidth": 107,
+          "clientWidth": 107
+        },
+        "footerVisible": false,
+        "owner": "geofeed",
+        "visibility": "on",
+        "mountCount": null,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navBad": false,
+        "railChrome": 2,
+        "firstTileInView": true,
+        "footerVisibleDuringScroll": false
+      },
+      "topShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-desktop-1440-top.png",
+      "scrollShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-desktop-1440-scroll.png",
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide-1920",
+        "width": 1920,
+        "height": 1080
+      },
+      "metrics": {
+        "phase": "1a.1",
+        "frame": true,
+        "orientationHeight": 165,
+        "orientationMeta": true,
+        "orientationSpans": true,
+        "primary": {
+          "text": "Verkoop of deel",
+          "truncated": false,
+          "scrollWidth": 154,
+          "clientWidth": 154
+        },
+        "login": {
+          "text": "Inloggen",
+          "truncated": false,
+          "scrollWidth": 109,
+          "clientWidth": 109
+        },
+        "register": {
+          "text": "Aanmelden",
+          "truncated": false,
+          "scrollWidth": 134,
+          "clientWidth": 134
+        },
+        "footerVisible": false,
+        "owner": "geofeed",
+        "visibility": "on",
+        "mountCount": null,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navBad": false,
+        "railChrome": 2,
+        "firstTileInView": true,
+        "footerVisibleDuringScroll": false
+      },
+      "topShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-ultrawide-1920-top.png",
+      "scrollShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-ultrawide-1920-scroll.png",
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide-2560",
+        "width": 2560,
+        "height": 1440
+      },
+      "metrics": {
+        "phase": "1a.1",
+        "frame": true,
+        "orientationHeight": 165,
+        "orientationMeta": true,
+        "orientationSpans": true,
+        "primary": {
+          "text": "Verkoop of deel",
+          "truncated": false,
+          "scrollWidth": 154,
+          "clientWidth": 154
+        },
+        "login": {
+          "text": "Inloggen",
+          "truncated": false,
+          "scrollWidth": 109,
+          "clientWidth": 109
+        },
+        "register": {
+          "text": "Aanmelden",
+          "truncated": false,
+          "scrollWidth": 134,
+          "clientWidth": 134
+        },
+        "footerVisible": false,
+        "owner": "geofeed",
+        "visibility": "on",
+        "mountCount": null,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navBad": false,
+        "railChrome": 2,
+        "firstTileInView": true,
+        "footerVisibleDuringScroll": false
+      },
+      "topShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-ultrawide-2560-top.png",
+      "scrollShot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/nl-ultrawide-2560-scroll.png",
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    }
+  ],
+  "failures": [],
+  "overallVerdict": "WX_PHASE_1A1_PRODUCTION_SUCCESS"
+}
