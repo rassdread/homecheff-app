@@ -1,0 +1,700 @@
+{
+  "phase": "1B.1",
+  "title": "Workspace Mode Engine",
+  "verdict": "WX_PHASE_1B1_PASS",
+  "mode": "production",
+  "baseUrl": "https://homecheff.nl",
+  "timestamp": "2026-07-31T14:02:52.683Z",
+  "oracle": "static-viewport-fixture-matrix",
+  "scope": "Mode resolution diagnostics only — no capability activation validation",
+  "results": [
+    {
+      "id": "w320",
+      "viewport": {
+        "id": "w320",
+        "width": 320,
+        "height": 568
+      },
+      "expected": {
+        "mode": "browse",
+        "posture": "portrait",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 300,
+        "measuredWidthMax": 320
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:320x568:browse:portrait:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "stabilityToken": "feed-ws:320x568:mobile-portrait:p0",
+        "clientWidth": 320,
+        "clientHeight": 568,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w360",
+      "viewport": {
+        "id": "w360",
+        "width": 360,
+        "height": 740
+      },
+      "expected": {
+        "mode": "browse",
+        "posture": "portrait",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 340,
+        "measuredWidthMax": 360
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:360x740:browse:portrait:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "stabilityToken": "feed-ws:360x740:mobile-portrait:p0",
+        "clientWidth": 360,
+        "clientHeight": 740,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w390",
+      "viewport": {
+        "id": "w390",
+        "width": 390,
+        "height": 844
+      },
+      "expected": {
+        "mode": "browse",
+        "posture": "portrait",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 370,
+        "measuredWidthMax": 390
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:390x844:browse:portrait:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "stabilityToken": "feed-ws:390x844:mobile-portrait:p0",
+        "clientWidth": 390,
+        "clientHeight": 844,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w430",
+      "viewport": {
+        "id": "w430",
+        "width": 430,
+        "height": 932
+      },
+      "expected": {
+        "mode": "browse",
+        "posture": "portrait",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 410,
+        "measuredWidthMax": 430
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:430x932:browse:portrait:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "mobile-portrait",
+        "orientation": "portrait",
+        "profile": "COMPACT",
+        "stabilityToken": "feed-ws:430x932:mobile-portrait:p0",
+        "clientWidth": 430,
+        "clientHeight": 932,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "phone-landscape",
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "expected": {
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 720,
+        "measuredWidthMax": 844
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:826x390:hybrid-workspace:landscape:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "stabilityToken": "feed-ws:826x390:tablet-landscape:p1",
+        "clientWidth": 826,
+        "clientHeight": 390,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w768",
+      "viewport": {
+        "id": "w768",
+        "width": 768,
+        "height": 1024
+      },
+      "expected": {
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 720,
+        "measuredWidthMax": 768
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:750x1024:hybrid-workspace:portrait:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "tablet-portrait",
+        "orientation": "portrait",
+        "profile": "COMFORT",
+        "stabilityToken": "feed-ws:750x1024:tablet-portrait:p1",
+        "clientWidth": 750,
+        "clientHeight": 1024,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w820",
+      "viewport": {
+        "id": "w820",
+        "width": 820,
+        "height": 1180
+      },
+      "expected": {
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 720,
+        "measuredWidthMax": 820
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:802x1180:hybrid-workspace:portrait:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "tablet-portrait",
+        "orientation": "portrait",
+        "profile": "COMFORT",
+        "stabilityToken": "feed-ws:802x1180:tablet-portrait:p1",
+        "clientWidth": 802,
+        "clientHeight": 1180,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w1024",
+      "viewport": {
+        "id": "w1024",
+        "width": 1024,
+        "height": 768
+      },
+      "expected": {
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 720,
+        "measuredWidthMax": 1023
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:998x768:hybrid-workspace:landscape:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "tablet-landscape",
+        "orientation": "landscape",
+        "profile": "COMFORT",
+        "stabilityToken": "feed-ws:998x768:tablet-landscape:p1",
+        "clientWidth": 998,
+        "clientHeight": 768,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w1280",
+      "viewport": {
+        "id": "w1280",
+        "width": 1280,
+        "height": 800
+      },
+      "expected": {
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 1024,
+        "measuredWidthMax": 1280
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1254x800:full-workspace:landscape:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "desktop",
+        "orientation": "landscape",
+        "profile": "EXPANDED",
+        "stabilityToken": "feed-ws:1254x800:desktop:p2",
+        "clientWidth": 1254,
+        "clientHeight": 800,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w1440",
+      "viewport": {
+        "id": "w1440",
+        "width": 1440,
+        "height": 900
+      },
+      "expected": {
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 1024,
+        "measuredWidthMax": 1439
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1414x900:full-workspace:landscape:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "desktop",
+        "orientation": "landscape",
+        "profile": "EXPANDED",
+        "stabilityToken": "feed-ws:1414x900:desktop:p2",
+        "clientWidth": 1414,
+        "clientHeight": 900,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w1920",
+      "viewport": {
+        "id": "w1920",
+        "width": 1920,
+        "height": 1080
+      },
+      "expected": {
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 1440,
+        "measuredWidthMax": 1920
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1894x1080:professional-workspace:landscape:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "desktop-wide",
+        "orientation": "landscape",
+        "profile": "PROFESSIONAL",
+        "stabilityToken": "feed-ws:1894x1080:desktop-wide:p2",
+        "clientWidth": 1894,
+        "clientHeight": 1080,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    },
+    {
+      "id": "w2560",
+      "viewport": {
+        "id": "w2560",
+        "width": 2560,
+        "height": 1440
+      },
+      "expected": {
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "carve": false,
+        "demoted": false,
+        "measuredWidthMin": 1440,
+        "measuredWidthMax": 2560
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.1",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:2534x1440:professional-workspace:landscape:hd0",
+        "heightDemoted": "0",
+        "landscapeCarveOut": "0",
+        "layoutMode": "desktop-wide",
+        "orientation": "landscape",
+        "profile": "PROFESSIONAL",
+        "stabilityToken": "feed-ws:2534x1440:desktop-wide:p2",
+        "clientWidth": 2534,
+        "clientHeight": 1440,
+        "workspaceCount": 1,
+        "stableFeedSlot": true
+      },
+      "checks": {
+        "workspaceFound": true,
+        "phase1b1": true,
+        "singleWorkspace": true,
+        "stableFeedSlot": true,
+        "modeMatches": true,
+        "postureMatches": true,
+        "carveMatches": true,
+        "demotedMatches": true,
+        "measuredWidthInFixtureBand": true,
+        "tokenConsistent": true,
+        "noHydration": true,
+        "noConsoleErrors": true
+      },
+      "pass": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "hydrationWarnings": []
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "modes": {
+      "w320": {
+        "mode": "browse",
+        "posture": "portrait",
+        "width": 320
+      },
+      "w360": {
+        "mode": "browse",
+        "posture": "portrait",
+        "width": 360
+      },
+      "w390": {
+        "mode": "browse",
+        "posture": "portrait",
+        "width": 390
+      },
+      "w430": {
+        "mode": "browse",
+        "posture": "portrait",
+        "width": 430
+      },
+      "phone-landscape": {
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "width": 826
+      },
+      "w768": {
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "width": 750
+      },
+      "w820": {
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "width": 802
+      },
+      "w1024": {
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "width": 998
+      },
+      "w1280": {
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "width": 1254
+      },
+      "w1440": {
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "width": 1414
+      },
+      "w1920": {
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "width": 1894
+      },
+      "w2560": {
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "width": 2534
+      }
+    }
+  },
+  "evidenceBinding": {
+    "productionMergeCommit": "ffcd7a044fc42db1c2ff1bbac74517e0c9fe3c11",
+    "implementationCommit": "8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7",
+    "evidenceCommit": "f64c920e08a2f603ae1264dc2e7cc6731564c7b9",
+    "deploymentId": "dpl_gLfqBbo2L5eH5RnAYmybrWHUtrrc",
+    "productionUrl": "https://homecheff.nl",
+    "deploymentUrl": "https://homecheff-inyvgt5wx-sergio-s-projects-f7b64ee1.vercel.app",
+    "status": "PRODUCTION_SUCCESS"
+  }
+}

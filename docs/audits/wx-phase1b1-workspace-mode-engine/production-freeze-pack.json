@@ -1,0 +1,46 @@
+{
+  "phase": "WX-1B.1",
+  "title": "Workspace Mode Engine",
+  "verdict": "WX_PHASE_1B1_PRODUCTION_SUCCESS",
+  "status": "PRODUCTION_FROZEN",
+  "freezeTimestampUtc": "2026-07-31T14:05:00Z",
+  "productionHash": "ffcd7a044fc42db1c2ff1bbac74517e0c9fe3c11",
+  "mergeCommit": "ffcd7a044fc42db1c2ff1bbac74517e0c9fe3c11",
+  "mergeParents": [
+    "4dd1d3ee52ae56782043c049e0d97e4cea05866e",
+    "f64c920e08a2f603ae1264dc2e7cc6731564c7b9"
+  ],
+  "implementationCommit": "8cbce38193e4ecb9e7aa34f5db4081f3db0e0fb7",
+  "evidenceCommit": "f64c920e08a2f603ae1264dc2e7cc6731564c7b9",
+  "rollbackTarget": "4dd1d3ee52ae56782043c049e0d97e4cea05866e",
+  "branch": "wx/phase-1b1-workspace-mode-engine",
+  "branchRetained": true,
+  "deployment": {
+    "id": "dpl_gLfqBbo2L5eH5RnAYmybrWHUtrrc",
+    "url": "https://homecheff-inyvgt5wx-sergio-s-projects-f7b64ee1.vercel.app",
+    "productionAliases": [
+      "https://homecheff.nl",
+      "https://homecheff.eu",
+      "https://www.homecheff.nl",
+      "https://www.homecheff.eu"
+    ],
+    "target": "production",
+    "readyState": "READY"
+  },
+  "productionBrowserProof": {
+    "baseUrl": "https://homecheff.nl",
+    "artifact": "docs/audits/wx-phase1b1-workspace-mode-engine/production/browser-proof.json",
+    "verdict": "WX_PHASE_1B1_PASS",
+    "matrix": "12/12"
+  },
+  "reReview": "WX_PHASE_1B1_RE_REVIEW_PASS_WITH_WARNINGS",
+  "acceptedWarnings": [
+    "Dual band tables retained (layout vs Mode)",
+    "WMS/WQS/Master Spec git lineage still untracked WIP — separate architecture commit recommended",
+    "Pre-merge Commit B self-hash placeholder"
+  ],
+  "stopGate": {
+    "nextPhaseBlocked": "WX-1B.2",
+    "requireExplicitApprovalBeforeNextPhase": true
+  }
+}
