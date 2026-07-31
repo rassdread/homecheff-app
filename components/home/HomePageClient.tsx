@@ -21,6 +21,7 @@ import {
 import GeoFeed, { FeedContent } from "@/components/home/HomeGeoFeedDynamic";
 import FeedControlledHostShell from "@/components/adaptive-workspace/FeedControlledHostShell";
 import FeedWorkspaceVisibleLayout from "@/components/adaptive-workspace/FeedWorkspaceVisibleLayout";
+import WorkspaceOrientationStrip from "@/components/adaptive-workspace/WorkspaceOrientationStrip";
 import { createControlledFeedHostContract } from "@/lib/adaptive-workspace/sealed/create-controlled-feed-host-contract";
 import { createControlledFeedHostShadowPlacement } from "@/lib/adaptive-workspace/sealed/controlled-feed-host-shadow-placement";
 import { createFeedDiscoveryControlledHostDescriptor } from "@/lib/adaptive-workspace/sealed/controlled-host-registry";
@@ -158,17 +159,20 @@ export default function HomePageClient({
   /** Legacy OFF path only — Phase 3F.5 composed desktop grid. */
   const showDesktopComposedLayout = !isNarrowHome && !stickyTestMode;
 
+  /** WX 1A — keep mobile chrome compact; ecosystem strip is secondary (not above-fold mandatory). */
   const mobileChrome = (
     <div className="min-w-0 lg:hidden">
       {session?.user ? (
-        <div className="mb-3">
+        <div className="mb-2">
           <UserActionCenter variant="mobileCompact" />
         </div>
       ) : null}
-      <HomeMobileEcosystemStrip
-        isLoggedIn={Boolean(session?.user)}
-        className="mb-3"
-      />
+      {!layoutVisible ? (
+        <HomeMobileEcosystemStrip
+          isLoggedIn={Boolean(session?.user)}
+          className="mb-3"
+        />
+      ) : null}
     </div>
   );
 
@@ -227,6 +231,7 @@ export default function HomePageClient({
       >
         <FeedWorkspaceVisibleLayout
           ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
+          orientation={<WorkspaceOrientationStrip />}
           primary={<GeoFeed {...geoFeedProps} homeComposedLayout={false} />}
           startPanel={<HomeDesktopLeftSidebar />}
           endPanel={<HomeDesktopSidebar welcomeLine={welcomeLine} />}
@@ -236,7 +241,7 @@ export default function HomePageClient({
   );
 
   const pageShellClass = layoutVisible
-    ? "hc-home-page-shell hc-aw-full-bleed w-full max-w-none mx-auto px-3 sm:px-4 py-3 sm:py-5"
+    ? "hc-home-page-shell hc-aw-full-bleed hc-wx-shell w-full max-w-none mx-auto px-2 sm:px-3 py-2 sm:py-3"
     : "hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-3 sm:py-5";
 
   return (
@@ -244,15 +249,12 @@ export default function HomePageClient({
       <PostAuthPersonaBanner />
       <div className="min-h-[60vh] hc-dorpsplein-page">
         <div className={pageShellClass}>
-          <div
-            className={
-              layoutVisible
-                ? "max-w-3xl lg:max-w-[720px] mx-auto mb-2 sm:mb-4 lg:mb-4"
-                : "max-w-3xl lg:max-w-none mx-auto mb-2 sm:mb-4 lg:mb-4"
-            }
-          >
-            <HomeHeroSection />
-          </div>
+          {/* Legacy OFF path keeps marketing hero. AW ON uses WorkspaceOrientationStrip inside the grid. */}
+          {!layoutVisible ? (
+            <div className="max-w-3xl lg:max-w-none mx-auto mb-2 sm:mb-4 lg:mb-4">
+              <HomeHeroSection />
+            </div>
+          ) : null}
 
           {stickyTestMode && showDesktopComposedLayout ? (
             <section

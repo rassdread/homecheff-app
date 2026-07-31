@@ -1445,6 +1445,23 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   overflow-x: visible;
 }
 
+/* WX Phase 1A — Workspace shell continuity */
+.hc-wx-shell {
+  min-height: calc(100dvh - 5rem);
+}
+
+.hc-wx-rail {
+  min-height: 100%;
+}
+
+.hc-wx-stage {
+  min-height: 100%;
+}
+
+.hc-wx-orientation-strip {
+  box-shadow: none;
+}
+
 /* Homepage desktop feed — dominant media, compact info block */
 @media (min-width: 1024px) {
   .hc-home-feed-grid .feed-card-geo {

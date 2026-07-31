@@ -1,0 +1,267 @@
+{
+  "phase": "wx-phase1a-workspace-foundations",
+  "baseUrl": "http://127.0.0.1:3081",
+  "capturedAt": "2026-07-31T00:19:29.221Z",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/screenshots/phone-portrait-390x844.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "mobile-portrait",
+        "supportingPanels": "0",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 9,
+          "y": 134,
+          "width": 372,
+          "height": 2644,
+          "bottom": 2778
+        },
+        "firstTileBounds": {
+          "x": 17,
+          "y": 349,
+          "width": 173,
+          "height": 303,
+          "bottom": 652
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/screenshots/phone-landscape-844x390.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 13,
+          "y": 174,
+          "width": 546,
+          "height": 2968,
+          "bottom": 3142
+        },
+        "firstTileBounds": {
+          "x": 25,
+          "y": 391,
+          "width": 255,
+          "height": 385,
+          "bottom": 776
+        },
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/screenshots/tablet-portrait-768x1024.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-portrait",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 13,
+          "y": 174,
+          "width": 470,
+          "height": 2838,
+          "bottom": 3012
+        },
+        "firstTileBounds": {
+          "x": 25,
+          "y": 391,
+          "width": 217,
+          "height": 347,
+          "bottom": 738
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/screenshots/tablet-landscape-1024x768.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 16,
+          "y": 174,
+          "width": 720,
+          "height": 7204,
+          "bottom": 7377
+        },
+        "firstTileBounds": {
+          "x": 28,
+          "y": 412,
+          "width": 696,
+          "height": 689,
+          "bottom": 1101
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/screenshots/desktop-1440x900.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 340,
+          "y": 174,
+          "width": 720,
+          "height": 7240,
+          "bottom": 7413
+        },
+        "firstTileBounds": {
+          "x": 352,
+          "y": 412,
+          "width": 696,
+          "height": 689,
+          "bottom": 1101
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "width": 2560,
+        "height": 1440
+      },
+      "screenshot": "docs/audits/wx-phase1a-workspace-foundations/screenshots/ultrawide-2560x1440.png",
+      "metrics": {
+        "workspacePresent": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop-wide",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 900,
+          "y": 174,
+          "width": 720,
+          "height": 7240,
+          "bottom": 7413
+        },
+        "firstTileBounds": {
+          "x": 912,
+          "y": 412,
+          "width": 696,
+          "height": 689,
+          "bottom": 1101
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    }
+  ],
+  "failures": [],
+  "overallVerdict": "WX_PHASE_1A_PASS"
+}

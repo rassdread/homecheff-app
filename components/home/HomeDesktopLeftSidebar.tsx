@@ -6,7 +6,10 @@ import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
-import { FeedFiltersPanel } from '@/components/feed/GeoFeed';
+import {
+  FeedFiltersPanel,
+  useHasFeedFiltersPanel,
+} from '@/components/feed/GeoFeed';
 import RoleQuickLinksSection from '@/components/navigation/RoleQuickLinksSection';
 import { primaryDashboardContextFromUser } from '@/lib/navigation/primary-dashboard';
 import {
@@ -32,11 +35,44 @@ function SidebarSection({
   );
 }
 
+function DiscoveryFiltersSection() {
+  const { t } = useTranslation();
+  const hasFiltersPanel = useHasFeedFiltersPanel();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  if (!hasFiltersPanel) return null;
+
+  return (
+    <section className="hc-dorpsplein-card overflow-hidden" data-home-sidebar="discovery-filters">
+      <button
+        type="button"
+        onClick={() => setFiltersOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left"
+        aria-expanded={filtersOpen}
+      >
+        <span className="hc-section-title text-sm">{t('feed.discoverFiltersHeading')}</span>
+        {filtersOpen ? (
+          <ChevronUp className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+        ) : (
+          <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+        )}
+      </button>
+      {filtersOpen ? (
+        <div className="border-t border-gray-100 px-1 pb-2 pt-1">
+          <p className="mx-2 mb-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-2.5 py-2 text-[11px] font-medium leading-snug text-emerald-900">
+            {t('marketplace.discovery.usp.tagline')}
+          </p>
+          <FeedFiltersPanel />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export default function HomeDesktopLeftSidebar() {
   const { t } = useTranslation();
   const { data: session } = useSession();
   const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
-  const [filtersOpen, setFiltersOpen] = useState(true);
 
   const ctx = session?.user
     ? primaryDashboardContextFromUser(session.user as Record<string, unknown>)
@@ -44,7 +80,7 @@ export default function HomeDesktopLeftSidebar() {
 
   return (
     <>
-      <div className="flex flex-col gap-3 pb-3" data-home-sidebar="left-workspace">
+      <div className="flex flex-col gap-2.5 pb-2" data-home-sidebar="left-workspace">
         {session?.user ? (
           <RoleQuickLinksSection
             ctx={ctx}
@@ -57,15 +93,14 @@ export default function HomeDesktopLeftSidebar() {
             <button
               type="button"
               onClick={() => requireAuthAction('create', '/sell/new')}
-              className="flex w-full items-center gap-3 rounded-xl bg-primary-brand px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition-colors text-left"
+              className="flex w-full items-center gap-3 rounded-xl bg-primary-brand px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition-colors text-left whitespace-nowrap"
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden />
-              {t('homePhase1.ctaShare')}
+              <span className="whitespace-nowrap">{t('homePhase1.ctaShare')}</span>
             </button>
           </SidebarSection>
         )}
 
-        {/* 2. Mijn omgeving */}
         {session?.user ? (
           <SidebarSection title={t('home.desktop.myEnvironmentTitle')}>
             <nav className="grid gap-1" aria-label={t('home.desktop.myEnvironmentTitle')}>
@@ -82,7 +117,6 @@ export default function HomeDesktopLeftSidebar() {
           </SidebarSection>
         ) : null}
 
-        {/* 3. Marketplace */}
         <SidebarSection title={t('home.desktop.marketplaceNavTitle')}>
           <nav className="grid gap-1" aria-label={t('home.desktop.marketplaceNavTitle')}>
             {HOME_DESKTOP_MARKETPLACE_LINKS.map((link) => (
@@ -97,30 +131,7 @@ export default function HomeDesktopLeftSidebar() {
           </nav>
         </SidebarSection>
 
-        {/* 4. Discovery filters (collapsible, default open) */}
-        <section className="hc-dorpsplein-card overflow-hidden" data-home-sidebar="discovery-filters">
-          <button
-            type="button"
-            onClick={() => setFiltersOpen((v) => !v)}
-            className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left"
-            aria-expanded={filtersOpen}
-          >
-            <span className="hc-section-title text-sm">{t('feed.discoverFiltersHeading')}</span>
-            {filtersOpen ? (
-              <ChevronUp className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
-            ) : (
-              <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
-            )}
-          </button>
-          {filtersOpen ? (
-            <div className="border-t border-gray-100 px-1 pb-2 pt-1">
-              <p className="mx-2 mb-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-2.5 py-2 text-[11px] font-medium leading-snug text-emerald-900">
-                {t('marketplace.discovery.usp.tagline')}
-              </p>
-              <FeedFiltersPanel />
-            </div>
-          ) : null}
-        </section>
+        <DiscoveryFiltersSection />
       </div>
       {guestAuthPanel}
     </>

@@ -45,7 +45,7 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
 
   return (
     <>
-      <div className="flex flex-col gap-3 pb-3" data-home-sidebar="community-cockpit">
+      <div className="flex flex-col gap-2.5 pb-2" data-home-sidebar="community-cockpit">
         {session?.user && welcomeLine ? (
           <div className="hc-dorpsplein-card hc-dorpsplein-card-warm px-4 py-3">
             <p className="text-sm font-semibold text-gray-900 leading-snug">{welcomeLine}</p>

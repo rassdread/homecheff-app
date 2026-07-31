@@ -422,11 +422,18 @@ export default function NavBar() {
                 <Award className="w-4 h-4" />
                 <span>{t('bottomNav.reputationTab')}</span>
               </Link>
+              {/* WX 1A / WDL P6 — single dominant primary action; never truncate */}
               <button
                 type="button"
+                data-wx-primary-action=""
                 className={cn(
-                  desktopNavGhostClass,
-                  'flex items-center space-x-2 px-4 py-3 bg-primary-brand text-white hover:bg-primary-700 hover:text-white',
+                  'inline-flex shrink-0 items-center justify-center gap-2',
+                  'rounded-2xl px-4 py-2.5 xl:px-5 xl:py-3',
+                  'text-sm xl:text-base font-bold whitespace-nowrap',
+                  'bg-primary-brand text-white hover:bg-primary-700',
+                  'shadow-sm hover:shadow-md',
+                  'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
+                  'touch-manipulation select-none',
                 )}
                 onClick={() => {
                   if (user) {
@@ -437,8 +444,8 @@ export default function NavBar() {
                   navDebug('navbar:desktop', { action: 'create' });
                 }}
               >
-                <Plus className="w-4 h-4" />
-                <span>{t('homePhase1.ctaShare')}</span>
+                <Plus className="w-4 h-4 shrink-0" aria-hidden />
+                <span className="whitespace-nowrap">{t('homePhase1.ctaShare')}</span>
               </button>
             </div>
 

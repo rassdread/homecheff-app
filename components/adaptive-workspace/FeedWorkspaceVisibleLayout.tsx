@@ -7,6 +7,8 @@
  * Rails hide via `hidden` without unmounting the primary slot, so GeoFeed keeps
  * a fixed React sibling index across AvailableSpace / orientation changes.
  *
+ * WX Phase 1A: optional full-width orientation strip + permanent rail chrome.
+ *
  * AvailableSpace: width from workspace container; height from visual viewport.
  */
 
@@ -35,6 +37,8 @@ export type FeedWorkspaceVisibleLayoutProps = {
   primary: ReactNode;
   startPanel?: ReactNode;
   endPanel?: ReactNode;
+  /** WX 1A — full-width Workspace chrome above rails + stage. */
+  orientation?: ReactNode;
   initialWidthPx?: number;
   initialHeightPx?: number;
   ariaLabel?: string;
@@ -56,10 +60,17 @@ function readViewportHeightPx(): number {
   );
 }
 
+const railChromeClass =
+  "hc-wx-rail h-full min-h-0 flex flex-col rounded-xl border border-gray-200/80 bg-white/90";
+
+const railScrollClass =
+  "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 [-webkit-overflow-scrolling:touch]";
+
 export default function FeedWorkspaceVisibleLayout({
   primary,
   startPanel,
   endPanel,
+  orientation,
   initialWidthPx,
   initialHeightPx,
   ariaLabel = "Adaptive workspace",
@@ -115,21 +126,38 @@ export default function FeedWorkspaceVisibleLayout({
     onPlanChange?.(plan);
   }, [plan.stabilityToken, onPlanChange]);
 
-  const colScroll =
-    "min-h-0 overflow-y-auto overscroll-y-contain pb-3 [-webkit-overflow-scrolling:touch]";
-
   const multiCol = plan.supportingPanelCount > 0;
+  const hasOrientation = Boolean(orientation);
 
-  const gridTemplateAreas = plan.showStartPanel
-    ? '"start primary end"'
-    : plan.showEndPanel
-      ? '"primary end"'
-      : '"primary"';
+  const gridTemplateAreas = (() => {
+    if (plan.showStartPanel) {
+      return hasOrientation
+        ? '"orient orient orient" "start primary end"'
+        : '"start primary end"';
+    }
+    if (plan.showEndPanel) {
+      return hasOrientation
+        ? '"orient orient" "primary end"'
+        : '"primary end"';
+    }
+    return hasOrientation ? '"orient" "primary"' : '"primary"';
+  })();
+
+  const gridTemplateColumns = multiCol
+    ? plan.gridTemplateColumns
+    : "minmax(0,1fr)";
+
+  const gridTemplateRows = hasOrientation
+    ? multiCol
+      ? "auto minmax(0,1fr)"
+      : "auto auto"
+    : undefined;
 
   return (
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
+      data-wx-phase="1a"
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
@@ -141,21 +169,32 @@ export default function FeedWorkspaceVisibleLayout({
       aria-label={ariaLabel}
       className={
         multiCol
-          ? "hc-aw-feed-workspace w-full min-w-0 grid gap-4 items-stretch max-h-[calc(100dvh-5rem)] min-h-[12rem] h-[calc(100dvh-5rem)]"
-          : "hc-aw-feed-workspace w-full min-w-0 grid gap-4"
+          ? "hc-aw-feed-workspace w-full min-w-0 grid gap-2 sm:gap-3 items-stretch max-h-[calc(100dvh-5rem)] min-h-[12rem] h-[calc(100dvh-5rem)]"
+          : "hc-aw-feed-workspace w-full min-w-0 grid gap-2 sm:gap-3"
       }
       style={{
-        gridTemplateColumns: multiCol
-          ? plan.gridTemplateColumns
-          : "minmax(0,1fr)",
+        gridTemplateColumns,
         gridTemplateAreas,
+        gridTemplateRows,
       }}
     >
+      {hasOrientation ? (
+        <div
+          key="aw-slot-orientation"
+          data-aw-slot-host="orientation"
+          data-wx-orientation-host=""
+          className="min-w-0"
+          style={{ gridArea: "orient" }}
+        >
+          {orientation}
+        </div>
+      ) : null}
+
       {/* Permanent slot 1 — start rail (hidden, not unmounted, when unused). */}
       <div
         key="aw-slot-start"
         data-aw-slot-host="start"
-        className={plan.showStartPanel ? "min-w-0" : "hidden"}
+        className={plan.showStartPanel ? "min-w-0 min-h-0" : "hidden"}
         style={{ gridArea: plan.showStartPanel ? "start" : undefined }}
         aria-hidden={!plan.showStartPanel}
       >
@@ -170,9 +209,10 @@ export default function FeedWorkspaceVisibleLayout({
               <aside
                 data-aw-rail="start"
                 data-aw-rail-width={String(plan.startRailWidthPx)}
-                className={colScroll}
+                data-wx-rail-chrome=""
+                className={railChromeClass}
               >
-                {startPanel}
+                <div className={railScrollClass}>{startPanel}</div>
               </aside>
             </WorkspacePanel>
           </WorkspaceSlot>
@@ -183,7 +223,7 @@ export default function FeedWorkspaceVisibleLayout({
       <div
         key="aw-slot-primary"
         data-aw-slot-host="primary"
-        className="min-w-0"
+        className="min-w-0 min-h-0"
         style={{ gridArea: "primary" }}
       >
         <WorkspaceRegion regionId="primary-stage">
@@ -195,13 +235,18 @@ export default function FeedWorkspaceVisibleLayout({
               mode="stage"
             >
               <div
-                id="homecheff-feed-desktop"
-                data-aw-primary-feed=""
-                data-aw-stable-feed-slot="1"
-                className={`${colScroll} min-w-0 w-full mx-auto space-y-4 hc-home-feed-grid`}
-                style={{ maxWidth: plan.feedColumnMaxWidthPx }}
+                data-wx-stage-chrome=""
+                className="hc-wx-stage h-full min-h-0 flex flex-col rounded-xl border border-gray-200/60 bg-white/70"
               >
-                {primary}
+                <div
+                  id="homecheff-feed-desktop"
+                  data-aw-primary-feed=""
+                  data-aw-stable-feed-slot="1"
+                  className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid"
+                  style={{ maxWidth: plan.feedColumnMaxWidthPx }}
+                >
+                  {primary}
+                </div>
               </div>
             </WorkspacePanel>
           </WorkspaceSlot>
@@ -212,7 +257,7 @@ export default function FeedWorkspaceVisibleLayout({
       <div
         key="aw-slot-end"
         data-aw-slot-host="end"
-        className={plan.showEndPanel ? "min-w-0" : "hidden"}
+        className={plan.showEndPanel ? "min-w-0 min-h-0" : "hidden"}
         style={{ gridArea: plan.showEndPanel ? "end" : undefined }}
         aria-hidden={!plan.showEndPanel}
       >
@@ -227,9 +272,10 @@ export default function FeedWorkspaceVisibleLayout({
               <aside
                 data-aw-rail="end"
                 data-aw-rail-width={String(plan.endRailWidthPx)}
-                className={colScroll}
+                data-wx-rail-chrome=""
+                className={railChromeClass}
               >
-                {endPanel}
+                <div className={railScrollClass}>{endPanel}</div>
               </aside>
             </WorkspacePanel>
           </WorkspaceSlot>
