@@ -104,19 +104,30 @@ async function readSnap(page) {
     const probe = window.__HC_FEED_SEALED_PROBE__;
     const counters = probe?.readCounters?.() ?? null;
 
-    const searchInput = document.querySelector(
-      'input[placeholder*="zoek" i], input[placeholder*="search" i], input[type="search"]',
-    );
-    const priceMin = document.querySelector(
-      'input[type="number"][placeholder*="min" i], input[type="number"]',
-    );
+    // Progressive discovery chrome: product search is inside expanded filters.
+    const productSearch =
+      [...document.querySelectorAll("input")].find((i) =>
+        /zoek in producten|search in products/i.test(i.placeholder || ""),
+      ) ||
+      document.querySelector(
+        'input[type="search"][placeholder*="categorie" i], input[type="search"]',
+      );
+
+    const priceMin =
+      [...document.querySelectorAll('input[type="number"]')].find((el) =>
+        /min/i.test(el.getAttribute("placeholder") || ""),
+      ) || document.querySelector('input[type="number"]');
+
     const firstTile =
-      feed?.querySelector("[data-product-id], [data-item-id], article, a[href*='/product']") ??
-      null;
+      feed?.querySelector(
+        "[data-product-id], [data-item-id], article, a[href*='/product']",
+      ) ?? null;
 
     const tiles = feed
       ? [...feed.querySelectorAll("article, [data-product-id]")].slice(0, 3)
       : [];
+
+    const filtersToggle = document.querySelector("[data-wx-filters-toggle]");
 
     return {
       found: Boolean(ws),
@@ -139,6 +150,8 @@ async function readSnap(page) {
         document.querySelector('[data-aw-stable-feed-slot="1"]'),
       ),
       windowScrollY: Math.floor(window.scrollY || window.pageYOffset || 0),
+      /** Observed scroll owner in multi-col chrome: workspace section. */
+      workspaceScrollTop: ws ? Math.floor(ws.scrollTop) : null,
       feedScrollTop: feed ? Math.floor(feed.scrollTop) : null,
       visibleAnchor: firstTile
         ? {
@@ -151,38 +164,31 @@ async function readSnap(page) {
           }
         : null,
       tileCountSample: tiles.length,
-      search: searchInput
+      filtersTogglePresent: Boolean(filtersToggle),
+      filtersExpanded:
+        filtersToggle?.getAttribute("aria-expanded") === "true",
+      search: productSearch
         ? {
             available: true,
-            value: searchInput.value,
-            placeholder: searchInput.getAttribute("placeholder"),
+            value: productSearch.value,
+            placeholder: productSearch.getAttribute("placeholder"),
           }
         : {
             available: false,
             value: null,
-            reason:
-              "No search input in current DOM (chrome may hide refine row at this Mode)",
+            reason: filtersToggle
+              ? "Filters toggle present but search inputs not expanded/visible"
+              : "No progressive filters toggle or search input in DOM",
           },
-      filter: (() => {
-        const filterBtn = [...document.querySelectorAll("button")].find((b) =>
-          /filters|filters|filter/i.test(b.textContent || ""),
-        );
-        const openPanel = document.querySelector(
-          'input[type="number"]',
-        );
-        if (!openPanel && !filterBtn) {
-          return {
-            available: false,
-            minPrice: null,
-            reason: "No filter chrome in current DOM",
-          };
-        }
-        return {
-          available: Boolean(openPanel || filterBtn),
-          minPrice: openPanel ? openPanel.value : null,
-          filterButtonPresent: Boolean(filterBtn),
-        };
-      })(),
+      filter: {
+        available: Boolean(priceMin) || Boolean(filtersToggle),
+        minPrice: priceMin ? priceMin.value : null,
+        filterButtonPresent: Boolean(filtersToggle),
+        reason:
+          priceMin || filtersToggle
+            ? null
+            : "No filter chrome in current DOM",
+      },
       feedOwner:
         document
           .querySelector("[data-aw-feed-controlled-host]")
@@ -256,27 +262,53 @@ async function waitFeedStable(page) {
 
 async function seedScroll(page) {
   return page.evaluate(() => {
+    const target = 220;
+    const ws = document.querySelector("[data-aw-feed-workspace]");
     const feed = document.querySelector('[data-aw-stable-feed-slot="1"]');
-    const target = 180;
-    if (feed) {
-      // Ensure scrollable
+    /**
+     * Observed runtime: in multi-col chrome the workspace SECTION is the
+     * scroll owner (feed slot expands with content). Prefer workspace.
+     */
+    let owner = null;
+    if (ws && ws.scrollHeight > ws.clientHeight + 40) {
+      ws.scrollTop = target;
+      owner = "workspace";
+    } else if (feed && feed.scrollHeight > feed.clientHeight + 40) {
       feed.scrollTop = target;
-      if (feed.scrollTop < 40) {
-        // Stage may not be the scroll owner in compact chrome — try window
-        window.scrollTo(0, target);
-      }
+      owner = "feed-slot";
     } else {
       window.scrollTo(0, target);
+      owner = "window";
     }
-    const feedEl = document.querySelector('[data-aw-stable-feed-slot="1"]');
     return {
-      feedScrollTop: feedEl ? Math.floor(feedEl.scrollTop) : null,
+      owner,
+      workspaceScrollTop: ws ? Math.floor(ws.scrollTop) : null,
+      feedScrollTop: feed ? Math.floor(feed.scrollTop) : null,
       windowScrollY: Math.floor(window.scrollY || 0),
+      workspaceScrollHeight: ws ? ws.scrollHeight : null,
+      workspaceClientHeight: ws ? ws.clientHeight : null,
+    };
+  });
+}
+
+async function expandFiltersChrome(page) {
+  return page.evaluate(() => {
+    const toggle = document.querySelector("[data-wx-filters-toggle]");
+    if (!toggle) return { expanded: false, reason: "no-toggle" };
+    if (toggle.getAttribute("aria-expanded") !== "true") {
+      toggle.click();
+    }
+    return {
+      expanded: toggle.getAttribute("aria-expanded") === "true",
+      reason: "toggle-clicked-or-already-open",
     };
   });
 }
 
 async function applyFilterAndSearch(page) {
+  await expandFiltersChrome(page);
+  await new Promise((r) => setTimeout(r, 500));
+
   return page.evaluate(
     ({ searchToken, minPrice }) => {
       const result = {
@@ -284,32 +316,34 @@ async function applyFilterAndSearch(page) {
         filter: { attempted: false, applied: false, value: null, na: false },
       };
 
-      const searchInput = document.querySelector(
-        'input[placeholder*="zoek" i], input[placeholder*="search" i], input[type="search"]',
-      );
-      if (searchInput) {
-        result.search.attempted = true;
+      const setNativeValue = (el, value) => {
         const setter = Object.getOwnPropertyDescriptor(
           window.HTMLInputElement.prototype,
           "value",
         )?.set;
-        setter?.call(searchInput, searchToken);
-        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
-        searchInput.dispatchEvent(new Event("change", { bubbles: true }));
+        setter?.call(el, value);
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      };
+
+      const searchInput =
+        [...document.querySelectorAll("input")].find((i) =>
+          /zoek in producten|search in products/i.test(i.placeholder || ""),
+        ) ||
+        document.querySelector(
+          'input[type="search"][placeholder*="categorie" i]',
+        );
+
+      if (searchInput) {
+        result.search.attempted = true;
+        setNativeValue(searchInput, searchToken);
         result.search.applied = searchInput.value === searchToken;
         result.search.value = searchInput.value;
+        result.search.placeholder = searchInput.placeholder;
       } else {
         result.search.na = true;
         result.search.reason =
-          "Search input not present after opening wide chrome";
-      }
-
-      // Open filters panel if needed
-      const filterBtn = [...document.querySelectorAll("button")].find((b) =>
-        /filters|filter/i.test((b.textContent || "").trim()),
-      );
-      if (filterBtn) {
-        filterBtn.click();
+          "Search input not present after expanding progressive filters chrome";
       }
 
       const priceInputs = [
@@ -321,19 +355,13 @@ async function applyFilterAndSearch(page) {
         ) || priceInputs[0];
       if (minInput) {
         result.filter.attempted = true;
-        const setter = Object.getOwnPropertyDescriptor(
-          window.HTMLInputElement.prototype,
-          "value",
-        )?.set;
-        setter?.call(minInput, minPrice);
-        minInput.dispatchEvent(new Event("input", { bubbles: true }));
-        minInput.dispatchEvent(new Event("change", { bubbles: true }));
+        setNativeValue(minInput, minPrice);
         result.filter.applied = minInput.value === minPrice;
         result.filter.value = minInput.value;
       } else {
         result.filter.na = true;
         result.filter.reason =
-          "Price filter inputs not present in current UI chrome";
+          "Price filter inputs not present after expanding progressive filters chrome";
       }
 
       return result;
@@ -496,6 +524,8 @@ async function main() {
   await new Promise((r) => setTimeout(r, 300));
   const afterScroll = await record("scroll-seeded", { scrollSeed });
   const scrollBaseline = {
+    owner: scrollSeed.owner,
+    workspaceScrollTop: afterScroll.snap.workspaceScrollTop,
     feedScrollTop: afterScroll.snap.feedScrollTop,
     windowScrollY: afterScroll.snap.windowScrollY,
     visibleAnchor: afterScroll.snap.visibleAnchor,
@@ -568,14 +598,9 @@ async function main() {
 
   await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
   await new Promise((r) => setTimeout(r, 900));
-  // Re-open filters if needed to read min price
-  await page.evaluate(() => {
-    const filterBtn = [...document.querySelectorAll("button")].find((b) =>
-      /filters|filter/i.test((b.textContent || "").trim()),
-    );
-    filterBtn?.click();
-  });
-  await new Promise((r) => setTimeout(r, 400));
+  // Re-expand progressive filters to read search/filter values after journey
+  await expandFiltersChrome(page);
+  await new Promise((r) => setTimeout(r, 500));
   const finalWide = await record("final-wide-state-check");
 
   // ---- Evaluate proofs ----
@@ -586,48 +611,62 @@ async function main() {
   );
   const allStructuralPass = steps.every((s) => stepPass(s.snap, baseline));
 
-  // Scroll: after Mode-crossing steps, feed/window scroll must not reset to 0
-  // if we successfully seeded a non-zero position.
+  // Scroll continuity against the observed scroll owner.
   const seededNonZero =
+    (scrollBaseline.workspaceScrollTop ?? 0) > 40 ||
     (scrollBaseline.feedScrollTop ?? 0) > 40 ||
     (scrollBaseline.windowScrollY ?? 0) > 40;
 
-  const scrollAfterTransitions = steps.filter((s) =>
-    /osc-|phone-|return-/.test(s.id),
+  const scrollCheckSteps = steps.filter((s) =>
+    /osc-|phone-|return-|final-wide/.test(s.id),
   );
   let scrollClass = "not-seeded";
-  let scrollPass = true;
-  if (seededNonZero) {
-    const resets = scrollAfterTransitions.filter((s) => {
-      const feed = s.snap.feedScrollTop;
-      const win = s.snap.windowScrollY;
-      // If feed was the scroll owner
-      if ((scrollBaseline.feedScrollTop ?? 0) > 40) {
-        if (feed == null) return false;
-        return feed <= 8;
+  let scrollPass = false;
+  if (!seededNonZero) {
+    scrollClass = "seed-failed-blocker";
+    scrollPass = false;
+  } else {
+    const readPos = (s) => {
+      if ((scrollBaseline.workspaceScrollTop ?? 0) > 40) {
+        return s.snap.workspaceScrollTop;
       }
-      return win <= 8;
+      if ((scrollBaseline.feedScrollTop ?? 0) > 40) {
+        return s.snap.feedScrollTop;
+      }
+      return s.snap.windowScrollY;
+    };
+    const seedPos =
+      scrollBaseline.workspaceScrollTop ??
+      scrollBaseline.feedScrollTop ??
+      scrollBaseline.windowScrollY ??
+      0;
+
+    // After Mode transitions that keep multi-col (or return to it), must not
+    // hard-reset to top. Narrow browse may change geometry (bounded reflow).
+    const multiColish = scrollCheckSteps.filter((s) =>
+      /full-workspace|professional-workspace|hybrid-workspace/.test(
+        s.snap.mode || "",
+      ),
+    );
+    const resets = multiColish.filter((s) => {
+      const pos = readPos(s);
+      return pos == null || pos <= 8;
     });
     if (resets.length > 0) {
       scrollPass = false;
       scrollClass = "true-state-loss";
     } else {
-      // Bound reflow: allow ±SCROLL_TOLERANCE vs seed when comparable
-      const drifted = scrollAfterTransitions.some((s) => {
-        if ((scrollBaseline.feedScrollTop ?? 0) > 40 && s.snap.feedScrollTop != null) {
-          return (
-            Math.abs(s.snap.feedScrollTop - scrollBaseline.feedScrollTop) >
-            SCROLL_TOLERANCE_PX * 3
-          );
-        }
-        return false;
+      const drifted = multiColish.some((s) => {
+        const pos = readPos(s);
+        return (
+          pos != null && Math.abs(pos - seedPos) > SCROLL_TOLERANCE_PX * 4
+        );
       });
-      scrollClass = drifted ? "bounded-reflow" : "preserved-logical-position";
+      scrollClass = drifted
+        ? "bounded-reflow"
+        : "preserved-logical-position";
       scrollPass = true;
     }
-  } else {
-    scrollClass = "seed-not-applicable-geometry";
-    scrollPass = true; // cannot prove scroll when stage isn't scrollable; not a remount fail
   }
 
   // Filter / search preservation
