@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * WX Phase 1A — structural + Chromium browser proof (presentation only).
+ * WX Phase 1A.1 — post-production correction proof (presentation only).
  *
- *   node scripts/probe-wx-phase1a-workspace-foundations.mjs --base-url=http://127.0.0.1:3080
+ *   HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=on npx next start -p 3081
+ *   node scripts/probe-wx-phase1a-workspace-foundations.mjs --base-url=http://127.0.0.1:3081
  */
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
