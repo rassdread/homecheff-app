@@ -11,7 +11,7 @@
 | Kind | Hash |
 | --- | --- |
 | Production runtime (merge) | `5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4` |
-| Documentation freeze commit | `3e758374bceef93ccc5fa43649456e3afaccf97f` |
+| Documentation freeze commit | `e2430a33042f8223aea1517c2aa4537480c7d786` |
 | Pre-merge / rollback target | `0a0299408b5e531f1971d97c6cfe9bb0b95f721d` |
 
 ---

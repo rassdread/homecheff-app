@@ -1,6 +1,6 @@
 {
   "phase": "WX-1B.2",
-  "title": "Transition Continuity — Production Freeze",
+  "title": "Transition Continuity \u2014 Production Freeze",
   "verdict": "WX_PHASE_1B2_PRODUCTION_SUCCESS",
   "status": "PRODUCTION_FROZEN",
   "timestamp": "2026-07-31T16:13:46.652Z",
@@ -43,7 +43,7 @@
     "oscillationsPerBoundary": 5,
     "totalOscillationHalfSteps": 30,
     "modeChanges": 33,
-    "scroll": "bounded-reflow 220→final wide non-zero",
+    "scroll": "bounded-reflow 220\u2192final wide non-zero",
     "filter": "5 preserved",
     "search": "wx1b2probe preserved",
     "mount": "wx-primary-mount:2 stable",
@@ -58,8 +58,8 @@
   "preMergeMain": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
   "noPhase1b3": true,
   "noPhase1b4": true,
-  "freezeCommit": "3e758374bceef93ccc5fa43649456e3afaccf97f",
+  "freezeCommit": "e2430a33042f8223aea1517c2aa4537480c7d786",
   "note": "Production runtime commit is the merge commit; freeze commit is docs-only tip after this pack.",
-  "freezeCommitNote": "Documentation-only freeze commit. Production runtime remains merge 5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4.",
+  "freezeCommitNote": "Primary documentation freeze commit on main. Tip may include stamp-correction only. Production runtime remains 5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4.",
   "productionRuntimeCommit": "5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4"
 }
