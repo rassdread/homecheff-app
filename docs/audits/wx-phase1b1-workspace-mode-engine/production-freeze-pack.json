@@ -42,5 +42,6 @@
   "stopGate": {
     "nextPhaseBlocked": "WX-1B.2",
     "requireExplicitApprovalBeforeNextPhase": true
-  }
+  },
+  "freezeDocCommit": "21ed6ec42b343c75ba316dce3143e3d7fba5fed9"
 }
