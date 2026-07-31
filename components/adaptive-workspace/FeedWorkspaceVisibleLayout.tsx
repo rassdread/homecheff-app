@@ -8,6 +8,7 @@
  * a fixed React sibling index across AvailableSpace / orientation changes.
  *
  * WX Phase 1A.1: full-width orientation strip + continuous Workspace frame chrome.
+ * WX Phase 1B.1: Workspace Mode Engine diagnostics only (no layout/capability changes).
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  */
@@ -26,6 +27,7 @@ import {
   coalesceMeasurement,
   normalizeWorkspaceMeasurement,
   resolveFeedWorkspaceVisibleLayout,
+  resolveWorkspaceMode,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
 } from "@/lib/adaptive-workspace-react";
@@ -122,6 +124,12 @@ export default function FeedWorkspaceVisibleLayout({
     usableHeightPx: measurement?.heightPx ?? initialHeightPx ?? 800,
   });
 
+  /** WX 1B.1 — authoritative Mode identity; does not drive layout in this phase. */
+  const modePlan = resolveWorkspaceMode({
+    usableWidthPx: plan.usableWidthPx,
+    usableHeightPx: plan.usableHeightPx,
+  });
+
   useEffect(() => {
     onPlanChange?.(plan);
   }, [plan.stabilityToken, onPlanChange]);
@@ -157,7 +165,12 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1a.1"
+      data-wx-phase="1b.1"
+      data-wx-mode={modePlan.mode}
+      data-wx-posture={modePlan.posture}
+      data-wx-mode-token={modePlan.stabilityToken}
+      data-wx-height-demoted={modePlan.heightDemoted ? "1" : "0"}
+      data-wx-landscape-carve-out={modePlan.landscapeCarveOut ? "1" : "0"}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
