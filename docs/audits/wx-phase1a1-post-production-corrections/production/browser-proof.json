@@ -1,0 +1,453 @@
+{
+  "phase": "wx-phase1a1-post-production-corrections",
+  "baseUrl": "https://homecheff.eu",
+  "capturedAt": "2026-07-31T01:11:20.535Z",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/phone-portrait-390x844.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": false,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 197,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "mobile-portrait",
+        "supportingPanels": "0",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Careers",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profile",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Messages",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputation",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Sell or share",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 0,
+          "y": 270,
+          "width": 390,
+          "height": 475,
+          "bottom": 745
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/phone-landscape-844x390.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Careers",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profile",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Messages",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputation",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Sell or share",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 9,
+          "y": 239,
+          "width": 566,
+          "height": 540,
+          "bottom": 779
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/tablet-portrait-768x1024.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-portrait",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Careers",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profile",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Messages",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputation",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Sell or share",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 9,
+          "y": 239,
+          "width": 490,
+          "height": 512,
+          "bottom": 751
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/tablet-landscape-1024x768.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Careers",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profile",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Messages",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputation",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Sell or share",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 22,
+          "y": 239,
+          "width": 720,
+          "height": 921,
+          "bottom": 1159
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/desktop-1440x900.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Careers",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profile",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Messages",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputation",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Sell or share",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 340,
+          "y": 239,
+          "width": 720,
+          "height": 772,
+          "bottom": 1011
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "width": 2560,
+        "height": 1440
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/production/screenshots/ultrawide-2560x1440.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop-wide",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Sell or share",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Careers",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profile",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Messages",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputation",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Sell or share",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 900,
+          "y": 239,
+          "width": 720,
+          "height": 772,
+          "bottom": 1011
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    }
+  ],
+  "failures": [],
+  "overallVerdict": "WX_PHASE_1A1_PASS"
+}

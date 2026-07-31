@@ -1,0 +1,493 @@
+{
+  "phase": "wx-phase1a1-post-production-corrections",
+  "baseUrl": "http://127.0.0.1:3082",
+  "capturedAt": "2026-07-31T00:59:54.850Z",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/local/screenshots/phone-portrait-390x844.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": false,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 74,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "mobile-portrait",
+        "supportingPanels": "0",
+        "primaryActionPresent": true,
+        "primaryActionText": "",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 0,
+          "y": 147,
+          "width": 390,
+          "height": 1518,
+          "bottom": 1665
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": [
+        "[feed-perf] layout:hydration-complete 26834ms",
+        "[feed-perf] layout:hydration-complete 26835ms"
+      ]
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/local/screenshots/phone-landscape-844x390.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 143,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 9,
+          "y": 217,
+          "width": 566,
+          "height": 540,
+          "bottom": 758
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)",
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+      ],
+      "hydrationWarnings": [
+        "[feed-perf] layout:hydration-complete 14637ms",
+        "[feed-perf] layout:hydration-complete 14639ms"
+      ]
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/local/screenshots/tablet-portrait-768x1024.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 143,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-portrait",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 9,
+          "y": 217,
+          "width": 490,
+          "height": 512,
+          "bottom": 729
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)",
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)",
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)",
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)",
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)",
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)",
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)",
+        "Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.%s \n    at GeoFeed (webpack-internal:///(app-pages-browser)/./components/feed/GeoFeed.tsx:651:11)\n    at BailoutToCSR (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/shared/lib/lazy-dynamic/dynamic-bailout-to-csr.js:13:11)\n    at Suspense\n    at LoadableComponent\n    at div\n    at div\n    at div\n    at WorkspacePanel (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspacePanel.tsx:13:11)\n    at div\n    at WorkspaceSlot (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceSlot.tsx:13:11)\n    at div\n    at WorkspaceRegion (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/WorkspaceRegion.tsx:14:11)\n    at div\n    at section\n    at FeedWorkspaceVisibleLayout (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx:45:11)\n    at div\n    at FeedControlledHostShell (webpack-internal:///(app-pages-browser)/./components/adaptive-workspace/FeedControlledHostShell.tsx:18:49)\n    at div\n    at div\n    at HomePageClient (webpack-internal:///(app-pages-browser)/./components/home/HomePageClient.tsx:125:11)\n    at HomePage (Server)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at Suspense\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at main\n    at div\n    at AppPageChrome (webpack-internal:///(app-pages-browser)/./components/AppPageChrome.tsx:18:11)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+      ],
+      "hydrationWarnings": [
+        "[feed-perf] layout:hydration-complete 3064ms",
+        "[feed-perf] layout:hydration-complete 3065ms"
+      ]
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/local/screenshots/tablet-landscape-1024x768.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 143,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 22,
+          "y": 217,
+          "width": 720,
+          "height": 743,
+          "bottom": 960
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": [
+        "[feed-perf] layout:hydration-complete 785ms",
+        "[feed-perf] layout:hydration-complete 786ms"
+      ]
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/local/screenshots/desktop-1440x900.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 76,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 340,
+          "y": 150,
+          "width": 720,
+          "height": 606,
+          "bottom": 756
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "width": 2560,
+        "height": 1440
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/local/screenshots/ultrawide-2560x1440.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop-wide",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": true
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": true,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 900,
+          "y": 239,
+          "width": 720,
+          "height": 594,
+          "bottom": 833
+        },
+        "firstTileBounds": null,
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [
+        "Warning: Prop `%s` did not match. Server: %s Client: %s%s className \"lucide lucide-house hidden xl:inline-block w-4 h-4 shrink-0\" \"lucide lucide-house w-4 h-4 shrink-0\" \n    at svg\n    at _c (webpack-internal:///(app-pages-browser)/./node_modules/lucide-react/dist/esm/Icon.js:18:11)\n    at eval (webpack-internal:///(app-pages-browser)/./node_modules/lucide-react/dist/esm/createLucideIcon.js:19:15)\n    at a\n    at LinkComponent (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/link.js:121:19)\n    at nav\n    at div\n    at div\n    at header\n    at NavBar (webpack-internal:///(app-pages-browser)/./components/NavBar.tsx:104:98)\n    at Suspense\n    at LoadableComponent (Server)\n    at CreateFlowProvider (webpack-internal:///(app-pages-browser)/./components/create/CreateFlowContext.tsx:65:11)\n    at HcpRewardProvider (webpack-internal:///(app-pages-browser)/./components/gamification/HcpRewardProvider.tsx:25:11)\n    at CommsUnreadProvider (webpack-internal:///(app-pages-browser)/./components/communication/CommsUnreadProvider.tsx:31:11)\n    at UserBootstrapProvider (webpack-internal:///(app-pages-browser)/./components/user/UserBootstrapProvider.tsx:20:11)\n    at SessionIsolationWrapper (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:76:11)\n    at AppUpdateStatusProvider (webpack-internal:///(app-pages-browser)/./components/app/AppUpdateStatusProvider.tsx:53:11)\n    at SessionProvider (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react/index.js:365:24)\n    at Providers (webpack-internal:///(app-pages-browser)/./components/Providers.tsx:90:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+      ],
+      "hydrationWarnings": [
+        "[feed-perf] layout:hydration-complete 22580ms",
+        "[feed-perf] layout:hydration-complete 22581ms"
+      ]
+    }
+  ],
+  "failures": [
+    "phone-portrait: hydration",
+    "phone-landscape: console errors",
+    "phone-landscape: hydration",
+    "tablet-portrait: console errors",
+    "tablet-portrait: hydration",
+    "tablet-landscape: hydration",
+    "desktop: orientation strip too weak (h=76)",
+    "ultrawide: nav labels truncated or clipped",
+    "ultrawide: console errors",
+    "ultrawide: hydration"
+  ],
+  "overallVerdict": "WX_PHASE_1A1_FAIL"
+}

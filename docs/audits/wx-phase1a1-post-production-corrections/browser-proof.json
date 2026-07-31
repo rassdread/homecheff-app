@@ -1,0 +1,489 @@
+{
+  "phase": "wx-phase1a1-post-production-corrections",
+  "baseUrl": "http://127.0.0.1:3081",
+  "capturedAt": "2026-07-31T01:07:00.907Z",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/screenshots/phone-portrait-390x844.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": false,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 197,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "mobile-portrait",
+        "supportingPanels": "0",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 0,
+          "y": 270,
+          "width": 390,
+          "height": 2614,
+          "bottom": 2883
+        },
+        "firstTileBounds": {
+          "x": 8,
+          "y": 485,
+          "width": 182,
+          "height": 312,
+          "bottom": 797
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/screenshots/phone-landscape-844x390.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 9,
+          "y": 239,
+          "width": 566,
+          "height": 3126,
+          "bottom": 3365
+        },
+        "firstTileBounds": {
+          "x": 21,
+          "y": 456,
+          "width": 265,
+          "height": 395,
+          "bottom": 851
+        },
+        "firstTileInFirstViewport": false,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/screenshots/tablet-portrait-768x1024.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-portrait",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": false,
+        "filtersDefaultCollapsed": false,
+        "feedBounds": {
+          "x": 9,
+          "y": 239,
+          "width": 490,
+          "height": 2898,
+          "bottom": 3137
+        },
+        "firstTileBounds": {
+          "x": 21,
+          "y": 456,
+          "width": 227,
+          "height": 357,
+          "bottom": 813
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/screenshots/tablet-landscape-1024x768.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": "1",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 22,
+          "y": 239,
+          "width": 720,
+          "height": 7204,
+          "bottom": 7443
+        },
+        "firstTileBounds": {
+          "x": 34,
+          "y": 477,
+          "width": 696,
+          "height": 689,
+          "bottom": 1166
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/screenshots/desktop-1440x900.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 340,
+          "y": 239,
+          "width": 720,
+          "height": 7240,
+          "bottom": 7479
+        },
+        "firstTileBounds": {
+          "x": 352,
+          "y": 477,
+          "width": 696,
+          "height": 689,
+          "bottom": 1166
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "width": 2560,
+        "height": 1440
+      },
+      "screenshot": "docs/audits/wx-phase1a1-post-production-corrections/screenshots/ultrawide-2560x1440.png",
+      "metrics": {
+        "workspacePresent": true,
+        "workspaceFrame": true,
+        "orientationPresent": true,
+        "orientationSpansWorkspace": true,
+        "orientationHeight": 165,
+        "orientationMetaPresent": true,
+        "hostOwner": "geofeed",
+        "visibilityMode": "on",
+        "layoutMode": "desktop-wide",
+        "supportingPanels": "2",
+        "primaryActionPresent": true,
+        "primaryActionText": "Verkoop of deel",
+        "primaryActionTruncated": false,
+        "navLabels": [
+          {
+            "text": "Home",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Werken bij",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Profiel",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Berichten",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Reputatie",
+            "truncated": false,
+            "clipped": false
+          },
+          {
+            "text": "Verkoop of deel",
+            "truncated": false,
+            "clipped": false
+          }
+        ],
+        "navLabelTruncated": false,
+        "siteFooterVisible": false,
+        "railChromeCount": 2,
+        "stageChrome": true,
+        "progressiveDiscovery": true,
+        "filtersDefaultCollapsed": true,
+        "feedBounds": {
+          "x": 900,
+          "y": 239,
+          "width": 720,
+          "height": 7240,
+          "bottom": 7479
+        },
+        "firstTileBounds": {
+          "x": 912,
+          "y": 477,
+          "width": 696,
+          "height": 689,
+          "bottom": 1166
+        },
+        "firstTileInFirstViewport": true,
+        "marketingHeroPresent": false,
+        "sealed": null
+      },
+      "consoleErrors": [],
+      "hydrationWarnings": []
+    }
+  ],
+  "failures": [],
+  "overallVerdict": "WX_PHASE_1A1_PASS"
+}
