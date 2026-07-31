@@ -241,7 +241,7 @@ export default function HomePageClient({
   );
 
   const pageShellClass = layoutVisible
-    ? "hc-home-page-shell hc-aw-full-bleed hc-wx-shell w-full max-w-none mx-auto px-2 sm:px-3 py-2 sm:py-3"
+    ? "hc-home-page-shell hc-aw-full-bleed hc-wx-shell w-full max-w-none mx-auto px-0 sm:px-2 lg:px-3 py-0 sm:py-2 bg-gray-100/70"
     : "hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-3 sm:py-5";
 
   return (

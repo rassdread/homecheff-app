@@ -7,7 +7,7 @@
  * Rails hide via `hidden` without unmounting the primary slot, so GeoFeed keeps
  * a fixed React sibling index across AvailableSpace / orientation changes.
  *
- * WX Phase 1A: optional full-width orientation strip + permanent rail chrome.
+ * WX Phase 1A.1: full-width orientation strip + continuous Workspace frame chrome.
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  */
@@ -61,10 +61,10 @@ function readViewportHeightPx(): number {
 }
 
 const railChromeClass =
-  "hc-wx-rail h-full min-h-0 flex flex-col rounded-xl border border-gray-200/80 bg-white/90";
+  "hc-wx-rail h-full min-h-0 flex flex-col bg-white";
 
 const railScrollClass =
-  "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 [-webkit-overflow-scrolling:touch]";
+  "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 py-2.5 [-webkit-overflow-scrolling:touch]";
 
 export default function FeedWorkspaceVisibleLayout({
   primary,
@@ -157,7 +157,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1a"
+      data-wx-phase="1a.1"
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
@@ -169,7 +169,7 @@ export default function FeedWorkspaceVisibleLayout({
       aria-label={ariaLabel}
       className={
         multiCol
-          ? "hc-aw-feed-workspace w-full min-w-0 grid gap-2 sm:gap-3 items-stretch max-h-[calc(100dvh-5rem)] min-h-[12rem] h-[calc(100dvh-5rem)]"
+          ? "hc-aw-feed-workspace hc-wx-frame w-full min-w-0 grid gap-0 items-stretch max-h-[calc(100dvh-5rem)] min-h-[12rem] h-[calc(100dvh-5rem)] overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-sm"
           : "hc-aw-feed-workspace w-full min-w-0 grid gap-2 sm:gap-3"
       }
       style={{
@@ -210,7 +210,7 @@ export default function FeedWorkspaceVisibleLayout({
                 data-aw-rail="start"
                 data-aw-rail-width={String(plan.startRailWidthPx)}
                 data-wx-rail-chrome=""
-                className={railChromeClass}
+                className={`${railChromeClass} border-r border-gray-200/80`}
               >
                 <div className={railScrollClass}>{startPanel}</div>
               </aside>
@@ -236,7 +236,7 @@ export default function FeedWorkspaceVisibleLayout({
             >
               <div
                 data-wx-stage-chrome=""
-                className="hc-wx-stage h-full min-h-0 flex flex-col rounded-xl border border-gray-200/60 bg-white/70"
+                className="hc-wx-stage h-full min-h-0 flex flex-col bg-gray-50/40"
               >
                 <div
                   id="homecheff-feed-desktop"
@@ -273,7 +273,7 @@ export default function FeedWorkspaceVisibleLayout({
                 data-aw-rail="end"
                 data-aw-rail-width={String(plan.endRailWidthPx)}
                 data-wx-rail-chrome=""
-                className={railChromeClass}
+                className={`${railChromeClass} border-l border-gray-200/80`}
               >
                 <div className={railScrollClass}>{endPanel}</div>
               </aside>

@@ -93,10 +93,10 @@ export default function HomeDesktopLeftSidebar() {
             <button
               type="button"
               onClick={() => requireAuthAction('create', '/sell/new')}
-              className="flex w-full items-center gap-3 rounded-xl bg-primary-brand px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition-colors text-left whitespace-nowrap"
+              className="flex w-full items-center gap-2 rounded-xl bg-primary-brand px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition-colors text-left overflow-visible"
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden />
-              <span className="whitespace-nowrap">{t('homePhase1.ctaShare')}</span>
+              <span className="min-w-0 whitespace-normal leading-snug">{t('homePhase1.ctaShare')}</span>
             </button>
           </SidebarSection>
         )}

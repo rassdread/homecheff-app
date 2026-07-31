@@ -13,6 +13,15 @@ export default function Footer() {
   const pathname = usePathname();
   const compactPath = isCompactMobileFooterPath(pathname);
 
+  /**
+   * WX 1A.1 — site footer Logo/bar sits below the Adaptive Workspace shell and
+   * reads as a floating HomeCheff brand strip in the left rail dead space.
+   * Home owns continuous Workspace chrome; legal links remain on other routes.
+   */
+  if (pathname === '/') {
+    return null;
+  }
+
   const links = [
     { href: '/affiliate', label: t('siteFooter.affiliateProgram'), icon: TrendingUp },
     { href: '/docs', label: t('siteFooter.openDocs'), icon: Library },

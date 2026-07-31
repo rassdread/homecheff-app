@@ -95,24 +95,28 @@ export default function NavBar() {
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand'
   );
 
-  /** Desktop top-nav: compact lg–1279, premium xl+. */
+  /** Desktop top-nav: denser lg–xl so labels never clip (WX 1A.1 / WDL P6). */
   const desktopNavGhostClass = cn(
-    'inline-flex shrink-0 items-center justify-center rounded-2xl font-medium transition-all duration-200',
-    'px-3 py-2 text-sm lg:px-4 lg:py-2.5 lg:text-sm',
-    'xl:px-6 xl:py-3 xl:text-base',
+    'inline-flex shrink-0 items-center justify-center rounded-xl font-medium transition-all duration-200',
+    'gap-1 px-1.5 py-2 text-[13px] leading-none',
+    'xl:gap-1.5 xl:px-2.5 xl:py-2.5 xl:text-sm',
+    '2xl:gap-2 2xl:px-3',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
     'bg-transparent text-primary-brand hover:bg-primary-50 hover:shadow-sm touch-manipulation select-none whitespace-nowrap'
   );
+  /** Icons cost ~20px each; hide below xl so Dutch labels stay fully readable at lg. */
+  const desktopNavIconClass = 'hidden xl:inline-block w-4 h-4 shrink-0';
 
-  /** Guest auth CTAs — altijd zichtbaar, buiten de inkrimpende nav (md–lg overflow-fix). */
+  /** Guest auth CTAs — altijd zichtbaar; denser at lg so primary nav labels stay readable. */
   const guestAuthLoginClass = cn(
     'inline-flex shrink-0 items-center justify-center rounded-xl font-medium transition-colors touch-manipulation no-underline whitespace-nowrap',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
     'bg-transparent text-gray-700 hover:bg-primary-50 hover:text-primary-brand',
     'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm',
     'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
-    'lg:rounded-2xl lg:px-4 lg:py-2.5 lg:text-sm',
-    'xl:px-6 xl:py-3 xl:text-base',
+    'lg:rounded-xl lg:px-2.5 lg:py-2 lg:text-[13px] lg:min-h-0',
+    'xl:rounded-2xl xl:px-4 xl:py-2.5 xl:text-sm',
+    '2xl:px-6 2xl:py-3 2xl:text-base',
   );
   const guestAuthRegisterClass = cn(
     'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold transition-all touch-manipulation no-underline whitespace-nowrap',
@@ -122,8 +126,9 @@ export default function NavBar() {
     'xl:shadow-lg xl:hover:shadow-xl xl:hover:-translate-y-0.5',
     'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm',
     'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
-    'lg:rounded-2xl lg:px-4 lg:py-2.5 lg:text-sm',
-    'xl:px-6 xl:py-3 xl:text-base',
+    'lg:rounded-xl lg:px-2.5 lg:py-2 lg:text-[13px] lg:min-h-0',
+    'xl:rounded-2xl xl:px-4 xl:py-2.5 xl:text-sm',
+    '2xl:px-6 2xl:py-3 2xl:text-base',
   );
 
   const user =
@@ -345,14 +350,14 @@ export default function NavBar() {
 
   return (
     <header
-      className={`w-full max-w-[100vw] overflow-x-clip border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
+      className={`w-full max-w-[100vw] overflow-x-clip lg:overflow-x-visible border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
         nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : ''
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative min-w-0">
+      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 xl:px-8 relative min-w-0">
         <div className="flex items-center justify-between h-16 min-w-0 gap-1 sm:gap-2">
-          {/* Logo — icoon lg–1279, volledig merk xl+ */}
-          <div className="flex shrink-0 items-center min-w-0 max-w-[42%] sm:max-w-[48%] xl:max-w-none overflow-hidden">
+          {/* Logo — icoon tot xl, volledig merk xl+; never steal nav label space */}
+          <div className="flex shrink-0 items-center min-w-0">
             <div className="xl:hidden">
               <Logo size="md" showText={false} />
             </div>
@@ -361,36 +366,39 @@ export default function NavBar() {
             </div>
           </div>
 
-          {/* Desktop Navigation — volledige rij lg+; compact lg, premium xl */}
-          <nav className="hidden lg:flex items-center gap-1 min-w-0 flex-1 justify-center overflow-hidden xl:gap-1.5">
+          {/* Desktop Navigation — WX 1A.1: shrink-0 cluster; never flex-shrink/clip labels */}
+          <nav
+            data-wx-desktop-nav=""
+            className="hidden lg:flex items-center gap-0.5 xl:gap-1 shrink-0 overflow-visible"
+          >
             <Link
               href="/"
               prefetch={false}
-              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              className={desktopNavGhostClass}
               onClick={() => navDebug('navbar:desktop', { href: '/' })}
             >
-              <Home className="w-4 h-4" />
-              <span>{t('navbar.home')}</span>
+              <Home className={desktopNavIconClass} aria-hidden />
+              <span className="whitespace-nowrap">{t('navbar.home')}</span>
             </Link>
             <Link
               href="/werken-bij"
               prefetch={false}
-              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              className={desktopNavGhostClass}
               onClick={() => navDebug('navbar:desktop', { href: '/werken-bij' })}
             >
-              <Lightbulb className="w-4 h-4" />
-              <span>{t('navbar.werkenBij')}</span>
+              <Lightbulb className={desktopNavIconClass} aria-hidden />
+              <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
             </Link>
             <Link
               href={user ? '/profile' : '/login'}
               prefetch={false}
-              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              className={desktopNavGhostClass}
               onClick={() =>
                 navDebug('navbar:desktop', { href: user ? '/profile' : '/login' })
               }
             >
-              <User className="w-4 h-4" />
-              <span>{t('bottomNav.profile')}</span>
+              <User className={desktopNavIconClass} aria-hidden />
+              <span className="whitespace-nowrap">{t('bottomNav.profile')}</span>
             </Link>
 
             {/* lg+ desktop: replaces bottom nav tabs (tablet keeps bottom nav until lg). */}
@@ -398,15 +406,15 @@ export default function NavBar() {
               <Link
                 href={user ? '/messages' : '/login'}
                 prefetch={false}
-                className={cn(desktopNavGhostClass, 'relative flex items-center space-x-2 px-4 py-3')}
+                className={cn(desktopNavGhostClass, 'relative')}
                 onClick={() =>
                   navDebug('navbar:desktop', { href: user ? '/messages' : '/login' })
                 }
               >
-                <MessageCircle className="w-4 h-4" />
-                <span>{t('navbar.messages')}</span>
+                <MessageCircle className={desktopNavIconClass} aria-hidden />
+                <span className="whitespace-nowrap">{t('navbar.messages')}</span>
                 {user && unreadCount > 0 ? (
-                  <span className="absolute -top-0.5 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  <span className="absolute -top-0.5 right-0 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 ) : null}
@@ -414,22 +422,22 @@ export default function NavBar() {
               <Link
                 href={user ? '/mijn-hcp' : '/login'}
                 prefetch={false}
-                className={cn(desktopNavGhostClass, 'flex items-center space-x-2 px-4 py-3')}
+                className={desktopNavGhostClass}
                 onClick={() =>
                   navDebug('navbar:desktop', { href: user ? '/mijn-hcp' : '/login' })
                 }
               >
-                <Award className="w-4 h-4" />
-                <span>{t('bottomNav.reputationTab')}</span>
+                <Award className={desktopNavIconClass} aria-hidden />
+                <span className="whitespace-nowrap">{t('bottomNav.reputationTab')}</span>
               </Link>
-              {/* WX 1A / WDL P6 — single dominant primary action; never truncate */}
+              {/* WX 1A.1 / WDL P6 — primary action; never truncate */}
               <button
                 type="button"
                 data-wx-primary-action=""
                 className={cn(
-                  'inline-flex shrink-0 items-center justify-center gap-2',
-                  'rounded-2xl px-4 py-2.5 xl:px-5 xl:py-3',
-                  'text-sm xl:text-base font-bold whitespace-nowrap',
+                  'inline-flex shrink-0 items-center justify-center gap-1',
+                  'rounded-xl px-2.5 py-2 xl:gap-1.5 xl:px-3.5 xl:py-2.5',
+                  'text-[13px] xl:text-sm font-bold whitespace-nowrap leading-none',
                   'bg-primary-brand text-white hover:bg-primary-700',
                   'shadow-sm hover:shadow-md',
                   'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
@@ -448,12 +456,13 @@ export default function NavBar() {
                 <span className="whitespace-nowrap">{t('homePhase1.ctaShare')}</span>
               </button>
             </div>
-
-            <LanguageSwitcher />
           </nav>
 
-          {/* Rechtercluster: auth altijd bereikbaar; hamburger < lg */}
-          <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Rechtercluster: language + auth altijd buiten de nav-flex; hamburger < lg */}
+          <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0 pl-1">
+            <div className="hidden lg:block shrink-0">
+              <LanguageSwitcher />
+            </div>
             {(status === 'unauthenticated' || status === 'loading') && !user && (
               <>
                 <Link
@@ -502,7 +511,7 @@ export default function NavBar() {
                         <User className="w-4 h-4 text-primary-brand" />
                       </div>
                     )}
-                    <span className="text-sm font-medium text-gray-700 truncate max-w-[7rem] sm:max-w-32">
+                    <span className="hidden xl:inline text-sm font-medium text-gray-700 truncate max-w-32">
                       {userProfile ? getDisplayName(userProfile) : getDisplayName(user)}
                     </span>
                     <ChevronDown 

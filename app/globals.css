@@ -1445,13 +1445,19 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   overflow-x: visible;
 }
 
-/* WX Phase 1A — Workspace shell continuity */
+/* WX Phase 1A / 1A.1 — Workspace shell continuity */
 .hc-wx-shell {
   min-height: calc(100dvh - 5rem);
 }
 
+.hc-wx-frame {
+  /* Single continuous Workspace surface: orientation + rails + stage */
+  isolation: isolate;
+}
+
 .hc-wx-rail {
   min-height: 100%;
+  background: #fff;
 }
 
 .hc-wx-stage {
@@ -1459,7 +1465,24 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
 }
 
 .hc-wx-orientation-strip {
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Soften nested cards inside permanent rails — continuous chrome, not website stacks */
+.hc-wx-rail .hc-dorpsplein-card,
+.hc-wx-rail .hc-dorpsplein-card-warm,
+.hc-wx-rail .hc-dorpsplein-card-community {
+  border-color: transparent;
   box-shadow: none;
+  background: transparent;
+  border-radius: 0.75rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.hc-wx-rail .hc-dorpsplein-card:last-child,
+.hc-wx-rail .hc-dorpsplein-card-warm:last-child,
+.hc-wx-rail .hc-dorpsplein-card-community:last-child {
+  border-bottom-color: transparent;
 }
 
 /* Homepage desktop feed — dominant media, compact info block */
