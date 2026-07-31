@@ -81,5 +81,6 @@
   "phase1b4Started": false,
   "freezeTimestampUtc": "2026-07-31T17:37:14Z",
   "freezeCommit": "a5b78e7d597e2523c935af9ded158170f8698959",
-  "freezeParent": "3ddaf59cfd1e95f2276a165cd81807f3de289849"
+  "freezeParent": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+  "docsTip": "844fd16219ad1047e39a6ab0db823ef1e01bbd83"
 }

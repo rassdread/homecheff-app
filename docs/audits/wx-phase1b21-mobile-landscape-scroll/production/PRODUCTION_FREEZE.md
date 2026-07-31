@@ -13,7 +13,7 @@
 | --- | --- |
 | Production runtime (merge) | `3ddaf59cfd1e95f2276a165cd81807f3de289849` |
 | Deployed `gitCommitSha` | `3ddaf59cfd1e95f2276a165cd81807f3de289849` |
-| Documentation freeze commit |  |
+| Documentation freeze commit | `a5b78e7d597e2523c935af9ded158170f8698959` (stamp tip `844fd16219ad1047e39a6ab0db823ef1e01bbd83`) |
 | Rollback runtime | `5fe0da7855ab7bbf9c4bd6a03f3dca80a423acc4` |
 | Pre-merge `origin/main` | `a17cbbf6ff58d3010d3911a5917c7706c0bc6524` |
 
