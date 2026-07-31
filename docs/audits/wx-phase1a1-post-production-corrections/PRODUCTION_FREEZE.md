@@ -8,7 +8,7 @@
 | Field | Value |
 | --- | --- |
 | Production implementation commit | `0c9b1d7fc8d023def4a22473df554ba896a8b517` |
-| Related docs commits | `038b9974`, `4830dffb` (+ this freeze commit) |
+| Related docs commits | `038b9974`, `4830dffb`, freeze `27145932` |
 | Production branch | `main` |
 | Visibility mode | `HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE=on` (unchanged) |
 
