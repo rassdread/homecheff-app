@@ -15,7 +15,11 @@ export default function WorkspaceRegion({
   children,
 }: WorkspaceRegionProps) {
   return (
-    <div data-aw-region="" data-aw-region-id={regionId} className="w-full min-w-0">
+    <div
+      data-aw-region=""
+      data-aw-region-id={regionId}
+      className="w-full min-w-0 h-full min-h-0"
+    >
       {children}
     </div>
   );

@@ -11,6 +11,8 @@
  * WX Phase 1B.1: Workspace Mode Engine diagnostics only (no layout/capability changes).
  * WX Phase 1B.2: Transition Continuity — Mode/Posture changes MUST NOT remount primary,
  *                reload feed, or reset scroll/filters. Fail-closed last stable space.
+ * WX Phase 1B.2.1: Mobile landscape scroll — multiCol frame must propagate bounded height
+ *                  so `#homecheff-feed-desktop` remains the vertical scroll owner (no clip freeze).
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  * NEVER key primary (or any slot) by Mode / posture / mode token.
@@ -267,7 +269,13 @@ export default function FeedWorkspaceVisibleLayout({
       <div
         key={WORKSPACE_TRANSITION_CONTINUITY.startSlotKey}
         data-aw-slot-host="start"
-        className={plan.showStartPanel ? "min-w-0 min-h-0" : "hidden"}
+        className={
+          plan.showStartPanel
+            ? multiCol
+              ? "min-w-0 min-h-0 h-full overflow-hidden"
+              : "min-w-0 min-h-0"
+            : "hidden"
+        }
         style={{ gridArea: plan.showStartPanel ? "start" : undefined }}
         aria-hidden={!plan.showStartPanel}
       >
@@ -298,7 +306,11 @@ export default function FeedWorkspaceVisibleLayout({
         data-aw-slot-host="primary"
         data-wx-continuity-primary="1"
         data-wx-primary-mount-id={primaryMountId}
-        className="min-w-0 min-h-0"
+        className={
+          multiCol
+            ? "min-w-0 min-h-0 h-full overflow-hidden"
+            : "min-w-0 min-h-0"
+        }
         style={{ gridArea: "primary" }}
       >
         <WorkspaceRegion regionId="primary-stage">
@@ -332,7 +344,13 @@ export default function FeedWorkspaceVisibleLayout({
       <div
         key={WORKSPACE_TRANSITION_CONTINUITY.endSlotKey}
         data-aw-slot-host="end"
-        className={plan.showEndPanel ? "min-w-0 min-h-0" : "hidden"}
+        className={
+          plan.showEndPanel
+            ? multiCol
+              ? "min-w-0 min-h-0 h-full overflow-hidden"
+              : "min-w-0 min-h-0"
+            : "hidden"
+        }
         style={{ gridArea: plan.showEndPanel ? "end" : undefined }}
         aria-hidden={!plan.showEndPanel}
       >

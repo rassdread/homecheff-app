@@ -20,7 +20,7 @@ export default function WorkspaceSlot({
       data-aw-slot=""
       data-aw-slot-id={slotId}
       data-aw-slot-region={regionId}
-      className="w-full min-w-0"
+      className="w-full min-w-0 h-full min-h-0"
     >
       {children}
     </div>
