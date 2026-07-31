@@ -7,6 +7,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  WORKSPACE_TRANSITION_CONTINUITY,
   coerceFeedWorkspaceVisibilityMode,
   isFeedWorkspaceLayoutVisible,
   parseFeedWorkspacePreviewRequested,
@@ -318,11 +319,129 @@ console.log("\n[feed-workspace-visibility] source contracts");
   assert.match(layoutSrc, /resolveFeedWorkspaceVisibleLayout/);
   assert.match(layoutSrc, /ResizeObserver/);
   assert.match(layoutSrc, /data-aw-stable-feed-slot/);
-  assert.match(layoutSrc, /aw-slot-primary/);
   assert.match(layoutSrc, /feedColumnMaxWidthPx/);
   assert.equal(/userAgent|navigator\.userAgent/.test(layoutSrc), false);
   assert.equal(/matchMedia/.test(layoutSrc), false);
-  ok("visible layout: stable slots + AvailableSpace; no matchMedia/UA");
+
+  // Layer 1 — primary slot must use the sealed continuity constant (not a Mode key).
+  assert.match(
+    layoutSrc,
+    /key=\{WORKSPACE_TRANSITION_CONTINUITY\.primarySlotKey\}/,
+  );
+  assert.equal(
+    (layoutSrc.match(/key=\{WORKSPACE_TRANSITION_CONTINUITY\.primarySlotKey\}/g) || [])
+      .length,
+    1,
+    "exactly one primary-slot continuity key usage",
+  );
+  assert.equal(
+    (layoutSrc.match(/data-aw-slot-host="primary"/g) || []).length,
+    1,
+    "exactly one primary slot host",
+  );
+  assert.equal(
+    /key=\{[^}]*modePlan|key=\{[^}]*\.mode\b|key=\{[^}]*modeToken|key=\{[^}]*posture/.test(
+      layoutSrc,
+    ),
+    false,
+    "no Mode/posture React keys",
+  );
+  assert.equal(
+    /key=["']aw-slot-primary["']/.test(layoutSrc),
+    false,
+    "do not duplicate primary slot literal outside the continuity contract",
+  );
+  assert.equal(
+    /key=\{[^}]*Math\.random|key=\{[^}]*Date\.now|key=\{[^}]*crypto/.test(
+      layoutSrc,
+    ),
+    false,
+    "no generated/unstable primary keys",
+  );
+
+  // Layer 2 — contract value is the stable permanent-slot identity.
+  assert.equal(
+    WORKSPACE_TRANSITION_CONTINUITY.primarySlotKey,
+    "aw-slot-primary",
+  );
+  assert.equal(
+    WORKSPACE_TRANSITION_CONTINUITY.neverKeyPrimaryByMode,
+    true,
+  );
+  ok(
+    "visible layout: continuity primarySlotKey + AvailableSpace; no matchMedia/UA",
+  );
+
+  // Negative fixtures — synthetic sources the guard must reject.
+  {
+    const reject = (label: string, sample: string, re: RegExp) => {
+      assert.equal(re.test(sample), false, label);
+    };
+    const requireMatch = (label: string, sample: string, re: RegExp) => {
+      assert.match(sample, re, label);
+    };
+
+    // Approved shape still matches Layer 1 expression.
+    requireMatch(
+      "approved continuity primary key",
+      'key={WORKSPACE_TRANSITION_CONTINUITY.primarySlotKey}',
+      /key=\{WORKSPACE_TRANSITION_CONTINUITY\.primarySlotKey\}/,
+    );
+
+    reject(
+      "Mode-dependent key rejected",
+      'key={modePlan.mode}',
+      /key=\{WORKSPACE_TRANSITION_CONTINUITY\.primarySlotKey\}/,
+    );
+    reject(
+      "random key rejected",
+      'key={Math.random()}',
+      /key=\{WORKSPACE_TRANSITION_CONTINUITY\.primarySlotKey\}/,
+    );
+    reject(
+      "local unapproved constant rejected",
+      'key={LOCAL_PRIMARY_KEY}',
+      /key=\{WORKSPACE_TRANSITION_CONTINUITY\.primarySlotKey\}/,
+    );
+    reject(
+      "alternate literal key rejected as continuity expression",
+      'key="aw-slot-other"',
+      /key=\{WORKSPACE_TRANSITION_CONTINUITY\.primarySlotKey\}/,
+    );
+
+    // Changed contract value would fail Layer 2.
+    assert.notEqual("aw-slot-other", "aw-slot-primary");
+    assert.equal(
+      WORKSPACE_TRANSITION_CONTINUITY.primarySlotKey === "aw-slot-other",
+      false,
+      "primarySlotKey must not drift to alternate literal",
+    );
+
+    // Duplicate primary hosts fail the count invariant.
+    const dupHosts =
+      'data-aw-slot-host="primary"\ndata-aw-slot-host="primary"';
+    assert.equal(
+      (dupHosts.match(/data-aw-slot-host="primary"/g) || []).length,
+      2,
+    );
+    assert.notEqual(
+      (dupHosts.match(/data-aw-slot-host="primary"/g) || []).length,
+      1,
+      "duplicate primary hosts must not satisfy single-host invariant",
+    );
+
+    // Removing continuity constant from primary slot fails Layer 1.
+    const withoutContinuity =
+      'key="aw-slot-primary"\ndata-aw-slot-host="primary"';
+    assert.equal(
+      /key=\{WORKSPACE_TRANSITION_CONTINUITY\.primarySlotKey\}/.test(
+        withoutContinuity,
+      ),
+      false,
+      "literal-only primary key without continuity constant is rejected",
+    );
+  }
+  ok("primary-slot continuity guard negative fixtures");
 
   const authDoc = readFileSync(
     join(

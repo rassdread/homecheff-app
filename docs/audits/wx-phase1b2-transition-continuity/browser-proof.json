@@ -1,0 +1,2795 @@
+{
+  "phase": "1B.2",
+  "title": "Transition Continuity — Remediation Browser Proof",
+  "evidenceLayer": "browser-observed",
+  "contractLayerNote": "Contract remountAuthorized=false is NOT used as mount proof. Mount proof uses data-wx-primary-mount-id / data-wx-shell-mount-id.",
+  "verdict": "WX_PHASE_1B2_REMEDIATION_BROWSER_PASS",
+  "mode": "commit-a-fe9975cc",
+  "baseUrl": "http://127.0.0.1:3087",
+  "timestamp": "2026-07-31T15:06:33.990Z",
+  "baselineMount": {
+    "primaryMountId": "wx-primary-mount:7",
+    "shellMountId": "wx-shell-mount:7"
+  },
+  "finalMount": {
+    "primaryMountId": "wx-primary-mount:7",
+    "shellMountId": "wx-shell-mount:7"
+  },
+  "scroll": {
+    "seed": {
+      "owner": "workspace",
+      "workspaceScrollTop": 220,
+      "feedScrollTop": 0,
+      "windowScrollY": 0,
+      "visibleAnchor": null
+    },
+    "classification": "bounded-reflow",
+    "tolerancePx": 48,
+    "pass": true
+  },
+  "filterProof": {
+    "status": "PASS",
+    "seeded": "5",
+    "final": "5",
+    "preserved": true
+  },
+  "searchProof": {
+    "status": "PASS",
+    "seeded": "wx1b2probe",
+    "final": "wx1b2probe",
+    "preserved": true
+  },
+  "stateApply": {
+    "search": {
+      "attempted": true,
+      "applied": true,
+      "value": "wx1b2probe",
+      "na": false,
+      "placeholder": "Zoek in producten..."
+    },
+    "filter": {
+      "attempted": true,
+      "applied": true,
+      "value": "5",
+      "na": false
+    }
+  },
+  "request": {
+    "totalApiish": 296,
+    "paginationOk": true,
+    "sealedFirst": {
+      "mountCount": 1,
+      "unmountCount": 0,
+      "activeInstanceCount": 1,
+      "requestStartCount": 1,
+      "requestKeyTransitionCount": 0,
+      "paginationResetCount": 0,
+      "lastPaginationCursorHash": "0ee2c44b"
+    },
+    "sealedLast": {
+      "mountCount": 1,
+      "unmountCount": 0,
+      "activeInstanceCount": 1,
+      "requestStartCount": 3,
+      "requestKeyTransitionCount": 0,
+      "paginationResetCount": 0,
+      "lastPaginationCursorHash": "0ee2c44b"
+    }
+  },
+  "oscillationSummary": [
+    {
+      "boundary": 720,
+      "oscillations": 5
+    },
+    {
+      "boundary": 1024,
+      "oscillations": 5
+    },
+    {
+      "boundary": 1440,
+      "oscillations": 5
+    }
+  ],
+  "modeChanges": [
+    {
+      "seq": 2,
+      "label": "state-seed-wide",
+      "from": "browse",
+      "to": "full-workspace",
+      "usableWidth": 1254,
+      "usableHeight": 800
+    },
+    {
+      "seq": 4,
+      "label": "osc-720-below-1",
+      "from": "full-workspace",
+      "to": "browse",
+      "usableWidth": 714,
+      "usableHeight": 800
+    },
+    {
+      "seq": 5,
+      "label": "osc-720-above-1",
+      "from": "browse",
+      "to": "hybrid-workspace",
+      "usableWidth": 782,
+      "usableHeight": 800
+    },
+    {
+      "seq": 6,
+      "label": "osc-720-below-2",
+      "from": "hybrid-workspace",
+      "to": "browse",
+      "usableWidth": 714,
+      "usableHeight": 800
+    },
+    {
+      "seq": 7,
+      "label": "osc-720-above-2",
+      "from": "browse",
+      "to": "hybrid-workspace",
+      "usableWidth": 782,
+      "usableHeight": 800
+    },
+    {
+      "seq": 8,
+      "label": "osc-720-below-3",
+      "from": "hybrid-workspace",
+      "to": "browse",
+      "usableWidth": 714,
+      "usableHeight": 800
+    },
+    {
+      "seq": 9,
+      "label": "osc-720-above-3",
+      "from": "browse",
+      "to": "hybrid-workspace",
+      "usableWidth": 782,
+      "usableHeight": 800
+    },
+    {
+      "seq": 10,
+      "label": "osc-720-below-4",
+      "from": "hybrid-workspace",
+      "to": "browse",
+      "usableWidth": 714,
+      "usableHeight": 800
+    },
+    {
+      "seq": 11,
+      "label": "osc-720-above-4",
+      "from": "browse",
+      "to": "hybrid-workspace",
+      "usableWidth": 782,
+      "usableHeight": 800
+    },
+    {
+      "seq": 12,
+      "label": "osc-720-below-5",
+      "from": "hybrid-workspace",
+      "to": "browse",
+      "usableWidth": 714,
+      "usableHeight": 800
+    },
+    {
+      "seq": 13,
+      "label": "osc-720-above-5",
+      "from": "browse",
+      "to": "hybrid-workspace",
+      "usableWidth": 782,
+      "usableHeight": 800
+    },
+    {
+      "seq": 15,
+      "label": "osc-1024-above-1",
+      "from": "hybrid-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1078,
+      "usableHeight": 800
+    },
+    {
+      "seq": 16,
+      "label": "osc-1024-below-2",
+      "from": "full-workspace",
+      "to": "hybrid-workspace",
+      "usableWidth": 1016,
+      "usableHeight": 800
+    },
+    {
+      "seq": 17,
+      "label": "osc-1024-above-2",
+      "from": "hybrid-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1078,
+      "usableHeight": 800
+    },
+    {
+      "seq": 18,
+      "label": "osc-1024-below-3",
+      "from": "full-workspace",
+      "to": "hybrid-workspace",
+      "usableWidth": 1016,
+      "usableHeight": 800
+    },
+    {
+      "seq": 19,
+      "label": "osc-1024-above-3",
+      "from": "hybrid-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1078,
+      "usableHeight": 800
+    },
+    {
+      "seq": 20,
+      "label": "osc-1024-below-4",
+      "from": "full-workspace",
+      "to": "hybrid-workspace",
+      "usableWidth": 1016,
+      "usableHeight": 800
+    },
+    {
+      "seq": 21,
+      "label": "osc-1024-above-4",
+      "from": "hybrid-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1078,
+      "usableHeight": 800
+    },
+    {
+      "seq": 22,
+      "label": "osc-1024-below-5",
+      "from": "full-workspace",
+      "to": "hybrid-workspace",
+      "usableWidth": 1016,
+      "usableHeight": 800
+    },
+    {
+      "seq": 23,
+      "label": "osc-1024-above-5",
+      "from": "hybrid-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1078,
+      "usableHeight": 800
+    },
+    {
+      "seq": 25,
+      "label": "osc-1440-above-1",
+      "from": "full-workspace",
+      "to": "professional-workspace",
+      "usableWidth": 1494,
+      "usableHeight": 800
+    },
+    {
+      "seq": 26,
+      "label": "osc-1440-below-2",
+      "from": "professional-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1432,
+      "usableHeight": 800
+    },
+    {
+      "seq": 27,
+      "label": "osc-1440-above-2",
+      "from": "full-workspace",
+      "to": "professional-workspace",
+      "usableWidth": 1494,
+      "usableHeight": 800
+    },
+    {
+      "seq": 28,
+      "label": "osc-1440-below-3",
+      "from": "professional-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1432,
+      "usableHeight": 800
+    },
+    {
+      "seq": 29,
+      "label": "osc-1440-above-3",
+      "from": "full-workspace",
+      "to": "professional-workspace",
+      "usableWidth": 1494,
+      "usableHeight": 800
+    },
+    {
+      "seq": 30,
+      "label": "osc-1440-below-4",
+      "from": "professional-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1432,
+      "usableHeight": 800
+    },
+    {
+      "seq": 31,
+      "label": "osc-1440-above-4",
+      "from": "full-workspace",
+      "to": "professional-workspace",
+      "usableWidth": 1494,
+      "usableHeight": 800
+    },
+    {
+      "seq": 32,
+      "label": "osc-1440-below-5",
+      "from": "professional-workspace",
+      "to": "full-workspace",
+      "usableWidth": 1432,
+      "usableHeight": 800
+    },
+    {
+      "seq": 33,
+      "label": "osc-1440-above-5",
+      "from": "full-workspace",
+      "to": "professional-workspace",
+      "usableWidth": 1494,
+      "usableHeight": 800
+    },
+    {
+      "seq": 34,
+      "label": "phone-portrait",
+      "from": "professional-workspace",
+      "to": "browse",
+      "usableWidth": 390,
+      "usableHeight": 844
+    },
+    {
+      "seq": 35,
+      "label": "phone-landscape",
+      "from": "browse",
+      "to": "hybrid-workspace",
+      "usableWidth": 826,
+      "usableHeight": 390
+    },
+    {
+      "seq": 36,
+      "label": "phone-portrait-return",
+      "from": "hybrid-workspace",
+      "to": "browse",
+      "usableWidth": 390,
+      "usableHeight": 844
+    },
+    {
+      "seq": 38,
+      "label": "final-wide-state-check",
+      "from": "browse",
+      "to": "full-workspace",
+      "usableWidth": 1254,
+      "usableHeight": 800
+    }
+  ],
+  "modesSeen": [
+    "browse",
+    "full-workspace",
+    "hybrid-workspace",
+    "professional-workspace"
+  ],
+  "checks": {
+    "mountIdentityObserved": true,
+    "mountIdentityStableEntireJourney": true,
+    "shellIdentityStableEntireJourney": true,
+    "allStructuralPass": true,
+    "noPageReload": true,
+    "noConsoleErrors": true,
+    "noHydration": true,
+    "noDuplicateHost": true,
+    "oscillationPerBoundary": 5,
+    "boundariesCovered": [
+      720,
+      1024,
+      1440
+    ],
+    "modeChangesRecorded": true,
+    "modesAtLeast3": true,
+    "scrollPreservation": true,
+    "filterPreservation": true,
+    "searchPreservation": true,
+    "paginationContinuity": true,
+    "sealedOkWhenPresent": true
+  },
+  "steps": [
+    {
+      "sequence": 1,
+      "id": "initial-narrow-browse",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:390x844:browse:portrait:hd0",
+        "usableWidth": 390,
+        "usableHeight": 844,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": {
+          "tag": "ARTICLE",
+          "href": null,
+          "productId": null,
+          "text": "Kᴇᴋsɪ🍳HomeCheffToon aanbod previewLLion"
+        },
+        "tileCountSample": 3,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 132,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0
+    },
+    {
+      "sequence": 2,
+      "id": "state-seed-wide",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1254x800:full-workspace:landscape:hd0",
+        "usableWidth": 1254,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 284,
+      "requestDelta": 152,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "stateApply": {
+        "search": {
+          "attempted": true,
+          "applied": true,
+          "value": "wx1b2probe",
+          "na": false,
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "attempted": true,
+          "applied": true,
+          "value": "5",
+          "na": false
+        }
+      }
+    },
+    {
+      "sequence": 3,
+      "id": "scroll-seeded",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1254x800:full-workspace:landscape:hd0",
+        "usableWidth": 1254,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 220,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 1,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 284,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "scrollSeed": {
+        "owner": "workspace",
+        "workspaceScrollTop": 220,
+        "feedScrollTop": 0,
+        "windowScrollY": 0,
+        "workspaceScrollHeight": 2083,
+        "workspaceClientHeight": 718
+      }
+    },
+    {
+      "sequence": 4,
+      "id": "osc-720-below-1",
+      "viewport": {
+        "width": 730,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:714x800:browse:portrait:hd0",
+        "usableWidth": 714,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 286,
+      "requestDelta": 2,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "below",
+      "pace": "slow",
+      "calibration": {
+        "viewportW": 730,
+        "measured": 714
+      }
+    },
+    {
+      "sequence": 5,
+      "id": "osc-720-above-1",
+      "viewport": {
+        "width": 800,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:782x800:hybrid-workspace:portrait:hd0",
+        "usableWidth": 782,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 220,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 1,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "above",
+      "pace": "slow",
+      "calibration": {
+        "viewportW": 800,
+        "measured": 782
+      }
+    },
+    {
+      "sequence": 6,
+      "id": "osc-720-below-2",
+      "viewport": {
+        "width": 730,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:714x800:browse:portrait:hd0",
+        "usableWidth": 714,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 730,
+        "measured": 714
+      }
+    },
+    {
+      "sequence": 7,
+      "id": "osc-720-above-2",
+      "viewport": {
+        "width": 800,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:782x800:hybrid-workspace:portrait:hd0",
+        "usableWidth": 782,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 220,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 800,
+        "measured": 782
+      }
+    },
+    {
+      "sequence": 8,
+      "id": "osc-720-below-3",
+      "viewport": {
+        "width": 730,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:714x800:browse:portrait:hd0",
+        "usableWidth": 714,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 730,
+        "measured": 714
+      }
+    },
+    {
+      "sequence": 9,
+      "id": "osc-720-above-3",
+      "viewport": {
+        "width": 800,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:782x800:hybrid-workspace:portrait:hd0",
+        "usableWidth": 782,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 220,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 800,
+        "measured": 782
+      }
+    },
+    {
+      "sequence": 10,
+      "id": "osc-720-below-4",
+      "viewport": {
+        "width": 730,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:714x800:browse:portrait:hd0",
+        "usableWidth": 714,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 730,
+        "measured": 714
+      }
+    },
+    {
+      "sequence": 11,
+      "id": "osc-720-above-4",
+      "viewport": {
+        "width": 800,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:782x800:hybrid-workspace:portrait:hd0",
+        "usableWidth": 782,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 220,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 800,
+        "measured": 782
+      }
+    },
+    {
+      "sequence": 12,
+      "id": "osc-720-below-5",
+      "viewport": {
+        "width": 730,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:714x800:browse:portrait:hd0",
+        "usableWidth": 714,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 730,
+        "measured": 714
+      }
+    },
+    {
+      "sequence": 13,
+      "id": "osc-720-above-5",
+      "viewport": {
+        "width": 800,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "modeToken": "wx-mode:782x800:hybrid-workspace:portrait:hd0",
+        "usableWidth": 782,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 220,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 287,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 720,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 800,
+        "measured": 782
+      }
+    },
+    {
+      "sequence": 14,
+      "id": "osc-1024-below-1",
+      "viewport": {
+        "width": 1042,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1016x800:hybrid-workspace:landscape:hd0",
+        "usableWidth": 1016,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 3,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "below",
+      "pace": "slow",
+      "calibration": {
+        "viewportW": 1042,
+        "measured": 1016
+      }
+    },
+    {
+      "sequence": 15,
+      "id": "osc-1024-above-1",
+      "viewport": {
+        "width": 1104,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1078x800:full-workspace:landscape:hd0",
+        "usableWidth": 1078,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1457,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "above",
+      "pace": "slow",
+      "calibration": {
+        "viewportW": 1104,
+        "measured": 1078
+      }
+    },
+    {
+      "sequence": 16,
+      "id": "osc-1024-below-2",
+      "viewport": {
+        "width": 1042,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1016x800:hybrid-workspace:landscape:hd0",
+        "usableWidth": 1016,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1042,
+        "measured": 1016
+      }
+    },
+    {
+      "sequence": 17,
+      "id": "osc-1024-above-2",
+      "viewport": {
+        "width": 1104,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1078x800:full-workspace:landscape:hd0",
+        "usableWidth": 1078,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1457,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1104,
+        "measured": 1078
+      }
+    },
+    {
+      "sequence": 18,
+      "id": "osc-1024-below-3",
+      "viewport": {
+        "width": 1042,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1016x800:hybrid-workspace:landscape:hd0",
+        "usableWidth": 1016,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1042,
+        "measured": 1016
+      }
+    },
+    {
+      "sequence": 19,
+      "id": "osc-1024-above-3",
+      "viewport": {
+        "width": 1104,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1078x800:full-workspace:landscape:hd0",
+        "usableWidth": 1078,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1457,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1104,
+        "measured": 1078
+      }
+    },
+    {
+      "sequence": 20,
+      "id": "osc-1024-below-4",
+      "viewport": {
+        "width": 1042,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1016x800:hybrid-workspace:landscape:hd0",
+        "usableWidth": 1016,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1042,
+        "measured": 1016
+      }
+    },
+    {
+      "sequence": 21,
+      "id": "osc-1024-above-4",
+      "viewport": {
+        "width": 1104,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1078x800:full-workspace:landscape:hd0",
+        "usableWidth": 1078,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1457,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1104,
+        "measured": 1078
+      }
+    },
+    {
+      "sequence": 22,
+      "id": "osc-1024-below-5",
+      "viewport": {
+        "width": 1042,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1016x800:hybrid-workspace:landscape:hd0",
+        "usableWidth": 1016,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1042,
+        "measured": 1016
+      }
+    },
+    {
+      "sequence": 23,
+      "id": "osc-1024-above-5",
+      "viewport": {
+        "width": 1104,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1078x800:full-workspace:landscape:hd0",
+        "usableWidth": 1078,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1457,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1024,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1104,
+        "measured": 1078
+      }
+    },
+    {
+      "sequence": 24,
+      "id": "osc-1440-below-1",
+      "viewport": {
+        "width": 1458,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1432x800:full-workspace:landscape:hd0",
+        "usableWidth": 1432,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "below",
+      "pace": "slow",
+      "calibration": {
+        "viewportW": 1458,
+        "measured": 1432
+      }
+    },
+    {
+      "sequence": 25,
+      "id": "osc-1440-above-1",
+      "viewport": {
+        "width": 1520,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1494x800:professional-workspace:landscape:hd0",
+        "usableWidth": 1494,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "above",
+      "pace": "slow",
+      "calibration": {
+        "viewportW": 1520,
+        "measured": 1494
+      }
+    },
+    {
+      "sequence": 26,
+      "id": "osc-1440-below-2",
+      "viewport": {
+        "width": 1458,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1432x800:full-workspace:landscape:hd0",
+        "usableWidth": 1432,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1458,
+        "measured": 1432
+      }
+    },
+    {
+      "sequence": 27,
+      "id": "osc-1440-above-2",
+      "viewport": {
+        "width": 1520,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1494x800:professional-workspace:landscape:hd0",
+        "usableWidth": 1494,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1520,
+        "measured": 1494
+      }
+    },
+    {
+      "sequence": 28,
+      "id": "osc-1440-below-3",
+      "viewport": {
+        "width": 1458,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1432x800:full-workspace:landscape:hd0",
+        "usableWidth": 1432,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1458,
+        "measured": 1432
+      }
+    },
+    {
+      "sequence": 29,
+      "id": "osc-1440-above-3",
+      "viewport": {
+        "width": 1520,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1494x800:professional-workspace:landscape:hd0",
+        "usableWidth": 1494,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1520,
+        "measured": 1494
+      }
+    },
+    {
+      "sequence": 30,
+      "id": "osc-1440-below-4",
+      "viewport": {
+        "width": 1458,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1432x800:full-workspace:landscape:hd0",
+        "usableWidth": 1432,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1458,
+        "measured": 1432
+      }
+    },
+    {
+      "sequence": 31,
+      "id": "osc-1440-above-4",
+      "viewport": {
+        "width": 1520,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1494x800:professional-workspace:landscape:hd0",
+        "usableWidth": 1494,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1520,
+        "measured": 1494
+      }
+    },
+    {
+      "sequence": 32,
+      "id": "osc-1440-below-5",
+      "viewport": {
+        "width": 1458,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1432x800:full-workspace:landscape:hd0",
+        "usableWidth": 1432,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "below",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1458,
+        "measured": 1432
+      }
+    },
+    {
+      "sequence": 33,
+      "id": "osc-1440-above-5",
+      "viewport": {
+        "width": 1520,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1494x800:professional-workspace:landscape:hd0",
+        "usableWidth": 1494,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 1365,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 290,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0,
+      "boundary": 1440,
+      "side": "above",
+      "pace": "rapid",
+      "calibration": {
+        "viewportW": 1520,
+        "measured": 1494
+      }
+    },
+    {
+      "sequence": 34,
+      "id": "phone-portrait",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:390x844:browse:portrait:hd0",
+        "usableWidth": 390,
+        "usableHeight": 844,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 291,
+      "requestDelta": 1,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0
+    },
+    {
+      "sequence": 35,
+      "id": "phone-landscape",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:826x390:hybrid-workspace:landscape:hd0",
+        "usableWidth": 826,
+        "usableHeight": 390,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 915,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 2,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 291,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0
+    },
+    {
+      "sequence": 36,
+      "id": "phone-portrait-return",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:390x844:browse:portrait:hd0",
+        "usableWidth": 390,
+        "usableHeight": 844,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 3,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 292,
+      "requestDelta": 1,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0
+    },
+    {
+      "sequence": 37,
+      "id": "return-starting-narrow",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "browse",
+        "posture": "portrait",
+        "modeToken": "wx-mode:390x844:browse:portrait:hd0",
+        "usableWidth": 390,
+        "usableHeight": 844,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 0,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": false,
+        "filtersExpanded": false,
+        "search": {
+          "available": false,
+          "value": null,
+          "reason": "No progressive filters toggle or search input in DOM"
+        },
+        "filter": {
+          "available": false,
+          "minPrice": null,
+          "filterButtonPresent": false,
+          "reason": "No filter chrome in current DOM"
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 3,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 292,
+      "requestDelta": 0,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0
+    },
+    {
+      "sequence": 38,
+      "id": "final-wide-state-check",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "snap": {
+        "found": true,
+        "phase": "1b.2",
+        "continuity": "wx-transition-continuity-v1",
+        "remountFlag": "0",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "modeToken": "wx-mode:1254x800:full-workspace:landscape:hd0",
+        "usableWidth": 1254,
+        "usableHeight": 800,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "workspaceCount": 1,
+        "primaryHostCount": 1,
+        "stableFeedSlot": true,
+        "windowScrollY": 0,
+        "workspaceScrollTop": 485,
+        "feedScrollTop": 0,
+        "visibleAnchor": null,
+        "tileCountSample": 0,
+        "filtersTogglePresent": true,
+        "filtersExpanded": true,
+        "search": {
+          "available": true,
+          "value": "wx1b2probe",
+          "placeholder": "Zoek in producten..."
+        },
+        "filter": {
+          "available": true,
+          "minPrice": "5",
+          "filterButtonPresent": true,
+          "reason": null
+        },
+        "feedOwner": "geofeed",
+        "sealed": {
+          "mountCount": 1,
+          "unmountCount": 0,
+          "activeInstanceCount": 1,
+          "requestStartCount": 3,
+          "requestKeyTransitionCount": 0,
+          "paginationResetCount": 0,
+          "lastPaginationCursorHash": "0ee2c44b"
+        }
+      },
+      "requestCount": 296,
+      "requestDelta": 4,
+      "consoleErrorCount": 0,
+      "hydrationWarningCount": 0
+    }
+  ],
+  "consoleErrors": [],
+  "hydrationWarnings": [],
+  "counts": {
+    "journeySteps": 38,
+    "oscillationsPerBoundary": 5,
+    "boundaries": 3,
+    "totalOscillationHalfSteps": 30,
+    "modeChanges": 33
+  },
+  "binding": {
+    "implementationCommit": "fe9975cc70a5325b7ec0d2587ef9aee281cbc443",
+    "evidenceCommit": "57e0600fc372d93780e2068e4038244d924d03e9",
+    "evidenceCommitNote": "Primary evidence-wrapper commit. Tip may include stamp correction only.",
+    "originalReviewedCommit": "96c9918454b843076b85587fd3e349d6cf9a0300",
+    "branch": "wx/phase-1b2-transition-continuity",
+    "baseMain": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+    "mergeBase": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+    "productionBaseline": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+    "rollbackTarget": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+    "status": "READY_FOR_FORMAL_RE_REVIEW",
+    "noMerge": true,
+    "noDeployment": true,
+    "noProductionFreeze": true,
+    "noPhase1b3": true,
+    "cleanIsolatedWorktreeAtProof": true
+  },
+  "contractTests": {
+    "command": "npm run test:workspace-transition-continuity",
+    "groupCount": 9,
+    "vectors": 31,
+    "assertions": 11,
+    "transitionPairs": 14,
+    "boundaries": [
+      720,
+      1024,
+      1440
+    ],
+    "browserMountClaimed": false
+  }
+}

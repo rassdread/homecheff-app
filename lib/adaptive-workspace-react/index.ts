@@ -158,3 +158,16 @@ export type {
   WorkspaceModeResolveInput,
   WorkspaceModePlan,
 } from "./resolve-workspace-mode";
+
+export {
+  WORKSPACE_TRANSITION_CONTINUITY,
+  CONTINUITY_FORBIDDEN_SOURCE_PATTERNS,
+  describeWorkspaceModeTransition,
+  resolveFailClosedUsableSpace,
+  simulateModeTransitionAcrossSpace,
+} from "./workspace-transition-continuity";
+
+export type {
+  WorkspaceTransitionEvent,
+  FailClosedUsableSpace,
+} from "./workspace-transition-continuity";

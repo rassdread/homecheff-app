@@ -1,0 +1,72 @@
+{
+  "phase": "WX-1B.2",
+  "title": "Review Remediation Manifest",
+  "status": "READY_FOR_FORMAL_RE_REVIEW",
+  "verdict": "WX_PHASE_1B2_REMEDIATION_COMPLETE",
+  "implementationCommit": "fe9975cc70a5325b7ec0d2587ef9aee281cbc443",
+  "originalReviewedCommit": "96c9918454b843076b85587fd3e349d6cf9a0300",
+  "branch": "wx/phase-1b2-transition-continuity",
+  "rollbackTarget": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "remediations": [
+    {
+      "id": "R1",
+      "title": "Observed mount continuity",
+      "status": "DONE",
+      "evidence": [
+        "data-wx-primary-mount-id",
+        "data-wx-shell-mount-id",
+        "browser-proof mountIdentityStableEntireJourney"
+      ]
+    },
+    {
+      "id": "R2",
+      "title": "Transition oscillation",
+      "status": "DONE",
+      "evidence": [
+        "5 oscillations × boundaries 720/1024/1440",
+        "portrait↔landscape",
+        "measured AvailableSpace calibration"
+      ]
+    },
+    {
+      "id": "R3",
+      "title": "Scroll preservation",
+      "status": "DONE",
+      "evidence": [
+        "workspace scroll seed 220",
+        "classification bounded-reflow",
+        "not reset-to-top"
+      ]
+    },
+    {
+      "id": "R4",
+      "title": "Filter and search preservation",
+      "status": "DONE",
+      "evidence": [
+        "filter min price 5 preserved",
+        "search wx1b2probe preserved"
+      ]
+    },
+    {
+      "id": "R5",
+      "title": "Evidence rebound to Commit A",
+      "status": "DONE",
+      "evidence": [
+        "Commit B evidence-only pack",
+        "binding.implementationCommit"
+      ]
+    }
+  ],
+  "guardsUnchanged": [
+    "commit scope discipline",
+    "permanent-slot architecture",
+    "no Mode-based React keys",
+    "fail-closed last-stable dimensions",
+    "GeoFeed ownership",
+    "Controlled Host ownership",
+    "single renderer/writer/mount",
+    "no CSS redesign",
+    "no capability activation",
+    "no navigation changes"
+  ]
+}

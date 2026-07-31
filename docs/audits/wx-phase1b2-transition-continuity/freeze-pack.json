@@ -1,0 +1,74 @@
+{
+  "phase": "WX-1B.2",
+  "title": "Transition Continuity — Review Remediation",
+  "verdict": "WX_PHASE_1B2_REMEDIATION_COMPLETE",
+  "status": "READY_FOR_FORMAL_RE_REVIEW",
+  "timestamp": "2026-07-31T15:06:42Z",
+  "branch": "wx/phase-1b2-transition-continuity",
+  "originalReviewedCommit": "96c9918454b843076b85587fd3e349d6cf9a0300",
+  "implementationCommit": "fe9975cc70a5325b7ec0d2587ef9aee281cbc443",
+  "evidenceCommit": "57e0600fc372d93780e2068e4038244d924d03e9",
+  "evidenceCommitNote": "Primary evidence-wrapper commit that introduced this pack. A subsequent docs-only tip may only correct this stamp; implementationCommit remains Commit A.",
+  "baseMain": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "mergeBase": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "productionBaseline": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "rollbackTarget": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+  "wxPhase1b1": "PRODUCTION_FROZEN",
+  "noMerge": true,
+  "noDeployment": true,
+  "noProductionFreeze": true,
+  "noPhase1b3": true,
+  "cleanIsolatedWorktreeAtProof": true,
+  "testCommand": "npm run test:workspace-transition-continuity",
+  "testCounts": {
+    "groups": 9,
+    "vectors": 31,
+    "assertions": 11,
+    "transitionPairs": 14
+  },
+  "browserJourneyCounts": {
+    "steps": 38,
+    "oscillationsPerBoundary": 5,
+    "boundaries": [
+      720,
+      1024,
+      1440
+    ],
+    "totalOscillationHalfSteps": 30,
+    "modeChanges": 33
+  },
+  "browserProofVerdict": "WX_PHASE_1B2_REMEDIATION_BROWSER_PASS",
+  "scope": {
+    "includes": [
+      "observed mount-identity diagnostics",
+      "fixture-backed continuity contract tests",
+      "measured-boundary oscillation browser proof",
+      "scroll / filter / search preservation proof"
+    ],
+    "excludes": [
+      "capability activation (1B.3)",
+      "GeoFeed ownership changes",
+      "Controlled Host changes",
+      "presentation / CSS redesign",
+      "merge / deploy / freeze"
+    ]
+  },
+  "artifacts": {
+    "deliverable": "docs/audits/wx-phase1b2-transition-continuity/DELIVERABLE.md",
+    "browserProof": "docs/audits/wx-phase1b2-transition-continuity/browser-proof.json",
+    "remediationManifest": "docs/audits/wx-phase1b2-transition-continuity/remediation-manifest.json",
+    "probe": "scripts/probe-wx-phase1b2-transition-continuity.mjs"
+  },
+  "rollback": {
+    "target": "0a0299408b5e531f1971d97c6cfe9bb0b95f721d",
+    "databaseMigration": false,
+    "dataMigration": false,
+    "irreversibleOwnershipTransfer": false,
+    "prohibitPhase1b3DuringRollback": true,
+    "notes": "Do not execute rollback in this phase; document only."
+  },
+  "stopGate": {
+    "nextPhaseBlocked": "WX-1B.3",
+    "requiredNext": "Independent formal re-review of Commit A + Commit B"
+  }
+}
