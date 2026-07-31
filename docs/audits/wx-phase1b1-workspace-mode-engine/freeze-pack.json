@@ -1,0 +1,42 @@
+{
+  "phase": "WX-1B.1",
+  "title": "Workspace Mode Engine",
+  "verdict": "WX_PHASE_1B1_PASS",
+  "status": "AWAITING_FORMAL_APPROVAL_AND_FREEZE",
+  "timestamp": "2026-07-31T13:01:15.501Z",
+  "scope": {
+    "includes": [
+      "pure resolveWorkspaceMode",
+      "data-wx-mode / data-wx-posture diagnostics",
+      "unit vectors",
+      "browser Mode resolution proof"
+    ],
+    "excludes": [
+      "capability activation",
+      "layout/rail changes",
+      "landscape work posture chrome",
+      "transition continuity harness (1B.2)",
+      "GeoFeed ownership",
+      "Controlled Host",
+      "CSS presentation redesign"
+    ]
+  },
+  "artifacts": {
+    "engine": "lib/adaptive-workspace-react/resolve-workspace-mode.ts",
+    "tests": "lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts",
+    "probe": "scripts/probe-wx-phase1b1-workspace-mode-engine.mjs",
+    "browserProof": "docs/audits/wx-phase1b1-workspace-mode-engine/browser-proof.json",
+    "deliverable": "docs/audits/wx-phase1b1-workspace-mode-engine/DELIVERABLE.md"
+  },
+  "stopGate": {
+    "nextPhaseBlocked": "WX-1B.2",
+    "requiredApprovals": [
+      "Architecture Review",
+      "Workspace Review",
+      "Browser Proof",
+      "Performance Review",
+      "Regression Review",
+      "Production Approval"
+    ]
+  }
+}

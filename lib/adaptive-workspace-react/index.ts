@@ -144,3 +144,17 @@ export type {
   FeedWorkspaceVisibleLayoutPlan,
   FeedWorkspaceLayoutBands,
 } from "./resolve-feed-workspace-visible-layout";
+
+export {
+  WORKSPACE_MODE_BANDS,
+  resolveWorkspaceMode,
+  isSameWorkspaceModePlan,
+} from "./resolve-workspace-mode";
+
+export type {
+  WorkspaceModeId,
+  WorkspacePosture,
+  WorkspaceModeBands,
+  WorkspaceModeResolveInput,
+  WorkspaceModePlan,
+} from "./resolve-workspace-mode";
