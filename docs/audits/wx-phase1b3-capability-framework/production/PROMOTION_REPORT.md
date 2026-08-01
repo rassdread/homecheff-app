@@ -117,7 +117,15 @@ Under `docs/audits/wx-phase1b3-capability-framework/production/`:
 
 ## 21. Freeze Commit
 
- (parent )
+| Field | Value |
+| --- | --- |
+| Freeze commit | `f2bc94038155931d7dca3b622deb8242c5d59c09` |
+| Freeze parent | `ea1ff2f5c50e4e7d43ac1d0394f37d5ea0acb409` |
+| Stamp follow-up | `4dc1b4e0f7a175e4d82ab82e4f622425fb4d3435` |
+| Remote main (docs tip) | `4dc1b4e0f7a175e4d82ab82e4f622425fb4d3435` |
+| Runtime merge (unchanged) | `ea1ff2f5c50e4e7d43ac1d0394f37d5ea0acb409` |
+| Files | `docs/audits/wx-phase1b3-capability-framework/production/*` only |
+
 
 ## 22. Rollback Readiness
 

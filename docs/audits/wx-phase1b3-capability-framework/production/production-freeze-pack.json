@@ -43,5 +43,7 @@
   "documentationFreezeCommit": "f2bc94038155931d7dca3b622deb8242c5d59c09",
   "documentationFreezeParent": "ea1ff2f5c50e4e7d43ac1d0394f37d5ea0acb409",
   "documentationFreezeTimestampUtc": "2026-08-01T01:44:26Z",
-  "originMainDocumentationTip": "f2bc94038155931d7dca3b622deb8242c5d59c09"
+  "originMainDocumentationTip": "4dc1b4e0f7a175e4d82ab82e4f622425fb4d3435",
+  "documentationFreezeStampCommit": "4dc1b4e0f7a175e4d82ab82e4f622425fb4d3435",
+  "note": "Production runtime remains ea1ff2f5; docs tip includes freeze + stamp commits"
 }
