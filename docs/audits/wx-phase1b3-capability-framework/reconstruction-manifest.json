@@ -15,7 +15,7 @@
     "reconstructionBranch": "wx/phase-1b3-capability-framework-current-main",
     "commitA": "a1a56a1ccf4f60c16b5b7b2e51edddc3c9a51dbe",
     "commitB": "8b2c36a187c65091b988ba5e3fbfea95b8467b13",
-    "commitC": "8df60b474ff5f1fca15d2dd43edfa7ac040c8f3b",
+    "commitC": "c0123772f81e2e14db71f61c87a917a6413ab775",
     "proofBindingCommit": "8b2c36a187c65091b988ba5e3fbfea95b8467b13"
   },
   "fileReconstructionAudit": [

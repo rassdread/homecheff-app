@@ -14,6 +14,7 @@
   "rollbackTarget": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
   "browserVerdict": "WX_PHASE_1B3_BROWSER_PASS",
   "contractId": "wx-capability-activation-v1",
-  "commitC": "8df60b474ff5f1fca15d2dd43edfa7ac040c8f3b",
-  "evidenceOnly": true
+  "commitC": "c0123772f81e2e14db71f61c87a917a6413ab775",
+  "evidenceOnly": true,
+  "evidenceTip": "c0123772f81e2e14db71f61c87a917a6413ab775"
 }

@@ -220,7 +220,7 @@ Recorded in `reconstruction-manifest.json` (content hashes). WMS v1 / v1.1, WQS,
 | --- | --- | --- | --- |
 | A | `a1a56a1ccf4f60c16b5b7b2e51edddc3c9a51dbe` | `86d0b08d…` | resolver + exports + current-main diagnostics |
 | B | `8b2c36a187c65091b988ba5e3fbfea95b8467b13` | A | fixtures, tests, probe, scripts |
-| C |  | B | evidence only; binds to B |
+| C | `c0123772f81e2e14db71f61c87a917a6413ab775` | B | evidence only; binds to B |
 
 Remote hashes filled after push.
 
