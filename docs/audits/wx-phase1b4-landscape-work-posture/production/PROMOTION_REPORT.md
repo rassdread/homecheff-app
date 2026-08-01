@@ -143,6 +143,8 @@ Incremental cost bounded to chrome/presentation + two hamburger rows + Escape li
 | Pack | `production/production-freeze-pack.json` |
 | Markdown | `production/PRODUCTION_FREEZE.md` |
 | Bound to | merge `0b84f593…` / dpl `dpl_E5ZY7VK6…` |
+| Freeze commit (docs tip) | `29cba5e010764f2f9a35f35ac10b888e034744bf` |
+| Runtime merge (unchanged by docs freeze) | `0b84f593b3dda5cbe2e54adf30f809a5bab076cc` |
 
 ---
 

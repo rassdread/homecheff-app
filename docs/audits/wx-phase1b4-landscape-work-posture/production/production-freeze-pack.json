@@ -5,6 +5,8 @@
   "verdict": "WX_PHASE_1B4_PRODUCTION_SUCCESS",
   "frozenAtUtc": "2026-08-01T11:32:00Z",
   "mergeCommit": "0b84f593b3dda5cbe2e54adf30f809a5bab076cc",
+  "freezeCommit": "29cba5e010764f2f9a35f35ac10b888e034744bf",
+  "docsTip": "29cba5e010764f2f9a35f35ac10b888e034744bf",
   "featureTip": "170c21dcce652d0fb4776e5db96ad41c73b79966",
   "mergeParents": [
     "be6de2e01ab326b1b6306720e82aea8b4d3fdc2f",
