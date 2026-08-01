@@ -78,6 +78,12 @@ export type ChromeOccupancyInput = {
    */
   viewportWidthPx: number | null;
   /**
+   * Viewport height for Landscape Work Posture (WX 1B.4).
+   * When width > height, bottom button menu is collapsed — bottom occupancy 0.
+   * Omit / null → treat as non-landscape (safe discovery chrome for SSR).
+   */
+  viewportHeightPx?: number | null;
+  /**
    * Optional env(safe-area-inset-*) px when known on client.
    * SSR: omit / zeros.
    */

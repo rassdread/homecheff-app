@@ -27,6 +27,7 @@ import { CommsUnreadProvider } from '@/components/communication/CommsUnreadProvi
 import dynamic from 'next/dynamic';
 import NavigationHistorySync from '@/components/navigation/NavigationHistorySync';
 import FeedPerfBaselineMount from '@/components/performance/FeedPerfBaselineMount';
+import { WorkspaceChromeProvider } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 
 const CommsRealtimeListener = dynamic(
   () => import('@/components/communication/CommsRealtimeListener'),
@@ -95,7 +96,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             <CommsUnreadProvider>
               <CommsRealtimeListener />
               <HcpRewardProvider>
-                <CreateFlowProvider>{children}</CreateFlowProvider>
+                <CreateFlowProvider>
+                  <WorkspaceChromeProvider>{children}</WorkspaceChromeProvider>
+                </CreateFlowProvider>
               </HcpRewardProvider>
             </CommsUnreadProvider>
           </UserBootstrapProvider>

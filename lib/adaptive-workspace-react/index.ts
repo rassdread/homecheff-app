@@ -191,3 +191,15 @@ export type {
   WorkspaceCapabilityPlan,
   WorkspaceCapabilityResolveInput,
 } from "./resolve-workspace-capabilities";
+
+export {
+  LANDSCAPE_WORK_POSTURE,
+  resolveLandscapeWorkPosture,
+  isSameLandscapeWorkPosturePlan,
+} from "./resolve-landscape-work-posture";
+
+export type {
+  WorkspaceChromeDensity,
+  LandscapeWorkPosturePlan,
+  LandscapeWorkPostureInput,
+} from "./resolve-landscape-work-posture";
