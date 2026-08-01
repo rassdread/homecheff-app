@@ -1666,8 +1666,11 @@ export default function BottomNavigation() {
       {/* Bottom nav: phone = full width; md–lg = centered floating bar; lg+ web hidden (native keeps).
           WX 1B.4: Landscape Work Posture collapses the visual bar (listeners/quick-add stay mounted). */}
       <div
+        data-hc-bottom-nav-shell=""
         data-wx-bottom-nav-collapsed={landscapeCollapsed ? '1' : '0'}
         data-wx-landscape-work={landscapeWork.workPostureActive ? '1' : '0'}
+        aria-hidden={landscapeCollapsed ? true : undefined}
+        {...(landscapeCollapsed ? ({ inert: '' } as Record<string, string>) : {})}
         className={cn(
           bottomNavBarVisibleClass(isNativeShell, landscapeCollapsed),
           'fixed inset-x-0 bottom-0 z-[65] max-w-[100vw] overflow-x-hidden pointer-events-none',

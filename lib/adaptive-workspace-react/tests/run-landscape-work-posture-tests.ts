@@ -150,6 +150,8 @@ begin("source seals — no UA/device branching in policy + chrome");
   assert.match(bottomNav, /useLandscapeWorkPosture/);
   assert.match(bottomNav, /bottomNavBarVisibleClass/);
   assert.match(bottomNav, /data-wx-bottom-nav-collapsed/);
+  assert.match(bottomNav, /data-hc-bottom-nav-shell/);
+  assert.match(bottomNav, /aria-hidden/);
 
   const strip = readFileSync(
     join(root, "components/adaptive-workspace/WorkspaceOrientationStrip.tsx"),
@@ -158,6 +160,11 @@ begin("source seals — no UA/device branching in policy + chrome");
   assert.match(strip, /orientationCompact/);
   assert.match(strip, /data-wx-orientation-compact/);
 
+  const navBar = readFileSync(join(root, "components/NavBar.tsx"), "utf8");
+  assert.match(navBar, /data-wx-mobile-create/);
+  assert.match(navBar, /data-wx-mobile-mijn-hcp/);
+  assert.match(navBar, /\/mijn-hcp/);
+
   const layout = readFileSync(
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
@@ -165,7 +172,7 @@ begin("source seals — no UA/device branching in policy + chrome");
   assert.match(layout, /data-wx-phase="1b\.4"/);
   assert.match(layout, /h-full overflow-hidden/);
   assert.match(layout, /data-wx-cap-visual-activation="0"/);
-  ok("presentation wiring sealed; 1B.2.1 + capability diagnostics retained");
+  ok("presentation wiring sealed; 1B.2.1 + capability diagnostics + nav preservation retained");
 }
 
 begin("module has no timers / polling");

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import SafeImage from '@/components/ui/SafeImage';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
 import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone, Download, Plus, Award, CalendarClock, Bell } from 'lucide-react';
@@ -51,6 +51,7 @@ function resolveNavDashboardHref(user: Record<string, unknown> | null | undefine
 export default function NavBar() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const { t } = useTranslation();
   const appUpdateStatus = useAppUpdateStatus();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
@@ -86,7 +87,21 @@ export default function NavBar() {
       portalContainerRef.current = null;
     };
   }, []);
+
+  /** WX 1B.4: Escape closes below-lg hamburger (landscape path preservation). */
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isMobileMenuOpen]);
+
   const nativeShell = useIsNativeAppMounted();
+  const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), []);
 
   /** Geen geneste <Link><Button> — één klikbaar element voor WebView/touch. */
   const mobileNavRowClass = cn(
@@ -135,6 +150,16 @@ export default function NavBar() {
     session && 'user' in session
       ? (session.user as typeof session['user'] & { image?: string })
       : undefined;
+
+  const handleMobileCreate = useCallback(() => {
+    closeMobileMenu();
+    if (user) {
+      openCreateFlow();
+    } else {
+      requireAuthAction('create', '/sell/new');
+    }
+    navDebug('navbar:mobile', { action: 'create' });
+  }, [closeMobileMenu, openCreateFlow, requireAuthAction, user]);
 
   const navMenuUser = user
     ? ({ ...(user as Record<string, unknown>), ...(bootstrapProfile ?? {}) } as Record<string, unknown>)
@@ -714,12 +739,47 @@ export default function NavBar() {
                 prefetch={false}
                 className={mobileNavRowClass}
                 onClick={() => {
-                  setIsMobileMenuOpen(false);
+                  closeMobileMenu();
                   navDebug('navbar:mobile', { href: '/' });
                 }}
               >
                 <Home className="w-4 h-4 shrink-0" />
                 <span>{t('navbar.home')}</span>
+              </Link>
+
+              {/* WX 1B.4 — Landscape Work Posture: bottom-nav destinations remain reachable via hamburger. */}
+              <button
+                type="button"
+                data-wx-mobile-create=""
+                data-wx-primary-action-mobile=""
+                className={cn(
+                  mobileNavRowClass,
+                  'bg-primary-brand font-semibold text-white hover:bg-primary-700 hover:text-white',
+                )}
+                onClick={handleMobileCreate}
+              >
+                <Plus className="w-4 h-4 shrink-0" aria-hidden />
+                <span>{t('homePhase1.ctaShare')}</span>
+              </button>
+
+              <Link
+                href={user ? '/mijn-hcp' : '/login'}
+                prefetch={false}
+                data-wx-mobile-mijn-hcp=""
+                className={cn(
+                  mobileNavRowClass,
+                  pathname === '/mijn-hcp' && 'bg-primary-50 text-primary-brand',
+                )}
+                onClick={() => {
+                  closeMobileMenu();
+                  navDebug('navbar:mobile', {
+                    href: user ? '/mijn-hcp' : '/login',
+                    destination: 'mijn-hcp',
+                  });
+                }}
+              >
+                <Award className="w-4 h-4 shrink-0" aria-hidden />
+                <span>{t('bottomNav.reputationTab')}</span>
               </Link>
 
               {appUpdateStatus.showPlayMigrationStrip ? (
@@ -730,7 +790,7 @@ export default function NavBar() {
                     'border border-emerald-200 bg-emerald-50/95 text-emerald-950 font-medium'
                   )}
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     void appUpdateStatus.openPlayStore();
                     navDebug('navbar:mobile', { action: 'play-migration-reminder' });
                   }}
