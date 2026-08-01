@@ -171,3 +171,23 @@ export type {
   WorkspaceTransitionEvent,
   FailClosedUsableSpace,
 } from "./workspace-transition-continuity";
+
+export {
+  WORKSPACE_CAPABILITY_FRAMEWORK,
+  WORKSPACE_CAPABILITY_IDS,
+  WORKSPACE_RESERVED_CAPABILITY_IDS,
+  CAPABILITY_FORBIDDEN_SOURCE_PATTERNS,
+  resolveWorkspaceCapabilities,
+  resolveWorkspaceCapabilitiesFromModePlan,
+  resolveWorkspaceCapabilitiesFromAvailableSpace,
+  getWorkspaceCapabilityState,
+  isWorkspaceCapabilityAvailable,
+} from "./resolve-workspace-capabilities";
+
+export type {
+  WorkspaceCapabilityId,
+  WorkspaceCapabilityState,
+  WorkspaceCapabilityActivationMap,
+  WorkspaceCapabilityPlan,
+  WorkspaceCapabilityResolveInput,
+} from "./resolve-workspace-capabilities";
