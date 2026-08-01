@@ -1,0 +1,154 @@
+{
+  "phase": "1b.3",
+  "remediation": "CURRENT_MAIN_RECONSTRUCTION",
+  "original": {
+    "branch": "wx/phase-1b3-capability-framework",
+    "implementationCommit": "b0b3d78302695533767f948ba3167a4134d6f062",
+    "evidenceTip": "28a4ff4b4ff6c8c5febde36b21e79c1ae3d19670",
+    "oldBase": "a17cbbf6ff58d3010d3911a5917c7706c0bc6524",
+    "untouched": true
+  },
+  "current": {
+    "originMainAtReconstruction": "86d0b08d434626d45b7ed1b27cd2d4a2ebaa8c35",
+    "productionRuntimeBaseline": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+    "incidentFixMerge": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+    "reconstructionBranch": "wx/phase-1b3-capability-framework-current-main",
+    "commitA": "a1a56a1ccf4f60c16b5b7b2e51edddc3c9a51dbe",
+    "commitB": "8b2c36a187c65091b988ba5e3fbfea95b8467b13",
+    "commitC": "8df60b474ff5f1fca15d2dd43edfa7ac040c8f3b",
+    "proofBindingCommit": "8b2c36a187c65091b988ba5e3fbfea95b8467b13"
+  },
+  "fileReconstructionAudit": [
+    {
+      "oldBranchPath": "lib/adaptive-workspace-react/resolve-workspace-capabilities.ts",
+      "currentMainVersion": "absent on origin/main",
+      "intended1b3Semantic": "pure capability resolver + types + 13 IDs + reserved permanence",
+      "currentMainPreserved": "n/a (new module)",
+      "method": "copied from b0b3d783 with contract preserved",
+      "finalResult": "AUTHORIZED_CAPABILITY_RESOLVER / AUTHORIZED_CAPABILITY_TYPES"
+    },
+    {
+      "oldBranchPath": "lib/adaptive-workspace-react/index.ts",
+      "currentMainVersion": "86d0b08d exports through continuity",
+      "intended1b3Semantic": "public capability exports",
+      "currentMainPreserved": "all prior exports retained",
+      "method": "append-only exports",
+      "finalResult": "AUTHORIZED_CAPABILITY_TYPES"
+    },
+    {
+      "oldBranchPath": "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx",
+      "currentMainVersion": "86d0b08d / 3ddaf59c with 1B.2.1 h-full overflow-hidden multiCol hosts",
+      "intended1b3Semantic": "diagnostics-only data-wx-cap-* + data-wx-phase=1b.3",
+      "currentMainPreserved": "1B.2.1 height chain, multiCol hosts, continuity mounts, Mode diagnostics",
+      "method": "surgical patch on current-main file \u2014 NEVER wholesale old copy",
+      "finalResult": "AUTHORIZED_CAPABILITY_DIAGNOSTICS"
+    },
+    {
+      "oldBranchPath": "lib/adaptive-workspace-react/tests/fixtures/capability-activation-vectors.ts",
+      "currentMainVersion": "absent",
+      "intended1b3Semantic": "independent Mode\u00d7capability fixtures",
+      "currentMainPreserved": "n/a",
+      "method": "copied + hybrid-landscape vector added",
+      "finalResult": "AUTHORIZED_CAPABILITY_TEST"
+    },
+    {
+      "oldBranchPath": "lib/adaptive-workspace-react/tests/run-capability-framework-tests.ts",
+      "currentMainVersion": "absent",
+      "intended1b3Semantic": "contract tests for matrix/reserved/fail-closed",
+      "currentMainPreserved": "n/a",
+      "method": "reproduced + extended (unknown ID, progressive unlock, 1B.2.1 height guards, consumer search)",
+      "finalResult": "AUTHORIZED_CAPABILITY_TEST"
+    },
+    {
+      "oldBranchPath": "lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts",
+      "currentMainVersion": "phase assert 1b.2 + 1B.2.1 guards",
+      "intended1b3Semantic": "phase marker advances to 1b.3",
+      "currentMainPreserved": "continuity + height-chain source guards",
+      "method": "narrow phase assert update 1b.2\u21921b.3; keep height overflow-hidden assert",
+      "finalResult": "AUTHORIZED_CAPABILITY_TEST"
+    },
+    {
+      "oldBranchPath": "package.json",
+      "currentMainVersion": "includes test:mobile-landscape-scroll and 1B.2.1 chain",
+      "intended1b3Semantic": "capability test/probe scripts",
+      "currentMainPreserved": "all existing scripts/deps; mobile-landscape-scroll retained",
+      "method": "additive scripts only",
+      "finalResult": "AUTHORIZED_CAPABILITY_TEST"
+    },
+    {
+      "oldBranchPath": "scripts/probe-wx-phase1b3-capability-framework.mjs",
+      "currentMainVersion": "absent",
+      "intended1b3Semantic": "browser Mode matrix + Compact + landscape regression",
+      "currentMainPreserved": "invokes sealed 1B.2.1 harness from current-main",
+      "method": "rewritten for Compact coverage + measured AvailableSpace + 1B.2.1 harness integration",
+      "finalResult": "AUTHORIZED_CAPABILITY_PROBE"
+    }
+  ],
+  "unauthorizedFiles": [],
+  "architectureDocumentLineage": [
+    {
+      "path": "docs/architecture/homecheff-workspace-modes-specification-v1.md",
+      "bytes": 23809,
+      "sha256": "4ee0e0bbe9f716054ca7f62ec3c5575725da527797056a817b544ba0c3e06906",
+      "tracked": false,
+      "authoritative_status": "UNTRACKED_ARCHITECTURE_WIP",
+      "identical_in_1b3_impl_worktree": null,
+      "used_by_reconstruction": "matrix/semantics referenced; files not copied or modified"
+    },
+    {
+      "path": "docs/architecture/homecheff-workspace-modes-specification-v1.1.md",
+      "bytes": 20096,
+      "sha256": "c5de45efae8afd519e981c688616ad4c25eaf3f3006044f68b8a7771a2adc145",
+      "tracked": false,
+      "authoritative_status": "UNTRACKED_ARCHITECTURE_WIP",
+      "identical_in_1b3_impl_worktree": null,
+      "used_by_reconstruction": "matrix/semantics referenced; files not copied or modified"
+    },
+    {
+      "path": "docs/architecture/homecheff-workspace-quality-standard-v1.md",
+      "bytes": 21306,
+      "sha256": "621d893d6fd6a24934a58e6309b71d4d9dba2a70cb6f4944e063b1ccad9f5880",
+      "tracked": false,
+      "authoritative_status": "UNTRACKED_ARCHITECTURE_WIP",
+      "identical_in_1b3_impl_worktree": null,
+      "used_by_reconstruction": "matrix/semantics referenced; files not copied or modified"
+    },
+    {
+      "path": "docs/architecture/homecheff-wx-phase1b-master-specification.md",
+      "bytes": 26541,
+      "sha256": "3e3520d9ff9ddffed4687346e9cd667b5eb7b946b36f1e4bddcc22d41dc64f00",
+      "tracked": false,
+      "authoritative_status": "UNTRACKED_ARCHITECTURE_WIP",
+      "identical_in_1b3_impl_worktree": null,
+      "used_by_reconstruction": "matrix/semantics referenced; files not copied or modified"
+    },
+    {
+      "path": "docs/architecture/homecheff-workspace-design-language-v1.md",
+      "bytes": 10174,
+      "sha256": "68e8c3f42573abf752175f4d72886d786bc83d354a9df0f924dc63e84cc5b441",
+      "tracked": true,
+      "authoritative_status": "TRACKED",
+      "identical_in_1b3_impl_worktree": true,
+      "used_by_reconstruction": "matrix/semantics referenced; files not copied or modified"
+    }
+  ],
+  "rollback": {
+    "target": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+    "ensures": [
+      "1B.3 can revert independently",
+      "1B.2.1 mobile-landscape scroll fix remains live",
+      "no DB migration",
+      "no data migration",
+      "no ownership transfer",
+      "no irreversible state",
+      "no Phase 1B.4 during rollback"
+    ],
+    "executed": false
+  },
+  "stops": {
+    "noMerge": true,
+    "noDeploy": true,
+    "noProductionFreeze": true,
+    "noPhase1b4": true
+  }
+}
