@@ -1,0 +1,43 @@
+{
+  "phase": "1b.3",
+  "status": "PRODUCTION_FROZEN",
+  "productionFreezeClaimed": true,
+  "mergeAuthorized": true,
+  "deployAuthorized": true,
+  "phase1b4Authorized": false,
+  "reconstructionBranch": "wx/phase-1b3-capability-framework-current-main",
+  "reconstructionBase": "86d0b08d434626d45b7ed1b27cd2d4a2ebaa8c35",
+  "commitA": "a1a56a1ccf4f60c16b5b7b2e51edddc3c9a51dbe",
+  "commitB": "8b2c36a187c65091b988ba5e3fbfea95b8467b13",
+  "commitC": "c0123772f81e2e14db71f61c87a917a6413ab775",
+  "stampTip": "ca5d78024af220a70a24e9a23c0285676ee0e3bf",
+  "mergeCommit": "ea1ff2f5c50e4e7d43ac1d0394f37d5ea0acb409",
+  "mergeParents": [
+    "86d0b08d434626d45b7ed1b27cd2d4a2ebaa8c35",
+    "ca5d78024af220a70a24e9a23c0285676ee0e3bf"
+  ],
+  "originMainAtPromotionStart": "86d0b08d434626d45b7ed1b27cd2d4a2ebaa8c35",
+  "productionRuntimeBaselineBefore": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+  "productionRuntimeAfter": "ea1ff2f5c50e4e7d43ac1d0394f37d5ea0acb409",
+  "officialVercelProject": "homecheff-app",
+  "deploymentId": "dpl_4Jzojsy82dKdZjExmFesxKZmTaGu",
+  "deploymentUrl": "https://homecheff-fp2iqi61i-sergio-s-projects-f7b64ee1.vercel.app",
+  "aliases": [
+    "https://homecheff.eu",
+    "https://homecheff.nl",
+    "https://www.homecheff.eu",
+    "https://www.homecheff.nl"
+  ],
+  "deployedGitCommitSha": "ea1ff2f5c50e4e7d43ac1d0394f37d5ea0acb409",
+  "runtimeObservedHash": "ea1ff2f5c50e4e7d43ac1d0394f37d5ea0acb409",
+  "rollbackTarget": "3ddaf59cfd1e95f2276a165cd81807f3de289849",
+  "browserVerdict": "WX_PHASE_1B3_PRODUCTION_BROWSER_PASS",
+  "landscapeVerdict": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS",
+  "capabilityMatrix": "PRODUCTION_CAPABILITY_MATRIX_MATCH",
+  "presentationNonActivation": true,
+  "compactProven": true,
+  "journeyPass": true,
+  "performance": "PASS_WITH_BOUNDED_WARNINGS",
+  "phase1b4": false,
+  "timestampUtc": "2026-08-01T01:43:55Z"
+}

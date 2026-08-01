@@ -1,0 +1,248 @@
+{
+  "contractId": "wx-capability-activation-v1",
+  "phase": "1b.3",
+  "source": "live Production diagnostics on https://homecheff.eu",
+  "timestamp": "2026-08-01T01:42:09.370Z",
+  "comparison": "PRODUCTION_CAPABILITY_MATRIX_MATCH",
+  "modes": {
+    "browse-portrait": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "measuredAvailableSpace": {
+        "width": 390,
+        "height": 844
+      },
+      "mode": "browse",
+      "posture": "portrait",
+      "capabilities": {
+        "navigation": "available",
+        "discovery": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "unavailable",
+        "workspace-density": "available",
+        "inspector": "unavailable",
+        "selection": "unavailable",
+        "workspace-memory": "reserved",
+        "contextual-assistance": "reserved",
+        "professional-workspace": "reserved",
+        "ai-collaboration": "reserved",
+        "extensions": "reserved"
+      },
+      "reservedCount": "5",
+      "visualActivation": "0"
+    },
+    "compact-landscape-a": {
+      "viewport": {
+        "width": 680,
+        "height": 360
+      },
+      "measuredAvailableSpace": {
+        "width": 662,
+        "height": 360
+      },
+      "mode": "compact-workspace",
+      "posture": "landscape",
+      "capabilities": {
+        "navigation": "available",
+        "discovery": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available",
+        "workspace-density": "available",
+        "inspector": "unavailable",
+        "selection": "available",
+        "workspace-memory": "reserved",
+        "contextual-assistance": "reserved",
+        "professional-workspace": "reserved",
+        "ai-collaboration": "reserved",
+        "extensions": "reserved"
+      },
+      "reservedCount": "5",
+      "visualActivation": "0"
+    },
+    "compact-landscape-b": {
+      "viewport": {
+        "width": 700,
+        "height": 360
+      },
+      "measuredAvailableSpace": {
+        "width": 682,
+        "height": 360
+      },
+      "mode": "compact-workspace",
+      "posture": "landscape",
+      "capabilities": {
+        "navigation": "available",
+        "discovery": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available",
+        "workspace-density": "available",
+        "inspector": "unavailable",
+        "selection": "available",
+        "workspace-memory": "reserved",
+        "contextual-assistance": "reserved",
+        "professional-workspace": "reserved",
+        "ai-collaboration": "reserved",
+        "extensions": "reserved"
+      },
+      "reservedCount": "5",
+      "visualActivation": "0"
+    },
+    "compact-landscape-c": {
+      "viewport": {
+        "width": 710,
+        "height": 360
+      },
+      "measuredAvailableSpace": {
+        "width": 692,
+        "height": 360
+      },
+      "mode": "compact-workspace",
+      "posture": "landscape",
+      "capabilities": {
+        "navigation": "available",
+        "discovery": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available",
+        "workspace-density": "available",
+        "inspector": "unavailable",
+        "selection": "available",
+        "workspace-memory": "reserved",
+        "contextual-assistance": "reserved",
+        "professional-workspace": "reserved",
+        "ai-collaboration": "reserved",
+        "extensions": "reserved"
+      },
+      "reservedCount": "5",
+      "visualActivation": "0"
+    },
+    "hybrid-portrait": {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "measuredAvailableSpace": {
+        "width": 802,
+        "height": 1180
+      },
+      "mode": "hybrid-workspace",
+      "posture": "portrait",
+      "capabilities": {
+        "navigation": "available",
+        "discovery": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available",
+        "workspace-density": "available",
+        "inspector": "available",
+        "selection": "available",
+        "workspace-memory": "reserved",
+        "contextual-assistance": "reserved",
+        "professional-workspace": "reserved",
+        "ai-collaboration": "reserved",
+        "extensions": "reserved"
+      },
+      "reservedCount": "5",
+      "visualActivation": "0"
+    },
+    "hybrid-landscape": {
+      "viewport": {
+        "width": 900,
+        "height": 600
+      },
+      "measuredAvailableSpace": {
+        "width": 882,
+        "height": 600
+      },
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "capabilities": {
+        "navigation": "available",
+        "discovery": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available",
+        "workspace-density": "available",
+        "inspector": "available",
+        "selection": "available",
+        "workspace-memory": "reserved",
+        "contextual-assistance": "reserved",
+        "professional-workspace": "reserved",
+        "ai-collaboration": "reserved",
+        "extensions": "reserved"
+      },
+      "reservedCount": "5",
+      "visualActivation": "0"
+    },
+    "full-landscape": {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "measuredAvailableSpace": {
+        "width": 1254,
+        "height": 800
+      },
+      "mode": "full-workspace",
+      "posture": "landscape",
+      "capabilities": {
+        "navigation": "available",
+        "discovery": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available",
+        "workspace-density": "available",
+        "inspector": "available",
+        "selection": "available",
+        "workspace-memory": "reserved",
+        "contextual-assistance": "reserved",
+        "professional-workspace": "reserved",
+        "ai-collaboration": "reserved",
+        "extensions": "reserved"
+      },
+      "reservedCount": "5",
+      "visualActivation": "0"
+    },
+    "professional-landscape": {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "measuredAvailableSpace": {
+        "width": 1894,
+        "height": 1080
+      },
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "capabilities": {
+        "navigation": "available",
+        "discovery": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available",
+        "workspace-density": "available",
+        "inspector": "available",
+        "selection": "available",
+        "workspace-memory": "reserved",
+        "contextual-assistance": "reserved",
+        "professional-workspace": "reserved",
+        "ai-collaboration": "reserved",
+        "extensions": "reserved"
+      },
+      "reservedCount": "5",
+      "visualActivation": "0"
+    }
+  },
+  "reservedAlways": [
+    "workspace-memory",
+    "contextual-assistance",
+    "professional-workspace",
+    "ai-collaboration",
+    "extensions"
+  ]
+}

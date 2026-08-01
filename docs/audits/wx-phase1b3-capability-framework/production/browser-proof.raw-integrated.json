@@ -1,0 +1,1315 @@
+{
+  "phase": "1b.3",
+  "contractId": "wx-capability-activation-v1",
+  "reconstruction": "current-main",
+  "mode": "production",
+  "baseUrl": "https://homecheff.eu",
+  "timestamp": "2026-08-01T01:42:09.370Z",
+  "verdict": "WX_PHASE_1B3_BROWSER_FAIL",
+  "visualActivationClaimed": false,
+  "presentationRedesignClaimed": false,
+  "ownershipChangeClaimed": false,
+  "mountBaseline": {
+    "shellMountId": "wx-shell-mount:1",
+    "primaryMountId": "wx-primary-mount:1"
+  },
+  "modesObserved": [
+    "browse",
+    "compact-workspace",
+    "hybrid-workspace",
+    "full-workspace",
+    "professional-workspace"
+  ],
+  "modeCoverage": {
+    "browse": true,
+    "compact-workspace": true,
+    "hybrid-workspace": true,
+    "full-workspace": true,
+    "professional-workspace": true
+  },
+  "compactWorkspaceProof": {
+    "required": true,
+    "observedPassCount": 3,
+    "hits": [
+      {
+        "id": "compact-landscape-a",
+        "viewport": {
+          "width": 680,
+          "height": 360
+        },
+        "measuredAvailableSpace": {
+          "width": 662,
+          "height": 360
+        },
+        "posture": "landscape"
+      },
+      {
+        "id": "compact-landscape-b",
+        "viewport": {
+          "width": 700,
+          "height": 360
+        },
+        "measuredAvailableSpace": {
+          "width": 682,
+          "height": 360
+        },
+        "posture": "landscape"
+      },
+      {
+        "id": "compact-landscape-c",
+        "viewport": {
+          "width": 710,
+          "height": 360
+        },
+        "measuredAvailableSpace": {
+          "width": 692,
+          "height": 360
+        },
+        "posture": "landscape"
+      }
+    ],
+    "pass": true
+  },
+  "modeMatrix": {
+    "fixtureCount": 8,
+    "passCount": 8,
+    "results": [
+      {
+        "id": "browse-portrait",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "targetMode": "browse",
+        "measuredAvailableSpace": {
+          "width": 390,
+          "height": 844
+        },
+        "resolvedMode": "browse",
+        "posture": "portrait",
+        "hitTargetMode": true,
+        "snap": {
+          "found": true,
+          "phase": "1b.3",
+          "capability": "wx-capability-activation-v1",
+          "capToken": "wx-cap:browse:portrait:390x844:lc0:a5:u3:r5",
+          "available": "5",
+          "unavailable": "3",
+          "reserved": "5",
+          "visualActivation": "0",
+          "mode": "browse",
+          "posture": "portrait",
+          "continuity": "wx-transition-continuity-v1",
+          "remount": "0",
+          "shellMountId": "wx-shell-mount:1",
+          "primaryMountId": "wx-primary-mount:1",
+          "layoutMode": "mobile-portrait",
+          "usableWidth": "390",
+          "usableHeight": "844",
+          "supportingPanels": "0",
+          "workspaceCount": 1,
+          "hostCount": 4,
+          "stableFeedSlot": true,
+          "feedOwner": null,
+          "caps": {
+            "navigation": "available",
+            "discovery": "available",
+            "search": "available",
+            "filters": "available",
+            "panels": "unavailable",
+            "workspace-density": "available",
+            "inspector": "unavailable",
+            "selection": "unavailable",
+            "workspace-memory": "reserved",
+            "contextual-assistance": "reserved",
+            "professional-workspace": "reserved",
+            "ai-collaboration": "reserved",
+            "extensions": "reserved"
+          },
+          "visibleCapabilityDomDelta": 0,
+          "heightChain": {
+            "regionHasHFull": true,
+            "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+            "feedOverflowY": "auto",
+            "feedClientH": 2565,
+            "feedScrollH": 2565,
+            "feedCanScroll": false
+          },
+          "multiColHostOverflowHidden": false
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "capabilityContract": true,
+          "visualActivationOff": true,
+          "singleWorkspace": true,
+          "stableFeedSlot": true,
+          "continuityRemountZero": true,
+          "modeKnown": true,
+          "capsMatchModeFixture": true,
+          "reservedStayReserved": true,
+          "reservedCountExact": true,
+          "availableAtLeast": true,
+          "mountStable": true,
+          "visibleCapabilityDomDeltaZero": true,
+          "measuredSpacePresent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "compact-landscape-a",
+        "viewport": {
+          "width": 680,
+          "height": 360
+        },
+        "targetMode": "compact-workspace",
+        "measuredAvailableSpace": {
+          "width": 662,
+          "height": 360
+        },
+        "resolvedMode": "compact-workspace",
+        "posture": "landscape",
+        "hitTargetMode": true,
+        "snap": {
+          "found": true,
+          "phase": "1b.3",
+          "capability": "wx-capability-activation-v1",
+          "capToken": "wx-cap:compact-workspace:landscape:662x360:lc1:a7:u1:r5",
+          "available": "7",
+          "unavailable": "1",
+          "reserved": "5",
+          "visualActivation": "0",
+          "mode": "compact-workspace",
+          "posture": "landscape",
+          "continuity": "wx-transition-continuity-v1",
+          "remount": "0",
+          "shellMountId": "wx-shell-mount:1",
+          "primaryMountId": "wx-primary-mount:1",
+          "layoutMode": "mobile-landscape",
+          "usableWidth": "662",
+          "usableHeight": "360",
+          "supportingPanels": "1",
+          "workspaceCount": 1,
+          "hostCount": 4,
+          "stableFeedSlot": true,
+          "feedOwner": null,
+          "caps": {
+            "navigation": "available",
+            "discovery": "available",
+            "search": "available",
+            "filters": "available",
+            "panels": "available",
+            "workspace-density": "available",
+            "inspector": "unavailable",
+            "selection": "available",
+            "workspace-memory": "reserved",
+            "contextual-assistance": "reserved",
+            "professional-workspace": "reserved",
+            "ai-collaboration": "reserved",
+            "extensions": "reserved"
+          },
+          "visibleCapabilityDomDelta": 0,
+          "heightChain": {
+            "regionHasHFull": true,
+            "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+            "feedOverflowY": "auto",
+            "feedClientH": 113,
+            "feedScrollH": 2591,
+            "feedCanScroll": true
+          },
+          "multiColHostOverflowHidden": true
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "capabilityContract": true,
+          "visualActivationOff": true,
+          "singleWorkspace": true,
+          "stableFeedSlot": true,
+          "continuityRemountZero": true,
+          "modeKnown": true,
+          "capsMatchModeFixture": true,
+          "reservedStayReserved": true,
+          "reservedCountExact": true,
+          "availableAtLeast": true,
+          "mountStable": true,
+          "visibleCapabilityDomDeltaZero": true,
+          "measuredSpacePresent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "compact-landscape-b",
+        "viewport": {
+          "width": 700,
+          "height": 360
+        },
+        "targetMode": "compact-workspace",
+        "measuredAvailableSpace": {
+          "width": 682,
+          "height": 360
+        },
+        "resolvedMode": "compact-workspace",
+        "posture": "landscape",
+        "hitTargetMode": true,
+        "snap": {
+          "found": true,
+          "phase": "1b.3",
+          "capability": "wx-capability-activation-v1",
+          "capToken": "wx-cap:compact-workspace:landscape:682x360:lc1:a7:u1:r5",
+          "available": "7",
+          "unavailable": "1",
+          "reserved": "5",
+          "visualActivation": "0",
+          "mode": "compact-workspace",
+          "posture": "landscape",
+          "continuity": "wx-transition-continuity-v1",
+          "remount": "0",
+          "shellMountId": "wx-shell-mount:1",
+          "primaryMountId": "wx-primary-mount:1",
+          "layoutMode": "mobile-landscape",
+          "usableWidth": "682",
+          "usableHeight": "360",
+          "supportingPanels": "1",
+          "workspaceCount": 1,
+          "hostCount": 4,
+          "stableFeedSlot": true,
+          "feedOwner": null,
+          "caps": {
+            "navigation": "available",
+            "discovery": "available",
+            "search": "available",
+            "filters": "available",
+            "panels": "available",
+            "workspace-density": "available",
+            "inspector": "unavailable",
+            "selection": "available",
+            "workspace-memory": "reserved",
+            "contextual-assistance": "reserved",
+            "professional-workspace": "reserved",
+            "ai-collaboration": "reserved",
+            "extensions": "reserved"
+          },
+          "visibleCapabilityDomDelta": 0,
+          "heightChain": {
+            "regionHasHFull": true,
+            "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+            "feedOverflowY": "auto",
+            "feedClientH": 113,
+            "feedScrollH": 2616,
+            "feedCanScroll": true
+          },
+          "multiColHostOverflowHidden": true
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "capabilityContract": true,
+          "visualActivationOff": true,
+          "singleWorkspace": true,
+          "stableFeedSlot": true,
+          "continuityRemountZero": true,
+          "modeKnown": true,
+          "capsMatchModeFixture": true,
+          "reservedStayReserved": true,
+          "reservedCountExact": true,
+          "availableAtLeast": true,
+          "mountStable": true,
+          "visibleCapabilityDomDeltaZero": true,
+          "measuredSpacePresent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "compact-landscape-c",
+        "viewport": {
+          "width": 710,
+          "height": 360
+        },
+        "targetMode": "compact-workspace",
+        "measuredAvailableSpace": {
+          "width": 692,
+          "height": 360
+        },
+        "resolvedMode": "compact-workspace",
+        "posture": "landscape",
+        "hitTargetMode": true,
+        "snap": {
+          "found": true,
+          "phase": "1b.3",
+          "capability": "wx-capability-activation-v1",
+          "capToken": "wx-cap:compact-workspace:landscape:692x360:lc1:a7:u1:r5",
+          "available": "7",
+          "unavailable": "1",
+          "reserved": "5",
+          "visualActivation": "0",
+          "mode": "compact-workspace",
+          "posture": "landscape",
+          "continuity": "wx-transition-continuity-v1",
+          "remount": "0",
+          "shellMountId": "wx-shell-mount:1",
+          "primaryMountId": "wx-primary-mount:1",
+          "layoutMode": "mobile-landscape",
+          "usableWidth": "692",
+          "usableHeight": "360",
+          "supportingPanels": "1",
+          "workspaceCount": 1,
+          "hostCount": 4,
+          "stableFeedSlot": true,
+          "feedOwner": null,
+          "caps": {
+            "navigation": "available",
+            "discovery": "available",
+            "search": "available",
+            "filters": "available",
+            "panels": "available",
+            "workspace-density": "available",
+            "inspector": "unavailable",
+            "selection": "available",
+            "workspace-memory": "reserved",
+            "contextual-assistance": "reserved",
+            "professional-workspace": "reserved",
+            "ai-collaboration": "reserved",
+            "extensions": "reserved"
+          },
+          "visibleCapabilityDomDelta": 0,
+          "heightChain": {
+            "regionHasHFull": true,
+            "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+            "feedOverflowY": "auto",
+            "feedClientH": 113,
+            "feedScrollH": 2646,
+            "feedCanScroll": true
+          },
+          "multiColHostOverflowHidden": true
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "capabilityContract": true,
+          "visualActivationOff": true,
+          "singleWorkspace": true,
+          "stableFeedSlot": true,
+          "continuityRemountZero": true,
+          "modeKnown": true,
+          "capsMatchModeFixture": true,
+          "reservedStayReserved": true,
+          "reservedCountExact": true,
+          "availableAtLeast": true,
+          "mountStable": true,
+          "visibleCapabilityDomDeltaZero": true,
+          "measuredSpacePresent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "hybrid-portrait",
+        "viewport": {
+          "width": 820,
+          "height": 1180
+        },
+        "targetMode": "hybrid-workspace",
+        "measuredAvailableSpace": {
+          "width": 802,
+          "height": 1180
+        },
+        "resolvedMode": "hybrid-workspace",
+        "posture": "portrait",
+        "hitTargetMode": true,
+        "snap": {
+          "found": true,
+          "phase": "1b.3",
+          "capability": "wx-capability-activation-v1",
+          "capToken": "wx-cap:hybrid-workspace:portrait:802x1180:lc0:a8:u0:r5",
+          "available": "8",
+          "unavailable": "0",
+          "reserved": "5",
+          "visualActivation": "0",
+          "mode": "hybrid-workspace",
+          "posture": "portrait",
+          "continuity": "wx-transition-continuity-v1",
+          "remount": "0",
+          "shellMountId": "wx-shell-mount:1",
+          "primaryMountId": "wx-primary-mount:1",
+          "layoutMode": "tablet-portrait",
+          "usableWidth": "802",
+          "usableHeight": "1180",
+          "supportingPanels": "1",
+          "workspaceCount": 1,
+          "hostCount": 4,
+          "stableFeedSlot": true,
+          "feedOwner": null,
+          "caps": {
+            "navigation": "available",
+            "discovery": "available",
+            "search": "available",
+            "filters": "available",
+            "panels": "available",
+            "workspace-density": "available",
+            "inspector": "available",
+            "selection": "available",
+            "workspace-memory": "reserved",
+            "contextual-assistance": "reserved",
+            "professional-workspace": "reserved",
+            "ai-collaboration": "reserved",
+            "extensions": "reserved"
+          },
+          "visibleCapabilityDomDelta": 0,
+          "heightChain": {
+            "regionHasHFull": true,
+            "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+            "feedOverflowY": "auto",
+            "feedClientH": 933,
+            "feedScrollH": 2956,
+            "feedCanScroll": true
+          },
+          "multiColHostOverflowHidden": true
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "capabilityContract": true,
+          "visualActivationOff": true,
+          "singleWorkspace": true,
+          "stableFeedSlot": true,
+          "continuityRemountZero": true,
+          "modeKnown": true,
+          "capsMatchModeFixture": true,
+          "reservedStayReserved": true,
+          "reservedCountExact": true,
+          "availableAtLeast": true,
+          "mountStable": true,
+          "visibleCapabilityDomDeltaZero": true,
+          "measuredSpacePresent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "hybrid-landscape",
+        "viewport": {
+          "width": 900,
+          "height": 600
+        },
+        "targetMode": "hybrid-workspace",
+        "measuredAvailableSpace": {
+          "width": 882,
+          "height": 600
+        },
+        "resolvedMode": "hybrid-workspace",
+        "posture": "landscape",
+        "hitTargetMode": true,
+        "snap": {
+          "found": true,
+          "phase": "1b.3",
+          "capability": "wx-capability-activation-v1",
+          "capToken": "wx-cap:hybrid-workspace:landscape:882x600:lc0:a8:u0:r5",
+          "available": "8",
+          "unavailable": "0",
+          "reserved": "5",
+          "visualActivation": "0",
+          "mode": "hybrid-workspace",
+          "posture": "landscape",
+          "continuity": "wx-transition-continuity-v1",
+          "remount": "0",
+          "shellMountId": "wx-shell-mount:1",
+          "primaryMountId": "wx-primary-mount:1",
+          "layoutMode": "tablet-landscape",
+          "usableWidth": "882",
+          "usableHeight": "600",
+          "supportingPanels": "1",
+          "workspaceCount": 1,
+          "hostCount": 4,
+          "stableFeedSlot": true,
+          "feedOwner": null,
+          "caps": {
+            "navigation": "available",
+            "discovery": "available",
+            "search": "available",
+            "filters": "available",
+            "panels": "available",
+            "workspace-density": "available",
+            "inspector": "available",
+            "selection": "available",
+            "workspace-memory": "reserved",
+            "contextual-assistance": "reserved",
+            "professional-workspace": "reserved",
+            "ai-collaboration": "reserved",
+            "extensions": "reserved"
+          },
+          "visibleCapabilityDomDelta": 0,
+          "heightChain": {
+            "regionHasHFull": true,
+            "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+            "feedOverflowY": "auto",
+            "feedClientH": 353,
+            "feedScrollH": 3196,
+            "feedCanScroll": true
+          },
+          "multiColHostOverflowHidden": true
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "capabilityContract": true,
+          "visualActivationOff": true,
+          "singleWorkspace": true,
+          "stableFeedSlot": true,
+          "continuityRemountZero": true,
+          "modeKnown": true,
+          "capsMatchModeFixture": true,
+          "reservedStayReserved": true,
+          "reservedCountExact": true,
+          "availableAtLeast": true,
+          "mountStable": true,
+          "visibleCapabilityDomDeltaZero": true,
+          "measuredSpacePresent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "full-landscape",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "targetMode": "full-workspace",
+        "measuredAvailableSpace": {
+          "width": 1254,
+          "height": 800
+        },
+        "resolvedMode": "full-workspace",
+        "posture": "landscape",
+        "hitTargetMode": true,
+        "snap": {
+          "found": true,
+          "phase": "1b.3",
+          "capability": "wx-capability-activation-v1",
+          "capToken": "wx-cap:full-workspace:landscape:1254x800:lc0:a8:u0:r5",
+          "available": "8",
+          "unavailable": "0",
+          "reserved": "5",
+          "visualActivation": "0",
+          "mode": "full-workspace",
+          "posture": "landscape",
+          "continuity": "wx-transition-continuity-v1",
+          "remount": "0",
+          "shellMountId": "wx-shell-mount:1",
+          "primaryMountId": "wx-primary-mount:1",
+          "layoutMode": "desktop",
+          "usableWidth": "1254",
+          "usableHeight": "800",
+          "supportingPanels": "2",
+          "workspaceCount": 1,
+          "hostCount": 4,
+          "stableFeedSlot": true,
+          "feedOwner": null,
+          "caps": {
+            "navigation": "available",
+            "discovery": "available",
+            "search": "available",
+            "filters": "available",
+            "panels": "available",
+            "workspace-density": "available",
+            "inspector": "available",
+            "selection": "available",
+            "workspace-memory": "reserved",
+            "contextual-assistance": "reserved",
+            "professional-workspace": "reserved",
+            "ai-collaboration": "reserved",
+            "extensions": "reserved"
+          },
+          "visibleCapabilityDomDelta": 0,
+          "heightChain": {
+            "regionHasHFull": true,
+            "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+            "feedOverflowY": "auto",
+            "feedClientH": 553,
+            "feedScrollH": 7045,
+            "feedCanScroll": true
+          },
+          "multiColHostOverflowHidden": true
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "capabilityContract": true,
+          "visualActivationOff": true,
+          "singleWorkspace": true,
+          "stableFeedSlot": true,
+          "continuityRemountZero": true,
+          "modeKnown": true,
+          "capsMatchModeFixture": true,
+          "reservedStayReserved": true,
+          "reservedCountExact": true,
+          "availableAtLeast": true,
+          "mountStable": true,
+          "visibleCapabilityDomDeltaZero": true,
+          "measuredSpacePresent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "professional-landscape",
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        },
+        "targetMode": "professional-workspace",
+        "measuredAvailableSpace": {
+          "width": 1894,
+          "height": 1080
+        },
+        "resolvedMode": "professional-workspace",
+        "posture": "landscape",
+        "hitTargetMode": true,
+        "snap": {
+          "found": true,
+          "phase": "1b.3",
+          "capability": "wx-capability-activation-v1",
+          "capToken": "wx-cap:professional-workspace:landscape:1894x1080:lc0:a8:u0:r5",
+          "available": "8",
+          "unavailable": "0",
+          "reserved": "5",
+          "visualActivation": "0",
+          "mode": "professional-workspace",
+          "posture": "landscape",
+          "continuity": "wx-transition-continuity-v1",
+          "remount": "0",
+          "shellMountId": "wx-shell-mount:1",
+          "primaryMountId": "wx-primary-mount:1",
+          "layoutMode": "desktop-wide",
+          "usableWidth": "1894",
+          "usableHeight": "1080",
+          "supportingPanels": "2",
+          "workspaceCount": 1,
+          "hostCount": 4,
+          "stableFeedSlot": true,
+          "feedOwner": null,
+          "caps": {
+            "navigation": "available",
+            "discovery": "available",
+            "search": "available",
+            "filters": "available",
+            "panels": "available",
+            "workspace-density": "available",
+            "inspector": "available",
+            "selection": "available",
+            "workspace-memory": "reserved",
+            "contextual-assistance": "reserved",
+            "professional-workspace": "reserved",
+            "ai-collaboration": "reserved",
+            "extensions": "reserved"
+          },
+          "visibleCapabilityDomDelta": 0,
+          "heightChain": {
+            "regionHasHFull": true,
+            "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+            "feedOverflowY": "auto",
+            "feedClientH": 833,
+            "feedScrollH": 7240,
+            "feedCanScroll": true
+          },
+          "multiColHostOverflowHidden": true
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "capabilityContract": true,
+          "visualActivationOff": true,
+          "singleWorkspace": true,
+          "stableFeedSlot": true,
+          "continuityRemountZero": true,
+          "modeKnown": true,
+          "capsMatchModeFixture": true,
+          "reservedStayReserved": true,
+          "reservedCountExact": true,
+          "availableAtLeast": true,
+          "mountStable": true,
+          "visibleCapabilityDomDeltaZero": true,
+          "measuredSpacePresent": true
+        },
+        "pass": true
+      }
+    ],
+    "pass": true
+  },
+  "mobileLandscapeRegression": {
+    "viewportCount": 10,
+    "passCount": 10,
+    "results": [
+      {
+        "id": "l844",
+        "viewport": {
+          "id": "l844",
+          "width": 844,
+          "height": 390,
+          "posture": "landscape",
+          "phone": true
+        },
+        "measuredAvailableSpace": {
+          "width": 826,
+          "height": 390
+        },
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "supportingPanels": "1",
+        "multiCol": true,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 0,
+          "moved": false,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "beforeTop": 0,
+          "afterTop": 0,
+          "moved": false,
+          "method": "pointer"
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 143,
+          "feedScrollH": 2920,
+          "feedCanScroll": true
+        },
+        "multiColHostOverflowHidden": true,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:1",
+          "primary": "wx-primary-mount:1"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "feedScrollOwner": true,
+          "heightChainPresent": true,
+          "inlineDragRecorded": true
+        },
+        "pass": true
+      },
+      {
+        "id": "l932",
+        "viewport": {
+          "id": "l932",
+          "width": 932,
+          "height": 430,
+          "posture": "landscape",
+          "phone": true
+        },
+        "measuredAvailableSpace": {
+          "width": 914,
+          "height": 430
+        },
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "supportingPanels": "1",
+        "multiCol": true,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 1019,
+          "moved": true,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "skipped": true,
+          "moved": true
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 183,
+          "feedScrollH": 3184,
+          "feedCanScroll": true
+        },
+        "multiColHostOverflowHidden": true,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:2",
+          "primary": "wx-primary-mount:2"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "feedScrollOwner": true,
+          "heightChainPresent": true,
+          "inlineDragRecorded": true
+        },
+        "pass": true
+      },
+      {
+        "id": "l740",
+        "viewport": {
+          "id": "l740",
+          "width": 740,
+          "height": 360,
+          "posture": "landscape",
+          "phone": true
+        },
+        "measuredAvailableSpace": {
+          "width": 722,
+          "height": 360
+        },
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "supportingPanels": "1",
+        "multiCol": true,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 952,
+          "moved": true,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "skipped": true,
+          "moved": true
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 113,
+          "feedScrollH": 2608,
+          "feedCanScroll": true
+        },
+        "multiColHostOverflowHidden": true,
+        "shellMountId": "wx-shell-mount:3",
+        "primaryMountId": "wx-primary-mount:3",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:3",
+          "primary": "wx-primary-mount:3"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "feedScrollOwner": true,
+          "heightChainPresent": true,
+          "inlineDragRecorded": true
+        },
+        "pass": true
+      },
+      {
+        "id": "l812",
+        "viewport": {
+          "id": "l812",
+          "width": 812,
+          "height": 375,
+          "posture": "landscape",
+          "phone": true
+        },
+        "measuredAvailableSpace": {
+          "width": 794,
+          "height": 375
+        },
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "supportingPanels": "1",
+        "multiCol": true,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 0,
+          "moved": false,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "beforeTop": 0,
+          "afterTop": 0,
+          "moved": false,
+          "method": "pointer"
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 128,
+          "feedScrollH": 3030,
+          "feedCanScroll": true
+        },
+        "multiColHostOverflowHidden": true,
+        "shellMountId": "wx-shell-mount:4",
+        "primaryMountId": "wx-primary-mount:4",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:4",
+          "primary": "wx-primary-mount:4"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "feedScrollOwner": true,
+          "heightChainPresent": true,
+          "inlineDragRecorded": true
+        },
+        "pass": true
+      },
+      {
+        "id": "p390",
+        "viewport": {
+          "id": "p390",
+          "width": 390,
+          "height": 844,
+          "posture": "portrait",
+          "phone": true
+        },
+        "measuredAvailableSpace": {
+          "width": 390,
+          "height": 844
+        },
+        "mode": "browse",
+        "posture": "portrait",
+        "supportingPanels": "0",
+        "multiCol": false,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 0,
+          "moved": false,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "beforeTop": 0,
+          "afterTop": 0,
+          "moved": false,
+          "method": "pointer"
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 2577,
+          "feedScrollH": 2577,
+          "feedCanScroll": false
+        },
+        "multiColHostOverflowHidden": false,
+        "shellMountId": "wx-shell-mount:5",
+        "primaryMountId": "wx-primary-mount:5",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:5",
+          "primary": "wx-primary-mount:5"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "scrollOrShortContent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "p430",
+        "viewport": {
+          "id": "p430",
+          "width": 430,
+          "height": 932,
+          "posture": "portrait",
+          "phone": true
+        },
+        "measuredAvailableSpace": {
+          "width": 430,
+          "height": 932
+        },
+        "mode": "browse",
+        "posture": "portrait",
+        "supportingPanels": "0",
+        "multiCol": false,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 0,
+          "moved": false,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "beforeTop": 0,
+          "afterTop": 0,
+          "moved": false,
+          "method": "pointer"
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 2630,
+          "feedScrollH": 2630,
+          "feedCanScroll": false
+        },
+        "multiColHostOverflowHidden": false,
+        "shellMountId": "wx-shell-mount:6",
+        "primaryMountId": "wx-primary-mount:6",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:6",
+          "primary": "wx-primary-mount:6"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "scrollOrShortContent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "p768",
+        "viewport": {
+          "id": "p768",
+          "width": 768,
+          "height": 1024,
+          "posture": "portrait",
+          "phone": false
+        },
+        "measuredAvailableSpace": {
+          "width": 750,
+          "height": 1024
+        },
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "supportingPanels": "1",
+        "multiCol": true,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 588,
+          "moved": true,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "skipped": true,
+          "moved": true
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 777,
+          "feedScrollH": 2800,
+          "feedCanScroll": true
+        },
+        "multiColHostOverflowHidden": true,
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:1",
+          "primary": "wx-primary-mount:1"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "scrollOrShortContent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "l1024",
+        "viewport": {
+          "id": "l1024",
+          "width": 1024,
+          "height": 768,
+          "posture": "landscape",
+          "phone": false
+        },
+        "measuredAvailableSpace": {
+          "width": 998,
+          "height": 768
+        },
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "supportingPanels": "1",
+        "multiCol": true,
+        "touchDrag": {
+          "beforeTop": 588,
+          "afterTop": 1662,
+          "moved": true,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "skipped": true,
+          "moved": true
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 521,
+          "feedScrollH": 7204,
+          "feedCanScroll": true
+        },
+        "multiColHostOverflowHidden": true,
+        "shellMountId": "wx-shell-mount:7",
+        "primaryMountId": "wx-primary-mount:7",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:7",
+          "primary": "wx-primary-mount:7"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "scrollOrShortContent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "d1280",
+        "viewport": {
+          "id": "d1280",
+          "width": 1280,
+          "height": 800,
+          "posture": "landscape",
+          "phone": false
+        },
+        "measuredAvailableSpace": {
+          "width": 1254,
+          "height": 800
+        },
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "supportingPanels": "2",
+        "multiCol": true,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 1659,
+          "moved": true,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "skipped": true,
+          "moved": true
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 553,
+          "feedScrollH": 7045,
+          "feedCanScroll": true
+        },
+        "multiColHostOverflowHidden": true,
+        "shellMountId": "wx-shell-mount:8",
+        "primaryMountId": "wx-primary-mount:8",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:8",
+          "primary": "wx-primary-mount:8"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "scrollOrShortContent": true
+        },
+        "pass": true
+      },
+      {
+        "id": "d1440",
+        "viewport": {
+          "id": "d1440",
+          "width": 1440,
+          "height": 900,
+          "posture": "landscape",
+          "phone": false
+        },
+        "measuredAvailableSpace": {
+          "width": 1414,
+          "height": 900
+        },
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "supportingPanels": "2",
+        "multiCol": true,
+        "touchDrag": {
+          "beforeTop": 0,
+          "afterTop": 1619,
+          "moved": true,
+          "method": "touchscreen"
+        },
+        "pointerDrag": {
+          "skipped": true,
+          "moved": true
+        },
+        "heightChain": {
+          "regionHasHFull": true,
+          "feedClass": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid",
+          "feedOverflowY": "auto",
+          "feedClientH": 653,
+          "feedScrollH": 7240,
+          "feedCanScroll": true
+        },
+        "multiColHostOverflowHidden": true,
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "snapBeforeMount": {
+          "shell": "wx-shell-mount:2",
+          "primary": "wx-primary-mount:2"
+        },
+        "checks": {
+          "workspaceFound": true,
+          "phase1b3": true,
+          "remountZero": true,
+          "mountIdsPresent": true,
+          "noVisibleCapDelta": true,
+          "scrollOrShortContent": true
+        },
+        "pass": true
+      }
+    ],
+    "inlinePass": true,
+    "harness": {
+      "exitCode": 0,
+      "verdict": null,
+      "pass": false,
+      "stdoutTail": [
+        "[1b2.1] wrote /tmp/promo-prod-proof/landscape-1b21-harness/live-reproduction.json",
+        "  p390 mode=browse layout=mobile-portrait panels=0 frozen=false feedMoved=false feedCanScroll=false winMoved=true touch=false",
+        "  l844 mode=hybrid-workspace layout=tablet-landscape panels=1 frozen=false feedMoved=true feedCanScroll=true winMoved=false touch=true",
+        "  p430 mode=browse layout=mobile-portrait panels=0 frozen=false feedMoved=false feedCanScroll=false winMoved=true touch=false",
+        "  l932 mode=hybrid-workspace layout=tablet-landscape panels=1 frozen=false feedMoved=true feedCanScroll=true winMoved=false touch=true",
+        "  p360 mode=browse layout=mobile-portrait panels=0 frozen=false feedMoved=false feedCanScroll=false winMoved=true touch=false",
+        "  l740 mode=hybrid-workspace layout=tablet-landscape panels=1 frozen=false feedMoved=true feedCanScroll=true winMoved=false touch=true",
+        "  p375 mode=browse layout=mobile-portrait panels=0 frozen=false feedMoved=false feedCanScroll=false winMoved=true touch=false",
+        "  l812 mode=hybrid-workspace layout=tablet-landscape panels=1 frozen=false feedMoved=true feedCanScroll=true winMoved=false touch=true",
+        "  p768 mode=hybrid-workspace layout=tablet-portrait panels=1 frozen=false feedMoved=true feedCanScroll=true winMoved=false touch=true",
+        "  l1024 mode=hybrid-workspace layout=tablet-landscape panels=1 frozen=false feedMoved=true feedCanScroll=true winMoved=false touch=true",
+        ""
+      ],
+      "stderrTail": [
+        ""
+      ]
+    },
+    "harnessPass": false,
+    "pass": false,
+    "note": "Inline suite proves 1B.3 diagnostics + 1B.2.1 height chain under the required viewports. Sealed 1B.2.1 harness proves genuine touch/pointer drag (not scrollTop-only) on the same reconstructed tree."
+  },
+  "consoleErrors": [],
+  "hydrationWarnings": [],
+  "checks": {
+    "allModeCoverage": true,
+    "compactWorkspaceProven": true,
+    "landscapeScrollRegressionPass": false,
+    "noHydration": true,
+    "noConsoleErrors": true,
+    "diagnosticsOnly": true,
+    "visibleCapabilityDomDeltaZero": true
+  }
+}
