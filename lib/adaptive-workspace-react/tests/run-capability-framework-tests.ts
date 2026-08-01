@@ -181,14 +181,16 @@ begin("no visual activation / ownership side effects in source");
   ok("capability module has no UA/device/DOM side effects");
 }
 
-begin("layout diagnostics only — phase 1b.3 markers");
+begin("layout diagnostics only — phase 1b.4 markers + capability attrs");
 {
   const layoutSrc = readFileSync(
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
   assert.match(layoutSrc, /resolveWorkspaceCapabilitiesFromModePlan|resolveWorkspaceCapabilities/);
-  assert.match(layoutSrc, /data-wx-phase="1b\.3"/);
+  assert.match(layoutSrc, /data-wx-phase="1b\.4"/);
+  assert.match(layoutSrc, /data-wx-landscape-work/);
+  assert.match(layoutSrc, /data-wx-landscape-contract/);
   assert.match(layoutSrc, /data-wx-capability/);
   assert.equal(
     /data-wx-cap-[a-z-]+[^\n]*className|\[data-wx-cap-/.test(layoutSrc),
@@ -199,7 +201,7 @@ begin("layout diagnostics only — phase 1b.3 markers");
   // Current-main reconstruction must preserve 1B.2.1 height chain
   assert.match(layoutSrc, /1B\.2\.1/);
   assert.match(layoutSrc, /h-full overflow-hidden/);
-  ok("layout exposes capability diagnostics without CSS/key drivers");
+  ok("layout exposes capability + landscape diagnostics without CSS/key drivers");
 }
 
 begin("unknown capability ID fail-closed");
@@ -286,7 +288,7 @@ begin("progressive unlock — no accidental capability loss");
 begin("diagnostics consumers — no behavioural JS / CSS hooks");
 {
   const hits = execSync(
-    "rg -n \"data-wx-cap-|wx-capability-activation\" --glob '!**/docs/audits/**' --glob '!**/node_modules/**' --glob '!**/*.md' -g '!**/run-capability-framework-tests.ts' -g '!**/probe-wx-phase1b3*.mjs' . || true",
+    "rg -n \"data-wx-cap-|wx-capability-activation\" --glob '!**/docs/audits/**' --glob '!**/node_modules/**' --glob '!**/*.md' -g '!**/run-capability-framework-tests.ts' -g '!**/run-landscape-work-posture-tests.ts' -g '!**/probe-wx-phase1b3*.mjs' -g '!**/probe-wx-phase1b4*.mjs' . || true",
     { cwd: root, encoding: "utf8" },
   );
   const lines = hits

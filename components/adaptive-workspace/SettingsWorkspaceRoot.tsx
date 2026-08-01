@@ -514,11 +514,14 @@ function SettingsWorkspaceOnRoot({
       );
       const viewportWidthPx =
         typeof window !== "undefined" ? window.innerWidth : null;
+      const viewportHeightPx =
+        typeof window !== "undefined" ? window.innerHeight : null;
       const safeArea = readSafeAreaInsetsPx(document);
       return buildChromeOccupancySnapshot({
         shell,
         pathname,
         viewportWidthPx,
+        viewportHeightPx,
         safeArea,
       });
     };

@@ -131,13 +131,24 @@ function normalizeSafeArea(
  * Web: visible only below lg. Native/PWA: visible when not path-hidden.
  * Messages routes keep the bar but AppPageChrome pad is suppressed — still
  * report bottom occupancy as overlay (diagnostic); container already usable.
+ *
+ * WX 1B.4: Landscape Work Posture collapses the bottom button menu when
+ * AvailableSpace is landscape (width > height). Not device/UA based.
  */
 export function isBottomNavOccupying(input: {
   pathname: string;
   shell: ChromeOccupancyInput["shell"];
   viewportWidthPx: number | null;
+  viewportHeightPx?: number | null;
 }): boolean {
   if (isBottomNavigationHidden(input.pathname)) return false;
+  if (
+    input.viewportWidthPx != null &&
+    input.viewportHeightPx != null &&
+    input.viewportWidthPx > input.viewportHeightPx
+  ) {
+    return false;
+  }
   if (input.shell === "native" || input.shell === "pwa") return true;
   // SSR / unknown viewport: do not invent bottom occupancy (hydration-safe zero).
   if (input.viewportWidthPx == null) return false;
@@ -191,6 +202,7 @@ export function buildChromeOccupancySnapshot(
       pathname: input.pathname,
       shell: input.shell,
       viewportWidthPx: input.viewportWidthPx,
+      viewportHeightPx: input.viewportHeightPx,
     })
   ) {
     bottomPx = HC_AW_BOTTOM_NAV_HEIGHT_PX;

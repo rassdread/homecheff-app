@@ -115,6 +115,33 @@ console.log("\n[phase2c] normalisation / double-subtract prevention");
 }
 
 {
+  assert.equal(
+    isBottomNavOccupying({
+      pathname: "/",
+      shell: "web",
+      viewportWidthPx: 844,
+      viewportHeightPx: 390,
+    }),
+    false,
+  );
+  const landscape = buildChromeOccupancySnapshot({
+    shell: "web",
+    pathname: "/",
+    viewportWidthPx: 844,
+    viewportHeightPx: 390,
+  });
+  assert.equal(landscape.bottomPx, 0);
+  const portrait = buildChromeOccupancySnapshot({
+    shell: "web",
+    pathname: "/",
+    viewportWidthPx: 390,
+    viewportHeightPx: 844,
+  });
+  assert.equal(portrait.bottomPx, HC_AW_BOTTOM_NAV_HEIGHT_PX);
+  ok("WX 1B.4 landscape AvailableSpace collapses bottom occupancy");
+}
+
+{
   const ssr = buildChromeOccupancySnapshot({
     shell: "web",
     pathname: "/settings",

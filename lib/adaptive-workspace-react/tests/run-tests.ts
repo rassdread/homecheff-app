@@ -163,8 +163,12 @@ console.log("\n[adaptive-workspace-react] source contracts");
 
 {
   const providers = readFileSync(join(root, "components/Providers.tsx"), "utf8");
-  assert.equal(/adaptive-workspace|WorkspaceProvider|SettingsWorkspaceShadowRoot/.test(providers), false);
-  ok("no global WorkspaceProvider in Providers.tsx");
+  // Phase 2B: no global Settings Workspace host in Providers.
+  // WX 1B.4: WorkspaceChromeProvider is authorized app-chrome posture only.
+  assert.equal(/\bWorkspaceProvider\b/.test(providers), false);
+  assert.equal(/SettingsWorkspaceShadowRoot/.test(providers), false);
+  assert.match(providers, /WorkspaceChromeProvider/);
+  ok("no global Settings WorkspaceProvider; 1B.4 chrome provider allowed");
 }
 
 {

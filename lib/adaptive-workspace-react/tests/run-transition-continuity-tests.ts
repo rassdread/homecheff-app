@@ -256,11 +256,13 @@ begin("layout source: permanent slots + mount diagnostics + no Mode keys");
   for (const re of CONTINUITY_FORBIDDEN_SOURCE_PATTERNS) {
     assert.equal(re.test(src), false, String(re));
   }
-  assert.match(src, /data-wx-phase="1b\.3"/);
+  assert.match(src, /data-wx-phase="1b\.4"/);
   assert.match(src, /data-wx-capability/);
+  assert.match(src, /data-wx-landscape-work/);
+  assert.match(src, /data-wx-landscape-contract/);
   assert.match(src, /WORKSPACE_TRANSITION_CONTINUITY/);
   assert.match(src, /h-full overflow-hidden/);
-  // Continuity + 1B.2.1 height chain remain; phase advances with capability diagnostics.
+  // Continuity + 1B.2.1 height chain remain; phase advances with landscape work posture.
   assert.match(src, /data-wx-continuity/);
   assert.match(src, /data-wx-continuity-remount="0"/);
   assert.match(src, /data-aw-stable-feed-slot="1"/);

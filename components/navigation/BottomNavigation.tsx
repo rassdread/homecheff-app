@@ -32,7 +32,7 @@ import { inspiratieLocationIdToProfileSlug } from '@/lib/create/offering-vertica
 import { pushAndroidBackHandler } from '@/lib/native/androidCreateFlowBack';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import {
-  bottomNavBarWrapperClass,
+  bottomNavBarVisibleClass,
   bottomNavFlowSpacerClass,
 } from '@/lib/layout/bottomNavVisibility';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
@@ -46,6 +46,7 @@ import {
   userHasOperationsDashboard,
 } from '@/lib/navigation/primary-dashboard';
 import { useCommsUnread } from '@/hooks/useCommsUnread';
+import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -103,10 +104,15 @@ export default function BottomNavigation() {
 
   const isNativeShell = useIsNativeAppMounted();
   const appUpdateStatus = useAppUpdateStatus();
+  const landscapeWork = useLandscapeWorkPosture();
   const { count: messagesUnreadCount } = useCommsUnread(sessionStatus === 'authenticated');
   const shouldHide = isBottomNavigationHidden(pathname);
+  /** WX 1B.4: bottom button menu is a portrait affordance — collapse in Landscape Work Posture. */
+  const landscapeCollapsed = landscapeWork.bottomNavCollapsed;
   /** Geen flow-spacer onder berichten: layout reserveert zelf (voorkomt dubbele “witte band”). */
-  const suppressFlowSpacer = Boolean(pathname?.startsWith('/messages')) && !shouldHide;
+  const suppressFlowSpacer =
+    landscapeCollapsed ||
+    (Boolean(pathname?.startsWith('/messages')) && !shouldHide);
 
   // Quick Add State
   const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);
@@ -1657,10 +1663,13 @@ export default function BottomNavigation() {
         </div>
       )}
 
-      {/* Bottom nav: phone = full width; md–lg = centered floating bar; lg+ web hidden (native keeps). */}
+      {/* Bottom nav: phone = full width; md–lg = centered floating bar; lg+ web hidden (native keeps).
+          WX 1B.4: Landscape Work Posture collapses the visual bar (listeners/quick-add stay mounted). */}
       <div
+        data-wx-bottom-nav-collapsed={landscapeCollapsed ? '1' : '0'}
+        data-wx-landscape-work={landscapeWork.workPostureActive ? '1' : '0'}
         className={cn(
-          bottomNavBarWrapperClass(isNativeShell),
+          bottomNavBarVisibleClass(isNativeShell, landscapeCollapsed),
           'fixed inset-x-0 bottom-0 z-[65] max-w-[100vw] overflow-x-hidden pointer-events-none',
           isNativeShell
             ? 'bg-transparent md:bg-transparent md:px-4'

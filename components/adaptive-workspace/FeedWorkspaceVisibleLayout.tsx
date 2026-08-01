@@ -14,6 +14,8 @@
  * WX Phase 1B.2.1: Mobile landscape scroll — multiCol frame must propagate bounded height
  *                  so `#homecheff-feed-desktop` remains the vertical scroll owner (no clip freeze).
  * WX Phase 1B.3: Capability Activation Framework diagnostics only (no visual activation).
+ * WX Phase 1B.4: Landscape Work Posture presentation diagnostics (chrome compaction owned
+ *                by WorkspaceChromeProvider — layout does not remount or change ownership).
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  * NEVER key primary (or any slot) by Mode / posture / mode token / capability state.
@@ -226,7 +228,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.3"
+      data-wx-phase="1b.4"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -238,6 +240,8 @@ export default function FeedWorkspaceVisibleLayout({
       data-wx-landscape-carve-out={modePlan.landscapeCarveOut ? "1" : "0"}
       data-wx-mode-changed={modeChanged ? "1" : "0"}
       data-wx-posture-changed={postureChanged ? "1" : "0"}
+      data-wx-landscape-work={modePlan.posture === "landscape" ? "1" : "0"}
+      data-wx-landscape-contract="wx-landscape-work-posture-v1"
       data-wx-capability={capabilityPlan.contractId}
       data-wx-cap-token={capabilityPlan.stabilityToken}
       data-wx-cap-available={String(capabilityPlan.availableCount)}
