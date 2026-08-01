@@ -117,7 +117,7 @@ Under `docs/audits/wx-phase1b3-capability-framework/production/`:
 
 ## 21. Freeze Commit
 
-Filled after docs-only commit push.
+ (parent )
 
 ## 22. Rollback Readiness
 

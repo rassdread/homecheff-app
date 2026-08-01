@@ -39,5 +39,9 @@
   "journeyPass": true,
   "performance": "PASS_WITH_BOUNDED_WARNINGS",
   "phase1b4": false,
-  "timestampUtc": "2026-08-01T01:43:55Z"
+  "timestampUtc": "2026-08-01T01:43:55Z",
+  "documentationFreezeCommit": "f2bc94038155931d7dca3b622deb8242c5d59c09",
+  "documentationFreezeParent": "ea1ff2f5c50e4e7d43ac1d0394f37d5ea0acb409",
+  "documentationFreezeTimestampUtc": "2026-08-01T01:44:26Z",
+  "originMainDocumentationTip": "f2bc94038155931d7dca3b622deb8242c5d59c09"
 }
