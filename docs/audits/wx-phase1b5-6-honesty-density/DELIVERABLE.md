@@ -12,7 +12,7 @@
 | Contract | `wx-honesty-density-v1` · version `1.0.0` |
 | Phase marker | `1b.5.6` |
 | Commit A (impl) | `aae4959ae759f18172fc80caa6e9ab2760ea993b` |
-| Commit B (evidence) | `e35689810ae454f3fff24a7b19d9594fbc553614` |
+| Commit B (evidence) | `fff887c05bd75b6f34bff37b1b72cd90e14a0daf` |
 
 **Not claimed:** Formal Review · merge · deploy · Production freeze · WX Phase 1B.5.7
 
