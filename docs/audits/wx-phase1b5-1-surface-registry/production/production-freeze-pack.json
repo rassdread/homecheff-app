@@ -1,6 +1,6 @@
 {
   "phase": "1b.5.1",
-  "title": "WX Phase 1B.5.1 Surface Registry — Production Freeze Pack",
+  "title": "WX Phase 1B.5.1 Surface Registry \u2014 Production Freeze Pack",
   "status": "PRODUCTION_FROZEN",
   "verdict": "WX_PHASE_1B5_1_PRODUCTION_SUCCESS",
   "frozenAtUtc": "2026-08-02T00:10:00Z",
@@ -69,9 +69,9 @@
     "noResolver": true
   },
   "warnings": [
-    "Hard-coded navigation lists remain duplicated (desktop / bottom / hamburger) — ACCEPTED_BOUNDED_WARNING",
-    "Dual posture diagnostic sources (Mode Engine vs ChromeProvider VV) — REQUIRES_FUTURE_TRACKING",
-    "Promotion brief listed origin/main and Production as 0b84f593…; Gate 1 corrected to live 34fb1f80…"
+    "Hard-coded navigation lists remain duplicated (desktop / bottom / hamburger) \u2014 ACCEPTED_BOUNDED_WARNING",
+    "Dual posture diagnostic sources (Mode Engine vs ChromeProvider VV) \u2014 REQUIRES_FUTURE_TRACKING",
+    "Promotion brief listed origin/main and Production as 0b84f593\u2026; Gate 1 corrected to live 34fb1f80\u2026"
   ],
   "phase1b52": "PROHIBITED_UNTIL_EXPLICIT_APPROVAL",
   "artifacts": [
@@ -80,5 +80,7 @@
     "production-freeze-pack.json",
     "browser-proof.json",
     "ownership-live.json"
-  ]
+  ],
+  "freezeCommit": "aa4abc37a41c4d5915528cd51c748abb9c2f4e44",
+  "docsTip": "aa4abc37a41c4d5915528cd51c748abb9c2f4e44"
 }
