@@ -1,0 +1,12 @@
+{
+  "phase": "1b.5.6",
+  "pure": true,
+  "synchronous": true,
+  "deterministic": true,
+  "allocationLight": true,
+  "noAsync": true,
+  "noObservers": true,
+  "noTimers": true,
+  "noPolling": true,
+  "notes": "resolveHonestyDensity is sync pure planner; layout only reads plan fields into data-* attrs."
+}

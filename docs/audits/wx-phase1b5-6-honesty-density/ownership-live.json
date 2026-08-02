@@ -1,0 +1,24 @@
+{
+  "phase": "1b.5.6",
+  "verdict": "OWNERSHIP_UNCHANGED",
+  "hostCountOne": true,
+  "remountZero": true,
+  "capVisualOff": true,
+  "honestyRendersOff": true,
+  "honestyDrivesChromeOff": true,
+  "honestyAppliesCompactionOff": true,
+  "noNewHonestyUi": true,
+  "feedPresent": true,
+  "shellMountIds": [
+    "wx-shell-mount:10",
+    "wx-shell-mount:11",
+    "wx-shell-mount:2",
+    "wx-shell-mount:3",
+    "wx-shell-mount:4",
+    "wx-shell-mount:5",
+    "wx-shell-mount:6",
+    "wx-shell-mount:7",
+    "wx-shell-mount:8",
+    "wx-shell-mount:9"
+  ]
+}
