@@ -1,0 +1,84 @@
+{
+  "vectors": [
+    {
+      "id": "p320",
+      "mode": "browse",
+      "posture": "portrait",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:EMPTY,assist-secondary:EMPTY,tool:SPARSE",
+      "compact": "stage:NONE,orientation:NONE,command:NONE,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "p390",
+      "mode": "browse",
+      "posture": "portrait",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:EMPTY,assist-secondary:EMPTY,tool:SPARSE",
+      "compact": "stage:NONE,orientation:NONE,command:NONE,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "l740",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:SPARSE,assist-secondary:SPARSE,tool:SPARSE",
+      "compact": "stage:NONE,orientation:RECOMMENDED,command:RECOMMENDED,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "l844",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:SPARSE,assist-secondary:SPARSE,tool:SPARSE",
+      "compact": "stage:NONE,orientation:RECOMMENDED,command:RECOMMENDED,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "t768",
+      "mode": "hybrid-workspace",
+      "posture": "portrait",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:SPARSE,assist-secondary:SPARSE,tool:SPARSE",
+      "compact": "stage:NONE,orientation:NONE,command:NONE,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "d1024",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:SPARSE,assist-secondary:SPARSE,tool:SPARSE",
+      "compact": "stage:NONE,orientation:RECOMMENDED,command:RECOMMENDED,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "d1280",
+      "mode": "full-workspace",
+      "posture": "landscape",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:SPARSE,assist-secondary:SPARSE,tool:SPARSE",
+      "compact": "stage:NONE,orientation:RECOMMENDED,command:RECOMMENDED,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "d1440",
+      "mode": "full-workspace",
+      "posture": "landscape",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:SPARSE,assist-secondary:SPARSE,tool:SPARSE",
+      "compact": "stage:NONE,orientation:RECOMMENDED,command:RECOMMENDED,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "d1920",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:SPARSE,assist-secondary:SPARSE,tool:DENSE",
+      "compact": "stage:NONE,orientation:RECOMMENDED,command:RECOMMENDED,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:OPTIONAL",
+      "honestyStatus": "ok"
+    },
+    {
+      "id": "u2560",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:SPARSE,assist-secondary:SPARSE,tool:DENSE",
+      "compact": "stage:NONE,orientation:RECOMMENDED,command:RECOMMENDED,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:OPTIONAL",
+      "honestyStatus": "ok"
+    }
+  ]
+}

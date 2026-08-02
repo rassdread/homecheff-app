@@ -1,0 +1,5 @@
+base=3701cdcea93c87235f42b901ed01bc03d7faaa61
+feature=e273a9af69f07cdcc4241d8f4782d676a0fa62c3
+Automatic merge went well; stopped before committing as requested
+MERGE_EXIT=0
+CLEANLY_MERGEABLE

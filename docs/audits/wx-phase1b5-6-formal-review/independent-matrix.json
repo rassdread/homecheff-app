@@ -1,0 +1,723 @@
+{
+  "generatedAt": "2026-08-02T20:28:56.953Z",
+  "checks": {
+    "contractId": true,
+    "contractVersion": true,
+    "phase": true,
+    "drivesChrome": true,
+    "appliesCompaction": true,
+    "rendersDensityUi": true,
+    "diagnosticsOnly": true,
+    "purityClean": true,
+    "densityCoverage": [
+      {
+        "d": "UNKNOWN",
+        "seen": false
+      },
+      {
+        "d": "EMPTY",
+        "seen": true
+      },
+      {
+        "d": "SPARSE",
+        "seen": true
+      },
+      {
+        "d": "NORMAL",
+        "seen": true
+      },
+      {
+        "d": "DENSE",
+        "seen": true
+      },
+      {
+        "d": "OVERFLOW",
+        "seen": true
+      }
+    ],
+    "compactCoverage": [
+      {
+        "c": "NONE",
+        "seen": true
+      },
+      {
+        "c": "OPTIONAL",
+        "seen": true
+      },
+      {
+        "c": "RECOMMENDED",
+        "seen": true
+      },
+      {
+        "c": "REQUIRED",
+        "seen": true
+      }
+    ],
+    "allDensityInOkVectorsExceptUnknown": true,
+    "allCompactSeen": true,
+    "renderBanOk": true,
+    "failClosedAllOk": true,
+    "unknownSeenInFailClosed": true,
+    "densityUnknownCovered": true,
+    "layoutPhase156": true,
+    "layoutRenders0": true,
+    "layoutDrives0": true,
+    "layoutApplies0": true,
+    "layoutNoHonestyKey": true,
+    "layoutNoHonestyUi": true,
+    "layoutClassStyleUnchangedVsClaim": true
+  },
+  "vectors": [
+    {
+      "id": "browse-p",
+      "status": "ok",
+      "mode": "browse",
+      "posture": "portrait",
+      "heightDemoted": false,
+      "deterministic": true,
+      "drivesChrome": false,
+      "appliesCompaction": false,
+      "rendersDensityUi": false,
+      "entries": [
+        {
+          "id": "stage",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "stage-primary-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "orientation",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "core-chrome-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "command",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "core-chrome-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "disclosure",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "disclosure-discoverable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-primary",
+          "density": "EMPTY",
+          "compact": "NONE",
+          "reason": "assist-suppressed-empty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-secondary",
+          "density": "EMPTY",
+          "compact": "NONE",
+          "reason": "assist-suppressed-empty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "tool",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "tool-reachable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        }
+      ]
+    },
+    {
+      "id": "browse-hd",
+      "status": "ok",
+      "mode": "browse",
+      "posture": "portrait",
+      "heightDemoted": true,
+      "deterministic": true,
+      "drivesChrome": false,
+      "appliesCompaction": false,
+      "rendersDensityUi": false,
+      "entries": [
+        {
+          "id": "stage",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "stage-primary-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "orientation",
+          "density": "DENSE",
+          "compact": "REQUIRED",
+          "reason": "core-chrome-height-demoted",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "command",
+          "density": "DENSE",
+          "compact": "REQUIRED",
+          "reason": "core-chrome-height-demoted",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "disclosure",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "disclosure-discoverable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-primary",
+          "density": "EMPTY",
+          "compact": "NONE",
+          "reason": "assist-suppressed-empty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-secondary",
+          "density": "EMPTY",
+          "compact": "NONE",
+          "reason": "assist-suppressed-empty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "tool",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "tool-reachable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        }
+      ]
+    },
+    {
+      "id": "hybrid-l",
+      "status": "ok",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "heightDemoted": false,
+      "deterministic": true,
+      "drivesChrome": false,
+      "appliesCompaction": false,
+      "rendersDensityUi": false,
+      "entries": [
+        {
+          "id": "stage",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "stage-primary-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "orientation",
+          "density": "NORMAL",
+          "compact": "RECOMMENDED",
+          "reason": "core-chrome-landscape-honesty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "command",
+          "density": "NORMAL",
+          "compact": "RECOMMENDED",
+          "reason": "core-chrome-landscape-honesty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "disclosure",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "disclosure-discoverable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-primary",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "assist-eligible-sparse-hollow",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-secondary",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "assist-future-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "tool",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "tool-reachable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        }
+      ]
+    },
+    {
+      "id": "full-l",
+      "status": "ok",
+      "mode": "full-workspace",
+      "posture": "landscape",
+      "heightDemoted": false,
+      "deterministic": true,
+      "drivesChrome": false,
+      "appliesCompaction": false,
+      "rendersDensityUi": false,
+      "entries": [
+        {
+          "id": "stage",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "stage-primary-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "orientation",
+          "density": "NORMAL",
+          "compact": "RECOMMENDED",
+          "reason": "core-chrome-landscape-honesty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "command",
+          "density": "NORMAL",
+          "compact": "RECOMMENDED",
+          "reason": "core-chrome-landscape-honesty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "disclosure",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "disclosure-discoverable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-primary",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "assist-eligible-sparse-hollow",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-secondary",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "assist-eligible-sparse-hollow",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "tool",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "tool-reachable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        }
+      ]
+    },
+    {
+      "id": "pro-dense",
+      "status": "ok",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "heightDemoted": false,
+      "deterministic": true,
+      "drivesChrome": false,
+      "appliesCompaction": false,
+      "rendersDensityUi": false,
+      "entries": [
+        {
+          "id": "stage",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "stage-primary-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "orientation",
+          "density": "NORMAL",
+          "compact": "RECOMMENDED",
+          "reason": "core-chrome-landscape-honesty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "command",
+          "density": "NORMAL",
+          "compact": "RECOMMENDED",
+          "reason": "core-chrome-landscape-honesty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "disclosure",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "disclosure-discoverable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-primary",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "assist-eligible-sparse-hollow",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-secondary",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "assist-eligible-sparse-hollow",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "tool",
+          "density": "DENSE",
+          "compact": "OPTIONAL",
+          "reason": "tool-persistent-dense",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        }
+      ]
+    },
+    {
+      "id": "pro-overflow",
+      "status": "ok",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "heightDemoted": true,
+      "deterministic": true,
+      "drivesChrome": false,
+      "appliesCompaction": false,
+      "rendersDensityUi": false,
+      "entries": [
+        {
+          "id": "stage",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "stage-primary-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "orientation",
+          "density": "DENSE",
+          "compact": "REQUIRED",
+          "reason": "core-chrome-height-demoted",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "command",
+          "density": "DENSE",
+          "compact": "REQUIRED",
+          "reason": "core-chrome-height-demoted",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "disclosure",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "disclosure-discoverable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-primary",
+          "density": "SPARSE",
+          "compact": "OPTIONAL",
+          "reason": "assist-eligible-sparse-hollow",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-secondary",
+          "density": "SPARSE",
+          "compact": "OPTIONAL",
+          "reason": "assist-eligible-sparse-hollow",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "tool",
+          "density": "OVERFLOW",
+          "compact": "REQUIRED",
+          "reason": "contention-overflow",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        }
+      ]
+    },
+    {
+      "id": "compact",
+      "status": "ok",
+      "mode": "compact-workspace",
+      "posture": "portrait",
+      "heightDemoted": false,
+      "deterministic": true,
+      "drivesChrome": false,
+      "appliesCompaction": false,
+      "rendersDensityUi": false,
+      "entries": [
+        {
+          "id": "stage",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "stage-primary-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "orientation",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "core-chrome-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "command",
+          "density": "NORMAL",
+          "compact": "NONE",
+          "reason": "core-chrome-normal",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "disclosure",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "disclosure-discoverable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-primary",
+          "density": "EMPTY",
+          "compact": "NONE",
+          "reason": "assist-suppressed-empty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "assist-secondary",
+          "density": "EMPTY",
+          "compact": "NONE",
+          "reason": "assist-suppressed-empty",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        },
+        {
+          "id": "tool",
+          "density": "SPARSE",
+          "compact": "NONE",
+          "reason": "tool-reachable-sparse",
+          "renderAuthorized": false,
+          "compactionAuthorized": false
+        }
+      ]
+    }
+  ],
+  "failClosed": [
+    {
+      "label": "unknown-surface",
+      "status": "rejected",
+      "reasons": [
+        "unknown-honesty-surface"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "unknown-honesty-surface",
+      "hasReason": true
+    },
+    {
+      "label": "duplicate-surface",
+      "status": "rejected",
+      "reasons": [
+        "duplicate-honesty-surface"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "duplicate-honesty-surface",
+      "hasReason": true
+    },
+    {
+      "label": "registry-mismatch",
+      "status": "rejected",
+      "reasons": [
+        "registry-contract-id-mismatch"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "registry-contract-id-mismatch",
+      "hasReason": true
+    },
+    {
+      "label": "presentation-version-mismatch",
+      "status": "rejected",
+      "reasons": [
+        "presentation-version-mismatch"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "presentation-version-mismatch",
+      "hasReason": true
+    },
+    {
+      "label": "tool-action-mismatch",
+      "status": "rejected",
+      "reasons": [
+        "tool-action-contract-mismatch"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "tool-action-contract-mismatch",
+      "hasReason": true
+    },
+    {
+      "label": "missing-presentation",
+      "status": "rejected",
+      "reasons": [
+        "missing-presentation-plan"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "missing-presentation-plan",
+      "hasReason": true
+    },
+    {
+      "label": "missing-disclosure",
+      "status": "rejected",
+      "reasons": [
+        "missing-disclosure-plan"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "missing-disclosure-plan",
+      "hasReason": true
+    },
+    {
+      "label": "missing-tool",
+      "status": "rejected",
+      "reasons": [
+        "missing-tool-action-plan"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "missing-tool-action-plan",
+      "hasReason": true
+    },
+    {
+      "label": "missing-assist",
+      "status": "rejected",
+      "reasons": [
+        "missing-assist-eligibility-plan"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "missing-assist-eligibility-plan",
+      "hasReason": true
+    },
+    {
+      "label": "rejected-presentation",
+      "status": "rejected",
+      "reasons": [
+        "presentation-plan-rejected",
+        "injected"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "expectReason": "presentation-plan-rejected",
+      "hasReason": true
+    },
+    {
+      "label": "partial-empty-entryById",
+      "status": "ok",
+      "note": "status may be ok; entries should UNKNOWN when pe missing",
+      "entries": [
+        {
+          "id": "stage",
+          "density": "UNKNOWN",
+          "compact": "NONE"
+        },
+        {
+          "id": "orientation",
+          "density": "UNKNOWN",
+          "compact": "NONE"
+        },
+        {
+          "id": "command",
+          "density": "UNKNOWN",
+          "compact": "NONE"
+        },
+        {
+          "id": "disclosure",
+          "density": "UNKNOWN",
+          "compact": "NONE"
+        },
+        {
+          "id": "assist-primary",
+          "density": "UNKNOWN",
+          "compact": "NONE"
+        },
+        {
+          "id": "assist-secondary",
+          "density": "UNKNOWN",
+          "compact": "NONE"
+        },
+        {
+          "id": "tool",
+          "density": "UNKNOWN",
+          "compact": "NONE"
+        }
+      ],
+      "allUnknownOrEmptyPath": true,
+      "ok": true
+    }
+  ],
+  "purity": {
+    "forbiddenHits": [],
+    "hasAsyncKeyword": false,
+    "hasAwait": false,
+    "hasPromise": false,
+    "hasTimer": false,
+    "hasObserver": false
+  },
+  "gaps": [],
+  "verdict": "INDEPENDENT_MATRIX_PASS",
+  "failedChecks": []
+}

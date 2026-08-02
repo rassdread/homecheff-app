@@ -1,0 +1,82 @@
+{
+  "verdict": "INDEPENDENT_MATRIX_PASS",
+  "failedChecks": [],
+  "dens": [
+    "NORMAL",
+    "SPARSE",
+    "EMPTY",
+    "DENSE",
+    "OVERFLOW"
+  ],
+  "compact": [
+    "NONE",
+    "REQUIRED",
+    "RECOMMENDED",
+    "OPTIONAL"
+  ],
+  "failClosed": [
+    {
+      "label": "unknown-surface",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "duplicate-surface",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "registry-mismatch",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "presentation-version-mismatch",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "tool-action-mismatch",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "missing-presentation",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "missing-disclosure",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "missing-tool",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "missing-assist",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "rejected-presentation",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "partial-empty-entryById",
+      "ok": true,
+      "status": "ok"
+    }
+  ],
+  "purity": {
+    "forbiddenHits": [],
+    "hasAsyncKeyword": false,
+    "hasAwait": false,
+    "hasPromise": false,
+    "hasTimer": false,
+    "hasObserver": false
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "independent_browser": {
+    "verdict": "WX_PHASE_1B5_6_BROWSER_PROOF_PASS",
+    "passCount": 10,
+    "journey": true,
+    "fails": []
+  },
+  "impl_browser": {
+    "verdict": "WX_PHASE_1B5_6_BROWSER_PROOF_PASS",
+    "passCount": 10
+  },
+  "scroll": {
+    "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+    "passCount": 8,
+    "portraitPass": true,
+    "landscapePass": true,
+    "journeyPass": true
+  },
+  "landscape_1b21": {
+    "verdict": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS"
+  },
+  "matrix": {
+    "verdict": "INDEPENDENT_MATRIX_PASS",
+    "failed": [],
+    "failClosed": [
+      [
+        "unknown-surface",
+        true
+      ],
+      [
+        "duplicate-surface",
+        true
+      ],
+      [
+        "registry-mismatch",
+        true
+      ],
+      [
+        "presentation-version-mismatch",
+        true
+      ],
+      [
+        "tool-action-mismatch",
+        true
+      ],
+      [
+        "missing-presentation",
+        true
+      ],
+      [
+        "missing-disclosure",
+        true
+      ],
+      [
+        "missing-tool",
+        true
+      ],
+      [
+        "missing-assist",
+        true
+      ],
+      [
+        "rejected-presentation",
+        true
+      ],
+      [
+        "partial-empty-entryById",
+        true
+      ]
+    ]
+  },
+  "viewport_coverage": {
+    "phone_portrait": true,
+    "phone_landscape": true,
+    "tablet": true,
+    "desktop": true,
+    "ids": [
+      "p320",
+      "p390",
+      "l740",
+      "l844",
+      "t768",
+      "d1024",
+      "d1280",
+      "d1440",
+      "d1920",
+      "u2560"
+    ]
+  },
+  "ownership": {
+    "hostCountOne": true,
+    "remountZero": true,
+    "honestyRenders0": true,
+    "honestyDrives0": true,
+    "honestyApplies0": true,
+    "capVisual0": true,
+    "phase156": true,
+    "toolActionStillPresent": true,
+    "presentationStillPresent": true,
+    "noNewHonestyUi": true,
+    "domDeltaZero": true,
+    "assistPresent": true,
+    "disclosurePresent": true
+  },
+  "impl_evidence_complete": {
+    "ARCHITECTURE.md": true,
+    "CONTRACT.md": true,
+    "TEST_EVIDENCE.md": true,
+    "BROWSER_PROOF.md": true,
+    "RESPONSIVE_PROOF.md": true,
+    "OWNERSHIP.md": true,
+    "PERFORMANCE.md": true,
+    "ROLLBACK.md": true,
+    "DELIVERABLE.md": true
+  },
+  "warnings": [
+    "PARTIAL_METADATA_STATUS_OK_BUT_ENTRIES_UNKNOWN: empty presentation entryById yields status=ok with UNKNOWN/NONE (fail-closed values, not rejected status)",
+    "FROMPANS_RE_RESOLVE: resolveHonestyDensityFromPlans re-resolves upstream plans (duplicate computation, not authority) \u2014 same pattern as 1B.5.3\u20131B.5.5",
+    "ASSERTION_COUNT_HIGH: contract suite reports 461 assertions vs ~60 target (coverage surplus, not failure)",
+    "PROBE_VIEWPORT_GAP: independent honesty probe omits 360/430 (covered by 1B.2.1 landscape suite)"
+  ],
+  "ownership_live": {
+    "phase": "1b.5.6",
+    "honesty": "wx-honesty-density-v1",
+    "tool": "wx-tool-action-presentation-v1",
+    "disclosure": "wx-progressive-disclosure-v1",
+    "assist": "wx-assist-surface-eligibility-v1",
+    "presentation": "wx-surface-presentation-resolver-v1",
+    "capability": "wx-capability-activation-v1",
+    "registry": "wx-surface-presentation-registry-v1",
+    "mode": "browse",
+    "remount": "0",
+    "shell": "wx-shell-mount:33",
+    "primary": "wx-primary-mount:33",
+    "honestyRenders": "0",
+    "honestyDrives": "0",
+    "honestyApplies": "0",
+    "toolRenders": "0",
+    "capVisual": "0",
+    "density": "stage:NORMAL,orientation:NORMAL,command:NORMAL,disclosure:SPARSE,assist-primary:EMPTY,assist-secondary:EMPTY,tool:SPARSE",
+    "compact": "stage:NONE,orientation:NONE,command:NONE,disclosure:NONE,assist-primary:NONE,assist-secondary:NONE,tool:NONE",
+    "feed": true
+  },
+  "fixture_match": true,
+  "merge": "CLEANLY_MERGEABLE"
+}
