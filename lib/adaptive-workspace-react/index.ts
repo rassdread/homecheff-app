@@ -343,3 +343,25 @@ export type {
   HonestyDensityResolveInput,
 } from "./resolve-honesty-density";
 
+export {
+  WORKSPACE_CONTEXT_PRIORITY,
+  CONTEXT_PRIORITY_FORBIDDEN_SOURCE_PATTERNS,
+  resolveContextPriority,
+  resolveContextPriorityFromPlans,
+  getContextPriorityEntry,
+  isContextPriorityRenderAuthorized,
+  isContextPriorityOrderingAuthorized,
+  serializeContextPriorityPlan,
+} from "./resolve-context-priority";
+
+export type {
+  PrioritySurfaceId,
+  ContextPriorityLevel,
+  ContextPriorityReason,
+  ContextPriorityConfidence,
+  ContextPriorityEntry,
+  ContextPriorityPlanStatus,
+  ContextPriorityPlan,
+  ContextPriorityResolveInput,
+} from "./resolve-context-priority";
+
