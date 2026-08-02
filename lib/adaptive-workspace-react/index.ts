@@ -203,3 +203,27 @@ export type {
   LandscapeWorkPosturePlan,
   LandscapeWorkPostureInput,
 } from "./resolve-landscape-work-posture";
+
+export {
+  WORKSPACE_SURFACE_REGISTRY,
+  WORKSPACE_SURFACE_IDS,
+  WORKSPACE_RESERVED_SURFACE_IDS,
+  listWorkspaceSurfaces,
+  getWorkspaceSurface,
+  isWorkspaceSurfaceId,
+  isWorkspaceSurfaceReserved,
+  getWorkspaceSurfaceRegistryDiagnostics,
+  serializeWorkspaceSurfaceRegistry,
+  SURFACE_REGISTRY_FORBIDDEN_SOURCE_PATTERNS,
+} from "./workspace-surface-registry";
+
+export type {
+  WorkspaceSurfaceId,
+  WorkspaceSurfaceCategory,
+  WorkspaceSurfaceFamily,
+  WorkspaceSurfacePresentationRole,
+  WorkspaceSurfaceAvailabilityIntent,
+  WorkspaceSurfaceCapabilityRelation,
+  WorkspaceSurfacePresentationContract,
+  WorkspaceSurfaceRegistryDiagnostics,
+} from "./workspace-surface-registry";

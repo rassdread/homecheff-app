@@ -16,6 +16,8 @@
  * WX Phase 1B.3: Capability Activation Framework diagnostics only (no visual activation).
  * WX Phase 1B.4: Landscape Work Posture presentation diagnostics (chrome compaction owned
  *                by WorkspaceChromeProvider — layout does not remount or change ownership).
+ * WX Phase 1B.5.1: Surface Registry diagnostics only — no presentation resolver, no
+ *                  capability visual activation, no assist/tool occupancy changes.
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  * NEVER key primary (or any slot) by Mode / posture / mode token / capability state.
@@ -38,6 +40,9 @@ import {
   resolveWorkspaceCapabilitiesFromModePlan,
   resolveWorkspaceMode,
   WORKSPACE_TRANSITION_CONTINUITY,
+  WORKSPACE_SURFACE_REGISTRY,
+  WORKSPACE_SURFACE_IDS,
+  WORKSPACE_RESERVED_SURFACE_IDS,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
   type WorkspaceModePlan,
@@ -228,7 +233,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.4"
+      data-wx-phase="1b.5.1"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -271,6 +276,11 @@ export default function FeedWorkspaceVisibleLayout({
       }
       data-wx-cap-extensions={capabilityPlan.capabilities.extensions}
       data-wx-cap-visual-activation="0"
+      data-wx-surface-registry={WORKSPACE_SURFACE_REGISTRY.contractId}
+      data-wx-surface-registry-version={WORKSPACE_SURFACE_REGISTRY.contractVersion}
+      data-wx-surface-ids={WORKSPACE_SURFACE_IDS.join(",")}
+      data-wx-surface-reserved={WORKSPACE_RESERVED_SURFACE_IDS.join(",")}
+      data-wx-surface-count={String(WORKSPACE_SURFACE_IDS.length)}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
