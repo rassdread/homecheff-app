@@ -387,3 +387,25 @@ export type {
   ContextRelevanceResolveInput,
 } from "./resolve-context-relevance";
 
+export {
+  WORKSPACE_CONTEXT_INTENT,
+  CONTEXT_INTENT_FORBIDDEN_SOURCE_PATTERNS,
+  resolveContextIntent,
+  resolveContextIntentFromPlans,
+  getContextIntentEntry,
+  isContextIntentRenderAuthorized,
+  isContextIntentOrderingAuthorized,
+  serializeContextIntentPlan,
+} from "./resolve-context-intent";
+
+export type {
+  IntentSurfaceId,
+  ContextIntentState,
+  ContextIntentReason,
+  ContextIntentConfidence,
+  ContextIntentEntry,
+  ContextIntentPlanStatus,
+  ContextIntentPlan,
+  ContextIntentResolveInput,
+} from "./resolve-context-intent";
+
