@@ -1,0 +1,1249 @@
+{
+  "phase": "1b.5.4-scroll-verification",
+  "baseUrl": "http://127.0.0.1:3117",
+  "generatedAt": "2026-08-02T19:14:49.414Z",
+  "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+  "passCount": 8,
+  "caseCount": 8,
+  "portrait": {
+    "pass": true,
+    "cases": [
+      {
+        "id": "phone-portrait",
+        "owner": "document",
+        "pass": true,
+        "failed": [],
+        "overflowY": "visible",
+        "overscrollBehaviorY": "auto",
+        "canScrollY": false,
+        "docMoved": true,
+        "feedMoved": false,
+        "touch": {
+          "before": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 0,
+            "feedCanScroll": false,
+            "owner": "document"
+          },
+          "after": {
+            "windowY": 157,
+            "docTop": 157,
+            "feedTop": 0
+          },
+          "feedMoved": false,
+          "docMoved": true,
+          "pass": true,
+          "strictPass": true
+        }
+      },
+      {
+        "id": "phone-portrait-320",
+        "owner": "document",
+        "pass": true,
+        "failed": [],
+        "overflowY": "visible",
+        "overscrollBehaviorY": "auto",
+        "canScrollY": false,
+        "docMoved": true,
+        "feedMoved": false,
+        "touch": {
+          "before": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 0,
+            "feedCanScroll": false,
+            "owner": "document"
+          },
+          "after": {
+            "windowY": 398,
+            "docTop": 398,
+            "feedTop": 0
+          },
+          "feedMoved": false,
+          "docMoved": true,
+          "pass": true,
+          "strictPass": true
+        }
+      }
+    ]
+  },
+  "landscapeAndLarger": {
+    "pass": true,
+    "cases": [
+      {
+        "id": "phone-landscape",
+        "owner": "feed",
+        "pass": true,
+        "failed": [],
+        "overflowY": "auto",
+        "canScrollY": true,
+        "feedMoved": true,
+        "touch": {
+          "before": {
+            "windowY": 1,
+            "docTop": 1,
+            "feedTop": 0,
+            "feedCanScroll": true,
+            "owner": "feed"
+          },
+          "after": {
+            "windowY": 1,
+            "docTop": 1,
+            "feedTop": 1335
+          },
+          "feedMoved": true,
+          "docMoved": false,
+          "pass": true,
+          "strictPass": true
+        }
+      },
+      {
+        "id": "phone-landscape-740",
+        "owner": "feed",
+        "pass": true,
+        "failed": [],
+        "overflowY": "auto",
+        "canScrollY": true,
+        "feedMoved": true,
+        "touch": {
+          "before": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 0,
+            "feedCanScroll": true,
+            "owner": "feed"
+          },
+          "after": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 265
+          },
+          "feedMoved": true,
+          "docMoved": false,
+          "pass": true,
+          "strictPass": true
+        }
+      },
+      {
+        "id": "tablet-portrait",
+        "owner": "feed",
+        "pass": true,
+        "failed": [],
+        "overflowY": "auto",
+        "canScrollY": false,
+        "feedMoved": false,
+        "touch": {
+          "before": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 0,
+            "feedCanScroll": true,
+            "owner": "feed"
+          },
+          "after": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 325
+          },
+          "feedMoved": true,
+          "docMoved": false,
+          "pass": true,
+          "strictPass": true
+        }
+      },
+      {
+        "id": "tablet-landscape",
+        "owner": "feed",
+        "pass": true,
+        "failed": [],
+        "overflowY": "auto",
+        "canScrollY": true,
+        "feedMoved": true,
+        "touch": {
+          "before": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 0,
+            "feedCanScroll": true,
+            "owner": "feed"
+          },
+          "after": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 265
+          },
+          "feedMoved": true,
+          "docMoved": false,
+          "pass": true,
+          "strictPass": true
+        }
+      },
+      {
+        "id": "desktop",
+        "owner": "feed",
+        "pass": true,
+        "failed": [],
+        "overflowY": "auto",
+        "canScrollY": true,
+        "feedMoved": true,
+        "touch": {
+          "before": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 0,
+            "feedCanScroll": true,
+            "owner": "feed"
+          },
+          "after": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 41
+          },
+          "feedMoved": true,
+          "docMoved": false,
+          "pass": true,
+          "strictPass": true
+        }
+      },
+      {
+        "id": "ultrawide",
+        "owner": "feed",
+        "pass": true,
+        "failed": [],
+        "overflowY": "auto",
+        "canScrollY": false,
+        "feedMoved": false,
+        "touch": {
+          "before": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 0,
+            "feedCanScroll": false,
+            "owner": "feed"
+          },
+          "after": {
+            "windowY": 0,
+            "docTop": 0,
+            "feedTop": 0
+          },
+          "feedMoved": false,
+          "docMoved": false,
+          "pass": true,
+          "strictPass": true
+        }
+      }
+    ]
+  },
+  "journey": {
+    "steps": [
+      {
+        "id": "p390",
+        "vp": {
+          "id": "p390",
+          "w": 390,
+          "h": 844,
+          "expectOwner": "document"
+        },
+        "expectOwner": "document",
+        "observedOwner": "document",
+        "ownerMatch": true,
+        "scrollPass": true,
+        "jumpedToTop": false,
+        "shellMountId": "wx-shell-mount:41",
+        "primaryMountId": "wx-primary-mount:41",
+        "mountStable": true,
+        "multiCol": false,
+        "posture": "portrait",
+        "mode": "browse"
+      },
+      {
+        "id": "l844",
+        "vp": {
+          "id": "l844",
+          "w": 844,
+          "h": 390,
+          "expectOwner": "feed"
+        },
+        "expectOwner": "feed",
+        "observedOwner": "feed",
+        "ownerMatch": true,
+        "scrollPass": true,
+        "jumpedToTop": false,
+        "shellMountId": "wx-shell-mount:41",
+        "primaryMountId": "wx-primary-mount:41",
+        "mountStable": true,
+        "multiCol": true,
+        "posture": "landscape",
+        "mode": "hybrid-workspace"
+      },
+      {
+        "id": "p390-return",
+        "vp": {
+          "id": "p390-return",
+          "w": 390,
+          "h": 844,
+          "expectOwner": "document"
+        },
+        "expectOwner": "document",
+        "observedOwner": "document",
+        "ownerMatch": true,
+        "scrollPass": true,
+        "jumpedToTop": false,
+        "shellMountId": "wx-shell-mount:41",
+        "primaryMountId": "wx-primary-mount:41",
+        "mountStable": true,
+        "multiCol": false,
+        "posture": "portrait",
+        "mode": "browse"
+      },
+      {
+        "id": "l740",
+        "vp": {
+          "id": "l740",
+          "w": 740,
+          "h": 360,
+          "expectOwner": "feed"
+        },
+        "expectOwner": "feed",
+        "observedOwner": "feed",
+        "ownerMatch": true,
+        "scrollPass": true,
+        "jumpedToTop": false,
+        "shellMountId": "wx-shell-mount:41",
+        "primaryMountId": "wx-primary-mount:41",
+        "mountStable": true,
+        "multiCol": true,
+        "posture": "landscape",
+        "mode": "hybrid-workspace"
+      },
+      {
+        "id": "t768",
+        "vp": {
+          "id": "t768",
+          "w": 768,
+          "h": 1024,
+          "expectOwner": "feed"
+        },
+        "expectOwner": "feed",
+        "observedOwner": "feed",
+        "ownerMatch": true,
+        "scrollPass": true,
+        "jumpedToTop": false,
+        "shellMountId": "wx-shell-mount:41",
+        "primaryMountId": "wx-primary-mount:41",
+        "mountStable": true,
+        "multiCol": true,
+        "posture": "portrait",
+        "mode": "hybrid-workspace"
+      },
+      {
+        "id": "d1440",
+        "vp": {
+          "id": "d1440",
+          "w": 1440,
+          "h": 900,
+          "expectOwner": "feed"
+        },
+        "expectOwner": "feed",
+        "observedOwner": "feed",
+        "ownerMatch": true,
+        "scrollPass": true,
+        "jumpedToTop": false,
+        "shellMountId": "wx-shell-mount:41",
+        "primaryMountId": "wx-primary-mount:41",
+        "mountStable": true,
+        "multiCol": true,
+        "posture": "landscape",
+        "mode": "full-workspace"
+      },
+      {
+        "id": "p390-final",
+        "vp": {
+          "id": "p390-final",
+          "w": 390,
+          "h": 844,
+          "expectOwner": "document"
+        },
+        "expectOwner": "document",
+        "observedOwner": "document",
+        "ownerMatch": true,
+        "scrollPass": true,
+        "jumpedToTop": false,
+        "shellMountId": "wx-shell-mount:41",
+        "primaryMountId": "wx-primary-mount:41",
+        "mountStable": true,
+        "multiCol": false,
+        "posture": "portrait",
+        "mode": "browse"
+      }
+    ],
+    "mountStable": true,
+    "ownersCorrect": true,
+    "scrollsPass": true,
+    "noJumpToTop": true,
+    "noOwnerOscillation": true,
+    "consoleClean": true,
+    "pageErrorsClean": true,
+    "pass": true
+  },
+  "ownershipInvariants": {
+    "disclosureRendersZero": true,
+    "disclosureDrivesChromeZero": true,
+    "remountZero": true
+  },
+  "fails": [],
+  "cases": [
+    {
+      "id": "phone-portrait",
+      "vp": {
+        "id": "phone-portrait",
+        "w": 390,
+        "h": 844,
+        "class": "phone",
+        "postureExpect": "portrait",
+        "expectOwner": "document"
+      },
+      "expectOwner": "document",
+      "snap": {
+        "phase": "1b.5.5",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "supportingPanels": 0,
+        "scrollOwnerAttr": "document",
+        "shellMountId": "wx-shell-mount:33",
+        "primaryMountId": "wx-primary-mount:33",
+        "remount": "0",
+        "disclosureRenders": "0",
+        "disclosureDrivesChrome": "0",
+        "assistRenders": "0",
+        "capVisual": "0",
+        "multiCol": false,
+        "windowScrollY": 0,
+        "docScrollTop": 0,
+        "feed": {
+          "overflowY": "visible",
+          "overscrollBehaviorY": "auto",
+          "clientHeight": 475,
+          "scrollHeight": 475,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "workspace": {
+          "overflowY": "visible",
+          "height": "683px",
+          "maxHeight": "none",
+          "clientHeight": 683,
+          "scrollHeight": 683
+        }
+      },
+      "afterSnap": {
+        "scrollOwnerAttr": "document",
+        "windowScrollY": 157,
+        "feedScrollTop": 0
+      },
+      "scroll": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "after": {
+          "windowY": 157,
+          "docTop": 157,
+          "feedTop": 0
+        },
+        "feedMoved": false,
+        "docMoved": true,
+        "jumpedToTop": false,
+        "pass": true
+      },
+      "touch": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0,
+          "feedCanScroll": false,
+          "owner": "document"
+        },
+        "after": {
+          "windowY": 157,
+          "docTop": 157,
+          "feedTop": 0
+        },
+        "feedMoved": false,
+        "docMoved": true,
+        "pass": true,
+        "strictPass": true
+      },
+      "checks": {
+        "workspacePresent": true,
+        "ownerAttr": true,
+        "scrollExercise": true,
+        "touchDrag": true,
+        "noJumpToTop": true,
+        "feedOverflowMatchesOwner": true,
+        "noPortraitOverscrollTrap": true,
+        "overscrollOk": true,
+        "noDisclosureUi": true,
+        "noDisclosureChrome": true,
+        "noAssistUi": true,
+        "noCapActivation": true,
+        "remountZero": true,
+        "mountStable": true,
+        "consoleClean": true,
+        "pageErrorsClean": true
+      },
+      "failed": [],
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "id": "phone-portrait-320",
+      "vp": {
+        "id": "phone-portrait-320",
+        "w": 320,
+        "h": 568,
+        "class": "phone",
+        "postureExpect": "portrait",
+        "expectOwner": "document"
+      },
+      "expectOwner": "document",
+      "snap": {
+        "phase": "1b.5.5",
+        "mode": "browse",
+        "posture": "portrait",
+        "layoutMode": "mobile-portrait",
+        "supportingPanels": 0,
+        "scrollOwnerAttr": "document",
+        "shellMountId": "wx-shell-mount:34",
+        "primaryMountId": "wx-primary-mount:34",
+        "remount": "0",
+        "disclosureRenders": "0",
+        "disclosureDrivesChrome": "0",
+        "assistRenders": "0",
+        "capVisual": "0",
+        "multiCol": false,
+        "windowScrollY": 157,
+        "docScrollTop": 157,
+        "feed": {
+          "overflowY": "visible",
+          "overscrollBehaviorY": "auto",
+          "clientHeight": 2404,
+          "scrollHeight": 2404,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "workspace": {
+          "overflowY": "visible",
+          "height": "2639.53px",
+          "maxHeight": "none",
+          "clientHeight": 2640,
+          "scrollHeight": 2640
+        }
+      },
+      "afterSnap": {
+        "scrollOwnerAttr": "document",
+        "windowScrollY": 398,
+        "feedScrollTop": 0
+      },
+      "scroll": {
+        "before": {
+          "windowY": 157,
+          "docTop": 157,
+          "feedTop": 0
+        },
+        "after": {
+          "windowY": 797,
+          "docTop": 797,
+          "feedTop": 0
+        },
+        "feedMoved": false,
+        "docMoved": true,
+        "jumpedToTop": false,
+        "pass": true
+      },
+      "touch": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0,
+          "feedCanScroll": false,
+          "owner": "document"
+        },
+        "after": {
+          "windowY": 398,
+          "docTop": 398,
+          "feedTop": 0
+        },
+        "feedMoved": false,
+        "docMoved": true,
+        "pass": true,
+        "strictPass": true
+      },
+      "checks": {
+        "workspacePresent": true,
+        "ownerAttr": true,
+        "scrollExercise": true,
+        "touchDrag": true,
+        "noJumpToTop": true,
+        "feedOverflowMatchesOwner": true,
+        "noPortraitOverscrollTrap": true,
+        "overscrollOk": true,
+        "noDisclosureUi": true,
+        "noDisclosureChrome": true,
+        "noAssistUi": true,
+        "noCapActivation": true,
+        "remountZero": true,
+        "mountStable": true,
+        "consoleClean": true,
+        "pageErrorsClean": true
+      },
+      "failed": [],
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "id": "phone-landscape",
+      "vp": {
+        "id": "phone-landscape",
+        "w": 844,
+        "h": 390,
+        "class": "phone",
+        "postureExpect": "landscape",
+        "expectOwner": "feed"
+      },
+      "expectOwner": "feed",
+      "snap": {
+        "phase": "1b.5.5",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": 1,
+        "scrollOwnerAttr": "feed",
+        "shellMountId": "wx-shell-mount:35",
+        "primaryMountId": "wx-primary-mount:35",
+        "remount": "0",
+        "disclosureRenders": "0",
+        "disclosureDrivesChrome": "0",
+        "assistRenders": "0",
+        "capVisual": "0",
+        "multiCol": true,
+        "windowScrollY": 1,
+        "docScrollTop": 1,
+        "feed": {
+          "overflowY": "auto",
+          "overscrollBehaviorY": "contain",
+          "clientHeight": 221,
+          "scrollHeight": 540,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "310px",
+          "maxHeight": "310px",
+          "clientHeight": 308,
+          "scrollHeight": 308
+        }
+      },
+      "afterSnap": {
+        "scrollOwnerAttr": "feed",
+        "windowScrollY": 1,
+        "feedScrollTop": 1974
+      },
+      "scroll": {
+        "before": {
+          "windowY": 1,
+          "docTop": 1,
+          "feedTop": 0
+        },
+        "after": {
+          "windowY": 1,
+          "docTop": 1,
+          "feedTop": 319
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "jumpedToTop": false,
+        "pass": true
+      },
+      "touch": {
+        "before": {
+          "windowY": 1,
+          "docTop": 1,
+          "feedTop": 0,
+          "feedCanScroll": true,
+          "owner": "feed"
+        },
+        "after": {
+          "windowY": 1,
+          "docTop": 1,
+          "feedTop": 1335
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "pass": true,
+        "strictPass": true
+      },
+      "checks": {
+        "workspacePresent": true,
+        "ownerAttr": true,
+        "scrollExercise": true,
+        "touchDrag": true,
+        "noJumpToTop": true,
+        "feedOverflowMatchesOwner": true,
+        "noPortraitOverscrollTrap": true,
+        "overscrollOk": true,
+        "noDisclosureUi": true,
+        "noDisclosureChrome": true,
+        "noAssistUi": true,
+        "noCapActivation": true,
+        "remountZero": true,
+        "mountStable": true,
+        "consoleClean": true,
+        "pageErrorsClean": true
+      },
+      "failed": [],
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "id": "phone-landscape-740",
+      "vp": {
+        "id": "phone-landscape-740",
+        "w": 740,
+        "h": 360,
+        "class": "phone",
+        "postureExpect": "landscape",
+        "expectOwner": "feed"
+      },
+      "expectOwner": "feed",
+      "snap": {
+        "phase": "1b.5.5",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": 1,
+        "scrollOwnerAttr": "feed",
+        "shellMountId": "wx-shell-mount:36",
+        "primaryMountId": "wx-primary-mount:36",
+        "remount": "0",
+        "disclosureRenders": "0",
+        "disclosureDrivesChrome": "0",
+        "assistRenders": "0",
+        "capVisual": "0",
+        "multiCol": true,
+        "windowScrollY": 0,
+        "docScrollTop": 0,
+        "feed": {
+          "overflowY": "auto",
+          "overscrollBehaviorY": "contain",
+          "clientHeight": 191,
+          "scrollHeight": 501,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "280px",
+          "maxHeight": "280px",
+          "clientHeight": 278,
+          "scrollHeight": 278
+        }
+      },
+      "afterSnap": {
+        "scrollOwnerAttr": "feed",
+        "windowScrollY": 0,
+        "feedScrollTop": 265
+      },
+      "scroll": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 320
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "jumpedToTop": false,
+        "pass": true
+      },
+      "touch": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0,
+          "feedCanScroll": true,
+          "owner": "feed"
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 265
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "pass": true,
+        "strictPass": true
+      },
+      "checks": {
+        "workspacePresent": true,
+        "ownerAttr": true,
+        "scrollExercise": true,
+        "touchDrag": true,
+        "noJumpToTop": true,
+        "feedOverflowMatchesOwner": true,
+        "noPortraitOverscrollTrap": true,
+        "overscrollOk": true,
+        "noDisclosureUi": true,
+        "noDisclosureChrome": true,
+        "noAssistUi": true,
+        "noCapActivation": true,
+        "remountZero": true,
+        "mountStable": true,
+        "consoleClean": true,
+        "pageErrorsClean": true
+      },
+      "failed": [],
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "id": "tablet-portrait",
+      "vp": {
+        "id": "tablet-portrait",
+        "w": 768,
+        "h": 1024,
+        "class": "tablet",
+        "postureExpect": "portrait",
+        "expectOwner": "feed"
+      },
+      "expectOwner": "feed",
+      "snap": {
+        "phase": "1b.5.5",
+        "mode": "hybrid-workspace",
+        "posture": "portrait",
+        "layoutMode": "tablet-portrait",
+        "supportingPanels": 1,
+        "scrollOwnerAttr": "feed",
+        "shellMountId": "wx-shell-mount:37",
+        "primaryMountId": "wx-primary-mount:37",
+        "remount": "0",
+        "disclosureRenders": "0",
+        "disclosureDrivesChrome": "0",
+        "assistRenders": "0",
+        "capVisual": "0",
+        "multiCol": true,
+        "windowScrollY": 0,
+        "docScrollTop": 0,
+        "feed": {
+          "overflowY": "auto",
+          "overscrollBehaviorY": "contain",
+          "clientHeight": 777,
+          "scrollHeight": 777,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "944px",
+          "maxHeight": "944px",
+          "clientHeight": 942,
+          "scrollHeight": 942
+        }
+      },
+      "afterSnap": {
+        "scrollOwnerAttr": "feed",
+        "windowScrollY": 0,
+        "feedScrollTop": 325
+      },
+      "scroll": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "feedMoved": false,
+        "docMoved": false,
+        "jumpedToTop": false,
+        "pass": false
+      },
+      "touch": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0,
+          "feedCanScroll": true,
+          "owner": "feed"
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 325
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "pass": true,
+        "strictPass": true
+      },
+      "checks": {
+        "workspacePresent": true,
+        "ownerAttr": true,
+        "scrollExercise": true,
+        "touchDrag": true,
+        "noJumpToTop": true,
+        "feedOverflowMatchesOwner": true,
+        "noPortraitOverscrollTrap": true,
+        "overscrollOk": true,
+        "noDisclosureUi": true,
+        "noDisclosureChrome": true,
+        "noAssistUi": true,
+        "noCapActivation": true,
+        "remountZero": true,
+        "mountStable": true,
+        "consoleClean": true,
+        "pageErrorsClean": true
+      },
+      "failed": [],
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "id": "tablet-landscape",
+      "vp": {
+        "id": "tablet-landscape",
+        "w": 1024,
+        "h": 768,
+        "class": "tablet",
+        "postureExpect": "landscape",
+        "expectOwner": "feed"
+      },
+      "expectOwner": "feed",
+      "snap": {
+        "phase": "1b.5.5",
+        "mode": "hybrid-workspace",
+        "posture": "landscape",
+        "layoutMode": "tablet-landscape",
+        "supportingPanels": 1,
+        "scrollOwnerAttr": "feed",
+        "shellMountId": "wx-shell-mount:38",
+        "primaryMountId": "wx-primary-mount:38",
+        "remount": "0",
+        "disclosureRenders": "0",
+        "disclosureDrivesChrome": "0",
+        "assistRenders": "0",
+        "capVisual": "0",
+        "multiCol": true,
+        "windowScrollY": 0,
+        "docScrollTop": 0,
+        "feed": {
+          "overflowY": "auto",
+          "overscrollBehaviorY": "contain",
+          "clientHeight": 599,
+          "scrollHeight": 921,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "688px",
+          "maxHeight": "688px",
+          "clientHeight": 686,
+          "scrollHeight": 686
+        }
+      },
+      "afterSnap": {
+        "scrollOwnerAttr": "feed",
+        "windowScrollY": 0,
+        "feedScrollTop": 265
+      },
+      "scroll": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 320
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "jumpedToTop": false,
+        "pass": true
+      },
+      "touch": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0,
+          "feedCanScroll": true,
+          "owner": "feed"
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 265
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "pass": true,
+        "strictPass": true
+      },
+      "checks": {
+        "workspacePresent": true,
+        "ownerAttr": true,
+        "scrollExercise": true,
+        "touchDrag": true,
+        "noJumpToTop": true,
+        "feedOverflowMatchesOwner": true,
+        "noPortraitOverscrollTrap": true,
+        "overscrollOk": true,
+        "noDisclosureUi": true,
+        "noDisclosureChrome": true,
+        "noAssistUi": true,
+        "noCapActivation": true,
+        "remountZero": true,
+        "mountStable": true,
+        "consoleClean": true,
+        "pageErrorsClean": true
+      },
+      "failed": [],
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "id": "desktop",
+      "vp": {
+        "id": "desktop",
+        "w": 1440,
+        "h": 900,
+        "class": "desktop",
+        "postureExpect": "landscape",
+        "expectOwner": "feed"
+      },
+      "expectOwner": "feed",
+      "snap": {
+        "phase": "1b.5.5",
+        "mode": "full-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop",
+        "supportingPanels": 2,
+        "scrollOwnerAttr": "feed",
+        "shellMountId": "wx-shell-mount:39",
+        "primaryMountId": "wx-primary-mount:39",
+        "remount": "0",
+        "disclosureRenders": "0",
+        "disclosureDrivesChrome": "0",
+        "assistRenders": "0",
+        "capVisual": "0",
+        "multiCol": true,
+        "windowScrollY": 0,
+        "docScrollTop": 0,
+        "feed": {
+          "overflowY": "auto",
+          "overscrollBehaviorY": "contain",
+          "clientHeight": 731,
+          "scrollHeight": 772,
+          "scrollTop": 0,
+          "canScrollY": true
+        },
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "820px",
+          "maxHeight": "820px",
+          "clientHeight": 818,
+          "scrollHeight": 818
+        }
+      },
+      "afterSnap": {
+        "scrollOwnerAttr": "feed",
+        "windowScrollY": 0,
+        "feedScrollTop": 46
+      },
+      "scroll": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 41
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "jumpedToTop": false,
+        "pass": true
+      },
+      "touch": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0,
+          "feedCanScroll": true,
+          "owner": "feed"
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 41
+        },
+        "feedMoved": true,
+        "docMoved": false,
+        "pass": true,
+        "strictPass": true
+      },
+      "checks": {
+        "workspacePresent": true,
+        "ownerAttr": true,
+        "scrollExercise": true,
+        "touchDrag": true,
+        "noJumpToTop": true,
+        "feedOverflowMatchesOwner": true,
+        "noPortraitOverscrollTrap": true,
+        "overscrollOk": true,
+        "noDisclosureUi": true,
+        "noDisclosureChrome": true,
+        "noAssistUi": true,
+        "noCapActivation": true,
+        "remountZero": true,
+        "mountStable": true,
+        "consoleClean": true,
+        "pageErrorsClean": true
+      },
+      "failed": [],
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "id": "ultrawide",
+      "vp": {
+        "id": "ultrawide",
+        "w": 2560,
+        "h": 1440,
+        "class": "ultrawide",
+        "postureExpect": "landscape",
+        "expectOwner": "feed"
+      },
+      "expectOwner": "feed",
+      "snap": {
+        "phase": "1b.5.5",
+        "mode": "professional-workspace",
+        "posture": "landscape",
+        "layoutMode": "desktop-wide",
+        "supportingPanels": 2,
+        "scrollOwnerAttr": "feed",
+        "shellMountId": "wx-shell-mount:40",
+        "primaryMountId": "wx-primary-mount:40",
+        "remount": "0",
+        "disclosureRenders": "0",
+        "disclosureDrivesChrome": "0",
+        "assistRenders": "0",
+        "capVisual": "0",
+        "multiCol": true,
+        "windowScrollY": 0,
+        "docScrollTop": 0,
+        "feed": {
+          "overflowY": "auto",
+          "overscrollBehaviorY": "contain",
+          "clientHeight": 1271,
+          "scrollHeight": 1271,
+          "scrollTop": 0,
+          "canScrollY": false
+        },
+        "workspace": {
+          "overflowY": "hidden",
+          "height": "1360px",
+          "maxHeight": "1360px",
+          "clientHeight": 1358,
+          "scrollHeight": 1358
+        }
+      },
+      "afterSnap": {
+        "scrollOwnerAttr": "feed",
+        "windowScrollY": 0,
+        "feedScrollTop": 0
+      },
+      "scroll": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "feedMoved": false,
+        "docMoved": false,
+        "jumpedToTop": false,
+        "pass": false
+      },
+      "touch": {
+        "before": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0,
+          "feedCanScroll": false,
+          "owner": "feed"
+        },
+        "after": {
+          "windowY": 0,
+          "docTop": 0,
+          "feedTop": 0
+        },
+        "feedMoved": false,
+        "docMoved": false,
+        "pass": true,
+        "strictPass": true
+      },
+      "checks": {
+        "workspacePresent": true,
+        "ownerAttr": true,
+        "scrollExercise": true,
+        "touchDrag": true,
+        "noJumpToTop": true,
+        "feedOverflowMatchesOwner": true,
+        "noPortraitOverscrollTrap": true,
+        "overscrollOk": true,
+        "noDisclosureUi": true,
+        "noDisclosureChrome": true,
+        "noAssistUi": true,
+        "noCapActivation": true,
+        "remountZero": true,
+        "mountStable": true,
+        "consoleClean": true,
+        "pageErrorsClean": true
+      },
+      "failed": [],
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    }
+  ],
+  "portraitPass": true,
+  "landscapePass": true,
+  "journeyPass": true
+}

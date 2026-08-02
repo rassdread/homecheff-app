@@ -1,0 +1,160 @@
+{
+  "phase": "1b.5.5",
+  "contractId": "wx-tool-action-presentation-v1",
+  "rows": [
+    {
+      "id": "browse-portrait-390",
+      "mode": "browse",
+      "posture": "portrait",
+      "usableWidthPx": 390,
+      "usableHeightPx": 844,
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "renderAuthorizedAllFalse": true,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "hybrid-landscape-844",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 844,
+      "usableHeightPx": 390,
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "renderAuthorizedAllFalse": true,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "full-landscape-1280",
+      "mode": "full-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 1280,
+      "usableHeightPx": 800,
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "renderAuthorizedAllFalse": true,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "professional-contention-1440",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 1440,
+      "usableHeightPx": 900,
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "renderAuthorizedAllFalse": true,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "professional-persistent-1600",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 1600,
+      "usableHeightPx": 900,
+      "expect": {
+        "tool": "persistent",
+        "action-create": "persistent",
+        "action-search": "persistent",
+        "action-filters": "persistent"
+      },
+      "actual": {
+        "action-create": "persistent",
+        "action-search": "persistent",
+        "action-filters": "persistent",
+        "tool": "persistent"
+      },
+      "renderAuthorizedAllFalse": true,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "professional-persistent-1920",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 1920,
+      "usableHeightPx": 1080,
+      "expect": {
+        "tool": "persistent",
+        "action-create": "persistent",
+        "action-search": "persistent",
+        "action-filters": "persistent"
+      },
+      "actual": {
+        "action-create": "persistent",
+        "action-search": "persistent",
+        "action-filters": "persistent",
+        "tool": "persistent"
+      },
+      "renderAuthorizedAllFalse": true,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "compact-portrait-700",
+      "mode": "compact-workspace",
+      "posture": "portrait",
+      "usableWidthPx": 700,
+      "usableHeightPx": 900,
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "renderAuthorizedAllFalse": true,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    }
+  ]
+}

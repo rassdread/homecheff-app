@@ -1,0 +1,16 @@
+{
+  "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_FAIL",
+  "passCount": 7,
+  "caseCount": 8,
+  "portraitPass": true,
+  "landscapePass": false,
+  "journeyPass": true,
+  "fails": [
+    {
+      "id": "tablet-portrait",
+      "failed": [
+        "touchDrag"
+      ]
+    }
+  ]
+}
