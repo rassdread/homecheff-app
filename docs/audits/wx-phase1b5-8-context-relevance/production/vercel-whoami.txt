@@ -1,0 +1,1 @@
+Vercel CLI token invalid; deploy confirmed via GitHub

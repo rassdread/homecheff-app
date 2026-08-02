@@ -1,0 +1,21 @@
+{
+  "contract": "wx-context-relevance-v1",
+  "version": "1.0.0",
+  "phase": "1b.5.8",
+  "states": [
+    "UNKNOWN",
+    "IRRELEVANT",
+    "CONTEXTUAL",
+    "IMPORTANT",
+    "ESSENTIAL"
+  ],
+  "scores": [
+    0,
+    25,
+    50,
+    75,
+    100
+  ],
+  "diagnosticsOnly": true,
+  "neverModifiesContextPriority": true
+}

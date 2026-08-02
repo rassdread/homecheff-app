@@ -1,0 +1,20 @@
+  ✓ unknown/duplicate/mismatch/missing → UNKNOWN score 0
+
+[context-relevance-1b5.8] diagnostics-only — render/ordering never authorized
+  ✓ render/ordering banned
+
+[context-relevance-1b5.8] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[context-relevance-1b5.8] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[context-relevance-1b5.8] layout diagnostics expose relevance without reorder/render
+  ✓ layout binds relevance diagnostics; renders=0; priority preserved
+
+[context-relevance-1b5.8] FromPlans integration
+  ✓ FromPlans chains …→priority→context-relevance
+
+[context-relevance-1b5.8] SUMMARY {"groups":9,"assertions":65,"vectors":3,"relevanceSurfaceIds":7}
+[context-relevance-1b5.8] 65 assertions across 9 groups
+

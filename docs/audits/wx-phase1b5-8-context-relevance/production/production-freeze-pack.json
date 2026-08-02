@@ -1,0 +1,37 @@
+{
+  "phase": "1b.5.8",
+  "title": "WX Phase 1B.5.8 Contextual Relevance Engine",
+  "status": "PRODUCTION_FROZEN",
+  "verdict": "WX_PHASE_1B5_8_PRODUCTION_SUCCESS",
+  "contract": {
+    "id": "wx-context-relevance-v1",
+    "version": "1.0.0"
+  },
+  "merge": "ed51f4b971063df0b4b45bd89331ceb9690a367b",
+  "parents": [
+    "398dfa5770e57df7f6714d94e5274b05b701a8e5",
+    "960e50f4ddc789ab589507d738f6dc85881bb099"
+  ],
+  "reviewedImplTip": "0731fed4cb4f4544f7b726d108a516a0d1c622ee",
+  "promotionSourceTip": "960e50f4ddc789ab589507d738f6dc85881bb099",
+  "commitA": "189f446416a460a3466d04365b10d1fb2a514c50",
+  "commitB": "0731fed4cb4f4544f7b726d108a516a0d1c622ee",
+  "rollback": "b52900581c35033ba4c04efe69526d35f8d37c9a",
+  "previousFreeze": "398dfa5770e57df7f6714d94e5274b05b701a8e5",
+  "deployment": {
+    "project": "homecheff-app",
+    "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+    "deploymentId": "dpl_BcFQptrgK2sFQtfrdGwagAJRPHyM",
+    "githubProductionDeploymentId": 5718393724,
+    "gitCommitSha": "ed51f4b971063df0b4b45bd89331ceb9690a367b",
+    "ready": true,
+    "note": "Vercel CLI token invalid; READY via GitHub Production deployment + live DOM phase 1b.5.8"
+  },
+  "aliases": {
+    "homecheff.eu": "HTTP 200",
+    "www.homecheff.eu": "HTTP 200",
+    "homecheff.nl": "HTTP 307 -> eu"
+  },
+  "featureBranchRetained": "wx/phase-1b5-8-context-relevance",
+  "frozenAt": "2026-08-02T22:45:40.714947+00:00"
+}
