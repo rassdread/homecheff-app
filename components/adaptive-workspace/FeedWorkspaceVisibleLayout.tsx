@@ -18,9 +18,12 @@
  *                by WorkspaceChromeProvider — layout does not remount or change ownership).
  * WX Phase 1B.5.1: Surface Registry diagnostics only — no presentation resolver, no
  *                  capability visual activation, no assist/tool occupancy changes.
+ * WX Phase 1B.5.2: Surface Presentation Resolver diagnostics only — plan eligibility /
+ *                  priority; does NOT drive chrome, remount, or visual activation.
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
- * NEVER key primary (or any slot) by Mode / posture / mode token / capability state.
+ * NEVER key primary (or any slot) by Mode / posture / mode token / capability /
+ * presentation-plan state.
  */
 
 import React, {
@@ -39,10 +42,12 @@ import {
   resolveFeedWorkspaceVisibleLayout,
   resolveWorkspaceCapabilitiesFromModePlan,
   resolveWorkspaceMode,
+  resolveSurfacePresentationFromPlans,
   WORKSPACE_TRANSITION_CONTINUITY,
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
   WORKSPACE_RESERVED_SURFACE_IDS,
+  WORKSPACE_SURFACE_PRESENTATION,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
   type WorkspaceModePlan,
@@ -189,6 +194,12 @@ export default function FeedWorkspaceVisibleLayout({
   /** WX 1B.3 — capability activation plan; diagnostics only (no visual activation). */
   const capabilityPlan = resolveWorkspaceCapabilitiesFromModePlan(modePlan);
 
+  /** WX 1B.5.2 — presentation plan; diagnostics only (does not drive chrome). */
+  const presentationPlan = resolveSurfacePresentationFromPlans(
+    modePlan,
+    capabilityPlan,
+  );
+
   const previousMode = previousModeRef.current;
   const modeChanged =
     previousMode != null && previousMode.mode !== modePlan.mode;
@@ -233,7 +244,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.5.1"
+      data-wx-phase="1b.5.2"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -281,6 +292,18 @@ export default function FeedWorkspaceVisibleLayout({
       data-wx-surface-ids={WORKSPACE_SURFACE_IDS.join(",")}
       data-wx-surface-reserved={WORKSPACE_RESERVED_SURFACE_IDS.join(",")}
       data-wx-surface-count={String(WORKSPACE_SURFACE_IDS.length)}
+      data-wx-presentation={WORKSPACE_SURFACE_PRESENTATION.contractId}
+      data-wx-presentation-plan={WORKSPACE_SURFACE_PRESENTATION.planContractId}
+      data-wx-presentation-version={WORKSPACE_SURFACE_PRESENTATION.contractVersion}
+      data-wx-presentation-token={presentationPlan.stabilityToken}
+      data-wx-presentation-status={presentationPlan.status}
+      data-wx-presentation-drives-chrome="0"
+      data-wx-presentation-eligible={presentationPlan.eligibleSurfaceIds.join(",")}
+      data-wx-presentation-suppressed={presentationPlan.suppressedSurfaceIds.join(
+        ",",
+      )}
+      data-wx-presentation-reserved={presentationPlan.reservedSurfaceIds.join(",")}
+      data-wx-presentation-ordered={presentationPlan.orderedSurfaceIds.join(",")}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}

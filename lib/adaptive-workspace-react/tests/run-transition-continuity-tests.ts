@@ -256,7 +256,7 @@ begin("layout source: permanent slots + mount diagnostics + no Mode keys");
   for (const re of CONTINUITY_FORBIDDEN_SOURCE_PATTERNS) {
     assert.equal(re.test(src), false, String(re));
   }
-  assert.match(src, /data-wx-phase="1b\.5\.1"/);
+  assert.match(src, /data-wx-phase="1b\.5\.[0-9]+"/);
   assert.match(src, /data-wx-capability/);
   assert.match(src, /data-wx-landscape-work/);
   assert.match(src, /data-wx-landscape-contract/);

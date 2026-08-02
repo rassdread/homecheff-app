@@ -198,14 +198,13 @@ begin("layout diagnostics expose registry without visual activation");
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
-  assert.match(layout, /data-wx-phase="1b\.5\.1"/);
+  // Layout phase advances with later WX phases; registry contract remains 1b.5.1.
+  assert.match(layout, /data-wx-phase="1b\.5\.[0-9]+"/);
   assert.match(layout, /data-wx-surface-registry=/);
   assert.match(layout, /data-wx-surface-registry-version=/);
   assert.match(layout, /data-wx-surface-ids=/);
   assert.match(layout, /data-wx-surface-reserved=/);
   assert.match(layout, /data-wx-cap-visual-activation="0"/);
-  // Must not introduce presentation resolver consumers
-  assert.equal(/resolveSurfacePresentation|SurfacePresentationPlan/.test(layout), false);
   ok("layout diagnostics bound; visual activation remains 0");
 }
 

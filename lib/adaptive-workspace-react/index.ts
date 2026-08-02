@@ -227,3 +227,27 @@ export type {
   WorkspaceSurfacePresentationContract,
   WorkspaceSurfaceRegistryDiagnostics,
 } from "./workspace-surface-registry";
+
+export {
+  WORKSPACE_SURFACE_PRESENTATION,
+  SURFACE_PRESENTATION_FORBIDDEN_SOURCE_PATTERNS,
+  resolveSurfacePresentation,
+  resolveSurfacePresentationFromPlans,
+  getSurfacePresentationEntry,
+  isSurfacePresentationEligible,
+  serializeSurfacePresentationPlan,
+  compareSurfacePriority,
+  maxAssistPersistentForMode,
+} from "./resolve-surface-presentation";
+
+export type {
+  SurfacePresentationState,
+  SurfaceDisclosureState,
+  SurfaceCompactionState,
+  SurfacePresentationReason,
+  SurfaceSuppressionReason,
+  SurfacePresentationEntry,
+  SurfacePresentationPlanStatus,
+  SurfacePresentationPlan,
+  SurfacePresentationResolveInput,
+} from "./resolve-surface-presentation";
