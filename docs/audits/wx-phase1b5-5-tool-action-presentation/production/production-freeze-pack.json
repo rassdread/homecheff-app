@@ -87,5 +87,8 @@
     "Duplicate FromPlans re-resolve pattern",
     "Vercel API token invalid during promotion; runtime verified via GitHub Production deployment status + alias HTTP 200"
   ],
-  "stopGate": "Do not begin WX Phase 1B.5.6 until explicit approval after this Production freeze."
+  "stopGate": "Do not begin WX Phase 1B.5.6 until explicit approval after this Production freeze.",
+  "freezeDocsCommit": "1033bd660d957d3db30120f19ec1597afd151476",
+  "finalOriginMain": "1033bd660d957d3db30120f19ec1597afd151476",
+  "aliasShaNote": "Behavioural runtime merge ad68d843; docs freeze tip 1033bd66 may advance aliases after docs deploy; code-tree for 1B.5.5 behaviour is ad68d843."
 }
