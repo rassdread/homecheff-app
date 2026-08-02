@@ -1,7 +1,7 @@
 # WX Phase 1B.5.6 — Honesty Density & Compacted States
 
-**Status:** `READY_FOR_FORMAL_REVIEW`  
-**Verdict:** `WX_PHASE_1B5_6_PASS`
+**Status:** `PRODUCTION_FROZEN`  
+**Verdict:** `WX_PHASE_1B5_6_PRODUCTION_SUCCESS`
 
 | Ref | Value |
 | --- | --- |
@@ -13,6 +13,9 @@
 | Phase marker | `1b.5.6` |
 | Commit A (impl) | `aae4959ae759f18172fc80caa6e9ab2760ea993b` |
 | Commit B (evidence) | `fff887c05bd75b6f34bff37b1b72cd90e14a0daf` |
+| Merge / behavioural Production SHA | `2db5a5ab3769940716a670062794871548c14bf9` |
+| Deployment | `dpl_CGtwWefjsrDDWBP7wW9vyQw9ovj1` |
+| Rollback | `ad68d843d0b85b222cf524fd8016d3a18a45068b` |
 
 **Not claimed:** Formal Review · merge · deploy · Production freeze · WX Phase 1B.5.7
 
@@ -61,10 +64,11 @@ See `ROLLBACK.md`.
 ## 9. Final Verdict
 
 ```
-WX_PHASE_1B5_6_PASS
-READY_FOR_FORMAL_REVIEW
+WX_PHASE_1B5_6_PRODUCTION_SUCCESS
 ```
 
 ## Stop gate
 
-**STOP.** Do not author Formal Review, merge, deploy, Production-freeze, or begin WX Phase 1B.5.7 without explicit approval.
+**Production evidence:** `docs/audits/wx-phase1b5-6-honesty-density/production/`
+
+**STOP.** Do not begin WX Phase 1B.5.7 without explicit approval.

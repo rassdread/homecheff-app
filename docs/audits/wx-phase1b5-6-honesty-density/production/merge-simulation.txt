@@ -1,0 +1,3 @@
+Automatic merge went well; stopped before committing as requested
+MERGE_SIM_EXIT:0
+CLEANLY_MERGEABLE

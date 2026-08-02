@@ -1,0 +1,34 @@
+{
+  "phase": "1b.5.6",
+  "contractId": "wx-honesty-density-v1",
+  "contractVersion": "1.0.0",
+  "verdict": "WX_PHASE_1B5_6_PRODUCTION_SUCCESS",
+  "status": "PRODUCTION_FROZEN",
+  "featureBranch": "wx/phase-1b5-6-honesty-density",
+  "featureBranchRetained": true,
+  "reviewedTip": "03ec50c985dea339f4de6c581080a9ce5535af8b",
+  "commitA": "aae4959ae759f18172fc80caa6e9ab2760ea993b",
+  "commitB": "fff887c05bd75b6f34bff37b1b72cd90e14a0daf",
+  "merge": "2db5a5ab3769940716a670062794871548c14bf9",
+  "mergeParents": [
+    "3701cdcea93c87235f42b901ed01bc03d7faaa61",
+    "03ec50c985dea339f4de6c581080a9ce5535af8b"
+  ],
+  "deploymentId": "dpl_CGtwWefjsrDDWBP7wW9vyQw9ovj1",
+  "githubProductionDeploymentId": 5717548452,
+  "rollbackBehavioural": "ad68d843d0b85b222cf524fd8016d3a18a45068b",
+  "prePromotionFreezeTip": "3701cdcea93c87235f42b901ed01bc03d7faaa61",
+  "schemaMigration": false,
+  "aliases": {
+    "homecheff.eu": 200,
+    "www.homecheff.eu": 200,
+    "homecheff.nl": 307,
+    "www.homecheff.nl": 307
+  },
+  "liveProofs": {
+    "browser": "WX_PHASE_1B5_6_BROWSER_PROOF_PASS",
+    "scroll": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+    "landscape1b21": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS",
+    "ownership": "OWNERSHIP_UNCHANGED"
+  }
+}

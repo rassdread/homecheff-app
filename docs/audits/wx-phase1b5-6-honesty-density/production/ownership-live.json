@@ -1,0 +1,17 @@
+{
+  "verdict": "OWNERSHIP_UNCHANGED",
+  "phase": true,
+  "honesty": true,
+  "honestyVersion": true,
+  "honestyRenders0": true,
+  "honestyDrives0": true,
+  "honestyApplies0": true,
+  "toolRenders0": true,
+  "capVisual0": true,
+  "remount0": true,
+  "hostOne": true,
+  "noNewHonestyUi": true,
+  "domDeltaZero": true,
+  "feedPresent": true,
+  "journeyPass": true
+}

@@ -1,0 +1,11 @@
+{
+  "merge": "2db5a5ab3769940716a670062794871548c14bf9",
+  "overall_state": "success",
+  "vercel_state": "success",
+  "vercel_description": "Deployment has completed",
+  "deployment_url": "https://vercel.com/sergio-s-projects-f7b64ee1/homecheff-app/CGtwWefjsrDDWBP7wW9vyQw9ovj1",
+  "deployment_id": "dpl_CGtwWefjsrDDWBP7wW9vyQw9ovj1",
+  "rollback_target": "ad68d843d0b85b222cf524fd8016d3a18a45068b",
+  "previous_freeze": "3701cdcea93c87235f42b901ed01bc03d7faaa61",
+  "deployment_path_id": "CGtwWefjsrDDWBP7wW9vyQw9ovj1"
+}

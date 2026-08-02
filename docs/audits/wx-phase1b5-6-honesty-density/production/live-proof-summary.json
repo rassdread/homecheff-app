@@ -1,0 +1,40 @@
+{
+  "browser": {
+    "verdict": "WX_PHASE_1B5_6_BROWSER_PROOF_PASS",
+    "passCount": 10,
+    "journey": true,
+    "domDelta": true
+  },
+  "scroll": {
+    "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+    "passCount": 8,
+    "caseCount": 8,
+    "portraitPass": true,
+    "landscapePass": true,
+    "journeyPass": true,
+    "fails": []
+  },
+  "landscape": {
+    "verdict": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS"
+  },
+  "ownership": {
+    "verdict": "OWNERSHIP_UNCHANGED",
+    "phase": true,
+    "honesty": true,
+    "honestyVersion": true,
+    "honestyRenders0": true,
+    "honestyDrives0": true,
+    "honestyApplies0": true,
+    "toolRenders0": true,
+    "capVisual0": true,
+    "remount0": true,
+    "hostOne": true,
+    "noNewHonestyUi": true,
+    "domDeltaZero": true,
+    "feedPresent": true,
+    "journeyPass": true
+  },
+  "merge": "2db5a5ab3769940716a670062794871548c14bf9",
+  "deployment": "dpl_CGtwWefjsrDDWBP7wW9vyQw9ovj1",
+  "github_production_deploy_id": 5717548452
+}
