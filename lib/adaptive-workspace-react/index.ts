@@ -251,3 +251,26 @@ export type {
   SurfacePresentationPlan,
   SurfacePresentationResolveInput,
 } from "./resolve-surface-presentation";
+
+
+export {
+  WORKSPACE_ASSIST_ELIGIBILITY,
+  ASSIST_ELIGIBILITY_FORBIDDEN_SOURCE_PATTERNS,
+  resolveAssistEligibility,
+  resolveAssistEligibilityFromPlans,
+  getAssistEligibilityEntry,
+  isAssistPlanEligible,
+  isAssistRenderAuthorized,
+  serializeAssistEligibilityPlan,
+} from "./resolve-assist-eligibility";
+
+export type {
+  AssistSurfaceId,
+  AssistEligibilityState,
+  AssistEligibilityReason,
+  AssistSuppressionReason,
+  AssistEligibilityEntry,
+  AssistEligibilityPlanStatus,
+  AssistEligibilityPlan,
+  AssistEligibilityResolveInput,
+} from "./resolve-assist-eligibility";

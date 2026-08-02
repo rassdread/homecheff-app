@@ -20,10 +20,13 @@
  *                  capability visual activation, no assist/tool occupancy changes.
  * WX Phase 1B.5.2: Surface Presentation Resolver diagnostics only — plan eligibility /
  *                  priority; does NOT drive chrome, remount, or visual activation.
+ * WX Phase 1B.5.3: Assist Surface Eligibility diagnostics only — eligibility metadata;
+ *                  does NOT render Assist UI, drive chrome occupancy, or activate capabilities
+ *                  (hollow permanent assists forbidden without living content).
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  * NEVER key primary (or any slot) by Mode / posture / mode token / capability /
- * presentation-plan state.
+ * presentation-plan / assist-eligibility state.
  */
 
 import React, {
@@ -43,11 +46,13 @@ import {
   resolveWorkspaceCapabilitiesFromModePlan,
   resolveWorkspaceMode,
   resolveSurfacePresentationFromPlans,
+  resolveAssistEligibilityFromPlans,
   WORKSPACE_TRANSITION_CONTINUITY,
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
   WORKSPACE_RESERVED_SURFACE_IDS,
   WORKSPACE_SURFACE_PRESENTATION,
+  WORKSPACE_ASSIST_ELIGIBILITY,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
   type WorkspaceModePlan,
@@ -200,6 +205,12 @@ export default function FeedWorkspaceVisibleLayout({
     capabilityPlan,
   );
 
+  /** WX 1B.5.3 — assist eligibility; diagnostics only (does not render Assist). */
+  const assistEligibilityPlan = resolveAssistEligibilityFromPlans(
+    modePlan,
+    capabilityPlan,
+  );
+
   const previousMode = previousModeRef.current;
   const modeChanged =
     previousMode != null && previousMode.mode !== modePlan.mode;
@@ -244,7 +255,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.5.2"
+      data-wx-phase="1b.5.3"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -304,6 +315,18 @@ export default function FeedWorkspaceVisibleLayout({
       )}
       data-wx-presentation-reserved={presentationPlan.reservedSurfaceIds.join(",")}
       data-wx-presentation-ordered={presentationPlan.orderedSurfaceIds.join(",")}
+      data-wx-assist-eligibility={WORKSPACE_ASSIST_ELIGIBILITY.contractId}
+      data-wx-assist-eligibility-version={WORKSPACE_ASSIST_ELIGIBILITY.contractVersion}
+      data-wx-assist-eligibility-token={assistEligibilityPlan.stabilityToken}
+      data-wx-assist-eligibility-status={assistEligibilityPlan.status}
+      data-wx-assist-renders="0"
+      data-wx-assist-drives-chrome="0"
+      data-wx-assist-ids={assistEligibilityPlan.orderedAssistIds.join(",")}
+      data-wx-assist-eligible={assistEligibilityPlan.eligibleAssistIds.join(",")}
+      data-wx-assist-ineligible={assistEligibilityPlan.ineligibleAssistIds.join(",")}
+      data-wx-assist-suppressed={assistEligibilityPlan.suppressedAssistIds.join(",")}
+      data-wx-assist-reserved={assistEligibilityPlan.reservedAssistIds.join(",")}
+      data-wx-assist-future={assistEligibilityPlan.futureEligibleAssistIds.join(",")}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
