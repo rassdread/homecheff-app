@@ -19,6 +19,8 @@
 | Deployment ID | `dpl_FDTJ9VryzCYpfsiTQBnHwEP3w2YF` |
 | Vercel `gitCommitSha` | `f988f8ffea5751cf6ee2638f3654b4339fc22e63` |
 | Aliases | `homecheff.eu` · `homecheff.nl` · www |
+| Freeze docs commit | `aa4abc37a41c4d5915528cd51c748abb9c2f4e44` |
+| Docs tip | `d9517255e2a73bc867e393abe9db22195f324cd5` |
 
 ## Live proof
 
