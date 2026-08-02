@@ -1,0 +1,61 @@
+{
+  "verdict": "INDEPENDENT_MATRIX_PASS",
+  "failedChecks": [],
+  "levelsSeen": [
+    "CRITICAL",
+    "HIGH",
+    "LOW",
+    "NORMAL"
+  ],
+  "failClosed": [
+    {
+      "label": "unknown-surface",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "duplicate-surface",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "registry-mismatch",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "honesty-mismatch",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "missing-honesty",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "missing-presentation",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "rejected-honesty",
+      "ok": true,
+      "status": "rejected"
+    },
+    {
+      "label": "partial-empty-entryById",
+      "ok": true,
+      "status": "ok"
+    }
+  ],
+  "purity": {
+    "forbiddenHits": [],
+    "hasAsync": false,
+    "hasAwait": false,
+    "hasPromise": false,
+    "hasTimer": false,
+    "hasObserver": false
+  },
+  "fixtureMatch": true
+}

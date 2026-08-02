@@ -1,0 +1,77 @@
+{
+  "independent_browser": {
+    "verdict": "WX_PHASE_1B5_7_BROWSER_PROOF_PASS",
+    "passCount": 10,
+    "journey": true
+  },
+  "scroll": {
+    "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+    "passCount": 8,
+    "caseCount": 8,
+    "portraitPass": true,
+    "landscapePass": true,
+    "journeyPass": true,
+    "fails": []
+  },
+  "landscape": {
+    "verdict": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS"
+  },
+  "matrix": {
+    "verdict": "INDEPENDENT_MATRIX_PASS",
+    "fixtureMatch": true,
+    "failClosed": [
+      [
+        "unknown-surface",
+        true
+      ],
+      [
+        "duplicate-surface",
+        true
+      ],
+      [
+        "registry-mismatch",
+        true
+      ],
+      [
+        "honesty-mismatch",
+        true
+      ],
+      [
+        "missing-honesty",
+        true
+      ],
+      [
+        "missing-presentation",
+        true
+      ],
+      [
+        "rejected-honesty",
+        true
+      ],
+      [
+        "partial-empty-entryById",
+        true
+      ]
+    ]
+  },
+  "ownership_from_probe": {
+    "hostOne": true,
+    "remount0": true,
+    "phase157": true,
+    "priorityRenders0": true,
+    "priorityDrives0": true,
+    "priorityOrdering0": true,
+    "honestyStill": true,
+    "capVisual0": true,
+    "domDeltaZero": true,
+    "journey": true
+  },
+  "merge": "CLEANLY_MERGEABLE",
+  "warnings": [
+    "PARTIAL_METADATA_STATUS_OK_BUT_ENTRIES_UNKNOWN: empty presentation entryById yields status=ok with UNKNOWN/score0",
+    "FROMPANS_RE_RESOLVE: resolveContextPriorityFromPlans re-resolves upstream plans (duplicate computation, not authority)",
+    "ASSERTION_COUNT_HIGH: 436 assertions vs ~60 target (coverage surplus)",
+    "PROBE_VIEWPORT_GAP: priority probe omits 360/430 (covered by independent 1B.2.1 suite)",
+    "BUILD_ARTIFACT_REUSED_SAME_SHA: independent proofs used standalone binary built at identical tip SHA in impl worktree (regression suite re-verified compile path)"
+  ]
+}

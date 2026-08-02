@@ -33,11 +33,13 @@
  * WX Phase 1B.5.6: Honesty Density & Compacted States diagnostics only — density /
  *                  compact planning metadata; does NOT change layout, spacing, visibility,
  *                  chrome, ownership, activation, or apply compaction.
+ * WX Phase 1B.5.7: Contextual Priority & Surface Ranking diagnostics only — priority
+ *                  metadata; does NOT reorder, render, animate, activate, or change layout.
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  * NEVER key primary (or any slot) by Mode / posture / mode token / capability /
  * presentation-plan / assist-eligibility / progressive-disclosure / tool-action /
- * honesty-density state.
+ * honesty-density / context-priority state.
  */
 
 import React, {
@@ -61,6 +63,7 @@ import {
   resolveProgressiveDisclosureFromPlans,
   resolveToolActionPresentationFromPlans,
   resolveHonestyDensityFromPlans,
+  resolveContextPriorityFromPlans,
   WORKSPACE_TRANSITION_CONTINUITY,
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
@@ -70,6 +73,7 @@ import {
   WORKSPACE_PROGRESSIVE_DISCLOSURE,
   WORKSPACE_TOOL_ACTION_PRESENTATION,
   WORKSPACE_HONESTY_DENSITY,
+  WORKSPACE_CONTEXT_PRIORITY,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
   type WorkspaceModePlan,
@@ -246,6 +250,12 @@ export default function FeedWorkspaceVisibleLayout({
     capabilityPlan,
   );
 
+  /** WX 1B.5.7 — contextual priority; diagnostics only (does not reorder). */
+  const contextPriorityPlan = resolveContextPriorityFromPlans(
+    modePlan,
+    capabilityPlan,
+  );
+
   const previousMode = previousModeRef.current;
   const modeChanged =
     previousMode != null && previousMode.mode !== modePlan.mode;
@@ -290,7 +300,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.5.6"
+      data-wx-phase="1b.5.7"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -420,6 +430,25 @@ export default function FeedWorkspaceVisibleLayout({
       data-wx-honesty-compact-required={honestyDensityPlan.compactRequiredIds.join(
         ",",
       )}
+      data-wx-context-priority={WORKSPACE_CONTEXT_PRIORITY.contractId}
+      data-wx-context-priority-version={WORKSPACE_CONTEXT_PRIORITY.contractVersion}
+      data-wx-context-priority-token={contextPriorityPlan.stabilityToken}
+      data-wx-context-priority-status={contextPriorityPlan.status}
+      data-wx-priority-renders="0"
+      data-wx-priority-drives-chrome="0"
+      data-wx-priority-applies-ordering="0"
+      data-wx-priority={contextPriorityPlan.orderedSurfaceIds
+        .map((id) => `${id}:${contextPriorityPlan.entryById[id].priority}`)
+        .join(",")}
+      data-wx-priority-score={contextPriorityPlan.orderedSurfaceIds
+        .map((id) => `${id}:${contextPriorityPlan.entryById[id].priorityScore}`)
+        .join(",")}
+      data-wx-priority-ids={contextPriorityPlan.orderedSurfaceIds.join(",")}
+      data-wx-priority-unknown={contextPriorityPlan.unknownSurfaceIds.join(",")}
+      data-wx-priority-low={contextPriorityPlan.lowSurfaceIds.join(",")}
+      data-wx-priority-normal={contextPriorityPlan.normalSurfaceIds.join(",")}
+      data-wx-priority-high={contextPriorityPlan.highSurfaceIds.join(",")}
+      data-wx-priority-critical={contextPriorityPlan.criticalSurfaceIds.join(",")}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}

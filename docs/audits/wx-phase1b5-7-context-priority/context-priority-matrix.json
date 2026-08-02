@@ -1,0 +1,64 @@
+{
+  "vectors": [
+    {
+      "id": "p320",
+      "mode": "browse",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50"
+    },
+    {
+      "id": "p390",
+      "mode": "browse",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50"
+    },
+    {
+      "id": "l740",
+      "mode": "hybrid-workspace",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50"
+    },
+    {
+      "id": "l844",
+      "mode": "hybrid-workspace",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50"
+    },
+    {
+      "id": "t768",
+      "mode": "hybrid-workspace",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50"
+    },
+    {
+      "id": "d1024",
+      "mode": "hybrid-workspace",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50"
+    },
+    {
+      "id": "d1280",
+      "mode": "full-workspace",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50"
+    },
+    {
+      "id": "d1440",
+      "mode": "full-workspace",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50"
+    },
+    {
+      "id": "d1920",
+      "mode": "professional-workspace",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:HIGH",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:75"
+    },
+    {
+      "id": "u2560",
+      "mode": "professional-workspace",
+      "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:HIGH",
+      "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:75"
+    }
+  ]
+}
