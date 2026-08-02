@@ -1,0 +1,9 @@
+Throwaway merge simulation (not pushed; branch reset after):
+  base: 561207edc12330b1f2583d5d87acbf3ab8031307
+  feature tip: 6a0e84a3a26683c9c9e81a885d3d161b26e4d18d
+  merge sha (discarded): 1169a3b3a4e195d819624cc1201d3a3074488f13
+  strategy: git merge --no-ff
+  conflicts: none
+  classification: CLEANLY_MERGEABLE
+  critical suites: PASS
+  production build: PASS (exit 0)

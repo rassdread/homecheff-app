@@ -1,20 +1,23 @@
 # WX Phase 1B.5.5 — Tool & Action Surface Presentation
 
-**Status:** `READY_FOR_FORMAL_REVIEW`  
-**Verdict:** `WX_PHASE_1B5_5_PASS`
+**Status:** `PRODUCTION_FROZEN`  
+**Verdict:** `WX_PHASE_1B5_5_PRODUCTION_SUCCESS`
 
 | Ref | Value |
 | --- | --- |
-| Branch | `wx/phase-1b5-5-tool-action-presentation` |
-| Worktree | `/Users/sergioarrias/homecheff-wx-1b55-impl` |
+| Branch | `wx/phase-1b5-5-tool-action-presentation` (merged) |
+| Merge / behavioural Production SHA | `ad68d843d0b85b222cf524fd8016d3a18a45068b` |
+| Deployment | `dpl_3yJe5BrdfBYk74Y3teBn2n3Z3FEZ` |
 | Base / rollback | `561207edc12330b1f2583d5d87acbf3ab8031307` (1B.5.4 Production freeze tip) |
 | Contract | `wx-tool-action-presentation-v1` · version `1.0.0` |
 | Phase marker | `1b.5.5` |
 | Tool action IDs | `tool`, `action-create`, `action-search`, `action-filters` |
 | Commit A (impl) | `ea781638b37ba0329b23da6e1061ef55b44bfe22` |
 | Commit B (evidence) | `d808f4ab6d05909c9f001c61763541ada1e2a2f6` |
+| Stamp | `6a0e84a3a26683c9c9e81a885d3d161b26e4d18d` |
 
-**Not claimed:** merge · deploy · Production freeze · WX Phase 1B.5.6 · formal review execution
+**Production evidence:** `docs/audits/wx-phase1b5-5-tool-action-presentation/production/`  
+**Stop:** Do not begin WX Phase 1B.5.6 without explicit approval.
 
 ---
 

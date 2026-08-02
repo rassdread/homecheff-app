@@ -1,0 +1,126 @@
+
+> homecheff-app@0.1.0 test:tool-action-presentation-1b55
+> npx tsx lib/adaptive-workspace-react/tests/run-tool-action-presentation-1b55-tests.ts
+
+
+[tool-action-presentation-1b5.5] contract seal
+  ✓ sealed contract identity + non-driving flags
+
+[tool-action-presentation-1b5.5] Mode×tool persistence matrix
+  ✓ 7 vectors × 4 actions
+
+[tool-action-presentation-1b5.5] fail-closed — unknown / duplicate / contract mismatch
+  ✓ unknown/duplicate/mismatch reject; fail-closed Reachable
+
+[tool-action-presentation-1b5.5] static chrome freeze — renderAuthorized always false
+  ✓ renderAuthorized false across 28 entries
+
+[tool-action-presentation-1b5.5] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[tool-action-presentation-1b5.5] persistent band — planPersistent true, render still false
+  ✓ persistent capacity + static-chrome-freeze + no render
+
+[tool-action-presentation-1b5.5] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[tool-action-presentation-1b5.5] layout diagnostics expose tool-action without chrome activation
+  ✓ layout binds tool-action diagnostics; renders=0; static chrome
+
+[tool-action-presentation-1b5.5] FromPlans integration
+  ✓ FromPlans chains registry→presentation→assist→disclosure→tool-action
+
+[tool-action-presentation-1b5.5] SUMMARY {"groups":9,"assertions":58,"vectors":7,"toolActionIds":4}
+[tool-action-presentation-1b5.5] 58 assertions across 9 groups
+
+
+> homecheff-app@0.1.0 test:progressive-disclosure-1b54
+> npx tsx lib/adaptive-workspace-react/tests/run-progressive-disclosure-1b54-tests.ts
+
+
+[progressive-disclosure-1b5.4] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[progressive-disclosure-1b5.4] Mode × posture disclosure vectors
+  ✓ 7 vectors × 5 surfaces
+
+[progressive-disclosure-1b5.4] serialization round-trip
+  ✓ serialize keeps states; JSON stable; plan frozen
+
+[progressive-disclosure-1b5.4] determinism
+  ✓ identical input → identical stabilityToken + serialization
+
+[progressive-disclosure-1b5.4] ordering
+  ✓ orderedSurfaceIds sorted by priorityRank ascending
+
+[progressive-disclosure-1b5.4] fail-closed — unknown progressive surface
+  ✓ unknown progressive id → rejected fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — duplicate progressive surface
+  ✓ duplicate progressive id → rejected
+
+[progressive-disclosure-1b5.4] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — presentation contract / version mismatch
+  ✓ presentation contract/version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — eligibility contract / version mismatch
+  ✓ eligibility contract/version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — presentation plan rejected
+  ✓ rejected presentation plan → suppressed disclosures
+
+[progressive-disclosure-1b5.4] fail-closed — eligibility plan rejected
+  ✓ rejected eligibility plan → suppressed disclosures
+
+[progressive-disclosure-1b5.4] isProgressiveRenderAuthorized always false for all ids on ok plan
+  ✓ renderAuthorized always false; disclosure ban holds
+
+[progressive-disclosure-1b5.4] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[progressive-disclosure-1b5.4] layout diagnostics expose disclosure without visual activation
+  ✓ layout binds disclosure diagnostics; renders=0; drives-chrome=0
+
+[progressive-disclosure-1b5.4] resolveProgressiveDisclosureFromPlans integration
+  ✓ 390×844 browse → tool disclosed + disclosure discoverable
+
+[progressive-disclosure-1b5.4] SUMMARY {"groups":17,"assertions":17,"vectors":7,"disclosureAssertions":35,"failClosedAssertions":10,"renderBanAssertions":40,"progressiveSurfaces":5,"fixtureVectors":7}
+[progressive-disclosure-1b5.4] 17 assertions across 17 groups
+
+> homecheff-app@0.1.0 test:nav-preservation-1b4
+> npx tsx lib/adaptive-workspace-react/tests/run-nav-preservation-1b4-tests.ts
+
+
+[nav-preservation-1b4] landscape below-lg destinations
+  ✓ NavBar exposes Create + /mijn-hcp in below-lg hamburger; Escape + desktop Create retained
+  ✓ 2 explicit landscape destination fixtures
+  ✓ collapsed bottom nav uses hidden + aria-hidden + inert; no UA branching
+  ✓ landscape posture policy still owns bottomNavCollapsed
+
+[nav-preservation-1b4] SUMMARY {"assertions":4,"destinations":["create","mijn-hcp"]}
+[nav-preservation-1b4] 4 assertions
+
+
+> homecheff-app@0.1.0 test:mobile-landscape-scroll
+> npx tsx lib/adaptive-workspace-react/tests/run-mobile-landscape-scroll-tests.ts
+
+
+[mobile-landscape-scroll] landscape carve-out enables multiCol
+  ✓ 740×360 → landscape + supporting panel (≥1)
+
+[mobile-landscape-scroll] portrait stays single-column
+  ✓ 390×844 → portrait + 0 panels
+
+[mobile-landscape-scroll] layout source: height propagation for multiCol
+  ✓ multiCol primary host uses h-full overflow-hidden; feed scroll owner gated
+
+[mobile-landscape-scroll] wrappers fill height
+  ✓ Region/Slot/Panel propagate h-full min-h-0
+
+[mobile-landscape-scroll] SUMMARY {"layer":"contract","assertions":4,"browserTouchClaimed":false}
+

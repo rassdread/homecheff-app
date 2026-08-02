@@ -1,0 +1,79 @@
+{
+  "phase": "1b.5.5",
+  "baseUrl": "https://homecheff.eu",
+  "mergeCommit": "ad68d843d0b85b222cf524fd8016d3a18a45068b",
+  "generatedAt": "2026-08-02T20:07:44.433600Z",
+  "verdict": "NAVIGATION_REACHABILITY_PASS",
+  "notes": "Planner describes existing Create/Search/Filters identities only; staticChromeUnchanged=1; no IA redesign; live browser showed no new tool/action UI; 1B.4 nav preservation suite PASS at merge.",
+  "checks": {
+    "createPathUnchanged": true,
+    "searchIdentityPresentationOnly": true,
+    "filtersIdentityPresentationOnly": true,
+    "noNewToolUi": true,
+    "noNewActionUi": true,
+    "staticChromeUnchanged": true,
+    "plannerDoesNotOverclaimRender": true
+  },
+  "liveSamples": [
+    {
+      "id": "p320",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "p390",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "l740",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "l844",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "t768",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "d1024",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "d1280",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "d1440",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "d1920",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    },
+    {
+      "id": "u2560",
+      "toolStaticChrome": "1",
+      "toolRenders": "0",
+      "noNewToolUi": true
+    }
+  ]
+}

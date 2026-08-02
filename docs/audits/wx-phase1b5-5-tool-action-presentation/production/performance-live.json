@@ -1,0 +1,17 @@
+{
+  "phase": "1b.5.5",
+  "mergeCommit": "ad68d843d0b85b222cf524fd8016d3a18a45068b",
+  "generatedAt": "2026-08-02T20:07:44.433784Z",
+  "verdict": "PERFORMANCE_PASS",
+  "sharedFirstLoadJsClassKb": 638,
+  "notes": "Pure synchronous planner n=4; no listeners/polling/timers/network/DOM reads in resolver; live proofs completed without blocking errors; scroll 8/8 PASS.",
+  "pureSynchronousPlanner": true,
+  "boundedCost": true,
+  "noListener": true,
+  "noPolling": true,
+  "noTimer": true,
+  "noObserver": true,
+  "noNetwork": true,
+  "noDomReadInResolver": true,
+  "scrollPerformancePreserved": true
+}

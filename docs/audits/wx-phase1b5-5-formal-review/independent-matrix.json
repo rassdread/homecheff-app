@@ -1,0 +1,258 @@
+{
+  "verdict": "MATCH",
+  "mismatches": [],
+  "rows": [
+    {
+      "id": "browse-portrait-390",
+      "mode": "browse",
+      "posture": "portrait",
+      "capability": {
+        "navigation": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "unavailable"
+      },
+      "presentationTool": "reachable",
+      "disclosureTool": "disclosed",
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "persistent": [],
+      "reachable": [
+        "action-create",
+        "action-search",
+        "action-filters",
+        "tool"
+      ],
+      "renderAuthorizedAllFalse": true,
+      "rendersTools": false,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "hybrid-landscape-844",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "capability": {
+        "navigation": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available"
+      },
+      "presentationTool": "reachable",
+      "disclosureTool": "disclosed",
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "persistent": [],
+      "reachable": [
+        "action-create",
+        "action-search",
+        "action-filters",
+        "tool"
+      ],
+      "renderAuthorizedAllFalse": true,
+      "rendersTools": false,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "full-landscape-1280",
+      "mode": "full-workspace",
+      "posture": "landscape",
+      "capability": {
+        "navigation": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available"
+      },
+      "presentationTool": "reachable",
+      "disclosureTool": "disclosed",
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "persistent": [],
+      "reachable": [
+        "action-create",
+        "action-search",
+        "action-filters",
+        "tool"
+      ],
+      "renderAuthorizedAllFalse": true,
+      "rendersTools": false,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "professional-contention-1440",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "capability": {
+        "navigation": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available"
+      },
+      "presentationTool": "reachable",
+      "disclosureTool": "disclosed",
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "persistent": [],
+      "reachable": [
+        "action-create",
+        "action-search",
+        "action-filters",
+        "tool"
+      ],
+      "renderAuthorizedAllFalse": true,
+      "rendersTools": false,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "professional-persistent-1600",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "capability": {
+        "navigation": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available"
+      },
+      "presentationTool": "persistent",
+      "disclosureTool": "hidden",
+      "actual": {
+        "action-create": "persistent",
+        "action-search": "persistent",
+        "action-filters": "persistent",
+        "tool": "persistent"
+      },
+      "expect": {
+        "tool": "persistent",
+        "action-create": "persistent",
+        "action-search": "persistent",
+        "action-filters": "persistent"
+      },
+      "persistent": [
+        "action-create",
+        "action-search",
+        "action-filters",
+        "tool"
+      ],
+      "reachable": [],
+      "renderAuthorizedAllFalse": true,
+      "rendersTools": false,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "professional-persistent-1920",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "capability": {
+        "navigation": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "available"
+      },
+      "presentationTool": "persistent",
+      "disclosureTool": "hidden",
+      "actual": {
+        "action-create": "persistent",
+        "action-search": "persistent",
+        "action-filters": "persistent",
+        "tool": "persistent"
+      },
+      "expect": {
+        "tool": "persistent",
+        "action-create": "persistent",
+        "action-search": "persistent",
+        "action-filters": "persistent"
+      },
+      "persistent": [
+        "action-create",
+        "action-search",
+        "action-filters",
+        "tool"
+      ],
+      "reachable": [],
+      "renderAuthorizedAllFalse": true,
+      "rendersTools": false,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    },
+    {
+      "id": "compact-portrait-700",
+      "mode": "compact-workspace",
+      "posture": "portrait",
+      "capability": {
+        "navigation": "available",
+        "search": "available",
+        "filters": "available",
+        "panels": "unavailable"
+      },
+      "presentationTool": "reachable",
+      "disclosureTool": "disclosed",
+      "actual": {
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable",
+        "tool": "reachable"
+      },
+      "expect": {
+        "tool": "reachable",
+        "action-create": "reachable",
+        "action-search": "reachable",
+        "action-filters": "reachable"
+      },
+      "persistent": [],
+      "reachable": [
+        "action-create",
+        "action-search",
+        "action-filters",
+        "tool"
+      ],
+      "renderAuthorizedAllFalse": true,
+      "rendersTools": false,
+      "drivesChrome": false,
+      "staticChromeUnchanged": true
+    }
+  ]
+}

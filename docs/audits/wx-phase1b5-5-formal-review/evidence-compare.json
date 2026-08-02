@@ -1,0 +1,28 @@
+{
+  "browserEvidenceCompare": "MATCH",
+  "keys": {
+    "verdict": [
+      "WX_PHASE_1B5_5_BROWSER_PROOF_PASS",
+      "WX_PHASE_1B5_5_BROWSER_PROOF_PASS"
+    ],
+    "passCount": [
+      10,
+      10
+    ],
+    "caseCount": [
+      10,
+      10
+    ],
+    "visibleToolDomDeltaZero": [
+      true,
+      true
+    ],
+    "visibleDisclosureDomDeltaZero": [
+      true,
+      true
+    ]
+  },
+  "fieldMismatches": [],
+  "indepJourney": true,
+  "committedJourney": true
+}

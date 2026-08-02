@@ -1,0 +1,62 @@
+{
+  "runs": 5,
+  "tabletPortraitFails": 0,
+  "classification_hint": "ACCEPTED_TEST_HARNESS_WARNING",
+  "results": [
+    {
+      "run": 1,
+      "exit": 0,
+      "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+      "passCount": 8,
+      "tabletPortraitPass": true,
+      "tabletFailed": [],
+      "touchStrict": true,
+      "feedCanScrollBefore": false,
+      "feedMoved": false
+    },
+    {
+      "run": 2,
+      "exit": 0,
+      "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+      "passCount": 8,
+      "tabletPortraitPass": true,
+      "tabletFailed": [],
+      "touchStrict": true,
+      "feedCanScrollBefore": true,
+      "feedMoved": true
+    },
+    {
+      "run": 3,
+      "exit": 0,
+      "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+      "passCount": 8,
+      "tabletPortraitPass": true,
+      "tabletFailed": [],
+      "touchStrict": true,
+      "feedCanScrollBefore": true,
+      "feedMoved": true
+    },
+    {
+      "run": 4,
+      "exit": 0,
+      "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+      "passCount": 8,
+      "tabletPortraitPass": true,
+      "tabletFailed": [],
+      "touchStrict": true,
+      "feedCanScrollBefore": true,
+      "feedMoved": true
+    },
+    {
+      "run": 5,
+      "exit": 0,
+      "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+      "passCount": 8,
+      "tabletPortraitPass": true,
+      "tabletFailed": [],
+      "touchStrict": true,
+      "feedCanScrollBefore": true,
+      "feedMoved": true
+    }
+  ]
+}

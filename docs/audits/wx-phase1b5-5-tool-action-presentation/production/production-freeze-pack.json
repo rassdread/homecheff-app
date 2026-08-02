@@ -1,0 +1,91 @@
+{
+  "phase": "1b.5.5",
+  "phaseName": "Tool & Action Surface Presentation",
+  "verdict": "WX_PHASE_1B5_5_PRODUCTION_SUCCESS",
+  "status": "PRODUCTION_FROZEN",
+  "mergeCommit": "ad68d843d0b85b222cf524fd8016d3a18a45068b",
+  "featureTip": "6a0e84a3a26683c9c9e81a885d3d161b26e4d18d",
+  "commitA": "ea781638b37ba0329b23da6e1061ef55b44bfe22",
+  "commitB": "d808f4ab6d05909c9f001c61763541ada1e2a2f6",
+  "stampCommit": "6a0e84a3a26683c9c9e81a885d3d161b26e4d18d",
+  "rollbackCommit": "561207edc12330b1f2583d5d87acbf3ab8031307",
+  "prePromotionMain": "561207edc12330b1f2583d5d87acbf3ab8031307",
+  "prePromotionProduction": "561207edc12330b1f2583d5d87acbf3ab8031307",
+  "mergeStrategy": "git merge --no-ff",
+  "mergeParents": [
+    "561207edc12330b1f2583d5d87acbf3ab8031307",
+    "6a0e84a3a26683c9c9e81a885d3d161b26e4d18d"
+  ],
+  "deploymentId": "dpl_3yJe5BrdfBYk74Y3teBn2n3Z3FEZ",
+  "gitCommitSha": "ad68d843d0b85b222cf524fd8016d3a18a45068b",
+  "behaviouralRuntimeMergeSha": "ad68d843d0b85b222cf524fd8016d3a18a45068b",
+  "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+  "projectName": "homecheff-app",
+  "aliases": [
+    "homecheff.eu",
+    "homecheff.nl",
+    "www.homecheff.eu",
+    "www.homecheff.nl"
+  ],
+  "contracts": {
+    "toolAction": "wx-tool-action-presentation-v1",
+    "toolActionVersion": "1.0.0",
+    "progressiveDisclosure": "wx-progressive-disclosure-v1",
+    "assistEligibility": "wx-assist-surface-eligibility-v1",
+    "presentation": "wx-surface-presentation-resolver-v1",
+    "capability": "wx-capability-activation-v1"
+  },
+  "sealedIdentities": [
+    "tool",
+    "action-create",
+    "action-search",
+    "action-filters"
+  ],
+  "gates": {
+    "lineage": "PASS",
+    "preMergeSuites": "PASS",
+    "scope": "PASS",
+    "mergeSimulation": "CLEANLY_MERGEABLE",
+    "merge": "PASS",
+    "postMerge": "PASS",
+    "runtimeHash": "PASS",
+    "liveBrowserProof": "PASS",
+    "liveScroll": "PASS",
+    "liveLandscape1b21": "PASS",
+    "ownership": "PASS",
+    "aliases": "PASS"
+  },
+  "liveProofs": {
+    "toolAction": {
+      "verdict": "WX_PHASE_1B5_5_BROWSER_PROOF_PASS",
+      "passCount": 10,
+      "journeyPass": true,
+      "visibleToolDomDeltaZero": true
+    },
+    "scroll": {
+      "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+      "passCount": 8,
+      "portraitPass": null,
+      "landscapePass": null
+    },
+    "landscape1b21": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS"
+  },
+  "sealed": {
+    "diagnosticsOnly": true,
+    "renderAuthorized": false,
+    "rendersTools": false,
+    "drivesChrome": false,
+    "staticChromeUnchanged": true,
+    "noOwnershipChange": true,
+    "noActivation": true
+  },
+  "warnings": [
+    "Formal review: ACCEPTED_TEST_HARNESS_WARNING for historical tablet-portrait touchDrag flake",
+    "Fail-closed rejected plans emit Reachable per architecture S9",
+    "Minor test-coverage gaps (invalid Mode/posture, reserved capability, Object.isFrozen)",
+    "Tool-action probe omits explicit 360/430 (covered by 1B.2.1 landscape probe)",
+    "Duplicate FromPlans re-resolve pattern",
+    "Vercel API token invalid during promotion; runtime verified via GitHub Production deployment status + alias HTTP 200"
+  ],
+  "stopGate": "Do not begin WX Phase 1B.5.6 until explicit approval after this Production freeze."
+}
