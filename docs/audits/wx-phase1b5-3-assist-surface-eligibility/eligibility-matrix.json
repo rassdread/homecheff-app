@@ -1,0 +1,161 @@
+{
+  "phase": "1b.5.3",
+  "contract": "wx-assist-surface-eligibility-v1",
+  "version": "1.0.0",
+  "vectors": [
+    {
+      "id": "browse-portrait-390",
+      "mode": "browse",
+      "posture": "portrait",
+      "panels": "unavailable",
+      "expect": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed"
+      },
+      "actual": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed"
+      },
+      "planEligible": {
+        "assist-primary": false,
+        "assist-secondary": false
+      },
+      "renderAuthorized": {
+        "assist-primary": false,
+        "assist-secondary": false
+      }
+    },
+    {
+      "id": "compact-portrait-no-carve",
+      "mode": "browse",
+      "posture": "portrait",
+      "panels": "unavailable",
+      "expect": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed"
+      },
+      "actual": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed"
+      },
+      "planEligible": {
+        "assist-primary": false,
+        "assist-secondary": false
+      },
+      "renderAuthorized": {
+        "assist-primary": false,
+        "assist-secondary": false
+      }
+    },
+    {
+      "id": "compact-landscape-carve-700",
+      "mode": "compact-workspace",
+      "posture": "landscape",
+      "panels": "available",
+      "expect": {
+        "assist-primary": "eligible",
+        "assist-secondary": "future-eligible"
+      },
+      "actual": {
+        "assist-primary": "eligible",
+        "assist-secondary": "future-eligible"
+      },
+      "planEligible": {
+        "assist-primary": true,
+        "assist-secondary": false
+      },
+      "renderAuthorized": {
+        "assist-primary": false,
+        "assist-secondary": false
+      }
+    },
+    {
+      "id": "hybrid-landscape-844",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "panels": "available",
+      "expect": {
+        "assist-primary": "eligible",
+        "assist-secondary": "future-eligible"
+      },
+      "actual": {
+        "assist-primary": "eligible",
+        "assist-secondary": "future-eligible"
+      },
+      "planEligible": {
+        "assist-primary": true,
+        "assist-secondary": false
+      },
+      "renderAuthorized": {
+        "assist-primary": false,
+        "assist-secondary": false
+      }
+    },
+    {
+      "id": "full-landscape-1280",
+      "mode": "full-workspace",
+      "posture": "landscape",
+      "panels": "available",
+      "expect": {
+        "assist-primary": "eligible",
+        "assist-secondary": "eligible"
+      },
+      "actual": {
+        "assist-primary": "eligible",
+        "assist-secondary": "eligible"
+      },
+      "planEligible": {
+        "assist-primary": true,
+        "assist-secondary": true
+      },
+      "renderAuthorized": {
+        "assist-primary": false,
+        "assist-secondary": false
+      }
+    },
+    {
+      "id": "professional-1920",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "panels": "available",
+      "expect": {
+        "assist-primary": "eligible",
+        "assist-secondary": "eligible"
+      },
+      "actual": {
+        "assist-primary": "eligible",
+        "assist-secondary": "eligible"
+      },
+      "planEligible": {
+        "assist-primary": true,
+        "assist-secondary": true
+      },
+      "renderAuthorized": {
+        "assist-primary": false,
+        "assist-secondary": false
+      }
+    },
+    {
+      "id": "hybrid-panels-unavailable-844",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "panels": "unavailable",
+      "expect": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed"
+      },
+      "actual": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed"
+      },
+      "planEligible": {
+        "assist-primary": false,
+        "assist-secondary": false
+      },
+      "renderAuthorized": {
+        "assist-primary": false,
+        "assist-secondary": false
+      }
+    }
+  ]
+}

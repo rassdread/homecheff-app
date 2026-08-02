@@ -1,0 +1,28 @@
+{
+  "phase": "1b.5.3",
+  "phaseName": "Assist Surface Eligibility Presentation",
+  "verdict": "WX_PHASE_1B5_3_PASS",
+  "status": "READY_FOR_FORMAL_REVIEW",
+  "branch": "wx/phase-1b5-3-assist-surface-eligibility",
+  "rollbackCommit": "5ce30166a79b16c16dc13d86281466030399e035",
+  "baseMainAtBranch": "f0f54d2000fd02667c0f2814fbdfdc801a93522f",
+  "contractId": "wx-assist-surface-eligibility-v1",
+  "contractVersion": "1.0.0",
+  "drivesChrome": false,
+  "rendersAssist": false,
+  "visualActivation": false,
+  "dbMigration": false,
+  "phase1b54": "PROHIBITED_UNTIL_EXPLICIT_APPROVAL",
+  "artifacts": [
+    "DELIVERABLE.md",
+    "browser-proof.json",
+    "cross-mode-journey.json",
+    "eligibility-matrix.json",
+    "ownership-report.md",
+    "regression-matrix.md",
+    "freeze-pack.json",
+    "COMMIT_PUSH.md"
+  ],
+  "commitA": "9fcc3135838c1288aab212424ae0401b0d81145f",
+  "commitB": "b1c7de3848e9e250d5f9a45e404cd0652e0c6772"
+}
