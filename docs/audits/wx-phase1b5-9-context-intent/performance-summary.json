@@ -1,0 +1,10 @@
+{
+  "pure": true,
+  "sync": true,
+  "deterministic": true,
+  "allocationLight": true,
+  "noAsync": true,
+  "noPolling": true,
+  "noObservers": true,
+  "noTimers": true
+}

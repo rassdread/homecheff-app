@@ -1,0 +1,18 @@
+{
+  "verdict": "OWNERSHIP_UNCHANGED",
+  "phase": "1b.5.9",
+  "contextIntent": "wx-context-intent-v1",
+  "contextIntentVersion": "1.0.0",
+  "intentRenders": "0",
+  "intentDrivesChrome": "0",
+  "intentAppliesOrdering": "0",
+  "contextRelevance": "wx-context-relevance-v1",
+  "contextPriority": "wx-context-priority-v1",
+  "honesty": "wx-honesty-density-v1",
+  "remount": "0",
+  "hostCount": 1,
+  "capVisual": "0",
+  "feedPresent": true,
+  "noNewIntentUi": true,
+  "journeyPass": true
+}

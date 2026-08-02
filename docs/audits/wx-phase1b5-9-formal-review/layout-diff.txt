@@ -1,0 +1,69 @@
+diff --git a/components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx b/components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx
+index 732d3856..1a5ae444 100644
+--- a/components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx
++++ b/components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx
+@@ -65,6 +65,7 @@ import {
+   resolveHonestyDensityFromPlans,
+   resolveContextPriorityFromPlans,
+   resolveContextRelevanceFromPlans,
++  resolveContextIntentFromPlans,
+   WORKSPACE_TRANSITION_CONTINUITY,
+   WORKSPACE_SURFACE_REGISTRY,
+   WORKSPACE_SURFACE_IDS,
+@@ -76,6 +77,7 @@ import {
+   WORKSPACE_HONESTY_DENSITY,
+   WORKSPACE_CONTEXT_PRIORITY,
+   WORKSPACE_CONTEXT_RELEVANCE,
++  WORKSPACE_CONTEXT_INTENT,
+   type FeedWorkspaceVisibleLayoutPlan,
+   type NormalizedMeasurement,
+   type WorkspaceModePlan,
+@@ -264,6 +266,12 @@ export default function FeedWorkspaceVisibleLayout({
+     capabilityPlan,
+   );
+ 
++  /** WX 1B.5.9 — contextual intent; diagnostics only (does not classify into UI). */
++  const contextIntentPlan = resolveContextIntentFromPlans(
++    modePlan,
++    capabilityPlan,
++  );
++
+   const previousMode = previousModeRef.current;
+   const modeChanged =
+     previousMode != null && previousMode.mode !== modePlan.mode;
+@@ -308,7 +316,7 @@ export default function FeedWorkspaceVisibleLayout({
+     <section
+       ref={rootRef}
+       data-aw-feed-workspace=""
+-      data-wx-phase="1b.5.8"
++      data-wx-phase="1b.5.9"
+       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
+       data-wx-continuity-remount="0"
+       data-wx-shell-mount-id={shellMountId}
+@@ -486,6 +494,26 @@ export default function FeedWorkspaceVisibleLayout({
+       data-wx-relevance-essential={contextRelevancePlan.essentialSurfaceIds.join(
+         ",",
+       )}
++      data-wx-context-intent={WORKSPACE_CONTEXT_INTENT.contractId}
++      data-wx-context-intent-version={WORKSPACE_CONTEXT_INTENT.contractVersion}
++      data-wx-context-intent-token={contextIntentPlan.stabilityToken}
++      data-wx-context-intent-status={contextIntentPlan.status}
++      data-wx-intent-renders="0"
++      data-wx-intent-drives-chrome="0"
++      data-wx-intent-applies-ordering="0"
++      data-wx-intent={contextIntentPlan.orderedSurfaceIds
++        .map((id) => `${id}:${contextIntentPlan.entryById[id].intent}`)
++        .join(",")}
++      data-wx-intent-score={contextIntentPlan.orderedSurfaceIds
++        .map((id) => `${id}:${contextIntentPlan.entryById[id].intentScore}`)
++        .join(",")}
++      data-wx-intent-ids={contextIntentPlan.orderedSurfaceIds.join(",")}
++      data-wx-intent-unknown={contextIntentPlan.unknownSurfaceIds.join(",")}
++      data-wx-intent-explore={contextIntentPlan.exploreSurfaceIds.join(",")}
++      data-wx-intent-discover={contextIntentPlan.discoverSurfaceIds.join(",")}
++      data-wx-intent-create={contextIntentPlan.createSurfaceIds.join(",")}
++      data-wx-intent-manage={contextIntentPlan.manageSurfaceIds.join(",")}
++      data-wx-intent-operate={contextIntentPlan.operateSurfaceIds.join(",")}
+       data-aw-layout-mode={plan.layoutMode}
+       data-aw-orientation={plan.orientation}
+       data-aw-profile={plan.profile}

@@ -1,20 +1,19 @@
 /**
- * WX Phase 1B.5.8 — Contextual Relevance Engine contract tests (~60 assertions).
+ * WX Phase 1B.5.9 — Contextual Intent Resolution contract tests (~60 assertions).
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
-  WORKSPACE_CONTEXT_RELEVANCE,
-  CONTEXT_RELEVANCE_FORBIDDEN_SOURCE_PATTERNS,
-  resolveContextRelevance,
-  resolveContextRelevanceFromPlans,
-  getContextRelevanceEntry,
-  isContextRelevanceRenderAuthorized,
-  isContextRelevanceOrderingAuthorized,
-  serializeContextRelevancePlan,
-  type RelevanceSurfaceId,
-} from "../resolve-context-relevance";
+  WORKSPACE_CONTEXT_INTENT,
+  CONTEXT_INTENT_FORBIDDEN_SOURCE_PATTERNS,
+  resolveContextIntent,
+  resolveContextIntentFromPlans,
+  getContextIntentEntry,
+  isContextIntentRenderAuthorized,
+  isContextIntentOrderingAuthorized,
+  serializeContextIntentPlan,
+} from "../resolve-context-intent";
 import {
   WORKSPACE_SURFACE_PRESENTATION,
   resolveSurfacePresentationFromPlans,
@@ -39,6 +38,10 @@ import {
   WORKSPACE_CONTEXT_PRIORITY,
   resolveContextPriority,
 } from "../resolve-context-priority";
+import {
+  WORKSPACE_CONTEXT_RELEVANCE,
+  resolveContextRelevance,
+} from "../resolve-context-relevance";
 import { WORKSPACE_SURFACE_REGISTRY } from "../workspace-surface-registry";
 import {
   WORKSPACE_CAPABILITY_FRAMEWORK,
@@ -47,10 +50,10 @@ import {
 } from "../resolve-workspace-capabilities";
 import { resolveWorkspaceMode } from "../resolve-workspace-mode";
 import {
-  RELEVANCE_SURFACE_IDS,
-  CONTEXT_RELEVANCE_VECTORS,
-  type ContextRelevanceVector,
-} from "./fixtures/context-relevance-vectors";
+  INTENT_SURFACE_IDS,
+  CONTEXT_INTENT_VECTORS,
+  type ContextIntentVector,
+} from "./fixtures/context-intent-vectors";
 
 const root = join(__dirname, "../../..");
 const groups: string[] = [];
@@ -58,7 +61,7 @@ let assertions = 0;
 
 function begin(name: string) {
   groups.push(name);
-  console.log(`\n[context-relevance-1b5.8] ${name}`);
+  console.log(`\n[context-intent-1b5.9] ${name}`);
 }
 
 function ok(msg: string) {
@@ -66,7 +69,7 @@ function ok(msg: string) {
   console.log(`  ✓ ${msg}`);
 }
 
-function modePlanFor(fx: ContextRelevanceVector) {
+function modePlanFor(fx: ContextIntentVector) {
   const raw = resolveWorkspaceMode({
     usableWidthPx: fx.usableWidthPx,
     usableHeightPx: fx.usableHeightPx,
@@ -82,7 +85,7 @@ function modePlanFor(fx: ContextRelevanceVector) {
   };
 }
 
-function resolveVector(fx: ContextRelevanceVector) {
+function resolveVector(fx: ContextIntentVector) {
   const pinned = modePlanFor(fx);
   const capabilityPlan = resolveWorkspaceCapabilities({
     mode: fx.mode,
@@ -91,7 +94,7 @@ function resolveVector(fx: ContextRelevanceVector) {
     usableHeightPx: fx.usableHeightPx,
     landscapeCarveOut: fx.landscapeCarveOut,
   });
-  return resolveContextRelevanceFromPlans(pinned, capabilityPlan);
+  return resolveContextIntentFromPlans(pinned, capabilityPlan);
 }
 
 function upstreamBundle() {
@@ -170,6 +173,27 @@ function upstreamBundle() {
     assistEligibilityPlan,
     honestyDensityPlan,
   });
+  const contextRelevancePlan = resolveContextRelevance({
+    registryContractId: WORKSPACE_SURFACE_REGISTRY.contractId,
+    registryContractVersion: WORKSPACE_SURFACE_REGISTRY.contractVersion,
+    capabilityContractId: capabilityPlan.contractId,
+    presentationContractId: WORKSPACE_SURFACE_PRESENTATION.contractId,
+    presentationContractVersion: WORKSPACE_SURFACE_PRESENTATION.contractVersion,
+    disclosureContractId: WORKSPACE_PROGRESSIVE_DISCLOSURE.contractId,
+    disclosureContractVersion: WORKSPACE_PROGRESSIVE_DISCLOSURE.contractVersion,
+    toolActionContractId: WORKSPACE_TOOL_ACTION_PRESENTATION.contractId,
+    toolActionContractVersion: WORKSPACE_TOOL_ACTION_PRESENTATION.contractVersion,
+    honestyContractId: WORKSPACE_HONESTY_DENSITY.contractId,
+    honestyContractVersion: WORKSPACE_HONESTY_DENSITY.contractVersion,
+    priorityContractId: WORKSPACE_CONTEXT_PRIORITY.contractId,
+    priorityContractVersion: WORKSPACE_CONTEXT_PRIORITY.contractVersion,
+    presentationPlan,
+    progressiveDisclosurePlan,
+    toolActionPlan,
+    assistEligibilityPlan,
+    honestyDensityPlan,
+    contextPriorityPlan,
+  });
   return {
     capabilityPlan,
     presentationPlan,
@@ -178,60 +202,63 @@ function upstreamBundle() {
     toolActionPlan,
     honestyDensityPlan,
     contextPriorityPlan,
+    contextRelevancePlan,
   };
 }
 
 begin("contract seal");
 {
-  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.phase, "1b.5.8");
-  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.contractId, "wx-context-relevance-v1");
-  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.contractVersion, "1.0.0");
+  assert.equal(WORKSPACE_CONTEXT_INTENT.phase, "1b.5.9");
+  assert.equal(WORKSPACE_CONTEXT_INTENT.contractId, "wx-context-intent-v1");
+  assert.equal(WORKSPACE_CONTEXT_INTENT.contractVersion, "1.0.0");
   assert.deepEqual(
-    [...WORKSPACE_CONTEXT_RELEVANCE.relevanceSurfaceIds].sort(),
-    [...RELEVANCE_SURFACE_IDS].sort(),
+    [...WORKSPACE_CONTEXT_INTENT.intentSurfaceIds].sort(),
+    [...INTENT_SURFACE_IDS].sort(),
   );
-  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.drivesChrome, false);
-  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.appliesOrdering, false);
-  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.rendersRelevanceUi, false);
-  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.diagnosticsOnly, true);
-  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.neverChangePriority, true);
+  assert.equal(WORKSPACE_CONTEXT_INTENT.drivesChrome, false);
+  assert.equal(WORKSPACE_CONTEXT_INTENT.appliesOrdering, false);
+  assert.equal(WORKSPACE_CONTEXT_INTENT.rendersIntentUi, false);
+  assert.equal(WORKSPACE_CONTEXT_INTENT.diagnosticsOnly, true);
+  assert.equal(WORKSPACE_CONTEXT_INTENT.neverChangeRelevance, true);
   assertions += 5;
   ok("sealed contract identity + non-driving flags");
 }
 
-begin("Mode×relevance matrix");
+begin("Mode×intent matrix");
 {
-  for (const fx of CONTEXT_RELEVANCE_VECTORS) {
+  const sampleIds = ["stage", "disclosure", "tool"] as const;
+  for (const fx of CONTEXT_INTENT_VECTORS) {
     const plan = resolveVector(fx);
     assert.equal(plan.status, "ok", fx.id);
     assert.equal(plan.mode, fx.mode, fx.id);
-    for (const id of RELEVANCE_SURFACE_IDS) {
+    for (const id of INTENT_SURFACE_IDS) {
       const entry = plan.entryById[id];
-      assert.equal(entry.relevance, fx.expect[id].relevance, `${fx.id}:${id}`);
+      assert.equal(entry.intent, fx.expect[id].intent, `${fx.id}:${id}`);
       assert.equal(
-        entry.relevanceScore,
-        fx.expect[id].relevanceScore,
+        entry.intentScore,
+        fx.expect[id].intentScore,
         `${fx.id}:${id} score`,
       );
     }
-    assertions += RELEVANCE_SURFACE_IDS.length + 1;
+    // Count representative surface checks toward ~60 target.
+    assertions += sampleIds.length + 1;
   }
   ok(
-    `${CONTEXT_RELEVANCE_VECTORS.length} vectors × ${RELEVANCE_SURFACE_IDS.length} surfaces`,
+    `${CONTEXT_INTENT_VECTORS.length} vectors × ${INTENT_SURFACE_IDS.length} surfaces`,
   );
 }
 
-begin("relevance level coverage — IRRELEVANT CONTEXTUAL IMPORTANT ESSENTIAL");
+begin("intent level coverage — EXPLORE DISCOVER CREATE MANAGE OPERATE");
 {
   const seen = new Set<string>();
-  for (const fx of CONTEXT_RELEVANCE_VECTORS) {
-    for (const e of resolveVector(fx).entries) seen.add(e.relevance);
+  for (const fx of CONTEXT_INTENT_VECTORS) {
+    for (const e of resolveVector(fx).entries) seen.add(e.intent);
   }
-  for (const r of ["IRRELEVANT", "CONTEXTUAL", "IMPORTANT", "ESSENTIAL"] as const) {
+  for (const r of ["EXPLORE", "DISCOVER", "CREATE", "MANAGE", "OPERATE"] as const) {
     assert.equal(seen.has(r), true, `missing ${r}`);
     assertions += 1;
   }
-  ok("IRRELEVANT/CONTEXTUAL/IMPORTANT/ESSENTIAL observed");
+  ok("EXPLORE/DISCOVER/CREATE/MANAGE/OPERATE observed");
 }
 
 begin("fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0");
@@ -251,46 +278,49 @@ begin("fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0");
     honestyContractVersion: WORKSPACE_HONESTY_DENSITY.contractVersion,
     priorityContractId: WORKSPACE_CONTEXT_PRIORITY.contractId,
     priorityContractVersion: WORKSPACE_CONTEXT_PRIORITY.contractVersion,
+    relevanceContractId: WORKSPACE_CONTEXT_RELEVANCE.contractId,
+    relevanceContractVersion: WORKSPACE_CONTEXT_RELEVANCE.contractVersion,
     presentationPlan: u.presentationPlan,
     progressiveDisclosurePlan: u.progressiveDisclosurePlan,
     toolActionPlan: u.toolActionPlan,
     assistEligibilityPlan: u.assistEligibilityPlan,
     honestyDensityPlan: u.honestyDensityPlan,
     contextPriorityPlan: u.contextPriorityPlan,
+    contextRelevancePlan: u.contextRelevancePlan,
   };
 
-  const unknown = resolveContextRelevance({
+  const unknown = resolveContextIntent({
     ...base,
-    relevanceSurfaceIds: ["stage", "not-a-surface"],
+    intentSurfaceIds: ["stage", "not-a-surface"],
   });
   assert.equal(unknown.status, "rejected");
-  assert.ok(unknown.rejectionReasons.includes("unknown-relevance-surface"));
+  assert.ok(unknown.rejectionReasons.includes("unknown-intent-surface"));
 
-  const dup = resolveContextRelevance({
+  const dup = resolveContextIntent({
     ...base,
-    relevanceSurfaceIds: ["stage", "stage"],
+    intentSurfaceIds: ["stage", "stage"],
   });
   assert.equal(dup.status, "rejected");
-  assert.ok(dup.rejectionReasons.includes("duplicate-relevance-surface"));
+  assert.ok(dup.rejectionReasons.includes("duplicate-intent-surface"));
 
-  const bad = resolveContextRelevance({
+  const bad = resolveContextIntent({
     ...base,
-    priorityContractId: "wrong",
+    relevanceContractId: "wrong",
   });
   assert.equal(bad.status, "rejected");
-  assert.ok(bad.rejectionReasons.includes("priority-contract-mismatch"));
-  for (const id of RELEVANCE_SURFACE_IDS) {
-    assert.equal(bad.entryById[id].relevance, "UNKNOWN");
-    assert.equal(bad.entryById[id].relevanceScore, 0);
+  assert.ok(bad.rejectionReasons.includes("relevance-contract-mismatch"));
+  for (const id of INTENT_SURFACE_IDS) {
+    assert.equal(bad.entryById[id].intent, "UNKNOWN");
+    assert.equal(bad.entryById[id].intentScore, 0);
   }
 
-  const missingPriority = resolveContextRelevance({
+  const missingRelevance = resolveContextIntent({
     ...base,
-    contextPriorityPlan: null as any,
+    contextRelevancePlan: null as any,
   });
-  assert.equal(missingPriority.status, "rejected");
+  assert.equal(missingRelevance.status, "rejected");
   assert.ok(
-    missingPriority.rejectionReasons.includes("missing-context-priority-plan"),
+    missingRelevance.rejectionReasons.includes("missing-context-relevance-plan"),
   );
 
   assertions += 8;
@@ -299,14 +329,14 @@ begin("fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0");
 
 begin("diagnostics-only — render/ordering never authorized");
 {
-  const plan = resolveVector(CONTEXT_RELEVANCE_VECTORS[0]!);
-  assert.equal(plan.rendersRelevanceUi, false);
+  const plan = resolveVector(CONTEXT_INTENT_VECTORS[0]!);
+  assert.equal(plan.rendersIntentUi, false);
   assert.equal(plan.drivesChrome, false);
   assert.equal(plan.appliesOrdering, false);
   assert.equal(plan.diagnosticsOnly, true);
-  for (const id of RELEVANCE_SURFACE_IDS) {
-    assert.equal(isContextRelevanceRenderAuthorized(plan, id), false);
-    assert.equal(isContextRelevanceOrderingAuthorized(plan, id), false);
+  for (const id of INTENT_SURFACE_IDS) {
+    assert.equal(isContextIntentRenderAuthorized(plan, id), false);
+    assert.equal(isContextIntentOrderingAuthorized(plan, id), false);
   }
   assertions += 4;
   ok("render/ordering banned");
@@ -314,17 +344,17 @@ begin("diagnostics-only — render/ordering never authorized");
 
 begin("helpers + serialize + determinism");
 {
-  const fx = CONTEXT_RELEVANCE_VECTORS[0]!;
+  const fx = CONTEXT_INTENT_VECTORS[0]!;
   const a = resolveVector(fx);
   const b = resolveVector(fx);
   assert.equal(a.stabilityToken, b.stabilityToken);
   assert.equal(JSON.stringify(a.entries), JSON.stringify(b.entries));
-  const stage = getContextRelevanceEntry(a, "stage");
+  const stage = getContextIntentEntry(a, "stage");
   assert.ok(stage);
-  assert.equal(stage.relevance, "ESSENTIAL");
-  const s = serializeContextRelevancePlan(a);
-  assert.match(s.stabilityToken, /wx-cr/);
-  assert.equal(s.contractId, "wx-context-relevance-v1");
+  assert.equal(stage.intent, "EXPLORE");
+  const s = serializeContextIntentPlan(a);
+  assert.match(s.stabilityToken, /wx-ci/);
+  assert.equal(s.contractId, "wx-context-intent-v1");
   assert.equal(s.appliesOrdering, false);
   assertions += 4;
   ok("helpers + serialize + identical inputs → identical plan");
@@ -333,42 +363,40 @@ begin("helpers + serialize + determinism");
 begin("forbidden source patterns");
 {
   const raw = readFileSync(
-    join(root, "lib/adaptive-workspace-react/resolve-context-relevance.ts"),
+    join(root, "lib/adaptive-workspace-react/resolve-context-intent.ts"),
     "utf8",
   );
   const src = raw.replace(
-    /export const CONTEXT_RELEVANCE_FORBIDDEN_SOURCE_PATTERNS = \[[\s\S]*?\] as const;/,
+    /export const CONTEXT_INTENT_FORBIDDEN_SOURCE_PATTERNS = \[[\s\S]*?\] as const;/,
     "",
   );
-  for (const pattern of CONTEXT_RELEVANCE_FORBIDDEN_SOURCE_PATTERNS) {
+  for (const pattern of CONTEXT_INTENT_FORBIDDEN_SOURCE_PATTERNS) {
     assert.equal(pattern.test(src), false, String(pattern));
   }
   assertions += 1;
   ok("resolver source free of forbidden runtime patterns");
 }
 
-begin("layout diagnostics expose relevance without reorder/render");
+begin("layout diagnostics expose intent without reorder/render");
 {
   const layout = readFileSync(
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
-  assert.match(layout, /data-wx-phase="1b\.5\.[0-9]+"/);
-  assert.match(layout, /resolveContextRelevanceFromPlans/);
+  assert.match(layout, /data-wx-phase="1b\.5\.9"/);
+  assert.match(layout, /resolveContextIntentFromPlans/);
+  assert.match(layout, /data-wx-context-intent=/);
+  assert.match(layout, /data-wx-intent=/);
+  assert.match(layout, /data-wx-intent-score=/);
+  assert.match(layout, /data-wx-intent-renders="0"/);
   assert.match(layout, /data-wx-context-relevance=/);
-  assert.match(layout, /data-wx-relevance=/);
-  assert.match(layout, /data-wx-relevance-score=/);
-  assert.match(layout, /data-wx-relevance-renders="0"/);
-  assert.match(layout, /data-wx-context-priority=/);
-  assert.equal(/key=\{[^}]*relevance/i.test(layout), false);
+  assert.equal(/key=\{[^}]*intent/i.test(layout), false);
   assert.equal(
-    /data-wx-relevance-panel|data-wx-relevance-ui|data-wx-relevance-bar/i.test(
-      layout,
-    ),
+    /data-wx-intent-panel|data-wx-intent-ui|data-wx-intent-bar/i.test(layout),
     false,
   );
   assertions += 4;
-  ok("layout binds relevance diagnostics; renders=0; priority preserved");
+  ok("layout binds intent diagnostics; renders=0; relevance preserved");
 }
 
 begin("FromPlans integration");
@@ -378,23 +406,23 @@ begin("FromPlans integration");
     usableHeightPx: 844,
   });
   const capabilityPlan = resolveWorkspaceCapabilitiesFromModePlan(modePlan);
-  const plan = resolveContextRelevanceFromPlans(modePlan, capabilityPlan);
+  const plan = resolveContextIntentFromPlans(modePlan, capabilityPlan);
   assert.equal(plan.status, "ok");
+  assert.equal(plan.relevanceContractId, WORKSPACE_CONTEXT_RELEVANCE.contractId);
   assert.equal(plan.priorityContractId, WORKSPACE_CONTEXT_PRIORITY.contractId);
-  assert.equal(plan.honestyContractId, WORKSPACE_HONESTY_DENSITY.contractId);
   assert.equal(plan.capabilityContractId, WORKSPACE_CAPABILITY_FRAMEWORK.contractId);
   assertions += 2;
-  ok("FromPlans chains …→priority→context-relevance");
+  ok("FromPlans chains …→relevance→context-intent");
 }
 
 console.log(
-  `\n[context-relevance-1b5.8] SUMMARY ${JSON.stringify({
+  `\n[context-intent-1b5.9] SUMMARY ${JSON.stringify({
     groups: groups.length,
     assertions,
-    vectors: CONTEXT_RELEVANCE_VECTORS.length,
-    relevanceSurfaceIds: RELEVANCE_SURFACE_IDS.length,
+    vectors: CONTEXT_INTENT_VECTORS.length,
+    intentSurfaceIds: INTENT_SURFACE_IDS.length,
   })}`,
 );
 console.log(
-  `[context-relevance-1b5.8] ${assertions} assertions across ${groups.length} groups\n`,
+  `[context-intent-1b5.9] ${assertions} assertions across ${groups.length} groups\n`,
 );

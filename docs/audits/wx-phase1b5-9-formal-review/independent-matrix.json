@@ -1,0 +1,344 @@
+{
+  "checks": [
+    {
+      "name": "contractId",
+      "ok": true
+    },
+    {
+      "name": "version",
+      "ok": true
+    },
+    {
+      "name": "phase",
+      "ok": true
+    },
+    {
+      "name": "diagnosticsOnly",
+      "ok": true
+    },
+    {
+      "name": "rendersIntentUi",
+      "ok": true
+    },
+    {
+      "name": "appliesOrdering",
+      "ok": true
+    },
+    {
+      "name": "drivesChrome",
+      "ok": true
+    },
+    {
+      "name": "neverChangeRelevance",
+      "ok": true
+    },
+    {
+      "name": "neverChangePriority",
+      "ok": true
+    },
+    {
+      "name": "neverInspectDom",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bnavigator\\./",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\buserAgent\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bmatchMedia\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bwindow\\./",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bdocument\\./",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\blocalStorage\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bsessionStorage\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bgetBoundingClientRect\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bResizeObserver\\b/",
+      "ok": true
+    },
+    {
+      "name": "noAsyncAwaitPromiseTimers",
+      "ok": true
+    },
+    {
+      "name": "noFetch",
+      "ok": true
+    },
+    {
+      "name": "noObservers",
+      "ok": true
+    },
+    {
+      "name": "matrix:browse",
+      "ok": true
+    },
+    {
+      "name": "matrix:compact",
+      "ok": true
+    },
+    {
+      "name": "matrix:hybrid",
+      "ok": true
+    },
+    {
+      "name": "matrix:full",
+      "ok": true
+    },
+    {
+      "name": "matrix:professional",
+      "ok": true
+    },
+    {
+      "name": "level:EXPLORE",
+      "ok": true
+    },
+    {
+      "name": "level:DISCOVER",
+      "ok": true
+    },
+    {
+      "name": "level:CREATE",
+      "ok": true
+    },
+    {
+      "name": "level:MANAGE",
+      "ok": true
+    },
+    {
+      "name": "level:OPERATE",
+      "ok": true
+    },
+    {
+      "name": "failClosed:unknown-surface",
+      "ok": true
+    },
+    {
+      "name": "failClosed:duplicate",
+      "ok": true
+    },
+    {
+      "name": "failClosed:relevance-mismatch",
+      "ok": true
+    },
+    {
+      "name": "failClosed:missing-relevance",
+      "ok": true
+    },
+    {
+      "name": "deterministic",
+      "ok": true
+    },
+    {
+      "name": "layoutNoStyleClassKey",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "layoutKeepsRelevance",
+      "ok": true
+    },
+    {
+      "name": "layoutPhaseBump",
+      "ok": true
+    },
+    {
+      "name": "relevanceResolverUnchanged",
+      "ok": true
+    },
+    {
+      "name": "priorityResolverUnchanged",
+      "ok": true
+    }
+  ],
+  "matrix": [
+    {
+      "id": "browse",
+      "status": "ok",
+      "mode": "browse",
+      "sample": {
+        "surfaceId": "stage",
+        "registryVersion": "1.0.0",
+        "intentContractVersion": "1.0.0",
+        "presentationState": "persistent",
+        "honestyDensity": "NORMAL",
+        "contextPriority": "CRITICAL",
+        "contextRelevance": "ESSENTIAL",
+        "renderAuthorized": false,
+        "orderingAuthorized": false,
+        "diagnostics": {
+          "rankIndex": 1,
+          "heightDemoted": false,
+          "posture": "portrait",
+          "mode": "browse"
+        },
+        "intent": "EXPLORE",
+        "intentScore": 20,
+        "reason": "mode-browse-explore",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "compact",
+      "status": "ok",
+      "mode": "compact-workspace",
+      "sample": {
+        "surfaceId": "stage",
+        "registryVersion": "1.0.0",
+        "intentContractVersion": "1.0.0",
+        "presentationState": "persistent",
+        "honestyDensity": "NORMAL",
+        "contextPriority": "CRITICAL",
+        "contextRelevance": "ESSENTIAL",
+        "renderAuthorized": false,
+        "orderingAuthorized": false,
+        "diagnostics": {
+          "rankIndex": 1,
+          "heightDemoted": false,
+          "posture": "landscape",
+          "mode": "compact-workspace"
+        },
+        "intent": "DISCOVER",
+        "intentScore": 40,
+        "reason": "mode-compact-discover",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "hybrid",
+      "status": "ok",
+      "mode": "hybrid-workspace",
+      "sample": {
+        "surfaceId": "stage",
+        "registryVersion": "1.0.0",
+        "intentContractVersion": "1.0.0",
+        "presentationState": "persistent",
+        "honestyDensity": "NORMAL",
+        "contextPriority": "CRITICAL",
+        "contextRelevance": "ESSENTIAL",
+        "renderAuthorized": false,
+        "orderingAuthorized": false,
+        "diagnostics": {
+          "rankIndex": 1,
+          "heightDemoted": false,
+          "posture": "landscape",
+          "mode": "hybrid-workspace"
+        },
+        "intent": "MANAGE",
+        "intentScore": 80,
+        "reason": "mode-hybrid-manage",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "full",
+      "status": "ok",
+      "mode": "full-workspace",
+      "sample": {
+        "surfaceId": "stage",
+        "registryVersion": "1.0.0",
+        "intentContractVersion": "1.0.0",
+        "presentationState": "persistent",
+        "honestyDensity": "NORMAL",
+        "contextPriority": "CRITICAL",
+        "contextRelevance": "ESSENTIAL",
+        "renderAuthorized": false,
+        "orderingAuthorized": false,
+        "diagnostics": {
+          "rankIndex": 1,
+          "heightDemoted": false,
+          "posture": "landscape",
+          "mode": "full-workspace"
+        },
+        "intent": "CREATE",
+        "intentScore": 60,
+        "reason": "mode-full-create",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "professional",
+      "status": "ok",
+      "mode": "professional-workspace",
+      "sample": {
+        "surfaceId": "stage",
+        "registryVersion": "1.0.0",
+        "intentContractVersion": "1.0.0",
+        "presentationState": "persistent",
+        "honestyDensity": "NORMAL",
+        "contextPriority": "CRITICAL",
+        "contextRelevance": "ESSENTIAL",
+        "renderAuthorized": false,
+        "orderingAuthorized": false,
+        "diagnostics": {
+          "rankIndex": 1,
+          "heightDemoted": false,
+          "posture": "landscape",
+          "mode": "professional-workspace"
+        },
+        "intent": "OPERATE",
+        "intentScore": 100,
+        "reason": "mode-professional-operate",
+        "confidence": "high"
+      }
+    }
+  ],
+  "failClosed": [
+    {
+      "name": "unknown-surface",
+      "status": "rejected",
+      "reasons": [
+        "unknown-intent-surface"
+      ],
+      "allUnknown": true
+    },
+    {
+      "name": "duplicate",
+      "status": "rejected",
+      "reasons": [
+        "duplicate-intent-surface"
+      ],
+      "allUnknown": true
+    },
+    {
+      "name": "relevance-mismatch",
+      "status": "rejected",
+      "reasons": [
+        "relevance-contract-mismatch"
+      ],
+      "allUnknown": true
+    },
+    {
+      "name": "missing-relevance",
+      "status": "rejected",
+      "reasons": [
+        "missing-context-relevance-plan"
+      ],
+      "allUnknown": true
+    }
+  ],
+  "summary": {
+    "pass": 42,
+    "fail": 0,
+    "total": 42
+  }
+}
