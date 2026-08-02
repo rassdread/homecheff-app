@@ -1,0 +1,57 @@
+{
+  "phase": "1b.5.2",
+  "phaseName": "Surface Presentation Resolver",
+  "verdict": "WX_PHASE_1B5_2_PRODUCTION_SUCCESS",
+  "status": "PRODUCTION_FROZEN",
+  "mergeCommit": "5ce30166a79b16c16dc13d86281466030399e035",
+  "featureTip": "39ec53eca5c4571e55d77ea58c3ce86cd3088d76",
+  "commitA": "e2ef2f697c9d7aa690850acdedb3d48f17a20b74",
+  "commitB": "5eef2b91c9b46765f5b9b809b26e33fc8e97af8b",
+  "rollbackCommit": "7fd6e4b7b40c2684c6c3cae017ce1cbbbfaefc01",
+  "prePromotionMain": "7fd6e4b7b40c2684c6c3cae017ce1cbbbfaefc01",
+  "prePromotionProduction": "7fd6e4b7b40c2684c6c3cae017ce1cbbbfaefc01",
+  "deploymentId": "dpl_3qAKTDdUHrouejoqfgzKVV8tHskb",
+  "gitCommitSha": "5ce30166a79b16c16dc13d86281466030399e035",
+  "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+  "projectName": "homecheff-app",
+  "aliases": [
+    "homecheff.eu",
+    "homecheff.nl",
+    "www.homecheff.eu",
+    "www.homecheff.nl"
+  ],
+  "contracts": {
+    "presentation": "wx-surface-presentation-resolver-v1",
+    "presentationPlan": "wx-surface-presentation-plan-v1",
+    "presentationVersion": "1.0.0",
+    "registry": "wx-surface-presentation-registry-v1",
+    "registryVersion": "1.0.0",
+    "capability": "wx-capability-activation-v1"
+  },
+  "gates": {
+    "lineage": "PASS",
+    "contract": "PASS",
+    "browserProofIndependent": "MATCH",
+    "productionBuild": "PASS",
+    "ownership": "PASS",
+    "merge": "PASS",
+    "runtimeHash": "PASS",
+    "liveBrowserProof": "PASS",
+    "rollback": "CLEAR",
+    "freeze": "PASS"
+  },
+  "drivesChrome": false,
+  "visualActivation": false,
+  "dbMigration": false,
+  "phase1b53": "PROHIBITED_UNTIL_EXPLICIT_APPROVAL",
+  "artifacts": [
+    "PRODUCTION_FREEZE.md",
+    "PROMOTION_REPORT.md",
+    "BROWSER_PROOF.md",
+    "browser-proof.json",
+    "cross-mode-journey.json",
+    "ownership-live.json",
+    "production-freeze-pack.json"
+  ],
+  "frozenAt": "2026-08-02T13:40:00+02:00"
+}
