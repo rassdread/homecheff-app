@@ -11,7 +11,7 @@
 | Contract | `wx-assist-surface-eligibility-v1` · version `1.0.0` |
 | Phase marker | `1b.5.3` |
 | Commit A (impl) | `9fcc3135838c1288aab212424ae0401b0d81145f` |
-| Commit B (evidence) | `b1c7de3848e9e250d5f9a45e404cd0652e0c6772` |
+| Commit B (evidence) | `0a6cc46a75f453f1fc1d551f7b3695b07cf147fc` |
 
 **Not claimed:** merge · deploy · Production freeze · WX Phase 1B.5.4
 
