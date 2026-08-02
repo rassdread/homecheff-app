@@ -1,0 +1,22 @@
+{
+  "contract": "wx-context-intent-v1",
+  "version": "1.0.0",
+  "states": [
+    "UNKNOWN",
+    "EXPLORE",
+    "DISCOVER",
+    "CREATE",
+    "MANAGE",
+    "OPERATE"
+  ],
+  "scores": [
+    0,
+    20,
+    40,
+    60,
+    80,
+    100
+  ],
+  "assertions": 62,
+  "vectors": 5
+}
