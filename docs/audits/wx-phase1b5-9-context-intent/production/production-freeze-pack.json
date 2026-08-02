@@ -1,0 +1,39 @@
+{
+  "phase": "1b.5.9",
+  "title": "WX Phase 1B.5.9 Contextual Intent Resolution",
+  "status": "PRODUCTION_FROZEN",
+  "verdict": "WX_PHASE_1B5_9_PRODUCTION_SUCCESS",
+  "contract": {
+    "id": "wx-context-intent-v1",
+    "version": "1.0.0"
+  },
+  "merge": "afeaa86746579623b3c74b45fcf0327aca750f38",
+  "parents": [
+    "06e3e297ab5098c76760d4f4c5b048e170832fd7",
+    "9e743f179e0f818b73b17a4ade19cf3d6fa666d8"
+  ],
+  "reviewedImplTip": "c2506e8a64cf20ce71009a2bc5857c3b1cdf07ce",
+  "promotionSourceTip": "9e743f179e0f818b73b17a4ade19cf3d6fa666d8",
+  "commitA": "e26666a369bc598b1e848437e262cf3a548a6ae1",
+  "commitB": "c2506e8a64cf20ce71009a2bc5857c3b1cdf07ce",
+  "formalReview": "9e743f179e0f818b73b17a4ade19cf3d6fa666d8",
+  "rollback": "ed51f4b971063df0b4b45bd89331ceb9690a367b",
+  "previousFreeze": "06e3e297ab5098c76760d4f4c5b048e170832fd7",
+  "deployment": {
+    "project": "homecheff-app",
+    "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+    "deploymentId": "dpl_FR4ru7KzyE53BWHwqhJsoTRT7iqC",
+    "githubProductionDeploymentId": 5718825854,
+    "gitCommitSha": "afeaa86746579623b3c74b45fcf0327aca750f38",
+    "ready": true,
+    "note": "Vercel CLI token invalid; READY via GitHub Production deployment + live DOM phase 1b.5.9"
+  },
+  "aliases": {
+    "homecheff.eu": "HTTP 200",
+    "www.homecheff.eu": "HTTP 200",
+    "homecheff.nl": "HTTP 307 -> eu"
+  },
+  "featureBranchRetained": "wx/phase-1b5-9-context-intent",
+  "frozenAt": "2026-08-02T23:51:04.811588+00:00",
+  "freezeTip": "cba01c758e271a91c84a21475591daaecdc41e77"
+}
