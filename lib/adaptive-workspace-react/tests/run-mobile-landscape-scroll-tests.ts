@@ -59,9 +59,15 @@ console.log("\n[mobile-landscape-scroll] layout source: height propagation for m
   assert.match(layoutSrc, /homecheff-feed-desktop/);
   assert.match(layoutSrc, /overflow-y-auto/);
   assert.match(layoutSrc, /1B\.2\.1|mobile landscape scroll/i);
+  // multiCol gates feed scroll owner; portrait must not trap document scroll
+  assert.match(layoutSrc, /data-wx-scroll-owner=\{multiCol \? "feed" : "document"\}/);
+  assert.match(
+    layoutSrc,
+    /multiCol\s*\?\s*"min-h-0 flex-1 overflow-y-auto overscroll-y-contain/,
+  );
   // Must not key by Mode
   assert.equal(/key=\{[^}]*modePlan/i.test(layoutSrc), false);
-  ok("multiCol primary host uses h-full overflow-hidden; feed keeps overflow-y-auto");
+  ok("multiCol primary host uses h-full overflow-hidden; feed scroll owner gated");
 }
 
 console.log("\n[mobile-landscape-scroll] wrappers fill height");

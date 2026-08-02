@@ -301,6 +301,11 @@ begin("diagnostics consumers — no behavioural JS / CSS hooks");
       l.includes("resolve-workspace-capabilities.ts") ||
       l.includes("resolve-surface-presentation.ts") ||
       l.includes("resolve-assist-eligibility.ts") ||
+      l.includes("resolve-progressive-disclosure.ts") ||
+      l.includes("probe-wx-phase1b54-progressive-disclosure.mjs") ||
+      l.includes("probe-wx-phase1b54-scroll-verification.mjs") ||
+      l.includes("run-progressive-disclosure-1b54-tests.ts") ||
+      l.includes("progressive-disclosure-vectors.ts") ||
       l.includes("capability-activation-vectors.ts") ||
       l.includes("run-transition-continuity-tests.ts") ||
       l.includes("index.ts"),
