@@ -320,3 +320,26 @@ export type {
   ToolActionPresentationResolveInput,
 } from "./resolve-tool-action-presentation";
 
+export {
+  WORKSPACE_HONESTY_DENSITY,
+  HONESTY_DENSITY_FORBIDDEN_SOURCE_PATTERNS,
+  resolveHonestyDensity,
+  resolveHonestyDensityFromPlans,
+  getHonestyDensityEntry,
+  isHonestyRenderAuthorized,
+  isHonestyCompactionAuthorized,
+  serializeHonestyDensityPlan,
+} from "./resolve-honesty-density";
+
+export type {
+  HonestySurfaceId,
+  HonestyDensityState,
+  HonestyCompactState,
+  HonestyDensityReason,
+  HonestyDensityConfidence,
+  HonestyDensityEntry,
+  HonestyDensityPlanStatus,
+  HonestyDensityPlan,
+  HonestyDensityResolveInput,
+} from "./resolve-honesty-density";
+
