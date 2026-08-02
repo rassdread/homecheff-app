@@ -288,7 +288,7 @@ begin("progressive unlock — no accidental capability loss");
 begin("diagnostics consumers — no behavioural JS / CSS hooks");
 {
   const hits = execSync(
-    "rg -n \"data-wx-cap-|wx-capability-activation\" --glob '!**/docs/audits/**' --glob '!**/node_modules/**' --glob '!**/*.md' -g '!**/run-capability-framework-tests.ts' -g '!**/run-landscape-work-posture-tests.ts' -g '!**/run-surface-registry-1b51-tests.ts' -g '!**/run-surface-presentation-1b52-tests.ts' -g '!**/probe-wx-phase1b3*.mjs' -g '!**/probe-wx-phase1b4*.mjs' -g '!**/probe-wx-phase1b51*.mjs' -g '!**/probe-wx-phase1b52*.mjs' . || true",
+    "rg -n \"data-wx-cap-|wx-capability-activation\" --glob '!**/docs/audits/**' --glob '!**/node_modules/**' --glob '!**/*.md' -g '!**/run-capability-framework-tests.ts' -g '!**/run-landscape-work-posture-tests.ts' -g '!**/run-surface-registry-1b51-tests.ts' -g '!**/run-surface-presentation-1b52-tests.ts' -g '!**/probe-wx-phase1b3*.mjs' -g '!**/probe-wx-phase1b4*.mjs' -g '!**/probe-wx-phase1b51*.mjs' -g '!**/run-assist-eligibility-1b53-tests.ts' -g '!**/probe-wx-phase1b52*.mjs' -g '!**/probe-wx-phase1b53*.mjs' . || true",
     { cwd: root, encoding: "utf8" },
   );
   const lines = hits
@@ -300,6 +300,7 @@ begin("diagnostics consumers — no behavioural JS / CSS hooks");
       l.includes("FeedWorkspaceVisibleLayout.tsx") ||
       l.includes("resolve-workspace-capabilities.ts") ||
       l.includes("resolve-surface-presentation.ts") ||
+      l.includes("resolve-assist-eligibility.ts") ||
       l.includes("capability-activation-vectors.ts") ||
       l.includes("run-transition-continuity-tests.ts") ||
       l.includes("index.ts"),
