@@ -1,0 +1,39 @@
+
+> homecheff-app@0.1.0 test:context-priority-1b57
+> npx tsx lib/adaptive-workspace-react/tests/run-context-priority-1b57-tests.ts
+
+
+[context-priority-1b5.7] contract seal
+  ✓ sealed contract identity + non-driving flags
+
+[context-priority-1b5.7] Mode×priority matrix
+  ✓ 7 vectors × 7 surfaces
+
+[context-priority-1b5.7] priority level coverage — LOW NORMAL HIGH CRITICAL
+  ✓ LOW/NORMAL/HIGH/CRITICAL observed
+
+[context-priority-1b5.7] fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0
+  ✓ unknown/duplicate/mismatch/missing → UNKNOWN score 0
+
+[context-priority-1b5.7] diagnostics-only — render/ordering never authorized
+  ✓ render/ordering banned across 49 entries
+
+[context-priority-1b5.7] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[context-priority-1b5.7] boundary — tool HIGH vs CRITICAL overflow
+  ✓ tool HIGH vs CRITICAL overflow boundary
+
+[context-priority-1b5.7] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[context-priority-1b5.7] layout diagnostics expose priority without reorder/render
+  ✓ layout binds priority diagnostics; renders=0; no ordering apply
+
+[context-priority-1b5.7] FromPlans integration
+  ✓ FromPlans chains …→honesty→context-priority
+
+[context-priority-1b5.7] SUMMARY {"groups":10,"assertions":436,"vectors":7,"prioritySurfaceIds":7}
+[context-priority-1b5.7] 436 assertions across 10 groups
+
+MERGE_SIM_TEST_EXIT:0

@@ -1,0 +1,21 @@
+{
+  "phase": "1b.5.7",
+  "contextPriority": "wx-context-priority-v1",
+  "contextPriorityVersion": "1.0.0",
+  "priorityRenders": "0",
+  "priorityDrives": "0",
+  "priorityOrdering": "0",
+  "priority": "stage:CRITICAL,orientation:HIGH,command:HIGH,disclosure:LOW,assist-primary:LOW,assist-secondary:LOW,tool:NORMAL",
+  "priorityScore": "stage:100,orientation:75,command:75,disclosure:25,assist-primary:25,assist-secondary:25,tool:50",
+  "honesty": "wx-honesty-density-v1",
+  "tool": "wx-tool-action-presentation-v1",
+  "disclosure": "wx-progressive-disclosure-v1",
+  "assist": "wx-assist-surface-eligibility-v1",
+  "presentation": "wx-surface-presentation-resolver-v1",
+  "capability": "wx-capability-activation-v1",
+  "remount": "0",
+  "capVisual": "0",
+  "shell": "wx-shell-mount:33",
+  "primary": "wx-primary-mount:33",
+  "feed": true
+}

@@ -1,0 +1,498 @@
+{
+  "generatedAt": "2026-08-02T21:15:26.978Z",
+  "checks": {
+    "contractId": true,
+    "contractVersion": true,
+    "phase": true,
+    "drivesChrome": true,
+    "appliesOrdering": true,
+    "rendersPriorityUi": true,
+    "diagnosticsOnly": true,
+    "neverReorder": true,
+    "purityClean": true,
+    "fixtureMatch": true,
+    "scoreMapOk": true,
+    "renderBanOk": true,
+    "levelsOkVectors": true,
+    "scoreConstants": {
+      "UNKNOWN": 0,
+      "LOW": 25,
+      "NORMAL": 50,
+      "HIGH": 75,
+      "CRITICAL": 100
+    },
+    "failClosedAllOk": true,
+    "unknownCovered": true,
+    "layoutPhase157": true,
+    "layoutRenders0": true,
+    "layoutDrives0": true,
+    "layoutOrdering0": true,
+    "layoutNoPriorityKey": true,
+    "layoutNoPriorityUi": true,
+    "consumesHonesty": true
+  },
+  "vectors": [
+    {
+      "id": "browse-portrait-390",
+      "status": "ok",
+      "deterministic": true,
+      "appliesOrdering": false,
+      "rendersPriorityUi": false,
+      "drivesChrome": false,
+      "entries": [
+        {
+          "id": "stage",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "stage-primary-critical"
+        },
+        {
+          "id": "orientation",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "command",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "disclosure",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "disclosure-discoverable-low"
+        },
+        {
+          "id": "assist-primary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-absent-low"
+        },
+        {
+          "id": "assist-secondary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-absent-low"
+        },
+        {
+          "id": "tool",
+          "priority": "NORMAL",
+          "priorityScore": 50,
+          "reason": "tool-reachable-normal"
+        }
+      ]
+    },
+    {
+      "id": "browse-height-demoted-critical-chrome",
+      "status": "ok",
+      "deterministic": true,
+      "appliesOrdering": false,
+      "rendersPriorityUi": false,
+      "drivesChrome": false,
+      "entries": [
+        {
+          "id": "stage",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "stage-primary-critical"
+        },
+        {
+          "id": "orientation",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "core-chrome-critical-height-demoted"
+        },
+        {
+          "id": "command",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "core-chrome-critical-height-demoted"
+        },
+        {
+          "id": "disclosure",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "disclosure-discoverable-low"
+        },
+        {
+          "id": "assist-primary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-absent-low"
+        },
+        {
+          "id": "assist-secondary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-absent-low"
+        },
+        {
+          "id": "tool",
+          "priority": "NORMAL",
+          "priorityScore": 50,
+          "reason": "tool-reachable-normal"
+        }
+      ]
+    },
+    {
+      "id": "hybrid-landscape-844",
+      "status": "ok",
+      "deterministic": true,
+      "appliesOrdering": false,
+      "rendersPriorityUi": false,
+      "drivesChrome": false,
+      "entries": [
+        {
+          "id": "stage",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "stage-primary-critical"
+        },
+        {
+          "id": "orientation",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "command",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "disclosure",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "disclosure-discoverable-low"
+        },
+        {
+          "id": "assist-primary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-hollow-low"
+        },
+        {
+          "id": "assist-secondary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-future-low"
+        },
+        {
+          "id": "tool",
+          "priority": "NORMAL",
+          "priorityScore": 50,
+          "reason": "tool-reachable-normal"
+        }
+      ]
+    },
+    {
+      "id": "full-landscape-1280",
+      "status": "ok",
+      "deterministic": true,
+      "appliesOrdering": false,
+      "rendersPriorityUi": false,
+      "drivesChrome": false,
+      "entries": [
+        {
+          "id": "stage",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "stage-primary-critical"
+        },
+        {
+          "id": "orientation",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "command",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "disclosure",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "disclosure-discoverable-low"
+        },
+        {
+          "id": "assist-primary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-hollow-low"
+        },
+        {
+          "id": "assist-secondary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-hollow-low"
+        },
+        {
+          "id": "tool",
+          "priority": "NORMAL",
+          "priorityScore": 50,
+          "reason": "tool-reachable-normal"
+        }
+      ]
+    },
+    {
+      "id": "professional-1600-tool-high",
+      "status": "ok",
+      "deterministic": true,
+      "appliesOrdering": false,
+      "rendersPriorityUi": false,
+      "drivesChrome": false,
+      "entries": [
+        {
+          "id": "stage",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "stage-primary-critical"
+        },
+        {
+          "id": "orientation",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "command",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "disclosure",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "disclosure-discoverable-low"
+        },
+        {
+          "id": "assist-primary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-hollow-low"
+        },
+        {
+          "id": "assist-secondary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-hollow-low"
+        },
+        {
+          "id": "tool",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "tool-dense-high"
+        }
+      ]
+    },
+    {
+      "id": "professional-1600-overflow-critical-tool",
+      "status": "ok",
+      "deterministic": true,
+      "appliesOrdering": false,
+      "rendersPriorityUi": false,
+      "drivesChrome": false,
+      "entries": [
+        {
+          "id": "stage",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "stage-primary-critical"
+        },
+        {
+          "id": "orientation",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "core-chrome-critical-height-demoted"
+        },
+        {
+          "id": "command",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "core-chrome-critical-height-demoted"
+        },
+        {
+          "id": "disclosure",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "disclosure-discoverable-low"
+        },
+        {
+          "id": "assist-primary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-hollow-low"
+        },
+        {
+          "id": "assist-secondary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-hollow-low"
+        },
+        {
+          "id": "tool",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "tool-overflow-critical"
+        }
+      ]
+    },
+    {
+      "id": "compact-portrait-700",
+      "status": "ok",
+      "deterministic": true,
+      "appliesOrdering": false,
+      "rendersPriorityUi": false,
+      "drivesChrome": false,
+      "entries": [
+        {
+          "id": "stage",
+          "priority": "CRITICAL",
+          "priorityScore": 100,
+          "reason": "stage-primary-critical"
+        },
+        {
+          "id": "orientation",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "command",
+          "priority": "HIGH",
+          "priorityScore": 75,
+          "reason": "core-chrome-high"
+        },
+        {
+          "id": "disclosure",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "disclosure-discoverable-low"
+        },
+        {
+          "id": "assist-primary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-absent-low"
+        },
+        {
+          "id": "assist-secondary",
+          "priority": "LOW",
+          "priorityScore": 25,
+          "reason": "assist-absent-low"
+        },
+        {
+          "id": "tool",
+          "priority": "NORMAL",
+          "priorityScore": 50,
+          "reason": "tool-reachable-normal"
+        }
+      ]
+    }
+  ],
+  "failClosed": [
+    {
+      "label": "unknown-surface",
+      "status": "rejected",
+      "reasons": [
+        "unknown-priority-surface"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "hasReason": true
+    },
+    {
+      "label": "duplicate-surface",
+      "status": "rejected",
+      "reasons": [
+        "duplicate-priority-surface"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "hasReason": true
+    },
+    {
+      "label": "registry-mismatch",
+      "status": "rejected",
+      "reasons": [
+        "registry-contract-id-mismatch"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "hasReason": true
+    },
+    {
+      "label": "honesty-mismatch",
+      "status": "rejected",
+      "reasons": [
+        "honesty-contract-mismatch"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "hasReason": true
+    },
+    {
+      "label": "missing-honesty",
+      "status": "rejected",
+      "reasons": [
+        "missing-honesty-density-plan"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "hasReason": true
+    },
+    {
+      "label": "missing-presentation",
+      "status": "rejected",
+      "reasons": [
+        "missing-presentation-plan"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "hasReason": true
+    },
+    {
+      "label": "rejected-honesty",
+      "status": "rejected",
+      "reasons": [
+        "honesty-plan-rejected",
+        "injected"
+      ],
+      "allUnknown": true,
+      "ok": true,
+      "hasReason": true
+    },
+    {
+      "label": "partial-empty-entryById",
+      "status": "ok",
+      "allUnknown": true,
+      "ok": true
+    }
+  ],
+  "purity": {
+    "forbiddenHits": [],
+    "hasAsync": false,
+    "hasAwait": false,
+    "hasPromise": false,
+    "hasTimer": false,
+    "hasObserver": false
+  },
+  "scores": {},
+  "gaps": [],
+  "mismatches": [],
+  "verdict": "INDEPENDENT_MATRIX_PASS",
+  "failedChecks": [],
+  "levelsSeen": [
+    "CRITICAL",
+    "HIGH",
+    "LOW",
+    "NORMAL"
+  ]
+}
