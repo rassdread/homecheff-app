@@ -33,5 +33,6 @@
     "homecheff.nl": "HTTP 307 -> eu"
   },
   "featureBranchRetained": "wx/phase-1b5-8-context-relevance",
-  "frozenAt": "2026-08-02T22:45:40.714947+00:00"
+  "frozenAt": "2026-08-02T22:45:40.714947+00:00",
+  "freezeTip": "3966172b51e5b60db35e7d9bccc049d3ca64205e"
 }
