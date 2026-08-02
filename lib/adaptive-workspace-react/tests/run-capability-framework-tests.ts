@@ -181,14 +181,14 @@ begin("no visual activation / ownership side effects in source");
   ok("capability module has no UA/device/DOM side effects");
 }
 
-begin("layout diagnostics only — phase 1b.5.1 markers + capability attrs");
+begin("layout diagnostics only — phase markers + capability attrs");
 {
   const layoutSrc = readFileSync(
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
   assert.match(layoutSrc, /resolveWorkspaceCapabilitiesFromModePlan|resolveWorkspaceCapabilities/);
-  assert.match(layoutSrc, /data-wx-phase="1b\.5\.1"/);
+  assert.match(layoutSrc, /data-wx-phase="1b\.5\.[0-9]+"/);
   assert.match(layoutSrc, /data-wx-landscape-work/);
   assert.match(layoutSrc, /data-wx-landscape-contract/);
   assert.match(layoutSrc, /data-wx-capability/);
@@ -288,7 +288,7 @@ begin("progressive unlock — no accidental capability loss");
 begin("diagnostics consumers — no behavioural JS / CSS hooks");
 {
   const hits = execSync(
-    "rg -n \"data-wx-cap-|wx-capability-activation\" --glob '!**/docs/audits/**' --glob '!**/node_modules/**' --glob '!**/*.md' -g '!**/run-capability-framework-tests.ts' -g '!**/run-landscape-work-posture-tests.ts' -g '!**/run-surface-registry-1b51-tests.ts' -g '!**/probe-wx-phase1b3*.mjs' -g '!**/probe-wx-phase1b4*.mjs' -g '!**/probe-wx-phase1b51*.mjs' . || true",
+    "rg -n \"data-wx-cap-|wx-capability-activation\" --glob '!**/docs/audits/**' --glob '!**/node_modules/**' --glob '!**/*.md' -g '!**/run-capability-framework-tests.ts' -g '!**/run-landscape-work-posture-tests.ts' -g '!**/run-surface-registry-1b51-tests.ts' -g '!**/run-surface-presentation-1b52-tests.ts' -g '!**/probe-wx-phase1b3*.mjs' -g '!**/probe-wx-phase1b4*.mjs' -g '!**/probe-wx-phase1b51*.mjs' -g '!**/probe-wx-phase1b52*.mjs' . || true",
     { cwd: root, encoding: "utf8" },
   );
   const lines = hits
@@ -299,6 +299,7 @@ begin("diagnostics consumers — no behavioural JS / CSS hooks");
     (l) =>
       l.includes("FeedWorkspaceVisibleLayout.tsx") ||
       l.includes("resolve-workspace-capabilities.ts") ||
+      l.includes("resolve-surface-presentation.ts") ||
       l.includes("capability-activation-vectors.ts") ||
       l.includes("run-transition-continuity-tests.ts") ||
       l.includes("index.ts"),
