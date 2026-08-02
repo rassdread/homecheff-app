@@ -297,3 +297,26 @@ export type {
   ProgressiveDisclosureResolveInput,
 } from "./resolve-progressive-disclosure";
 
+export {
+  WORKSPACE_TOOL_ACTION_PRESENTATION,
+  TOOL_ACTION_PRESENTATION_FORBIDDEN_SOURCE_PATTERNS,
+  resolveToolActionPresentation,
+  resolveToolActionPresentationFromPlans,
+  getToolActionPresentationEntry,
+  isToolActionPlanPersistent,
+  isToolActionPlanReachable,
+  isToolActionRenderAuthorized,
+  serializeToolActionPresentationPlan,
+} from "./resolve-tool-action-presentation";
+
+export type {
+  ToolActionId,
+  ToolActionPresentationState,
+  ToolActionPresentationReason,
+  ToolActionSuppressionReason,
+  ToolActionPresentationEntry,
+  ToolActionPresentationPlanStatus,
+  ToolActionPresentationPlan,
+  ToolActionPresentationResolveInput,
+} from "./resolve-tool-action-presentation";
+

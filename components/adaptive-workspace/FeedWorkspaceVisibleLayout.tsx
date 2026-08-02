@@ -27,10 +27,13 @@
  *                  (hollow permanent assists forbidden without living content).
  * WX Phase 1B.5.4: Progressive Disclosure Continuity diagnostics only — disclosure planning;
  *                  does NOT render disclosure UI, drawers, overlays, or drive chrome.
+ * WX Phase 1B.5.5: Tool & Action Surface Presentation diagnostics only — Persistent vs
+ *                  Reachable planning for already-authorized tools/shortcuts; does NOT
+ *                  change static tool chrome, invent actions, rename IA, or activate chrome.
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  * NEVER key primary (or any slot) by Mode / posture / mode token / capability /
- * presentation-plan / assist-eligibility / progressive-disclosure state.
+ * presentation-plan / assist-eligibility / progressive-disclosure / tool-action state.
  */
 
 import React, {
@@ -52,6 +55,7 @@ import {
   resolveSurfacePresentationFromPlans,
   resolveAssistEligibilityFromPlans,
   resolveProgressiveDisclosureFromPlans,
+  resolveToolActionPresentationFromPlans,
   WORKSPACE_TRANSITION_CONTINUITY,
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
@@ -59,6 +63,7 @@ import {
   WORKSPACE_SURFACE_PRESENTATION,
   WORKSPACE_ASSIST_ELIGIBILITY,
   WORKSPACE_PROGRESSIVE_DISCLOSURE,
+  WORKSPACE_TOOL_ACTION_PRESENTATION,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
   type WorkspaceModePlan,
@@ -223,6 +228,12 @@ export default function FeedWorkspaceVisibleLayout({
     capabilityPlan,
   );
 
+  /** WX 1B.5.5 — tool/action presentation; diagnostics only (static chrome unchanged). */
+  const toolActionPlan = resolveToolActionPresentationFromPlans(
+    modePlan,
+    capabilityPlan,
+  );
+
   const previousMode = previousModeRef.current;
   const modeChanged =
     previousMode != null && previousMode.mode !== modePlan.mode;
@@ -267,7 +278,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.5.4"
+      data-wx-phase="1b.5.5"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -352,6 +363,21 @@ export default function FeedWorkspaceVisibleLayout({
       data-wx-disclosure-suppressed={progressiveDisclosurePlan.suppressedSurfaceIds.join(",")}
       data-wx-disclosure-reserved={progressiveDisclosurePlan.reservedSurfaceIds.join(",")}
       data-wx-disclosure-future={progressiveDisclosurePlan.futureSurfaceIds.join(",")}
+      data-wx-tool-action={WORKSPACE_TOOL_ACTION_PRESENTATION.contractId}
+      data-wx-tool-action-version={WORKSPACE_TOOL_ACTION_PRESENTATION.contractVersion}
+      data-wx-tool-action-token={toolActionPlan.stabilityToken}
+      data-wx-tool-action-status={toolActionPlan.status}
+      data-wx-tool-renders="0"
+      data-wx-tool-drives-chrome="0"
+      data-wx-tool-chrome-activation="0"
+      data-wx-tool-static-chrome="1"
+      data-wx-tool-ids={toolActionPlan.orderedToolActionIds.join(",")}
+      data-wx-tool-persistent={toolActionPlan.persistentToolActionIds.join(",")}
+      data-wx-tool-reachable={toolActionPlan.reachableToolActionIds.join(",")}
+      data-wx-tool-absent={toolActionPlan.absentToolActionIds.join(",")}
+      data-wx-tool-suppressed={toolActionPlan.suppressedToolActionIds.join(",")}
+      data-wx-tool-reserved={toolActionPlan.reservedToolActionIds.join(",")}
+      data-wx-tool-future={toolActionPlan.futurePersistentToolActionIds.join(",")}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
