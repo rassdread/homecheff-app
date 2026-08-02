@@ -1,0 +1,20 @@
+{
+  "verdict": "OWNERSHIP_UNCHANGED",
+  "phase": "1b.5.8",
+  "contextRelevance": "wx-context-relevance-v1",
+  "contextRelevanceVersion": "1.0.0",
+  "relevanceRenders": "0",
+  "relevanceDrivesChrome": "0",
+  "relevanceAppliesOrdering": "0",
+  "contextPriority": "wx-context-priority-v1",
+  "honesty": "wx-honesty-density-v1",
+  "toolRenders": "0",
+  "disclosureRenders": "0",
+  "capVisual": "0",
+  "remount": "0",
+  "hostCount": 1,
+  "feedPresent": true,
+  "noNewRelevanceUi": true,
+  "journeyPass": true,
+  "domDeltaZero": true
+}
