@@ -1,0 +1,11 @@
+{
+  "pure": true,
+  "sync": true,
+  "deterministic": true,
+  "allocationLight": true,
+  "noAsync": true,
+  "noPolling": true,
+  "noTimers": true,
+  "noObservers": true,
+  "evidence": "resolve-context-intent.ts pure sync planner; live seals intentRenders/drivesChrome/ordering=0; no remount/activation"
+}

@@ -1,0 +1,10 @@
+{
+  "merge": "afeaa86746579623b3c74b45fcf0327aca750f38",
+  "deploymentId": "dpl_FR4ru7KzyE53BWHwqhJsoTRT7iqC",
+  "githubProductionDeployId": 5718825854,
+  "commitStatusState": "success",
+  "project": "homecheff-app",
+  "envUrl": "https://homecheff-p0q7wkwy4-sergio-s-projects-f7b64ee1.vercel.app",
+  "runtimeSha": "afeaa86746579623b3c74b45fcf0327aca750f38",
+  "note": "Vercel CLI token invalid; READY via GitHub Production deployment + live DOM phase 1b.5.9 on homecheff.eu"
+}

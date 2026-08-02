@@ -1,0 +1,21 @@
+GATE1 tip==promotion source: 9e743f179e0f818b73b17a4ade19cf3d6fa666d8
+GATE2 Commit A unchanged: e26666a369bc598b1e848437e262cf3a548a6ae1
+GATE2 Commit B unchanged: c2506e8a64cf20ce71009a2bc5857c3b1cdf07ce
+GATE3 Formal review docs-only: 9e743f179e0f818b73b17a4ade19cf3d6fa666d8
+GATE4 pre-merge origin/main==freeze: 06e3e297ab5098c76760d4f4c5b048e170832fd7
+GATE5 pre-merge regression: PASS (see conversation / post-merge-regression.log pattern)
+GATE6 production build: PASS
+GATE7 clean merge simulation: PASS
+GATE8 merge --no-ff: afeaa86746579623b3c74b45fcf0327aca750f38
+GATE9 post-merge regression: PASS (post-merge-regression.log)
+GATE10 deploy Production: dpl_FR4ru7KzyE53BWHwqhJsoTRT7iqC / GH 5718825854
+GATE11 READY: success
+GATE12 aliases: eu/www 200; nl 307->eu
+GATE13 runtime commit: afeaa86746579623b3c74b45fcf0327aca750f38
+GATE14 browser proof: WX_PHASE_1B5_9_BROWSER_PROOF_PASS
+GATE15 responsive/scroll/landscape: PASS
+GATE16 ownership: OWNERSHIP_UNCHANGED
+GATE17 contract wx-context-intent-v1 1.0.0: PASS
+GATE18 planner performance: pure/sync/deterministic
+GATE19 rollback: ed51f4b971063df0b4b45bd89331ceb9690a367b (no schema/data migration)
+GATE20 freeze evidence: this directory

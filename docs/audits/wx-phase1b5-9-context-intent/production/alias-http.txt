@@ -1,0 +1,38 @@
+=== homecheff.eu ===
+HTTP/2 200 
+age: 0
+cache-control: private, no-cache, no-store, max-age=0, must-revalidate
+content-security-policy: default-src 'self'; frame-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.gstatic.com; img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com; media-src 'self' blob: data: https: http:; connect-src 'self' blob: https: wss: http: https://*.pusher.com wss://*.pusher.com https://sockjs-eu.pusher.com wss://ws-eu.pusher.com https://maps.googleapis.com https://*.vercel-storage.com; font-src 'self' data: https://fonts.gstatic.com;
+content-type: text/html; charset=utf-8
+date: Sun, 02 Aug 2026 23:47:21 GMT
+referrer-policy: strict-origin-when-cross-origin
+server: Vercel
+strict-transport-security: max-age=63072000
+vary: RSC, Next-Router-State-Tree, Next-Router-Prefetch
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-matched-path: /
+x-vercel-cache: MISS
+x-vercel-id: fra1::iad1::jp9kl-1785714440431-b1d28ded0e67
+=== www.homecheff.eu ===
+HTTP/2 200 
+age: 0
+cache-control: private, no-cache, no-store, max-age=0, must-revalidate
+content-security-policy: default-src 'self'; frame-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.gstatic.com; img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com; media-src 'self' blob: data: https: http:; connect-src 'self' blob: https: wss: http: https://*.pusher.com wss://*.pusher.com https://sockjs-eu.pusher.com wss://ws-eu.pusher.com https://maps.googleapis.com https://*.vercel-storage.com; font-src 'self' data: https://fonts.gstatic.com;
+content-type: text/html; charset=utf-8
+date: Sun, 02 Aug 2026 23:47:22 GMT
+referrer-policy: strict-origin-when-cross-origin
+server: Vercel
+strict-transport-security: max-age=63072000
+vary: RSC, Next-Router-State-Tree, Next-Router-Prefetch
+=== homecheff.nl ===
+HTTP/2 307 
+cache-control: public, max-age=0, must-revalidate
+content-type: text/plain
+date: Sun, 02 Aug 2026 23:47:22 GMT
+location: https://homecheff.eu/
+server: Vercel
+set-cookie: homecheff-language=nl; Path=/; Expires=Mon, 02 Aug 2027 23:47:22 GMT; Max-Age=31536000; Secure; SameSite=lax
+strict-transport-security: max-age=63072000
+x-content-type-options: nosniff
+x-frame-options: DENY

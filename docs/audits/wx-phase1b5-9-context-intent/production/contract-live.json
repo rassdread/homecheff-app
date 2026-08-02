@@ -1,0 +1,39 @@
+{
+  "contract": "wx-context-intent-v1",
+  "version": "1.0.0",
+  "phase": "1b.5.9",
+  "states": [
+    "UNKNOWN",
+    "EXPLORE",
+    "DISCOVER",
+    "CREATE",
+    "MANAGE",
+    "OPERATE"
+  ],
+  "scores": [
+    0,
+    20,
+    40,
+    60,
+    80,
+    100
+  ],
+  "diagnosticsOnly": true,
+  "neverModifiesContextualRelevance": true,
+  "liveObservedStates": [
+    "EXPLORE",
+    "DISCOVER",
+    "CREATE",
+    "MANAGE",
+    "OPERATE"
+  ],
+  "liveObservedScores": [
+    20,
+    40,
+    60,
+    80,
+    100
+  ],
+  "relevanceStillPresent": true,
+  "relevanceVersion": "1.0.0"
+}

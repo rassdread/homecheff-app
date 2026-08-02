@@ -1,0 +1,56 @@
+{
+  "browser": {
+    "verdict": "WX_PHASE_1B5_9_BROWSER_PROOF_PASS",
+    "passCount": 10,
+    "journey": true,
+    "domDelta": true
+  },
+  "scroll": {
+    "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+    "passCount": 8,
+    "caseCount": 8
+  },
+  "landscape": {
+    "verdict": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS"
+  },
+  "ownership": {
+    "verdict": "OWNERSHIP_UNCHANGED",
+    "phase": "1b.5.9",
+    "contextIntent": "wx-context-intent-v1",
+    "contextIntentVersion": "1.0.0",
+    "intentRenders": "0",
+    "intentDrivesChrome": "0",
+    "intentAppliesOrdering": "0",
+    "contextRelevance": "wx-context-relevance-v1",
+    "contextRelevanceVersion": "1.0.0",
+    "relevanceRenders": "0",
+    "relevanceDrivesChrome": "0",
+    "relevanceAppliesOrdering": "0",
+    "contextPriority": "wx-context-priority-v1",
+    "honesty": "wx-honesty-density-v1",
+    "toolRenders": "0",
+    "disclosureRenders": "0",
+    "rendersAssist": "0",
+    "capVisual": "0",
+    "remount": "0",
+    "toolChromeActivation": "0",
+    "hostCount": 1,
+    "feedPresent": true,
+    "presentation": "wx-surface-presentation-resolver-v1",
+    "capability": "wx-capability-activation-v1",
+    "toolAction": "wx-tool-action-presentation-v1",
+    "noNewIntentUi": true,
+    "noNewRelevanceUi": true,
+    "noNewPriorityUi": true,
+    "journeyPass": true,
+    "shellMountStable": true,
+    "primaryMountStable": true,
+    "domDeltaZero": true,
+    "chromeUnchanged": true
+  },
+  "merge": "afeaa86746579623b3c74b45fcf0327aca750f38",
+  "deployment": "dpl_FR4ru7KzyE53BWHwqhJsoTRT7iqC",
+  "github_production_deploy_id": 5718825854,
+  "rollback": "ed51f4b971063df0b4b45bd89331ceb9690a367b",
+  "frozenAt": "2026-08-02T23:50:37.853490+00:00"
+}
