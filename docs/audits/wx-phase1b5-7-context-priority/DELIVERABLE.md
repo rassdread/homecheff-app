@@ -11,6 +11,8 @@
 | Branch base / rollback tip | `7529c511ac9bc55e4c7f2f50be1bacf77cd378e3` (main tip incl. freeze docs) |
 | Contract | `wx-context-priority-v1` · version `1.0.0` |
 | Phase marker | `1b.5.7` |
+| Commit A (impl) | `5818e9416d6dd5ca92a9961f273470dfa3111c17` |
+| Commit B (evidence) | `12df8f5bfdd4a560bc60ce371819b7192c512200` |
 
 **Not claimed:** Formal Review · merge · deploy · Production freeze · WX Phase 1B.5.8
 
