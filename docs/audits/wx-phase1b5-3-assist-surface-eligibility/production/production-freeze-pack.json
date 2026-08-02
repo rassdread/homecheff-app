@@ -1,0 +1,60 @@
+{
+  "phase": "1b.5.3",
+  "phaseName": "Assist Surface Eligibility Presentation",
+  "verdict": "WX_PHASE_1B5_3_PRODUCTION_SUCCESS",
+  "status": "PRODUCTION_FROZEN",
+  "mergeCommit": "db295ba38f4f982a8ca5d1333156a8ff6ba9f852",
+  "featureTip": "84adf717a4b865a3c331947a6ab2cfd31701f54b",
+  "commitA": "9fcc3135838c1288aab212424ae0401b0d81145f",
+  "commitB": "0a6cc46a75f453f1fc1d551f7b3695b07cf147fc",
+  "rollbackCommit": "f0f54d2000fd02667c0f2814fbdfdc801a93522f",
+  "prePromotionMain": "f0f54d2000fd02667c0f2814fbdfdc801a93522f",
+  "prePromotionProduction": "f0f54d2000fd02667c0f2814fbdfdc801a93522f",
+  "deploymentId": "dpl_7CnFqswUQENz3uKjM8X1EWr8UPs9",
+  "gitCommitSha": "db295ba38f4f982a8ca5d1333156a8ff6ba9f852",
+  "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+  "projectName": "homecheff-app",
+  "aliases": [
+    "homecheff.eu",
+    "homecheff.nl",
+    "www.homecheff.eu",
+    "www.homecheff.nl"
+  ],
+  "contracts": {
+    "assistEligibility": "wx-assist-surface-eligibility-v1",
+    "assistEligibilityVersion": "1.0.0",
+    "presentation": "wx-surface-presentation-resolver-v1",
+    "presentationPlan": "wx-surface-presentation-plan-v1",
+    "presentationVersion": "1.0.0",
+    "registry": "wx-surface-presentation-registry-v1",
+    "registryVersion": "1.0.0",
+    "capability": "wx-capability-activation-v1"
+  },
+  "gates": {
+    "lineage": "PASS",
+    "contract": "PASS",
+    "productionBuild": "PASS",
+    "ownership": "PASS",
+    "merge": "PASS",
+    "runtimeHash": "PASS",
+    "liveBrowserProof": "PASS",
+    "rollback": "CLEAR",
+    "freeze": "PASS"
+  },
+  "rendersAssist": false,
+  "drivesChrome": false,
+  "visualActivation": false,
+  "dbMigration": false,
+  "phase1b54": "PROHIBITED_UNTIL_EXPLICIT_APPROVAL",
+  "artifacts": [
+    "PRODUCTION_FREEZE.md",
+    "PROMOTION_REPORT.md",
+    "BROWSER_PROOF.md",
+    "browser-proof.json",
+    "cross-mode-journey.json",
+    "ownership-live.json",
+    "production-freeze-pack.json"
+  ],
+  "frozenAt": "2026-08-02T16:12:00+02:00",
+  "freezeDocsCommit": "PENDING_STAMP"
+}
