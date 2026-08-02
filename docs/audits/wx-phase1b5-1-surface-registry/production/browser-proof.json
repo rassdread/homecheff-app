@@ -1,0 +1,372 @@
+{
+  "phase": "1b.5.1",
+  "baseUrl": "https://homecheff.eu",
+  "generatedAt": "2026-08-02T00:09:22.497Z",
+  "verdict": "WX_PHASE_1B5_1_BROWSER_PROOF_PASS",
+  "passCount": 9,
+  "caseCount": 9,
+  "registryIdenticalAcrossViewports": true,
+  "fails": [],
+  "cases": [
+    {
+      "id": "p320",
+      "vp": {
+        "id": "p320",
+        "w": 320,
+        "h": 568
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "id": "p390",
+      "vp": {
+        "id": "p390",
+        "w": 390,
+        "h": 844
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:2",
+        "primaryMountId": "wx-primary-mount:2",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "id": "l740",
+      "vp": {
+        "id": "l740",
+        "w": 740,
+        "h": 360
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:3",
+        "primaryMountId": "wx-primary-mount:3",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "id": "l844",
+      "vp": {
+        "id": "l844",
+        "w": 844,
+        "h": 390
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:4",
+        "primaryMountId": "wx-primary-mount:4",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "id": "d1024",
+      "vp": {
+        "id": "d1024",
+        "w": 1024,
+        "h": 768
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:5",
+        "primaryMountId": "wx-primary-mount:5",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "id": "d1280",
+      "vp": {
+        "id": "d1280",
+        "w": 1280,
+        "h": 800
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:6",
+        "primaryMountId": "wx-primary-mount:6",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "id": "d1440",
+      "vp": {
+        "id": "d1440",
+        "w": 1440,
+        "h": 900
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "id": "d1920",
+      "vp": {
+        "id": "d1920",
+        "w": 1920,
+        "h": 1080
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "id": "u2560",
+      "vp": {
+        "id": "u2560",
+        "w": 2560,
+        "h": 1440
+      },
+      "snap": {
+        "phase": "1b.5.1",
+        "registry": "wx-surface-presentation-registry-v1",
+        "registryVersion": "1.0.0",
+        "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+        "surfaceCount": "12",
+        "capVisual": "0",
+        "remount": "0",
+        "shellMountId": "wx-shell-mount:1",
+        "primaryMountId": "wx-primary-mount:1",
+        "mobileCreateMountedOnlyWhenMenuOpen": true,
+        "noNewSurfacePanels": true,
+        "overflowX": false
+      },
+      "checks": {
+        "phase": true,
+        "registry": true,
+        "version": true,
+        "ids": true,
+        "reserved": true,
+        "count": true,
+        "capOff": true,
+        "remountZero": true,
+        "noNewPanels": true,
+        "registryStable": true,
+        "noOverflowX": true,
+        "noErrors": true
+      },
+      "failed": [],
+      "pass": true,
+      "errors": []
+    }
+  ]
+}

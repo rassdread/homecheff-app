@@ -1,0 +1,84 @@
+{
+  "phase": "1b.5.1",
+  "title": "WX Phase 1B.5.1 Surface Registry — Production Freeze Pack",
+  "status": "PRODUCTION_FROZEN",
+  "verdict": "WX_PHASE_1B5_1_PRODUCTION_SUCCESS",
+  "frozenAtUtc": "2026-08-02T00:10:00Z",
+  "mergeCommit": "f988f8ffea5751cf6ee2638f3654b4339fc22e63",
+  "featureTip": "3c780d8af7abe5451e4cfec3b74a8315ccb86b16",
+  "mergeParents": [
+    "34fb1f80041e6de26e1753e5ad7f85f6d73f9366",
+    "3c780d8af7abe5451e4cfec3b74a8315ccb86b16"
+  ],
+  "implementationChain": {
+    "A": "33812ebc296de21d8398f8d90e0dc99e7f8caa64",
+    "B": "0fc12b4c8331d32084ed2e2bc6c89eda9d3980f8",
+    "tip": "3c780d8af7abe5451e4cfec3b74a8315ccb86b16"
+  },
+  "prePromotionMainAndRuntime": "34fb1f80041e6de26e1753e5ad7f85f6d73f9366",
+  "rollbackRuntime": "34fb1f80041e6de26e1753e5ad7f85f6d73f9366",
+  "ancestral1b4BehaviouralMerge": "0b84f593b3dda5cbe2e54adf30f809a5bab076cc",
+  "formalReview": "WX_PHASE_1B5_1_REVIEW_PASS",
+  "deployment": {
+    "project": "homecheff-app",
+    "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+    "deploymentId": "dpl_FDTJ9VryzCYpfsiTQBnHwEP3w2YF",
+    "url": "https://homecheff-kfzut9u4a-sergio-s-projects-f7b64ee1.vercel.app",
+    "gitCommitSha": "f988f8ffea5751cf6ee2638f3654b4339fc22e63",
+    "gitCommitRef": "promote/wx-phase-1b51-main",
+    "target": "production",
+    "readyState": "READY",
+    "aliases": [
+      "homecheff.eu",
+      "homecheff.nl",
+      "www.homecheff.eu",
+      "www.homecheff.nl"
+    ]
+  },
+  "registry": {
+    "contractId": "wx-surface-presentation-registry-v1",
+    "contractVersion": "1.0.0",
+    "surfaceCount": 12,
+    "reservedCount": 4,
+    "surfaceIds": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+    "reservedIds": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+    "resolver": false,
+    "capabilityVisualActivation": "0"
+  },
+  "liveProof": {
+    "baseUrl": "https://homecheff.eu",
+    "surfaceRegistry": {
+      "verdict": "WX_PHASE_1B5_1_BROWSER_PROOF_PASS",
+      "passCount": 9,
+      "caseCount": 9,
+      "registryIdenticalAcrossViewports": true
+    },
+    "ownership": {
+      "singleWorkspace": true,
+      "singlePrimary": true,
+      "remountZero": true,
+      "noConsoleErrors": true,
+      "noPageErrors": true
+    }
+  },
+  "ownership": {
+    "geoFeedSoleRuntimeOwner": true,
+    "controlledHostUnchanged": true,
+    "capabilityVisualActivation": "0",
+    "noOwnershipTransfer": true,
+    "noResolver": true
+  },
+  "warnings": [
+    "Hard-coded navigation lists remain duplicated (desktop / bottom / hamburger) — ACCEPTED_BOUNDED_WARNING",
+    "Dual posture diagnostic sources (Mode Engine vs ChromeProvider VV) — REQUIRES_FUTURE_TRACKING",
+    "Promotion brief listed origin/main and Production as 0b84f593…; Gate 1 corrected to live 34fb1f80…"
+  ],
+  "phase1b52": "PROHIBITED_UNTIL_EXPLICIT_APPROVAL",
+  "artifacts": [
+    "PRODUCTION_FREEZE.md",
+    "PROMOTION_REPORT.md",
+    "production-freeze-pack.json",
+    "browser-proof.json",
+    "ownership-live.json"
+  ]
+}

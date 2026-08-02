@@ -1,0 +1,23 @@
+{
+  "ownership": {
+    "workspaceCount": 1,
+    "primaryMountCount": 1,
+    "remount": "0",
+    "shellMountId": "wx-shell-mount:7",
+    "primaryMountId": "wx-primary-mount:7",
+    "phase": "1b.5.1",
+    "registry": "wx-surface-presentation-registry-v1",
+    "version": "1.0.0",
+    "capVisual": "0",
+    "surfaceCount": "12",
+    "reserved": "reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions",
+    "ids": "stage,orientation,command,assist-primary,assist-secondary,tool,disclosure,utility,reserved-memory,reserved-ai,reserved-collaboration,reserved-extensions"
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "singleWorkspace": true,
+  "singlePrimary": true,
+  "remountZero": true,
+  "noConsoleErrors": true,
+  "noPageErrors": true
+}
