@@ -30,5 +30,6 @@
     "scroll": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
     "landscape1b21": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS",
     "ownership": "OWNERSHIP_UNCHANGED"
-  }
+  },
+  "freezeEvidenceCommit": "085f4732e1754fba86dbce91b51fff9011651401"
 }

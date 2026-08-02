@@ -19,5 +19,6 @@
 | Rollback (behavioural) | `ad68d843d0b85b222cf524fd8016d3a18a45068b` (1B.5.5) |
 | Pre-promotion freeze tip | `3701cdcea93c87235f42b901ed01bc03d7faaa61` |
 | Schema / migration | none |
+| Freeze evidence commit | `085f4732e1754fba86dbce91b51fff9011651401` |
 
 **Stop:** Do not begin WX Phase 1B.5.7 without explicit approval.
