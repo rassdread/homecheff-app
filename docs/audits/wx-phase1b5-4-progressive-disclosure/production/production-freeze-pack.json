@@ -1,0 +1,89 @@
+{
+  "phase": "1b.5.4",
+  "phaseName": "Progressive Disclosure Continuity",
+  "verdict": "WX_PHASE_1B5_4_PRODUCTION_SUCCESS",
+  "status": "PRODUCTION_FROZEN",
+  "mergeCommit": "7de205b9f5c579dc356868db9070984a7698f736",
+  "featureTip": "ad2bd6380a4fae1e84f65cff980b510572d265ef",
+  "reviewedTip": "0ff904c497a06019c8bf7173a992c42b35082062",
+  "commitA": "ac3fee19ca6fff57e27597b1345ab99885ae513d",
+  "commitB": "607bb171b0629d3aceeea812cdeecdbe61a2e0c1",
+  "stampCommit": "0ff904c497a06019c8bf7173a992c42b35082062",
+  "formalReviewCommit": "ad2bd6380a4fae1e84f65cff980b510572d265ef",
+  "rollbackCommit": "3667ae23c8ae808732466e06218ffe53e01e8b4f",
+  "prePromotionMain": "3667ae23c8ae808732466e06218ffe53e01e8b4f",
+  "prePromotionProduction": "3667ae23c8ae808732466e06218ffe53e01e8b4f",
+  "mergeStrategy": "git merge --no-ff",
+  "mergeParents": [
+    "3667ae23c8ae808732466e06218ffe53e01e8b4f",
+    "ad2bd6380a4fae1e84f65cff980b510572d265ef"
+  ],
+  "deploymentId": "dpl_58HgB4yB62R4ND71zjeFUfgotgnV",
+  "gitCommitSha": "7de205b9f5c579dc356868db9070984a7698f736",
+  "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+  "projectName": "homecheff-app",
+  "aliases": [
+    "homecheff.eu",
+    "homecheff.nl",
+    "www.homecheff.eu",
+    "www.homecheff.nl"
+  ],
+  "contracts": {
+    "progressiveDisclosure": "wx-progressive-disclosure-v1",
+    "progressiveDisclosureVersion": "1.0.0",
+    "assistEligibility": "wx-assist-surface-eligibility-v1",
+    "assistEligibilityVersion": "1.0.0",
+    "presentation": "wx-surface-presentation-resolver-v1",
+    "presentationPlan": "wx-surface-presentation-plan-v1",
+    "presentationVersion": "1.0.0",
+    "registry": "wx-surface-presentation-registry-v1",
+    "capability": "wx-capability-activation-v1"
+  },
+  "gates": {
+    "lineage": "PASS",
+    "contract": "PASS",
+    "architecture": "PASS",
+    "ownership": "PASS",
+    "formalReview": "PASS_WITH_WARNINGS",
+    "merge": "PASS",
+    "runtimeHash": "PASS",
+    "liveBrowserProof": "PASS",
+    "liveScrollVerification": "PASS",
+    "liveLandscape1b21": "PASS",
+    "aliases": "PASS"
+  },
+  "liveProofs": {
+    "disclosure": {
+      "verdict": "WX_PHASE_1B5_4_BROWSER_PROOF_PASS",
+      "passCount": 10,
+      "journeyPass": null,
+      "visibleDisclosureDomDeltaZero": true
+    },
+    "scroll": {
+      "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+      "passCount": 8,
+      "portraitPass": null,
+      "landscapePass": null,
+      "journeyPass": null
+    },
+    "landscape1b21": "WX_PHASE_1B2_1_MOBILE_LANDSCAPE_SCROLL_FIX_PASS"
+  },
+  "sealed": {
+    "diagnosticsOnly": true,
+    "noOwnershipChange": true,
+    "noActivation": true,
+    "noChromeOccupancy": true,
+    "noCapabilityActivation": true,
+    "noRendererTransfer": true,
+    "noWriterTransfer": true,
+    "renderAuthorized": false
+  },
+  "warnings": [
+    "Formal review WARN: disclosed naming is planning state, not render authorization",
+    "Formal review WARN: Presentation/Assist resolve duplicated in layout (pre-existing pattern)",
+    "Formal review WARN: scroll probe not registered in npm scripts",
+    "Formal review WARN: viewport 414 not explicit in disclosure probe matrix",
+    "sharp-missing warnings observed on standalone during formal review (non-blocking)"
+  ],
+  "stopGate": "Do not begin WX Phase 1B.5.5 until explicit approval after this Production freeze."
+}

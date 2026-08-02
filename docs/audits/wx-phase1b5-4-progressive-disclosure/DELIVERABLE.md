@@ -1,19 +1,23 @@
 # WX Phase 1B.5.4 — Progressive Disclosure Continuity
 
-**Status:** `READY_FOR_FORMAL_REVIEW`  
-**Verdict:** `WX_PHASE_1B5_4_PASS`
+**Status:** `PRODUCTION_FROZEN`  
+**Verdict:** `WX_PHASE_1B5_4_PRODUCTION_SUCCESS`
 
 | Ref | Value |
 | --- | --- |
-| Branch | `wx/phase-1b5-4-progressive-disclosure` |
-| Worktree | `/Users/sergioarrias/homecheff-wx-1b54-impl` |
+| Branch | `wx/phase-1b5-4-progressive-disclosure` (merged) |
+| Merge / Production SHA | `7de205b9f5c579dc356868db9070984a7698f736` |
+| Deployment | `dpl_58HgB4yB62R4ND71zjeFUfgotgnV` |
 | Base / rollback | `3667ae23c8ae808732466e06218ffe53e01e8b4f` (1B.5.3 Production freeze tip) |
 | Contract | `wx-progressive-disclosure-v1` · version `1.0.0` |
 | Phase marker | `1b.5.4` |
 | Commit A (impl) | `ac3fee19ca6fff57e27597b1345ab99885ae513d` |
 | Commit B (evidence) | `607bb171b0629d3aceeea812cdeecdbe61a2e0c1` |
+| Stamp | `0ff904c497a06019c8bf7173a992c42b35082062` |
+| Formal review | `ad2bd6380a4fae1e84f65cff980b510572d265ef` |
 
-**Not claimed:** merge · deploy · Production freeze · WX Phase 1B.5.5 · formal review execution
+**Production evidence:** `docs/audits/wx-phase1b5-4-progressive-disclosure/production/`  
+**Stop:** Do not begin WX Phase 1B.5.5 without explicit approval.
 
 ---
 
