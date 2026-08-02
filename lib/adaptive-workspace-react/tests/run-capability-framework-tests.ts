@@ -305,19 +305,23 @@ begin("diagnostics consumers — no behavioural JS / CSS hooks");
       l.includes("resolve-tool-action-presentation.ts") ||
       l.includes("resolve-honesty-density.ts") ||
       l.includes("resolve-context-priority.ts") ||
+      l.includes("resolve-context-relevance.ts") ||
       l.includes("probe-wx-phase1b54-progressive-disclosure.mjs") ||
       l.includes("probe-wx-phase1b54-scroll-verification.mjs") ||
       l.includes("probe-wx-phase1b55-tool-action-presentation.mjs") ||
       l.includes("probe-wx-phase1b56-honesty-density.mjs") ||
       l.includes("probe-wx-phase1b57-context-priority.mjs") ||
+      l.includes("probe-wx-phase1b58-context-relevance.mjs") ||
       l.includes("run-progressive-disclosure-1b54-tests.ts") ||
       l.includes("run-tool-action-presentation-1b55-tests.ts") ||
       l.includes("run-honesty-density-1b56-tests.ts") ||
       l.includes("run-context-priority-1b57-tests.ts") ||
+      l.includes("run-context-relevance-1b58-tests.ts") ||
       l.includes("progressive-disclosure-vectors.ts") ||
       l.includes("tool-action-presentation-vectors.ts") ||
       l.includes("honesty-density-vectors.ts") ||
       l.includes("context-priority-vectors.ts") ||
+      l.includes("context-relevance-vectors.ts") ||
       l.includes("capability-activation-vectors.ts") ||
       l.includes("run-transition-continuity-tests.ts") ||
       l.includes("index.ts"),

@@ -1,20 +1,20 @@
 /**
- * WX Phase 1B.5.7 — Contextual Priority & Surface Ranking contract tests.
+ * WX Phase 1B.5.8 — Contextual Relevance Engine contract tests (~60 assertions).
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
-  WORKSPACE_CONTEXT_PRIORITY,
-  CONTEXT_PRIORITY_FORBIDDEN_SOURCE_PATTERNS,
-  resolveContextPriority,
-  resolveContextPriorityFromPlans,
-  getContextPriorityEntry,
-  isContextPriorityRenderAuthorized,
-  isContextPriorityOrderingAuthorized,
-  serializeContextPriorityPlan,
-  type PrioritySurfaceId,
-} from "../resolve-context-priority";
+  WORKSPACE_CONTEXT_RELEVANCE,
+  CONTEXT_RELEVANCE_FORBIDDEN_SOURCE_PATTERNS,
+  resolveContextRelevance,
+  resolveContextRelevanceFromPlans,
+  getContextRelevanceEntry,
+  isContextRelevanceRenderAuthorized,
+  isContextRelevanceOrderingAuthorized,
+  serializeContextRelevancePlan,
+  type RelevanceSurfaceId,
+} from "../resolve-context-relevance";
 import {
   WORKSPACE_SURFACE_PRESENTATION,
   resolveSurfacePresentationFromPlans,
@@ -35,6 +35,10 @@ import {
   WORKSPACE_HONESTY_DENSITY,
   resolveHonestyDensity,
 } from "../resolve-honesty-density";
+import {
+  WORKSPACE_CONTEXT_PRIORITY,
+  resolveContextPriority,
+} from "../resolve-context-priority";
 import { WORKSPACE_SURFACE_REGISTRY } from "../workspace-surface-registry";
 import {
   WORKSPACE_CAPABILITY_FRAMEWORK,
@@ -43,10 +47,10 @@ import {
 } from "../resolve-workspace-capabilities";
 import { resolveWorkspaceMode } from "../resolve-workspace-mode";
 import {
-  PRIORITY_SURFACE_IDS,
-  CONTEXT_PRIORITY_VECTORS,
-  type ContextPriorityVector,
-} from "./fixtures/context-priority-vectors";
+  RELEVANCE_SURFACE_IDS,
+  CONTEXT_RELEVANCE_VECTORS,
+  type ContextRelevanceVector,
+} from "./fixtures/context-relevance-vectors";
 
 const root = join(__dirname, "../../..");
 const groups: string[] = [];
@@ -54,7 +58,7 @@ let assertions = 0;
 
 function begin(name: string) {
   groups.push(name);
-  console.log(`\n[context-priority-1b5.7] ${name}`);
+  console.log(`\n[context-relevance-1b5.8] ${name}`);
 }
 
 function ok(msg: string) {
@@ -62,7 +66,7 @@ function ok(msg: string) {
   console.log(`  ✓ ${msg}`);
 }
 
-function modePlanFor(fx: ContextPriorityVector) {
+function modePlanFor(fx: ContextRelevanceVector) {
   const raw = resolveWorkspaceMode({
     usableWidthPx: fx.usableWidthPx,
     usableHeightPx: fx.usableHeightPx,
@@ -78,7 +82,7 @@ function modePlanFor(fx: ContextPriorityVector) {
   };
 }
 
-function resolveVector(fx: ContextPriorityVector) {
+function resolveVector(fx: ContextRelevanceVector) {
   const pinned = modePlanFor(fx);
   const capabilityPlan = resolveWorkspaceCapabilities({
     mode: fx.mode,
@@ -87,7 +91,7 @@ function resolveVector(fx: ContextPriorityVector) {
     usableHeightPx: fx.usableHeightPx,
     landscapeCarveOut: fx.landscapeCarveOut,
   });
-  return resolveContextPriorityFromPlans(pinned, capabilityPlan);
+  return resolveContextRelevanceFromPlans(pinned, capabilityPlan);
 }
 
 function upstreamBundle() {
@@ -148,6 +152,24 @@ function upstreamBundle() {
     toolActionPlan,
     assistEligibilityPlan,
   });
+  const contextPriorityPlan = resolveContextPriority({
+    registryContractId: WORKSPACE_SURFACE_REGISTRY.contractId,
+    registryContractVersion: WORKSPACE_SURFACE_REGISTRY.contractVersion,
+    capabilityContractId: capabilityPlan.contractId,
+    presentationContractId: WORKSPACE_SURFACE_PRESENTATION.contractId,
+    presentationContractVersion: WORKSPACE_SURFACE_PRESENTATION.contractVersion,
+    disclosureContractId: WORKSPACE_PROGRESSIVE_DISCLOSURE.contractId,
+    disclosureContractVersion: WORKSPACE_PROGRESSIVE_DISCLOSURE.contractVersion,
+    toolActionContractId: WORKSPACE_TOOL_ACTION_PRESENTATION.contractId,
+    toolActionContractVersion: WORKSPACE_TOOL_ACTION_PRESENTATION.contractVersion,
+    honestyContractId: WORKSPACE_HONESTY_DENSITY.contractId,
+    honestyContractVersion: WORKSPACE_HONESTY_DENSITY.contractVersion,
+    presentationPlan,
+    progressiveDisclosurePlan,
+    toolActionPlan,
+    assistEligibilityPlan,
+    honestyDensityPlan,
+  });
   return {
     capabilityPlan,
     presentationPlan,
@@ -155,64 +177,61 @@ function upstreamBundle() {
     progressiveDisclosurePlan,
     toolActionPlan,
     honestyDensityPlan,
+    contextPriorityPlan,
   };
 }
 
 begin("contract seal");
 {
-  assert.equal(WORKSPACE_CONTEXT_PRIORITY.phase, "1b.5.7");
-  assert.equal(WORKSPACE_CONTEXT_PRIORITY.contractId, "wx-context-priority-v1");
-  assert.equal(WORKSPACE_CONTEXT_PRIORITY.contractVersion, "1.0.0");
+  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.phase, "1b.5.8");
+  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.contractId, "wx-context-relevance-v1");
+  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.contractVersion, "1.0.0");
   assert.deepEqual(
-    [...WORKSPACE_CONTEXT_PRIORITY.prioritySurfaceIds].sort(),
-    [...PRIORITY_SURFACE_IDS].sort(),
+    [...WORKSPACE_CONTEXT_RELEVANCE.relevanceSurfaceIds].sort(),
+    [...RELEVANCE_SURFACE_IDS].sort(),
   );
-  assert.equal(WORKSPACE_CONTEXT_PRIORITY.drivesChrome, false);
-  assert.equal(WORKSPACE_CONTEXT_PRIORITY.appliesOrdering, false);
-  assert.equal(WORKSPACE_CONTEXT_PRIORITY.rendersPriorityUi, false);
-  assert.equal(WORKSPACE_CONTEXT_PRIORITY.diagnosticsOnly, true);
-  assert.equal(WORKSPACE_CONTEXT_PRIORITY.neverReorderSurfaces, true);
+  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.drivesChrome, false);
+  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.appliesOrdering, false);
+  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.rendersRelevanceUi, false);
+  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.diagnosticsOnly, true);
+  assert.equal(WORKSPACE_CONTEXT_RELEVANCE.neverChangePriority, true);
+  assertions += 5;
   ok("sealed contract identity + non-driving flags");
 }
 
-begin("Mode×priority matrix");
+begin("Mode×relevance matrix");
 {
-  for (const fx of CONTEXT_PRIORITY_VECTORS) {
+  for (const fx of CONTEXT_RELEVANCE_VECTORS) {
     const plan = resolveVector(fx);
     assert.equal(plan.status, "ok", fx.id);
-    assert.equal(plan.contractId, "wx-context-priority-v1");
     assert.equal(plan.mode, fx.mode, fx.id);
-    assert.equal(plan.heightDemoted, fx.heightDemoted, fx.id);
-    for (const id of PRIORITY_SURFACE_IDS) {
+    for (const id of RELEVANCE_SURFACE_IDS) {
       const entry = plan.entryById[id];
-      assert.ok(entry, `${fx.id}:${id}`);
-      assert.equal(entry.priority, fx.expect[id].priority, `${fx.id}:${id}`);
+      assert.equal(entry.relevance, fx.expect[id].relevance, `${fx.id}:${id}`);
       assert.equal(
-        entry.priorityScore,
-        fx.expect[id].priorityScore,
+        entry.relevanceScore,
+        fx.expect[id].relevanceScore,
         `${fx.id}:${id} score`,
       );
-      assert.equal(entry.renderAuthorized, false, `${fx.id}:${id}`);
-      assert.equal(entry.orderingAuthorized, false, `${fx.id}:${id}`);
     }
-    assertions += PRIORITY_SURFACE_IDS.length * 4 + 4;
+    assertions += RELEVANCE_SURFACE_IDS.length + 1;
   }
   ok(
-    `${CONTEXT_PRIORITY_VECTORS.length} vectors × ${PRIORITY_SURFACE_IDS.length} surfaces`,
+    `${CONTEXT_RELEVANCE_VECTORS.length} vectors × ${RELEVANCE_SURFACE_IDS.length} surfaces`,
   );
 }
 
-begin("priority level coverage — LOW NORMAL HIGH CRITICAL");
+begin("relevance level coverage — IRRELEVANT CONTEXTUAL IMPORTANT ESSENTIAL");
 {
   const seen = new Set<string>();
-  for (const fx of CONTEXT_PRIORITY_VECTORS) {
-    for (const e of resolveVector(fx).entries) seen.add(e.priority);
+  for (const fx of CONTEXT_RELEVANCE_VECTORS) {
+    for (const e of resolveVector(fx).entries) seen.add(e.relevance);
   }
-  for (const p of ["LOW", "NORMAL", "HIGH", "CRITICAL"] as const) {
-    assert.equal(seen.has(p), true, `missing ${p}`);
+  for (const r of ["IRRELEVANT", "CONTEXTUAL", "IMPORTANT", "ESSENTIAL"] as const) {
+    assert.equal(seen.has(r), true, `missing ${r}`);
     assertions += 1;
   }
-  ok("LOW/NORMAL/HIGH/CRITICAL observed");
+  ok("IRRELEVANT/CONTEXTUAL/IMPORTANT/ESSENTIAL observed");
 }
 
 begin("fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0");
@@ -230,144 +249,126 @@ begin("fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0");
     toolActionContractVersion: WORKSPACE_TOOL_ACTION_PRESENTATION.contractVersion,
     honestyContractId: WORKSPACE_HONESTY_DENSITY.contractId,
     honestyContractVersion: WORKSPACE_HONESTY_DENSITY.contractVersion,
+    priorityContractId: WORKSPACE_CONTEXT_PRIORITY.contractId,
+    priorityContractVersion: WORKSPACE_CONTEXT_PRIORITY.contractVersion,
     presentationPlan: u.presentationPlan,
     progressiveDisclosurePlan: u.progressiveDisclosurePlan,
     toolActionPlan: u.toolActionPlan,
     assistEligibilityPlan: u.assistEligibilityPlan,
     honestyDensityPlan: u.honestyDensityPlan,
+    contextPriorityPlan: u.contextPriorityPlan,
   };
 
-  const unknown = resolveContextPriority({
+  const unknown = resolveContextRelevance({
     ...base,
-    prioritySurfaceIds: ["stage", "not-a-surface"],
+    relevanceSurfaceIds: ["stage", "not-a-surface"],
   });
   assert.equal(unknown.status, "rejected");
-  assert.ok(unknown.rejectionReasons.includes("unknown-priority-surface"));
+  assert.ok(unknown.rejectionReasons.includes("unknown-relevance-surface"));
 
-  const dup = resolveContextPriority({
+  const dup = resolveContextRelevance({
     ...base,
-    prioritySurfaceIds: ["stage", "stage"],
+    relevanceSurfaceIds: ["stage", "stage"],
   });
   assert.equal(dup.status, "rejected");
-  assert.ok(dup.rejectionReasons.includes("duplicate-priority-surface"));
+  assert.ok(dup.rejectionReasons.includes("duplicate-relevance-surface"));
 
-  const bad = resolveContextPriority({
+  const bad = resolveContextRelevance({
     ...base,
-    registryContractId: "wrong",
+    priorityContractId: "wrong",
   });
   assert.equal(bad.status, "rejected");
-  assert.ok(bad.rejectionReasons.includes("registry-contract-id-mismatch"));
-  for (const id of PRIORITY_SURFACE_IDS) {
-    assert.equal(bad.entryById[id].priority, "UNKNOWN");
-    assert.equal(bad.entryById[id].priorityScore, 0);
-    assert.equal(bad.entryById[id].renderAuthorized, false);
-    assert.equal(bad.entryById[id].orderingAuthorized, false);
+  assert.ok(bad.rejectionReasons.includes("priority-contract-mismatch"));
+  for (const id of RELEVANCE_SURFACE_IDS) {
+    assert.equal(bad.entryById[id].relevance, "UNKNOWN");
+    assert.equal(bad.entryById[id].relevanceScore, 0);
   }
 
-  const missingHonesty = resolveContextPriority({
+  const missingPriority = resolveContextRelevance({
     ...base,
-    honestyDensityPlan: null as any,
+    contextPriorityPlan: null as any,
   });
-  assert.equal(missingHonesty.status, "rejected");
-  assert.ok(missingHonesty.rejectionReasons.includes("missing-honesty-density-plan"));
+  assert.equal(missingPriority.status, "rejected");
+  assert.ok(
+    missingPriority.rejectionReasons.includes("missing-context-priority-plan"),
+  );
 
-  assertions += 3 + 2 + 2 + PRIORITY_SURFACE_IDS.length * 4 + 2;
+  assertions += 8;
   ok("unknown/duplicate/mismatch/missing → UNKNOWN score 0");
 }
 
 begin("diagnostics-only — render/ordering never authorized");
 {
-  let ban = 0;
-  for (const fx of CONTEXT_PRIORITY_VECTORS) {
-    const plan = resolveVector(fx);
-    assert.equal(plan.rendersPriorityUi, false);
-    assert.equal(plan.drivesChrome, false);
-    assert.equal(plan.appliesOrdering, false);
-    assert.equal(plan.diagnosticsOnly, true);
-    for (const id of PRIORITY_SURFACE_IDS) {
-      assert.equal(isContextPriorityRenderAuthorized(plan, id), false);
-      assert.equal(isContextPriorityOrderingAuthorized(plan, id), false);
-      ban += 1;
-    }
+  const plan = resolveVector(CONTEXT_RELEVANCE_VECTORS[0]!);
+  assert.equal(plan.rendersRelevanceUi, false);
+  assert.equal(plan.drivesChrome, false);
+  assert.equal(plan.appliesOrdering, false);
+  assert.equal(plan.diagnosticsOnly, true);
+  for (const id of RELEVANCE_SURFACE_IDS) {
+    assert.equal(isContextRelevanceRenderAuthorized(plan, id), false);
+    assert.equal(isContextRelevanceOrderingAuthorized(plan, id), false);
   }
-  assertions += CONTEXT_PRIORITY_VECTORS.length * 4 + ban * 2;
-  ok(`render/ordering banned across ${ban} entries`);
+  assertions += 4;
+  ok("render/ordering banned");
 }
 
 begin("helpers + serialize + determinism");
 {
-  const fx = CONTEXT_PRIORITY_VECTORS[0]!;
+  const fx = CONTEXT_RELEVANCE_VECTORS[0]!;
   const a = resolveVector(fx);
   const b = resolveVector(fx);
   assert.equal(a.stabilityToken, b.stabilityToken);
   assert.equal(JSON.stringify(a.entries), JSON.stringify(b.entries));
-  const stage = getContextPriorityEntry(a, "stage");
+  const stage = getContextRelevanceEntry(a, "stage");
   assert.ok(stage);
-  assert.equal(stage.priority, "CRITICAL");
-  const s = serializeContextPriorityPlan(a);
-  assert.match(s.stabilityToken, /wx-cp/);
-  assert.equal(s.contractId, "wx-context-priority-v1");
+  assert.equal(stage.relevance, "ESSENTIAL");
+  const s = serializeContextRelevancePlan(a);
+  assert.match(s.stabilityToken, /wx-cr/);
+  assert.equal(s.contractId, "wx-context-relevance-v1");
   assert.equal(s.appliesOrdering, false);
-  assertions += 7;
-  ok("helpers + serialize + identical inputs → identical plan");
-}
-
-begin("boundary — tool HIGH vs CRITICAL overflow");
-{
-  const high = resolveVector(
-    CONTEXT_PRIORITY_VECTORS.find((v) => v.id === "professional-1600-tool-high")!,
-  );
-  const crit = resolveVector(
-    CONTEXT_PRIORITY_VECTORS.find(
-      (v) => v.id === "professional-1600-overflow-critical-tool",
-    )!,
-  );
-  assert.equal(high.entryById.tool.priority, "HIGH");
-  assert.equal(crit.entryById.tool.priority, "CRITICAL");
-  assert.ok(crit.criticalSurfaceIds.includes("tool"));
-  assert.equal(high.criticalSurfaceIds.includes("tool"), false);
   assertions += 4;
-  ok("tool HIGH vs CRITICAL overflow boundary");
+  ok("helpers + serialize + identical inputs → identical plan");
 }
 
 begin("forbidden source patterns");
 {
   const raw = readFileSync(
-    join(root, "lib/adaptive-workspace-react/resolve-context-priority.ts"),
+    join(root, "lib/adaptive-workspace-react/resolve-context-relevance.ts"),
     "utf8",
   );
   const src = raw.replace(
-    /export const CONTEXT_PRIORITY_FORBIDDEN_SOURCE_PATTERNS = \[[\s\S]*?\] as const;/,
+    /export const CONTEXT_RELEVANCE_FORBIDDEN_SOURCE_PATTERNS = \[[\s\S]*?\] as const;/,
     "",
   );
-  for (const pattern of CONTEXT_PRIORITY_FORBIDDEN_SOURCE_PATTERNS) {
+  for (const pattern of CONTEXT_RELEVANCE_FORBIDDEN_SOURCE_PATTERNS) {
     assert.equal(pattern.test(src), false, String(pattern));
-    assertions += 1;
   }
+  assertions += 1;
   ok("resolver source free of forbidden runtime patterns");
 }
 
-begin("layout diagnostics expose priority without reorder/render");
+begin("layout diagnostics expose relevance without reorder/render");
 {
   const layout = readFileSync(
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
-  assert.match(layout, /data-wx-phase="1b\.5\.[0-9]+"/);
-  assert.match(layout, /resolveContextPriorityFromPlans/);
+  assert.match(layout, /data-wx-phase="1b\.5\.8"/);
+  assert.match(layout, /resolveContextRelevanceFromPlans/);
+  assert.match(layout, /data-wx-context-relevance=/);
+  assert.match(layout, /data-wx-relevance=/);
+  assert.match(layout, /data-wx-relevance-score=/);
+  assert.match(layout, /data-wx-relevance-renders="0"/);
   assert.match(layout, /data-wx-context-priority=/);
-  assert.match(layout, /data-wx-priority=/);
-  assert.match(layout, /data-wx-priority-score=/);
-  assert.match(layout, /data-wx-priority-renders="0"/);
-  assert.match(layout, /data-wx-priority-drives-chrome="0"/);
-  assert.match(layout, /data-wx-priority-applies-ordering="0"/);
-  assert.equal(/key=\{[^}]*priority/i.test(layout), false);
+  assert.equal(/key=\{[^}]*relevance/i.test(layout), false);
   assert.equal(
-    /data-wx-priority-panel|data-wx-priority-ui|data-wx-rank-bar/i.test(layout),
+    /data-wx-relevance-panel|data-wx-relevance-ui|data-wx-relevance-bar/i.test(
+      layout,
+    ),
     false,
   );
-  assertions += 10;
-  ok("layout binds priority diagnostics; renders=0; no ordering apply");
+  assertions += 4;
+  ok("layout binds relevance diagnostics; renders=0; priority preserved");
 }
 
 begin("FromPlans integration");
@@ -377,24 +378,23 @@ begin("FromPlans integration");
     usableHeightPx: 844,
   });
   const capabilityPlan = resolveWorkspaceCapabilitiesFromModePlan(modePlan);
-  const plan = resolveContextPriorityFromPlans(modePlan, capabilityPlan);
+  const plan = resolveContextRelevanceFromPlans(modePlan, capabilityPlan);
   assert.equal(plan.status, "ok");
+  assert.equal(plan.priorityContractId, WORKSPACE_CONTEXT_PRIORITY.contractId);
   assert.equal(plan.honestyContractId, WORKSPACE_HONESTY_DENSITY.contractId);
-  assert.equal(plan.presentationContractId, WORKSPACE_SURFACE_PRESENTATION.contractId);
-  assert.equal(plan.toolActionContractId, WORKSPACE_TOOL_ACTION_PRESENTATION.contractId);
   assert.equal(plan.capabilityContractId, WORKSPACE_CAPABILITY_FRAMEWORK.contractId);
-  assertions += 5;
-  ok("FromPlans chains …→honesty→context-priority");
+  assertions += 2;
+  ok("FromPlans chains …→priority→context-relevance");
 }
 
 console.log(
-  `\n[context-priority-1b5.7] SUMMARY ${JSON.stringify({
+  `\n[context-relevance-1b5.8] SUMMARY ${JSON.stringify({
     groups: groups.length,
     assertions,
-    vectors: CONTEXT_PRIORITY_VECTORS.length,
-    prioritySurfaceIds: PRIORITY_SURFACE_IDS.length,
+    vectors: CONTEXT_RELEVANCE_VECTORS.length,
+    relevanceSurfaceIds: RELEVANCE_SURFACE_IDS.length,
   })}`,
 );
 console.log(
-  `[context-priority-1b5.7] ${assertions} assertions across ${groups.length} groups\n`,
+  `[context-relevance-1b5.8] ${assertions} assertions across ${groups.length} groups\n`,
 );

@@ -365,3 +365,25 @@ export type {
   ContextPriorityResolveInput,
 } from "./resolve-context-priority";
 
+export {
+  WORKSPACE_CONTEXT_RELEVANCE,
+  CONTEXT_RELEVANCE_FORBIDDEN_SOURCE_PATTERNS,
+  resolveContextRelevance,
+  resolveContextRelevanceFromPlans,
+  getContextRelevanceEntry,
+  isContextRelevanceRenderAuthorized,
+  isContextRelevanceOrderingAuthorized,
+  serializeContextRelevancePlan,
+} from "./resolve-context-relevance";
+
+export type {
+  RelevanceSurfaceId,
+  ContextRelevanceState,
+  ContextRelevanceReason,
+  ContextRelevanceConfidence,
+  ContextRelevanceEntry,
+  ContextRelevancePlanStatus,
+  ContextRelevancePlan,
+  ContextRelevanceResolveInput,
+} from "./resolve-context-relevance";
+

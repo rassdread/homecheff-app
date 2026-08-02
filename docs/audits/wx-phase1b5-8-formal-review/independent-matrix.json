@@ -1,0 +1,399 @@
+{
+  "checks": [
+    {
+      "name": "contractId",
+      "ok": true
+    },
+    {
+      "name": "version",
+      "ok": true
+    },
+    {
+      "name": "phase",
+      "ok": true
+    },
+    {
+      "name": "diagnosticsOnly",
+      "ok": true
+    },
+    {
+      "name": "rendersRelevanceUi",
+      "ok": true
+    },
+    {
+      "name": "appliesOrdering",
+      "ok": true
+    },
+    {
+      "name": "drivesChrome",
+      "ok": true
+    },
+    {
+      "name": "neverChangePriority",
+      "ok": true
+    },
+    {
+      "name": "neverInspectDom",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bnavigator\\./",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\buserAgent\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bmatchMedia\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bwindow\\./",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bdocument\\./",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\blocalStorage\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bsessionStorage\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bgetBoundingClientRect\\b/",
+      "ok": true
+    },
+    {
+      "name": "forbidden:/\\bResizeObserver\\b/",
+      "ok": true
+    },
+    {
+      "name": "noAsyncAwait",
+      "ok": true
+    },
+    {
+      "name": "noFetch",
+      "ok": true
+    },
+    {
+      "name": "matrix:browse-390",
+      "ok": true
+    },
+    {
+      "name": "matrix:demoted-500",
+      "ok": true
+    },
+    {
+      "name": "matrix:hybrid-844",
+      "ok": true
+    },
+    {
+      "name": "level:IRRELEVANT",
+      "ok": true
+    },
+    {
+      "name": "level:CONTEXTUAL",
+      "ok": true
+    },
+    {
+      "name": "level:IMPORTANT",
+      "ok": true
+    },
+    {
+      "name": "level:ESSENTIAL",
+      "ok": true
+    },
+    {
+      "name": "failClosed:unknown-surface",
+      "ok": true
+    },
+    {
+      "name": "failClosed:duplicate",
+      "ok": true
+    },
+    {
+      "name": "failClosed:priority-mismatch",
+      "ok": true
+    },
+    {
+      "name": "failClosed:missing-priority",
+      "ok": true
+    },
+    {
+      "name": "deterministic",
+      "ok": true
+    },
+    {
+      "name": "layoutNoStyleClassKey",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "layoutKeepsPriority",
+      "ok": true
+    },
+    {
+      "name": "layoutPhaseBump",
+      "ok": true
+    },
+    {
+      "name": "priorityResolverUnchanged",
+      "ok": true
+    }
+  ],
+  "matrix": [
+    {
+      "id": "browse-390",
+      "status": "ok",
+      "surfaces": {
+        "stage": {
+          "relevance": "ESSENTIAL",
+          "score": 100,
+          "priority": "CRITICAL",
+          "expected": "ESSENTIAL",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "orientation": {
+          "relevance": "IMPORTANT",
+          "score": 75,
+          "priority": "HIGH",
+          "expected": "IMPORTANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "command": {
+          "relevance": "IMPORTANT",
+          "score": 75,
+          "priority": "HIGH",
+          "expected": "IMPORTANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "disclosure": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "assist-primary": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "assist-secondary": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "tool": {
+          "relevance": "CONTEXTUAL",
+          "score": 50,
+          "priority": "NORMAL",
+          "expected": "CONTEXTUAL",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        }
+      }
+    },
+    {
+      "id": "demoted-500",
+      "status": "ok",
+      "surfaces": {
+        "stage": {
+          "relevance": "ESSENTIAL",
+          "score": 100,
+          "priority": "CRITICAL",
+          "expected": "ESSENTIAL",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "orientation": {
+          "relevance": "ESSENTIAL",
+          "score": 100,
+          "priority": "CRITICAL",
+          "expected": "ESSENTIAL",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "command": {
+          "relevance": "ESSENTIAL",
+          "score": 100,
+          "priority": "CRITICAL",
+          "expected": "ESSENTIAL",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "disclosure": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "assist-primary": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "assist-secondary": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "tool": {
+          "relevance": "CONTEXTUAL",
+          "score": 50,
+          "priority": "NORMAL",
+          "expected": "CONTEXTUAL",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        }
+      }
+    },
+    {
+      "id": "hybrid-844",
+      "status": "ok",
+      "surfaces": {
+        "stage": {
+          "relevance": "ESSENTIAL",
+          "score": 100,
+          "priority": "CRITICAL",
+          "expected": "ESSENTIAL",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "orientation": {
+          "relevance": "IMPORTANT",
+          "score": 75,
+          "priority": "HIGH",
+          "expected": "IMPORTANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "command": {
+          "relevance": "IMPORTANT",
+          "score": 75,
+          "priority": "HIGH",
+          "expected": "IMPORTANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "disclosure": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "assist-primary": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "assist-secondary": {
+          "relevance": "IRRELEVANT",
+          "score": 25,
+          "priority": "LOW",
+          "expected": "IRRELEVANT",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        },
+        "tool": {
+          "relevance": "CONTEXTUAL",
+          "score": 50,
+          "priority": "NORMAL",
+          "expected": "CONTEXTUAL",
+          "scoreOk": true,
+          "mapMatch": true,
+          "renderOff": true
+        }
+      }
+    }
+  ],
+  "failClosed": [
+    {
+      "name": "unknown-surface",
+      "status": "rejected",
+      "reasons": [
+        "unknown-relevance-surface"
+      ],
+      "allUnknown": true
+    },
+    {
+      "name": "duplicate",
+      "status": "rejected",
+      "reasons": [
+        "duplicate-relevance-surface"
+      ],
+      "allUnknown": true
+    },
+    {
+      "name": "priority-mismatch",
+      "status": "rejected",
+      "reasons": [
+        "priority-contract-mismatch"
+      ],
+      "allUnknown": true
+    },
+    {
+      "name": "missing-priority",
+      "status": "rejected",
+      "reasons": [
+        "missing-context-priority-plan"
+      ],
+      "allUnknown": true
+    }
+  ],
+  "purity": [],
+  "ownership": [],
+  "summary": {
+    "pass": 36,
+    "fail": 0,
+    "total": 36
+  }
+}

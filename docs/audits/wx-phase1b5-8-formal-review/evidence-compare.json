@@ -1,0 +1,9 @@
+{
+  "tipVerdict": "WX_PHASE_1B5_8_BROWSER_PROOF_PASS",
+  "independentVerdict": "WX_PHASE_1B5_8_BROWSER_PROOF_PASS",
+  "tipPass": 10,
+  "independentPass": 10,
+  "tipJourney": true,
+  "independentJourney": true,
+  "match": true
+}
