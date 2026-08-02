@@ -53,5 +53,6 @@
     "ownership-live.json",
     "production-freeze-pack.json"
   ],
-  "frozenAt": "2026-08-02T13:40:00+02:00"
+  "frozenAt": "2026-08-02T13:42:00+02:00",
+  "freezeDocsCommit": "6f19fc96afa0e4eeeb1c61fcb4967e9552b49e77"
 }
