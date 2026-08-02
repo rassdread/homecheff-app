@@ -11,7 +11,7 @@
 | Contract | `wx-progressive-disclosure-v1` · version `1.0.0` |
 | Phase marker | `1b.5.4` |
 | Commit A (impl) | `ac3fee19ca6fff57e27597b1345ab99885ae513d` |
-| Commit B (evidence) | _(pending stamp)_ |
+| Commit B (evidence) | `607bb171b0629d3aceeea812cdeecdbe61a2e0c1` |
 
 **Not claimed:** merge · deploy · Production freeze · WX Phase 1B.5.5 · formal review execution
 
