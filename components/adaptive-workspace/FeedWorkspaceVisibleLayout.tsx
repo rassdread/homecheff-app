@@ -64,6 +64,7 @@ import {
   resolveToolActionPresentationFromPlans,
   resolveHonestyDensityFromPlans,
   resolveContextPriorityFromPlans,
+  resolveContextRelevanceFromPlans,
   WORKSPACE_TRANSITION_CONTINUITY,
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
@@ -74,6 +75,7 @@ import {
   WORKSPACE_TOOL_ACTION_PRESENTATION,
   WORKSPACE_HONESTY_DENSITY,
   WORKSPACE_CONTEXT_PRIORITY,
+  WORKSPACE_CONTEXT_RELEVANCE,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
   type WorkspaceModePlan,
@@ -256,6 +258,12 @@ export default function FeedWorkspaceVisibleLayout({
     capabilityPlan,
   );
 
+  /** WX 1B.5.8 — contextual relevance; diagnostics only (does not present). */
+  const contextRelevancePlan = resolveContextRelevanceFromPlans(
+    modePlan,
+    capabilityPlan,
+  );
+
   const previousMode = previousModeRef.current;
   const modeChanged =
     previousMode != null && previousMode.mode !== modePlan.mode;
@@ -300,7 +308,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.5.7"
+      data-wx-phase="1b.5.8"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -449,6 +457,35 @@ export default function FeedWorkspaceVisibleLayout({
       data-wx-priority-normal={contextPriorityPlan.normalSurfaceIds.join(",")}
       data-wx-priority-high={contextPriorityPlan.highSurfaceIds.join(",")}
       data-wx-priority-critical={contextPriorityPlan.criticalSurfaceIds.join(",")}
+      data-wx-context-relevance={WORKSPACE_CONTEXT_RELEVANCE.contractId}
+      data-wx-context-relevance-version={WORKSPACE_CONTEXT_RELEVANCE.contractVersion}
+      data-wx-context-relevance-token={contextRelevancePlan.stabilityToken}
+      data-wx-context-relevance-status={contextRelevancePlan.status}
+      data-wx-relevance-renders="0"
+      data-wx-relevance-drives-chrome="0"
+      data-wx-relevance-applies-ordering="0"
+      data-wx-relevance={contextRelevancePlan.orderedSurfaceIds
+        .map((id) => `${id}:${contextRelevancePlan.entryById[id].relevance}`)
+        .join(",")}
+      data-wx-relevance-score={contextRelevancePlan.orderedSurfaceIds
+        .map(
+          (id) => `${id}:${contextRelevancePlan.entryById[id].relevanceScore}`,
+        )
+        .join(",")}
+      data-wx-relevance-ids={contextRelevancePlan.orderedSurfaceIds.join(",")}
+      data-wx-relevance-unknown={contextRelevancePlan.unknownSurfaceIds.join(",")}
+      data-wx-relevance-irrelevant={contextRelevancePlan.irrelevantSurfaceIds.join(
+        ",",
+      )}
+      data-wx-relevance-contextual={contextRelevancePlan.contextualSurfaceIds.join(
+        ",",
+      )}
+      data-wx-relevance-important={contextRelevancePlan.importantSurfaceIds.join(
+        ",",
+      )}
+      data-wx-relevance-essential={contextRelevancePlan.essentialSurfaceIds.join(
+        ",",
+      )}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
