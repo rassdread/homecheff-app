@@ -1,0 +1,98 @@
+{
+  "portraitOwner": "document",
+  "landscapeOwner": "feed",
+  "cases": [
+    {
+      "id": "phone-portrait",
+      "expect": "document",
+      "observed": "document",
+      "match": true
+    },
+    {
+      "id": "phone-portrait-320",
+      "expect": "document",
+      "observed": "document",
+      "match": true
+    },
+    {
+      "id": "phone-landscape",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "phone-landscape-740",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "tablet-portrait",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "tablet-landscape",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "desktop",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "ultrawide",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    }
+  ],
+  "journeyOwners": [
+    {
+      "id": "p390",
+      "expect": "document",
+      "observed": "document",
+      "match": true
+    },
+    {
+      "id": "l844",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "p390-return",
+      "expect": "document",
+      "observed": "document",
+      "match": true
+    },
+    {
+      "id": "l740",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "t768",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "d1440",
+      "expect": "feed",
+      "observed": "feed",
+      "match": true
+    },
+    {
+      "id": "p390-final",
+      "expect": "document",
+      "observed": "document",
+      "match": true
+    }
+  ]
+}
