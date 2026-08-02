@@ -1,0 +1,23 @@
+{
+  "contract": "wx-context-priority-v1",
+  "version": "1.0.0",
+  "phase": "1b.5.7",
+  "levels": [
+    "UNKNOWN",
+    "LOW",
+    "NORMAL",
+    "HIGH",
+    "CRITICAL"
+  ],
+  "scores": [
+    0,
+    25,
+    50,
+    75,
+    100
+  ],
+  "diagnosticsOnly": true,
+  "appliesOrdering": false,
+  "rendersPriorityUi": false,
+  "drivesChrome": false
+}

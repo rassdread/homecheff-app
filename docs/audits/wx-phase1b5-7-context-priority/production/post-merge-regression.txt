@@ -1,0 +1,20 @@
+  ✓ render/ordering banned across 49 entries
+
+[context-priority-1b5.7] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[context-priority-1b5.7] boundary — tool HIGH vs CRITICAL overflow
+  ✓ tool HIGH vs CRITICAL overflow boundary
+
+[context-priority-1b5.7] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[context-priority-1b5.7] layout diagnostics expose priority without reorder/render
+  ✓ layout binds priority diagnostics; renders=0; no ordering apply
+
+[context-priority-1b5.7] FromPlans integration
+  ✓ FromPlans chains …→honesty→context-priority
+
+[context-priority-1b5.7] SUMMARY {"groups":10,"assertions":436,"vectors":7,"prioritySurfaceIds":7}
+[context-priority-1b5.7] 436 assertions across 10 groups
+

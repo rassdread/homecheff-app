@@ -1,0 +1,4 @@
+homecheff.eu {'code': 'forbidden', 'message': 'Not authorized', 'invalidToken': True}
+www.homecheff.eu {'code': 'forbidden', 'message': 'Not authorized', 'invalidToken': True}
+homecheff.nl {'code': 'forbidden', 'message': 'Not authorized', 'invalidToken': True}
+www.homecheff.nl {'code': 'forbidden', 'message': 'Not authorized', 'invalidToken': True}

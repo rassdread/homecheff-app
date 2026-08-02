@@ -1,0 +1,39 @@
+{
+  "phase": "1b.5.7",
+  "title": "WX Phase 1B.5.7 Contextual Priority & Surface Ranking",
+  "status": "PRODUCTION_FROZEN",
+  "verdict": "WX_PHASE_1B5_7_PRODUCTION_SUCCESS",
+  "contract": {
+    "id": "wx-context-priority-v1",
+    "version": "1.0.0"
+  },
+  "merge": "b52900581c35033ba4c04efe69526d35f8d37c9a",
+  "parents": [
+    "7529c511ac9bc55e4c7f2f50be1bacf77cd378e3",
+    "bee6ae7d99608e54c14212d0e59bbd494e3d0075"
+  ],
+  "reviewedImplTip": "2ddad55074b1d9dda6786ad7367cf7b6c0db17c0",
+  "promotionSourceTip": "bee6ae7d99608e54c14212d0e59bbd494e3d0075",
+  "commitA": "5818e9416d6dd5ca92a9961f273470dfa3111c17",
+  "commitB": "12df8f5bfdd4a560bc60ce371819b7192c512200",
+  "rollback": "2db5a5ab3769940716a670062794871548c14bf9",
+  "previousFreeze": "7529c511ac9bc55e4c7f2f50be1bacf77cd378e3",
+  "deployment": {
+    "project": "homecheff-app",
+    "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+    "deploymentId": "dpl_9XGt7yfuGv5d74zm6nQscbbY5u8k",
+    "vercelPathId": "9XGt7yfuGv5d74zm6nQscbbY5u8k",
+    "githubProductionDeploymentId": 5717892305,
+    "gitCommitSha": "b52900581c35033ba4c04efe69526d35f8d37c9a",
+    "ready": true,
+    "environmentUrl": "https://homecheff-7lz4llkf2-sergio-s-projects-f7b64ee1.vercel.app",
+    "note": "Vercel CLI token invalid; READY confirmed via GitHub Production deployment status + live DOM phase 1b.5.7"
+  },
+  "aliases": {
+    "homecheff.eu": "HTTP 200",
+    "www.homecheff.eu": "HTTP 200",
+    "homecheff.nl": "HTTP 307 -> https://homecheff.eu/"
+  },
+  "featureBranchRetained": "wx/phase-1b5-7-context-priority",
+  "frozenAt": "2026-08-02T21:48:32.274709+00:00"
+}
