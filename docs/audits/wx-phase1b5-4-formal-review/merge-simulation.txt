@@ -1,0 +1,14 @@
+HEAD=0ff904c497a06019c8bf7173a992c42b35082062
+HEAD_SHORT=0ff904c4
+BRANCH=wx/phase-1b5-4-progressive-disclosure
+ORIGIN_MAIN=3667ae23c8ae808732466e06218ffe53e01e8b4f
+MERGE_BASE=3667ae23c8ae808732466e06218ffe53e01e8b4f
+FEATURE_COMMITS=3
+COMMITS:
+0ff904c4 docs(workspace): stamp phase 1b.5.4 evidence commit hash
+607bb171 docs(workspace): bind WX Phase 1B.5.4 disclosure and scroll gate evidence
+ac3fee19 feat(workspace): add WX 1B.5.4 progressive disclosure planning
+MERGE_RESULT=CLEAN
+conflict_markers=0
+prisma_migration_files=0
+schema_prisma_changed=0

@@ -1,0 +1,1823 @@
+=== REGRESSION 2026-08-02T17:09:48Z HEAD=0ff904c4 ===
+
+>>> test:progressive-disclosure-1b54
+
+> homecheff-app@0.1.0 test:progressive-disclosure-1b54
+> npx tsx lib/adaptive-workspace-react/tests/run-progressive-disclosure-1b54-tests.ts
+
+
+[progressive-disclosure-1b5.4] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[progressive-disclosure-1b5.4] Mode × posture disclosure vectors
+  ✓ 7 vectors × 5 surfaces
+
+[progressive-disclosure-1b5.4] serialization round-trip
+  ✓ serialize keeps states; JSON stable; plan frozen
+
+[progressive-disclosure-1b5.4] determinism
+  ✓ identical input → identical stabilityToken + serialization
+
+[progressive-disclosure-1b5.4] ordering
+  ✓ orderedSurfaceIds sorted by priorityRank ascending
+
+[progressive-disclosure-1b5.4] fail-closed — unknown progressive surface
+  ✓ unknown progressive id → rejected fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — duplicate progressive surface
+  ✓ duplicate progressive id → rejected
+
+[progressive-disclosure-1b5.4] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — presentation contract / version mismatch
+  ✓ presentation contract/version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — eligibility contract / version mismatch
+  ✓ eligibility contract/version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — presentation plan rejected
+  ✓ rejected presentation plan → suppressed disclosures
+
+[progressive-disclosure-1b5.4] fail-closed — eligibility plan rejected
+  ✓ rejected eligibility plan → suppressed disclosures
+
+[progressive-disclosure-1b5.4] isProgressiveRenderAuthorized always false for all ids on ok plan
+  ✓ renderAuthorized always false; disclosure ban holds
+
+[progressive-disclosure-1b5.4] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[progressive-disclosure-1b5.4] layout diagnostics expose disclosure without visual activation
+  ✓ layout binds disclosure diagnostics; renders=0; drives-chrome=0
+
+[progressive-disclosure-1b5.4] resolveProgressiveDisclosureFromPlans integration
+  ✓ 390×844 browse → tool disclosed + disclosure discoverable
+
+[progressive-disclosure-1b5.4] SUMMARY {"groups":17,"assertions":17,"vectors":7,"disclosureAssertions":35,"failClosedAssertions":10,"renderBanAssertions":40,"progressiveSurfaces":5,"fixtureVectors":7}
+[progressive-disclosure-1b5.4] 17 assertions across 17 groups
+PASS test:progressive-disclosure-1b54
+
+>>> test:assist-eligibility-1b53
+
+> homecheff-app@0.1.0 test:assist-eligibility-1b53
+> npx tsx lib/adaptive-workspace-react/tests/run-assist-eligibility-1b53-tests.ts
+
+
+[assist-eligibility-1b5.3] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[assist-eligibility-1b5.3] Mode × posture eligibility vectors
+  ✓ 7 vectors × 2 assists
+
+[assist-eligibility-1b5.3] fail-closed — unknown assist surface
+  ✓ unknown assist → rejected fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — duplicate assist surface
+  ✓ duplicate assist → rejected
+
+[assist-eligibility-1b5.3] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — presentation contract / version mismatch
+  ✓ presentation contract/version mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — presentation plan rejected
+  ✓ rejected presentation plan → ineligible assists
+
+[assist-eligibility-1b5.3] identical-input repeatability
+  ✓ identical input → identical token + serialization
+
+[assist-eligibility-1b5.3] input immutability
+  ✓ resolver does not mutate input
+
+[assist-eligibility-1b5.3] output immutability
+  ✓ plan and entries frozen
+
+[assist-eligibility-1b5.3] serialization stability
+  ✓ serializeAssistEligibilityPlan deterministic JSON
+
+[assist-eligibility-1b5.3] no renderAuthorized true ever — hollow ban seals
+  ✓ renderAuthorized always false; hollow ban holds
+
+[assist-eligibility-1b5.3] capacity-allowed assists are eligible not renderAuthorized
+  ✓ eligible capacity with hollow-ban suppression, not render auth
+
+[assist-eligibility-1b5.3] future-eligible secondary under Mode forbids
+  ✓ Hybrid secondary future-eligible when Mode caps at 1
+
+[assist-eligibility-1b5.3] module purity — no browser / React / timers
+  ✓ resolver source free of forbidden runtime patterns
+
+[assist-eligibility-1b5.3] layout diagnostics expose eligibility without visual activation
+  ✓ layout binds eligibility diagnostics; drives-chrome=0; no assist keys
+
+[assist-eligibility-1b5.3] resolveAssistEligibilityFromPlans integration
+  ✓ consumes mode+capability+presentation plans without mutation
+
+[assist-eligibility-1b5.3] SUMMARY {"groups":18,"assertions":18,"vectors":7,"eligibilityAssertions":14,"failClosedAssertions":7,"hollowBanAssertions":18,"assists":2,"fixtureVectors":7}
+[assist-eligibility-1b5.3] 18 assertions across 18 groups
+PASS test:assist-eligibility-1b53
+
+>>> test:surface-presentation-1b52
+
+> homecheff-app@0.1.0 test:surface-presentation-1b52
+> npx tsx lib/adaptive-workspace-react/tests/run-surface-presentation-1b52-tests.ts
+
+
+[surface-presentation-1b5.2] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[surface-presentation-1b5.2] every registered surface covered by priority order fixture
+  ✓ 12 sealed surfaces in explicit priority fixture
+
+[surface-presentation-1b5.2] Mode × posture presentation vectors
+  ✓ 9 vectors × 12 surfaces + reserved seals
+
+[surface-presentation-1b5.2] capability states — available / unavailable / reserved for panels
+  ✓ panels capability × Mode assist caps
+
+[surface-presentation-1b5.2] stable prioritised ordering + explicit tie-break
+  ✓ tie-break: priorityRank then registry index
+
+[surface-presentation-1b5.2] identical-input repeatability
+  ✓ identical input → identical token + serialization
+
+[surface-presentation-1b5.2] input immutability
+  ✓ resolver does not mutate input
+
+[surface-presentation-1b5.2] output immutability
+  ✓ plan and entries frozen
+
+[surface-presentation-1b5.2] serialization stability
+  ✓ serializeSurfacePresentationPlan deterministic JSON
+
+[surface-presentation-1b5.2] fail-closed — unknown surface
+  ✓ unknown surface → rejected fail-closed
+
+[surface-presentation-1b5.2] fail-closed — duplicate surface
+  ✓ duplicate surface → rejected
+
+[surface-presentation-1b5.2] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[surface-presentation-1b5.2] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[surface-presentation-1b5.2] fail-closed — invalid Mode / posture / missing capability
+  ✓ invalid mode/posture/missing capability fail-closed
+
+[surface-presentation-1b5.2] reserved registry truth overrides malformed available capability
+  ✓ reserved surfaces stay blocked despite available capability spoof
+
+[surface-presentation-1b5.2] progressive growth invariants
+  ✓ Browse⊆Compact assists; Hybrid≤1; Full/Pro≤2
+
+[surface-presentation-1b5.2] no visual-activation / ownership / remount authorization
+  ✓ plan never authorizes render / remount / ownership transfer
+
+[surface-presentation-1b5.2] empty/minimal valid plan (browse)
+  ✓ minimal browse plan = core only
+
+[surface-presentation-1b5.2] sealed registry size is supported contract size (12)
+  ✓ full sealed registry resolves (n=12)
+
+[surface-presentation-1b5.2] module purity — no browser / React / timers
+  ✓ resolver source free of forbidden runtime patterns
+
+[surface-presentation-1b5.2] layout diagnostics expose plan without visual activation
+  ✓ layout binds plan diagnostics; drives-chrome=0; no presentation keys
+
+[surface-presentation-1b5.2] capability framework still resolvable alongside presentation
+  ✓ consumes capability plan without mutating framework
+
+[surface-presentation-1b5.2] SUMMARY {"groups":22,"assertions":22,"vectors":24,"eligibilityAssertions":128,"priorityAssertions":12,"reservedAssertions":40,"failClosedAssertions":7,"surfaces":12,"fixtureVectors":9}
+[surface-presentation-1b5.2] 22 assertions across 22 groups
+PASS test:surface-presentation-1b52
+
+>>> test:surface-registry-1b51
+
+> homecheff-app@0.1.0 test:surface-registry-1b51
+> npx tsx lib/adaptive-workspace-react/tests/run-surface-registry-1b51-tests.ts
+
+
+[surface-registry-1b5.1] contract constants
+  ✓ sealed registry contract constants
+
+[surface-registry-1b5.1] stable identifiers + uniqueness
+  ✓ 12 unique stable identifiers
+
+[surface-registry-1b5.1] reserved declarations
+  ✓ reserved surfaces sealed
+
+[surface-registry-1b5.1] registry immutability
+  ✓ registry arrays and entries frozen
+
+[surface-registry-1b5.1] ordering stability
+  ✓ enumeration order stable
+
+[surface-registry-1b5.1] priority metadata present (not applied)
+  ✓ priority metadata present without resolver behaviour
+
+[surface-registry-1b5.1] serialization + determinism
+  ✓ serialization deterministic and JSON-safe
+
+[surface-registry-1b5.1] diagnostics snapshot
+  ✓ diagnostics read-only contract
+
+[surface-registry-1b5.1] invalid / duplicate detection seals in source definitions
+  ✓ each surface id defined exactly once in source
+
+[surface-registry-1b5.1] module purity — no browser / React / timers
+  ✓ registry source free of forbidden runtime patterns
+
+[surface-registry-1b5.1] layout diagnostics expose registry without visual activation
+  ✓ layout diagnostics bound; visual activation remains 0
+
+[surface-registry-1b5.1] future compatibility — contract version on every entry
+  ✓ every entry carries contract version + diagnostic token
+
+[surface-registry-1b5.1] SUMMARY {"groups":12,"assertions":12,"surfaces":12,"reserved":4}
+[surface-registry-1b5.1] 12 assertions across 12 groups
+
+PASS test:surface-registry-1b51
+
+>>> test:workspace-mode-engine
+
+> homecheff-app@0.1.0 test:workspace-mode-engine
+> npx tsx lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts
+
+
+[workspace-mode-engine] declared threshold documentation
+  ✓ documented thresholds present (layout bands remain separate owners)
+
+[workspace-mode-engine] fixture vectors (explicit expects)
+  ✓ 27 independent vectors; modes=browse,hybrid-workspace,full-workspace,professional-workspace,compact-workspace; postures=portrait,landscape
+
+[workspace-mode-engine] purity / no interaction upgrade
+  ✓ interactionSpace/density do not change Mode (1B.1)
+
+[workspace-mode-engine] repeatability + input immutability
+  ✓ floors dimensions; immutable input; same floors → same plan
+
+[workspace-mode-engine] measured Workspace vs viewport labels
+  ✓ measured AvailableSpace fixtures beat viewport naming
+
+[workspace-mode-engine] no UA / device inputs in API
+  ✓ source has no device/UA branching
+
+[workspace-mode-engine] fixture file has no resolver mirror
+  ✓ fixtures are explicit constants only
+
+[workspace-mode-engine] summary checkGroups=7 vectors=27 assertions=219
+
+PASS test:workspace-mode-engine
+
+>>> test:workspace-transition-continuity
+
+> homecheff-app@0.1.0 test:workspace-transition-continuity
+> npx tsx lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts
+
+
+[transition-continuity] contract policy fixtures (not browser mount proof)
+  ✓ policy fixtures match sealed continuity contract
+  · NOTE: remountAuthorized=false is a contract policy assertion — browser probe observes mount identity separately
+
+[transition-continuity] Mode-to-Mode transition pair fixtures
+  ✓ 14 pair fixtures; categories=mode-boundary,reverse,same-mode-noop,posture-only,repeated
+  · transition pairs: browse→hybrid-workspace | hybrid-workspace→browse | hybrid-workspace→full-workspace | full-workspace→hybrid-workspace | full-workspace→professional-workspace | professional-workspace→full-workspace | browse→full-workspace | full-workspace→browse | professional-workspace→browse | hybrid-workspace→hybrid-workspace | full-workspace→full-workspace
+
+[transition-continuity] same-Mode no-op + reverse + repeated determinism
+  ✓ same-Mode no-ops are deterministic and deny remount
+  ✓ 4 reverse transitions deny remount
+  ✓ 5× repeated 720 boundary oscillations deny remount (contract layer)
+
+[transition-continuity] continuity token preserves stable identity references
+  ✓ continuity token references from/to mode+posture
+
+[transition-continuity] input immutability
+  ✓ describeWorkspaceModeTransition does not mutate inputs
+
+[transition-continuity] invalid / impossible measurement fail-closed
+  ✓ 3 fail-closed fixtures
+
+[transition-continuity] no capability / ownership-transfer authorization
+  ✓ continuity module denies remount/reload; no capability activation
+
+[transition-continuity] layout source: permanent slots + mount diagnostics + no Mode keys
+  ✓ layout has mount diagnostics; no Mode keys; no UA; no CSS consumer
+
+[transition-continuity] oscillation boundary targets (contract coverage map)
+  ✓ 720/1024/1440 boundary map: Mode changes + remount denied
+  · Browser oscillation proof (≥5 per boundary, measured AvailableSpace) lives in probe — not claimed as unit mount observation
+
+[transition-continuity] SUMMARY {"layer":"contract","groups":["contract policy fixtures (not browser mount proof)","Mode-to-Mode transition pair fixtures","same-Mode no-op + reverse + repeated determinism","continuity token preserves stable identity references","input immutability","invalid / impossible measurement fail-closed","no capability / ownership-transfer authorization","layout source: permanent slots + mount diagnostics + no Mode keys","oscillation boundary targets (contract coverage map)"],"groupCount":9,"vectors":31,"assertions":11,"transitionPairs":14,"boundaries":[720,1024,1440],"oscillationsPerBoundaryMin":5,"browserMountClaimed":false}
+[transition-continuity] 11 assertions across 9 groups
+
+PASS test:workspace-transition-continuity
+
+>>> test:mobile-landscape-scroll
+
+> homecheff-app@0.1.0 test:mobile-landscape-scroll
+> npx tsx lib/adaptive-workspace-react/tests/run-mobile-landscape-scroll-tests.ts
+
+
+[mobile-landscape-scroll] landscape carve-out enables multiCol
+  ✓ 740×360 → landscape + supporting panel (≥1)
+
+[mobile-landscape-scroll] portrait stays single-column
+  ✓ 390×844 → portrait + 0 panels
+
+[mobile-landscape-scroll] layout source: height propagation for multiCol
+  ✓ multiCol primary host uses h-full overflow-hidden; feed scroll owner gated
+
+[mobile-landscape-scroll] wrappers fill height
+  ✓ Region/Slot/Panel propagate h-full min-h-0
+
+[mobile-landscape-scroll] SUMMARY {"layer":"contract","assertions":4,"browserTouchClaimed":false}
+
+PASS test:mobile-landscape-scroll
+
+>>> test:workspace-capability-framework
+
+> homecheff-app@0.1.0 test:workspace-capability-framework
+> npx tsx lib/adaptive-workspace-react/tests/run-capability-framework-tests.ts
+
+
+[capability-framework] framework contract constants
+  ✓ sealed framework constants + 13 capability IDs
+
+[capability-framework] Mode × posture capability vectors
+  ✓ 7 Mode vectors match fixtures
+
+[capability-framework] reserved capabilities never available
+  ✓ all reserved IDs stay reserved across Modes
+
+[capability-framework] AvailableSpace → Mode → capabilities path
+  ✓ AvailableSpace path matches Mode-plan path
+
+[capability-framework] invalid / impossible input fail-closed
+  ✓ invalid Mode → browse fail-closed
+
+[capability-framework] determinism + input immutability
+  ✓ repeatable + immutable inputs
+
+[capability-framework] no visual activation / ownership side effects in source
+  ✓ capability module has no UA/device/DOM side effects
+
+[capability-framework] layout diagnostics only — phase markers + capability attrs
+  ✓ layout exposes capability + landscape diagnostics without CSS/key drivers
+
+[capability-framework] unknown capability ID fail-closed
+  ✓ unknown capability ID is unavailable / undefined
+
+[capability-framework] 1B.2.1 wrappers still propagate height
+  ✓ Region/Slot/Panel retain h-full min-h-0 from 1B.2.1
+
+[capability-framework] progressive unlock — no accidental capability loss
+  ✓ progressive unlock holds for panels/selection/inspector
+
+[capability-framework] diagnostics consumers — no behavioural JS / CSS hooks
+  ✓ no unexpected data-wx-cap / contract consumers
+
+[capability-framework] SUMMARY {"layer":"contract","groupCount":12,"groups":["framework contract constants","Mode × posture capability vectors","reserved capabilities never available","AvailableSpace → Mode → capabilities path","invalid / impossible input fail-closed","determinism + input immutability","no visual activation / ownership side effects in source","layout diagnostics only — phase markers + capability attrs","unknown capability ID fail-closed","1B.2.1 wrappers still propagate height","progressive unlock — no accidental capability loss","diagnostics consumers — no behavioural JS / CSS hooks"],"vectors":7,"assertions":12,"capabilityIds":13,"reservedIds":5,"browserMountClaimed":false,"visualActivationClaimed":false}
+[capability-framework] 12 assertions across 12 groups
+
+PASS test:workspace-capability-framework
+
+>>> test:landscape-work-posture
+
+> homecheff-app@0.1.0 test:landscape-work-posture
+> npx tsx lib/adaptive-workspace-react/tests/run-landscape-work-posture-tests.ts
+
+
+[landscape-work-posture] contract constants
+  ✓ sealed landscape work posture constants
+
+[landscape-work-posture] AvailableSpace geometry only
+  ✓ portrait discovery vs landscape work presentation
+
+[landscape-work-posture] tablet / desktop / ultrawide landscape
+  ✓ tablet/desktop/ultrawide landscape collapses bottom nav
+
+[landscape-work-posture] fail-closed non-finite
+  ✓ invalid sizes fail closed to portrait discovery chrome
+
+[landscape-work-posture] plan equality
+  ✓ isSameLandscapeWorkPosturePlan
+
+[landscape-work-posture] source seals — no UA/device branching in policy + chrome
+  ✓ presentation wiring sealed; 1B.2.1 + capability diagnostics + nav preservation retained
+
+[landscape-work-posture] module has no timers / polling
+  ✓ chrome provider uses resize listeners only
+
+[landscape-work-posture] SUMMARY {"groups":7,"assertions":7}
+[landscape-work-posture] 7 assertions across 7 groups
+
+PASS test:landscape-work-posture
+
+>>> test:nav-preservation-1b4
+
+> homecheff-app@0.1.0 test:nav-preservation-1b4
+> npx tsx lib/adaptive-workspace-react/tests/run-nav-preservation-1b4-tests.ts
+
+
+[nav-preservation-1b4] landscape below-lg destinations
+  ✓ NavBar exposes Create + /mijn-hcp in below-lg hamburger; Escape + desktop Create retained
+  ✓ 2 explicit landscape destination fixtures
+  ✓ collapsed bottom nav uses hidden + aria-hidden + inert; no UA branching
+  ✓ landscape posture policy still owns bottomNavCollapsed
+
+[nav-preservation-1b4] SUMMARY {"assertions":4,"destinations":["create","mijn-hcp"]}
+[nav-preservation-1b4] 4 assertions
+
+PASS test:nav-preservation-1b4
+
+>>> test:adaptive-workspace
+
+> homecheff-app@0.1.0 test:adaptive-workspace
+> npx tsx lib/adaptive-workspace/tests/run-tests.ts
+
+
+[adaptive-workspace] golden / profile
+  ✓ AWV-001 Settings COMPACT
+  ✓ AWV-002 Settings COMFORT
+  ✓ AWV-003 Settings EXPANDED
+  ✓ AWV-004 Settings PROFESSIONAL
+
+[adaptive-workspace] compatibility
+  ✓ AWV-031 off — no render activation
+  ✓ AWV-030 shadow — diagnostics without render activation
+
+[adaptive-workspace] pins / tie-break / motion
+  ✓ AWV-016 invalid AI pin in COMPACT does not displace primary
+  ✓ AWV-020 equal-priority deterministic placement
+  ✓ AWV-021 / AWI-045 reduced motion changes transition only
+
+[adaptive-workspace] sealed / RTL / height / occlusion
+  ✓ AWV-032/033/034 sealed preservation across profiles
+  ✓ AWV-036 RTL keeps logical start/end regions
+  ✓ AWV-025 height demotes supporting capacity band
+  ✓ AWV-026 hinge occlusion keeps primary
+
+[adaptive-workspace] negative / hard contracts
+  ✓ unsupported schemaVersion
+  ✓ duplicate manifest id
+  ✓ duplicate statePreservationKey
+  ✓ duplicate sealed registration
+  ✓ stage requires canBePrimary
+  ✓ self-incompatible rejected
+  ✓ AWV-028 missing primary → fallback
+  ✓ AWV-029 invalid preference version soft-fallback
+  ✓ AWV-027 unknown widget rejected
+  ✓ domain denylist rejects requestKey on input
+
+[adaptive-workspace] properties / determinism
+  ✓ AWI-001 same input → same canonical plan
+  ✓ AWI-002 manifest order does not change placements
+  ✓ extra width does not remove primary
+  ✓ AWI-005 resolver does not mutate input
+  ✓ AWI-006/007/008 plan has no denylisted domain keys
+  ✓ AWI-026 modal focus trap intent
+  ✓ lifecycle + precedence contracts
+  ✓ primaryTask exact id outranks shared prefix (messages.list vs chat)
+
+[adaptive-workspace] import boundary
+  ✓ lib/adaptive-workspace has no forbidden imports
+
+[adaptive-workspace] native / pwa shell inputs
+  ✓ AWV-022 native shell uses chrome input, not UA profile
+  ✓ AWV-023 PWA shell input
+
+adaptive-workspace pure core: 34 assertions ok
+
+PASS test:adaptive-workspace
+
+>>> test:adaptive-workspace-react
+
+> homecheff-app@0.1.0 test:adaptive-workspace-react
+> npx tsx lib/adaptive-workspace-react/tests/run-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-feed-workspace-visibility-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-mobile-landscape-scroll-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-capability-framework-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-landscape-work-posture-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-nav-preservation-1b4-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-surface-registry-1b51-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-surface-presentation-1b52-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-assist-eligibility-1b53-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-progressive-disclosure-1b54-tests.ts
+
+
+[adaptive-workspace-react] mode
+  ✓ off/shadow/on preserved; invalid fails closed to env default
+
+[adaptive-workspace-react] measurement normalize / coalesce
+  ✓ normalize floors; stability token deterministic
+  ✓ identical floored measurements do not re-resolve
+
+[adaptive-workspace-react] ResolveInput + shadow plan
+  ✓ shadow ResolveInput → renderActivation false
+  ✓ COMPACT shadow plan still non-activating
+
+[adaptive-workspace-react] SSR render (no browser globals required)
+  ✓ SSR HTML contains Settings child without measurement gate
+  ✓ SSR shadow root keeps child + renderActivation false attr
+
+[adaptive-workspace-react] source contracts
+  ✓ no profile/width keys; no window resize; no storage/query flags
+  ✓ Settings page wraps hub with Settings Workspace Root
+  ✓ no global Settings WorkspaceProvider; 1B.4 chrome provider allowed
+  ✓ pure core still does not import React/components
+  ✓ Phase 2B files do not import Feed
+
+adaptive-workspace-react Phase 2B: 12 assertions ok
+
+
+[feed-workspace-visibility] mode fail-closed
+  ✓ off/shadow/preview/on; invalid → off
+
+[feed-workspace-visibility] layout visible gate
+  ✓ PREVIEW needs query; ON always; OFF/SHADOW never
+
+[feed-workspace-visibility] AvailableSpace layout matrix
+  ✓ 390×844 mobile portrait → 0 panels
+  ✓ 700×320 mobile landscape → 1 end panel (≠ portrait)
+  ✓ 844×390 phone landscape → tablet-landscape 1 panel (≠ portrait)
+  ✓ 932×430 large mobile landscape → tablet-landscape, 1 panel
+  ✓ 768×1024 tablet portrait → 1 panel
+  ✓ 1024×768 tablet landscape → desktop 2 panels (≠ tablet portrait)
+  ✓ 1280×800 laptop → 2 panels
+  ✓ 1728×1117 wide desktop → desktop-wide 2 panels
+  ✓ 900×1100 constrained tablet portrait → 1 panel
+  ✓ 700×320 short landscape → 1 panel via landscape carve-out
+  ✓ stability token deterministic; no timestamps
+
+[feed-workspace-visibility] flag edge cases
+  ✓ invalid/empty → off; case-insensitive valid; query cannot force ON from off
+
+[feed-workspace-visibility] ultra-wide feed column cap
+  ✓ wide viewports: desktop-wide + feedColumnMaxWidthPx=720
+
+[feed-workspace-visibility] source contracts
+  ✓ shell gated by visibility; no UA detection
+  ✓ stable visible tree: one GeoFeed; full-bleed; no lg branch
+  ✓ homepage SSR resolves visibility + preview query
+  ✓ visible layout: continuity primarySlotKey + AvailableSpace; no matchMedia/UA
+  ✓ primary-slot continuity guard negative fixtures
+  ✓ presentation-only authority doc present
+
+[feed-workspace-visibility] 21 passed
+
+
+[workspace-mode-engine] declared threshold documentation
+  ✓ documented thresholds present (layout bands remain separate owners)
+
+[workspace-mode-engine] fixture vectors (explicit expects)
+  ✓ 27 independent vectors; modes=browse,hybrid-workspace,full-workspace,professional-workspace,compact-workspace; postures=portrait,landscape
+
+[workspace-mode-engine] purity / no interaction upgrade
+  ✓ interactionSpace/density do not change Mode (1B.1)
+
+[workspace-mode-engine] repeatability + input immutability
+  ✓ floors dimensions; immutable input; same floors → same plan
+
+[workspace-mode-engine] measured Workspace vs viewport labels
+  ✓ measured AvailableSpace fixtures beat viewport naming
+
+[workspace-mode-engine] no UA / device inputs in API
+  ✓ source has no device/UA branching
+
+[workspace-mode-engine] fixture file has no resolver mirror
+  ✓ fixtures are explicit constants only
+
+[workspace-mode-engine] summary checkGroups=7 vectors=27 assertions=219
+
+
+[transition-continuity] contract policy fixtures (not browser mount proof)
+  ✓ policy fixtures match sealed continuity contract
+  · NOTE: remountAuthorized=false is a contract policy assertion — browser probe observes mount identity separately
+
+[transition-continuity] Mode-to-Mode transition pair fixtures
+  ✓ 14 pair fixtures; categories=mode-boundary,reverse,same-mode-noop,posture-only,repeated
+  · transition pairs: browse→hybrid-workspace | hybrid-workspace→browse | hybrid-workspace→full-workspace | full-workspace→hybrid-workspace | full-workspace→professional-workspace | professional-workspace→full-workspace | browse→full-workspace | full-workspace→browse | professional-workspace→browse | hybrid-workspace→hybrid-workspace | full-workspace→full-workspace
+
+[transition-continuity] same-Mode no-op + reverse + repeated determinism
+  ✓ same-Mode no-ops are deterministic and deny remount
+  ✓ 4 reverse transitions deny remount
+  ✓ 5× repeated 720 boundary oscillations deny remount (contract layer)
+
+[transition-continuity] continuity token preserves stable identity references
+  ✓ continuity token references from/to mode+posture
+
+[transition-continuity] input immutability
+  ✓ describeWorkspaceModeTransition does not mutate inputs
+
+[transition-continuity] invalid / impossible measurement fail-closed
+  ✓ 3 fail-closed fixtures
+
+[transition-continuity] no capability / ownership-transfer authorization
+  ✓ continuity module denies remount/reload; no capability activation
+
+[transition-continuity] layout source: permanent slots + mount diagnostics + no Mode keys
+  ✓ layout has mount diagnostics; no Mode keys; no UA; no CSS consumer
+
+[transition-continuity] oscillation boundary targets (contract coverage map)
+  ✓ 720/1024/1440 boundary map: Mode changes + remount denied
+  · Browser oscillation proof (≥5 per boundary, measured AvailableSpace) lives in probe — not claimed as unit mount observation
+
+[transition-continuity] SUMMARY {"layer":"contract","groups":["contract policy fixtures (not browser mount proof)","Mode-to-Mode transition pair fixtures","same-Mode no-op + reverse + repeated determinism","continuity token preserves stable identity references","input immutability","invalid / impossible measurement fail-closed","no capability / ownership-transfer authorization","layout source: permanent slots + mount diagnostics + no Mode keys","oscillation boundary targets (contract coverage map)"],"groupCount":9,"vectors":31,"assertions":11,"transitionPairs":14,"boundaries":[720,1024,1440],"oscillationsPerBoundaryMin":5,"browserMountClaimed":false}
+[transition-continuity] 11 assertions across 9 groups
+
+
+[mobile-landscape-scroll] landscape carve-out enables multiCol
+  ✓ 740×360 → landscape + supporting panel (≥1)
+
+[mobile-landscape-scroll] portrait stays single-column
+  ✓ 390×844 → portrait + 0 panels
+
+[mobile-landscape-scroll] layout source: height propagation for multiCol
+  ✓ multiCol primary host uses h-full overflow-hidden; feed scroll owner gated
+
+[mobile-landscape-scroll] wrappers fill height
+  ✓ Region/Slot/Panel propagate h-full min-h-0
+
+[mobile-landscape-scroll] SUMMARY {"layer":"contract","assertions":4,"browserTouchClaimed":false}
+
+
+[capability-framework] framework contract constants
+  ✓ sealed framework constants + 13 capability IDs
+
+[capability-framework] Mode × posture capability vectors
+  ✓ 7 Mode vectors match fixtures
+
+[capability-framework] reserved capabilities never available
+  ✓ all reserved IDs stay reserved across Modes
+
+[capability-framework] AvailableSpace → Mode → capabilities path
+  ✓ AvailableSpace path matches Mode-plan path
+
+[capability-framework] invalid / impossible input fail-closed
+  ✓ invalid Mode → browse fail-closed
+
+[capability-framework] determinism + input immutability
+  ✓ repeatable + immutable inputs
+
+[capability-framework] no visual activation / ownership side effects in source
+  ✓ capability module has no UA/device/DOM side effects
+
+[capability-framework] layout diagnostics only — phase markers + capability attrs
+  ✓ layout exposes capability + landscape diagnostics without CSS/key drivers
+
+[capability-framework] unknown capability ID fail-closed
+  ✓ unknown capability ID is unavailable / undefined
+
+[capability-framework] 1B.2.1 wrappers still propagate height
+  ✓ Region/Slot/Panel retain h-full min-h-0 from 1B.2.1
+
+[capability-framework] progressive unlock — no accidental capability loss
+  ✓ progressive unlock holds for panels/selection/inspector
+
+[capability-framework] diagnostics consumers — no behavioural JS / CSS hooks
+  ✓ no unexpected data-wx-cap / contract consumers
+
+[capability-framework] SUMMARY {"layer":"contract","groupCount":12,"groups":["framework contract constants","Mode × posture capability vectors","reserved capabilities never available","AvailableSpace → Mode → capabilities path","invalid / impossible input fail-closed","determinism + input immutability","no visual activation / ownership side effects in source","layout diagnostics only — phase markers + capability attrs","unknown capability ID fail-closed","1B.2.1 wrappers still propagate height","progressive unlock — no accidental capability loss","diagnostics consumers — no behavioural JS / CSS hooks"],"vectors":7,"assertions":12,"capabilityIds":13,"reservedIds":5,"browserMountClaimed":false,"visualActivationClaimed":false}
+[capability-framework] 12 assertions across 12 groups
+
+
+[landscape-work-posture] contract constants
+  ✓ sealed landscape work posture constants
+
+[landscape-work-posture] AvailableSpace geometry only
+  ✓ portrait discovery vs landscape work presentation
+
+[landscape-work-posture] tablet / desktop / ultrawide landscape
+  ✓ tablet/desktop/ultrawide landscape collapses bottom nav
+
+[landscape-work-posture] fail-closed non-finite
+  ✓ invalid sizes fail closed to portrait discovery chrome
+
+[landscape-work-posture] plan equality
+  ✓ isSameLandscapeWorkPosturePlan
+
+[landscape-work-posture] source seals — no UA/device branching in policy + chrome
+  ✓ presentation wiring sealed; 1B.2.1 + capability diagnostics + nav preservation retained
+
+[landscape-work-posture] module has no timers / polling
+  ✓ chrome provider uses resize listeners only
+
+[landscape-work-posture] SUMMARY {"groups":7,"assertions":7}
+[landscape-work-posture] 7 assertions across 7 groups
+
+
+[nav-preservation-1b4] landscape below-lg destinations
+  ✓ NavBar exposes Create + /mijn-hcp in below-lg hamburger; Escape + desktop Create retained
+  ✓ 2 explicit landscape destination fixtures
+  ✓ collapsed bottom nav uses hidden + aria-hidden + inert; no UA branching
+  ✓ landscape posture policy still owns bottomNavCollapsed
+
+[nav-preservation-1b4] SUMMARY {"assertions":4,"destinations":["create","mijn-hcp"]}
+[nav-preservation-1b4] 4 assertions
+
+
+[surface-registry-1b5.1] contract constants
+  ✓ sealed registry contract constants
+
+[surface-registry-1b5.1] stable identifiers + uniqueness
+  ✓ 12 unique stable identifiers
+
+[surface-registry-1b5.1] reserved declarations
+  ✓ reserved surfaces sealed
+
+[surface-registry-1b5.1] registry immutability
+  ✓ registry arrays and entries frozen
+
+[surface-registry-1b5.1] ordering stability
+  ✓ enumeration order stable
+
+[surface-registry-1b5.1] priority metadata present (not applied)
+  ✓ priority metadata present without resolver behaviour
+
+[surface-registry-1b5.1] serialization + determinism
+  ✓ serialization deterministic and JSON-safe
+
+[surface-registry-1b5.1] diagnostics snapshot
+  ✓ diagnostics read-only contract
+
+[surface-registry-1b5.1] invalid / duplicate detection seals in source definitions
+  ✓ each surface id defined exactly once in source
+
+[surface-registry-1b5.1] module purity — no browser / React / timers
+  ✓ registry source free of forbidden runtime patterns
+
+[surface-registry-1b5.1] layout diagnostics expose registry without visual activation
+  ✓ layout diagnostics bound; visual activation remains 0
+
+[surface-registry-1b5.1] future compatibility — contract version on every entry
+  ✓ every entry carries contract version + diagnostic token
+
+[surface-registry-1b5.1] SUMMARY {"groups":12,"assertions":12,"surfaces":12,"reserved":4}
+[surface-registry-1b5.1] 12 assertions across 12 groups
+
+
+[surface-presentation-1b5.2] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[surface-presentation-1b5.2] every registered surface covered by priority order fixture
+  ✓ 12 sealed surfaces in explicit priority fixture
+
+[surface-presentation-1b5.2] Mode × posture presentation vectors
+  ✓ 9 vectors × 12 surfaces + reserved seals
+
+[surface-presentation-1b5.2] capability states — available / unavailable / reserved for panels
+  ✓ panels capability × Mode assist caps
+
+[surface-presentation-1b5.2] stable prioritised ordering + explicit tie-break
+  ✓ tie-break: priorityRank then registry index
+
+[surface-presentation-1b5.2] identical-input repeatability
+  ✓ identical input → identical token + serialization
+
+[surface-presentation-1b5.2] input immutability
+  ✓ resolver does not mutate input
+
+[surface-presentation-1b5.2] output immutability
+  ✓ plan and entries frozen
+
+[surface-presentation-1b5.2] serialization stability
+  ✓ serializeSurfacePresentationPlan deterministic JSON
+
+[surface-presentation-1b5.2] fail-closed — unknown surface
+  ✓ unknown surface → rejected fail-closed
+
+[surface-presentation-1b5.2] fail-closed — duplicate surface
+  ✓ duplicate surface → rejected
+
+[surface-presentation-1b5.2] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[surface-presentation-1b5.2] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[surface-presentation-1b5.2] fail-closed — invalid Mode / posture / missing capability
+  ✓ invalid mode/posture/missing capability fail-closed
+
+[surface-presentation-1b5.2] reserved registry truth overrides malformed available capability
+  ✓ reserved surfaces stay blocked despite available capability spoof
+
+[surface-presentation-1b5.2] progressive growth invariants
+  ✓ Browse⊆Compact assists; Hybrid≤1; Full/Pro≤2
+
+[surface-presentation-1b5.2] no visual-activation / ownership / remount authorization
+  ✓ plan never authorizes render / remount / ownership transfer
+
+[surface-presentation-1b5.2] empty/minimal valid plan (browse)
+  ✓ minimal browse plan = core only
+
+[surface-presentation-1b5.2] sealed registry size is supported contract size (12)
+  ✓ full sealed registry resolves (n=12)
+
+[surface-presentation-1b5.2] module purity — no browser / React / timers
+  ✓ resolver source free of forbidden runtime patterns
+
+[surface-presentation-1b5.2] layout diagnostics expose plan without visual activation
+  ✓ layout binds plan diagnostics; drives-chrome=0; no presentation keys
+
+[surface-presentation-1b5.2] capability framework still resolvable alongside presentation
+  ✓ consumes capability plan without mutating framework
+
+[surface-presentation-1b5.2] SUMMARY {"groups":22,"assertions":22,"vectors":24,"eligibilityAssertions":128,"priorityAssertions":12,"reservedAssertions":40,"failClosedAssertions":7,"surfaces":12,"fixtureVectors":9}
+[surface-presentation-1b5.2] 22 assertions across 22 groups
+
+[assist-eligibility-1b5.3] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[assist-eligibility-1b5.3] Mode × posture eligibility vectors
+  ✓ 7 vectors × 2 assists
+
+[assist-eligibility-1b5.3] fail-closed — unknown assist surface
+  ✓ unknown assist → rejected fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — duplicate assist surface
+  ✓ duplicate assist → rejected
+
+[assist-eligibility-1b5.3] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — presentation contract / version mismatch
+  ✓ presentation contract/version mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — presentation plan rejected
+  ✓ rejected presentation plan → ineligible assists
+
+[assist-eligibility-1b5.3] identical-input repeatability
+  ✓ identical input → identical token + serialization
+
+[assist-eligibility-1b5.3] input immutability
+  ✓ resolver does not mutate input
+
+[assist-eligibility-1b5.3] output immutability
+  ✓ plan and entries frozen
+
+[assist-eligibility-1b5.3] serialization stability
+  ✓ serializeAssistEligibilityPlan deterministic JSON
+
+[assist-eligibility-1b5.3] no renderAuthorized true ever — hollow ban seals
+  ✓ renderAuthorized always false; hollow ban holds
+
+[assist-eligibility-1b5.3] capacity-allowed assists are eligible not renderAuthorized
+  ✓ eligible capacity with hollow-ban suppression, not render auth
+
+[assist-eligibility-1b5.3] future-eligible secondary under Mode forbids
+  ✓ Hybrid secondary future-eligible when Mode caps at 1
+
+[assist-eligibility-1b5.3] module purity — no browser / React / timers
+  ✓ resolver source free of forbidden runtime patterns
+
+[assist-eligibility-1b5.3] layout diagnostics expose eligibility without visual activation
+  ✓ layout binds eligibility diagnostics; drives-chrome=0; no assist keys
+
+[assist-eligibility-1b5.3] resolveAssistEligibilityFromPlans integration
+  ✓ consumes mode+capability+presentation plans without mutation
+
+[assist-eligibility-1b5.3] SUMMARY {"groups":18,"assertions":18,"vectors":7,"eligibilityAssertions":14,"failClosedAssertions":7,"hollowBanAssertions":18,"assists":2,"fixtureVectors":7}
+[assist-eligibility-1b5.3] 18 assertions across 18 groups
+
+[progressive-disclosure-1b5.4] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[progressive-disclosure-1b5.4] Mode × posture disclosure vectors
+  ✓ 7 vectors × 5 surfaces
+
+[progressive-disclosure-1b5.4] serialization round-trip
+  ✓ serialize keeps states; JSON stable; plan frozen
+
+[progressive-disclosure-1b5.4] determinism
+  ✓ identical input → identical stabilityToken + serialization
+
+[progressive-disclosure-1b5.4] ordering
+  ✓ orderedSurfaceIds sorted by priorityRank ascending
+
+[progressive-disclosure-1b5.4] fail-closed — unknown progressive surface
+  ✓ unknown progressive id → rejected fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — duplicate progressive surface
+  ✓ duplicate progressive id → rejected
+
+[progressive-disclosure-1b5.4] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — presentation contract / version mismatch
+  ✓ presentation contract/version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — eligibility contract / version mismatch
+  ✓ eligibility contract/version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — presentation plan rejected
+  ✓ rejected presentation plan → suppressed disclosures
+
+[progressive-disclosure-1b5.4] fail-closed — eligibility plan rejected
+  ✓ rejected eligibility plan → suppressed disclosures
+
+[progressive-disclosure-1b5.4] isProgressiveRenderAuthorized always false for all ids on ok plan
+  ✓ renderAuthorized always false; disclosure ban holds
+
+[progressive-disclosure-1b5.4] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[progressive-disclosure-1b5.4] layout diagnostics expose disclosure without visual activation
+  ✓ layout binds disclosure diagnostics; renders=0; drives-chrome=0
+
+[progressive-disclosure-1b5.4] resolveProgressiveDisclosureFromPlans integration
+  ✓ 390×844 browse → tool disclosed + disclosure discoverable
+
+[progressive-disclosure-1b5.4] SUMMARY {"groups":17,"assertions":17,"vectors":7,"disclosureAssertions":35,"failClosedAssertions":10,"renderBanAssertions":40,"progressiveSurfaces":5,"fixtureVectors":7}
+[progressive-disclosure-1b5.4] 17 assertions across 17 groups
+PASS test:adaptive-workspace-react
+
+>>> test:adaptive-workspace-chrome
+
+> homecheff-app@0.1.0 test:adaptive-workspace-chrome
+> npx tsx lib/adaptive-workspace-react/tests/run-chrome-occupancy-tests.ts
+
+
+[phase2c] chrome occupancy contract
+  ✓ schemaVersion 1 + mobile settings occupancy deterministic
+  ✓ identical input → identical snapshot
+  ✓ negative + unsupported schemaVersion rejected
+
+[phase2c] normalisation / double-subtract prevention
+  ✓ desktop lg+ → no bottom occupancy
+  ✓ path-hidden bottom nav → bottom 0
+  ✓ WX 1B.4 landscape AvailableSpace collapses bottom occupancy
+  ✓ SSR unknown viewport → hydration-safe bottom 0
+  ✓ container-first: usable dims unchanged; chrome diagnostic only
+  ✓ identical occupancy ignored; lg change updates
+
+[phase2c] fixed-point / import boundary
+  ✓ occupancy builder does not import resolver/plan/profile
+  ✓ occupancy stable across resolve; no same-cycle profile dependency
+  ✓ occupancy modules Feed/React-free
+
+[phase2c] Settings integration / SSR
+  ✓ SSR with occupancy override keeps child; applied=false
+  ✓ no occupancy keys; no window resize listener
+  ✓ pure core remains React-free
+  ✓ chrome components present; Phase 2C uses read-only policy adapters
+
+adaptive-workspace-react Phase 2C: 16 assertions ok
+
+PASS test:adaptive-workspace-chrome
+
+>>> lint
+
+> homecheff-app@0.1.0 lint
+> eslint
+
+PASS lint
+
+>>> smoke-check
+
+> homecheff-app@0.1.0 smoke-check
+> node scripts/smoke-check.mjs
+
+
+[36mHomeCheff smoke-check[0m (schema, env, DB, route files)
+
+Prisma schema loaded from prisma/schema.prisma
+The schema at prisma/schema.prisma is valid 🚀
+[32m✓[0m prisma validate
+[32m✓[0m env DATABASE_URL gezet
+[32m✓[0m env NEXTAUTH_SECRET gezet
+[32m✓[0m env NEXTAUTH_URL gezet
+[32m✓[0m env STRIPE_SECRET_KEY gezet (aanbevolen)
+[32m✓[0m env NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY gezet (aanbevolen)
+[32m✓[0m env BLOB_READ_WRITE_TOKEN gezet (aanbevolen)
+[32m✓[0m env RESEND_API_KEY gezet (aanbevolen)
+[32m✓[0m database bereikbaar (SELECT 1)
+[32m✓[0m route file app/api/auth/[...nextauth]/route.ts
+[32m✓[0m route file app/api/auth/native/google/route.ts
+[32m✓[0m route file app/api/auth/register/route.ts
+[32m✓[0m route file app/api/auth/forgot-password/route.ts
+[32m✓[0m route file app/api/auth/reset-password/route.ts
+[32m✓[0m route file app/api/auth/resend-verification/route.ts
+[32m✓[0m route file app/api/auth/verify-email/route.ts
+[32m✓[0m route file app/api/auth/verify-email-simple/route.ts
+[32m✓[0m route file lib/auth/send-signup-verification-email.ts
+[32m✓[0m route file app/api/register/route.ts
+[32m✓[0m route file app/api/checkout/session/route.ts
+[32m✓[0m route file app/api/stripe/webhook/route.ts
+[32m✓[0m route file app/api/upload/route.ts
+[32m✓[0m route file app/api/upload/video-token/route.ts
+[32m✓[0m route file app/login/page.tsx
+[32m✓[0m route file app/register/page.tsx
+[32m✓[0m route file app/forgot-password/page.tsx
+[32m✓[0m route file app/reset-password/page.tsx
+[32m✓[0m route file app/verify-email/page.tsx
+[32m✓[0m register API: username guard + signup verification mail
+[32m✓[0m .next/BUILD_ID bestaat (recent build?)
+
+────────────────────────────────────────────────────────────
+[32mSmoke-check geslaagd.[0m Handmatig nog testen: inloggen, registreren, checkout (testkaart), foto- en video-upload in UI.
+
+PASS smoke-check
+=== BUILD ===
+
+>>> build
+
+> homecheff-app@0.1.0 prebuild
+> npm install next@14.2.35 --save-exact --no-save || true && npx prisma generate || true
+
+
+up to date, audited 887 packages in 13s
+
+134 packages are looking for funding
+  run `npm fund` for details
+
+44 vulnerabilities (1 low, 17 moderate, 22 high, 4 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.16.2) to ./node_modules/@prisma/client in 746ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+
+
+> homecheff-app@0.1.0 build
+> cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env.local
+  - Experiments (use with caution):
+    · turbo
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-transaction-commit-contract.ts
+Attempted import error: 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY' is not exported from './controlled-workspace-host-activation-transaction-commit' (imported as 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-transaction-commit-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-active-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID' is not exported from './controlled-workspace-host-candidate-active' (imported as 'CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-active-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-issuance-pipeline-execution-readiness-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-issuance-pipeline-execution-readiness-prepared.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID' is not exported from './controlled-workspace-host-activation-transaction-preparation' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID' is not exported from './controlled-workspace-host-activation-transaction-preparation' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-transaction-commit-contract.ts
+Attempted import error: 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY' is not exported from './controlled-workspace-host-activation-transaction-commit' (imported as 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-transaction-commit-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-active-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID' is not exported from './controlled-workspace-host-candidate-active' (imported as 'CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-active-contract.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-issuance-pipeline-execution-readiness-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-issuance-pipeline-execution-readiness-prepared.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID' is not exported from './controlled-workspace-host-activation-transaction-preparation' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID' is not exported from './controlled-workspace-host-activation-transaction-preparation' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+./lib/adaptive-workspace/index.ts
+./components/adaptive-workspace/SettingsWorkspaceRoot.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./lib/adaptive-workspace-react/create-settings-initial-plan.ts
+./lib/adaptive-workspace-react/index.ts
+./app/page.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_CONTRACT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./lib/adaptive-workspace-react/create-settings-initial-plan.ts
+./lib/adaptive-workspace-react/index.ts
+./app/page.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+Attempted import error: 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_ISSUANCE_PIPELINE_EXECUTION_READINESS_ONLY').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-issuance-pipeline-execution-readiness-contract.ts
+./lib/adaptive-workspace/index.ts
+./lib/adaptive-workspace-react/create-settings-initial-plan.ts
+./lib/adaptive-workspace-react/index.ts
+./app/page.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-transaction-commit-contract.ts
+Attempted import error: 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY' is not exported from './controlled-workspace-host-activation-transaction-commit' (imported as 'PHASE_3B3_37_CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ONLY').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-activation-transaction-commit-contract.ts
+./lib/adaptive-workspace/index.ts
+./lib/adaptive-workspace-react/create-settings-initial-plan.ts
+./lib/adaptive-workspace-react/index.ts
+./app/page.tsx
+
+./lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-active-contract.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID' is not exported from './controlled-workspace-host-candidate-active' (imported as 'CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/controlled-workspace-host-candidate-active-contract.ts
+./lib/adaptive-workspace/index.ts
+./lib/adaptive-workspace-react/create-settings-initial-plan.ts
+./lib/adaptive-workspace-react/index.ts
+./app/page.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-issuance-pipeline-execution-readiness-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID' is not exported from './controlled-workspace-host-activation-issuance-pipeline-execution-readiness' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_COMMIT_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-issuance-pipeline-execution-readiness-prepared.ts
+./lib/adaptive-workspace/index.ts
+./lib/adaptive-workspace-react/create-settings-initial-plan.ts
+./lib/adaptive-workspace-react/index.ts
+./app/page.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID' is not exported from './controlled-workspace-host-activation-transaction-preparation' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+./lib/adaptive-workspace/index.ts
+./lib/adaptive-workspace-react/create-settings-initial-plan.ts
+./lib/adaptive-workspace-react/index.ts
+./app/page.tsx
+
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+Attempted import error: 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID' is not exported from './controlled-workspace-host-activation-transaction-preparation' (imported as 'CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID').
+
+Import trace for requested module:
+./lib/adaptive-workspace/sealed/feed-workspace-host-activation-transaction-preparation-prepared.ts
+./lib/adaptive-workspace/index.ts
+./lib/adaptive-workspace-react/create-settings-initial-plan.ts
+./lib/adaptive-workspace-react/index.ts
+./app/page.tsx
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/224) ...
+   Generating static pages (56/224) 
+   Generating static pages (112/224) 
+   Generating static pages (168/224) 
+ ✓ Generating static pages (224/224)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                             Size     First Load JS
+┌ ƒ /                                                   8.33 kB         1.2 MB
+├ ƒ /_not-found                                         141 B          1.19 MB
+├ ● /[seoSlug]                                          141 B          1.19 MB
+├   ├ /thuisgekookt-eten-kopen
+├   ├ /eten-bestellen-bij-particulieren
+├   ├ /maaltijden-aan-huis
+├   └ [+17 more paths]
+├ ƒ /admin                                              47.4 kB        1.24 MB
+├ ƒ /admin/beta                                         898 B           639 kB
+├ ƒ /admin/clear-chat                                   1.3 kB         1.19 MB
+├ ƒ /admin/hcp                                          683 B           638 kB
+├ ƒ /admin/hcp-carousel                                 3.29 kB         641 kB
+├ ƒ /admin/profile                                      5.69 kB         1.2 MB
+├ ƒ /admin/variabelen                                   5.51 kB         643 kB
+├ ƒ /affiliate                                          4.83 kB         1.2 MB
+├ ƒ /affiliate/dashboard                                7.49 kB         1.2 MB
+├ ƒ /affiliate/passive-income-calculator                2.92 kB        1.19 MB
+├ ƒ /affiliate/promo-codes                              3.08 kB        1.19 MB
+├ ƒ /affiliate/sub-affiliate-signup                     967 B          1.19 MB
+├ ƒ /agreements                                         141 B          1.19 MB
+├ ƒ /ai                                                 141 B          1.19 MB
+├ ƒ /alternatief-voor-dropshipping                      141 B          1.19 MB
+├ ƒ /api/admin/admins                                   0 B                0 B
+├ ƒ /api/admin/affiliates                               0 B                0 B
+├ ƒ /api/admin/affiliates/[id]/status                   0 B                0 B
+├ ƒ /api/admin/affiliates/attributions                  0 B                0 B
+├ ƒ /api/admin/affiliates/commission-adjustment         0 B                0 B
+├ ƒ /api/admin/affiliates/referral-link                 0 B                0 B
+├ ƒ /api/admin/alerts                                   0 B                0 B
+├ ƒ /api/admin/all-users                                0 B                0 B
+├ ƒ /api/admin/analytics                                0 B                0 B
+├ ƒ /api/admin/analytics/ga4                            0 B                0 B
+├ ƒ /api/admin/analytics/unified                        0 B                0 B
+├ ƒ /api/admin/assign-role                              0 B                0 B
+├ ƒ /api/admin/audit-log                                0 B                0 B
+├ ƒ /api/admin/beta-insights                            0 B                0 B
+├ ƒ /api/admin/business-subscriptions/[userId]          0 B                0 B
+├ ƒ /api/admin/clear-messages                           0 B                0 B
+├ ƒ /api/admin/command-center                           0 B                0 B
+├ ƒ /api/admin/delivery/[profileId]/block               0 B                0 B
+├ ƒ /api/admin/delivery/[profileId]/status              0 B                0 B
+├ ƒ /api/admin/delivery/orders/[orderId]/assign         0 B                0 B
+├ ƒ /api/admin/disputes                                 0 B                0 B
+├ ƒ /api/admin/financial                                0 B                0 B
+├ ƒ /api/admin/hcp-carousel                             0 B                0 B
+├ ƒ /api/admin/hcp-carousel/[id]                        0 B                0 B
+├ ƒ /api/admin/messages                                 0 B                0 B
+├ ƒ /api/admin/messages/[conversationId]                0 B                0 B
+├ ƒ /api/admin/messages/stats                           0 B                0 B
+├ ƒ /api/admin/migrate-orders                           0 B                0 B
+├ ƒ /api/admin/moderation/logs                          0 B                0 B
+├ ƒ /api/admin/moderation/review                        0 B                0 B
+├ ƒ /api/admin/notifications/send                       0 B                0 B
+├ ƒ /api/admin/orders                                   0 B                0 B
+├ ƒ /api/admin/orders/[orderId]                         0 B                0 B
+├ ƒ /api/admin/orders/release-escrow                    0 B                0 B
+├ ƒ /api/admin/payouts                                  0 B                0 B
+├ ƒ /api/admin/permissions                              0 B                0 B
+├ ƒ /api/admin/preferences                              0 B                0 B
+├ ƒ /api/admin/products                                 0 B                0 B
+├ ƒ /api/admin/promo-codes                              0 B                0 B
+├ ƒ /api/admin/promo-codes/[id]                         0 B                0 B
+├ ƒ /api/admin/refunds                                  0 B                0 B
+├ ƒ /api/admin/sellers                                  0 B                0 B
+├ ƒ /api/admin/send-bulk-message                        0 B                0 B
+├ ƒ /api/admin/send-message                             0 B                0 B
+├ ƒ /api/admin/settings                                 0 B                0 B
+├ ƒ /api/admin/stripe-status                            0 B                0 B
+├ ƒ /api/admin/subscriptions                            0 B                0 B
+├ ƒ /api/admin/transactions                             0 B                0 B
+├ ƒ /api/admin/trust-queue                              0 B                0 B
+├ ƒ /api/admin/upgrade-to-superadmin                    0 B                0 B
+├ ƒ /api/admin/user-contact                             0 B                0 B
+├ ƒ /api/admin/users                                    0 B                0 B
+├ ƒ /api/admin/users/[id]                               0 B                0 B
+├ ƒ /api/admin/users/[id]/suspend                       0 B                0 B
+├ ƒ /api/admin/users/bulk-delete                        0 B                0 B
+├ ƒ /api/admin/users/search                             0 B                0 B
+├ ƒ /api/affiliate/create-sub                           0 B                0 B
+├ ƒ /api/affiliate/dashboard                            0 B                0 B
+├ ƒ /api/affiliate/delete-sub                           0 B                0 B
+├ ƒ /api/affiliate/payouts/process                      0 B                0 B
+├ ƒ /api/affiliate/payouts/update-status                0 B                0 B
+├ ƒ /api/affiliate/promo-codes                          0 B                0 B
+├ ƒ /api/affiliate/promo-codes/[id]                     0 B                0 B
+├ ƒ /api/affiliate/referral                             0 B                0 B
+├ ƒ /api/affiliate/referral-link                        0 B                0 B
+├ ƒ /api/affiliate/signup                               0 B                0 B
+├ ƒ /api/affiliate/update-sub-commission                0 B                0 B
+├ ƒ /api/affiliate/validate-invite                      0 B                0 B
+├ ƒ /api/affiliate/validate-promo-code                  0 B                0 B
+├ ƒ /api/agreements                                     0 B                0 B
+├ ƒ /api/analytics/dashboard                            0 B                0 B
+├ ƒ /api/analytics/generate-organic                     0 B                0 B
+├ ƒ /api/analytics/track-profile-view                   0 B                0 B
+├ ƒ /api/analytics/track-view                           0 B                0 B
+├ ƒ /api/app-version                                    0 B                0 B
+├ ƒ /api/auth/[...nextauth]                             0 B                0 B
+├ ƒ /api/auth/callback/delivery-redirect                0 B                0 B
+├ ƒ /api/auth/callback/role-redirect                    0 B                0 B
+├ ƒ /api/auth/check-onboarding                          0 B                0 B
+├ ƒ /api/auth/complete-social-onboarding                0 B                0 B
+├ ƒ /api/auth/force-logout                              0 B                0 B
+├ ƒ /api/auth/forgot-password                           0 B                0 B
+├ ƒ /api/auth/native/google                             0 B                0 B
+├ ƒ /api/auth/register                                  0 B                0 B
+├ ƒ /api/auth/register-simple                           0 B                0 B
+├ ƒ /api/auth/resend-verification                       0 B                0 B
+├ ƒ /api/auth/resend-verification-simple                0 B                0 B
+├ ƒ /api/auth/reset-password                            0 B                0 B
+├ ƒ /api/auth/session-mode                              0 B                0 B
+├ ƒ /api/auth/validate-email                            0 B                0 B
+├ ƒ /api/auth/validate-username                         0 B                0 B
+├ ƒ /api/auth/verify-email                              0 B                0 B
+├ ƒ /api/auth/verify-email-simple                       0 B                0 B
+├ ƒ /api/beta/onboarding/complete                       0 B                0 B
+├ ƒ /api/beta/track-download                            0 B                0 B
+├ ƒ /api/checkout                                       0 B                0 B
+├ ƒ /api/checkout/calculate-delivery-fee                0 B                0 B
+├ ƒ /api/checkout/session                               0 B                0 B
+├ ƒ /api/checkout/validate-coupon                       0 B                0 B
+├ ƒ /api/community-orders/[id]/cancel                   0 B                0 B
+├ ƒ /api/community-orders/[id]/checkout-context         0 B                0 B
+├ ƒ /api/community-orders/[id]/complete                 0 B                0 B
+├ ƒ /api/community-orders/[id]/deal-review              0 B                0 B
+├ ƒ /api/community-orders/[id]/delivery-request         0 B                0 B
+├ ƒ /api/community/category-ecosystem                   0 B                0 B
+├ ƒ /api/community/ecosystem-hub                        0 B                0 B
+├ ƒ /api/contact                                        0 B                0 B
+├ ƒ /api/conversations                                  0 B                0 B
+├ ƒ /api/conversations-fast                             0 B                0 B
+├ ƒ /api/conversations/[conversationId]                 0 B                0 B
+├ ƒ /api/conversations/[conversationId]/delete          0 B                0 B
+├ ƒ /api/conversations/[conversationId]/messages        0 B                0 B
+├ ƒ /api/conversations/[conversationId]/messages-fast   0 B                0 B
+├ ƒ /api/conversations/[conversationId]/messages/quick  0 B                0 B
+├ ƒ /api/conversations/[conversationId]/proposals       0 B                0 B
+├ ƒ /api/conversations/[conversationId]/typing          0 B                0 B
+├ ƒ /api/conversations/start                            0 B                0 B
+├ ƒ /api/conversations/start-general                    0 B                0 B
+├ ƒ /api/conversations/start-order                      0 B                0 B
+├ ƒ /api/conversations/start-seller                     0 B                0 B
+├ ƒ /api/coupon                                         0 B                0 B
+├ ƒ /api/creator/audience-insights                      0 B                0 B
+├ ƒ /api/creator/visibility-summary                     0 B                0 B
+├ ƒ /api/cron/cleanup-stock-reservations                0 B                0 B
+├ ƒ /api/cron/delivery-warnings                         0 B                0 B
+├ ƒ /api/cron/schedule-shift-notifications              0 B                0 B
+├ ƒ /api/cron/send-notifications                        0 B                0 B
+├ ƒ /api/debug-session                                  0 B                0 B
+├ ƒ /api/debug/email-status                             0 B                0 B
+├ ƒ /api/delivery-requests/[id]                         0 B                0 B
+├ ƒ /api/delivery-requests/[id]/accept                  0 B                0 B
+├ ƒ /api/delivery-requests/[id]/assign                  0 B                0 B
+├ ƒ /api/delivery-requests/[id]/claim                   0 B                0 B
+├ ƒ /api/delivery-requests/[id]/complete                0 B                0 B
+├ ƒ /api/delivery-requests/[id]/review                  0 B                0 B
+├ ƒ /api/delivery/add-seller-roles                      0 B                0 B
+├ ƒ /api/delivery/assign-order                          0 B                0 B
+├ ƒ /api/delivery/check-availability                    0 B                0 B
+├ ƒ /api/delivery/community-requests                    0 B                0 B
+├ ƒ /api/delivery/dashboard                             0 B                0 B
+├ ƒ /api/delivery/earnings                              0 B                0 B
+├ ƒ /api/delivery/gps-location                          0 B                0 B
+├ ƒ /api/delivery/location                              0 B                0 B
+├ ƒ /api/delivery/match-deliverers                      0 B                0 B
+├ ƒ /api/delivery/match-orders                          0 B                0 B
+├ ƒ /api/delivery/notification-settings                 0 B                0 B
+├ ƒ /api/delivery/orders                                0 B                0 B
+├ ƒ /api/delivery/orders/[orderId]/accept               0 B                0 B
+├ ƒ /api/delivery/orders/[orderId]/countdown            0 B                0 B
+├ ƒ /api/delivery/orders/[orderId]/update-status        0 B                0 B
+├ ƒ /api/delivery/profile                               0 B                0 B
+├ ƒ /api/delivery/settings                              0 B                0 B
+├ ƒ /api/delivery/signup                                0 B                0 B
+├ ƒ /api/delivery/toggle-status                         0 B                0 B
+├ ƒ /api/delivery/update-gps                            0 B                0 B
+├ ƒ /api/delivery/upload-profile-photo                  0 B                0 B
+├ ƒ /api/delivery/upload-vehicle-photos                 0 B                0 B
+├ ƒ /api/delivery/vehicle-photos/[photoId]              0 B                0 B
+├ ƒ /api/distance                                       0 B                0 B
+├ ƒ /api/dorpsplein/products/[id]/reviews               0 B                0 B
+├ ƒ /api/earnings/combined                              0 B                0 B
+├ ƒ /api/earnings/export                                0 B                0 B
+├ ƒ /api/favorites                                      0 B                0 B
+├ ƒ /api/favorites/status                               0 B                0 B
+├ ƒ /api/favorites/toggle                               0 B                0 B
+├ ƒ /api/feed                                           0 B                0 B
+├ ƒ /api/feed/media                                     0 B                0 B
+├ ƒ /api/feed/stats-preview                             0 B                0 B
+├ ƒ /api/follows                                        0 B                0 B
+├ ƒ /api/follows/fans                                   0 B                0 B
+├ ƒ /api/follows/status                                 0 B                0 B
+├ ƒ /api/follows/toggle                                 0 B                0 B
+├ ƒ /api/gamification/home-carousel                     0 B                0 B
+├ ƒ /api/gamification/leaderboard                       0 B                0 B
+├ ƒ /api/gamification/me                                0 B                0 B
+├ ƒ /api/gamification/onboarding/dismiss                0 B                0 B
+├ ƒ /api/gamification/ranking-promo                     0 B                0 B
+├ ○ /api/geocoding/countries                            0 B                0 B
+├ ƒ /api/geocoding/dutch                                0 B                0 B
+├ ƒ /api/geocoding/global                               0 B                0 B
+├ ƒ /api/geocoding/international                        0 B                0 B
+├ ƒ /api/home/community-pulse                           0 B                0 B
+├ ƒ /api/i18n/[lang]                                    0 B                0 B
+├ ƒ /api/inspiratie                                     0 B                0 B
+├ ƒ /api/inspiratie/[id]/reviews                        0 B                0 B
+├ ƒ /api/inspiratie/[id]/reviews/count                  0 B                0 B
+├ ƒ /api/internal/user-suspended                        0 B                0 B
+├ ƒ /api/marketplace/exchange-suggestions               0 B                0 B
+├ ƒ /api/marketplace/pending-accepted-values            0 B                0 B
+├ ƒ /api/messages                                       0 B                0 B
+├ ƒ /api/messages/[messageId]/delivered                 0 B                0 B
+├ ƒ /api/messages/[messageId]/read                      0 B                0 B
+├ ƒ /api/messages/all                                   0 B                0 B
+├ ƒ /api/messages/decrypt                               0 B                0 B
+├ ƒ /api/messages/encrypt                               0 B                0 B
+├ ƒ /api/messages/personal                              0 B                0 B
+├ ƒ /api/messages/unread-count                          0 B                0 B
+├ ƒ /api/moderation/analyze-image                       0 B                0 B
+├ ƒ /api/notifications                                  0 B                0 B
+├ ƒ /api/notifications/[id]/read                        0 B                0 B
+├ ƒ /api/notifications/mark-related-read                0 B                0 B
+├ ƒ /api/notifications/new-product                      0 B                0 B
+├ ƒ /api/notifications/new-products-check               0 B                0 B
+├ ƒ /api/notifications/orders                           0 B                0 B
+├ ƒ /api/notifications/preferences                      0 B                0 B
+├ ƒ /api/notifications/read-all                         0 B                0 B
+├ ƒ /api/notifications/seller-orders/ack                0 B                0 B
+├ ƒ /api/onboarding/analytics                           0 B                0 B
+├ ƒ /api/operations/communication-summary               0 B                0 B
+├ ƒ /api/orders                                         0 B                0 B
+├ ƒ /api/orders/[orderId]                               0 B                0 B
+├ ƒ /api/orders/[orderId]/complete                      0 B                0 B
+├ ƒ /api/orders/[orderId]/update                        0 B                0 B
+├ ƒ /api/payment/create                                 0 B                0 B
+├ ƒ /api/pitch-pdf                                      0 B                0 B
+├ ƒ /api/products                                       0 B                0 B
+├ ƒ /api/products/[id]                                  0 B                0 B
+├ ƒ /api/products/[id]/reviews                          0 B                0 B
+├ ƒ /api/products/create                                0 B                0 B
+├ ƒ /api/products/debug                                 0 B                0 B
+├ ƒ /api/products/feed                                  0 B                0 B
+├ ƒ /api/profile                                        0 B                0 B
+├ ƒ /api/profile/buyer                                  0 B                0 B
+├ ƒ /api/profile/contact                                0 B                0 B
+├ ƒ /api/profile/deals                                  0 B                0 B
+├ ƒ /api/profile/delete-account                         0 B                0 B
+├ ƒ /api/profile/dishes                                 0 B                0 B
+├ ƒ /api/profile/dishes/[id]                            0 B                0 B
+├ ƒ /api/profile/export-data                            0 B                0 B
+├ ƒ /api/profile/favorites                              0 B                0 B
+├ ƒ /api/profile/follows                                0 B                0 B
+├ ƒ /api/profile/garden                                 0 B                0 B
+├ ƒ /api/profile/garden/[id]                            0 B                0 B
+├ ƒ /api/profile/garden/photo/upload                    0 B                0 B
+├ ƒ /api/profile/items-with-reviews                     0 B                0 B
+├ ƒ /api/profile/me                                     0 B                0 B
+├ ƒ /api/profile/orders                                 0 B                0 B
+├ ƒ /api/profile/password                               0 B                0 B
+├ ƒ /api/profile/photo                                  0 B                0 B
+├ ƒ /api/profile/photo/upload                           0 B                0 B
+├ ƒ /api/profile/privacy                                0 B                0 B
+├ ƒ /api/profile/proposals                              0 B                0 B
+├ ƒ /api/profile/recipes/photo/upload                   0 B                0 B
+├ ƒ /api/profile/stats                                  0 B                0 B
+├ ƒ /api/profile/update                                 0 B                0 B
+├ ƒ /api/profile/username                               0 B                0 B
+├ ƒ /api/profile/workspace-photos                       0 B                0 B
+├ ƒ /api/proposals/[proposalId]                         0 B                0 B
+├ ƒ /api/proposals/[proposalId]/accept                  0 B                0 B
+├ ƒ /api/proposals/[proposalId]/cancel                  0 B                0 B
+├ ƒ /api/proposals/[proposalId]/counter                 0 B                0 B
+├ ƒ /api/proposals/[proposalId]/reject                  0 B                0 B
+├ ƒ /api/props/count                                    0 B                0 B
+├ ƒ /api/props/status                                   0 B                0 B
+├ ƒ /api/props/toggle                                   0 B                0 B
+├ ƒ /api/push/debug/status                              0 B                0 B
+├ ƒ /api/push/register                                  0 B                0 B
+├ ƒ /api/pusher/auth                                    0 B                0 B
+├ ƒ /api/recipes/[id]                                   0 B                0 B
+├ ƒ /api/recommendations/smart                          0 B                0 B
+├ ƒ /api/register                                       0 B                0 B
+├ ƒ /api/reports/create                                 0 B                0 B
+├ ƒ /api/reviews/[id]/responses                         0 B                0 B
+├ ƒ /api/reviews/count                                  0 B                0 B
+├ ƒ /api/reviews/create                                 0 B                0 B
+├ ƒ /api/reviews/token/[token]                          0 B                0 B
+├ ƒ /api/seller/[sellerId]                              0 B                0 B
+├ ƒ /api/seller/[sellerId]/recipes                      0 B                0 B
+├ ƒ /api/seller/[sellerId]/stats                        0 B                0 B
+├ ƒ /api/seller/action-center                           0 B                0 B
+├ ƒ /api/seller/dashboard/export                        0 B                0 B
+├ ƒ /api/seller/dashboard/orders                        0 B                0 B
+├ ƒ /api/seller/dashboard/products                      0 B                0 B
+├ ƒ /api/seller/dashboard/stats                         0 B                0 B
+├ ƒ /api/seller/delivery-settings                       0 B                0 B
+├ ƒ /api/seller/dynamic-location                        0 B                0 B
+├ ƒ /api/seller/earnings                                0 B                0 B
+├ ƒ /api/seller/fees                                    0 B                0 B
+├ ƒ /api/seller/payouts                                 0 B                0 B
+├ ƒ /api/seller/payouts/request                         0 B                0 B
+├ ƒ /api/seller/payouts/request-bank                    0 B                0 B
+├ ƒ /api/seller/products                                0 B                0 B
+├ ƒ /api/seller/profile                                 0 B                0 B
+├ ƒ /api/seller/refunds                                 0 B                0 B
+├ ƒ /api/seller/stripe/status                           0 B                0 B
+├ ƒ /api/seller/transactions                            0 B                0 B
+├ ƒ /api/seller/upload-profile-photo                    0 B                0 B
+├ ƒ /api/seller/upload-workplace-photos                 0 B                0 B
+├ ƒ /api/seller/workplace-photos                        0 B                0 B
+├ ƒ /api/seller/workplace-photos/[id]                   0 B                0 B
+├ ƒ /api/shipping/calculate-price                       0 B                0 B
+├ ƒ /api/shipping/create-label                          0 B                0 B
+├ ƒ /api/stripe/connect/onboard                         0 B                0 B
+├ ƒ /api/stripe/connect/webhook                         0 B                0 B
+├ ƒ /api/stripe/webhook                                 0 B                0 B
+├ ƒ /api/subscribe                                      0 B                0 B
+├ ƒ /api/subscribe/cancel                               0 B                0 B
+├ ƒ /api/subscribe/confirm                              0 B                0 B
+├ ƒ /api/subscribe/validate                             0 B                0 B
+├ ○ /api/test-products                                  0 B                0 B
+├ ○ /api/test-stripe                                    0 B                0 B
+├ ƒ /api/upload                                         0 B                0 B
+├ ƒ /api/upload/video-chunked/chunk                     0 B                0 B
+├ ƒ /api/upload/video-chunked/finalize                  0 B                0 B
+├ ƒ /api/upload/video-chunked/init                      0 B                0 B
+├ ƒ /api/upload/video-direct                            0 B                0 B
+├ ƒ /api/upload/video-token                             0 B                0 B
+├ ƒ /api/user/[userId]/items-with-reviews               0 B                0 B
+├ ƒ /api/user/[userId]/stats                            0 B                0 B
+├ ƒ /api/user/[userId]/trust-summary                    0 B                0 B
+├ ƒ /api/user/action-center                             0 B                0 B
+├ ƒ /api/user/beta-status                               0 B                0 B
+├ ƒ /api/user/home-ui                                   0 B                0 B
+├ ƒ /api/user/language                                  0 B                0 B
+├ ƒ /api/user/me                                        0 B                0 B
+├ ƒ /api/user/relationship-summary                      0 B                0 B
+├ ƒ /api/user/return-signals                            0 B                0 B
+├ ○ /api/users                                          0 B                0 B
+├ ƒ /api/users/online-status                            0 B                0 B
+├ ƒ /api/verify/company                                 0 B                0 B
+├ ƒ /api/video-proxy                                    0 B                0 B
+├ ƒ /api/webhooks/ectaroship                            0 B                0 B
+├ ƒ /api/workspace-content                              0 B                0 B
+├ ƒ /api/workspace-content/comments                     0 B                0 B
+├ ƒ /api/workspace-content/props                        0 B                0 B
+├ ƒ /api/workspace-content/upload-photos                0 B                0 B
+├ ƒ /app                                                2.59 kB        1.19 MB
+├ ○ /apple-icon.png                                     0 B                0 B
+├ ƒ /auth/resume-intent                                 1.25 kB        1.19 MB
+├ ƒ /auth/resume-interaction                            1.46 kB        1.19 MB
+├ ƒ /auth/social-success                                2.07 kB        1.19 MB
+├ ƒ /aviliate                                           6.16 kB         1.2 MB
+├ ƒ /aviliate/dashboard                                 3.75 kB        1.19 MB
+├ ƒ /aviliate/passive-income-calculator                 2.92 kB        1.19 MB
+├ ƒ /aviliate/promo-codes                               2.31 kB         640 kB
+├ ƒ /aw-settings-harness                                1.03 kB        1.19 MB
+├ ƒ /bezorger                                           141 B          1.19 MB
+├ ƒ /bezorger-worden                                    141 B          1.19 MB
+├ ● /bezorger/[username]                                6.17 kB         1.2 MB
+├ ƒ /bijverdienen-vanuit-huis                           141 B          1.19 MB
+├ ƒ /buurt-economie                                     141 B          1.19 MB
+├ ƒ /buurthulp                                          141 B          1.19 MB
+├ ƒ /changelog                                          141 B          1.19 MB
+├ ƒ /checkout                                           8.22 kB         1.2 MB
+├ ƒ /community-guidelines                               927 B          1.19 MB
+├ ƒ /constitution                                       141 B          1.19 MB
+├ ƒ /contact                                            1.95 kB        1.19 MB
+├ ƒ /deal-review/[communityOrderId]                     1.14 kB        1.19 MB
+├ ƒ /delete-account                                     1.31 kB        1.19 MB
+├ ƒ /delivery-review/[deliveryRequestId]                1.11 kB        1.19 MB
+├ ƒ /delivery/dashboard                                 11 kB           1.2 MB
+├ ƒ /delivery/instellingen                              3.73 kB        1.19 MB
+├ ƒ /delivery/profiel                                   141 B          1.19 MB
+├ ƒ /delivery/settings                                  8.79 kB         1.2 MB
+├ ƒ /delivery/signup                                    5.71 kB         1.2 MB
+├ ƒ /design/[id]                                        141 B          1.19 MB
+├ ƒ /docs                                               141 B          1.19 MB
+├ ● /docs/[slug]                                        140 B          1.19 MB
+├   ├ /docs/ranking
+├   ├ /docs/business-dna
+├   ├ /docs/hcp
+├   └ [+9 more paths]
+├ ƒ /dorpsplein                                         141 B          1.19 MB
+├ ● /en/[seoSlug]                                       141 B          1.19 MB
+├   ├ /en/buy-home-cooked-food
+├   ├ /en/order-food-from-local-cooks
+├   ├ /en/meals-at-home
+├   └ [+17 more paths]
+├ ƒ /en/seo-hub                                         139 B          1.19 MB
+├ ƒ /en/welkom/[code]                                   141 B          1.19 MB
+├ ƒ /eten-verkopen-[stad]                               141 B          1.19 MB
+├ ƒ /eten-verkopen-vanuit-huis                          141 B          1.19 MB
+├ ƒ /evidence                                           199 B          1.19 MB
+├ ƒ /faq                                                2.44 kB        1.19 MB
+├ ƒ /favorites                                          533 B          1.19 MB
+├ ƒ /forgot-password                                    1.36 kB        1.19 MB
+├ ƒ /garden/[id]                                        141 B          1.19 MB
+├ ƒ /geld-verdienen-met-koken                           141 B          1.19 MB
+├ ● /gemeenschap/[segment]                              1.49 kB        1.19 MB
+├   ├ /gemeenschap/keuken
+├   ├ /gemeenschap/tuin
+├   ├ /gemeenschap/studio
+├   └ [+2 more paths]
+├ ƒ /glossary                                           141 B          1.19 MB
+├ ƒ /hcp-ranglijsten                                    6.18 kB         1.2 MB
+├ ƒ /hoe-homecheff-werkt                                141 B          1.19 MB
+├ ƒ /how-homecheff-grows                                800 B          1.19 MB
+├ ○ /icon.png                                           0 B                0 B
+├ ƒ /inspiratie                                         141 B          1.19 MB
+├ ƒ /inspiratie/[id]                                    141 B          1.19 MB
+├ ƒ /login                                              5.03 kB         1.2 MB
+├ ƒ /lokaal-eten-verkopen                               141 B          1.19 MB
+├ ƒ /lokaal-verdienen                                   141 B          1.19 MB
+├ ƒ /lokale-producten-verkopen                          141 B          1.19 MB
+├ ● /maaltijden/[stad]                                  1.36 kB        1.19 MB
+├   ├ /maaltijden/vlaardingen
+├   ├ /maaltijden/rotterdam
+├   ├ /maaltijden/amsterdam
+├   └ [+13 more paths]
+├ ƒ /manifest                                           141 B          1.19 MB
+├ ƒ /messages                                           7.03 kB         1.2 MB
+├ ƒ /messages/[conversationId]                          1.62 kB        1.19 MB
+├ ƒ /mijn-hcp                                           9.75 kB         1.2 MB
+├ ƒ /notifications                                      2.31 kB        1.19 MB
+├ ƒ /onboarding/buyer                                   722 B          1.19 MB
+├ ƒ /onboarding/complete-profile                        1.97 kB        1.19 MB
+├ ƒ /onboarding/contact                                 803 B          1.19 MB
+├ ƒ /onboarding/interests                               1.26 kB        1.19 MB
+├ ƒ /onboarding/payments                                908 B          1.19 MB
+├ ƒ /onboarding/seller                                  883 B          1.19 MB
+├ ƒ /ontmoet-de-maker                                   141 B          1.19 MB
+├ ƒ /operations/vandaag                                 5.69 kB         1.2 MB
+├ ƒ /orders                                             4.41 kB        1.19 MB
+├ ƒ /orders/[orderId]                                   2.18 kB        1.19 MB
+├ ƒ /over-ons                                           1.78 kB        1.19 MB
+├ ƒ /payment/success                                    3.04 kB        1.19 MB
+├ ƒ /persoonlijk-vakmanschap                            141 B          1.19 MB
+├ ƒ /pitch                                              191 B          1.19 MB
+├ ƒ /place                                              1.18 kB        1.19 MB
+├ ƒ /pricing                                            2.95 kB        1.19 MB
+├ ƒ /principles                                         141 B          1.19 MB
+├ ƒ /privacy                                            1.64 kB        1.19 MB
+├ ƒ /product/[id]                                       140 B          1.19 MB
+├ ƒ /product/[id]/edit                                  2.21 kB        1.19 MB
+├ ƒ /profile                                            311 B          1.19 MB
+├ ƒ /profile/deals                                      5.9 kB          1.2 MB
+├ ƒ /profile/privacy                                    141 B          1.19 MB
+├ ƒ /r/[slug]                                           141 B          1.19 MB
+├ ƒ /recipe/[id]                                        141 B          1.19 MB
+├ ƒ /register                                           7.86 kB         1.2 MB
+├ ƒ /reports                                            616 B          1.19 MB
+├ ƒ /request/[slug]                                     141 B          1.19 MB
+├ ƒ /reservations                                       1.18 kB         639 kB
+├ ƒ /reset-password                                     1.76 kB        1.19 MB
+├ ƒ /review/[token]                                     1.99 kB        1.19 MB
+├ ƒ /roadmap                                            141 B          1.19 MB
+├ ○ /robots.txt                                         0 B                0 B
+├ ƒ /safety                                             1.21 kB        1.19 MB
+├ ƒ /sell                                               6.18 kB         1.2 MB
+├ ƒ /sell/new                                           5.28 kB         1.2 MB
+├ ƒ /sell/select-photos                                 2.16 kB        1.19 MB
+├ ƒ /seller/[sellerId]                                  8.29 kB         1.2 MB
+├ ƒ /seller/orders                                      415 B           638 kB
+├ ƒ /seller/stripe/refresh                              483 B           638 kB
+├ ƒ /seller/stripe/success                              949 B          1.19 MB
+├ ƒ /seo-hub                                            139 B          1.19 MB
+├ ƒ /settings                                           4.43 kB        1.19 MB
+├ ƒ /settings/app                                       2.96 kB        1.19 MB
+├ ○ /sitemap.xml                                        0 B                0 B
+├ ƒ /sms/send                                           141 B          1.19 MB
+├ ƒ /sms/verify                                         141 B          1.19 MB
+├ ƒ /social-login-success                               502 B           638 kB
+├ ƒ /statistics                                         191 B          1.19 MB
+├ ƒ /stories                                            674 B          1.19 MB
+├ ƒ /success                                            1.1 kB         1.19 MB
+├ ƒ /terms                                              1.43 kB        1.19 MB
+├ ƒ /thuisgekookt-eten-verkopen                         141 B          1.19 MB
+├ ƒ /timeline                                           642 B          1.19 MB
+├ ƒ /trust                                              141 B          1.19 MB
+├ ƒ /uitnodiging/[code]                                 141 B          1.19 MB
+├ ƒ /unieke-producten-verkopen                          141 B          1.19 MB
+├ ● /user/[username]                                    383 B          1.19 MB
+├ ƒ /verdienen-zonder-dropshipping                      141 B          1.19 MB
+├ ƒ /verdiensten                                        2.98 kB        1.19 MB
+├ ƒ /vergelijken                                        141 B          1.19 MB
+├ ● /vergelijken/[slug]                                 141 B          1.19 MB
+├   ├ /vergelijken/homecheff-vs-etsy
+├   ├ /vergelijken/homecheff-vs-marktplaats
+├   ├ /vergelijken/homecheff-vs-facebook-marketplace
+├   └ [+3 more paths]
+├ ƒ /verificatie/stripe-identity                        937 B           639 kB
+├ ƒ /verify-email                                       2.59 kB        1.19 MB
+├ ƒ /verkoper                                           407 B           638 kB
+├ ƒ /verkoper/analytics                                 2.29 kB        1.19 MB
+├ ƒ /verkoper/dashboard                                 8.67 kB         1.2 MB
+├ ƒ /verkoper/instellingen                              141 B          1.19 MB
+├ ƒ /verkoper/orders                                    4.4 kB         1.19 MB
+├ ƒ /verkoper/revenue                                   7.11 kB         1.2 MB
+├ ƒ /wat-is-homecheff                                   141 B          1.19 MB
+├ ƒ /wat-we-niet-zijn                                   141 B          1.19 MB
+├ ƒ /welkom/[code]                                      141 B          1.19 MB
+├ ƒ /werken-bij                                         1.49 kB        1.19 MB
+└ ƒ /zelfgemaakt-eten-verkopen                          141 B          1.19 MB
++ First Load JS shared by all                           638 kB
+  ├ chunks/nextjs-3de91431672a431f.js                   259 kB
+  └ chunks/vendors-4fcc17767576a4d3.js                  376 kB
+  └ other shared chunks (total)                         2.43 kB
+
+
+ƒ Middleware                                            48 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
+ƒ  (Dynamic)  server-rendered on demand
+
+PASS build
+=== SUMMARY ===
+PASS|test:progressive-disclosure-1b54
+PASS|test:assist-eligibility-1b53
+PASS|test:surface-presentation-1b52
+PASS|test:surface-registry-1b51
+PASS|test:workspace-mode-engine
+PASS|test:workspace-transition-continuity
+PASS|test:mobile-landscape-scroll
+PASS|test:workspace-capability-framework
+PASS|test:landscape-work-posture
+PASS|test:nav-preservation-1b4
+PASS|test:adaptive-workspace
+PASS|test:adaptive-workspace-react
+PASS|test:adaptive-workspace-chrome
+PASS|lint
+PASS|smoke-check
+PASS|build

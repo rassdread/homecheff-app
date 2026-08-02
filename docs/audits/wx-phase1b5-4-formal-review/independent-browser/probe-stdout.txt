@@ -1,0 +1,8 @@
+{
+  "verdict": "WX_PHASE_1B5_4_BROWSER_PROOF_PASS",
+  "passCount": 10,
+  "caseCount": 10,
+  "visibleDisclosureDomDeltaZero": true,
+  "journeyPass": true,
+  "fails": []
+}
