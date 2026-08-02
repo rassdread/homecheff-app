@@ -1,0 +1,95 @@
+diff --git a/components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx b/components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx
+index 01176245..e7bbafd3 100644
+--- a/components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx
++++ b/components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx
+@@ -30,10 +30,14 @@
+  * WX Phase 1B.5.5: Tool & Action Surface Presentation diagnostics only — Persistent vs
+  *                  Reachable planning for already-authorized tools/shortcuts; does NOT
+  *                  change static tool chrome, invent actions, rename IA, or activate chrome.
++ * WX Phase 1B.5.6: Honesty Density & Compacted States diagnostics only — density /
++ *                  compact planning metadata; does NOT change layout, spacing, visibility,
++ *                  chrome, ownership, activation, or apply compaction.
+  *
+  * AvailableSpace: width from workspace container; height from visual viewport.
+  * NEVER key primary (or any slot) by Mode / posture / mode token / capability /
+- * presentation-plan / assist-eligibility / progressive-disclosure / tool-action state.
++ * presentation-plan / assist-eligibility / progressive-disclosure / tool-action /
++ * honesty-density state.
+  */
+ 
+ import React, {
+@@ -56,6 +60,7 @@ import {
+   resolveAssistEligibilityFromPlans,
+   resolveProgressiveDisclosureFromPlans,
+   resolveToolActionPresentationFromPlans,
++  resolveHonestyDensityFromPlans,
+   WORKSPACE_TRANSITION_CONTINUITY,
+   WORKSPACE_SURFACE_REGISTRY,
+   WORKSPACE_SURFACE_IDS,
+@@ -64,6 +69,7 @@ import {
+   WORKSPACE_ASSIST_ELIGIBILITY,
+   WORKSPACE_PROGRESSIVE_DISCLOSURE,
+   WORKSPACE_TOOL_ACTION_PRESENTATION,
++  WORKSPACE_HONESTY_DENSITY,
+   type FeedWorkspaceVisibleLayoutPlan,
+   type NormalizedMeasurement,
+   type WorkspaceModePlan,
+@@ -234,6 +240,12 @@ export default function FeedWorkspaceVisibleLayout({
+     capabilityPlan,
+   );
+ 
++  /** WX 1B.5.6 — honesty density; diagnostics only (does not apply compaction). */
++  const honestyDensityPlan = resolveHonestyDensityFromPlans(
++    modePlan,
++    capabilityPlan,
++  );
++
+   const previousMode = previousModeRef.current;
+   const modeChanged =
+     previousMode != null && previousMode.mode !== modePlan.mode;
+@@ -278,7 +290,7 @@ export default function FeedWorkspaceVisibleLayout({
+     <section
+       ref={rootRef}
+       data-aw-feed-workspace=""
+-      data-wx-phase="1b.5.5"
++      data-wx-phase="1b.5.6"
+       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
+       data-wx-continuity-remount="0"
+       data-wx-shell-mount-id={shellMountId}
+@@ -378,6 +390,36 @@ export default function FeedWorkspaceVisibleLayout({
+       data-wx-tool-suppressed={toolActionPlan.suppressedToolActionIds.join(",")}
+       data-wx-tool-reserved={toolActionPlan.reservedToolActionIds.join(",")}
+       data-wx-tool-future={toolActionPlan.futurePersistentToolActionIds.join(",")}
++      data-wx-honesty={WORKSPACE_HONESTY_DENSITY.contractId}
++      data-wx-honesty-version={WORKSPACE_HONESTY_DENSITY.contractVersion}
++      data-wx-honesty-token={honestyDensityPlan.stabilityToken}
++      data-wx-honesty-status={honestyDensityPlan.status}
++      data-wx-honesty-renders="0"
++      data-wx-honesty-drives-chrome="0"
++      data-wx-honesty-applies-compaction="0"
++      data-wx-density={honestyDensityPlan.orderedSurfaceIds
++        .map((id) => `${id}:${honestyDensityPlan.entryById[id].density}`)
++        .join(",")}
++      data-wx-compact={honestyDensityPlan.orderedSurfaceIds
++        .map((id) => `${id}:${honestyDensityPlan.entryById[id].compactState}`)
++        .join(",")}
++      data-wx-honesty-ids={honestyDensityPlan.orderedSurfaceIds.join(",")}
++      data-wx-honesty-empty={honestyDensityPlan.emptySurfaceIds.join(",")}
++      data-wx-honesty-sparse={honestyDensityPlan.sparseSurfaceIds.join(",")}
++      data-wx-honesty-normal={honestyDensityPlan.normalSurfaceIds.join(",")}
++      data-wx-honesty-dense={honestyDensityPlan.denseSurfaceIds.join(",")}
++      data-wx-honesty-overflow={honestyDensityPlan.overflowSurfaceIds.join(",")}
++      data-wx-honesty-unknown={honestyDensityPlan.unknownSurfaceIds.join(",")}
++      data-wx-honesty-compact-none={honestyDensityPlan.compactNoneIds.join(",")}
++      data-wx-honesty-compact-optional={honestyDensityPlan.compactOptionalIds.join(
++        ",",
++      )}
++      data-wx-honesty-compact-recommended={honestyDensityPlan.compactRecommendedIds.join(
++        ",",
++      )}
++      data-wx-honesty-compact-required={honestyDensityPlan.compactRequiredIds.join(
++        ",",
++      )}
+       data-aw-layout-mode={plan.layoutMode}
+       data-aw-orientation={plan.orientation}
+       data-aw-profile={plan.profile}

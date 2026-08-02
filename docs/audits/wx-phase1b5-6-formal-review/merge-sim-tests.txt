@@ -1,0 +1,42 @@
+
+> homecheff-app@0.1.0 test:honesty-density-1b56
+> npx tsx lib/adaptive-workspace-react/tests/run-honesty-density-1b56-tests.ts
+
+
+[honesty-density-1b5.6] contract seal
+  ✓ sealed contract identity + non-driving flags
+
+[honesty-density-1b5.6] Mode×density honesty matrix
+  ✓ 7 vectors × 7 surfaces
+
+[honesty-density-1b5.6] density state coverage — EMPTY SPARSE NORMAL DENSE OVERFLOW
+  ✓ EMPTY/SPARSE/NORMAL/DENSE/OVERFLOW observed
+
+[honesty-density-1b5.6] compact state coverage — NONE OPTIONAL RECOMMENDED REQUIRED
+  ✓ NONE/OPTIONAL/RECOMMENDED/REQUIRED observed
+
+[honesty-density-1b5.6] fail-closed — unknown / duplicate / contract mismatch → UNKNOWN
+  ✓ unknown/duplicate/mismatch reject; fail-closed UNKNOWN
+
+[honesty-density-1b5.6] diagnostics-only — render/compaction never authorized
+  ✓ render/compaction banned across 49 entries
+
+[honesty-density-1b5.6] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[honesty-density-1b5.6] boundary — overflow requires persistent+heightDemoted
+  ✓ OVERFLOW vs DENSE boundary on tool surface
+
+[honesty-density-1b5.6] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[honesty-density-1b5.6] layout diagnostics expose density/compact without UI apply
+  ✓ layout binds honesty diagnostics; renders=0; no compaction apply
+
+[honesty-density-1b5.6] FromPlans integration
+  ✓ FromPlans chains registry→…→tool-action→honesty-density
+
+[honesty-density-1b5.6] SUMMARY {"groups":11,"assertions":461,"vectors":7,"honestySurfaceIds":7}
+[honesty-density-1b5.6] 461 assertions across 11 groups
+
+TEST_EXIT:0
