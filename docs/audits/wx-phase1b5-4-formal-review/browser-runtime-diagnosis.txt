@@ -1,0 +1,7 @@
+browser_proof_runtime_diagnosis:
+  prior_pid_dead: yes (84087 / 89609)
+  prior_port_listening: no
+  probe_target: http://127.0.0.1:3120/ (correct)
+  server_log_showed_ready_then_exit: yes
+  root_cause: background node killed when parent Shell session ended (not probe race on first READY)
+  repair: keep server as harness-backed background shell; run probes while it stays alive

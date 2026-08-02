@@ -399,7 +399,7 @@ begin("layout diagnostics expose eligibility without visual activation");
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
-  assert.match(layout, /data-wx-phase="1b\.5\.3"/);
+  assert.match(layout, /data-wx-phase="1b\.5\.[0-9]+"/);
   assert.match(layout, /resolveAssistEligibilityFromPlans/);
   assert.match(layout, /data-wx-assist-eligibility=/);
   assert.match(layout, /data-wx-assist-eligibility-version=/);

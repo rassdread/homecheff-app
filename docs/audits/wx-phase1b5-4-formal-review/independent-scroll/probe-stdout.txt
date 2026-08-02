@@ -1,0 +1,9 @@
+{
+  "verdict": "WX_PHASE_1B5_4_SCROLL_VERIFICATION_PASS",
+  "passCount": 8,
+  "caseCount": 8,
+  "portraitPass": true,
+  "landscapePass": true,
+  "journeyPass": true,
+  "fails": []
+}

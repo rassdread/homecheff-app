@@ -274,3 +274,26 @@ export type {
   AssistEligibilityPlan,
   AssistEligibilityResolveInput,
 } from "./resolve-assist-eligibility";
+
+export {
+  WORKSPACE_PROGRESSIVE_DISCLOSURE,
+  PROGRESSIVE_DISCLOSURE_FORBIDDEN_SOURCE_PATTERNS,
+  resolveProgressiveDisclosure,
+  resolveProgressiveDisclosureFromPlans,
+  getProgressiveDisclosureEntry,
+  isProgressivePlanDiscloseable,
+  isProgressiveRenderAuthorized,
+  serializeProgressiveDisclosurePlan,
+} from "./resolve-progressive-disclosure";
+
+export type {
+  ProgressiveSurfaceId,
+  ProgressiveDisclosureState,
+  ProgressiveDisclosureReason,
+  ProgressiveDisclosureSuppressionReason,
+  ProgressiveDisclosureEntry,
+  ProgressiveDisclosurePlanStatus,
+  ProgressiveDisclosurePlan,
+  ProgressiveDisclosureResolveInput,
+} from "./resolve-progressive-disclosure";
+

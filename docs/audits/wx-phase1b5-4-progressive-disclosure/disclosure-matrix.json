@@ -1,0 +1,117 @@
+{
+  "generatedAt": "2026-08-02T16:02:35.456Z",
+  "vectors": [
+    {
+      "id": "browse-portrait-390",
+      "mode": "browse",
+      "posture": "portrait",
+      "usableWidthPx": 390,
+      "usableHeightPx": 844,
+      "landscapeCarveOut": false,
+      "panels": "unavailable",
+      "expect": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed",
+        "tool": "disclosed",
+        "disclosure": "discoverable",
+        "utility": "future-disclosure"
+      }
+    },
+    {
+      "id": "compact-portrait-no-carve",
+      "mode": "compact-workspace",
+      "posture": "portrait",
+      "usableWidthPx": 700,
+      "usableHeightPx": 900,
+      "landscapeCarveOut": false,
+      "panels": "unavailable",
+      "expect": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed",
+        "tool": "disclosed",
+        "disclosure": "discoverable",
+        "utility": "future-disclosure"
+      }
+    },
+    {
+      "id": "compact-landscape-carve-700",
+      "mode": "compact-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 700,
+      "usableHeightPx": 320,
+      "landscapeCarveOut": true,
+      "panels": "available",
+      "expect": {
+        "assist-primary": "hidden",
+        "assist-secondary": "future-disclosure",
+        "tool": "disclosed",
+        "disclosure": "discoverable",
+        "utility": "future-disclosure"
+      }
+    },
+    {
+      "id": "hybrid-landscape-844",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 844,
+      "usableHeightPx": 390,
+      "landscapeCarveOut": false,
+      "panels": "available",
+      "expect": {
+        "assist-primary": "hidden",
+        "assist-secondary": "future-disclosure",
+        "tool": "disclosed",
+        "disclosure": "discoverable",
+        "utility": "future-disclosure"
+      }
+    },
+    {
+      "id": "full-landscape-1280",
+      "mode": "full-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 1280,
+      "usableHeightPx": 800,
+      "landscapeCarveOut": false,
+      "panels": "available",
+      "expect": {
+        "assist-primary": "hidden",
+        "assist-secondary": "hidden",
+        "tool": "disclosed",
+        "disclosure": "discoverable",
+        "utility": "future-disclosure"
+      }
+    },
+    {
+      "id": "professional-landscape-1920",
+      "mode": "professional-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 1920,
+      "usableHeightPx": 1080,
+      "landscapeCarveOut": false,
+      "panels": "available",
+      "expect": {
+        "assist-primary": "hidden",
+        "assist-secondary": "hidden",
+        "tool": "hidden",
+        "disclosure": "discoverable",
+        "utility": "future-disclosure"
+      }
+    },
+    {
+      "id": "hybrid-panels-unavailable",
+      "mode": "hybrid-workspace",
+      "posture": "landscape",
+      "usableWidthPx": 844,
+      "usableHeightPx": 390,
+      "landscapeCarveOut": false,
+      "panels": "unavailable",
+      "expect": {
+        "assist-primary": "suppressed",
+        "assist-secondary": "suppressed",
+        "tool": "disclosed",
+        "disclosure": "discoverable",
+        "utility": "future-disclosure"
+      }
+    }
+  ]
+}

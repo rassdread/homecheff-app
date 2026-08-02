@@ -13,6 +13,8 @@
  *                reload feed, or reset scroll/filters. Fail-closed last stable space.
  * WX Phase 1B.2.1: Mobile landscape scroll — multiCol frame must propagate bounded height
  *                  so `#homecheff-feed-desktop` remains the vertical scroll owner (no clip freeze).
+ *                  Phone portrait (non-multiCol) keeps window/document scroll — do NOT put
+ *                  overflow-y-auto + overscroll-y-contain on an unbounded feed (touch trap).
  * WX Phase 1B.3: Capability Activation Framework diagnostics only (no visual activation).
  * WX Phase 1B.4: Landscape Work Posture presentation diagnostics (chrome compaction owned
  *                by WorkspaceChromeProvider — layout does not remount or change ownership).
@@ -23,10 +25,12 @@
  * WX Phase 1B.5.3: Assist Surface Eligibility diagnostics only — eligibility metadata;
  *                  does NOT render Assist UI, drive chrome occupancy, or activate capabilities
  *                  (hollow permanent assists forbidden without living content).
+ * WX Phase 1B.5.4: Progressive Disclosure Continuity diagnostics only — disclosure planning;
+ *                  does NOT render disclosure UI, drawers, overlays, or drive chrome.
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  * NEVER key primary (or any slot) by Mode / posture / mode token / capability /
- * presentation-plan / assist-eligibility state.
+ * presentation-plan / assist-eligibility / progressive-disclosure state.
  */
 
 import React, {
@@ -47,12 +51,14 @@ import {
   resolveWorkspaceMode,
   resolveSurfacePresentationFromPlans,
   resolveAssistEligibilityFromPlans,
+  resolveProgressiveDisclosureFromPlans,
   WORKSPACE_TRANSITION_CONTINUITY,
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
   WORKSPACE_RESERVED_SURFACE_IDS,
   WORKSPACE_SURFACE_PRESENTATION,
   WORKSPACE_ASSIST_ELIGIBILITY,
+  WORKSPACE_PROGRESSIVE_DISCLOSURE,
   type FeedWorkspaceVisibleLayoutPlan,
   type NormalizedMeasurement,
   type WorkspaceModePlan,
@@ -211,6 +217,12 @@ export default function FeedWorkspaceVisibleLayout({
     capabilityPlan,
   );
 
+  /** WX 1B.5.4 — progressive disclosure; diagnostics only (does not render disclosure UI). */
+  const progressiveDisclosurePlan = resolveProgressiveDisclosureFromPlans(
+    modePlan,
+    capabilityPlan,
+  );
+
   const previousMode = previousModeRef.current;
   const modeChanged =
     previousMode != null && previousMode.mode !== modePlan.mode;
@@ -255,7 +267,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.5.3"
+      data-wx-phase="1b.5.4"
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -327,6 +339,19 @@ export default function FeedWorkspaceVisibleLayout({
       data-wx-assist-suppressed={assistEligibilityPlan.suppressedAssistIds.join(",")}
       data-wx-assist-reserved={assistEligibilityPlan.reservedAssistIds.join(",")}
       data-wx-assist-future={assistEligibilityPlan.futureEligibleAssistIds.join(",")}
+      data-wx-disclosure={WORKSPACE_PROGRESSIVE_DISCLOSURE.contractId}
+      data-wx-disclosure-version={WORKSPACE_PROGRESSIVE_DISCLOSURE.contractVersion}
+      data-wx-disclosure-token={progressiveDisclosurePlan.stabilityToken}
+      data-wx-disclosure-status={progressiveDisclosurePlan.status}
+      data-wx-disclosure-renders="0"
+      data-wx-disclosure-drives-chrome="0"
+      data-wx-disclosure-ids={progressiveDisclosurePlan.orderedSurfaceIds.join(",")}
+      data-wx-disclosure-hidden={progressiveDisclosurePlan.hiddenSurfaceIds.join(",")}
+      data-wx-disclosure-discoverable={progressiveDisclosurePlan.discoverableSurfaceIds.join(",")}
+      data-wx-disclosure-disclosed={progressiveDisclosurePlan.disclosedSurfaceIds.join(",")}
+      data-wx-disclosure-suppressed={progressiveDisclosurePlan.suppressedSurfaceIds.join(",")}
+      data-wx-disclosure-reserved={progressiveDisclosurePlan.reservedSurfaceIds.join(",")}
+      data-wx-disclosure-future={progressiveDisclosurePlan.futureSurfaceIds.join(",")}
       data-aw-layout-mode={plan.layoutMode}
       data-aw-orientation={plan.orientation}
       data-aw-profile={plan.profile}
@@ -417,13 +442,22 @@ export default function FeedWorkspaceVisibleLayout({
             >
               <div
                 data-wx-stage-chrome=""
-                className="hc-wx-stage h-full min-h-0 flex flex-col bg-gray-50/40"
+                className={
+                  multiCol
+                    ? "hc-wx-stage h-full min-h-0 flex flex-col bg-gray-50/40"
+                    : "hc-wx-stage min-h-0 flex flex-col bg-gray-50/40"
+                }
               >
                 <div
                   id="homecheff-feed-desktop"
                   data-aw-primary-feed=""
                   data-aw-stable-feed-slot="1"
-                  className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid"
+                  data-wx-scroll-owner={multiCol ? "feed" : "document"}
+                  className={
+                    multiCol
+                      ? "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid"
+                      : "min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid px-2 py-2 sm:px-3"
+                  }
                   style={{ maxWidth: plan.feedColumnMaxWidthPx }}
                 >
                   {primary}
