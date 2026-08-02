@@ -12,6 +12,7 @@
 | Phase marker | `1b.5.5` |
 | Tool action IDs | `tool`, `action-create`, `action-search`, `action-filters` |
 | Commit A (impl) | `ea781638b37ba0329b23da6e1061ef55b44bfe22` |
+| Commit B (evidence) | `d808f4ab6d05909c9f001c61763541ada1e2a2f6` |
 
 **Not claimed:** merge · deploy · Production freeze · WX Phase 1B.5.6 · formal review execution
 
