@@ -1,0 +1,17 @@
+{
+  "reviewedAt": "independent-formal-review",
+  "branch": "wx/phase-1c1-1-final-launch-readiness",
+  "tip": "a692eea4",
+  "checks": {
+    "orientationExplanationIsPresentationOnly": true,
+    "orientationStripDoesNotImportPlanners": true,
+    "navBarUsesLandscapePostureConsumerOnly": true,
+    "geoFeedOwnershipUnchanged": true,
+    "defaultScopeNearby": true,
+    "tradeChipConsumerOnly": true,
+    "emptyGuidanceConsumerOnly": true,
+    "plannerStackUntouchedAsDrivers": true,
+    "controlledHostNotActivatedByThisPhase": true
+  },
+  "notes": "1C.1.1 adds consumer chrome + feed scope default + i18n; no Mode/Capability/presentation planner extensions."
+}

@@ -1,0 +1,399 @@
+{
+  "phase": "1c.1.1",
+  "generatedAt": "2026-08-03T02:26:05.262Z",
+  "baseUrl": "http://127.0.0.1:3121",
+  "verdict": "WX_PHASE_1C1_1_PASS",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "w": 390,
+        "h": 844,
+        "expectClass": "phone-portrait",
+        "expectRails": [
+          false,
+          false
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "phone-portrait",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:1",
+        "startHidden": true,
+        "endHidden": true,
+        "bottomNavCollapsed": "0",
+        "primaryCreateCount": 1,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "skeletonUnderSearching": false,
+        "eternalSkeleton": false,
+        "nearbyScopeDefault": true,
+        "nationalDefaultContradiction": false,
+        "scopeHintPresent": true,
+        "explainLevel": "short",
+        "stripPct": 0.097,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "stripOk": true,
+        "noEternalSkeleton": true,
+        "nearbyFirst": true,
+        "noNationalContradiction": true,
+        "continuity": true,
+        "plannersNonDriving": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "w": 844,
+        "h": 390,
+        "expectClass": "tablet-landscape",
+        "expectRails": [
+          true,
+          false
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "tablet-landscape",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:2",
+        "startHidden": false,
+        "endHidden": true,
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "skeletonUnderSearching": false,
+        "eternalSkeleton": false,
+        "nearbyScopeDefault": true,
+        "nationalDefaultContradiction": false,
+        "scopeHintPresent": true,
+        "explainLevel": "compact",
+        "stripPct": 0.1,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "stripOk": true,
+        "noEternalSkeleton": true,
+        "nearbyFirst": true,
+        "noNationalContradiction": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "w": 768,
+        "h": 1024,
+        "expectClass": "tablet-portrait",
+        "expectRails": [
+          true,
+          false
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "tablet-portrait",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:3",
+        "startHidden": false,
+        "endHidden": true,
+        "bottomNavCollapsed": "0",
+        "primaryCreateCount": 1,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "skeletonUnderSearching": false,
+        "eternalSkeleton": false,
+        "nearbyScopeDefault": true,
+        "nationalDefaultContradiction": false,
+        "scopeHintPresent": true,
+        "explainLevel": "medium",
+        "stripPct": 0.136,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "stripOk": true,
+        "noEternalSkeleton": true,
+        "nearbyFirst": true,
+        "noNationalContradiction": true,
+        "continuity": true,
+        "plannersNonDriving": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "w": 900,
+        "h": 600,
+        "expectClass": "tablet-landscape",
+        "expectRails": [
+          true,
+          false
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "tablet-landscape",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:4",
+        "startHidden": false,
+        "endHidden": true,
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "skeletonUnderSearching": false,
+        "eternalSkeleton": false,
+        "nearbyScopeDefault": true,
+        "nationalDefaultContradiction": false,
+        "scopeHintPresent": true,
+        "explainLevel": "medium",
+        "stripPct": 0.12,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "stripOk": true,
+        "noEternalSkeleton": true,
+        "nearbyFirst": true,
+        "noNationalContradiction": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "laptop",
+        "w": 1100,
+        "h": 700,
+        "expectClass": "laptop",
+        "expectRails": [
+          true,
+          true
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "laptop",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:5",
+        "startHidden": false,
+        "endHidden": false,
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "skeletonUnderSearching": false,
+        "eternalSkeleton": false,
+        "nearbyScopeDefault": true,
+        "nationalDefaultContradiction": false,
+        "scopeHintPresent": true,
+        "explainLevel": "full",
+        "stripPct": 0.12,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "stripOk": true,
+        "noEternalSkeleton": true,
+        "nearbyFirst": true,
+        "noNationalContradiction": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "w": 1280,
+        "h": 800,
+        "expectClass": "desktop",
+        "expectRails": [
+          true,
+          true
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "desktop",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:6",
+        "startHidden": false,
+        "endHidden": false,
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "skeletonUnderSearching": false,
+        "eternalSkeleton": false,
+        "nearbyScopeDefault": true,
+        "nationalDefaultContradiction": false,
+        "scopeHintPresent": true,
+        "explainLevel": "full",
+        "stripPct": 0.12,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "stripOk": true,
+        "noEternalSkeleton": true,
+        "nearbyFirst": true,
+        "noNationalContradiction": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "w": 2560,
+        "h": 1440,
+        "expectClass": "ultrawide",
+        "expectRails": [
+          true,
+          true
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "ultrawide",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:7",
+        "startHidden": false,
+        "endHidden": false,
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "skeletonUnderSearching": false,
+        "eternalSkeleton": false,
+        "nearbyScopeDefault": true,
+        "nationalDefaultContradiction": false,
+        "scopeHintPresent": true,
+        "explainLevel": "full",
+        "stripPct": 0.095,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "stripOk": true,
+        "noEternalSkeleton": true,
+        "nearbyFirst": true,
+        "noNationalContradiction": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true
+      },
+      "pass": true,
+      "failed": []
+    }
+  ],
+  "rotation": {
+    "primaryStable": true,
+    "landscapeCreate": true,
+    "portraitCreate": true,
+    "tradeStable": true
+  },
+  "summary": {
+    "pass": 7,
+    "total": 7
+  }
+}
