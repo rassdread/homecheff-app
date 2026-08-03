@@ -318,10 +318,15 @@ export default function FeedWorkspaceVisibleLayout({
   const gridTemplateAreas = (() => {
     // Orientation host is always mounted for continuity; reserve grid row when
     // orientation content is provided (Home always passes it).
-    if (plan.showStartPanel) {
+    if (plan.showStartPanel && plan.showEndPanel) {
       return hasOrientation
         ? '"orient orient orient" "start primary end"'
         : '"start primary end"';
+    }
+    if (plan.showStartPanel) {
+      return hasOrientation
+        ? '"orient orient" "start primary"'
+        : '"start primary"';
     }
     if (plan.showEndPanel) {
       return hasOrientation
@@ -345,7 +350,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1c"
+      data-wx-phase="1c.1"
       data-wx-visible-adaptive={VISIBLE_ADAPTIVE_WORKSPACE.contractId}
       data-wx-workspace-class={visiblePlan.workspaceClass}
       data-wx-visible-density={visiblePlan.density}

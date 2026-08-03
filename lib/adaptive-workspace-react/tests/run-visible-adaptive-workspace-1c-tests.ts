@@ -46,9 +46,9 @@ console.log("\n[visible-adaptive-1c] screen class matrix (AvailableSpace)");
     bottom: number;
   }> = [
     { w: 390, h: 844, cls: "phone-portrait", rails: [false, false], scroll: "document", bottom: 5 },
-    { w: 700, h: 320, cls: "phone-landscape", rails: [false, true], scroll: "feed", bottom: 0 },
-    { w: 768, h: 1024, cls: "tablet-portrait", rails: [false, true], scroll: "feed", bottom: 5 },
-    { w: 900, h: 600, cls: "tablet-landscape", rails: [false, true], scroll: "feed", bottom: 0 },
+    { w: 700, h: 320, cls: "phone-landscape", rails: [true, false], scroll: "feed", bottom: 0 },
+    { w: 768, h: 1024, cls: "tablet-portrait", rails: [true, false], scroll: "feed", bottom: 5 },
+    { w: 900, h: 600, cls: "tablet-landscape", rails: [true, false], scroll: "feed", bottom: 0 },
     { w: 1024, h: 768, cls: "laptop", rails: [true, true], scroll: "feed", bottom: 0 },
     { w: 1280, h: 800, cls: "desktop", rails: [true, true], scroll: "feed", bottom: 0 },
     { w: 1440, h: 900, cls: "ultrawide", rails: [true, true], scroll: "feed", bottom: 0 },
@@ -145,7 +145,7 @@ console.log("\n[visible-adaptive-1c] source contracts");
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
-  assert.match(layoutSrc, /data-wx-phase="1c"/);
+  assert.match(layoutSrc, /data-wx-phase="1c.1"/);
   assert.match(layoutSrc, /resolveVisibleAdaptiveWorkspace/);
   assert.match(layoutSrc, /railOwnsFilters/);
   assert.equal(/key=\{[^}]*modePlan/i.test(layoutSrc), false);

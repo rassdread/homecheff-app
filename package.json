@@ -273,7 +273,8 @@
     "probe:wx-phase1b58-context-relevance": "node scripts/probe-wx-phase1b58-context-relevance.mjs",
     "probe:wx-phase1b59-context-intent": "node scripts/probe-wx-phase1b59-context-intent.mjs",
     "test:visible-adaptive-1c": "npx tsx lib/adaptive-workspace-react/tests/run-visible-adaptive-workspace-1c-tests.ts",
-    "probe:wx-phase1c-visible-adaptive": "node scripts/probe-wx-phase1c-visible-adaptive.mjs"
+    "probe:wx-phase1c-visible-adaptive": "node scripts/probe-wx-phase1c-visible-adaptive.mjs",
+    "probe:wx-phase1c1-launch-readiness": "node scripts/probe-wx-phase1c1-launch-readiness.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

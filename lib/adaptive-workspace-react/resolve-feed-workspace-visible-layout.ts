@@ -130,28 +130,40 @@ export function resolveFeedWorkspaceVisibleLayout(args: {
     profile = "COMFORT";
   }
 
-  const showStartPanel = supportingPanelCount >= 2;
-  const showEndPanel = supportingPanelCount >= 1;
+  /**
+   * WX 1C.1 — tooling before community context:
+   * single-panel budgets prefer the start (filters/tools) rail over end (community).
+   */
+  const showStartPanel = supportingPanelCount >= 1;
+  const showEndPanel = supportingPanelCount >= 2;
 
   const startRailWidthPx =
-    layoutMode === "desktop-wide" ? 300 : supportingPanelCount >= 2 ? 260 : 0;
-  const endRailWidthPx =
     supportingPanelCount === 0
       ? 0
       : layoutMode === "desktop-wide"
-        ? 340
+        ? 300
         : supportingPanelCount >= 2
-          ? 300
-          : 260;
+          ? 260
+          : 240;
+  const endRailWidthPx =
+    supportingPanelCount >= 2
+      ? layoutMode === "desktop-wide"
+        ? 340
+        : 300
+      : 0;
 
   let gridTemplateColumns = "minmax(0,1fr)";
   if (supportingPanelCount === 1) {
-    gridTemplateColumns = `minmax(0,1fr) minmax(200px,${endRailWidthPx}px)`;
+    gridTemplateColumns = `minmax(200px,${startRailWidthPx}px) minmax(0,1fr)`;
   } else if (supportingPanelCount >= 2) {
     gridTemplateColumns = `minmax(220px,${startRailWidthPx}px) minmax(0,1fr) minmax(240px,${endRailWidthPx}px)`;
   }
 
-  const feedColumnMaxWidthPx = bands.feedColumnMaxWidthPx;
+  /** Ultrawide keeps cards readable but reduces empty stage gutters (1C.1). */
+  const feedColumnMaxWidthPx =
+    layoutMode === "desktop-wide"
+      ? Math.max(bands.feedColumnMaxWidthPx, 800)
+      : bands.feedColumnMaxWidthPx;
   const stabilityToken = `feed-ws:${widthPx}x${heightPx}:${layoutMode}:p${supportingPanelCount}`;
 
   return {

@@ -1,6 +1,6 @@
 'use client';
 
-import { Filter } from 'lucide-react';
+import { Filter, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FeedChip } from '@/lib/feed/feed-taxonomy';
 import type { FeedScope } from '@/lib/feed/feed-scope';
@@ -44,6 +44,11 @@ type Props = {
   navPinned?: boolean;
   feedLayoutMode: FeedLayoutMode;
   onFeedLayoutModeChange: (mode: FeedLayoutMode) => void;
+  /** WX 1C.1 — immediately discoverable search. */
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+  /** Landscape work posture: prioritize feed over filter chrome. */
+  workCompact?: boolean;
 };
 
 const chipClass = (active: boolean) =>
@@ -89,6 +94,9 @@ export default function FeedMobileToolbar({
   navPinned = true,
   feedLayoutMode,
   onFeedLayoutModeChange,
+  searchQuery,
+  onSearchQueryChange,
+  workCompact = false,
 }: Props) {
   const scopes = [
     [FEED_SCOPE_NEARBY, 'feed.scopeNearby'],
@@ -102,6 +110,24 @@ export default function FeedMobileToolbar({
     (o) => o.slug === appliedCategory,
   )?.labelKey;
 
+  const searchField = (
+    <label className="relative block min-w-0 flex-1">
+      <span className="sr-only">{t('common.searchInProductsSimple')}</span>
+      <Search
+        className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+        aria-hidden
+      />
+      <input
+        type="search"
+        data-wx-feed-search=""
+        value={searchQuery}
+        onChange={(e) => onSearchQueryChange(e.target.value)}
+        placeholder={t('common.searchInProductsSimple')}
+        className="w-full min-h-[40px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20"
+      />
+    </label>
+  );
+
   if (collapsed) {
     return (
       <div
@@ -112,11 +138,12 @@ export default function FeedMobileToolbar({
         data-mobile-filter-collapsed="true"
       >
         <div className="flex items-center gap-2">
+          {searchField}
           <button
             type="button"
             onClick={onOpenFilters}
             className={cn(
-              'inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold touch-manipulation',
+              'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold touch-manipulation',
               filterActive
                 ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
                 : 'border-gray-200 bg-[#faf8f4] text-gray-800',
@@ -133,7 +160,7 @@ export default function FeedMobileToolbar({
             ) : null}
           </button>
           {filterActive ? (
-            <p className="min-w-0 max-w-[42%] truncate text-[10px] text-gray-600">
+            <p className="min-w-0 max-w-[30%] truncate text-[10px] text-gray-600">
               {viewLabel ? t(viewLabel) : null}
               {categoryLabel && appliedCategory !== 'all' ? ` · ${t(categoryLabel)}` : null}
             </p>
@@ -145,10 +172,16 @@ export default function FeedMobileToolbar({
 
   return (
     <div
-      className="mb-2 space-y-2 rounded-xl border border-gray-200/80 bg-white px-2 py-2 shadow-sm"
+      className={cn(
+        'mb-2 space-y-2 rounded-xl border border-gray-200/80 bg-white px-2 py-2 shadow-sm',
+        workCompact && 'space-y-1.5 py-1.5',
+      )}
       data-mobile-filter-collapsed="false"
+      data-wx-work-compact={workCompact ? '1' : '0'}
       aria-expanded={true}
     >
+      <div className="flex items-center gap-2">{searchField}</div>
+
       <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
           <button
@@ -162,55 +195,66 @@ export default function FeedMobileToolbar({
         ))}
       </div>
 
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {DISCOVERY_CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
-          <button
-            key={slug}
-            type="button"
-            className={chipClass(appliedCategory === slug)}
-            onClick={() => onCategoryChange(slug)}
-          >
-            {t(labelKey)}
-          </button>
-        ))}
-      </div>
+      {!workCompact ? (
+        <>
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {DISCOVERY_CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
+              <button
+                key={slug}
+                type="button"
+                className={chipClass(appliedCategory === slug)}
+                onClick={() => onCategoryChange(slug)}
+              >
+                {t(labelKey)}
+              </button>
+            ))}
+          </div>
 
-      <div className="flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {scopes.map(([id, labelKey]) => (
-          <button
-            key={id}
-            type="button"
-            className={scopeClass(appliedScope === id)}
-            onClick={() => onScopeChange(id)}
-            aria-pressed={appliedScope === id}
-          >
-            {t(labelKey)}
-          </button>
-        ))}
-      </div>
+          <div className="flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {scopes.map(([id, labelKey]) => (
+              <button
+                key={id}
+                type="button"
+                className={scopeClass(appliedScope === id)}
+                onClick={() => onScopeChange(id)}
+                aria-pressed={appliedScope === id}
+              >
+                {t(labelKey)}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
 
       <div className="flex items-center gap-2">
-        <label className="sr-only" htmlFor="feed-mobile-sort">
-          {t('common.sortBy')}
-        </label>
-        <select
-          id="feed-mobile-sort"
-          value={sortBy}
-          onChange={(e) => onSort(e.target.value as FeedClientSortField)}
-          className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-[#faf8f4] px-2 py-1.5 text-xs font-medium text-gray-800"
-        >
-          {sortOptions.map((opt) => (
-            <option key={opt.id} value={opt.id}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
+        {!workCompact ? (
+          <>
+            <label className="sr-only" htmlFor="feed-mobile-sort">
+              {t('common.sortBy')}
+            </label>
+            <select
+              id="feed-mobile-sort"
+              value={sortBy}
+              onChange={(e) => onSort(e.target.value as FeedClientSortField)}
+              className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-[#faf8f4] px-2 py-1.5 text-xs font-medium text-gray-800"
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
+          </>
+        ) : (
+          <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
+        )}
         <button
           type="button"
           onClick={onOpenFilters}
           className={cn(
             'inline-flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold touch-manipulation',
+            workCompact && 'ml-auto',
             filterActive
               ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
               : 'border-gray-200 bg-gray-50 text-gray-800',

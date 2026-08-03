@@ -482,7 +482,7 @@ begin("layout diagnostics expose plan without visual activation");
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
-  assert.match(layout, /data-wx-phase="(?:1b\.5\.[0-9]+|1c)"/);
+  assert.match(layout, /data-wx-phase="(?:1b\.5\.[0-9]+|1c(?:\.1)?)"/);
   assert.match(layout, /resolveSurfacePresentationFromPlans/);
   assert.match(layout, /data-wx-presentation=/);
   assert.match(layout, /data-wx-presentation-version=/);

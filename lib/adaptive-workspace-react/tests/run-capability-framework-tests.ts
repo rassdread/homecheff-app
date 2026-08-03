@@ -188,7 +188,7 @@ begin("layout diagnostics only — phase markers + capability attrs");
     "utf8",
   );
   assert.match(layoutSrc, /resolveWorkspaceCapabilitiesFromModePlan|resolveWorkspaceCapabilities/);
-  assert.match(layoutSrc, /data-wx-phase="(?:1b\.5\.[0-9]+|1c)"/);
+  assert.match(layoutSrc, /data-wx-phase="(?:1b\.5\.[0-9]+|1c(?:\.1)?)"/);
   assert.match(layoutSrc, /data-wx-landscape-work/);
   assert.match(layoutSrc, /data-wx-landscape-contract/);
   assert.match(layoutSrc, /data-wx-capability/);
@@ -314,6 +314,8 @@ begin("diagnostics consumers — no behavioural JS / CSS hooks");
       l.includes("probe-wx-phase1b57-context-priority.mjs") ||
       l.includes("probe-wx-phase1b58-context-relevance.mjs") ||
       l.includes("probe-wx-phase1b59-context-intent.mjs") ||
+      l.includes("probe-wx-phase1c-visible-adaptive.mjs") ||
+      l.includes("probe-wx-phase1c1-launch-readiness.mjs") ||
       l.includes("run-progressive-disclosure-1b54-tests.ts") ||
       l.includes("run-tool-action-presentation-1b55-tests.ts") ||
       l.includes("run-honesty-density-1b56-tests.ts") ||

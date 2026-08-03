@@ -30,6 +30,7 @@ import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
 import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
 import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
+import { useLandscapeWorkPosture } from "@/components/adaptive-workspace/WorkspaceChromeProvider";
 import {
   getFeedItemHref,
 } from "@/components/feed/feedItemClassification";
@@ -1000,6 +1001,8 @@ export default function GeoFeed({
   /** WX Phase 1C — optional presentation bridge (rails consume; GeoFeed still owns state). */
   const workspaceBridge = useWorkspaceFeedPresentationBridge();
   const workspaceRailOwnsFilters = Boolean(workspaceBridge?.startRailActive);
+  const landscapeWork = useLandscapeWorkPosture();
+  const workCompactChrome = landscapeWork.workPostureActive;
 
   useEffect(() => {
     feedPerfIncrementGeoFeedMount();
@@ -4896,21 +4899,39 @@ export default function GeoFeed({
         navPinned={mobileFilterNavPinned}
         feedLayoutMode={feedLayoutMode}
         onFeedLayoutModeChange={setFeedLayoutMode}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        workCompact={workCompactChrome}
       />
       {mobileFilterSheetEl}
       {resultCountEl}
     </>
   ) : workspaceRailOwnsFilters ? (
-    /* WX Phase 1C — start rail owns full filters; stage keeps compact discover chrome. */
+    /* WX Phase 1C / 1C.1 — start rail owns full filters; stage keeps search + compact chrome. */
     <div
       className="space-y-2"
       data-wx-discovery-chrome="stage-compact"
-      data-wx-phase="1c"
+      data-wx-phase="1c.1"
       data-wx-rail-owns-filters="1"
     >
       <div
         className={`hc-dorpsplein-card bg-white/90 rounded-xl border border-primary-brand/10 shadow-sm ${feedPanelPad}`}
       >
+        <label className="relative mb-2 block min-w-0">
+          <span className="sr-only">{t("common.searchInProductsSimple")}</span>
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+            aria-hidden
+          />
+          <input
+            type="search"
+            data-wx-feed-search=""
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t("common.searchInProductsSimple")}
+            className="w-full min-h-[40px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20"
+          />
+        </label>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-2">{viewModeChipsEl}</div>
           <FeedDesktopColumnToggle
@@ -4922,15 +4943,30 @@ export default function GeoFeed({
       </div>
     </div>
   ) : (
-    /* WX Phase 1A — Level 1 discover (chips) first; Level 2+ filters progressive. */
+    /* WX Phase 1A / 1C.1 — search first; Level 1 chips; Level 2+ filters progressive. */
     <div
       className="space-y-2"
       data-wx-discovery-chrome="progressive"
-      data-wx-phase="1a"
+      data-wx-phase="1c.1"
     >
       <div
         className={`hc-dorpsplein-card bg-white/90 rounded-xl border border-primary-brand/10 shadow-sm ${feedPanelPad}`}
       >
+        <label className="relative mb-2 block min-w-0">
+          <span className="sr-only">{t("common.searchInProductsSimple")}</span>
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+            aria-hidden
+          />
+          <input
+            type="search"
+            data-wx-feed-search=""
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t("common.searchInProductsSimple")}
+            className="w-full min-h-[40px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20"
+          />
+        </label>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-2">{viewModeChipsEl}</div>
           <button
@@ -5284,12 +5320,44 @@ export default function GeoFeed({
           </div>
         </div>
       ) : emptyAll ? (
-        <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
+        <div
+          className="rounded-xl border border-emerald-100 bg-white p-4 text-sm text-muted-foreground"
+          data-wx-empty-guidance=""
+          data-wx-phase="1c.1"
+        >
           <p className="text-base font-semibold text-gray-900">
             {t("feed.emptyConfirmedTitle")}
           </p>
-          <p className="mt-1">{t("feed.emptyConfirmedBody")}</p>
+          <p className="mt-1 text-gray-700">{t("homePhase1.heroValueExchange")}</p>
+          <p className="mt-2">{t("feed.emptyConfirmedBody")}</p>
           <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              data-wx-empty-create=""
+              onClick={() =>
+                createFlow.openCreateFlowWithIntent(
+                  createIntentForSaleOrInspiration(category, "sale"),
+                )
+              }
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+              {t("homePhase1.ctaShare")}
+            </button>
+            <button
+              type="button"
+              data-wx-empty-search=""
+              onClick={() => {
+                const el = document.querySelector<HTMLInputElement>(
+                  "[data-wx-feed-search]",
+                );
+                el?.focus();
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              <Search className="h-4 w-4 shrink-0" aria-hidden />
+              {t("common.searchInProductsSimple")}
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -5313,15 +5381,30 @@ export default function GeoFeed({
             >
               {t("feed.emptyConfirmedClearFilters")}
             </button>
+            <button
+              type="button"
+              onClick={handleUseMyLocation}
+              className="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+            >
+              {t("feed.useMyLocation")}
+            </button>
             {appliedScope === FEED_SCOPE_NEARBY ? (
               <button
                 type="button"
                 onClick={handleWidenRadius}
-                className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
               >
                 {t("feed.emptyConfirmedWidenArea")}
               </button>
-            ) : null}
+            ) : (
+              <button
+                type="button"
+                onClick={handleViewNationalScope}
+                className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                {t("feed.scopeNational")}
+              </button>
+            )}
           </div>
         </div>
       ) : (

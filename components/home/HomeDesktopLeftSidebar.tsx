@@ -124,10 +124,12 @@ export default function HomeDesktopLeftSidebar() {
           />
         ) : (
           <SidebarSection title={t('homeDorpsplein.quickActionsTitle')}>
+            {/* WX 1C.1 — secondary shortcut only; NavBar owns the primary Create CTA. */}
             <button
               type="button"
+              data-wx-create-secondary=""
               onClick={() => requireAuthAction('create', '/sell/new')}
-              className="flex w-full items-center gap-2 rounded-xl bg-primary-brand px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition-colors text-left overflow-visible"
+              className="flex w-full items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-sm font-medium text-emerald-900 hover:bg-emerald-50 transition-colors text-left overflow-visible"
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden />
               <span className="min-w-0 whitespace-normal leading-snug">{t('homePhase1.ctaShare')}</span>

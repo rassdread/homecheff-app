@@ -1472,6 +1472,19 @@ html[data-wx-bottom-nav-collapsed="1"] .hc-wx-shell {
     linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.7));
 }
 
+/* WX Phase 1C.1 — orientation strip stays compact; landscape prioritizes stage */
+.hc-wx-orientation-strip {
+  max-height: 12vh;
+}
+
+html[data-wx-landscape-work="1"] .hc-wx-orientation-strip {
+  max-height: 10vh;
+}
+
+html[data-wx-landscape-work="1"] .hc-wx-stage {
+  min-height: 0;
+}
+
 .hc-wx-rail {
   min-height: 100%;
   background: #fff;
