@@ -26,8 +26,8 @@
     "smoke-check": "node scripts/smoke-check.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "db:migration:validate": "tsx scripts/validate-migration-cutoff.ts --strict && tsx scripts/validate-dual-track-migration-config.ts",
-    "db:migrate:shared": "echo 'Shared Neon only \u2014 requires DATABASE_URL and human approval' && npx prisma migrate deploy --schema prisma/schema.prisma",
-    "db:migrate:greenfield": "echo 'Use GREENFIELD_DATABASE_URL \u2014 never DATABASE_URL' && npx prisma migrate deploy --schema prisma/schema.prisma",
+    "db:migrate:shared": "echo 'Shared Neon only — requires DATABASE_URL and human approval' && npx prisma migrate deploy --schema prisma/schema.prisma",
+    "db:migrate:greenfield": "echo 'Use GREENFIELD_DATABASE_URL — never DATABASE_URL' && npx prisma migrate deploy --schema prisma/schema.prisma",
     "db:greenfield:bootstrap": "tsx scripts/run-disposable-greenfield-test.ts --mode dry-run",
     "db:greenfield:test": "tsx scripts/run-disposable-greenfield-test.ts --mode greenfield",
     "db:simulate:shared-neon": "tsx scripts/simulate-shared-neon-migration-options.ts",
@@ -41,7 +41,7 @@
     "deploy:preview": "npx vercel",
     "test:account-normalization": "npx tsx scripts/test-account-email-normalization.ts",
     "test:adaptive-workspace": "npx tsx lib/adaptive-workspace/tests/run-tests.ts",
-    "test:adaptive-workspace-react": "npx tsx lib/adaptive-workspace-react/tests/run-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-feed-workspace-visibility-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-mobile-landscape-scroll-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-capability-framework-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-landscape-work-posture-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-nav-preservation-1b4-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-surface-registry-1b51-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-surface-presentation-1b52-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-assist-eligibility-1b53-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-progressive-disclosure-1b54-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-tool-action-presentation-1b55-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-honesty-density-1b56-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-priority-1b57-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-relevance-1b58-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-intent-1b59-tests.ts",
+    "test:adaptive-workspace-react": "npx tsx lib/adaptive-workspace-react/tests/run-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-feed-workspace-visibility-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-mobile-landscape-scroll-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-capability-framework-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-landscape-work-posture-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-nav-preservation-1b4-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-surface-registry-1b51-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-surface-presentation-1b52-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-assist-eligibility-1b53-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-progressive-disclosure-1b54-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-tool-action-presentation-1b55-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-honesty-density-1b56-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-priority-1b57-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-relevance-1b58-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-intent-1b59-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-visible-adaptive-workspace-1c-tests.ts",
     "test:feed-workspace-visibility": "npx tsx lib/adaptive-workspace-react/tests/run-feed-workspace-visibility-tests.ts",
     "test:workspace-mode-engine": "npx tsx lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts",
     "test:workspace-transition-continuity": "npx tsx lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts",
@@ -271,7 +271,9 @@
     "probe:wx-phase1b56-honesty-density": "node scripts/probe-wx-phase1b56-honesty-density.mjs",
     "probe:wx-phase1b57-context-priority": "node scripts/probe-wx-phase1b57-context-priority.mjs",
     "probe:wx-phase1b58-context-relevance": "node scripts/probe-wx-phase1b58-context-relevance.mjs",
-    "probe:wx-phase1b59-context-intent": "node scripts/probe-wx-phase1b59-context-intent.mjs"
+    "probe:wx-phase1b59-context-intent": "node scripts/probe-wx-phase1b59-context-intent.mjs",
+    "test:visible-adaptive-1c": "npx tsx lib/adaptive-workspace-react/tests/run-visible-adaptive-workspace-1c-tests.ts",
+    "probe:wx-phase1c-visible-adaptive": "node scripts/probe-wx-phase1c-visible-adaptive.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

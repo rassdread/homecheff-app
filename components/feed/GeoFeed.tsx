@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useMemo, useRef, useState, startTransition, createContext, type ReactNode } from "react";
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, startTransition, createContext, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useMobileFeedFilterScroll } from "@/hooks/useMobileFeedFilterScroll";
 import { useSession } from "next-auth/react";
@@ -28,6 +29,7 @@ import AcceptedValueChip from "@/components/marketplace/AcceptedValueChip";
 import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
 import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
+import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
 import {
   getFeedItemHref,
 } from "@/components/feed/feedItemClassification";
@@ -954,10 +956,11 @@ export function FeedFiltersPanel() {
   return ctx?.filtersPanel ?? null;
 }
 
-/** True when composed GeoFeed provides a filters panel (legacy sticky path). */
+/** True when composed GeoFeed provides a filters panel (legacy sticky path or AW 1C portal host). */
 export function useHasFeedFiltersPanel() {
   const ctx = useContext(GeoFeedHomeLayoutContext);
-  return Boolean(ctx?.filtersPanel);
+  const bridge = useWorkspaceFeedPresentationBridge();
+  return Boolean(ctx?.filtersPanel) || Boolean(bridge?.startRailActive);
 }
 
 /** Feed column for homepage desktop sticky grid — must be inside GeoFeed with homeComposedLayout. */
@@ -966,10 +969,11 @@ export function FeedContent() {
   return ctx?.feedContent ?? null;
 }
 
-/** Surface plan from discovery.futureSlots.surfaces — Phase 3E. */
+/** Surface plan from discovery.futureSlots.surfaces — Phase 3E (+ AW 1C bridge). */
 export function useHomeSurfacePlan() {
   const ctx = useContext(GeoFeedHomeLayoutContext);
-  return ctx?.surfacePlan ?? null;
+  const bridge = useWorkspaceFeedPresentationBridge();
+  return ctx?.surfacePlan ?? bridge?.surfacePlan ?? null;
 }
 
 /** Category discovery axis — Phase 7E canonical model (services is category-only). */
@@ -993,6 +997,9 @@ export default function GeoFeed({
   const createFlow = useCreateFlow();
   const { profile: bootstrapProfile, ensureProfile, status: bootstrapStatus } =
     useUserBootstrap();
+  /** WX Phase 1C — optional presentation bridge (rails consume; GeoFeed still owns state). */
+  const workspaceBridge = useWorkspaceFeedPresentationBridge();
+  const workspaceRailOwnsFilters = Boolean(workspaceBridge?.startRailActive);
 
   useEffect(() => {
     feedPerfIncrementGeoFeedMount();
@@ -4893,6 +4900,27 @@ export default function GeoFeed({
       {mobileFilterSheetEl}
       {resultCountEl}
     </>
+  ) : workspaceRailOwnsFilters ? (
+    /* WX Phase 1C — start rail owns full filters; stage keeps compact discover chrome. */
+    <div
+      className="space-y-2"
+      data-wx-discovery-chrome="stage-compact"
+      data-wx-phase="1c"
+      data-wx-rail-owns-filters="1"
+    >
+      <div
+        className={`hc-dorpsplein-card bg-white/90 rounded-xl border border-primary-brand/10 shadow-sm ${feedPanelPad}`}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0 flex-1 space-y-2">{viewModeChipsEl}</div>
+          <FeedDesktopColumnToggle
+            columns={desktopFeedColumns}
+            onChange={setDesktopFeedColumns}
+          />
+        </div>
+        {resultCountEl}
+      </div>
+    </div>
   ) : (
     /* WX Phase 1A — Level 1 discover (chips) first; Level 2+ filters progressive. */
     <div
@@ -5481,6 +5509,63 @@ export default function GeoFeed({
         </div>
       );
 
+  useLayoutEffect(() => {
+    if (!workspaceBridge) return;
+    workspaceBridge.setSurfacePlan(surfacePlan);
+    return () => {
+      workspaceBridge.setSurfacePlan(null);
+    };
+  }, [workspaceBridge, surfacePlan]);
+
+  const workspaceRailFiltersPortal =
+    workspaceBridge &&
+    workspaceRailOwnsFilters &&
+    workspaceBridge.filterHost
+      ? createPortal(
+          <FeedSidebarFilters
+            t={t}
+            place={place}
+            onPlaceChange={handlePlaceInput}
+            onUseMyLocation={handleUseMyLocation}
+            locationLoading={locationLoading}
+            locationSupported={locationSupported}
+            locationError={showGpsError ? locationError : null}
+            activeLocationChip={activeLocationChip}
+            onClearLocation={clearViewerLocation}
+            showLocationHint={showViewerLocationHint}
+            profileNeedsCoords={profileNeedsCoords}
+            scope={appliedScope}
+            onScopeChange={handleScopeChange}
+            radius={radius}
+            onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
+            distanceSortEnabled={distanceSortEnabled}
+            q={q}
+            onQChange={setQ}
+            category={category}
+            onCategoryChange={setCategory}
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+            sortOptions={sortOptions}
+            priceRange={priceRange}
+            onPriceRangeChange={setPriceRange}
+            refineOpen={sidebarRefineOpen}
+            onRefineOpenChange={setSidebarRefineOpen}
+            filtersDirty={filtersDirty}
+            onApply={applyFilters}
+            onResetDraft={resetDraftFilters}
+            appliedAcceptedValues={appliedAcceptedValues}
+            onAcceptedValuesChange={setAppliedAcceptedValues}
+            discoveryDirection={discoveryDirection}
+            onDiscoveryDirectionChange={setDiscoveryDirection}
+            hideHeading
+          />,
+          workspaceBridge.filterHost,
+        )
+      : null;
+
   if (homeComposedLayout && isMobileFeedUi) {
     return null;
   }
@@ -5524,6 +5609,7 @@ export default function GeoFeed({
 
   return (
     <div id="homecheff-feed" className="space-y-4">
+      {workspaceRailFiltersPortal}
       {filterCardEl}
       {feedResultsBlock}
     </div>

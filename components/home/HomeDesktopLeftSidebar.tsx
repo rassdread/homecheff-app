@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -10,6 +10,7 @@ import {
   FeedFiltersPanel,
   useHasFeedFiltersPanel,
 } from '@/components/feed/GeoFeed';
+import { useWorkspaceFeedPresentationBridge } from '@/components/adaptive-workspace/WorkspaceFeedPresentationBridge';
 import RoleQuickLinksSection from '@/components/navigation/RoleQuickLinksSection';
 import { primaryDashboardContextFromUser } from '@/lib/navigation/primary-dashboard';
 import {
@@ -38,9 +39,42 @@ function SidebarSection({
 function DiscoveryFiltersSection() {
   const { t } = useTranslation();
   const hasFiltersPanel = useHasFeedFiltersPanel();
+  const bridge = useWorkspaceFeedPresentationBridge();
+  const railPortalMode = Boolean(bridge?.startRailActive);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  useEffect(() => {
+    if (!railPortalMode) return;
+    return () => {
+      bridge?.setFilterHost(null);
+    };
+  }, [railPortalMode, bridge]);
+
   if (!hasFiltersPanel) return null;
+
+  /** WX 1C: when start rail owns filters, keep them persistently visible (no hollow collapse). */
+  if (railPortalMode) {
+    return (
+      <section
+        className="hc-dorpsplein-card overflow-hidden"
+        data-home-sidebar="discovery-filters"
+        data-wx-rail-filters="1"
+      >
+        <div className="px-3 py-3">
+          <h3 className="hc-section-title text-sm">
+            {t('feed.discoverFiltersHeading')}
+          </h3>
+        </div>
+        <div className="border-t border-gray-100 px-1 pb-2 pt-1">
+          <div
+            ref={(el) => bridge?.setFilterHost(el)}
+            data-wx-filter-portal-host=""
+            className="min-w-0"
+          />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="hc-dorpsplein-card overflow-hidden" data-home-sidebar="discovery-filters">

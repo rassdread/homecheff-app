@@ -22,6 +22,7 @@ import GeoFeed, { FeedContent } from "@/components/home/HomeGeoFeedDynamic";
 import FeedControlledHostShell from "@/components/adaptive-workspace/FeedControlledHostShell";
 import FeedWorkspaceVisibleLayout from "@/components/adaptive-workspace/FeedWorkspaceVisibleLayout";
 import WorkspaceOrientationStrip from "@/components/adaptive-workspace/WorkspaceOrientationStrip";
+import { WorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
 import { createControlledFeedHostContract } from "@/lib/adaptive-workspace/sealed/create-controlled-feed-host-contract";
 import { createControlledFeedHostShadowPlacement } from "@/lib/adaptive-workspace/sealed/controlled-feed-host-shadow-placement";
 import { createFeedDiscoveryControlledHostDescriptor } from "@/lib/adaptive-workspace/sealed/controlled-host-registry";
@@ -222,21 +223,23 @@ export default function HomePageClient({
   const visibleWorkspaceTree = (
     <>
       {mobileChrome}
-      <FeedControlledHostShell
-        contract={FEED_CONTROLLED_HOST_CONTRACT}
-        placement={FEED_HOST_SHADOW_PLACEMENT}
-        hostDescriptor={FEED_HOST_DESCRIPTOR}
-        visibilityMode={feedWorkspaceVisibilityMode}
-        layoutVisible
-      >
-        <FeedWorkspaceVisibleLayout
-          ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
-          orientation={<WorkspaceOrientationStrip />}
-          primary={<GeoFeed {...geoFeedProps} homeComposedLayout={false} />}
-          startPanel={<HomeDesktopLeftSidebar />}
-          endPanel={<HomeDesktopSidebar welcomeLine={welcomeLine} />}
-        />
-      </FeedControlledHostShell>
+      <WorkspaceFeedPresentationBridge>
+        <FeedControlledHostShell
+          contract={FEED_CONTROLLED_HOST_CONTRACT}
+          placement={FEED_HOST_SHADOW_PLACEMENT}
+          hostDescriptor={FEED_HOST_DESCRIPTOR}
+          visibilityMode={feedWorkspaceVisibilityMode}
+          layoutVisible
+        >
+          <FeedWorkspaceVisibleLayout
+            ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
+            orientation={<WorkspaceOrientationStrip />}
+            primary={<GeoFeed {...geoFeedProps} homeComposedLayout={false} />}
+            startPanel={<HomeDesktopLeftSidebar />}
+            endPanel={<HomeDesktopSidebar welcomeLine={welcomeLine} />}
+          />
+        </FeedControlledHostShell>
+      </WorkspaceFeedPresentationBridge>
     </>
   );
 

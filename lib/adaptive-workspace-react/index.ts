@@ -205,6 +205,22 @@ export type {
 } from "./resolve-landscape-work-posture";
 
 export {
+  VISIBLE_ADAPTIVE_WORKSPACE,
+  resolveVisibleAdaptiveWorkspace,
+  refineWorkspaceClass,
+  workspaceClassFromLayoutMode,
+  isSameVisibleAdaptiveWorkspacePlan,
+} from "./resolve-visible-adaptive-workspace";
+
+export type {
+  VisibleAdaptiveWorkspaceClass,
+  VisibleAdaptiveDensity,
+  VisibleAdaptiveScrollOwner,
+  VisibleAdaptiveChromeInset,
+  VisibleAdaptiveWorkspacePlan,
+} from "./resolve-visible-adaptive-workspace";
+
+export {
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
   WORKSPACE_RESERVED_SURFACE_IDS,

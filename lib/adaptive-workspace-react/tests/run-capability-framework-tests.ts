@@ -188,7 +188,7 @@ begin("layout diagnostics only — phase markers + capability attrs");
     "utf8",
   );
   assert.match(layoutSrc, /resolveWorkspaceCapabilitiesFromModePlan|resolveWorkspaceCapabilities/);
-  assert.match(layoutSrc, /data-wx-phase="1b\.5\.[0-9]+"/);
+  assert.match(layoutSrc, /data-wx-phase="(?:1b\.5\.[0-9]+|1c)"/);
   assert.match(layoutSrc, /data-wx-landscape-work/);
   assert.match(layoutSrc, /data-wx-landscape-contract/);
   assert.match(layoutSrc, /data-wx-capability/);

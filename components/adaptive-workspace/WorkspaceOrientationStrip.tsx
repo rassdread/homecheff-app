@@ -27,7 +27,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
   return (
     <div
       data-wx-orientation-strip=""
-      data-wx-phase={compact ? '1b.4' : '1a.1'}
+      data-wx-phase={compact ? '1c' : '1a.1'}
       data-wx-orientation-compact={compact ? '1' : '0'}
       className={cn(
         'hc-wx-orientation-strip w-full min-w-0',
@@ -35,7 +35,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
         'bg-gradient-to-r from-primary-brand via-primary-brand to-emerald-800',
         'text-white',
         compact
-          ? 'px-3 py-2 sm:px-4 sm:py-2.5'
+          ? 'px-3 py-1.5 sm:px-4 sm:py-2'
           : 'px-4 py-4 sm:px-5 sm:py-5 md:px-6',
         className,
       )}
