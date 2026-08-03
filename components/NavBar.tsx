@@ -410,15 +410,18 @@ export default function NavBar() {
               <Home className={desktopNavIconClass} aria-hidden />
               <span className="whitespace-nowrap">{t('navbar.home')}</span>
             </Link>
-            <Link
-              href="/werken-bij"
-              prefetch={false}
-              className={desktopNavGhostClass}
-              onClick={() => navDebug('navbar:desktop', { href: '/werken-bij' })}
-            >
-              <Lightbulb className={desktopNavIconClass} aria-hidden />
-              <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
-            </Link>
+            {/* WX 1C.1.2 — Careers only in primary desktop nav when signed in; guests find it in the menu. */}
+            {user ? (
+              <Link
+                href="/werken-bij"
+                prefetch={false}
+                className={desktopNavGhostClass}
+                onClick={() => navDebug('navbar:desktop', { href: '/werken-bij' })}
+              >
+                <Lightbulb className={desktopNavIconClass} aria-hidden />
+                <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
+              </Link>
+            ) : null}
             <Link
               href={user ? '/profile' : '/login'}
               prefetch={false}
@@ -840,18 +843,21 @@ export default function NavBar() {
                 </button>
               ) : null}
 
-              <Link
-                href="/werken-bij"
-                prefetch={false}
-                className={mobileNavRowClass}
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  navDebug('navbar:mobile', { href: '/werken-bij' });
-                }}
-              >
-                <Lightbulb className="w-4 h-4 shrink-0" />
-                <span>{t('navbar.werkenBij')}</span>
-              </Link>
+              {/* WX 1C.1.2 — authenticated: Careers stays with primary menu items */}
+              {user ? (
+                <Link
+                  href="/werken-bij"
+                  prefetch={false}
+                  className={mobileNavRowClass}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    navDebug('navbar:mobile', { href: '/werken-bij' });
+                  }}
+                >
+                  <Lightbulb className="w-4 h-4 shrink-0" />
+                  <span>{t('navbar.werkenBij')}</span>
+                </Link>
+              ) : null}
 
               <Link
                 href="/app"
@@ -1127,6 +1133,28 @@ export default function NavBar() {
                   </Button>
                 </>
               )}
+
+              {/* WX 1C.1.2 — guest secondary: Careers/Earn stay available, off primary discovery */}
+              {!user ? (
+                <>
+                  <div className="my-2 border-t border-gray-200" />
+                  <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                    {t('navbar.secondaryLinksLabel')}
+                  </p>
+                  <Link
+                    href="/werken-bij"
+                    prefetch={false}
+                    className={cn(mobileNavRowClass, 'text-gray-600')}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/werken-bij', secondary: true });
+                    }}
+                  >
+                    <Lightbulb className="h-4 w-4 shrink-0 text-gray-400" />
+                    <span>{t('navbar.werkenBij')}</span>
+                  </Link>
+                </>
+              ) : null}
 
               <NavbarLegalContactLinks
                 variant="mobile"

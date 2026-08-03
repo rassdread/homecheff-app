@@ -1547,7 +1547,7 @@
     }
   },
   "logo": {
-    "subtitle": "cheff, garden en design netwerk"
+    "subtitle": "buurt: koken, groeien & maken"
   },
   "navbar": {
     "home": "Home",
@@ -1574,6 +1574,7 @@
     "cart": "Winkelwagen",
     "profileImage": "Profielfoto",
     "werkenBij": "Werken bij",
+    "secondaryLinksLabel": "Meer",
     "affiliateDashboard": "Affiliate Dashboard",
     "dashboard": "Dashboard",
     "combinedEarnings": "Mijn verdiensten",
@@ -6767,11 +6768,12 @@
     "home": "Naar homepage"
   },
   "cookieBanner": {
-    "title": "Jouw privacy is belangrijk",
+    "title": "Cookies & privacy",
     "point1": "Alle data wordt veilig versleuteld opgeslagen",
     "point2": "Jouw gegevens worden nooit gedeeld met derden",
     "point3": "Je hebt volledige controle over je data",
     "cookieNote": "Essentiële cookies zijn nodig voor de app. Met \"Accepteer alle\" sta je ook analytics toe (anoniem gebruik).",
+    "cookieNoteShort": "Essentiële cookies houden HomeCheff werkend. Accepteer alle zet ook anonieme analytics aan.",
     "acceptAll": "Accepteer alle",
     "onlyNecessary": "Alleen noodzakelijk",
     "accept": "Accepteren",
@@ -6830,10 +6832,11 @@
     "emptyRadiusBody": "Vergroot je straal of bekijk aanbod in heel Nederland.",
     "emptyRadiusWiden": "Vergroot straal",
     "emptyRadiusViewAll": "Toon heel Nederland",
-    "nearbyNeedsLocationTitle": "Locatie nodig",
-    "nearbyNeedsLocationBody": "Deel je locatie om te zien wat mensen in jouw buurt koken, maken, groeien, ontwerpen en aanbieden.",
+    "nearbyNeedsLocationTitle": "Je buurt is dichtbij",
+    "nearbyNeedsLocationBody": "Kies een plaats om te zien wat buren koken, groeien, maken en aanbieden — huisgemaakt eten, oogst uit de tuin, ambacht en behulpzame handen.",
     "nearbyNeedsLocationChoosePlace": "Kies een plaats",
-    "nearbyNeedsLocationAltScopes": "Je kunt ook Heel Nederland of Internationaal bekijken.",
+    "nearbyNeedsLocationAltScopes": "Of bekijk eerst Heel Nederland of Internationaal.",
+    "nearbyNeedsLocationEncouragement": "Koken · Groeien · Maken · Helpen — vlak om de hoek.",
     "scopeLabel": "Bereik",
     "scopeNearby": "In je buurt",
     "scopeNational": "Heel Nederland",
@@ -7967,7 +7970,7 @@
   "homePhase1": {
     "heroTitleBefore": "Ontdek wat mensen ",
     "heroTitleHighlight": "dichtbij",
-    "heroTitleAfter": " maken, koken, groeien en creëren",
+    "heroTitleAfter": " koken, groeien, maken en helpen",
     "heroSubtitle": "Ontdek, koop, verkoop of ruil huisgemaakte maaltijden, oogst, creaties en diensten. Plaats een vraag, deel wat jij maakt of vind hulp in je buurt.",
     "heroValueExchange": "Ruil ook zonder geld. Ontdek wat je kunt krijgen met wat jij kunt aanbieden.",
     "heroDefinition": "HomeCheff is een lokaal platform waar buurtgenoten eten, oogst, creaties, diensten en hulp kunnen kopen, verkopen, ruilen en afspreken.",
@@ -7981,7 +7984,7 @@
     "heroChipInspiration": "Inspiratie",
     "heroChipChores": "Klusjes",
     "heroChipBarter": "Ruilen",
-    "heroChipRequests": "Gezocht",
+    "heroChipRequests": "Vraag / Gezocht",
     "heroChipNearby": "Dichtbij",
     "heroOrbitHomeCheff": "HomeCheff",
     "heroOrbitHomeGarden": "HomeGarden",
@@ -7998,11 +8001,11 @@
     "ctaDiscover": "Ontdek in je buurt",
     "ctaShare": "Verkoop of deel",
     "orientationIdentity": "Digitale buurtmarkt",
-    "orientationExplainShort": "Ontdek wat mensen dichtbij koken, maken, groeien en aanbieden — dichtbij eerst.",
-    "orientationExplainCompact": "Zoeken · Aanbieden · Kopen · Verkopen · Ruilen · Vragen · Helpen",
-    "orientationExplainMedium": "HomeCheff is de digitale buurtmarkt: ontdek huisgemaakt, zelfgekweekt en zelfgemaakt aanbod. Zoek, bied aan, koop, verkoop, ruil of vraag hulp — dichtbij eerst.",
-    "orientationExplainFull": "HomeCheff is de digitale buurtmarkt. Ontdek wat mensen om je heen koken, maken, groeien, ontwerpen, repareren en aanbieden. Koop, verkoop, ruil, vraag of bied hulp — alles begint dichtbij huis. Eigen aanbod plaatsen is eenvoudig.",
-    "orientationActions": "Zoeken · Aanbieden · Kopen · Verkopen · Ruilen · Vragen · Helpen · Ontdekken",
+    "orientationExplainShort": "Buren koken, groeien, maken en helpen dichtbij — vind, vraag of deel.",
+    "orientationExplainCompact": "Zoeken · Aanbieden · Vragen · Kopen · Verkopen · Ruilen · Helpen",
+    "orientationExplainMedium": "HomeCheff is de digitale buurtmarkt: huisgemaakte maaltijden, oogst uit de tuin, handwerk en buurthulp. Zoek, bied aan, vraag, koop, verkoop of ruil — dichtbij eerst.",
+    "orientationExplainFull": "HomeCheff is de digitale buurtmarkt. Ontdek wat mensen om je heen koken, groeien, maken, repareren en aanbieden. Koop, verkoop, ruil, vraag iets of bied hulp — alles begint dichtbij huis. Eigen aanbod plaatsen is eenvoudig.",
+    "orientationActions": "Zoeken · Aanbieden · Vragen · Kopen · Verkopen · Ruilen · Helpen · Ontdekken",
     "schemaWebsiteDescription": "HomeCheff — het digitale thuis van persoonlijk vakmanschap. Ontdek lokale makers, vakmensen en buren — eten, tuin, creaties, diensten en hulp.",
     "verticals": {
       "cheff": {
@@ -8517,11 +8520,11 @@
         "chooseOther": "Andere tegenwaarde kiezen"
       },
       "requests": {
-        "chip": "Gezocht",
-        "sectionTitle": "Gezocht",
-        "sectionSubtitle": "Bekijk wat buurtgenoten zoeken — of plaats zelf een oproep voor een product, dienst, hulp of iets dat gemaakt, bezorgd of gerepareerd moet worden.",
-        "emptyTitle": "Nog geen open verzoeken gevonden",
-        "emptyBody": "Bekijk aangeboden items of plaats zelf een verzoek — misschien kan iemand je helpen.",
+        "chip": "Vraag / Gezocht",
+        "sectionTitle": "Vraag / Gezocht",
+        "sectionSubtitle": "Bekijk wat buurtgenoten zoeken — of vraag zelf om een maaltijd, hulp, dienst of iets huisgemaakts dichtbij.",
+        "emptyTitle": "Nog geen open verzoeken",
+        "emptyBody": "Bekijk wat er wordt aangeboden of vraag zelf iets — misschien helpt iemand in de buurt.",
         "searchHints": {
           "gezocht": "Gezocht",
           "help": "Hulp gevraagd",
@@ -8839,7 +8842,7 @@
       "view": {
         "all": "Alles",
         "offered": "Aangeboden",
-        "wanted": "Gezocht",
+        "wanted": "Vraag / Gezocht",
         "inspiration": "Inspiratie"
       },
       "category": {

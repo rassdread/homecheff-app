@@ -5108,6 +5108,7 @@ export default function GeoFeed({
           useMyLocationLabel={t("feed.useMyLocation")}
           choosePlaceLabel={t("feed.nearbyNeedsLocationChoosePlace")}
           altScopesHint={t("feed.nearbyNeedsLocationAltScopes")}
+          encouragement={t("feed.nearbyNeedsLocationEncouragement")}
           locationLoading={locationBusy}
           locationSupported={locationSupported || isNativeApp()}
           locationStatus={nearbyLocationStatus}

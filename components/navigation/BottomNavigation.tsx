@@ -384,7 +384,8 @@ export default function BottomNavigation() {
     [navUser]
   );
 
-  const showDashboardTab = !session?.user || userHasOperationsDashboard(navUser);
+  /** WX 1C.1.2 — guests: hide Earn from primary bottom nav (marketplace-first). Auth keeps ops dashboard when eligible. */
+  const showDashboardTab = Boolean(session?.user) && userHasOperationsDashboard(navUser);
   const isDashboardTabActive = isPrimaryDashboardPath(pathname, primaryDashboardHref);
 
   /** Alleen echte `<Link>` als er een user is — tijdens `loading` geen links naar /verkoper e.d. (voorkomt verkeerde eerste tap voor gast). */

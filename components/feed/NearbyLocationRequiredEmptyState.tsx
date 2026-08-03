@@ -8,6 +8,8 @@ type NearbyLocationRequiredEmptyStateProps = {
   useMyLocationLabel: string;
   choosePlaceLabel: string;
   altScopesHint?: string;
+  /** WX 1C.1.2 — soft neighbourhood encouragement (curiosity, not urgency). */
+  encouragement?: string;
   locationLoading?: boolean;
   locationSupported?: boolean;
   locationStatus?: string;
@@ -25,6 +27,7 @@ export default function NearbyLocationRequiredEmptyState({
   useMyLocationLabel,
   choosePlaceLabel,
   altScopesHint,
+  encouragement,
   locationLoading = false,
   locationSupported = true,
   locationStatus,
@@ -37,8 +40,9 @@ export default function NearbyLocationRequiredEmptyState({
       data-hc-nearby-empty="1"
       data-wx-empty-guidance=""
       data-wx-nearby-empty=""
+      data-wx-nearby-warm=""
       data-hc-nearby-status={locationStatus || undefined}
-      className="rounded-2xl border border-emerald-200/70 bg-gradient-to-b from-emerald-50/80 to-white p-5 sm:p-6 text-sm text-gray-600 shadow-sm"
+      className="rounded-2xl border border-emerald-200/70 bg-gradient-to-b from-emerald-50/90 via-white to-amber-50/30 p-5 sm:p-6 text-sm text-gray-600 shadow-sm"
       role="status"
       aria-live="polite"
     >
@@ -51,6 +55,11 @@ export default function NearbyLocationRequiredEmptyState({
             {title}
           </p>
           <p className="mt-1.5 leading-relaxed text-gray-600">{description}</p>
+          {encouragement ? (
+            <p className="mt-2 text-xs font-medium leading-relaxed text-emerald-800/90">
+              {encouragement}
+            </p>
+          ) : null}
         </div>
       </div>
 
