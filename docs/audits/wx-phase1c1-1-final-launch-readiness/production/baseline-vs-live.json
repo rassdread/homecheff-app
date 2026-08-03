@@ -1,0 +1,18 @@
+{
+  "baselineSha": "7e09a3c9df0a13b5a92bb4ca28aade813ac8812a",
+  "liveMergeSha": "1a68350d12f005142e1d2f6dbc078bfd9f4ab9d3",
+  "confirmedLive": {
+    "phoneLandscapeCreate": true,
+    "stripReduced": true,
+    "searchVisible": true,
+    "tradeVisible": true,
+    "nearbyFirst": true,
+    "guidedEmpty": true,
+    "noEternalSkeleton": true,
+    "toolsBeforeCommunityTablet": true,
+    "onePrimaryCreateDualRail": true,
+    "ultrawideFeedCap": true,
+    "peopleFirstIdentity": true,
+    "scrollRemountPreserved": true
+  }
+}

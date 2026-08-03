@@ -1,0 +1,10 @@
+{
+  "pageErrors": [],
+  "consoleErrorsBounded": [
+    "CSP blocks googletagmanager.com/gtag (pre-existing / non-blocking for Workspace)"
+  ],
+  "hydrationErrors": [],
+  "eternalSkeleton": false,
+  "remountRegression": false,
+  "requestStormObserved": false
+}

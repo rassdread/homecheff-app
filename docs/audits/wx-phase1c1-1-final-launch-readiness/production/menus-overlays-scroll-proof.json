@@ -1,0 +1,34 @@
+{
+  "menus": {
+    "hamburger": true,
+    "filtersOpenClose": true,
+    "escape": true,
+    "backdropClear": true
+  },
+  "rotation": {
+    "portraitCreate": true,
+    "landscapeCreate": true,
+    "backCreate": true,
+    "remountStable": true,
+    "mountStable": true,
+    "mounts": [
+      "wx-primary-mount:7",
+      "wx-primary-mount:7",
+      "wx-primary-mount:7"
+    ]
+  },
+  "remounts": [
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0"
+  ]
+}

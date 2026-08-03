@@ -1,0 +1,12 @@
+{
+  "geoFeedOwnership": "untouched",
+  "controlledHost": "unactivated",
+  "workspace": "consumer/presentation only",
+  "availableSpace": "authoritative",
+  "modePlanners": "unchanged",
+  "presentationDrivesChrome": "0",
+  "capabilityVisualActivation": "0",
+  "hostCount": 1,
+  "remounts": "0 across 12 viewports + rotation",
+  "singleFeedMount": true
+}

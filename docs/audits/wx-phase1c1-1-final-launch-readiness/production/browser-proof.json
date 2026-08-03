@@ -1,0 +1,642 @@
+{
+  "generatedAt": "2026-08-03T10:54:15.464Z",
+  "baseUrl": "https://homecheff.eu",
+  "activation": {
+    "withoutQuery": {
+      "phase": "1c.1",
+      "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+      "workspaceClass": "desktop",
+      "url": "https://homecheff.eu/",
+      "requiresAwQuery": false
+    }
+  },
+  "matrix": [
+    {
+      "viewport": {
+        "id": "p320",
+        "w": 320,
+        "h": 568
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "phone-portrait",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:1",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": false,
+        "endRail": false,
+        "bottomCollapsed": "0",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 0,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": true,
+        "nationalPressed": false,
+        "explain": "short",
+        "stripPct": 0.14,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "p360",
+        "w": 360,
+        "h": 740
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "phone-portrait",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:2",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": false,
+        "endRail": false,
+        "bottomCollapsed": "0",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 0,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": true,
+        "nationalPressed": false,
+        "explain": "short",
+        "stripPct": 0.11,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "p390",
+        "w": 390,
+        "h": 844
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "phone-portrait",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:3",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": false,
+        "endRail": false,
+        "bottomCollapsed": "0",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 0,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": true,
+        "nationalPressed": false,
+        "explain": "short",
+        "stripPct": 0.079,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "p430",
+        "w": 430,
+        "h": 932
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "phone-portrait",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:4",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": false,
+        "endRail": false,
+        "bottomCollapsed": "0",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 0,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": true,
+        "nationalPressed": false,
+        "explain": "short",
+        "stripPct": 0.071,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "l740",
+        "w": 740,
+        "h": 360
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "tablet-landscape",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:5",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": true,
+        "endRail": false,
+        "bottomCollapsed": "1",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 1,
+        "landscapeCreate": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": false,
+        "nationalPressed": false,
+        "explain": "compact",
+        "stripPct": 0.1,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "l844",
+        "w": 844,
+        "h": 390
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "tablet-landscape",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:1",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": true,
+        "endRail": false,
+        "bottomCollapsed": "1",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 1,
+        "landscapeCreate": true,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": false,
+        "nationalPressed": false,
+        "explain": "compact",
+        "stripPct": 0.1,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "tp768",
+        "w": 768,
+        "h": 1024
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "tablet-portrait",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:2",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": true,
+        "endRail": false,
+        "bottomCollapsed": "0",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 1,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": true,
+        "nationalPressed": false,
+        "explain": "medium",
+        "stripPct": 0.136,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "tl1024",
+        "w": 1024,
+        "h": 768
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "tablet-landscape",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:1",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": true,
+        "endRail": false,
+        "bottomCollapsed": "1",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 1,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": false,
+        "nationalPressed": false,
+        "explain": "full",
+        "stripPct": 0.12,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "laptop",
+        "w": 1280,
+        "h": 800
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "desktop",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:2",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": true,
+        "endRail": true,
+        "bottomCollapsed": "1",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 1,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": false,
+        "nationalPressed": false,
+        "explain": "full",
+        "stripPct": 0.12,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "w": 1440,
+        "h": 900
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "desktop",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:3",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "720",
+        "startRail": true,
+        "endRail": true,
+        "bottomCollapsed": "1",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 1,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": false,
+        "nationalPressed": false,
+        "explain": "full",
+        "stripPct": 0.12,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "d1920",
+        "w": 1920,
+        "h": 1080
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "ultrawide",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:1",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "800",
+        "startRail": true,
+        "endRail": true,
+        "bottomCollapsed": "1",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 1,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": false,
+        "nationalPressed": false,
+        "explain": "full",
+        "stripPct": 0.12,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "w": 2560,
+        "h": 1440
+      },
+      "snap": {
+        "phase": "1c.1",
+        "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+        "workspaceClass": "ultrawide",
+        "scrollOwner": null,
+        "remount": "0",
+        "primaryMount": "wx-primary-mount:6",
+        "shellMount": null,
+        "hostCount": 1,
+        "feedMax": "800",
+        "startRail": true,
+        "endRail": true,
+        "bottomCollapsed": "1",
+        "createVisible": 1,
+        "primaryCreate": 1,
+        "secondaryCreate": 1,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "tradeVisible": true,
+        "emptyGuidance": true,
+        "searchingEmpty": false,
+        "eternalSkeleton": false,
+        "nearbyPressed": false,
+        "nationalPressed": false,
+        "explain": "full",
+        "stripPct": 0.095,
+        "identity": true,
+        "overflow": false,
+        "presentationDrives": "0",
+        "capVisual": "0",
+        "searchPlaceholder": "Search your neighbourhood..."
+      },
+      "pass": true
+    }
+  ],
+  "matrixPass": 12,
+  "matrixTotal": 12,
+  "rotation": {
+    "portraitCreate": true,
+    "landscapeCreate": true,
+    "backCreate": true,
+    "remountStable": true,
+    "mountStable": true,
+    "mounts": [
+      "wx-primary-mount:7",
+      "wx-primary-mount:7",
+      "wx-primary-mount:7"
+    ]
+  },
+  "guestA": {
+    "identity": true,
+    "searchTyped": true,
+    "filters": true,
+    "trade": true,
+    "createHref": "present"
+  },
+  "createRouting": {
+    "url": "https://homecheff.eu/",
+    "hasLogin": false
+  },
+  "gated": {
+    "/berichten": {
+      "status": 200,
+      "url": "https://homecheff.eu/berichten",
+      "loginish": false
+    },
+    "/profiel": {
+      "status": 200,
+      "url": "https://homecheff.eu/profiel",
+      "loginish": false
+    },
+    "/settings": {
+      "status": 200,
+      "url": "https://homecheff.eu/settings",
+      "loginish": false
+    },
+    "/notifications": {
+      "status": 200,
+      "url": "https://homecheff.eu/notifications",
+      "loginish": false
+    },
+    "/messages": {
+      "status": 200,
+      "url": "https://homecheff.eu/messages",
+      "loginish": false
+    },
+    "/profile": {
+      "status": 200,
+      "url": "https://homecheff.eu/profile",
+      "loginish": false
+    }
+  },
+  "publicRoutes": {
+    "/login": {
+      "status": 200,
+      "url": "https://homecheff.eu/login",
+      "ok": true
+    },
+    "/register": {
+      "status": 200,
+      "url": "https://homecheff.eu/register",
+      "ok": true
+    },
+    "/forgot-password": {
+      "status": 200,
+      "url": "https://homecheff.eu/forgot-password",
+      "ok": true
+    },
+    "/terms": {
+      "status": 200,
+      "url": "https://homecheff.eu/terms",
+      "ok": true
+    },
+    "/privacy": {
+      "status": 200,
+      "url": "https://homecheff.eu/privacy",
+      "ok": true
+    },
+    "/faq": {
+      "status": 200,
+      "url": "https://homecheff.eu/faq",
+      "ok": true
+    }
+  },
+  "locationProof": {
+    "placeButton": "Choose a place",
+    "useLocationButton": "Use my location",
+    "clicked": true,
+    "manualInput": false,
+    "widerScope": true,
+    "errors": []
+  },
+  "deniedPath": {
+    "attempted": true,
+    "note": "automation emulated grant; deny path verified via UI affordance presence"
+  },
+  "menus": {
+    "hamburger": true,
+    "filtersOpenClose": true,
+    "escape": true,
+    "backdropClear": true
+  },
+  "desktop": {
+    "phase": "1c.1",
+    "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+    "workspaceClass": "desktop",
+    "scrollOwner": null,
+    "remount": "0",
+    "primaryMount": "wx-primary-mount:3",
+    "shellMount": null,
+    "hostCount": 1,
+    "feedMax": "720",
+    "startRail": true,
+    "endRail": true,
+    "bottomCollapsed": "1",
+    "createVisible": 1,
+    "primaryCreate": 1,
+    "secondaryCreate": 1,
+    "landscapeCreate": false,
+    "searchVisible": true,
+    "tradeVisible": true,
+    "emptyGuidance": true,
+    "searchingEmpty": false,
+    "eternalSkeleton": false,
+    "nearbyPressed": false,
+    "nationalPressed": false,
+    "explain": "full",
+    "stripPct": 0.12,
+    "identity": true,
+    "overflow": false,
+    "presentationDrives": "0",
+    "capVisual": "0",
+    "searchPlaceholder": "Search your neighbourhood..."
+  },
+  "pageErrors": [],
+  "consoleErrors": [
+    "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.c",
+    "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.c",
+    "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.c",
+    "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.c",
+    "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.c"
+  ]
+}

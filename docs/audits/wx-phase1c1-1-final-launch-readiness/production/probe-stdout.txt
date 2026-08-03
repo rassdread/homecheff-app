@@ -1,0 +1,28 @@
+ACTIVATION {
+  phase: '1c.1',
+  visibleAdaptive: 'wx-visible-adaptive-workspace-v1',
+  workspaceClass: 'desktop',
+  url: 'https://homecheff.eu/',
+  requiresAwQuery: false
+}
+p320 → PASS phase=1c.1 class=phone-portrait create=1/1 search=true trade=true nearby=true remount=0 strip=0.14
+p360 → PASS phase=1c.1 class=phone-portrait create=1/1 search=true trade=true nearby=true remount=0 strip=0.11
+p390 → PASS phase=1c.1 class=phone-portrait create=1/1 search=true trade=true nearby=true remount=0 strip=0.079
+p430 → PASS phase=1c.1 class=phone-portrait create=1/1 search=true trade=true nearby=true remount=0 strip=0.071
+l740 → PASS phase=1c.1 class=tablet-landscape create=1/1 search=true trade=true nearby=false remount=0 strip=0.1
+l844 → PASS phase=1c.1 class=tablet-landscape create=1/1 search=true trade=true nearby=false remount=0 strip=0.1
+tp768 → PASS phase=1c.1 class=tablet-portrait create=1/1 search=true trade=true nearby=true remount=0 strip=0.136
+tl1024 → PASS phase=1c.1 class=tablet-landscape create=1/1 search=true trade=true nearby=false remount=0 strip=0.12
+laptop → PASS phase=1c.1 class=desktop create=1/1 search=true trade=true nearby=false remount=0 strip=0.12
+desktop → PASS phase=1c.1 class=desktop create=1/1 search=true trade=true nearby=false remount=0 strip=0.12
+d1920 → PASS phase=1c.1 class=ultrawide create=1/1 search=true trade=true nearby=false remount=0 strip=0.12
+ultrawide → PASS phase=1c.1 class=ultrawide create=1/1 search=true trade=true nearby=false remount=0 strip=0.095
+ROTATION {
+  portraitCreate: true,
+  landscapeCreate: true,
+  backCreate: true,
+  remountStable: true,
+  mountStable: true,
+  mounts: [ 'wx-primary-mount:7', 'wx-primary-mount:7', 'wx-primary-mount:7' ]
+}
+LIVE_PROOF_PASS 12/12

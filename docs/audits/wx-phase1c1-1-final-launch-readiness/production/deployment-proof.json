@@ -1,0 +1,18 @@
+{
+  "project": "homecheff-app",
+  "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+  "target": "Production",
+  "aliasedDeploymentId": "dpl_CE1ro9swU8x34Vsj36yHaB5SzZ7s",
+  "githubTriggeredDeploymentId": "dpl_HGC4ntZiejccrKBFeAnM5MaTSzfW",
+  "gitCommitSha": "1a68350d12f005142e1d2f6dbc078bfd9f4ab9d3",
+  "ready": true,
+  "aliases": [
+    "homecheff.eu",
+    "www.homecheff.eu",
+    "homecheff.nl",
+    "www.homecheff.nl"
+  ],
+  "nlRedirect": "homecheff.nl / www.homecheff.nl \u2192 307 \u2192 https://homecheff.eu/",
+  "priorDeploymentId": "dpl_48EnrP6ttskaC1oG2TgnwkMHsqsj",
+  "priorSha": "7e09a3c9df0a13b5a92bb4ca28aade813ac8812a"
+}

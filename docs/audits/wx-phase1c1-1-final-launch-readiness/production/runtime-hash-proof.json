@@ -1,0 +1,9 @@
+{
+  "liveAlias": "https://homecheff.eu",
+  "expectedMergeSha": "1a68350d12f005142e1d2f6dbc078bfd9f4ab9d3",
+  "deploymentServingAliases": "dpl_CE1ro9swU8x34Vsj36yHaB5SzZ7s",
+  "githubDeploymentForMerge": "dpl_HGC4ntZiejccrKBFeAnM5MaTSzfW",
+  "phaseLive": "1c.1",
+  "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+  "verifiedAt": "2026-08-03T10:56:00.726124+00:00"
+}

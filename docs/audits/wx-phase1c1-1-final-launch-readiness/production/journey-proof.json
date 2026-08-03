@@ -1,0 +1,121 @@
+{
+  "guestA": {
+    "identity": true,
+    "searchTyped": true,
+    "filters": true,
+    "trade": true,
+    "createHref": "present"
+  },
+  "createRouting": {
+    "url": "https://homecheff.eu/",
+    "hasLogin": false
+  },
+  "rotation": {
+    "portraitCreate": true,
+    "landscapeCreate": true,
+    "backCreate": true,
+    "remountStable": true,
+    "mountStable": true,
+    "mounts": [
+      "wx-primary-mount:7",
+      "wx-primary-mount:7",
+      "wx-primary-mount:7"
+    ]
+  },
+  "gated": {
+    "/berichten": {
+      "status": 200,
+      "url": "https://homecheff.eu/berichten",
+      "loginish": false
+    },
+    "/profiel": {
+      "status": 200,
+      "url": "https://homecheff.eu/profiel",
+      "loginish": false
+    },
+    "/settings": {
+      "status": 200,
+      "url": "https://homecheff.eu/settings",
+      "loginish": false
+    },
+    "/notifications": {
+      "status": 200,
+      "url": "https://homecheff.eu/notifications",
+      "loginish": false
+    },
+    "/messages": {
+      "status": 200,
+      "url": "https://homecheff.eu/messages",
+      "loginish": false
+    },
+    "/profile": {
+      "status": 200,
+      "url": "https://homecheff.eu/profile",
+      "loginish": false
+    }
+  },
+  "publicRoutes": {
+    "/login": {
+      "status": 200,
+      "url": "https://homecheff.eu/login",
+      "ok": true
+    },
+    "/register": {
+      "status": 200,
+      "url": "https://homecheff.eu/register",
+      "ok": true
+    },
+    "/forgot-password": {
+      "status": 200,
+      "url": "https://homecheff.eu/forgot-password",
+      "ok": true
+    },
+    "/terms": {
+      "status": 200,
+      "url": "https://homecheff.eu/terms",
+      "ok": true
+    },
+    "/privacy": {
+      "status": 200,
+      "url": "https://homecheff.eu/privacy",
+      "ok": true
+    },
+    "/faq": {
+      "status": 200,
+      "url": "https://homecheff.eu/faq",
+      "ok": true
+    }
+  },
+  "desktop": {
+    "phase": "1c.1",
+    "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+    "workspaceClass": "desktop",
+    "scrollOwner": null,
+    "remount": "0",
+    "primaryMount": "wx-primary-mount:3",
+    "shellMount": null,
+    "hostCount": 1,
+    "feedMax": "720",
+    "startRail": true,
+    "endRail": true,
+    "bottomCollapsed": "1",
+    "createVisible": 1,
+    "primaryCreate": 1,
+    "secondaryCreate": 1,
+    "landscapeCreate": false,
+    "searchVisible": true,
+    "tradeVisible": true,
+    "emptyGuidance": true,
+    "searchingEmpty": false,
+    "eternalSkeleton": false,
+    "nearbyPressed": false,
+    "nationalPressed": false,
+    "explain": "full",
+    "stripPct": 0.12,
+    "identity": true,
+    "overflow": false,
+    "presentationDrives": "0",
+    "capVisual": "0",
+    "searchPlaceholder": "Search your neighbourhood..."
+  }
+}

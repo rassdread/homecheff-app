@@ -1,0 +1,42 @@
+{
+  "pass": true,
+  "withoutQuery": {
+    "phase": "1c.1",
+    "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+    "workspaceClass": "desktop",
+    "url": "https://homecheff.eu/",
+    "requiresAwQuery": false
+  },
+  "liveSnap": {
+    "phase": "1c.1",
+    "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+    "workspaceClass": "desktop",
+    "scrollOwner": null,
+    "remount": "0",
+    "primaryMount": "wx-primary-mount:2",
+    "shellMount": null,
+    "hostCount": 1,
+    "feedMax": "720",
+    "startRail": true,
+    "endRail": true,
+    "bottomCollapsed": "1",
+    "createVisible": 1,
+    "primaryCreate": 1,
+    "secondaryCreate": 1,
+    "landscapeCreate": false,
+    "searchVisible": true,
+    "tradeVisible": true,
+    "emptyGuidance": true,
+    "searchingEmpty": false,
+    "eternalSkeleton": false,
+    "nearbyPressed": false,
+    "nationalPressed": false,
+    "explain": "full",
+    "stripPct": 0.12,
+    "identity": true,
+    "overflow": false,
+    "presentationDrives": "0",
+    "capVisual": "0",
+    "searchPlaceholder": "Search your neighbourhood..."
+  }
+}

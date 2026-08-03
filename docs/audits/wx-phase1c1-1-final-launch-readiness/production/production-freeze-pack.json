@@ -1,0 +1,36 @@
+{
+  "phase": "WX_PHASE_1C1_1",
+  "verdict": "WX_PHASE_1C1_1_PRODUCTION_SUCCESS",
+  "frozen": true,
+  "timestamp": "2026-08-03T10:56:00.726124+00:00",
+  "behaviouralCandidate": "a692eea43a12129f8ca14f37506cdf5d92d354cf",
+  "formalReviewTip": "5c93df36acbbf83891c4758f500231294b31ad28",
+  "productionMergeSha": "1a68350d12f005142e1d2f6dbc078bfd9f4ab9d3",
+  "rollbackSha": "7e09a3c9df0a13b5a92bb4ca28aade813ac8812a",
+  "deploymentIdAliased": "dpl_CE1ro9swU8x34Vsj36yHaB5SzZ7s",
+  "deploymentIdGithub": "dpl_HGC4ntZiejccrKBFeAnM5MaTSzfW",
+  "priorDeploymentId": "dpl_48EnrP6ttskaC1oG2TgnwkMHsqsj",
+  "project": {
+    "name": "homecheff-app",
+    "id": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV"
+  },
+  "aliases": [
+    "homecheff.eu",
+    "www.homecheff.eu",
+    "homecheff.nl",
+    "www.homecheff.nl"
+  ],
+  "activation": {
+    "variable": "HOMECHEFF_FEED_WORKSPACE_VISIBILITY_MODE",
+    "environment": "Production",
+    "targetValue": "on",
+    "previousState": "PRESENT (encrypted; live pre-merge served phase 1b.5.9 workspace shell)",
+    "resultingState": "PRESENT value set to on",
+    "interpretation": "Visible Adaptive Workspace layout ON; does not activate Controlled Host; does not transfer GeoFeed ownership"
+  },
+  "liveProof": {
+    "matrixPass": "12/12",
+    "activationPhase": "1c.1",
+    "requiresQuery": false
+  }
+}

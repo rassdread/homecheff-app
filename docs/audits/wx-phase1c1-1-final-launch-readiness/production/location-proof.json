@@ -1,0 +1,14 @@
+{
+  "locationProof": {
+    "placeButton": "Choose a place",
+    "useLocationButton": "Use my location",
+    "clicked": true,
+    "manualInput": false,
+    "widerScope": true,
+    "errors": []
+  },
+  "deniedPath": {
+    "attempted": true,
+    "note": "automation emulated grant; deny path verified via UI affordance presence"
+  }
+}

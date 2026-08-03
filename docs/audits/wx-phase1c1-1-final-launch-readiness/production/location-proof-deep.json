@@ -1,0 +1,56 @@
+{
+  "afterUse": {
+    "found": true,
+    "stuckLoading": true,
+    "hasError": false,
+    "hasPlaceOrCoords": true,
+    "dialogOpen": true
+  },
+  "manual": {
+    "inputs": [
+      {
+        "ph": "Search your neighbourhood...",
+        "type": "search",
+        "name": ""
+      },
+      {
+        "ph": "Search by category or item…",
+        "type": "search",
+        "name": ""
+      },
+      {
+        "ph": "Type a place or postcode",
+        "type": "text",
+        "name": ""
+      },
+      {
+        "ph": "",
+        "type": "number",
+        "name": ""
+      },
+      {
+        "ph": "e.g. pasta, soup, bagels",
+        "type": "text",
+        "name": ""
+      },
+      {
+        "ph": "Search your neighbourhood...",
+        "type": "text",
+        "name": ""
+      },
+      {
+        "ph": "Min",
+        "type": "number",
+        "name": ""
+      },
+      {
+        "ph": "Max €",
+        "type": "number",
+        "name": ""
+      }
+    ],
+    "typed": true,
+    "options": []
+  },
+  "pageErrors": []
+}
