@@ -1,0 +1,93 @@
+[
+  {
+    "id": "phone-portrait",
+    "class": "phone-portrait",
+    "create": 1,
+    "search": true,
+    "explain": "short",
+    "stripPct": 0.079,
+    "rails": [
+      false,
+      false
+    ],
+    "pass": true
+  },
+  {
+    "id": "phone-landscape",
+    "class": "tablet-landscape",
+    "create": 1,
+    "search": true,
+    "explain": "compact",
+    "stripPct": 0.1,
+    "rails": [
+      true,
+      false
+    ],
+    "pass": true
+  },
+  {
+    "id": "tablet-portrait",
+    "class": "tablet-portrait",
+    "create": 1,
+    "search": true,
+    "explain": "medium",
+    "stripPct": 0.136,
+    "rails": [
+      true,
+      false
+    ],
+    "pass": true
+  },
+  {
+    "id": "tablet-landscape",
+    "class": "tablet-landscape",
+    "create": 1,
+    "search": true,
+    "explain": "medium",
+    "stripPct": 0.12,
+    "rails": [
+      true,
+      false
+    ],
+    "pass": true
+  },
+  {
+    "id": "laptop",
+    "class": "laptop",
+    "create": 1,
+    "search": true,
+    "explain": "full",
+    "stripPct": 0.12,
+    "rails": [
+      true,
+      true
+    ],
+    "pass": true
+  },
+  {
+    "id": "desktop",
+    "class": "desktop",
+    "create": 1,
+    "search": true,
+    "explain": "full",
+    "stripPct": 0.12,
+    "rails": [
+      true,
+      true
+    ],
+    "pass": true
+  },
+  {
+    "id": "ultrawide",
+    "class": "ultrawide",
+    "create": 1,
+    "search": true,
+    "explain": "full",
+    "stripPct": 0.095,
+    "rails": [
+      true,
+      true
+    ],
+    "pass": true
+  }
+]

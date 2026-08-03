@@ -1,0 +1,3 @@
+Evidence basis: local AW ON build (port 3119) after first-visitor header restore.
+Screenshots: docs/audits/wx-phase1c1-launch-readiness-corrections/screenshots/ (re-probed 2026-08-03).
+Probe verdict source: WX_PHASE_1C1_PASS with explain levels short/compact/medium/full.

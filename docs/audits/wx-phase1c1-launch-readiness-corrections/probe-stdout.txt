@@ -1,0 +1,15 @@
+phone-portrait → PASS create=1 search=true strip=0.078 rails=false/false
+phone-landscape → PASS create=1 search=true strip=0.1 rails=true/false
+tablet-portrait → PASS create=1 search=true strip=0.063 rails=true/false
+tablet-landscape → PASS create=1 search=true strip=0.08 rails=true/false
+laptop → PASS create=1 search=true strip=0.069 rails=true/true
+desktop → PASS create=1 search=true strip=0.06 rails=true/true
+ultrawide → PASS create=1 search=true strip=0.033 rails=true/true
+rotation {
+  primaryStable: true,
+  landscapeCreate: true,
+  portraitCreate: true,
+  stripPortraitOk: true
+}
+
+Verdict: WX_PHASE_1C1_PASS

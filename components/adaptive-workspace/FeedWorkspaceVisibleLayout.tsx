@@ -35,6 +35,9 @@
  *                  chrome, ownership, activation, or apply compaction.
  * WX Phase 1B.5.7: Contextual Priority & Surface Ranking diagnostics only — priority
  *                  metadata; does NOT reorder, render, animate, activate, or change layout.
+ * WX Phase 1C: Visible Adaptive Workspace — consume layout + landscape posture for
+ *              chrome insets, density, rail-filter ownership signals. Does NOT extend
+ *              1B.5 planners. Does NOT remount primary or transfer GeoFeed ownership.
  *
  * AvailableSpace: width from workspace container; height from visual viewport.
  * NEVER key primary (or any slot) by Mode / posture / mode token / capability /
@@ -66,6 +69,9 @@ import {
   resolveContextPriorityFromPlans,
   resolveContextRelevanceFromPlans,
   resolveContextIntentFromPlans,
+  resolveLandscapeWorkPosture,
+  resolveVisibleAdaptiveWorkspace,
+  VISIBLE_ADAPTIVE_WORKSPACE,
   WORKSPACE_TRANSITION_CONTINUITY,
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
@@ -82,6 +88,7 @@ import {
   type NormalizedMeasurement,
   type WorkspaceModePlan,
 } from "@/lib/adaptive-workspace-react";
+import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
 
 export type FeedWorkspaceVisibleLayoutProps = {
   /**
@@ -138,6 +145,7 @@ export default function FeedWorkspaceVisibleLayout({
     null,
   );
   const previousModeRef = useRef<WorkspaceModePlan | null>(null);
+  const presentationBridge = useWorkspaceFeedPresentationBridge();
   /** Stable for the life of this shell instance; changes only on remount. */
   const [shellMountId] = useState(() => {
     wxShellMountSeq += 1;
@@ -215,6 +223,27 @@ export default function FeedWorkspaceVisibleLayout({
     usableHeightPx,
   });
 
+  const landscapePosture = resolveLandscapeWorkPosture({
+    usableWidthPx: plan.usableWidthPx,
+    usableHeightPx: plan.usableHeightPx,
+  });
+
+  /** WX 1C — visible adaptive presentation consumer (does not extend planners). */
+  const visiblePlan = resolveVisibleAdaptiveWorkspace({
+    usableWidthPx: plan.usableWidthPx,
+    usableHeightPx: plan.usableHeightPx,
+    layoutPlan: plan,
+    posturePlan: landscapePosture,
+  });
+
+  useEffect(() => {
+    if (!presentationBridge) return;
+    presentationBridge.setStartRailActive(visiblePlan.railOwnsFilters);
+    return () => {
+      presentationBridge.setStartRailActive(false);
+    };
+  }, [presentationBridge, visiblePlan.railOwnsFilters]);
+
   /** WX 1B.1 — authoritative Mode identity; does not drive layout. */
   const modePlan = resolveWorkspaceMode({
     usableWidthPx: plan.usableWidthPx,
@@ -289,10 +318,15 @@ export default function FeedWorkspaceVisibleLayout({
   const gridTemplateAreas = (() => {
     // Orientation host is always mounted for continuity; reserve grid row when
     // orientation content is provided (Home always passes it).
-    if (plan.showStartPanel) {
+    if (plan.showStartPanel && plan.showEndPanel) {
       return hasOrientation
         ? '"orient orient orient" "start primary end"'
         : '"start primary end"';
+    }
+    if (plan.showStartPanel) {
+      return hasOrientation
+        ? '"orient orient" "start primary"'
+        : '"start primary"';
     }
     if (plan.showEndPanel) {
       return hasOrientation
@@ -316,7 +350,15 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
-      data-wx-phase="1b.5.9"
+      data-wx-phase="1c.1"
+      data-wx-visible-adaptive={VISIBLE_ADAPTIVE_WORKSPACE.contractId}
+      data-wx-workspace-class={visiblePlan.workspaceClass}
+      data-wx-visible-density={visiblePlan.density}
+      data-wx-rail-owns-filters={visiblePlan.railOwnsFilters ? "1" : "0"}
+      data-wx-stage-owns-filters={visiblePlan.stageOwnsFilters ? "1" : "0"}
+      data-wx-chrome-bottom-rem={String(visiblePlan.chromeInset.bottomRem)}
+      data-wx-interaction-priority={visiblePlan.interactionPriority.join(",")}
+      data-wx-visible-token={visiblePlan.stabilityToken}
       data-wx-continuity={WORKSPACE_TRANSITION_CONTINUITY.contractId}
       data-wx-continuity-remount="0"
       data-wx-shell-mount-id={shellMountId}
@@ -525,13 +567,21 @@ export default function FeedWorkspaceVisibleLayout({
       aria-label={ariaLabel}
       className={
         multiCol
-          ? "hc-aw-feed-workspace hc-wx-frame w-full min-w-0 grid gap-0 items-stretch max-h-[calc(100dvh-5rem)] min-h-[12rem] h-[calc(100dvh-5rem)] overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-sm"
+          ? `hc-aw-feed-workspace hc-wx-frame hc-wx-frame-adaptive w-full min-w-0 grid gap-0 items-stretch min-h-[12rem] overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-sm data-[wx-density=browse]:gap-0 data-[wx-density=work]:gap-0 data-[wx-density=pro]:gap-0`
           : "hc-aw-feed-workspace w-full min-w-0 grid gap-2 sm:gap-3"
       }
       style={{
         gridTemplateColumns,
         gridTemplateAreas,
         gridTemplateRows,
+        ...(multiCol
+          ? {
+              height: visiblePlan.chromeInset.frameHeightCss,
+              maxHeight: visiblePlan.chromeInset.frameHeightCss,
+              ["--hc-wx-frame-height" as string]:
+                visiblePlan.chromeInset.frameHeightCss,
+            }
+          : null),
       }}
     >
       {/* Permanent orientation host — hidden when unused (never toggles sibling index of primary). */}
@@ -602,29 +652,30 @@ export default function FeedWorkspaceVisibleLayout({
               widgetId="feed.discovery"
               mode="stage"
             >
-              <div
-                data-wx-stage-chrome=""
-                className={
-                  multiCol
-                    ? "hc-wx-stage h-full min-h-0 flex flex-col bg-gray-50/40"
-                    : "hc-wx-stage min-h-0 flex flex-col bg-gray-50/40"
-                }
-              >
                 <div
-                  id="homecheff-feed-desktop"
-                  data-aw-primary-feed=""
-                  data-aw-stable-feed-slot="1"
-                  data-wx-scroll-owner={multiCol ? "feed" : "document"}
+                  data-wx-stage-chrome=""
+                  data-wx-stage-gutter={visiblePlan.stageGutterFill ? "1" : "0"}
                   className={
                     multiCol
-                      ? "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid"
-                      : "min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid px-2 py-2 sm:px-3"
+                      ? "hc-wx-stage h-full min-h-0 flex flex-col bg-gray-50/40"
+                      : "hc-wx-stage min-h-0 flex flex-col bg-gray-50/40"
                   }
-                  style={{ maxWidth: plan.feedColumnMaxWidthPx }}
                 >
-                  {primary}
+                  <div
+                    id="homecheff-feed-desktop"
+                    data-aw-primary-feed=""
+                    data-aw-stable-feed-slot="1"
+                    data-wx-scroll-owner={visiblePlan.scrollOwner}
+                    className={
+                      multiCol
+                        ? "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-overflow-scrolling:touch] min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid"
+                        : "min-w-0 w-full mx-auto space-y-2 sm:space-y-3 hc-home-feed-grid px-2 py-2 sm:px-3"
+                    }
+                    style={{ maxWidth: plan.feedColumnMaxWidthPx }}
+                  >
+                    {primary}
+                  </div>
                 </div>
-              </div>
             </WorkspacePanel>
           </WorkspaceSlot>
         </WorkspaceRegion>

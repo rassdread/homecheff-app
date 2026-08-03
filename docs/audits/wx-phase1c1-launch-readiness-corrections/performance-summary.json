@@ -1,0 +1,8 @@
+{
+  "phase": "1c.1",
+  "purePlanners": true,
+  "noRemounts": true,
+  "noPollingAdded": true,
+  "observers": "existing only",
+  "verdict": "PERFORMANCE_PRESERVED"
+}

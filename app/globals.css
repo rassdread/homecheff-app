@@ -1450,9 +1450,61 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   min-height: calc(100dvh - 5rem);
 }
 
+/* WX Phase 1C — Landscape Work Posture reclaims bottom-nav chrome */
+html[data-wx-bottom-nav-collapsed="1"] .hc-wx-shell {
+  min-height: calc(100dvh - 3.5rem);
+}
+
 .hc-wx-frame {
   /* Single continuous Workspace surface: orientation + rails + stage */
   isolation: isolate;
+}
+
+/* WX Phase 1C — adaptive frame height from AvailableSpace chrome inset */
+.hc-wx-frame-adaptive {
+  height: var(--hc-wx-frame-height, calc(100dvh - 5rem));
+  max-height: var(--hc-wx-frame-height, calc(100dvh - 5rem));
+}
+
+.hc-wx-stage[data-wx-stage-gutter="1"] {
+  /* Soft stage field fills rail→feed gutters without stretching cards */
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.7));
+}
+
+/* WX Phase 1C.1+ — orientation explanation density vs feed-first height budget */
+.hc-wx-orientation-strip {
+  max-height: 14vh;
+  overflow: hidden;
+}
+
+.hc-wx-orientation-strip[data-wx-orientation-explain="short"] {
+  max-height: 14vh;
+}
+
+.hc-wx-orientation-strip[data-wx-orientation-explain="compact"] {
+  max-height: 10vh;
+}
+
+.hc-wx-orientation-strip[data-wx-orientation-explain="medium"] {
+  max-height: 16vh;
+}
+
+.hc-wx-orientation-strip[data-wx-orientation-explain="full"] {
+  max-height: 18vh;
+}
+
+html[data-wx-landscape-work="1"] .hc-wx-orientation-strip {
+  max-height: 10vh;
+}
+
+html[data-wx-landscape-work="1"] .hc-wx-orientation-strip[data-wx-orientation-explain="medium"],
+html[data-wx-landscape-work="1"] .hc-wx-orientation-strip[data-wx-orientation-explain="full"] {
+  max-height: 12vh;
+}
+
+html[data-wx-landscape-work="1"] .hc-wx-stage {
+  min-height: 0;
 }
 
 .hc-wx-rail {

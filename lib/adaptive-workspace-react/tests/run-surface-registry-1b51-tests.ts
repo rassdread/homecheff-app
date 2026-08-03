@@ -199,7 +199,7 @@ begin("layout diagnostics expose registry without visual activation");
     "utf8",
   );
   // Layout phase advances with later WX phases; registry contract remains 1b.5.1.
-  assert.match(layout, /data-wx-phase="1b\.5\.[0-9]+"/);
+  assert.match(layout, /data-wx-phase="(?:1b\.5\.[0-9]+|1c(?:\.1)?)"/);
   assert.match(layout, /data-wx-surface-registry=/);
   assert.match(layout, /data-wx-surface-registry-version=/);
   assert.match(layout, /data-wx-surface-ids=/);

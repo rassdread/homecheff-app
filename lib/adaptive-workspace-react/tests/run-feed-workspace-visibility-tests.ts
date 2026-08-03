@@ -90,8 +90,8 @@ console.log("\n[feed-workspace-visibility] AvailableSpace layout matrix");
   assert.equal(mobileLandscape.layoutMode, "mobile-landscape");
   assert.equal(mobileLandscape.orientation, "landscape");
   assert.equal(mobileLandscape.supportingPanelCount, 1);
-  assert.equal(mobileLandscape.showStartPanel, false);
-  assert.equal(mobileLandscape.showEndPanel, true);
+  assert.equal(mobileLandscape.showStartPanel, true);
+  assert.equal(mobileLandscape.showEndPanel, false);
   assert.notEqual(
     mobileLandscape.layoutMode,
     resolveFeedWorkspaceVisibleLayout({
@@ -99,7 +99,7 @@ console.log("\n[feed-workspace-visibility] AvailableSpace layout matrix");
       usableHeightPx: 844,
     }).layoutMode,
   );
-  ok("700×320 mobile landscape → 1 end panel (≠ portrait)");
+  ok("700×320 mobile landscape → 1 start (tools) panel (≠ portrait)");
 }
 
 {
@@ -254,10 +254,15 @@ console.log("\n[feed-workspace-visibility] ultra-wide feed column cap");
     });
     assert.equal(plan.layoutMode, mode, `${w}x${h}`);
     assert.equal(plan.supportingPanelCount, 2);
-    assert.equal(plan.feedColumnMaxWidthPx, 720);
+    // WX 1C.1: ultrawide/desktop-wide uses 800; laptop/desktop keep 720.
+    assert.equal(
+      plan.feedColumnMaxWidthPx,
+      mode === "desktop-wide" ? 800 : 720,
+      `${w}x${h} feed cap`,
+    );
     assert.ok(plan.usableWidthPx >= plan.feedColumnMaxWidthPx);
   }
-  ok("wide viewports: desktop-wide + feedColumnMaxWidthPx=720");
+  ok("wide viewports: dual rails + readable feed column cap");
 }
 
 console.log("\n[feed-workspace-visibility] source contracts");

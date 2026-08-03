@@ -1787,6 +1787,8 @@ export default function BottomNavigation() {
           <div className="relative group flex-shrink-0 flex justify-center px-0.5 sm:px-1.5">
             <button
               type="button"
+              data-wx-primary-action=""
+              data-wx-bottom-create=""
               onClick={handleQuickAddClick}
               className={cn(
                 'relative rounded-full text-white transition-all duration-200 ease-out touch-manipulation select-none active:scale-95',

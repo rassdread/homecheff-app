@@ -1,0 +1,3 @@
+CLEANLY_MERGEABLE
+Automatic merge went well; stopped before committing as requested
+base=origin/main@7e09a3c9 tip=a692eea4

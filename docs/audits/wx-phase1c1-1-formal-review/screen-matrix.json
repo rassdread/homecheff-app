@@ -1,0 +1,86 @@
+[
+  {
+    "id": "phone-portrait",
+    "class": "phone-portrait",
+    "create": true,
+    "search": true,
+    "trade": true,
+    "nearbyFirst": true,
+    "emptyGuidance": true,
+    "explain": "short",
+    "stripPct": 0.097,
+    "pass": true
+  },
+  {
+    "id": "phone-landscape",
+    "class": "tablet-landscape",
+    "create": true,
+    "search": true,
+    "trade": true,
+    "nearbyFirst": true,
+    "emptyGuidance": true,
+    "explain": "compact",
+    "stripPct": 0.1,
+    "pass": true
+  },
+  {
+    "id": "tablet-portrait",
+    "class": "tablet-portrait",
+    "create": true,
+    "search": true,
+    "trade": true,
+    "nearbyFirst": true,
+    "emptyGuidance": true,
+    "explain": "medium",
+    "stripPct": 0.136,
+    "pass": true
+  },
+  {
+    "id": "tablet-landscape",
+    "class": "tablet-landscape",
+    "create": true,
+    "search": true,
+    "trade": true,
+    "nearbyFirst": true,
+    "emptyGuidance": true,
+    "explain": "medium",
+    "stripPct": 0.12,
+    "pass": true
+  },
+  {
+    "id": "laptop",
+    "class": "laptop",
+    "create": true,
+    "search": true,
+    "trade": true,
+    "nearbyFirst": true,
+    "emptyGuidance": true,
+    "explain": "full",
+    "stripPct": 0.12,
+    "pass": true
+  },
+  {
+    "id": "desktop",
+    "class": "desktop",
+    "create": true,
+    "search": true,
+    "trade": true,
+    "nearbyFirst": true,
+    "emptyGuidance": true,
+    "explain": "full",
+    "stripPct": 0.12,
+    "pass": true
+  },
+  {
+    "id": "ultrawide",
+    "class": "ultrawide",
+    "create": true,
+    "search": true,
+    "trade": true,
+    "nearbyFirst": true,
+    "emptyGuidance": true,
+    "explain": "full",
+    "stripPct": 0.095,
+    "pass": true
+  }
+]

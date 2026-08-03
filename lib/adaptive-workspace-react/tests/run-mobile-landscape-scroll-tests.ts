@@ -49,7 +49,9 @@ console.log("\n[mobile-landscape-scroll] layout source: height propagation for m
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
     "utf8",
   );
-  assert.match(layoutSrc, /h-\[calc\(100dvh-5rem\)\]/);
+  // WX 1C: multiCol height comes from visible adaptive chrome inset (AvailableSpace),
+  // not a fixed 5rem bottom-nav reserve (landscape reclaims that space).
+  assert.match(layoutSrc, /frameHeightCss|hc-wx-frame-adaptive|--hc-wx-frame-height/);
   assert.match(layoutSrc, /overflow-hidden/);
   // multiCol primary host must bound height into the feed scroll owner
   assert.match(
@@ -59,8 +61,8 @@ console.log("\n[mobile-landscape-scroll] layout source: height propagation for m
   assert.match(layoutSrc, /homecheff-feed-desktop/);
   assert.match(layoutSrc, /overflow-y-auto/);
   assert.match(layoutSrc, /1B\.2\.1|mobile landscape scroll/i);
-  // multiCol gates feed scroll owner; portrait must not trap document scroll
-  assert.match(layoutSrc, /data-wx-scroll-owner=\{multiCol \? "feed" : "document"\}/);
+  // WX 1C: scroll owner comes from visible adaptive plan (feed when multiCol)
+  assert.match(layoutSrc, /data-wx-scroll-owner=\{visiblePlan\.scrollOwner\}/);
   assert.match(
     layoutSrc,
     /multiCol\s*\?\s*"min-h-0 flex-1 overflow-y-auto overscroll-y-contain/,

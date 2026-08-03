@@ -1,0 +1,29 @@
+{
+  "verdict": "WX_PHASE_1C1_1_PASS",
+  "summary": {
+    "pass": 7,
+    "total": 7
+  },
+  "rotation": {
+    "primaryStable": true,
+    "landscapeCreate": true,
+    "portraitCreate": true,
+    "tradeStable": true
+  },
+  "remounts": [
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0"
+  ],
+  "plannersNonDriving": true,
+  "allCreate": true,
+  "allSearch": true,
+  "allTrade": true,
+  "allNearby": true,
+  "allEmptyGuidance": true,
+  "noEternalSkeleton": true
+}

@@ -35,6 +35,7 @@ import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLink
 import { useCommsUnread } from '@/hooks/useCommsUnread';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
+import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
 
 function resolveNavDashboardHref(user: Record<string, unknown> | null | undefined): string | null {
@@ -60,6 +61,10 @@ export default function NavBar() {
   const { count: unreadCount } = useCommsUnread(status === 'authenticated');
   const { openCreateFlow } = useCreateFlow();
   const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
+  const landscapeWork = useLandscapeWorkPosture();
+  /** WX 1C.1 — when bottom nav collapses, Create must remain in command chrome. */
+  const showLandscapeCreate =
+    landscapeWork.bottomNavCollapsed;
   const [sellerOrdersUnread, setSellerOrdersUnread] = useState(0);
   const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
   const hasFetchedProfileRef = useRef(false);
@@ -485,6 +490,36 @@ export default function NavBar() {
 
           {/* Rechtercluster: language + auth altijd buiten de nav-flex; hamburger < lg */}
           <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0 pl-1">
+            {/* WX 1C.1 P0 — Landscape Create invariant (lg+ already has desktop primary). */}
+            {showLandscapeCreate ? (
+              <button
+                type="button"
+                data-wx-primary-action=""
+                data-wx-landscape-create=""
+                className={cn(
+                  'lg:hidden inline-flex shrink-0 items-center justify-center gap-1',
+                  'rounded-xl px-2.5 py-2 min-h-[40px]',
+                  'text-[13px] font-bold whitespace-nowrap leading-none',
+                  'bg-primary-brand text-white hover:bg-primary-700',
+                  'shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-brand',
+                  'touch-manipulation select-none',
+                )}
+                onClick={() => {
+                  if (user) {
+                    openCreateFlow();
+                  } else {
+                    requireAuthAction('create', '/sell/new');
+                  }
+                  navDebug('navbar:landscape-create', { action: 'create' });
+                }}
+                aria-label={t('homePhase1.ctaShare')}
+              >
+                <Plus className="w-4 h-4 shrink-0" aria-hidden />
+                <span className="hidden min-[380px]:inline whitespace-nowrap">
+                  {t('homePhase1.ctaShare')}
+                </span>
+              </button>
+            ) : null}
             <div className="hidden lg:block shrink-0">
               <LanguageSwitcher />
             </div>

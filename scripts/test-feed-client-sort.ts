@@ -157,13 +157,18 @@ assert(normalizeFeedScope('bogus') === 'national', 'normalize default national')
 
 assert(
   scopeFromLegacyPersist({ radius: 25, radiusMode: 'strict_local' }) ===
-    FEED_SCOPE_NATIONAL,
-  'legacy radiusMode migrates to national'
+    FEED_SCOPE_NEARBY,
+  'legacy radiusMode migrates to nearby (local-first)'
 );
 assert(
   migrateHomeFeedPersist({ radius: 25, nationalView: false, radiusMode: 'x' })
-    .scope === FEED_SCOPE_NATIONAL,
-  'migrate strips legacy keys and defaults national'
+    .scope === FEED_SCOPE_NEARBY,
+  'migrate strips legacy keys and defaults nearby'
+);
+assert(
+  migrateHomeFeedPersist({ radius: 25, nationalView: true }).scope ===
+    FEED_SCOPE_NATIONAL,
+  'explicit nationalView still restores national'
 );
 assert(
   migrateHomeFeedPersist({ scope: 'nearby', radiusMode: 'x' }).scope ===

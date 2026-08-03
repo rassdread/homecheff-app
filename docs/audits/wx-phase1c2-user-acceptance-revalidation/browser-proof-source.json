@@ -1,0 +1,400 @@
+{
+  "phase": "1c.1",
+  "generatedAt": "2026-08-03T01:21:21.156Z",
+  "baseUrl": "http://127.0.0.1:3119",
+  "verdict": "WX_PHASE_1C1_PASS",
+  "viewports": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "w": 390,
+        "h": 844,
+        "expectClass": "phone-portrait",
+        "expectRails": [
+          false,
+          false
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "phone-portrait",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:1",
+        "startHidden": true,
+        "endHidden": true,
+        "railOwnsFilters": "0",
+        "bottomNavCollapsed": "0",
+        "primaryCreateCount": 1,
+        "secondaryCreateCount": 0,
+        "bottomCreateVisible": true,
+        "landscapeCreateVisible": false,
+        "createReachable": true,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "emptyGuidance": false,
+        "explainLevel": "short",
+        "explainBody": true,
+        "explainActions": false,
+        "stripPct": 0.079,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "phase": true,
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "stripOk": true,
+        "explainLevel": true,
+        "explainCopy": true,
+        "continuity": true,
+        "plannersNonDriving": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "w": 844,
+        "h": 390,
+        "expectClass": "tablet-landscape",
+        "expectRails": [
+          true,
+          false
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "tablet-landscape",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:2",
+        "startHidden": false,
+        "endHidden": true,
+        "railOwnsFilters": "1",
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "secondaryCreateCount": 1,
+        "bottomCreateVisible": false,
+        "landscapeCreateVisible": true,
+        "createReachable": true,
+        "landscapeCreate": true,
+        "searchVisible": true,
+        "emptyGuidance": false,
+        "explainLevel": "compact",
+        "explainBody": false,
+        "explainActions": true,
+        "stripPct": 0.1,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "phase": true,
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "stripOk": true,
+        "explainLevel": true,
+        "explainCopy": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true,
+        "toolsBeforeCommunity": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "w": 768,
+        "h": 1024,
+        "expectClass": "tablet-portrait",
+        "expectRails": [
+          true,
+          false
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "tablet-portrait",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:3",
+        "startHidden": false,
+        "endHidden": true,
+        "railOwnsFilters": "1",
+        "bottomNavCollapsed": "0",
+        "primaryCreateCount": 1,
+        "secondaryCreateCount": 1,
+        "bottomCreateVisible": true,
+        "landscapeCreateVisible": false,
+        "createReachable": true,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "emptyGuidance": false,
+        "explainLevel": "medium",
+        "explainBody": true,
+        "explainActions": true,
+        "stripPct": 0.136,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "phase": true,
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "stripOk": true,
+        "explainLevel": true,
+        "explainCopy": true,
+        "continuity": true,
+        "plannersNonDriving": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "w": 900,
+        "h": 600,
+        "expectClass": "tablet-landscape",
+        "expectRails": [
+          true,
+          false
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "tablet-landscape",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:4",
+        "startHidden": false,
+        "endHidden": true,
+        "railOwnsFilters": "1",
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "secondaryCreateCount": 1,
+        "bottomCreateVisible": false,
+        "landscapeCreateVisible": true,
+        "createReachable": true,
+        "landscapeCreate": true,
+        "searchVisible": true,
+        "emptyGuidance": false,
+        "explainLevel": "medium",
+        "explainBody": true,
+        "explainActions": true,
+        "stripPct": 0.12,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "phase": true,
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "stripOk": true,
+        "explainLevel": true,
+        "explainCopy": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true,
+        "toolsBeforeCommunity": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "laptop",
+        "w": 1100,
+        "h": 700,
+        "expectClass": "laptop",
+        "expectRails": [
+          true,
+          true
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "laptop",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:5",
+        "startHidden": false,
+        "endHidden": false,
+        "railOwnsFilters": "1",
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "secondaryCreateCount": 1,
+        "bottomCreateVisible": false,
+        "landscapeCreateVisible": false,
+        "createReachable": true,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "emptyGuidance": false,
+        "explainLevel": "full",
+        "explainBody": true,
+        "explainActions": true,
+        "stripPct": 0.12,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "phase": true,
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "stripOk": true,
+        "explainLevel": true,
+        "explainCopy": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true,
+        "toolsBeforeCommunity": true,
+        "singlePrimaryCreate": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "w": 1280,
+        "h": 800,
+        "expectClass": "desktop",
+        "expectRails": [
+          true,
+          true
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "desktop",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:6",
+        "startHidden": false,
+        "endHidden": false,
+        "railOwnsFilters": "1",
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "secondaryCreateCount": 1,
+        "bottomCreateVisible": false,
+        "landscapeCreateVisible": false,
+        "createReachable": true,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "emptyGuidance": false,
+        "explainLevel": "full",
+        "explainBody": true,
+        "explainActions": true,
+        "stripPct": 0.12,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "phase": true,
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "stripOk": true,
+        "explainLevel": true,
+        "explainCopy": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true,
+        "toolsBeforeCommunity": true,
+        "singlePrimaryCreate": true
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "w": 2560,
+        "h": 1440,
+        "expectClass": "ultrawide",
+        "expectRails": [
+          true,
+          true
+        ]
+      },
+      "snap": {
+        "phase": "1c.1",
+        "workspaceClass": "ultrawide",
+        "continuityRemount": "0",
+        "primaryMountId": "wx-primary-mount:7",
+        "startHidden": false,
+        "endHidden": false,
+        "railOwnsFilters": "1",
+        "bottomNavCollapsed": "1",
+        "primaryCreateCount": 1,
+        "secondaryCreateCount": 1,
+        "bottomCreateVisible": false,
+        "landscapeCreateVisible": false,
+        "createReachable": true,
+        "landscapeCreate": false,
+        "searchVisible": true,
+        "emptyGuidance": false,
+        "explainLevel": "full",
+        "explainBody": true,
+        "explainActions": true,
+        "stripPct": 0.095,
+        "stripOk": true,
+        "presentationDrivesChrome": "0",
+        "capVisualActivation": "0"
+      },
+      "checks": {
+        "phase": true,
+        "workspaceClass": true,
+        "startRail": true,
+        "endRail": true,
+        "createReachable": true,
+        "searchVisible": true,
+        "stripOk": true,
+        "explainLevel": true,
+        "explainCopy": true,
+        "continuity": true,
+        "plannersNonDriving": true,
+        "landscapeCreatePresent": true,
+        "bottomCollapsed": true,
+        "toolsBeforeCommunity": true,
+        "singlePrimaryCreate": true
+      },
+      "pass": true,
+      "failed": []
+    }
+  ],
+  "rotation": {
+    "primaryStable": true,
+    "landscapeCreate": true,
+    "portraitCreate": true,
+    "stripPortraitOk": true
+  },
+  "summary": {
+    "pass": 7,
+    "total": 7
+  }
+}
