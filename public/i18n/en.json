@@ -2708,7 +2708,7 @@
     }
   },
   "logo": {
-    "subtitle": "cheff, garden and design network"
+    "subtitle": "neighbourhood cook, grow & make"
   },
   "navbar": {
     "home": "Home",
@@ -2738,6 +2738,7 @@
     "cart": "Shopping Cart",
     "profileImage": "Profile Picture",
     "werkenBij": "Careers",
+    "secondaryLinksLabel": "More",
     "verdienenGuestTitle": "Log in to post something",
     "verdienenGuestBody": "You can only post something when you are logged in.",
     "androidBeta": "Help test",
@@ -5583,10 +5584,11 @@
     "emptyRadiusBody": "Widen your radius or browse neighbourhood offers across the Netherlands.",
     "emptyRadiusWiden": "Widen radius",
     "emptyRadiusViewAll": "Show all of Netherlands",
-    "nearbyNeedsLocationTitle": "Location needed",
-    "nearbyNeedsLocationBody": "Share your location to see what people nearby cook, make, grow, design and offer.",
+    "nearbyNeedsLocationTitle": "Your neighbourhood is nearby",
+    "nearbyNeedsLocationBody": "Choose a place to see what neighbours cook, grow, make and offer — homemade food, garden harvests, craft and helpful hands.",
     "nearbyNeedsLocationChoosePlace": "Choose a place",
-    "nearbyNeedsLocationAltScopes": "You can also browse the whole Netherlands or International.",
+    "nearbyNeedsLocationAltScopes": "Or browse the whole Netherlands or International first.",
+    "nearbyNeedsLocationEncouragement": "Cook · Grow · Make · Help — waiting just around the corner.",
     "scopeLabel": "Scope",
     "scopeNearby": "Nearby",
     "scopeNational": "Netherlands",
@@ -6196,11 +6198,12 @@
     "home": "To homepage"
   },
   "cookieBanner": {
-    "title": "Your privacy matters",
+    "title": "Cookies & privacy",
     "point1": "All data is stored securely and encrypted",
     "point2": "Your data is never shared with third parties",
     "point3": "You have full control over your data",
     "cookieNote": "Essential cookies are required for the app. \"Accept all\" also allows analytics (anonymous usage).",
+    "cookieNoteShort": "Essential cookies keep HomeCheff working. Accept all also enables anonymous analytics.",
     "acceptAll": "Accept all",
     "onlyNecessary": "Only necessary",
     "accept": "Accept",
@@ -7967,7 +7970,7 @@
   "homePhase1": {
     "heroTitleBefore": "Discover what people ",
     "heroTitleHighlight": "nearby",
-    "heroTitleAfter": " make, cook, grow and create",
+    "heroTitleAfter": " cook, grow, make and help",
     "heroSubtitle": "Discover, buy, sell or trade homemade meals, harvest, creations and services. Post a request, share what you make or find help nearby.",
     "heroValueExchange": "Trade without money too. Discover what you can get with what you can offer.",
     "heroDefinition": "HomeCheff is a local platform where neighbours can buy, sell, barter and arrange food, harvest, creations, services and help.",
@@ -7981,7 +7984,7 @@
     "heroChipInspiration": "Inspiration",
     "heroChipChores": "Chores",
     "heroChipBarter": "Barter",
-    "heroChipRequests": "Wanted",
+    "heroChipRequests": "Ask / Wanted",
     "heroChipNearby": "Nearby",
     "heroOrbitHomeCheff": "HomeCheff",
     "heroOrbitHomeGarden": "HomeGarden",
@@ -7998,11 +8001,11 @@
     "ctaDiscover": "Discover nearby",
     "ctaShare": "Sell or share",
     "orientationIdentity": "Digital neighbourhood marketplace",
-    "orientationExplainShort": "Discover what people nearby cook, make, grow and offer — nearby first.",
-    "orientationExplainCompact": "Search · Offer · Buy · Sell · Trade · Request · Help",
-    "orientationExplainMedium": "HomeCheff is your digital neighbourhood marketplace: discover homemade, self-grown and self-made offers. Search, offer, buy, sell, trade or ask for help — nearby first.",
-    "orientationExplainFull": "HomeCheff is the digital neighbourhood marketplace. Discover what people around you cook, make, grow, design, repair and offer. Buy, sell, trade, request or offer help — everything starts close to home. Sharing your own offer is simple.",
-    "orientationActions": "Search · Offer · Buy · Sell · Trade · Request · Help · Discover",
+    "orientationExplainShort": "Neighbours cook, grow, make and help nearby — find, ask or share.",
+    "orientationExplainCompact": "Search · Offer · Ask · Buy · Sell · Trade · Help",
+    "orientationExplainMedium": "HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harvests, handmade work and neighbourly help. Search, offer, ask, buy, sell or trade — nearby first.",
+    "orientationExplainFull": "HomeCheff is the digital neighbourhood marketplace. Discover what people around you cook, grow, make, repair and offer. Buy, sell, trade, ask for something or offer help — everything starts close to home. Sharing your own offer is simple.",
+    "orientationActions": "Search · Offer · Ask · Buy · Sell · Trade · Help · Discover",
     "schemaWebsiteDescription": "HomeCheff — the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.",
     "verticals": {
       "cheff": {
@@ -8517,11 +8520,11 @@
         "chooseOther": "Choose another counter-value"
       },
       "requests": {
-        "chip": "Wanted",
-        "sectionTitle": "Wanted",
-        "sectionSubtitle": "See what neighbours are looking for — or post your own request for a product, service, help or something to be made, delivered or repaired.",
-        "emptyTitle": "No open requests found yet",
-        "emptyBody": "Browse what's offered or post your own request — someone nearby might help.",
+        "chip": "Ask / Wanted",
+        "sectionTitle": "Ask / Wanted",
+        "sectionSubtitle": "See what neighbours are looking for — or ask for a meal, help, service or something homemade nearby.",
+        "emptyTitle": "No open requests yet",
+        "emptyBody": "Browse what's offered or ask for something yourself — someone nearby might help.",
         "searchHints": {
           "gezocht": "Wanted",
           "help": "Help needed",
@@ -8839,7 +8842,7 @@
       "view": {
         "all": "All",
         "offered": "Offered",
-        "wanted": "Wanted",
+        "wanted": "Ask / Wanted",
         "inspiration": "Inspiration"
       },
       "category": {
