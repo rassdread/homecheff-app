@@ -1,0 +1,130 @@
+{
+  "phase": "WX Phase 1C.1.2",
+  "verdict": "WX_PHASE_1C1_2_PRODUCTION_SUCCESS",
+  "freeze": "PRODUCTION_FROZEN",
+  "generatedAt": "2026-08-03T11:47:47.524297+00:00",
+  "project": "homecheff-app",
+  "projectId": "prj_V0aZoSgSjd8dJKM0YtWkAKI88NLV",
+  "identities": {
+    "preMainFreeze": "84c182a31325d6c4749253870033bf4bb2deaf5c",
+    "commitA": "730e325cdfe7cdfe15b4ef2e9b134311a5b75bc2",
+    "commitBFeatureTip": "44039c45792dd0ecd277ff549e44d1001ac67cdb",
+    "mergeSha": "90a51f1a3caa4341ee1a5e5076db708b505c42aa",
+    "featureBranch": "wx/phase-1c1-2-final-launch-polish",
+    "featureTipRetained": "44039c45792dd0ecd277ff549e44d1001ac67cdb"
+  },
+  "deployments": {
+    "aliasedProduction": "dpl_HFNLc2erQ9gmEcytd98PrYjUvuhY",
+    "aliasedUrl": "https://homecheff-eyb1o66fs-sergio-s-projects-f7b64ee1.vercel.app",
+    "githubMergeDeployment": "dpl_99E661Wz2Rbi7D9XGcH1vZGjP2pC",
+    "githubDeploymentId": 5725519329,
+    "priorProduction": "dpl_AhQnWjkurSvtajvbxLkunGR7SACt",
+    "aliases": [
+      "https://homecheff.eu",
+      "https://homecheff.nl",
+      "https://www.homecheff.eu",
+      "https://www.homecheff.nl"
+    ]
+  },
+  "runtimeHash": {
+    "gitMergeSha": "90a51f1a3caa4341ee1a5e5076db708b505c42aa",
+    "livePhase": "1c.1",
+    "visibleAdaptive": "wx-visible-adaptive-workspace-v1",
+    "cookieCompactLive": true,
+    "nearbyWarmLive": true,
+    "note": "CLI Production deploy from clean merge worktree at merge SHA; GitHub Production deploy READY for same SHA"
+  },
+  "gates": {
+    "featureTip": "PASS",
+    "commitA": "PASS",
+    "commitB": "PASS",
+    "mainAtFreezePreMerge": "PASS",
+    "mergeSimulation": "CLEAN",
+    "productionBuild": "PASS",
+    "adaptiveWorkspaceSuite": "PASS",
+    "browserMatrixPre": "PASS_7_7_feature",
+    "browserMatrixLive": "PASS_7_7",
+    "responsiveMatrixLive": "PASS",
+    "ownership": "PASS",
+    "plannerContracts": "PASS"
+  },
+  "liveProof": {
+    "matrixPass": 7,
+    "matrixTotal": 7,
+    "rotation": {
+      "portraitCreate": true,
+      "landscapeCreate": true,
+      "backCreate": true,
+      "remountStable": true
+    },
+    "cookieFirst": {
+      "compact": true,
+      "heightPct": 0.13
+    },
+    "pageErrors": []
+  },
+  "ownership": {
+    "geoFeedOwner": "GeoFeed",
+    "controlledHost": "inactive",
+    "workspace": "wx-visible-adaptive-workspace-v1",
+    "availableSpace": [
+      "phone-portrait",
+      "tablet-landscape",
+      "tablet-portrait",
+      "tablet-landscape",
+      "desktop",
+      "desktop",
+      "ultrawide"
+    ],
+    "scrollOwnership": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "presentationOwnership": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "plannerOwnership": "unchanged",
+    "remounts": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "hostCounts": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "pass": true
+  },
+  "performance": {
+    "remount": true,
+    "pageErrors": [],
+    "overflow": false,
+    "presentationDrives": true
+  },
+  "rollback": {
+    "rollbackSha": "84c182a31325d6c4749253870033bf4bb2deaf5c",
+    "priorDeployment": "dpl_AhQnWjkurSvtajvbxLkunGR7SACt",
+    "schemaMigration": false,
+    "procedure": "Redeploy prior Production deployment dpl_AhQnWjkurSvtajvbxLkunGR7SACt (or git revert merge 90a51f1a and vercel --prod). No schema/data migration."
+  }
+}

@@ -1,0 +1,668 @@
+
+> homecheff-app@0.1.0 test:adaptive-workspace-react
+> npx tsx lib/adaptive-workspace-react/tests/run-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-feed-workspace-visibility-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-workspace-mode-engine-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-transition-continuity-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-mobile-landscape-scroll-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-capability-framework-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-landscape-work-posture-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-orientation-explanation-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-nav-preservation-1b4-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-surface-registry-1b51-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-surface-presentation-1b52-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-assist-eligibility-1b53-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-progressive-disclosure-1b54-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-tool-action-presentation-1b55-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-honesty-density-1b56-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-priority-1b57-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-relevance-1b58-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-context-intent-1b59-tests.ts && npx tsx lib/adaptive-workspace-react/tests/run-visible-adaptive-workspace-1c-tests.ts
+
+
+[adaptive-workspace-react] mode
+  ✓ off/shadow/on preserved; invalid fails closed to env default
+
+[adaptive-workspace-react] measurement normalize / coalesce
+  ✓ normalize floors; stability token deterministic
+  ✓ identical floored measurements do not re-resolve
+
+[adaptive-workspace-react] ResolveInput + shadow plan
+  ✓ shadow ResolveInput → renderActivation false
+  ✓ COMPACT shadow plan still non-activating
+
+[adaptive-workspace-react] SSR render (no browser globals required)
+  ✓ SSR HTML contains Settings child without measurement gate
+  ✓ SSR shadow root keeps child + renderActivation false attr
+
+[adaptive-workspace-react] source contracts
+  ✓ no profile/width keys; no window resize; no storage/query flags
+  ✓ Settings page wraps hub with Settings Workspace Root
+  ✓ no global Settings WorkspaceProvider; 1B.4 chrome provider allowed
+  ✓ pure core still does not import React/components
+  ✓ Phase 2B files do not import Feed
+
+adaptive-workspace-react Phase 2B: 12 assertions ok
+
+
+[feed-workspace-visibility] mode fail-closed
+  ✓ off/shadow/preview/on; invalid → off
+
+[feed-workspace-visibility] layout visible gate
+  ✓ PREVIEW needs query; ON always; OFF/SHADOW never
+
+[feed-workspace-visibility] AvailableSpace layout matrix
+  ✓ 390×844 mobile portrait → 0 panels
+  ✓ 700×320 mobile landscape → 1 start (tools) panel (≠ portrait)
+  ✓ 844×390 phone landscape → tablet-landscape 1 panel (≠ portrait)
+  ✓ 932×430 large mobile landscape → tablet-landscape, 1 panel
+  ✓ 768×1024 tablet portrait → 1 panel
+  ✓ 1024×768 tablet landscape → desktop 2 panels (≠ tablet portrait)
+  ✓ 1280×800 laptop → 2 panels
+  ✓ 1728×1117 wide desktop → desktop-wide 2 panels
+  ✓ 900×1100 constrained tablet portrait → 1 panel
+  ✓ 700×320 short landscape → 1 panel via landscape carve-out
+  ✓ stability token deterministic; no timestamps
+
+[feed-workspace-visibility] flag edge cases
+  ✓ invalid/empty → off; case-insensitive valid; query cannot force ON from off
+
+[feed-workspace-visibility] ultra-wide feed column cap
+  ✓ wide viewports: dual rails + readable feed column cap
+
+[feed-workspace-visibility] source contracts
+  ✓ shell gated by visibility; no UA detection
+  ✓ stable visible tree: one GeoFeed; full-bleed; no lg branch
+  ✓ homepage SSR resolves visibility + preview query
+  ✓ visible layout: continuity primarySlotKey + AvailableSpace; no matchMedia/UA
+  ✓ primary-slot continuity guard negative fixtures
+  ✓ presentation-only authority doc present
+
+[feed-workspace-visibility] 21 passed
+
+
+[workspace-mode-engine] declared threshold documentation
+  ✓ documented thresholds present (layout bands remain separate owners)
+
+[workspace-mode-engine] fixture vectors (explicit expects)
+  ✓ 27 independent vectors; modes=browse,hybrid-workspace,full-workspace,professional-workspace,compact-workspace; postures=portrait,landscape
+
+[workspace-mode-engine] purity / no interaction upgrade
+  ✓ interactionSpace/density do not change Mode (1B.1)
+
+[workspace-mode-engine] repeatability + input immutability
+  ✓ floors dimensions; immutable input; same floors → same plan
+
+[workspace-mode-engine] measured Workspace vs viewport labels
+  ✓ measured AvailableSpace fixtures beat viewport naming
+
+[workspace-mode-engine] no UA / device inputs in API
+  ✓ source has no device/UA branching
+
+[workspace-mode-engine] fixture file has no resolver mirror
+  ✓ fixtures are explicit constants only
+
+[workspace-mode-engine] summary checkGroups=7 vectors=27 assertions=219
+
+
+[transition-continuity] contract policy fixtures (not browser mount proof)
+  ✓ policy fixtures match sealed continuity contract
+  · NOTE: remountAuthorized=false is a contract policy assertion — browser probe observes mount identity separately
+
+[transition-continuity] Mode-to-Mode transition pair fixtures
+  ✓ 14 pair fixtures; categories=mode-boundary,reverse,same-mode-noop,posture-only,repeated
+  · transition pairs: browse→hybrid-workspace | hybrid-workspace→browse | hybrid-workspace→full-workspace | full-workspace→hybrid-workspace | full-workspace→professional-workspace | professional-workspace→full-workspace | browse→full-workspace | full-workspace→browse | professional-workspace→browse | hybrid-workspace→hybrid-workspace | full-workspace→full-workspace
+
+[transition-continuity] same-Mode no-op + reverse + repeated determinism
+  ✓ same-Mode no-ops are deterministic and deny remount
+  ✓ 4 reverse transitions deny remount
+  ✓ 5× repeated 720 boundary oscillations deny remount (contract layer)
+
+[transition-continuity] continuity token preserves stable identity references
+  ✓ continuity token references from/to mode+posture
+
+[transition-continuity] input immutability
+  ✓ describeWorkspaceModeTransition does not mutate inputs
+
+[transition-continuity] invalid / impossible measurement fail-closed
+  ✓ 3 fail-closed fixtures
+
+[transition-continuity] no capability / ownership-transfer authorization
+  ✓ continuity module denies remount/reload; no capability activation
+
+[transition-continuity] layout source: permanent slots + mount diagnostics + no Mode keys
+  ✓ layout has mount diagnostics; no Mode keys; no UA; no CSS consumer
+
+[transition-continuity] oscillation boundary targets (contract coverage map)
+  ✓ 720/1024/1440 boundary map: Mode changes + remount denied
+  · Browser oscillation proof (≥5 per boundary, measured AvailableSpace) lives in probe — not claimed as unit mount observation
+
+[transition-continuity] SUMMARY {"layer":"contract","groups":["contract policy fixtures (not browser mount proof)","Mode-to-Mode transition pair fixtures","same-Mode no-op + reverse + repeated determinism","continuity token preserves stable identity references","input immutability","invalid / impossible measurement fail-closed","no capability / ownership-transfer authorization","layout source: permanent slots + mount diagnostics + no Mode keys","oscillation boundary targets (contract coverage map)"],"groupCount":9,"vectors":31,"assertions":11,"transitionPairs":14,"boundaries":[720,1024,1440],"oscillationsPerBoundaryMin":5,"browserMountClaimed":false}
+[transition-continuity] 11 assertions across 9 groups
+
+
+[mobile-landscape-scroll] landscape carve-out enables multiCol
+  ✓ 740×360 → landscape + supporting panel (≥1)
+
+[mobile-landscape-scroll] portrait stays single-column
+  ✓ 390×844 → portrait + 0 panels
+
+[mobile-landscape-scroll] layout source: height propagation for multiCol
+  ✓ multiCol primary host uses h-full overflow-hidden; feed scroll owner gated
+
+[mobile-landscape-scroll] wrappers fill height
+  ✓ Region/Slot/Panel propagate h-full min-h-0
+
+[mobile-landscape-scroll] SUMMARY {"layer":"contract","assertions":4,"browserTouchClaimed":false}
+
+
+[capability-framework] framework contract constants
+  ✓ sealed framework constants + 13 capability IDs
+
+[capability-framework] Mode × posture capability vectors
+  ✓ 7 Mode vectors match fixtures
+
+[capability-framework] reserved capabilities never available
+  ✓ all reserved IDs stay reserved across Modes
+
+[capability-framework] AvailableSpace → Mode → capabilities path
+  ✓ AvailableSpace path matches Mode-plan path
+
+[capability-framework] invalid / impossible input fail-closed
+  ✓ invalid Mode → browse fail-closed
+
+[capability-framework] determinism + input immutability
+  ✓ repeatable + immutable inputs
+
+[capability-framework] no visual activation / ownership side effects in source
+  ✓ capability module has no UA/device/DOM side effects
+
+[capability-framework] layout diagnostics only — phase markers + capability attrs
+  ✓ layout exposes capability + landscape diagnostics without CSS/key drivers
+
+[capability-framework] unknown capability ID fail-closed
+  ✓ unknown capability ID is unavailable / undefined
+
+[capability-framework] 1B.2.1 wrappers still propagate height
+  ✓ Region/Slot/Panel retain h-full min-h-0 from 1B.2.1
+
+[capability-framework] progressive unlock — no accidental capability loss
+  ✓ progressive unlock holds for panels/selection/inspector
+
+[capability-framework] diagnostics consumers — no behavioural JS / CSS hooks
+  ✓ no unexpected data-wx-cap / contract consumers
+
+[capability-framework] SUMMARY {"layer":"contract","groupCount":12,"groups":["framework contract constants","Mode × posture capability vectors","reserved capabilities never available","AvailableSpace → Mode → capabilities path","invalid / impossible input fail-closed","determinism + input immutability","no visual activation / ownership side effects in source","layout diagnostics only — phase markers + capability attrs","unknown capability ID fail-closed","1B.2.1 wrappers still propagate height","progressive unlock — no accidental capability loss","diagnostics consumers — no behavioural JS / CSS hooks"],"vectors":7,"assertions":12,"capabilityIds":13,"reservedIds":5,"browserMountClaimed":false,"visualActivationClaimed":false}
+[capability-framework] 12 assertions across 12 groups
+
+
+[landscape-work-posture] contract constants
+  ✓ sealed landscape work posture constants
+
+[landscape-work-posture] AvailableSpace geometry only
+  ✓ portrait discovery vs landscape work presentation
+
+[landscape-work-posture] tablet / desktop / ultrawide landscape
+  ✓ tablet/desktop/ultrawide landscape collapses bottom nav
+
+[landscape-work-posture] fail-closed non-finite
+  ✓ invalid sizes fail closed to portrait discovery chrome
+
+[landscape-work-posture] plan equality
+  ✓ isSameLandscapeWorkPosturePlan
+
+[landscape-work-posture] source seals — no UA/device branching in policy + chrome
+  ✓ presentation wiring sealed; 1B.2.1 + capability diagnostics + nav preservation retained
+
+[landscape-work-posture] module has no timers / polling
+  ✓ chrome provider uses resize listeners only
+
+[landscape-work-posture] SUMMARY {"groups":7,"assertions":7}
+[landscape-work-posture] 7 assertions across 7 groups
+
+
+[orientation-explanation] AvailableSpace density matrix
+  ✓ phone/tablet/desktop/ultrawide explanation levels
+  ✓ fail-closed → short
+[orientation-explanation] PASS
+
+
+[nav-preservation-1b4] landscape below-lg destinations
+  ✓ NavBar exposes Create + /mijn-hcp in below-lg hamburger; Escape + desktop Create retained
+  ✓ 2 explicit landscape destination fixtures
+  ✓ collapsed bottom nav uses hidden + aria-hidden + inert; no UA branching
+  ✓ landscape posture policy still owns bottomNavCollapsed
+
+[nav-preservation-1b4] SUMMARY {"assertions":4,"destinations":["create","mijn-hcp"]}
+[nav-preservation-1b4] 4 assertions
+
+
+[surface-registry-1b5.1] contract constants
+  ✓ sealed registry contract constants
+
+[surface-registry-1b5.1] stable identifiers + uniqueness
+  ✓ 12 unique stable identifiers
+
+[surface-registry-1b5.1] reserved declarations
+  ✓ reserved surfaces sealed
+
+[surface-registry-1b5.1] registry immutability
+  ✓ registry arrays and entries frozen
+
+[surface-registry-1b5.1] ordering stability
+  ✓ enumeration order stable
+
+[surface-registry-1b5.1] priority metadata present (not applied)
+  ✓ priority metadata present without resolver behaviour
+
+[surface-registry-1b5.1] serialization + determinism
+  ✓ serialization deterministic and JSON-safe
+
+[surface-registry-1b5.1] diagnostics snapshot
+  ✓ diagnostics read-only contract
+
+[surface-registry-1b5.1] invalid / duplicate detection seals in source definitions
+  ✓ each surface id defined exactly once in source
+
+[surface-registry-1b5.1] module purity — no browser / React / timers
+  ✓ registry source free of forbidden runtime patterns
+
+[surface-registry-1b5.1] layout diagnostics expose registry without visual activation
+  ✓ layout diagnostics bound; visual activation remains 0
+
+[surface-registry-1b5.1] future compatibility — contract version on every entry
+  ✓ every entry carries contract version + diagnostic token
+
+[surface-registry-1b5.1] SUMMARY {"groups":12,"assertions":12,"surfaces":12,"reserved":4}
+[surface-registry-1b5.1] 12 assertions across 12 groups
+
+
+[surface-presentation-1b5.2] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[surface-presentation-1b5.2] every registered surface covered by priority order fixture
+  ✓ 12 sealed surfaces in explicit priority fixture
+
+[surface-presentation-1b5.2] Mode × posture presentation vectors
+  ✓ 9 vectors × 12 surfaces + reserved seals
+
+[surface-presentation-1b5.2] capability states — available / unavailable / reserved for panels
+  ✓ panels capability × Mode assist caps
+
+[surface-presentation-1b5.2] stable prioritised ordering + explicit tie-break
+  ✓ tie-break: priorityRank then registry index
+
+[surface-presentation-1b5.2] identical-input repeatability
+  ✓ identical input → identical token + serialization
+
+[surface-presentation-1b5.2] input immutability
+  ✓ resolver does not mutate input
+
+[surface-presentation-1b5.2] output immutability
+  ✓ plan and entries frozen
+
+[surface-presentation-1b5.2] serialization stability
+  ✓ serializeSurfacePresentationPlan deterministic JSON
+
+[surface-presentation-1b5.2] fail-closed — unknown surface
+  ✓ unknown surface → rejected fail-closed
+
+[surface-presentation-1b5.2] fail-closed — duplicate surface
+  ✓ duplicate surface → rejected
+
+[surface-presentation-1b5.2] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[surface-presentation-1b5.2] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[surface-presentation-1b5.2] fail-closed — invalid Mode / posture / missing capability
+  ✓ invalid mode/posture/missing capability fail-closed
+
+[surface-presentation-1b5.2] reserved registry truth overrides malformed available capability
+  ✓ reserved surfaces stay blocked despite available capability spoof
+
+[surface-presentation-1b5.2] progressive growth invariants
+  ✓ Browse⊆Compact assists; Hybrid≤1; Full/Pro≤2
+
+[surface-presentation-1b5.2] no visual-activation / ownership / remount authorization
+  ✓ plan never authorizes render / remount / ownership transfer
+
+[surface-presentation-1b5.2] empty/minimal valid plan (browse)
+  ✓ minimal browse plan = core only
+
+[surface-presentation-1b5.2] sealed registry size is supported contract size (12)
+  ✓ full sealed registry resolves (n=12)
+
+[surface-presentation-1b5.2] module purity — no browser / React / timers
+  ✓ resolver source free of forbidden runtime patterns
+
+[surface-presentation-1b5.2] layout diagnostics expose plan without visual activation
+  ✓ layout binds plan diagnostics; drives-chrome=0; no presentation keys
+
+[surface-presentation-1b5.2] capability framework still resolvable alongside presentation
+  ✓ consumes capability plan without mutating framework
+
+[surface-presentation-1b5.2] SUMMARY {"groups":22,"assertions":22,"vectors":24,"eligibilityAssertions":128,"priorityAssertions":12,"reservedAssertions":40,"failClosedAssertions":7,"surfaces":12,"fixtureVectors":9}
+[surface-presentation-1b5.2] 22 assertions across 22 groups
+
+[assist-eligibility-1b5.3] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[assist-eligibility-1b5.3] Mode × posture eligibility vectors
+  ✓ 7 vectors × 2 assists
+
+[assist-eligibility-1b5.3] fail-closed — unknown assist surface
+  ✓ unknown assist → rejected fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — duplicate assist surface
+  ✓ duplicate assist → rejected
+
+[assist-eligibility-1b5.3] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — presentation contract / version mismatch
+  ✓ presentation contract/version mismatch fail-closed
+
+[assist-eligibility-1b5.3] fail-closed — presentation plan rejected
+  ✓ rejected presentation plan → ineligible assists
+
+[assist-eligibility-1b5.3] identical-input repeatability
+  ✓ identical input → identical token + serialization
+
+[assist-eligibility-1b5.3] input immutability
+  ✓ resolver does not mutate input
+
+[assist-eligibility-1b5.3] output immutability
+  ✓ plan and entries frozen
+
+[assist-eligibility-1b5.3] serialization stability
+  ✓ serializeAssistEligibilityPlan deterministic JSON
+
+[assist-eligibility-1b5.3] no renderAuthorized true ever — hollow ban seals
+  ✓ renderAuthorized always false; hollow ban holds
+
+[assist-eligibility-1b5.3] capacity-allowed assists are eligible not renderAuthorized
+  ✓ eligible capacity with hollow-ban suppression, not render auth
+
+[assist-eligibility-1b5.3] future-eligible secondary under Mode forbids
+  ✓ Hybrid secondary future-eligible when Mode caps at 1
+
+[assist-eligibility-1b5.3] module purity — no browser / React / timers
+  ✓ resolver source free of forbidden runtime patterns
+
+[assist-eligibility-1b5.3] layout diagnostics expose eligibility without visual activation
+  ✓ layout binds eligibility diagnostics; drives-chrome=0; no assist keys
+
+[assist-eligibility-1b5.3] resolveAssistEligibilityFromPlans integration
+  ✓ consumes mode+capability+presentation plans without mutation
+
+[assist-eligibility-1b5.3] SUMMARY {"groups":18,"assertions":18,"vectors":7,"eligibilityAssertions":14,"failClosedAssertions":7,"hollowBanAssertions":18,"assists":2,"fixtureVectors":7}
+[assist-eligibility-1b5.3] 18 assertions across 18 groups
+
+[progressive-disclosure-1b5.4] resolver contract constants
+  ✓ sealed resolver contract + non-driving flags
+
+[progressive-disclosure-1b5.4] Mode × posture disclosure vectors
+  ✓ 7 vectors × 5 surfaces
+
+[progressive-disclosure-1b5.4] serialization round-trip
+  ✓ serialize keeps states; JSON stable; plan frozen
+
+[progressive-disclosure-1b5.4] determinism
+  ✓ identical input → identical stabilityToken + serialization
+
+[progressive-disclosure-1b5.4] ordering
+  ✓ orderedSurfaceIds sorted by priorityRank ascending
+
+[progressive-disclosure-1b5.4] fail-closed — unknown progressive surface
+  ✓ unknown progressive id → rejected fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — duplicate progressive surface
+  ✓ duplicate progressive id → rejected
+
+[progressive-disclosure-1b5.4] fail-closed — registry-version mismatch
+  ✓ registry version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — capability-contract mismatch
+  ✓ capability contract mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — presentation contract / version mismatch
+  ✓ presentation contract/version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — eligibility contract / version mismatch
+  ✓ eligibility contract/version mismatch fail-closed
+
+[progressive-disclosure-1b5.4] fail-closed — presentation plan rejected
+  ✓ rejected presentation plan → suppressed disclosures
+
+[progressive-disclosure-1b5.4] fail-closed — eligibility plan rejected
+  ✓ rejected eligibility plan → suppressed disclosures
+
+[progressive-disclosure-1b5.4] isProgressiveRenderAuthorized always false for all ids on ok plan
+  ✓ renderAuthorized always false; disclosure ban holds
+
+[progressive-disclosure-1b5.4] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[progressive-disclosure-1b5.4] layout diagnostics expose disclosure without visual activation
+  ✓ layout binds disclosure diagnostics; renders=0; drives-chrome=0
+
+[progressive-disclosure-1b5.4] resolveProgressiveDisclosureFromPlans integration
+  ✓ 390×844 browse → tool disclosed + disclosure discoverable
+
+[progressive-disclosure-1b5.4] SUMMARY {"groups":17,"assertions":17,"vectors":7,"disclosureAssertions":35,"failClosedAssertions":10,"renderBanAssertions":40,"progressiveSurfaces":5,"fixtureVectors":7}
+[progressive-disclosure-1b5.4] 17 assertions across 17 groups
+
+[tool-action-presentation-1b5.5] contract seal
+  ✓ sealed contract identity + non-driving flags
+
+[tool-action-presentation-1b5.5] Mode×tool persistence matrix
+  ✓ 7 vectors × 4 actions
+
+[tool-action-presentation-1b5.5] fail-closed — unknown / duplicate / contract mismatch
+  ✓ unknown/duplicate/mismatch reject; fail-closed Reachable
+
+[tool-action-presentation-1b5.5] static chrome freeze — renderAuthorized always false
+  ✓ renderAuthorized false across 28 entries
+
+[tool-action-presentation-1b5.5] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[tool-action-presentation-1b5.5] persistent band — planPersistent true, render still false
+  ✓ persistent capacity + static-chrome-freeze + no render
+
+[tool-action-presentation-1b5.5] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[tool-action-presentation-1b5.5] layout diagnostics expose tool-action without chrome activation
+  ✓ layout binds tool-action diagnostics; renders=0; static chrome
+
+[tool-action-presentation-1b5.5] FromPlans integration
+  ✓ FromPlans chains registry→presentation→assist→disclosure→tool-action
+
+[tool-action-presentation-1b5.5] SUMMARY {"groups":9,"assertions":58,"vectors":7,"toolActionIds":4}
+[tool-action-presentation-1b5.5] 58 assertions across 9 groups
+
+
+[honesty-density-1b5.6] contract seal
+  ✓ sealed contract identity + non-driving flags
+
+[honesty-density-1b5.6] Mode×density honesty matrix
+  ✓ 7 vectors × 7 surfaces
+
+[honesty-density-1b5.6] density state coverage — EMPTY SPARSE NORMAL DENSE OVERFLOW
+  ✓ EMPTY/SPARSE/NORMAL/DENSE/OVERFLOW observed
+
+[honesty-density-1b5.6] compact state coverage — NONE OPTIONAL RECOMMENDED REQUIRED
+  ✓ NONE/OPTIONAL/RECOMMENDED/REQUIRED observed
+
+[honesty-density-1b5.6] fail-closed — unknown / duplicate / contract mismatch → UNKNOWN
+  ✓ unknown/duplicate/mismatch reject; fail-closed UNKNOWN
+
+[honesty-density-1b5.6] diagnostics-only — render/compaction never authorized
+  ✓ render/compaction banned across 49 entries
+
+[honesty-density-1b5.6] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[honesty-density-1b5.6] boundary — overflow requires persistent+heightDemoted
+  ✓ OVERFLOW vs DENSE boundary on tool surface
+
+[honesty-density-1b5.6] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[honesty-density-1b5.6] layout diagnostics expose density/compact without UI apply
+  ✓ layout binds honesty diagnostics; renders=0; no compaction apply
+
+[honesty-density-1b5.6] FromPlans integration
+  ✓ FromPlans chains registry→…→tool-action→honesty-density
+
+[honesty-density-1b5.6] SUMMARY {"groups":11,"assertions":461,"vectors":7,"honestySurfaceIds":7}
+[honesty-density-1b5.6] 461 assertions across 11 groups
+
+
+[context-priority-1b5.7] contract seal
+  ✓ sealed contract identity + non-driving flags
+
+[context-priority-1b5.7] Mode×priority matrix
+  ✓ 7 vectors × 7 surfaces
+
+[context-priority-1b5.7] priority level coverage — LOW NORMAL HIGH CRITICAL
+  ✓ LOW/NORMAL/HIGH/CRITICAL observed
+
+[context-priority-1b5.7] fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0
+  ✓ unknown/duplicate/mismatch/missing → UNKNOWN score 0
+
+[context-priority-1b5.7] diagnostics-only — render/ordering never authorized
+  ✓ render/ordering banned across 49 entries
+
+[context-priority-1b5.7] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[context-priority-1b5.7] boundary — tool HIGH vs CRITICAL overflow
+  ✓ tool HIGH vs CRITICAL overflow boundary
+
+[context-priority-1b5.7] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[context-priority-1b5.7] layout diagnostics expose priority without reorder/render
+  ✓ layout binds priority diagnostics; renders=0; no ordering apply
+
+[context-priority-1b5.7] FromPlans integration
+  ✓ FromPlans chains …→honesty→context-priority
+
+[context-priority-1b5.7] SUMMARY {"groups":10,"assertions":436,"vectors":7,"prioritySurfaceIds":7}
+[context-priority-1b5.7] 436 assertions across 10 groups
+
+
+[context-relevance-1b5.8] contract seal
+  ✓ sealed contract identity + non-driving flags
+
+[context-relevance-1b5.8] Mode×relevance matrix
+  ✓ 3 vectors × 7 surfaces
+
+[context-relevance-1b5.8] relevance level coverage — IRRELEVANT CONTEXTUAL IMPORTANT ESSENTIAL
+  ✓ IRRELEVANT/CONTEXTUAL/IMPORTANT/ESSENTIAL observed
+
+[context-relevance-1b5.8] fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0
+  ✓ unknown/duplicate/mismatch/missing → UNKNOWN score 0
+
+[context-relevance-1b5.8] diagnostics-only — render/ordering never authorized
+  ✓ render/ordering banned
+
+[context-relevance-1b5.8] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[context-relevance-1b5.8] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[context-relevance-1b5.8] layout diagnostics expose relevance without reorder/render
+  ✓ layout binds relevance diagnostics; renders=0; priority preserved
+
+[context-relevance-1b5.8] FromPlans integration
+  ✓ FromPlans chains …→priority→context-relevance
+
+[context-relevance-1b5.8] SUMMARY {"groups":9,"assertions":65,"vectors":3,"relevanceSurfaceIds":7}
+[context-relevance-1b5.8] 65 assertions across 9 groups
+
+
+[context-intent-1b5.9] contract seal
+  ✓ sealed contract identity + non-driving flags
+
+[context-intent-1b5.9] Mode×intent matrix
+  ✓ 5 vectors × 7 surfaces
+
+[context-intent-1b5.9] intent level coverage — EXPLORE DISCOVER CREATE MANAGE OPERATE
+  ✓ EXPLORE/DISCOVER/CREATE/MANAGE/OPERATE observed
+
+[context-intent-1b5.9] fail-closed — unknown / duplicate / mismatch → UNKNOWN score 0
+  ✓ unknown/duplicate/mismatch/missing → UNKNOWN score 0
+
+[context-intent-1b5.9] diagnostics-only — render/ordering never authorized
+  ✓ render/ordering banned
+
+[context-intent-1b5.9] helpers + serialize + determinism
+  ✓ helpers + serialize + identical inputs → identical plan
+
+[context-intent-1b5.9] forbidden source patterns
+  ✓ resolver source free of forbidden runtime patterns
+
+[context-intent-1b5.9] layout diagnostics expose intent without reorder/render
+  ✓ layout binds intent diagnostics; renders=0; relevance preserved
+
+[context-intent-1b5.9] FromPlans integration
+  ✓ FromPlans chains …→relevance→context-intent
+
+[context-intent-1b5.9] SUMMARY {"groups":9,"assertions":62,"vectors":5,"intentSurfaceIds":7}
+[context-intent-1b5.9] 62 assertions across 9 groups
+
+
+[visible-adaptive-1c] contract constants
+  ✓ 1C contract metadata sealed
+
+[visible-adaptive-1c] screen class matrix (AvailableSpace)
+  ✓ phone/tablet/laptop/desktop/ultrawide matrix
+
+[visible-adaptive-1c] landscape reclaims bottom chrome
+  ✓ landscape frame uses top-nav-only inset
+
+[visible-adaptive-1c] portrait keeps bottom nav inset
+  ✓ portrait reserves bottom nav
+
+[visible-adaptive-1c] refineWorkspaceClass laptop vs desktop
+  ✓ laptop/desktop/ultrawide refinement
+
+[visible-adaptive-1c] consumes existing plans only
+  ✓ composes layout + posture without new decision bands
+
+[visible-adaptive-1c] source contracts
+  ✓ shell/bridge/geofeed presentation wiring present; no UA; no mode keys
+
+[visible-adaptive-1c] SUMMARY {"assertions":7,"phase":"1c"}
+
+EXIT_AW:0
+
+> homecheff-app@0.1.0 test:orientation-explanation
+> npx tsx lib/adaptive-workspace-react/tests/run-orientation-explanation-tests.ts
+
+
+[orientation-explanation] AvailableSpace density matrix
+  ✓ phone/tablet/desktop/ultrawide explanation levels
+  ✓ fail-closed → short
+[orientation-explanation] PASS
+
+EXIT_ORIENT:0
+
+[visible-adaptive-1c] contract constants
+  ✓ 1C contract metadata sealed
+
+[visible-adaptive-1c] screen class matrix (AvailableSpace)
+  ✓ phone/tablet/laptop/desktop/ultrawide matrix
+
+[visible-adaptive-1c] landscape reclaims bottom chrome
+  ✓ landscape frame uses top-nav-only inset
+
+[visible-adaptive-1c] portrait keeps bottom nav inset
+  ✓ portrait reserves bottom nav
+
+[visible-adaptive-1c] refineWorkspaceClass laptop vs desktop
+  ✓ laptop/desktop/ultrawide refinement
+
+[visible-adaptive-1c] consumes existing plans only
+  ✓ composes layout + posture without new decision bands
+
+[visible-adaptive-1c] source contracts
+  ✓ shell/bridge/geofeed presentation wiring present; no UA; no mode keys
+
+[visible-adaptive-1c] SUMMARY {"assertions":7,"phase":"1c"}
+
+EXIT_1C:0
+✅ feed-client-sort tests passed
+EXIT_SCOPE:0

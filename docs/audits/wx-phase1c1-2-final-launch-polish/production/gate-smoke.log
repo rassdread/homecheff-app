@@ -1,0 +1,43 @@
+
+> homecheff-app@0.1.0 smoke-check
+> node scripts/smoke-check.mjs
+
+
+[36mHomeCheff smoke-check[0m (schema, env, DB, route files)
+
+Prisma schema loaded from prisma/schema.prisma
+The schema at prisma/schema.prisma is valid 🚀
+[32m✓[0m prisma validate
+[32m✓[0m env DATABASE_URL gezet
+[32m✓[0m env NEXTAUTH_SECRET gezet
+[32m✓[0m env NEXTAUTH_URL gezet
+[32m✓[0m env STRIPE_SECRET_KEY gezet (aanbevolen)
+[32m✓[0m env NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY gezet (aanbevolen)
+[32m✓[0m env BLOB_READ_WRITE_TOKEN gezet (aanbevolen)
+[32m✓[0m env RESEND_API_KEY gezet (aanbevolen)
+[32m✓[0m database bereikbaar (SELECT 1)
+[32m✓[0m route file app/api/auth/[...nextauth]/route.ts
+[32m✓[0m route file app/api/auth/native/google/route.ts
+[32m✓[0m route file app/api/auth/register/route.ts
+[32m✓[0m route file app/api/auth/forgot-password/route.ts
+[32m✓[0m route file app/api/auth/reset-password/route.ts
+[32m✓[0m route file app/api/auth/resend-verification/route.ts
+[32m✓[0m route file app/api/auth/verify-email/route.ts
+[32m✓[0m route file app/api/auth/verify-email-simple/route.ts
+[32m✓[0m route file lib/auth/send-signup-verification-email.ts
+[32m✓[0m route file app/api/register/route.ts
+[32m✓[0m route file app/api/checkout/session/route.ts
+[32m✓[0m route file app/api/stripe/webhook/route.ts
+[32m✓[0m route file app/api/upload/route.ts
+[32m✓[0m route file app/api/upload/video-token/route.ts
+[32m✓[0m route file app/login/page.tsx
+[32m✓[0m route file app/register/page.tsx
+[32m✓[0m route file app/forgot-password/page.tsx
+[32m✓[0m route file app/reset-password/page.tsx
+[32m✓[0m route file app/verify-email/page.tsx
+[32m✓[0m register API: username guard + signup verification mail
+[32m✓[0m .next/BUILD_ID bestaat (recent build?)
+
+────────────────────────────────────────────────────────────
+[32mSmoke-check geslaagd.[0m Handmatig nog testen: inloggen, registreren, checkout (testkaart), foto- en video-upload in UI.
+
