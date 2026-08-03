@@ -1,0 +1,6 @@
+{
+  "continuityRemount": "0",
+  "newAsync": false,
+  "plannerExtensions": false,
+  "note": "Presentation-only UX; no remounts observed in probe rotation."
+}

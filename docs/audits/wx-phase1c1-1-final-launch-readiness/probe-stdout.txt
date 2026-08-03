@@ -1,0 +1,9 @@
+phone-portrait → PASS create=true search=true trade=true nearby=true empty=true strip=0.079
+phone-landscape → PASS create=true search=true trade=true nearby=true empty=true strip=0.1
+tablet-portrait → PASS create=true search=true trade=true nearby=true empty=true strip=0.136
+tablet-landscape → PASS create=true search=true trade=true nearby=true empty=true strip=0.12
+laptop → PASS create=true search=true trade=true nearby=true empty=true strip=0.12
+desktop → PASS create=true search=true trade=true nearby=true empty=true strip=0.12
+ultrawide → PASS create=true search=true trade=true nearby=true empty=true strip=0.095
+rotation { primaryStable: true, landscapeCreate: true, portraitCreate: true, tradeStable: true }
+Verdict: WX_PHASE_1C1_1_PASS
