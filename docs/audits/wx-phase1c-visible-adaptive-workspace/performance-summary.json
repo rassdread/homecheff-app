@@ -1,0 +1,11 @@
+{
+  "phase": "1c",
+  "purePlanners": true,
+  "singleOwnership": true,
+  "deterministic": true,
+  "noPollingAdded": true,
+  "observers": "existing ResizeObserver + visualViewport only",
+  "remountPrimary": 0,
+  "consoleErrors": 0,
+  "verdict": "PERFORMANCE_PRESERVED"
+}

@@ -1,0 +1,93 @@
+[
+  {
+    "id": "phone-portrait",
+    "size": "390x844",
+    "workspaceClass": "phone-portrait",
+    "density": "browse",
+    "rails": [
+      false,
+      false
+    ],
+    "railOwnsFilters": "0",
+    "scrollOwner": "document",
+    "pass": true
+  },
+  {
+    "id": "phone-landscape",
+    "size": "700x320",
+    "workspaceClass": "phone-landscape",
+    "density": "work",
+    "rails": [
+      false,
+      true
+    ],
+    "railOwnsFilters": "0",
+    "scrollOwner": "feed",
+    "pass": true
+  },
+  {
+    "id": "tablet-portrait",
+    "size": "768x1024",
+    "workspaceClass": "tablet-portrait",
+    "density": "browse",
+    "rails": [
+      false,
+      true
+    ],
+    "railOwnsFilters": "0",
+    "scrollOwner": "feed",
+    "pass": true
+  },
+  {
+    "id": "tablet-landscape",
+    "size": "900x600",
+    "workspaceClass": "tablet-landscape",
+    "density": "work",
+    "rails": [
+      false,
+      true
+    ],
+    "railOwnsFilters": "0",
+    "scrollOwner": "feed",
+    "pass": true
+  },
+  {
+    "id": "laptop",
+    "size": "1100x700",
+    "workspaceClass": "laptop",
+    "density": "work",
+    "rails": [
+      true,
+      true
+    ],
+    "railOwnsFilters": "1",
+    "scrollOwner": "feed",
+    "pass": true
+  },
+  {
+    "id": "desktop",
+    "size": "1280x800",
+    "workspaceClass": "desktop",
+    "density": "pro",
+    "rails": [
+      true,
+      true
+    ],
+    "railOwnsFilters": "1",
+    "scrollOwner": "feed",
+    "pass": true
+  },
+  {
+    "id": "ultrawide",
+    "size": "2560x1440",
+    "workspaceClass": "ultrawide",
+    "density": "pro",
+    "rails": [
+      true,
+      true
+    ],
+    "railOwnsFilters": "1",
+    "scrollOwner": "feed",
+    "pass": true
+  }
+]

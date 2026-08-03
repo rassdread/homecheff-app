@@ -1,0 +1,11 @@
+phone-portrait 390x844 → PASS class=phone-portrait rails=false/false
+phone-landscape 700x320 → PASS class=phone-landscape rails=false/true
+tablet-portrait 768x1024 → PASS class=tablet-portrait rails=false/true
+tablet-landscape 900x600 → PASS class=tablet-landscape rails=false/true
+laptop 1100x700 → PASS class=laptop rails=true/true
+desktop 1280x800 → PASS class=desktop rails=true/true
+ultrawide 2560x1440 → PASS class=ultrawide rails=true/true
+rotation → primaryStable=true landscape=true portrait=true
+
+Wrote docs/audits/wx-phase1c-visible-adaptive-workspace/browser-proof.json
+Verdict: WX_PHASE_1C_PASS

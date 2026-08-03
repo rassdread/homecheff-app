@@ -1,0 +1,21 @@
+{
+  "phase": "1c",
+  "generatedAt": "2026-08-03T00:31:18.706Z",
+  "geoFeedSoleOwner": true,
+  "hostActive": false,
+  "plannersExtended": false,
+  "newOwnershipSystems": false,
+  "presentationBridge": "portal-only filters + surfacePlan read model",
+  "scrollOwnerPreserved": true,
+  "remountPrimary": 0,
+  "evidence": {
+    "presentationDrivesChrome": true,
+    "assistDrivesChrome": true,
+    "honestyAppliesCompaction": true,
+    "intentDrivesChrome": true,
+    "capVisualActivation": true,
+    "continuityRemount0": true,
+    "rotationPrimaryStable": true
+  },
+  "verdict": "OWNERSHIP_PRESERVED"
+}
