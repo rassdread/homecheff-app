@@ -316,6 +316,7 @@ begin("diagnostics consumers — no behavioural JS / CSS hooks");
       l.includes("probe-wx-phase1b59-context-intent.mjs") ||
       l.includes("probe-wx-phase1c-visible-adaptive.mjs") ||
       l.includes("probe-wx-phase1c1-launch-readiness.mjs") ||
+      l.includes("probe-wx-phase1c1-1-final-launch-readiness.mjs") ||
       l.includes("run-progressive-disclosure-1b54-tests.ts") ||
       l.includes("run-tool-action-presentation-1b55-tests.ts") ||
       l.includes("run-honesty-density-1b56-tests.ts") ||

@@ -205,6 +205,18 @@ export type {
 } from "./resolve-landscape-work-posture";
 
 export {
+  ORIENTATION_EXPLANATION,
+  resolveOrientationExplanation,
+  isSameOrientationExplanationPlan,
+} from "./resolve-orientation-explanation";
+
+export type {
+  OrientationExplanationLevel,
+  OrientationExplanationPlan,
+  OrientationExplanationInput,
+} from "./resolve-orientation-explanation";
+
+export {
   VISIBLE_ADAPTIVE_WORKSPACE,
   resolveVisibleAdaptiveWorkspace,
   refineWorkspaceClass,

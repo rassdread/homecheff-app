@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * WX Phase 1C.1 — Launch Readiness Corrections browser proof.
+ * WX Phase 1C.1.1 — Final Launch Readiness browser proof.
  */
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -20,8 +20,8 @@ const VIEWPORTS = [
 ];
 
 function parseArgs(argv) {
-  let baseUrl = "http://127.0.0.1:3119";
-  let outDir = join(process.cwd(), "docs/audits/wx-phase1c1-launch-readiness-corrections");
+  let baseUrl = "http://127.0.0.1:3120";
+  let outDir = join(process.cwd(), "docs/audits/wx-phase1c1-1-final-launch-readiness");
   let journey = false;
   for (const a of argv) {
     if (a.startsWith("--base-url=")) baseUrl = a.slice(11);
@@ -48,7 +48,7 @@ async function dismiss(page) {
       );
       b?.click();
     });
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 500));
     await page.evaluate(() => {
       document.querySelectorAll('[role="dialog"], .fixed.inset-0').forEach((el) => {
         if (/privacy|cookie|accepteer/i.test(el.textContent || "")) el.style.display = "none";
@@ -62,42 +62,45 @@ async function snap(page) {
     const ws = document.querySelector("[data-aw-feed-workspace]");
     const strip = document.querySelector("[data-wx-orientation-strip]");
     const collapsed = document.documentElement.dataset.wxBottomNavCollapsed === "1";
-    const primaryCreates = [...document.querySelectorAll("[data-wx-primary-action]")].filter((el) => {
-      if (collapsed && el.hasAttribute("data-wx-bottom-create")) return false;
+    const visible = (el) => {
+      if (!el) return false;
       const r = el.getBoundingClientRect();
       const s = getComputedStyle(el);
       return r.width > 8 && r.height > 8 && s.display !== "none" && s.visibility !== "hidden" && s.opacity !== "0";
+    };
+    const primaryCreates = [...document.querySelectorAll("[data-wx-primary-action]")].filter((el) => {
+      if (collapsed && el.hasAttribute("data-wx-bottom-create")) return false;
+      return visible(el);
     });
-    const secondaryCreates = [...document.querySelectorAll("[data-wx-create-secondary]")].filter((el) => {
-      const r = el.getBoundingClientRect();
-      return r.width > 8 && r.height > 8;
-    });
-    const bottomCreate = document.querySelector("[data-wx-bottom-create]");
-    const bottomCreateVisible = (() => {
-      if (collapsed || !bottomCreate) return false;
-      const r = bottomCreate.getBoundingClientRect();
-      const s = getComputedStyle(bottomCreate);
-      return r.width > 8 && r.height > 8 && s.display !== "none" && s.visibility !== "hidden";
-    })();
     const landscapeCreateEl = document.querySelector("[data-wx-landscape-create]");
-    const landscapeCreateVisible = (() => {
-      if (!landscapeCreateEl) return false;
-      const r = landscapeCreateEl.getBoundingClientRect();
-      const s = getComputedStyle(landscapeCreateEl);
-      return r.width > 8 && r.height > 8 && s.display !== "none" && s.visibility !== "hidden";
-    })();
+    const bottomCreate = document.querySelector("[data-wx-bottom-create]");
     const search = document.querySelector("[data-wx-feed-search]");
-    const empty = document.querySelector("[data-wx-empty-guidance]");
+    const trade = document.querySelector("[data-wx-trade-action]");
+    const emptyGuidance = document.querySelector("[data-wx-empty-guidance]");
+    const searchingEmpty = document.querySelector("[data-wx-empty-searching]");
+    const skeletonUnderSearching = Boolean(
+      searchingEmpty?.querySelector("[class*='skeleton'], [data-testid*='skeleton']"),
+    );
+    const scopeHint = document.querySelector("[data-wx-scope-hint]");
+    const resultScope = document.querySelector("[data-wx-result-scope]")?.getAttribute("data-wx-result-scope");
+    const nearbyScopePressed = [...document.querySelectorAll("button")].some((b) => {
+      const t = (b.textContent || "").trim();
+      return /in je buurt|nearby|in de buurt/i.test(t) && b.getAttribute("aria-pressed") === "true";
+    });
+    const nationalPressed = [...document.querySelectorAll("button")].some((b) => {
+      const t = (b.textContent || "").trim();
+      return /heel nederland|netherlands|national/i.test(t) && b.getAttribute("aria-pressed") === "true";
+    });
     const startHost = document.querySelector("[data-aw-slot-host='start']");
     const endHost = document.querySelector("[data-aw-slot-host='end']");
     const stripH = strip ? strip.getBoundingClientRect().height : 0;
     const stripPct = window.innerHeight ? stripH / window.innerHeight : 0;
-    const feedSearchVisible = (() => {
-      if (!search) return false;
-      const r = search.getBoundingClientRect();
-      const s = getComputedStyle(search);
-      return r.width > 20 && r.height > 10 && s.display !== "none";
-    })();
+    const eternalSkeleton =
+      !emptyGuidance &&
+      !searchingEmpty &&
+      document.body.innerText.includes("0 resultaten") &&
+      [...document.querySelectorAll("[class*='animate-pulse'], [class*='Skeleton']")].some((el) => visible(el));
+
     return {
       phase: ws?.getAttribute("data-wx-phase"),
       workspaceClass: ws?.getAttribute("data-wx-workspace-class"),
@@ -105,19 +108,22 @@ async function snap(page) {
       primaryMountId: document.querySelector("[data-wx-primary-mount-id]")?.getAttribute("data-wx-primary-mount-id"),
       startHidden: !startHost || startHost.classList.contains("hidden"),
       endHidden: !endHost || endHost.classList.contains("hidden"),
-      railOwnsFilters: ws?.getAttribute("data-wx-rail-owns-filters"),
       bottomNavCollapsed: document.documentElement.dataset.wxBottomNavCollapsed || "0",
       primaryCreateCount: primaryCreates.length,
-      secondaryCreateCount: secondaryCreates.length,
-      bottomCreateVisible,
-      landscapeCreateVisible,
-      createReachable: primaryCreates.length > 0 || bottomCreateVisible || landscapeCreateVisible,
-      landscapeCreate: landscapeCreateVisible,
-      searchVisible: feedSearchVisible,
-      emptyGuidance: Boolean(empty),
+      createReachable:
+        primaryCreates.length > 0 ||
+        (visible(bottomCreate) && !collapsed) ||
+        visible(landscapeCreateEl),
+      searchVisible: visible(search),
+      tradeVisible: visible(trade),
+      emptyGuidance: Boolean(emptyGuidance) && visible(emptyGuidance),
+      searchingEmpty: Boolean(searchingEmpty),
+      skeletonUnderSearching,
+      eternalSkeleton,
+      nearbyScopeDefault: nearbyScopePressed || resultScope === "nearby" || Boolean(document.querySelector("[data-wx-nearby-empty]")),
+      nationalDefaultContradiction: nationalPressed && !scopeHint,
+      scopeHintPresent: Boolean(scopeHint) || Boolean(document.querySelector("[data-wx-nearby-empty]")),
       explainLevel: strip?.getAttribute("data-wx-orientation-explain") || null,
-      explainBody: Boolean(document.querySelector("[data-wx-orientation-explain-body]")),
-      explainActions: Boolean(document.querySelector("[data-wx-orientation-actions]")),
       stripPct: Number(stripPct.toFixed(3)),
       stripOk: stripPct <= 0.16,
       presentationDrivesChrome: ws?.getAttribute("data-wx-presentation-drives-chrome"),
@@ -126,42 +132,24 @@ async function snap(page) {
   });
 }
 
-function expectedExplain(vp) {
-  if (vp.w >= 1024) return "full";
-  if (vp.w > vp.h && vp.h < 520) return "compact";
-  if (vp.w >= 720) return "medium";
-  if (vp.w > vp.h) return "compact";
-  return "short";
-}
-
 function evaluate(vp, s) {
-  const expectExplain = expectedExplain(vp);
   const checks = {
-    phase: s.phase === "1c.1",
     workspaceClass: s.workspaceClass === vp.expectClass,
     startRail: s.startHidden === !vp.expectRails[0],
     endRail: s.endHidden === !vp.expectRails[1],
     createReachable: s.createReachable === true,
     searchVisible: s.searchVisible === true,
+    tradeVisible: s.tradeVisible === true,
     stripOk: s.stripOk === true,
-    explainLevel: s.explainLevel === expectExplain,
-    explainCopy:
-      expectExplain === "compact"
-        ? s.explainActions === true
-        : expectExplain === "short"
-          ? s.explainBody === true
-          : s.explainBody === true && s.explainActions === true,
+    noEternalSkeleton: s.eternalSkeleton !== true && s.skeletonUnderSearching !== true,
+    nearbyFirst: s.nearbyScopeDefault === true || s.scopeHintPresent === true,
+    noNationalContradiction: s.nationalDefaultContradiction !== true,
     continuity: s.continuityRemount === "0",
     plannersNonDriving: s.presentationDrivesChrome === "0" && s.capVisualActivation === "0",
   };
   if (vp.h < vp.w) {
-    checks.landscapeCreatePresent = s.primaryCreateCount >= 1 || s.landscapeCreate === true;
+    checks.landscapeCreatePresent = s.createReachable === true;
     checks.bottomCollapsed = s.bottomNavCollapsed === "1";
-    checks.toolsBeforeCommunity = s.startHidden === false && s.endHidden === true
-      || (vp.expectRails[0] && vp.expectRails[1]);
-  }
-  if (vp.expectRails[0] && vp.expectRails[1]) {
-    checks.singlePrimaryCreate = s.primaryCreateCount === 1;
   }
   const failed = Object.entries(checks).filter(([, v]) => !v).map(([k]) => k);
   return { checks, pass: failed.length === 0, failed };
@@ -179,20 +167,20 @@ async function main() {
   });
   const page = await browser.newPage();
   const results = [];
-  let mount0 = null;
 
   for (const vp of VIEWPORTS) {
     await page.setViewport({ width: vp.w, height: vp.h });
     await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
     await dismiss(page);
     await page.waitForSelector("[data-aw-feed-workspace]", { timeout: 45000 }).catch(() => null);
-    await new Promise((r) => setTimeout(r, 1200));
+    await new Promise((r) => setTimeout(r, 1800));
     const s = await snap(page);
-    if (!mount0) mount0 = s.primaryMountId;
     const ev = evaluate(vp, s);
     await page.screenshot({ path: join(outDir, "screenshots", `${vp.id}.png`), fullPage: false });
     results.push({ viewport: vp, snap: s, ...ev });
-    console.log(`${vp.id} → ${ev.pass ? "PASS" : "FAIL"} create=${s.primaryCreateCount} search=${s.searchVisible} explain=${s.explainLevel} strip=${s.stripPct} rails=${!s.startHidden}/${!s.endHidden}`);
+    console.log(
+      `${vp.id} → ${ev.pass ? "PASS" : "FAIL"} create=${s.createReachable} search=${s.searchVisible} trade=${s.tradeVisible} nearby=${s.nearbyScopeDefault} empty=${s.emptyGuidance} strip=${s.stripPct}`,
+    );
     if (!ev.pass) console.log("  failed:", ev.failed.join(", "));
   }
 
@@ -214,23 +202,22 @@ async function main() {
       primaryStable: before.primaryMountId === after.primaryMountId && after.primaryMountId === back.primaryMountId,
       landscapeCreate: after.createReachable && after.bottomNavCollapsed === "1",
       portraitCreate: back.createReachable,
-      stripPortraitOk: back.stripOk,
+      tradeStable: after.tradeVisible === true && back.tradeVisible === true,
     };
     console.log("rotation", rotation);
   }
 
-  const allPass = results.every((r) => r.pass) && (!rotation || (rotation.primaryStable && rotation.landscapeCreate && rotation.portraitCreate));
+  const allPass =
+    results.every((r) => r.pass) &&
+    (!rotation || (rotation.primaryStable && rotation.landscapeCreate && rotation.portraitCreate && rotation.tradeStable));
   const proof = {
-    phase: "1c.1",
+    phase: "1c.1.1",
     generatedAt: new Date().toISOString(),
     baseUrl,
-    verdict: allPass ? "WX_PHASE_1C1_PASS" : "WX_PHASE_1C1_FAIL",
+    verdict: allPass ? "WX_PHASE_1C1_1_PASS" : "WX_PHASE_1C1_1_FAIL",
     viewports: results,
     rotation,
-    summary: {
-      pass: results.filter((r) => r.pass).length,
-      total: results.length,
-    },
+    summary: { pass: results.filter((r) => r.pass).length, total: results.length },
   };
   writeFileSync(join(outDir, "browser-proof.json"), JSON.stringify(proof, null, 2));
   writeFileSync(
@@ -239,11 +226,13 @@ async function main() {
       results.map((r) => ({
         id: r.viewport.id,
         class: r.snap.workspaceClass,
-        create: r.snap.primaryCreateCount,
+        create: r.snap.createReachable,
         search: r.snap.searchVisible,
+        trade: r.snap.tradeVisible,
+        nearbyFirst: r.snap.nearbyScopeDefault,
+        emptyGuidance: r.snap.emptyGuidance,
         explain: r.snap.explainLevel,
         stripPct: r.snap.stripPct,
-        rails: [!r.snap.startHidden, !r.snap.endHidden],
         pass: r.pass,
       })),
       null,

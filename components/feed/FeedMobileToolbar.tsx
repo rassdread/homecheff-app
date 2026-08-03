@@ -47,8 +47,9 @@ type Props = {
   /** WX 1C.1 — immediately discoverable search. */
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
-  /** Landscape work posture: prioritize feed over filter chrome. */
-  workCompact?: boolean;
+  /** WX 1C.1.1 — trade as a visible Workspace action. */
+  onActivateTrade?: () => void;
+  tradeActive?: boolean;
 };
 
 const chipClass = (active: boolean) =>
@@ -97,6 +98,8 @@ export default function FeedMobileToolbar({
   searchQuery,
   onSearchQueryChange,
   workCompact = false,
+  onActivateTrade,
+  tradeActive = false,
 }: Props) {
   const scopes = [
     [FEED_SCOPE_NEARBY, 'feed.scopeNearby'],
@@ -193,6 +196,18 @@ export default function FeedMobileToolbar({
             {t(labelKey)}
           </button>
         ))}
+        {onActivateTrade ? (
+          <button
+            type="button"
+            data-wx-trade-action=""
+            className={chipClass(tradeActive)}
+            onClick={onActivateTrade}
+            aria-pressed={tradeActive}
+            title={t('feed.tradeActionHint')}
+          >
+            {t('feed.tradeActionChip')}
+          </button>
+        ) : null}
       </div>
 
       {!workCompact ? (

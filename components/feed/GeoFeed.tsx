@@ -1151,7 +1151,7 @@ export default function GeoFeed({
   /** Applied filter state — drives API fetch and client-side ranking. */
   const [appliedRadius, setAppliedRadius] = useState(RADIUS_LOCAL_KM);
   const [appliedScope, setAppliedScope] = useState<FeedScope>(
-    FEED_SCOPE_NATIONAL
+    FEED_SCOPE_NEARBY
   );
   const [appliedPlace, setAppliedPlace] = useState(
     () => initialFeedPlace?.trim().slice(0, 200) || ""
@@ -4171,21 +4171,42 @@ export default function GeoFeed({
     ) : null;
 
   const resultCountEl =
-    showNearbyLocationRequired ? null : (
+    showNearbyLocationRequired ||
+    (loading && !feedHydrated) ||
+    feedRefreshing ||
+    requestInFlight ||
+    isFilterSearchingPhase(filterResultPhase) ? null : (
     <div
       className={
         feedCompactChrome
           ? "text-xs text-gray-500 mt-1.5"
           : "text-sm text-gray-500 mt-2"
       }
+      data-wx-result-scope={appliedScope}
     >
-      {displayCount}{" "}
-      {displayCount === 1
-        ? t("feed.resultSingular")
-        : t("feed.resultPlural")}
-      {appliedSearchQuery
-        ? t("feed.filteredByQuery", { query: appliedSearchQuery })
-        : ""}
+      <p>
+        {displayCount}{" "}
+        {displayCount === 1
+          ? t("feed.resultSingular")
+          : t("feed.resultPlural")}
+        {appliedSearchQuery
+          ? t("feed.filteredByQuery", { query: appliedSearchQuery })
+          : ""}
+      </p>
+      <p
+        className={
+          feedCompactChrome
+            ? "mt-0.5 text-[10px] text-emerald-800/90"
+            : "mt-0.5 text-xs text-emerald-800/90"
+        }
+        data-wx-scope-hint=""
+      >
+        {appliedScope === FEED_SCOPE_NEARBY
+          ? t("feed.scopeNearbyFirstHint")
+          : appliedScope === FEED_SCOPE_INTERNATIONAL
+            ? t("feed.scopeWiderInternationalHint")
+            : t("feed.scopeWiderNationalHint")}
+      </p>
       {acceptedValuesFilterChipsEl}
     </div>
   );
@@ -4279,6 +4300,17 @@ export default function GeoFeed({
     handleScopeChange(FEED_SCOPE_NATIONAL);
   };
 
+  /** WX 1C.1.1 — surface trade as a first-class Workspace action. */
+  const activateTradeDiscovery = useCallback(() => {
+    setDiscoveryDirection("offer");
+    setFeedChip("sale");
+    if (feedCompactChrome && !isDesktopSplit) {
+      setMobileFilterSheetOpen(true);
+    } else {
+      setSidebarRefineOpen(true);
+    }
+  }, [feedCompactChrome, isDesktopSplit]);
+
   const feedQuickCreateIntent = useMemo(
     () => resolvedVerticalModeIntent(category, feedChip),
     [category, feedChip]
@@ -4334,6 +4366,16 @@ export default function GeoFeed({
             {t(labelKey)}
           </button>
         ))}
+        <button
+          type="button"
+          data-wx-trade-action=""
+          className={chipBtn(discoveryDirection === "offer")}
+          onClick={activateTradeDiscovery}
+          aria-pressed={discoveryDirection === "offer"}
+          title={t("feed.tradeActionHint")}
+        >
+          {t("feed.tradeActionChip")}
+        </button>
       </div>
       <p
         className={
@@ -4902,6 +4944,8 @@ export default function GeoFeed({
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         workCompact={workCompactChrome}
+        onActivateTrade={activateTradeDiscovery}
+        tradeActive={discoveryDirection === "offer"}
       />
       {mobileFilterSheetEl}
       {resultCountEl}
@@ -5076,15 +5120,13 @@ export default function GeoFeed({
           role="status"
           aria-live="polite"
           data-testid="feed-filter-searching-empty"
+          data-wx-empty-searching=""
         >
           <p className="flex items-center gap-2 text-base font-semibold">
             <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
             {t("feed.searchingResults")}
           </p>
           <p className="mt-1 text-emerald-800/80">{t("feed.searchingResultsHint")}</p>
-          <div className="mt-4 opacity-70">
-            <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 3} compact={isMobileFeedUi} />
-          </div>
         </div>
       ) : emptyRadiusNoLocal ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
@@ -5323,13 +5365,19 @@ export default function GeoFeed({
         <div
           className="rounded-xl border border-emerald-100 bg-white p-4 text-sm text-muted-foreground"
           data-wx-empty-guidance=""
-          data-wx-phase="1c.1"
+          data-wx-phase="1c.1.1"
         >
           <p className="text-base font-semibold text-gray-900">
             {t("feed.emptyConfirmedTitle")}
           </p>
-          <p className="mt-1 text-gray-700">{t("homePhase1.heroValueExchange")}</p>
-          <p className="mt-2">{t("feed.emptyConfirmedBody")}</p>
+          <p className="mt-1 text-gray-700">{t("feed.emptyConfirmedBody")}</p>
+          <p className="mt-2 text-xs text-emerald-800/90" data-wx-scope-hint="">
+            {appliedScope === FEED_SCOPE_NEARBY
+              ? t("feed.scopeNearbyFirstHint")
+              : appliedScope === FEED_SCOPE_INTERNATIONAL
+                ? t("feed.scopeWiderInternationalHint")
+                : t("feed.scopeWiderNationalHint")}
+          </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
@@ -5343,6 +5391,22 @@ export default function GeoFeed({
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden />
               {t("homePhase1.ctaShare")}
+            </button>
+            <button
+              type="button"
+              data-wx-empty-request=""
+              onClick={() => setFeedChip("gezocht")}
+              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              {t("feed.emptyConfirmedRequest")}
+            </button>
+            <button
+              type="button"
+              data-wx-empty-trade=""
+              onClick={activateTradeDiscovery}
+              className="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+            >
+              {t("feed.emptyConfirmedTrade")}
             </button>
             <button
               type="button"
@@ -5399,12 +5463,19 @@ export default function GeoFeed({
             ) : (
               <button
                 type="button"
-                onClick={handleViewNationalScope}
+                onClick={() => handleScopeChange(FEED_SCOPE_NEARBY)}
                 className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
               >
-                {t("feed.scopeNational")}
+                {t("feed.scopeNearby")}
               </button>
             )}
+            <a
+              href="/auth/register"
+              data-wx-empty-invite=""
+              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              {t("feed.emptyConfirmedInvite")}
+            </a>
           </div>
         </div>
       ) : (

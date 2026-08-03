@@ -48,7 +48,11 @@ export function scopeUsesRadiusFilter(scope: FeedScope): boolean {
   return scope === FEED_SCOPE_NEARBY;
 }
 
-/** Legacy sessionStorage — always returns a scope; never infer nearby from radius alone. */
+/**
+ * Legacy sessionStorage — always returns a scope.
+ * WX 1C.1.1: missing scope defaults to nearby (local-first), matching product copy.
+ * Explicit nationalView:true still restores national.
+ */
 export function scopeFromLegacyPersist(input: {
   scope?: string;
   nationalView?: boolean;
@@ -56,8 +60,7 @@ export function scopeFromLegacyPersist(input: {
 }): FeedScope {
   if (input.scope) return normalizeFeedScope(input.scope);
   if (input.nationalView === true) return FEED_SCOPE_NATIONAL;
-  // Legacy radiusMode / missing scope → national (do not restore hidden nearby filter).
-  return FEED_SCOPE_NATIONAL;
+  return FEED_SCOPE_NEARBY;
 }
 
 /** Strip legacy keys from persisted home feed snapshot before save/restore. */

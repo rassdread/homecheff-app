@@ -35,6 +35,8 @@ export default function NearbyLocationRequiredEmptyState({
     <div
       data-testid="nearby-location-required-empty"
       data-hc-nearby-empty="1"
+      data-wx-empty-guidance=""
+      data-wx-nearby-empty=""
       data-hc-nearby-status={locationStatus || undefined}
       className="rounded-2xl border border-emerald-200/70 bg-gradient-to-b from-emerald-50/80 to-white p-5 sm:p-6 text-sm text-gray-600 shadow-sm"
       role="status"

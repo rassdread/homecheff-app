@@ -1472,13 +1472,35 @@ html[data-wx-bottom-nav-collapsed="1"] .hc-wx-shell {
     linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.7));
 }
 
-/* WX Phase 1C.1 — orientation strip stays compact; landscape prioritizes stage */
+/* WX Phase 1C.1+ — orientation explanation density vs feed-first height budget */
 .hc-wx-orientation-strip {
-  max-height: 12vh;
+  max-height: 14vh;
+  overflow: hidden;
+}
+
+.hc-wx-orientation-strip[data-wx-orientation-explain="short"] {
+  max-height: 14vh;
+}
+
+.hc-wx-orientation-strip[data-wx-orientation-explain="compact"] {
+  max-height: 10vh;
+}
+
+.hc-wx-orientation-strip[data-wx-orientation-explain="medium"] {
+  max-height: 16vh;
+}
+
+.hc-wx-orientation-strip[data-wx-orientation-explain="full"] {
+  max-height: 18vh;
 }
 
 html[data-wx-landscape-work="1"] .hc-wx-orientation-strip {
   max-height: 10vh;
+}
+
+html[data-wx-landscape-work="1"] .hc-wx-orientation-strip[data-wx-orientation-explain="medium"],
+html[data-wx-landscape-work="1"] .hc-wx-orientation-strip[data-wx-orientation-explain="full"] {
+  max-height: 12vh;
 }
 
 html[data-wx-landscape-work="1"] .hc-wx-stage {
