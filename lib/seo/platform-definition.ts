@@ -6,17 +6,17 @@
 
 import { manifestOrganizationDescription } from './homecheff-manifest';
 import {
+  CANONICAL_ENTITY_DESCRIPTION,
   ENTITY_FAQ_WHAT,
-  ENTITY_IS,
   ENTITY_META_DESCRIPTION,
-  PHILOSOPHY_CLOSE_TO_HOME,
+  LOCAL_FIRST_SCALE,
   PHILOSOPHY_DISTANCE,
 } from './entity-philosophy';
 
 export type PlatformLang = 'nl' | 'en';
 
 export type PlatformDefinitionBlock = {
-  /** One-sentence entity definition for AI + schema */
+  /** Canonical entity definition for AI + schema */
   entityDefinition: string;
   /** Root layout / OG default title */
   defaultTitle: string;
@@ -36,25 +36,25 @@ export type PlatformDefinitionBlock = {
 
 export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> = {
   nl: {
-    entityDefinition: ENTITY_IS.nl,
+    entityDefinition: CANONICAL_ENTITY_DESCRIPTION.nl,
     defaultTitle: 'HomeCheff — Digitale buurtmarkt · lokaal vakmanschap',
     defaultDescription: ENTITY_META_DESCRIPTION.nl,
     organizationDescription: manifestOrganizationDescription('nl'),
-    websiteDescription: `${ENTITY_IS.nl} ${PHILOSOPHY_CLOSE_TO_HOME.nl} ${PHILOSOPHY_DISTANCE.nl}`,
+    websiteDescription: `${CANONICAL_ENTITY_DESCRIPTION.nl} ${PHILOSOPHY_DISTANCE.nl} ${LOCAL_FIRST_SCALE.nl}`,
     faqWhatIsHomeCheff: ENTITY_FAQ_WHAT.nl,
     seoHubIntro:
-      'HomeCheff is de digitale buurtmarkt — community-first en creator-first. Kies een onderwerp: eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil.',
+      'HomeCheff is de digitale buurtmarkt — community-first, creator-first en craftsmanship-first. Local-first, niet alleen-lokaal. Kies een onderwerp: eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil.',
     footerTagline: 'Digitale buurtmarkt · alles begint dichtbij huis.',
   },
   en: {
-    entityDefinition: ENTITY_IS.en,
+    entityDefinition: CANONICAL_ENTITY_DESCRIPTION.en,
     defaultTitle: 'HomeCheff — Digital neighbourhood marketplace',
     defaultDescription: ENTITY_META_DESCRIPTION.en,
     organizationDescription: manifestOrganizationDescription('en'),
-    websiteDescription: `${ENTITY_IS.en} ${PHILOSOPHY_CLOSE_TO_HOME.en} ${PHILOSOPHY_DISTANCE.en}`,
+    websiteDescription: `${CANONICAL_ENTITY_DESCRIPTION.en} ${PHILOSOPHY_DISTANCE.en} ${LOCAL_FIRST_SCALE.en}`,
     faqWhatIsHomeCheff: ENTITY_FAQ_WHAT.en,
     seoHubIntro:
-      'HomeCheff is the digital neighbourhood marketplace — community-first and creator-first. Pick a topic: food is one category alongside garden, creations, services, neighbour help and barter.',
+      'HomeCheff is the digital neighbourhood marketplace — community-first, creator-first and craftsmanship-first. Local-first, not local-only. Pick a topic: food is one category alongside garden, creations, services, neighbour help and barter.',
     footerTagline: 'Digital neighbourhood marketplace · everything starts close to home.',
   },
 };

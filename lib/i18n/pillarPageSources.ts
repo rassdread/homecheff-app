@@ -3,6 +3,7 @@
  */
 
 import type { Bi } from '@/lib/i18n/seoLandingSources';
+import { CANONICAL_ENTITY_DESCRIPTION } from '@/lib/seo/entity-philosophy';
 
 export const pillarSharedFaq: Record<string, Bi> = {
   faqBlockTitle: { nl: 'Veelgestelde vragen', en: 'Frequently asked questions' },
@@ -50,16 +51,16 @@ const platformDefinitionPage: Record<string, Bi> = {
     en: 'What is HomeCheff? | Digital neighbourhood marketplace',
   },
   metaDescription: {
-    nl: 'HomeCheff is de digitale buurtmarkt: community- en creator-first. Alles begint dichtbij huis. Echte mensen koken, groeien, maken, repareren, lesgeven en helpen — geen gewone tweedehands-doorverkoop.',
-    en: 'HomeCheff is the digital neighbourhood marketplace: community- and creator-first. Everything starts close to home. Real people cook, grow, make, repair, teach and help — not ordinary second-hand resale.',
+    nl: CANONICAL_ENTITY_DESCRIPTION.nl,
+    en: CANONICAL_ENTITY_DESCRIPTION.en,
   },
   title: {
     nl: 'Wat is HomeCheff?',
     en: 'What is HomeCheff?',
   },
   intro: {
-    nl: 'HomeCheff is de digitale buurtmarkt voor persoonlijk vakmanschap en lokale kansen. Deze pagina legt uit wat dat betekent in de praktijk: wie eraan meedoet, waarom de maker zichtbaar is, welke categorieën horen, en wat bewust buiten de deur blijft. Alles begint dichtbij huis: afstand bepaalt prioriteit, niet mogelijkheid. Niet een generieke classifieds-site. Niet een gewone tweedehands-marktplaats. Niet een bezorgketen.',
-    en: 'HomeCheff is the digital neighbourhood marketplace for personal craftsmanship and local opportunity. This page explains what that means in practice: who takes part, why the maker is visible, which categories belong, and what stays deliberately out. Everything starts close to home: distance determines priority, not possibility. Not a generic classifieds site. Not an ordinary second-hand marketplace. Not a delivery chain.',
+    nl: `${CANONICAL_ENTITY_DESCRIPTION.nl} Afstand bepaalt prioriteit, niet mogelijkheid. Local-first, niet alleen-lokaal. Niet een generieke classifieds-site. Niet een traditionele tweedehands-marktplaats. Niet een bezorgketen. Niet mass retail.`,
+    en: `${CANONICAL_ENTITY_DESCRIPTION.en} Distance determines priority, not possibility. Local-first, not local-only. Not a generic classifieds site. Not a traditional second-hand marketplace. Not a delivery chain. Not mass retail.`,
   },
   sectionWhoTitle: { nl: 'Voor wie is HomeCheff?', en: 'Who is HomeCheff for?' },
   sectionWhoBody: {
@@ -78,8 +79,8 @@ const platformDefinitionPage: Record<string, Bi> = {
   },
   sectionNotTitle: { nl: 'Wat HomeCheff niet is', en: 'What HomeCheff is not' },
   sectionNotBody: {
-    nl: 'Geen generieke advertentiesite, geen tweedehands-marktplaats voor gewone doorverkoop, geen mass retail, geen bezorgplatform, geen anonieme webshop. Tweedehands hoort alleen bij echte creatieve of ambachtelijke transformatie (upcycling, artistiek herstel, herontwerp).',
-    en: 'Not a generic classifieds website, not a second-hand marketplace for ordinary resale, not mass retail, not a delivery platform, not an anonymous ecommerce site. Second-hand belongs only with true creative or craft transformation (upcycling, artistic restore, redesign).',
+    nl: 'Geen generieke advertentiesite, geen traditionele tweedehands-marktplaats, geen mass retail, geen bezorgplatform, geen anonieme webshop, niet alleen-lokaal, geen “internationale marktplaats”-positionering. Tweedehands hoort alleen bij echte creatieve of ambachtelijke transformatie (upcycling, artistiek herstel, herontwerp). Start lokaal, groei natuurlijk.',
+    en: 'Not a generic classifieds website, not a traditional second-hand marketplace, not mass retail, not a delivery platform, not an anonymous ecommerce site, not local-only, not positioned as an “international marketplace”. Second-hand belongs only with true creative or craft transformation (upcycling, artistic restore, redesign). Start locally, grow naturally.',
   },
   ctaPrimary: { nl: 'Ontdek makers in je buurt', en: 'Discover makers nearby' },
   ctaSecondary: { nl: 'Begin met aanbieden', en: 'Start offering' },

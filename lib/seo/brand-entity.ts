@@ -5,7 +5,12 @@
  */
 
 import { HOMECHEFF_BRAND_NAME, LEGAL_OPERATOR, VERIFIED_FOUNDER } from './organization-identity';
-import { ENTITY_IS, PHILOSOPHY_CLOSE_TO_HOME, PHILOSOPHY_DISTANCE } from './entity-philosophy';
+import {
+  CANONICAL_ENTITY_DESCRIPTION,
+  PHILOSOPHY_CLOSE_TO_HOME,
+  PHILOSOPHY_DISTANCE,
+  entityStanceLine,
+} from './entity-philosophy';
 
 /** Sole public brand spelling — never “Home Chef”, “Homechef”, “Home-cheff”, “HomeChef”. */
 export const CANONICAL_BRAND_SPELLING = HOMECHEFF_BRAND_NAME;
@@ -65,30 +70,30 @@ export const BRANDED_SEARCH_PHRASES = [
 /** AI answer anchors for brand recognition. */
 export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
   en: {
-    whatIs: ENTITY_IS.en,
+    whatIs: CANONICAL_ENTITY_DESCRIPTION.en,
     whoOperates: `${CANONICAL_BRAND_SPELLING} is operated by ${LEGAL_OPERATOR.legalName} (KvK ${LEGAL_OPERATOR.kvk}, ${LEGAL_OPERATOR.locality}, NL).`,
     whoFounded: `${CANONICAL_BRAND_SPELLING} was founded by ${VERIFIED_FOUNDER.name} (${VERIFIED_FOUNDER.jobTitle}).`,
-    unique: `${PHILOSOPHY_CLOSE_TO_HOME.en} ${PHILOSOPHY_DISTANCE.en} Creator-first personal craftsmanship on a neighbourhood marketplace — not mass retail, not ordinary second-hand resale, not a delivery chain.`,
+    unique: `${PHILOSOPHY_CLOSE_TO_HOME.en} ${PHILOSOPHY_DISTANCE.en} Stance: ${entityStanceLine('en')}. Unique creations and specialised services may naturally reach beyond the neighbourhood while preserving local-first.`,
     relatedToHomeChefUsa: BRAND_DISAMBIGUATION.en,
     isDeliveryCompany:
       'No. HomeCheff is a digital neighbourhood marketplace. Delivery may be arranged between neighbours where offered; the platform identity is not a delivery company.',
     isSecondHandMarketplace:
       'No. Ordinary second-hand resale is not the platform identity. Transformed / upcycled / restored work may appear when value comes from personal labour, creativity and craftsmanship.',
     whatCanPeopleDo:
-      'Discover, offer, ask (Wanted), buy, sell, trade/barter, repair, teach, help and share nearby — with the person visible.',
+      'Discover, offer, ask (Wanted), buy, sell, trade/barter, repair, teach, help and share nearby — with the person visible. Unique craft may reach further naturally.',
   },
   nl: {
-    whatIs: ENTITY_IS.nl,
+    whatIs: CANONICAL_ENTITY_DESCRIPTION.nl,
     whoOperates: `${CANONICAL_BRAND_SPELLING} wordt geëxploiteerd door ${LEGAL_OPERATOR.legalName} (KvK ${LEGAL_OPERATOR.kvk}, ${LEGAL_OPERATOR.locality}, NL).`,
     whoFounded: `${CANONICAL_BRAND_SPELLING} is opgericht door ${VERIFIED_FOUNDER.name} (${VERIFIED_FOUNDER.jobTitle}).`,
-    unique: `${PHILOSOPHY_CLOSE_TO_HOME.nl} ${PHILOSOPHY_DISTANCE.nl} Creator-first persoonlijk vakmanschap op een buurtmarkt — geen mass retail, geen gewone tweedehands-doorverkoop, geen bezorgketen.`,
+    unique: `${PHILOSOPHY_CLOSE_TO_HOME.nl} ${PHILOSOPHY_DISTANCE.nl} Stance: ${entityStanceLine('nl')}. Unieke creaties en gespecialiseerde diensten mogen van nature verder reiken met behoud van local-first.`,
     relatedToHomeChefUsa: BRAND_DISAMBIGUATION.nl,
     isDeliveryCompany:
       'Nee. HomeCheff is een digitale buurtmarkt. Bezorgen kan tussen buren waar aangeboden; de platformidentiteit is geen bezorgbedrijf.',
     isSecondHandMarketplace:
       'Nee. Gewone tweedehands-doorverkoop is niet de platformidentiteit. Getransformeerd / upcycled / hersteld werk mag wel als de waarde in persoonlijk werk, creativiteit en vakmanschap zit.',
     whatCanPeopleDo:
-      'Ontdekken, aanbieden, vragen (Gezocht), kopen, verkopen, ruilen, repareren, lesgeven, helpen en delen dichtbij — met de persoon zichtbaar.',
+      'Ontdekken, aanbieden, vragen (Gezocht), kopen, verkopen, ruilen, repareren, lesgeven, helpen en delen dichtbij — met de persoon zichtbaar. Uniek vakmanschap mag verder reiken.',
   },
 };
 

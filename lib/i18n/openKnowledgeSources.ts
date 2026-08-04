@@ -4,6 +4,7 @@
 
 import type { Bi } from '@/lib/i18n/seoLandingSources';
 import { OPEN_KNOWLEDGE_LAST_REVIEWED } from '@/lib/open-knowledge/docs-registry';
+import { CANONICAL_ENTITY_DESCRIPTION } from '@/lib/seo/entity-philosophy';
 
 const LAST_REVIEWED_NL = '11 juli 2026';
 const LAST_REVIEWED_EN = '11 July 2026';
@@ -683,8 +684,8 @@ export const openKnowledgeTrust = {
   },
   sectionIdentityTitle: { nl: 'Identiteit & verantwoordelijkheid', en: 'Identity & accountability' },
   sectionIdentityBody: {
-    nl: 'HomeCheff is de digitale buurtmarkt (merk). Juridisch operator: Arrias Beheer B.V., Vlaardingen (KvK 80532829). Support: support@homecheff.eu · Pers: press@homecheff.eu. Geen verzonnen straatadres of impactcijfers.',
-    en: 'HomeCheff is the digital neighbourhood marketplace (brand). Legal operator: Arrias Beheer B.V., Vlaardingen (KvK 80532829). Support: support@homecheff.eu · Press: press@homecheff.eu. No invented street address or impact metrics.',
+    nl: `${CANONICAL_ENTITY_DESCRIPTION.nl} Merk: HomeCheff. Juridisch operator: Arrias Beheer B.V., Vlaardingen (KvK 80532829). Support: support@homecheff.eu · Pers: press@homecheff.eu. Geen verzonnen straatadres of impactcijfers.`,
+    en: `${CANONICAL_ENTITY_DESCRIPTION.en} Brand: HomeCheff. Legal operator: Arrias Beheer B.V., Vlaardingen (KvK 80532829). Support: support@homecheff.eu · Press: press@homecheff.eu. No invented street address or impact metrics.`,
   },
   sectionModerationTitle: { nl: 'Moderatiefilosofie', en: 'Moderation philosophy' },
   sectionModerationBody: {

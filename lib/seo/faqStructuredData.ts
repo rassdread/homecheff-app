@@ -1,5 +1,6 @@
 import { getPlatformDefinition } from './platform-definition';
 import { BRAND_DISAMBIGUATION, AI_BRAND_ANSWERS } from './brand-entity';
+import { LOCAL_FIRST_SCALE, SECOND_HAND_PHILOSOPHY } from './entity-philosophy';
 
 /** Curated FAQPage entities for JSON-LD (server-only; matches /faq themes). */
 export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
@@ -11,6 +12,14 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           {
             q: 'What is HomeCheff?',
             a: def.faqWhatIsHomeCheff,
+          },
+          {
+            q: 'Is HomeCheff only local / neighbourhood-restricted?',
+            a: LOCAL_FIRST_SCALE.en,
+          },
+          {
+            q: 'Is HomeCheff a second-hand or classifieds marketplace?',
+            a: SECOND_HAND_PHILOSOPHY.en,
           },
           {
             q: 'Is HomeCheff related to Home Chef (USA / meal kits)?',
@@ -41,6 +50,14 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           {
             q: 'Wat is HomeCheff?',
             a: def.faqWhatIsHomeCheff,
+          },
+          {
+            q: 'Is HomeCheff alleen lokaal / buurt-afgesloten?',
+            a: LOCAL_FIRST_SCALE.nl,
+          },
+          {
+            q: 'Is HomeCheff een tweedehands- of classifieds-marktplaats?',
+            a: SECOND_HAND_PHILOSOPHY.nl,
           },
           {
             q: 'Is HomeCheff hetzelfde als Home Chef (USA / maaltijdboxen)?',

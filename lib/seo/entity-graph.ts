@@ -53,7 +53,8 @@ export const ENTITY_NODES = {
     name: 'Digital neighbourhood marketplace',
     nameNl: 'Digitale buurtmarkt',
     role: 'Canonical product category / positioning for the HomeCheff brand',
-    note: 'Concept node — not a separate Organization in JSON-LD.',
+    note:
+      'Concept node — not a separate Organization in JSON-LD. Local-first / neighbourhood-first, not neighbourhood-only; craftsmanship-first value creation, not ordinary second-hand resale.',
   },
   manifest: {
     id: 'manifest',
@@ -93,7 +94,8 @@ export const ENTITY_RELATIONSHIPS = [
     from: 'brand',
     to: 'neighbourhoodMarketplace',
     relation: 'positionedAs',
-    note: 'HomeCheff is the digital neighbourhood marketplace (digitale buurtmarkt).',
+    note:
+      'HomeCheff is the digital neighbourhood marketplace (digitale buurtmarkt): local-first and scalable; unique craft may reach further. Everything starts close to home.',
   },
   {
     from: 'brand',
