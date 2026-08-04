@@ -36,6 +36,42 @@ export async function PATCH(
     );
   }
 
+  if (isActive) {
+    const full = await prisma.deliveryProfile.findUnique({
+      where: { id: profileId },
+      include: { user: { select: { dateOfBirth: true } } },
+    });
+    const { resolveCommercialDeliveryAgeYears, logCommercialAgeBlock, COMMERCIAL_DELIVERY_UNDERAGE_MESSAGE_NL } =
+      await import('@/lib/delivery/delivery-age');
+    const { getDeliveryAlignmentFlags } = await import(
+      '@/lib/delivery/delivery-alignment-flags'
+    );
+    const resolution = resolveCommercialDeliveryAgeYears({
+      dateOfBirth: full?.user?.dateOfBirth,
+      profileAge: full?.age,
+      ageGateEnabled: getDeliveryAlignmentFlags().commercialAgeGate18Enabled,
+    });
+    if (!resolution.eligible) {
+      logCommercialAgeBlock({
+        boundary: 'activation',
+        userId: profile.userId,
+        profileId: profile.id,
+        reason: resolution.reason,
+      });
+      return NextResponse.json(
+        {
+          error: COMMERCIAL_DELIVERY_UNDERAGE_MESSAGE_NL,
+          code:
+            resolution.reason === 'MISSING_DOB' ||
+            resolution.reason === 'INVALID_DOB'
+              ? 'DELIVERY_DOB_REQUIRED'
+              : 'DELIVERY_UNDERAGE',
+        },
+        { status: 403 },
+      );
+    }
+  }
+
   const updated = await prisma.deliveryProfile.update({
     where: { id: profileId },
     data: { isActive },

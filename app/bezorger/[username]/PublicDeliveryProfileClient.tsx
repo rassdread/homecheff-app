@@ -54,6 +54,9 @@ interface User {
     availableTimeSlots: string[];
     isActive: boolean;
     isVerified: boolean;
+    isOnline?: boolean;
+    acceptanceMode?: string;
+    temporaryOffline?: boolean;
     totalDeliveries: number;
     averageRating: number | null;
     totalEarnings: number;
@@ -276,11 +279,28 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
                   {publicDisplayName}
                 </h1>
-                {user.DeliveryProfile.isActive && (
-                  <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-xs font-bold shadow-lg animate-pulse">
-                    🟢 ACTIEF
-                  </span>
-                )}
+                {(() => {
+                  const dp = user.DeliveryProfile;
+                  if (dp.temporaryOffline || !dp.isActive || dp.isOnline === false) {
+                    return (
+                      <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">
+                        🔴 Niet beschikbaar
+                      </span>
+                    );
+                  }
+                  if (dp.acceptanceMode === 'AUTO_CONFIRM') {
+                    return (
+                      <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-xs font-bold shadow-lg">
+                        🟢 Direct boekbaar
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-bold">
+                      🟡 Handmatige bevestiging
+                    </span>
+                  );
+                })()}
               </div>
               
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4">
@@ -320,7 +340,7 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
               {/* Bezorger Badge & Seller Roles */}
               <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
                 <span className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 rounded-full text-xs sm:text-sm font-semibold border border-blue-200 shadow-sm">
-                  🚴 HomeCheff Bezorger
+                  Bezorger via HomeCheff
                 </span>
                 {user.DeliveryProfile.isVerified && (
                   <span className="px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full text-xs sm:text-sm font-semibold border border-green-200 shadow-sm">

@@ -203,7 +203,6 @@ export async function POST(
       await ensureDeliveryPayout(prisma, {
         deliveryOrderId: updatedOrder.id,
         orderId: updatedOrder.orderId,
-        deliveryFeeCents: Math.round(updatedOrder.deliveryFee),
         delivererUserId: profile.userId,
         buyerUserId: updatedOrder.order.User.id,
       });

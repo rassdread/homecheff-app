@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
   try {
     const { orderId, deliveryMode, address, deliveryFeeCents, productId } = await req.json();
 
-    if (deliveryMode !== 'TEEN_DELIVERY' && deliveryMode !== 'DELIVERY') {
+    if (deliveryMode !== 'TEEN_DELIVERY' && deliveryMode !== 'DELIVERY' && deliveryMode !== 'LOCAL_PROVIDER') {
       return NextResponse.json({ message: 'Geen delivery order nodig voor deze mode' });
     }
 

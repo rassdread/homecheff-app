@@ -24,10 +24,14 @@ export async function GET(req: NextRequest) {
         lat: true,
         lng: true,
         place: true,
+        dateOfBirth: true,
         DeliveryProfile: {
           select: {
+            id: true,
+            userId: true,
             isActive: true,
             isVerified: true,
+            isBlocked: true,
             age: true,
             maxDistance: true,
             transportation: true,
@@ -52,7 +56,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Delivery profile not active' }, { status: 400 });
     }
 
-    const acceptCheck = assertDelivererCanAccept(deliveryUser.DeliveryProfile);
+    const acceptCheck = assertDelivererCanAccept(
+      {
+        ...deliveryUser.DeliveryProfile,
+        user: { id: deliveryUser.id, dateOfBirth: deliveryUser.dateOfBirth },
+      },
+      { dateOfBirth: deliveryUser.dateOfBirth }
+    );
     if (!acceptCheck.ok) {
       return NextResponse.json({ error: acceptCheck.error, code: acceptCheck.code }, { status: 403 });
     }

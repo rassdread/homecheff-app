@@ -3,22 +3,27 @@ import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/deliveryPricing';
 import { DELIVERY_PLATFORM_FEE_PERCENT, DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
 import { PrismaClient } from '@prisma/client';
+import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
+import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
+import { normalizeFulfillmentInput } from '@/lib/delivery/delivery-fulfillment-vocabulary';
 
 const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Calculate delivery fee based on coordinates and cart items
- * Used for real-time price display in checkout
+ * Calculate delivery fee based on coordinates and cart items.
+ * Phase 2: when DELIVERY_PROVIDER_PRICING_ENABLED and LOCAL_PROVIDER,
+ * price is read only from DeliveryProfile (no platform-constant mix).
  */
 export async function POST(req: NextRequest) {
   try {
-    const { 
+    const {
       items,
       coordinates,
       deliveryMode,
-      country
+      country,
+      deliveryProfileId,
     } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -36,21 +41,27 @@ export async function POST(req: NextRequest) {
     }
 
     const deliveryModeUpper = (deliveryMode || '').toUpperCase();
-    const isDelivery = deliveryModeUpper === 'DELIVERY' || 
-                       deliveryModeUpper === 'LOCAL_DELIVERY' || 
-                       deliveryModeUpper === 'TEEN_DELIVERY';
+    const normalized = normalizeFulfillmentInput(deliveryMode);
+    const isLocalProvider =
+      normalized.canonical === 'LOCAL_PROVIDER' ||
+      deliveryModeUpper === 'LOCAL_PROVIDER' ||
+      deliveryModeUpper === 'TEEN_DELIVERY' ||
+      deliveryModeUpper === 'DELIVERY';
+    const isSellerDelivery =
+      normalized.canonical === 'SELLER_DELIVERY' ||
+      deliveryModeUpper === 'LOCAL_DELIVERY';
+    const isDelivery = isLocalProvider || isSellerDelivery;
 
     if (!isDelivery) {
       return NextResponse.json({
         deliveryFeeCents: 0,
         distance: 0,
-        breakdown: null
+        breakdown: null,
       });
     }
 
-    const productIds = items.map((item: any) => item.productId);
-    
-    // Get products with seller locations
+    const productIds = items.map((item: { productId: string }) => item.productId);
+
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
       include: {
@@ -60,70 +71,177 @@ export async function POST(req: NextRequest) {
               select: {
                 lat: true,
                 lng: true,
-                country: true
-              }
-            }
-          }
-        }
-      }
+                country: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (products.length === 0) {
-      return NextResponse.json(
-        { error: 'Products not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Products not found' }, { status: 404 });
     }
 
-    // Get buyer country
     const buyerCountryCode = country || 'NL';
-    
-    // Calculate actual distance from seller to buyer using Google Maps
+
     let totalDistance = 0;
     let isInternationalDelivery = false;
     let sellerCountry = 'NL';
+    let routeOk = false;
 
     for (const item of items) {
-      const product = products.find(p => p.id === item.productId);
+      const product = products.find((p) => p.id === item.productId);
       if (product?.seller?.User?.lat && product?.seller?.User?.lng) {
-        // Get seller's country
         sellerCountry = product.seller.User.country || 'NL';
-        
-        // Check if this is international delivery
+
         if (sellerCountry !== buyerCountryCode) {
           isInternationalDelivery = true;
         }
-        
-        // Use Google Maps Distance Matrix for accurate route distance
+
         const routeResult = await getRouteDistance(
           { lat: product.seller.User.lat, lng: product.seller.User.lng },
           { lat: coordinates.lat, lng: coordinates.lng },
           'driving'
         );
-        
+
         if ('distance' in routeResult) {
           totalDistance = Math.max(totalDistance, routeResult.distance);
+          routeOk = true;
         }
       }
     }
 
-    // Round to 1 decimal
     totalDistance = Math.round(totalDistance * 10) / 10;
 
-    // Determine delivery type
-    const deliveryType = deliveryModeUpper === 'LOCAL_DELIVERY' ? 'SELLER_DELIVERY' : 'PLATFORM_DELIVERERS';
-    
-    // Calculate fee
+    const flags = getDeliveryAlignmentFlags();
+
+    // --- Provider-owned pricing path (LOCAL_PROVIDER only) ---
+    if (flags.providerPricingEnabled && isLocalProvider) {
+      if (!routeOk) {
+        return NextResponse.json(
+          {
+            error: 'Routeafstand ontbreekt; prijs kan niet worden berekend.',
+            code: 'DELIVERY_ROUTE_UNAVAILABLE',
+          },
+          { status: 422 }
+        );
+      }
+
+      if (!deliveryProfileId || typeof deliveryProfileId !== 'string') {
+        return NextResponse.json(
+          {
+            error:
+              'Bezorgaanbieder is vereist voor provider-prijzen (deliveryProfileId).',
+            code: 'DELIVERY_PROVIDER_REQUIRED',
+          },
+          { status: 400 }
+        );
+      }
+
+      const profile = await prisma.deliveryProfile.findUnique({
+        where: { id: deliveryProfileId },
+        select: {
+          id: true,
+          pricingEnabled: true,
+          baseFeeCents: true,
+          pricePerKmCents: true,
+          minimumFeeCents: true,
+          freeDeliveryRadiusKm: true,
+          currency: true,
+          nationalCoverage: true,
+          maxDistance: true,
+        },
+      });
+
+      if (!profile) {
+        return NextResponse.json(
+          { error: 'Bezorgaanbieder niet gevonden', code: 'DELIVERY_PROVIDER_REQUIRED' },
+          { status: 404 }
+        );
+      }
+
+      const quote = calculateProviderDeliveryPrice({
+        pricing: {
+          pricingEnabled: profile.pricingEnabled,
+          baseFeeCents: profile.baseFeeCents,
+          pricePerKmCents: profile.pricePerKmCents,
+          minimumFeeCents: profile.minimumFeeCents,
+          freeDeliveryRadiusKm: profile.freeDeliveryRadiusKm,
+          maxDistanceKm: profile.maxDistance,
+          currency: profile.currency,
+          nationalCoverage: profile.nationalCoverage,
+        },
+        routeDistanceKm: totalDistance,
+      });
+
+      if (!quote.ok) {
+        return NextResponse.json(
+          { error: quote.error, code: quote.code },
+          { status: quote.code === 'DELIVERY_OUT_OF_RADIUS' ? 422 : 400 }
+        );
+      }
+
+      const delivererCut = Math.round(
+        quote.deliveryFeeCents * (DELIVERY_DELIVERER_PERCENT / 100)
+      );
+      const platformCut = Math.round(
+        quote.deliveryFeeCents * (DELIVERY_PLATFORM_FEE_PERCENT / 100)
+      );
+
+      return NextResponse.json({
+        deliveryFeeCents: quote.deliveryFeeCents,
+        quotedFeeCents: quote.deliveryFeeCents,
+        distance: quote.routeDistanceKm,
+        routeDistanceKm: quote.routeDistanceKm,
+        isInternational: isInternationalDelivery,
+        sellerCountry,
+        buyerCountry: buyerCountryCode,
+        pricingSource: 'PROVIDER',
+        pricingFormulaVersion: quote.breakdown.formulaVersion,
+        deliveryProfileId: profile.id,
+        baseFeeCents: quote.breakdown.baseFeeCents,
+        pricePerKmCents: quote.breakdown.pricePerKmCents,
+        minimumFeeCents: quote.breakdown.minimumFeeCents,
+        freeDeliveryRadiusKm: quote.breakdown.freeDeliveryRadiusKm,
+        currency: profile.currency || 'EUR',
+        breakdown: {
+          baseFee: quote.breakdown.baseFeeCents,
+          baseFeeCents: quote.breakdown.baseFeeCents,
+          distanceFee: quote.breakdown.distanceFeeCents,
+          totalDeliveryFee: quote.deliveryFeeCents,
+          delivererCut,
+          homecheffCut: platformCut,
+          homecheffFeePercent: DELIVERY_PLATFORM_FEE_PERCENT,
+          distance: quote.routeDistanceKm,
+          pricePerKmCents: quote.breakdown.pricePerKmCents,
+          minimumFeeCents: quote.breakdown.minimumFeeCents,
+          freeDeliveryRadiusKm: quote.breakdown.freeDeliveryRadiusKm,
+          withinFreeRadius: quote.withinFreeRadius,
+          formulaVersion: quote.breakdown.formulaVersion,
+          pricingFormulaVersion: quote.breakdown.formulaVersion,
+        },
+      });
+    }
+
+    // --- Legacy platform-constant path (flag off, or seller delivery) ---
+    const deliveryType = isSellerDelivery
+      ? 'SELLER_DELIVERY'
+      : 'PLATFORM_DELIVERERS';
+
     let pricing;
     if (isInternationalDelivery || totalDistance > 30) {
       pricing = calculateLongDistanceDeliveryFee(totalDistance);
       if (isInternationalDelivery) {
-        // Add international surcharge
-        const internationalSurcharge = 500; // €5.00
+        const internationalSurcharge = 500;
         pricing.totalDeliveryFee += internationalSurcharge;
         pricing.distanceFee += internationalSurcharge;
-        pricing.delivererCut = Math.round(pricing.totalDeliveryFee * DELIVERY_DELIVERER_PERCENT / 100);
-        pricing.platformCut = Math.round(pricing.totalDeliveryFee * DELIVERY_PLATFORM_FEE_PERCENT / 100);
+        pricing.delivererCut = Math.round(
+          (pricing.totalDeliveryFee * DELIVERY_DELIVERER_PERCENT) / 100
+        );
+        pricing.platformCut = Math.round(
+          (pricing.totalDeliveryFee * DELIVERY_PLATFORM_FEE_PERCENT) / 100
+        );
       }
     } else {
       pricing = calculateDeliveryFee(totalDistance, deliveryType);
@@ -133,8 +251,9 @@ export async function POST(req: NextRequest) {
       deliveryFeeCents: pricing.totalDeliveryFee,
       distance: totalDistance,
       isInternational: isInternationalDelivery,
-      sellerCountry: sellerCountry,
+      sellerCountry,
       buyerCountry: buyerCountryCode,
+      pricingSource: 'PLATFORM_LEGACY',
       breakdown: {
         baseFee: pricing.baseFee,
         distanceFee: pricing.distanceFee,
@@ -142,26 +261,15 @@ export async function POST(req: NextRequest) {
         delivererCut: pricing.delivererCut,
         homecheffCut: pricing.platformCut,
         homecheffFeePercent: DELIVERY_PLATFORM_FEE_PERCENT,
-        distance: totalDistance
-      }
+        distance: totalDistance,
+      },
     });
-
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error calculating delivery fee:', error);
     return NextResponse.json(
-      { error: 'Failed to calculate delivery fee', details: error.message },
+      { error: 'Failed to calculate delivery fee', details: message },
       { status: 500 }
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-

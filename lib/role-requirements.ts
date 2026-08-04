@@ -78,19 +78,20 @@ export const ROLE_REQUIREMENTS: Record<string, RoleRequirement> = {
   delivery: {
     id: 'delivery',
     name: 'Bezorger',
-    minAge: 15,
-    maxAge: 25,
+    minAge: 18,
+    maxAge: null,
     requiresVerification: true,
     requiresStripe: false,
-    requiresParentalConsent: true, // Als < 18
+    requiresParentalConsent: false,
     agreements: {
       privacyPolicy: true,
       terms: true,
-      taxResponsibility: false, // Bezorgers krijgen uitbetaald, geen BTW
+      taxResponsibility: false,
       marketing: false
     },
-    description: 'Lokale bezorgingen',
-    ageRestrictionMessage: 'Je moet tussen 15 en 25 jaar zijn om te bezorgen (jeugdbeschermingswet)'
+    description: 'Zelfstandige lokale bezorgaanbieder via HomeCheff',
+    ageRestrictionMessage:
+      'Commerciële bezorgdiensten via HomeCheff zijn momenteel beschikbaar vanaf 18 jaar. Je account en andere mogelijkheden op HomeCheff blijven gewoon beschikbaar.'
   }
 };
 

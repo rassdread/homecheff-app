@@ -123,6 +123,7 @@ model User {
   CourierAvailabilities                  CourierAvailability[]
   CourierAssignmentsAsCourier            CourierAssignment[]       @relation("CourierAssignmentCourier")
   DeliveryProfile                        DeliveryProfile?
+  deliveryBookingRequestsAsBuyer         DeliveryBookingRequest[]  @relation("DeliveryBookingRequestBuyer")
   deliveryReviewsAsReviewer              DeliveryReview[]          @relation("DeliveryReviewReviewer")
   DeviceToken                            DeviceToken[]
   Dish                                   Dish[]
@@ -1499,15 +1500,91 @@ model DeliveryProfile {
   blockedAt            DateTime?
   blockedById          String?
   blockReason          String?
+  /// Phase 2: provider-owned commercial pricing (cents / km). Default off until configured.
+  pricingEnabled       Boolean                       @default(false)
+  baseFeeCents         Int?
+  pricePerKmCents      Int?
+  minimumFeeCents      Int?
+  freeDeliveryRadiusKm Float                         @default(0)
+  currency             String                        @default("EUR")
+  nationalCoverage     Boolean                       @default(false)
+  /// Phase 3: provider-controlled booking rules (marketplace; not platform dispatch).
+  acceptanceMode                 String   @default("MANUAL_CONFIRM") // AUTO_CONFIRM | MANUAL_CONFIRM
+  /// INDEPENDENT | DELIVERY_BUSINESS (PakjeBezorgen-ready; same architecture)
+  providerType                   String   @default("INDEPENDENT")
+  workStartTime                  String?  // HH:mm
+  workEndTime                    String?  // HH:mm
+  breakWindows                   Json?    // [{ start: "HH:mm", end: "HH:mm" }]
+  temporaryOffline               Boolean  @default(false)
+  vacationStart                  DateTime?
+  vacationEnd                    DateTime?
+  maxSimultaneousDeliveries      Int      @default(3)
+  maxDeliveriesPerSlot           Int      @default(2)
+  preparationTimeMinutes         Int      @default(15)
+  estimatedPickupDelayMinutes    Int      @default(10)
   detailedAvailability DeliveryAvailability[]
   notificationSettings DeliveryNotificationSettings?
   deliveryOrders       DeliveryOrder[]
+  bookingRequests      DeliveryBookingRequest[]
+  calendarEntries      DeliveryCalendarEntry[]
   user                 User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews              DeliveryReview[]
   shiftNotifications   ShiftNotification[]
   vehiclePhotos        VehiclePhoto[]
 
   @@map("DeliveryProfile")
+}
+
+/// Phase 3: targeted pre-checkout booking request (manual accept or auto-confirmed).
+model DeliveryBookingRequest {
+  id                       String          @id @default(cuid())
+  buyerId                  String
+  deliveryProfileId        String
+  productId                String?
+  status                   String          @default("PENDING") // PENDING | ACCEPTED | REJECTED | EXPIRED | AUTO_CONFIRMED | CONSUMED
+  acceptanceModeSnapshot   String
+  expiresAt                DateTime
+  quotedFeeCents           Int?
+  routeDistanceKm          Float?
+  currency                 String          @default("EUR")
+  buyerLat                 Float?
+  buyerLng                 Float?
+  notes                    String?
+  respondedAt              DateTime?
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  deliveryProfile          DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  buyer                    User            @relation("DeliveryBookingRequestBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  calendarEntries          DeliveryCalendarEntry[]
+
+  @@index([deliveryProfileId, status])
+  @@index([buyerId, status])
+  @@index([expiresAt])
+  @@map("DeliveryBookingRequest")
+}
+
+/// Phase 3: provider calendar entry for confirmed bookings.
+model DeliveryCalendarEntry {
+  id                        String                 @id @default(cuid())
+  deliveryProfileId         String
+  deliveryOrderId           String?
+  bookingRequestId          String?
+  title                     String
+  pickupAt                  DateTime?
+  deliverAt                 DateTime?
+  travelTimeMinutes         Int?
+  estimatedDurationMinutes  Int?
+  status                    String                 @default("CONFIRMED")
+  orderReference            String?
+  earningsCents             Int?
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+  deliveryProfile           DeliveryProfile        @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  bookingRequest            DeliveryBookingRequest? @relation(fields: [bookingRequestId], references: [id], onDelete: SetNull)
+
+  @@index([deliveryProfileId, pickupAt])
+  @@index([deliveryOrderId])
+  @@map("DeliveryCalendarEntry")
 }
 
 model DeliveryAvailability {
@@ -1665,6 +1742,7 @@ model DeliveryOrder {
   orderId              String           @unique
   deliveryProfileId    String?
   status               String           @default("PENDING")
+  /// Legacy compatibility field. Runtime unit is cents (integer stored as Float). Prefer quotedFeeCents for new provider-priced orders.
   deliveryFee          Float
   estimatedTime        Int?
   pickedUpAt           DateTime?
@@ -1679,6 +1757,18 @@ model DeliveryOrder {
   deliveryDate         DateTime?
   deliveryTime         String?
   productId            String?
+  /// Phase 2.2: immutable provider quote snapshot (additive; nullable for legacy rows).
+  quotedFeeCents                 Int?
+  providerDisplayNameSnapshot    String?
+  pricingSource                  String?
+  pricingFormulaVersion          String?
+  pricingCurrency                String?
+  routeDistanceKmSnapshot        Float?
+  baseFeeCentsSnapshot           Int?
+  pricePerKmCentsSnapshot        Int?
+  minimumFeeCentsSnapshot        Int?
+  freeDeliveryRadiusKmSnapshot   Float?
+  quoteLockedAt                  DateTime?
   deliveryProfile      DeliveryProfile? @relation(fields: [deliveryProfileId], references: [id])
   order                Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product              Product?         @relation(fields: [productId], references: [id])

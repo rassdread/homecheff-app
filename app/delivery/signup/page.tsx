@@ -65,7 +65,7 @@ export default function DeliverySignupPage() {
     username: '',
     
     // Delivery profile
-    age: 15,
+    age: 18,
     transportation: [],
     maxDistance: 3,
     availableDays: [],
@@ -375,7 +375,7 @@ export default function DeliverySignupPage() {
     switch (currentStep) {
       case 1: return formData.name.trim() && formData.email.trim() && formData.email.includes('@') && emailValidation.isValid === true;
       case 2: return formData.password.length >= 6 && formData.username.trim().length >= 3;
-      case 3: return formData.age >= 15 && formData.age <= 23;
+      case 3: return formData.age >= 18;
       case 4: return formData.transportation.length > 0;
       case 5: return formData.availableDays.length > 0;
       case 6: return formData.availableTimeSlots.length > 0;
@@ -388,8 +388,8 @@ export default function DeliverySignupPage() {
           return formData.acceptDeliveryAgreement;
         }
         
-        // If user is under 18, both delivery agreement and parental consent are required
-        return formData.acceptDeliveryAgreement && formData.parentalConsent;
+        // Commercial delivery is 18+; parental consent is not an exception path
+        return formData.acceptDeliveryAgreement;
       }
       default: return false;
     }
@@ -629,12 +629,12 @@ export default function DeliverySignupPage() {
                     onChange={(e) => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) }))}
                     className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-transparent"
                   >
-                    {Array.from({ length: 9 }, (_, i) => i + 15).map(age => (
+                    {Array.from({ length: 82 }, (_, i) => i + 18).map(age => (
                       <option key={age} value={age}>{age} {t('deliverySignup.yearsOld')}</option>
                     ))}
                   </select>
                   
-                  {formData.age < 15 && (
+                  {formData.age < 18 && (
                     <div className="bg-red-50 text-red-800 p-4 rounded-xl">
                       <p className="text-sm">
                         {t('deliverySignup.ageRequired')}

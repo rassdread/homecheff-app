@@ -13,6 +13,12 @@ import { getBusinessVisibilityProfile } from "@/lib/business/visibility-profile"
 import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
 import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
 import {
+  parseProviderQuoteMetadata,
+  PRICING_SOURCE_PLATFORM_LEGACY,
+  PRICING_SOURCE_PROVIDER,
+} from "@/lib/delivery/quote-snapshot";
+import { getDeliveryAlignmentFlags } from "@/lib/delivery/delivery-alignment-flags";
+import {
   resolveDelivererPosition,
   resolveSellerCoords,
 } from "@/lib/delivery/delivery-position";
@@ -562,10 +568,91 @@ export async function POST(req: NextRequest) {
 
       // Check if order already exists (idempotency)
       const existingOrder = await prisma.order.findFirst({
-        where: { stripeSessionId: session.id }
+        where: { stripeSessionId: session.id },
+        include: { deliveryOrder: { select: { id: true } } },
       });
 
       if (existingOrder) {
+        // Phase 3.1 P0 repair: if paid Order exists without DeliveryOrder, create from locked metadata.
+        const meta = session.metadata || {};
+        const mode = meta.deliveryMode;
+        const isLocalDelivery =
+          mode === 'DELIVERY' ||
+          mode === 'TEEN_DELIVERY' ||
+          mode === 'LOCAL_PROVIDER' ||
+          mode === 'LOCAL_DELIVERY';
+        if (isLocalDelivery && !existingOrder.deliveryOrder) {
+          try {
+            const feeCents = meta.deliveryFeeCents
+              ? parseInt(meta.deliveryFeeCents, 10)
+              : 0;
+            const flagsRepair = getDeliveryAlignmentFlags();
+            const isProviderPriced =
+              meta.deliveryPricingSource === PRICING_SOURCE_PROVIDER ||
+              (flagsRepair.providerPricingEnabled &&
+                !!meta.deliveryQuotedFeeCents);
+            let repairData: Record<string, unknown> = {
+              orderId: existingOrder.id,
+              status:
+                meta.deliveryAcceptanceMode === 'AUTO_CONFIRM'
+                  ? 'ACCEPTED'
+                  : 'PENDING',
+              deliveryAddress: meta.address || '',
+              deliveryFee: feeCents || 200,
+              deliveryProfileId: meta.deliveryProfileId || null,
+            };
+            if (isProviderPriced) {
+              const parsed = parseProviderQuoteMetadata(meta);
+              if (parsed.ok) {
+                const snap = parsed.snapshot;
+                repairData = {
+                  ...repairData,
+                  deliveryProfileId: snap.deliveryProfileId,
+                  deliveryFee: snap.quotedFeeCents,
+                  quotedFeeCents: snap.quotedFeeCents,
+                  providerDisplayNameSnapshot: snap.providerDisplayNameSnapshot,
+                  pricingSource: snap.pricingSource,
+                  pricingFormulaVersion: snap.pricingFormulaVersion,
+                  pricingCurrency: snap.pricingCurrency,
+                  routeDistanceKmSnapshot: snap.routeDistanceKmSnapshot,
+                  baseFeeCentsSnapshot: snap.baseFeeCentsSnapshot,
+                  pricePerKmCentsSnapshot: snap.pricePerKmCentsSnapshot,
+                  minimumFeeCentsSnapshot: snap.minimumFeeCentsSnapshot,
+                  freeDeliveryRadiusKmSnapshot:
+                    snap.freeDeliveryRadiusKmSnapshot,
+                  quoteLockedAt: snap.quoteLockedAt,
+                };
+              } else if (meta.deliveryQuotedFeeCents && meta.deliveryProfileId) {
+                const quoted = parseInt(meta.deliveryQuotedFeeCents, 10);
+                repairData = {
+                  ...repairData,
+                  deliveryProfileId: meta.deliveryProfileId,
+                  deliveryFee: quoted,
+                  quotedFeeCents: quoted,
+                  pricingSource: PRICING_SOURCE_PROVIDER,
+                  pricingFormulaVersion:
+                    meta.deliveryPricingFormulaVersion || 'provider-v1',
+                  pricingCurrency: meta.deliveryPricingCurrency || 'EUR',
+                  providerDisplayNameSnapshot:
+                    meta.deliveryProviderName || null,
+                };
+              }
+            }
+            await prisma.deliveryOrder.create({ data: repairData as any });
+            console.log(
+              JSON.stringify({
+                event: 'delivery_order_repaired_after_orphan_order',
+                sessionId: session.id,
+                orderId: existingOrder.id,
+              })
+            );
+          } catch (repairErr) {
+            console.error(
+              'Failed to repair missing DeliveryOrder for existing order',
+              repairErr
+            );
+          }
+        }
         console.log(`✅ Order ${existingOrder.id} already exists for session ${session.id}`);
         return new NextResponse("ok", { status: 200 });
       }
@@ -662,17 +749,46 @@ export async function POST(req: NextRequest) {
         const stripeFeeCents = metadata.stripeFeeCents ? parseInt(metadata.stripeFeeCents) : 0;
         const enableSmsNotification = metadata.enableSmsNotification === 'true';
 
+        // Phase 3.1 P0: validate provider quote snapshot BEFORE creating Order,
+        // so Stripe retries cannot leave a paid Order without DeliveryOrder.
+        {
+          const flagsEarly = getDeliveryAlignmentFlags();
+          const pricingSourceMetaEarly = metadata.deliveryPricingSource;
+          const isProviderPricedEarly =
+            pricingSourceMetaEarly === PRICING_SOURCE_PROVIDER ||
+            (flagsEarly.providerPricingEnabled &&
+              !!metadata.deliveryQuotedFeeCents);
+          if (isProviderPricedEarly) {
+            const parsedEarly = parseProviderQuoteMetadata(metadata);
+            if (!parsedEarly.ok) {
+              console.error(
+                JSON.stringify({
+                  event: 'delivery_quote_snapshot_incomplete_pre_order',
+                  sessionId: session.id,
+                  code: parsedEarly.code,
+                  error: parsedEarly.error,
+                })
+              );
+              return new NextResponse(
+                "Provider quote snapshot incomplete",
+                { status: 400 }
+              );
+            }
+          }
+        }
+
         // Map delivery mode to database enum
         const mappedDeliveryMode = (() => {
           const mode = deliveryMode;
           if (mode === 'SHIPPING') return 'SHIPPING';
-          if (mode === 'LOCAL_DELIVERY' || mode === 'TEEN_DELIVERY' || mode === 'DELIVERY') return 'DELIVERY';
+          if (mode === 'LOCAL_DELIVERY' || mode === 'TEEN_DELIVERY' || mode === 'DELIVERY' || mode === 'LOCAL_PROVIDER') return 'DELIVERY';
+
           if (mode === 'PICKUP') return 'PICKUP';
           return 'PICKUP'; // default fallback
         })();
         
         const isPickup = deliveryMode === 'PICKUP';
-        const isDelivery = deliveryMode === 'DELIVERY' || deliveryMode === 'LOCAL_DELIVERY' || deliveryMode === 'TEEN_DELIVERY';
+        const isDelivery = deliveryMode === 'DELIVERY' || deliveryMode === 'LOCAL_DELIVERY' || deliveryMode === 'TEEN_DELIVERY' || deliveryMode === 'LOCAL_PROVIDER';
         const isShipping = deliveryMode === 'SHIPPING';
 
         // Use database transaction for atomicity (order + items + stock update)
@@ -922,7 +1038,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Bij bezorging: bewaar aflevercoördinaten op de koper zodat dashboard/bezorgers die kunnen gebruiken
-        if ((deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') && createdOrder.userId) {
+        if ((deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY' || deliveryMode === 'LOCAL_PROVIDER') && createdOrder.userId) {
           const coords = session.metadata?.coordinates ? JSON.parse(session.metadata.coordinates as string) : null;
           if (coords?.lat != null && coords?.lng != null) {
             await prisma.user.update({
@@ -933,7 +1049,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Send notification to ALL available deliverers if delivery mode
-        if (deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') {
+        if (deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY' || deliveryMode === 'LOCAL_PROVIDER') {
           try {
             // Get buyer coordinates from metadata
             const coordinates = session.metadata?.coordinates 
@@ -994,20 +1110,160 @@ export async function POST(req: NextRequest) {
               const sellerCoords = resolveSellerCoords(firstProduct?.seller);
 
               if (sellerCoords) {
-                const deliveryOrder = await prisma.deliveryOrder.create({
-                  data: {
-                    orderId: createdOrder.id,
-                    productId: firstProduct.id,
-                    status: 'PENDING',
-                    deliveryAddress: address || '',
-                    deliveryFee: deliveryFeeCents || 200,
-                    estimatedTime: deliveryDate ? 60 : null,
-                    deliveryProfileId: null, // ongeassigneed → verschijnt bij beschikbare orders voor bezorgers
+                const pricingSourceMeta = metadata.deliveryPricingSource;
+                const flags = getDeliveryAlignmentFlags();
+                const isProviderPriced =
+                  pricingSourceMeta === PRICING_SOURCE_PROVIDER ||
+                  (flags.providerPricingEnabled &&
+                    !!metadata.deliveryQuotedFeeCents);
+
+                let deliveryOrderData: {
+                  orderId: string;
+                  productId: string;
+                  status: string;
+                  deliveryAddress: string;
+                  deliveryFee: number;
+                  estimatedTime: number | null;
+                  deliveryProfileId: string | null;
+                  quotedFeeCents?: number;
+                  providerDisplayNameSnapshot?: string;
+                  pricingSource?: string;
+                  pricingFormulaVersion?: string;
+                  pricingCurrency?: string;
+                  routeDistanceKmSnapshot?: number;
+                  baseFeeCentsSnapshot?: number;
+                  pricePerKmCentsSnapshot?: number;
+                  minimumFeeCentsSnapshot?: number;
+                  freeDeliveryRadiusKmSnapshot?: number;
+                  quoteLockedAt?: Date;
+                } = {
+                  orderId: createdOrder.id,
+                  productId: firstProduct.id,
+                  status: 'PENDING',
+                  deliveryAddress: address || '',
+                  deliveryFee: deliveryFeeCents || 200,
+                  estimatedTime: deliveryDate ? 60 : null,
+                  deliveryProfileId: null,
+                };
+
+                if (isProviderPriced) {
+                  const parsed = parseProviderQuoteMetadata(metadata);
+                  if (!parsed.ok) {
+                    // Pre-order validation should have caught this; never abort after Order commit.
+                    console.error(
+                      JSON.stringify({
+                        event: 'delivery_quote_snapshot_incomplete_post_order',
+                        sessionId: session.id,
+                        orderId: createdOrder.id,
+                        code: parsed.code,
+                        error: parsed.error,
+                      })
+                    );
+                    if (metadata.deliveryQuotedFeeCents && metadata.deliveryProfileId) {
+                      const quoted = parseInt(metadata.deliveryQuotedFeeCents, 10);
+                      deliveryOrderData = {
+                        ...deliveryOrderData,
+                        deliveryProfileId: metadata.deliveryProfileId,
+                        deliveryFee: quoted,
+                        quotedFeeCents: quoted,
+                        pricingSource: PRICING_SOURCE_PROVIDER,
+                        pricingFormulaVersion:
+                          metadata.deliveryPricingFormulaVersion || 'provider-v1',
+                        pricingCurrency: metadata.deliveryPricingCurrency || 'EUR',
+                        providerDisplayNameSnapshot:
+                          metadata.deliveryProviderName || undefined,
+                      };
+                    }
+                  } else {
+                  const snap = parsed.snapshot;
+                  deliveryOrderData = {
+                    ...deliveryOrderData,
+                    deliveryProfileId: snap.deliveryProfileId,
+                    deliveryFee: snap.quotedFeeCents,
+                    quotedFeeCents: snap.quotedFeeCents,
+                    providerDisplayNameSnapshot: snap.providerDisplayNameSnapshot,
+                    pricingSource: snap.pricingSource,
+                    pricingFormulaVersion: snap.pricingFormulaVersion,
+                    pricingCurrency: snap.pricingCurrency,
+                    routeDistanceKmSnapshot: snap.routeDistanceKmSnapshot,
+                    baseFeeCentsSnapshot: snap.baseFeeCentsSnapshot,
+                    pricePerKmCentsSnapshot: snap.pricePerKmCentsSnapshot,
+                    minimumFeeCentsSnapshot: snap.minimumFeeCentsSnapshot,
+                    freeDeliveryRadiusKmSnapshot:
+                      snap.freeDeliveryRadiusKmSnapshot,
+                    quoteLockedAt: snap.quoteLockedAt,
+                  };
                   }
+                } else if (deliveryFeeCents > 0) {
+                  deliveryOrderData.pricingSource = PRICING_SOURCE_PLATFORM_LEGACY;
+                }
+
+                // Phase 3 named selection: targeted provider (no first-accept broadcast)
+                const namedSelection = metadata.namedProviderSelection === 'true';
+                const metaProfileId = metadata.deliveryProfileId?.trim();
+                if (namedSelection && metaProfileId) {
+                  deliveryOrderData.deliveryProfileId = metaProfileId;
+                  const mode = metadata.deliveryAcceptanceMode;
+                  if (mode === 'AUTO_CONFIRM') {
+                    deliveryOrderData.status = 'ACCEPTED';
+                  }
+                }
+
+                const deliveryOrder = await prisma.deliveryOrder.create({
+                  data: deliveryOrderData,
                 });
 
-                // Filter deliverers within range of BOTH (first product) seller and buyer
+                if (metadata.bookingRequestId) {
+                  try {
+                    await prisma.deliveryBookingRequest.updateMany({
+                      where: {
+                        id: metadata.bookingRequestId,
+                        status: { in: ['ACCEPTED', 'AUTO_CONFIRMED'] },
+                      },
+                      data: { status: 'CONSUMED', updatedAt: new Date() },
+                    });
+                    await prisma.deliveryCalendarEntry.updateMany({
+                      where: { bookingRequestId: metadata.bookingRequestId },
+                      data: {
+                        deliveryOrderId: deliveryOrder.id,
+                        orderReference: createdOrder.orderNumber || createdOrder.id,
+                        status: deliveryOrderData.status === 'ACCEPTED' ? 'CONFIRMED' : 'PENDING',
+                        earningsCents: deliveryOrderData.quotedFeeCents
+                          ? Math.round(deliveryOrderData.quotedFeeCents * 0.88)
+                          : Math.round((deliveryOrderData.deliveryFee || 0) * 0.88),
+                        updatedAt: new Date(),
+                      },
+                    });
+                  } catch (calErr) {
+                    console.warn('calendar/booking consume failed', calErr);
+                  }
+                } else if (deliveryOrderData.deliveryProfileId) {
+                  try {
+                    await prisma.deliveryCalendarEntry.create({
+                      data: {
+                        deliveryProfileId: deliveryOrderData.deliveryProfileId,
+                        deliveryOrderId: deliveryOrder.id,
+                        title: 'Bezorgopdracht',
+                        status: deliveryOrderData.status === 'ACCEPTED' ? 'CONFIRMED' : 'PENDING',
+                        orderReference: createdOrder.orderNumber || createdOrder.id,
+                        earningsCents: Math.round(
+                          (deliveryOrderData.quotedFeeCents ??
+                            deliveryOrderData.deliveryFee ??
+                            0) * 0.88
+                        ),
+                        updatedAt: new Date(),
+                      },
+                    });
+                  } catch (calErr) {
+                    console.warn('calendar create failed', calErr);
+                  }
+                }
+
+                // Filter deliverers — named selection: only the selected provider
                 const eligibleDeliverers = availableDeliverers.filter(deliverer => {
+                  if (namedSelection && deliveryOrderData.deliveryProfileId) {
+                    return deliverer.id === deliveryOrderData.deliveryProfileId;
+                  }
                   const position = resolveDelivererPosition({
                     gpsTrackingEnabled: deliverer.gpsTrackingEnabled,
                     isOnline: deliverer.isOnline,
@@ -1057,7 +1313,7 @@ export async function POST(req: NextRequest) {
                     deliveryOrder.id,
                     createdOrder.id,
                     (await import('@/lib/orderNumberGenerator')).OrderNumberGenerator.getDisplayNumber(createdOrder.orderNumber, createdOrder.id),
-                    deliveryFeeCents || 200,
+                    (deliveryOrderData.quotedFeeCents ?? deliveryFeeCents) || 200,
                     distanceToBuyer,
                     deliveryOrder.estimatedTime || 60
                   );
@@ -1562,7 +1818,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 💰 CREATE PAYOUT FOR DELIVERY (if applicable)
-        if ((deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') && deliveryFeeCents > 0) {
+        if ((deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY' || deliveryMode === 'LOCAL_PROVIDER') && deliveryFeeCents > 0) {
           // Find the delivery order(s) for this main order
           const deliveryOrders = await prisma.deliveryOrder.findMany({
             where: { orderId: createdOrder.id },

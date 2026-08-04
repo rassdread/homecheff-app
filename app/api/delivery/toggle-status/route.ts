@@ -28,19 +28,61 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { isOnline } = body;
 
-    // Get delivery profile to check availability
     const deliveryProfile = await prisma.deliveryProfile.findUnique({
       where: { userId: user.id },
       select: {
         id: true,
+        userId: true,
         availableDays: true,
         availableTimeSlots: true,
-        isOnline: true
+        isOnline: true,
+        isActive: true,
+        isVerified: true,
+        isBlocked: true,
+        age: true,
+        user: { select: { dateOfBirth: true } },
       }
     });
 
     if (!deliveryProfile) {
       return NextResponse.json({ error: 'Delivery profile not found' }, { status: 404 });
+    }
+
+    if (isOnline) {
+      const { resolveCommercialDeliveryAgeYears, logCommercialAgeBlock, COMMERCIAL_DELIVERY_UNDERAGE_MESSAGE_NL } =
+        await import('@/lib/delivery/delivery-age');
+      const { getDeliveryAlignmentFlags } = await import(
+        '@/lib/delivery/delivery-alignment-flags'
+      );
+      const ageGateEnabled = getDeliveryAlignmentFlags().commercialAgeGate18Enabled;
+      const resolution = resolveCommercialDeliveryAgeYears({
+        dateOfBirth: deliveryProfile.user?.dateOfBirth,
+        profileAge: deliveryProfile.age,
+        ageGateEnabled,
+      });
+      if (!resolution.eligible) {
+        logCommercialAgeBlock({
+          boundary: 'online',
+          userId: deliveryProfile.userId,
+          profileId: deliveryProfile.id,
+          reason: resolution.reason,
+        });
+        return NextResponse.json(
+          {
+            error:
+              resolution.reason === 'MISSING_DOB' ||
+              resolution.reason === 'INVALID_DOB'
+                ? 'Voor commerciële bezorging is een geldige geboortedatum vereist.'
+                : COMMERCIAL_DELIVERY_UNDERAGE_MESSAGE_NL,
+            code:
+              resolution.reason === 'MISSING_DOB' ||
+              resolution.reason === 'INVALID_DOB'
+                ? 'DELIVERY_DOB_REQUIRED'
+                : 'DELIVERY_UNDERAGE',
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Check if going online is within available times (for warning, not blocking)
