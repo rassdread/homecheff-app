@@ -1,0 +1,106 @@
+{
+  "results": [
+    {
+      "role": "buyer",
+      "path": "/orders",
+      "loggedIn": true,
+      "status": 200,
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/orders",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-orders.png",
+      "email": "dm-phase4+buyer.msf6bfo2@example.test"
+    },
+    {
+      "role": "buyer",
+      "path": "/profile",
+      "loggedIn": true,
+      "status": 200,
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/profile",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-profile.png",
+      "email": "dm-phase4+buyer.msf6bfo2@example.test"
+    },
+    {
+      "role": "buyer",
+      "login": true,
+      "loggedIn": true,
+      "email": "dm-phase4+buyer.msf6bfo2@example.test"
+    },
+    {
+      "role": "seller",
+      "path": "/sell",
+      "loggedIn": true,
+      "status": 200,
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/sell",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-seller-sell.png",
+      "email": "dm-phase42+seller.msf801w0@example.test"
+    },
+    {
+      "role": "seller",
+      "path": "/subscription",
+      "loggedIn": true,
+      "status": 200,
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/subscription",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-seller-subscription.png",
+      "email": "dm-phase42+seller.msf801w0@example.test"
+    },
+    {
+      "role": "seller",
+      "login": true,
+      "loggedIn": true,
+      "email": "dm-phase42+seller.msf801w0@example.test"
+    },
+    {
+      "role": "affiliate",
+      "path": "/affiliate/dashboard",
+      "loggedIn": true,
+      "status": 0,
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/affiliate/dashboard",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-affiliate-affiliate-dashboard.png",
+      "email": "dm-phase42+aff.msf801w0@example.test"
+    },
+    {
+      "role": "affiliate",
+      "path": "/affiliate",
+      "loggedIn": true,
+      "status": 200,
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/affiliate",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-affiliate-affiliate.png",
+      "email": "dm-phase42+aff.msf801w0@example.test"
+    },
+    {
+      "role": "affiliate",
+      "login": true,
+      "loggedIn": true,
+      "email": "dm-phase42+aff.msf801w0@example.test"
+    },
+    {
+      "role": "courier",
+      "path": "/delivery",
+      "loggedIn": true,
+      "status": 200,
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/delivery",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-courier-delivery.png",
+      "email": "dm-phase41+courier.msf6zgys@example.test"
+    },
+    {
+      "role": "courier",
+      "login": true,
+      "loggedIn": true,
+      "email": "dm-phase41+courier.msf6zgys@example.test"
+    },
+    {
+      "role": "biz",
+      "path": "/delivery",
+      "loggedIn": true,
+      "status": 200,
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/delivery",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-biz-delivery.png",
+      "email": "dm-phase41+biz.msf6zgys@example.test"
+    },
+    {
+      "role": "biz",
+      "login": true,
+      "loggedIn": true,
+      "email": "dm-phase41+biz.msf6zgys@example.test"
+    }
+  ]
+}

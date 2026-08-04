@@ -1,0 +1,35 @@
+✅ Commission processed for order 6d62d4f9-b882-45b2-a4b9-bf2a453b691c_7b8052e2-8321-4300-9fcb-353e2b346150: 300 cents total (direct: 300, buyer: true, seller: false, isSub: false)
+{
+  "ok": true,
+  "evidence": {
+    "tag": "dm-phase42",
+    "suffix": "msf8eria",
+    "commissionCreated": {
+      "count": 1,
+      "amount": 300,
+      "status": "PENDING"
+    },
+    "webhookMs": 3397,
+    "webhookStatus": 200,
+    "after": {
+      "originals": [
+        {
+          "status": "REVERSED",
+          "amount": 300
+        }
+      ],
+      "reversals": [
+        {
+          "amount": -300
+        }
+      ],
+      "net": 0
+    },
+    "duplicateWebhook": {
+      "status": 200,
+      "reversalRows": 1,
+      "unchanged": true
+    },
+    "pass": true
+  }
+}
