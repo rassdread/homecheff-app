@@ -1,14 +1,24 @@
 import { getPlatformDefinition } from './platform-definition';
+import { BRAND_DISAMBIGUATION, AI_BRAND_ANSWERS } from './brand-entity';
 
 /** Curated FAQPage entities for JSON-LD (server-only; matches /faq themes). */
 export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
   const def = getPlatformDefinition(lang);
+  const answers = AI_BRAND_ANSWERS[lang];
   const pairs =
     lang === 'en'
       ? [
           {
             q: 'What is HomeCheff?',
             a: def.faqWhatIsHomeCheff,
+          },
+          {
+            q: 'Is HomeCheff related to Home Chef (USA / meal kits)?',
+            a: BRAND_DISAMBIGUATION.en,
+          },
+          {
+            q: 'Who operates HomeCheff?',
+            a: answers.whoOperates,
           },
           {
             q: 'What is the Village Square (Dorpsplein)?',
@@ -31,6 +41,14 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           {
             q: 'Wat is HomeCheff?',
             a: def.faqWhatIsHomeCheff,
+          },
+          {
+            q: 'Is HomeCheff hetzelfde als Home Chef (USA / maaltijdboxen)?',
+            a: BRAND_DISAMBIGUATION.nl,
+          },
+          {
+            q: 'Wie exploiteert HomeCheff?',
+            a: answers.whoOperates,
           },
           {
             q: 'Wat is het Dorpsplein?',

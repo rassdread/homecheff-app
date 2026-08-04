@@ -32,6 +32,7 @@ export const ENTITY_IS_NOT: Record<PhilosophyLang, string[]> = {
     'geen mass retail platform',
     'geen bezorgplatform',
     'geen anonieme webshop',
+    'geen “Home Chef” maaltijdbox- of USA-merk (andere spelling, andere filosofie)',
   ],
   en: [
     'not a generic classifieds website',
@@ -39,6 +40,7 @@ export const ENTITY_IS_NOT: Record<PhilosophyLang, string[]> = {
     'not a mass retail platform',
     'not a delivery platform',
     'not an anonymous ecommerce website',
+    'not affiliated with “Home Chef” meal-kit or USA brands (different spelling and purpose)',
   ],
 };
 

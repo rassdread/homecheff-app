@@ -67,6 +67,8 @@ export function getPlatformDefinition(lang: string): PlatformDefinitionBlock {
 export const PLATFORM_KEYWORDS: Record<PlatformLang, string[]> = {
   nl: [
     'HomeCheff',
+    'HomeCheff.eu',
+    'HomeCheff buurtmarkt',
     'digitale buurtmarkt',
     'buurtmarkt',
     'community-first',
@@ -93,6 +95,9 @@ export const PLATFORM_KEYWORDS: Record<PlatformLang, string[]> = {
   ],
   en: [
     'HomeCheff',
+    'HomeCheff.eu',
+    'HomeCheff marketplace',
+    'HomeCheff neighbourhood marketplace',
     'digital neighbourhood marketplace',
     'neighbourhood marketplace',
     'community-first',

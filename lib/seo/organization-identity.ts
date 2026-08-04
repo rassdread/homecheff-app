@@ -21,22 +21,31 @@ export const VERIFIED_FOUNDER = {
   jobTitle: 'Founder',
 } as const;
 
+/**
+ * Schema.org alternateName — brand-aligned phrases only.
+ * Do NOT include spaced/hyphenated “home cheff” forms (ambiguity with unaffiliated Home Chef brands).
+ */
 export const ORGANIZATION_ALTERNATE_NAMES = [
   'homecheff',
-  'home cheff',
-  'home-cheff',
+  'HomeCheff.eu',
   'HomeCheff platform',
   'HomeCheff marketplace',
+  'HomeCheff neighbourhood marketplace',
+  'HomeCheff buurtmarkt',
   'digital neighbourhood marketplace',
   'digitale buurtmarkt',
+  'HomeCheff community',
   'HomeCheff app',
   'HomeCheff Netherlands',
+  'HomeCheff Vlaardingen',
 ] as const;
 
 /** Topics HomeCheff publicly explains — for knowsAbout. */
 export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
   nl: [
+    'HomeCheff',
     'digitale buurtmarkt',
+    'HomeCheff buurtmarkt',
     'community-first',
     'creator-first',
     'craftsmanship-first',
@@ -70,9 +79,12 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
     'privacy',
     'communityrichtlijnen',
     'E-E-A-T',
+    'onafhankelijk Nederlands platform',
   ],
   en: [
+    'HomeCheff',
     'digital neighbourhood marketplace',
+    'HomeCheff neighbourhood marketplace',
     'community-first',
     'creator-first',
     'craftsmanship-first',
@@ -105,6 +117,7 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
     'privacy',
     'community guidelines',
     'E-E-A-T',
+    'independent Dutch platform',
   ],
 };
 
