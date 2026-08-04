@@ -1,0 +1,29 @@
+{
+  "at": "2026-08-04T23:03:50.513Z",
+  "counts": [
+    {
+      "t": "User",
+      "c": 38
+    },
+    {
+      "t": "Order",
+      "c": 2
+    },
+    {
+      "t": "DeliveryOrder",
+      "c": 0
+    },
+    {
+      "t": "DeliveryProfile",
+      "c": 2
+    },
+    {
+      "t": "Product",
+      "c": 7
+    },
+    {
+      "t": "CommissionLedger",
+      "c": 0
+    }
+  ]
+}

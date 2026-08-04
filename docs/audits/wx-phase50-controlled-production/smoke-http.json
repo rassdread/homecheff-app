@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "ms": 1321,
+    "final": "https://homecheff.eu/",
+    "preview": "<!DOCTYPE html><html lang=\"en\" data-domain=\"https://homecheff.eu\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=5, "
+  },
+  {
+    "path": "/login",
+    "status": 200,
+    "ms": 639,
+    "final": "https://homecheff.eu/login",
+    "preview": "<!DOCTYPE html><html lang=\"en\" data-domain=\"https://homecheff.eu\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=5, "
+  },
+  {
+    "path": "/api/delivery/alignment-flags",
+    "status": 200,
+    "ms": 756,
+    "final": "https://homecheff.eu/api/delivery/alignment-flags",
+    "preview": "{\"namedProviderSelectionEnabled\":true,\"providerPricingEnabled\":true,\"namedProviderCopyEnabled\":true,\"firstAcceptPoolRuntimeEnabled\":false}"
+  },
+  {
+    "path": "/api/auth/providers",
+    "status": 200,
+    "ms": 379,
+    "final": "https://homecheff.eu/api/auth/providers",
+    "preview": "{\"google\":{\"id\":\"google\",\"name\":\"Google\",\"type\":\"oauth\",\"signinUrl\":\"https://homecheff.eu/api/auth/signin/google\",\"callbackUrl\":\"https://homecheff.eu/api/auth/callback/google\"},\"cr"
+  },
+  {
+    "path": "/api/products?limit=5",
+    "status": 200,
+    "ms": 5978,
+    "final": "https://homecheff.eu/api/products?limit=5",
+    "preview": "{\"items\":[{\"id\":\"fcc5ff2a-651a-4983-9d17-b3f1acf7ca17\",\"title\":\"HomeCheff Design Studio\",\"description\":\"Heb je een idee voor een website, app, animatie of digitaal project?\\n\\nWij "
+  }
+]

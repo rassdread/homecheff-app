@@ -1,0 +1,40 @@
+{
+  "cols": [
+    {
+      "table_name": "DeliveryOrder",
+      "column_name": "pricingSource"
+    },
+    {
+      "table_name": "DeliveryOrder",
+      "column_name": "quoteLockedAt"
+    },
+    {
+      "table_name": "DeliveryOrder",
+      "column_name": "quotedFeeCents"
+    },
+    {
+      "table_name": "DeliveryProfile",
+      "column_name": "acceptanceMode"
+    },
+    {
+      "table_name": "DeliveryProfile",
+      "column_name": "baseFeeCents"
+    },
+    {
+      "table_name": "DeliveryProfile",
+      "column_name": "pricingEnabled"
+    },
+    {
+      "table_name": "DeliveryProfile",
+      "column_name": "providerType"
+    }
+  ],
+  "tables": [
+    {
+      "tablename": "DeliveryBookingRequest"
+    },
+    {
+      "tablename": "DeliveryCalendarEntry"
+    }
+  ]
+}

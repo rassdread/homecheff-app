@@ -1,0 +1,56 @@
+{
+  "at": "2026-08-04T23:12:16.468Z",
+  "livemode": true,
+  "deliveryProfiles": [
+    {
+      "id": "cmgntjdw70001jx04p0rurwce",
+      "pricingEnabled": false,
+      "acceptanceMode": "MANUAL_CONFIRM",
+      "providerType": "INDEPENDENT",
+      "baseFeeCents": null
+    },
+    {
+      "id": "unassigned",
+      "pricingEnabled": false,
+      "acceptanceMode": "MANUAL_CONFIRM",
+      "providerType": "INDEPENDENT",
+      "baseFeeCents": null
+    }
+  ],
+  "products": [
+    {
+      "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+      "title": "Marilyn Monroe A3 formaat",
+      "priceCents": 12500
+    },
+    {
+      "id": "33392889-a509-4598-a379-c0671b2c37e0",
+      "title": "Kunstschilderijen",
+      "priceCents": 8000
+    },
+    {
+      "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+      "title": "Kᴇᴋsɪ",
+      "priceCents": 450
+    }
+  ],
+  "checkoutSession": {
+    "id": "cs_live_a1VBOKcyR53G3ZykEO7Tv0HDP1vZkKRzo0TAm2DYImFbcrUz3nw5D4pp5I",
+    "livemode": true,
+    "amount_total": 100,
+    "payment_status": "unpaid",
+    "urlPrefix": "https://checkout.stripe.com/c/pay/cs_liv"
+  },
+  "checkoutExpired": {
+    "id": "cs_live_a1VBOKcyR53G3ZykEO7Tv0HDP1vZkKRzo0TAm2DYImFbcrUz3nw5D4pp5I",
+    "status": "expired",
+    "payment_status": "unpaid"
+  },
+  "commissionLedgerCount": 0,
+  "rollback": {
+    "tag": "prod-phase50-pre-merge",
+    "commit": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab",
+    "releaseMerge": "a4d4c2c2635d2fcd4a026cb178781a374e891849",
+    "previousProdDeploy": "homecheff-l1b60innu-sergio-s-projects-f7b64ee1.vercel.app"
+  }
+}

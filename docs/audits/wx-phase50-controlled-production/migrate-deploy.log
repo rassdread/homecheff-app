@@ -1,0 +1,20 @@
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-summer-darkness-a2l0745u.eu-central-1.aws.neon.tech"
+
+4 migrations found in prisma/migrations
+
+Applying migration `20260804_delivery_named_provider_selection`
+Applying migration `20260804_delivery_provider_pricing`
+Applying migration `20260804_delivery_quote_snapshot`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20260804_delivery_named_provider_selection/
+    └─ migration.sql
+  └─ 20260804_delivery_provider_pricing/
+    └─ migration.sql
+  └─ 20260804_delivery_quote_snapshot/
+    └─ migration.sql
+      
+All migrations have been successfully applied.
