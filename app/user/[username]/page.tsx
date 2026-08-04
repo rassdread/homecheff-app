@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Script from "next/script";
+import JsonLdScript from "@/components/seo/JsonLdScript";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
@@ -503,11 +503,7 @@ export default async function PublicProfilePage({
 
   return (
     <>
-      <Script
-        id="profile-person-ld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(profileLd) }}
-      />
+      <JsonLdScript id="profile-person-ld" data={profileLd} />
       <div className="min-h-screen w-full min-w-0 max-w-[100vw] overflow-x-hidden bg-gray-50">
         <PublicProfileClient
           user={user as any}

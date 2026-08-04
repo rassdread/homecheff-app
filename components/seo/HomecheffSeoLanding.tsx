@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Script from "next/script";
+import JsonLdScript from "@/components/seo/JsonLdScript";
 import { ArrowLeft } from "lucide-react";
 import type { SeoPageDefinition } from "@/lib/seo/homecheffSeoPages";
 import {
@@ -54,16 +54,8 @@ export default function HomecheffSeoLanding({ page, locale }: Props) {
 
   return (
     <>
-      <Script
-        id={`seo-ld-webpage-${page.id}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageLd) }}
-      />
-      <Script
-        id={`seo-ld-article-${page.id}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
-      />
+      <JsonLdScript id={`seo-ld-webpage-${page.id}`} data={webPageLd} />
+      <JsonLdScript id={`seo-ld-article-${page.id}`} data={articleLd} />
       <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
         <div className="container mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:py-14">
           <Link

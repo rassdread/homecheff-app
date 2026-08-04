@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Script from "next/script";
+import JsonLdScript from "@/components/seo/JsonLdScript";
 import { getCurrentDomain, seoHreflangLanguagesOnEu } from "@/lib/seo/metadata";
 import { LOCAL_SEO_CITIES } from "@/lib/seo/localCities";
 import { getEcosystemHubForCitySlug } from "@/lib/community/getEcosystemHubForCitySlug";
@@ -81,11 +81,7 @@ export default async function MaaltijdenStadPage({
   return (
     <main className="min-h-screen bg-neutral-50">
       {collectionLd ? (
-        <Script
-          id={`maaltijden-ld-${city.slug}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
-        />
+        <JsonLdScript id={`maaltijden-ld-${city.slug}`} data={collectionLd} />
       ) : null}
       <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-6">

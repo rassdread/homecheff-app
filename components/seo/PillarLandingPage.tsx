@@ -8,7 +8,7 @@ import {
 } from '@/lib/seo/pillar-pages';
 import { buildSellerHowToJsonLd } from '@/lib/seo/schema-builders';
 import { MAIN_DOMAIN } from '@/lib/seo/constants';
-import Script from 'next/script';
+import JsonLdScript from '@/components/seo/JsonLdScript';
 
 export default function PillarLandingPage({ path }: { path: string }) {
   const pillar = getPillarByPath(path);
@@ -25,11 +25,7 @@ export default function PillarLandingPage({ path }: { path: string }) {
   return (
     <>
       {howToLd ? (
-        <Script
-          id={`pillar-howto-ld-${pillar.namespace}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(howToLd) }}
-        />
+        <JsonLdScript id={`pillar-howto-ld-${pillar.namespace}`} data={howToLd} />
       ) : null}
       <SeoLandingTemplate ns={pillar.namespace} blocks={blocks} pagePath={path} />
     </>

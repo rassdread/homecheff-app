@@ -49,8 +49,14 @@ const NavBar = dynamic(() => import('@/components/NavBar'), {
 
 // Tab- + touch-icons: app/icon.png + app/apple-icon.png (Next). /favicon.ico komt uit public/ + expliciete link met query (Safari cache op blote /favicon.ico).
 // Bump FAVICON_ASSET_Q when je favicon/apple-touch vervangt zodat Safari geen oude (bijv. default host) ico blijft tonen.
-const OG_IMAGE_Q = '?v=hc6';
+const OG_IMAGE_Q = '?v=hc-og2';
 const FAVICON_ASSET_Q = '?v=hc7';
+const DEFAULT_OG_IMAGE = {
+  url: `${MAIN_DOMAIN}/opengraph-image${OG_IMAGE_Q}`,
+  width: 1200,
+  height: 630,
+  alt: 'HomeCheff — Digital neighbourhood marketplace',
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -91,7 +97,13 @@ export async function generateMetadata(): Promise<Metadata> {
         siteName: 'HomeCheff',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
-        images: [{ url: `${MAIN_DOMAIN}/icon-192.png${OG_IMAGE_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
+        images: [DEFAULT_OG_IMAGE],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: platform.defaultTitle,
+        description: platform.defaultDescription,
+        images: [DEFAULT_OG_IMAGE.url],
       },
       alternates: {
         canonical: currentDomain,
@@ -128,7 +140,13 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'HomeCheff',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
-      images: [{ url: `${MAIN_DOMAIN}/icon-192.png${OG_IMAGE_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
+      images: [DEFAULT_OG_IMAGE],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: platform.defaultTitle,
+      description: platform.defaultDescription,
+      images: [DEFAULT_OG_IMAGE.url],
     },
     alternates: {
       canonical: currentDomain,

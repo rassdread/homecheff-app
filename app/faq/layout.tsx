@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import Script from 'next/script';
+import JsonLdScript from '@/components/seo/JsonLdScript';
 import {
   getCurrentDomain,
   getCurrentLanguage,
@@ -101,11 +101,7 @@ export default async function FAQLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <Script
-        id="faq-structured-data"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
-      />
+      <JsonLdScript id="faq-structured-data" data={faqStructuredData} />
       {children}
     </>
   );

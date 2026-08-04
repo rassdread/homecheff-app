@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Script from "next/script";
+import JsonLdScript from "@/components/seo/JsonLdScript";
 import { ArrowLeft } from "lucide-react";
 import {
   HOMECHEFF_SEO_HUB_SECTIONS,
@@ -32,11 +32,7 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
 
   return (
     <>
-      <Script
-        id="seo-hub-webpage-ld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageLd) }}
-      />
+      <JsonLdScript id="seo-hub-webpage-ld" data={webPageLd} />
       <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
         <div className="container mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:py-14">
           <Link

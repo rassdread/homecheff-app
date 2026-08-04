@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Script from 'next/script';
+import JsonLdScript from '@/components/seo/JsonLdScript';
 import { cookies, headers } from 'next/headers';
 import {
   CATEGORY_ECOSYSTEM_SLUGS,
@@ -132,11 +132,7 @@ export default async function GemeenschapSegmentPage({
 
   return (
     <main className="min-h-screen bg-neutral-50">
-      <Script
-        id={`ecosystem-ld-${slug}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageLd) }}
-      />
+      <JsonLdScript id={`ecosystem-ld-${slug}`} data={webPageLd} />
       <CategoryEcosystemClient data={data} />
     </main>
   );

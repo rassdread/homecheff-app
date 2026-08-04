@@ -13,12 +13,14 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { resolveOrientationExplanation } from '@/lib/adaptive-workspace-react/resolve-orientation-explanation';
+import type { HomepageSsrIdentity } from '@/lib/seo/homepage-ssr-identity';
 
 type Props = {
   className?: string;
+  ssrIdentity?: HomepageSsrIdentity;
 };
 
-export default function WorkspaceOrientationStrip({ className }: Props) {
+export default function WorkspaceOrientationStrip({ className, ssrIdentity }: Props) {
   const { t } = useTranslation();
   const landscape = useLandscapeWorkPosture();
   const explain = resolveOrientationExplanation({
@@ -28,7 +30,12 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
   const compact = landscape.orientationCompact || explain.singleLine;
   const level = explain.level;
 
-  const whereLabel = `${t('homePhase1.heroTitleHighlight')}${t('homePhase1.heroTitleAfter')}`;
+  const whereLabel =
+    t('homePhase1.heroTitleHighlight') && t('homePhase1.heroTitleAfter')
+      ? `${t('homePhase1.heroTitleHighlight')}${t('homePhase1.heroTitleAfter')}`
+      : ssrIdentity?.h1 || '';
+  const identityLabel =
+    t('homePhase1.orientationIdentity') || ssrIdentity?.identity || '';
 
   const bodyKey =
     level === 'short'
@@ -39,9 +46,12 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
           ? 'homePhase1.orientationExplainFull'
           : null;
 
+  const translatedBody = bodyKey ? t(bodyKey) : '';
+  const bodyText = translatedBody || (level !== 'compact' ? ssrIdentity?.definition : '') || '';
+
   const actionsCopy =
     level === 'compact'
-      ? t('homePhase1.orientationExplainCompact')
+      ? t('homePhase1.orientationExplainCompact') || 'Search · Offer · Ask · Buy · Sell · Trade · Help'
       : t('homePhase1.orientationActions');
 
   return (
@@ -62,7 +72,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
         className,
       )}
       role="banner"
-      aria-label={t('homePhase1.orientationIdentity')}
+      aria-label={identityLabel}
     >
       <div
         className={cn(
@@ -79,7 +89,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
               compact ? 'text-[9px] leading-none' : 'text-[10px] sm:text-[11px] leading-tight',
             )}
           >
-            {t('homePhase1.orientationIdentity')}
+            {identityLabel}
           </p>
           <h1
             className={cn(
@@ -94,7 +104,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
             {whereLabel}
           </h1>
 
-          {explain.showBody && bodyKey ? (
+          {explain.showBody && bodyText ? (
             <p
               data-wx-orientation-explain-body=""
               className={cn(
@@ -107,7 +117,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                   'mt-1.5 max-w-4xl text-sm leading-snug line-clamp-3',
               )}
             >
-              {t(bodyKey)}
+              {bodyText}
             </p>
           ) : null}
         </div>

@@ -14,6 +14,7 @@ import {
 import { useVisibleHomePromotionIds } from "@/hooks/useVisibleHomePromotions";
 import { useNarrowViewportResolved } from "@/hooks/useNarrowViewport";
 import type { SsrAuthHint } from "@/lib/feed/anonymous-session-fast-path";
+import type { HomepageSsrIdentity } from "@/lib/seo/homepage-ssr-identity";
 import {
   feedPerfMark,
   installFeedPerfBaselineReporter,
@@ -83,6 +84,7 @@ function pickFirstName(
 
 type Props = {
   ssrAuthHint?: SsrAuthHint;
+  ssrIdentity?: HomepageSsrIdentity;
   initialFeedChip?: HomeFeedChip;
   initialFeedCategory?: string;
   initialFeedPlace?: string;
@@ -93,6 +95,7 @@ type Props = {
 
 export default function HomePageClient({
   ssrAuthHint,
+  ssrIdentity,
   initialFeedChip,
   initialFeedCategory,
   initialFeedPlace,
@@ -233,7 +236,7 @@ export default function HomePageClient({
         >
           <FeedWorkspaceVisibleLayout
             ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
-            orientation={<WorkspaceOrientationStrip />}
+            orientation={<WorkspaceOrientationStrip ssrIdentity={ssrIdentity} />}
             primary={<GeoFeed {...geoFeedProps} homeComposedLayout={false} />}
             startPanel={<HomeDesktopLeftSidebar />}
             endPanel={<HomeDesktopSidebar welcomeLine={welcomeLine} />}
@@ -255,7 +258,7 @@ export default function HomePageClient({
           {/* Legacy OFF path keeps marketing hero. AW ON uses WorkspaceOrientationStrip inside the grid. */}
           {!layoutVisible ? (
             <div className="max-w-3xl lg:max-w-none mx-auto mb-2 sm:mb-4 lg:mb-4">
-              <HomeHeroSection />
+              <HomeHeroSection ssrIdentity={ssrIdentity} />
             </div>
           ) : null}
 

@@ -5,7 +5,7 @@ import { MAIN_DOMAIN } from "./metadata";
 export type { SeoHubSection, SeoLocaleBlock, SeoPageDefinition } from "./homecheffSeoTypes";
 export { HOMECHEFF_SEO_PAGE_DEFS } from "./homecheffSeoPages.data";
 
-/** Secties op /seo-hub en /en/seo-hub — food long-tail blijft, maar niet meer food-first als hub. */
+/** Secties op /seo-hub en /en/seo-hub — food blijft zichtbaar; craft/services/barter versterkt. */
 export const HOMECHEFF_SEO_HUB_SECTIONS: SeoHubSection[] = [
   {
     id: "discover-local",
@@ -13,10 +13,35 @@ export const HOMECHEFF_SEO_HUB_SECTIONS: SeoHubSection[] = [
     titleEn: "Discover & buy locally",
     pageIds: [
       "lokale-producten",
+      "handmade-creaties",
+      "tuin-oogst",
       "alternatief-thuisbezorgd",
       "thuisgekookt-kopen",
       "eten-bij-particulieren",
       "maaltijden-aan-huis",
+    ],
+  },
+  {
+    id: "craft-services",
+    titleNl: "Maken, diensten & hulp",
+    titleEn: "Make, services & help",
+    pageIds: [
+      "design-creatief",
+      "reparaties-diensten",
+      "lessen-skills",
+      "fotografie-muziek",
+      "buurthulp-lokaal",
+      "gezocht-wanted",
+    ],
+  },
+  {
+    id: "exchange-economy",
+    titleNl: "Ruilen & buurteconomie",
+    titleEn: "Barter & neighbourhood economy",
+    pageIds: [
+      "barter-ruilen",
+      "circulaire-economie",
+      "micro-ondernemen",
     ],
   },
   {
@@ -41,6 +66,18 @@ export const HOMECHEFF_SEO_HUB_SECTIONS: SeoHubSection[] = [
       "hobby-koken",
       "platform-thuiskoks",
       "regels-verkopen",
+      "micro-ondernemen",
+    ],
+  },
+  {
+    id: "compare",
+    titleNl: "Alternatieven & vergelijkingen",
+    titleEn: "Alternatives & comparisons",
+    pageIds: [
+      "alternatief-thuisbezorgd",
+      "alt-uber-eats",
+      "alt-tgtg",
+      "alt-airbnb-exp",
     ],
   },
   {

@@ -12,6 +12,8 @@ import {
   parseFeedWorkspacePreviewRequested,
   resolveFeedWorkspaceVisibilityMode,
 } from '@/lib/adaptive-workspace-react';
+import { resolveHomepageSsrIdentity } from '@/lib/seo/homepage-ssr-identity';
+
 
 export const revalidate = 60;
 
@@ -95,10 +97,12 @@ export default async function HomePage({
   const feedWorkspacePreviewRequested = parseFeedWorkspacePreviewRequested(
     searchParams?.awFeedWorkspace,
   );
+  const ssrIdentity = await resolveHomepageSsrIdentity();
 
   return (
     <HomePageClient
       ssrAuthHint={ssrAuthHint}
+      ssrIdentity={ssrIdentity}
       initialFeedChip={initialFeedChip}
       initialFeedCategory={initialFeedCategory}
       initialFeedPlace={initialFeedPlace}

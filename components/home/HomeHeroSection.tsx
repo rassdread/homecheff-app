@@ -10,6 +10,7 @@ import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
 import type { GuestSalesPanelId } from '@/lib/guest/guest-explanation-panels';
 import { scrollToHomeFeed } from '@/lib/guest/guest-explanation-panels';
+import type { HomepageSsrIdentity } from '@/lib/seo/homepage-ssr-identity';
 
 const GuestSalesInfoPanel = dynamic(
   () => import('@/components/home/GuestSalesInfoPanel'),
@@ -65,7 +66,7 @@ function HeroPlatformStrip() {
   );
 }
 
-export default function HomeHeroSection() {
+export default function HomeHeroSection({ ssrIdentity }: { ssrIdentity?: HomepageSsrIdentity }) {
   const { t } = useTranslation();
   const { data: session, status } = useSession();
   const { openCreateFlow } = useCreateFlow();
@@ -73,6 +74,10 @@ export default function HomeHeroSection() {
   const [guestSalesPanel, setGuestSalesPanel] = useState<GuestSalesPanelId | null>(null);
 
   const isGuest = status !== 'loading' && !session?.user;
+  const h1Highlight = t('homePhase1.heroTitleHighlight') || (ssrIdentity?.lang === 'nl' ? 'dichtbij' : 'nearby');
+  const h1After = t('homePhase1.heroTitleAfter') || (ssrIdentity?.lang === 'nl' ? ' koken, groeien, maken en helpen' : ' cook, grow, make and help');
+  const h1Before = t('homePhase1.heroTitleBefore') || (ssrIdentity?.lang === 'nl' ? 'Ontdek wat mensen ' : 'Discover what people ');
+  const heroDef = t('homePhase1.heroDefinition') || ssrIdentity?.definition || '';
 
   const scrollToFeed = useCallback(() => {
     scrollToHomeFeed();
@@ -117,8 +122,8 @@ export default function HomeHeroSection() {
               {t('homeDorpsplein.heroLiveLabel')}
             </p>
             <h1 className="text-base sm:text-lg font-extrabold text-white leading-tight line-clamp-2 tracking-tight">
-              {t('homePhase1.heroTitleHighlight')}
-              {t('homePhase1.heroTitleAfter')}
+              {h1Highlight}
+              {h1After}
             </h1>
               <p className="hidden min-[380px]:block text-[11px] text-white/90 line-clamp-2 mt-0.5 font-medium">
               {t('homePhase1.heroValueExchange')}
@@ -160,15 +165,15 @@ export default function HomeHeroSection() {
               </p>
 
               <h1 className="text-[1.65rem] sm:text-3xl lg:text-[1.95rem] xl:text-[2.1rem] font-extrabold text-white mb-1 sm:mb-1.5 leading-[1.12] tracking-tight max-w-[18ch] lg:max-w-[24ch] mx-auto lg:mx-0">
-                {t('homePhase1.heroTitleBefore')}
+                {h1Before}
                 <span className="relative inline-block">
-                  {t('homePhase1.heroTitleHighlight')}
+                  {h1Highlight}
                   <span
                     className="absolute -bottom-0.5 left-0 right-0 h-1 rounded-full bg-amber-300/90"
                     aria-hidden
                   />
                 </span>
-                {t('homePhase1.heroTitleAfter')}
+                {h1After}
               </h1>
 
               <p className="text-sm sm:text-[0.9375rem] lg:text-[0.975rem] text-white/90 mb-1 sm:mb-1.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug font-medium">
@@ -178,12 +183,12 @@ export default function HomeHeroSection() {
                 {t('homePhase1.heroValueExchange')}
               </p>
               <p className="text-[11px] sm:text-xs text-white/70 mb-2 sm:mb-2.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug">
-                {t('homePhase1.heroDefinition')}
+                {heroDef}
               </p>
 
               <ul
                 className="hidden sm:flex flex-nowrap lg:flex-wrap justify-center lg:justify-start gap-1.5 mb-2 lg:mb-2 list-none p-0 m-0 overflow-x-auto lg:overflow-visible"
-                aria-label={t('homePhase1.heroTitleHighlight')}
+                aria-label={h1Highlight}
               >
                 {HERO_CHIP_KEYS.map(({ key, emoji }) => (
                   <li key={key} className="shrink-0">

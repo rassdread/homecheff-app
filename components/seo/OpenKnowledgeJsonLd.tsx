@@ -1,5 +1,5 @@
-import Script from 'next/script';
 import { cookies, headers } from 'next/headers';
+import JsonLdScript from '@/components/seo/JsonLdScript';
 import {
   buildCollectionPageJsonLd,
   buildDefinedTermSetJsonLd,
@@ -83,11 +83,5 @@ export default async function OpenKnowledgeJsonLd(props: Props) {
     });
   }
 
-  return (
-    <Script
-      id={id}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <JsonLdScript id={id} data={jsonLd} />;
 }

@@ -34,47 +34,64 @@ export const ORGANIZATION_ALTERNATE_NAMES = [
 /** Topics HomeCheff publicly explains — for knowsAbout. */
 export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
   nl: [
+    'digitale buurtmarkt',
     'persoonlijk vakmanschap',
     'lokale makers',
     'buurt economie',
     'buurthulp',
     'thuisgemaakt eten',
+    'tuinoogst',
     'handgemaakte producten',
+    'reparaties',
+    'lessen',
+    'creatieve diensten',
     'lokale diensten',
     'ruilen',
+    'barter',
+    'Gezocht',
     'lokaal verdienen',
+    'micro-ondernemerschap',
+    'circulaire economie',
     'technologie met geweten',
     'digitaal dorpsplein',
   ],
   en: [
+    'digital neighbourhood marketplace',
     'personal craftsmanship',
     'local makers',
     'community economy',
     'neighbour help',
     'home-prepared food',
+    'home-grown produce',
     'handmade products',
+    'repairs',
+    'lessons',
+    'creative services',
     'local services',
     'barter',
+    'Wanted requests',
     'earn locally',
+    'micro entrepreneurship',
+    'circular economy',
     'technology with conscience',
     'digital village square',
   ],
 };
 
 /**
- * Official domains controlled by HomeCheff / Arrias Beheer.
- * Social profiles omitted until verified and consistently branded.
+ * Official domains + verified public registry references.
+ * Social profiles remain pending until consistently branded URLs are confirmed.
  */
 export const VERIFIED_SAME_AS = [
   'https://homecheff.eu',
   'https://homecheff.nl',
+  'https://www.kvk.nl/zoeken/?q=80532829',
 ] as const;
 
-/** Documented for Phase 13S audit — not included in JSON-LD until verified. */
+/** Documented for audits — not included in JSON-LD until verified. */
 export const PENDING_SAME_AS_VERIFICATION = [
   'Official LinkedIn company page URL',
   'Official Instagram profile URL',
-  'KvK handelsregister public profile URL',
   'Wikidata item (if created)',
   'Municipality of Vlaardingen partnership page (if published)',
 ] as const;

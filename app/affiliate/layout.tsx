@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
+import JsonLdScript from '@/components/seo/JsonLdScript';
 import { getCurrentLanguage } from '@/lib/seo/metadata';
 import { getAffiliateLandingFaqJsonLd } from '@/lib/seo/affiliateLandingStructuredData';
 
@@ -9,11 +9,7 @@ export default async function AffiliateLayout({ children }: { children: ReactNod
 
   return (
     <>
-      <Script
-        id="affiliate-landing-faq-ld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <JsonLdScript id="affiliate-landing-faq-ld" data={structuredData} />
       {children}
     </>
   );

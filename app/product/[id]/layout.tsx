@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
-import { redirect } from 'next/navigation';
+import JsonLdScript from '@/components/seo/JsonLdScript';
+import { redirect, notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import {
   getCurrentDomain,
@@ -338,21 +338,17 @@ export default async function ProductLayout({
     console.error('Error generating structured data:', error);
   }
 
+  if (!productForLayout || !productForLayout.isActive) {
+    notFound();
+  }
+
   return (
     <>
       {structuredData && (
-        <Script
-          id="product-structured-data"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+        <JsonLdScript id="product-structured-data" data={structuredData} />
       )}
       {breadcrumbData && (
-        <Script
-          id="product-breadcrumb-data"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
-        />
+        <JsonLdScript id="product-breadcrumb-data" data={breadcrumbData} />
       )}
       {children}
     </>

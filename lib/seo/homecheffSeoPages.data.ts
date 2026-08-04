@@ -1,7 +1,8 @@
 import type { SeoPageDefinition } from "./homecheffSeoTypes";
+import { HOMECHEFF_SEO_REBALANCE_DEFS } from "./homecheffSeoPages.rebalance";
 
 /** Centrale content voor alle SEO-landingspagina's (NL + EN). */
-export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
+export const HOMECHEFF_SEO_PAGE_DEFS_CORE: SeoPageDefinition[] = [
   {
     id: "thuisgekookt-kopen",
     nlSlug: "thuisgekookt-eten-kopen",
@@ -1798,4 +1799,10 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       },
     },
   },
+];
+
+/** Full SEO landing registry: core long-tail + Phase 2 rebalance pages. */
+export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
+  ...HOMECHEFF_SEO_PAGE_DEFS_CORE,
+  ...HOMECHEFF_SEO_REBALANCE_DEFS,
 ];

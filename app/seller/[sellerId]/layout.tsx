@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
+import JsonLdScript from '@/components/seo/JsonLdScript';
 import { prisma } from '@/lib/prisma';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import {
@@ -179,11 +179,7 @@ export default async function SellerLayout({
   return (
     <>
       {structuredData && (
-        <Script
-          id="seller-structured-data"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+        <JsonLdScript id="seller-structured-data" data={structuredData} />
       )}
       {children}
     </>
