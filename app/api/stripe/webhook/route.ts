@@ -299,22 +299,65 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-    // Handle refunds (commission reversal)
+    // Handle refunds (commission reversal — subscription invoices + marketplace orders)
     else if (event.type === "charge.refunded") {
       const charge = event.data.object as Stripe.Charge;
       // invoice is an expandable field in Stripe
       const invoice = (charge as any).invoice as string | Stripe.Invoice | null | undefined;
       const invoiceId = typeof invoice === 'string' ? invoice : invoice?.id || null;
 
-      if (invoiceId && charge.amount_refunded > 0) {
+      if (charge.amount_refunded > 0) {
         try {
           const { processCommissionReversal } = await import('@/lib/affiliate-commission');
-          await processCommissionReversal(
-            charge.id,
-            invoiceId,
-            charge.amount_refunded,
-            'REFUND'
-          );
+
+          let orderId: string | null =
+            typeof charge.metadata?.orderId === 'string' && charge.metadata.orderId
+              ? charge.metadata.orderId
+              : null;
+
+          // Marketplace Checkout: PaymentIntent → Checkout Session → Order
+          if (!orderId) {
+            const piId =
+              typeof charge.payment_intent === 'string'
+                ? charge.payment_intent
+                : charge.payment_intent?.id || null;
+            if (piId && stripe) {
+              try {
+                const sessions = await stripe.checkout.sessions.list({
+                  payment_intent: piId,
+                  limit: 1,
+                });
+                const sessionId = sessions.data[0]?.id;
+                if (sessionId) {
+                  const order = await prisma.order.findFirst({
+                    where: { stripeSessionId: sessionId },
+                    select: { id: true },
+                  });
+                  orderId = order?.id ?? null;
+                }
+              } catch (lookupErr: any) {
+                console.warn(
+                  `Could not resolve order for charge ${charge.id}:`,
+                  lookupErr?.message || lookupErr
+                );
+              }
+            }
+          }
+
+          if (invoiceId || orderId) {
+            await processCommissionReversal({
+              reversalEventId: charge.id,
+              eventType: 'REFUND',
+              refundedAmountCents: charge.amount_refunded,
+              chargeAmountCents: charge.amount,
+              invoiceId,
+              orderId,
+            });
+          } else {
+            console.warn(
+              `charge.refunded ${charge.id}: no invoice or order link — affiliate reversal skipped`
+            );
+          }
         } catch (reversalError: any) {
           console.error(`❌ Failed to process commission reversal for charge ${charge.id}:`, reversalError.message);
         }
@@ -327,20 +370,54 @@ export async function POST(req: NextRequest) {
 
       if (chargeId) {
         try {
-          // Get charge to find invoice
+          // Get charge to find invoice / payment_intent → order
           const charge = await stripe.charges.retrieve(chargeId);
           // invoice is an expandable field in Stripe
           const invoice = (charge as any).invoice as string | Stripe.Invoice | null | undefined;
           const invoiceId = typeof invoice === 'string' ? invoice : invoice?.id || null;
 
-          if (invoiceId) {
+          let orderId: string | null =
+            typeof charge.metadata?.orderId === 'string' && charge.metadata.orderId
+              ? charge.metadata.orderId
+              : null;
+          if (!orderId) {
+            const piId =
+              typeof charge.payment_intent === 'string'
+                ? charge.payment_intent
+                : charge.payment_intent?.id || null;
+            if (piId) {
+              try {
+                const sessions = await stripe.checkout.sessions.list({
+                  payment_intent: piId,
+                  limit: 1,
+                });
+                const sessionId = sessions.data[0]?.id;
+                if (sessionId) {
+                  const order = await prisma.order.findFirst({
+                    where: { stripeSessionId: sessionId },
+                    select: { id: true },
+                  });
+                  orderId = order?.id ?? null;
+                }
+              } catch (lookupErr: any) {
+                console.warn(
+                  `Could not resolve order for dispute ${dispute.id}:`,
+                  lookupErr?.message || lookupErr
+                );
+              }
+            }
+          }
+
+          if (invoiceId || orderId) {
             const { processCommissionReversal } = await import('@/lib/affiliate-commission');
-            await processCommissionReversal(
-              dispute.id,
+            await processCommissionReversal({
+              reversalEventId: dispute.id,
+              eventType: 'CHARGEBACK',
+              refundedAmountCents: dispute.amount,
+              chargeAmountCents: charge.amount,
               invoiceId,
-              dispute.amount,
-              'CHARGEBACK'
-            );
+              orderId,
+            });
           }
         } catch (reversalError: any) {
           console.error(`❌ Failed to process commission reversal for dispute ${dispute.id}:`, reversalError.message);
