@@ -3,6 +3,8 @@
  * Run: npx tsx scripts/test-delivery-marketplace-phase1.ts
  */
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   calculateAgeFromDob,
   COMMERCIAL_DELIVERY_MIN_AGE,
@@ -20,6 +22,8 @@ import {
   outboundLocalProviderMode,
 } from '../lib/delivery/delivery-fulfillment-vocabulary';
 import { readDeliveryAlignmentFlags } from '../lib/delivery/delivery-alignment-flags';
+
+const ROOT = path.join(__dirname, '..');
 
 function test(name: string, fn: () => void) {
   try {
@@ -238,6 +242,24 @@ test('adult eligible deliverer can accept', () => {
     ageGateEnabled: true,
   });
   assert.equal(gate.ok, true);
+});
+
+test('profile PUT path rejects legacy 15–25 band (commercial 18+)', () => {
+  const src = fs.readFileSync(
+    path.join(ROOT, 'app/api/delivery/profile/route.ts'),
+    'utf8'
+  );
+  assert.equal(src.includes('age < 15'), false);
+  assert.equal(src.includes('15 en 25'), false);
+  assert.equal(src.includes('assertCommercialCourierAgeForActivation'), true);
+  const under = assertCommercialCourierAgeForActivation({
+    claimedAge: 16,
+    dateOfBirth: noon('2010-01-01'),
+    userId: 'u-legacy',
+    now: noon('2026-08-04'),
+    ageGateEnabled: true,
+  });
+  assert.equal(under.ok, false);
 });
 
 if (process.exitCode) {
