@@ -1,13 +1,21 @@
 {
   "phase": "2.3-brand-entity-dominance",
+  "extension": "core-entity-reinforcement",
   "canonicalSpelling": "HomeCheff",
+  "canonicalEntityDescriptionEn": "HomeCheff is a digital neighbourhood marketplace where people create value through their own craftsmanship, creativity and personal services. People can discover, offer, buy, sell, trade and request locally, while unique creations and specialised services can naturally reach a wider audience. Everything starts close to home.",
+  "localFirstNotLocalOnly": true,
+  "craftsmanshipNotOrdinarySecondHand": true,
   "alternateNameRemoved": [
     "home cheff",
     "home-cheff"
   ],
   "faqDisambiguationAdded": true,
+  "faqLocalFirstAdded": true,
+  "faqCraftsmanshipAdded": true,
   "gscStatus": "prepared",
   "bingStatus": "prepared",
   "ownershipFabricated": false,
-  "awFilesChanged": 0
+  "awFilesChanged": 0,
+  "architectureChanged": false,
+  "plannersChanged": false
 }
