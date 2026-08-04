@@ -1,0 +1,16 @@
+{
+  "homepage_html_bytes": 56893,
+  "jsonld_script_count_home": 3,
+  "shared_first_load_js_from_build": "636 kB",
+  "lighthouse": "NOT_RUN",
+  "psi": "NOT_RUN",
+  "og_image_status": 200,
+  "og_image_bytes": 122092,
+  "twitter_image_status": 200,
+  "limitations": [
+    "No Lighthouse/PSI",
+    "Playwright not available",
+    "next start standalone warning"
+  ],
+  "materialRegressionSuspected": false
+}

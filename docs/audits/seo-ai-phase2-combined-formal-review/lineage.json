@@ -1,0 +1,67 @@
+{
+  "reviewedAt": "2026-08-04T22:50:00Z",
+  "originMain": {
+    "sha": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab",
+    "subject": "docs(workspace): freeze WX Phase 1C.1.2 Production promotion evidence"
+  },
+  "productionRuntime": {
+    "deploymentId": "dpl_AR9ErvZwJsWXNAcc5X3HZ9be6gzM",
+    "url": "https://homecheff-l1b60innu-sergio-s-projects-f7b64ee1.vercel.app",
+    "aliases": ["https://homecheff.eu", "https://homecheff.nl"],
+    "gitSha": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab",
+    "gitRef": "main",
+    "source": "vercel redeploy of main freeze",
+    "matchesOriginMain": true,
+    "seoPhasesDeployed": false
+  },
+  "phases": {
+    "phase2": {
+      "branch": "seo/phase2-ai-discoverability-implementation",
+      "commitA": "fce59d1642f43bea8c8fda8329b0391f7ed4947c",
+      "commitB": "f5d02f4d83bfadadc87a190d4e0e5eba3f1e3402",
+      "tip": "f5d02f4d83bfadadc87a190d4e0e5eba3f1e3402",
+      "docsOnlyAboveBehavioural": true,
+      "behaviouralTip": "fce59d1642f43bea8c8fda8329b0391f7ed4947c",
+      "mergeBaseVsMain": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab"
+    },
+    "phase21": {
+      "branch": "seo/phase2-1-entity-philosophy",
+      "commitA": "65976f979a7b87e2b4439372d8606512a8b4ce07",
+      "commitB": "a790e9d5741797c25f6ac252f4be26c242dae4fe",
+      "tip": "a790e9d5741797c25f6ac252f4be26c242dae4fe",
+      "docsOnlyAboveBehavioural": true,
+      "behaviouralTip": "65976f979a7b87e2b4439372d8606512a8b4ce07",
+      "mergeBaseVsMain": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab",
+      "includesPhase2": true
+    },
+    "phase22": {
+      "branch": "seo/phase2-2-authority-trust",
+      "commitA": "40d97c1b18ba975ff5ed7e5170a4fe5e62035d12",
+      "commitB": "41eb0eb36269ecd9878310fe812bbe8536878ec7",
+      "tip": "41eb0eb36269ecd9878310fe812bbe8536878ec7",
+      "docsOnlyAboveBehavioural": true,
+      "behaviouralTip": "40d97c1b18ba975ff5ed7e5170a4fe5e62035d12",
+      "mergeBaseVsMain": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab",
+      "includesPhase21": true,
+      "includesPhase2": true
+    }
+  },
+  "lineage": [
+    "4989942a (origin/main = merge-base)",
+    "fce59d16 feat(seo): Phase 2 SEO + AI discoverability P0/P1 implementation",
+    "f5d02f4d docs(seo): Phase 2 SEO + AI discoverability evidence pack",
+    "65976f97 feat(seo): reinforce HomeCheff entity philosophy",
+    "a790e9d5 docs(seo): add entity philosophy evidence pack",
+    "40d97c1b feat(seo): strengthen authority and trust signals",
+    "41eb0eb3 docs(seo): add authority and trust evidence pack"
+  ],
+  "topology": "linear",
+  "divergent": false,
+  "ambiguous": false,
+  "combinedPromotionSource": {
+    "branch": "origin/seo/phase2-2-authority-trust",
+    "sha": "41eb0eb36269ecd9878310fe812bbe8536878ec7",
+    "note": "Single combined tip — do not merge Phase 2 / 2.1 / 2.2 independently"
+  },
+  "verdict": "LINEAGE_RESOLVED"
+}

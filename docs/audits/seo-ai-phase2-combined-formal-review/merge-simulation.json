@@ -1,0 +1,20 @@
+{
+  "base": "origin/main",
+  "baseSha": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab",
+  "source": "origin/seo/phase2-2-authority-trust",
+  "sourceSha": "41eb0eb36269ecd9878310fe812bbe8536878ec7",
+  "method": "git worktree + git merge --no-ff --no-commit",
+  "mergeOutput": "Automatic merge went well; stopped before committing as requested",
+  "conflictFiles": [],
+  "cleanlyMergeable": true,
+  "verdict": "CLEANLY_MERGEABLE",
+  "notes": [
+    "merge-base(origin/main, phase2.2 tip) === origin/main tip — simulated merge tree equals combined tip tree",
+    "production build + AW suites executed on combined tip worktree as merge-equivalent proof",
+    "no duplicated SEO systems; linear Phase 2 → 2.1 → 2.2 stack",
+    "simulation worktree discarded after proof; no merge commit left on main"
+  ],
+  "lostFreezeEvidence": false,
+  "unrelatedFileInclusion": false,
+  "branchOrderingMistake": false
+}

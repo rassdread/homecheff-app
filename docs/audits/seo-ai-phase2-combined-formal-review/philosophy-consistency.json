@@ -1,0 +1,57 @@
+{
+  "principles": [
+    {
+      "needle": "Everything starts close to home",
+      "present": true
+    },
+    {
+      "needle": "Distance determines priority, not possibility",
+      "present": true
+    },
+    {
+      "needle": "digital neighbourhood marketplace",
+      "present": true
+    },
+    {
+      "needle": "community-first",
+      "present": true
+    },
+    {
+      "needle": "creator-first",
+      "present": true
+    },
+    {
+      "needle": "craftsmanship-first",
+      "present": true
+    },
+    {
+      "needle": "neighbourhood-first",
+      "present": true
+    },
+    {
+      "needle": "people-first",
+      "present": true
+    }
+  ],
+  "secondHandBoundaryInPhilosophy": [
+    {
+      "needle": "not a second-hand marketplace for ordinary resale",
+      "present": true
+    },
+    {
+      "needle": "transformed through the creator",
+      "present": true
+    },
+    {
+      "needle": "not from simple resale",
+      "present": true
+    }
+  ],
+  "localFirstScalePresent": true,
+  "notInternationalMarketplaceBranding": true,
+  "sources": [
+    "lib/seo/entity-philosophy.ts",
+    "lib/seo/platform-definition.ts",
+    "lib/seo/ai-machine-briefs.ts"
+  ]
+}

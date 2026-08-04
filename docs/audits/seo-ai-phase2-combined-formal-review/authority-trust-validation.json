@@ -1,0 +1,26 @@
+{
+  "legalOperator": {
+    "name": true,
+    "kvk": true,
+    "locality": true,
+    "noStreetAddress": true,
+    "noFoundingDate": true
+  },
+  "founder": true,
+  "sameAsVerifiedOnly": true,
+  "contacts": true,
+  "policyPaths": {
+    "file": "lib/seo/authority-trust-signals.ts",
+    "hasManifest": true,
+    "hasPrivacy": true,
+    "hasTrust": true,
+    "hasTerms": true,
+    "hasConstitution": true,
+    "hasCommunityGuidelines": true
+  },
+  "schemaUsesPolicies": true,
+  "localNapHonest": true,
+  "gbpBlockedWithoutNap": true,
+  "wikipediaBlocked": true,
+  "noAbsoluteSafetyGuarantee": true
+}

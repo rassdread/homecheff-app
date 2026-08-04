@@ -1,0 +1,8 @@
+{
+  "entityIsNot": true,
+  "secondHandPhilosophyBlock": true,
+  "i18nResaleReasonUpdated": true,
+  "llmsContainsBoundary": true,
+  "aiTxtContainsBoundary": true,
+  "verdict": "BOUNDARY_PRESENT"
+}

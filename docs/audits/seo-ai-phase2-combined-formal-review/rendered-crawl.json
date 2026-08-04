@@ -1,0 +1,24 @@
+{
+  "method": "Bounded inference + raw SSR comparison (Playwright/Puppeteer not installed in isolated worktree)",
+  "limitation": "Full Chromium rendered crawl not executed in this review environment.",
+  "homepage": {
+    "rawH1NonEmpty": true,
+    "rawH1Duplicate": true,
+    "rawEntityDefinitionPresent": true,
+    "rawJsonLdRootFilled": true,
+    "expectedRendered": "i18n + ssrIdentity fallbacks keep identity; duplicate H1 may persist if both orientation strip and legacy hero paths contribute depending on AW visibility"
+  },
+  "pillarComparisonTrustManifest": {
+    "rawH1Empty": true,
+    "rawBodyEntityStringsPresent": true,
+    "rawPageLevelFaqWebPageJsonLdEmpty": true,
+    "expectedRendered": "After client i18n hydration, H1 and FAQ/WebPage JSON-LD fields fill from translation catalogs",
+    "crawlerRisk": "Non-JS crawlers see empty page-level FAQ/WebPage JSON-LD shells on SeoLandingTemplate routes; root Organization/WebSite remain authoritative"
+  },
+  "rebalanceLandings": {
+    "example": "/handgemaakte-producten-uit-de-buurt",
+    "rawH1NonEmpty": true,
+    "rawJsonLdFilled": true
+  },
+  "machineRoutes": "Identical in raw and rendered (plain text / image endpoints)"
+}

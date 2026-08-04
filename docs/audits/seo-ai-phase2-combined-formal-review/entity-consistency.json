@@ -1,0 +1,9 @@
+{
+  "ENTITY_IS_feeds_platform": true,
+  "ENTITY_META_feeds_platform": true,
+  "briefsImportPhilosophy": true,
+  "briefsImportEntityGraph": true,
+  "homepageUsesEntityHomepageDefinition": true,
+  "rootGraphUsesBuilders": true,
+  "jsonLdIsClassicScript": false
+}
