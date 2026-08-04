@@ -1,0 +1,41 @@
+{
+  "blockedAt": "2026-08-04T23:15:59.770885Z",
+  "failedGate": "GATE_1_SOURCE_AND_LINEAGE",
+  "reason": "origin/main and live Production advanced past Formal Review baseline with unrelated commerce/delivery release",
+  "formalReviewBaseline": {
+    "originMainAtReview": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab",
+    "productionDeployAtReview": "dpl_AR9ErvZwJsWXNAcc5X3HZ9be6gzM",
+    "combinedReviewedTip": "13c3745234ceb98e99b2f13fe460eff50cb7c85b",
+    "behaviouralTip": "40d97c1b18ba975ff5ed7e5170a4fe5e62035d12"
+  },
+  "current": {
+    "originMain": "3a7344196f1e0e978114e8f7d7f63bbb211198fe",
+    "originMainSubject": "docs(release): record Phase 5.0 controlled Production launch evidence",
+    "combinedBranchTip": "13c3745234ceb98e99b2f13fe460eff50cb7c85b",
+    "mergeBaseStill": "4989942aa2569a857d1a8a7ed3ac2825fc1f9cab",
+    "liveProductionSha": "3a7344196f1e0e978114e8f7d7f63bbb211198fe",
+    "liveProductionDeployId": "dpl_3jnkSu9toaWpheRiHiqCWC5HLDDj",
+    "liveBehaviouralMergeSha": "a4d4c2c2635d2fcd4a026cb178781a374e891849",
+    "reviewedDeployStillExistsButNotLive": "dpl_AR9ErvZwJsWXNAcc5X3HZ9be6gzM"
+  },
+  "mainAdvancesSinceReview": [
+    "a636f67f feat(delivery): align marketplace pricing and named provider booking",
+    "e99ff248 fix(delivery): enforce 18+ on delivery profile updates",
+    "2eeae1a0 fix(delivery): create named-provider DeliveryOrder without geo gate",
+    "b27d01bb test(delivery): expect MANUAL_CONFIRM DeliveryOrder status PENDING",
+    "70a3dd96 fix(affiliate): reverse marketplace order commissions on refund",
+    "a4fb27f6 docs(phase42): final Preview readiness audit and affiliate refund proofs",
+    "a4d4c2c2 merge(commerce): promote delivery marketplace and affiliate refund to Production",
+    "3a734419 docs(release): record Phase 5.0 controlled Production launch evidence"
+  ],
+  "mainAdvanceIncludes": {
+    "prismaSchema": true,
+    "prismaMigrations": true,
+    "checkoutApi": true,
+    "stripeWebhook": true,
+    "deliveryApis": true,
+    "i18nBothLanguages": true
+  },
+  "promotionActionsTaken": "NONE \u2014 stopped before merge/deploy",
+  "requiredNextStep": "Rebase or remount SEO combined tip onto current origin/main, re-run Formal Review / merge-safety against new baseline, then promote"
+}
