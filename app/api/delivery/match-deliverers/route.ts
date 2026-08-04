@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateDistance } from "@/lib/geocoding";
 import { getRouteDistance } from "@/lib/google-maps-distance";
-import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
+import { delivererMatchingWhere, isCommerciallyMatchableDeliverer } from "@/lib/delivery/delivery-eligibility";
 import { resolveDelivererPosition } from "@/lib/delivery/delivery-position";
+import { logCommercialAgeBlock } from "@/lib/delivery/delivery-age";
+import { calculateProviderDeliveryPrice } from "@/lib/delivery/provider-pricing";
+import {
+  resolvePublicAvailabilityBadge,
+  validateProviderAutoConfirm,
+  ACCEPTANCE_MODE_AUTO,
+} from "@/lib/delivery/provider-acceptance";
+import { getDeliveryAlignmentFlags } from "@/lib/delivery/delivery-alignment-flags";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +81,26 @@ export async function GET(req: NextRequest) {
         homeLat: true,
         homeLng: true,
         isOnline: true,
+        isActive: true,
+        isVerified: true,
+        isBlocked: true,
+        age: true,
+        pricingEnabled: true,
+        baseFeeCents: true,
+        pricePerKmCents: true,
+        minimumFeeCents: true,
+        freeDeliveryRadiusKm: true,
+        currency: true,
+        nationalCoverage: true,
+        acceptanceMode: true,
+        providerType: true,
+        temporaryOffline: true,
+        workStartTime: true,
+        workEndTime: true,
+        estimatedPickupDelayMinutes: true,
+        preparationTimeMinutes: true,
+        maxSimultaneousDeliveries: true,
+        availableDays: true,
         user: {
           select: {
             id: true,
@@ -80,10 +108,30 @@ export async function GET(req: NextRequest) {
             lat: true,
             lng: true,
             place: true,
-            profileImage: true
+            profileImage: true,
+            dateOfBirth: true,
           }
         }
       }
+    });
+
+    const ageEligibleProfiles = deliveryProfiles.filter((delivery) => {
+      const ok = isCommerciallyMatchableDeliverer({
+        isActive: delivery.isActive,
+        isVerified: delivery.isVerified,
+        isBlocked: delivery.isBlocked,
+        dateOfBirth: delivery.user?.dateOfBirth,
+        profileAge: delivery.age,
+      });
+      if (!ok) {
+        logCommercialAgeBlock({
+          boundary: 'matching',
+          userId: delivery.user?.id,
+          profileId: delivery.id,
+          reason: 'EXCLUDED_FROM_MATCH',
+        });
+      }
+      return ok;
     });
 
     // Check if this is a Caribbean country/island
@@ -94,7 +142,7 @@ export async function GET(req: NextRequest) {
     // Use Google Maps for accurate route distances
     // Priority: Use GPS location (currentLat/currentLng) if GPS tracking is enabled and online, otherwise use home location (user.lat/lng)
     const matchedDeliverers = await Promise.all(
-      deliveryProfiles.map(async (delivery) => {
+      ageEligibleProfiles.map(async (delivery) => {
         const position = resolveDelivererPosition(delivery);
         if (!position) return null;
 
@@ -219,20 +267,122 @@ export async function GET(req: NextRequest) {
         isCaribbean: isCaribbean,
         deliveryMode: isCaribbean ? 'island' : 'distance'
       },
-      matchedDeliverers: matchedDeliverers.map(delivery => ({
-        id: delivery.id,
-        userId: delivery.user.id,
-        name: delivery.user.name,
-        place: delivery.user.place,
-        profileImage: delivery.user.profileImage,
-        vehicleType: delivery.transportation[0] || 'BIKE',
-        deliveryRadius: delivery.maxDistance,
-        distanceToSeller: delivery.distanceToSeller,
-        distanceToBuyer: delivery.distanceToBuyer,
-        totalDeliveryDistance: delivery.totalDeliveryDistance,
-        rating: delivery.averageRating || 0,
-        completedDeliveries: delivery.totalDeliveries
-      })),
+      // Named provider selection contract (Phase 3). No GPS in public payload.
+      matchedDeliverers: filteredAndSortedDeliverers.map((delivery) => {
+        const routeDistance =
+          buyerLat && buyerLng ? delivery.distanceToBuyer : null;
+
+        let calculatedDeliveryPrice: number | null = null;
+        let pricingCode: string | null = null;
+        if (routeDistance != null) {
+          const quote = calculateProviderDeliveryPrice({
+            pricing: {
+              pricingEnabled: delivery.pricingEnabled,
+              baseFeeCents: delivery.baseFeeCents,
+              pricePerKmCents: delivery.pricePerKmCents,
+              minimumFeeCents: delivery.minimumFeeCents,
+              freeDeliveryRadiusKm: delivery.freeDeliveryRadiusKm,
+              maxDistanceKm: delivery.maxDistance,
+              currency: delivery.currency,
+              nationalCoverage: delivery.nationalCoverage,
+            },
+            routeDistanceKm: routeDistance,
+          });
+          if (quote.ok) {
+            calculatedDeliveryPrice = quote.deliveryFeeCents;
+          } else {
+            pricingCode = quote.code;
+          }
+        }
+
+        const flags = getDeliveryAlignmentFlags();
+        const autoCheck = validateProviderAutoConfirm(
+          {
+            id: delivery.id,
+            isActive: delivery.isActive,
+            isVerified: delivery.isVerified,
+            isBlocked: delivery.isBlocked,
+            isOnline: delivery.isOnline,
+            pricingEnabled: delivery.pricingEnabled,
+            baseFeeCents: delivery.baseFeeCents,
+            pricePerKmCents: delivery.pricePerKmCents,
+            minimumFeeCents: delivery.minimumFeeCents,
+            age: delivery.age,
+            maxDistance: delivery.maxDistance,
+            nationalCoverage: delivery.nationalCoverage,
+            temporaryOffline: delivery.temporaryOffline,
+            workStartTime: delivery.workStartTime,
+            workEndTime: delivery.workEndTime,
+            availableDays: delivery.availableDays,
+            maxSimultaneousDeliveries: delivery.maxSimultaneousDeliveries,
+            preparationTimeMinutes: delivery.preparationTimeMinutes,
+            estimatedPickupDelayMinutes: delivery.estimatedPickupDelayMinutes,
+            transportation: delivery.transportation,
+            acceptanceMode: delivery.acceptanceMode,
+            dateOfBirth: delivery.user?.dateOfBirth,
+          },
+          {
+            routeDistanceKm: routeDistance,
+            requirePricingEnabled: flags.providerPricingEnabled,
+          }
+        );
+
+        const availabilityBadge = resolvePublicAvailabilityBadge({
+          acceptanceMode: delivery.acceptanceMode,
+          temporaryOffline: delivery.temporaryOffline,
+          isActive: delivery.isActive,
+          isOnline: delivery.isOnline,
+          autoConfirmOk: autoCheck.ok,
+        });
+
+        const etaMinutes =
+          (delivery.estimatedPickupDelayMinutes ?? 10) +
+          (delivery.preparationTimeMinutes ?? 15) +
+          Math.round((delivery.totalDeliveryDistance || 0) * 3);
+
+        return {
+          id: delivery.id,
+          userId: delivery.user.id,
+          name: delivery.user.name,
+          place: delivery.user.place,
+          profileImage: delivery.user.profileImage,
+          vehicleType: delivery.transportation[0] || 'BIKE',
+          vehicle: delivery.transportation[0] || 'BIKE',
+          deliveryRadius: delivery.maxDistance,
+          distanceToSeller: delivery.distanceToSeller,
+          distanceToBuyer: delivery.distanceToBuyer,
+          totalDeliveryDistance: delivery.totalDeliveryDistance,
+          rating: delivery.averageRating || 0,
+          verification: delivery.isVerified,
+          completedDeliveries: delivery.totalDeliveries,
+          pricingEnabled: delivery.pricingEnabled,
+          baseFeeCents: delivery.baseFeeCents,
+          pricePerKmCents: delivery.pricePerKmCents,
+          minimumFeeCents: delivery.minimumFeeCents,
+          freeDeliveryRadiusKm: delivery.freeDeliveryRadiusKm,
+          currency: delivery.currency,
+          nationalCoverage: delivery.nationalCoverage,
+          routeDistanceKm: routeDistance,
+          quotedFeeCents: calculatedDeliveryPrice,
+          pricingSource: delivery.pricingEnabled ? 'PROVIDER' : null,
+          pricingFormulaVersion: calculatedDeliveryPrice != null ? 'provider-v1' : null,
+          pricingCode,
+          baseFee: delivery.baseFeeCents,
+          pricePerKm: delivery.pricePerKmCents,
+          minimumFee: delivery.minimumFeeCents,
+          routeDistance,
+          calculatedDeliveryPrice,
+          acceptanceMode: delivery.acceptanceMode || 'MANUAL_CONFIRM',
+          providerType: delivery.providerType || 'INDEPENDENT',
+          confirmationMode:
+            delivery.acceptanceMode === ACCEPTANCE_MODE_AUTO
+              ? 'AUTO_CONFIRM'
+              : 'MANUAL_CONFIRM',
+          availabilityBadge,
+          estimatedArrivalMinutes: etaMinutes,
+          isAutoConfirmEligible: autoCheck.ok && delivery.acceptanceMode === ACCEPTANCE_MODE_AUTO,
+        };
+      }),
       totalMatches: filteredAndSortedDeliverers.length
     });
 

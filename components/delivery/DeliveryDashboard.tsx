@@ -437,13 +437,16 @@ export default function DeliveryDashboard() {
     await updateOrderStatus(orderId, 'CANCELLED');
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrencyFromCents = (cents: number) => {
     const locale = language === 'en' ? 'en-GB' : 'nl-NL';
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR'
-    }).format(amount);
+    }).format((Number(cents) || 0) / 100);
   };
+
+  /** @deprecated Prefer formatCurrencyFromCents for deliveryFee / quotedFeeCents */
+  const formatCurrency = (amount: number) => formatCurrencyFromCents(amount);
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);

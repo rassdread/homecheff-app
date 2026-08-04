@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { MapPin, Clock, Package, Truck, Users, CreditCard, CheckCircle, Navigation, AlertCircle, Loader2, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import TeenDeliveryInfo from '@/components/delivery/TeenDeliveryInfo';
+import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
 import { getCurrentLocation } from '@/lib/geolocation';
 import { useDeliveryAvailability } from '@/hooks/useDeliveryAvailability';
 import { usePersistentState } from '@/hooks/usePersistentState';
@@ -20,6 +21,45 @@ import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
 } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
+import {
+  isLocalProviderCheckoutSelection,
+  isSellerDeliveryCheckoutSelection,
+  outboundLocalProviderMode,
+} from '@/lib/delivery/delivery-fulfillment-vocabulary';
+
+function ManualBookingPoller({
+  bookingRequestId,
+  onStatus,
+}: {
+  bookingRequestId: string;
+  onStatus: (status: string) => void;
+}) {
+  useEffect(() => {
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}`);
+        const data = await res.json();
+        if (!cancelled && data.status) onStatus(data.status);
+      } catch {
+        /* ignore poll errors */
+      }
+    };
+    tick();
+    const id = setInterval(tick, 3000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [bookingRequestId, onStatus]);
+
+  return (
+    <p className="text-sm text-amber-800 flex items-center gap-2">
+      <Loader2 className="w-4 h-4 animate-spin" />
+      Wachten op bevestiging van de bezorger (max. 5 minuten)…
+    </p>
+  );
+}
 
 type DeliveryOption = {
   id: string;
@@ -163,6 +203,21 @@ export default function CheckoutPage() {
     breakdown: any;
   } | null>(null);
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
+  const [namedProviderSelectionEnabled, setNamedProviderSelectionEnabled] = useState(false);
+  const [selectedDeliverer, setSelectedDeliverer] = useState<Deliverer | null>(null);
+  const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
+  const [bookingStatus, setBookingStatus] = useState<string | null>(null);
+  const [bookingBusy, setBookingBusy] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/delivery/alignment-flags')
+      .then((r) => r.json())
+      .then((d) => {
+        setNamedProviderSelectionEnabled(Boolean(d.namedProviderSelectionEnabled));
+      })
+      .catch(() => setNamedProviderSelectionEnabled(false));
+  }, []);
 
   // Get product locations from cart for delivery matching
   const [sellerLocations, setSellerLocations] = useState<Array<{lat: number, lng: number, productId: string}>>([]);
@@ -360,8 +415,8 @@ export default function CheckoutPage() {
       return;
     }
     
-    const isDelivery = checkoutDraft.selectedDelivery === 'teen_delivery' || 
-                       checkoutDraft.selectedDelivery === 'local_delivery';
+    const isDelivery = isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) || 
+                       isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery);
     const isShipping = checkoutDraft.selectedDelivery === 'shipping';
     
     // For delivery: need coordinates
@@ -420,8 +475,13 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             items: checkoutItems,
             coordinates: checkoutDraft.coordinates,
-            deliveryMode: checkoutDraft.selectedDelivery,
-            country: checkoutDraft.country || 'NL'
+            deliveryMode: isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)
+              ? outboundLocalProviderMode()
+              : checkoutDraft.selectedDelivery,
+            country: checkoutDraft.country || 'NL',
+            ...(selectedDeliverer?.id
+              ? { deliveryProfileId: selectedDeliverer.id }
+              : {}),
           })
         });
 
@@ -439,7 +499,7 @@ export default function CheckoutPage() {
     } finally {
       setIsCalculatingFee(false);
     }
-  }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.country, checkoutDraft.postalCode, checkoutItems]);
+  }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.country, checkoutDraft.postalCode, checkoutItems, selectedDeliverer?.id]);
 
   // Recalculate fee when coordinates, delivery mode, or address changes.
   // Debounced (UX-FIN-4C.10) so typing a postal code no longer fires a shipping
@@ -451,8 +511,8 @@ export default function CheckoutPage() {
     }
 
     const isShipping = checkoutDraft.selectedDelivery === 'shipping';
-    const isDelivery = checkoutDraft.selectedDelivery === 'teen_delivery' || 
-                       checkoutDraft.selectedDelivery === 'local_delivery';
+    const isDelivery = isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) || 
+                       isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery);
 
     const shouldCalc =
       (isShipping && !!checkoutDraft.postalCode && !!checkoutDraft.country) ||
@@ -467,7 +527,7 @@ export default function CheckoutPage() {
       calculateDeliveryFee();
     }, 300);
     return () => clearTimeout(timer);
-  }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.addressValidated, checkoutDraft.postalCode, checkoutDraft.country, calculateDeliveryFee]);
+  }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.addressValidated, checkoutDraft.postalCode, checkoutDraft.country, calculateDeliveryFee, selectedDeliverer?.id]);
 
   // Handle address change from DynamicAddressFields
   const handleAddressChange = useCallback((addressData: AddressData) => {
@@ -561,7 +621,7 @@ export default function CheckoutPage() {
       available: availableDeliveryModes.hasDelivery && availableDeliveryModes.hasSellerDelivery
     },
     {
-      id: 'teen_delivery',
+      id: 'local_provider',
       name: t('checkout.teenDelivery'),
       description: t('checkout.teenDeliveryDescription'),
       icon: <Users className="w-6 h-6" />,
@@ -622,8 +682,8 @@ export default function CheckoutPage() {
     [subtotalCents]
   );
 
-  const isTeenDeliveryUnavailable =
-    checkoutDraft.selectedDelivery === 'teen_delivery' &&
+  const isLocalProviderUnavailable =
+    isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
     (!checkoutDraft.coordinates || !isDeliveryAvailable);
 
   const handleCheckout = async () => {
@@ -635,16 +695,35 @@ export default function CheckoutPage() {
 
     // Validate address before checkout
     if (
-      (checkoutDraft.selectedDelivery === 'local_delivery' || checkoutDraft.selectedDelivery === 'teen_delivery') &&
+      (isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery) || isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)) &&
       (!checkoutDraft.coordinates || !checkoutDraft.addressValidated)
     ) {
       setCheckoutError(t('checkout.validateAddressFirst'));
       return;
     }
 
-    if (isTeenDeliveryUnavailable) {
+    if (isLocalProviderUnavailable) {
       setCheckoutError(t('checkout.teenDeliveryUnavailable'));
       return;
+    }
+
+    if (
+      namedProviderSelectionEnabled &&
+      isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)
+    ) {
+      if (!selectedDeliverer) {
+        setCheckoutError('Kies een bezorgaanbieder om door te gaan.');
+        return;
+      }
+      if (
+        bookingStatus !== 'AUTO_CONFIRMED' &&
+        bookingStatus !== 'ACCEPTED'
+      ) {
+        setCheckoutError(
+          'Wacht op bevestiging van de bezorger, of kies een aanbieder met directe bevestiging.'
+        );
+        return;
+      }
     }
 
     const primaryItem = checkoutItems[0];
@@ -675,7 +754,9 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: checkoutItems,
-          deliveryMode: checkoutDraft.selectedDelivery.toUpperCase(),
+          deliveryMode: isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)
+            ? outboundLocalProviderMode()
+            : checkoutDraft.selectedDelivery.toUpperCase(),
           address: fullAddress,
           street: checkoutDraft.street,
           houseNumber: checkoutDraft.houseNumber,
@@ -689,6 +770,18 @@ export default function CheckoutPage() {
           coordinates: checkoutDraft.coordinates,
           ...(isDealCheckout && dealCommunityOrderId
             ? { communityOrderId: dealCommunityOrderId }
+            : {}),
+          ...(namedProviderSelectionEnabled &&
+          isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
+          selectedDeliverer
+            ? {
+                selectedDeliveryProfileId: selectedDeliverer.id,
+                bookingRequestId: bookingRequestId || undefined,
+                clientQuotedFeeCents:
+                  actualDeliveryFee?.deliveryFeeCents ??
+                  selectedDeliverer.quotedFeeCents ??
+                  undefined,
+              }
             : {}),
         }),
       });
@@ -922,7 +1015,7 @@ export default function CheckoutPage() {
 
                 <div className="space-y-4">
                   {deliveryOptions.map((option) => {
-                    const isTeenDelivery = option.id === 'teen_delivery';
+                    const isTeenDelivery = option.id === 'local_provider' || option.id === 'teen_delivery';
                     const isLocalDelivery = option.id === 'local_delivery';
                     const isShipping = option.id === 'shipping';
                     const teenNeedsLocation = isTeenDelivery && !checkoutDraft.coordinates;
@@ -1043,61 +1136,144 @@ export default function CheckoutPage() {
                   })}
                 </div>
 
-                {/* Teen Delivery Info */}
-                {checkoutDraft.selectedDelivery === 'teen_delivery' && (
+                {/* Local provider: named selection (Phase 3) or legacy first-accept copy */}
+                {isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) && (
                   <div className="mt-6 space-y-4">
                     <TeenDeliveryInfo />
 
-                    <div
-                      className={`p-4 rounded-xl border-2 ${
-                        availabilityLoading
-                          ? 'border-blue-200 bg-blue-50 text-blue-700'
-                          : !checkoutDraft.coordinates
-                          ? 'border-gray-200 bg-gray-50 text-gray-700'
-                          : isDeliveryAvailable
-                          ? 'border-green-200 bg-gradient-to-r from-green-50 to-blue-50 text-green-800'
-                          : 'border-red-200 bg-red-50 text-red-700'
-                      }`}
-                    >
-                      <p className="font-semibold">
-                        {availabilityLoading
-                          ? t('checkout.checkingAvailability')
-                          : !checkoutDraft.coordinates
-                          ? t('checkout.validateAddressToSeeTeenDeliverers')
-                          : availability.message ||
-                            (isDeliveryAvailable
-                              ? t('checkout.deliverersAvailable')
-                              : t('checkout.noDeliverersAvailable'))}
-                      </p>
-                      {checkoutDraft.coordinates && availability.availableCount !== undefined && (
-                        <p className="text-sm mt-1">
-                          {isDeliveryAvailable
-                            ? `${availability.availableCount} bezorger${availability.availableCount === 1 ? '' : 's'} staan klaar.`
-                            : 'Probeer het later opnieuw of kies voor afhalen.'}
-                        </p>
-                      )}
-                    </div>
+                    {namedProviderSelectionEnabled ? (
+                      <>
+                        {checkoutDraft.coordinates && checkoutItems[0]?.productId ? (
+                          <DelivererSelector
+                            productId={checkoutItems[0].productId}
+                            buyerLat={checkoutDraft.coordinates.lat}
+                            buyerLng={checkoutDraft.coordinates.lng}
+                            selectedDelivererId={selectedDeliverer?.id}
+                            onSelectDeliverer={async (d) => {
+                              setSelectedDeliverer(d);
+                              setBookingError(null);
+                              setBookingRequestId(null);
+                              setBookingStatus(null);
+                              setBookingBusy(true);
+                              try {
+                                const res = await fetch('/api/delivery/booking-requests', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    deliveryProfileId: d.id,
+                                    productId: checkoutItems[0]?.productId,
+                                    buyerLat: checkoutDraft.coordinates?.lat,
+                                    buyerLng: checkoutDraft.coordinates?.lng,
+                                    routeDistanceKm: d.totalDeliveryDistance,
+                                    quotedFeeCents:
+                                      d.quotedFeeCents ?? d.calculatedDeliveryPrice ?? null,
+                                  }),
+                                });
+                                const data = await res.json();
+                                if (!res.ok) {
+                                  setBookingError(data.error || 'Boekingsaanvraag mislukt');
+                                  return;
+                                }
+                                setBookingRequestId(data.bookingRequestId);
+                                setBookingStatus(data.status);
+                              } catch (e) {
+                                setBookingError('Boekingsaanvraag mislukt');
+                              } finally {
+                                setBookingBusy(false);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <p className="text-sm text-gray-600">
+                            Valideer eerst je bezorgadres om beschikbare bezorgers te zien.
+                          </p>
+                        )}
 
-                    {checkoutDraft.coordinates && isDeliveryAvailable && (
-                      <div className="p-4 bg-white rounded-xl border border-green-200 shadow-sm">
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 bg-green-500 rounded-lg">
-                            <Users className="w-5 h-5 text-white" />
-                          </div>
-                          <div className="flex-1 text-sm text-green-800 space-y-2">
-                            <p>
-                              {t('checkout.allAvailableDeliverers')}
-                              <strong> {t('checkout.firstAcceptsDelivers')}</strong>
+                        {bookingBusy && (
+                          <p className="text-sm text-blue-700 flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" /> Bevestiging voorbereiden…
+                          </p>
+                        )}
+                        {bookingError && (
+                          <p className="text-sm text-red-700">{bookingError}</p>
+                        )}
+                        {bookingStatus === 'AUTO_CONFIRMED' && (
+                          <p className="text-sm text-green-700 font-medium">
+                            Direct bevestigd — je kunt doorgaan naar betalen.
+                          </p>
+                        )}
+                        {bookingStatus === 'PENDING' && bookingRequestId && (
+                          <ManualBookingPoller
+                            bookingRequestId={bookingRequestId}
+                            onStatus={(s) => setBookingStatus(s)}
+                          />
+                        )}
+                        {bookingStatus === 'ACCEPTED' && (
+                          <p className="text-sm text-green-700 font-medium">
+                            Bezorger heeft bevestigd — je kunt doorgaan naar betalen.
+                          </p>
+                        )}
+                        {(bookingStatus === 'REJECTED' || bookingStatus === 'EXPIRED') && (
+                          <p className="text-sm text-amber-800">
+                            Deze aanvraag is {bookingStatus === 'EXPIRED' ? 'verlopen' : 'geweigerd'}.
+                            Kies een andere bezorger. Er wordt nooit automatisch een andere bezorger toegewezen.
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div
+                          className={`p-4 rounded-xl border-2 ${
+                            availabilityLoading
+                              ? 'border-blue-200 bg-blue-50 text-blue-700'
+                              : !checkoutDraft.coordinates
+                              ? 'border-gray-200 bg-gray-50 text-gray-700'
+                              : isDeliveryAvailable
+                              ? 'border-green-200 bg-gradient-to-r from-green-50 to-blue-50 text-green-800'
+                              : 'border-red-200 bg-red-50 text-red-700'
+                          }`}
+                        >
+                          <p className="font-semibold">
+                            {availabilityLoading
+                              ? t('checkout.checkingAvailability')
+                              : !checkoutDraft.coordinates
+                              ? t('checkout.validateAddressToSeeTeenDeliverers')
+                              : availability.message ||
+                                (isDeliveryAvailable
+                                  ? t('checkout.deliverersAvailable')
+                                  : t('checkout.noDeliverersAvailable'))}
+                          </p>
+                          {checkoutDraft.coordinates && availability.availableCount !== undefined && (
+                            <p className="text-sm mt-1">
+                              {isDeliveryAvailable
+                                ? `${availability.availableCount} bezorger${availability.availableCount === 1 ? '' : 's'} staan klaar.`
+                                : 'Probeer het later opnieuw of kies voor afhalen.'}
                             </p>
-                            <ul className="space-y-1">
-                              <li>✓ {t('checkout.withinRadius')}</li>
-                              <li>✓ {t('checkout.availableInTimeSlot')}</li>
-                              <li>✓ {t('checkout.notificationOnAcceptance')}</li>
-                              <li>✓ {t('checkout.directMessagesWithDeliverer')}</li>
-                            </ul>
-                          </div>
+                          )}
                         </div>
-                      </div>
+
+                        {checkoutDraft.coordinates && isDeliveryAvailable && (
+                          <div className="p-4 bg-white rounded-xl border border-green-200 shadow-sm">
+                            <div className="flex items-start gap-3">
+                              <div className="p-2 bg-green-500 rounded-lg">
+                                <Users className="w-5 h-5 text-white" />
+                              </div>
+                              <div className="flex-1 text-sm text-green-800 space-y-2">
+                                <p>
+                                  {t('checkout.allAvailableDeliverers')}
+                                  <strong> {t('checkout.firstAcceptsDelivers')}</strong>
+                                </p>
+                                <ul className="space-y-1">
+                                  <li>✓ {t('checkout.withinRadius')}</li>
+                                  <li>✓ {t('checkout.availableInTimeSlot')}</li>
+                                  <li>✓ {t('checkout.notificationOnAcceptance')}</li>
+                                  <li>✓ {t('checkout.directMessagesWithDeliverer')}</li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
@@ -1277,7 +1453,7 @@ export default function CheckoutPage() {
                     disabled={
                       isProcessing ||
                       !checkoutDraft.selectedDelivery ||
-                      isTeenDeliveryUnavailable ||
+                      isLocalProviderUnavailable ||
                       buyerTotalCents <= 0
                     }
                     className="w-full mt-6 py-4 text-lg"

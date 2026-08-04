@@ -23,9 +23,12 @@ export async function POST(req: NextRequest) {
 
     const deliveryProfile = await prisma.deliveryProfile.findUnique({
       where: { id: deliveryProfileId },
+      include: { user: { select: { id: true, dateOfBirth: true } } },
     });
 
-    const acceptCheck = assertDelivererCanAccept(deliveryProfile);
+    const acceptCheck = assertDelivererCanAccept(deliveryProfile, {
+      dateOfBirth: deliveryProfile?.user?.dateOfBirth,
+    });
     if (!acceptCheck.ok) {
       return NextResponse.json(
         delivererAcceptDenialResponse(acceptCheck),

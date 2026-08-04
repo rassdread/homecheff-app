@@ -39,14 +39,14 @@ export default function SellerDeliverySettings({
     },
     {
       id: 'PLATFORM_DELIVERERS',
-      name: 'Via bezorgers',
-      description: 'Gebruik onze bezorgers voor flexibele bezorging',
+      name: 'Lokale bezorgaanbieders via HomeCheff',
+      description: 'Gebruik lokale bezorgaanbieders via HomeCheff voor flexibele bezorging',
       icon: <Users className="w-6 h-6" />,
       color: 'green',
       features: [
-        '✓ Automatische bezorger matching',
+        '✓ Matching met beschikbare bezorgaanbieders',
         '✓ Grotere bezorgradius mogelijk',
-        '✓ Afhankelijk van bezorger beschikbaarheid',
+        '✓ Afhankelijk van aanbieder-beschikbaarheid',
         '✓ GPS-gebaseerde selectie'
       ]
     },
@@ -223,8 +223,8 @@ export default function SellerDeliverySettings({
               <Users className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Platform Bezorgers</h3>
-              <p className="text-sm text-gray-600">Hoe werkt bezorging via ons platform?</p>
+              <h3 className="text-lg font-semibold text-gray-900">Lokale bezorgaanbieders via HomeCheff</h3>
+              <p className="text-sm text-gray-600">HomeCheff faciliteert het contact en de boeking</p>
             </div>
           </div>
 
@@ -268,10 +268,10 @@ export default function SellerDeliverySettings({
             <p>Je bezorgt zelf binnen {deliveryRadius}km</p>
           )}
           {deliveryMode === 'PLATFORM_DELIVERERS' && (
-            <p>Bezorging via platform bezorgers (afhankelijk van beschikbaarheid)</p>
+            <p>Bezorging via lokale bezorgaanbieders (afhankelijk van beschikbaarheid)</p>
           )}
           {deliveryMode === 'BOTH' && (
-            <p>Beide opties: zelf binnen {deliveryRadius}km + platform bezorgers</p>
+            <p>Beide opties: zelf binnen {deliveryRadius}km + lokale bezorgaanbieders</p>
           )}
         </div>
 

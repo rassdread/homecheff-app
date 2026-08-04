@@ -19,8 +19,8 @@ export interface DeliveryPricing {
  * Calculate delivery fee based on distance and delivery type
  * 
  * Pricing structure:
- * - Platform deliverers (teens): Base €2.50 + €0.50/km after 3km
- * - Seller delivery: Base €3.00 + €0.60/km after 5km (seller sets own price)
+ * - Local providers: Base €2.50 + €0.50/km after 3km (Phase 1 platform table; Phase 2 provider-owned)
+ * - Seller delivery: Base €3.00 + €0.60/km after 5km
  * - Split: 88% to deliverer, 12% to platform
  */
 export function calculateDeliveryFee(
@@ -38,7 +38,7 @@ export function calculateDeliveryFee(
     perKmRate = 60; // €0.60 per km
     freeDistanceKm = 5; // First 5km included
   } else {
-    // Platform deliverers (community/teens)
+    // Local delivery providers (platform fee table until Phase 2)
     baseFee = 250; // €2.50
     perKmRate = 50; // €0.50 per km
     freeDistanceKm = 3; // First 3km included

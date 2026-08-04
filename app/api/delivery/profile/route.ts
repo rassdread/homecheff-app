@@ -16,11 +16,24 @@ export async function POST(req: NextRequest) {
 
     const { age, transportation, maxDistance, availableDays, availableTimeSlots, bio } = await req.json();
 
-    // Validate age (must be 15-25)
-    if (age < 15 || age > 25) {
-      return NextResponse.json({ 
-        error: 'Je moet tussen 15 en 25 jaar oud zijn' 
-      }, { status: 400 });
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user!.id },
+      select: { id: true, dateOfBirth: true },
+    });
+
+    // Validate age — commercial delivery 18+
+    const { assertCommercialCourierAgeForActivation, delivererAcceptDenialResponse } = await import(
+      '@/lib/delivery/delivery-eligibility'
+    );
+    const ageGate = assertCommercialCourierAgeForActivation({
+      dateOfBirth: dbUser?.dateOfBirth,
+      claimedAge: age,
+      userId: user!.id,
+    });
+    if (!ageGate.ok) {
+      return NextResponse.json(delivererAcceptDenialResponse(ageGate), {
+        status: ageGate.status,
+      });
     }
 
     // Check if user already has a delivery profile
@@ -159,11 +172,24 @@ export async function PUT(req: NextRequest) {
       homeAddress
     } = await req.json();
 
-    // Validate age if provided
-    if (age && (age < 15 || age > 25)) {
-      return NextResponse.json({ 
-        error: 'Je moet tussen 15 en 25 jaar oud zijn' 
-      }, { status: 400 });
+    // Commercial delivery 18+ — replace legacy 15–25 band on profile updates
+    if ((age !== undefined && age !== null) || isActive === true) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user!.id },
+        select: { id: true, dateOfBirth: true },
+      });
+      const { assertCommercialCourierAgeForActivation, delivererAcceptDenialResponse } =
+        await import('@/lib/delivery/delivery-eligibility');
+      const ageGate = assertCommercialCourierAgeForActivation({
+        dateOfBirth: dbUser?.dateOfBirth,
+        claimedAge: age !== undefined && age !== null ? age : undefined,
+        userId: user!.id,
+      });
+      if (!ageGate.ok) {
+        return NextResponse.json(delivererAcceptDenialResponse(ageGate), {
+          status: ageGate.status,
+        });
+      }
     }
 
     // Validate transportation modes if provided

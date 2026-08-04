@@ -784,11 +784,14 @@ export async function GET(req: NextRequest) {
       );
       transformedRecentOrders = recentWithDistance;
 
-      // Get available TEEN_DELIVERY orders (DeliveryOrders without deliveryProfileId)
+      // Available: legacy pool (null profile) OR targeted to this provider
       const availableDeliveryOrders = await prisma.deliveryOrder.findMany({
         where: {
           status: 'PENDING',
-          deliveryProfileId: null // Only TEEN_DELIVERY orders
+          OR: [
+            { deliveryProfileId: null },
+            { deliveryProfileId: deliveryProfile.id },
+          ],
         },
         include: {
           order: {

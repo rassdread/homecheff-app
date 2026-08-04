@@ -1,0 +1,264 @@
+{
+  "ok": false,
+  "bypassUsed": true,
+  "authenticatedLogins": 1,
+  "loginAttempts": 5,
+  "results": [
+    {
+      "name": "desktop-home",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 7579,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "Ga naar inhoud HomeCheff cheff, garden en design netwerk Home Werken bij Profiel Berichten Reputatie Verkoop of deel 🇳🇱 Inloggen Aanmelden Er gebeurt iets in je buurt Ontdek wat mensen dichtbij maken, koken, groeien en",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/desktop-home.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/"
+    },
+    {
+      "name": "tablet-home",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 3492,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "Ga naar inhoud Inloggen Aanmelden Er gebeurt iets in je buurt dichtbij maken, koken, groeien en creëren Ruil ook zonder geld. Ontdek wat je kunt krijgen met wat jij kunt aanbieden. Ontdek, koop, verkoop of ruil huisgemaa",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/tablet-home.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/"
+    },
+    {
+      "name": "phone-home",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 3688,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "Ga naar inhoud Inloggen Aanmelden Er gebeurt iets in je buurt dichtbij maken, koken, groeien en creëren Ruil ook zonder geld. Ontdek wat je kunt krijgen met wat jij kunt aanbieden. Ontdek, koop, verkoop of ruil huisgemaa",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/phone-home.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/"
+    },
+    {
+      "name": "landscape-home",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 5554,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "Ga naar inhoud Verkoop of deel Inloggen Aanmelden Er gebeurt iets in je buurt dichtbij maken, koken, groeien en creëren Ruil ook zonder geld. Ontdek wat je kunt krijgen met wat jij kunt aanbieden. Ontdek, koop, verkoop o",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/landscape-home.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/"
+    },
+    {
+      "name": "desktop-login",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 2997,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 1451, \"vitals:dom-content-loaded\": 1451, \"vitals:load\": 1451, \"vitals:lcp\": 2030 }, \"webVitals\": { \"fcp\": 932, \"domContentLoaded\": 643, \"load\": 828, \"ttfb\": 494, \"lcp\": ",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/desktop-login.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/login"
+    },
+    {
+      "name": "phone-login",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 3054,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 1350, \"vitals:dom-content-loaded\": 1350, \"vitals:load\": 1350, \"vitals:lcp\": 1395 }, \"webVitals\": { \"fcp\": 646, \"domContentLoaded\": 581, \"load\": 850, \"ttfb\": 526, \"lcp\": ",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/phone-login.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/login"
+    },
+    {
+      "name": "desktop-register",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 2928,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 1384, \"vitals:dom-content-loaded\": 1384, \"vitals:load\": 1384, \"vitals:lcp\": 1433 }, \"webVitals\": { \"fcp\": 988, \"domContentLoaded\": 707, \"load\": 857, \"ttfb\": 575, \"lcp\": ",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/desktop-register.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/register"
+    },
+    {
+      "name": "desktop-feed",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 3972,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "Ga naar inhoud HomeCheff cheff, garden en design netwerk Home Werken bij Profiel Berichten Reputatie Verkoop of deel 🇳🇱 Inloggen Aanmelden Er gebeurt iets in je buurt Ontdek wat mensen dichtbij maken, koken, groeien en",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/desktop-feed.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/"
+    },
+    {
+      "name": "phone-feed",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 3040,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "Ga naar inhoud Inloggen Aanmelden Er gebeurt iets in je buurt dichtbij maken, koken, groeien en creëren Ruil ook zonder geld. Ontdek wat je kunt krijgen met wat jij kunt aanbieden. Ontdek, koop, verkoop of ruil huisgemaa",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/phone-feed.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/"
+    },
+    {
+      "name": "desktop-affiliate-marketing",
+      "status": 200,
+      "title": "Affiliateprogramma voor creators & communities | HomeCheff | HomeCheff",
+      "elapsedMs": 4237,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 2833, \"vitals:dom-content-loaded\": 2833, \"vitals:load\": 2833 }, \"webVitals\": { \"fcp\": 2181, \"domContentLoaded\": 1724, \"load\": 2028, \"ttfb\": 799 }, \"counters\": { \"geoFeed",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/desktop-affiliate-marketing.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/affiliate"
+    },
+    {
+      "name": "desktop-delivery-marketing",
+      "status": 200,
+      "title": "HomeCheff | HomeCheff",
+      "elapsedMs": 2899,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 1308, \"vitals:dom-content-loaded\": 1308, \"vitals:load\": 1308, \"vitals:lcp\": 1837 }, \"webVitals\": { \"fcp\": 842, \"domContentLoaded\": 743, \"load\": 903, \"ttfb\": 544, \"lcp\": ",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/desktop-delivery-marketing.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/delivery"
+    },
+    {
+      "name": "login-buyer",
+      "loggedIn": true,
+      "email": "dm-phase4+buyer.msf6bfo2@example.test",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/"
+    },
+    {
+      "name": "auth-buyer-login",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 3477,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 1297, \"vitals:dom-content-loaded\": 1297, \"vitals:load\": 1297, \"vitals:lcp\": 2337, \"home:shell-mounted\": 2205, \"home:viewport-resolved\": 2205, \"layout:hydration-complete\"",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-login.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/",
+      "loggedIn": true,
+      "role": "buyer"
+    },
+    {
+      "name": "auth-buyer-feed",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 6714,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:lcp\": 1815, \"home:shell-mounted\": 1722, \"home:viewport-resolved\": 1722, \"layout:hydration-complete\": 1722, \"geofeed:mounted\": 2178, \"nav:start\": 2178, \"session:resolved\": 2178",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-feed.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/",
+      "loggedIn": true,
+      "role": "buyer"
+    },
+    {
+      "name": "auth-buyer-orders",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 2934,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 1244, \"vitals:dom-content-loaded\": 1244, \"vitals:load\": 1244, \"vitals:lcp\": 1265 }, \"webVitals\": { \"fcp\": 519, \"domContentLoaded\": 501, \"load\": 710, \"ttfb\": 404, \"lcp\": ",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-orders.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/orders",
+      "loggedIn": true,
+      "role": "buyer"
+    },
+    {
+      "name": "auth-buyer-profile",
+      "status": 200,
+      "title": "Profiel | HomeCheff | HomeCheff",
+      "elapsedMs": 5567,
+      "gpsLeak": false,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 422 ()"
+      ],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:lcp\": 971, \"vitals:fcp\": 5299, \"vitals:dom-content-loaded\": 5299, \"vitals:load\": 5299 }, \"webVitals\": { \"lcp\": 955, \"fcp\": 395, \"domContentLoaded\": 2223, \"load\": 0, \"ttfb\": 27",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-profile.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/profile",
+      "loggedIn": true,
+      "role": "buyer"
+    },
+    {
+      "name": "auth-buyer-notifications",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 3518,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 2399, \"vitals:dom-content-loaded\": 2399, \"vitals:load\": 2399 }, \"webVitals\": { \"fcp\": 443, \"domContentLoaded\": 473, \"load\": 597, \"ttfb\": 370 }, \"counters\": { \"geoFeedMou",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-notifications.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/notifications",
+      "loggedIn": true,
+      "role": "buyer"
+    },
+    {
+      "name": "auth-buyer-messages",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 2633,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:fcp\": 1099, \"vitals:dom-content-loaded\": 1099, \"vitals:load\": 1100, \"vitals:lcp\": 1103 }, \"webVitals\": { \"fcp\": 563, \"domContentLoaded\": 465, \"load\": 649, \"ttfb\": 361, \"lcp\": ",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-messages.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/messages",
+      "loggedIn": true,
+      "role": "buyer"
+    },
+    {
+      "name": "auth-buyer-feed-phone",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 3775,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"vitals:lcp\": 843 }, \"webVitals\": { \"lcp\": 827 }, \"counters\": { \"geoFeedMounts\": 0, \"feedFetches\": 0 }, \"measures\": [], \"duplicateRequests\": [ { \"path\": \"/api/i18n/nl\", \"startMs\": 112",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-feed-phone.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/messages",
+      "loggedIn": true,
+      "role": "buyer",
+      "viewport": "phone"
+    },
+    {
+      "name": "auth-buyer-feed-landscape",
+      "status": 200,
+      "title": "HomeCheff — Persoonlijk vakmanschap en lokale kansen",
+      "elapsedMs": 5525,
+      "gpsLeak": false,
+      "consoleErrors": [],
+      "bodyPreview": "HC Feed Baseline × { \"milestones\": { \"home:shell-mounted\": 656, \"home:viewport-resolved\": 656, \"layout:hydration-complete\": 656, \"geofeed:mounted\": 762, \"nav:start\": 762, \"session:loading\": 762, \"feed:blocked-start\": 762",
+      "screenshot": "docs/audits/wx-phase42-final-readiness/screenshots/auth-buyer-feed-landscape.png",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/messages",
+      "loggedIn": true,
+      "role": "buyer",
+      "viewport": "landscape"
+    },
+    {
+      "name": "login-seller",
+      "loggedIn": false,
+      "error": "Error: page.evaluate: Execution context was destroyed, most likely because of a navigation"
+    },
+    {
+      "name": "login-courier",
+      "loggedIn": false,
+      "error": "Error: page.evaluate: Execution context was destroyed, most likely because of a navigation"
+    },
+    {
+      "name": "login-biz",
+      "loggedIn": false,
+      "email": "dm-phase41+biz.msf6zgys@example.test",
+      "url": "https://homecheff-1wymkijok-sergio-s-projects-f7b64ee1.vercel.app/"
+    },
+    {
+      "name": "login-affiliate",
+      "loggedIn": false,
+      "error": "Error: page.evaluate: Execution context was destroyed, most likely because of a navigation"
+    }
+  ]
+}

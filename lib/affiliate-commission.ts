@@ -366,65 +366,209 @@ export async function processCommissionForOrder(
   }
 }
 
+export type CommissionReversalInput = {
+  /** Stripe charge id, dispute id, or other unique reversal key */
+  reversalEventId: string;
+  eventType: 'REFUND' | 'CHARGEBACK';
+  /** Amount refunded on the Stripe charge (cents) */
+  refundedAmountCents: number;
+  /** Original charge total (cents); used for proportional reversal */
+  chargeAmountCents?: number | null;
+  /** Subscription invoice id — reverses INVOICE_PAID ledgers */
+  invoiceId?: string | null;
+  /** Marketplace order id — reverses ORDER_PAID ledgers for that order */
+  orderId?: string | null;
+};
+
+function proportionalCommissionRefund(
+  originalCommissionCents: number,
+  refundedAmountCents: number,
+  chargeAmountCents: number | null | undefined
+): number {
+  const originalAmount = Math.abs(originalCommissionCents);
+  if (originalAmount === 0) return 0;
+  if (
+    typeof chargeAmountCents === 'number' &&
+    chargeAmountCents > 0 &&
+    refundedAmountCents >= 0
+  ) {
+    const proportion = Math.min(1, refundedAmountCents / chargeAmountCents);
+    return Math.round(originalAmount * proportion);
+  }
+  // Full reversal when charge total unknown
+  return originalAmount;
+}
+
 /**
- * Process refund/chargeback - create negative ledger entry
+ * Process refund/chargeback — create negative ledger entries and mark originals REVERSED.
+ * Supports subscription invoices and marketplace orders (ORDER_PAID).
+ * Idempotent per (reversalEventId, originalLedgerId).
  */
 export async function processCommissionReversal(
-  eventId: string,
-  originalInvoiceId: string,
-  amountCents: number,
-  eventType: 'REFUND' | 'CHARGEBACK'
-): Promise<void> {
+  eventIdOrInput: string | CommissionReversalInput,
+  originalInvoiceId?: string,
+  amountCents?: number,
+  eventType?: 'REFUND' | 'CHARGEBACK'
+): Promise<{ reversedCount: number }> {
+  const input: CommissionReversalInput =
+    typeof eventIdOrInput === 'string'
+      ? {
+          reversalEventId: eventIdOrInput,
+          invoiceId: originalInvoiceId ?? null,
+          refundedAmountCents: amountCents ?? 0,
+          eventType: eventType ?? 'REFUND',
+        }
+      : eventIdOrInput;
+
+  const {
+    reversalEventId,
+    invoiceId,
+    orderId,
+    refundedAmountCents,
+    chargeAmountCents,
+    eventType: reversalType,
+  } = input;
+
+  if (!invoiceId && !orderId) {
+    console.warn(
+      `Commission reversal skipped for ${reversalEventId}: no invoiceId or orderId`
+    );
+    return { reversedCount: 0 };
+  }
+
+  if (refundedAmountCents <= 0) {
+    return { reversedCount: 0 };
+  }
+
   try {
-    // Find original ledger entries
-    const originalLedgers = await prisma.commissionLedger.findMany({
+    const eventIdOr: Array<{ eventId: string } | { eventId: { startsWith: string } }> =
+      [];
+    if (invoiceId) {
+      eventIdOr.push({ eventId: invoiceId });
+      eventIdOr.push({ eventId: `${invoiceId}_parent` });
+      eventIdOr.push({ eventId: `${invoiceId}_l2` }); // legacy parent key
+    }
+    if (orderId) {
+      // Direct + parent rows: `${orderId}_${productId}` and `${orderId}_${productId}_parent`
+      eventIdOr.push({ eventId: { startsWith: `${orderId}_` } });
+    }
+
+    const byEventId = await prisma.commissionLedger.findMany({
       where: {
-        OR: [
-          { eventId: originalInvoiceId },
-          { eventId: `${originalInvoiceId}_l2` },
-        ],
+        OR: eventIdOr,
         status: {
-          in: ['PENDING', 'AVAILABLE'],
+          in: [
+            CommissionLedgerStatus.PENDING,
+            CommissionLedgerStatus.AVAILABLE,
+            CommissionLedgerStatus.PAID,
+            CommissionLedgerStatus.REVERSED,
+          ],
+        },
+        eventType: {
+          in: [
+            CommissionLedgerEventType.INVOICE_PAID,
+            CommissionLedgerEventType.ORDER_PAID,
+          ],
         },
       },
     });
 
-    for (const ledger of originalLedgers) {
-      // Calculate proportional refund
-      const originalAmount = Math.abs(ledger.amountCents);
-      const refundAmount = Math.round((originalAmount * amountCents) / (ledger.meta as any)?.baseAmountCents || originalAmount);
+    // Also match ORDER_PAID rows via meta.orderId (authoritative marketplace key)
+    let byMetaOrder: typeof byEventId = [];
+    if (orderId) {
+      byMetaOrder = await prisma.commissionLedger.findMany({
+        where: {
+          eventType: CommissionLedgerEventType.ORDER_PAID,
+          status: {
+            in: [
+              CommissionLedgerStatus.PENDING,
+              CommissionLedgerStatus.AVAILABLE,
+              CommissionLedgerStatus.PAID,
+              CommissionLedgerStatus.REVERSED,
+            ],
+          },
+          meta: {
+            path: ['orderId'],
+            equals: orderId,
+          },
+        },
+      });
+    }
 
-      // Create reversal entry
+    const seen = new Set<string>();
+    const originalLedgers = [...byEventId, ...byMetaOrder].filter((l) => {
+      if (seen.has(l.id)) return false;
+      seen.add(l.id);
+      return true;
+    });
+
+    let reversedCount = 0;
+
+    for (const ledger of originalLedgers) {
+      const reversalRowEventId = `${reversalEventId}_${ledger.id}`;
+      const existingReversal = await prisma.commissionLedger.findUnique({
+        where: { eventId: reversalRowEventId },
+      });
+      if (existingReversal) {
+        if (ledger.status !== CommissionLedgerStatus.REVERSED) {
+          await prisma.commissionLedger.update({
+            where: { id: ledger.id },
+            data: { status: CommissionLedgerStatus.REVERSED },
+          });
+        }
+        reversedCount += 1;
+        continue;
+      }
+
+      // Already reversed by a different event — do not double-reverse
+      if (ledger.status === CommissionLedgerStatus.REVERSED) {
+        continue;
+      }
+
+      const refundAmount = proportionalCommissionRefund(
+        ledger.amountCents,
+        refundedAmountCents,
+        chargeAmountCents
+      );
+      if (refundAmount <= 0) continue;
+
       await prisma.commissionLedger.create({
         data: {
-          eventId: `${eventId}_${ledger.id}`,
+          eventId: reversalRowEventId,
           eventType:
-            eventType === 'REFUND'
+            reversalType === 'REFUND'
               ? CommissionLedgerEventType.REFUND
               : CommissionLedgerEventType.CHARGEBACK,
           affiliateId: ledger.affiliateId,
-          amountCents: -refundAmount, // Negative amount
+          amountCents: -refundAmount,
           currency: ledger.currency,
           status: CommissionLedgerStatus.REVERSED,
           availableAt: null,
           businessSubscriptionId: ledger.businessSubscriptionId,
           meta: {
             originalLedgerId: ledger.id,
-            originalInvoiceId,
+            originalEventId: ledger.eventId,
+            originalInvoiceId: invoiceId ?? null,
+            orderId: orderId ?? null,
             refundAmountCents: refundAmount,
-            eventType,
+            refundedAmountCents,
+            chargeAmountCents: chargeAmountCents ?? null,
+            eventType: reversalType,
           },
         },
       });
 
-      // Mark original as reversed
       await prisma.commissionLedger.update({
         where: { id: ledger.id },
         data: { status: CommissionLedgerStatus.REVERSED },
       });
+      reversedCount += 1;
     }
 
-    console.log(`✅ Commission reversal processed for ${eventType} ${eventId}`);
+    console.log(
+      `✅ Commission reversal processed for ${reversalType} ${reversalEventId} (reversed=${reversedCount}, invoice=${invoiceId || '-'}, order=${orderId || '-'})`
+    );
+    return { reversedCount };
   } catch (error) {
     console.error('Error processing commission reversal:', error);
     throw error;

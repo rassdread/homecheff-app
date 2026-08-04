@@ -1,0 +1,7 @@
+✅ Commission processed for order 24c05e36-3d90-46e6-afcc-d322f60a192d_8396c441-6b06-415f-9432-32a605baf433: 300 cents total (direct: 300, buyer: true, seller: false, isSub: false)
+✅ Commission reversal processed for REFUND ch_test_aff-rev-msf8edwu (reversed=1, invoice=-, order=24c05e36-3d90-46e6-afcc-d322f60a192d)
+✅ Commission reversal processed for REFUND ch_test_aff-rev-msf8edwu (reversed=1, invoice=-, order=24c05e36-3d90-46e6-afcc-d322f60a192d)
+✅ Commission reversal processed for REFUND ch_inv_aff-rev-msf8edwu (reversed=1, invoice=in_test_aff-rev-msf8edwu, order=-)
+✅ Commission processed for order 7175fc18-0ac8-4487-8d9d-f5c4fc7501de_7fc97421-5952-4872-9aa3-64300cb1843a: 300 cents total (direct: 300, buyer: true, seller: false, isSub: false)
+✅ Commission reversal processed for REFUND ch_partial_aff-rev-msf8edwu (reversed=1, invoice=-, order=7175fc18-0ac8-4487-8d9d-f5c4fc7501de)
+{"ok":true,"fullRefundNetZero":true,"idempotent":true,"invoicePath":true,"partialProportion":-150}

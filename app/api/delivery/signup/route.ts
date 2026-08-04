@@ -10,7 +10,11 @@ import { tryNormalizeEmail } from '@/lib/auth/normalize-email';
 import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
 import { getDuplicateSignupKindForUser } from '@/lib/auth/signup-duplicate';
 import { jsonRegisterDuplicate } from '@/lib/auth/register-duplicate-response';
-// import { string } from '@prisma/client';
+import {
+  assertCommercialCourierAgeForActivation,
+  delivererAcceptDenialResponse,
+} from '@/lib/delivery/delivery-eligibility';
+import { COMMERCIAL_DELIVERY_MIN_AGE } from '@/lib/delivery/delivery-age';
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,19 +73,18 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
 
-      // Validate age for existing users (remove age restriction for sellers)
-      if (age < 15) {
-        return NextResponse.json({ 
-          error: 'Je moet minimaal 15 jaar oud zijn' 
-        }, { status: 400 });
+      const ageGate = assertCommercialCourierAgeForActivation({
+        dateOfBirth: user.dateOfBirth,
+        claimedAge: typeof age === 'number' ? age : Number(age),
+        userId: user.id,
+      });
+      if (!ageGate.ok) {
+        return NextResponse.json(delivererAcceptDenialResponse(ageGate), {
+          status: ageGate.status,
+        });
       }
-
-      // Validate parental consent for minors
-      if (age < 18 && !parentalConsent) {
-        return NextResponse.json({ 
-          error: 'Minderjarigen hebben ouderlijke toestemming nodig' 
-        }, { status: 400 });
-      }
+      // parentalConsent retained in payload for compat but not an exception to 18+
+      void parentalConsent;
     } else {
       // For new users, validate all fields including account creation
       if (!name || !email || !password || !username || !age) {
@@ -111,11 +114,21 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
 
-      // Validate age (15-23 for new delivery users)
-      if (age < 15 || age > 23) {
-        return NextResponse.json({ 
-          error: 'Je moet tussen 15 en 23 jaar oud zijn' 
-        }, { status: 400 });
+      // Commercial delivery: adults only (no upper bound in Phase 1)
+      const claimedAge = typeof age === 'number' ? age : Number(age);
+      if (
+        !Number.isFinite(claimedAge) ||
+        claimedAge < COMMERCIAL_DELIVERY_MIN_AGE
+      ) {
+        const ageGate = assertCommercialCourierAgeForActivation({
+          claimedAge,
+          dateOfBirth: null,
+        });
+        if (!ageGate.ok) {
+          return NextResponse.json(delivererAcceptDenialResponse(ageGate), {
+            status: ageGate.status,
+          });
+        }
       }
 
       // Validate legal agreements
@@ -125,12 +138,7 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
 
-      // Validate parental consent for minors
-      if (age < 18 && !parentalConsent) {
-        return NextResponse.json({ 
-          error: 'Minderjarigen hebben ouderlijke toestemming nodig' 
-        }, { status: 400 });
-      }
+      void parentalConsent;
 
       // Check if email already exists
       const normalizedEmail = tryNormalizeEmail(email);

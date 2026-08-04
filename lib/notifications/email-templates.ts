@@ -236,7 +236,7 @@ export function renderShiftReminderEmail(data: ShiftReminderData): string {
     
     <div class="footer">
       <p>
-        <strong>HomeCheff Bezorger Platform</strong><br>
+        <strong>HomeCheff bezorgmarktplaats</strong><br>
         Lokale bezorgingen, door de buurt voor de buurt
       </p>
       <p style="margin-top: 15px;">

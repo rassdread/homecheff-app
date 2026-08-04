@@ -10,7 +10,8 @@ import {
   ArrowLeft,
   Shield,
   Navigation,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Euro
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -35,11 +36,39 @@ interface DeliveryProfile {
   homeLng?: number | null;
   homeAddress?: string | null;
   isActive: boolean;
+  pricingEnabled?: boolean;
+  baseFeeCents?: number | null;
+  pricePerKmCents?: number | null;
+  minimumFeeCents?: number | null;
+  freeDeliveryRadiusKm?: number;
+  currency?: string;
+  nationalCoverage?: boolean;
+  acceptanceMode?: string;
+  workStartTime?: string | null;
+  workEndTime?: string | null;
+  temporaryOffline?: boolean;
+  maxSimultaneousDeliveries?: number;
+  maxDeliveriesPerSlot?: number;
+  preparationTimeMinutes?: number;
+  estimatedPickupDelayMinutes?: number;
   user: {
     id: string;
     name: string | null;
     email: string;
   };
+}
+
+function centsToEuroInput(cents: number | null | undefined): string {
+  if (cents == null || !Number.isFinite(cents)) return '';
+  return (cents / 100).toFixed(2);
+}
+
+function euroInputToCents(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (trimmed === '') return null;
+  const n = Number(trimmed.replace(',', '.'));
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n * 100);
 }
 
 interface DeliverySettingsProps {
@@ -57,7 +86,22 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     availableDays: deliveryProfile.availableDays || [],
     availableTimeSlots: deliveryProfile.availableTimeSlots || [],
     bio: deliveryProfile.bio || '',
-    isActive: deliveryProfile.isActive || false
+    isActive: deliveryProfile.isActive || false,
+    pricingEnabled: deliveryProfile.pricingEnabled ?? false,
+    baseFeeEuro: centsToEuroInput(deliveryProfile.baseFeeCents),
+    pricePerKmEuro: centsToEuroInput(deliveryProfile.pricePerKmCents),
+    minimumFeeEuro: centsToEuroInput(deliveryProfile.minimumFeeCents),
+    freeDeliveryRadiusKm: deliveryProfile.freeDeliveryRadiusKm ?? 0,
+    currency: deliveryProfile.currency || 'EUR',
+    nationalCoverage: deliveryProfile.nationalCoverage ?? false,
+    acceptanceMode: deliveryProfile.acceptanceMode || 'MANUAL_CONFIRM',
+    workStartTime: deliveryProfile.workStartTime || '09:00',
+    workEndTime: deliveryProfile.workEndTime || '21:00',
+    temporaryOffline: deliveryProfile.temporaryOffline ?? false,
+    maxSimultaneousDeliveries: deliveryProfile.maxSimultaneousDeliveries ?? 3,
+    maxDeliveriesPerSlot: deliveryProfile.maxDeliveriesPerSlot ?? 2,
+    preparationTimeMinutes: deliveryProfile.preparationTimeMinutes ?? 15,
+    estimatedPickupDelayMinutes: deliveryProfile.estimatedPickupDelayMinutes ?? 10,
   });
   
   const [loading, setLoading] = useState(false);
@@ -153,10 +197,36 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     setSuccess(false);
     
     try {
+      const payload = {
+        transportation: formData.transportation,
+        maxDistance: formData.maxDistance,
+        preferredRadius: formData.preferredRadius,
+        deliveryMode: formData.deliveryMode,
+        availableDays: formData.availableDays,
+        availableTimeSlots: formData.availableTimeSlots,
+        bio: formData.bio,
+        isActive: formData.isActive,
+        pricingEnabled: formData.pricingEnabled,
+        baseFeeCents: euroInputToCents(formData.baseFeeEuro),
+        pricePerKmCents: euroInputToCents(formData.pricePerKmEuro),
+        minimumFeeCents: euroInputToCents(formData.minimumFeeEuro),
+        freeDeliveryRadiusKm: Number(formData.freeDeliveryRadiusKm) || 0,
+        currency: formData.currency || 'EUR',
+        nationalCoverage: formData.nationalCoverage,
+        acceptanceMode: formData.acceptanceMode,
+        workStartTime: formData.workStartTime,
+        workEndTime: formData.workEndTime,
+        temporaryOffline: formData.temporaryOffline,
+        maxSimultaneousDeliveries: formData.maxSimultaneousDeliveries,
+        maxDeliveriesPerSlot: formData.maxDeliveriesPerSlot,
+        preparationTimeMinutes: formData.preparationTimeMinutes,
+        estimatedPickupDelayMinutes: formData.estimatedPickupDelayMinutes,
+      };
+
       const response = await fetch('/api/delivery/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
@@ -382,6 +452,333 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                     </span>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Provider-owned pricing (Phase 2) */}
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Euro className="w-6 h-6 text-primary-600" />
+              <h2 className="text-xl font-semibold text-gray-900">Bezorgprijzen</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Jij bepaalt je eigen bezorgtarieven. HomeCheff berekent alleen de prijs op basis van jouw instellingen en de routeafstand.
+            </p>
+            <div className="mb-6 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+              <p>
+                De tarieven die je hier instelt zijn de bezorgprijzen die de klant ziet. HomeCheff houdt bij een voltooide betaalde bezorging momenteel 12% platformvergoeding in. Je ontvangt 88% van de vastgelegde bezorgprijs, vóór eventuele eigen belastingen of bedrijfskosten.
+              </p>
+              <ul className="list-disc space-y-1 pl-5 text-amber-900">
+                <li>Gratis bezorgradius: binnen die afstand is de bezorgprijs €0.</li>
+                <li>Minimumprijs geldt alleen buiten de gratis radius.</li>
+                <li>Prijzen zijn pas actief wanneer &quot;Prijzen actief&quot; aan staat.</li>
+                <li>Tariefwijzigingen veranderen geen al vastgelegde (betaalde of lopende) bestellingen.</li>
+              </ul>
+            </div>
+
+            <div className="mb-6 space-y-4 rounded-lg border border-gray-200 p-4">
+              <h3 className="font-semibold text-gray-900">Acceptatie &amp; capaciteit</h3>
+              <p className="text-sm text-gray-600">
+                Jij bepaalt of boekingen automatisch mogen worden bevestigd wanneer jouw voorwaarden kloppen, of dat je handmatig bevestigt. HomeCheff wijst geen werk toe.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, acceptanceMode: 'AUTO_CONFIRM' }))
+                  }
+                  className={`rounded-lg border-2 p-3 text-left ${
+                    formData.acceptanceMode === 'AUTO_CONFIRM'
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200'
+                  }`}
+                >
+                  <p className="font-medium text-green-800">🟢 Direct bevestigd</p>
+                  <p className="text-xs text-gray-600">AUTO_CONFIRM — Instant Book wanneer jouw regels kloppen</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, acceptanceMode: 'MANUAL_CONFIRM' }))
+                  }
+                  className={`rounded-lg border-2 p-3 text-left ${
+                    formData.acceptanceMode === 'MANUAL_CONFIRM'
+                      ? 'border-amber-500 bg-amber-50'
+                      : 'border-gray-200'
+                  }`}
+                >
+                  <p className="font-medium text-amber-900">🟡 Handmatige bevestiging</p>
+                  <p className="text-xs text-gray-600">MANUAL_CONFIRM — jij accepteert gerichte aanvragen</p>
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Werktijd start (HH:mm)</label>
+                  <input
+                    type="text"
+                    value={formData.workStartTime}
+                    onChange={(e) => setFormData((p) => ({ ...p, workStartTime: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                    placeholder="09:00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Werktijd eind (HH:mm)</label>
+                  <input
+                    type="text"
+                    value={formData.workEndTime}
+                    onChange={(e) => setFormData((p) => ({ ...p, workEndTime: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                    placeholder="21:00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max. gelijktijdige bezorgingen</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={formData.maxSimultaneousDeliveries}
+                    onChange={(e) =>
+                      setFormData((p) => ({
+                        ...p,
+                        maxSimultaneousDeliveries: Number(e.target.value) || 1,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max. per tijdslot</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={formData.maxDeliveriesPerSlot}
+                    onChange={(e) =>
+                      setFormData((p) => ({
+                        ...p,
+                        maxDeliveriesPerSlot: Number(e.target.value) || 1,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Voorbereidingstijd (min)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={formData.preparationTimeMinutes}
+                    onChange={(e) =>
+                      setFormData((p) => ({
+                        ...p,
+                        preparationTimeMinutes: Number(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Geschatte ophaalvertraging (min)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={formData.estimatedPickupDelayMinutes}
+                    onChange={(e) =>
+                      setFormData((p) => ({
+                        ...p,
+                        estimatedPickupDelayMinutes: Number(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-medium text-gray-700">Tijdelijk offline</p>
+                  <p className="text-sm text-gray-500">Pauzeert boekingen zonder je account te deactiveren.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      temporaryOffline: !prev.temporaryOffline,
+                    }))
+                  }
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    formData.temporaryOffline ? 'bg-primary-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.temporaryOffline ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-gray-700 font-medium">Prijzen actief</p>
+                  <p className="text-sm text-gray-500">
+                    Zet aan wanneer basisprijs, prijs per km en minimumprijs zijn ingevuld.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      pricingEnabled: !prev.pricingEnabled,
+                    }))
+                  }
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    formData.pricingEnabled ? 'bg-primary-600' : 'bg-gray-200'
+                  }`}
+                  aria-pressed={formData.pricingEnabled}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.pricingEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Basisbezorgkosten (€)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={formData.baseFeeEuro}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, baseFeeEuro: e.target.value }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-brand focus:outline-none focus:ring-1 focus:ring-primary-brand"
+                    placeholder="2.50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Prijs per kilometer (€)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={formData.pricePerKmEuro}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, pricePerKmEuro: e.target.value }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-brand focus:outline-none focus:ring-1 focus:ring-primary-brand"
+                    placeholder="0.75"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Minimum bezorgkosten (€)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={formData.minimumFeeEuro}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, minimumFeeEuro: e.target.value }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-brand focus:outline-none focus:ring-1 focus:ring-primary-brand"
+                    placeholder="3.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gratis bezorgradius (km)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={formData.freeDeliveryRadiusKm}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        freeDeliveryRadiusKm: Number(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-brand focus:outline-none focus:ring-1 focus:ring-primary-brand"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Maximum bezorgafstand (km)
+                  </label>
+                  <input
+                    type="number"
+                    min="0.5"
+                    step="0.5"
+                    value={formData.maxDistance}
+                    onChange={(e) => {
+                      const v = Number(e.target.value) || 0;
+                      setFormData((prev) => ({
+                        ...prev,
+                        maxDistance: v,
+                        preferredRadius: Math.min(prev.preferredRadius, v || prev.preferredRadius),
+                      }));
+                    }}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-brand focus:outline-none focus:ring-1 focus:ring-primary-brand"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Valuta
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.currency}
+                    readOnly
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-gray-700"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-4 pt-2 border-t border-gray-100">
+                <div>
+                  <p className="text-gray-700 font-medium">Landelijke dekking</p>
+                  <p className="text-sm text-gray-500">
+                    Toekomstklaar — schakelt de maximumafstandslimiet uit bij prijsberekening.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      nationalCoverage: !prev.nationalCoverage,
+                    }))
+                  }
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    formData.nationalCoverage ? 'bg-primary-600' : 'bg-gray-200'
+                  }`}
+                  aria-pressed={formData.nationalCoverage}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.nationalCoverage ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
               </div>
             </div>
           </div>

@@ -30,13 +30,17 @@ export async function POST(
 
     const { orderId } = params;
 
-    // Get user's delivery profile (incl. user location for distance)
+    // Get user's delivery profile (incl. DOB for commercial age gate)
     const profile = await prisma.deliveryProfile.findUnique({
       where: { userId: (session.user as any).id },
-      include: { user: { select: { lat: true, lng: true } } }
+      include: {
+        user: { select: { lat: true, lng: true, dateOfBirth: true, id: true } },
+      },
     });
 
-    const acceptCheck = assertDelivererCanAccept(profile);
+    const acceptCheck = assertDelivererCanAccept(profile, {
+      dateOfBirth: profile?.user?.dateOfBirth,
+    });
     if (!acceptCheck.ok) {
       return NextResponse.json(
         delivererAcceptDenialResponse(acceptCheck),
