@@ -11,8 +11,8 @@ export const pillarSharedFaq: Record<string, Bi> = {
     en: 'Is HomeCheff only for food?',
   },
   faq1A: {
-    nl: 'Nee. Eten is één categorie naast tuin, creaties, diensten, hulp, inspiratie en ruil. HomeCheff is het digitale thuis van persoonlijk vakmanschap — niet een bezorgapp.',
-    en: 'No. Food is one category alongside garden, creations, services, help, inspiration and barter. HomeCheff is the digital home of personal craftsmanship — not a delivery app.',
+    nl: 'Nee. Eten is één categorie naast tuin, creaties, diensten, hulp, inspiratie en ruil. HomeCheff is de digitale buurtmarkt voor persoonlijk vakmanschap — niet een bezorgapp, niet alleen een food marketplace.',
+    en: 'No. Food is one category alongside garden, creations, services, help, inspiration and barter. HomeCheff is the digital neighbourhood marketplace for personal craftsmanship — not a delivery app, not a food marketplace only.',
   },
   faq2Q: {
     nl: 'Wie staat achter een aanbod?',
@@ -46,40 +46,40 @@ export const pillarSharedFaq: Record<string, Bi> = {
 
 const platformDefinitionPage: Record<string, Bi> = {
   metaTitle: {
-    nl: 'Wat is HomeCheff? | Persoonlijk vakmanschap en lokale kansen',
-    en: 'What is HomeCheff? | Personal craftsmanship and local opportunity',
+    nl: 'Wat is HomeCheff? | Digitale buurtmarkt · lokaal vakmanschap',
+    en: 'What is HomeCheff? | Digital neighbourhood marketplace',
   },
   metaDescription: {
-    nl: 'HomeCheff is het digitale thuis van persoonlijk vakmanschap. Echte mensen bieden eten, tuin, creaties, diensten en hulp in de buurt — met de persoon altijd centraal.',
-    en: 'HomeCheff is the digital home of personal craftsmanship. Real people offer food, garden, creations, services and help nearby — with the person always at the centre.',
+    nl: 'HomeCheff is de digitale buurtmarkt: community- en creator-first. Alles begint dichtbij huis. Echte mensen koken, groeien, maken, repareren, lesgeven en helpen — geen gewone tweedehands-doorverkoop.',
+    en: 'HomeCheff is the digital neighbourhood marketplace: community- and creator-first. Everything starts close to home. Real people cook, grow, make, repair, teach and help — not ordinary second-hand resale.',
   },
   title: {
     nl: 'Wat is HomeCheff?',
     en: 'What is HomeCheff?',
   },
   intro: {
-    nl: 'HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen. Niet een anonieme webshop. Niet een fabriek. Niet een algoritme dat je vasthoudt. Een buurt waar je ontdekt wat echte mensen maken, koken, kweken, ontwerpen en aanbieden.',
-    en: 'HomeCheff is the digital home of personal craftsmanship and local opportunity. Not an anonymous webshop. Not a factory. Not an algorithm that holds your attention. A neighbourhood where you discover what real people make, cook, grow, design and offer.',
+    nl: 'HomeCheff is de digitale buurtmarkt voor persoonlijk vakmanschap en lokale kansen. Alles begint dichtbij huis: afstand bepaalt prioriteit, niet mogelijkheid. Niet een generieke classifieds-site. Niet een gewone tweedehands-marktplaats. Niet een bezorgketen. Een buurt waar je ontdekt wat echte mensen maken, koken, kweken, ontwerpen, repareren en aanbieden.',
+    en: 'HomeCheff is the digital neighbourhood marketplace for personal craftsmanship and local opportunity. Everything starts close to home: distance determines priority, not possibility. Not a generic classifieds site. Not an ordinary second-hand marketplace. Not a delivery chain. A neighbourhood where you discover what real people make, cook, grow, design, repair and offer.',
   },
   sectionWhoTitle: { nl: 'Voor wie is HomeCheff?', en: 'Who is HomeCheff for?' },
   sectionWhoBody: {
-    nl: 'Voor makers, buren, vakmensen en kleine ondernemers die iets persoonlijks willen delen — en voor mensen die lokaal willen ontdekken, afspreken, ruilen of veilig betalen. Of je nu kookt, kweekt, repareert, lesgeeft of helpt: je bereikt mensen om de hoek.',
-    en: 'For makers, neighbours, craftspeople and small entrepreneurs who want to share something personal — and for people who want to discover, arrange, barter or pay safely nearby. Whether you cook, grow, repair, teach or help: you reach people around the corner.',
+    nl: 'Voor makers, buren, vakmensen en kleine ondernemers die iets persoonlijks willen delen — en voor mensen die lokaal willen ontdekken, afspreken, ruilen of veilig betalen. Of je nu kookt, kweekt, repareert, lesgeeft of helpt: dichtbij eerst; uniek vakmanschap mag van nature verder reiken.',
+    en: 'For makers, neighbours, craftspeople and small entrepreneurs who want to share something personal — and for people who want to discover, arrange, barter or pay safely nearby. Whether you cook, grow, repair, teach or help: nearby first; unique craft may naturally reach further.',
   },
   sectionPersonTitle: { nl: 'De persoon achter het aanbod', en: 'The person behind the offer' },
   sectionPersonBody: {
-    nl: 'Op HomeCheff telt wie iets maakt minstens zo zwaar als wat er wordt aangeboden. Profielen, verhalen, reviews en vertrouwen maken zichtbaar dat achter elk item een mens zit — geen anonieme massaproductie.',
-    en: 'On HomeCheff, who makes something matters at least as much as what is offered. Profiles, stories, reviews and trust show that a human is behind every item — not anonymous mass production.',
+    nl: 'Op HomeCheff telt wie iets maakt minstens zo zwaar als wat er wordt aangeboden. Profielen, verhalen, reviews en vertrouwen maken zichtbaar dat achter elk item een mens zit — geen anonieme massaproductie of anonieme doorverkoop.',
+    en: 'On HomeCheff, who makes something matters at least as much as what is offered. Profiles, stories, reviews and trust show that a human is behind every item — not anonymous mass production or anonymous resale.',
   },
-  sectionCategoriesTitle: { nl: 'Eten is één categorie', en: 'Food is one category' },
+  sectionCategoriesTitle: { nl: 'Mensen creëren waarde', en: 'People create value' },
   sectionCategoriesBody: {
-    nl: 'Keuken, tuin, studio, diensten, gezocht, ruil en inspiratie horen bij hetzelfde dorpsplein. Zo blijft HomeCheff een platform voor menselijk vakmanschap — niet alleen een maaltijdsite.',
-    en: 'Kitchen, garden, studio, services, wanted, barter and inspiration belong on the same village square. That keeps HomeCheff a platform for human craft — not only a meal site.',
+    nl: 'Thuisgekookt, eigen oogst, handwerk, creatief werk, persoonlijke diensten, lokale expertise, reparaties, kennis, buurthulp en ruil horen bij dezelfde digitale buurtmarkt. Eten is één categorie. Mensen creëren waarde — ze verkopen geen anonieme massaproducten door.',
+    en: 'Homemade meals, self-grown produce, handmade creations, creative work, personal services, local expertise, repairs, knowledge, neighbourhood help and barter belong on the same digital neighbourhood marketplace. Food is one category. People create value — they do not resell anonymous mass products.',
   },
   sectionNotTitle: { nl: 'Wat HomeCheff niet is', en: 'What HomeCheff is not' },
   sectionNotBody: {
-    nl: 'Geen dropshipping-hub, geen anonieme massamarktplaats, geen aandachtsapp met eindeloze scroll. Technologie dient hier de buurt — niet omgekeerd.',
-    en: 'Not a dropshipping hub, not an anonymous mass marketplace, not an attention app with endless scroll. Technology serves the neighbourhood here — not the other way around.',
+    nl: 'Geen generieke advertentiesite, geen tweedehands-marktplaats voor gewone doorverkoop, geen mass retail, geen bezorgplatform, geen anonieme webshop. Tweedehands hoort alleen bij echte creatieve of ambachtelijke transformatie (upcycling, artistiek herstel, herontwerp).',
+    en: 'Not a generic classifieds website, not a second-hand marketplace for ordinary resale, not mass retail, not a delivery platform, not an anonymous ecommerce site. Second-hand belongs only with true creative or craft transformation (upcycling, artistic restore, redesign).',
   },
   ctaPrimary: { nl: 'Ontdek makers in je buurt', en: 'Discover makers nearby' },
   ctaSecondary: { nl: 'Begin met aanbieden', en: 'Start offering' },
@@ -195,8 +195,8 @@ const personalCraftPage: Record<string, Bi> = {
   },
   sectionCraftTitle: { nl: 'Wat telt als vakmanschap?', en: 'What counts as craftsmanship?' },
   sectionCraftBody: {
-    nl: 'Koken voor buren, oogst delen, meubels maken, sieraden ontwerpen, klusjes doen, workshops geven, coaching — alles wat een echt persoon persoonlijk levert telt mee. Niet: dropshipping, doorverkoop of anonieme fabrieksvoorraad.',
-    en: 'Cooking for neighbours, sharing harvest, making furniture, designing jewellery, chores, workshops, coaching — anything a real person delivers personally counts. Not: dropshipping, resale or anonymous factory stock.',
+    nl: 'Koken voor buren, oogst delen, meubels maken, sieraden ontwerpen, klusjes doen, workshops geven, coaching — alles wat een echt persoon persoonlijk levert telt mee. Niet: dropshipping, gewone tweedehands-doorverkoop of anonieme fabrieksvoorraad. Upcycling, artistiek herstel en creatief herontwerp horen wel — de waarde zit in eigen werk.',
+    en: 'Cooking for neighbours, sharing harvest, making furniture, designing jewellery, chores, workshops, coaching — anything a real person delivers personally counts. Not: dropshipping, ordinary second-hand resale or anonymous factory stock. Upcycling, artistic restoration and creative redesign do belong — value comes from personal work.',
   },
   sectionFormsTitle: { nl: 'Vormen van vakmanschap op HomeCheff', en: 'Forms of craft on HomeCheff' },
   sectionFormsBody: {
@@ -317,8 +317,8 @@ const notMassProductionPage: Record<string, Bi> = {
   },
   sectionBlockedTitle: { nl: 'Wat niet past op HomeCheff', en: 'What does not belong on HomeCheff' },
   sectionBlockedBody: {
-    nl: 'Dropshipping, doorverkoop van onbekende voorraad, anonieme import en massaproductie zonder persoonlijke maker zijn niet welkom. In de categorieën en communityrichtlijnen houden we dat vast.',
-    en: 'Dropshipping, resale of unknown stock, anonymous imports and mass production without a personal maker are not welcome. Categories and community guidelines enforce this.',
+    nl: 'Dropshipping, gewone tweedehands-doorverkoop, anonieme import en massaproductie zonder persoonlijke maker zijn niet welkom. Getransformeerde items via eigen vakmanschap (upcycle, herstel, herontwerp) wel. In de categorieën en communityrichtlijnen houden we dat vast.',
+    en: 'Dropshipping, ordinary second-hand resale, anonymous imports and mass production without a personal maker are not welcome. Items transformed through personal craft (upcycle, restore, redesign) are. Categories and community guidelines enforce this.',
   },
   sectionHonestTitle: { nl: 'Geen valse beloftes', en: 'No false promises' },
   sectionHonestBody: {

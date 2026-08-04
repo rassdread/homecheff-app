@@ -18,8 +18,8 @@ export const foodCategoryContextV0: Record<string, Bi> = {
 
 export const foodCategoryContextV1: Record<string, Bi> = {
   body: {
-    nl: 'HomeCheff is niet alleen een eten-site: naast thuisgemaakte maaltijden vind je tuinoogst, handmade werk, lokale diensten en buurthulp op hetzelfde dorpsplein. ',
-    en: 'HomeCheff is not only a food site: alongside home meals you find garden harvest, handmade work, local services and neighbour help on the same village square. ',
+    nl: 'HomeCheff is niet alleen een eten-site: naast thuisgemaakte maaltijden vind je tuinoogst, handmade werk, lokale diensten en buurthulp op dezelfde digitale buurtmarkt. ',
+    en: 'HomeCheff is not only a food site: alongside home meals you find garden harvest, handmade work, local services and neighbour help on the same digital neighbourhood marketplace. ',
   },
 };
 

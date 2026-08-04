@@ -129,7 +129,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     ),
     en: block(
       'Handmade products from neighbours | HomeCheff',
-      'Buy and discover handmade creations from local makers. Digital neighbourhood marketplace — not food-only, not anonymous classifieds.',
+      'Discover handmade creations from local makers. Digital neighbourhood marketplace — craftsmanship-first, not food-only, not anonymous classifieds.',
       'Handmade products from makers nearby',
       [
         'HomeCheff is the digital neighbourhood marketplace for craft, design and handmade work from people around the corner.',
@@ -312,20 +312,20 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     relatedIds: ['barter-ruilen', 'micro-ondernemen', 'buurthulp-lokaal'],
     nl: nlBlock(
       'Circulaire buurteconomie | HomeCheff',
-      'Hergebruik, ruil en lokaal delen op de digitale buurtmarkt. HomeCheff versterkt circulaire community exchange.',
+      'Hergebruik en ruil op de digitale buurtmarkt — via maken, upcycling en ambachtelijke transformatie, niet via gewone tweedehands-doorverkoop.',
       'Circulaire economie in de buurt',
       [
         'Delen, ruilen en lokaal hergebruik maken de buurt sterker dan wegwerpconsumptie alleen.',
-        'HomeCheff is gebouwd voor nabije uitwisseling — niet voor anonieme massahandel.',
+        'HomeCheff is gebouwd voor nabije uitwisseling van persoonlijk werk — niet voor anonieme massahandel of gewone tweedehands-doorverkoop. Upcycling en artistiek herstel horen wel.',
       ],
     ),
     en: block(
       'Circular neighbourhood economy | HomeCheff',
-      'Reuse, barter and local sharing on the digital neighbourhood marketplace. HomeCheff strengthens circular community exchange.',
+      'Reuse and barter on the digital neighbourhood marketplace — through making, upcycling and craft transformation, not ordinary second-hand resale.',
       'Circular economy in the neighbourhood',
       [
         'Sharing, barter and local reuse strengthen the neighbourhood beyond throwaway consumption alone.',
-        'HomeCheff is built for nearby exchange — not anonymous mass trade.',
+        'HomeCheff is built for nearby exchange of personal work — not anonymous mass trade or ordinary second-hand resale. Upcycling and artistic restoration belong.',
       ],
     ),
   },

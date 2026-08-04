@@ -11,8 +11,8 @@ export type ManifestLang = 'nl' | 'en';
 
 /** Canonical one-line mission — reused in Organization schema and platform definition. */
 export const MANIFEST_MISSION: Record<ManifestLang, string> = {
-  nl: 'HomeCheff bouwt een digitale omgeving waar gewone mensen lokaal kunnen creëren, verkopen, ruilen, helpen, leren en samenwerken — met mensen centraal, niet producten.',
-  en: 'HomeCheff builds a digital environment where ordinary people can create, sell, exchange, help, learn and collaborate locally — with people at the centre, not products.',
+  nl: 'HomeCheff bouwt een digitale buurtmarkt waar gewone mensen lokaal kunnen creëren, verkopen, ruilen, helpen, leren en samenwerken — community-first en creator-first, met mensen centraal, niet anonieme producten. Alles begint dichtbij huis.',
+  en: 'HomeCheff builds a digital neighbourhood marketplace where ordinary people can create, sell, exchange, help, learn and collaborate locally — community-first and creator-first, with people at the centre, not anonymous products. Everything starts close to home.',
 };
 
 /** Canonical vision — technology strengthens people. */
@@ -21,10 +21,10 @@ export const MANIFEST_VISION: Record<ManifestLang, string> = {
   en: 'Technology should make people stronger — more opportunity, local resilience, trust and time — instead of dependency, addiction or isolation.',
 };
 
-/** What HomeCheff is — digital village square. */
+/** What HomeCheff is — digital neighbourhood marketplace / village square. */
 export const MANIFEST_IS: Record<ManifestLang, string> = {
-  nl: 'HomeCheff is een digitaal dorpsplein: een plek waar mensen mensen ontdekken, vaardigheden kansen vinden en buurten elkaar vinden. Technologie is de brug; mensen blijven de bestemming.',
-  en: 'HomeCheff is a digital village square: a place where people discover people, skills find opportunity and neighbourhoods find each other. Technology is the bridge; people remain the destination.',
+  nl: 'HomeCheff is de digitale buurtmarkt én digitaal dorpsplein: community-first, people-first, craftsmanship-first, creator-first en neighbourhood-first — waar mensen mensen ontdekken, vaardigheden kansen vinden en buurten elkaar vinden. Technologie is de brug; mensen blijven de bestemming. Afstand bepaalt prioriteit, niet mogelijkheid.',
+  en: 'HomeCheff is the digital neighbourhood marketplace and digital village square: community-first, people-first, craftsmanship-first, creator-first and neighbourhood-first — where people discover people, skills find opportunity and neighbourhoods find each other. Technology is the bridge; people remain the destination. Distance determines priority, not possibility.',
 };
 
 /** Core values — stable keys for validators and cross-page reuse. */
@@ -49,8 +49,8 @@ export const MANIFEST_VALUE_LABELS: Record<ManifestCoreValueKey, Record<Manifest
     en: 'Personal craftsmanship before mass production',
   },
   localBeforeScale: {
-    nl: 'Lokale gemeenschappen vóór anonieme schaal',
-    en: 'Local communities before anonymous scale',
+    nl: 'Lokaal eerst vóór anonieme schaal — afstand bepaalt prioriteit, niet mogelijkheid',
+    en: 'Local first before anonymous scale — distance determines priority, not possibility',
   },
   cooperationBeforeZeroSum: {
     nl: 'Samenwerking vóór nul-som competitie',
@@ -70,18 +70,20 @@ export const MANIFEST_VALUE_LABELS: Record<ManifestCoreValueKey, Record<Manifest
 export const MANIFEST_IS_NOT: Record<ManifestLang, string[]> = {
   nl: [
     'geen bezorg-app',
-    'geen advertentieplatform',
-    'geen dropshipping-marktplaats',
+    'geen generieke advertentiesite / classifieds',
+    'geen dropshipping- of mass retail platform',
     'geen anonieme marktplaats',
+    'geen tweedehands-marktplaats voor gewone doorverkoop',
     'geen aandachts-economie',
     'geen socialmediaplatform',
     'geen engagement-machine',
   ],
   en: [
     'not a delivery app',
-    'not an advertising platform',
-    'not a dropshipping marketplace',
+    'not a generic classifieds website',
+    'not a dropshipping or mass retail platform',
     'not an anonymous marketplace',
+    'not a second-hand marketplace for ordinary resale',
     'not an attention economy platform',
     'not a social media platform',
     'not an engagement machine',
@@ -114,7 +116,7 @@ export const MANIFEST_SOCIETY_HOPES: Record<ManifestLang, string[]> = {
 
 export const MANIFEST_PATH = '/manifest' as const;
 export const MANIFEST_NAMESPACE = 'manifestPage' as const;
-export const MANIFEST_LAST_REVIEWED = '2026-07-11';
+export const MANIFEST_LAST_REVIEWED = '2026-08-04';
 
 /** Short schema-safe organization description derived from manifest. */
 export function manifestOrganizationDescription(lang: ManifestLang): string {

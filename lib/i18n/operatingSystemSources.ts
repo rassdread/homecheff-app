@@ -24,8 +24,8 @@ export const constitutionPage: Record<string, Bi> = {
   },
   sectionConstitutionTitle: { nl: 'Constitution — permanente principes', en: 'Constitution — permanent principles' },
   sectionConstitutionBody: {
-    nl: 'HomeCheff bestaat om onzichtbare menselijke waarde zichtbaar te maken in buurten — niet om aandacht of engagement te maximaliseren. We worden een digitaal dorpsplein waar mensen mensen ontdekken. We worden nooit een engagement-machine, advertentieplatform of anonieme massa-marktplaats. Mensen gaan vóór algoritmes; technologie ondersteunt mensen — vervangt ze niet.',
-    en: 'HomeCheff exists to make invisible human value visible in neighbourhoods — not to maximise attention or engagement. We are becoming a digital village square where people discover people. We will never become an engagement machine, advertising platform or anonymous mass marketplace. People come before algorithms; technology supports people — it does not replace them.',
+    nl: 'HomeCheff bestaat om onzichtbare menselijke waarde zichtbaar te maken in buurten — niet om aandacht of engagement te maximaliseren. We zijn de digitale buurtmarkt én digitaal dorpsplein waar mensen mensen ontdekken. Alles begint dichtbij huis. We worden nooit een engagement-machine, generieke classifieds-site, gewone tweedehands-marktplaats of anonieme massa-marktplaats. Mensen gaan vóór algoritmes; technologie ondersteunt mensen — vervangt ze niet.',
+    en: 'HomeCheff exists to make invisible human value visible in neighbourhoods — not to maximise attention or engagement. We are the digital neighbourhood marketplace and digital village square where people discover people. Everything starts close to home. We will never become an engagement machine, generic classifieds site, ordinary second-hand marketplace or anonymous mass marketplace. People come before algorithms; technology supports people — it does not replace them.',
   },
   sectionProblemTitle: { nl: 'Welk probleem lossen we op?', en: 'What problem are we solving?' },
   sectionProblemBody: {
@@ -39,8 +39,8 @@ export const constitutionPage: Record<string, Bi> = {
   },
   sectionNeverTitle: { nl: 'Wat worden we nooit?', en: 'What will we never become?' },
   sectionNeverBody: {
-    nl: 'Geen bezorg-app, dropshipping-hub, social feed, aandachts-economie of platform dat engagement boven welzijn stelt. Zie /wat-we-niet-zijn en het Manifest.',
-    en: 'Not a delivery app, dropshipping hub, social feed, attention economy or platform that puts engagement above wellbeing. See /wat-we-niet-zijn and the Manifest.',
+    nl: 'Geen bezorg-app, dropshipping-hub, generieke classifieds, gewone tweedehands-doorverkoop, social feed, aandachts-economie of platform dat engagement boven welzijn stelt. Zie /wat-we-niet-zijn en het Manifest.',
+    en: 'Not a delivery app, dropshipping hub, generic classifieds, ordinary second-hand resale, social feed, attention economy or platform that puts engagement above wellbeing. See /wat-we-niet-zijn and the Manifest.',
   },
   sectionPeopleFirstTitle: { nl: 'Mensen vóór algoritmes', en: 'People before algorithms' },
   sectionPeopleFirstBody: {

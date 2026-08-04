@@ -156,13 +156,13 @@ export const comparisonVsMarktplaats: Record<string, Bi> = {
   },
   title: { nl: 'HomeCheff vs Marktplaats', en: 'HomeCheff vs Marktplaats' },
   intro: {
-    nl: 'Marktplaats is een brede Nederlandse advertentiesite voor vrijwel alles — nieuw, tweedehands, auto’s, huis, diensten. HomeCheff is bewust smaller: persoonlijk vakmanschap, lokale makers, buurtafspraken, checkout waar gewenst, en geen anonieme massahandel.',
-    en: 'Marktplaats is a broad Dutch classifieds site for almost anything — new, second-hand, cars, housing, services. HomeCheff is deliberately narrower: personal craftsmanship, local makers, neighbourhood arrangements, checkout when desired, and no anonymous mass trade.',
+    nl: 'Marktplaats is een brede Nederlandse advertentiesite voor vrijwel alles — nieuw, tweedehands, auto’s, huis, diensten. HomeCheff is de digitale buurtmarkt: community- en creator-first. Persoonlijk vakmanschap, lokale makers, buurtafspraken — geen generieke classifieds, geen gewone tweedehands-doorverkoop.',
+    en: 'Marktplaats is a broad Dutch classifieds site for almost anything — new, second-hand, cars, housing, services. HomeCheff is the digital neighbourhood marketplace: community- and creator-first. Personal craftsmanship, local makers, neighbourhood arrangements — not generic classifieds, not ordinary second-hand resale.',
   },
   sectionPurposeTitle: { nl: 'Waarvoor is elk platform bedoeld?', en: 'What is each platform for?' },
   sectionPurposeBody: {
-    nl: 'Marktplaats is een algemene marktplaats voor advertenties en snelle lokale deals in vele categorieën. HomeCheff is een buurtplatform voor wat mensen zelf maken, koken, kweken, ontwerpen of aanbieden — met communityrichtlijnen tegen dropshipping en massaproductie.',
-    en: 'Marktplaats is a general marketplace for ads and quick local deals across many categories. HomeCheff is a neighbourhood platform for what people make, cook, grow, design or offer — with community guidelines against dropshipping and mass production.',
+    nl: 'Marktplaats is een algemene marktplaats voor advertenties en snelle lokale deals in vele categorieën. HomeCheff is de digitale buurtmarkt voor wat mensen zelf maken, koken, kweken, ontwerpen of ambachtelijk transformeren — met communityrichtlijnen tegen dropshipping, massaproductie en gewone doorverkoop.',
+    en: 'Marktplaats is a general marketplace for ads and quick local deals across many categories. HomeCheff is the digital neighbourhood marketplace for what people make, cook, grow, design or craft-transform — with community guidelines against dropshipping, mass production and ordinary resale.',
   },
   sectionOverlapTitle: { nl: 'Waar overlappen ze?', en: 'Where do they overlap?' },
   sectionOverlapBody: {
@@ -191,7 +191,7 @@ export const comparisonVsMarktplaats: Record<string, Bi> = {
   cellHandmadeCompetitor: { nl: 'Mogelijk', en: 'Possible' },
   cellHandmadeHomeCheff: { nl: 'Ja — met maker-regels', en: 'Yes — with maker rules' },
   cellSecondHandCompetitor: { nl: 'Kernfocus', en: 'Core focus' },
-  cellSecondHandHomeCheff: { nl: 'Niet primair', en: 'Not primary' },
+  cellSecondHandHomeCheff: { nl: 'Alleen bij ambachtelijke transformatie', en: 'Only with craft transformation' },
   cellServicesCompetitor: { nl: 'Advertentie-categorie', en: 'Ad category' },
   cellServicesHomeCheff: { nl: 'Ja — diensten & kennis', en: 'Yes — services & knowledge' },
   cellNeighbourHelpCompetitor: { nl: 'Beperkt', en: 'Limited' },
