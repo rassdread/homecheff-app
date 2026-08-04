@@ -1,0 +1,44 @@
+{
+  "generatedAt": "2026-08-04T03:07:51.728Z",
+  "sitemap": {
+    "total": 139,
+    "foodish": 39,
+    "craftish": 53,
+    "sampleCraft": [
+      "https://homecheff.eu/gemeenschap/tuin",
+      "https://homecheff.eu/docs/barter",
+      "https://homecheff.eu/tuinoogst-en-groente-uit-de-buurt",
+      "https://homecheff.eu/en/home-grown-garden-produce-nearby",
+      "https://homecheff.eu/en/handmade-products-from-neighbours",
+      "https://homecheff.eu/en/local-repairs-and-neighbourhood-jobs",
+      "https://homecheff.eu/en/neighbour-help-and-local-requests",
+      "https://homecheff.eu/en/wanted-requests-in-your-neighbourhood",
+      "https://homecheff.eu/ruilen-en-barteren-in-de-buurt",
+      "https://homecheff.eu/en/barter-and-exchange-with-neighbours",
+      "https://homecheff.eu/alternatief-voor-uber-eats",
+      "https://homecheff.eu/en/alternative-to-uber-eats"
+    ]
+  },
+  "seoDefs": 34,
+  "ssrIdentity": {
+    "lang": "en",
+    "identity": "Digital neighbourhood marketplace",
+    "h1": "nearby cook, grow, make and help",
+    "definition": "HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harvests, handmade work and neighbourly help. Search, offer, ask, buy, sell or trade \u2014 nearby first."
+  },
+  "platform": "HomeCheff is the digital neighbourhood marketplace where people nearby cook, grow, make, repair, design, teach, help, trade and offer personal work.",
+  "sameAs": [
+    "https://homecheff.eu",
+    "https://homecheff.nl",
+    "https://www.kvk.nl/zoeken/?q=80532829"
+  ],
+  "knowsAboutCount": 19,
+  "jsonLdTypes": [
+    "Organization",
+    "Organization",
+    "WebSite"
+  ],
+  "llmsPreview": "# HomeCheff\n\n> HomeCheff is the digital neighbourhood marketplace where people nearby cook, grow, make, repair, design, teach, help, trade and offer personal work.\n\n## What HomeCheff is\n\nHomeCheff (https://homecheff.eu) is a neighbourhood-f",
+  "aiPreview": "# HomeCheff \u2014 AI agent brief\n\nplatform: HomeCheff\nurl: https://homecheff.eu\ntype: digital_neighbourhood_marketplace\nidentity: Digital neighbourhood marketplace for personal craftsmanship and local opp",
+  "commitA": "fce59d1642f43bea8c8fda8329b0391f7ed4947c"
+}
