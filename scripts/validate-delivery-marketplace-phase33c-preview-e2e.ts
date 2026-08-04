@@ -437,19 +437,19 @@ async function main() {
     for (const flow of [autoResult, manualResult]) {
       assert.ok(flow.orderId, `${flow.label} order missing — webhook may have failed: ${flow.webhookTail}`);
       assert.ok(flow.deliveryOrder, `${flow.label} DeliveryOrder missing`);
-      assert.equal(flow.deliveryOrder!.deliveryProfileId, flow.label === 'AUTO_CONFIRM' ? auto!.id : manual!.id);
+      assert.equal(
+        flow.deliveryOrder!.deliveryProfileId,
+        flow.label === 'AUTO_CONFIRM' ? auto!.id : manual!.id
+      );
       assert.equal(flow.deliveryOrder!.quotedFeeCents, 1000);
       assert.equal(flow.deliveryOrder!.pricingSource, 'PROVIDER');
       assert.equal(flow.deliveryOrder!.pricingFormulaVersion, 'provider-v1');
       assert.equal(
         flow.deliveryOrder!.status,
-        flow.label === 'AUTO_CONFIRM' ? 'ACCEPTED' : 'ACCEPTED'
+        flow.label === 'AUTO_CONFIRM' ? 'ACCEPTED' : 'PENDING'
       );
-      // MANUAL accepted before checkout → ACCEPTED if mode AUTO path; for MANUAL after accept, webhook uses deliveryAcceptanceMode MANUAL_CONFIRM → PENDING unless AUTO
     }
 
-    // Fix MANUAL expected status: acceptance mode MANUAL_CONFIRM → PENDING unless we set AUTO
-    // Re-read: webhook sets ACCEPTED only when mode === 'AUTO_CONFIRM'
     assert.equal(autoResult.deliveryOrder!.status, 'ACCEPTED');
     assert.equal(manualResult.deliveryOrder!.status, 'PENDING');
     assert.equal(autoResult.calendar?.earningsCents, 880);
