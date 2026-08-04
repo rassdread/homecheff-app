@@ -1056,7 +1056,13 @@ export async function POST(req: NextRequest) {
               ? JSON.parse(session.metadata.coordinates) 
               : null;
 
-            if (coordinates?.lat && coordinates?.lng) {
+            // Named-provider + provider-priced orders must create DeliveryOrder even when
+            // buyer/seller geo is incomplete (geo is only required for pool matching).
+            const namedSelectionBootstrap =
+              metadata.namedProviderSelection === 'true' &&
+              !!metadata.deliveryProfileId?.trim();
+
+            if (coordinates?.lat && coordinates?.lng || namedSelectionBootstrap) {
               // Find all available deliverers within range
               const availableDeliverers = await prisma.deliveryProfile.findMany({
                 where: {
@@ -1109,7 +1115,7 @@ export async function POST(req: NextRequest) {
                 : null;
               const sellerCoords = resolveSellerCoords(firstProduct?.seller);
 
-              if (sellerCoords) {
+              if (sellerCoords || namedSelectionBootstrap) {
                 const pricingSourceMeta = metadata.deliveryPricingSource;
                 const flags = getDeliveryAlignmentFlags();
                 const isProviderPriced =
@@ -1138,7 +1144,7 @@ export async function POST(req: NextRequest) {
                   quoteLockedAt?: Date;
                 } = {
                   orderId: createdOrder.id,
-                  productId: firstProduct.id,
+                  productId: firstProduct?.id || items[0]?.productId,
                   status: 'PENDING',
                   deliveryAddress: address || '',
                   deliveryFee: deliveryFeeCents || 200,
@@ -1264,6 +1270,9 @@ export async function POST(req: NextRequest) {
                   if (namedSelection && deliveryOrderData.deliveryProfileId) {
                     return deliverer.id === deliveryOrderData.deliveryProfileId;
                   }
+                  if (!sellerCoords || !coordinates?.lat || !coordinates?.lng) {
+                    return false;
+                  }
                   const position = resolveDelivererPosition({
                     gpsTrackingEnabled: deliverer.gpsTrackingEnabled,
                     isOnline: deliverer.isOnline,
@@ -1302,12 +1311,15 @@ export async function POST(req: NextRequest) {
                     user: deliverer.user,
                   });
                   if (!position) continue;
-                  const distanceToBuyer = calculateDistance(
-                    position.lat,
-                    position.lng,
-                    coordinates.lat,
-                    coordinates.lng
-                  );
+                  const distanceToBuyer =
+                    coordinates?.lat != null && coordinates?.lng != null
+                      ? calculateDistance(
+                          position.lat,
+                          position.lng,
+                          coordinates.lat,
+                          coordinates.lng
+                        )
+                      : 0;
                   await NotificationService.sendDeliveryOrderAvailableNotification(
                     deliverer.user.id,
                     deliveryOrder.id,
@@ -1320,7 +1332,7 @@ export async function POST(req: NextRequest) {
                 }
               }
             } else {
-              console.warn('⚠️ No coordinates available for deliverer matching');
+              console.warn('⚠️ No coordinates available for deliverer matching and no named-provider bootstrap');
             }
           } catch (delivererError) {
             console.error('Error notifying deliverers:', delivererError);
