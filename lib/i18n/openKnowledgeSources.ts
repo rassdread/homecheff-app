@@ -673,18 +673,23 @@ export const openKnowledgeTrust = {
     en: 'Trust & transparency | HomeCheff',
   },
   metaDescription: {
-    nl: 'Moderatie-, ranking-, AI-, safety-, privacy- en marketplace-filosofie — gekoppeld aan het Manifest.',
-    en: 'Moderation, ranking, AI, safety, privacy and marketplace philosophy — linked to the Manifest.',
+    nl: 'Hoe HomeCheff vertrouwen opbouwt: echte mensen, vakmanschap, buurten, moderatie, safety, privacy en eerlijke marketplace-regels — zonder 100%-veiligheidsbeloftes.',
+    en: 'How HomeCheff builds trust: real people, craftsmanship, neighbourhoods, moderation, safety, privacy and honest marketplace rules — without promising 100% safety.',
   },
   title: { nl: 'Trust & transparantie', en: 'Trust & transparency' },
   intro: {
-    nl: 'Trust ontstaat uit transparantie, niet uit marketing. Deze pagina vat publieke filosofie samen; operationele details staan in /docs/trust.',
-    en: 'Trust emerges from transparency, not marketing. This page summarises public philosophy; operational details are in /docs/trust.',
+    nl: 'Trust ontstaat uit echte mensen, echt vakmanschap en echte buurten — plus transparante regels. Geen marketingclaims. Deze pagina vat publieke filosofie samen; operationele details staan in /docs/trust.',
+    en: 'Trust comes from real people, real craftsmanship and real neighbourhoods — plus transparent rules. Not marketing claims. This page summarises public philosophy; operational details are in /docs/trust.',
+  },
+  sectionIdentityTitle: { nl: 'Identiteit & verantwoordelijkheid', en: 'Identity & accountability' },
+  sectionIdentityBody: {
+    nl: 'HomeCheff is de digitale buurtmarkt (merk). Juridisch operator: Arrias Beheer B.V., Vlaardingen (KvK 80532829). Support: support@homecheff.eu · Pers: press@homecheff.eu. Geen verzonnen straatadres of impactcijfers.',
+    en: 'HomeCheff is the digital neighbourhood marketplace (brand). Legal operator: Arrias Beheer B.V., Vlaardingen (KvK 80532829). Support: support@homecheff.eu · Press: press@homecheff.eu. No invented street address or impact metrics.',
   },
   sectionModerationTitle: { nl: 'Moderatiefilosofie', en: 'Moderation philosophy' },
   sectionModerationBody: {
-    nl: 'Proportioneel, niet destructief waar mogelijk. Suspensie blokkeert mutaties; admins loggen acties. CSAM/nul tolerantie — zie /safety.',
-    en: 'Proportionate, non-destructive where possible. Suspension blocks mutations; admins log actions. CSAM/zero tolerance — see /safety.',
+    nl: 'Proportioneel, niet destructief waar mogelijk. Suspensie blokkeert mutaties; admins loggen acties. CSAM/nul tolerantie — zie /safety. Melden en handhaving horen bij communityvertrouwen.',
+    en: 'Proportionate, non-destructive where possible. Suspension blocks mutations; admins log actions. CSAM/zero tolerance — see /safety. Reporting and enforcement belong to community trust.',
   },
   sectionRankingTitle: { nl: 'Rankingfilosofie', en: 'Ranking philosophy' },
   sectionRankingBody: {
@@ -708,13 +713,20 @@ export const openKnowledgeTrust = {
   },
   sectionMarketplaceTitle: { nl: 'Marketplace-filosofie', en: 'Marketplace philosophy' },
   sectionMarketplaceBody: {
-    nl: 'Mensen vóór producten. Geen dropshipping/anonieme massa. Eerlijke fees — /docs/marketplace.',
-    en: 'People before products. No dropshipping/anonymous mass. Honest fees — /docs/marketplace.',
+    nl: 'Mensen vóór producten. Echt vakmanschap en zichtbare makers. Geen dropshipping, geen anonieme massa, geen gewone tweedehands-doorverkoop. Eerlijke fees — /docs/marketplace.',
+    en: 'People before products. Real craftsmanship and visible makers. No dropshipping, no anonymous mass, no ordinary second-hand resale. Honest fees — /docs/marketplace.',
+  },
+  sectionCommunityTitle: { nl: 'Communityprincipes', en: 'Community principles' },
+  sectionCommunityBody: {
+    nl: 'Respect, eerlijk aanbod, zichtbare identiteit waar relevant, en regels die buurten beschermen — zie /community-guidelines en /principles.',
+    en: 'Respect, honest offers, visible identity where relevant, and rules that protect neighbourhoods — see /community-guidelines and /principles.',
   },
   linkManifest: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' },
   linkDocsTrust: { nl: 'Trust (operations)', en: 'Trust (operations)' },
   linkDocsRanking: { nl: 'Ranking docs', en: 'Ranking docs' },
   linkDocsPrivacy: { nl: 'Privacy docs', en: 'Privacy docs' },
+  linkSafety: { nl: 'Safety standards', en: 'Safety standards' },
+  linkGuidelines: { nl: 'Communityrichtlijnen', en: 'Community guidelines' },
   faqBlockTitle: { nl: 'Veelgestelde vragen', en: 'Frequently asked questions' },
   faq1Q: { nl: 'Belooft HomeCheff 100% veiligheid?', en: 'Does HomeCheff promise 100% safety?' },
   faq1A: {
@@ -722,11 +734,11 @@ export const openKnowledgeTrust = {
     en: 'No. We offer tools, reporting and enforcement — users remain co-responsible.',
   },
   faq2Q: { nl: 'Waar is operationele trust gedocumenteerd?', en: 'Where is operational trust documented?' },
-  faq2A: { nl: '/docs/trust', en: '/docs/trust' },
+  faq2A: { nl: '/docs/trust — plus /safety, /privacy en /community-guidelines.', en: '/docs/trust — plus /safety, /privacy and /community-guidelines.' },
   faq3Q: { nl: 'Hoe sluit dit aan op het Manifest?', en: 'How does this align with the Manifest?' },
-  faq3A: { nl: 'Alle filosofie erft van /manifest — technologie met geweten.', en: 'All philosophy inherits from /manifest — technology with a conscience.' },
+  faq3A: { nl: 'Alle filosofie erft van /manifest — technologie met geweten, echte mensen en lokale kansen.', en: 'All philosophy inherits from /manifest — technology with a conscience, real people and local opportunity.' },
   lastReviewedLabel: { nl: 'Laatst gecontroleerd', en: 'Last reviewed' },
-  lastReviewedDate: { nl: LAST_REVIEWED_NL, en: LAST_REVIEWED_EN },
+  lastReviewedDate: { nl: '4 augustus 2026', en: '4 August 2026' },
 };
 
 export const openKnowledgeChangelog = {
@@ -739,6 +751,11 @@ export const openKnowledgeChangelog = {
   intro: {
     nl: 'Belangrijke wijzigingen aan product, documentatie en trust-laag. Geen hype — alleen wat shipped is of expliciet breaking is.',
     en: 'Important changes to product, documentation and trust layer. No hype — only what shipped or is explicitly breaking.',
+  },
+  entry202608Title: { nl: '2026-08 — Authority & trust (Phase 2.2)', en: '2026-08 — Authority & trust (Phase 2.2)' },
+  entry202608Body: {
+    nl: 'Entity-graph SSOT, Organization policy-URL’s (manifest, guidelines, trust, privacy), press ContactPoint, versterkte /trust-copy, lokale NAP-readiness zonder verzonnen adres, off-page readiness docs.',
+    en: 'Entity-graph SSOT, Organization policy URLs (manifest, guidelines, trust, privacy), press ContactPoint, strengthened /trust copy, local NAP readiness without invented address, off-page readiness docs.',
   },
   entry202607Title: { nl: '2026-07 — Open Knowledge (Phase 13V)', en: '2026-07 — Open Knowledge (Phase 13V)' },
   entry202607Body: {
@@ -827,23 +844,28 @@ export const openKnowledgePrinciples = {
   },
   p4Title: { nl: 'Lokale gemeenschappen', en: 'Local communities' },
   p4Body: {
-    nl: 'Buurt vóór anonieme schaal.',
-    en: 'Neighbourhood before anonymous scale.',
+    nl: 'Alles begint dichtbij huis. Buurt vóór anonieme schaal — echte buurten, geen verzonnen “internationale marktplaats”.',
+    en: 'Everything starts close to home. Neighbourhood before anonymous scale — real neighbourhoods, not an invented “international marketplace”.',
   },
   p5Title: { nl: 'Persoonlijk vakmanschap', en: 'Personal craftsmanship' },
   p5Body: {
-    nl: 'Makers met gezicht en verhaal.',
-    en: 'Makers with a face and story.',
+    nl: 'Echte makers met gezicht en verhaal — niet anonieme cataloguscommerce.',
+    en: 'Real makers with a face and story — not anonymous catalogue commerce.',
   },
   p6Title: { nl: 'Waarheid vóór marketing', en: 'Truth before marketing' },
   p6Body: {
-    nl: 'Phase 13O boundaries — copy volgt product.',
-    en: 'Phase 13O boundaries — copy follows product.',
+    nl: 'Phase 13O boundaries — copy volgt product. Geen verzonnen metrics of partnerships.',
+    en: 'Phase 13O boundaries — copy follows product. No invented metrics or partnerships.',
   },
   p7Title: { nl: 'Transparantie vóór manipulatie', en: 'Transparency over manipulation' },
   p7Body: {
-    nl: 'Open docs, changelog, roadmap — geen verborgen AI-tekst.',
-    en: 'Open docs, changelog, roadmap — no hidden AI text.',
+    nl: 'Open docs, changelog, roadmap, trust en safety — geen verborgen AI-tekst.',
+    en: 'Open docs, changelog, roadmap, trust and safety — no hidden AI text.',
+  },
+  p8Title: { nl: 'Community & veiligheid', en: 'Community & safety' },
+  p8Body: {
+    nl: 'Richtlijnen, melden en handhaving beschermen echte communities — zonder 100%-veiligheidsbeloftes.',
+    en: 'Guidelines, reporting and enforcement protect real communities — without promising 100% safety.',
   },
   linkManifest: { nl: 'Lees het volledige Manifest', en: 'Read the full Manifest' },
   linkConstitution: { nl: 'HomeCheff Constitution', en: 'HomeCheff Constitution' },

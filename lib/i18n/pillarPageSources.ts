@@ -58,13 +58,13 @@ const platformDefinitionPage: Record<string, Bi> = {
     en: 'What is HomeCheff?',
   },
   intro: {
-    nl: 'HomeCheff is de digitale buurtmarkt voor persoonlijk vakmanschap en lokale kansen. Alles begint dichtbij huis: afstand bepaalt prioriteit, niet mogelijkheid. Niet een generieke classifieds-site. Niet een gewone tweedehands-marktplaats. Niet een bezorgketen. Een buurt waar je ontdekt wat echte mensen maken, koken, kweken, ontwerpen, repareren en aanbieden.',
-    en: 'HomeCheff is the digital neighbourhood marketplace for personal craftsmanship and local opportunity. Everything starts close to home: distance determines priority, not possibility. Not a generic classifieds site. Not an ordinary second-hand marketplace. Not a delivery chain. A neighbourhood where you discover what real people make, cook, grow, design, repair and offer.',
+    nl: 'HomeCheff is de digitale buurtmarkt voor persoonlijk vakmanschap en lokale kansen. Deze pagina legt uit wat dat betekent in de praktijk: wie eraan meedoet, waarom de maker zichtbaar is, welke categorieën horen, en wat bewust buiten de deur blijft. Alles begint dichtbij huis: afstand bepaalt prioriteit, niet mogelijkheid. Niet een generieke classifieds-site. Niet een gewone tweedehands-marktplaats. Niet een bezorgketen.',
+    en: 'HomeCheff is the digital neighbourhood marketplace for personal craftsmanship and local opportunity. This page explains what that means in practice: who takes part, why the maker is visible, which categories belong, and what stays deliberately out. Everything starts close to home: distance determines priority, not possibility. Not a generic classifieds site. Not an ordinary second-hand marketplace. Not a delivery chain.',
   },
   sectionWhoTitle: { nl: 'Voor wie is HomeCheff?', en: 'Who is HomeCheff for?' },
   sectionWhoBody: {
-    nl: 'Voor makers, buren, vakmensen en kleine ondernemers die iets persoonlijks willen delen — en voor mensen die lokaal willen ontdekken, afspreken, ruilen of veilig betalen. Of je nu kookt, kweekt, repareert, lesgeeft of helpt: dichtbij eerst; uniek vakmanschap mag van nature verder reiken.',
-    en: 'For makers, neighbours, craftspeople and small entrepreneurs who want to share something personal — and for people who want to discover, arrange, barter or pay safely nearby. Whether you cook, grow, repair, teach or help: nearby first; unique craft may naturally reach further.',
+    nl: 'Voor makers, buren, vakmensen en kleine ondernemers die iets persoonlijks willen delen — en voor mensen die lokaal willen ontdekken, afspreken, ruilen of veilig betalen. Praktisch: begin met één duidelijk aanbod of één Gezocht-oproep in je buurt. Of je nu kookt, kweekt, repareert, lesgeeft of helpt: dichtbij eerst; uniek vakmanschap mag van nature verder reiken.',
+    en: 'For makers, neighbours, craftspeople and small entrepreneurs who want to share something personal — and for people who want to discover, arrange, barter or pay safely nearby. Practically: start with one clear offer or one Wanted request in your neighbourhood. Whether you cook, grow, repair, teach or help: nearby first; unique craft may naturally reach further.',
   },
   sectionPersonTitle: { nl: 'De persoon achter het aanbod', en: 'The person behind the offer' },
   sectionPersonBody: {
@@ -101,8 +101,8 @@ const earnLocallyPage: Record<string, Bi> = {
   },
   title: { nl: 'Lokaal verdienen met wat jij kunt', en: 'Earn locally with what you can do' },
   intro: {
-    nl: 'HomeCheff helpt gewone mensen extra inkomen opbouwen met persoonlijk vakmanschap — niet met dropshipping of anonieme import. Start klein, bouw vertrouwen op in je buurt en groei op je eigen tempo.',
-    en: 'HomeCheff helps ordinary people build extra income through personal craftsmanship — not dropshipping or anonymous imports. Start small, build trust in your neighbourhood and grow at your own pace.',
+    nl: 'Deze gids legt uit hoe je lokaal kunt verdienen met wat je zelf maakt of aanbiedt — zonder dropshipping of valse inkomensbeloftes. Je leest welke paden bestaan, hoe fees werken, en hoe je klein start in je buurt.',
+    en: 'This guide explains how to earn locally with what you make or offer yourself — without dropshipping or false income promises. You will learn which paths exist, how fees work, and how to start small in your neighbourhood.',
   },
   sectionHonestTitle: { nl: 'Eerlijk over verwachtingen', en: 'Honest about expectations' },
   sectionHonestBody: {
@@ -190,8 +190,8 @@ const personalCraftPage: Record<string, Bi> = {
   },
   title: { nl: 'Persoonlijk vakmanschap', en: 'Personal craftsmanship' },
   intro: {
-    nl: 'Vakmanschap is wat mensen met eigen handen, hoofd en hart maken — thuis, in de tuin, in het atelier of op straat. HomeCheff is het digitale thuis daarvan.',
-    en: 'Craft is what people make with their own hands, mind and heart — at home, in the garden, in the studio or on the street. HomeCheff is its digital home.',
+    nl: 'Vakmanschap is wat mensen met eigen handen, hoofd en hart maken — thuis, in de tuin, in het atelier of op straat. Deze pagina helpt je herkennen wat telt als persoonlijk maakwerk op HomeCheff, welke vormen passen, en waarom herkomst en verhaal ertoe doen.',
+    en: 'Craft is what people make with their own hands, mind and heart — at home, in the garden, in the studio or on the street. This page helps you recognise what counts as personal making on HomeCheff, which forms fit, and why origin and story matter.',
   },
   sectionCraftTitle: { nl: 'Wat telt als vakmanschap?', en: 'What counts as craftsmanship?' },
   sectionCraftBody: {

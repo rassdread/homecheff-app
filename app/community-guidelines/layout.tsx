@@ -22,8 +22,15 @@ export async function generateMetadata(): Promise<Metadata> {
   if (lang === 'en') {
     return {
       title: 'Community Guidelines | HomeCheff',
-      description: 'Community guidelines for respectful, safe use of HomeCheff.',
-      openGraph: { title: 'Community Guidelines | HomeCheff', description: 'Community guidelines for HomeCheff.', type: 'website', url },
+      description:
+        'Community guidelines for respectful, safe use of HomeCheff — real people, real craftsmanship and real neighbourhoods on the digital neighbourhood marketplace.',
+      openGraph: {
+        title: 'Community Guidelines | HomeCheff',
+        description:
+          'Respectful community rules for HomeCheff makers and neighbours — honest offers, visible people, no dropshipping or ordinary second-hand resale.',
+        type: 'website',
+        url,
+      },
       alternates: { canonical: url, languages: seoHreflangLanguagesOnEu(path) },
       robots: { index: true, follow: true },
     };
@@ -31,8 +38,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: 'Communityrichtlijnen | HomeCheff',
-    description: 'Communityrichtlijnen voor respectvol en veilig gebruik van HomeCheff.',
-    openGraph: { title: 'Communityrichtlijnen | HomeCheff', description: 'Communityrichtlijnen voor HomeCheff.', type: 'website', url },
+    description:
+      'Communityrichtlijnen voor respectvol en veilig gebruik van HomeCheff — echte mensen, echt vakmanschap en echte buurten op de digitale buurtmarkt.',
+    openGraph: {
+      title: 'Communityrichtlijnen | HomeCheff',
+      description:
+        'Respectvolle communityregels voor makers en buren op HomeCheff — eerlijk aanbod, zichtbare mensen, geen dropshipping of gewone tweedehands-doorverkoop.',
+      type: 'website',
+      url,
+    },
     alternates: { canonical: url, languages: seoHreflangLanguagesOnEu(path) },
     robots: { index: true, follow: true },
   };

@@ -51,20 +51,23 @@ export const DOCS_HUB_BLOCKS: SeoLandingBlock[] = [
 
 export const TRUST_PAGE_BLOCKS: SeoLandingBlock[] = [
   { type: 'paragraph', bodyKey: 'intro' },
+  { type: 'section', titleKey: 'sectionIdentityTitle', bodyKey: 'sectionIdentityBody' },
   { type: 'section', titleKey: 'sectionModerationTitle', bodyKey: 'sectionModerationBody' },
   { type: 'section', titleKey: 'sectionRankingTitle', bodyKey: 'sectionRankingBody' },
   { type: 'section', titleKey: 'sectionAiTitle', bodyKey: 'sectionAiBody' },
   { type: 'section', titleKey: 'sectionSafetyTitle', bodyKey: 'sectionSafetyBody' },
   { type: 'section', titleKey: 'sectionPrivacyTitle', bodyKey: 'sectionPrivacyBody' },
   { type: 'section', titleKey: 'sectionMarketplaceTitle', bodyKey: 'sectionMarketplaceBody' },
+  { type: 'section', titleKey: 'sectionCommunityTitle', bodyKey: 'sectionCommunityBody' },
   {
     type: 'linkRow',
     links: [
       { href: '/manifest', labelKey: 'linkManifest' },
-      { href: '/constitution', labelKey: 'linkConstitution' },
       { href: '/docs/trust', labelKey: 'linkDocsTrust' },
       { href: '/docs/ranking', labelKey: 'linkDocsRanking' },
       { href: '/docs/privacy', labelKey: 'linkDocsPrivacy' },
+      { href: '/safety', labelKey: 'linkSafety' },
+      { href: '/community-guidelines', labelKey: 'linkGuidelines' },
     ],
   },
   {
@@ -81,6 +84,7 @@ export const TRUST_PAGE_BLOCKS: SeoLandingBlock[] = [
 
 export const CHANGELOG_PAGE_BLOCKS: SeoLandingBlock[] = [
   { type: 'paragraph', bodyKey: 'intro' },
+  { type: 'section', titleKey: 'entry202608Title', bodyKey: 'entry202608Body' },
   { type: 'section', titleKey: 'entry202607Title', bodyKey: 'entry202607Body' },
   { type: 'section', titleKey: 'entry202607bTitle', bodyKey: 'entry202607bBody' },
   { type: 'section', titleKey: 'entry202607cTitle', bodyKey: 'entry202607cBody' },
@@ -122,6 +126,7 @@ export const PRINCIPLES_PAGE_BLOCKS: SeoLandingBlock[] = [
   { type: 'section', titleKey: 'p5Title', bodyKey: 'p5Body' },
   { type: 'section', titleKey: 'p6Title', bodyKey: 'p6Body' },
   { type: 'section', titleKey: 'p7Title', bodyKey: 'p7Body' },
+  { type: 'section', titleKey: 'p8Title', bodyKey: 'p8Body' },
   {
     type: 'linkRow',
     links: [{ href: '/manifest', labelKey: 'linkManifest' }, { href: '/constitution', labelKey: 'linkConstitution' }],

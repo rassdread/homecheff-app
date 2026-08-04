@@ -1,9 +1,11 @@
 import { getPlatformDefinition, type PlatformLang } from './platform-definition';
+import { absoluteAuthorityPolicyUrls } from './authority-trust-signals';
 import {
   HOMECHEFF_BRAND_NAME,
   LEGAL_OPERATOR,
   ORGANIZATION_ALTERNATE_NAMES,
   ORGANIZATION_KNOWS_ABOUT,
+  PRESS_EMAIL,
   SUPPORT_EMAIL,
   VERIFIED_FOUNDER,
   VERIFIED_SAME_AS,
@@ -40,9 +42,11 @@ export function buildOrganizationJsonLd(
 ): Record<string, unknown> {
   const def = getPlatformDefinition(lang);
   const contactType = lang === 'en' ? 'Customer service' : 'Klantenservice';
+  const pressType = lang === 'en' ? 'Press' : 'Pers';
   const lang1 = lang === 'en' ? 'English' : 'Nederlands';
   const lang2 = lang === 'en' ? 'Dutch' : 'Engels';
   const countryName = lang === 'en' ? 'Netherlands' : 'Nederland';
+  const policies = absoluteAuthorityPolicyUrls(domain);
 
   return {
     '@context': 'https://schema.org',
@@ -68,12 +72,20 @@ export function buildOrganizationJsonLd(
       addressLocality: LEGAL_OPERATOR.locality,
       addressCountry: LEGAL_OPERATOR.addressCountry,
     },
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType,
-      email: SUPPORT_EMAIL,
-      availableLanguage: [lang1, lang2],
-    },
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        contactType,
+        email: SUPPORT_EMAIL,
+        availableLanguage: [lang1, lang2],
+      },
+      {
+        '@type': 'ContactPoint',
+        contactType: pressType,
+        email: PRESS_EMAIL,
+        availableLanguage: [lang1, lang2],
+      },
+    ],
     parentOrganization: {
       '@type': 'Organization',
       '@id': legalOperatorEntityId(domain),
@@ -93,6 +105,13 @@ export function buildOrganizationJsonLd(
     knowsAbout: ORGANIZATION_KNOWS_ABOUT[lang],
     areaServed: { '@type': 'Country', name: countryName },
     copyrightHolder: { '@id': organizationEntityId(domain) },
+    // E-E-A-T / trust — only real public policy URLs
+    publishingPrinciples: policies.publishingPrinciples,
+    ethicsPolicy: policies.ethicsPolicy,
+    diversityPolicy: policies.diversityPolicy,
+    correctionsPolicy: policies.correctionsPolicy,
+    privacyPolicy: policies.privacyPolicy,
+    termsOfService: policies.termsOfService,
   };
 }
 
@@ -115,7 +134,13 @@ export function buildLegalOperatorJsonLd(domain: string): Record<string, unknown
         name: 'KvK',
         value: LEGAL_OPERATOR.kvk,
       },
+      {
+        '@type': 'PropertyValue',
+        name: 'VAT',
+        value: LEGAL_OPERATOR.vat,
+      },
     ],
+    url: 'https://homecheff.eu/over-ons',
   };
 }
 

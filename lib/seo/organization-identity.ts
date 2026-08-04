@@ -64,6 +64,12 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
     'circulaire economie',
     'technologie met geweten',
     'digitaal dorpsplein',
+    'platformvertrouwen',
+    'moderatie',
+    'veiligheid',
+    'privacy',
+    'communityrichtlijnen',
+    'E-E-A-T',
   ],
   en: [
     'digital neighbourhood marketplace',
@@ -93,6 +99,12 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
     'circular economy',
     'technology with conscience',
     'digital village square',
+    'platform trust',
+    'moderation',
+    'safety',
+    'privacy',
+    'community guidelines',
+    'E-E-A-T',
   ],
 };
 

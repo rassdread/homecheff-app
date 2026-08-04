@@ -3,7 +3,8 @@ import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 import { SAFETY_STANDARDS_URL } from '@/lib/legal/policy-urls';
 
 const TITLE = 'Safety Standards | HomeCheff';
-const DESCRIPTION = 'HomeCheff safety standards and child safety policy.';
+const DESCRIPTION =
+  'HomeCheff safety standards: child safety, reporting, and community protection for a digital neighbourhood marketplace of real people — without promising 100% safety.';
 
 export const metadata: Metadata = {
   title: TITLE,
