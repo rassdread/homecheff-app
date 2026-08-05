@@ -16,6 +16,8 @@ export type OffPageTrack =
   | 'linkedin_company'
   | 'instagram'
   | 'facebook'
+  | 'youtube'
+  | 'tiktok'
   | 'wikipedia'
   | 'wikidata'
   | 'brand_mentions'
@@ -69,6 +71,24 @@ export const OFF_PAGE_READINESS: Array<{
       'Official Facebook Page only when operator publishes it',
       'Same NAP honesty — no fabricated street address',
       'Do not add sameAs until URL is verified',
+    ],
+  },
+  {
+    track: 'youtube',
+    status: 'not_started',
+    checklist: [
+      'Optional official YouTube channel with HomeCheff spelling',
+      'No purchased views or fabricated subscriber counts',
+      'Add sameAs only after public confirmation',
+    ],
+  },
+  {
+    track: 'tiktok',
+    status: 'not_started',
+    checklist: [
+      'Optional official TikTok — authentic craftsmanship/neighbourhood content only',
+      'No fake engagement',
+      'Pending until URL verified',
     ],
   },
   {

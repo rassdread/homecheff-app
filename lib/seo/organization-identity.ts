@@ -142,6 +142,8 @@ export const PENDING_SAME_AS_VERIFICATION = [
   'Official LinkedIn company page URL',
   'Official Instagram profile URL',
   'Official Facebook Page URL',
+  'Official YouTube channel URL (if published)',
+  'Official TikTok profile URL (if published)',
   'Wikidata item (if created — requires independent sources)',
   'Wikipedia article (blocked until notability — do not create promotional stub)',
   'Municipality of Vlaardingen partnership page (if published)',
