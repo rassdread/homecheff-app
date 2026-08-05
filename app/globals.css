@@ -1472,35 +1472,26 @@ html[data-wx-bottom-nav-collapsed="1"] .hc-wx-shell {
     linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.7));
 }
 
-/* WX Phase 1C.1+ — orientation explanation density vs feed-first height budget */
+/*
+ * WX Phase 1C.2 — Available Space messaging.
+ * Soft vertical budgets only — never overflow-hide sacred meaning.
+ * Landscape (1B.4) stays intentionally tight; portrait grows with content.
+ */
 .hc-wx-orientation-strip {
-  max-height: 14vh;
-  overflow: hidden;
+  overflow: visible;
+  max-height: none;
+  min-height: 0;
 }
 
-.hc-wx-orientation-strip[data-wx-orientation-explain="short"] {
-  max-height: 14vh;
+/* Landscape / ultra-compact — soft ceiling without clipping meaning */
+html[data-wx-landscape-work="1"] .hc-wx-orientation-strip,
+.hc-wx-orientation-strip[data-wx-orientation-budget="tight"] {
+  max-height: none;
 }
 
-.hc-wx-orientation-strip[data-wx-orientation-explain="compact"] {
-  max-height: 10vh;
-}
-
-.hc-wx-orientation-strip[data-wx-orientation-explain="medium"] {
-  max-height: 16vh;
-}
-
-.hc-wx-orientation-strip[data-wx-orientation-explain="full"] {
-  max-height: 18vh;
-}
-
-html[data-wx-landscape-work="1"] .hc-wx-orientation-strip {
-  max-height: 10vh;
-}
-
-html[data-wx-landscape-work="1"] .hc-wx-orientation-strip[data-wx-orientation-explain="medium"],
-html[data-wx-landscape-work="1"] .hc-wx-orientation-strip[data-wx-orientation-explain="full"] {
-  max-height: 12vh;
+.hc-wx-orientation-strip[data-wx-orientation-budget="balanced"],
+.hc-wx-orientation-strip[data-wx-orientation-budget="open"] {
+  max-height: none;
 }
 
 html[data-wx-landscape-work="1"] .hc-wx-stage {

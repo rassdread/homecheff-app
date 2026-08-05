@@ -208,10 +208,12 @@ export {
   ORIENTATION_EXPLANATION,
   resolveOrientationExplanation,
   isSameOrientationExplanationPlan,
+  toLegacyOrientationExplanationLevel,
 } from "./resolve-orientation-explanation";
 
 export type {
   OrientationExplanationLevel,
+  LegacyOrientationExplanationLevel,
   OrientationExplanationPlan,
   OrientationExplanationInput,
 } from "./resolve-orientation-explanation";

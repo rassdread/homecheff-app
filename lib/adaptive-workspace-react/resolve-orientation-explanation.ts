@@ -1,15 +1,15 @@
 /**
- * WX Phase 1C.1+ — Orientation explanation density (presentation only).
+ * WX Phase 1C.2 — Available Space messaging (presentation only).
  *
  * Pure · deterministic · AvailableSpace-driven (usable width × height).
  * Does NOT extend Mode / Capability / presentation planners.
  * Does NOT own Create, navigation, GeoFeed, or Host.
  *
- * Levels map to first-visitor understanding budgets:
- * - short   → phone portrait
- * - compact → phone landscape (work posture)
- * - medium  → tablet
- * - full    → laptop / desktop / ultrawide
+ * Presentation levels change wording density — never meaning.
+ * Every level keeps the sacred HomeCheff message complete:
+ * what it is · what to discover · what to offer · local · first action.
+ *
+ * Landscape work posture (WX 1B.4) stays intentionally compact.
  */
 
 import {
@@ -18,13 +18,26 @@ import {
 } from "./resolve-feed-workspace-visible-layout";
 
 export const ORIENTATION_EXPLANATION = {
-  phase: "1c.1",
-  contractId: "wx-orientation-explanation-v1",
+  phase: "1c.2",
+  contractId: "wx-orientation-explanation-v2",
   neverInspectUserAgent: true,
   presentationOnly: true,
+  meaningAlwaysComplete: true,
 } as const;
 
+/** Five presentation densities — not device categories. */
 export type OrientationExplanationLevel =
+  | "ultra_compact"
+  | "compact_complete"
+  | "standard_complete"
+  | "expanded"
+  | "rich";
+
+/**
+ * @deprecated Legacy 1C.1 names — mapped for probes/docs only.
+ * Prefer OrientationExplanationLevel.
+ */
+export type LegacyOrientationExplanationLevel =
   | "short"
   | "compact"
   | "medium"
@@ -32,14 +45,23 @@ export type OrientationExplanationLevel =
 
 export type OrientationExplanationPlan = {
   level: OrientationExplanationLevel;
-  /** Show identity one-liner / body copy. */
+  /** Always true — meaning must stay complete. */
   showBody: boolean;
-  /** Show equal-weight action verbs row. */
+  /** Always true — first action must stay visible. */
   showActions: boolean;
-  /** Prefer truncated single-line chrome (landscape). */
+  /** Second body sentence (compact_complete+). */
+  showSecondaryBody: boolean;
+  /** Supporting / community sentence (expanded+). */
+  showSupport: boolean;
+  /** Extra context / examples (rich). */
+  showExamples: boolean;
+  /** Landscape / ultra-tight chrome (WX 1B.4). */
   singleLine: boolean;
+  /** Soft vertical budget hint for CSS — never hard-clips meaning. */
+  chromeBudget: "tight" | "balanced" | "open";
   usableWidthPx: number;
   usableHeightPx: number;
+  remainingHeightPx: number;
   contractId: typeof ORIENTATION_EXPLANATION.contractId;
   phase: typeof ORIENTATION_EXPLANATION.phase;
 };
@@ -47,6 +69,11 @@ export type OrientationExplanationPlan = {
 export type OrientationExplanationInput = {
   usableWidthPx: number;
   usableHeightPx: number;
+  /**
+   * Approximate reserved chrome (nav + safe-area) already outside the strip.
+   * Deducted from usable height to estimate remaining vertical space.
+   */
+  chromeReservePx?: number;
   bands?: FeedWorkspaceLayoutBands;
 };
 
@@ -54,12 +81,23 @@ function orientationOf(widthPx: number, heightPx: number): "portrait" | "landsca
   return widthPx > heightPx ? "landscape" : "portrait";
 }
 
-/** Short landscape height → phone-landscape chrome (not tablet work surface). */
-const PHONE_LANDSCAPE_MAX_HEIGHT_EXCLUSIVE = 520;
+/** Short landscape height → workspace posture (not tablet canvas). */
+const LANDSCAPE_COMPACT_MAX_HEIGHT_EXCLUSIVE = 520;
+
+/** Default top-nav / chrome reserve when caller does not measure it. */
+const DEFAULT_CHROME_RESERVE_PX = 64;
+
+/** Remaining-height bands for portrait / tall AvailableSpace (not device names). */
+const REMAINING_HEIGHT = {
+  ultraExclusive: 420,
+  compactExclusive: 560,
+  standardExclusive: 780,
+  expandedExclusive: 980,
+} as const;
 
 /**
  * Resolve first-visitor explanation density from AvailableSpace only.
- * Fail-closed: invalid sizes → short (safe, mobile-first).
+ * Fail-closed: invalid sizes → compact_complete (safe, complete meaning).
  */
 export function resolveOrientationExplanation(
   input: OrientationExplanationInput,
@@ -73,36 +111,81 @@ export function resolveOrientationExplanation(
     0,
     Math.floor(Number(input.usableHeightPx) || 0),
   );
+  const chromeReservePx = Math.max(
+    0,
+    Math.floor(
+      Number.isFinite(Number(input.chromeReservePx))
+        ? Number(input.chromeReservePx)
+        : DEFAULT_CHROME_RESERVE_PX,
+    ),
+  );
+  const remainingHeightPx = Math.max(0, usableHeightPx - chromeReservePx);
   const orientation = orientationOf(usableWidthPx, usableHeightPx);
 
   let level: OrientationExplanationLevel;
-  if (usableWidthPx >= bands.comfortMaxExclusive) {
-    // Laptop / desktop / ultrawide — full first-visitor explanation.
-    level = "full";
+
+  // Invalid / unknown → complete-but-compact (never empty meaning).
+  if (usableWidthPx <= 0 || usableHeightPx <= 0) {
+    level = "compact_complete";
   } else if (
     orientation === "landscape" &&
-    usableHeightPx < PHONE_LANDSCAPE_MAX_HEIGHT_EXCLUSIVE
+    usableHeightPx < LANDSCAPE_COMPACT_MAX_HEIGHT_EXCLUSIVE
   ) {
-    level = "compact";
-  } else if (usableWidthPx >= bands.compactMaxExclusive) {
-    level = "medium";
+    // WX 1B.4 — landscape work posture stays intentionally compact.
+    level = "ultra_compact";
   } else if (orientation === "landscape") {
-    level = "compact";
+    // Wider landscape (tablet/desktop landscape): still compact chrome.
+    level =
+      usableWidthPx >= bands.comfortMaxExclusive
+        ? "compact_complete"
+        : "ultra_compact";
+  } else if (remainingHeightPx < REMAINING_HEIGHT.ultraExclusive) {
+    level = "ultra_compact";
+  } else if (remainingHeightPx < REMAINING_HEIGHT.compactExclusive) {
+    level = "compact_complete";
+  } else if (remainingHeightPx < REMAINING_HEIGHT.standardExclusive) {
+    // Tall narrow surfaces stay complete; width opens expanded/rich.
+    level =
+      usableWidthPx >= bands.compactMaxExclusive
+        ? "expanded"
+        : "standard_complete";
+  } else if (
+    usableWidthPx >= bands.comfortMaxExclusive &&
+    remainingHeightPx >= REMAINING_HEIGHT.expandedExclusive
+  ) {
+    level = "rich";
+  } else if (usableWidthPx >= bands.compactMaxExclusive) {
+    level = "expanded";
+  } else if (remainingHeightPx >= REMAINING_HEIGHT.expandedExclusive) {
+    level = "standard_complete";
   } else {
-    level = "short";
+    level = "standard_complete";
   }
 
-  const singleLine = level === "compact";
-  const showBody = level !== "compact";
-  const showActions = level === "medium" || level === "full" || level === "compact";
+  const singleLine = level === "ultra_compact";
+  const chromeBudget: OrientationExplanationPlan["chromeBudget"] =
+    level === "ultra_compact"
+      ? "tight"
+      : level === "compact_complete" || level === "standard_complete"
+        ? "balanced"
+        : "open";
 
   return {
     level,
-    showBody,
-    showActions,
+    showBody: true,
+    showActions: true,
+    showSecondaryBody:
+      level === "compact_complete" ||
+      level === "standard_complete" ||
+      level === "expanded" ||
+      level === "rich",
+    showSupport: level === "expanded" || level === "rich",
+    showExamples: level === "rich",
     singleLine,
+    chromeBudget,
     usableWidthPx,
     usableHeightPx,
+    remainingHeightPx,
     contractId: ORIENTATION_EXPLANATION.contractId,
     phase: ORIENTATION_EXPLANATION.phase,
   };
@@ -116,8 +199,33 @@ export function isSameOrientationExplanationPlan(
     a.level === b.level &&
     a.showBody === b.showBody &&
     a.showActions === b.showActions &&
+    a.showSecondaryBody === b.showSecondaryBody &&
+    a.showSupport === b.showSupport &&
+    a.showExamples === b.showExamples &&
     a.singleLine === b.singleLine &&
+    a.chromeBudget === b.chromeBudget &&
     a.usableWidthPx === b.usableWidthPx &&
-    a.usableHeightPx === b.usableHeightPx
+    a.usableHeightPx === b.usableHeightPx &&
+    a.remainingHeightPx === b.remainingHeightPx
   );
+}
+
+/** Map v2 levels → legacy probe names (documentation / older scripts). */
+export function toLegacyOrientationExplanationLevel(
+  level: OrientationExplanationLevel,
+): LegacyOrientationExplanationLevel {
+  switch (level) {
+    case "ultra_compact":
+      return "compact";
+    case "compact_complete":
+      return "short";
+    case "standard_complete":
+      return "short";
+    case "expanded":
+      return "medium";
+    case "rich":
+      return "full";
+    default:
+      return "short";
+  }
 }
