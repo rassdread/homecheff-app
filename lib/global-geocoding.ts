@@ -288,13 +288,33 @@ export function buildGeocodeQueryString(
     .join(', ');
 }
 
+/**
+ * Normalize free-text place queries before geocoding.
+ * Dutch postcodes without a space (3131AA / 3131aa) often fail Google/Nominatim
+ * while the spaced form (3131 AA) resolves — align with PDOK formatting.
+ */
+export function normalizePlaceQueryForGeocode(
+  placeQuery: string,
+  countryCode = 'NL',
+): string {
+  const q = placeQuery.trim().replace(/\s+/g, ' ');
+  if (!q) return q;
+  if (countryCode.toUpperCase() === 'NL') {
+    const compact = q.replace(/\s/g, '').toUpperCase();
+    if (/^\d{4}[A-Z]{2}$/.test(compact)) {
+      return `${compact.slice(0, 4)} ${compact.slice(4)}`;
+    }
+  }
+  return q;
+}
+
 /** Free-text place/postcode/city — Google when key present, else Nominatim. */
 export async function geocodePlaceQuery(
   placeQuery: string,
   countryCode = 'NL',
   googleMapsApiKey?: string
 ): Promise<GeocodeResult> {
-  const q = placeQuery.trim();
+  const q = normalizePlaceQueryForGeocode(placeQuery, countryCode);
   if (!q) {
     return {
       lat: 0,

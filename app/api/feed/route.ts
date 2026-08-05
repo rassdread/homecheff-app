@@ -419,6 +419,7 @@ async function handleFeedGet(
   let lng = searchParams.get("lng");
 
   // Viewer priority: place text (nearby filter or national distance labels) → profile User
+  let explicitPlaceGeocodeFailed = false;
   if (placeParam && (!lat || !lng)) {
     try {
       const geocodeResult = await geocodePlaceQuery(placeParam, "NL");
@@ -429,9 +430,13 @@ async function handleFeedGet(
       ) {
         lat = String(geocodeResult.lat);
         lng = String(geocodeResult.lng);
+      } else {
+        // Explicit manual place must not silently become IP approx.
+        explicitPlaceGeocodeFailed = true;
       }
     } catch (error) {
       console.warn("[feed] place geocode failed:", error);
+      explicitPlaceGeocodeFailed = true;
     }
   } else if ((!lat || !lng) && userId) {
     const u = await prisma.user.findUnique({ where: { id: userId }, select: { lat: true, lng: true } });
@@ -450,8 +455,13 @@ async function handleFeedGet(
       : null;
 
   // First-visit soft geo: IP headers when Nearby has no place/GPS (never empty the feed).
+  // Skip when the caller sent an explicit place that failed to resolve.
   let ipApproxApplied = false;
-  if (!viewerGeo && feedScope === FEED_SCOPE_NEARBY) {
+  if (
+    !viewerGeo &&
+    feedScope === FEED_SCOPE_NEARBY &&
+    !explicitPlaceGeocodeFailed
+  ) {
     try {
       const { resolveIpApproxLocation } = await import(
         '@/lib/geo/ip-approx-location'
