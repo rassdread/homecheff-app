@@ -1,0 +1,206 @@
+{
+  "at": "2026-08-05T01:43:27.936Z",
+  "livemode": true,
+  "timeline": [
+    {
+      "t": "2026-08-05T01:43:31.052Z",
+      "step": "login",
+      "ok": true,
+      "buyerId": "97f69a29-3d98-4dda-bf09-8e46ab918905",
+      "sellerId": "cfe2614a-537c-4a6e-b12e-9c09cef2bb00"
+    },
+    {
+      "t": "2026-08-05T01:43:31.740Z",
+      "step": "affiliate-referral-hit",
+      "status": 307,
+      "cookies": []
+    },
+    {
+      "t": "2026-08-05T01:43:34.610Z",
+      "step": "conversation-created",
+      "status": 200,
+      "conversationId": "5640bedd-003d-474d-ae5c-0dfbe18b477b",
+      "via": "/api/conversations"
+    },
+    {
+      "t": "2026-08-05T01:43:39.883Z",
+      "step": "proposal-created",
+      "status": 201,
+      "proposalId": "661c3b01-0e0f-445d-9954-14b4c0183271",
+      "paymentPath": "HOMECHEFF_CHECKOUT"
+    },
+    {
+      "t": "2026-08-05T01:43:44.496Z",
+      "step": "counter-created",
+      "status": 201,
+      "counterId": "9e4c39ac-236d-43cf-8e3e-64011a923581",
+      "parent": "661c3b01-0e0f-445d-9954-14b4c0183271"
+    },
+    {
+      "t": "2026-08-05T01:43:48.388Z",
+      "step": "proposal-accepted",
+      "status": 200,
+      "nextAction": "CHECKOUT_REQUIRED",
+      "communityOrderId": "74c47ff9-1a2d-4ad4-8b9e-589dd45e3cfa",
+      "checkoutUrl": "/checkout?productId=90014263-de27-4ef9-8087-d0087e27eed2&quantity=1&communityOrderId=74c47ff9-1a2d-4ad4-8b9e-589dd45e3cfa",
+      "agreementId": "d1fb1d9b-08e2-4f7d-a6c8-b66ec8d0a3eb"
+    },
+    {
+      "t": "2026-08-05T01:43:49.993Z",
+      "step": "checkout-context",
+      "status": 200,
+      "item": {
+        "productId": "90014263-de27-4ef9-8087-d0087e27eed2",
+        "title": "Phase53 counter €1 confirmed",
+        "priceCents": 100,
+        "quantity": 1,
+        "sellerId": "cfe2614a-537c-4a6e-b12e-9c09cef2bb00",
+        "sellerName": "Phase51 Seller",
+        "image": "https://homecheff.eu/placeholder.png",
+        "deliveryMode": "BOTH"
+      },
+      "note": "{\"communityOrderId\":\"74c47ff9-1a2d-4ad4-8b9e-589dd45e3cfa\",\"item\":{\"productId\":\"90014263-de27-4ef9-8087-d0087e27eed2\",\"title\":\"Phase53 counter €1 confirmed\",\"priceCents\":100,\"quantity\":1,\"sellerId\":\"cfe2614a-537c-4a6e-b12e-9c09cef2bb00\",\"sellerName\":"
+    },
+    {
+      "t": "2026-08-05T01:43:52.214Z",
+      "step": "stripe-checkout-create",
+      "status": 403,
+      "hasUrl": false,
+      "note": "{\"error\":\"ACCOUNT_REQUIREMENTS_MISSING\",\"action\":\"postItem\",\"missing\":[{\"key\":\"termsAccepted\",\"label\":\"Accepteer de algemene voorwaarden\",\"actionHref\":\"/profile\"}],\"hintKey\":\"postItem_profile\"}"
+    },
+    {
+      "t": "2026-08-05T01:44:58.264Z",
+      "step": "checkout-retry-after-terms",
+      "status": 200,
+      "sessionId": "cs_live_b1TNaOAVyPVKSfYsdMqwAhRYrwiGLmF2YW0uJbJpytujAOGcrUYZtGHaHB"
+    },
+    {
+      "t": "2026-08-05T01:44:58.273Z",
+      "step": "session-expired-unpaid",
+      "status": "ok"
+    },
+    {
+      "t": "2026-08-05T01:44:58.274Z",
+      "step": "community-order-complete",
+      "status": 200
+    },
+    {
+      "t": "2026-08-05T01:44:58.274Z",
+      "step": "deal-review",
+      "get": 200,
+      "post": 201
+    }
+  ],
+  "objects": {
+    "buyerId": "97f69a29-3d98-4dda-bf09-8e46ab918905",
+    "sellerId": "cfe2614a-537c-4a6e-b12e-9c09cef2bb00",
+    "productId": "90014263-de27-4ef9-8087-d0087e27eed2",
+    "conversationId": "5640bedd-003d-474d-ae5c-0dfbe18b477b",
+    "proposalId": "661c3b01-0e0f-445d-9954-14b4c0183271",
+    "counterProposalId": "9e4c39ac-236d-43cf-8e3e-64011a923581",
+    "communityOrderId": "74c47ff9-1a2d-4ad4-8b9e-589dd45e3cfa",
+    "agreementId": "d1fb1d9b-08e2-4f7d-a6c8-b66ec8d0a3eb",
+    "checkoutUrlApp": "/checkout?productId=90014263-de27-4ef9-8087-d0087e27eed2&quantity=1&communityOrderId=74c47ff9-1a2d-4ad4-8b9e-589dd45e3cfa",
+    "checkoutContext": {
+      "communityOrderId": "74c47ff9-1a2d-4ad4-8b9e-589dd45e3cfa",
+      "item": {
+        "productId": "90014263-de27-4ef9-8087-d0087e27eed2",
+        "title": "Phase53 counter €1 confirmed",
+        "priceCents": 100,
+        "quantity": 1,
+        "sellerId": "cfe2614a-537c-4a6e-b12e-9c09cef2bb00",
+        "sellerName": "Phase51 Seller",
+        "image": "https://homecheff.eu/placeholder.png",
+        "deliveryMode": "BOTH"
+      }
+    },
+    "proposalAfterAccept": {
+      "status": "ACCEPTED",
+      "amountCents": 100
+    },
+    "stripeSessionId": "cs_live_b1TNaOAVyPVKSfYsdMqwAhRYrwiGLmF2YW0uJbJpytujAOGcrUYZtGHaHB",
+    "proposalStatusFinal": "ACCEPTED"
+  },
+  "financial": {
+    "livePayment": {
+      "attempted": false,
+      "reason": "NO_LIVE_CARD_IN_AGENT",
+      "sessionCreated": true
+    },
+    "connectKyc": {
+      "account": "acct_1U0tqK2L6tMTthCg",
+      "charges_enabled": false
+    },
+    "session": {
+      "id": "cs_live_b1TNaOAVyPVKSfYsdMqwAhRYrwiGLmF2YW0uJbJpytujAOGcrUYZtGHaHB",
+      "amount_total": 127,
+      "payment_status": "expired_unpaid",
+      "livemode": true,
+      "metadata": {
+        "communityOrderId": "74c47ff9-1a2d-4ad4-8b9e-589dd45e3cfa",
+        "productsTotalCents": "100",
+        "amountPaidCents": "127"
+      }
+    }
+  },
+  "delivery": {
+    "flags": {
+      "namedProviderSelectionEnabled": true,
+      "providerPricingEnabled": true,
+      "namedProviderCopyEnabled": true,
+      "firstAcceptPoolRuntimeEnabled": false
+    },
+    "namedProviderExercised": false,
+    "reason": "No active priced DeliveryProfile; pickup path used"
+  },
+  "affiliate": {
+    "referralHit": true,
+    "commissionLedgerAfterPay": "N/A — payment not completed"
+  },
+  "review": {
+    "get": 200,
+    "post": 201,
+    "body": {
+      "review": {
+        "id": "ae6df034-ddee-45f6-912b-0bb95c800a3a",
+        "communityOrderId": "74c47ff9-1a2d-4ad4-8b9e-589dd45e3cfa",
+        "reviewerId": "97f69a29-3d98-4dda-bf09-8e46ab918905",
+        "revieweeId": "cfe2614a-537c-4a6e-b12e-9c09cef2bb00",
+        "rating": 5,
+        "title": null,
+        "message": null,
+        "createdAt": "2026-08-05T01:44:50.264Z"
+      }
+    }
+  },
+  "history": {
+    "conversationRetained": true,
+    "messageCount": 4,
+    "proposalStatus": "ACCEPTED",
+    "completedDeals": 2,
+    "communityOrderComplete": 200
+  },
+  "findings": [
+    {
+      "severity": "P0",
+      "area": "payment",
+      "note": "Live Checkout Session created then expired unpaid — agent has no live card; sk_live rejects test cards."
+    },
+    {
+      "severity": "P0",
+      "area": "connect",
+      "note": "Disposable seller Express acct_1U0tqK2L6tMTthCg has charges_enabled=false (KYC incomplete). Even after pay, Connect Transfer would fail until onboarding."
+    },
+    {
+      "severity": "P1",
+      "area": "delivery",
+      "note": "Named provider AUTO/MANUAL not exercised — no active DeliveryProfile with pricingEnabled on Production."
+    },
+    {
+      "severity": "P1",
+      "area": "affiliate",
+      "note": "ORDER_PAID affiliate ledger not verifiable without paid webhook."
+    }
+  ],
+  "verdictHint": "PARTIAL"
+}
