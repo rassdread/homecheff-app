@@ -80,7 +80,7 @@ export async function loadProductProposalContext(
       fulfillmentOptions: true,
       seller: {
         select: {
-          user: {
+          User: {
             select: {
               stripeConnectAccountId: true,
               stripeConnectOnboardingCompleted: true,
@@ -110,7 +110,7 @@ export async function loadProductProposalContext(
   const availableStock =
     totalStock != null ? Math.max(0, totalStock - reservedQty) : null;
 
-  const sellerUser = product.seller.user;
+  const sellerUser = product.seller.User;
   const acceptsHomeCheff =
     product.acceptHomeCheffPayment &&
     product.orderMethod !== 'CONTACT';

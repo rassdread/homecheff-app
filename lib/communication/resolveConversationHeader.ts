@@ -100,7 +100,7 @@ const PRODUCT_SELECT = {
   },
   seller: {
     select: {
-      user: {
+      User: {
         select: {
           stripeConnectAccountId: true,
           stripeConnectOnboardingCompleted: true,
@@ -129,7 +129,7 @@ async function buildProductHeader(product: {
   barterOpenness: string | null;
   Image: Array<{ fileUrl: string }>;
   seller: {
-    user: {
+    User: {
       stripeConnectAccountId: string | null;
       stripeConnectOnboardingCompleted: boolean;
     };
@@ -153,7 +153,7 @@ async function buildProductHeader(product: {
   const availableStock =
     totalStock != null ? Math.max(0, totalStock - reservedQty) : null;
 
-  const sellerUser = product.seller.user;
+  const sellerUser = product.seller.User;
   const acceptsHomeCheff =
     product.acceptHomeCheffPayment && product.orderMethod !== 'CONTACT';
   const stripeReady = sellerPaymentsReady(sellerUser);
