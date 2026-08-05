@@ -1,0 +1,21 @@
+{
+  "production": {
+    "GOOGLE_CLIENT_ID": "present",
+    "GOOGLE_CLIENT_SECRET": "present",
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "present_in_vercel_but_not_inlined_pre_fix",
+    "NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID": "absent",
+    "GOOGLE_NATIVE_CLIENT_ID": "absent",
+    "canonicalHost": "homecheff.eu"
+  },
+  "preview": {
+    "GOOGLE_CLIENT_ID": "present",
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "present",
+    "NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID": "absent",
+    "nativeFlow": "optional; system-browser fallback available"
+  },
+  "development": {
+    "GOOGLE_CLIENT_ID": "MISSING",
+    "GOOGLE_CLIENT_SECRET": "present",
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "absent"
+  }
+}

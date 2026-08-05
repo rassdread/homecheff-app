@@ -10,6 +10,7 @@ import {
   fetchOnboardingFlags,
   onboardingFlagsFromSessionUser,
   resolvePathAfterSocialAuth,
+  sanitizePostAuthRelativeUrl,
 } from '@/lib/auth/post-auth-redirect';
 import { consumeAndResolvePostAuthUrl } from '@/lib/onboarding/pending-intent';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
@@ -117,14 +118,20 @@ function SocialSuccessInner() {
     const base = await resolvePostAuthPath();
     let target = base;
     if (base === '/') {
-      const s = await getSession();
-      const u = s?.user as {
-        username?: string | null;
-        socialOnboardingCompleted?: boolean | null;
-      };
-      if (u) {
-        const intentUrl = consumeAndResolvePostAuthUrl(u);
-        if (intentUrl) target = intentUrl;
+      const nextParam = searchParams?.get('next');
+      const safeNext = sanitizePostAuthRelativeUrl(nextParam);
+      if (safeNext) {
+        target = safeNext;
+      } else {
+        const s = await getSession();
+        const u = s?.user as {
+          username?: string | null;
+          socialOnboardingCompleted?: boolean | null;
+        };
+        if (u) {
+          const intentUrl = consumeAndResolvePostAuthUrl(u);
+          if (intentUrl) target = intentUrl;
+        }
       }
     }
     trackOnboardingEvent('SOCIAL_AUTH_SUCCESS', { target });
@@ -134,7 +141,7 @@ function SocialSuccessInner() {
     await new Promise((r) => setTimeout(r, delay));
 
     navigateHard(target);
-  }, [clearTimers, router, updateSession]);
+  }, [clearTimers, router, searchParams, updateSession]);
 
   const fail = useCallback(
     (msg: string) => {

@@ -1,0 +1,7 @@
+{
+  "policy": "Same syncGoogleProfileToDatabase as web Google",
+  "firstTime": "create user + Account",
+  "returning": "same user",
+  "webThenNative": "same email/sub policy",
+  "emailCollision": "soft-link by verified email; no sub reassignment across users"
+}

@@ -38,8 +38,14 @@ node scripts/validate-google-services.mjs
 ### 3. Google Cloud (zelfde project)
 
 - **OAuth consent screen:** status **In production** / Published
-- **Credentials → Web client:** zelfde client id als `NEXT_PUBLIC_GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_ID` op Vercel
-- Geen aparte “verkeerde” Android client id in de app — native flow gebruikt **Web client id** via `@capgo/capacitor-social-login` (`mode: 'online'`)
+- **Credentials → Web client (Firebase / Capgo `webClientId`):** use the Firebase Web client id
+  (typically `3720…`) as `NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID` (or legacy `NEXT_PUBLIC_GOOGLE_CLIENT_ID`).
+  This is the Android **serverClientId** / ID-token audience — **not** HomeCheff NextAuth
+  `GOOGLE_CLIENT_ID` (`6156…` web OAuth).
+- NextAuth browser Google login continues to use server-only `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`.
+- After changing any `NEXT_PUBLIC_*` Google id: **redeploy** so Next.js rebuilds the client bundle
+  (static `process.env.NEXT_PUBLIC_*` inlining).
+- Geen aparte “verkeerde” Android client id in Capgo initialize — native flow uses Firebase Web client id via `@capgo/capacitor-social-login` (`mode: 'online'`)
 
 ### 4. Build & upload
 

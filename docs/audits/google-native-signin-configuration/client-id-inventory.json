@@ -1,0 +1,15 @@
+{
+  "note": "Presence only — no credential values",
+  "variables": {
+    "GOOGLE_CLIENT_ID": {"code": true, "production": true, "preview": true, "development": false, "visibility": "server", "type": "web_oauth", "consumer": "NextAuth GoogleProvider"},
+    "GOOGLE_CLIENT_SECRET": {"code": true, "production": true, "preview": true, "development": true, "visibility": "server", "type": "web_oauth_secret", "consumer": "NextAuth GoogleProvider"},
+    "GOOGLE_WEB_CLIENT_ID": {"code": true, "production": false, "preview": false, "development": false, "visibility": "server", "type": "web_oauth_preferred_alias", "consumer": "resolveGoogleWebOAuthClient"},
+    "GOOGLE_WEB_CLIENT_SECRET": {"code": true, "production": false, "preview": false, "development": false, "visibility": "server", "type": "web_oauth_secret_preferred", "consumer": "resolveGoogleWebOAuthClient"},
+    "GOOGLE_NATIVE_CLIENT_ID": {"code": true, "production": false, "preview": false, "development": false, "visibility": "server", "type": "native_audience", "consumer": "resolveNativeGoogleAudiences"},
+    "GOOGLE_NATIVE_CLIENT_IDS": {"code": true, "production": false, "preview": false, "development": false, "visibility": "server", "type": "native_audience_csv", "consumer": "resolveNativeGoogleAudiences"},
+    "NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID": {"code": true, "production": false, "preview": false, "development": false, "visibility": "public", "type": "capgo_serverClientId_preferred", "consumer": "Capgo SocialLogin webClientId"},
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": {"code": true, "production": true, "preview": true, "development": false, "visibility": "public", "type": "capgo_serverClientId_legacy", "consumer": "Capgo SocialLogin webClientId + audience allowlist", "clientBundleInlinedOnLiveProd": false},
+    "FIREBASE_PROJECT_ID": {"code": false, "production": true, "preview": true, "development": false, "visibility": "server", "type": "firebase_ops", "consumer": "other Firebase features"},
+    "AUTH_GOOGLE_ID": {"code": false, "production": false, "preview": false, "development": false}
+  }
+}

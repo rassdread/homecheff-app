@@ -1,0 +1,7 @@
+{
+  "endpoint": "POST /api/auth/native/google",
+  "cookieName": "next-auth.session-token",
+  "middlewareAligned": true,
+  "clientCannotMintSession": true,
+  "parallelAuthState": false
+}

@@ -1,0 +1,17 @@
+{
+  "policy": "Email-normalized soft link via syncGoogleProfileToDatabase; Account row upserted by Google sub; no allowDangerousEmailAccountLinking",
+  "firstTimeGoogleUser": {
+    "expected": "create User + Account; socialOnboardingCompleted=false; session JWT",
+    "automatedProof": "unit path covered by sync logic review",
+    "liveProof": "OPERATOR_REQUIRED"
+  },
+  "returningGoogleUser": {
+    "expected": "same User; Account updated; no duplicate",
+    "liveProof": "OPERATOR_REQUIRED"
+  },
+  "existingEmailPasswordSameGoogleEmail": {
+    "behaviour": "Link Google Account to existing user by email; do not create duplicate user; do not reassign Google sub if already linked to another userId",
+    "takeoverMitigation": "Requires Google email_verified !== false for new users; existing users get emailVerified stamped if missing"
+  },
+  "duplicatesPrevented": true
+}

@@ -1,0 +1,17 @@
+{
+  "productionSignInCookies": [
+    { "name": "next-auth.csrf-token", "domain": ".homecheff.eu", "secure": true, "httpOnly": true, "sameSite": "Lax" },
+    { "name": "next-auth.callback-url", "domain": ".homecheff.eu", "secure": true, "httpOnly": true, "sameSite": "Lax" },
+    { "name": "__Secure-next-auth.state", "domain": "homecheff.eu (host-only)", "secure": true, "httpOnly": true, "sameSite": "Lax" },
+    { "name": "__Secure-next-auth.pkce.code_verifier", "domain": "homecheff.eu (host-only)", "secure": true, "httpOnly": true, "sameSite": "Lax" }
+  ],
+  "policy": {
+    "productionSessionDomain": ".homecheff.eu",
+    "previewSessionDomain": "host-only",
+    "sessionCookieName": "next-auth.session-token",
+    "middlewareGetTokenAligned": true,
+    "broadDomainIntroduced": false,
+    "note": "PKCE/state remain host-only (NextAuth defaults). www→apex ensures PKCE host matches callback host."
+  },
+  "secretsLogged": false
+}

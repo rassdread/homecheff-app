@@ -1,16 +1,33 @@
 import { getPublicAppUrl } from '@/lib/public-app-url';
 import { isNativeApp } from '@/lib/native/capacitor';
-import { resolvePublicNativeGoogleClientId } from '@/lib/auth/google-oauth-clients';
+import {
+  isPublicNativeGoogleClientConfigured,
+  resolvePublicNativeGoogleClientId,
+} from '@/lib/auth/google-oauth-clients';
 
 /**
- * Capgo SocialLogin webClientId — native/Firebase audience (public).
- * Phase 2: independent from server web NextAuth GOOGLE_WEB_CLIENT_ID / GOOGLE_CLIENT_ID.
+ * Capgo SocialLogin `webClientId` — Firebase/Web client used as Android
+ * serverClientId when requesting an ID token.
+ *
+ * This is NOT HomeCheff NextAuth `GOOGLE_CLIENT_ID` (web OAuth / 6156…).
+ * Prefer NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID; legacy NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ * is accepted as the same native/Firebase audience.
  */
-export const GOOGLE_WEB_CLIENT_ID =
+export const CAPGO_GOOGLE_SERVER_CLIENT_ID =
   typeof process !== 'undefined' ? resolvePublicNativeGoogleClientId() : '';
 
-/** @deprecated Alias — prefer GOOGLE_WEB_CLIENT_ID (Capgo name) or resolvePublicNativeGoogleClientId. */
-export const GOOGLE_NATIVE_CLIENT_ID_PUBLIC = GOOGLE_WEB_CLIENT_ID;
+/**
+ * @deprecated Capgo historically named this webClientId. Prefer
+ * CAPGO_GOOGLE_SERVER_CLIENT_ID for clarity (Firebase web client ≠ NextAuth web).
+ */
+export const GOOGLE_WEB_CLIENT_ID = CAPGO_GOOGLE_SERVER_CLIENT_ID;
+
+/** @deprecated Alias — prefer CAPGO_GOOGLE_SERVER_CLIENT_ID. */
+export const GOOGLE_NATIVE_CLIENT_ID_PUBLIC = CAPGO_GOOGLE_SERVER_CLIENT_ID;
+
+export function isNativeGooglePublicClientConfigured(): boolean {
+  return isPublicNativeGoogleClientConfigured();
+}
 
 const TRUSTED_ORIGIN_RE =
   /^https:\/\/([a-z0-9-]+\.)?homecheff\.(eu|nl)(:\d+)?$/i;

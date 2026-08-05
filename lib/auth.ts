@@ -17,6 +17,11 @@ import {
 import { syncGoogleProfileToDatabase } from "./auth/google-account-sync";
 import { tryNormalizeEmail } from "./auth/normalize-email";
 import { findUserByCanonicalEmail } from "./auth/find-user-by-email";
+import {
+  googleClientIdPreview,
+  resolveGoogleWebOAuthClient,
+} from "./auth/google-oauth-clients";
+import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -29,11 +34,18 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL) {
 }
 
 const sharedSessionCookieDomain = getAuthSessionCookieDomain();
-const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim() || "";
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim() || "";
-const isGoogleAuthConfigured = Boolean(googleClientId && googleClientSecret);
+const googleWebClient = resolveGoogleWebOAuthClient();
+const isGoogleAuthConfigured = Boolean(googleWebClient);
 if (!isGoogleAuthConfigured) {
-  console.warn("[auth] Google OAuth disabled: missing GOOGLE_CLIENT_ID and/or GOOGLE_CLIENT_SECRET");
+  console.warn(
+    "[auth] Google OAuth disabled: missing GOOGLE_CLIENT_ID/GOOGLE_WEB_CLIENT_ID and/or matching secret",
+  );
+} else {
+  console.info("[auth] Google web OAuth configured", {
+    clientId: googleClientIdPreview(googleWebClient!.clientId),
+    clientIdSource: googleWebClient!.source.clientId,
+    clientSecretSource: googleWebClient!.source.clientSecret,
+  });
 }
 const sessionCookieOptions = {
   httpOnly: true,
@@ -50,12 +62,12 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  // In productie moet useSecureCookies true zijn zodat NextAuth de cookie als __Secure-next-auth.session-token
-  // zet én leest; Safari stuurt die naam mee – bij false zocht NextAuth naar next-auth.session-token en vond niets.
+  // Secure cookies in production. Cookie *name* stays unprefixed (see session-cookie-name.ts)
+  // so native session minting + middleware getToken stay aligned with NextAuth reads/writes.
   useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token`,
+      name: NEXTAUTH_SESSION_COOKIE_NAME,
       options: sessionCookieOptions,
     },
     callbackUrl: {
@@ -74,11 +86,11 @@ export const authOptions: NextAuthOptions = {
     },
   },
   providers: [
-    ...(isGoogleAuthConfigured
+    ...(isGoogleAuthConfigured && googleWebClient
       ? [
           GoogleProvider({
-            clientId: googleClientId,
-            clientSecret: googleClientSecret,
+            clientId: googleWebClient.clientId,
+            clientSecret: googleWebClient.clientSecret,
             authorization: {
               params: {
                 scope: "openid email profile",

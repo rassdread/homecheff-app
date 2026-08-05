@@ -13,15 +13,23 @@ import {
 import { trackLogin, trackRegistration } from '@/components/GoogleAnalytics';
 import { logGoogleLoginDiag } from '@/lib/auth/google-login-diagnostics';
 import { parseGoogleSignInError } from '@/lib/auth/parse-google-sign-in-error';
+import { buildSocialSuccessCallbackUrl } from '@/lib/auth/post-auth-redirect';
 
 import {
-  GOOGLE_WEB_CLIENT_ID,
+  CAPGO_GOOGLE_SERVER_CLIENT_ID,
   resolveNativeAuthApiUrl,
 } from '@/lib/native/google-sign-in-config';
 import {
   ensureGoogleSocialLoginInitialized,
   invalidateGoogleSocialLoginInit,
 } from '@/lib/native/prewarm-google-social-login';
+import { openSystemBrowserGoogleOAuth } from '@/lib/native/open-system-browser-google-oauth';
+import {
+  googleNativeConfigBlockedUserMessage,
+  googleNativeConfigBlockedDevHint,
+  mapNativeGoogleApiErrorForUser,
+  shouldShowGoogleNativeDevHint,
+} from '@/lib/auth/google-login-user-messages';
 
 type NativeGoogleLoginShape = {
   provider?: string;
@@ -79,30 +87,6 @@ function extractNativeGoogleIdToken(login: unknown): {
   };
 }
 
-function mapNativeGoogleApiError(code: string): string {
-  switch (code) {
-    case 'missing_id_token':
-      return 'Geen Google token ontvangen.';
-    case 'invalid_token':
-    case 'token_audience_mismatch':
-      return 'Google token verificatie mislukt.';
-    case 'google_not_configured':
-    case 'google_native_not_configured':
-    case 'google_client_id_mismatch':
-    case 'auth_not_configured':
-      return 'Google native configuratie ontbreekt. Zet GOOGLE_NATIVE_CLIENT_ID / NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID.';
-    case 'email_not_verified':
-      return 'Je Google-e-mail is niet geverifieerd.';
-    case 'user_create_failed':
-    case 'sync_failed':
-      return 'Account kon niet worden bijgewerkt. Probeer opnieuw of gebruik e-mail en wachtwoord.';
-    case 'encode_failed':
-      return 'Sessie starten mislukt. Probeer opnieuw.';
-    default:
-      return 'Google token verificatie mislukt.';
-  }
-}
-
 function redactErrorMessage(msg: string): string {
   return msg.replace(/ya29\.[a-zA-Z0-9._-]+/gi, '[redacted]').slice(0, 200);
 }
@@ -113,6 +97,8 @@ export type NativeGoogleSignInButtonProps = {
   buttonLabel: string;
   variant?: 'login' | 'register';
   analyticsContext: 'login' | 'register';
+  /** Safe in-app return path preserved through /auth/social-success?next= */
+  returnPath?: string | null;
 };
 
 export function NativeGoogleSignInButton({
@@ -121,6 +107,7 @@ export function NativeGoogleSignInButton({
   buttonLabel,
   variant = 'login',
   analyticsContext,
+  returnPath,
 }: NativeGoogleSignInButtonProps) {
   const router = useRouter();
   const androidBridge = useAndroidBridgePresent();
@@ -131,6 +118,7 @@ export function NativeGoogleSignInButton({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const socialSuccessUrl = buildSocialSuccessCallbackUrl(returnPath);
 
   const waitForNativeSession = useCallback(async (): Promise<boolean> => {
     for (let attempt = 0; attempt < 10; attempt++) {
@@ -162,7 +150,7 @@ export function NativeGoogleSignInButton({
     try {
       setRememberPreference(rememberMe);
       await signIn('google', {
-        callbackUrl: '/auth/social-success',
+        callbackUrl: socialSuccessUrl,
         redirect: true,
       });
       return true;
@@ -176,18 +164,23 @@ export function NativeGoogleSignInButton({
       );
       return false;
     }
-  }, [preferNative, rememberMe]);
+  }, [preferNative, rememberMe, socialSuccessUrl]);
 
   const runNativeGoogleLogin = useCallback(async (): Promise<boolean> => {
     logGoogleLoginDiag('google_login_native_start', {
-      hasWebClientId: Boolean(GOOGLE_WEB_CLIENT_ID),
+      hasWebClientId: Boolean(CAPGO_GOOGLE_SERVER_CLIENT_ID),
       androidBridge,
       nativeAndroid,
     });
 
-    if (!GOOGLE_WEB_CLIENT_ID) {
-      setError('Google login is niet geconfigureerd (ontbrekende client id).');
-      logGoogleLoginDiag('google_login_native_failed', { reason: 'missing_web_client_id' });
+    if (!CAPGO_GOOGLE_SERVER_CLIENT_ID) {
+      logGoogleLoginDiag('google_login_native_failed', {
+        reason: 'missing_public_native_client_id',
+      });
+      // Prefer system-browser OAuth over a dead native button.
+      const opened = await openSystemBrowserGoogleOAuth({ returnPath });
+      if (opened) return true;
+      setError(googleNativeConfigBlockedUserMessage('nl'));
       return false;
     }
 
@@ -202,6 +195,8 @@ export function NativeGoogleSignInButton({
     const initialized = await ensureGoogleSocialLoginInitialized();
     if (!initialized) {
       logGoogleLoginDiag('google_login_native_failed', { reason: 'plugin_init_failed' });
+      const opened = await openSystemBrowserGoogleOAuth({ returnPath });
+      if (opened) return true;
       return false;
     }
 
@@ -315,7 +310,7 @@ export function NativeGoogleSignInButton({
         httpStatus: post.status,
         code: code || 'unknown',
       });
-      setError(mapNativeGoogleApiError(code));
+      setError(mapNativeGoogleApiErrorForUser(code, 'nl'));
       return false;
     }
 
@@ -355,7 +350,7 @@ export function NativeGoogleSignInButton({
     } catch {
       /* ignore */
     }
-    router.replace('/auth/social-success');
+    router.replace(socialSuccessUrl);
     return true;
   }, [
     analyticsContext,
@@ -363,7 +358,9 @@ export function NativeGoogleSignInButton({
     nativeAndroid,
     rememberMe,
     router,
+    socialSuccessUrl,
     waitForNativeSession,
+    returnPath,
   ]);
 
   const onClick = useCallback(async () => {
@@ -374,6 +371,7 @@ export function NativeGoogleSignInButton({
       androidBridge,
       nativeAndroid,
       disabled: Boolean(disabled),
+      hasNativePublicClientId: Boolean(CAPGO_GOOGLE_SERVER_CLIENT_ID),
     });
 
     setError(null);
@@ -419,14 +417,16 @@ export function NativeGoogleSignInButton({
       ? 'w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed'
       : 'w-full inline-flex justify-center items-center px-6 py-4 border-2 border-gray-200 rounded-2xl shadow-sm bg-white text-base font-semibold text-gray-800 hover:border-emerald-300 hover:bg-emerald-50 active:bg-emerald-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 group';
 
-  const configBlocked = preferNative && !GOOGLE_WEB_CLIENT_ID;
+  // Never block the button solely for missing public client id — fallback opens system browser.
+  const configHintVisible =
+    preferNative && !CAPGO_GOOGLE_SERVER_CLIENT_ID && shouldShowGoogleNativeDevHint();
 
   return (
     <div className="space-y-2 relative z-10">
       <button
         type="button"
         onClick={() => void onClick()}
-        disabled={disabled || busy || configBlocked}
+        disabled={disabled || busy}
         className={baseClass}
         aria-busy={busy}
       >
@@ -470,10 +470,9 @@ export function NativeGoogleSignInButton({
         )}
       </button>
       {error ? <p className="text-xs text-center text-red-600">{error}</p> : null}
-      {configBlocked ? (
-        <p className="text-xs text-center text-amber-700">
-          Google login in de app vereist NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID (of legacy
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID) — de Firebase/native audience, niet de web OAuth client.
+      {configHintVisible ? (
+        <p className="text-xs text-center text-amber-800/90 font-mono break-words">
+          {googleNativeConfigBlockedDevHint()}
         </p>
       ) : null}
     </div>

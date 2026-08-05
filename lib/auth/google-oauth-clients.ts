@@ -6,6 +6,10 @@
  *
  * Native ID-token verification uses an explicit native audience allowlist and must
  * NOT require equality with the web OAuth client.
+ *
+ * IMPORTANT (Next.js): NEXT_PUBLIC_* values used on the client MUST be read via
+ * static `process.env.NEXT_PUBLIC_…` property access so the bundler can inline them.
+ * Dynamic `process.env[name]` resolves to empty string in the browser.
  */
 
 export const EXPECTED_WEB_CLIENT_ID_PREFIX = '615612462371-';
@@ -74,7 +78,10 @@ export type ResolvedNativeGoogleAudiences = {
 
 /**
  * Explicit native/Firebase audience allowlist for idToken verification.
- * Fail closed when empty — native login must not fall back to the web client id.
+ * Fail closed when empty — native login must not fall back to the web NextAuth client id.
+ *
+ * NEXT_PUBLIC_* reads use static property access (required for any client bundling;
+ * server runtime also receives them from Vercel).
  */
 export function resolveNativeGoogleAudiences(): ResolvedNativeGoogleAudiences {
   const audiences: string[] = [];
@@ -91,29 +98,54 @@ export function resolveNativeGoogleAudiences(): ResolvedNativeGoogleAudiences {
   for (const id of splitCsv(trimEnv('GOOGLE_NATIVE_CLIENT_IDS'))) {
     push(id, 'GOOGLE_NATIVE_CLIENT_IDS');
   }
-  push(
-    trimEnv('NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID'),
-    'NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID',
-  );
-  // Legacy public Capgo config — treated as native audience, not web OAuth.
-  push(trimEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID'), 'NEXT_PUBLIC_GOOGLE_CLIENT_ID');
+
+  // Static access — see file header. Do not convert to process.env[name].
+  const publicNative = (process.env.NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID || '').trim();
+  push(publicNative, 'NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID');
+  const publicLegacy = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();
+  push(publicLegacy, 'NEXT_PUBLIC_GOOGLE_CLIENT_ID');
 
   return { audiences, sources };
 }
 
 /**
- * Client-visible Capgo webClientId (native shell).
- * Prefers explicit native public env; falls back to legacy NEXT_PUBLIC_GOOGLE_CLIENT_ID.
- * Never reads server-only GOOGLE_CLIENT_ID / GOOGLE_WEB_CLIENT_ID.
+ * Client-visible Capgo SocialLogin `webClientId`.
+ *
+ * This is the Firebase / Google "Web client" used as Android `serverClientId`
+ * when requesting an ID token — NOT HomeCheff's NextAuth web OAuth client
+ * (`GOOGLE_CLIENT_ID` / 6156…).
+ *
+ * Prefers NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID; falls back to legacy
+ * NEXT_PUBLIC_GOOGLE_CLIENT_ID. Never reads server-only GOOGLE_CLIENT_ID.
  */
 export function resolvePublicNativeGoogleClientId(): string {
+  // Static access required for Next.js client inlining.
   return (
-    trimEnv('NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID') ||
-    trimEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID') ||
+    (process.env.NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID || '').trim() ||
+    (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim() ||
     ''
   );
 }
 
+export function isPublicNativeGoogleClientConfigured(): boolean {
+  return resolvePublicNativeGoogleClientId().length > 0;
+}
+
 export function isGoogleWebOAuthConfigured(): boolean {
   return resolveGoogleWebOAuthClient() !== null;
+}
+
+/**
+ * Source inspection helper for tests — ensures public resolver uses static env access.
+ */
+export function publicNativeGoogleClientIdUsesStaticEnvAccess(
+  source: string,
+): boolean {
+  return (
+    source.includes('process.env.NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID') &&
+    source.includes('process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID') &&
+    !/process\.env\[\s*['"]NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID['"]\s*\]/.test(
+      source,
+    )
+  );
 }

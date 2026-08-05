@@ -1,0 +1,7 @@
+{
+  "preOAuth": "PASS on production apex",
+  "postOAuthRefresh": "OPERATOR_REQUIRED after deploy",
+  "middlewareTokenRead": "FIXED (cookieName aligned)",
+  "logout": "force-logout clears next-auth.* and __Secure-/__Host- variants",
+  "emailLoginCoexistence": "Credentials provider unchanged"
+}

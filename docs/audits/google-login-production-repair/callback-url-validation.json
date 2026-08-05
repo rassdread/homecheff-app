@@ -1,0 +1,17 @@
+{
+  "productionApex": {
+    "observedRedirectUri": "https://homecheff.eu/api/auth/callback/google",
+    "status": "PASS"
+  },
+  "wwwBeforeFix": {
+    "observedRedirectUri": "https://www.homecheff.eu/api/auth/callback/google",
+    "status": "FAIL_NON_CANONICAL",
+    "fix": "middleware 307 www → apex"
+  },
+  "nl": {
+    "observed": "307 to https://homecheff.eu/api/auth/providers",
+    "status": "PASS"
+  },
+  "pkce": { "method": "S256", "status": "PASS" },
+  "state": { "present": true, "status": "PASS" }
+}

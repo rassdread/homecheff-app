@@ -32,6 +32,7 @@ import { useGoogleLoginUiResolved } from "@/lib/native/useGoogleLoginUiResolved"
 import { logGoogleLoginDiag } from "@/lib/auth/google-login-diagnostics";
 import {
   REGISTER_DRAFT_STORAGE_KEY,
+  buildSocialSuccessCallbackUrl,
   clearRegisterDraftStorage,
   fetchOnboardingFlags,
   onboardingFlagsFromSessionUser,
@@ -607,7 +608,9 @@ function RegisterPageContent() {
         logGoogleLoginDiag("google_login_web_start", { surface: "register" });
       }
       await signIn(provider, {
-        callbackUrl: '/auth/social-success',
+        callbackUrl: buildSocialSuccessCallbackUrl(
+          searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
+        ),
         redirect: true,
       });
     } catch (error) {
@@ -1140,6 +1143,10 @@ function RegisterPageContent() {
                         buttonLabel={t('register.continueWithGoogle')}
                         variant="register"
                         analyticsContext="register"
+                        returnPath={
+                          searchParams?.get('callbackUrl') ||
+                          searchParams?.get('returnUrl')
+                        }
                       />
                     ) : null}
                     {googleAuthEnabled && googleAuthChecked && googleUi.showWebButton ? (

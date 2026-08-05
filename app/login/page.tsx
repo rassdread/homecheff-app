@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
 import { clearStorageForCredentialLoginStart } from "@/lib/session-cleanup";
 import {
+  buildSocialSuccessCallbackUrl,
   needsProfileOnboardingFromFlags,
   onboardingFlagsFromSessionUser,
 } from "@/lib/auth/post-auth-redirect";
@@ -456,7 +457,7 @@ function LoginForm() {
       }
 
       await signIn(provider, {
-        callbackUrl: '/auth/social-success',
+        callbackUrl: buildSocialSuccessCallbackUrl(callbackUrl),
         redirect: true,
       });
     } catch (error) {
@@ -735,6 +736,7 @@ function LoginForm() {
                   disabled={state.isLoading || !googleAuthEnabled}
                   buttonLabel={t('login.loginWithGoogle')}
                   analyticsContext="login"
+                  returnPath={callbackUrl}
                 />
               ) : null}
               {googleAuthEnabled && googleAuthChecked && googleUi.showWebButton ? (

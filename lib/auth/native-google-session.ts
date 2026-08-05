@@ -14,8 +14,10 @@ import {
   resolveNativeGoogleAudiences,
 } from '@/lib/auth/google-oauth-clients';
 
+import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
+
 const SESSION_MAX_AGE_SEC = 30 * 24 * 60 * 60;
-const SESSION_COOKIE_NAME = 'next-auth.session-token';
+const SESSION_COOKIE_NAME = NEXTAUTH_SESSION_COOKIE_NAME;
 
 const LOG_PREFIX = '[HomeCheff native-google session]';
 

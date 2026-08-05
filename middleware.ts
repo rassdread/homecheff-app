@@ -7,6 +7,7 @@ import {
   shouldBlockSuspendedMutation,
   suspensionMutationBlockedResponse,
 } from '@/lib/user-suspend-middleware';
+import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -22,6 +23,14 @@ function isPublicIconOrManifestPath(pathname: string): boolean {
   );
 }
 
+function resolveRequestHost(request: NextRequest): string {
+  return (
+    request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
+    request.headers.get('host') ||
+    ''
+  );
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
@@ -30,6 +39,8 @@ export async function middleware(request: NextRequest) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
+      // Must match lib/auth.ts cookie name (not the default __Secure- prefixed name).
+      cookieName: NEXTAUTH_SESSION_COOKIE_NAME,
     });
     const userId = token?.id ? String(token.id) : null;
     if (userId) {
@@ -60,23 +71,25 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // .nl → .eu: alles op één domein (Safari/sessie). Bezoeker landt op .eu in het Nederlands.
-  const requestHost =
-    request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
-    request.headers.get('host') ||
-    '';
+  // Canonical host for OAuth cookies/PKCE: www and .nl must not start Google OAuth
+  // with a different redirect_uri than https://homecheff.eu/api/auth/callback/google.
+  const requestHost = resolveRequestHost(request);
+  const isWwwEu = requestHost === 'www.homecheff.eu';
   const isNlDomain = requestHost === 'homecheff.nl' || requestHost === 'www.homecheff.nl';
-  if (isNlDomain) {
+  if (isWwwEu || isNlDomain) {
     const search = request.nextUrl.search || '';
     const redirectUrl = `https://${EU_HOST}${pathname}${search}`;
     const redirectResponse = NextResponse.redirect(redirectUrl, 307);
-    redirectResponse.cookies.set('homecheff-language', 'nl', {
-      path: '/',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 365,
-      secure: true,
-    });
-    // Behoud affiliate-referralcookie over .nl → .eu (anders mis je attributie na registratie op .eu).
+    if (isNlDomain) {
+      // Bezoeker van .nl landt op .eu in het Nederlands.
+      redirectResponse.cookies.set('homecheff-language', 'nl', {
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 365,
+        secure: true,
+      });
+    }
+    // Behoud affiliate-referralcookie over host-canonicalisatie (anders mis je attributie).
     const hcRef = request.cookies.get('hc_ref')?.value;
     if (hcRef) {
       redirectResponse.cookies.set('hc_ref', hcRef, {
