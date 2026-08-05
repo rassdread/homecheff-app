@@ -1,0 +1,224 @@
+{
+  "approx": {
+    "lat": 51.9088,
+    "lng": 4.3444,
+    "city": "Vlaardingen",
+    "region": "ZH",
+    "country": "NL",
+    "countryCode": "NL",
+    "label": "Vlaardingen",
+    "source": "vercel",
+    "mode": "point",
+    "precise": false
+  },
+  "I5_NL_country": {
+    "ms": 3978,
+    "n": 10,
+    "count": 10,
+    "filters": {
+      "lat": null,
+      "lng": null,
+      "radius": 0,
+      "scope": "international",
+      "countryCode": "NL",
+      "locationMode": "country",
+      "place": null
+    }
+  },
+  "I6_BE_country": {
+    "ms": 2034,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": null,
+      "lng": null,
+      "radius": 0,
+      "scope": "international",
+      "countryCode": "BE",
+      "locationMode": "country",
+      "place": null
+    }
+  },
+  "I7_SR_country": {
+    "ms": 1699,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": null,
+      "lng": null,
+      "radius": 0,
+      "scope": "international",
+      "countryCode": "SR",
+      "locationMode": "country",
+      "place": null
+    }
+  },
+  "I8_Antwerpen": {
+    "ms": 1695,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 51.2199302,
+      "lng": 4.414990299999999,
+      "radius": 25,
+      "scope": "nearby",
+      "countryCode": "BE",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I9_Paris": {
+    "ms": 1575,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 48.8575475,
+      "lng": 2.3513765,
+      "radius": 50,
+      "scope": "nearby",
+      "countryCode": "FR",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I10_Paramaribo": {
+    "ms": 2429,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 5.8520355,
+      "lng": -55.2038278,
+      "radius": 25,
+      "scope": "nearby",
+      "countryCode": "SR",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I12_3131AA": {
+    "ms": 2293,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 51.91267850000001,
+      "lng": 4.336911,
+      "radius": 10,
+      "scope": "nearby",
+      "countryCode": "NL",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I13_BE_2000": {
+    "ms": 1526,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 51.2198771,
+      "lng": 4.4011356,
+      "radius": 10,
+      "scope": "nearby",
+      "countryCode": "BE",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I14_DE_10115": {
+    "ms": 1876,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 52.532614,
+      "lng": 13.3777035,
+      "radius": 10,
+      "scope": "nearby",
+      "countryCode": "DE",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I15_UK_SW1A": {
+    "ms": 1500,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 51.501009,
+      "lng": -0.1415876,
+      "radius": 10,
+      "scope": "nearby",
+      "countryCode": "GB",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I16_US_10001": {
+    "ms": 1610,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 40.75368539999999,
+      "lng": -73.9991637,
+      "radius": 10,
+      "scope": "nearby",
+      "countryCode": "US",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I17_CA_M5V": {
+    "ms": 1160,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 43.64160649999999,
+      "lng": -79.3870307,
+      "radius": 10,
+      "scope": "nearby",
+      "countryCode": "CA",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I18_invalid": {
+    "ms": 1230,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": 52.132633,
+      "lng": 5.291265999999999,
+      "radius": 10,
+      "scope": "nearby",
+      "countryCode": "NL",
+      "locationMode": "point",
+      "place": null
+    }
+  },
+  "I21_country_no_centroid": {
+    "ms": 1660,
+    "n": 0,
+    "count": 0,
+    "filters": {
+      "lat": null,
+      "lng": null,
+      "radius": 0,
+      "scope": "nearby",
+      "countryCode": "BE",
+      "locationMode": "country",
+      "place": null
+    }
+  },
+  "I25_soft": {
+    "ms": 1825,
+    "n": 1,
+    "count": 1,
+    "filters": {
+      "lat": 51.9088,
+      "lng": 4.3444,
+      "radius": 25,
+      "scope": "nearby",
+      "countryCode": null,
+      "locationMode": "point",
+      "place": null
+    }
+  }
+}

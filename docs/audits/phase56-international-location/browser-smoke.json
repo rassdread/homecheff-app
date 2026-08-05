@@ -1,0 +1,42 @@
+{
+  "desk": {
+    "err": false,
+    "phase": "1c.2",
+    "countrySelect": false,
+    "pref": {
+      "version": 2,
+      "place": "Vlaardingen",
+      "lat": 51.9088,
+      "lng": 4.3444,
+      "radiusKm": 25,
+      "source": "ip",
+      "bannerDismissed": false,
+      "updatedAt": 1785948931309,
+      "countryCode": "NL",
+      "regionCode": null,
+      "mode": "point",
+      "precision": "approx",
+      "label": "Vlaardingen"
+    }
+  },
+  "phone": {
+    "err": false,
+    "phase": "1c.2",
+    "countrySelect": true,
+    "pref": {
+      "version": 2,
+      "place": "Vlaardingen",
+      "lat": 51.9088,
+      "lng": 4.3444,
+      "radiusKm": 25,
+      "source": "ip",
+      "bannerDismissed": false,
+      "updatedAt": 1785948937384,
+      "countryCode": "NL",
+      "regionCode": null,
+      "mode": "point",
+      "precision": "approx",
+      "label": "Vlaardingen"
+    }
+  }
+}
