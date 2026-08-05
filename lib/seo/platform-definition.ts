@@ -32,7 +32,7 @@ export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> 
       'HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen — waar echte mensen eten, oogst, creaties, diensten en hulp aanbieden in hun buurt.',
     defaultTitle: 'HomeCheff — Persoonlijk vakmanschap en lokale kansen',
     defaultDescription:
-      'HomeCheff is het digitale thuis van persoonlijk vakmanschap. Ontdek makers, buren en vakmensen bij jou in de buurt — eten is één categorie naast tuin, creaties, diensten en hulp.',
+      'HomeCheff is the digital neighbourhood marketplace for homemade food, handmade products, local services, skills and personal craftsmanship.',
     organizationDescription: manifestOrganizationDescription('nl'),
     websiteDescription:
       'HomeCheff — het digitale dorpsplein waar je lokale makers, vakmensen en buren ontdekt. Eten, tuin, creaties, diensten, hulp en inspiratie — altijd met de persoon achter het aanbod centraal.',
@@ -47,7 +47,7 @@ export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> 
       'HomeCheff is the digital home of personal craftsmanship and local opportunity — where real people offer food, harvest, creations, services and help in their neighbourhood.',
     defaultTitle: 'HomeCheff — Personal craftsmanship and local opportunity',
     defaultDescription:
-      'HomeCheff is the digital home of personal craftsmanship. Discover makers, neighbours and skilled locals near you — food is one category alongside garden, creations, services and help.',
+      'HomeCheff is the digital neighbourhood marketplace for homemade food, handmade products, local services, skills and personal craftsmanship.',
     organizationDescription: manifestOrganizationDescription('en'),
     websiteDescription:
       'HomeCheff — the digital village square to discover local makers, craftspeople and neighbours. Food, garden, creations, services, help and inspiration — always with the person behind the offer at the centre.',
