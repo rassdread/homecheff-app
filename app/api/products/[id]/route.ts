@@ -390,71 +390,73 @@ export async function PATCH(
     const raw = (await params).id;
     const id = resolveProductIdFromParam(raw);
     const body = await request.json();
-    
-    // NextAuth v5
-    try {
-      const mod: any = await import("@/lib/auth");
-      const session = await mod.auth?.();
-      const email: string | undefined = session?.user?.email || undefined;
-      if (email) {
-        const user = await prisma.user.findUnique({
-          where: { email },
-          select: { id: true, role: true }
-        });
 
-        if (!user) {
-          return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
+    const session = await auth();
+    const email: string | undefined = session?.user?.email || undefined;
+    if (!email) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
 
-        // Check if product exists in new Product model
-        let product: any = await prisma.product.findUnique({
-          where: { id: id },
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, role: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Check if product exists in new Product model
+    let product: any = await prisma.product.findUnique({
+      where: { id: id },
+      include: {
+        seller: {
           include: {
-            seller: {
-              include: {
-                User: { select: { id: true } }
-              }
-            }
+            User: { select: { id: true } }
           }
+        }
+      }
+    });
+
+    let isNewModel = true;
+
+    // If not found in new model, check old Listing model
+    if (!product) {
+      product = await prisma.listing.findUnique({
+        where: { id: id },
+        include: {
+          User: { select: { id: true } }
+        }
+      });
+      isNewModel = false;
+    }
+
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    // Check permissions: Admin can update any product, seller can only update their own
+    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+      if (isNewModel) {
+        // New Product model
+        const sellerProfile = await prisma.sellerProfile.findUnique({
+          where: { userId: user.id },
+          select: { id: true }
         });
 
-        let isNewModel = true;
-
-        // If not found in new model, check old Listing model
-        if (!product) {
-          product = await prisma.listing.findUnique({
-            where: { id: id },
-            include: {
-              User: { select: { id: true } }
-            }
-          });
-          isNewModel = false;
+        if (!sellerProfile || (product as any).sellerId !== sellerProfile.id) {
+          return NextResponse.json({ error: "You don't have permission to update this product" }, { status: 403 });
         }
-
-        if (!product) {
-          return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      } else {
+        // Old Listing model
+        if ((product as any).ownerId !== user.id) {
+          return NextResponse.json({ error: "You don't have permission to update this product" }, { status: 403 });
         }
+      }
+    }
 
-        // Check permissions: Admin can update any product, seller can only update their own
-        if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
-          if (isNewModel) {
-            // New Product model
-            const sellerProfile = await prisma.sellerProfile.findUnique({
-              where: { userId: user.id },
-              select: { id: true }
-            });
-
-            if (!sellerProfile || (product as any).sellerId !== sellerProfile.id) {
-              return NextResponse.json({ error: "You don't have permission to update this product" }, { status: 403 });
-            }
-          } else {
-            // Old Listing model
-            if ((product as any).ownerId !== user.id) {
-              return NextResponse.json({ error: "You don't have permission to update this product" }, { status: 403 });
-            }
-          }
-        }
-
+    // Continue with existing update body (was nested under session email check)
+    {
         const sellerUserForPublish = await prisma.user.findUnique({
           where: { id: user.id },
           select: {
@@ -854,10 +856,7 @@ export async function PATCH(
           }
           return NextResponse.json({ product: updatedListing });
         }
-      }
-    } catch {}
-
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
