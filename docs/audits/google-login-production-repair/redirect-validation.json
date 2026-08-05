@@ -1,0 +1,12 @@
+{
+  "safeRedirect": {
+    "internalRelative": "PASS",
+    "externalAbsolute": "rejected by sanitizePostAuthRelativeUrl + resolveSafeAuthRedirect",
+    "authLoopPaths": "rejected (/login, /auth/social-success, …)"
+  },
+  "googleReturnJourney": {
+    "before": "signIn callbackUrl hard-coded /auth/social-success (lost login?callbackUrl=)",
+    "after": "buildSocialSuccessCallbackUrl preserves ?next= sanitized path; social-success consumes next after onboarding gate"
+  },
+  "pendingIntent": "still used for Create/chat auto-resume when next absent"
+}

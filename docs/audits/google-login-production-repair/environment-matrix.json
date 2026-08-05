@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-08-05",
+  "note": "Presence only — no secret values",
+  "variables": {
+    "GOOGLE_CLIENT_ID": { "production": "present", "preview": "present", "development": "MISSING" },
+    "GOOGLE_CLIENT_SECRET": { "production": "present", "preview": "present", "development": "present" },
+    "GOOGLE_WEB_CLIENT_ID": { "production": "absent", "preview": "absent", "development": "absent" },
+    "GOOGLE_WEB_CLIENT_SECRET": { "production": "absent", "preview": "absent", "development": "absent" },
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": { "production": "present", "preview": "present", "development": "absent", "note": "native Capgo audience — not web NextAuth" },
+    "NEXTAUTH_URL": { "production": "present", "preview": "present", "development": "present" },
+    "NEXTAUTH_SECRET": { "production": "present", "preview": "present", "development": "present" },
+    "PREVIEW_AUTH_URL": { "production": "absent", "preview": "present", "development": "absent" },
+    "AUTH_URL": { "production": "absent", "preview": "absent", "development": "absent" },
+    "AUTH_SECRET": { "production": "absent", "preview": "absent", "development": "absent" },
+    "NEXTAUTH_COOKIE_DOMAIN": { "production": "absent", "preview": "absent", "development": "absent", "note": "defaults to .homecheff.eu in production code" },
+    "DATABASE_URL": { "production": "present", "preview": "present", "development": "present" }
+  },
+  "liveDebugSessionHint": {
+    "NEXTAUTH_URL": "correct (homecheff.eu)",
+    "googleClientConfigured": true,
+    "sessionCookieDomain": ".homecheff.eu",
+    "googleOAuthCallbackPath": "/api/auth/callback/google"
+  }
+}
