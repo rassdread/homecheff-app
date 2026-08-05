@@ -131,5 +131,31 @@ run('mismatched web vs native IDs are allowed', () => {
   assert.notEqual(web!.clientId, native.audiences[0]);
 });
 
+run('public native resolver uses static NEXT_PUBLIC env access (source)', () => {
+  const { readFileSync } = require('node:fs') as typeof import('node:fs');
+  const { join } = require('node:path') as typeof import('node:path');
+  const {
+    publicNativeGoogleClientIdUsesStaticEnvAccess,
+  } = require('../lib/auth/google-oauth-clients') as typeof import('../lib/auth/google-oauth-clients');
+  const src = readFileSync(
+    join(process.cwd(), 'lib/auth/google-oauth-clients.ts'),
+    'utf8',
+  );
+  assert.equal(publicNativeGoogleClientIdUsesStaticEnvAccess(src), true);
+});
+
+run('production UX messages never mention env var names', () => {
+  const {
+    googleNativeConfigBlockedUserMessage,
+    mapNativeGoogleApiErrorForUser,
+  } = require('../lib/auth/google-login-user-messages') as typeof import('../lib/auth/google-login-user-messages');
+  for (const locale of ['nl', 'en'] as const) {
+    const msg = googleNativeConfigBlockedUserMessage(locale);
+    assert.equal(/NEXT_PUBLIC_|GOOGLE_NATIVE_|GOOGLE_CLIENT_ID/.test(msg), false);
+    const err = mapNativeGoogleApiErrorForUser('google_native_not_configured', locale);
+    assert.equal(/NEXT_PUBLIC_|GOOGLE_NATIVE_|GOOGLE_CLIENT_ID/.test(err), false);
+  }
+});
+
 restoreEnv();
 console.log('All google oauth client separation checks passed.');
