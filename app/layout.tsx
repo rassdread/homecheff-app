@@ -73,6 +73,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const platform = getPlatformDefinition(lang);
 
+  const verification: Metadata['verification'] = {
+    other: {
+      'msvalidate.01': '3232C23F322D81DABBFFA2AECFC85DFE',
+    },
+  };
+
   if (lang === 'en') {
     return {
       metadataBase,
@@ -83,6 +89,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       description: platform.defaultDescription,
       keywords: PLATFORM_KEYWORDS.en,
+      verification,
       openGraph: {
         title: platform.defaultTitle,
         description: platform.defaultDescription,
@@ -120,6 +127,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: platform.defaultDescription,
     keywords: PLATFORM_KEYWORDS.nl,
+    verification,
     openGraph: {
       title: platform.defaultTitle,
       description: platform.defaultDescription,
