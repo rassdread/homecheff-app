@@ -69,7 +69,11 @@ export async function loadCommunityOrderCheckoutContext(
               title: true,
               priceCents: true,
               delivery: true,
-              image: true,
+              Image: {
+                select: { fileUrl: true },
+                orderBy: { sortOrder: 'asc' },
+                take: 1,
+              },
               seller: {
                 select: {
                   User: {
@@ -187,7 +191,7 @@ export async function loadCommunityOrderCheckoutContext(
       quantity,
       sellerId: sellerUser.id,
       sellerName: sellerUser.name || 'Seller',
-      image: product.image ?? undefined,
+      image: product.Image?.[0]?.fileUrl ?? undefined,
       deliveryMode: product.delivery || 'PICKUP',
     },
   };
