@@ -16,7 +16,7 @@ export type GeoFeedApiParamsInput = {
   lat?: number | null;
   lng?: number | null;
   place?: string;
-  locationSource?: 'gps' | 'manual' | 'profile' | null;
+  locationSource?: 'gps' | 'manual' | 'profile' | 'ip' | null;
   /** Comma-separated ListingKind filter — no ranking impact. */
   listingKind?: string | null;
   listingIntent?: 'OFFER' | 'REQUEST' | null;

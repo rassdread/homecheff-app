@@ -1,8 +1,8 @@
 /**
  * Nearby product integrity — location readiness for "In je buurt".
  *
- * Without a valid viewer location, Nearby must show an explicit empty state
- * and never fall back to unrelated inspiration / national / international content.
+ * Missing GPS must never blank the marketplace. Soft national / IP approx
+ * keep listings visible; a non-blocking banner invites refinement.
  */
 
 export const NEARBY_LOCATION_STATUS = {

@@ -1,0 +1,33 @@
+{
+  "phase": "5.4",
+  "title": "First Visit Location Experience",
+  "verdict": "FIRST_VISIT_LOCATION_EXPERIENCE_PASS",
+  "recommendation": "READY_FOR_FIRST_VISIT_RELEASE",
+  "date": "2026-08-05",
+  "contracts": {
+    "validate-geo-feed-contract": "pass",
+    "validate-ip-approx-location": "pass",
+    "lint": "pass"
+  },
+  "productionProbePreDeploy": {
+    "geoApprox": "not_deployed_html_response",
+    "feedNearbyNoCoordsItemCount": 0,
+    "note": "Confirms P0 still live until deploy"
+  },
+  "files": [
+    "lib/geo/ip-approx-location.ts",
+    "lib/geo/location-preference.ts",
+    "app/api/geo/approx/route.ts",
+    "app/api/feed/route.ts",
+    "components/feed/LocationRefineBanner.tsx",
+    "components/feed/GeoFeed.tsx",
+    "components/feed/FeedSidebarFilters.tsx",
+    "components/feed/FeedMobileFilterSheet.tsx",
+    "lib/feed/nearby-location-state.ts",
+    "lib/feed/feed-query-params.ts",
+    "public/i18n/en.json",
+    "public/i18n/nl.json",
+    "scripts/validate-geo-feed-contract.ts",
+    "scripts/validate-ip-approx-location.ts"
+  ]
+}

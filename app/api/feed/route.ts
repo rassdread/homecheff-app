@@ -441,13 +441,32 @@ async function handleFeedGet(
     }
   }
 
-  const viewerGeo =
+  let viewerGeo =
     lat &&
     lng &&
     Number.isFinite(Number(lat)) &&
     Number.isFinite(Number(lng))
       ? { lat: Number(lat), lng: Number(lng) }
       : null;
+
+  // First-visit soft geo: IP headers when Nearby has no place/GPS (never empty the feed).
+  let ipApproxApplied = false;
+  if (!viewerGeo && feedScope === FEED_SCOPE_NEARBY) {
+    try {
+      const { resolveIpApproxLocation } = await import(
+        '@/lib/geo/ip-approx-location'
+      );
+      const approx = resolveIpApproxLocation(req.headers);
+      if (approx) {
+        viewerGeo = { lat: approx.lat, lng: approx.lng };
+        lat = String(approx.lat);
+        lng = String(approx.lng);
+        ipApproxApplied = true;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
   apiPerf?.mark('viewer_geo_resolved');
 
   prismaPerfSetCategory("feed-db");
@@ -940,6 +959,9 @@ async function handleFeedGet(
     effectiveRadius > 0 &&
     !viewerGeo;
 
+  // Soft national fallback when Nearby has no viewer geo and IP headers missing.
+  const softNationalFallback = nearbyNeedsLocation;
+
   const radiusModeForSort =
     feedScope === FEED_SCOPE_NEARBY && viewerGeo && effectiveRadius > 0
       ? FEED_RADIUS_MODE_STRICT_LOCAL
@@ -947,22 +969,18 @@ async function handleFeedGet(
 
   let sortedPool = sortFeedItemsLocalFirst(allItems as Record<string, unknown>[], {
     viewerGeo,
-    radiusKm: nearbyNeedsLocation ? 0 : effectiveRadius,
+    radiusKm: softNationalFallback ? 0 : effectiveRadius,
     radiusMode: radiusModeForSort,
     followedSellerUserIds,
     extractSellerUserId: (item) => extractFeedItemSellerUserId(item),
     extractCoords: (item) => extractItemLatLng(item),
   });
 
-  // Nearby without viewer location: empty feed (no inspiration fallback).
-  // Product contract: explicit client empty state — never unrelated worldwide content.
-  if (nearbyNeedsLocation) {
-    sortedPool = [];
-  }
+  // Never empty the marketplace for missing GPS — national mainland when needed.
 
   // Heel Nederland = European mainland only (exclude SX/CW/AW/BQ and foreign).
   // Applies to sales AND inspiration — DISH rows often lack coords but carry place text.
-  if (feedScope === FEED_SCOPE_NATIONAL) {
+  if (feedScope === FEED_SCOPE_NATIONAL || softNationalFallback) {
     sortedPool = sortedPool.filter((item) => {
       const record = item as Record<string, unknown>;
       const coords = extractItemLatLng(item);

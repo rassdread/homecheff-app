@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type Ref } from 'react';
 import { Loader2, MapPin, Search, X } from 'lucide-react';
 import { RADIUS_PRESET_OPTIONS } from '@/lib/geo/local-discovery';
 import type { FeedScope } from '@/lib/feed/feed-scope';
@@ -21,6 +21,7 @@ type Props = {
   t: (key: string, params?: Record<string, string | number>) => string;
   place: string;
   onPlaceChange: (value: string) => void;
+  placeInputRef?: Ref<HTMLInputElement>;
   onUseMyLocation: () => void;
   locationLoading: boolean;
   locationSupported: boolean;
@@ -59,6 +60,7 @@ export default function FeedMobileFilterSheet({
   t,
   place,
   onPlaceChange,
+  placeInputRef,
   onUseMyLocation,
   locationLoading,
   locationSupported,
@@ -198,6 +200,7 @@ export default function FeedMobileFilterSheet({
               {t('common.place')}
             </label>
             <input
+              ref={placeInputRef}
               value={place}
               onChange={(e) => onPlaceChange(e.target.value)}
               className={inputClass}
@@ -207,7 +210,7 @@ export default function FeedMobileFilterSheet({
             <button
               type="button"
               onClick={onUseMyLocation}
-              disabled={locationLoading || !locationSupported}
+              disabled={locationLoading}
               className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary-brand/30 bg-white px-4 py-2.5 text-sm font-semibold text-primary-brand hover:bg-primary-50 disabled:opacity-50 touch-manipulation"
             >
               {locationLoading ? (

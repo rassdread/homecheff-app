@@ -10,6 +10,7 @@ import {
   Search,
   X,
 } from "lucide-react";
+import type { Ref } from "react";
 import { cn } from "@/lib/utils";
 import {
   RADIUS_PRESET_OPTIONS,
@@ -41,6 +42,7 @@ export type FeedSidebarFiltersProps = {
   onClearLocation: () => void;
   showLocationHint: boolean;
   profileNeedsCoords: boolean;
+  placeInputRef?: Ref<HTMLInputElement>;
   scope: FeedScope;
   onScopeChange: (scope: FeedScope) => void;
   radius: number;
@@ -98,6 +100,7 @@ export default function FeedSidebarFilters({
   onClearLocation,
   showLocationHint,
   profileNeedsCoords,
+  placeInputRef,
   scope,
   onScopeChange,
   radius,
@@ -203,16 +206,18 @@ export default function FeedSidebarFilters({
             </p>
           ) : null}
           <input
+            ref={placeInputRef}
             value={place}
             onChange={(e) => onPlaceChange(e.target.value)}
             className={inputClass}
             placeholder={t("common.typePlaceOrPostcode")}
             autoComplete="postal-code"
+            data-testid="feed-place-input"
           />
           <button
             type="button"
             onClick={onUseMyLocation}
-            disabled={locationLoading || !locationSupported}
+            disabled={locationLoading}
             aria-busy={locationLoading}
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary-brand/25 bg-primary-50/40 px-3 py-2 text-sm font-medium text-primary-brand hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
           >
