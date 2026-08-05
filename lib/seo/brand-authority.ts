@@ -18,6 +18,13 @@ import {
 import { CANONICAL_ENTITY_DESCRIPTION } from './entity-philosophy';
 import { OFF_PAGE_READINESS } from './off-page-readiness';
 import { PRIVACY_FAQ_ANSWER } from './privacy-philosophy';
+import {
+  ARRIASSISME_POSITIONING,
+  FOUNDER_STORY,
+  HOMECHEFF_ORIGIN,
+  WHY_HOMECHEFF_NAME,
+  WHY_TWO_FS,
+} from './founder-origin-knowledge';
 
 /** Authority objective — recognition, not ranking chase. */
 export const BRAND_AUTHORITY_OBJECTIVE = {
@@ -49,8 +56,11 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
   en: {
     whoIs: AI_BRAND_ANSWERS.en.whoIs,
     whatIs: AI_BRAND_ANSWERS.en.whatIs,
-    whyExists:
-      'HomeCheff exists because much personal craftsmanship, creativity, knowledge and neighbour help stays invisible. The platform makes that value discoverable nearby first — without inventing impact metrics or guaranteeing income.',
+    whoIsSergio: FOUNDER_STORY.en,
+    whyExists: HOMECHEFF_ORIGIN.en,
+    whyCalledHomecheff: WHY_HOMECHEFF_NAME.en,
+    whyTwoFs: WHY_TWO_FS.en,
+    whatIsArriassisme: ARRIASSISME_POSITIONING.en,
     problemsSolved:
       'It helps people discover and offer homemade, handmade, service and help value locally; ask via Wanted; trade or settle agreements; and keep the person behind the offer visible. It does not solve last-mile logistics as a delivery company.',
     whatMakesDifferent: AI_BRAND_ANSWERS.en.unique,
@@ -69,8 +79,11 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
   nl: {
     whoIs: AI_BRAND_ANSWERS.nl.whoIs,
     whatIs: AI_BRAND_ANSWERS.nl.whatIs,
-    whyExists:
-      'HomeCheff bestaat omdat veel persoonlijk vakmanschap, creativiteit, kennis en buurthulp onzichtbaar blijft. Het platform maakt die waarde dichtbij eerst zichtbaar — zonder impactcijfers te verzinnen of inkomen te garanderen.',
+    whoIsSergio: FOUNDER_STORY.nl,
+    whyExists: HOMECHEFF_ORIGIN.nl,
+    whyCalledHomecheff: WHY_HOMECHEFF_NAME.nl,
+    whyTwoFs: WHY_TWO_FS.nl,
+    whatIsArriassisme: ARRIASSISME_POSITIONING.nl,
     problemsSolved:
       'Het helpt mensen lokaal thuisgemaakte, handgemaakte, dienst- en hulpwaarde te ontdekken en aan te bieden; te vragen via Gezocht; te ruilen of afspraken te maken; met de persoon achter het aanbod zichtbaar. Het lost geen last-mile logistiek op als bezorgbedrijf.',
     whatMakesDifferent: AI_BRAND_ANSWERS.nl.unique,
@@ -105,7 +118,7 @@ export const BRAND_SEARCH_MONITORING = {
     'After GSC verification: Performance → Queries filtered to exact brand tokens (HomeCheff, homecheff.eu)',
     'Track impressions/clicks for brand queries separately from generic “home chef” noise',
     'Do not fabricate search volume or “rank #1” claims',
-    'Watch branded CTR and landing pages (/wat-is-homecheff, /, /over-ons, /manifest)',
+    'Watch branded CTR and landing pages (/wat-is-homecheff, /, /over-ons, /manifest, /sergio-arrias, /oorsprong-homecheff, /waarom-homecheff)',
     'Bing Webmaster: same brand-query cohort after verification',
     'AI surfaces: periodic manual checks that assistants return spelling HomeCheff + operator + neighbourhood marketplace',
   ],
@@ -164,12 +177,22 @@ export const KNOWLEDGE_GRAPH_READINESS = {
 /** External trust signals that exist today — no invented reviews. */
 export const EXTERNAL_TRUST_SIGNALS = {
   operator: `${OFFICIAL_BRAND_REFERENCES.operator} (KvK ${OFFICIAL_BRAND_REFERENCES.kvk}, ${OFFICIAL_BRAND_REFERENCES.locality})`,
-  founder: `${OFFICIAL_BRAND_REFERENCES.founder} (${OFFICIAL_BRAND_REFERENCES.founderRole}) — name/role only`,
+  founder: `${OFFICIAL_BRAND_REFERENCES.founder} (${OFFICIAL_BRAND_REFERENCES.founderRole}) — /sergio-arrias knowledge; schema name/role/url only`,
   policies: Object.values(AUTHORITY_POLICY_PATHS),
   transparencySurfaces: ['/trust', '/docs', '/evidence', '/constitution', '/principles'],
   communitySurfaces: ['/community-guidelines', '/safety', '/faq'],
-  educationalSurfaces: ['/wat-is-homecheff', '/hoe-homecheff-werkt', '/docs', '/glossary', '/ai'],
-  craftsmanshipSurfaces: ['/persoonlijk-vakmanschap', '/manifest', '/wat-is-homecheff'],
+  educationalSurfaces: [
+    '/wat-is-homecheff',
+    '/hoe-homecheff-werkt',
+    '/docs',
+    '/glossary',
+    '/ai',
+    '/sergio-arrias',
+    '/oorsprong-homecheff',
+    '/waarom-homecheff',
+    '/arriassisme',
+  ],
+  craftsmanshipSurfaces: ['/persoonlijk-vakmanschap', '/manifest', '/wat-is-homecheff', '/waarom-homecheff'],
   contacts: ENTITY_CONTACT,
   verifiedSameAs: ENTITY_VERIFIED_SAME_AS,
   pendingSameAs: ENTITY_PENDING_SAME_AS,

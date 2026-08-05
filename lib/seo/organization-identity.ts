@@ -157,7 +157,8 @@ export const PENDING_SAME_AS_VERIFICATION = [
 export const ORGANIZATION_OMITTED_FIELDS = {
   foundingDate: 'Not published on About or legal pages — do not guess.',
   streetAddress: 'Only city (Vlaardingen) is published — no full street address.',
-  founderBiography: 'No public About biography — name and role only.',
+  founderBiography:
+    'JSON-LD Person remains name/role/url only. Public knowledge at /sergio-arrias (no invented credentials). About avoids hero narrative.',
   socialProfiles: 'No verified official sameAs URLs in codebase.',
   impactMetrics: 'No measured waste/loneliness metrics published.',
 } as const;

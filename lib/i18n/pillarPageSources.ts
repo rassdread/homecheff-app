@@ -43,6 +43,9 @@ export const pillarSharedFaq: Record<string, Bi> = {
   linkManifest: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' },
   linkAbout: { nl: 'Over ons', en: 'About us' },
   linkFaq: { nl: 'FAQ', en: 'FAQ' },
+  linkFounder: { nl: 'Wie is Sergio Arrias?', en: 'Who is Sergio Arrias?' },
+  linkOrigin: { nl: 'Oorsprong HomeCheff', en: 'Origin of HomeCheff' },
+  linkWhyName: { nl: 'Waarom HomeCheff?', en: 'Why HomeCheff?' },
 };
 
 const platformDefinitionPage: Record<string, Bi> = {

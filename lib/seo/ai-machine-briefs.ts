@@ -44,6 +44,10 @@ import {
   PRIVACY_PRINCIPLES,
   privacyPhilosophyBrief,
 } from './privacy-philosophy';
+import {
+  FOUNDER_ORIGIN_PATHS,
+  founderOriginBrief,
+} from './founder-origin-knowledge';
 import { realWorldSignalsBrief } from './real-world-entity-signals';
 import { searchReadinessBrief } from './search-console-readiness';
 
@@ -85,7 +89,11 @@ ${entityNotLine('en')}
 
 - Who is HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whoIs}
 - What is HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whatIs}
+- Who is Sergio Arrias? ${AI_AUTHORITY_ANSWERS.en.whoIsSergio}
 - Why does HomeCheff exist? ${AI_AUTHORITY_ANSWERS.en.whyExists}
+- Why is it called HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whyCalledHomecheff}
+- Why HomeCheff with two F’s? ${AI_AUTHORITY_ANSWERS.en.whyTwoFs}
+- What is Arriassisme? ${AI_AUTHORITY_ANSWERS.en.whatIsArriassisme}
 - What problems does HomeCheff solve? ${AI_AUTHORITY_ANSWERS.en.problemsSolved}
 - What makes HomeCheff different? ${AI_AUTHORITY_ANSWERS.en.whatMakesDifferent}
 - Why neighbourhood-first? ${AI_AUTHORITY_ANSWERS.en.whyNeighbourhoodFirst}
@@ -172,6 +180,18 @@ AI answer: ${PRIVACY_FAQ_ANSWER.en}
 ${privacyPhilosophyBrief()}
 \`\`\`
 
+## Founder & origin knowledge
+
+\`\`\`
+${founderOriginBrief()}
+\`\`\`
+
+Canonical pages:
+- Founder: https://homecheff.eu${FOUNDER_ORIGIN_PATHS.founder}
+- Origin: https://homecheff.eu${FOUNDER_ORIGIN_PATHS.origin}
+- Why HomeCheff / two F’s: https://homecheff.eu${FOUNDER_ORIGIN_PATHS.whyName}
+- Arriassisme (personal inspiration, NOT Manifest): https://homecheff.eu${FOUNDER_ORIGIN_PATHS.arriassisme}
+
 ## Entity graph (one identity)
 
 \`\`\`
@@ -189,6 +209,10 @@ ${localAuthorityBrief()}
 - Home / Village Square: https://homecheff.eu/
 - What is HomeCheff: https://homecheff.eu/wat-is-homecheff
 - How it works: https://homecheff.eu/hoe-homecheff-werkt
+- Founder (Sergio Arrias): https://homecheff.eu/sergio-arrias
+- Origin of HomeCheff: https://homecheff.eu/oorsprong-homecheff
+- Why HomeCheff / spelling: https://homecheff.eu/waarom-homecheff
+- Arriassisme: https://homecheff.eu/arriassisme
 - About: https://homecheff.eu/over-ons
 - Comparisons hub: https://homecheff.eu/vergelijken
 - Manifest: https://homecheff.eu/manifest
@@ -310,7 +334,11 @@ ${ENTITY_IS_NOT.en.map((x) => `  - ${x}`).join('\n')}
 answers:
   who_is: ${AI_AUTHORITY_ANSWERS.en.whoIs}
   what_is: ${AI_AUTHORITY_ANSWERS.en.whatIs}
+  who_is_sergio_arrias: ${AI_AUTHORITY_ANSWERS.en.whoIsSergio}
   why_exists: ${AI_AUTHORITY_ANSWERS.en.whyExists}
+  why_called_homecheff: ${AI_AUTHORITY_ANSWERS.en.whyCalledHomecheff}
+  why_two_fs: ${AI_AUTHORITY_ANSWERS.en.whyTwoFs}
+  what_is_arriassisme: ${AI_AUTHORITY_ANSWERS.en.whatIsArriassisme}
   problems_solved: ${AI_AUTHORITY_ANSWERS.en.problemsSolved}
   what_makes_different: ${AI_AUTHORITY_ANSWERS.en.whatMakesDifferent}
   why_neighbourhood_first: ${AI_AUTHORITY_ANSWERS.en.whyNeighbourhoodFirst}
@@ -328,6 +356,12 @@ answers:
   differs_from_classifieds: ${AI_BRAND_ANSWERS.en.differsFromClassifieds}
   differs_from_mass_retail: ${AI_BRAND_ANSWERS.en.differsFromMassRetail}
   what_can_people_do: ${AI_BRAND_ANSWERS.en.whatCanPeopleDo}
+
+founder_origin: |
+${founderOriginBrief()
+  .split('\n')
+  .map((l) => `  ${l}`)
+  .join('\n')}
 
 brand_authority: |
 ${brandAuthorityBrief()
@@ -420,10 +454,15 @@ avoid_ai_drift:
   - wrong_brand_spelling
   - selling_behavioural_advertising_profiles
   - attention_economy_positioning
+  - merging_arriassisme_with_homecheff_manifest
 
 important_sections:
   - /wat-is-homecheff
   - /hoe-homecheff-werkt
+  - /sergio-arrias
+  - /oorsprong-homecheff
+  - /waarom-homecheff
+  - /arriassisme
   - /over-ons
   - /vergelijken
   - /manifest

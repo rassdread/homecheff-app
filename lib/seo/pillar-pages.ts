@@ -76,6 +76,9 @@ const PILLAR_LINKS: SeoLandingBlock = {
     { href: '/manifest', labelKey: 'linkManifest' },
     { href: '/over-ons', labelKey: 'linkAbout' },
     { href: '/faq', labelKey: 'linkFaq' },
+    { href: '/sergio-arrias', labelKey: 'linkFounder' },
+    { href: '/oorsprong-homecheff', labelKey: 'linkOrigin' },
+    { href: '/waarom-homecheff', labelKey: 'linkWhyName' },
   ],
 };
 
