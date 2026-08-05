@@ -1,0 +1,7 @@
+{
+  "browser": "NextAuth signIn('google')",
+  "capacitorAndroid": "Capgo SocialLogin when CAPGO_GOOGLE_SERVER_CLIENT_ID present",
+  "capacitorMissingPublicId": "openSystemBrowserGoogleOAuth fallback",
+  "capgoInitFailure": "system-browser fallback",
+  "iosNative": "not_applicable"
+}
