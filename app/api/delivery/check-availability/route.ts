@@ -5,8 +5,6 @@ export const dynamic = 'force-dynamic';
 import { prisma } from '@/lib/prisma';
 import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance } from '@/lib/google-maps-distance';
-import { normalizeCountryCode } from '@/lib/gamification/country-code';
-import { calculateDistance } from '@/lib/geocoding';
 import { delivererMatchingWhere } from '@/lib/delivery/delivery-eligibility';
 import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
 
