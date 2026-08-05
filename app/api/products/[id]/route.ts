@@ -685,13 +685,13 @@ export async function DELETE(
   try {
     const raw = (await params).id;
     const id = resolveProductIdFromParam(raw);
-    
-    // NextAuth v5
-    try {
-      const mod: any = await import("@/lib/auth");
-      const session = await mod.auth?.();
-      const email: string | undefined = session?.user?.email || undefined;
-      if (email) {
+
+    const session = await auth();
+    const email: string | undefined = session?.user?.email || undefined;
+    if (!email) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+    if (email) {
         const user = await prisma.user.findUnique({
           where: { email },
           select: { id: true, role: true }
@@ -820,148 +820,7 @@ export async function DELETE(
         }
 
         return NextResponse.json({ success: true });
-      }
-    } catch {}
-
-    // NextAuth v4
-    try {
-      const { getServerSession } = await import("next-auth");
-      const { authOptions } = await import("@/lib/auth");
-      const session = await getServerSession(authOptions as any);
-      const email: string | undefined = (session as any)?.user?.email;
-      if (email) {
-        const user = await prisma.user.findUnique({
-          where: { email },
-          select: { id: true, role: true }
-        });
-
-        if (!user) {
-          return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        // Check if product exists in new Product model
-        let product: any = await prisma.product.findUnique({
-          where: { id: id },
-          include: {
-            seller: {
-              include: {
-                User: { select: { id: true } }
-              }
-            }
-          }
-        });
-
-        let isNewModel = true;
-
-        // If not found in new model, check old Listing model
-        if (!product) {
-          product = await prisma.listing.findUnique({
-            where: { id: id },
-            include: {
-              User: { select: { id: true } }
-            }
-          });
-          isNewModel = false;
-        }
-
-        if (!product) {
-          return NextResponse.json({ error: "Product not found" }, { status: 404 });
-        }
-
-        // Check permissions: Admin can delete any product, seller can only delete their own
-        if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
-          if (isNewModel) {
-            // New Product model
-            const sellerProfile = await prisma.sellerProfile.findUnique({
-              where: { userId: user.id },
-              select: { id: true }
-            });
-
-            if (!sellerProfile || (product as any).sellerId !== sellerProfile.id) {
-              return NextResponse.json({ error: "You don't have permission to delete this product" }, { status: 403 });
-            }
-          } else {
-            // Old Listing model
-            if ((product as any).ownerId !== user.id) {
-              return NextResponse.json({ error: "You don't have permission to delete this product" }, { status: 403 });
-            }
-          }
-        }
-
-        // Delete product from appropriate model with proper cascade handling
-        if (isNewModel) {
-          // Delete from new Product model with cascade
-          await prisma.$transaction(async (tx) => {
-            // Delete related records first
-            await tx.deliveryOrder.deleteMany({
-              where: { productId: id }
-            });
-            
-            await tx.orderItem.deleteMany({
-              where: { productId: id }
-            });
-            
-            await tx.productReview.deleteMany({
-              where: { productId: id }
-            });
-            
-            await tx.favorite.deleteMany({
-              where: { productId: id }
-            });
-            
-            await tx.conversation.deleteMany({
-              where: { productId: id }
-            });
-            
-            await tx.image.deleteMany({
-              where: { productId: id }
-            });
-            
-            await tx.productVideo.deleteMany({
-              where: { productId: id }
-            });
-            
-            // Finally delete the product
-            await tx.product.delete({
-              where: { id: id }
-            });
-          });
-        } else {
-          // Delete from old Listing model with cascade
-          await prisma.$transaction(async (tx) => {
-            // Delete related records first
-            await tx.listingMedia.deleteMany({
-              where: { listingId: id }
-            });
-            
-            await tx.favorite.deleteMany({
-              where: { listingId: id }
-            });
-            
-            // Conversation only has productId, not listingId for old listings
-            // We need to find conversations that reference this listing through a different mechanism
-            // For now, we'll skip this deletion as it's not directly linked
-            
-            // Finally delete the listing
-            await tx.listing.delete({
-              where: { id: id }
-            });
-          });
-        }
-
-        if (isNewModel) {
-          if (shouldRevalidateAfterProductMutation(product, null)) {
-            revalidatePublicFeedCache('product:delete');
-          }
-        } else if (shouldRevalidateAfterListingMutation(product, null)) {
-          revalidatePublicFeedCache('listing:delete');
-        }
-
-        return NextResponse.json({ success: true });
-      }
-    } catch {}
-
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
