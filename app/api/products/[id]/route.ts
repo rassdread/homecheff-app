@@ -858,8 +858,14 @@ export async function PATCH(
         }
     }
   } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error('[products PATCH]', e);
+    return NextResponse.json(
+      {
+        error: "Server error",
+        message: e instanceof Error ? e.message.slice(0, 300) : String(e).slice(0, 300),
+      },
+      { status: 500 }
+    );
   }
 }
 
