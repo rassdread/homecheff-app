@@ -1,0 +1,12 @@
+{
+  "sessionCookieNameWrittenAndRead": "next-auth.session-token",
+  "middlewareUsesSameName": true,
+  "oauthStartCookiesObserved": {
+    "next-auth.callback-url": {"HttpOnly": true, "Secure": true, "SameSite": true},
+    "__Secure-next-auth.state": {"HttpOnly": true, "Secure": true, "SameSite": true},
+    "__Secure-next-auth.pkce.code_verifier": {"HttpOnly": true, "Secure": true, "SameSite": true}
+  },
+  "wwwOAuthStartBlockedByCanonicalRedirect": true,
+  "valuesNotRecorded": true,
+  "logoutClearanceInteractive": "NOT_RUN"
+}

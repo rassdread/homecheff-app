@@ -1,0 +1,5 @@
+{
+  "status": "NOT_RUN",
+  "reason": "Interactive Google/email test identities were not created or reused in this session",
+  "policy": "After operator proofs, verify one User + one Google account relation, no duplicates, no orphan profiles, no provider-sub collision"
+}

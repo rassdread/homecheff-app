@@ -1,0 +1,7 @@
+{
+  "base": "origin/main@30e88af2c01928822740b3f9a1deddd1e1681b99",
+  "feature": "fe90eb2a05b4f59ac277d94788d28f71eb3fda01",
+  "result": "clean_merge_no_conflicts",
+  "testsOnSimulation": "PASS",
+  "discarded": true
+}

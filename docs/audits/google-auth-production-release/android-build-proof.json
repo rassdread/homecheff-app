@@ -1,0 +1,17 @@
+{
+  "attempted": true,
+  "built": false,
+  "packageExpected": "eu.homecheff.mobile",
+  "packageInGradle": "eu.homecheff.mobile",
+  "sourceMergeSha": "5b1865411d4bb22784a9c1ae5d500c0b65575efc",
+  "androidVersionName": "1.0.19",
+  "androidVersionCode": 25,
+  "blockers": [
+    "No Java/JDK runtime on build host (java_home failed)",
+    "android/app/google-services.json missing in worktree",
+    "No Android device attached (adb devices empty)"
+  ],
+  "signingContext": "not_built",
+  "playAppSigning": "not_applicable_not_built",
+  "reusedOldApk": false
+}

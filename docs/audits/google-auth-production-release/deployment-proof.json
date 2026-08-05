@@ -1,0 +1,16 @@
+{
+  "project": "homecheff-app",
+  "target": "production",
+  "deploymentId": "dpl_zRG9nbxeYafiuk5nYHdncD6jZPGr",
+  "deploymentUrl": "https://homecheff-bwnez4kmm-sergio-s-projects-f7b64ee1.vercel.app",
+  "readyState": "READY",
+  "aliases": ["homecheff.eu", "homecheff.nl", "www.homecheff.eu", "www.homecheff.nl"],
+  "gitCommitShaExpected": "5b1865411d4bb22784a9c1ae5d500c0b65575efc",
+  "gitCommitShaProvenance": "local vercel --prod from clean main HEAD after merge push; CLI inspect meta omitted githubCommitSha for filesystem deploy",
+  "wwwToApex": {"www_login": "307 -> https://homecheff.eu/login"},
+  "nlToApex": {"homecheff.nl": "307 -> https://homecheff.eu/"},
+  "providersCallback": "https://homecheff.eu/api/auth/callback/google",
+  "builtAfterNativePublicEnvUpdate": true,
+  "previousProductionDeploymentId": "dpl_7Lh7iTj8ZFo9fmRCAxcyxL8RZj5J",
+  "notMistakenForPreview": true
+}

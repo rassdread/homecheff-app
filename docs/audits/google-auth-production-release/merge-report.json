@@ -1,0 +1,15 @@
+{
+  "strategy": "git merge --no-ff",
+  "mergeSha": "5b1865411d4bb22784a9c1ae5d500c0b65575efc",
+  "parents": [
+    "30e88af2c01928822740b3f9a1deddd1e1681b99",
+    "fe90eb2a05b4f59ac277d94788d28f71eb3fda01"
+  ],
+  "conflicts": [],
+  "finalOriginMainAtMerge": "5b1865411d4bb22784a9c1ae5d500c0b65575efc",
+  "rollbackParent": "30e88af2c01928822740b3f9a1deddd1e1681b99",
+  "retainedFeatureBranchTip": "fe90eb2a05b4f59ac277d94788d28f71eb3fda01",
+  "amended": false,
+  "forcePush": false,
+  "squashed": false
+}

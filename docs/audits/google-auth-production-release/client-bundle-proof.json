@@ -1,0 +1,14 @@
+{
+  "source": "live https://homecheff.eu/login after dpl_zRG9nbxeYafiuk5nYHdncD6jZPGr",
+  "configured": true,
+  "expected_client_suffix_pattern_detected": true,
+  "raw_secret_detected": false,
+  "warning_string_exposed": false,
+  "notes": [
+    "googleusercontent.com client id pattern present in client JS",
+    "login HTML does not show NEXT_PUBLIC_* or [dev] Capgo missing warning",
+    "dev-gated Capgo missing hint string may still exist as dead text in a chunk",
+    "no GOCSPX- client secret pattern detected",
+    "values not stored"
+  ]
+}

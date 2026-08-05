@@ -1,0 +1,16 @@
+{
+  "ranOnFeaturePreMerge": true,
+  "suites": {
+    "test:google-login-repair": "PASS",
+    "validate-google-native-signin / test:google-native-signin": "PASS",
+    "google oauth client separation": "PASS",
+    "auth-origin": "PASS",
+    "smoke-check": "PASS",
+    "production build (merge simulation + Vercel prod)": "PASS"
+  },
+  "limitations": [
+    "Interactive browser Google account chooser not automated",
+    "Full Adaptive Workspace suite not re-run post-deploy in this freeze window; pre-merge regression considered sufficient for auth-scoped change",
+    "Email login interactive Production proof not completed with credentials in this session"
+  ]
+}

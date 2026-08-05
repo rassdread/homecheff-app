@@ -1,0 +1,27 @@
+{
+  "preMergeOriginMain": "30e88af2c01928822740b3f9a1deddd1e1681b99",
+  "featureBranch": "fix/google-login-production-repair",
+  "featureTip": "fe90eb2a05b4f59ac277d94788d28f71eb3fda01",
+  "mergeBaseWithMain": "30e88af2c01928822740b3f9a1deddd1e1681b99",
+  "commitsAfterFe90eb2": [],
+  "reviewedAuthCommits": {
+    "webA": "37bfad1adb12cd3a16d571ea6de486019f08bc2f",
+    "webB_docs": "c70ba7c9fc302c71a0627e1ff7f7e53dcc1d6c66",
+    "nativeA": "f250c0be558eb1f1142c727ccb919b9294391b9f",
+    "nativeB_docs": "fe90eb2a05b4f59ac277d94788d28f71eb3fda01"
+  },
+  "evidenceCommitsDocsOnly": ["c70ba7c9fc302c71a0627e1ff7f7e53dcc1d6c66", "fe90eb2a05b4f59ac277d94788d28f71eb3fda01"],
+  "unrelatedCommitsOnBranch": false,
+  "branchIncludesWebAndNative": true,
+  "mergeSha": "5b1865411d4bb22784a9c1ae5d500c0b65575efc",
+  "mergeParents": [
+    "30e88af2c01928822740b3f9a1deddd1e1681b99",
+    "fe90eb2a05b4f59ac277d94788d28f71eb3fda01"
+  ],
+  "mergeStrategy": "git merge --no-ff",
+  "rollbackSha": "30e88af2c01928822740b3f9a1deddd1e1681b99",
+  "retainedFeatureBranchTip": "fe90eb2a05b4f59ac277d94788d28f71eb3fda01",
+  "preReleaseProductionDeploymentId": "dpl_7Lh7iTj8ZFo9fmRCAxcyxL8RZj5J",
+  "postMergeProductionDeploymentId": "dpl_zRG9nbxeYafiuk5nYHdncD6jZPGr",
+  "cleanReleaseWorktreeAtMerge": true
+}

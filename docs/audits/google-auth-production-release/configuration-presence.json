@@ -1,0 +1,30 @@
+{
+  "policy": "presence_and_role_only_no_values",
+  "production": {
+    "GOOGLE_CLIENT_ID": {"present": true, "role": "NextAuth web OAuth client id"},
+    "GOOGLE_CLIENT_SECRET": {"present": true, "role": "NextAuth web OAuth client secret"},
+    "NEXTAUTH_URL": {"present": true, "role": "canonical auth URL"},
+    "NEXTAUTH_SECRET": {"present": true, "role": "JWT/session signing"},
+    "NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID": {"present": true, "role": "Capgo serverClientId / ID token audience (public, build-time inline)"},
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": {"present": true, "role": "legacy public fallback for Capgo"},
+    "GOOGLE_NATIVE_CLIENT_ID": {"present": false, "role": "optional server-only audience allowlist"},
+    "PREVIEW_AUTH_URL": {"present": false, "role": "preview-only"}
+  },
+  "preview": {
+    "GOOGLE_CLIENT_ID": true,
+    "GOOGLE_CLIENT_SECRET": true,
+    "NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID": true,
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": true,
+    "GOOGLE_NATIVE_CLIENT_ID": false,
+    "PREVIEW_AUTH_URL": true
+  },
+  "checks": {
+    "noSecretInNextPublic": true,
+    "webAndNativePurposesDistinctInCode": true,
+    "staticEnvAccessForPublicNativeId": true,
+    "nativePublicPresentInProduction": true,
+    "optionalServerAllowlistMissing": true,
+    "optionalServerAllowlistBlocking": false,
+    "note": "Operator set NEXT_PUBLIC_GOOGLE_NATIVE_CLIENT_ID. Value may share web-client lineage with NextAuth; Capgo requires a Web client as serverClientId. Confirm on device that token aud matches allowlist. Do not print IDs."
+  }
+}
