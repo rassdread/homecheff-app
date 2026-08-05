@@ -5,6 +5,7 @@
 import type { Bi } from '@/lib/i18n/seoLandingSources';
 import { OPEN_KNOWLEDGE_LAST_REVIEWED } from '@/lib/open-knowledge/docs-registry';
 import { CANONICAL_ENTITY_DESCRIPTION } from '@/lib/seo/entity-philosophy';
+import { DATA_PURPOSE, PRIVACY_MISSION } from '@/lib/seo/privacy-philosophy';
 
 const LAST_REVIEWED_NL = '11 juli 2026';
 const LAST_REVIEWED_EN = '11 July 2026';
@@ -540,12 +541,12 @@ export const openKnowledgeDocPrivacy = docPage({
   },
   title: { nl: 'Privacy (product)', en: 'Privacy (product)' },
   intro: {
-    nl: 'Product privacy: welke data gebruikers kunnen exporteren, wat bewaard blijft en waar het juridische beleid staat.',
-    en: 'Product privacy: which data users can export, what is retained and where legal policy lives.',
+    nl: `${PRIVACY_MISSION.nl} Product privacy: welke data gebruikers kunnen exporteren, wat bewaard blijft en waar het juridische beleid staat. Gebruikersdata is bedoeld om HomeCheff zelf te laten werken — zie filosofie op /trust en /docs/privacy; juridisch: /privacy.`,
+    en: `${PRIVACY_MISSION.en} Product privacy: which data users can export, what is retained and where legal policy lives. User data is intended to make HomeCheff itself work — see philosophy on /trust and /docs/privacy; legal: /privacy.`,
   },
   purpose: {
-    nl: 'Transparantie over persoonsgegevens — technologie met geweten.',
-    en: 'Transparency about personal data — technology with a conscience.',
+    nl: `${DATA_PURPOSE.nl} Transparantie over persoonsgegevens — technologie met geweten. Geen belofte die de privacyverklaring vervangt.`,
+    en: `${DATA_PURPOSE.en} Transparency about personal data — technology with a conscience. Not a substitute for the privacy policy.`,
   },
   how: {
     nl: 'GET /api/profile/export-data levert JSON-export (Phase 13T): profiel, orders, messages metadata, HCP, etc. Account deletion via /api/profile/delete-account. Juridisch: /privacy.',
@@ -709,8 +710,8 @@ export const openKnowledgeTrust = {
   },
   sectionPrivacyTitle: { nl: 'Privacy-filosofie', en: 'Privacy philosophy' },
   sectionPrivacyBody: {
-    nl: 'Data-minimalisatie, echte export, duidelijke omissions. Juridisch beleid op /privacy; product op /docs/privacy.',
-    en: 'Data minimisation, real export, clear omissions. Legal policy at /privacy; product at /docs/privacy.',
+    nl: `${PRIVACY_MISSION.nl} ${DATA_PURPOSE.nl} Data-minimalisatie, echte export, duidelijke omissions. Juridisch beleid op /privacy; product op /docs/privacy — dit is filosofie, geen vervanging van de privacyverklaring.`,
+    en: `${PRIVACY_MISSION.en} ${DATA_PURPOSE.en} Data minimisation, real export, clear omissions. Legal policy at /privacy; product at /docs/privacy — this is philosophy, not a substitute for the privacy policy.`,
   },
   sectionMarketplaceTitle: { nl: 'Marketplace-filosofie', en: 'Marketplace philosophy' },
   sectionMarketplaceBody: {

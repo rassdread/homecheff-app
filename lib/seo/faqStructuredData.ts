@@ -2,6 +2,7 @@ import { getPlatformDefinition } from './platform-definition';
 import { BRAND_DISAMBIGUATION, AI_BRAND_ANSWERS } from './brand-entity';
 import { AI_AUTHORITY_ANSWERS } from './brand-authority';
 import { LOCAL_FIRST_SCALE, SECOND_HAND_PHILOSOPHY } from './entity-philosophy';
+import { PRIVACY_FAQ_ANSWER } from './privacy-philosophy';
 
 /** Curated FAQPage entities for JSON-LD (server-only; matches /faq themes). */
 export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
@@ -30,6 +31,10 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           {
             q: 'Is HomeCheff a second-hand or classifieds marketplace?',
             a: SECOND_HAND_PHILOSOPHY.en,
+          },
+          {
+            q: 'Does HomeCheff sell behavioural advertising profiles?',
+            a: PRIVACY_FAQ_ANSWER.en,
           },
           {
             q: 'Is HomeCheff related to Home Chef (USA / meal kits)?',
@@ -76,6 +81,10 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           {
             q: 'Is HomeCheff een tweedehands- of classifieds-marktplaats?',
             a: SECOND_HAND_PHILOSOPHY.nl,
+          },
+          {
+            q: 'Verkoopt HomeCheff gedragsadvertentieprofielen?',
+            a: PRIVACY_FAQ_ANSWER.nl,
           },
           {
             q: 'Is HomeCheff hetzelfde als Home Chef (USA / maaltijdboxen)?',

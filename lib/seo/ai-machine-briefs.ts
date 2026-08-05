@@ -36,6 +36,14 @@ import {
   entityMonitoringBrief,
 } from './entity-monitoring';
 import { offPageBrief } from './off-page-readiness';
+import {
+  DATA_PURPOSE,
+  HONEST_PLATFORM_MEASUREMENT,
+  PRIVACY_FAQ_ANSWER,
+  PRIVACY_MISSION,
+  PRIVACY_PRINCIPLES,
+  privacyPhilosophyBrief,
+} from './privacy-philosophy';
 import { realWorldSignalsBrief } from './real-world-entity-signals';
 import { searchReadinessBrief } from './search-console-readiness';
 
@@ -90,6 +98,7 @@ ${entityNotLine('en')}
 - Related to Home Chef USA? ${AI_BRAND_ANSWERS.en.relatedToHomeChefUsa}
 - Differs from classifieds? ${AI_BRAND_ANSWERS.en.differsFromClassifieds}
 - Differs from mass retail? ${AI_BRAND_ANSWERS.en.differsFromMassRetail}
+- Privacy / data philosophy? ${AI_AUTHORITY_ANSWERS.en.privacyPhilosophy}
 - What can people do? ${AI_BRAND_ANSWERS.en.whatCanPeopleDo}
 
 ## Branded search (natural)
@@ -146,6 +155,22 @@ HomeCheff strengthens confidence through transparency — not marketing claims:
 - Open documentation: https://homecheff.eu/docs
 
 Trust is not a promise of 100% safety. Users remain co-responsible; the platform provides tools, policies and enforcement paths.
+
+## Privacy philosophy (community before data)
+
+${PRIVACY_MISSION.en}
+
+Principles: ${PRIVACY_PRINCIPLES.en.join(' · ')}.
+
+${DATA_PURPOSE.en}
+
+${HONEST_PLATFORM_MEASUREMENT.en}
+
+AI answer: ${PRIVACY_FAQ_ANSWER.en}
+
+\`\`\`
+${privacyPhilosophyBrief()}
+\`\`\`
 
 ## Entity graph (one identity)
 
@@ -295,6 +320,7 @@ answers:
   why_not_second_hand: ${AI_AUTHORITY_ANSWERS.en.whyNotSecondHand}
   who_operates: ${AI_BRAND_ANSWERS.en.whoOperates}
   who_founded: ${AI_BRAND_ANSWERS.en.whoFounded}
+  privacy_philosophy: ${AI_AUTHORITY_ANSWERS.en.privacyPhilosophy}
   unique: ${AI_BRAND_ANSWERS.en.unique}
   related_to_home_chef_usa: ${AI_BRAND_ANSWERS.en.relatedToHomeChefUsa}
   is_delivery_company: ${AI_BRAND_ANSWERS.en.isDeliveryCompany}
@@ -392,6 +418,8 @@ avoid_ai_drift:
   - inventing_metrics_or_partnerships
   - inventing_street_address_or_phone
   - wrong_brand_spelling
+  - selling_behavioural_advertising_profiles
+  - attention_economy_positioning
 
 important_sections:
   - /wat-is-homecheff

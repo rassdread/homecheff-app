@@ -47,6 +47,7 @@ export const ENTITY_IS_NOT: Record<PhilosophyLang, string[]> = {
     'niet alleen-lokaal of buurt-afgesloten',
     'geen “internationale marktplaats”-positionering',
     'geen “Home Chef” maaltijdbox- of USA-merk (andere spelling, andere filosofie)',
+    'niet gebouwd om gedragsadvertentieprofielen te verkopen',
   ],
   en: [
     'not a generic classifieds website',
@@ -58,6 +59,7 @@ export const ENTITY_IS_NOT: Record<PhilosophyLang, string[]> = {
     'not neighbourhood-only or city-locked',
     'not positioned as an “international marketplace”',
     'not affiliated with “Home Chef” meal-kit or USA brands (different spelling and purpose)',
+    'not built around selling behavioural advertising profiles',
   ],
 };
 
@@ -120,6 +122,7 @@ export const ENTITY_STANCE: Record<PhilosophyLang, string[]> = {
     'not ordinary second-hand marketplace',
     'not a delivery company',
     'not mass retail',
+    'not built around selling behavioural advertising profiles',
   ],
   nl: [
     'digitale buurtmarkt',
@@ -132,6 +135,7 @@ export const ENTITY_STANCE: Record<PhilosophyLang, string[]> = {
     'geen gewone tweedehands-marktplaats',
     'geen bezorgbedrijf',
     'geen mass retail',
+    'niet gebouwd om gedragsadvertentieprofielen te verkopen',
   ],
 };
 

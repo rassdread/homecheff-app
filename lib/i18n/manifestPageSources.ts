@@ -76,8 +76,8 @@ export const manifestPage: Record<string, Bi> = {
   },
   sectionNotTitle: { nl: 'Wat HomeCheff niet is', en: 'What HomeCheff is not' },
   sectionNotBody: {
-    nl: 'HomeCheff positioneert zich niet als bezorg-app, generieke advertentiesite, dropshipping- of mass retail platform, anonieme marktplaats, tweedehands-marktplaats voor gewone doorverkoop, aandachts-economie, socialmediaplatform of engagement-machine. Zie ook /wat-we-niet-zijn.',
-    en: 'HomeCheff does not position itself as a delivery app, generic classifieds site, dropshipping or mass retail platform, anonymous marketplace, second-hand marketplace for ordinary resale, attention economy, social media platform or engagement machine. See also /wat-we-niet-zijn.',
+    nl: 'HomeCheff positioneert zich niet als bezorg-app, generieke advertentiesite, dropshipping- of mass retail platform, anonieme marktplaats, tweedehands-marktplaats voor gewone doorverkoop, aandachts-economie, behavioural-advertising-product, socialmediaplatform of engagement-machine. Mensen zijn de community — niet het product. Zie ook /wat-we-niet-zijn.',
+    en: 'HomeCheff does not position itself as a delivery app, generic classifieds site, dropshipping or mass retail platform, anonymous marketplace, second-hand marketplace for ordinary resale, attention economy, behavioural advertising product, social media platform or engagement machine. People are the community — not the product. See also /wat-we-niet-zijn.',
   },
   sectionIsTitle: { nl: 'Wat HomeCheff wel is', en: 'What HomeCheff is' },
   sectionIsBody: {

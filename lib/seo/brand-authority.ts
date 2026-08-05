@@ -17,6 +17,7 @@ import {
 } from './entity-graph';
 import { CANONICAL_ENTITY_DESCRIPTION } from './entity-philosophy';
 import { OFF_PAGE_READINESS } from './off-page-readiness';
+import { PRIVACY_FAQ_ANSWER } from './privacy-philosophy';
 
 /** Authority objective — recognition, not ranking chase. */
 export const BRAND_AUTHORITY_OBJECTIVE = {
@@ -63,6 +64,7 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
     whyNotSecondHand: AI_BRAND_ANSWERS.en.isSecondHandMarketplace,
     whoOperates: AI_BRAND_ANSWERS.en.whoOperates,
     whoFounded: AI_BRAND_ANSWERS.en.whoFounded,
+    privacyPhilosophy: PRIVACY_FAQ_ANSWER.en,
   },
   nl: {
     whoIs: AI_BRAND_ANSWERS.nl.whoIs,
@@ -82,6 +84,7 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
     whyNotSecondHand: AI_BRAND_ANSWERS.nl.isSecondHandMarketplace,
     whoOperates: AI_BRAND_ANSWERS.nl.whoOperates,
     whoFounded: AI_BRAND_ANSWERS.nl.whoFounded,
+    privacyPhilosophy: PRIVACY_FAQ_ANSWER.nl,
   },
 };
 

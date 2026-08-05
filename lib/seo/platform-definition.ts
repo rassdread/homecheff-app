@@ -43,8 +43,8 @@ export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> 
     websiteDescription: `${CANONICAL_ENTITY_DESCRIPTION.nl} ${PHILOSOPHY_DISTANCE.nl} ${LOCAL_FIRST_SCALE.nl}`,
     faqWhatIsHomeCheff: ENTITY_FAQ_WHAT.nl,
     seoHubIntro:
-      'HomeCheff is de digitale buurtmarkt — community-first, creator-first en craftsmanship-first. Local-first, niet alleen-lokaal. Kies een onderwerp: eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil.',
-    footerTagline: 'Digitale buurtmarkt · alles begint dichtbij huis.',
+      'HomeCheff is de digitale buurtmarkt — community-first, creator-first en craftsmanship-first. Local-first, niet alleen-lokaal. Mensen zijn de community, niet het product. Kies een onderwerp: eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil.',
+    footerTagline: 'Digitale buurtmarkt · community vóór data · alles begint dichtbij huis.',
   },
   en: {
     entityDefinition: CANONICAL_ENTITY_DESCRIPTION.en,
@@ -54,8 +54,8 @@ export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> 
     websiteDescription: `${CANONICAL_ENTITY_DESCRIPTION.en} ${PHILOSOPHY_DISTANCE.en} ${LOCAL_FIRST_SCALE.en}`,
     faqWhatIsHomeCheff: ENTITY_FAQ_WHAT.en,
     seoHubIntro:
-      'HomeCheff is the digital neighbourhood marketplace — community-first, creator-first and craftsmanship-first. Local-first, not local-only. Pick a topic: food is one category alongside garden, creations, services, neighbour help and barter.',
-    footerTagline: 'Digital neighbourhood marketplace · everything starts close to home.',
+      'HomeCheff is the digital neighbourhood marketplace — community-first, creator-first and craftsmanship-first. Local-first, not local-only. People are the community, not the product. Pick a topic: food is one category alongside garden, creations, services, neighbour help and barter.',
+    footerTagline: 'Digital neighbourhood marketplace · community before data · everything starts close to home.',
   },
 };
 
