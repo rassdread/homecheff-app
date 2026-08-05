@@ -3372,7 +3372,7 @@
       },
       "7": {
         "question": "Wie is Sergio Arrias?",
-        "answer": "Sergio Arrias is de oprichter (Founder) van HomeCheff, de digitale buurtmarkt geëxploiteerd door Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). Het publieke verhaal benadrukt groei, visie, doorzettingsvermogen en purpose — geen heldenverhaal. Zie /sergio-arrias."
+        "answer": "Sergio Arrias is de oprichter (Founder) van HomeCheff — niet gepresenteerd als iemand die simpelweg een app bouwde, maar als een founder die jaren besteedde aan een community-gerichte filosofie die uiteindelijk een praktisch platform werd. Geëxploiteerd door Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). Zie /sergio-arrias."
       },
       "8": {
         "question": "Waarom schrijf je HomeCheff met twee F’s?",
@@ -3381,6 +3381,10 @@
       "9": {
         "question": "Wat is Arriassisme?",
         "answer": "Arriassisme is de persoonlijke filosofische inspiratie van de oprichter. Het is NIET het HomeCheff Manifest en NIET de productfilosofie van het platform. HomeCheff is één praktische toepassing van community-gerichte principes. Zie /arriassisme."
+      },
+      "10": {
+        "question": "Waarom bestaat HomeCheff?",
+        "answer": "De oprichter zag afnemend buurtcontact, groeiende eenzaamheid, loslating, onzichtbare skills en zwakkere lokale gemeenschappen. Technologie moet mensen opnieuw verbinden, niet isoleren. HomeCheff is een kalm, praktisch antwoord: een digitale buurtmarkt waar persoonlijk vakmanschap dichtbij eerst zichtbaar kan worden. Zie /oorsprong-homecheff."
       }
     },
     "selling": {
@@ -6531,8 +6535,8 @@
     "manifestIntro": "De volledige filosofische basis van HomeCheff — waarom we bestaan, welke waarden leidend zijn en wat we weigeren te worden — staat in het HomeCheff Manifest.",
     "manifestCta": "Lees het HomeCheff Manifest",
     "storyTitle": "Het verhaal achter HomeCheff",
-    "story1": "HomeCheff begon niet als een snelle startup-idee. Het platform groeide uit van jarenlange observatie: in de samenleving ligt veel onbenutte waarde — mensen die koken, kweken, maken, repareren, onderwijzen of helpen, terwijl slechts een deel daarvan zichtbaar wordt.",
-    "story2": "De bedoeling is niet om mensen te veranderen, maar om technologie te gebruiken zodat mensen elkaar kunnen ontdekken. Die lange voorbereiding maakt HomeCheff groter dan één persoon: de filosofie moet decennia geldig blijven.",
+    "story1": "HomeCheff begon niet als een snelle startup-idee. Het platform groeide uit jarenlange observatie: afnemend buurtcontact, groeiende eenzaamheid, loslating, waardevolle skills die onzichtbaar blijven, en lokale gemeenschappen die zwakker worden — terwijl mensen die koken, kweken, maken, repareren, onderwijzen of helpen ongebruikte waarde dragen. Technologie moet mensen opnieuw verbinden, niet isoleren.",
+    "story2": "De bedoeling is niet om mensen te veranderen, maar om technologie te gebruiken zodat mensen elkaar kunnen ontdekken. Die lange voorbereiding — jaren filosofie ontwikkelen die uiteindelijk een praktisch platform werd — maakt HomeCheff groter dan één persoon: de filosofie moet decennia geldig blijven.",
     "story3": "We vertellen op deze pagina geen heldenverhaal over oprichters. Voor het kalme publieke kennisprofiel van oprichter Sergio Arrias — groei, visie en purpose zonder sensationalisme — zie /sergio-arrias. Oorsprong: /oorsprong-homecheff. Merknaam: /waarom-homecheff. HomeCheff moet op eigen meriten staan — voor gebruikers, partners, gemeenten en toekomstige medewerkers.",
     "philosophyTitle": "De filosofie",
     "philosophy1": "Elke persoon bezit waarde. Technologie moet die waarde helpen zichtbaar worden en menselijke relaties versterken — niet algoritmische engagement maximaliseren.",
@@ -6558,7 +6562,7 @@
     "village1": "Community-first en creator-first: mensen ontdekken mensen; vaardigheden vinden kansen; buurten vinden elkaar. Technologie is de brug — mensen blijven de bestemming.",
     "village2": "Ontdek hoe onderdelen samenhangen op /hoe-homecheff-werkt.",
     "futureTitle": "Vooruitkijken",
-    "future1": "We hopen bij te dragen aan sterkere lokale economieën, toegankelijker ondernemerschap en meer waardering voor vakmanschap — zonder onbewezen impactclaims.",
+    "future1": "HomeCheff groeit buurt → stad → regio → land → Europa → Noord-Amerika → Zuid-Amerika → Afrika → Azië → Australië & Oceanië — zonder de filosofie te veranderen. Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid. Local-first, nooit alleen-lokaal. We hopen bij te dragen aan sterkere lokale economieën, toegankelijker ondernemerschap en meer waardering voor vakmanschap — zonder onbewezen impactclaims. Zie /oorsprong-homecheff.",
     "future2": "Partners, gemeenten en investeerders kunnen het Manifest gebruiken als stabiele referentie; het team werkt dagelijks aan een betrouwbaar, mensgericht platform.",
     "whoWeAreTitle": "Wie we zijn vandaag",
     "whoWeAre1": "HomeCheff is een digitale buurtmarkt waar mensen waarde creëren door eigen vakmanschap, creativiteit en persoonlijke diensten. Makers, dienstverleners en buren bieden skills, creativiteit en hulp. Eten is één categorie — naast tuin, creaties, diensten en buurthulp. Alles begint dichtbij huis. Local-first, niet alleen-lokaal.",

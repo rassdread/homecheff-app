@@ -98,6 +98,41 @@ export const ENTITY_NODES = {
     role: 'Concept — barter and neighbour value exchange',
     note: 'Concept node — supported settlement path; not a separate legal entity.',
   },
+  socialCohesion: {
+    id: 'socialCohesion',
+    name: 'Social cohesion',
+    nameNl: 'Sociale cohesie',
+    role: 'Concept — reconnecting neighbours; philosophical motivation for HomeCheff',
+    note: 'Concept node — declining interaction / loneliness / invisible skills as calm motivation; no invented statistics.',
+  },
+  privacyPhilosophy: {
+    id: 'privacyPhilosophy',
+    name: 'Privacy philosophy (community before data)',
+    nameNl: 'Privacyfilosofie (community vóór data)',
+    role: 'Concept — people are the community, not the product',
+    note: 'Concept node — philosophy communication; legal policy remains /privacy.',
+  },
+  neighbourhoodFirstGrowth: {
+    id: 'neighbourhoodFirstGrowth',
+    name: 'Neighbourhood-first growth',
+    nameNl: 'Neighbourhood-first groei',
+    role: 'Concept — local-first scale path without changing philosophy',
+    note: 'Concept node — neighbourhood→…→Oceania; distance = priority not possibility; never anonymous international marketplace.',
+  },
+  community: {
+    id: 'community',
+    name: 'Community',
+    nameNl: 'Community',
+    role: 'Concept — neighbours discovering each other',
+    note: 'Concept node — destination of the platform; technology is the bridge.',
+  },
+  localEconomy: {
+    id: 'localEconomy',
+    name: 'Local economy',
+    nameNl: 'Lokale economie',
+    role: 'Concept — alias emphasis for neighbourhood economy',
+    note: 'Concept node — aligns with neighbourhoodEconomy; craftsmanship visible nearby.',
+  },
   manifest: {
     id: 'manifest',
     name: 'HomeCheff Manifest',
@@ -247,6 +282,42 @@ export const ENTITY_RELATIONSHIPS = [
     relation: 'includes',
     note: 'Barter and Wanted belong inside the neighbourhood marketplace model.',
   },
+  {
+    from: 'brand',
+    to: 'community',
+    relation: 'serves',
+    note: 'Platform serves community — neighbours discovering each other.',
+  },
+  {
+    from: 'brand',
+    to: 'socialCohesion',
+    relation: 'motivatedBy',
+    note: 'Philosophical motivation: reconnect people; make invisible skills visible nearby.',
+  },
+  {
+    from: 'brand',
+    to: 'localEconomy',
+    relation: 'supports',
+    note: 'Supports local economy through craftsmanship visible nearby.',
+  },
+  {
+    from: 'brand',
+    to: 'privacyPhilosophy',
+    relation: 'publishes',
+    note: 'Community before data — people are not advertising products.',
+  },
+  {
+    from: 'brand',
+    to: 'neighbourhoodFirstGrowth',
+    relation: 'growsVia',
+    note: 'Neighbourhood→city→…→Oceania without changing local-first philosophy.',
+  },
+  {
+    from: 'founder',
+    to: 'neighbourhoodMarketplace',
+    relation: 'createdAsPracticalApplication',
+    note: 'Years of philosophy became the digital neighbourhood marketplace.',
+  },
 ] as const;
 
 /** Public knowledge pages that must describe the same entity. */
@@ -294,7 +365,8 @@ export function entityGraphBrief(): string {
     `arriassisme: ${ENTITY_NODES.arriassisme.name} (${ENTITY_NODES.arriassisme.path}) — personal inspiration, NOT Manifest`,
     `origin: ${ENTITY_NODES.brandOrigin.path}; brand_name: ${ENTITY_NODES.brandName.path}`,
     `positioning: ${ENTITY_NODES.neighbourhoodMarketplace.name} / ${ENTITY_NODES.neighbourhoodMarketplace.nameNl}`,
-    `concepts: ${ENTITY_NODES.neighbourhoodEconomy.name}; ${ENTITY_NODES.craftsmanship.name}; ${ENTITY_NODES.communityExchange.name}`,
+    `concepts: ${ENTITY_NODES.neighbourhoodEconomy.name}; ${ENTITY_NODES.craftsmanship.name}; ${ENTITY_NODES.communityExchange.name}; ${ENTITY_NODES.socialCohesion.name}; ${ENTITY_NODES.privacyPhilosophy.name}; ${ENTITY_NODES.neighbourhoodFirstGrowth.name}`,
+    `community: ${ENTITY_NODES.community.name}; local_economy: ${ENTITY_NODES.localEconomy.name}`,
     `manifest: ${ENTITY_NODES.manifest.path}`,
     `trust: ${ENTITY_NODES.trust.path}`,
     `community_guidelines: ${ENTITY_NODES.communityGuidelines.path}`,
@@ -306,6 +378,7 @@ export function entityGraphBrief(): string {
     `sameAs_pending: ${ENTITY_PENDING_SAME_AS.join('; ')}`,
     'rule: one brand identity — never invent foundingDate, streetAddress, social URLs or impact metrics',
     'rule: Arriassisme ≠ HomeCheff philosophy',
+    'rule: founder = years of philosophy → practical platform (not “just an app”)',
     '',
     brandEntityBrief(),
   ].join('\n');

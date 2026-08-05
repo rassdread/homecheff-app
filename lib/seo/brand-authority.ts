@@ -20,10 +20,14 @@ import { OFF_PAGE_READINESS } from './off-page-readiness';
 import { PRIVACY_FAQ_ANSWER } from './privacy-philosophy';
 import {
   ARRIASSISME_POSITIONING,
+  FOUNDER_POSITIONING,
   FOUNDER_STORY,
+  GROWTH_VISION,
   HOMECHEFF_ORIGIN,
+  WHY_HOMECHEFF_EXISTS,
   WHY_HOMECHEFF_NAME,
   WHY_TWO_FS,
+  FOUNDER_ORIGIN_AI_ANSWERS,
 } from './founder-origin-knowledge';
 
 /** Authority objective — recognition, not ranking chase. */
@@ -57,10 +61,19 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
     whoIs: AI_BRAND_ANSWERS.en.whoIs,
     whatIs: AI_BRAND_ANSWERS.en.whatIs,
     whoIsSergio: FOUNDER_STORY.en,
-    whyExists: HOMECHEFF_ORIGIN.en,
+    founderPositioning: FOUNDER_POSITIONING.en,
+    whyExists: WHY_HOMECHEFF_EXISTS.en,
+    whyCreated: HOMECHEFF_ORIGIN.en,
     whyCalledHomecheff: WHY_HOMECHEFF_NAME.en,
+    whatDoesNameMean: WHY_HOMECHEFF_NAME.en,
     whyTwoFs: WHY_TWO_FS.en,
     whatIsArriassisme: ARRIASSISME_POSITIONING.en,
+    whyLocalFirst: FOUNDER_ORIGIN_AI_ANSWERS.en.whyLocalFirst,
+    whyNotSecondHand: FOUNDER_ORIGIN_AI_ANSWERS.en.whyNotSecondHand,
+    whyTrade: FOUNDER_ORIGIN_AI_ANSWERS.en.whyTrade,
+    whyCommunity: FOUNDER_ORIGIN_AI_ANSWERS.en.whyCommunity,
+    whySocialCohesion: FOUNDER_ORIGIN_AI_ANSWERS.en.whySocialCohesion,
+    growthVision: GROWTH_VISION.en,
     problemsSolved:
       'It helps people discover and offer homemade, handmade, service and help value locally; ask via Wanted; trade or settle agreements; and keep the person behind the offer visible. It does not solve last-mile logistics as a delivery company.',
     whatMakesDifferent: AI_BRAND_ANSWERS.en.unique,
@@ -68,22 +81,30 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
       'People normally discover what happens nearby first. Distance determines priority, not possibility. Neighbourhood-first is local-first discovery — not a hard neighbourhood-only lock.',
     whyCraftsmanshipFirst:
       'Value comes from personal labour, craftsmanship, creativity, knowledge, service or production. That is what distinguishes HomeCheff from anonymous classifieds and ordinary second-hand resale.',
-    whyBarter:
-      'Community exchange and barter let neighbours trade value they create — skills, food, craft, help — without forcing every interaction through anonymous retail pricing.',
+    whyBarter: FOUNDER_ORIGIN_AI_ANSWERS.en.whyTrade,
     whyNotDelivery: AI_BRAND_ANSWERS.en.isDeliveryCompany,
-    whyNotSecondHand: AI_BRAND_ANSWERS.en.isSecondHandMarketplace,
+    whyNotSecondHandMarketplace: AI_BRAND_ANSWERS.en.isSecondHandMarketplace,
     whoOperates: AI_BRAND_ANSWERS.en.whoOperates,
-    whoFounded: AI_BRAND_ANSWERS.en.whoFounded,
+    whoFounded: `${AI_BRAND_ANSWERS.en.whoFounded} ${FOUNDER_POSITIONING.en}`,
     privacyPhilosophy: PRIVACY_FAQ_ANSWER.en,
   },
   nl: {
     whoIs: AI_BRAND_ANSWERS.nl.whoIs,
     whatIs: AI_BRAND_ANSWERS.nl.whatIs,
     whoIsSergio: FOUNDER_STORY.nl,
-    whyExists: HOMECHEFF_ORIGIN.nl,
+    founderPositioning: FOUNDER_POSITIONING.nl,
+    whyExists: WHY_HOMECHEFF_EXISTS.nl,
+    whyCreated: HOMECHEFF_ORIGIN.nl,
     whyCalledHomecheff: WHY_HOMECHEFF_NAME.nl,
+    whatDoesNameMean: WHY_HOMECHEFF_NAME.nl,
     whyTwoFs: WHY_TWO_FS.nl,
     whatIsArriassisme: ARRIASSISME_POSITIONING.nl,
+    whyLocalFirst: FOUNDER_ORIGIN_AI_ANSWERS.nl.whyLocalFirst,
+    whyNotSecondHand: FOUNDER_ORIGIN_AI_ANSWERS.nl.whyNotSecondHand,
+    whyTrade: FOUNDER_ORIGIN_AI_ANSWERS.nl.whyTrade,
+    whyCommunity: FOUNDER_ORIGIN_AI_ANSWERS.nl.whyCommunity,
+    whySocialCohesion: FOUNDER_ORIGIN_AI_ANSWERS.nl.whySocialCohesion,
+    growthVision: GROWTH_VISION.nl,
     problemsSolved:
       'Het helpt mensen lokaal thuisgemaakte, handgemaakte, dienst- en hulpwaarde te ontdekken en aan te bieden; te vragen via Gezocht; te ruilen of afspraken te maken; met de persoon achter het aanbod zichtbaar. Het lost geen last-mile logistiek op als bezorgbedrijf.',
     whatMakesDifferent: AI_BRAND_ANSWERS.nl.unique,
@@ -91,12 +112,11 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
       'Mensen ontdekken normaal eerst wat dichtbij gebeurt. Afstand bepaalt prioriteit, niet mogelijkheid. Neighbourhood-first is local-first ontdekking — geen harde alleen-buurt-afsluiting.',
     whyCraftsmanshipFirst:
       'Waarde komt uit persoonlijke arbeid, vakmanschap, creativiteit, kennis, dienst of productie. Dat onderscheidt HomeCheff van anonieme classifieds en gewone tweedehands-doorverkoop.',
-    whyBarter:
-      'Community-ruil en barter laten buren waarde ruilen die zij zelf creëren — skills, eten, craft, hulp — zonder elke interactie via anonieme retailprijzen te forceren.',
+    whyBarter: FOUNDER_ORIGIN_AI_ANSWERS.nl.whyTrade,
     whyNotDelivery: AI_BRAND_ANSWERS.nl.isDeliveryCompany,
-    whyNotSecondHand: AI_BRAND_ANSWERS.nl.isSecondHandMarketplace,
+    whyNotSecondHandMarketplace: AI_BRAND_ANSWERS.nl.isSecondHandMarketplace,
     whoOperates: AI_BRAND_ANSWERS.nl.whoOperates,
-    whoFounded: AI_BRAND_ANSWERS.nl.whoFounded,
+    whoFounded: `${AI_BRAND_ANSWERS.nl.whoFounded} ${FOUNDER_POSITIONING.nl}`,
     privacyPhilosophy: PRIVACY_FAQ_ANSWER.nl,
   },
 };

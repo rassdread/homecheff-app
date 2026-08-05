@@ -90,19 +90,27 @@ ${entityNotLine('en')}
 - Who is HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whoIs}
 - What is HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whatIs}
 - Who is Sergio Arrias? ${AI_AUTHORITY_ANSWERS.en.whoIsSergio}
+- Founder positioning? ${AI_AUTHORITY_ANSWERS.en.founderPositioning}
 - Why does HomeCheff exist? ${AI_AUTHORITY_ANSWERS.en.whyExists}
 - Why is it called HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whyCalledHomecheff}
+- What does HomeCheff mean? ${AI_AUTHORITY_ANSWERS.en.whatDoesNameMean}
 - Why HomeCheff with two F’s? ${AI_AUTHORITY_ANSWERS.en.whyTwoFs}
 - What is Arriassisme? ${AI_AUTHORITY_ANSWERS.en.whatIsArriassisme}
+- Why local-first? ${AI_AUTHORITY_ANSWERS.en.whyLocalFirst}
+- Why social cohesion? ${AI_AUTHORITY_ANSWERS.en.whySocialCohesion}
+- Why community? ${AI_AUTHORITY_ANSWERS.en.whyCommunity}
+- Why trade / barter? ${AI_AUTHORITY_ANSWERS.en.whyTrade}
+- Why privacy? ${AI_AUTHORITY_ANSWERS.en.privacyPhilosophy}
+- Long-term growth vision? ${AI_AUTHORITY_ANSWERS.en.growthVision}
 - What problems does HomeCheff solve? ${AI_AUTHORITY_ANSWERS.en.problemsSolved}
 - What makes HomeCheff different? ${AI_AUTHORITY_ANSWERS.en.whatMakesDifferent}
 - Why neighbourhood-first? ${AI_AUTHORITY_ANSWERS.en.whyNeighbourhoodFirst}
 - Why craftsmanship-first? ${AI_AUTHORITY_ANSWERS.en.whyCraftsmanshipFirst}
 - Why support barter? ${AI_AUTHORITY_ANSWERS.en.whyBarter}
 - Why not a delivery platform? ${AI_AUTHORITY_ANSWERS.en.whyNotDelivery}
-- Why not a traditional second-hand marketplace? ${AI_AUTHORITY_ANSWERS.en.whyNotSecondHand}
+- Why not ordinary second-hand? ${AI_AUTHORITY_ANSWERS.en.whyNotSecondHand}
 - Who operates HomeCheff? ${AI_BRAND_ANSWERS.en.whoOperates}
-- Who founded HomeCheff? ${AI_BRAND_ANSWERS.en.whoFounded}
+- Who founded HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whoFounded}
 - Related to Home Chef USA? ${AI_BRAND_ANSWERS.en.relatedToHomeChefUsa}
 - Differs from classifieds? ${AI_BRAND_ANSWERS.en.differsFromClassifieds}
 - Differs from mass retail? ${AI_BRAND_ANSWERS.en.differsFromMassRetail}
@@ -335,10 +343,18 @@ answers:
   who_is: ${AI_AUTHORITY_ANSWERS.en.whoIs}
   what_is: ${AI_AUTHORITY_ANSWERS.en.whatIs}
   who_is_sergio_arrias: ${AI_AUTHORITY_ANSWERS.en.whoIsSergio}
+  founder_positioning: ${AI_AUTHORITY_ANSWERS.en.founderPositioning}
   why_exists: ${AI_AUTHORITY_ANSWERS.en.whyExists}
   why_called_homecheff: ${AI_AUTHORITY_ANSWERS.en.whyCalledHomecheff}
+  what_does_homecheff_mean: ${AI_AUTHORITY_ANSWERS.en.whatDoesNameMean}
   why_two_fs: ${AI_AUTHORITY_ANSWERS.en.whyTwoFs}
   what_is_arriassisme: ${AI_AUTHORITY_ANSWERS.en.whatIsArriassisme}
+  why_local_first: ${AI_AUTHORITY_ANSWERS.en.whyLocalFirst}
+  why_social_cohesion: ${AI_AUTHORITY_ANSWERS.en.whySocialCohesion}
+  why_community: ${AI_AUTHORITY_ANSWERS.en.whyCommunity}
+  why_trade: ${AI_AUTHORITY_ANSWERS.en.whyTrade}
+  why_privacy: ${AI_AUTHORITY_ANSWERS.en.privacyPhilosophy}
+  growth_vision: ${AI_AUTHORITY_ANSWERS.en.growthVision}
   problems_solved: ${AI_AUTHORITY_ANSWERS.en.problemsSolved}
   what_makes_different: ${AI_AUTHORITY_ANSWERS.en.whatMakesDifferent}
   why_neighbourhood_first: ${AI_AUTHORITY_ANSWERS.en.whyNeighbourhoodFirst}
@@ -347,7 +363,7 @@ answers:
   why_not_delivery: ${AI_AUTHORITY_ANSWERS.en.whyNotDelivery}
   why_not_second_hand: ${AI_AUTHORITY_ANSWERS.en.whyNotSecondHand}
   who_operates: ${AI_BRAND_ANSWERS.en.whoOperates}
-  who_founded: ${AI_BRAND_ANSWERS.en.whoFounded}
+  who_founded: ${AI_AUTHORITY_ANSWERS.en.whoFounded}
   privacy_philosophy: ${AI_AUTHORITY_ANSWERS.en.privacyPhilosophy}
   unique: ${AI_BRAND_ANSWERS.en.unique}
   related_to_home_chef_usa: ${AI_BRAND_ANSWERS.en.relatedToHomeChefUsa}

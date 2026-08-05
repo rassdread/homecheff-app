@@ -9,9 +9,12 @@ import {
   ARRIASSISME_POSITIONING,
   DIFFERENTIATION_IS,
   DIFFERENTIATION_IS_NOT,
+  FOUNDER_POSITIONING,
   FOUNDER_STORY,
+  GROWTH_VISION,
   HOMECHEFF_ORIGIN,
   PUBLIC_ORIGIN_TIMELINE,
+  WHY_HOMECHEFF_EXISTS,
   WHY_HOMECHEFF_NAME,
   WHY_TWO_FS,
 } from '@/lib/seo/founder-origin-knowledge';
@@ -41,12 +44,12 @@ export const founderOriginShared: Record<string, Bi> = {
     en: WHY_TWO_FS.en,
   },
   faq3Q: {
-    nl: 'Is HomeCheff alleen over eten?',
-    en: 'Is HomeCheff only about food?',
+    nl: 'Waarom bestaat HomeCheff?',
+    en: 'Why does HomeCheff exist?',
   },
   faq3A: {
-    nl: 'Nee. Een HomeCheff creëert waarde door vakmanschap, kennis, creativiteit of persoonlijke diensten — eten is één categorie.',
-    en: 'No. A HomeCheff creates value through craftsmanship, knowledge, creativity or personal services — food is one category.',
+    nl: WHY_HOMECHEFF_EXISTS.nl,
+    en: WHY_HOMECHEFF_EXISTS.en,
   },
   faq4Q: {
     nl: 'Is Arriassisme de HomeCheff-filosofie?',
@@ -55,6 +58,22 @@ export const founderOriginShared: Record<string, Bi> = {
   faq4A: {
     nl: ARRIASSISME_POSITIONING.nl,
     en: ARRIASSISME_POSITIONING.en,
+  },
+  faq5Q: {
+    nl: 'Is HomeCheff alleen over eten?',
+    en: 'Is HomeCheff only about food?',
+  },
+  faq5A: {
+    nl: 'Nee. Een HomeCheff creëert waarde door vakmanschap, kennis, creativiteit, diensten, reparatie, onderwijs, tuinieren, muziek, kunst, eten, design en ander echt persoonlijk talent.',
+    en: 'No. A HomeCheff creates value through craftsmanship, knowledge, creativity, services, repair, education, gardening, music, art, food, design and other genuine personal talent.',
+  },
+  faq6Q: {
+    nl: 'Hoe groeit HomeCheff?',
+    en: 'How does HomeCheff grow?',
+  },
+  faq6A: {
+    nl: GROWTH_VISION.nl,
+    en: GROWTH_VISION.en,
   },
   linkFounder: { nl: 'Wie is Sergio Arrias?', en: 'Who is Sergio Arrias?' },
   linkOrigin: { nl: 'Oorsprong van HomeCheff', en: 'Origin of HomeCheff' },
@@ -73,8 +92,8 @@ const founderSergioPage: Record<string, Bi> = {
     en: 'Who is Sergio Arrias? | Founder of HomeCheff',
   },
   metaDescription: {
-    nl: 'Sergio Arrias is de oprichter van HomeCheff — groei, visie en purpose zonder heldenverhaal. Publieke kennispagina.',
-    en: 'Sergio Arrias is the Founder of HomeCheff — growth, vision and purpose without a hero narrative. Public knowledge page.',
+    nl: 'Sergio Arrias is de oprichter van HomeCheff — jaren filosofie die een praktisch platform werd. Groei, visie en purpose zonder heldenverhaal.',
+    en: 'Sergio Arrias is the Founder of HomeCheff — years of philosophy that became a practical platform. Growth, vision and purpose without a hero narrative.',
   },
   title: {
     nl: 'Wie is Sergio Arrias?',
@@ -86,32 +105,32 @@ const founderSergioPage: Record<string, Bi> = {
   },
   sectionWhoTitle: { nl: 'Oprichter van HomeCheff', en: 'Founder of HomeCheff' },
   sectionWhoBody: {
-    nl: 'Sergio Arrias is de Founder van HomeCheff, de digitale buurtmarkt geëxploiteerd door Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). Publiek worden naam en rol bevestigd; geen verzonnen diploma’s, werkgevers, awards of mediaclaims.',
-    en: 'Sergio Arrias is the Founder of HomeCheff, the digital neighbourhood marketplace operated by Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). Publicly, name and role are verified; no invented degrees, employers, awards or media claims.',
+    nl: `${FOUNDER_POSITIONING.nl} Publiek worden naam en rol bevestigd (Arrias Beheer B.V., KvK 80532829, Vlaardingen, NL); geen verzonnen diploma’s, werkgevers, awards of mediaclaims.`,
+    en: `${FOUNDER_POSITIONING.en} Publicly, name and role are verified (Arrias Beheer B.V., KvK 80532829, Vlaardingen, NL); no invented degrees, employers, awards or media claims.`,
   },
   sectionPathTitle: {
-    nl: 'Ondernemen, leren, sociale cohesie',
-    en: 'Entrepreneurship, learning, social cohesion',
+    nl: 'Leren, nieuwsgierigheid, ondernemerschap',
+    en: 'Learning, curiosity, entrepreneurship',
   },
   sectionPathBody: {
-    nl: 'Zijn pad is ondernemend en leergedreven: kijken hoe commercieel leven, technologie en sociale cohesie elkaar raken. Community, vakmanschap en eerlijkheid staan centraal — groei, visie, doorzettingsvermogen en purpose, zonder sensationalisme over moeilijke periodes.',
-    en: 'His path is entrepreneurial and learning-driven: observing how commercial life, technology and social cohesion interact. Community, craftsmanship and fairness are central — growth, vision, perseverance and purpose, without sensationalising difficult periods.',
+    nl: 'Zijn pad omvat leren, nieuwsgierigheid, ondernemerschap, educatie en reflectie — inclusief falen en doorzettingsvermogen als onderdeel van groei. Geen heldenverhaal: focus op ideeën, purpose en community.',
+    en: 'His path includes learning, curiosity, entrepreneurship, education and reflection — including failure and perseverance as part of growth. No hero narrative: focus on ideas, purpose and community.',
   },
   sectionWhyTitle: {
     nl: 'Waarom HomeCheff bestaat',
     en: 'Why HomeCheff exists',
   },
   sectionWhyBody: {
-    nl: 'Gewone mensen dragen ongebruikte waarde. Technologie moet buren helpen elkaar te ontdekken — zonder mensen tot advertentieproduct te maken. HomeCheff is de praktische vorm van die purpose.',
-    en: 'Ordinary people hold unused value. Technology should help neighbours discover each other — without turning people into advertising products. HomeCheff is the practical form of that purpose.',
+    nl: WHY_HOMECHEFF_EXISTS.nl,
+    en: WHY_HOMECHEFF_EXISTS.en,
   },
   sectionAiTitle: {
     nl: 'AI en uitvoering',
     en: 'AI and execution',
   },
   sectionAiBody: {
-    nl: 'Lange voorbereiding vormde de filosofie vóór het product rijpte. Capabele AI-hulpmiddelen hielpen sneller te bouwen wat conceptueel al voorbereid was. AI ondersteunt uitvoering; het is niet het product en vervangt geen menselijke relaties.',
-    en: 'Long preparation shaped the philosophy before the product matured. Capable AI tools helped build faster what was already prepared conceptually. AI supports execution; it is not the product and does not replace human relationships.',
+    nl: 'Jarenlange filosofische voorbereiding ging vooraf aan het product. Capabele AI-hulpmiddelen hielpen sneller te bouwen wat conceptueel al voorbereid was. AI ondersteunt uitvoering; het is niet het product en vervangt geen menselijke relaties.',
+    en: 'Years of philosophical preparation preceded the product. Capable AI tools helped build faster what was already prepared conceptually. AI supports execution; it is not the product and does not replace human relationships.',
   },
   sectionSeparateTitle: {
     nl: 'Arriassisme vs HomeCheff',
@@ -129,8 +148,8 @@ const homecheffOriginPage: Record<string, Bi> = {
     en: 'The Origin of HomeCheff | Official history',
   },
   metaDescription: {
-    nl: 'Hoe HomeCheff ontstond: jarenlange voorbereiding, lokale gemeenschappen, en waarom gewone marktplaatsen niet genoeg zijn.',
-    en: 'How HomeCheff originated: years of preparation, local communities, and why ordinary marketplaces are insufficient.',
+    nl: 'Hoe HomeCheff ontstond: sociale cohesie, jarenlange filosofie, lokale gemeenschappen — en waarom gewone marktplaatsen niet genoeg zijn.',
+    en: 'How HomeCheff originated: social cohesion, years of philosophy, local communities — and why ordinary marketplaces are insufficient.',
   },
   title: {
     nl: 'De oorsprong van HomeCheff',
@@ -142,16 +161,16 @@ const homecheffOriginPage: Record<string, Bi> = {
   },
   sectionIdeaTitle: { nl: 'Hoe het idee groeide', en: 'How the idea developed' },
   sectionIdeaBody: {
-    nl: 'HomeCheff begon niet als een snelle startup-idee. Het platform groeide uit jarenlange observatie van technologie, economie en menselijk gedrag — en uit de overtuiging dat persoonlijk vakmanschap zichtbaar moet kunnen worden dichtbij huis.',
-    en: 'HomeCheff did not begin as a quick startup idea. The platform grew from years of observing technology, economics and human behaviour — and from the conviction that personal craftsmanship should be discoverable close to home.',
+    nl: 'HomeCheff begon niet als een snelle startup-idee. Jarenlange observatie van technologie, economie en menselijk gedrag — en een filosofie die uiteindelijk een praktisch platform werd.',
+    en: 'HomeCheff did not begin as a quick startup idea. Years of observing technology, economics and human behaviour — and a philosophy that eventually became a practical platform.',
   },
   sectionLocalTitle: {
     nl: 'Waarom lokale gemeenschappen ertoe doen',
     en: 'Why local communities matter',
   },
   sectionLocalBody: {
-    nl: 'Buurten zijn waar mensen elkaar nog kunnen vinden. Local-first betekent: dichtbij eerst; uniek vakmanschap mag verder reiken. Dat is prioriteit, geen harde alleen-buurt-afsluiting.',
-    en: 'Neighbourhoods are where people can still find each other. Local-first means nearby first; unique craft may reach further. That is priority, not a hard neighbourhood-only lock.',
+    nl: WHY_HOMECHEFF_EXISTS.nl,
+    en: WHY_HOMECHEFF_EXISTS.en,
   },
   sectionMarketTitle: {
     nl: 'Waarom gewone marktplaatsen onvoldoende zijn',
@@ -176,6 +195,14 @@ const homecheffOriginPage: Record<string, Bi> = {
   sectionAiBody: {
     nl: 'Naarmate AI-hulpmiddelen verbeterden, hielpen zij de implementatie van het voorbereide ontwerp te versnellen. AI blijft hulpmiddel; geen vervanging van community of vakmanschap.',
     en: 'As AI tooling improved, it helped accelerate implementing the prepared design. AI remains a tool; not a replacement for community or craftsmanship.',
+  },
+  sectionVisionTitle: {
+    nl: 'Lange-termijnvisie',
+    en: 'Long-term vision',
+  },
+  sectionVisionBody: {
+    nl: GROWTH_VISION.nl,
+    en: GROWTH_VISION.en,
   },
   sectionTimelineTitle: {
     nl: 'Publieke tijdlijn',
@@ -217,24 +244,24 @@ const whyHomecheffPage: Record<string, Bi> = {
     en: 'More than cooking',
   },
   sectionMeaningBody: {
-    nl: 'Een HomeCheff is iemand die waarde creëert door eigen vakmanschap, kennis, creativiteit of persoonlijke diensten. De naam staat voor die maker-identiteit — niet alleen voor een keuken.',
-    en: 'A HomeCheff is someone who creates value through their own craftsmanship, knowledge, creativity or personal services. The name stands for that maker identity — not only for a kitchen.',
+    nl: 'Een HomeCheff is iemand die waarde creëert door eigen vakmanschap, kennis, creativiteit, persoonlijke diensten, reparatie, onderwijs, tuinieren, muziek, kunst, eten, design — en elke andere vorm van echt persoonlijk talent. De naam staat voor die maker-identiteit — niet alleen voor een keuken.',
+    en: 'A HomeCheff is someone who creates value through their own craftsmanship, knowledge, creativity, personal services, repair, education, gardening, music, art, food, design — and every other form of genuine personal talent. The name stands for that maker identity — not only for a kitchen.',
   },
   sectionWhereTitle: {
-    nl: 'Vanuit huis, studio, werkplaats, tuin…',
-    en: 'From home, studio, workshop, garden…',
+    nl: 'Vanuit huis, tuin, studio, werkplaats, keuken…',
+    en: 'From home, garden, studio, workshop, kitchen…',
   },
   sectionWhereBody: {
-    nl: 'Waarde kan ontstaan vanuit huis, een studio, een werkplaats, een tuin, een keuken — of overal waar mensen iets maken of helpen. De plek is secundair; de persoon en het vakmanschap zijn primair.',
-    en: 'Value may arise from home, a studio, a workshop, a garden, a kitchen — or anywhere people make or help. Place is secondary; the person and craftsmanship are primary.',
+    nl: 'Waarde kan ontstaan vanuit huis, een tuin, een studio, een werkplaats, een keuken, een creatieve ruimte — of elke andere plek waar mensen creëren. De plek is secundair; de persoon en het vakmanschap zijn primair.',
+    en: 'Value may originate from home, a garden, a studio, a workshop, a kitchen, a creative space — or any other place where people create. Place is secondary; the person and craftsmanship are primary.',
   },
   sectionPreserveTitle: {
     nl: 'Waarom de naam bleef',
     en: 'Why the name was preserved',
   },
   sectionPreserveBody: {
-    nl: 'Terwijl categorieën uitbreidden voorbij eten, bleef HomeCheff omdat het idee nooit “alleen food marketplace” was. De merknaam bewaart die bredere craftsmanship-betekenis.',
-    en: 'As categories expanded beyond food, HomeCheff remained because the idea was never “food marketplace only”. The brand name preserves that broader craftsmanship meaning.',
+    nl: 'Terwijl categorieën uitbreidden voorbij eten, bleef HomeCheff passend omdat het idee nooit “alleen food marketplace” was. De merknaam bewaart die bredere craftsmanship-betekenis.',
+    en: 'As categories expanded beyond food, HomeCheff remained appropriate because the idea was never “food marketplace only”. The brand name preserves that broader craftsmanship meaning.',
   },
   sectionTwoFTitle: {
     nl: 'Waarom twee F’s?',

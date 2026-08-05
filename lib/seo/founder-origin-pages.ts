@@ -61,6 +61,8 @@ const FOUNDER_ORIGIN_FAQ: SeoLandingBlock = {
     { qKey: 'faq2Q', aKey: 'faq2A' },
     { qKey: 'faq3Q', aKey: 'faq3A' },
     { qKey: 'faq4Q', aKey: 'faq4A' },
+    { qKey: 'faq5Q', aKey: 'faq5A' },
+    { qKey: 'faq6Q', aKey: 'faq6A' },
   ],
 };
 
@@ -84,6 +86,7 @@ export const FOUNDER_ORIGIN_LANDING_BLOCKS: Record<
     { type: 'section', titleKey: 'sectionMarketTitle', bodyKey: 'sectionMarketBody' },
     { type: 'section', titleKey: 'sectionYearsTitle', bodyKey: 'sectionYearsBody' },
     { type: 'section', titleKey: 'sectionAiTitle', bodyKey: 'sectionAiBody' },
+    { type: 'section', titleKey: 'sectionVisionTitle', bodyKey: 'sectionVisionBody' },
     { type: 'section', titleKey: 'sectionTimelineTitle', bodyKey: 'sectionTimelineBody' },
     FOUNDER_ORIGIN_LINKS,
     FOUNDER_ORIGIN_FAQ,

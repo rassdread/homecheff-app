@@ -56,8 +56,8 @@ export const manifestPage: Record<string, Bi> = {
   },
   valueLocalTitle: { nl: 'Lokaal vóór anonieme schaal', en: 'Local before anonymous scale' },
   valueLocalBody: {
-    nl: 'Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid: resultaten dichtbij eerst; uniek vakmanschap mag van nature verder reiken — buurt → stad → regio → Nederland → Europa — zonder de local-first filosofie te veranderen. Geen anonieme “internationale marktplaats”-positionering.',
-    en: 'Everything starts close to home. Distance determines priority, not possibility: nearby results first; unique craft may naturally reach further — neighbourhood → city → region → Netherlands → Europe — without changing the local-first philosophy. Never positioned as an anonymous “international marketplace”.',
+    nl: 'Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid: resultaten dichtbij eerst; uniek vakmanschap mag van nature verder reiken — buurt → stad → regio → land → Europa → Noord-Amerika → Zuid-Amerika → Afrika → Azië → Australië & Oceanië — zonder de local-first filosofie te veranderen. Local-first, nooit alleen-lokaal. Geen anonieme “internationale marktplaats”-positionering.',
+    en: 'Everything starts close to home. Distance determines priority, not possibility: nearby results first; unique craft may naturally reach further — neighbourhood → city → region → country → Europe → North America → South America → Africa → Asia → Australia & Oceania — without changing the local-first philosophy. Local-first, never local-only. Never positioned as an anonymous “international marketplace”.',
   },
   valueCoopTitle: { nl: 'Samenwerking vóór nul-som', en: 'Cooperation before zero-sum' },
   valueCoopBody: {
