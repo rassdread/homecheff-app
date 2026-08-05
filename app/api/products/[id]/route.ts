@@ -32,6 +32,7 @@ import {
   shouldRevalidateAfterListingMutation,
   shouldRevalidateAfterProductMutation,
 } from '@/lib/feed/revalidate-public-feed';
+import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-dish';
 
 export const dynamic = 'force-dynamic';
 
