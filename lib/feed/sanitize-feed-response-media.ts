@@ -18,6 +18,17 @@ export function sanitizeFeedMediaUrl(url: unknown): string | null {
   if (u.length < 4) return null;
   if (isInlineDataMediaUrl(u)) return null;
   if (u === 'undefined' || u === 'null') return null;
+  // Development placeholder assets must not ship as listing media in production feeds.
+  const lower = u.toLowerCase();
+  if (
+    lower.includes('/placeholder.png') ||
+    lower.includes('/placeholder.jpg') ||
+    lower.includes('/placeholder.jpeg') ||
+    lower.includes('via.placeholder.com') ||
+    lower.includes('placehold.co/')
+  ) {
+    return null;
+  }
   if (
     u.startsWith('http://') ||
     u.startsWith('https://') ||

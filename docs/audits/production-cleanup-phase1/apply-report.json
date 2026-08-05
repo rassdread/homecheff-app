@@ -1,0 +1,24 @@
+{
+  "dryRun": false,
+  "applied": true,
+  "timestamp": "2026-08-05T20:06:50.536Z",
+  "productsFlagged": [],
+  "listingsFlagged": [],
+  "dishesFlagged": [],
+  "usersFlagged": [],
+  "imagesInvalid": [],
+  "listingMediaInvalid": [],
+  "dishPhotosInvalid": [],
+  "brokenHeadChecks": [],
+  "actions": {
+    "productsDeactivated": 0,
+    "listingsRemoved": 0,
+    "dishesPrivatized": 0,
+    "imagesDeleted": 0,
+    "listingMediaDeleted": 0,
+    "dishPhotosDeleted": 0,
+    "usersSkippedWithOrders": 0,
+    "usersNotDeleted": 0,
+    "usersSoftHidden": 0
+  }
+}
