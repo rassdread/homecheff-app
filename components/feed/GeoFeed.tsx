@@ -3500,7 +3500,7 @@ export default function GeoFeed({
   const inspirationSlots = useMemo(() => {
     // Product integrity: never interleave worldwide inspiration under Nearby
     // when the viewer has no location.
-    if (nearbyNeedsLocation) return displayRows;
+    if (nearbyNeedsLocation) return [];
     const built = buildInspSlots(filteredApiInspiration, filteredFeedInspiration);
     if (appliedSortBy === "newest" && appliedSortOrder === "desc") return built;
     return sortInspirationSlots(built, appliedSortBy, appliedSortOrder);
