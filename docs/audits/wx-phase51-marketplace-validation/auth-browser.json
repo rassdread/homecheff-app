@@ -1,0 +1,114 @@
+{
+  "results": [
+    {
+      "role": "buyer",
+      "loggedIn": true,
+      "email": "phase51+buyer.1785887706@homecheff-validation.test"
+    },
+    {
+      "name": "auth2-buyer-profile",
+      "status": 0,
+      "url": "https://homecheff.eu/profile",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-buyer-profile.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 422 ()"
+      ]
+    },
+    {
+      "name": "auth2-buyer-messages",
+      "status": 200,
+      "url": "https://homecheff.eu/messages",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-buyer-messages.png",
+      "consoleErrors": []
+    },
+    {
+      "name": "auth2-buyer-orders",
+      "status": 200,
+      "url": "https://homecheff.eu/orders",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-buyer-orders.png",
+      "consoleErrors": []
+    },
+    {
+      "name": "auth2-buyer-notifications",
+      "status": 200,
+      "url": "https://homecheff.eu/notifications",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-buyer-notifications.png",
+      "consoleErrors": []
+    },
+    {
+      "name": "auth2-buyer-favorites",
+      "status": 200,
+      "url": "https://homecheff.eu/favorites",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-buyer-favorites.png",
+      "consoleErrors": []
+    },
+    {
+      "name": "auth2-buyer-feed",
+      "status": 200,
+      "url": "https://homecheff.eu/favorites",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-buyer-feed.png",
+      "consoleErrors": []
+    },
+    {
+      "name": "auth2-buyer-messages-phone",
+      "status": 200,
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-buyer-messages-phone.png"
+    },
+    {
+      "name": "auth2-buyer-feed-landscape",
+      "status": 200,
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-buyer-feed-landscape.png"
+    },
+    {
+      "role": "seller",
+      "loggedIn": true,
+      "email": "phase51+seller.1785887754@homecheff-validation.test"
+    },
+    {
+      "name": "auth2-seller-sell",
+      "status": 200,
+      "url": "https://homecheff.eu/sell",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-seller-sell.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 422 ()",
+        "Failed to load resource: the server responded with a status of 422 ()"
+      ]
+    },
+    {
+      "name": "auth2-seller-profile",
+      "status": 200,
+      "url": "https://homecheff.eu/profile",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-seller-profile.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 422 ()",
+        "Failed to load resource: the server responded with a status of 422 ()"
+      ]
+    },
+    {
+      "name": "auth2-seller-messages",
+      "status": 200,
+      "url": "https://homecheff.eu/messages",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-seller-messages.png",
+      "consoleErrors": []
+    },
+    {
+      "name": "auth2-seller-dashboard",
+      "status": 200,
+      "url": "https://homecheff.eu/verkoper/dashboard",
+      "loggedIn": true,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth2-seller-dashboard.png",
+      "consoleErrors": []
+    }
+  ]
+}

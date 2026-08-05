@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-05T00:40:10.000Z",
+  "conversationId": "1361436e-de76-4ef9-82b2-3026797603f9",
+  "productId": "a0bb5fa7-fafe-468b-bb9e-700907d6401b",
+  "buyerToSeller": "PASS",
+  "sellerToBuyer": "PASS",
+  "getMessages": "PASS",
+  "ordersApi": "PASS empty",
+  "productReviewsGet": "PASS empty",
+  "note": "Disposable buyer emailVerified set in DB for messaging gate only"
+}

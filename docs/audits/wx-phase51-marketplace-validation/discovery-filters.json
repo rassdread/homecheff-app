@@ -1,0 +1,27 @@
+[
+  {
+    "path": "/api/products?limit=8",
+    "status": 200,
+    "n": 7
+  },
+  {
+    "path": "/api/products?limit=8&category=CHEFF",
+    "status": 200,
+    "n": 7
+  },
+  {
+    "path": "/api/products?limit=8&category=DESIGNER",
+    "status": 200,
+    "n": 7
+  },
+  {
+    "path": "/api/products?limit=8&q=kunst",
+    "status": 200,
+    "n": 4
+  },
+  {
+    "path": "/api/products/feed?limit=8",
+    "status": 200,
+    "n": 7
+  }
+]

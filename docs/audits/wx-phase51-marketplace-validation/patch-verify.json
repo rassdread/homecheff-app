@@ -1,0 +1,12 @@
+{
+  "at": "2026-08-05T00:36:30.836Z",
+  "deploy": "homecheff-lr7av86nv",
+  "productId": "28478885-9a63-4a95-9e81-8d4ca2921e08",
+  "patch": {
+    "title": 200,
+    "pause": 200,
+    "draft": 200,
+    "price": 200
+  },
+  "sellerEmail": "phase51+seller.1785887754@homecheff-validation.test"
+}

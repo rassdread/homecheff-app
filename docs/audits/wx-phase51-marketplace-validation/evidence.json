@@ -1,0 +1,450 @@
+{
+  "at": "2026-08-04T23:53:07.479Z",
+  "base": "https://homecheff.eu",
+  "commitHint": "3a7344196f1e0e978114e8f7d7f63bbb211198fe",
+  "account": {
+    "email": "phase51+buyer.msfbcxp3@homecheff-validation.test",
+    "username": "p51buy_msfbcxp3"
+  },
+  "http": [
+    {
+      "path": "/",
+      "status": 200,
+      "ms": 765,
+      "bytes": 63178,
+      "final": "https://homecheff.eu/"
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "ms": 214,
+      "bytes": 46102,
+      "final": "https://homecheff.eu/login"
+    },
+    {
+      "path": "/register",
+      "status": 200,
+      "ms": 429,
+      "bytes": 46086,
+      "final": "https://homecheff.eu/register"
+    },
+    {
+      "path": "/forgot-password",
+      "status": 200,
+      "ms": 191,
+      "bytes": 47712,
+      "final": "https://homecheff.eu/forgot-password"
+    },
+    {
+      "path": "/sell",
+      "status": 200,
+      "ms": 504,
+      "bytes": 85776,
+      "final": "https://homecheff.eu/sell"
+    },
+    {
+      "path": "/messages",
+      "status": 200,
+      "ms": 320,
+      "bytes": 48374,
+      "final": "https://homecheff.eu/messages"
+    },
+    {
+      "path": "/delivery",
+      "status": 200,
+      "ms": 221,
+      "bytes": 46092,
+      "final": "https://homecheff.eu/delivery"
+    },
+    {
+      "path": "/affiliate",
+      "status": 200,
+      "ms": 295,
+      "bytes": 65085,
+      "final": "https://homecheff.eu/affiliate"
+    },
+    {
+      "path": "/profile",
+      "status": 200,
+      "ms": 230,
+      "bytes": 51588,
+      "final": "https://homecheff.eu/profile"
+    },
+    {
+      "path": "/notifications",
+      "status": 200,
+      "ms": 237,
+      "bytes": 52557,
+      "final": "https://homecheff.eu/notifications"
+    },
+    {
+      "path": "/orders",
+      "status": 200,
+      "ms": 253,
+      "bytes": 46144,
+      "final": "https://homecheff.eu/orders"
+    },
+    {
+      "path": "/favorites",
+      "status": 200,
+      "ms": 191,
+      "bytes": 46478,
+      "final": "https://homecheff.eu/favorites"
+    },
+    {
+      "path": "/api/products?limit=8",
+      "status": 200,
+      "ms": 6954,
+      "bytes": 3779460,
+      "final": "https://homecheff.eu/api/products?limit=8"
+    },
+    {
+      "path": "/api/delivery/alignment-flags",
+      "status": 200,
+      "ms": 172,
+      "bytes": 138,
+      "final": "https://homecheff.eu/api/delivery/alignment-flags"
+    },
+    {
+      "path": "/api/auth/providers",
+      "status": 200,
+      "ms": 170,
+      "bytes": 381,
+      "final": "https://homecheff.eu/api/auth/providers"
+    },
+    {
+      "path": "/api/register",
+      "status": 500,
+      "ms": 712,
+      "bytes": 720,
+      "final": "https://homecheff.eu/api/register"
+    },
+    {
+      "path": "/api/auth/csrf",
+      "status": 200,
+      "ms": 240,
+      "bytes": 80,
+      "final": "https://homecheff.eu/api/auth/csrf"
+    },
+    {
+      "path": "/api/auth/forgot-password",
+      "status": 200,
+      "ms": 365,
+      "bytes": 152,
+      "final": "https://homecheff.eu/api/auth/forgot-password"
+    }
+  ],
+  "auth": {
+    "providers": [
+      "google",
+      "credentials"
+    ],
+    "registerStatus": 500,
+    "registerBody": "{\"error\":\"Server error\",\"message\":\"\\nInvalid `prisma.user.create()` invocation:\\n\\n{\\n  data: {\\n    email: \\\"phase51+buyer.msfbcxp3@homecheff-validation.test\\\",\\n    passwordHash: \\\"$2b$10$7NHOfg2kXOLuczOfDV0c5eESBgR0szz1FpKtKHORVKPPXBkLdDwHe\\\",\\n    name: \\\"Phase51 Buyer\\\",\\n    username: \\\"p51buy",
+    "csrfPresent": true,
+    "loginStatus": 200,
+    "loginHasSessionCookie": true,
+    "loginBody": "{\"url\":\"https://homecheff.eu/api/auth/signin?csrf=true\"}",
+    "forgotPasswordStatus": 200,
+    "forgotPasswordBody": "{\"ok\":true,\"message\":\"Als dit e-mailadres bij ons bekend is en een wachtwoord heeft, ontvang je zo een e-mail met een link. Controleer ook je spammap.\"}",
+    "browserSessionEmail": null,
+    "browserLoggedIn": false
+  },
+  "discovery": {
+    "productsStatus": 200,
+    "itemCount": 7,
+    "sampleTitles": [
+      "HomeCheff Design Studio",
+      "Kunstschilderijen",
+      "Kunstschilderijen"
+    ],
+    "flags": {
+      "namedProviderSelectionEnabled": true,
+      "providerPricingEnabled": true,
+      "namedProviderCopyEnabled": true,
+      "firstAcceptPoolRuntimeEnabled": false
+    }
+  },
+  "gated": {
+    "/api/auth/session": {
+      "path": "/api/auth/session",
+      "status": 200,
+      "ms": 164,
+      "bytes": 2,
+      "authed": true
+    },
+    "/api/profile/me": {
+      "path": "/api/profile/me",
+      "status": 200,
+      "ms": 170,
+      "bytes": 13,
+      "authed": true
+    },
+    "/api/notifications": {
+      "path": "/api/notifications",
+      "status": 401,
+      "ms": 163,
+      "bytes": 24,
+      "authed": true
+    },
+    "/orders": {
+      "path": "/orders",
+      "status": 200,
+      "ms": 193,
+      "bytes": 46144,
+      "authed": true
+    },
+    "/messages": {
+      "path": "/messages",
+      "status": 200,
+      "ms": 310,
+      "bytes": 48374,
+      "authed": true
+    },
+    "/sell": {
+      "path": "/sell",
+      "status": 200,
+      "ms": 300,
+      "bytes": 85776,
+      "authed": true
+    },
+    "/notifications": {
+      "path": "/notifications",
+      "status": 200,
+      "ms": 279,
+      "bytes": 52557,
+      "authed": true
+    },
+    "/profile": {
+      "path": "/profile",
+      "status": 200,
+      "ms": 284,
+      "bytes": 51588,
+      "authed": true
+    }
+  },
+  "browser": [
+    {
+      "name": "desktop-home",
+      "status": 200,
+      "ms": 2681,
+      "url": "https://homecheff.eu/",
+      "bodyPreview": "HomeCheff Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marketplace. Disco",
+      "consoleErrors": [],
+      "clippedControls": [
+        "LOCAL OPPORTUNITIES\n\nWork at HomeCheff\n\n"
+      ],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/desktop-home.png",
+      "loggedInHint": true
+    },
+    {
+      "name": "tablet-home",
+      "status": 200,
+      "ms": 2746,
+      "url": "https://homecheff.eu/",
+      "bodyPreview": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harvests, handmade",
+      "consoleErrors": [],
+      "clippedControls": [],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/tablet-home.png",
+      "loggedInHint": true
+    },
+    {
+      "name": "phone-home",
+      "status": 200,
+      "ms": 2156,
+      "url": "https://homecheff.eu/",
+      "bodyPreview": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help Neighbours cook, grow, make and help nearby — find, ask or share. Search your neighbourhood... All",
+      "consoleErrors": [],
+      "clippedControls": [],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/phone-home.png",
+      "loggedInHint": true
+    },
+    {
+      "name": "landscape-home",
+      "status": 200,
+      "ms": 1912,
+      "url": "https://homecheff.eu/",
+      "bodyPreview": "Skip to main content Sell or share Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help Search · Offer · Ask · Buy · Sell · Trade · Help Quick actions Sell or share Marketp",
+      "consoleErrors": [],
+      "clippedControls": [
+        "Inspiration",
+        "Ask / Wanted"
+      ],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/landscape-home.png",
+      "loggedInHint": true
+    },
+    {
+      "name": "desktop-login",
+      "status": 200,
+      "ms": 2011,
+      "url": "https://homecheff.eu/login",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Welcome back Log in to access your account Don't have an account? Sign ",
+      "consoleErrors": [],
+      "clippedControls": [
+        "HomeCheff\nneighbourhood cook, grow & mak",
+        "Affiliate programme",
+        "Documentation",
+        "Evidence",
+        "SEO hub"
+      ],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/desktop-login.png",
+      "loggedInHint": false
+    },
+    {
+      "name": "desktop-register",
+      "status": 200,
+      "ms": 2629,
+      "url": "https://homecheff.eu/register",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up H Sign up Create your account in a few quick steps Quick signup Welcome",
+      "consoleErrors": [],
+      "clippedControls": [
+        "INPUT",
+        "INPUT",
+        "Privacy Policy",
+        "INPUT",
+        "Terms of Service"
+      ],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/desktop-register.png",
+      "loggedInHint": true
+    },
+    {
+      "name": "phone-feed",
+      "status": 200,
+      "ms": 2002,
+      "url": "https://homecheff.eu/",
+      "bodyPreview": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help Neighbours cook, grow, make and help nearby — find, ask or share. Search your neighbourhood... All",
+      "consoleErrors": [],
+      "clippedControls": [],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/phone-feed.png",
+      "loggedInHint": true
+    },
+    {
+      "name": "desktop-forgot",
+      "status": 200,
+      "ms": 2211,
+      "url": "https://homecheff.eu/forgot-password",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Forgot password Enter your email address. If we have an account with a ",
+      "consoleErrors": [],
+      "clippedControls": [
+        "HomeCheff\nneighbourhood cook, grow & mak",
+        "Affiliate programme",
+        "Documentation",
+        "Evidence",
+        "SEO hub"
+      ],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/desktop-forgot.png",
+      "loggedInHint": true
+    },
+    {
+      "name": "auth-login-desktop",
+      "status": 200,
+      "ms": 26141,
+      "url": "https://homecheff.eu/login",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Welcome back Log in to access your account Don't have an account? Sign ",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 ()"
+      ],
+      "clippedControls": [
+        "HomeCheff\nneighbourhood cook, grow & mak",
+        "Affiliate programme",
+        "Documentation",
+        "Evidence",
+        "SEO hub"
+      ],
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-login-desktop.png",
+      "loggedInHint": false
+    },
+    {
+      "name": "auth-profile",
+      "status": 200,
+      "ms": 2657,
+      "url": "https://homecheff.eu/login",
+      "loggedIn": false,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-profile.png",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Welcome back Log in to access your account Don't ha"
+    },
+    {
+      "name": "auth-messages",
+      "status": 200,
+      "ms": 2699,
+      "url": "https://homecheff.eu/login",
+      "loggedIn": false,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-messages.png",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Welcome back Log in to access your account Don't ha"
+    },
+    {
+      "name": "auth-orders",
+      "status": 200,
+      "ms": 2225,
+      "url": "https://homecheff.eu/orders",
+      "loggedIn": false,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-orders.png",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Login required Log in to view your purchases HomeCh"
+    },
+    {
+      "name": "auth-notifications",
+      "status": 200,
+      "ms": 2286,
+      "url": "https://homecheff.eu/login",
+      "loggedIn": false,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-notifications.png",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Welcome back Log in to access your account Don't ha"
+    },
+    {
+      "name": "auth-sell",
+      "status": 200,
+      "ms": 2463,
+      "url": "https://homecheff.eu/sell",
+      "loggedIn": false,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-sell.png",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Selling on HomeCheff As an individual you list and "
+    },
+    {
+      "name": "auth-favorites",
+      "status": 200,
+      "ms": 2426,
+      "url": "https://homecheff.eu/favorites",
+      "loggedIn": false,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-favorites.png",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Favorites & fans Save products as favourites, see w"
+    },
+    {
+      "name": "auth-delivery",
+      "status": 200,
+      "ms": 2164,
+      "url": "https://homecheff.eu/delivery",
+      "loggedIn": false,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-delivery.png",
+      "bodyPreview": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up 404 Page not found The page you are looking for doe"
+    },
+    {
+      "name": "auth-messages-phone",
+      "status": 200,
+      "loggedIn": false,
+      "screenshot": "docs/audits/wx-phase51-marketplace-validation/screenshots/auth-messages-phone.png"
+    }
+  ],
+  "regressions": [
+    {
+      "severity": "P0",
+      "area": "http",
+      "note": "5xx on /api/register"
+    },
+    {
+      "severity": "P0",
+      "area": "account",
+      "note": "register failed 500: {\"error\":\"Server error\",\"message\":\"\\nInvalid `prisma.user.create()` invocation:\\n\\n{\\n  data: {\\n    email: \\\"phase51+buyer.msfbcxp3@homecheff-validation.test\\\",\\n    passwordHash: \\\"$2b$10$7NHOfg2kXOLuczOfDV0c5eESBgR0szz1FpKtKHORVKPPXBkLdDwHe\\\",\\n    name: \\\"Phase51 Buyer\\\",\\n    username: \\\"p51buy"
+    },
+    {
+      "severity": "P0",
+      "area": "account",
+      "note": "browser credentials login failed for disposable user"
+    },
+    {
+      "severity": "P2",
+      "area": "responsive",
+      "note": "console errors on auth-login-desktop"
+    }
+  ],
+  "ok": false
+}
