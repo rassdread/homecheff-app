@@ -1,0 +1,573 @@
+{
+  "base": "https://homecheff.eu",
+  "at": "2026-08-05T16:00:51.769Z",
+  "chromium": [
+    {
+      "vp": "desk-1440",
+      "baseSnap": {
+        "err": false,
+        "phase": "1c.2",
+        "level": "expanded",
+        "useLocCount": 0,
+        "useLocNames": [],
+        "placeInputCount": 0,
+        "placePlaceholders": [],
+        "radiusControlCount": 0,
+        "hasBannerish": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945493385
+        },
+        "lastFeeds": [
+          "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+          "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10"
+        ],
+        "approxCalls": [
+          "https://homecheff.eu/api/geo/approx"
+        ],
+        "overflowX": false
+      },
+      "manualOk": {
+        "applied": false,
+        "reason": "no_place_input_visible"
+      },
+      "gps": {
+        "clicked": false,
+        "reason": "button_not_found"
+      },
+      "malformed": {
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945501578
+        },
+        "phase": "1c.2"
+      },
+      "feedSample": [
+        "https://homecheff.eu/api/geo/approx",
+        "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10",
+        "https://homecheff.eu/api/feed/stats-preview",
+        "https://homecheff.eu/api/geo/approx"
+      ]
+    },
+    {
+      "vp": "phone-390",
+      "baseSnap": {
+        "err": false,
+        "phase": "1c.2",
+        "level": "standard_complete",
+        "useLocCount": 0,
+        "useLocNames": [],
+        "placeInputCount": 0,
+        "placePlaceholders": [],
+        "radiusControlCount": 0,
+        "hasBannerish": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945507369
+        },
+        "lastFeeds": [
+          "https://homecheff.eu/api/feed?radius=0&scope=national&take=10"
+        ],
+        "approxCalls": [
+          "https://homecheff.eu/api/geo/approx"
+        ],
+        "overflowX": false
+      },
+      "manualOk": {
+        "applied": true,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945507369
+        },
+        "placeFeeds": [],
+        "err": false
+      },
+      "gps": {
+        "clicked": true,
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945507369
+        }
+      },
+      "malformed": {
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945523370
+        },
+        "phase": "1c.2"
+      },
+      "feedSample": [
+        "https://homecheff.eu/api/geo/approx",
+        "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10",
+        "https://homecheff.eu/api/feed/stats-preview",
+        "https://homecheff.eu/api/geo/approx"
+      ]
+    },
+    {
+      "vp": "phone-land",
+      "baseSnap": {
+        "err": false,
+        "phase": "1c.2",
+        "level": "ultra_compact",
+        "useLocCount": 0,
+        "useLocNames": [],
+        "placeInputCount": 0,
+        "placePlaceholders": [],
+        "radiusControlCount": 0,
+        "hasBannerish": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945529451
+        },
+        "lastFeeds": [
+          "https://homecheff.eu/api/feed?radius=0&scope=national&take=10"
+        ],
+        "approxCalls": [
+          "https://homecheff.eu/api/geo/approx"
+        ],
+        "overflowX": false
+      },
+      "manualOk": {
+        "applied": true,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945529451
+        },
+        "placeFeeds": [],
+        "err": false
+      },
+      "gps": {
+        "clicked": true,
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945529451
+        }
+      },
+      "malformed": {
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945554487
+        },
+        "phase": "1c.2"
+      },
+      "feedSample": [
+        "https://homecheff.eu/api/geo/approx",
+        "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10",
+        "https://homecheff.eu/api/feed/stats-preview",
+        "https://homecheff.eu/api/geo/approx"
+      ]
+    },
+    {
+      "vp": "tablet-768",
+      "baseSnap": {
+        "err": false,
+        "phase": "1c.2",
+        "level": "expanded",
+        "useLocCount": 0,
+        "useLocNames": [],
+        "placeInputCount": 0,
+        "placePlaceholders": [],
+        "radiusControlCount": 0,
+        "hasBannerish": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945560152
+        },
+        "lastFeeds": [
+          "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+          "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10"
+        ],
+        "approxCalls": [
+          "https://homecheff.eu/api/geo/approx"
+        ],
+        "overflowX": false
+      },
+      "manualOk": {
+        "applied": true,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945560152
+        },
+        "placeFeeds": [],
+        "err": false
+      },
+      "gps": {
+        "clicked": true,
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945560152
+        }
+      },
+      "malformed": {
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945575972
+        },
+        "phase": "1c.2"
+      },
+      "feedSample": [
+        "https://homecheff.eu/api/geo/approx",
+        "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10",
+        "https://homecheff.eu/api/feed/stats-preview",
+        "https://homecheff.eu/api/geo/approx"
+      ]
+    }
+  ],
+  "webkit": [
+    {
+      "vp": "desk-1440",
+      "baseSnap": {
+        "err": false,
+        "phase": "1c.2",
+        "level": "expanded",
+        "useLocCount": 0,
+        "useLocNames": [],
+        "placeInputCount": 0,
+        "placePlaceholders": [],
+        "radiusControlCount": 0,
+        "hasBannerish": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945585878
+        },
+        "lastFeeds": [],
+        "approxCalls": [
+          "https://homecheff.eu/api/geo/approx"
+        ],
+        "overflowX": false
+      },
+      "manualOk": {
+        "applied": false,
+        "reason": "no_place_input_visible"
+      },
+      "gps": {
+        "clicked": false,
+        "reason": "button_not_found"
+      },
+      "malformed": {
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945592579
+        },
+        "phase": "1c.2"
+      },
+      "feedSample": [
+        "https://homecheff.eu/api/geo/approx",
+        "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10",
+        "https://homecheff.eu/api/feed/stats-preview",
+        "https://homecheff.eu/api/geo/approx"
+      ]
+    },
+    {
+      "vp": "phone-390",
+      "baseSnap": {
+        "err": false,
+        "phase": "1c.2",
+        "level": "standard_complete",
+        "useLocCount": 0,
+        "useLocNames": [],
+        "placeInputCount": 0,
+        "placePlaceholders": [],
+        "radiusControlCount": 0,
+        "hasBannerish": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945597620
+        },
+        "lastFeeds": [],
+        "approxCalls": [
+          "https://homecheff.eu/api/geo/approx"
+        ],
+        "overflowX": false
+      },
+      "manualOk": {
+        "applied": true,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945597620
+        },
+        "placeFeeds": [],
+        "err": false
+      },
+      "gps": {
+        "clicked": true,
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945597620
+        }
+      },
+      "malformed": {
+        "error": "Error: page.reload: De bewerking kon niet worden voltooid. (kCFErrorDomainCFNetwork fout 303.)\nCall log:\n  - waiting for navigation until \"domcontentloaded\"\n"
+      },
+      "feedSample": [
+        "https://homecheff.eu/api/geo/approx",
+        "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10",
+        "https://homecheff.eu/api/feed/stats-preview"
+      ]
+    },
+    {
+      "vp": "phone-land",
+      "baseSnap": {
+        "err": false,
+        "phase": "1c.2",
+        "level": "ultra_compact",
+        "useLocCount": 0,
+        "useLocNames": [],
+        "placeInputCount": 0,
+        "placePlaceholders": [],
+        "radiusControlCount": 0,
+        "hasBannerish": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945612816
+        },
+        "lastFeeds": [
+          "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10"
+        ],
+        "approxCalls": [
+          "https://homecheff.eu/api/geo/approx"
+        ],
+        "overflowX": false
+      },
+      "manualOk": {
+        "applied": true,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945612816
+        },
+        "placeFeeds": [],
+        "err": false
+      },
+      "gps": {
+        "clicked": true,
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945612816
+        }
+      },
+      "malformed": {
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945629989
+        },
+        "phase": "1c.2"
+      },
+      "feedSample": [
+        "https://homecheff.eu/api/geo/approx",
+        "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10",
+        "https://homecheff.eu/api/feed/stats-preview",
+        "https://homecheff.eu/api/geo/approx"
+      ]
+    },
+    {
+      "vp": "tablet-768",
+      "baseSnap": {
+        "err": false,
+        "phase": "1c.2",
+        "level": "expanded",
+        "useLocCount": 0,
+        "useLocNames": [],
+        "placeInputCount": 0,
+        "placePlaceholders": [],
+        "radiusControlCount": 0,
+        "hasBannerish": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945635215
+        },
+        "lastFeeds": [
+          "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10"
+        ],
+        "approxCalls": [
+          "https://homecheff.eu/api/geo/approx"
+        ],
+        "overflowX": false
+      },
+      "manualOk": {
+        "applied": true,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945635215
+        },
+        "placeFeeds": [],
+        "err": false
+      },
+      "gps": {
+        "clicked": true,
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945635215
+        }
+      },
+      "malformed": {
+        "err": false,
+        "pref": {
+          "place": "Vlaardingen",
+          "lat": 51.9088,
+          "lng": 4.3444,
+          "radiusKm": 25,
+          "source": "ip",
+          "bannerDismissed": false,
+          "updatedAt": 1785945648300
+        },
+        "phase": "1c.2"
+      },
+      "feedSample": [
+        "https://homecheff.eu/api/geo/approx",
+        "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "https://homecheff.eu/api/feed?radius=25&scope=nearby&lat=51.9088&lng=4.3444&take=10",
+        "https://homecheff.eu/api/feed/stats-preview",
+        "https://homecheff.eu/api/geo/approx"
+      ]
+    }
+  ]
+}

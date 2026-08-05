@@ -1,0 +1,12 @@
+{
+  "desk": {
+    "hasBanner": 0,
+    "afterChange": {},
+    "gps": {}
+  },
+  "phone": {
+    "hasBanner": 0,
+    "afterChange": {},
+    "gps": {}
+  }
+}

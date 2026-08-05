@@ -1,0 +1,103 @@
+{
+  "title": "HomeCheff — Personal craftsmanship and local opportunity",
+  "hasGeoFeedish": true,
+  "wxStage": true,
+  "wxRails": 2,
+  "locationBanner": true,
+  "feedPlace": false,
+  "textHasUseMyLocation": false,
+  "textHasTypePlace": false,
+  "interesting": [
+    {
+      "tag": "DIV",
+      "id": "",
+      "testid": null,
+      "cls": "hc-home-page-shell hc-aw-full-bleed hc-wx-shell w-full max-w-none mx-auto px-0 s",
+      "text": "Digital neighbourhood marketplacenearby cook, grow, make and"
+    },
+    {
+      "tag": "SECTION",
+      "id": "",
+      "testid": null,
+      "cls": "hc-aw-feed-workspace hc-wx-frame hc-wx-frame-adaptive w-full min-w-0 grid gap-0 ",
+      "text": "Digital neighbourhood marketplacenearby cook, grow, make and"
+    },
+    {
+      "tag": "DIV",
+      "id": "",
+      "testid": null,
+      "cls": "hc-wx-orientation-strip w-full min-w-0 rounded-none sm:rounded-t-2xl border-b bo",
+      "text": "Digital neighbourhood marketplacenearby cook, grow, make and"
+    },
+    {
+      "tag": "ASIDE",
+      "id": "",
+      "testid": null,
+      "cls": "hc-wx-rail h-full min-h-0 flex flex-col bg-white border-r border-gray-200/80",
+      "text": "Quick actionsSell or shareMarketplaceFoodGardenCreationsServ"
+    },
+    {
+      "tag": "DIV",
+      "id": "",
+      "testid": null,
+      "cls": "hc-wx-stage h-full min-h-0 flex flex-col bg-gray-50/40",
+      "text": "Search your neighbourhood...ViewAllOfferedAsk / WantedInspir"
+    },
+    {
+      "tag": "DIV",
+      "id": "homecheff-feed-desktop",
+      "testid": null,
+      "cls": "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 py-2 sm:px-3 [-webkit-o",
+      "text": "Search your neighbourhood...ViewAllOfferedAsk / WantedInspir"
+    },
+    {
+      "tag": "DIV",
+      "id": "homecheff-feed",
+      "testid": null,
+      "cls": "space-y-4",
+      "text": "Search your neighbourhood...ViewAllOfferedAsk / WantedInspir"
+    },
+    {
+      "tag": "INPUT",
+      "id": "",
+      "testid": null,
+      "cls": "w-full min-h-[40px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-2.5 ",
+      "text": ""
+    },
+    {
+      "tag": "DIV",
+      "id": "",
+      "testid": "location-refine-banner",
+      "cls": "mb-3 flex flex-col gap-2 rounded-xl border border-emerald-200/80 bg-emerald-50/9",
+      "text": "Showing results near Vlaardingen.Use my precise locationChan"
+    },
+    {
+      "tag": "ARTICLE",
+      "id": "",
+      "testid": null,
+      "cls": "feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col ",
+      "text": "Kᴇᴋsɪ🍳HomeCheffShow listing previewLLionessBerkel & Rodenri"
+    },
+    {
+      "tag": "DIV",
+      "id": "",
+      "testid": null,
+      "cls": "relative aspect-[4/3] w-full overflow-hidden bg-stone-100 feed-card-primary-medi",
+      "text": "Kᴇᴋsɪ"
+    },
+    {
+      "tag": "DIV",
+      "id": "",
+      "testid": null,
+      "cls": "absolute inset-0 z-0 absolute inset-0 h-full w-full feed-card-primary-media",
+      "text": ""
+    },
+    {
+      "tag": "ASIDE",
+      "id": "",
+      "testid": null,
+      "cls": "hc-wx-rail h-full min-h-0 flex flex-col bg-white border-l border-gray-200/80",
+      "text": "Trust in the neighborhoodExplore →Neighborhood momentsWhat's"
+    }
+  ]
+}

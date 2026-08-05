@@ -1,0 +1,55 @@
+{
+  "phase": "5.5",
+  "verdict": "HOMECHEFF_LOCATION_RADIUS_VALIDATION_PARTIAL",
+  "recommendation": "LOCATION_ENGINE_CONFIRMED",
+  "commits": [
+    "5f2eca8b"
+  ],
+  "approx": {
+    "lat": 51.9088,
+    "lng": 4.3444,
+    "city": "Vlaardingen",
+    "region": "ZH",
+    "country": "NL",
+    "label": "Vlaardingen",
+    "source": "vercel",
+    "precise": false
+  },
+  "postcode_fix_verified": {
+    "3131AA": "resolves to Vlaardingen area (same as 3131 AA), not IP",
+    "deploy": "5f2eca8b"
+  },
+  "radius_presets_ui": [
+    5,
+    10,
+    25,
+    50,
+    100
+  ],
+  "radius_1_2km": "NOT_IMPLEMENTED",
+  "map_homepage": "DORMANT",
+  "postcode_feed_path": "IMPLEMENTED_FREE_TEXT",
+  "postcode_pdok_huisnummer_in_feed": "NOT_IMPLEMENTED",
+  "places_geocoded": [
+    "Vlaardingen",
+    "Rotterdam",
+    "Schiedam",
+    "Amsterdam",
+    "Breda",
+    "Groningen",
+    "Maastricht",
+    "Antwerpen",
+    "Brussel"
+  ],
+  "p0": [],
+  "p1_fixed": [
+    "NL compact postcode silent IP override"
+  ],
+  "p2": [
+    "1km/2km radius presets absent",
+    "Homepage place input not in initial DOM (progressive via banner Change / filters)",
+    "Headless banner/GPS-allow automation flaky",
+    "Sparse production listings outside Randstad",
+    "Invalid place ABCDE soft-national (no lat) \u2014 good; 9999 ZZ still geocodes to NL-ish centroid via Google"
+  ]
+}
