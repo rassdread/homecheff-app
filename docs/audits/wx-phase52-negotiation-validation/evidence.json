@@ -1,0 +1,352 @@
+{
+  "at": "2026-08-05T01:07:21.472Z",
+  "base": "https://homecheff.eu",
+  "creation": [
+    {
+      "name": "money-only-product",
+      "status": 201,
+      "ok": "d871eda1-70cb-4842-8495-27af2f05ac0a",
+      "proposalId": "d871eda1-70cb-4842-8495-27af2f05ac0a",
+      "settlementMode": "MONEY",
+      "category": "PRODUCT",
+      "amountCents": 500
+    },
+    {
+      "name": "meal-product",
+      "status": 201,
+      "ok": "be61efd8-92d4-4fd3-ba79-11e9ee32f0e5",
+      "proposalId": "be61efd8-92d4-4fd3-ba79-11e9ee32f0e5",
+      "settlementMode": "MONEY",
+      "category": "PRODUCT",
+      "amountCents": 700
+    },
+    {
+      "name": "service-category",
+      "status": 201,
+      "ok": "e0676fa6-3cf2-48ab-b8a3-afed4f934715",
+      "proposalId": "e0676fa6-3cf2-48ab-b8a3-afed4f934715",
+      "settlementMode": "MONEY",
+      "category": "SERVICE",
+      "amountCents": 2500
+    },
+    {
+      "name": "free-proposal",
+      "status": 201,
+      "ok": "7b926c56-63fc-41ec-8a0f-d80385d1df9a",
+      "proposalId": "7b926c56-63fc-41ec-8a0f-d80385d1df9a",
+      "settlementMode": "FREE",
+      "category": "PRODUCT",
+      "amountCents": null
+    },
+    {
+      "name": "money-and-barter",
+      "status": 201,
+      "ok": "2605f929-2bc7-478d-8257-48fa21d56776",
+      "proposalId": "2605f929-2bc7-478d-8257-48fa21d56776",
+      "settlementMode": "MONEY_AND_VALUE",
+      "category": "PRODUCT",
+      "amountCents": 300
+    },
+    {
+      "name": "barter-only",
+      "status": 201,
+      "ok": "1fdc6b1c-ca9d-47b0-93da-5c5a9dd9c47b",
+      "proposalId": "1fdc6b1c-ca9d-47b0-93da-5c5a9dd9c47b",
+      "settlementMode": "VALUE_ONLY",
+      "category": "PRODUCT",
+      "amountCents": null
+    },
+    {
+      "name": "voluntary",
+      "status": 201,
+      "ok": "a187adb1-8641-4e8f-b967-984459b47c62",
+      "proposalId": "a187adb1-8641-4e8f-b967-984459b47c62",
+      "settlementMode": "VOLUNTARY",
+      "category": "PRODUCT",
+      "amountCents": null
+    },
+    {
+      "name": "with-expiry",
+      "status": 201,
+      "ok": "9af06ede-73e3-4f68-9aef-5227e67db52e",
+      "proposalId": "9af06ede-73e3-4f68-9aef-5227e67db52e",
+      "settlementMode": "MONEY",
+      "category": "PRODUCT",
+      "amountCents": 400
+    },
+    {
+      "name": "garden-category",
+      "status": 201,
+      "ok": "007dd669-96ef-48fd-bf31-018648d03f3b",
+      "proposalId": "007dd669-96ef-48fd-bf31-018648d03f3b",
+      "settlementMode": "MONEY",
+      "category": "PRODUCT",
+      "amountCents": 150
+    },
+    {
+      "name": "designer-mixed-notes",
+      "status": 201,
+      "ok": "ec05c76c-4c34-4692-a060-df2e9529b95a",
+      "proposalId": "ec05c76c-4c34-4692-a060-df2e9529b95a",
+      "settlementMode": "MONEY",
+      "category": "PRODUCT",
+      "amountCents": 150
+    },
+    {
+      "name": "task-category",
+      "status": 201,
+      "ok": "eba8ab5e-0f04-47b1-a20e-ff4bf7f6ed29",
+      "proposalId": "eba8ab5e-0f04-47b1-a20e-ff4bf7f6ed29",
+      "settlementMode": "MONEY",
+      "category": "TASK",
+      "amountCents": 150
+    },
+    {
+      "name": "delivery-fulfillment",
+      "status": 201,
+      "ok": "640e4b23-00ca-4fc3-9ae3-227757824b62",
+      "proposalId": "640e4b23-00ca-4fc3-9ae3-227757824b62",
+      "settlementMode": "MONEY",
+      "category": "PRODUCT",
+      "amountCents": 800
+    }
+  ],
+  "negotiation": [
+    {
+      "name": "reject",
+      "status": 200,
+      "ok": true,
+      "statusAfter": "REJECTED"
+    },
+    {
+      "name": "withdraw-cancel",
+      "status": 200,
+      "ok": true,
+      "statusAfter": "CANCELLED"
+    },
+    {
+      "name": "counter-round-1",
+      "status": 201,
+      "ok": false,
+      "childId": "6fc37340-bd60-4189-998c-02edddc53a75",
+      "parentHint": "check-get"
+    },
+    {
+      "name": "parent-status-after-counter",
+      "status": 200,
+      "ok": true,
+      "statusAfter": "COUNTERED"
+    },
+    {
+      "name": "counter-round-2",
+      "status": 201,
+      "ok": false,
+      "childId": "c75a944f-7949-4425-afde-c8d31b8139a1"
+    },
+    {
+      "name": "counter-rounds-reclassified",
+      "status": 201,
+      "ok": true,
+      "note": "API returns 201; parent COUNTERED + child PENDING + accept worked"
+    }
+  ],
+  "barter": [
+    {
+      "name": "accept-barter-only",
+      "status": 200,
+      "ok": true,
+      "settlementMode": "VALUE_ONLY",
+      "communityOrderId": "e6e04bf9-4bc2-449c-8138-8f101966bf54",
+      "nextAction": "COMMUNITY_ORDER_CREATED",
+      "checkoutUrl": null
+    },
+    {
+      "name": "accept-money-and-barter",
+      "status": 200,
+      "ok": true,
+      "nextAction": "COMMUNITY_ORDER_CREATED",
+      "communityOrderId": "1c7c382a-2f5e-40e3-91ae-21642f139164",
+      "amountCents": 300
+    }
+  ],
+  "orderConversion": [
+    {
+      "name": "accept-free-to-community-order",
+      "status": 200,
+      "ok": true,
+      "communityOrderId": "5d39332d-141e-4a69-a327-70830234b33b",
+      "agreementId": "7df60a3e-133a-41d8-b92a-9d12da7852ce",
+      "nextAction": "COMMUNITY_ORDER_CREATED",
+      "buyerId": "97f69a29-3d98-4dda-bf09-8e46ab918905",
+      "sellerId": "cfe2614a-537c-4a6e-b12e-9c09cef2bb00",
+      "proposalId": "7b926c56-63fc-41ec-8a0f-d80385d1df9a"
+    },
+    {
+      "name": "accept-counter-final-money",
+      "status": 200,
+      "ok": true,
+      "communityOrderId": "b488cbcc-da5e-4e81-bf13-dd31a97c442e",
+      "amountCents": 550,
+      "nextAction": "COMMUNITY_ORDER_CREATED",
+      "checkoutUrl": false
+    }
+  ],
+  "security": [
+    {
+      "name": "creator-cannot-reject-own",
+      "status": 403,
+      "ok": true,
+      "note": "{\"error\":\"Cannot reject your own proposal\"}"
+    },
+    {
+      "name": "non-creator-cannot-cancel",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "name": "creator-cannot-counter-own",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "name": "accept-requires-commitment",
+      "status": 400,
+      "ok": true
+    },
+    {
+      "name": "creator-cannot-accept-own",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "name": "duplicate-accept-blocked",
+      "status": 409,
+      "ok": true
+    },
+    {
+      "name": "unauthenticated-proposal-get",
+      "status": 401,
+      "ok": true
+    }
+  ],
+  "chat": [
+    {
+      "name": "conversation-ready",
+      "ok": true,
+      "conversationId": "1361436e-de76-4ef9-82b2-3026797603f9"
+    },
+    {
+      "name": "start-conv-5dea3d69",
+      "ok": true,
+      "conversationId": "810753f0-d776-4f2d-bc50-ca4f8676b75c",
+      "via": "/api/conversations/start"
+    },
+    {
+      "name": "start-conv-c5c8e6d4",
+      "ok": true,
+      "conversationId": "772fcb88-d679-4056-abbb-511befc16f5d",
+      "via": "/api/conversations/start"
+    },
+    {
+      "name": "start-conv-9f815747",
+      "ok": true,
+      "conversationId": "3636f5e9-7689-491b-b4a8-a1211bf1517a",
+      "via": "/api/conversations/start"
+    },
+    {
+      "name": "list-proposals-in-conversation",
+      "status": 200,
+      "ok": true,
+      "count": 7
+    },
+    {
+      "name": "profile-proposals",
+      "status": 200,
+      "ok": true,
+      "count": 14
+    },
+    {
+      "name": "seller-notifications-after-proposals",
+      "status": 200,
+      "ok": true,
+      "sampleTypes": [
+        "delivery_request_created",
+        "proposal_received",
+        "proposal_countered",
+        "proposal_received",
+        "proposal_received",
+        "proposal_received",
+        "proposal_received",
+        "proposal_received"
+      ]
+    }
+  ],
+  "completion": [
+    {
+      "name": "seller-complete-community-order",
+      "status": 200,
+      "ok": true,
+      "note": "{\"communityOrder\":{\"id\":\"5d39332d-141e-4a69-a327-70830234b33b\",\"agreementId\":\"7df60a3e-133a-41d8-b92a-9d12da7852ce\",\"proposalId\":\"7b926c56-63fc-41ec-8a0f-d80385d1df9a\",\"conversationId\":\"772fcb88-d679-"
+    }
+  ],
+  "payment": [
+    {
+      "name": "checkout-context-for-mixed",
+      "status": 500,
+      "ok": false,
+      "note": "{\"error\":\"Internal error\"}"
+    },
+    {
+      "name": "checkout-context-after-82bebe3e",
+      "status": 400,
+      "ok": true,
+      "note": "checkoutNotRequired for DIRECT_CONTACT (no longer 500)"
+    }
+  ],
+  "delivery": [
+    {
+      "name": "accept-delivery-fulfillment",
+      "status": 200,
+      "ok": true,
+      "nextAction": "COMMUNITY_ORDER_CREATED",
+      "deliveryRequest": false,
+      "communityOrderId": "568b8130-3fc0-4a51-bd64-ad9cfaf8d627",
+      "deliveryRequested": true
+    },
+    {
+      "name": "manual-delivery-request",
+      "status": 201,
+      "ok": true,
+      "note": "{\"deliveryRequest\":{\"id\":\"700e44cf-0a65-4c20-b9a0-230f4136bce4\",\"communityOrderId\":\"568b8130-3fc0-4a51-bd64-ad9cfaf8d627\",\"status\":\"OPEN\",\"pickupAddress\":null,\"deliveryAddress\":null,\"pickupDate\":null,\"pickupTimeWindow\":n"
+    }
+  ],
+  "service": [
+    {
+      "name": "service-proposal-fields",
+      "status": 200,
+      "ok": true,
+      "category": "SERVICE",
+      "requestedDate": "2026-08-08T01:07:27.572Z",
+      "requestedTimeWindow": "14:00-16:00",
+      "note": "calendar booking NOT_IMPLEMENTED \u2014 scheduling fields only"
+    }
+  ],
+  "regressions": [
+    {
+      "severity": "P1",
+      "area": "payment",
+      "note": "HOMECHEFF_CHECKOUT live charge path not run this phase"
+    }
+  ],
+  "notes": [
+    {
+      "buyerId": "97f69a29-3d98-4dda-bf09-8e46ab918905",
+      "sellerId": "cfe2614a-537c-4a6e-b12e-9c09cef2bb00"
+    }
+  ],
+  "fixCommits": [
+    "cabcab3b",
+    "82bebe3e"
+  ],
+  "deploy": "homecheff-ft5ykgl1x"
+}

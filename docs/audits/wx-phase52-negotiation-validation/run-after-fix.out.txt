@@ -1,0 +1,41 @@
+[chat] PASS conversation-ready  
+[chat] PASS start-conv-5dea3d69  
+[chat] PASS start-conv-c5c8e6d4  
+[chat] PASS start-conv-9f815747  
+[creation] ? money-only-product 201 
+[creation] ? meal-product 201 
+[creation] ? service-category 201 
+[creation] ? free-proposal 201 
+[creation] ? money-and-barter 201 
+[creation] ? barter-only 201 
+[creation] ? voluntary 201 
+[creation] ? with-expiry 201 
+[creation] ? garden-category 201 
+[creation] ? designer-mixed-notes 201 
+[creation] ? task-category 201 
+[chat] PASS list-proposals-in-conversation 200 
+[security] PASS creator-cannot-reject-own 403 {"error":"Cannot reject your own proposal"}
+[negotiation] PASS reject 200 
+[security] PASS non-creator-cannot-cancel 403 
+[negotiation] PASS withdraw-cancel 200 
+[security] PASS creator-cannot-counter-own 403 
+[negotiation] FAIL counter-round-1 201 
+[negotiation] PASS parent-status-after-counter 200 
+[negotiation] FAIL counter-round-2 201 
+[security] PASS accept-requires-commitment 400 
+[security] PASS creator-cannot-accept-own 403 
+[orderConversion] PASS accept-free-to-community-order 200 
+[security] PASS duplicate-accept-blocked 409 
+[completion] PASS seller-complete-community-order 200 {"communityOrder":{"id":"5d39332d-141e-4a69-a327-70830234b33b","agreementId":"7df60a3e-133a-41d8-b92a-9d12da7852ce","proposalId":"7b926c56-63fc-41ec-8a0f-d80385d1df9a","conversationId":"772fcb88-d679-
+[barter] PASS accept-barter-only 200 
+[barter] PASS accept-money-and-barter 200 
+[payment] FAIL checkout-context-for-mixed 500 {"error":"Internal error"}
+[orderConversion] PASS accept-counter-final-money 200 
+[creation] ? delivery-fulfillment 201 
+[delivery] PASS accept-delivery-fulfillment 200 
+[delivery] PASS manual-delivery-request 201 {"deliveryRequest":{"id":"700e44cf-0a65-4c20-b9a0-230f4136bce4","communityOrderId":"568b8130-3fc0-4a51-bd64-ad9cfaf8d627","status":"OPEN","pickupAddress":null,"deliveryAddress":null,"pickupDate":null,"pickupTimeWindow":n
+[service] PASS service-proposal-fields 200 calendar booking NOT_IMPLEMENTED — scheduling fields only
+[security] PASS unauthenticated-proposal-get 401 
+[chat] PASS profile-proposals 200 
+[chat] PASS seller-notifications-after-proposals 200 
+WROTE docs/audits/wx-phase52-negotiation-validation/evidence.json

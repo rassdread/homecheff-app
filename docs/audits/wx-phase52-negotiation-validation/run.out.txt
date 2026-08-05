@@ -1,0 +1,21 @@
+[chat] PASS conversation-ready  
+[chat] PASS start-conv-5dea3d69  
+[chat] PASS start-conv-c5c8e6d4  
+[chat] PASS start-conv-9f815747  
+[creation] FAIL money-only-product 500 {"error":"Internal server error"}
+[creation] FAIL meal-product 500 {"error":"Internal server error"}
+[creation] FAIL service-category 500 {"error":"Internal server error"}
+[creation] FAIL free-proposal 500 {"error":"Internal server error"}
+[creation] FAIL money-and-barter 500 {"error":"Internal server error"}
+[creation] FAIL barter-only 500 {"error":"Internal server error"}
+[creation] FAIL voluntary 500 {"error":"Internal server error"}
+[creation] FAIL with-expiry 500 {"error":"Internal server error"}
+[creation] FAIL garden-category 500 {"error":"Internal server error"}
+[creation] FAIL designer-mixed-notes 500 {"error":"Internal server error"}
+[creation] FAIL task-category 500 {"error":"Internal server error"}
+[chat] PASS list-proposals-in-conversation 200 
+[creation] FAIL delivery-fulfillment 500 {"error":"Internal server error"}
+[security] PASS unauthenticated-proposal-get 401 
+[chat] PASS profile-proposals 200 
+[chat] PASS seller-notifications-after-proposals 200 
+WROTE docs/audits/wx-phase52-negotiation-validation/evidence.json
