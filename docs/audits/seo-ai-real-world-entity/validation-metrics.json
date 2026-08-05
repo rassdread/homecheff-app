@@ -1,0 +1,20 @@
+{
+  "phase": "2.5-real-world-entity",
+  "verdictTarget": "SEO_AI_REAL_WORLD_ENTITY_PASS",
+  "realWorldSignals": 24,
+  "monitorTracks": 14,
+  "offPageRoadmapItems": 11,
+  "ownershipFabricated": false,
+  "backlinksFabricated": false,
+  "citationsFabricated": false,
+  "awFilesChanged": 0,
+  "architectureChanged": false,
+  "scores": {
+    "seo": 92,
+    "aiDiscoverability": 94,
+    "brandRecognition": 91,
+    "brandAuthority": 89,
+    "entityReadiness": 90,
+    "growthReadiness": 86
+  }
+}
