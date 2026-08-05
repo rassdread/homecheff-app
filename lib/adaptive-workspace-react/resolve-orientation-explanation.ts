@@ -131,32 +131,23 @@ export function resolveOrientationExplanation(
     orientation === "landscape" &&
     usableHeightPx < LANDSCAPE_COMPACT_MAX_HEIGHT_EXCLUSIVE
   ) {
-    // WX 1B.4 — landscape work posture stays intentionally compact.
+    // WX 1B.4 — short landscape work posture stays intentionally compact.
     level = "ultra_compact";
-  } else if (orientation === "landscape") {
-    // Wider landscape (tablet/desktop landscape): still compact chrome.
-    level =
-      usableWidthPx >= bands.comfortMaxExclusive
-        ? "compact_complete"
-        : "ultra_compact";
   } else if (remainingHeightPx < REMAINING_HEIGHT.ultraExclusive) {
     level = "ultra_compact";
   } else if (remainingHeightPx < REMAINING_HEIGHT.compactExclusive) {
     level = "compact_complete";
-  } else if (remainingHeightPx < REMAINING_HEIGHT.standardExclusive) {
-    // Tall narrow surfaces stay complete; width opens expanded/rich.
-    level =
-      usableWidthPx >= bands.compactMaxExclusive
-        ? "expanded"
-        : "standard_complete";
   } else if (
     usableWidthPx >= bands.comfortMaxExclusive &&
     remainingHeightPx >= REMAINING_HEIGHT.expandedExclusive
   ) {
     level = "rich";
   } else if (usableWidthPx >= bands.compactMaxExclusive) {
-    level = "expanded";
-  } else if (remainingHeightPx >= REMAINING_HEIGHT.expandedExclusive) {
+    level =
+      remainingHeightPx >= REMAINING_HEIGHT.standardExclusive
+        ? "expanded"
+        : "standard_complete";
+  } else if (remainingHeightPx < REMAINING_HEIGHT.standardExclusive) {
     level = "standard_complete";
   } else {
     level = "standard_complete";
