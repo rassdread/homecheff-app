@@ -1,10 +1,10 @@
-import Script from 'next/script';
+import JsonLdScript from '@/components/seo/JsonLdScript';
 import { getCurrentDomain, getCurrentLanguage } from '@/lib/seo/metadata';
 import { buildRootEntityGraphJsonLd } from '@/lib/seo/schema-builders';
 
 /**
- * Phase 13S — sitewide Organization + legal operator + WebSite JSON-LD (SSOT).
- * Rendered once in root layout; do not duplicate on homepage.
+ * Sitewide Organization + legal operator + WebSite + platform JSON-LD.
+ * Uses classic script tags so crawlers see JSON-LD in initial HTML.
  */
 export default async function RootEntityGraphScripts() {
   const lang = await getCurrentLanguage();
@@ -15,12 +15,10 @@ export default async function RootEntityGraphScripts() {
   return (
     <>
       {graph.map((node, index) => (
-        <Script
+        <JsonLdScript
           key={`root-entity-ld-${index}`}
           id={`root-entity-ld-${index}`}
-          type="application/ld+json"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(node) }}
+          data={node}
         />
       ))}
     </>

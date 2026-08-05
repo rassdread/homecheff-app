@@ -10,6 +10,7 @@ import {
   WEBSITE_SEARCH_ACTION_TEMPLATE,
   legalOperatorEntityId,
   organizationEntityId,
+  platformEntityId,
   websiteEntityId,
 } from './organization-identity';
 
@@ -146,7 +147,36 @@ export function buildWebsiteJsonLd(
   };
 }
 
-/** Root entity graph — Organization + legal operator + WebSite. */
+/** Platform software surface — same brand, stable #platform @id. */
+export function buildPlatformJsonLd(
+  domain: string,
+  lang: PlatformLang,
+): Record<string, unknown> {
+  const def = getPlatformDefinition(lang);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    '@id': platformEntityId(domain),
+    name: HOMECHEFF_BRAND_NAME,
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    url: domain,
+    description: def.entityDefinition,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+      description:
+        lang === 'en'
+          ? 'Browsing the Village Square is free; sellers may offer paid listings.'
+          : 'Het Dorpsplein bekijken is gratis; verkopers kunnen betaalde aanbiedingen plaatsen.',
+    },
+    publisher: organizationPublisherRef(domain),
+    brand: organizationPublisherRef(domain),
+  };
+}
+
+/** Root entity graph — Organization + legal operator + WebSite + platform. */
 export function buildRootEntityGraphJsonLd(
   domain: string,
   lang: PlatformLang,
@@ -155,6 +185,7 @@ export function buildRootEntityGraphJsonLd(
     buildOrganizationJsonLd(domain, lang),
     buildLegalOperatorJsonLd(domain),
     buildWebsiteJsonLd(domain, lang),
+    buildPlatformJsonLd(domain, lang),
   ];
 }
 

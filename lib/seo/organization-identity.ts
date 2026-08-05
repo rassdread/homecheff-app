@@ -39,6 +39,8 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
     'buurt economie',
     'buurthulp',
     'thuisgemaakt eten',
+    'HomeGarden',
+    'HomeDesigner',
     'handgemaakte producten',
     'lokale diensten',
     'ruilen',
@@ -52,6 +54,8 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
     'community economy',
     'neighbour help',
     'home-prepared food',
+    'HomeGarden',
+    'HomeDesigner',
     'handmade products',
     'local services',
     'barter',
@@ -68,13 +72,13 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
 export const VERIFIED_SAME_AS = [
   'https://homecheff.eu',
   'https://homecheff.nl',
+  'https://www.kvk.nl/zoeken/handelsregister/?kvknummer=80532829',
 ] as const;
 
 /** Documented for Phase 13S audit — not included in JSON-LD until verified. */
 export const PENDING_SAME_AS_VERIFICATION = [
   'Official LinkedIn company page URL',
   'Official Instagram profile URL',
-  'KvK handelsregister public profile URL',
   'Wikidata item (if created)',
   'Municipality of Vlaardingen partnership page (if published)',
 ] as const;
@@ -105,4 +109,9 @@ export function legalOperatorEntityId(domain: string): string {
 
 export function websiteEntityId(domain: string): string {
   return `${domain}/#website`;
+}
+
+/** Software/platform node — same brand, distinct @id for graph clarity. */
+export function platformEntityId(domain: string): string {
+  return `${domain}/#platform`;
 }

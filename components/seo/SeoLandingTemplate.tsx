@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Script from 'next/script';
+import JsonLdScript from '@/components/seo/JsonLdScript';
 import { useMemo } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -160,25 +160,13 @@ export default function SeoLandingTemplate({
   return (
     <main className="min-h-screen bg-gradient-to-b from-emerald-50/80 to-white">
       {faqLdJson ? (
-        <Script
-          id={`seo-faq-ld-${ns}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: faqLdJson }}
-        />
+        <JsonLdScript id={`seo-faq-ld-${ns}`} data={faqLdJson} />
       ) : null}
       {webPageLdJson ? (
-        <Script
-          id={`seo-wp-ld-${ns}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: webPageLdJson }}
-        />
+        <JsonLdScript id={`seo-wp-ld-${ns}`} data={webPageLdJson} />
       ) : null}
       {breadcrumbLdJson ? (
-        <Script
-          id={`seo-bc-ld-${ns}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: breadcrumbLdJson }}
-        />
+        <JsonLdScript id={`seo-bc-ld-${ns}`} data={breadcrumbLdJson} />
       ) : null}
       <article className="mx-auto max-w-3xl px-4 py-12 sm:py-16 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
