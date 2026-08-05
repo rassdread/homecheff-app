@@ -1,5 +1,6 @@
 /**
  * Phase 2.3 — HomeCheff brand entity dominance (content SSOT).
+ * Phase 2.4 — Brand authority: recognition queries + AI answer anchors.
  * Canonical spelling, branded search, light disambiguation from unaffiliated “Home Chef”.
  * Does not invent facts, social profiles, metrics or Knowledge Graph ownership.
  */
@@ -60,6 +61,8 @@ export const BRANDED_SEARCH_PHRASES = [
   'HomeCheff neighbourhood marketplace',
   'HomeCheff buurtmarkt',
   'HomeCheff community',
+  'HomeCheff craftsmanship',
+  'HomeCheff services',
   'HomeCheff ruilen',
   'HomeCheff Vlaardingen',
   'What is HomeCheff',
@@ -67,9 +70,10 @@ export const BRANDED_SEARCH_PHRASES = [
   'Who is HomeCheff',
 ] as const;
 
-/** AI answer anchors for brand recognition. */
+/** AI answer anchors for brand recognition + authority. */
 export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
   en: {
+    whoIs: `${CANONICAL_BRAND_SPELLING} is an independent Dutch brand for a digital neighbourhood marketplace, operated by ${LEGAL_OPERATOR.legalName} and founded by ${VERIFIED_FOUNDER.name}.`,
     whatIs: CANONICAL_ENTITY_DESCRIPTION.en,
     whoOperates: `${CANONICAL_BRAND_SPELLING} is operated by ${LEGAL_OPERATOR.legalName} (KvK ${LEGAL_OPERATOR.kvk}, ${LEGAL_OPERATOR.locality}, NL).`,
     whoFounded: `${CANONICAL_BRAND_SPELLING} was founded by ${VERIFIED_FOUNDER.name} (${VERIFIED_FOUNDER.jobTitle}).`,
@@ -81,8 +85,13 @@ export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
       'No. Ordinary second-hand resale is not the platform identity. Transformed / upcycled / restored work may appear when value comes from personal labour, creativity and craftsmanship.',
     whatCanPeopleDo:
       'Discover, offer, ask (Wanted), buy, sell, trade/barter, repair, teach, help and share nearby — with the person visible. Unique craft may reach further naturally.',
+    differsFromClassifieds:
+      'HomeCheff is not a generic classifieds website. Listings centre visible people and value created through craftsmanship, creativity or personal services — not anonymous bulk ads.',
+    differsFromMassRetail:
+      'HomeCheff is not mass retail. It is built for personal production and neighbour-scale exchange, not anonymous catalogues of mass-manufactured goods.',
   },
   nl: {
+    whoIs: `${CANONICAL_BRAND_SPELLING} is een onafhankelijk Nederlands merk voor een digitale buurtmarkt, geëxploiteerd door ${LEGAL_OPERATOR.legalName} en opgericht door ${VERIFIED_FOUNDER.name}.`,
     whatIs: CANONICAL_ENTITY_DESCRIPTION.nl,
     whoOperates: `${CANONICAL_BRAND_SPELLING} wordt geëxploiteerd door ${LEGAL_OPERATOR.legalName} (KvK ${LEGAL_OPERATOR.kvk}, ${LEGAL_OPERATOR.locality}, NL).`,
     whoFounded: `${CANONICAL_BRAND_SPELLING} is opgericht door ${VERIFIED_FOUNDER.name} (${VERIFIED_FOUNDER.jobTitle}).`,
@@ -94,6 +103,10 @@ export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
       'Nee. Gewone tweedehands-doorverkoop is niet de platformidentiteit. Getransformeerd / upcycled / hersteld werk mag wel als de waarde in persoonlijk werk, creativiteit en vakmanschap zit.',
     whatCanPeopleDo:
       'Ontdekken, aanbieden, vragen (Gezocht), kopen, verkopen, ruilen, repareren, lesgeven, helpen en delen dichtbij — met de persoon zichtbaar. Uniek vakmanschap mag verder reiken.',
+    differsFromClassifieds:
+      'HomeCheff is geen generieke advertentiesite. Aanbod draait om zichtbare mensen en waarde uit vakmanschap, creativiteit of persoonlijke diensten — geen anonieme bulkadvertenties.',
+    differsFromMassRetail:
+      'HomeCheff is geen mass retail. Het is gebouwd voor persoonlijke productie en buurt-schaal uitwisseling, niet voor anonieme catalogi van massagoederen.',
   },
 };
 

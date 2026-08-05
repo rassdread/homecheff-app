@@ -141,7 +141,9 @@ export const VERIFIED_SAME_AS = [
 export const PENDING_SAME_AS_VERIFICATION = [
   'Official LinkedIn company page URL',
   'Official Instagram profile URL',
-  'Wikidata item (if created)',
+  'Official Facebook Page URL',
+  'Wikidata item (if created — requires independent sources)',
+  'Wikipedia article (blocked until notability — do not create promotional stub)',
   'Municipality of Vlaardingen partnership page (if published)',
 ] as const;
 

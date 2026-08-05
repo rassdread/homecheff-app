@@ -1,6 +1,7 @@
 /**
  * Phase 2.2A — Single HomeCheff entity graph (verified relationships only).
- * Phase 2.3 — Brand entity dominance: reinforce brand ↔ marketplace ↔ trust surfaces.
+ * Phase 2.3 — Brand entity dominance.
+ * Phase 2.4 — Brand authority & knowledge-graph dominance (more concept links, same identity).
  * Do not invent founding dates, street addresses, social URLs or metrics.
  */
 
@@ -56,6 +57,27 @@ export const ENTITY_NODES = {
     note:
       'Concept node — not a separate Organization in JSON-LD. Local-first / neighbourhood-first, not neighbourhood-only; craftsmanship-first value creation, not ordinary second-hand resale.',
   },
+  neighbourhoodEconomy: {
+    id: 'neighbourhoodEconomy',
+    name: 'Neighbourhood economy',
+    nameNl: 'Buurt economie',
+    role: 'Concept — local opportunity and community value exchange',
+    note: 'Concept node — explained on public knowledge pages; not a separate Organization.',
+  },
+  craftsmanship: {
+    id: 'craftsmanship',
+    name: 'Craftsmanship',
+    nameNl: 'Vakmanschap',
+    role: 'Concept — personal labour, creativity and production as value basis',
+    note: 'Concept node — distinguishes HomeCheff from ordinary resale and mass retail.',
+  },
+  communityExchange: {
+    id: 'communityExchange',
+    name: 'Community exchange',
+    nameNl: 'Community-ruil / barter',
+    role: 'Concept — barter and neighbour value exchange',
+    note: 'Concept node — supported settlement path; not a separate legal entity.',
+  },
   manifest: {
     id: 'manifest',
     name: 'HomeCheff Manifest',
@@ -67,6 +89,24 @@ export const ENTITY_NODES = {
     name: 'Trust & transparency',
     path: '/trust',
     role: 'Trust / corrections policy surface',
+  },
+  communityGuidelines: {
+    id: 'communityGuidelines',
+    name: 'Community Guidelines',
+    path: '/community-guidelines',
+    role: 'Ethics / community conduct surface',
+  },
+  principles: {
+    id: 'principles',
+    name: 'Principles',
+    path: '/principles',
+    role: 'Public principles / diversity & orientation surface',
+  },
+  openKnowledge: {
+    id: 'openKnowledge',
+    name: 'Open Knowledge',
+    path: '/docs',
+    role: 'Educational documentation hub',
   },
 } as const;
 
@@ -99,6 +139,24 @@ export const ENTITY_RELATIONSHIPS = [
   },
   {
     from: 'brand',
+    to: 'neighbourhoodEconomy',
+    relation: 'supports',
+    note: 'Platform supports neighbourhood economy through local-first discovery and personal work.',
+  },
+  {
+    from: 'brand',
+    to: 'craftsmanship',
+    relation: 'emphasises',
+    note: 'Craftsmanship-first value creation — not ordinary second-hand resale.',
+  },
+  {
+    from: 'brand',
+    to: 'communityExchange',
+    relation: 'supports',
+    note: 'Supports barter and community exchange alongside checkout and direct agreements.',
+  },
+  {
+    from: 'brand',
     to: 'manifest',
     relation: 'publishingPrinciples',
     note: 'Manifest states brand philosophy without inventing metrics.',
@@ -111,9 +169,33 @@ export const ENTITY_RELATIONSHIPS = [
   },
   {
     from: 'brand',
-    to: 'knowledge',
+    to: 'communityGuidelines',
+    relation: 'ethicsPolicy',
+    note: 'Community Guidelines define expected conduct for real people in the community.',
+  },
+  {
+    from: 'brand',
+    to: 'principles',
+    relation: 'diversityPolicy',
+    note: 'Principles surface states public orientation without fabricated impact claims.',
+  },
+  {
+    from: 'brand',
+    to: 'openKnowledge',
     relation: 'explains',
-    note: 'Manifest, Constitution, Trust, FAQ, docs explain the same entity.',
+    note: 'Open Knowledge docs explain the same entity as Manifest, Trust, FAQ and About.',
+  },
+  {
+    from: 'neighbourhoodMarketplace',
+    to: 'craftsmanship',
+    relation: 'requires',
+    note: 'Marketplace positioning requires personal craftsmanship or meaningful transformation.',
+  },
+  {
+    from: 'neighbourhoodMarketplace',
+    to: 'communityExchange',
+    relation: 'includes',
+    note: 'Barter and Wanted belong inside the neighbourhood marketplace model.',
   },
 ] as const;
 
@@ -130,6 +212,8 @@ export const ENTITY_KNOWLEDGE_SURFACES = [
   '/safety',
   '/community-guidelines',
   '/privacy',
+  '/persoonlijk-vakmanschap',
+  '/buurt-economie',
   '/llms.txt',
   '/ai.txt',
 ] as const;
@@ -145,14 +229,22 @@ export const ENTITY_OMITTED = ORGANIZATION_OMITTED_FIELDS;
 
 /** Machine-readable summary for AI briefs. */
 export function entityGraphBrief(): string {
+  const relationships = ENTITY_RELATIONSHIPS.map(
+    (r) => `${r.from} -[${r.relation}]-> ${r.to}`,
+  ).join('; ');
   return [
     `brand: ${ENTITY_NODES.brand.name} (${ENTITY_NODES.brand.schemaId}) — spelling=${ENTITY_NODES.brand.spelling}`,
     `website: ${ENTITY_NODES.website.canonicalUrl} (${ENTITY_NODES.website.schemaId})`,
     `legal_operator: ${ENTITY_NODES.operator.name} — KvK ${ENTITY_NODES.operator.kvk}, ${ENTITY_NODES.operator.locality}, ${ENTITY_NODES.operator.country}`,
     `founder: ${ENTITY_NODES.founder.name} (${ENTITY_NODES.founder.role}) — name/role only`,
     `positioning: ${ENTITY_NODES.neighbourhoodMarketplace.name} / ${ENTITY_NODES.neighbourhoodMarketplace.nameNl}`,
+    `concepts: ${ENTITY_NODES.neighbourhoodEconomy.name}; ${ENTITY_NODES.craftsmanship.name}; ${ENTITY_NODES.communityExchange.name}`,
     `manifest: ${ENTITY_NODES.manifest.path}`,
     `trust: ${ENTITY_NODES.trust.path}`,
+    `community_guidelines: ${ENTITY_NODES.communityGuidelines.path}`,
+    `principles: ${ENTITY_NODES.principles.path}`,
+    `open_knowledge: ${ENTITY_NODES.openKnowledge.path}`,
+    `relationships: ${relationships}`,
     `contact: support=${ENTITY_CONTACT.support}; press=${ENTITY_CONTACT.press}`,
     `sameAs_verified: ${ENTITY_VERIFIED_SAME_AS.join(', ')}`,
     `sameAs_pending: ${ENTITY_PENDING_SAME_AS.join('; ')}`,

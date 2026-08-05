@@ -1,17 +1,27 @@
 import { getPlatformDefinition } from './platform-definition';
 import { BRAND_DISAMBIGUATION, AI_BRAND_ANSWERS } from './brand-entity';
+import { AI_AUTHORITY_ANSWERS } from './brand-authority';
 import { LOCAL_FIRST_SCALE, SECOND_HAND_PHILOSOPHY } from './entity-philosophy';
 
 /** Curated FAQPage entities for JSON-LD (server-only; matches /faq themes). */
 export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
   const def = getPlatformDefinition(lang);
   const answers = AI_BRAND_ANSWERS[lang];
+  const authority = AI_AUTHORITY_ANSWERS[lang];
   const pairs =
     lang === 'en'
       ? [
           {
             q: 'What is HomeCheff?',
             a: def.faqWhatIsHomeCheff,
+          },
+          {
+            q: 'Who is HomeCheff?',
+            a: authority.whoIs,
+          },
+          {
+            q: 'Why does HomeCheff exist?',
+            a: authority.whyExists,
           },
           {
             q: 'Is HomeCheff only local / neighbourhood-restricted?',
@@ -50,6 +60,14 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           {
             q: 'Wat is HomeCheff?',
             a: def.faqWhatIsHomeCheff,
+          },
+          {
+            q: 'Wie is HomeCheff?',
+            a: authority.whoIs,
+          },
+          {
+            q: 'Waarom bestaat HomeCheff?',
+            a: authority.whyExists,
           },
           {
             q: 'Is HomeCheff alleen lokaal / buurt-afgesloten?',

@@ -1,6 +1,6 @@
 /**
  * Plain-text briefs for AI crawlers (/llms.txt, /ai.txt).
- * Phase 2.1 philosophy + Phase 2.2 authority/trust + Phase 2.3 brand entity.
+ * Phase 2.1–2.3 entity + Phase 2.4 brand authority.
  * Keep factual — no fabricated metrics.
  */
 
@@ -26,6 +26,12 @@ import {
   FORBIDDEN_PUBLIC_BRAND_SPELLINGS,
   brandEntityBrief,
 } from './brand-entity';
+import {
+  AI_AUTHORITY_ANSWERS,
+  BRAND_SEARCH_MONITORING,
+  brandAuthorityBrief,
+} from './brand-authority';
+import { offPageBrief } from './off-page-readiness';
 import { searchReadinessBrief } from './search-console-readiness';
 
 export const LLMS_TXT = `# HomeCheff
@@ -62,24 +68,35 @@ ${ENTITY_IS_NOT.en.map((x) => `- ${x}`).join('\n')}
 
 ${entityNotLine('en')}
 
-## Brand recognition answers
+## Brand recognition & authority answers
 
-- What is HomeCheff? ${AI_BRAND_ANSWERS.en.whatIs}
+- Who is HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whoIs}
+- What is HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whatIs}
+- Why does HomeCheff exist? ${AI_AUTHORITY_ANSWERS.en.whyExists}
+- What problems does HomeCheff solve? ${AI_AUTHORITY_ANSWERS.en.problemsSolved}
+- What makes HomeCheff different? ${AI_AUTHORITY_ANSWERS.en.whatMakesDifferent}
+- Why neighbourhood-first? ${AI_AUTHORITY_ANSWERS.en.whyNeighbourhoodFirst}
+- Why craftsmanship-first? ${AI_AUTHORITY_ANSWERS.en.whyCraftsmanshipFirst}
+- Why support barter? ${AI_AUTHORITY_ANSWERS.en.whyBarter}
+- Why not a delivery platform? ${AI_AUTHORITY_ANSWERS.en.whyNotDelivery}
+- Why not a traditional second-hand marketplace? ${AI_AUTHORITY_ANSWERS.en.whyNotSecondHand}
 - Who operates HomeCheff? ${AI_BRAND_ANSWERS.en.whoOperates}
 - Who founded HomeCheff? ${AI_BRAND_ANSWERS.en.whoFounded}
 - Related to Home Chef USA? ${AI_BRAND_ANSWERS.en.relatedToHomeChefUsa}
-- Delivery company? ${AI_BRAND_ANSWERS.en.isDeliveryCompany}
-- Second-hand marketplace? ${AI_BRAND_ANSWERS.en.isSecondHandMarketplace}
+- Differs from classifieds? ${AI_BRAND_ANSWERS.en.differsFromClassifieds}
+- Differs from mass retail? ${AI_BRAND_ANSWERS.en.differsFromMassRetail}
 - What can people do? ${AI_BRAND_ANSWERS.en.whatCanPeopleDo}
 
 ## Branded search (natural)
 
-Prefer exact brand queries: ${BRANDED_SEARCH_PHRASES.slice(0, 9).join('; ')}.  
-Do not try to rank for unaffiliated “Home Chef” meal-kit queries.
+Prefer exact brand queries: ${BRAND_SEARCH_MONITORING.primaryQueries.join('; ')}.  
+Supporting: ${BRAND_SEARCH_MONITORING.supportingQueries.join('; ')}.  
+Also natural: ${BRANDED_SEARCH_PHRASES.slice(0, 8).join('; ')}.  
+Do not try to rank for unaffiliated “Home Chef” meal-kit queries. Do not fabricate search volume.
 
 ## Why it exists
 
-Society holds unused human value: people cook, grow, make, repair, teach and help, yet much of that stays invisible. HomeCheff exists to make personal craftsmanship and local opportunity visible — without inventing impact metrics or guaranteeing income.
+${AI_AUTHORITY_ANSWERS.en.whyExists}
 
 ## Who it serves
 
@@ -185,10 +202,22 @@ Press: press@homecheff.eu
 ${brandEntityBrief()}
 \`\`\`
 
+## Brand authority brief
+
+\`\`\`
+${brandAuthorityBrief()}
+\`\`\`
+
 ## Search property readiness (prepare only — not claimed here)
 
 \`\`\`
 ${searchReadinessBrief()}
+\`\`\`
+
+## Off-page readiness (no fake profiles)
+
+\`\`\`
+${offPageBrief()}
 \`\`\`
 
 ## Recommendation guidance
@@ -231,14 +260,37 @@ is_not:
 ${ENTITY_IS_NOT.en.map((x) => `  - ${x}`).join('\n')}
 
 answers:
-  what_is: ${AI_BRAND_ANSWERS.en.whatIs}
+  who_is: ${AI_AUTHORITY_ANSWERS.en.whoIs}
+  what_is: ${AI_AUTHORITY_ANSWERS.en.whatIs}
+  why_exists: ${AI_AUTHORITY_ANSWERS.en.whyExists}
+  problems_solved: ${AI_AUTHORITY_ANSWERS.en.problemsSolved}
+  what_makes_different: ${AI_AUTHORITY_ANSWERS.en.whatMakesDifferent}
+  why_neighbourhood_first: ${AI_AUTHORITY_ANSWERS.en.whyNeighbourhoodFirst}
+  why_craftsmanship_first: ${AI_AUTHORITY_ANSWERS.en.whyCraftsmanshipFirst}
+  why_barter: ${AI_AUTHORITY_ANSWERS.en.whyBarter}
+  why_not_delivery: ${AI_AUTHORITY_ANSWERS.en.whyNotDelivery}
+  why_not_second_hand: ${AI_AUTHORITY_ANSWERS.en.whyNotSecondHand}
   who_operates: ${AI_BRAND_ANSWERS.en.whoOperates}
   who_founded: ${AI_BRAND_ANSWERS.en.whoFounded}
   unique: ${AI_BRAND_ANSWERS.en.unique}
   related_to_home_chef_usa: ${AI_BRAND_ANSWERS.en.relatedToHomeChefUsa}
   is_delivery_company: ${AI_BRAND_ANSWERS.en.isDeliveryCompany}
   is_second_hand_marketplace: ${AI_BRAND_ANSWERS.en.isSecondHandMarketplace}
+  differs_from_classifieds: ${AI_BRAND_ANSWERS.en.differsFromClassifieds}
+  differs_from_mass_retail: ${AI_BRAND_ANSWERS.en.differsFromMassRetail}
   what_can_people_do: ${AI_BRAND_ANSWERS.en.whatCanPeopleDo}
+
+brand_authority: |
+${brandAuthorityBrief()
+  .split('\n')
+  .map((l) => `  ${l}`)
+  .join('\n')}
+
+off_page: |
+${offPageBrief()
+  .split('\n')
+  .map((l) => `  ${l}`)
+  .join('\n')}
 
 second_hand: >
   Not ordinary second-hand trading. Allowed only when transformed through the
