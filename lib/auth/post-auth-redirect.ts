@@ -92,14 +92,12 @@ export function sanitizePostAuthRelativeUrl(
   if (!href || typeof href !== 'string') return null;
   const trimmed = href.trim();
   if (!trimmed || trimmed.startsWith('//')) return null;
+  // Only in-app relative paths — never accept absolute URLs (avoids host-stripping).
+  if (!trimmed.startsWith('/')) return null;
 
   let pathname = '';
   try {
-    if (trimmed.startsWith('/')) {
-      pathname = trimmed.split('?')[0] || trimmed;
-    } else {
-      pathname = new URL(trimmed).pathname;
-    }
+    pathname = trimmed.split('?')[0] || trimmed;
   } catch {
     return null;
   }
@@ -111,9 +109,21 @@ export function sanitizePostAuthRelativeUrl(
     }
   }
 
-  return trimmed.startsWith('/') ? trimmed : `/${pathname}`;
+  return trimmed;
 }
 
 export function needsProfileOnboardingFromFlags(flags: OnboardingFlags): boolean {
   return flags.hasTempUsername || !flags.onboardingCompleted;
+}
+
+/**
+ * Build the post-Google landing URL while preserving a safe in-app return path.
+ * External URLs and auth-loop paths are rejected.
+ */
+export function buildSocialSuccessCallbackUrl(
+  returnPath: string | null | undefined,
+): string {
+  const safe = sanitizePostAuthRelativeUrl(returnPath);
+  if (!safe || safe === '/') return '/auth/social-success';
+  return `/auth/social-success?next=${encodeURIComponent(safe)}`;
 }

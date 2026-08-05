@@ -276,7 +276,8 @@
     "probe:wx-phase1c-visible-adaptive": "node scripts/probe-wx-phase1c-visible-adaptive.mjs",
     "probe:wx-phase1c1-launch-readiness": "node scripts/probe-wx-phase1c1-launch-readiness.mjs",
     "test:orientation-explanation": "npx tsx lib/adaptive-workspace-react/tests/run-orientation-explanation-tests.ts",
-    "probe:wx-phase1c1-1-final-launch-readiness": "node scripts/probe-wx-phase1c1-1-final-launch-readiness.mjs"
+    "probe:wx-phase1c1-1-final-launch-readiness": "node scripts/probe-wx-phase1c1-1-final-launch-readiness.mjs",
+    "test:google-login-repair": "npx tsx scripts/validate-google-login-repair.ts && npx tsx scripts/validate-google-login-middleware.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

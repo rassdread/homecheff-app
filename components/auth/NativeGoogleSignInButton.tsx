@@ -13,6 +13,7 @@ import {
 import { trackLogin, trackRegistration } from '@/components/GoogleAnalytics';
 import { logGoogleLoginDiag } from '@/lib/auth/google-login-diagnostics';
 import { parseGoogleSignInError } from '@/lib/auth/parse-google-sign-in-error';
+import { buildSocialSuccessCallbackUrl } from '@/lib/auth/post-auth-redirect';
 
 import {
   GOOGLE_WEB_CLIENT_ID,
@@ -113,6 +114,8 @@ export type NativeGoogleSignInButtonProps = {
   buttonLabel: string;
   variant?: 'login' | 'register';
   analyticsContext: 'login' | 'register';
+  /** Safe in-app return path preserved through /auth/social-success?next= */
+  returnPath?: string | null;
 };
 
 export function NativeGoogleSignInButton({
@@ -121,6 +124,7 @@ export function NativeGoogleSignInButton({
   buttonLabel,
   variant = 'login',
   analyticsContext,
+  returnPath,
 }: NativeGoogleSignInButtonProps) {
   const router = useRouter();
   const androidBridge = useAndroidBridgePresent();
@@ -131,6 +135,7 @@ export function NativeGoogleSignInButton({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const socialSuccessUrl = buildSocialSuccessCallbackUrl(returnPath);
 
   const waitForNativeSession = useCallback(async (): Promise<boolean> => {
     for (let attempt = 0; attempt < 10; attempt++) {
@@ -162,7 +167,7 @@ export function NativeGoogleSignInButton({
     try {
       setRememberPreference(rememberMe);
       await signIn('google', {
-        callbackUrl: '/auth/social-success',
+        callbackUrl: socialSuccessUrl,
         redirect: true,
       });
       return true;
@@ -176,7 +181,7 @@ export function NativeGoogleSignInButton({
       );
       return false;
     }
-  }, [preferNative, rememberMe]);
+  }, [preferNative, rememberMe, socialSuccessUrl]);
 
   const runNativeGoogleLogin = useCallback(async (): Promise<boolean> => {
     logGoogleLoginDiag('google_login_native_start', {
@@ -355,7 +360,7 @@ export function NativeGoogleSignInButton({
     } catch {
       /* ignore */
     }
-    router.replace('/auth/social-success');
+    router.replace(socialSuccessUrl);
     return true;
   }, [
     analyticsContext,
@@ -363,6 +368,7 @@ export function NativeGoogleSignInButton({
     nativeAndroid,
     rememberMe,
     router,
+    socialSuccessUrl,
     waitForNativeSession,
   ]);
 
