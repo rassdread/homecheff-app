@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { calculateDistance } from "@/lib/geocoding";
 import { getRouteDistance } from "@/lib/google-maps-distance";
 import { delivererMatchingWhere, isCommerciallyMatchableDeliverer } from "@/lib/delivery/delivery-eligibility";
-import { resolveDelivererPosition } from "@/lib/delivery/delivery-position";
+import { resolveDelivererPosition, resolveDeliveryPickupCoords } from "@/lib/delivery/delivery-position";
 import { logCommercialAgeBlock } from "@/lib/delivery/delivery-age";
 import { calculateProviderDeliveryPrice } from "@/lib/delivery/provider-pricing";
 import {
@@ -12,6 +12,7 @@ import {
   ACCEPTANCE_MODE_AUTO,
 } from "@/lib/delivery/provider-acceptance";
 import { getDeliveryAlignmentFlags } from "@/lib/delivery/delivery-alignment-flags";
+import { normalizeCountryCode } from "@/lib/gamification/country-code";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,8 @@ export async function GET(req: NextRequest) {
         id: true,
         title: true,
         sellerId: true,
+        pickupLat: true,
+        pickupLng: true,
         seller: {
           select: {
             lat: true,
@@ -42,7 +45,9 @@ export async function GET(req: NextRequest) {
               select: {
                 name: true,
                 place: true,
-                country: true
+                country: true,
+                lat: true,
+                lng: true,
               }
             }
           }
@@ -50,12 +55,17 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    if (!product || !product.seller.lat || !product.seller.lng) {
-      return NextResponse.json({ error: 'Product or seller location not found' }, { status: 404 });
+    const pickup = resolveDeliveryPickupCoords(product);
+    if (!product || !pickup) {
+      return NextResponse.json(
+        { error: 'Product or seller location not found', code: 'DELIVERY_ROUTE_UNAVAILABLE' },
+        { status: 404 },
+      );
     }
 
     // Get seller's country from product data
-    const sellerCountry = product.seller.User?.country || 'NL';
+    const sellerCountry =
+      normalizeCountryCode(product.seller.User?.country) || 'NL';
 
     // Get all active delivery profiles from the same country/island
     const deliveryProfiles = await prisma.deliveryProfile.findMany({
@@ -110,6 +120,7 @@ export async function GET(req: NextRequest) {
             place: true,
             profileImage: true,
             dateOfBirth: true,
+            country: true,
           }
         }
       }
@@ -152,7 +163,7 @@ export async function GET(req: NextRequest) {
         // Calculate route distance from delivery person to seller (pickup location)
         const routeToSeller = await getRouteDistance(
           { lat: delivererLat, lng: delivererLng },
-          { lat: product.seller.lat!, lng: product.seller.lng! },
+          { lat: pickup.lat, lng: pickup.lng },
           'driving'
         );
         const distanceToSeller = 'distance' in routeToSeller 
@@ -160,8 +171,8 @@ export async function GET(req: NextRequest) {
           : Math.round(calculateDistance(
               delivererLat,
               delivererLng,
-              product.seller.lat!,
-              product.seller.lng!
+              pickup.lat,
+              pickup.lng
             ) * 10) / 10;
 
         // Calculate distance from delivery person to buyer (delivery location)
@@ -170,15 +181,15 @@ export async function GET(req: NextRequest) {
         if (buyerLat && buyerLng) {
           // Route distance from seller to buyer (total delivery route)
           const routeSellerToBuyer = await getRouteDistance(
-            { lat: product.seller.lat!, lng: product.seller.lng! },
+            { lat: pickup.lat, lng: pickup.lng },
             { lat: buyerLat, lng: buyerLng },
             'driving'
           );
           distanceToBuyer = 'distance' in routeSellerToBuyer
             ? Math.round(routeSellerToBuyer.distance * 10) / 10
             : Math.round(calculateDistance(
-                product.seller.lat!,
-                product.seller.lng!,
+                pickup.lat,
+                pickup.lng,
                 buyerLat,
                 buyerLng
               ) * 10) / 10;
@@ -222,7 +233,11 @@ export async function GET(req: NextRequest) {
           // Distance is less important since islands are small
           return delivery.distanceToSeller <= 50; // Max 50km on same island
         } else {
-          // For other countries: deliverer must be within radius of BOTH seller and buyer
+          // National coverage: same-country only (already filtered); radius not required.
+          if (delivery.nationalCoverage) {
+            return true;
+          }
+          // Local: deliverer must be within radius of BOTH seller and buyer
           const withinRadiusOfSeller = delivery.distanceToSeller <= delivery.deliveryRadius;
           const withinRadiusOfBuyer = buyerLat && buyerLng 
             ? delivery.distanceFromDelivererToBuyer <= delivery.deliveryRadius 
@@ -257,8 +272,7 @@ export async function GET(req: NextRequest) {
         seller: {
           name: product.seller.User?.name,
           place: product.seller.User?.place,
-          lat: product.seller.lat,
-          lng: product.seller.lng,
+          // Phase 5.7 — exact pickup coords are not public; distances remain.
           country: sellerCountry
         }
       },
@@ -287,6 +301,10 @@ export async function GET(req: NextRequest) {
               nationalCoverage: delivery.nationalCoverage,
             },
             routeDistanceKm: routeDistance,
+            pickupCountryCode: sellerCountry,
+            providerCountryCode:
+              normalizeCountryCode(delivery.user?.country) || sellerCountry,
+            dropoffCountryCode: sellerCountry,
           });
           if (quote.ok) {
             calculatedDeliveryPrice = quote.deliveryFeeCents;

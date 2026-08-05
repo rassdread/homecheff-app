@@ -1,5 +1,7 @@
 /**
  * Phase 3 — targeted booking requests (manual or auto-confirmed).
+ * Phase 5.7 — route distance and fee are recomputed server-side when
+ * productId + buyer coords exist; client values are not trusted.
  */
 
 import type { PrismaClient } from '@prisma/client';
@@ -11,6 +13,10 @@ import {
   validateProviderAutoConfirm,
 } from '@/lib/delivery/provider-acceptance';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
+import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
+import { getRouteDistance } from '@/lib/google-maps-distance';
+import { normalizeCountryCode } from '@/lib/gamification/country-code';
 
 export async function expireStaleBookingRequests(
   prisma: PrismaClient,
@@ -27,6 +33,120 @@ export async function expireStaleBookingRequests(
   });
 }
 
+async function resolveAuthoritativeQuote(
+  prisma: PrismaClient,
+  input: {
+    productId?: string | null;
+    buyerLat?: number | null;
+    buyerLng?: number | null;
+    profile: {
+      pricingEnabled: boolean;
+      baseFeeCents: number | null;
+      pricePerKmCents: number | null;
+      minimumFeeCents: number | null;
+      freeDeliveryRadiusKm: number | null;
+      maxDistance: number;
+      currency: string | null;
+      nationalCoverage: boolean;
+      user?: { country?: string | null } | null;
+    };
+  }
+): Promise<
+  | { ok: true; routeDistanceKm: number; quotedFeeCents: number }
+  | { ok: false; status: number; code: string; error: string }
+  | { ok: true; routeDistanceKm: null; quotedFeeCents: null }
+> {
+  const flags = getDeliveryAlignmentFlags();
+  if (
+    !input.productId ||
+    input.buyerLat == null ||
+    input.buyerLng == null ||
+    !Number.isFinite(input.buyerLat) ||
+    !Number.isFinite(input.buyerLng)
+  ) {
+    // Soft path (manual without full route yet) — no fee lock.
+    return { ok: true, routeDistanceKm: null, quotedFeeCents: null };
+  }
+
+  const product = await prisma.product.findUnique({
+    where: { id: input.productId },
+    select: {
+      pickupLat: true,
+      pickupLng: true,
+      seller: {
+        select: {
+          lat: true,
+          lng: true,
+          User: { select: { lat: true, lng: true, country: true } },
+        },
+      },
+    },
+  });
+
+  const pickup = resolveDeliveryPickupCoords(product);
+  if (!pickup) {
+    return {
+      ok: false,
+      status: 422,
+      code: 'DELIVERY_ROUTE_UNAVAILABLE',
+      error: 'Ophaallocatie van de verkoper ontbreekt.',
+    };
+  }
+
+  const routeResult = await getRouteDistance(
+    { lat: pickup.lat, lng: pickup.lng },
+    { lat: input.buyerLat, lng: input.buyerLng },
+    'driving'
+  );
+
+  if (!('distance' in routeResult)) {
+    return {
+      ok: false,
+      status: 422,
+      code: 'DELIVERY_ROUTE_UNAVAILABLE',
+      error: 'Routeafstand ontbreekt; prijs kan niet worden berekend.',
+    };
+  }
+
+  const routeDistanceKm = Math.round(routeResult.distance * 10) / 10;
+  const pickupCc = normalizeCountryCode(product?.seller?.User?.country);
+  const providerCc = normalizeCountryCode(input.profile.user?.country) || pickupCc;
+
+  if (flags.providerPricingEnabled) {
+    const quote = calculateProviderDeliveryPrice({
+      pricing: {
+        pricingEnabled: input.profile.pricingEnabled,
+        baseFeeCents: input.profile.baseFeeCents,
+        pricePerKmCents: input.profile.pricePerKmCents,
+        minimumFeeCents: input.profile.minimumFeeCents,
+        freeDeliveryRadiusKm: input.profile.freeDeliveryRadiusKm,
+        maxDistanceKm: input.profile.maxDistance,
+        currency: input.profile.currency,
+        nationalCoverage: input.profile.nationalCoverage,
+      },
+      routeDistanceKm,
+      pickupCountryCode: pickupCc,
+      dropoffCountryCode: pickupCc,
+      providerCountryCode: providerCc,
+    });
+    if (!quote.ok) {
+      return {
+        ok: false,
+        status: quote.code === 'DELIVERY_OUT_OF_RADIUS' ? 422 : 400,
+        code: quote.code,
+        error: quote.error,
+      };
+    }
+    return {
+      ok: true,
+      routeDistanceKm: quote.routeDistanceKm,
+      quotedFeeCents: quote.deliveryFeeCents,
+    };
+  }
+
+  return { ok: true, routeDistanceKm, quotedFeeCents: null };
+}
+
 export async function createDeliveryBookingRequest(
   prisma: PrismaClient,
   input: {
@@ -35,7 +155,9 @@ export async function createDeliveryBookingRequest(
     productId?: string | null;
     buyerLat?: number | null;
     buyerLng?: number | null;
+    /** Ignored when server can recompute (Phase 5.7). */
     routeDistanceKm?: number | null;
+    /** Ignored when server can recompute (Phase 5.7). */
     quotedFeeCents?: number | null;
     notes?: string | null;
   }
@@ -43,7 +165,7 @@ export async function createDeliveryBookingRequest(
   const profile = await prisma.deliveryProfile.findUnique({
     where: { id: input.deliveryProfileId },
     include: {
-      user: { select: { id: true, name: true, dateOfBirth: true } },
+      user: { select: { id: true, name: true, dateOfBirth: true, country: true } },
     },
   });
   if (!profile) {
@@ -55,7 +177,48 @@ export async function createDeliveryBookingRequest(
     };
   }
 
+  const authoritative = await resolveAuthoritativeQuote(prisma, {
+    productId: input.productId,
+    buyerLat: input.buyerLat,
+    buyerLng: input.buyerLng,
+    profile,
+  });
+  if (!authoritative.ok) {
+    return {
+      ok: false as const,
+      status: authoritative.status,
+      code: authoritative.code,
+      error: authoritative.error,
+    };
+  }
+
+  const routeDistanceKm =
+    authoritative.routeDistanceKm ?? input.routeDistanceKm ?? null;
+  // Server-recomputed route → never trust client fee. Soft path may keep client hint.
+  const quotedFeeCents =
+    authoritative.quotedFeeCents != null
+      ? authoritative.quotedFeeCents
+      : authoritative.routeDistanceKm != null
+        ? null
+        : input.quotedFeeCents ?? null;
+
   const flags = getDeliveryAlignmentFlags();
+  if (
+    input.productId &&
+    input.buyerLat != null &&
+    input.buyerLng != null &&
+    flags.providerPricingEnabled &&
+    authoritative.routeDistanceKm != null &&
+    quotedFeeCents == null
+  ) {
+    return {
+      ok: false as const,
+      status: 422,
+      code: 'DELIVERY_ROUTE_UNAVAILABLE',
+      error: 'Bezorgprijs kon niet worden berekend.',
+    };
+  }
+
   const activeCount = await prisma.deliveryOrder.count({
     where: {
       deliveryProfileId: profile.id,
@@ -93,7 +256,7 @@ export async function createDeliveryBookingRequest(
       dateOfBirth: profile.user?.dateOfBirth,
     },
     {
-      routeDistanceKm: input.routeDistanceKm,
+      routeDistanceKm,
       activeDeliveryCount: activeCount,
       requirePricingEnabled: flags.providerPricingEnabled,
     }
@@ -121,8 +284,8 @@ export async function createDeliveryBookingRequest(
         status: 'AUTO_CONFIRMED',
         acceptanceModeSnapshot: ACCEPTANCE_MODE_AUTO,
         expiresAt,
-        quotedFeeCents: input.quotedFeeCents ?? null,
-        routeDistanceKm: input.routeDistanceKm ?? null,
+        quotedFeeCents,
+        routeDistanceKm,
         buyerLat: input.buyerLat ?? null,
         buyerLng: input.buyerLng ?? null,
         notes: input.notes ?? null,
@@ -147,8 +310,8 @@ export async function createDeliveryBookingRequest(
           validation.estimatedPickupDelayMinutes +
           30,
         status: 'CONFIRMED',
-        earningsCents: input.quotedFeeCents
-          ? Math.round(input.quotedFeeCents * 0.88)
+        earningsCents: quotedFeeCents
+          ? Math.round(quotedFeeCents * 0.88)
           : null,
         updatedAt: new Date(),
       },
@@ -180,8 +343,8 @@ export async function createDeliveryBookingRequest(
       status: 'PENDING',
       acceptanceModeSnapshot: ACCEPTANCE_MODE_MANUAL,
       expiresAt,
-      quotedFeeCents: input.quotedFeeCents ?? null,
-      routeDistanceKm: input.routeDistanceKm ?? null,
+      quotedFeeCents,
+      routeDistanceKm,
       buyerLat: input.buyerLat ?? null,
       buyerLng: input.buyerLng ?? null,
       notes: input.notes ?? null,

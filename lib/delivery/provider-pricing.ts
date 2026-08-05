@@ -203,6 +203,10 @@ export type ProviderQuoteErr = {
 export function calculateProviderDeliveryPrice(params: {
   pricing: ProviderPricingInput;
   routeDistanceKm: number | null | undefined;
+  /** Phase 5.7 — nationalCoverage is same-country only, never global. */
+  pickupCountryCode?: string | null;
+  providerCountryCode?: string | null;
+  dropoffCountryCode?: string | null;
 }): ProviderQuoteOk | ProviderQuoteErr {
   if (
     params.routeDistanceKm == null ||
@@ -232,6 +236,26 @@ export function calculateProviderDeliveryPrice(params: {
 
   const routeDistanceKm =
     Math.round(params.routeDistanceKm * 10) / 10;
+
+  const norm = (c: string | null | undefined) =>
+    (c || '').trim().toUpperCase() || null;
+  const pickupCc = norm(params.pickupCountryCode);
+  const providerCc = norm(params.providerCountryCode) || pickupCc;
+  const dropoffCc = norm(params.dropoffCountryCode) || pickupCc;
+  const sameCountry =
+    !pickupCc ||
+    !dropoffCc ||
+    (pickupCc === dropoffCc && (!providerCc || providerCc === pickupCc));
+
+  // nationalCoverage = national within one country — not cross-border / global.
+  if (nationalCoverage && !sameCountry) {
+    return {
+      ok: false,
+      code: 'DELIVERY_OUT_OF_RADIUS',
+      error:
+        'Deze aanbieder bezorgt niet over landsgrenzen. Kies een lokale aanbieder of verzending.',
+    };
+  }
 
   if (!nationalCoverage && routeDistanceKm > maxDistanceKm) {
     return {

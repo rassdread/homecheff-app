@@ -290,9 +290,21 @@ export default function DelivererSelector({
                       )}
                     </div>
 
-                    <div className="mt-2 text-xs text-gray-500">
-                      Afstand: {deliverer.totalDeliveryDistance?.toFixed(1) ?? '—'} km
-                      {deliverer.verification ? ' · Geverifieerd' : ''}
+                    <div className="mt-2 text-xs text-gray-500 space-y-0.5">
+                      <div>
+                        Route ophalen→bezorgen:{' '}
+                        {typeof deliverer.distanceToBuyer === 'number' &&
+                        deliverer.distanceToBuyer > 0
+                          ? `${deliverer.distanceToBuyer.toFixed(1)} km`
+                          : '—'}
+                      </div>
+                      <div>
+                        Bezorger→ophalen:{' '}
+                        {typeof deliverer.distanceToSeller === 'number'
+                          ? `${deliverer.distanceToSeller.toFixed(1)} km`
+                          : '—'}
+                        {deliverer.verification ? ' · Geverifieerd' : ''}
+                      </div>
                     </div>
                   </div>
                 </div>

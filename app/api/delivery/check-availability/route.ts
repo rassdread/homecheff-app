@@ -5,12 +5,22 @@ export const dynamic = 'force-dynamic';
 import { prisma } from '@/lib/prisma';
 import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance } from '@/lib/google-maps-distance';
+import { normalizeCountryCode } from '@/lib/gamification/country-code';
+import { calculateDistance } from '@/lib/geocoding';
 import { delivererMatchingWhere } from '@/lib/delivery/delivery-eligibility';
 import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
 
 export async function POST(req: NextRequest) {
   try {
-    const { lat, lng, deliveryDate, deliveryTime, sellerLat, sellerLng } = await req.json();
+    const {
+      lat,
+      lng,
+      deliveryDate,
+      deliveryTime,
+      sellerLat,
+      sellerLng,
+      sellerCountry,
+    } = await req.json();
 
     if (!lat || !lng) {
       return NextResponse.json({ 
@@ -18,18 +28,24 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    const countryFilter = sellerCountry
+      ? String(sellerCountry).trim().toUpperCase()
+      : null;
+
     // Find active delivery profiles with GPS coordinates
     const availableProfiles = await prisma.deliveryProfile.findMany({
       where: {
         ...delivererMatchingWhere(),
         user: {
           lat: { not: null },
-          lng: { not: null }
+          lng: { not: null },
+          ...(countryFilter ? { country: countryFilter } : {}),
         }
       },
       select: {
         id: true,
         maxDistance: true,
+        nationalCoverage: true,
         gpsTrackingEnabled: true,
         currentLat: true,
         currentLng: true,
@@ -44,7 +60,8 @@ export async function POST(req: NextRequest) {
             id: true,
             name: true,
             lat: true,
-            lng: true
+            lng: true,
+            country: true,
           }
         }
       }
@@ -93,6 +110,10 @@ export async function POST(req: NextRequest) {
     const profilesInRange = profilesWithDistances.filter(
       (profile): profile is NonNullable<typeof profile> => {
         if (!profile) return false;
+        if (profile.nationalCoverage) {
+          // National = same-country only (already filtered by sellerCountry when provided).
+          return true;
+        }
         if (sellerLat && sellerLng) {
           return (
             profile.distanceToSeller <= profile.maxDistance &&

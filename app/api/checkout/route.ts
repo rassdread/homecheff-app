@@ -31,6 +31,8 @@ import {
 import {
   expireStaleBookingRequests,
 } from '@/lib/delivery/booking-request-service';
+import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
+import { normalizeCountryCode } from '@/lib/gamification/country-code';
 
 const prisma = new PrismaClient();
 
@@ -477,7 +479,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (coordinates) {
-        const buyerCountryCode = country || 'NL';
+        const buyerCountryCode = normalizeCountryCode(country) || 'NL';
         
         let totalDistance = 0;
         let isInternationalDelivery = false;
@@ -486,15 +488,17 @@ export async function POST(req: NextRequest) {
         
         for (const item of items) {
           const product = products.find(p => p.id === item.productId);
-          if (product?.seller?.User?.lat && product?.seller?.User?.lng) {
-            sellerCountry = product.seller.User.country || 'NL';
+          const pickup = resolveDeliveryPickupCoords(product);
+          if (pickup) {
+            sellerCountry =
+              normalizeCountryCode(product?.seller?.User?.country) || 'NL';
             
             if (sellerCountry !== buyerCountryCode) {
               isInternationalDelivery = true;
             }
             
             const routeResult = await getRouteDistance(
-              { lat: product.seller.User.lat, lng: product.seller.User.lng },
+              { lat: pickup.lat, lng: pickup.lng },
               { lat: coordinates.lat, lng: coordinates.lng },
               'driving'
             );
@@ -598,6 +602,9 @@ export async function POST(req: NextRequest) {
               nationalCoverage: profile.nationalCoverage,
             },
             routeDistanceKm: totalDistance,
+            pickupCountryCode: sellerCountry,
+            dropoffCountryCode: buyerCountryCode,
+            providerCountryCode: sellerCountry,
           });
 
           if (!quote.ok) {

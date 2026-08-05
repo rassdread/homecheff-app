@@ -6,6 +6,8 @@ import { PrismaClient } from '@prisma/client';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
 import { normalizeFulfillmentInput } from '@/lib/delivery/delivery-fulfillment-vocabulary';
+import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
+import { normalizeCountryCode } from '@/lib/gamification/country-code';
 
 const prisma = new PrismaClient();
 
@@ -15,6 +17,7 @@ export const dynamic = 'force-dynamic';
  * Calculate delivery fee based on coordinates and cart items.
  * Phase 2: when DELIVERY_PROVIDER_PRICING_ENABLED and LOCAL_PROVIDER,
  * price is read only from DeliveryProfile (no platform-constant mix).
+ * Phase 5.7: pickup = listing pickup → SellerProfile → User (not browse location).
  */
 export async function POST(req: NextRequest) {
   try {
@@ -64,9 +67,14 @@ export async function POST(req: NextRequest) {
 
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
-      include: {
+      select: {
+        id: true,
+        pickupLat: true,
+        pickupLng: true,
         seller: {
-          include: {
+          select: {
+            lat: true,
+            lng: true,
             User: {
               select: {
                 lat: true,
@@ -83,7 +91,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Products not found' }, { status: 404 });
     }
 
-    const buyerCountryCode = country || 'NL';
+    const buyerCountryCode = normalizeCountryCode(country) || 'NL';
 
     let totalDistance = 0;
     let isInternationalDelivery = false;
@@ -92,15 +100,17 @@ export async function POST(req: NextRequest) {
 
     for (const item of items) {
       const product = products.find((p) => p.id === item.productId);
-      if (product?.seller?.User?.lat && product?.seller?.User?.lng) {
-        sellerCountry = product.seller.User.country || 'NL';
+      const pickup = resolveDeliveryPickupCoords(product);
+      if (pickup) {
+        sellerCountry =
+          normalizeCountryCode(product?.seller?.User?.country) || 'NL';
 
         if (sellerCountry !== buyerCountryCode) {
           isInternationalDelivery = true;
         }
 
         const routeResult = await getRouteDistance(
-          { lat: product.seller.User.lat, lng: product.seller.User.lng },
+          { lat: pickup.lat, lng: pickup.lng },
           { lat: coordinates.lat, lng: coordinates.lng },
           'driving'
         );
@@ -173,6 +183,9 @@ export async function POST(req: NextRequest) {
           nationalCoverage: profile.nationalCoverage,
         },
         routeDistanceKm: totalDistance,
+        pickupCountryCode: sellerCountry,
+        dropoffCountryCode: buyerCountryCode,
+        providerCountryCode: sellerCountry,
       });
 
       if (!quote.ok) {

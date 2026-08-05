@@ -26,6 +26,12 @@ export type SellerCoordsInput = {
   User?: { lat?: number | null; lng?: number | null } | null;
 };
 
+export type DeliveryPickupProductInput = {
+  pickupLat?: number | null;
+  pickupLng?: number | null;
+  seller?: SellerCoordsInput | null;
+};
+
 /**
  * Seller anchor: SellerProfile.lat/lng, fallback User.lat/lng (checkout/webhook legacy).
  */
@@ -44,6 +50,25 @@ export function resolveSellerCoords(
     return null;
   }
   return { lat, lng };
+}
+
+/**
+ * Contractual delivery pickup: listing pickup coords → SellerProfile → User.
+ * Must be used by match-deliverers, fee, checkout, and booking (not browse location).
+ */
+export function resolveDeliveryPickupCoords(
+  product: DeliveryPickupProductInput | null | undefined
+): Coords | null {
+  if (!product) return null;
+  if (
+    product.pickupLat != null &&
+    product.pickupLng != null &&
+    Number.isFinite(product.pickupLat) &&
+    Number.isFinite(product.pickupLng)
+  ) {
+    return { lat: product.pickupLat, lng: product.pickupLng };
+  }
+  return resolveSellerCoords(product.seller ?? null);
 }
 
 function isGpsFresh(lastGpsUpdate: Date | null, nowMs = Date.now()): boolean {

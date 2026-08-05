@@ -4,6 +4,11 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Phase 5.7 — Live courier GPS for matching.
+ * Writes DeliveryProfile.current* + lastGpsUpdate only.
+ * Does NOT overwrite User.lat/lng (profile/home identity).
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -18,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: userEmail },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
@@ -26,44 +31,38 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { lat, lng } = body;
+    const lat = Number(body.lat);
+    const lng = Number(body.lng);
 
-    if (!lat || !lng) {
-      return NextResponse.json({ error: 'Latitude and longitude are required' }, { status: 400 });
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return NextResponse.json(
+        { error: 'Latitude and longitude are required' },
+        { status: 400 },
+      );
     }
 
-    // Update user's current GPS location
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        lat: lat,
-        lng: lng,
-        lastLocationUpdate: new Date()
-      }
-    });
-
-    // Also update delivery profile's last location and enable GPS tracking
+    const now = new Date();
     await prisma.deliveryProfile.update({
       where: { userId: user.id },
       data: {
         currentLat: lat,
         currentLng: lng,
-        lastLocationUpdate: new Date(),
-        gpsTrackingEnabled: true // Enable GPS tracking when location is updated
-      }
+        lastLocationUpdate: now,
+        lastGpsUpdate: now,
+        gpsTrackingEnabled: true,
+      },
     });
+
     return NextResponse.json({
       success: true,
       location: { lat, lng },
-      message: 'GPS locatie bijgewerkt'
+      message: 'GPS locatie bijgewerkt',
     });
-
   } catch (error) {
     console.error('Error updating GPS location:', error);
     return NextResponse.json(
       { error: 'Failed to update GPS location' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
