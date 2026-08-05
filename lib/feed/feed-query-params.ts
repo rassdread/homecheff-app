@@ -16,7 +16,13 @@ export type GeoFeedApiParamsInput = {
   lat?: number | null;
   lng?: number | null;
   place?: string;
-  locationSource?: 'gps' | 'manual' | 'profile' | 'ip' | null;
+  locationSource?: 'gps' | 'manual' | 'profile' | 'ip' | 'country' | null;
+  /** ISO 3166-1 alpha-2 — country boundary mode or point consistency guard. */
+  countryCode?: string | null;
+  /** Optional admin region code when supported. */
+  regionCode?: string | null;
+  /** point | country | region | global */
+  locationMode?: 'point' | 'country' | 'region' | 'global' | null;
   /** Comma-separated ListingKind filter — no ranking impact. */
   listingKind?: string | null;
   listingIntent?: 'OFFER' | 'REQUEST' | null;
@@ -35,8 +41,35 @@ export function buildGeoFeedApiParams(
   const params = new URLSearchParams();
   const nearby = scopeUsesRadiusFilter(input.scope);
 
+  const mode = input.locationMode ?? null;
+  const countryCode = input.countryCode?.trim().toUpperCase() || null;
+  const regionCode = input.regionCode?.trim() || null;
+
+  // Country/region boundary mode: no fake centroid radius.
+  if (mode === 'country' || mode === 'region') {
+    params.set('radius', '0');
+    params.set('scope', input.scope === 'nearby' ? 'international' : input.scope);
+    params.set('locationMode', mode);
+    if (countryCode) params.set('countryCode', countryCode);
+    if (regionCode) params.set('regionCode', regionCode);
+    if (input.q?.trim()) params.set('q', input.q.trim());
+    if (input.listingKind?.trim()) params.set('listingKind', input.listingKind.trim());
+    if (input.listingIntent) params.set('listingIntent', input.listingIntent);
+    if (input.category && input.category !== 'all') {
+      params.set('vertical', input.category);
+    }
+    const take = pagination?.take ?? FEED_FIRST_PAGE_TAKE;
+    const skip = pagination?.skip ?? 0;
+    params.set('take', String(take));
+    if (skip > 0) params.set('skip', String(skip));
+    return params;
+  }
+
   params.set('radius', nearby ? String(input.radius) : '0');
   params.set('scope', input.scope);
+  if (mode) params.set('locationMode', mode);
+  if (countryCode) params.set('countryCode', countryCode);
+  if (regionCode) params.set('regionCode', regionCode);
 
   if (nearby) {
     if (input.locationSource === 'manual' && input.place?.trim()) {

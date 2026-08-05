@@ -22,8 +22,25 @@ export type NearbyLocationStatus =
 export function nearbyHasValidViewerLocation(input: {
   appliedPlace?: string | null;
   feedCoords?: { lat: number; lng: number } | null;
+  /** Phase 5.6 — country/region boundary mode counts as located. */
+  countryCode?: string | null;
+  locationMode?: string | null;
 }): boolean {
   if (input.appliedPlace?.trim()) return true;
+  if (
+    input.countryCode?.trim() &&
+    (input.locationMode === 'country' ||
+      input.locationMode === 'region' ||
+      !input.locationMode)
+  ) {
+    // countryCode alone is enough for boundary mode; point mode still needs coords/place
+    if (input.locationMode === 'country' || input.locationMode === 'region') {
+      return true;
+    }
+  }
+  if (input.locationMode === 'country' || input.locationMode === 'region') {
+    return Boolean(input.countryCode?.trim());
+  }
   const c = input.feedCoords;
   if (
     c &&
@@ -35,11 +52,13 @@ export function nearbyHasValidViewerLocation(input: {
   return false;
 }
 
-/** Client/API: Nearby selected but no place and no coords. */
+/** Client/API: Nearby selected but no place, coords, or country boundary. */
 export function isNearbyMissingLocation(input: {
   scope: string;
   appliedPlace?: string | null;
   feedCoords?: { lat: number; lng: number } | null;
+  countryCode?: string | null;
+  locationMode?: string | null;
 }): boolean {
   if (input.scope !== 'nearby') return false;
   return !nearbyHasValidViewerLocation(input);

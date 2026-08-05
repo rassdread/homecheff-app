@@ -15,6 +15,10 @@ import { cn } from "@/lib/utils";
 import {
   RADIUS_PRESET_OPTIONS,
 } from "@/lib/geo/local-discovery";
+import {
+  BROWSE_COUNTRY_OPTIONS,
+  countryOptionLabel,
+} from "@/lib/geo/structured-location";
 import type { FeedScope } from "@/lib/feed/feed-scope";
 import {
   FEED_SCOPE_INTERNATIONAL,
@@ -43,6 +47,10 @@ export type FeedSidebarFiltersProps = {
   showLocationHint: boolean;
   profileNeedsCoords: boolean;
   placeInputRef?: Ref<HTMLInputElement>;
+  /** Phase 5.6 — ISO country for browse filter / geocode bias. */
+  countryCode: string;
+  onCountryCodeChange: (code: string) => void;
+  locationMode: 'point' | 'country' | 'region' | 'global';
   scope: FeedScope;
   onScopeChange: (scope: FeedScope) => void;
   radius: number;
@@ -101,6 +109,9 @@ export default function FeedSidebarFilters({
   showLocationHint,
   profileNeedsCoords,
   placeInputRef,
+  countryCode,
+  onCountryCodeChange,
+  locationMode,
   scope,
   onScopeChange,
   radius,
@@ -195,6 +206,30 @@ export default function FeedSidebarFilters({
       <section>
         <p className={sectionLabelClass}>{t("feed.sidebarSectionLocation")}</p>
         <div className="space-y-2">
+          <label className="block">
+            <span className="sr-only">{t("feed.countryLabel")}</span>
+            <select
+              value={countryCode || ""}
+              onChange={(e) => onCountryCodeChange(e.target.value)}
+              className={inputClass}
+              aria-label={t("feed.countryLabel")}
+              data-testid="feed-country-select"
+            >
+              <option value="">{t("feed.countryGlobalOption")}</option>
+              {BROWSE_COUNTRY_OPTIONS.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {countryOptionLabel(c.code)}
+                </option>
+              ))}
+            </select>
+          </label>
+          {locationMode === "country" && countryCode ? (
+            <p className="text-[11px] text-emerald-800 leading-snug rounded-lg border border-emerald-200/70 bg-emerald-50/80 px-2.5 py-1.5">
+              {t("feed.showingCountryBoundary", {
+                country: countryOptionLabel(countryCode),
+              })}
+            </p>
+          ) : null}
           {showLocationHint ? (
             <p className="text-[11px] text-gray-500 leading-snug">
               {t("feed.viewerLocationHint")}

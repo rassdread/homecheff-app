@@ -5716,7 +5716,11 @@
     "nativeExpandGeoFilters": "Location, search & more",
     "nativeCollapseGeoFilters": "Hide",
     "openMediaFullscreen": "Open media fullscreen",
-    "closeMediaViewer": "Close"
+    "closeMediaViewer": "Close",
+    "countryLabel": "Country",
+    "countryGlobalOption": "All countries (global)",
+    "showingCountryBoundary": "Showing offers in {country}",
+    "showingPointRadius": "Showing offers within {radius} km of {place}"
   },
   "privacySettingsPage": {
     "backToHome": "Back to Home",

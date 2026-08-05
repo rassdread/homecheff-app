@@ -261,8 +261,20 @@ async function handleFeedGet(
   let radius = toNumber(searchParams.get("radius"), FEED_RADIUS_DEFAULT_KM);
   const placeParam = searchParams.get("place")?.trim() || "";
   const feedScope = normalizeFeedScope(searchParams.get("scope"));
-  const place = scopeUsesRadiusFilter(feedScope) ? placeParam : "";
-  if (!scopeUsesRadiusFilter(feedScope)) {
+  const locationModeParam = (searchParams.get("locationMode") || "")
+    .trim()
+    .toLowerCase();
+  const { normalizeCountryCode } = await import(
+    "@/lib/gamification/country-code"
+  );
+  const countryCodeParam = normalizeCountryCode(
+    searchParams.get("countryCode"),
+  );
+  const regionCodeParam = searchParams.get("regionCode")?.trim() || null;
+  const isBoundaryMode =
+    locationModeParam === "country" || locationModeParam === "region";
+  const place = scopeUsesRadiusFilter(feedScope) && !isBoundaryMode ? placeParam : "";
+  if (!scopeUsesRadiusFilter(feedScope) || isBoundaryMode) {
     radius = 0;
   }
   const { take: feedTake, skip: feedSkip, isFirstPage } =
@@ -420,9 +432,10 @@ async function handleFeedGet(
 
   // Viewer priority: place text (nearby filter or national distance labels) → profile User
   let explicitPlaceGeocodeFailed = false;
-  if (placeParam && (!lat || !lng)) {
+  const geocodeCountry = countryCodeParam || "NL";
+  if (placeParam && (!lat || !lng) && !isBoundaryMode) {
     try {
-      const geocodeResult = await geocodePlaceQuery(placeParam, "NL");
+      const geocodeResult = await geocodePlaceQuery(placeParam, geocodeCountry);
       if (
         geocodeResult.lat &&
         geocodeResult.lng &&
@@ -438,7 +451,7 @@ async function handleFeedGet(
       console.warn("[feed] place geocode failed:", error);
       explicitPlaceGeocodeFailed = true;
     }
-  } else if ((!lat || !lng) && userId) {
+  } else if ((!lat || !lng) && userId && !isBoundaryMode) {
     const u = await prisma.user.findUnique({ where: { id: userId }, select: { lat: true, lng: true } });
     if (u?.lat != null && u?.lng != null) {
       lat = String(u.lat);
@@ -447,6 +460,7 @@ async function handleFeedGet(
   }
 
   let viewerGeo =
+    !isBoundaryMode &&
     lat &&
     lng &&
     Number.isFinite(Number(lat)) &&
@@ -456,22 +470,31 @@ async function handleFeedGet(
 
   // First-visit soft geo: IP headers when Nearby has no place/GPS (never empty the feed).
   // Skip when the caller sent an explicit place that failed to resolve.
+  // Skip in country/region boundary mode (no fake centroid).
   let ipApproxApplied = false;
+  let ipCountryCode: string | null = countryCodeParam;
   if (
     !viewerGeo &&
     feedScope === FEED_SCOPE_NEARBY &&
-    !explicitPlaceGeocodeFailed
+    !explicitPlaceGeocodeFailed &&
+    !isBoundaryMode
   ) {
     try {
       const { resolveIpApproxLocation } = await import(
         '@/lib/geo/ip-approx-location'
       );
       const approx = resolveIpApproxLocation(req.headers);
-      if (approx) {
+      if (approx?.lat != null && approx?.lng != null) {
         viewerGeo = { lat: approx.lat, lng: approx.lng };
         lat = String(approx.lat);
         lng = String(approx.lng);
         ipApproxApplied = true;
+        if (!ipCountryCode && approx.countryCode) {
+          ipCountryCode = approx.countryCode;
+        }
+      } else if (approx?.countryCode && !ipCountryCode) {
+        // Country-only IP → boundary filter without inventing a point.
+        ipCountryCode = approx.countryCode;
       }
     } catch {
       /* ignore */
@@ -964,13 +987,24 @@ async function handleFeedGet(
     }
   }
 
+  const boundaryCountryCode =
+    (isBoundaryMode && countryCodeParam) ||
+    (!viewerGeo && ipCountryCode && !isBoundaryMode ? ipCountryCode : null) ||
+    (isBoundaryMode ? countryCodeParam : null);
+
   const nearbyNeedsLocation =
     feedScope === FEED_SCOPE_NEARBY &&
     effectiveRadius > 0 &&
-    !viewerGeo;
+    !viewerGeo &&
+    !isBoundaryMode &&
+    !countryCodeParam;
 
   // Soft national fallback when Nearby has no viewer geo and IP headers missing.
-  const softNationalFallback = nearbyNeedsLocation;
+  // Do not force NL mainland when an explicit foreign country boundary is active
+  // or when IP country is known and non-NL.
+  const softNationalFallback =
+    nearbyNeedsLocation &&
+    (!ipCountryCode || ipCountryCode === "NL");
 
   const radiusModeForSort =
     feedScope === FEED_SCOPE_NEARBY && viewerGeo && effectiveRadius > 0
@@ -979,7 +1013,7 @@ async function handleFeedGet(
 
   let sortedPool = sortFeedItemsLocalFirst(allItems as Record<string, unknown>[], {
     viewerGeo,
-    radiusKm: softNationalFallback ? 0 : effectiveRadius,
+    radiusKm: softNationalFallback || isBoundaryMode ? 0 : effectiveRadius,
     radiusMode: radiusModeForSort,
     followedSellerUserIds,
     extractSellerUserId: (item) => extractFeedItemSellerUserId(item),
@@ -1012,6 +1046,41 @@ async function handleFeedGet(
         isMarketplaceSale: isMarketplaceSaleItem(record),
       });
     });
+  }
+
+  // Phase 5.6 — country / region boundary filter (not a centroid radius).
+  const activeCountryFilter =
+    countryCodeParam ||
+    (isBoundaryMode ? countryCodeParam : null) ||
+    (ipCountryCode && !viewerGeo && ipCountryCode !== "NL" ? ipCountryCode : null);
+
+  if (activeCountryFilter) {
+    const { countryMatchVariants, normalizeCountryCode: normCc } = await import(
+      "@/lib/gamification/country-code"
+    );
+    const variants = new Set(
+      countryMatchVariants(activeCountryFilter).map((v) => v.toUpperCase()),
+    );
+    variants.add(activeCountryFilter.toUpperCase());
+    sortedPool = sortedPool.filter((item) => {
+      const record = item as Record<string, unknown>;
+      const raw =
+        (item.countryCode as string | undefined) ||
+        (item.country as string | undefined) ||
+        ((item.User as { country?: string } | undefined)?.country) ||
+        ((item.seller as { User?: { country?: string } } | undefined)?.User
+          ?.country) ||
+        null;
+      const normalized = normCc(raw);
+      if (normalized && variants.has(normalized)) return true;
+      if (raw && variants.has(String(raw).trim().toUpperCase())) return true;
+      // Unknown country: keep in global/international without explicit country mode;
+      // in explicit country mode, exclude unknowns rather than mis-assigning NL.
+      if (isBoundaryMode || countryCodeParam) return false;
+      return true;
+    });
+    void regionCodeParam;
+    void boundaryCountryCode;
   }
 
   // International keeps worldwide results including NL (contract a).
@@ -1393,6 +1462,15 @@ async function handleFeedGet(
       radius: effectiveRadius,
       lat: lat ? Number(lat) : null,
       lng: lng ? Number(lng) : null,
+      countryCode: activeCountryFilter || countryCodeParam || null,
+      locationMode: isBoundaryMode
+        ? locationModeParam
+        : viewerGeo
+          ? "point"
+          : countryCodeParam
+            ? "country"
+            : null,
+      regionCode: regionCodeParam,
       listingKind: listingKindFilter.length ? listingKindFilter : null,
       listingIntent: searchFilters.listingIntent ?? null,
     },

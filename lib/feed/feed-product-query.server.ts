@@ -136,6 +136,7 @@ export const FEED_PRODUCT_SELECT: Prisma.ProductSelect = {
           lng: true,
           place: true,
           city: true,
+          country: true,
         },
       },
     },

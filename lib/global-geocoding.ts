@@ -6,8 +6,14 @@ export interface GeocodeResult {
   lng: number;
   formatted_address: string;
   country: string;
+  /** ISO 3166-1 alpha-2 when available. */
+  countryCode?: string;
   city: string;
   state?: string;
+  postalCode?: string;
+  placeId?: string;
+  /** Google result types — used to reject country-only hits for postcode queries. */
+  resultTypes?: string[];
   error?: string;
   source: 'PDOK' | 'GoogleMaps' | 'Manual';
 }
@@ -397,10 +403,13 @@ export async function geocodeWithGoogleMaps(
     // Build query: address, city, country (city optional for place/postcode-only lookups)
     const query = buildGeocodeQueryString(address, city, countryCode);
     
-    // Use region biasing for better results (e.g., 'nl' for Netherlands)
+    // Use region biasing + country component restriction when country known
     const region = countryCode.toLowerCase();
+    const components = countryCode
+      ? `&components=${encodeURIComponent(`country:${countryCode.toUpperCase()}`)}`
+      : '';
     
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&region=${region}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&region=${region}${components}&key=${apiKey}`;
     
     const response = await fetch(url);
 
@@ -475,6 +484,9 @@ export async function geocodeWithGoogleMaps(
     const streetNumberComponent = addressComponents.find((comp: any) => 
       comp.types.includes('street_number')
     );
+    const postalComponent = addressComponents.find((comp: any) =>
+      comp.types.includes('postal_code')
+    );
 
     // Build formatted address if not provided
     let formattedAddress = result.formatted_address;
@@ -482,13 +494,39 @@ export async function geocodeWithGoogleMaps(
       formattedAddress = `${streetComponent.long_name}${streetNumberComponent ? ' ' + streetNumberComponent.long_name : ''}, ${cityComponent?.long_name || city}`;
     }
 
+    const resultTypes: string[] = Array.isArray(result.types) ? result.types : [];
+    const looksLikePostcodeQuery = /\d/.test(address) && address.replace(/\s/g, '').length <= 12;
+    // Reject bare country / admin_area hits for postcode-like queries (no silent centroid).
+    if (
+      looksLikePostcodeQuery &&
+      resultTypes.length > 0 &&
+      resultTypes.every((t: string) =>
+        ['country', 'political', 'continent'].includes(t),
+      )
+    ) {
+      return {
+        lat: 0,
+        lng: 0,
+        formatted_address: '',
+        country: countryCode,
+        city: city,
+        source: 'GoogleMaps',
+        error: 'Postcode niet gevonden. Probeer een andere postcode of plaats.',
+        resultTypes,
+      };
+    }
+
     return {
       lat: location.lat,
       lng: location.lng,
       formatted_address: formattedAddress || `${address}, ${city}`,
-      country: countryComponent?.short_name || countryCode,
+      country: countryComponent?.long_name || countryCode,
+      countryCode: countryComponent?.short_name || countryCode,
       city: cityComponent?.long_name || city,
       state: stateComponent?.long_name,
+      postalCode: postalComponent?.long_name,
+      placeId: typeof result.place_id === 'string' ? result.place_id : undefined,
+      resultTypes,
       source: 'GoogleMaps'
     };
 

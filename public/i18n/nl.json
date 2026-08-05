@@ -6964,7 +6964,11 @@
     "nativeExpandGeoFilters": "Locatie, zoeken & meer",
     "nativeCollapseGeoFilters": "Verbergen",
     "openMediaFullscreen": "Media volledig scherm",
-    "closeMediaViewer": "Sluiten"
+    "closeMediaViewer": "Sluiten",
+    "countryLabel": "Land",
+    "countryGlobalOption": "Alle landen (wereldwijd)",
+    "showingCountryBoundary": "Aanbod in {country}",
+    "showingPointRadius": "Aanbod binnen {radius} km van {place}"
   },
   "affiliate": {
     "title": "HomeCheff Affiliate Programma",

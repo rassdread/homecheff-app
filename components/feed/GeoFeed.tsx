@@ -1123,8 +1123,12 @@ export default function GeoFeed({
     lng: number;
   } | null>(null);
   const [locationSource, setLocationSource] = useState<
-    "gps" | "manual" | "profile" | "ip" | null
+    "gps" | "manual" | "profile" | "ip" | "country" | null
   >(null);
+  const [browseCountryCode, setBrowseCountryCode] = useState<string>("");
+  const [browseLocationMode, setBrowseLocationMode] = useState<
+    "point" | "country" | "region" | "global"
+  >("global");
   const [ipLocationLabel, setIpLocationLabel] = useState<string | null>(null);
   const [locationBannerDismissed, setLocationBannerDismissed] = useState(false);
   const ipBootstrapDoneRef = useRef(false);
@@ -1309,20 +1313,30 @@ export default function GeoFeed({
     [items, effectiveViewerForDistance]
   );
 
-  const apiLocationSource = useMemo((): "gps" | "manual" | "profile" | "ip" | null => {
+  const apiLocationSource = useMemo(():
+    | "gps"
+    | "manual"
+    | "profile"
+    | "ip"
+    | "country"
+    | null => {
+    if (browseLocationMode === "country" && browseCountryCode) return "country";
     if (appliedPlace.trim()) return "manual";
     if (locationSource === "gps" && userLocation) return "gps";
     if (locationSource === "ip" && userLocation) return "ip";
+    if (locationSource === "country" && browseCountryCode) return "country";
     if (profileCoords && session?.user?.email) {
       if (locationSource === "profile" || locationSource === null) return "profile";
     }
-    return locationSource;
+    return locationSource === "country" ? "country" : locationSource;
   }, [
     appliedPlace,
     locationSource,
     userLocation,
     profileCoords,
     session?.user?.email,
+    browseLocationMode,
+    browseCountryCode,
   ]);
 
   const profileHasCoords =
@@ -1394,6 +1408,8 @@ export default function GeoFeed({
     scope: appliedScope,
     appliedPlace,
     feedCoords,
+    countryCode: browseCountryCode,
+    locationMode: browseLocationMode,
   });
 
   const locationBusy = locationLoading || locationAcquiring;
@@ -1406,7 +1422,8 @@ export default function GeoFeed({
     feedHydrated &&
     !appliedPlace.trim() &&
     locationSource !== "gps" &&
-    locationSource !== "manual";
+    locationSource !== "manual" &&
+    locationSource !== "country";
 
   /** @deprecated empty-state gate — kept false so feed always renders */
   const showNearbyLocationRequired = false;
@@ -1801,11 +1818,33 @@ export default function GeoFeed({
     const pref = loadLocationPreference();
     if (pref?.bannerDismissed) setLocationBannerDismissed(true);
 
+    if (pref?.countryCode) {
+      setBrowseCountryCode(pref.countryCode);
+    }
+    if (pref?.mode) {
+      setBrowseLocationMode(pref.mode);
+    }
+
+    if (pref?.source === "country" && pref.countryCode) {
+      ipBootstrapDoneRef.current = true;
+      setLocationSource("country");
+      setBrowseCountryCode(pref.countryCode);
+      setBrowseLocationMode("country");
+      setUserLocation(null);
+      setAppliedPlace("");
+      if (typeof pref.radiusKm === "number") {
+        setRadius(pref.radiusKm);
+        setAppliedRadius(pref.radiusKm);
+      }
+      return;
+    }
+
     if (pref?.source === "manual" && pref.place?.trim()) {
       ipBootstrapDoneRef.current = true;
       setPlace(pref.place);
       setAppliedPlace(pref.place);
       setLocationSource("manual");
+      setBrowseLocationMode("point");
       if (typeof pref.radiusKm === "number") {
         setRadius(pref.radiusKm);
         setAppliedRadius(pref.radiusKm);
@@ -1823,6 +1862,7 @@ export default function GeoFeed({
       ipBootstrapDoneRef.current = true;
       setUserLocation({ lat: pref.lat, lng: pref.lng });
       setLocationSource(pref.source === "gps" ? "gps" : "ip");
+      setBrowseLocationMode("point");
       if (pref.place) setIpLocationLabel(pref.place);
       if (typeof pref.radiusKm === "number") {
         setRadius(pref.radiusKm);
@@ -1841,10 +1881,12 @@ export default function GeoFeed({
         });
         if (!res.ok || cancelled) return;
         const data = (await res.json()) as {
-          lat?: number;
-          lng?: number;
+          lat?: number | null;
+          lng?: number | null;
           label?: string | null;
           city?: string | null;
+          countryCode?: string | null;
+          mode?: "point" | "country" | "global";
           source?: string;
         };
         if (
@@ -1852,8 +1894,34 @@ export default function GeoFeed({
           userLocation ||
           appliedPlace.trim() ||
           locationSource === "gps" ||
-          locationSource === "manual"
+          locationSource === "manual" ||
+          locationSource === "country"
         ) {
+          return;
+        }
+        if (data.countryCode) {
+          setBrowseCountryCode(data.countryCode);
+        }
+        if (data.mode === "country" && data.countryCode) {
+          setLocationSource("country");
+          setBrowseLocationMode("country");
+          setUserLocation(null);
+          saveLocationPreference({
+            place: data.label || data.city || null,
+            lat: null,
+            lng: null,
+            radiusKm: radius,
+            source: "country",
+            bannerDismissed: locationBannerDismissed,
+            countryCode: data.countryCode,
+            mode: "country",
+            precision: "country",
+            label: data.label || data.city || data.countryCode,
+          });
+          return;
+        }
+        if (data.mode === "global" || data.source === "none") {
+          setBrowseLocationMode("global");
           return;
         }
         if (
@@ -1867,14 +1935,19 @@ export default function GeoFeed({
         const label = data.label || data.city || null;
         setUserLocation({ lat: data.lat, lng: data.lng });
         setLocationSource("ip");
+        setBrowseLocationMode("point");
         setIpLocationLabel(label);
         saveLocationPreference({
           place: label,
           lat: data.lat,
           lng: data.lng,
           radiusKm: radius,
-          source: data.source === "fallback-nl" ? "national" : "ip",
+          source: "ip",
           bannerDismissed: locationBannerDismissed,
+          countryCode: data.countryCode ?? null,
+          mode: "point",
+          precision: "approx",
+          label,
         });
       } catch {
         /* soft national fetch covers this */
@@ -2089,7 +2162,12 @@ export default function GeoFeed({
     if (feedStartupBlocked) return;
 
     // Soft national fallback while waiting for IP/GPS/place — never blank the feed.
-    const softNationalFallback = nearbyNeedsLocation;
+    // Country boundary mode uses country filter — never invent NL mainland.
+    const softNationalFallback =
+      nearbyNeedsLocation &&
+      browseLocationMode !== "country" &&
+      browseLocationMode !== "region" &&
+      !browseCountryCode;
 
     setFeedHasMore(false);
     if (itemsRef.current.length > 0) {
@@ -2098,22 +2176,35 @@ export default function GeoFeed({
 
     const params = buildGeoFeedApiParams(
       {
-        scope: softNationalFallback ? FEED_SCOPE_NATIONAL : appliedScope,
-        radius: softNationalFallback ? 0 : appliedRadius,
+        scope: softNationalFallback
+          ? FEED_SCOPE_NATIONAL
+          : browseLocationMode === "country" || browseLocationMode === "region"
+            ? FEED_SCOPE_INTERNATIONAL
+            : appliedScope,
+        radius: softNationalFallback || browseLocationMode === "country"
+          ? 0
+          : appliedRadius,
         q: appliedQ,
         category: appliedCategory,
-        lat: softNationalFallback
+        lat: softNationalFallback || browseLocationMode === "country"
           ? null
           : (coordsForApiLabels?.lat ?? null),
-        lng: softNationalFallback
+        lng: softNationalFallback || browseLocationMode === "country"
           ? null
           : (coordsForApiLabels?.lng ?? null),
-        place: softNationalFallback ? "" : viewerPlaceForApi,
+        place:
+          softNationalFallback || browseLocationMode === "country"
+            ? ""
+            : viewerPlaceForApi,
         locationSource: softNationalFallback
           ? null
-          : appliedScope === FEED_SCOPE_NEARBY
-            ? apiLocationSource
-            : null,
+          : browseLocationMode === "country"
+            ? "country"
+            : appliedScope === FEED_SCOPE_NEARBY
+              ? apiLocationSource
+              : null,
+        countryCode: browseCountryCode || null,
+        locationMode: browseLocationMode === "global" ? null : browseLocationMode,
       },
       { take: FEED_FIRST_PAGE_TAKE, skip: 0 },
     );
@@ -2554,6 +2645,8 @@ export default function GeoFeed({
     viewerPlaceForApi,
     apiLocationSource,
     appliedCategory,
+    browseCountryCode,
+    browseLocationMode,
   ]);
 
   useEffect(() => {
@@ -2573,31 +2666,54 @@ export default function GeoFeed({
 
   const buildLoadMoreParams = useCallback(
     (skip: number) => {
-      const softNationalFallback = nearbyNeedsLocation;
+      const softNationalFallback =
+        nearbyNeedsLocation &&
+        browseLocationMode !== "country" &&
+        browseLocationMode !== "region" &&
+        !browseCountryCode;
       return buildGeoFeedApiParams(
         {
-          scope: softNationalFallback ? FEED_SCOPE_NATIONAL : appliedScope,
-          radius: softNationalFallback ? 0 : appliedRadius,
+          scope: softNationalFallback
+            ? FEED_SCOPE_NATIONAL
+            : browseLocationMode === "country" || browseLocationMode === "region"
+              ? FEED_SCOPE_INTERNATIONAL
+              : appliedScope,
+          radius:
+            softNationalFallback || browseLocationMode === "country"
+              ? 0
+              : appliedRadius,
           q: appliedQ,
           category: appliedCategory,
-          lat: softNationalFallback
-            ? null
-            : (coordsForApiLabels?.lat ?? null),
-          lng: softNationalFallback
-            ? null
-            : (coordsForApiLabels?.lng ?? null),
-          place: softNationalFallback ? "" : viewerPlaceForApi,
+          lat:
+            softNationalFallback || browseLocationMode === "country"
+              ? null
+              : (coordsForApiLabels?.lat ?? null),
+          lng:
+            softNationalFallback || browseLocationMode === "country"
+              ? null
+              : (coordsForApiLabels?.lng ?? null),
+          place:
+            softNationalFallback || browseLocationMode === "country"
+              ? ""
+              : viewerPlaceForApi,
           locationSource: softNationalFallback
             ? null
-            : appliedScope === FEED_SCOPE_NEARBY
-              ? apiLocationSource
-              : null,
+            : browseLocationMode === "country"
+              ? "country"
+              : appliedScope === FEED_SCOPE_NEARBY
+                ? apiLocationSource
+                : null,
+          countryCode: browseCountryCode || null,
+          locationMode:
+            browseLocationMode === "global" ? null : browseLocationMode,
         },
         { take: FEED_FIRST_PAGE_TAKE, skip },
       );
     },
     [
       nearbyNeedsLocation,
+      browseLocationMode,
+      browseCountryCode,
       appliedScope,
       appliedRadius,
       appliedQ,
@@ -3901,6 +4017,7 @@ export default function GeoFeed({
 
     if (trimmedPlace) {
       setLocationSource("manual");
+      setBrowseLocationMode("point");
       setUserLocation(null);
       setShowGpsError(false);
       saveLocationPreference({
@@ -3910,6 +4027,28 @@ export default function GeoFeed({
         radiusKm: radius,
         source: "manual",
         bannerDismissed: true,
+        countryCode: browseCountryCode || null,
+        mode: "point",
+        precision: "city",
+        label: trimmedPlace,
+      });
+      setLocationBannerDismissed(true);
+    } else if (browseCountryCode && !userLocation) {
+      setLocationSource("country");
+      setBrowseLocationMode("country");
+      setUserLocation(null);
+      setAppliedPlace("");
+      saveLocationPreference({
+        place: null,
+        lat: null,
+        lng: null,
+        radiusKm: radius,
+        source: "country",
+        bannerDismissed: true,
+        countryCode: browseCountryCode,
+        mode: "country",
+        precision: "country",
+        label: browseCountryCode,
       });
       setLocationBannerDismissed(true);
     } else if (userLocation && locationSource === "gps") {
@@ -3954,6 +4093,7 @@ export default function GeoFeed({
     profileCoords,
     ipLocationLabel,
     locationBannerDismissed,
+    browseCountryCode,
   ]);
 
   const clearViewerLocation = useCallback(() => {
@@ -3962,14 +4102,21 @@ export default function GeoFeed({
     setUserLocation(null);
     setAppliedPlace("");
     setShowGpsError(false);
+    if (browseCountryCode) {
+      setLocationSource("country");
+      setBrowseLocationMode("country");
+      setPlace("");
+      return;
+    }
     if (profileCoords) {
       setLocationSource("profile");
       setPlace(profilePlace);
     } else {
       setLocationSource(null);
       setPlace("");
+      setBrowseLocationMode("global");
     }
-  }, [profileCoords, profileLocation]);
+  }, [profileCoords, profileLocation, browseCountryCode]);
 
   /** Vertical chip = instant apply of the vertical axis (same state as the select; one intended refetch, no loop). */
   const selectVerticalChip = useCallback((slug: string) => {
@@ -4944,6 +5091,24 @@ export default function GeoFeed({
         onClearLocation={clearViewerLocation}
         showLocationHint={showViewerLocationHint}
         profileNeedsCoords={profileNeedsCoords}
+        countryCode={browseCountryCode}
+        onCountryCodeChange={(code) => {
+          setBrowseCountryCode(code);
+          if (code) {
+            setBrowseLocationMode(place.trim() ? "point" : "country");
+            if (!place.trim()) {
+              setUserLocation(null);
+              setAppliedPlace("");
+              setLocationSource("country");
+            }
+          } else {
+            setBrowseLocationMode(
+              userLocation || place.trim() ? "point" : "global",
+            );
+            if (locationSource === "country") setLocationSource(null);
+          }
+        }}
+        locationMode={browseLocationMode}
         appliedScope={appliedScope}
         onScopeChange={handleScopeChange}
         radius={radius}
@@ -4987,6 +5152,22 @@ export default function GeoFeed({
         onClearLocation={clearViewerLocation}
         showLocationHint={showViewerLocationHint}
         profileNeedsCoords={profileNeedsCoords}
+        countryCode={browseCountryCode}
+        onCountryCodeChange={(code) => {
+          setBrowseCountryCode(code);
+          if (code) {
+            setBrowseLocationMode(place.trim() ? "point" : "country");
+            if (!place.trim()) {
+              setUserLocation(null);
+              setAppliedPlace("");
+              setLocationSource("country");
+            }
+          } else {
+            setBrowseLocationMode(userLocation || place.trim() ? "point" : "global");
+            if (locationSource === "country") setLocationSource(null);
+          }
+        }}
+        locationMode={browseLocationMode}
         scope={appliedScope}
         onScopeChange={handleScopeChange}
         radius={radius}
@@ -5032,6 +5213,22 @@ export default function GeoFeed({
         onClearLocation={clearViewerLocation}
         showLocationHint={showViewerLocationHint}
         profileNeedsCoords={profileNeedsCoords}
+        countryCode={browseCountryCode}
+        onCountryCodeChange={(code) => {
+          setBrowseCountryCode(code);
+          if (code) {
+            setBrowseLocationMode(place.trim() ? "point" : "country");
+            if (!place.trim()) {
+              setUserLocation(null);
+              setAppliedPlace("");
+              setLocationSource("country");
+            }
+          } else {
+            setBrowseLocationMode(userLocation || place.trim() ? "point" : "global");
+            if (locationSource === "country") setLocationSource(null);
+          }
+        }}
+        locationMode={browseLocationMode}
         scope={appliedScope}
         onScopeChange={handleScopeChange}
         radius={radius}
@@ -5842,6 +6039,24 @@ export default function GeoFeed({
             onClearLocation={clearViewerLocation}
             showLocationHint={showViewerLocationHint}
             profileNeedsCoords={profileNeedsCoords}
+            countryCode={browseCountryCode}
+            onCountryCodeChange={(code) => {
+              setBrowseCountryCode(code);
+              if (code) {
+                setBrowseLocationMode(place.trim() ? "point" : "country");
+                if (!place.trim()) {
+                  setUserLocation(null);
+                  setAppliedPlace("");
+                  setLocationSource("country");
+                }
+              } else {
+                setBrowseLocationMode(
+                  userLocation || place.trim() ? "point" : "global",
+                );
+                if (locationSource === "country") setLocationSource(null);
+              }
+            }}
+            locationMode={browseLocationMode}
             scope={appliedScope}
             onScopeChange={handleScopeChange}
             radius={radius}

@@ -3,6 +3,10 @@
 import { useEffect, useRef, type Ref } from 'react';
 import { Loader2, MapPin, Search, X } from 'lucide-react';
 import { RADIUS_PRESET_OPTIONS } from '@/lib/geo/local-discovery';
+import {
+  BROWSE_COUNTRY_OPTIONS,
+  countryOptionLabel,
+} from '@/lib/geo/structured-location';
 import type { FeedScope } from '@/lib/feed/feed-scope';
 import {
   FEED_SCOPE_INTERNATIONAL,
@@ -30,6 +34,9 @@ type Props = {
   onClearLocation: () => void;
   showLocationHint: boolean;
   profileNeedsCoords: boolean;
+  countryCode: string;
+  onCountryCodeChange: (code: string) => void;
+  locationMode: 'point' | 'country' | 'region' | 'global';
   appliedScope: FeedScope;
   onScopeChange: (scope: FeedScope) => void;
   radius: number;
@@ -69,6 +76,9 @@ export default function FeedMobileFilterSheet({
   onClearLocation,
   showLocationHint,
   profileNeedsCoords,
+  countryCode,
+  onCountryCodeChange,
+  locationMode,
   appliedScope,
   onScopeChange,
   radius,
@@ -165,6 +175,32 @@ export default function FeedMobileFilterSheet({
               {t('feed.completeProfileLocationHint')}
             </p>
           ) : null}
+
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+              {t('feed.countryLabel')}
+            </label>
+            <select
+              value={countryCode || ''}
+              onChange={(e) => onCountryCodeChange(e.target.value)}
+              className={inputClass}
+              data-testid="feed-country-select-mobile"
+            >
+              <option value="">{t('feed.countryGlobalOption')}</option>
+              {BROWSE_COUNTRY_OPTIONS.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {countryOptionLabel(c.code)}
+                </option>
+              ))}
+            </select>
+            {locationMode === 'country' && countryCode ? (
+              <p className="mt-1.5 text-[11px] text-emerald-800">
+                {t('feed.showingCountryBoundary', {
+                  country: countryOptionLabel(countryCode),
+                })}
+              </p>
+            ) : null}
+          </div>
 
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">

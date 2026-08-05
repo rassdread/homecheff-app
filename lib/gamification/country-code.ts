@@ -77,6 +77,8 @@ export function normalizeCountryCode(input: string | null | undefined): string |
     CANADA: 'CA',
     AUSTRALIA: 'AU',
     'NEW ZEALAND': 'NZ',
+    SURINAME: 'SR',
+    SURINAM: 'SR',
     CURACAO: 'CW',
     CURAÇAO: 'CW',
     ARUBA: 'AW',
@@ -110,6 +112,11 @@ export function countryMatchVariants(iso: string): string[] {
     FR: ['FR', 'FRANCE', 'FRANKRIJK'],
     GB: ['GB', 'UK', 'UNITED KINGDOM', 'ENGLAND', 'GREAT BRITAIN'],
     US: ['US', 'USA', 'UNITED STATES'],
+    CA: ['CA', 'CANADA'],
+    SR: ['SR', 'SURINAME', 'SURINAM'],
+    CW: ['CW', 'CURACAO', 'CURAÇAO'],
+    AW: ['AW', 'ARUBA'],
+    SX: ['SX', 'SINT MAARTEN'],
   };
   return [...new Set(BY_ISO[cc] ?? [cc])].map((s) => s.toUpperCase());
 }

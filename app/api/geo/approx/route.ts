@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveIpApproxLocationOrNlFallback } from '@/lib/geo/ip-approx-location';
+import { resolveIpApproxLocationForBrowse } from '@/lib/geo/ip-approx-location';
+import { countryOptionLabel } from '@/lib/geo/structured-location';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * Approximate location for first-visit feed — no browser permission.
- * Uses edge geo headers; falls back to NL center when unavailable.
+ * International: never invents NL for non-NL / unknown visitors.
  */
 export async function GET(req: NextRequest) {
-  const approx = resolveIpApproxLocationOrNlFallback(req.headers);
+  const approx = resolveIpApproxLocationForBrowse(req.headers);
   const label =
     approx.city ||
     approx.region ||
-    (approx.country === 'NL' ? 'Nederland' : approx.country) ||
-    null;
+    (approx.countryCode
+      ? countryOptionLabel(approx.countryCode).replace(/\s*\([A-Z]{2}\)\s*$/, '')
+      : null) ||
+    (approx.mode === 'global' ? 'Global' : null);
 
   return NextResponse.json(
     {
@@ -22,8 +25,10 @@ export async function GET(req: NextRequest) {
       city: approx.city,
       region: approx.region,
       country: approx.country,
+      countryCode: approx.countryCode,
       label,
       source: approx.source,
+      mode: approx.mode,
       precise: false,
     },
     {

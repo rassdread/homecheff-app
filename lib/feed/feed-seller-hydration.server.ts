@@ -17,6 +17,7 @@ export const FEED_SELLER_USER_SELECT = {
   lng: true,
   place: true,
   city: true,
+  country: true,
 } as const;
 
 export const FEED_SELLER_PROFILE_SELECT = {
@@ -47,6 +48,7 @@ export type FeedSellerHydrated = {
     lng: number | null;
     place: string | null;
     city: string | null;
+    country: string | null;
   };
 };
 
