@@ -1,0 +1,37 @@
+{
+  "apiPageCount": 2,
+  "renderedLinkCount": 14,
+  "uniqueRenderedApprox": 7,
+  "consecutiveSameIdNeighbors": [
+    {
+      "index": 1,
+      "id": "3b85deeb-5801-417a-a087-5b6027130ae0"
+    },
+    {
+      "index": 3,
+      "id": "4f822286-6043-417d-8be5-1bae8342d3a9"
+    },
+    {
+      "index": 5,
+      "id": "33392889-a509-4598-a379-c0671b2c37e0"
+    },
+    {
+      "index": 7,
+      "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc"
+    },
+    {
+      "index": 9,
+      "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7"
+    },
+    {
+      "index": 11,
+      "id": "646126bf-236b-4866-ba39-254b77067dbd"
+    },
+    {
+      "index": 13,
+      "id": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+    }
+  ],
+  "duplicateApiPayloads": [],
+  "classification": "possible_accidental_or_recirc_neighbor"
+}

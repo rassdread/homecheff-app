@@ -1,0 +1,68 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "location": null,
+    "ok": true
+  },
+  {
+    "route": "/auth/login",
+    "status": 404,
+    "location": null,
+    "ok": false
+  },
+  {
+    "route": "/auth/register",
+    "status": 404,
+    "location": null,
+    "ok": false
+  },
+  {
+    "route": "/auth/forgot-password",
+    "status": 404,
+    "location": null,
+    "ok": false
+  },
+  {
+    "route": "/terms",
+    "status": 200,
+    "location": null,
+    "ok": true
+  },
+  {
+    "route": "/privacy",
+    "status": 200,
+    "location": null,
+    "ok": true
+  },
+  {
+    "route": "/faq",
+    "status": 200,
+    "location": null,
+    "ok": true
+  },
+  {
+    "route": "/about",
+    "status": 200,
+    "location": null,
+    "ok": true
+  },
+  {
+    "route": "/trust",
+    "status": 200,
+    "location": null,
+    "ok": true
+  },
+  {
+    "route": "/manifest",
+    "status": 200,
+    "location": null,
+    "ok": true
+  },
+  {
+    "route": "/pitch",
+    "status": 200,
+    "location": null,
+    "ok": true
+  }
+]

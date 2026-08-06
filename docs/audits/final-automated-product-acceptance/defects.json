@@ -1,0 +1,16 @@
+{
+  "open": [],
+  "resolvedAsHarnessFalsePositive": [
+    {
+      "title": "Feed without location no cards (webkit)",
+      "severityWas": "P0",
+      "resolution": "timing; re-run 14 links PASS"
+    },
+    {
+      "title": "Many consecutive same-ID neighbors",
+      "severityWas": "P2",
+      "resolution": "dual anchors per card; deduped consec=0"
+    }
+  ],
+  "productDefects": []
+}

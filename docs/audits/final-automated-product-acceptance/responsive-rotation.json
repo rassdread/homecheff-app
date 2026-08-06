@@ -1,0 +1,17 @@
+{
+  "before": {
+    "w": 390,
+    "mount": "0"
+  },
+  "mid": {
+    "w": 844,
+    "mount": "0",
+    "overflow": false
+  },
+  "after": {
+    "w": 390,
+    "mount": "0",
+    "hardGate": false
+  },
+  "note": "Viewport resize emulation — not physical device rotation"
+}

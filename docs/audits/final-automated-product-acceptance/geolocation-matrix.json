@@ -1,0 +1,13 @@
+{
+  "denied": {
+    "permissionMock": "denied-by-absence",
+    "hardGate": false,
+    "feedAlive": true,
+    "note": "Context-level deny/absence \u2014 not physical permission-dialog proof"
+  },
+  "grantedRerun": {
+    "hardGate": false,
+    "feedVisible": true
+  },
+  "note": "Mocks only \u2014 not physical permission dialog proof"
+}
