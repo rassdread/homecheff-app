@@ -1,5 +1,8 @@
 /**
  * Public Firebase Web config (safe for client / SW). Server Admin credentials stay private.
+ *
+ * `NEXT_PUBLIC_FIREBASE_VAPID_KEY` is optional: when omitted, Firebase Messaging uses the
+ * project's configured Web Push certificate (see Firebase getToken vapidKey docs).
  */
 export type FirebaseWebPublicConfig = {
   apiKey: string;
@@ -7,7 +10,7 @@ export type FirebaseWebPublicConfig = {
   projectId: string;
   messagingSenderId: string;
   appId: string;
-  vapidKey: string;
+  vapidKey?: string;
 };
 
 export function getFirebaseWebPublicConfig(): FirebaseWebPublicConfig | null {
@@ -23,8 +26,7 @@ export function getFirebaseWebPublicConfig(): FirebaseWebPublicConfig | null {
     !authDomain ||
     !projectId ||
     !messagingSenderId ||
-    !appId ||
-    !vapidKey
+    !appId
   ) {
     return null;
   }
@@ -34,7 +36,7 @@ export function getFirebaseWebPublicConfig(): FirebaseWebPublicConfig | null {
     projectId,
     messagingSenderId,
     appId,
-    vapidKey,
+    ...(vapidKey ? { vapidKey } : {}),
   };
 }
 
