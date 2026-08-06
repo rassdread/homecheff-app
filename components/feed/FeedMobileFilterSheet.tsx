@@ -63,6 +63,9 @@ type Props = {
 const inputClass =
   'w-full min-w-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20';
 
+/** 16px avoids iOS input-zoom; keeps Android soft-keyboard focus stable. */
+const placeInputClass = `${inputClass} text-base`;
+
 export default function FeedMobileFilterSheet({
   open,
   onClose,
@@ -104,6 +107,11 @@ export default function FeedMobileFilterSheet({
 }: Props) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const localPlaceRef = useRef<HTMLInputElement | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  const focusPlaceOnOpenRef = useRef(focusPlaceOnOpen);
+  onCloseRef.current = onClose;
+  focusPlaceOnOpenRef.current = focusPlaceOnOpen;
 
   const setPlaceRef = (el: HTMLInputElement | null) => {
     localPlaceRef.current = el;
@@ -115,36 +123,58 @@ export default function FeedMobileFilterSheet({
     }
   };
 
+  /**
+   * Focus lifecycle depends ONLY on `open`.
+   * Prior bug: deps included unstable `onClose` (inline from GeoFeed). Every
+   * parent re-render (including each keystroke via setPlace) re-ran cleanup,
+   * which called previousFocus.focus() and stole focus from the place input —
+   * soft keyboard never stayed open on Android WebView / Chrome.
+   */
   useEffect(() => {
-    if (!open) return;
+    if (!open) return undefined;
+
     const previousFocus = document.activeElement as HTMLElement | null;
+    let cancelled = false;
 
     const focusTimer = window.setTimeout(() => {
-      if (focusPlaceOnOpen) {
+      if (cancelled) return;
+      if (focusPlaceOnOpenRef.current) {
         const el = localPlaceRef.current;
         if (el) {
+          // No select() — select-all after programmatic focus suppresses soft
+          // keyboard on several Android WebViews.
           el.focus({ preventScroll: false });
-          el.select?.();
+          el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
           return;
         }
       }
-      closeButtonRef.current?.focus();
-    }, 40);
+      const active = document.activeElement;
+      const panel = panelRef.current;
+      if (
+        !active ||
+        active === document.body ||
+        (panel && !panel.contains(active))
+      ) {
+        closeButtonRef.current?.focus();
+      }
+    }, 50);
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
       }
     };
 
     document.addEventListener('keydown', onKeyDown);
     return () => {
+      cancelled = true;
       window.clearTimeout(focusTimer);
       document.removeEventListener('keydown', onKeyDown);
+      // Safe: this effect only re-runs when `open` flips or the sheet unmounts.
       previousFocus?.focus?.();
     };
-  }, [open, onClose, focusPlaceOnOpen]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -154,11 +184,16 @@ export default function FeedMobileFilterSheet({
       role="dialog"
       aria-modal="true"
       aria-labelledby="feed-mobile-filter-title"
+      data-testid="feed-mobile-filter-sheet"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-h-[88vh] overflow-y-auto rounded-t-2xl bg-[#faf8f4] shadow-2xl border border-gray-200/80">
+      <div
+        ref={panelRef}
+        className="w-full max-h-[88vh] overflow-y-auto rounded-t-2xl bg-[#faf8f4] shadow-2xl border border-gray-200/80"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200/80 bg-[#faf8f4] px-4 py-3">
           <h2 id="feed-mobile-filter-title" className="text-sm font-semibold text-gray-900">
             {t('common.filters')}
@@ -257,7 +292,7 @@ export default function FeedMobileFilterSheet({
             </div>
           </div>
 
-          <div>
+          <div data-testid="feed-mobile-place-field">
             <label
               htmlFor="feed-mobile-place-input"
               className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5"
@@ -267,19 +302,31 @@ export default function FeedMobileFilterSheet({
             <input
               id="feed-mobile-place-input"
               ref={setPlaceRef}
+              type="text"
               value={place}
               onChange={(e) => onPlaceChange(e.target.value)}
+              onPointerDown={(e) => {
+                // Synchronous focus inside the user gesture — required for soft
+                // keyboard on Android Chrome / Capacitor WebView. Do not preventDefault.
+                const el = e.currentTarget;
+                if (document.activeElement !== el) {
+                  el.focus();
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   if (place.trim()) onApply();
                 }
               }}
-              className={inputClass}
+              className={placeInputClass}
               placeholder={t('common.typePlaceOrPostcode')}
               autoComplete="postal-code"
-              inputMode="text"
+              inputMode="search"
               enterKeyHint="search"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
               data-testid="feed-place-input"
               aria-label={t('common.place')}
             />
@@ -392,7 +439,10 @@ export default function FeedMobileFilterSheet({
               {t('feed.refineSectionLabel')}
             </label>
             <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                aria-hidden
+              />
               <input
                 type="text"
                 value={searchQuery}

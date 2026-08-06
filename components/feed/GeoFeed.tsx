@@ -1823,6 +1823,11 @@ export default function GeoFeed({
     })();
   }, [getCurrentPosition, radius, feedCompactChrome, isDesktopSplit]);
 
+  const closeMobileFilterSheet = useCallback(() => {
+    setMobileFilterSheetOpen(false);
+    setMobileSheetFocusPlace(false);
+  }, []);
+
   const handleChoosePlaceForNearby = useCallback(() => {
     // Expand legacy collapsed Discovery Filters before focusing — otherwise
     // placeInputRef is null while the place field is unmounted.
@@ -1844,18 +1849,23 @@ export default function GeoFeed({
       setShowFilters(true);
     }
 
-    const focusPlace = (attempt: number) => {
-      const el = placeInputRef.current;
-      if (el) {
-        el.focus({ preventScroll: false });
-        el.select?.();
-        return;
-      }
-      if (attempt < 8) {
-        window.setTimeout(() => focusPlace(attempt + 1), 60);
-      }
-    };
-    window.setTimeout(() => focusPlace(0), 80);
+    // Desktop / non-sheet paths: retry until mounted. Do not select()-all —
+    // that suppresses Android soft keyboards. Sheet path focuses via
+    // focusPlaceOnOpen inside a user-stable open effect.
+    if (!(feedCompactChrome && !isDesktopSplit)) {
+      const focusPlace = (attempt: number) => {
+        const el = placeInputRef.current;
+        if (el) {
+          if (document.activeElement === el) return;
+          el.focus({ preventScroll: false });
+          return;
+        }
+        if (attempt < 8) {
+          window.setTimeout(() => focusPlace(attempt + 1), 60);
+        }
+      };
+      window.setTimeout(() => focusPlace(0), 80);
+    }
   }, [feedCompactChrome, isDesktopSplit]);
 
   useEffect(() => {
@@ -2217,9 +2227,9 @@ export default function GeoFeed({
     }
   }, []);
 
-  const handlePlaceInput = (inputPlace: string) => {
+  const handlePlaceInput = useCallback((inputPlace: string) => {
     setPlace(inputPlace);
-  };
+  }, []);
 
   useEffect(() => {
     if (coords || profileLocation || userLocation) {
@@ -4867,19 +4877,27 @@ export default function GeoFeed({
                   >
                     <input
                       ref={placeInputRef}
+                      type="text"
                       value={place}
                       onChange={(e) => handlePlaceInput(e.target.value)}
+                      onPointerDown={(e) => {
+                        const el = e.currentTarget;
+                        if (document.activeElement !== el) el.focus();
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
                           if (place.trim()) applyFilters();
                         }
                       }}
-                      className={filterInputClass}
+                      className={`${filterInputClass} text-base`}
                       placeholder={t("common.typePlaceOrPostcode")}
                       autoComplete="postal-code"
-                      inputMode="text"
+                      inputMode="search"
                       enterKeyHint="search"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      spellCheck={false}
                       data-testid="feed-place-input"
                       aria-label={t("common.place")}
                     />
@@ -5187,10 +5205,7 @@ export default function GeoFeed({
     feedCompactChrome && !isDesktopSplit ? (
       <FeedMobileFilterSheet
         open={mobileFilterSheetOpen}
-        onClose={() => {
-          setMobileFilterSheetOpen(false);
-          setMobileSheetFocusPlace(false);
-        }}
+        onClose={closeMobileFilterSheet}
         focusPlaceOnOpen={mobileSheetFocusPlace}
         t={t}
         place={place}
@@ -5237,12 +5252,11 @@ export default function GeoFeed({
         filtersDirty={filtersDirty}
         onApply={() => {
           applyFilters();
-          setMobileFilterSheetOpen(false);
-          setMobileSheetFocusPlace(false);
+          closeMobileFilterSheet();
         }}
         onClear={() => {
           clearFilters();
-          setMobileFilterSheetOpen(false);
+          closeMobileFilterSheet();
         }}
         appliedAcceptedValues={appliedAcceptedValues}
         onAcceptedValuesChange={setAppliedAcceptedValues}

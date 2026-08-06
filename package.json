@@ -280,7 +280,8 @@
     "test:google-login-repair": "npx tsx scripts/validate-google-login-repair.ts && npx tsx scripts/validate-google-login-middleware.ts",
     "test:google-native-signin": "npx tsx scripts/validate-google-native-signin.ts && npx tsx scripts/validate-google-oauth-client-separation.ts",
     "test:location-input-repair": "npx tsx scripts/validate-location-input-repair.ts",
-    "test:gps-location-repair": "npx tsx scripts/validate-gps-location-repair.ts"
+    "test:gps-location-repair": "npx tsx scripts/validate-gps-location-repair.ts",
+    "test:location-mobile-keyboard": "npx tsx scripts/validate-location-mobile-keyboard.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

@@ -17,6 +17,7 @@
             android:launchMode="singleTask"
             android:alwaysRetainTaskState="true"
             android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true">
 
             <intent-filter>

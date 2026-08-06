@@ -243,19 +243,27 @@ export default function FeedSidebarFilters({
           <input
             ref={placeInputRef}
             id="feed-sidebar-place-input"
+            type="text"
             value={place}
             onChange={(e) => onPlaceChange(e.target.value)}
+            onPointerDown={(e) => {
+              const el = e.currentTarget;
+              if (document.activeElement !== el) el.focus();
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
                 if (place.trim()) onApply();
               }
             }}
-            className={inputClass}
+            className={`${inputClass} text-base`}
             placeholder={t("common.typePlaceOrPostcode")}
             autoComplete="postal-code"
-            inputMode="text"
+            inputMode="search"
             enterKeyHint="search"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
             data-testid="feed-place-input"
             aria-label={t("common.place")}
           />
