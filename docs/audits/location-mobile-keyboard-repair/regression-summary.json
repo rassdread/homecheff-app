@@ -1,0 +1,12 @@
+{
+  "use_my_location": "unchanged_code_path_still_present",
+  "gps_denial_opens_manual": "unchanged_requestPlaceInputFocus_fallback",
+  "desktop_place_input": "attributes_aligned_inputMode_search_text-base",
+  "location_persistence": "hc_location_pref_v2_untouched",
+  "geofeed_ownership": "unchanged",
+  "workspace_ownership": "unchanged",
+  "authentication": "unchanged",
+  "schema": "unchanged",
+  "horizontal_overflow_with_keyboard": "pending_device",
+  "sheet_hidden_behind_keyboard": "mitigated_by_adjustResize_pending_device"
+}

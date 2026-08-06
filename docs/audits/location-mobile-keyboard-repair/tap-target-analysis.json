@@ -1,0 +1,17 @@
+{
+  "analysis_date": "2026-08-06",
+  "intended_target": "#feed-mobile-place-input",
+  "label": {
+    "htmlFor": "feed-mobile-place-input",
+    "matches_id": true
+  },
+  "overlays": {
+    "backdrop_closes_only_on_self": true,
+    "panel_stopPropagation": true,
+    "search_icon_pointer_events": "none",
+    "nested_button_containing_input": false
+  },
+  "expected_elementFromPoint": "HTMLInputElement#feed-mobile-place-input",
+  "pre_fix_failure_mode": "not_hit_target_miss — focus was acquired then stolen by effect cleanup",
+  "post_fix_structure": "visible field is the real input; label associated; no fake second button"
+}
