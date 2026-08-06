@@ -183,6 +183,47 @@ export function inspirationEligibleForFeedScope(input: {
   return true;
 }
 
+/**
+ * Effective inspiration geo-scope for the mixed Alles feed.
+ *
+ * Soft-national / no-location discovery must not apply Nearby coords rules
+ * (that empties Inspiration while sales remain visible). Sparse local supply
+ * widens Inspiration eligibility to the national mainland contract — matching
+ * progressive local-first marketplace enrichment.
+ */
+export const FEED_SPARSE_LOCAL_SALE_THRESHOLD = FEED_SALE_INSPIRATION_STRIDE * 2;
+
+export function resolveInspirationCompositionScope(input: {
+  appliedScope: string;
+  /** True when Nearby has no usable viewer place/coords. */
+  nearbyNeedsLocation: boolean;
+  /** In-radius marketplace sale count (Nearby + known location). */
+  localSaleCount?: number;
+  sparseLocalThreshold?: number;
+}): string {
+  const scope = input.appliedScope;
+  if (scope !== 'nearby') return scope;
+  if (input.nearbyNeedsLocation) return 'national';
+  const threshold =
+    input.sparseLocalThreshold ?? FEED_SPARSE_LOCAL_SALE_THRESHOLD;
+  const localCount = input.localSaleCount ?? 0;
+  if (localCount < threshold) return 'national';
+  return 'nearby';
+}
+
+/**
+ * Progressive Nearby pool: in-radius items first, then wider eligible tail.
+ * Mirrors FEED_RADIUS_MODE_LOCAL_FIRST — local-first must not become local-only.
+ */
+export function composeProgressiveNearbySalePool<T>(input: {
+  local: T[];
+  wider: T[];
+}): T[] {
+  if (input.wider.length === 0) return input.local;
+  if (input.local.length === 0) return input.wider;
+  return [...input.local, ...input.wider];
+}
+
 export type ComposedRowKind = 'sale' | 'insp';
 
 export type RecircSeedItem = {

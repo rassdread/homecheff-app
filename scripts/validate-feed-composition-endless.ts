@@ -224,11 +224,21 @@ assert(geo.includes('emptyTerminal'), 'GeoFeed empty terminal');
 const route = readFileSync('app/api/feed/route.ts', 'utf8');
 assert(route.includes('nearbyNeedsLocation'), 'geo nearby guard intact');
 assert(
-  /if \(nearbyNeedsLocation\) \{\s*sortedPool = \[\];/m.test(route),
-  'nearby empty pool intact',
+  route.includes('softNationalFallback') &&
+    route.includes('Never empty the marketplace'),
+  'nearby without location soft-falls to national (never empty pool)',
+);
+assert(
+  route.includes('FEED_RADIUS_MODE_LOCAL_FIRST') &&
+    !route.includes('FEED_RADIUS_MODE_STRICT_LOCAL'),
+  'nearby progressive local-first (not strict local-only)',
 );
 assert(route.includes('isEligibleForNationalFeedScope'), 'national filter intact');
-
+assert(
+  geo.includes('resolveInspirationCompositionScope') &&
+    geo.includes('composeProgressiveNearbySalePool'),
+  'GeoFeed mixed Alles progressive composition wired',
+);
 console.log('  ✅ mix stride + filter matrix');
 console.log('  ✅ inspiration geo eligibility');
 console.log('  ✅ inventory 0 / 1 / 2 / 3+ continuation');

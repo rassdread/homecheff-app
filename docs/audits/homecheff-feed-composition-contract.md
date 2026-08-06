@@ -4,11 +4,12 @@
 
 | Scope | Marketplace | Inspiration |
 |-------|-------------|-------------|
-| Nearby | Radius + coords required | Only items with trustworthy coords inside radius. **No coords → excluded.** |
+| Nearby (adequate local supply) | Local-first: in-radius first, then wider eligible tail | Items with trustworthy coords inside radius |
+| Nearby (sparse local / no location) | Soft-national / progressive wider tail | National mainland eligibility (Inspiration must not vanish from Alles) |
 | National | Mainland NL bbox / eligibility | Mainland contract; Caribbean place labels excluded |
 | International | Worldwide | Worldwide |
 
-Nearby without location: dedicated empty state — no inspiration, no recirculation.
+`resolveInspirationCompositionScope` selects the Inspiration geo contract for the mixed Alles feed. Explicit Inspiration chip still shows Inspiration-only rows from the composed inspiration slots.
 
 ## Filter compatibility
 
@@ -26,6 +27,8 @@ Price filter never removes compatible inspiration unless the user is in explicit
 ## Composition
 
 - Central stride: `FEED_SALE_INSPIRATION_STRIDE = 4` (~3–5 sales then 1 inspiration)
+- Progressive Nearby sales: `composeProgressiveNearbySalePool` (local then wider)
+- Sparse local threshold for Inspiration widen: `FEED_SPARSE_LOCAL_SALE_THRESHOLD`
 - Stages: `exact` → `broadened` (reserved) → `recirculation`
 - One exhausted source does **not** terminate the feed
 

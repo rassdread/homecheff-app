@@ -251,7 +251,9 @@ import {
   FEED_RECIRC_BATCH_SIZE,
   FEED_RECIRC_MIN_SEED,
   buildRecirculationBatch,
+  composeProgressiveNearbySalePool,
   inspirationEligibleForFeedScope,
+  resolveInspirationCompositionScope,
   type RecircSeedItem,
 } from "@/lib/feed/feed-composition-policy";
 import {
@@ -3602,7 +3604,7 @@ export default function GeoFeed({
     !nearbyNeedsLocation &&
     hasViewerCoordsForSort;
 
-  const { local: localSalePool } = useMemo(
+  const { local: localSalePool, fallback: saleWiderPool } = useMemo(
     () =>
       partitionSaleItemsByRadius(filteredSaleBase, appliedRadius, {
         scope: appliedScope,
@@ -3610,9 +3612,22 @@ export default function GeoFeed({
     [filteredSaleBase, appliedRadius, appliedScope]
   );
 
+  /**
+   * Progressive Nearby: in-radius first, then wider eligible tail (local-first).
+   * Without location, keep the full soft-national / discovery set.
+   */
   const salePoolForRanking = locationFilterActive
-    ? localSalePool
+    ? composeProgressiveNearbySalePool({
+        local: localSalePool,
+        wider: saleWiderPool,
+      })
     : filteredSaleBase;
+
+  const inspirationCompositionScope = resolveInspirationCompositionScope({
+    appliedScope,
+    nearbyNeedsLocation,
+    localSaleCount: locationFilterActive ? localSalePool.length : undefined,
+  });
 
   const useSmartRanking =
     feedChip !== "sale" &&
@@ -3640,7 +3655,7 @@ export default function GeoFeed({
     return inspiratiePool.filter((item) => {
       if (
         !inspirationEligibleForFeedScope({
-          scope: appliedScope,
+          scope: inspirationCompositionScope,
           item: {
             lat: item.location?.lat,
             lng: item.location?.lng,
@@ -3668,7 +3683,7 @@ export default function GeoFeed({
     inspiratiePool,
     appliedSearchQuery,
     appliedCategory,
-    appliedScope,
+    inspirationCompositionScope,
     effectiveViewerForDistance,
     appliedRadius,
   ]);
@@ -3681,7 +3696,7 @@ export default function GeoFeed({
     return feedOnlyInspiration.filter((item) => {
       if (
         !inspirationEligibleForFeedScope({
-          scope: appliedScope,
+          scope: inspirationCompositionScope,
           item: {
             lat: item.lat,
             lng: item.lng,
@@ -3709,14 +3724,14 @@ export default function GeoFeed({
     feedOnlyInspiration,
     appliedSearchQuery,
     appliedCategory,
-    appliedScope,
+    inspirationCompositionScope,
     effectiveViewerForDistance,
     appliedRadius,
   ]);
 
   const inspirationSlots = useMemo(() => {
-    // Discovery fallback (no viewer location) still shows inspiration /
-    // recommended mix — location must not gate browsing.
+    // Alles / mixed feed: Inspiration is composed via stride interleave —
+    // never gated solely on missing location (scope resolved above).
     const built = buildInspSlots(filteredApiInspiration, filteredFeedInspiration);
     if (appliedSortBy === "newest" && appliedSortOrder === "desc") return built;
     return sortInspirationSlots(built, appliedSortBy, appliedSortOrder);
