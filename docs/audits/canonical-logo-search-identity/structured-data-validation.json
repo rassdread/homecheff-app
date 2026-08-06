@@ -1,0 +1,31 @@
+{
+  "validatedAt": "2026-08-06T21:30:00+02:00",
+  "organizationEntityId": "https://homecheff.eu/#organization",
+  "entityIdChanged": false,
+  "logo": {
+    "url": "https://homecheff.eu/logo.png?v=hc8",
+    "absolute": true,
+    "format": "PNG",
+    "width": 886,
+    "height": 886,
+    "meetsGoogleMinimum112px": true,
+    "whiteBackgroundSafe": true,
+    "crawlable": true,
+    "indexable": true,
+    "source": "lib/seo/schema-builders.ts buildOrganizationJsonLd()"
+  },
+  "website": {
+    "entityId": "https://homecheff.eu/#website",
+    "publisherRef": "https://homecheff.eu/#organization",
+    "duplicateOrganizationEntities": false
+  },
+  "legalOperator": {
+    "name": "Arrias Beheer B.V.",
+    "parentOrganizationRef": true
+  },
+  "founder": {
+    "name": "Sergio Arrias",
+    "jobTitle": "Founder"
+  },
+  "pass": true
+}
