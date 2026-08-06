@@ -20,6 +20,14 @@
 - `composeProgressiveNearbySalePool` — local then wider on client.
 - Existing stride interleave / recirculation unchanged.
 
+## Recirculation
+
+Controlled recirculation is an intentional Stage 4 product feature for infinite
+scroll — not a defect — once the unique discovery pool is exhausted. See
+`recirculation-duplicate-policy.md` and the composition contract.
+
+Immediate consecutive duplicates and pre-exhaustion recycling remain regressions.
+
 ## Verdict
 
 `HOMECHEFF_MIXED_FEED_PROGRESSIVE_DISCOVERY_PASS`  

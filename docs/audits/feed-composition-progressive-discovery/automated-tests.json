@@ -1,9 +1,10 @@
 {
-  "test:feed-composition-progressive": "19/19",
+  "test:feed-composition-progressive": "23/23",
   "validate-feed-composition-endless": "PASS",
   "validate-geo-feed-contract": "PASS",
   "test:discovery-feed-without-location": "11/11",
   "test:location-input-repair": "16/16",
   "test:gps-location-repair": "30/30",
-  "test:adaptive-workspace-geofeed-authority-transition": "PASS"
+  "test:adaptive-workspace-geofeed-authority-transition": "PASS",
+  "recirculation_policy": "intentional_after_unique_exhaustion"
 }

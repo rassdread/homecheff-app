@@ -7,11 +7,17 @@ import path from 'node:path';
 import {
   FEED_SALE_INSPIRATION_STRIDE,
   FEED_SPARSE_LOCAL_SALE_THRESHOLD,
+  FEED_RECIRC_MIN_SPACING,
+  buildRecirculationBatch,
   composeProgressiveNearbySalePool,
   inspirationEligibleForFeedScope,
   interleaveSaleInspirationRows,
   resolveInspirationCompositionScope,
 } from '../lib/feed/feed-composition-policy';
+import {
+  createFeedCompositionState,
+  markMarketplacePageResult,
+} from '../lib/feed/feed-composition-state';
 import { partitionSaleItemsByRadius } from '../lib/geo/feed-radius-filter';
 import { FEED_SCOPE_NEARBY, FEED_SCOPE_NATIONAL } from '../lib/feed/feed-scope';
 
@@ -187,6 +193,68 @@ check(
 check(
   'empty-state location gate remains disabled',
   geo.includes('showNearbyLocationRequired = false'),
+);
+
+// --- Recirculation policy: intentional after unique-pool exhaustion ---
+check(
+  'contract documents recirculation as intentional stage 4',
+  read('docs/audits/homecheff-feed-composition-contract.md').includes(
+    'Controlled recirculation',
+  ) &&
+    read(
+      'docs/audits/feed-composition-progressive-discovery/recirculation-duplicate-policy.md',
+    ).includes('intentional'),
+);
+
+let comp = createFeedCompositionState('recirc-policy');
+comp = {
+  ...comp,
+  uniqueEligibleCount: 3,
+  displayedHistory: [
+    { id: 'a', kind: 'sale' },
+    { id: 'b', kind: 'insp' },
+    { id: 'c', kind: 'sale' },
+  ],
+  recentIds: ['a', 'b', 'c'],
+};
+const beforeExhaust = markMarketplacePageResult(comp, {
+  fetchedCount: 10,
+  apiHasMore: true,
+  skipUsed: 0,
+});
+check(
+  'recirculation stays inactive while marketplace has more unique pages',
+  beforeExhaust.recirculationActive === false &&
+    beforeExhaust.stage !== 'recirculation',
+);
+
+const afterExhaust = markMarketplacePageResult(comp, {
+  fetchedCount: 0,
+  apiHasMore: false,
+  skipUsed: 30,
+});
+check(
+  'recirculation activates only after marketplace unique pool exhausted',
+  afterExhaust.recirculationActive === true &&
+    afterExhaust.stage === 'recirculation' &&
+    afterExhaust.exactExhausted === true,
+);
+
+const batch = buildRecirculationBatch({
+  seeds: [
+    { id: 'a', kind: 'sale' },
+    { id: 'b', kind: 'insp' },
+    { id: 'c', kind: 'sale' },
+  ],
+  recentIds: ['a', 'b', 'c'],
+  lastDisplayedId: 'a',
+  take: 4,
+  minSpacing: FEED_RECIRC_MIN_SPACING,
+  batchIndex: 0,
+});
+check(
+  'recirculation batch does not start with immediate consecutive last id',
+  batch.length > 0 && batch[0]!.id !== 'a',
 );
 
 console.log(`\n${passed} checks passed`);

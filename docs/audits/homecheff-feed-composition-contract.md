@@ -24,6 +24,40 @@ Summary:
 
 Price filter never removes compatible inspiration unless the user is in explicit sale-only mode.
 
+## Progressive discovery stages (product contract)
+
+HomeCheff is an infinite scrolling marketplace. The goal is **not** to permanently
+avoid duplicate cards. The goal is to avoid **accidental** duplication while unique
+relevant content is still available.
+
+| Stage | Behaviour |
+|-------|-----------|
+| **1 — Exact unique nearby** | Show all eligible unique nearby / in-radius content first. |
+| **2 — Progressive widen** | When local supply is insufficient, widen with local-first philosophy (wider eligible marketplace tail). |
+| **3 — Inspiration / discovery mix** | Interleave eligible Inspiration and approved discovery content per composition rules (stride). |
+| **4 — Controlled recirculation** | Only after the eligible unique candidate pool has been reasonably exhausted (`marketplaceExhausted` / `exactExhausted`), recirculate previously shown items to keep the infinite feed alive. |
+
+### Recirculation is intentional (not a bug)
+
+Acceptable:
+
+- previously viewed listings returning later;
+- Inspiration appearing again later;
+- popular marketplace items returning after long scrolling;
+- controlled recycling once the unique pool is limited.
+
+Still regressions:
+
+- identical cards immediately after each other;
+- duplicates from merge/pagination/cursor/API payload errors;
+- duplicate candidate pools;
+- recirculation replacing still-available unique content;
+- Inspiration repeating excessively while unseen marketplace items still exist.
+
+Runtime: `markMarketplacePageResult` activates `stage: 'recirculation'` only when the
+marketplace page is exhausted; `buildRecirculationBatch` enforces spacing / no
+consecutive identical id when alternatives exist.
+
 ## Composition
 
 - Central stride: `FEED_SALE_INSPIRATION_STRIDE = 4` (~3–5 sales then 1 inspiration)
@@ -32,9 +66,9 @@ Price filter never removes compatible inspiration unless the user is in explicit
 - Stages: `exact` → `broadened` (reserved) → `recirculation`
 - One exhausted source does **not** terminate the feed
 
-## Recirculation
+## Recirculation inventory contract
 
-Inventory-size contract (`resolveInventoryContinuationMode`):
+`resolveInventoryContinuationMode`:
 
 | Unique eligible | Behavior |
 |-----------------|----------|
