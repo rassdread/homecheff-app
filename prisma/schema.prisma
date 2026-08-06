@@ -143,6 +143,7 @@ model User {
   paymentEscrows                         PaymentEscrow[]           @relation("PaymentEscrowSeller")
   productReviewsAsBuyer                  ProductReview[]           @relation("ProductReviewBuyer")
   pushTokens                             PushToken[]
+  notificationPushOutbox                 NotificationPushOutbox[]
   Report_Report_reporterIdToUser         Report[]                  @relation("Report_reporterIdToUser")
   Report_Report_targetUserIdToUser       Report[]                  @relation("Report_targetUserIdToUser")
   Reservation_Reservation_buyerIdToUser  Reservation[]             @relation("Reservation_buyerIdToUser")
@@ -1666,6 +1667,34 @@ model PushToken {
   @@index([userId, deviceId])
   @@index([token])
   @@map("PushToken")
+}
+
+/// Durable FCM delivery queue — survives restarts, deploys, and transient Firebase/DB outages.
+model NotificationPushOutbox {
+  id             String    @id @default(cuid())
+  userId         String
+  pushTokenId    String?
+  token          String
+  platform       String
+  idempotencyKey String    @unique
+  status         String    @default("QUEUED") // QUEUED | PROCESSING | SENT | FAILED | EXPIRED
+  attemptCount   Int       @default(0)
+  maxAttempts    Int       @default(8)
+  nextAttemptAt  DateTime  @default(now())
+  lastError      String?
+  payload        Json
+  notificationId String?
+  kind           String?
+  sentAt         DateTime?
+  expiredAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([userId, createdAt])
+  @@index([notificationId])
+  @@map("NotificationPushOutbox")
 }
 
 model NotificationPreferences {

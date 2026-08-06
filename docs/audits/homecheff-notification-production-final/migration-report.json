@@ -1,0 +1,8 @@
+{
+  "migration": "20260806_notification_push_outbox",
+  "appliedAt": "2026-08-06T22:28:44.139Z",
+  "destructive": false,
+  "result": "applied",
+  "tableExists": true,
+  "rollback": "prisma/migrations/20260806_notification_push_outbox/ROLLBACK.sql"
+}
