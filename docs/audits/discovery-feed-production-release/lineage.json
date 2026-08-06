@@ -1,0 +1,21 @@
+{
+  "origin_main_pre_merge": "02e37a6d9ad61d4a736fb66066635f833ce85125",
+  "live_production_pre_merge": {
+    "deployment_id": "dpl_7pCf1YTxR1sVfVWexGtnQs2rKcXm",
+    "note": "Ready on homecheff.eu before this promotion"
+  },
+  "feature_branch": "fix/discovery-feed-without-location",
+  "feature_tip": "895cc652403e2bde42e787d31a6c356e9e06cd8d",
+  "candidate_commit": "895cc652403e2bde42e787d31a6c356e9e06cd8d",
+  "merge_base": "02e37a6d9ad61d4a736fb66066635f833ce85125",
+  "main_advanced_after_branch": false,
+  "unrelated_commits_on_branch": false,
+  "rollback_sha": "02e37a6d9ad61d4a736fb66066635f833ce85125",
+  "merge_sha": "30a15a99e58467edee3f8f540bad85d6c1783306",
+  "merge_parents": [
+    "02e37a6d9ad61d4a736fb66066635f833ce85125",
+    "895cc652403e2bde42e787d31a6c356e9e06cd8d"
+  ],
+  "origin_main_post_merge": "30a15a99e58467edee3f8f540bad85d6c1783306",
+  "feature_branch_retained": true
+}

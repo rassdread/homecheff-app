@@ -1,0 +1,9 @@
+{
+  "no_location_to_discovery": "code_pass_soft_national_plus_filter_off",
+  "city_to_nearby": "code_pass_unchanged_when_coords",
+  "clear_city_to_discovery": "code_pass",
+  "gps_allow_to_nearby": "code_pass",
+  "gps_deny_to_discovery": "code_pass_onFallback_manual",
+  "interactive_transition_matrix": "NOT_EXECUTED",
+  "remount_ownership": "unchanged_geofeed"
+}

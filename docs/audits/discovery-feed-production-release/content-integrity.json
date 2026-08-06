@@ -1,0 +1,12 @@
+{
+  "hard_location_empty_state": false,
+  "national_api_items_without_client_lat": 10,
+  "chrome_ui_hard_gate_absent": true,
+  "chrome_result_count_visible": true,
+  "fake_distance_when_unknown": "not_fully_audited_interactive",
+  "test_artifacts_returning": "not_observed",
+  "limitations": [
+    "IP geolocation may engage Nearby on Production edge",
+    "full listing image integrity matrix not run"
+  ]
+}

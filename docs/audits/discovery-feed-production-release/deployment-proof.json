@@ -1,0 +1,27 @@
+{
+  "project": "sergio-s-projects-f7b64ee1/homecheff-app",
+  "deployment_id": "dpl_Dn3nNLkTpCXmrcrTzB8itbbA3DyY",
+  "url": "https://homecheff-ackis75ud-sergio-s-projects-f7b64ee1.vercel.app",
+  "alias": "https://homecheff.eu",
+  "also_aliased": [
+    "https://homecheff.nl",
+    "https://www.homecheff.eu",
+    "https://www.homecheff.nl"
+  ],
+  "ready_state": "READY",
+  "target": "production",
+  "homepage_dpl_marker": "dpl_Dn3nNLkTpCXmrcrTzB8itbbA3DyY",
+  "git_merge_sha": "30a15a99e58467edee3f8f540bad85d6c1783306",
+  "previous_production_deployment": "dpl_7pCf1YTxR1sVfVWexGtnQs2rKcXm",
+  "rollback_deployment": "dpl_7pCf1YTxR1sVfVWexGtnQs2rKcXm",
+  "preview_confusion": false,
+  "api_national_without_lat": {
+    "http": 200,
+    "item_count": 10
+  },
+  "bundle_markers_observed": [
+    "locationFilterActive",
+    "nearbyNeedsLocation",
+    "feed-mobile-place-input"
+  ]
+}

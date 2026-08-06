@@ -1,0 +1,18 @@
+{
+  "base": "origin/main@02e37a6d",
+  "merged": "origin/fix/discovery-feed-without-location@895cc652",
+  "strategy": "merge --no-ff --no-commit",
+  "conflicts": [],
+  "files": [
+    "components/feed/GeoFeed.tsx",
+    "lib/feed/feed-filter-transition.ts",
+    "package.json",
+    "scripts/validate-anonymous-session-fast-path-phase3f5.ts",
+    "scripts/validate-discovery-feed-without-location.ts",
+    "scripts/validate-feed-filter-transition-ux.ts",
+    "scripts/validate-feed-payload-phase13l.ts"
+  ],
+  "unrelated_files": false,
+  "critical_tests": "PASS",
+  "discarded": true
+}

@@ -1,0 +1,24 @@
+{
+  "executed": {
+    "test:discovery-feed-without-location": "11/11",
+    "validate-feed-filter-transition-ux": "PASS",
+    "validate-anonymous-session-fast-path-phase3f5": "11/11",
+    "validate-feed-payload-phase13l": "32/32",
+    "test:location-input-repair": "16/16",
+    "test:gps-location-repair": "30/30",
+    "test:location-mobile-keyboard": "21/21",
+    "test:adaptive-workspace-geofeed-authority-transition": "PASS (9 groups)",
+    "test:feed-workspace-visibility": "21/21",
+    "smoke-check": "PASS",
+    "npm run build": "PASS"
+  },
+  "merge_simulation_critical": {
+    "test:discovery-feed-without-location": "11/11",
+    "test:location-mobile-keyboard": "21/21",
+    "test:adaptive-workspace-geofeed-authority-transition": "PASS"
+  },
+  "not_executed": [
+    "full test:adaptive-workspace-react mega-suite",
+    "targeted eslint binary (smoke/build used instead)"
+  ]
+}

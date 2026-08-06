@@ -1,0 +1,12 @@
+{
+  "merge_sha": "30a15a99e58467edee3f8f540bad85d6c1783306",
+  "parents": [
+    "02e37a6d9ad61d4a736fb66066635f833ce85125",
+    "895cc652403e2bde42e787d31a6c356e9e06cd8d"
+  ],
+  "conflicts": [],
+  "origin_main": "30a15a99e58467edee3f8f540bad85d6c1783306",
+  "rollback_parent": "02e37a6d9ad61d4a736fb66066635f833ce85125",
+  "feature_branch_retained_tip": "895cc652403e2bde42e787d31a6c356e9e06cd8d",
+  "method": "git merge --no-ff"
+}
