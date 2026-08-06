@@ -1,0 +1,30 @@
+{
+  "originMainSha": "23043a7d84727e1a512af14e5e6bedad75646df4",
+  "behaviouralMergeSha": "428f01d269f3267e77dbeaada46169b89d823a34",
+  "productionDeploymentId": "dpl_RbmTaMyNVWfDAR6ynSWeE7GsKc3N",
+  "productionAlias": "https://homecheff.eu",
+  "productionUrl": "https://homecheff-fycutaomm-sergio-s-projects-f7b64ee1.vercel.app",
+  "priorPromotionDeploymentId": "dpl_J7hWb2FXmqoujoK2zCCtapsEu9Yc",
+  "packageVersion": "0.1.0",
+  "android": {
+    "versionName": "1.0.19",
+    "versionCode": 25,
+    "forceUpdate": false,
+    "minRequiredVersion": "1.0.19",
+    "enabled": false,
+    "apkUrl": "https://homecheff.eu/downloads/homecheff-beta.apk",
+    "updateTitle": "Nieuwe HomeCheff beta beschikbaar",
+    "updateMessage": "Werk de app bij voor de nieuwste verbeteringen en fixes.",
+    "updateTitleForced": "Update vereist",
+    "updateMessageForced": "Deze versie van HomeCheff wordt niet meer ondersteund. Werk de app bij om verder te gaan.",
+    "changelog": [
+      "Stabilize native Google Sign-In on Android"
+    ]
+  },
+  "androidApplicationId": "eu.homecheff.mobile",
+  "testBranch": "test/final-automated-product-acceptance",
+  "mergeBaseWithMain": "23043a7d84727e1a512af14e5e6bedad75646df4",
+  "worktreeCleanExpected": false,
+  "productionVsMain": "Production Ready alias currently serves post-merge main lineage; behavioural code from 428f01d2. Docs tip 23043a7d may be what Git deploy built.",
+  "featureFlags": "No additional feed feature flags introduced in this acceptance branch."
+}

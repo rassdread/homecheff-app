@@ -1,0 +1,44 @@
+{
+  "viewports": [
+    {
+      "id": "phone-portrait",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "id": "phone-landscape",
+      "width": 844,
+      "height": 390
+    },
+    {
+      "id": "tablet-portrait",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "id": "tablet-landscape",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "id": "laptop",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "id": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "id": "ultrawide",
+      "width": 1920,
+      "height": 1080
+    }
+  ],
+  "browsers": [
+    "chromium",
+    "webkit",
+    "msedge"
+  ]
+}

@@ -1,0 +1,413 @@
+{
+  "chromium": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": false,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/chromium-phone-portrait.png",
+      "snippet": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harvests, handmade work and neighbourly help. Search, offe"
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/chromium-phone-landscape.png",
+      "snippet": "Skip to main content Sell or share Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your local neighbourhood marketplace — discover homemade food, garden harvests, handmade work and help nearby, "
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/chromium-tablet-portrait.png",
+      "snippet": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marketplace. Discover what people around you cook, grow, make, repair and offer. Buy, sell, trade, "
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/chromium-tablet-landscape.png",
+      "snippet": "Skip to main content Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harves"
+    },
+    {
+      "viewport": {
+        "id": "laptop",
+        "width": 1280,
+        "height": 800
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/chromium-laptop.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood mark"
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/chromium-desktop.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marke"
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "width": 1920,
+        "height": 1080
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/chromium-ultrawide.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marke"
+    }
+  ],
+  "webkit": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": false,
+      "feedApi": false,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/webkit-phone-portrait.png",
+      "snippet": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harvests, handmade work and neighbourly help. Search, offe"
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/webkit-phone-landscape.png",
+      "snippet": "Skip to main content Sell or share Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your local neighbourhood marketplace — discover homemade food, garden harvests, handmade work and help nearby, "
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": false,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/webkit-tablet-portrait.png",
+      "snippet": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marketplace. Discover what people around you cook, grow, make, repair and offer. Buy, sell, trade, "
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": false,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/webkit-tablet-landscape.png",
+      "snippet": "Skip to main content Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harves"
+    },
+    {
+      "viewport": {
+        "id": "laptop",
+        "width": 1280,
+        "height": 800
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": false,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/webkit-laptop.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood mark"
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": false,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/webkit-desktop.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marke"
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "width": 1920,
+        "height": 1080
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": false,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/webkit-ultrawide.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marke"
+    }
+  ],
+  "msedge": [
+    {
+      "viewport": {
+        "id": "phone-portrait",
+        "width": 390,
+        "height": 844
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/msedge-phone-portrait.png",
+      "snippet": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harvests, handmade work and neighbourly help. Search, offe"
+    },
+    {
+      "viewport": {
+        "id": "phone-landscape",
+        "width": 844,
+        "height": 390
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_TIMED_OUT",
+        "Failed to load resource: net::ERR_TIMED_OUT",
+        "Failed to load resource: net::ERR_TIMED_OUT",
+        "Failed to load resource: net::ERR_TIMED_OUT",
+        "Failed to load resource: net::ERR_TIMED_OUT"
+      ],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/msedge-phone-landscape.png",
+      "snippet": "Skip to main content Sell or share Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your local neighbourhood marketplace — discover homemade food, garden harvests, handmade work and help nearby, "
+    },
+    {
+      "viewport": {
+        "id": "tablet-portrait",
+        "width": 768,
+        "height": 1024
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/msedge-tablet-portrait.png",
+      "snippet": "Skip to main content Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marketplace. Discover what people around you cook, grow, make, repair and offer. Buy, sell, trade, "
+    },
+    {
+      "viewport": {
+        "id": "tablet-landscape",
+        "width": 1024,
+        "height": 768
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/msedge-tablet-landscape.png",
+      "snippet": "Skip to main content Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harves"
+    },
+    {
+      "viewport": {
+        "id": "laptop",
+        "width": 1280,
+        "height": 800
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/msedge-laptop.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood mark"
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/msedge-desktop.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marke"
+    },
+    {
+      "viewport": {
+        "id": "ultrawide",
+        "width": 1920,
+        "height": 1080
+      },
+      "status": "PASS",
+      "hardGate": false,
+      "overflowX": false,
+      "navOk": true,
+      "searchVisible": true,
+      "createVisible": true,
+      "feedApi": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNet": [],
+      "screenshot": "docs/audits/final-automated-product-acceptance/artifacts/msedge-ultrawide.png",
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is the digital neighbourhood marke"
+    }
+  ]
+}

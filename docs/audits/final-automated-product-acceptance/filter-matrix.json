@@ -1,0 +1,7 @@
+{
+  "note": "Filter chip UI exercised partially via search suite; full chip matrix relies on validators + DOM selectors",
+  "validators": {
+    "progressive": "PASS",
+    "continuity": "PASS"
+  }
+}

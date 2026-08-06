@@ -1,0 +1,63 @@
+{
+  "nationalCount": 10,
+  "kinds": {
+    "PRODUCT": 6,
+    "DISH": 4
+  },
+  "phaseJunk": 0,
+  "missingTitle": 0,
+  "junkSamples": [],
+  "imageHeads": [
+    {
+      "url": "/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0",
+      "ok": false,
+      "error": "Failed to parse URL from /api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0"
+    },
+    {
+      "url": "/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0",
+      "ok": false,
+      "error": "Failed to parse URL from /api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0"
+    },
+    {
+      "url": "/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0",
+      "ok": false,
+      "error": "Failed to parse URL from /api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0"
+    },
+    {
+      "url": "/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0",
+      "ok": false,
+      "error": "Failed to parse URL from /api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0"
+    },
+    {
+      "url": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/uploads/c002d498-4d79-4493-a45c-2e307894781c",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "url": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/recipe-photos/18202cd0-0bf0-4542-ab96-08c8c3",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "url": "/api/feed/media?type=dish&id=8c609bde-4e0a-4e65-9f4f-4405c42c4d44&i=0",
+      "ok": false,
+      "error": "Failed to parse URL from /api/feed/media?type=dish&id=8c609bde-4e0a-4e65-9f4f-4405c42c4d44&i=0"
+    },
+    {
+      "url": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/uploads/6cbda323-5899-4d58-8bf3-6f36580359ac",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "url": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/recipe-photos/18202cd0-0bf0-4542-ab96-08c8c3",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "url": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/recipe-photos/1c8c6444-6d39-4c74-aa66-a54986",
+      "ok": true,
+      "status": 200
+    }
+  ],
+  "inspirationCount": 21
+}

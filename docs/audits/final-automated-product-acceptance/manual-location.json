@@ -1,0 +1,10 @@
+{
+  "chooseOpened": false,
+  "input": {
+    "found": true,
+    "disabled": false,
+    "readOnly": null,
+    "error": "locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator('[data-testid=\"feed-place-input\"], input[name=\"place\"], input[placeholder*=\"plaats\" i]"
+  },
+  "note": "DOM focus PASS is not physical keyboard proof"
+}

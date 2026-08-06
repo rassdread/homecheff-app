@@ -1,0 +1,15 @@
+{
+  "loginStatus": 404,
+  "googleMentionInLoginHtml": true,
+  "providersOk": true,
+  "providerKeys": [
+    "google",
+    "credentials"
+  ],
+  "csrfOk": true,
+  "sessionOk": true,
+  "evilCallbackStatus": 302,
+  "evilLocation": "/login?callbackUrl=https%3A%2F%2Fhomecheff.eu%2F&error=google",
+  "interactiveGoogle": "OPERATOR_REQUIRED",
+  "note": "No secrets logged; interactive Google not claimed"
+}

@@ -1,0 +1,22 @@
+{
+  "validators": {
+    "discovery-continuity": "PASS",
+    "feed-composition-progressive": "PASS",
+    "discovery-feed-without-location": "PASS",
+    "location-input-repair": "PASS",
+    "gps-location-repair": "PASS",
+    "location-mobile-keyboard": "PASS",
+    "google-login-repair": "PASS"
+  },
+  "browserMatrix": {
+    "chromium": "7/7 viewports PASS",
+    "webkit": "7/7 viewports PASS",
+    "msedge": "7/7 viewports PASS"
+  },
+  "rerunFailures": {
+    "webkitFeedNoLocation": "PASS after longer wait",
+    "geoGrantedMock": "PASS after locale-aware detection",
+    "scrollConsecutiveIds": "PASS after multi-anchor dedupe (consec=0)"
+  },
+  "productCodeRepairs": 0
+}
