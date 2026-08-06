@@ -19,7 +19,7 @@ export async function GET() {
     projectId: config.projectId,
     messagingSenderId: config.messagingSenderId,
     appId: config.appId,
-    // VAPID is public by design (client getToken); still only expose when configured.
-    vapidKey: config.vapidKey,
+    // VAPID is public by design; omit when using Firebase project default Web Push cert.
+    ...(config.vapidKey ? { vapidKey: config.vapidKey } : {}),
   });
 }

@@ -72,7 +72,7 @@ export async function getWebFcmToken(options?: {
   messaging = messaging || getMessaging(firebaseApp);
   const registration = await ensureMessagingSw();
   const token = await getToken(messaging, {
-    vapidKey: config.vapidKey,
+    ...(config.vapidKey ? { vapidKey: config.vapidKey } : {}),
     serviceWorkerRegistration: registration,
   });
   return token || null;
