@@ -1,14 +1,22 @@
 /**
  * Phase 13Q — Canonical platform identity (SSOT).
- * Phase 13T — Aligned with HomeCheff Manifest (lib/seo/homecheff-manifest.ts).
+ * Phase 13T — Aligned with HomeCheff Manifest.
+ * Phase 2.1 — Entity philosophy reinforcement (neighbourhood marketplace + local-first).
  */
 
 import { manifestOrganizationDescription } from './homecheff-manifest';
+import {
+  CANONICAL_ENTITY_DESCRIPTION,
+  ENTITY_FAQ_WHAT,
+  ENTITY_META_DESCRIPTION,
+  LOCAL_FIRST_SCALE,
+  PHILOSOPHY_DISTANCE,
+} from './entity-philosophy';
 
 export type PlatformLang = 'nl' | 'en';
 
 export type PlatformDefinitionBlock = {
-  /** One-sentence entity definition for AI + schema */
+  /** Canonical entity definition for AI + schema */
   entityDefinition: string;
   /** Root layout / OG default title */
   defaultTitle: string;
@@ -28,34 +36,26 @@ export type PlatformDefinitionBlock = {
 
 export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> = {
   nl: {
-    entityDefinition:
-      'HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen — waar echte mensen eten, oogst, creaties, diensten en hulp aanbieden in hun buurt.',
-    defaultTitle: 'HomeCheff — Persoonlijk vakmanschap en lokale kansen',
-    defaultDescription:
-      'HomeCheff is the digital neighbourhood marketplace for homemade food, handmade products, local services, skills and personal craftsmanship.',
+    entityDefinition: CANONICAL_ENTITY_DESCRIPTION.nl,
+    defaultTitle: 'HomeCheff — Digitale buurtmarkt · lokaal vakmanschap',
+    defaultDescription: ENTITY_META_DESCRIPTION.nl,
     organizationDescription: manifestOrganizationDescription('nl'),
-    websiteDescription:
-      'HomeCheff — het digitale dorpsplein waar je lokale makers, vakmensen en buren ontdekt. Eten, tuin, creaties, diensten, hulp en inspiratie — altijd met de persoon achter het aanbod centraal.',
-    faqWhatIsHomeCheff:
-      'HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen. Buurtgenoten bieden en ontdekken eten, tuinoogst, creaties, diensten en hulp — met veilig afrekenen, direct contact, ruil of voorstellen. Eten is één categorie, geen heel platform.',
+    websiteDescription: `${CANONICAL_ENTITY_DESCRIPTION.nl} ${PHILOSOPHY_DISTANCE.nl} ${LOCAL_FIRST_SCALE.nl}`,
+    faqWhatIsHomeCheff: ENTITY_FAQ_WHAT.nl,
     seoHubIntro:
-      'HomeCheff is het digitale thuis van persoonlijk vakmanschap. Kies een onderwerp — eten is één categorie naast tuin, creaties, diensten en buurthulp.',
-    footerTagline: 'Het digitale thuis van persoonlijk vakmanschap in jouw buurt.',
+      'HomeCheff is de digitale buurtmarkt — community-first, creator-first en craftsmanship-first. Local-first, niet alleen-lokaal. Mensen zijn de community, niet het product. Kies een onderwerp: eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil.',
+    footerTagline: 'Digitale buurtmarkt · community vóór data · alles begint dichtbij huis.',
   },
   en: {
-    entityDefinition:
-      'HomeCheff is the digital home of personal craftsmanship and local opportunity — where real people offer food, harvest, creations, services and help in their neighbourhood.',
-    defaultTitle: 'HomeCheff — Personal craftsmanship and local opportunity',
-    defaultDescription:
-      'HomeCheff is the digital neighbourhood marketplace for homemade food, handmade products, local services, skills and personal craftsmanship.',
+    entityDefinition: CANONICAL_ENTITY_DESCRIPTION.en,
+    defaultTitle: 'HomeCheff — Digital neighbourhood marketplace',
+    defaultDescription: ENTITY_META_DESCRIPTION.en,
     organizationDescription: manifestOrganizationDescription('en'),
-    websiteDescription:
-      'HomeCheff — the digital village square to discover local makers, craftspeople and neighbours. Food, garden, creations, services, help and inspiration — always with the person behind the offer at the centre.',
-    faqWhatIsHomeCheff:
-      'HomeCheff is the digital home of personal craftsmanship and local opportunity. Neighbours offer and discover food, garden harvest, creations, services and help — with secure checkout, direct contact, barter or proposals. Food is one category, not the whole platform.',
+    websiteDescription: `${CANONICAL_ENTITY_DESCRIPTION.en} ${PHILOSOPHY_DISTANCE.en} ${LOCAL_FIRST_SCALE.en}`,
+    faqWhatIsHomeCheff: ENTITY_FAQ_WHAT.en,
     seoHubIntro:
-      'HomeCheff is the digital home of personal craftsmanship. Pick a topic — food is one category alongside garden, creations, services and neighbour help.',
-    footerTagline: 'The digital home of personal craftsmanship in your neighbourhood.',
+      'HomeCheff is the digital neighbourhood marketplace — community-first, creator-first and craftsmanship-first. Local-first, not local-only. People are the community, not the product. Pick a topic: food is one category alongside garden, creations, services, neighbour help and barter.',
+    footerTagline: 'Digital neighbourhood marketplace · community before data · everything starts close to home.',
   },
 };
 
@@ -63,20 +63,30 @@ export function getPlatformDefinition(lang: string): PlatformDefinitionBlock {
   return lang === 'en' ? PLATFORM_DEFINITION.en : PLATFORM_DEFINITION.nl;
 }
 
-/** Shared root keywords — craft-first, not food-only */
+/** Shared root keywords — neighbourhood marketplace + craft, not food-only / not resale */
 export const PLATFORM_KEYWORDS: Record<PlatformLang, string[]> = {
   nl: [
     'HomeCheff',
+    'HomeCheff.eu',
+    'HomeCheff buurtmarkt',
+    'digitale buurtmarkt',
+    'buurtmarkt',
+    'community-first',
+    'creator-first',
     'persoonlijk vakmanschap',
     'lokaal vakmanschap',
-    'buurtplatform',
+    'dichtbij huis',
     'lokale makers',
-    'bijverdienen vanuit huis',
     'handgemaakt',
     'thuisgemaakt',
+    'tuinoogst',
+    'reparaties',
+    'lessen',
     'buurthulp',
+    'ruilen',
+    'barter',
+    'upcycling',
     'buurt economie',
-    'lokale kansen',
     'dorpsplein',
     'eten',
     'tuin',
@@ -85,16 +95,25 @@ export const PLATFORM_KEYWORDS: Record<PlatformLang, string[]> = {
   ],
   en: [
     'HomeCheff',
+    'HomeCheff.eu',
+    'HomeCheff marketplace',
+    'HomeCheff neighbourhood marketplace',
+    'digital neighbourhood marketplace',
+    'neighbourhood marketplace',
+    'community-first',
+    'creator-first',
     'personal craftsmanship',
-    'local craft',
-    'neighbourhood platform',
+    'close to home',
     'local makers',
-    'earn from home',
     'handmade',
     'homemade',
+    'home-grown',
+    'repairs',
+    'lessons',
     'neighbour help',
+    'barter',
+    'upcycling',
     'community economy',
-    'local opportunity',
     'village square',
     'food',
     'garden',

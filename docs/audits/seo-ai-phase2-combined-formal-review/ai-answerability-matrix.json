@@ -1,0 +1,90 @@
+{
+  "sources": [
+    "llms.txt SSOT",
+    "ai.txt SSOT",
+    "entity-philosophy",
+    "entity-graph",
+    "organization-identity"
+  ],
+  "questions": [
+    {
+      "q": "What is HomeCheff?",
+      "answerableFrom": [
+        "ENTITY_IS",
+        "LLMS_TXT"
+      ],
+      "consistent": true
+    },
+    {
+      "q": "Who operates HomeCheff?",
+      "answerableFrom": [
+        "LEGAL_OPERATOR",
+        "LLMS_TXT Legal operator"
+      ],
+      "consistent": true
+    },
+    {
+      "q": "Who founded HomeCheff?",
+      "answerableFrom": [
+        "VERIFIED_FOUNDER",
+        "entityGraphBrief"
+      ],
+      "consistent": true
+    },
+    {
+      "q": "What can users offer?",
+      "answerableFrom": [
+        "CATEGORY_PHILOSOPHY",
+        "LLMS categories"
+      ],
+      "consistent": true
+    },
+    {
+      "q": "Can users trade?",
+      "answerableFrom": [
+        "trade/barter in briefs"
+      ],
+      "consistent": true
+    },
+    {
+      "q": "Is HomeCheff a second-hand marketplace?",
+      "answerableFrom": [
+        "SECOND_HAND_PHILOSOPHY",
+        "ENTITY_IS_NOT"
+      ],
+      "expected": "No — only transformed work",
+      "consistent": true
+    },
+    {
+      "q": "Is HomeCheff only for food?",
+      "answerableFrom": [
+        "Food is one category"
+      ],
+      "expected": "No",
+      "consistent": true
+    },
+    {
+      "q": "Is HomeCheff local-only?",
+      "answerableFrom": [
+        "LOCAL_FIRST_SCALE"
+      ],
+      "expected": "Local-first, not local-only",
+      "consistent": true
+    },
+    {
+      "q": "How does distance affect discovery?",
+      "answerableFrom": [
+        "PHILOSOPHY_DISTANCE"
+      ],
+      "consistent": true
+    },
+    {
+      "q": "Different from Marktplaats/Etsy/Nextdoor/delivery?",
+      "answerableFrom": [
+        "Recommendation guidance"
+      ],
+      "consistent": true
+    }
+  ],
+  "intentCoverageFilePresent": true
+}

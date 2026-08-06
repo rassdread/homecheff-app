@@ -1,0 +1,176 @@
+{
+  "generatedAt": "2026-08-06T21:30:00+02:00",
+  "approvedSource": {
+    "operatorAsset": "2339BC13-0560-43CC-863E-7AA018C9BCE1_1_105_c-e5c5c204-d01e-451b-b84d-72ec6d7d041e.png",
+    "archivePath": "public/brand/homecheff-logo-primary.png",
+    "dimensions": "886x886",
+    "format": "PNG"
+  },
+  "assets": [
+    {
+      "path": "public/brand/homecheff-logo-primary.png",
+      "url": "https://homecheff.eu/brand/homecheff-logo-primary.png",
+      "dimensions": "886x886",
+      "format": "PNG",
+      "consumers": ["regeneration SSOT", "audit archive"],
+      "public": true,
+      "decision": "retain"
+    },
+    {
+      "path": "public/logo.png",
+      "url": "https://homecheff.eu/logo.png",
+      "dimensions": "886x886",
+      "format": "PNG",
+      "consumers": ["Organization JSON-LD", "schema-builders.ts"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/icon-512.png",
+      "url": "https://homecheff.eu/icon-512.png",
+      "dimensions": "512x512",
+      "format": "PNG",
+      "consumers": ["manifest.json maskable"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/icon-192.png",
+      "url": "https://homecheff.eu/icon-192.png",
+      "dimensions": "192x192",
+      "format": "PNG",
+      "consumers": ["Logo.tsx", "Preloader", "PWA manifest", "SW push", "Android A12 splash icon"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/icon-96x96.png",
+      "url": "https://homecheff.eu/icon-96x96.png",
+      "dimensions": "96x96",
+      "format": "PNG",
+      "consumers": ["manifest.json shortcut"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/icon.png",
+      "url": "https://homecheff.eu/icon.png",
+      "dimensions": "96x96",
+      "format": "PNG",
+      "consumers": ["FCM webpush", "verification email"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/favicon.ico",
+      "url": "https://homecheff.eu/favicon.ico",
+      "dimensions": "16/32/48 multi",
+      "format": "ICO",
+      "consumers": ["layout.tsx link", "NotificationProvider", "SW cache"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/favicon-48.png",
+      "url": "https://homecheff.eu/favicon-48.png",
+      "dimensions": "48x48",
+      "format": "PNG",
+      "consumers": ["manifest.json", "delivery notifications badge"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/favicon-32.png",
+      "url": "https://homecheff.eu/favicon-32.png",
+      "dimensions": "32x32",
+      "format": "PNG",
+      "consumers": ["optional explicit favicon"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/apple-touch-icon.png",
+      "url": "https://homecheff.eu/apple-touch-icon.png",
+      "dimensions": "180x180",
+      "format": "PNG",
+      "consumers": ["layout.tsx apple-touch-icon link"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/og-brand.png",
+      "url": "https://homecheff.eu/og-brand.png",
+      "dimensions": "1200x630",
+      "format": "PNG",
+      "consumers": ["layout.tsx default OG", "authority landing pages OG"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "public/homecheff-globeman.png",
+      "url": "https://homecheff.eu/homecheff-globeman.png",
+      "dimensions": "886x886",
+      "format": "PNG",
+      "consumers": ["HomeHeroVisualCluster homepage hero"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "app/icon.png",
+      "url": "auto Next metadata /icon",
+      "dimensions": "48x48",
+      "format": "PNG",
+      "consumers": ["Next.js favicon metadata route"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "app/apple-icon.png",
+      "url": "auto Next metadata /apple-icon",
+      "dimensions": "180x180",
+      "format": "PNG",
+      "consumers": ["Next.js apple-touch metadata route"],
+      "public": true,
+      "decision": "replace"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-*/ic_launcher*.png",
+      "url": "native only",
+      "dimensions": "48–192 density-scaled",
+      "format": "PNG",
+      "consumers": ["AndroidManifest launcher"],
+      "public": false,
+      "decision": "replace"
+    },
+    {
+      "path": "public/homecheff-native-splash.png",
+      "url": "https://homecheff.eu/homecheff-native-splash.png",
+      "dimensions": "1080x2400 approx",
+      "format": "PNG",
+      "consumers": ["Capacitor Android splash drawables"],
+      "public": true,
+      "decision": "retain",
+      "note": "Portrait splash unchanged; A12 icon updated from new icon-192"
+    },
+    {
+      "path": "public/Tag 1976_Masscott_L05a-R04b kopie.png",
+      "url": "https://homecheff.eu/Tag%201976_Masscott_L05a-R04b%20kopie.png",
+      "dimensions": "367x516",
+      "format": "PNG",
+      "consumers": [],
+      "public": true,
+      "decision": "remove",
+      "note": "Orphan legacy source art; no code references — safe to delete in follow-up"
+    },
+    {
+      "path": "components/Logo.tsx SVG fallback",
+      "url": "inline",
+      "dimensions": "60x60 viewBox",
+      "format": "SVG",
+      "consumers": ["Logo.tsx onError fallback only"],
+      "public": false,
+      "decision": "retain",
+      "note": "Emergency fallback if image fails; not primary brand"
+    }
+  ]
+}

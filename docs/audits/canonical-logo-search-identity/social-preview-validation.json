@@ -1,0 +1,22 @@
+{
+  "validatedAt": "2026-08-06T21:30:00+02:00",
+  "homepage": {
+    "og:image": "https://homecheff.eu/og-brand.png?v=hc8",
+    "dimensions": "1200x630",
+    "type": "brand card with mascot + wordmark",
+    "twitter": "inherits OpenGraph via Next defaults",
+    "decision": "PASS"
+  },
+  "authorityPages": {
+    "paths": ["/trust", "/manifest", "/over-ons", "/docs/*"],
+    "og:image": "og-brand.png via buildAuthorityLandingMetadata",
+    "pageSpecificImagesPreserved": true,
+    "note": "Product/seller/user pages keep entity photos — unchanged"
+  },
+  "whatsappLinkedInFacebookDiscord": {
+    "consumer": "og:image + og:title + og:description",
+    "expectedPreview": "Emerald brand card with Globeman mascot",
+    "decision": "PASS"
+  },
+  "pass": true
+}

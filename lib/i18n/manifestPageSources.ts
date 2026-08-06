@@ -41,8 +41,8 @@ export const manifestPage: Record<string, Bi> = {
   },
   sectionMissionTitle: { nl: 'Missie', en: 'Mission' },
   sectionMissionBody: {
-    nl: 'HomeCheff bouwt een digitale omgeving waar gewone mensen lokaal kunnen creëren, verkopen, ruilen, helpen, leren en samenwerken. Eten is één categorie. Het platform is voor mensen — niet voor producten alleen.',
-    en: 'HomeCheff builds a digital environment where ordinary people can create, sell, exchange, help, learn and collaborate locally. Food is one category. The platform is for people — not products alone.',
+    nl: 'HomeCheff bouwt de digitale buurtmarkt waar gewone mensen lokaal kunnen creëren, verkopen, ruilen, helpen, leren en samenwerken. Alles begint dichtbij huis. Eten is één categorie. Het platform is community-first en creator-first — niet voor anonieme producten alleen.',
+    en: 'HomeCheff builds the digital neighbourhood marketplace where ordinary people can create, sell, exchange, help, learn and collaborate locally. Everything starts close to home. Food is one category. The platform is community-first and creator-first — not for anonymous products alone.',
   },
   valueHumanTitle: { nl: 'Mens vóór algoritmes', en: 'Human before algorithms' },
   valueHumanBody: {
@@ -56,8 +56,8 @@ export const manifestPage: Record<string, Bi> = {
   },
   valueLocalTitle: { nl: 'Lokaal vóór anonieme schaal', en: 'Local before anonymous scale' },
   valueLocalBody: {
-    nl: 'Buurten worden sterker wanneer buren elkaar kennen. HomeCheff moedigt lokale relaties aan — geen anonieme wereldmarkt.',
-    en: 'Neighbourhoods grow stronger when neighbours know each other. HomeCheff encourages local relationships — not an anonymous global marketplace.',
+    nl: 'Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid: resultaten dichtbij eerst; uniek vakmanschap mag van nature verder reiken — buurt → stad → regio → land → Europa → Noord-Amerika → Zuid-Amerika → Afrika → Azië → Australië & Oceanië — zonder de local-first filosofie te veranderen. Local-first, nooit alleen-lokaal. Geen anonieme “internationale marktplaats”-positionering.',
+    en: 'Everything starts close to home. Distance determines priority, not possibility: nearby results first; unique craft may naturally reach further — neighbourhood → city → region → country → Europe → North America → South America → Africa → Asia → Australia & Oceania — without changing the local-first philosophy. Local-first, never local-only. Never positioned as an anonymous “international marketplace”.',
   },
   valueCoopTitle: { nl: 'Samenwerking vóór nul-som', en: 'Cooperation before zero-sum' },
   valueCoopBody: {
@@ -76,13 +76,13 @@ export const manifestPage: Record<string, Bi> = {
   },
   sectionNotTitle: { nl: 'Wat HomeCheff niet is', en: 'What HomeCheff is not' },
   sectionNotBody: {
-    nl: 'HomeCheff positioneert zich niet als bezorg-app, advertentieplatform, dropshipping-marktplaats, anonieme marktplaats, aandachts-economie, socialmediaplatform of engagement-machine. Zie ook /wat-we-niet-zijn.',
-    en: 'HomeCheff does not position itself as a delivery app, advertising platform, dropshipping marketplace, anonymous marketplace, attention economy, social media platform or engagement machine. See also /wat-we-niet-zijn.',
+    nl: 'HomeCheff positioneert zich niet als bezorg-app, generieke advertentiesite, dropshipping- of mass retail platform, anonieme marktplaats, tweedehands-marktplaats voor gewone doorverkoop, aandachts-economie, behavioural-advertising-product, socialmediaplatform of engagement-machine. Mensen zijn de community — niet het product. Zie ook /wat-we-niet-zijn.',
+    en: 'HomeCheff does not position itself as a delivery app, generic classifieds site, dropshipping or mass retail platform, anonymous marketplace, second-hand marketplace for ordinary resale, attention economy, behavioural advertising product, social media platform or engagement machine. People are the community — not the product. See also /wat-we-niet-zijn.',
   },
   sectionIsTitle: { nl: 'Wat HomeCheff wel is', en: 'What HomeCheff is' },
   sectionIsBody: {
-    nl: 'Een digitaal dorpsplein: mensen ontdekken mensen, vaardigheden ontdekken kansen, gemeenschappen ontdekken elkaar. Technologie is de brug; mensen blijven de bestemming.',
-    en: 'A digital village square: people discover people, skills discover opportunity, communities discover each other. Technology is the bridge; people remain the destination.',
+    nl: 'De digitale buurtmarkt én digitaal dorpsplein: community-first, people-first, craftsmanship-first, creator-first en neighbourhood-first. Mensen ontdekken mensen, vaardigheden ontdekken kansen, gemeenschappen ontdekken elkaar. Technologie is de brug; mensen blijven de bestemming.',
+    en: 'The digital neighbourhood marketplace and digital village square: community-first, people-first, craftsmanship-first, creator-first and neighbourhood-first. People discover people, skills discover opportunity, communities discover each other. Technology is the bridge; people remain the destination.',
   },
   sectionAiTitle: { nl: 'AI-filosofie', en: 'AI philosophy' },
   sectionAiBody: {

@@ -1,0 +1,121 @@
+{
+  "pages": [
+    {
+      "path": "/",
+      "title": "HomeCheff \u2014 Digitale buurtmarkt \u00b7 lokaal vakmanschap",
+      "description": "Digitale buurtmarkt: community- en creator-first. Thuisgekookt, oogst, handwerk, reparaties, lessen en buurthulp \u2014 dichtbij eerst. Geen anonieme classifieds, geen gewone tweedehands-doorverkoop, geen bezorgketen.",
+      "canonical": "https://homecheff.eu",
+      "og:title": "HomeCheff \u2014 Digitale buurtmarkt \u00b7 lokaal vakmanschap",
+      "og:description": "Digitale buurtmarkt: community- en creator-first. Thuisgekookt, oogst, handwerk, reparaties, lessen en buurthulp \u2014 dichtbij eerst. Geen anonieme classifieds, geen gewone tweedehands-doorverkoop, geen bezorgketen.",
+      "og:image": "http://127.0.0.1:3456/opengraph-image?c347398f6dd9c6d3",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "http://127.0.0.1:3456/twitter-image?2fa0a7265f4ca512",
+      "robots": "index, follow",
+      "h1_non_empty": true
+    },
+    {
+      "path": "/faq",
+      "title": "Veelgestelde Vragen (FAQ) - HomeCheff | HomeCheff",
+      "description": "Antwoorden over HomeCheff: HomeCheff is de digitale buurtmarkt: community-first, people-first, craftsmanship-first, creator-first en neighbourhood-first \u2014 waar mensen dichtbij koken, groeien, maken, repareren, ontwerpen, lesgeven, helpen, handelen, dienen en delen. Fees, uitbetalingen, ruil, buurthulp en vertrouwen.",
+      "canonical": "https://homecheff.eu/faq",
+      "og:title": "Veelgestelde Vragen (FAQ) - HomeCheff",
+      "og:description": "Antwoorden over HomeCheff: HomeCheff is de digitale buurtmarkt: community-first, people-first, craftsmanship-first, creator-first en neighbourhood-first \u2014 waar mensen dichtbij koken, groeien, maken, repareren, ontwerpen, lesgeven, helpen, handelen, dienen en delen. Fees, uitbetalingen, ruil, buurthulp en vertrouwen.",
+      "og:image": "http://127.0.0.1:3456/opengraph-image?c347398f6dd9c6d3",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "http://127.0.0.1:3456/twitter-image?2fa0a7265f4ca512",
+      "robots": "index, follow",
+      "h1_non_empty": false
+    },
+    {
+      "path": "/wat-is-homecheff",
+      "title": "Wat is HomeCheff? | Digitale buurtmarkt \u00b7 lokaal vakmanschap | HomeCheff",
+      "description": "HomeCheff is de digitale buurtmarkt: community- en creator-first. Alles begint dichtbij huis. Echte mensen koken, groeien, maken, repareren, lesgeven en helpen \u2014 geen gewone tweedehands-doorverkoop.",
+      "canonical": "https://homecheff.eu/wat-is-homecheff",
+      "og:title": "Wat is HomeCheff? | Digitale buurtmarkt \u00b7 lokaal vakmanschap",
+      "og:description": "HomeCheff is de digitale buurtmarkt: community- en creator-first. Alles begint dichtbij huis. Echte mensen koken, groeien, maken, repareren, lesgeven en helpen \u2014 geen gewone tweedehands-doorverkoop.",
+      "og:image": "https://homecheff.eu/opengraph-image",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "https://homecheff.eu/opengraph-image",
+      "robots": "index, follow",
+      "h1_non_empty": false
+    },
+    {
+      "path": "/vergelijken/homecheff-vs-marktplaats",
+      "title": "HomeCheff vs Marktplaats | Eerlijke vergelijking | HomeCheff",
+      "description": "HomeCheff vs Marktplaats: vakmanschap en buurt versus algemene advertenties. Wanneer kies je wat?",
+      "canonical": "https://homecheff.eu/vergelijken/homecheff-vs-marktplaats",
+      "og:title": "HomeCheff vs Marktplaats | Eerlijke vergelijking",
+      "og:description": "HomeCheff vs Marktplaats: vakmanschap en buurt versus algemene advertenties. Wanneer kies je wat?",
+      "og:image": null,
+      "twitter:card": "summary_large_image",
+      "twitter:image": "http://127.0.0.1:3456/twitter-image?2fa0a7265f4ca512",
+      "robots": "index, follow",
+      "h1_non_empty": false
+    },
+    {
+      "path": "/over-ons",
+      "title": "Over ons - HomeCheff | HomeCheff",
+      "description": "HomeCheff is de digitale buurtmarkt \u00e9n digitaal dorpsplein: community-first, people-first, craftsmanship-first, creator-first en neighbourhood-first \u2014 waar mensen mensen ontdekken, vaardigheden kansen vinden en buurten elkaar vinden. Technologie is de brug; mensen blijven de bestemming. Afstand bepaalt prioriteit, niet mogelijkheid. HomeCheff bouwt een digitale buurtmarkt waar gewone mensen lokaal kunnen cre\u00ebren, verkopen, ruilen, helpen, leren en samenwerken \u2014 community-first en creator-first, met mensen centraal, niet anonieme producten. Alles begint dichtbij huis.",
+      "canonical": "https://homecheff.eu/over-ons",
+      "og:title": "Over ons - HomeCheff",
+      "og:description": "HomeCheff is de digitale buurtmarkt: community-first, people-first, craftsmanship-first, creator-first en neighbourhood-first \u2014 waar mensen dichtbij koken, groeien, maken, repareren, ontwerpen, lesgeven, helpen, handelen, dienen en delen.",
+      "og:image": "http://127.0.0.1:3456/opengraph-image?c347398f6dd9c6d3",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "http://127.0.0.1:3456/twitter-image?2fa0a7265f4ca512",
+      "robots": "index, follow",
+      "h1_non_empty": false
+    },
+    {
+      "path": "/trust",
+      "title": "Trust &amp; transparantie | HomeCheff | HomeCheff",
+      "description": "Hoe HomeCheff vertrouwen opbouwt: echte mensen, vakmanschap, buurten, moderatie, safety, privacy en eerlijke marketplace-regels \u2014 zonder 100%-veiligheidsbeloftes.",
+      "canonical": "https://homecheff.eu/trust",
+      "og:title": "Trust &amp; transparantie | HomeCheff",
+      "og:description": "Hoe HomeCheff vertrouwen opbouwt: echte mensen, vakmanschap, buurten, moderatie, safety, privacy en eerlijke marketplace-regels \u2014 zonder 100%-veiligheidsbeloftes.",
+      "og:image": null,
+      "twitter:card": "summary_large_image",
+      "twitter:image": "http://127.0.0.1:3456/twitter-image?2fa0a7265f4ca512",
+      "robots": "index, follow",
+      "h1_non_empty": false
+    },
+    {
+      "path": "/manifest",
+      "title": "HomeCheff Manifest | Filosofie, missie en waarden | HomeCheff",
+      "description": "Waarom HomeCheff bestaat: mensen centraal, lokaal vakmanschap, eerlijke kansen en technologie met geweten. Geen marketing \u2014 tijdloze platformfilosofie.",
+      "canonical": "https://homecheff.eu/manifest",
+      "og:title": "HomeCheff Manifest | Filosofie, missie en waarden",
+      "og:description": "Waarom HomeCheff bestaat: mensen centraal, lokaal vakmanschap, eerlijke kansen en technologie met geweten. Geen marketing \u2014 tijdloze platformfilosofie.",
+      "og:image": null,
+      "twitter:card": "summary_large_image",
+      "twitter:image": "http://127.0.0.1:3456/twitter-image?2fa0a7265f4ca512",
+      "robots": "index, follow",
+      "h1_non_empty": false
+    },
+    {
+      "path": "/persoonlijk-vakmanschap",
+      "title": "Persoonlijk vakmanschap | Lokaal handwerk en menselijk maakwerk | HomeCheff | HomeCheff",
+      "description": "Vakmanschap is meer dan kunst: koken, tuinieren, repareren, lesgeven en ontwerpen. HomeCheff verbindt persoonlijk maakwerk met je buurt.",
+      "canonical": "https://homecheff.eu/persoonlijk-vakmanschap",
+      "og:title": "Persoonlijk vakmanschap | Lokaal handwerk en menselijk maakwerk | HomeCheff",
+      "og:description": "Vakmanschap is meer dan kunst: koken, tuinieren, repareren, lesgeven en ontwerpen. HomeCheff verbindt persoonlijk maakwerk met je buurt.",
+      "og:image": "https://homecheff.eu/opengraph-image",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "https://homecheff.eu/opengraph-image",
+      "robots": "index, follow",
+      "h1_non_empty": false
+    },
+    {
+      "path": "/handgemaakte-producten-uit-de-buurt",
+      "title": "Handgemaakte producten uit de buurt | HomeCheff | HomeCheff",
+      "description": "Koop en ontdek handmade creaties van lokale makers. Digitaal dorpsplein \u2014 niet alleen eten, niet anonieme marktplaats.",
+      "canonical": "https://homecheff.eu/handgemaakte-producten-uit-de-buurt",
+      "og:title": "Handgemaakte producten uit de buurt | HomeCheff",
+      "og:description": "Koop en ontdek handmade creaties van lokale makers. Digitaal dorpsplein \u2014 niet alleen eten, niet anonieme marktplaats.",
+      "og:image": "https://homecheff.eu/opengraph-image",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "https://homecheff.eu/opengraph-image",
+      "robots": "index, follow",
+      "h1_non_empty": true
+    }
+  ]
+}

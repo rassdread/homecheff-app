@@ -1,0 +1,19 @@
+{
+  "allowRoot": true,
+  "disallowApi": true,
+  "disallowCheckout": true,
+  "disallowAdmin": true,
+  "disallowSettings": true,
+  "sitemapDeclared": true,
+  "hostDeclared": true,
+  "noGlobalDisallowAll": true,
+  "live": {
+    "status": 200,
+    "preview": "User-Agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\nDisallow: /settings/\nDisallow: /checkout/\nDisallow: /cart/\nDisallow: /messages/\nDisallow: /berichten/\nDisallow: /notifications/\nDisallow: /profile/\nDisallow: /profiel/\nDisallow: /dashboard/\nDisallow: /verkoper/\nDisallow: /delivery/\nDisallow: /deliverer/\nDisallow: /order/\nDisallow: /orders/\nDisallow: /bestellingen/\nDisallow: /pitch\nDisallow: ",
+    "declares_sitemap": false
+  },
+  "notes": [
+    "Public /user and /seller profiles not globally disallowed (intentional for public SEO).",
+    "/login and /register not disallowed \u2014 non-blocking warning."
+  ]
+}

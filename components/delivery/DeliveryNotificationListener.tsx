@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { pusherClient } from '@/lib/pusher';
 import { Bell, X, CheckCircle, Clock } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 
 interface NotificationMessage {
   id?: string;
@@ -85,8 +86,8 @@ export default function DeliveryNotificationListener() {
         try {
           const browserNotification = new Notification(data.title, {
             body: data.body,
-            icon: '/icon-192.png',
-            badge: '/favicon-48.png',
+            icon: canonicalLogoPath('square'),
+            badge: canonicalLogoPath('favicon48'),
             tag: `delivery-${notification.displayId}`,
             requireInteraction: data.urgent
           });

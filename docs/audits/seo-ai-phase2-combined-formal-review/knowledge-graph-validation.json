@@ -1,0 +1,18 @@
+{
+  "stableIds": {
+    "organization": true,
+    "website": true,
+    "legalOperator": true
+  },
+  "relationships": {
+    "parentOrganization": true,
+    "founder": true,
+    "publisher": true
+  },
+  "buildersEmitSameIds": true,
+  "pendingSameAsNotEmittedInVerifiedList": {
+    "pendingDocumented": true,
+    "verifiedListOmitsLinkedIn": false
+  },
+  "noWikidataClaimInVerified": true
+}

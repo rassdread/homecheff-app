@@ -1,0 +1,58 @@
+=== Final automated product acceptance ===
+BASE https://homecheff.eu
+PASS validator:test:discovery-continuity
+PASS validator:test:feed-composition-progressive
+PASS validator:test:discovery-feed-without-location
+PASS validator:test:location-input-repair
+PASS validator:test:gps-location-repair
+PASS validator:test:location-mobile-keyboard
+PASS validator:test:google-login-repair
+PASS alles-content-matrix
+PASS content-integrity
+PASS route:/
+PASS route:/auth/login
+PASS route:/auth/register
+PASS route:/auth/forgot-password
+PASS route:/terms
+PASS route:/privacy
+PASS route:/faq
+PASS route:/about
+PASS route:/trust
+PASS route:/manifest
+PASS route:/pitch
+PASS auth-infrastructure — No secrets logged; interactive Google not claimed
+PASS feed-no-location:chromium
+DEFECT [P0] Feed without location no cards
+FAIL feed-no-location:webkit
+PASS geolocation:denied-context — Context-level deny/absence — not physical permission-dialog proof
+FAIL geolocation:granted-mock — Mocked geolocation — not physical dialog proof
+PASS manual-location:dom — DOM focus PASS is not physical keyboard proof
+PASS search:sparse-sushi
+DEFECT [P2] Many consecutive same-ID neighbors
+PASS long-scroll
+PASS responsive-rotation — Viewport resize emulation — not physical device rotation
+PASS chromium:phone-portrait — ok
+PASS chromium:phone-landscape — ok
+PASS chromium:tablet-portrait — ok
+PASS chromium:tablet-landscape — ok
+PASS chromium:laptop — ok
+PASS chromium:desktop — ok
+PASS chromium:ultrawide — ok
+PASS webkit:phone-portrait — ok
+PASS webkit:phone-landscape — ok
+PASS webkit:tablet-portrait — ok
+PASS webkit:tablet-landscape — ok
+PASS webkit:laptop — ok
+PASS webkit:desktop — ok
+PASS webkit:ultrawide — ok
+PASS msedge:phone-portrait — ok
+PASS msedge:phone-landscape — ok
+PASS msedge:tablet-portrait — ok
+PASS msedge:tablet-landscape — ok
+PASS msedge:laptop — ok
+PASS msedge:desktop — ok
+PASS msedge:ultrawide — ok
+
+=== SUMMARY ===
+{ pass: 48, fail: 2, skip: 0, warn: 0 }
+defects 2

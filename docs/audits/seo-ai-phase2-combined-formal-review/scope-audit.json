@@ -1,0 +1,12 @@
+{
+  "changedFileCount": 94,
+  "forbiddenHits": [],
+  "awTouches": [
+    "components/adaptive-workspace/WorkspaceOrientationStrip.tsx"
+  ],
+  "notes": [
+    "WorkspaceOrientationStrip / HomeHero / HomePageClient receive SSR identity fallbacks only (copy path).",
+    "No prisma, API, checkout, billing, or feed-ownership behavioural modules in combined tip diff vs main."
+  ],
+  "verdict": "SCOPE_OK"
+}

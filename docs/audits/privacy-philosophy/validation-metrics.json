@@ -1,0 +1,12 @@
+{
+  "phase": "3.2-privacy-philosophy",
+  "verdictTarget": "HOMECHEFF_PRIVACY_PHILOSOPHY_PASS",
+  "legalPolicyRewritten": false,
+  "consentChanged": false,
+  "guaranteesInvented": false,
+  "scores": {
+    "trust": 91,
+    "community": 90,
+    "brandAuthenticity": 92
+  }
+}

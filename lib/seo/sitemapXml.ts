@@ -22,6 +22,10 @@ const EXTRA_STATIC_PATHS: readonly string[] = [
   "/buurthulp",
   "/buurt-economie",
   "/wat-we-niet-zijn",
+  "/sergio-arrias",
+  "/oorsprong-homecheff",
+  "/waarom-homecheff",
+  "/arriassisme",
   "/seo-hub",
   "/en/seo-hub",
   "/affiliate",
@@ -39,6 +43,10 @@ const EXTRA_STATIC_PATHS: readonly string[] = [
   "/over-ons",
   "/manifest",
   "/constitution",
+  "/llms.txt",
+  "/ai.txt",
+  "/.well-known/security.txt",
+  "/en/what-is-homecheff",
 ] as const;
 
 function absoluteLoc(path: string): string {

@@ -19,6 +19,7 @@ import { OPEN_KNOWLEDGE_SOURCES } from "@/lib/i18n/openKnowledgeSources";
 import { LIVING_PLATFORM_SOURCES } from "@/lib/i18n/livingPlatformSources";
 import { OPERATING_SYSTEM_PAGE_SOURCES } from "@/lib/i18n/operatingSystemSources";
 import { FOOD_CATEGORY_CONTEXT_SOURCES } from "@/lib/i18n/foodCategoryContextSources";
+import { FOUNDER_ORIGIN_PAGE_SOURCES } from "@/lib/i18n/founderOriginSources";
 
 type LangCode = "nl" | "en";
 
@@ -71,7 +72,25 @@ export function mergeProgrammaticI18n(
   for (const [ns, src] of Object.entries(FOOD_CATEGORY_CONTEXT_SOURCES)) {
     out[ns] = flattenBiSource(src, lang);
   }
+  for (const [ns, src] of Object.entries(FOUNDER_ORIGIN_PAGE_SOURCES)) {
+    out[ns] = flattenBiSource(src, lang);
+  }
   return out;
+}
+
+export function getFounderOriginSeoMeta(
+  namespace: string,
+  lang: string,
+): { title: string; description: string } {
+  const src = FOUNDER_ORIGIN_PAGE_SOURCES[namespace];
+  if (!src?.metaTitle || !src?.metaDescription) {
+    throw new Error(`getFounderOriginSeoMeta: unknown namespace "${namespace}"`);
+  }
+  const L = pickLang(lang);
+  return {
+    title: src.metaTitle[L],
+    description: src.metaDescription[L],
+  };
 }
 
 export function getPillarSeoMeta(

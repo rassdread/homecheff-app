@@ -1,0 +1,49 @@
+{
+  "candidate": "41eb0eb36269ecd9878310fe812bbe8536878ec7",
+  "lint": { "command": "npm run lint", "status": "PASS" },
+  "smokeCheck": {
+    "preBuild": "PASS",
+    "postBuild": "PASS",
+    "buildIdPresent": true
+  },
+  "productionBuild": {
+    "command": "npx next build (NODE_OPTIONS=--max-old-space-size=8192)",
+    "status": "PASS_WITH_WARNINGS",
+    "staticPages": "257/257",
+    "warnings": [
+      "twitter-image runtime re-export not string literal",
+      "pre-existing controlled-workspace sealed import warnings"
+    ],
+    "fullTsc": "NOT_RUN_AS_SEPARATE_GATE — Next build typechecks as configured; no separate tsc OOM observed in this run"
+  },
+  "adaptiveWorkspaceReact": {
+    "command": "npm run test:adaptive-workspace-react",
+    "status": "PASS",
+    "includes": [
+      "orientation-explanation PASS",
+      "nav-preservation-1b4 PASS",
+      "visible-adaptive-1c PASS (7 assertions)",
+      "surface/context suites through 1b5.9 PASS"
+    ]
+  },
+  "orientationExplanation": { "status": "PASS" },
+  "visibleAdaptive1c": { "status": "PASS" },
+  "geofeedAuthorityTransition": {
+    "command": "npm run test:adaptive-workspace-geofeed-authority-transition",
+    "status": "PASS",
+    "groups": 9
+  },
+  "chromeOccupancy": { "status": "PASS", "assertions": 16 },
+  "navPreservation": { "status": "PASS", "assertions": 4 },
+  "ownershipGuards": {
+    "awTouchesLimitedToSsrIdentityFallbacks": true,
+    "noPrismaSchemaChange": true,
+    "noApiRouteBehaviourChange": true,
+    "noFeedHostOwnershipChange": true
+  },
+  "seoSpecificAutomatedTests": {
+    "status": "NO_DEDICATED_PACKAGE_SCRIPTS",
+    "independentValidation": "module probes + live preview crawl artifacts in this folder"
+  },
+  "verdict": "NO_PRODUCT_REGRESSION_OBSERVED"
+}

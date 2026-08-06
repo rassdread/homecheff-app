@@ -1,0 +1,33 @@
+{
+  "chromium": {
+    "label": "chromium",
+    "hardGate": false,
+    "hasCards": true,
+    "linkCount": 14,
+    "feedResponses": [
+      {
+        "count": 10
+      },
+      {},
+      {
+        "count": 7
+      }
+    ]
+  },
+  "webkit": {
+    "label": "webkit",
+    "hardGate": false,
+    "hasCards": true,
+    "linkCount": 14,
+    "feedResponses": [
+      {
+        "count": 10
+      },
+      {},
+      {
+        "count": 10
+      }
+    ]
+  },
+  "rerun": true
+}

@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "pass": 48,
+    "fail": 0,
+    "skip": 0,
+    "warn": 0,
+    "note": "After harness hardening re-run; initial false-positive FAILs cleared"
+  },
+  "firstPass": {
+    "pass": 48,
+    "fail": 2,
+    "defects": [
+      "webkit no-cards timing",
+      "scroll multi-anchor false consecutive"
+    ]
+  },
+  "rerun": {
+    "webkitFeed": "PASS",
+    "geoGranted": "PASS",
+    "scrollConsec": 0,
+    "defectsRemaining": 0
+  },
+  "productCodeRepairs": 0,
+  "harnessRepairs": [
+    "longer webkit wait",
+    "locale-aware feedVisible",
+    "multi-anchor href dedupe"
+  ],
+  "verdict": "HOMECHEFF_AUTOMATED_ACCEPTANCE_PASS",
+  "gate": "REAL_DEVICE_OPERATOR_PROOF_REQUIRED"
+}

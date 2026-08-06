@@ -1,0 +1,14 @@
+{
+  "policySource": "lib/feed/feed-composition-policy.ts",
+  "validator": {
+    "status": "PASS",
+    "exit": 0,
+    "tail": "PASS national scope does not radius-split for progressive need\nPASS interleave inserts inspiration into Alles mix\nPASS stride constant remains 4\nPASS empty-state location gate remains disabled\nPASS contract documents recirculation as intentional stage 4\nPASS recirculation stays inactive while marketplace has more unique pages\nPASS recirculation activates only after marketplace unique pool exhausted\nPASS recirculation batch does not start with immediate consecutive last id\nPASS composition sufficiency owns continuity (adaptive, not fixed count)\n\n24 checks passed\n"
+  },
+  "liveNearby": {
+    "count": 7,
+    "kinds": {
+      "PRODUCT": 7
+    }
+  }
+}

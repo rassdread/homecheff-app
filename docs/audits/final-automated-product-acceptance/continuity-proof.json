@@ -1,0 +1,17 @@
+{
+  "validator": {
+    "status": "PASS",
+    "exit": 0,
+    "tail": "PASS continuity feed renders only with band + candidates\nPASS dedupe keeps non-exact ids\nPASS GeoFeed wires composition signals into continuity band\nPASS GeoFeed builds unconstrained continuity pool\nPASS GeoFeed continuity layout precedes exclusive empties\nPASS exact matches render before continuity band\nPASS DiscoveryContinuityBand exposes CTA hooks\nPASS i18n continuity keys present (EN + NL)\nPASS continuity docs composition ownership (no fixed sparse count)\n\n=== 23 checks passed ===\n"
+  },
+  "searchSparseUi": {
+    "searchFound": true,
+    "afterSearch": {
+      "hardDeadEnd": false,
+      "continuityBand": true,
+      "feedStillPresent": true,
+      "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up DIGITAL NEIGHBOURHOOD MARKETPLACE nearby cook, grow, make and help HomeCheff is your digital neighbourhood marketplace: homemade meals, self-grown harv"
+    }
+  },
+  "noFixedThresholdInCode": true
+}

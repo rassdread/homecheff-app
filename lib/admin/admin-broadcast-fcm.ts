@@ -4,7 +4,7 @@ import {
   isValidFcmTokenShape,
   maskPushTokenForLogs,
 } from '@/lib/pushTokenValidation';
-import { getPublicAppUrl } from '@/lib/public-app-url';
+import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
 import { parseInternalPathFromUnknownInput } from '@/lib/native/safeRoute';
 
 const ANDROID_CHANNEL = 'announcements';
@@ -67,7 +67,7 @@ export async function sendAdminBroadcastFcm(opts: {
   });
 
   const seen = new Set<string>();
-  const webIcon = `${getPublicAppUrl()}/icon.png`;
+  const webIcon = canonicalLogoUrl('notification');
   let success = 0;
   let failures = 0;
 

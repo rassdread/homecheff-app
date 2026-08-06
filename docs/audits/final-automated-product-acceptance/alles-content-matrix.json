@@ -1,0 +1,25 @@
+{
+  "nationalKinds": {
+    "PRODUCT": 6,
+    "DISH": 4,
+    "SERVICE": 0,
+    "OTHER": 0
+  },
+  "mixedNational": true,
+  "searchCake": {
+    "count": 1,
+    "kinds": [
+      "DISH"
+    ]
+  },
+  "searchSushiSparse": {
+    "count": 0
+  },
+  "garden": {
+    "count": 2,
+    "kinds": [
+      "DISH",
+      "DISH"
+    ]
+  }
+}

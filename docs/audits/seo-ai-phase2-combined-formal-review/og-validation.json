@@ -1,0 +1,48 @@
+{
+  "opengraphImageRoute": true,
+  "twitterImageRoute": true,
+  "size1200x630": true,
+  "brandInOg": true,
+  "layoutUsesOgImage": true,
+  "notFoodOnly": true,
+  "live": {
+    "home_og_image_meta": "http://127.0.0.1:3456/opengraph-image?c347398f6dd9c6d3",
+    "home_twitter_card": "summary_large_image",
+    "opengraph_image_route": {
+      "path": "/opengraph-image",
+      "status": 200,
+      "content_type": "image/png",
+      "bytes": 122092,
+      "headers": {
+        "content-type": "image/png",
+        "cache-control": "public, immutable, no-transform, max-age=31536000",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'self'; frame-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.gstatic.com; img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com; media-src 'self' blob: data: https: http:; connect-src 'self' blob: https: wss: http: https://*.pusher.com wss://*.pusher.com https://sockjs-eu.pusher.com wss://ws-eu.pusher.com https://maps.googleapis.com https://*.vercel-storage.com; font-src 'self' data: https://fonts.gstatic.com;",
+        "x-frame-options": "DENY"
+      },
+      "is_html_shell": false,
+      "plain_textish": true,
+      "preview": "\ufffdPNG\r\n\u001a\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0004\ufffd\u0000\u0000\u0002v\b\u0006\u0000\u0000\u0000O@{\\\u0000\u0001\u0733IDATx\ufffd\ufffd\ufffdy\ufffdmWU\u736e\ufffd\u000fx\ufffd\ufffd\ufffd\ufffdVA}\u0010_\u0013,\ufffd\ufffd\u0000\ufffd\"\tP\u0005$ \t(M\ufffdr\"6$4i\u0004$\ufffdI\bm:\u0012\ufffdKhNh4\ufffdJ\u000e6\ufffd\ufffd&\u0004P\b]\ufffd[@\u001244\ufffd-\ufffd$\ufffd\u0004n\u0005\u001b\ufffd\ufffd\ufffd\u0016\ufffd\u01f9s\ufffd\ufffd\ufffd\ufffd\ufffd9\ufffdk4s\ufffd1\u7abb\ufffd~\ufffd\ufffds\ufffd5\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd9\ufffd3\ufffd{?;w\u007f\ufffd\ufffd\u000fv9\ufffd\ufffd\"hA>E-\ufffd\ufffd\u0132\ufffd$3$O\ufffdS\u010a)\ufffd,\ufffdB\ufffd\u000f\ufffd\ufffd\ufffdm\ufffdP\ufffd\u0015\ufffd\tZ\u05192L\u000b{\u052c3\ufffd2Z\ufffd\ufffdi Dv\ufffdl\u0001\u0015\t9\ufffd\ufffdxW\u0015q\u0006qc\ufffd\ufffd\u0014\ufffd\ufffd4\u0606\ufffd\ufffd7\ufffd \u0019|X\ufffdt\n\ufffd\u03930K\u001c6\ufffd\ufffd\ufffdT$\ufffd\ufffd\ufffd\u0000b\ufffd\ufffd\ufffdG\ufffd`\ufffd\ufffd\ufffd\ufffd\ufffd\u035a\uf5af`K\u077c|wF\ufffd\u0245r\tFV\u0003\ufffd4xE[\ufffdy\ufffd\u0006X\ufffd^\u0000Z\ufffdOQ\u000b\ufffd8\ufffd\ufffd(\ufffd\f\ufffd\u0013\ufffd\u0014\ufffdb\ufffd2\u02f9\ufffd\ufffdc\ufffd2x\u001b;Tm\u0005b\ufffd\u0016u\ufffd\f\ufffd\ufffd\u001e5\ufffd\f\ufffd\ufffdV5\ufffd\u00eb\u0001\u0005\t9\ufffd\ufffdxW\u0015q\u0006qc\ufffd\ufffd\u0014\ufffd\ufffd4\u0606\ufffd\ufffd7\ufffd \u0019|X\ufffdt\n\ufffd\u03930K\u001c6\ufffd",
+      "has_fabricated_phone": false,
+      "has_secret_leak": false
+    },
+    "twitter_image_route": {
+      "path": "/twitter-image",
+      "status": 200,
+      "content_type": "image/png",
+      "bytes": 122092,
+      "headers": {
+        "content-type": "image/png",
+        "cache-control": "public, immutable, no-transform, max-age=31536000",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'self'; frame-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.gstatic.com; img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com; media-src 'self' blob: data: https: http:; connect-src 'self' blob: https: wss: http: https://*.pusher.com wss://*.pusher.com https://sockjs-eu.pusher.com wss://ws-eu.pusher.com https://maps.googleapis.com https://*.vercel-storage.com; font-src 'self' data: https://fonts.gstatic.com;",
+        "x-frame-options": "DENY"
+      },
+      "is_html_shell": false,
+      "plain_textish": true,
+      "preview": "\ufffdPNG\r\n\u001a\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0004\ufffd\u0000\u0000\u0002v\b\u0006\u0000\u0000\u0000O@{\\\u0000\u0001\u0733IDATx\ufffd\ufffd\ufffdy\ufffdmWU\u736e\ufffd\u000fx\ufffd\ufffd\ufffd\ufffdVA}\u0010_\u0013,\ufffd\ufffd\u0000\ufffd\"\tP\u0005$ \t(M\ufffdr\"6$4i\u0004$\ufffdI\bm:\u0012\ufffdKhNh4\ufffdJ\u000e6\ufffd\ufffd&\u0004P\b]\ufffd[@\u001244\ufffd-\ufffd$\ufffd\u0004n\u0005\u001b\ufffd\ufffd\ufffd\u0016\ufffd\u01f9s\ufffd\ufffd\ufffd\ufffd\ufffd9\ufffdk4s\ufffd1\u7abb\ufffd~\ufffd\ufffds\ufffd5\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd9\ufffd3\ufffd{?;w\u007f\ufffd\ufffd\u000fv9\ufffd\ufffd\"hA>E-\ufffd\ufffd\u0132\ufffd$3$O\ufffdS\u010a)\ufffd,\ufffdB\ufffd\u000f\ufffd\ufffd\ufffdm\ufffdP\ufffd\u0015\ufffd\tZ\u05192L\u000b{\u052c3\ufffd2Z\ufffd\ufffdi Dv\ufffdl\u0001\u0015\t9\ufffd\ufffdxW\u0015q\u0006qc\ufffd\ufffd\u0014\ufffd\ufffd4\u0606\ufffd\ufffd7\ufffd \u0019|X\ufffdt\n\ufffd\u03930K\u001c6\ufffd\ufffd\ufffdT$\ufffd\ufffd\ufffd\u0000b\ufffd\ufffd\ufffdG\ufffd`\ufffd\ufffd\ufffd\ufffd\ufffd\u035a\uf5af`K\u077c|wF\ufffd\u0245r\tFV\u0003\ufffd4xE[\ufffdy\ufffd\u0006X\ufffd^\u0000Z\ufffdOQ\u000b\ufffd8\ufffd\ufffd(\ufffd\f\ufffd\u0013\ufffd\u0014\ufffdb\ufffd2\u02f9\ufffd\ufffdc\ufffd2x\u001b;Tm\u0005b\ufffd\u0016u\ufffd\f\ufffd\ufffd\u001e5\ufffd\f\ufffd\ufffdV5\ufffd\u00eb\u0001\u0005\t9\ufffd\ufffdxW\u0015q\u0006qc\ufffd\ufffd\u0014\ufffd\ufffd4\u0606\ufffd\ufffd7\ufffd \u0019|X\ufffdt\n\ufffd\u03930K\u001c6\ufffd",
+      "has_fabricated_phone": false,
+      "has_secret_leak": false
+    }
+  }
+}

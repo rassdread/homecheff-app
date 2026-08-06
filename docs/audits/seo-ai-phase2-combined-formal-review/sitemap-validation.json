@@ -1,0 +1,48 @@
+{
+  "total": 139,
+  "foodishPaths": 22,
+  "craftishPaths": 21,
+  "foodDominantAmongTopicalLandings": true,
+  "ratioFoodToCraft": 1.05,
+  "maaltijdenInSitemap": 0,
+  "semanticNote": "Brand/core/docs/comparison URLs excluded from food/craft topical counts. Phase 2 removed /maaltijden/* from sitemap. Corpus not spammy (n=139).",
+  "sampleFood": [
+    "/eten-verkopen-vanuit-huis",
+    "/thuisgekookt-eten-verkopen",
+    "/zelfgemaakt-eten-verkopen",
+    "/lokaal-eten-verkopen",
+    "/eten-verkopen-rotterdam",
+    "/eten-verkopen-amsterdam",
+    "/eten-verkopen-den-haag",
+    "/eten-verkopen-utrecht",
+    "/gemeenschap/keuken",
+    "/en/buy-home-cooked-food"
+  ],
+  "sampleCraft": [
+    "/persoonlijk-vakmanschap",
+    "/ontmoet-de-maker",
+    "/buurthulp",
+    "/gemeenschap/studio",
+    "/docs/barter",
+    "/tuinoogst-en-groente-uit-de-buurt",
+    "/en/home-grown-garden-produce-nearby",
+    "/handgemaakte-producten-uit-de-buurt",
+    "/en/handmade-products-from-neighbours",
+    "/reparaties-en-klussen-in-de-buurt",
+    "/lessen-en-vaardigheden-delen",
+    "/en/lessons-and-skills-from-neighbours",
+    "/fotografie-muziek-creatieve-diensten",
+    "/design-en-creatief-werk-lokaal",
+    "/en/local-design-and-creative-work"
+  ],
+  "includesMachineRoutes": {
+    "llms": true,
+    "ai": true,
+    "security": true
+  },
+  "host": [
+    "https://homecheff.eu"
+  ],
+  "noSpammyExpansion": true,
+  "validXmlCandidateCount": 139
+}
