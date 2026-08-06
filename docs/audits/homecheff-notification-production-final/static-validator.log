@@ -1,0 +1,67 @@
+OK: backoff attempt 1 = 30s
+OK: backoff attempt 2 = 60s
+OK: backoff attempt 3 = 120s
+OK: backoff capped at 1h
+OK: idempotency key differs per token
+OK: idempotency key stable
+OK: FCM path enqueues durable outbox
+OK: FCM path drains outbox immediately
+OK: transient-only retry removed
+OK: outbox statuses
+OK: claim uses SKIP LOCKED
+OK: exponential backoff
+OK: stale PROCESSING reclaim
+OK: delivery marks sent
+OK: invalid token cleanup
+OK: web FCM getToken+VAPID
+OK: permission gated
+OK: FCM SW background handler
+OK: FCM SW click deep link
+OK: FCM SW opens window
+OK: legacy sw deep links preserved
+OK: vercel cron for outbox
+OK: cron drains outbox
+OK: admin replay tooling
+OK: prisma outbox model
+OK: Providers mounts web push
+OK: settings user-gesture enable
+OK: web token register allowed
+OK: deep link allowlist
+OK: migration SQL present
+OK: firebase dependency declared
+
+HOMECHEFF_NOTIFICATION_PRODUCTION_FINAL_STATIC_OK
+OK: quiet hours suppress live channels without dropping send
+OK: inbox persistence path exists
+OK: proposal events have dedicated FCM payload builders
+OK: proposal FCM data type set
+OK: order/delivery FCM resolves route/actionUrl/link
+OK: FCM durable outbox enqueue present
+OK: FCM outbox drain present
+OK: invalid token cleanup present
+OK: order channel id wired
+OK: chat channel id wired
+OK: payment failed / refund treated as order-like FCM
+OK: typing API only emits user-typing — never NotificationService/FCM
+OK: service worker deep-link resolver
+OK: SW click fallback is /messages not homepage
+OK: SW notificationclick handler
+OK: native deep link handles proposal type
+OK: native deep link reads actionUrl
+OK: Android POST_NOTIFICATIONS declared
+OK: Android channels use HIGH importance
+OK: Android lockscreen visibility set
+OK: Android channels created
+OK: token register + logout DELETE
+OK: native permission request path
+OK: in-app toast + sound on live events
+OK: CommsRealtimeListener never binds typing
+OK: server notification service references NEW_ORDER
+OK: server notification service references ORDER_
+OK: server notification service references PAYMENT_FAILED
+OK: server notification service references DELIVERY_
+OK: server notification service references PROPOSAL_RECEIVED
+OK: server notification service references PROPOSAL_ACCEPTED
+OK: server notification service references PROPOSAL_REJECTED
+
+HOMECHEFF_NOTIFICATION_PIPELINE_STATIC_OK

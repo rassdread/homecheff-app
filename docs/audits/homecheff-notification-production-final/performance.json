@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-08-06",
+  "notes": "No live Firebase latency sample in this session. Values are design targets + static guarantees.",
+  "queueLatencyTargetMs": {
+    "immediateDrain": "<2000 when Firebase healthy",
+    "cronMaxDelayMs": 60000
+  },
+  "backoffMs": [30000, 60000, 120000, 240000, 480000, 960000, 1920000, 3600000],
+  "maxAttempts": 8,
+  "duplicatePrevention": "idempotencyKey per batchId+token; SW notification tag by conversation/order",
+  "firebaseRequestPattern": "one send per outbox row attempt; no polling loops",
+  "measuredLive": false
+}
