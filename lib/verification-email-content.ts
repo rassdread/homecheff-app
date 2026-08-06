@@ -1,6 +1,8 @@
 export type VerificationEmailLocale = "nl" | "en";
 
-const LOGO_URL = "https://homecheff.eu/icon.png";
+import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
+
+const LOGO_URL = canonicalLogoUrl('notification');
 
 function escapeHtml(s: string): string {
   return s

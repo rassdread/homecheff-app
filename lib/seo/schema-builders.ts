@@ -1,3 +1,4 @@
+import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
 import { getPlatformDefinition, type PlatformLang } from './platform-definition';
 import {
   HOMECHEFF_BRAND_NAME,
@@ -51,7 +52,12 @@ export function buildOrganizationJsonLd(
     name: HOMECHEFF_BRAND_NAME,
     alternateName: [...ORGANIZATION_ALTERNATE_NAMES],
     url: domain,
-    logo: { '@type': 'ImageObject', url: `${domain}/logo.png` },
+    logo: {
+      '@type': 'ImageObject',
+      url: canonicalLogoUrl('organization', domain),
+      width: 886,
+      height: 886,
+    },
     description: def.organizationDescription,
     sameAs: [...VERIFIED_SAME_AS],
     foundingLocation: {

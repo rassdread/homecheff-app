@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
+import { CANONICAL_LOGO_VERSION, canonicalLogoPath } from '@/lib/brand/canonical-logo';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -34,24 +35,9 @@ export default function Logo({ size = 'md', showText = true, className = '', log
     }
   };
 
-  // Probeer verschillende logo bestandsnamen
-  const logoPaths = logoPath 
-    ? [logoPath]
-    : [
-        '/icon-192.png',
-        '/apple-touch-icon.png',
-        '/logo.png',
-        '/logo.svg',
-        '/logo.webp',
-        '/logo.jpg',
-        '/homecheff-logo.png',
-        '/homecheff-logo.svg',
-        '/homecheff-logo.webp',
-        '/homecheff-logo.jpg',
-      ];
-
-  // Gebruik het eerste beschikbare logo pad, of fallback naar SVG
-  const useImageLogo = logoPaths[0];
+  const useImageLogo = logoPath
+    ? logoPath
+    : `${canonicalLogoPath('square')}?v=${CANONICAL_LOGO_VERSION}`;
 
   return (
     <div 
