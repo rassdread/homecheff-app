@@ -50,6 +50,7 @@ public class MainActivity extends BridgeActivity {
                 );
             channel.setDescription("Chatberichten van HomeCheff");
             channel.enableVibration(true);
+            channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
             channel.setSound(
                 android.media.RingtoneManager.getDefaultUri(
                     android.media.RingtoneManager.TYPE_NOTIFICATION
@@ -73,12 +74,13 @@ public class MainActivity extends BridgeActivity {
         try {
             NotificationChannel channel =
                 new NotificationChannel(
-                    "order_updates",
+                    "order_updates_v2",
                     "Bestellingen & bezorging",
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_HIGH
                 );
             channel.setDescription("Statusupdates van je bestellingen en bezorgopdrachten");
             channel.enableVibration(true);
+            channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
             channel.setSound(
                 android.media.RingtoneManager.getDefaultUri(
                     android.media.RingtoneManager.TYPE_NOTIFICATION

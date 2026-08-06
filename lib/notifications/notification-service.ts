@@ -142,12 +142,11 @@ export class NotificationService {
       `.then(rows => rows[0]).catch(() => null);
     }
 
-    // Check quiet hours
-    if (this.isQuietHours(userPreferences)) {
-      if (!message.urgent) {
-        return; // Skip non-urgent notifications during quiet hours
-      }
-    }
+    // Quiet hours: never drop the event — still persist to inbox; suppress live
+    // channels for non-urgent so devices stay quiet until the user opens the app.
+    const quietHoursActive =
+      this.isQuietHours(userPreferences) && !message.urgent;
+    const liveChannelsSuppressed = quietHoursActive;
 
     const results: Array<{ channel: string; success: boolean; error?: string }> = [];
 
@@ -166,12 +165,25 @@ export class NotificationService {
           break;
         case 'ORDER_PAID':
         case 'PAYMENT_RECEIVED':
+        case 'PAYMENT_FAILED':
         case 'ORDER_STATUS_UPDATE':
         case 'ORDER_READY_FOR_PICKUP':
         case 'ORDER_READY_FOR_DELIVERY':
         case 'ORDER_DELIVERED':
         case 'ORDER_CANCELLED':
+        case 'ORDER_DECLINED':
+        case 'ORDER_REFUNDED':
+        case 'REFUND':
           pushEnabled = userPreferences.pushOrderUpdates !== false;
+          break;
+        case 'PROPOSAL_RECEIVED':
+        case 'PROPOSAL_ACCEPTED':
+        case 'PROPOSAL_REJECTED':
+        case 'PROPOSAL_COUNTERED':
+        case 'PROPOSAL_ALTERNATIVE_VALUE':
+        case 'PROPOSAL_MIXED_ACCEPTED':
+        case 'COMMUNITY_ORDER_CREATED':
+          pushEnabled = userPreferences.pushNewMessages !== false;
           break;
         case 'DELIVERY_ORDER_AVAILABLE':
         case 'DELIVERY_ACCEPTED':
@@ -189,7 +201,7 @@ export class NotificationService {
       }
     }
     
-    if (channels.includes('push') && pushEnabled) {
+    if (channels.includes('push') && pushEnabled && !liveChannelsSuppressed) {
       try {
         await this.sendPusherNotification(userId, message);
         results.push({ channel: 'pusher', success: true });
@@ -201,6 +213,12 @@ export class NotificationService {
           error: error instanceof Error ? error.message : 'Unknown error' 
         });
       }
+    } else if (channels.includes('push') && pushEnabled && liveChannelsSuppressed) {
+      results.push({
+        channel: 'pusher',
+        success: true,
+        error: 'suppressed_quiet_hours_persisted_to_inbox',
+      });
     }
 
     // 2. Email - Check specific preference based on notification type
@@ -315,20 +333,41 @@ export class NotificationService {
       }
     }
 
-    // 4. Mobile push (FCM) — chat + bestelling/bezorg-updates; faalt nooit de hele send().
-    if (channels.includes('push') && pushEnabled && pushTokens.length > 0) {
+    // 4. Mobile push (FCM) — chat + orders + proposals + delivery; never fails whole send().
+    if (
+      channels.includes('push') &&
+      pushEnabled &&
+      pushTokens.length > 0 &&
+      !liveChannelsSuppressed
+    ) {
       try {
         await this.sendFcmNotificationsForMessage(
           pushTokens,
           message,
           userId
         );
+        results.push({ channel: 'fcm', success: true });
       } catch (e) {
         console.error(
           '[FCM] Onverwachte fout:',
           e instanceof Error ? e.message : e
         );
+        results.push({
+          channel: 'fcm',
+          success: false,
+          error: e instanceof Error ? e.message : 'Unknown error',
+        });
       }
+    } else if (
+      channels.includes('push') &&
+      pushEnabled &&
+      liveChannelsSuppressed
+    ) {
+      results.push({
+        channel: 'fcm',
+        success: true,
+        error: 'suppressed_quiet_hours_persisted_to_inbox',
+      });
     }
 
     // Save to database if requested
@@ -772,13 +811,54 @@ export class NotificationService {
       t === 'ORDER_PLACED' ||
       t === 'ORDER_PAID' ||
       t === 'PAYMENT_RECEIVED' ||
-      t === 'SHIPPING_LABEL_READY'
+      t === 'PAYMENT_FAILED' ||
+      t === 'SHIPPING_LABEL_READY' ||
+      t === 'REFUND' ||
+      t === 'ORDER_REFUNDED'
     ) {
       return true;
     }
     if (t.startsWith('ORDER_')) return true;
     if (t.startsWith('DELIVERY_')) return true;
     return false;
+  }
+
+  private static isFcmProposalLikeNotificationType(t: string | undefined): boolean {
+    if (!t) return false;
+    return (
+      t === 'PROPOSAL_RECEIVED' ||
+      t === 'PROPOSAL_ACCEPTED' ||
+      t === 'PROPOSAL_REJECTED' ||
+      t === 'PROPOSAL_COUNTERED' ||
+      t === 'PROPOSAL_ALTERNATIVE_VALUE' ||
+      t === 'PROPOSAL_MIXED_ACCEPTED' ||
+      t === 'COMMUNITY_ORDER_CREATED'
+    );
+  }
+
+  /**
+   * Resolve deep-link route for FCM from link / route / actionUrl / orderId / conversationId.
+   * Never falls back to homepage.
+   */
+  private static resolveFcmRouteFromMessage(
+    message: NotificationMessage
+  ): string | null {
+    const d = message.data || {};
+    const candidates = [d.route, d.actionUrl, d.link, d.path];
+    for (const raw of candidates) {
+      if (typeof raw !== 'string' || !raw.trim()) continue;
+      const parsed = parseInternalPathFromUnknownInput(raw);
+      if (parsed) return parsed;
+    }
+    const oidRaw = d.orderId;
+    if (typeof oidRaw === 'string' && /^[a-zA-Z0-9_-]{6,}$/.test(oidRaw)) {
+      return parseInternalPathFromUnknownInput(`/orders/${oidRaw}`);
+    }
+    const cidRaw = d.conversationId;
+    if (typeof cidRaw === 'string' && /^[a-zA-Z0-9_-]{6,}$/.test(cidRaw)) {
+      return parseInternalPathFromUnknownInput(`/messages/${cidRaw}/`);
+    }
+    return null;
   }
 
   /** FCM data-payload voor bestelling/bezorg-updates (geen volledige adresvelden in `data`). */
@@ -789,18 +869,12 @@ export class NotificationService {
     androidChannelId: string;
   } | null {
     const d = message.data || {};
-    const link = typeof d.link === 'string' ? d.link : '';
-    let route: string | null = link
-      ? parseInternalPathFromUnknownInput(link)
-      : null;
+    const route = this.resolveFcmRouteFromMessage(message);
     const oidRaw = d.orderId;
     const oid =
       typeof oidRaw === 'string' && /^[a-zA-Z0-9_-]{6,}$/.test(oidRaw)
         ? oidRaw
         : null;
-    if (!route && oid) {
-      route = parseInternalPathFromUnknownInput(`/orders/${oid}`);
-    }
     if (!route) {
       if (process.env.NODE_ENV === 'development') {
         console.warn(
@@ -824,6 +898,7 @@ export class NotificationService {
     const data: Record<string, string> = {
       type: 'order',
       route,
+      actionUrl: route,
     };
     if (oid) data.orderId = oid;
     if (dtype) data.notificationType = dtype;
@@ -834,16 +909,80 @@ export class NotificationService {
     ) {
       data.deliveryOrderId = didRaw;
     }
+    const deliveryRequestId = d.deliveryRequestId;
+    if (
+      typeof deliveryRequestId === 'string' &&
+      /^[a-zA-Z0-9_-]{6,}$/.test(deliveryRequestId)
+    ) {
+      data.deliveryRequestId = deliveryRequestId;
+    }
     return {
       data,
       title,
       body,
-      androidChannelId: 'order_updates',
+      androidChannelId: 'order_updates_v2',
+    };
+  }
+
+  private static buildFcmProposalPayload(message: NotificationMessage): {
+    data: Record<string, string>;
+    title: string;
+    body: string;
+    androidChannelId: string;
+  } | null {
+    const d = message.data || {};
+    const route = this.resolveFcmRouteFromMessage(message);
+    if (!route) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          '[FCM] proposal push zonder bruikbare route — overgeslagen',
+          d.type
+        );
+      }
+      return null;
+    }
+    const title = this.truncateFcmVisibleText(
+      (message.title || '').trim() || 'HomeCheff',
+      64
+    );
+    const bodyPlain = this.stripHtmlAndMarkdownForPushPreview(
+      String(message.body || '')
+    )
+      .replace(/\s+/g, ' ')
+      .trim();
+    const body = this.truncateFcmVisibleText(bodyPlain || 'Voorstelupdate', 110);
+    const dtype = typeof d.type === 'string' ? d.type : '';
+    const data: Record<string, string> = {
+      type: 'proposal',
+      route,
+      actionUrl: route,
+    };
+    if (dtype) data.notificationType = dtype;
+    const conversationId = d.conversationId;
+    if (
+      typeof conversationId === 'string' &&
+      /^[a-zA-Z0-9_-]{6,}$/.test(conversationId)
+    ) {
+      data.conversationId = conversationId;
+    }
+    const proposalId = d.proposalId;
+    if (
+      typeof proposalId === 'string' &&
+      /^[a-zA-Z0-9_-]{6,}$/.test(proposalId)
+    ) {
+      data.proposalId = proposalId;
+    }
+    return {
+      data,
+      title,
+      body,
+      androidChannelId: 'chat_messages',
     };
   }
 
   /**
-   * FCM: chat + bestelling/bezorg-updates. Android, iOS en web met actieve FCM-tokens.
+   * FCM: chat + orders/delivery + proposals. Android, iOS en web with active FCM tokens.
+   * Typing indicators must never reach this path (no NotificationMessage for typing).
    */
   private static async sendFcmNotificationsForMessage(
     pushTokens: any[],
@@ -857,7 +996,8 @@ export class NotificationService {
     const isChat =
       dataType === 'NEW_MESSAGE' || dataType === 'MESSAGE_RECEIVED';
     const isOrderLike = this.isFcmOrderLikeNotificationType(dataType);
-    if (!isChat && !isOrderLike) return;
+    const isProposalLike = this.isFcmProposalLikeNotificationType(dataType);
+    if (!isChat && !isOrderLike && !isProposalLike) return;
 
     let notificationTitle: string;
     let notificationBody: string;
@@ -865,7 +1005,7 @@ export class NotificationService {
     let androidChannelId: string;
     let avatarUrl: string | null = null;
     let senderNamePresent = false;
-    let summaryKind: 'chat' | 'order';
+    let summaryKind: 'chat' | 'order' | 'proposal';
 
     if (isChat) {
       const conversationId = message.data?.conversationId;
@@ -902,6 +1042,14 @@ export class NotificationService {
       }
       androidChannelId = 'chat_messages';
       summaryKind = 'chat';
+    } else if (isProposalLike) {
+      const built = this.buildFcmProposalPayload(message);
+      if (!built) return;
+      notificationTitle = built.title;
+      notificationBody = built.body;
+      data = built.data;
+      androidChannelId = built.androidChannelId;
+      summaryKind = 'proposal';
     } else {
       const built = this.buildFcmOrderPayload(message);
       if (!built) return;
@@ -992,15 +1140,22 @@ export class NotificationService {
             badge: webIcon,
             ...(avatarUrl ? { image: avatarUrl } : {}),
           },
+          fcmOptions: {
+            link: data.route || data.actionUrl || undefined,
+          },
+          data,
         },
       };
 
-      try {
+      const sendOnce = async (): Promise<void> => {
         await messaging.send(payload);
+      };
+
+      try {
+        await sendOnce();
         successCount += 1;
         platformSucceeded[plat] = (platformSucceeded[plat] || 0) + 1;
       } catch (err: unknown) {
-        failureCount += 1;
         const code = this.fcmErrorCode(err);
         const msg = err instanceof Error ? err.message : String(err);
         const invalid =
@@ -1011,6 +1166,7 @@ export class NotificationService {
           msg.includes('Requested entity was not found');
 
         if (invalid) {
+          failureCount += 1;
           await this.deactivateFcmToken(token);
           if (process.env.NODE_ENV === 'development') {
             console.info(
@@ -1019,10 +1175,22 @@ export class NotificationService {
             );
           }
         } else {
-          console.warn(
-            '[FCM] Verzenden mislukt:',
-            code || this.truncateFcmVisibleText(msg, 120)
-          );
+          // One transient retry (network/quota/unavailable) — no durable outbox yet.
+          try {
+            await new Promise((r) => setTimeout(r, 350));
+            await sendOnce();
+            successCount += 1;
+            platformSucceeded[plat] = (platformSucceeded[plat] || 0) + 1;
+          } catch (retryErr: unknown) {
+            failureCount += 1;
+            const retryCode = this.fcmErrorCode(retryErr);
+            const retryMsg =
+              retryErr instanceof Error ? retryErr.message : String(retryErr);
+            console.warn(
+              '[FCM] Verzenden mislukt na retry:',
+              retryCode || this.truncateFcmVisibleText(retryMsg, 120)
+            );
+          }
         }
       }
     }
@@ -1377,7 +1545,9 @@ export class NotificationService {
         type: 'ORDER_PAID',
         orderId,
         orderNumber,
-        link: `/orders/${orderId}`
+        link: `/orders/${orderId}`,
+        route: `/orders/${orderId}`,
+        actionUrl: `/orders/${orderId}`,
       },
       actions: [
         { label: 'Volg bestelling', action: 'TRACK_ORDER' }
@@ -1393,7 +1563,9 @@ export class NotificationService {
         orderId,
         orderNumber,
         totalAmount,
-        link: `/verkoper/orders`
+        link: `/verkoper/orders?highlight=${orderId}`,
+        route: `/verkoper/orders?highlight=${orderId}`,
+        actionUrl: `/verkoper/orders?highlight=${orderId}`,
       },
       actions: [
         { label: 'Bekijk bestelling', action: 'VIEW_ORDER' }
@@ -1430,7 +1602,9 @@ export class NotificationService {
         orderNumber,
         buyerName,
         totalAmount,
-        link: `/verkoper/orders`
+        link: `/verkoper/orders?highlight=${orderId}`,
+        route: `/verkoper/orders?highlight=${orderId}`,
+        actionUrl: `/verkoper/orders?highlight=${orderId}`,
       },
       actions: [
         { label: 'Bekijk bestelling', action: 'VIEW_ORDER' },
@@ -2017,6 +2191,8 @@ export class NotificationService {
         orderNumber,
         status,
         link: `/orders/${orderId}`,
+        route: `/orders/${orderId}`,
+        actionUrl: `/orders/${orderId}`,
         ...additionalData
       },
       actions: [
@@ -2086,6 +2262,8 @@ export class NotificationService {
         orderNumber,
         status,
         link: `/delivery/dashboard`,
+        route: `/delivery/dashboard`,
+        actionUrl: `/delivery/dashboard`,
         ...additionalData
       },
       actions: [
