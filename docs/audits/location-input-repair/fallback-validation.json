@@ -1,0 +1,10 @@
+{
+  "cityName": "supported_via_place_string",
+  "villageName": "supported_via_place_string",
+  "dutchPostcode": "supported_via_place_string",
+  "autocompleteRequired": false,
+  "enterSubmit": true,
+  "applySubmit": true,
+  "emptyRejected": "apply with empty place does not set manual source",
+  "fieldRemainsEnabledOnProviderFailure": true
+}
