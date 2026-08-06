@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 
 const ORBIT_RADIUS_PX = 110;
 const ORBIT_SATELLITES = [
@@ -14,7 +15,7 @@ const ORBIT_SATELLITES = [
   { labelKey: 'heroOrbitInspiration', emoji: '✨', angle: 210 },
 ] as const;
 
-const GLOBEMAN_SRC = '/homecheff-globeman.png';
+const GLOBEMAN_SRC = canonicalLogoPath('heroMascot');
 
 function orbitSatelliteStyle(angleDeg: number): CSSProperties {
   const rad = (angleDeg * Math.PI) / 180;

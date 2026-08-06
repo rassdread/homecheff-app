@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Bell, X, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 
 interface Notification {
   id: string;
@@ -87,7 +88,7 @@ export default function NotificationProvider({ children }: NotificationProviderP
     if (Notification.permission === 'granted') {
       new Notification(notification.title, {
         body: notification.message,
-        icon: '/favicon.ico',
+        icon: canonicalLogoPath('faviconIco'),
         tag: id,
       });
     }

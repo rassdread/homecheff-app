@@ -15,6 +15,7 @@ import type { NotificationType } from '@prisma/client';
 import { getFirebaseMessaging } from '@/lib/firebase/admin';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { getPublicAppUrl } from '@/lib/public-app-url';
+import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
 import { getTransactionalFrom } from '@/lib/email-from';
 import { logEmailSendFailure } from '@/lib/email-log';
 import { parseInternalPathFromUnknownInput } from '@/lib/native/safeRoute';
@@ -917,7 +918,7 @@ export class NotificationService {
       return platform === 'android' || platform === 'ios' || platform === 'web';
     });
 
-    const webIcon = `${getPublicAppUrl()}/icon.png`;
+    const webIcon = canonicalLogoUrl('notification');
 
     const platformAttempted: Record<string, number> = {};
     const platformSucceeded: Record<string, number> = {};

@@ -1,0 +1,45 @@
+{
+  "validatedAt": "2026-08-06T21:30:00+02:00",
+  "versionQuery": "?v=hc8",
+  "assets": [
+    {
+      "path": "/favicon.ico",
+      "format": "ICO",
+      "sizes": [16, 32, 48],
+      "linkTag": "rel=icon type=image/x-icon sizes=any",
+      "mime": "image/x-icon",
+      "square": true,
+      "transparentInvisibleRisk": false,
+      "decision": "PASS"
+    },
+    {
+      "path": "/favicon-48.png",
+      "format": "PNG",
+      "size": "48x48",
+      "consumers": ["manifest", "notification badge"],
+      "decision": "PASS"
+    },
+    {
+      "path": "/apple-touch-icon.png",
+      "format": "PNG",
+      "size": "180x180",
+      "linkTag": "rel=apple-touch-icon sizes=180x180",
+      "decision": "PASS"
+    },
+    {
+      "path": "/app/icon.png via Next",
+      "format": "PNG",
+      "size": "48x48",
+      "decision": "PASS"
+    },
+    {
+      "path": "/app/apple-icon.png via Next",
+      "format": "PNG",
+      "size": "180x180",
+      "decision": "PASS"
+    }
+  ],
+  "staleReferencesRemoved": ["?v=hc7 favicon query"],
+  "svgFavicon": "not used — PNG/ICO set sufficient",
+  "pass": true
+}

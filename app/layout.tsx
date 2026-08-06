@@ -6,6 +6,7 @@ import NavBarShell from '@/components/navigation/NavBarShell';
 import { headers, cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
+import { canonicalLogoUrl, FAVICON_ASSET_Q } from '@/lib/brand/canonical-logo';
 import { MAIN_DOMAIN, getMetadataBaseFromHeaders, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 import { getPlatformDefinition, PLATFORM_KEYWORDS } from '@/lib/seo/platform-definition';
 
@@ -47,10 +48,8 @@ const NavBar = dynamic(() => import('@/components/NavBar'), {
   loading: () => <NavBarShell />,
 });
 
-// Tab- + touch-icons: app/icon.png + app/apple-icon.png (Next). /favicon.ico komt uit public/ + expliciete link met query (Safari cache op blote /favicon.ico).
-// Bump FAVICON_ASSET_Q when je favicon/apple-touch vervangt zodat Safari geen oude (bijv. default host) ico blijft tonen.
-const OG_IMAGE_Q = '?v=hc6';
-const FAVICON_ASSET_Q = '?v=hc7';
+// Tab- + touch-icons: app/icon.png + app/apple-icon.png (Next). /favicon.ico uit public/ + query (Safari cache).
+// Version token: lib/brand/canonical-logo.ts (CANONICAL_LOGO_VERSION).
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -98,7 +97,7 @@ export async function generateMetadata(): Promise<Metadata> {
         siteName: 'HomeCheff',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
-        images: [{ url: `${MAIN_DOMAIN}/icon-192.png${OG_IMAGE_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
+        images: [{ url: canonicalLogoUrl('ogBrand'), width: 1200, height: 630, alt: 'HomeCheff' }],
       },
       alternates: {
         canonical: currentDomain,
@@ -136,7 +135,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'HomeCheff',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
-      images: [{ url: `${MAIN_DOMAIN}/icon-192.png${OG_IMAGE_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
+      images: [{ url: canonicalLogoUrl('ogBrand'), width: 1200, height: 630, alt: 'HomeCheff' }],
     },
     alternates: {
       canonical: currentDomain,

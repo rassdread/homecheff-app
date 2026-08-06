@@ -6,6 +6,7 @@ import Link from 'next/link';
 import InspirationFitImage from '@/components/inspiratie/InspirationFitImage';
 import { ChefHat, Palette, Printer, Sprout } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 import { getDisplayName } from '@/lib/displayName';
 import {
   buildInstructionContent,
@@ -214,7 +215,7 @@ export default function InspiratiePrintView({ item, canonicalUrl, autoPrint = fa
         <header className="border-b-2 border-emerald-600 pb-6 print-avoid-break">
           <div className="flex items-center gap-3">
             <div className="relative h-8 w-8 shrink-0">
-              <Image src="/icon-192.png" alt="HomeCheff" fill className="object-contain" sizes="32px" />
+              <Image src={canonicalLogoPath('square')} alt="HomeCheff" fill className="object-contain" sizes="32px" />
             </div>
             <span className="text-xl font-bold text-emerald-700">HomeCheff</span>
             <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-700">

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 
 /** Wacht tot de browser rustig is zodat eerste paint / feed niet concurreert met tientallen prefetch-JS downloads. */
 function runWhenIdle(fn: () => void, timeoutMs: number) {
@@ -34,7 +35,7 @@ export default function Preloader() {
 
   useEffect(() => {
     const preloadImages = () => {
-      const criticalImages = ['/icon-192.png', '/avatar-placeholder.png'];
+      const criticalImages = [canonicalLogoPath('square'), '/avatar-placeholder.png'];
 
       criticalImages.forEach((src) => {
         const img = new Image();

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
+import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
 import { COMPARISON_PAGE_SOURCES } from '@/lib/i18n/comparisonPageSources';
 import { ECOSYSTEM_MAP_SOURCES } from '@/lib/i18n/ecosystemMapSources';
 import { MANIFEST_PAGE_SOURCES } from '@/lib/i18n/manifestPageSources';
@@ -54,6 +55,7 @@ export async function buildAuthorityPageMetadata(
       type: 'article',
       url: canonical,
       siteName: 'HomeCheff',
+      images: [{ url: canonicalLogoUrl('ogBrand'), width: 1200, height: 630, alt: 'HomeCheff' }],
     },
     alternates: {
       canonical,
