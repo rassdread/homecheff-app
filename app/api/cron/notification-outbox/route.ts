@@ -6,7 +6,11 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
 function authorizeCron(req: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
+  const secret = process.env.CRON_SECRET?.trim();
+  // Production must not leave the outbox drain publicly callable.
+  if (process.env.NODE_ENV === 'production' && !secret) {
+    return false;
+  }
   if (!secret) return true;
   const authHeader = req.headers.get('authorization');
   return authHeader === `Bearer ${secret}`;
