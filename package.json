@@ -283,7 +283,8 @@
     "test:gps-location-repair": "npx tsx scripts/validate-gps-location-repair.ts",
     "test:location-mobile-keyboard": "npx tsx scripts/validate-location-mobile-keyboard.ts",
     "test:discovery-feed-without-location": "npx tsx scripts/validate-discovery-feed-without-location.ts",
-    "test:feed-composition-progressive": "npx tsx scripts/validate-feed-composition-progressive-discovery.ts"
+    "test:feed-composition-progressive": "npx tsx scripts/validate-feed-composition-progressive-discovery.ts",
+    "test:discovery-continuity": "npx tsx scripts/validate-discovery-continuity.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

@@ -1,0 +1,32 @@
+npm warn Unknown project config "lightningcss". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/node". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/postcss". This will stop working in the next major version of npm.
+
+> homecheff-app@0.1.0 test:discovery-continuity
+> npx tsx scripts/validate-discovery-continuity.ts
+
+npm warn Unknown project config "lightningcss". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/node". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/postcss". This will stop working in the next major version of npm.
+=== Discovery continuity ===
+
+PASS sparse threshold is 5
+PASS search is an active constraint
+PASS category is an active constraint
+PASS unconstrained browse is not a continuity constraint
+PASS nearby radius counts as constraint
+PASS band shows when empty + settled + constrained
+PASS band shows when sparse (below threshold)
+PASS band hidden when enough exact matches
+PASS band hidden while unsettled
+PASS continuity feed renders only with band + candidates
+PASS dedupe keeps non-exact ids
+PASS GeoFeed imports continuity helpers
+PASS GeoFeed builds unconstrained continuity pool
+PASS GeoFeed continuity layout precedes exclusive empties
+PASS exact matches render before continuity band
+PASS DiscoveryContinuityBand exposes CTA hooks
+PASS i18n continuity keys present (EN + NL)
+PASS policy documents exact-first continuity
+
+=== 18 checks passed ===

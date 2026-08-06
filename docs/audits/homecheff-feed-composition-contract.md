@@ -24,6 +24,21 @@ Summary:
 
 Price filter never removes compatible inspiration unless the user is in explicit sale-only mode.
 
+## Discovery continuity under filters / search
+
+When the user applies search, category, chip, accepted values, price, Nearby radius,
+or an explicit location, exact matches always come first.
+
+If the exact set is **empty or sparse** (`exactMatchCount < FEED_EXACT_SPARSE_THRESHOLD`):
+
+1. Show every exact match (never hide valid results).
+2. Show an honest continuity band + CTA (create / Gezocht / invite) — never imply the platform is empty.
+3. Continue the normal mixed discovery feed underneath (unconstrained progressive local-first sales + Inspiration), deduped against exact ids.
+4. Never replace the feed with a dead exclusive-empty page while continuity candidates exist.
+5. Never require clearing filters to see HomeCheff again.
+
+Implementation: `lib/feed/discovery-continuity.ts`, `DiscoveryContinuityBand`, GeoFeed continuity layout (`data-wx-discovery-continuity-layout`).
+
 ## Progressive discovery stages (product contract)
 
 HomeCheff is an infinite scrolling marketplace. The goal is **not** to permanently
