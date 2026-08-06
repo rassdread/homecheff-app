@@ -1,0 +1,7 @@
+{
+  "search_alles": "marketplace + inspiration text match (matchesSearch / matchesSearchTextQuery)",
+  "search_inspiration_chip": "inspiration slots only",
+  "search_category": "category filter then text on both pools when chip=all",
+  "silent_inspiration_exclusion": "fixed via composition scope (was geo side-effect)",
+  "dominance": "FEED_SALE_INSPIRATION_STRIDE=4 prevents inspiration flooding"
+}

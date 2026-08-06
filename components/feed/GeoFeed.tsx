@@ -28,6 +28,7 @@ import DiscoveryDirectionToggle, {
 import AcceptedValueChip from "@/components/marketplace/AcceptedValueChip";
 import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
 import LocationRefineBanner from "@/components/feed/LocationRefineBanner";
+import DiscoveryContinuityBand from "@/components/feed/DiscoveryContinuityBand";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
 import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
 import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
@@ -251,9 +252,17 @@ import {
   FEED_RECIRC_BATCH_SIZE,
   FEED_RECIRC_MIN_SEED,
   buildRecirculationBatch,
+  composeProgressiveNearbySalePool,
   inspirationEligibleForFeedScope,
+  resolveInspirationCompositionScope,
   type RecircSeedItem,
 } from "@/lib/feed/feed-composition-policy";
+import {
+  hasActiveFeedDiscoveryConstraint,
+  buildExactDiscoveryCompositionSignals,
+  shouldRenderDiscoveryContinuityFeed,
+  shouldShowDiscoveryContinuityBand,
+} from "@/lib/feed/discovery-continuity";
 import {
   composedFeedCanContinue,
   createFeedCompositionState,
@@ -3602,7 +3611,7 @@ export default function GeoFeed({
     !nearbyNeedsLocation &&
     hasViewerCoordsForSort;
 
-  const { local: localSalePool } = useMemo(
+  const { local: localSalePool, fallback: saleWiderPool } = useMemo(
     () =>
       partitionSaleItemsByRadius(filteredSaleBase, appliedRadius, {
         scope: appliedScope,
@@ -3610,9 +3619,22 @@ export default function GeoFeed({
     [filteredSaleBase, appliedRadius, appliedScope]
   );
 
+  /**
+   * Progressive Nearby: in-radius first, then wider eligible tail (local-first).
+   * Without location, keep the full soft-national / discovery set.
+   */
   const salePoolForRanking = locationFilterActive
-    ? localSalePool
+    ? composeProgressiveNearbySalePool({
+        local: localSalePool,
+        wider: saleWiderPool,
+      })
     : filteredSaleBase;
+
+  const inspirationCompositionScope = resolveInspirationCompositionScope({
+    appliedScope,
+    nearbyNeedsLocation,
+    localSaleCount: locationFilterActive ? localSalePool.length : undefined,
+  });
 
   const useSmartRanking =
     feedChip !== "sale" &&
@@ -3640,7 +3662,7 @@ export default function GeoFeed({
     return inspiratiePool.filter((item) => {
       if (
         !inspirationEligibleForFeedScope({
-          scope: appliedScope,
+          scope: inspirationCompositionScope,
           item: {
             lat: item.location?.lat,
             lng: item.location?.lng,
@@ -3668,7 +3690,7 @@ export default function GeoFeed({
     inspiratiePool,
     appliedSearchQuery,
     appliedCategory,
-    appliedScope,
+    inspirationCompositionScope,
     effectiveViewerForDistance,
     appliedRadius,
   ]);
@@ -3681,7 +3703,7 @@ export default function GeoFeed({
     return feedOnlyInspiration.filter((item) => {
       if (
         !inspirationEligibleForFeedScope({
-          scope: appliedScope,
+          scope: inspirationCompositionScope,
           item: {
             lat: item.lat,
             lng: item.lng,
@@ -3709,14 +3731,14 @@ export default function GeoFeed({
     feedOnlyInspiration,
     appliedSearchQuery,
     appliedCategory,
-    appliedScope,
+    inspirationCompositionScope,
     effectiveViewerForDistance,
     appliedRadius,
   ]);
 
   const inspirationSlots = useMemo(() => {
-    // Discovery fallback (no viewer location) still shows inspiration /
-    // recommended mix — location must not gate browsing.
+    // Alles / mixed feed: Inspiration is composed via stride interleave —
+    // never gated solely on missing location (scope resolved above).
     const built = buildInspSlots(filteredApiInspiration, filteredFeedInspiration);
     if (appliedSortBy === "newest" && appliedSortOrder === "desc") return built;
     return sortInspirationSlots(built, appliedSortBy, appliedSortOrder);
@@ -3979,6 +4001,163 @@ export default function GeoFeed({
 
   const displayCount = composedDisplayRows.length;
 
+  /** Exact-set composition signals (exclude recirculation stage-4 rows). */
+  const exactCompositionSignals = useMemo(() => {
+    const items: Array<{
+      id: string;
+      creatorId: string | null;
+      kind: "sale" | "inspiration" | "other";
+    }> = [];
+    for (const row of displayRows) {
+      if (row.row === "sale") {
+        items.push({
+          id: row.item.id,
+          creatorId: row.item.sellerUserId ?? null,
+          kind: isMarketplaceRequestItem(row.item) ? "other" : "sale",
+        });
+        continue;
+      }
+      if (row.row === "insp") {
+        if (row.slot.kind === "api") {
+          items.push({
+            id: row.slot.item.id,
+            creatorId: row.slot.item.user?.id ?? null,
+            kind: "inspiration",
+          });
+        } else {
+          items.push({
+            id: row.slot.item.id,
+            creatorId: row.slot.item.sellerUserId ?? null,
+            kind: "inspiration",
+          });
+        }
+      }
+    }
+    return buildExactDiscoveryCompositionSignals({
+      items,
+      localSaleCount: locationFilterActive ? localSalePool.length : undefined,
+      progressiveWidenActive:
+        locationFilterActive && saleWiderPool.length > 0,
+      inspirationCompositionWidened:
+        appliedScope === FEED_SCOPE_NEARBY &&
+        inspirationCompositionScope !== "nearby",
+    });
+  }, [
+    displayRows,
+    locationFilterActive,
+    localSalePool.length,
+    saleWiderPool.length,
+    appliedScope,
+    inspirationCompositionScope,
+  ]);
+
+  const discoveryConstraintActive = hasActiveFeedDiscoveryConstraint({
+    searchQuery: appliedSearchQuery,
+    category: appliedCategory,
+    feedChip,
+    acceptedValues: appliedAcceptedValues,
+    priceMin: appliedPriceRange.min,
+    priceMax: appliedPriceRange.max,
+    nearbyRadiusActive:
+      appliedScope === FEED_SCOPE_NEARBY && appliedRadius > 0,
+    locationConstraintActive:
+      Boolean(appliedPlace.trim()) ||
+      locationSource === "gps" ||
+      locationSource === "profile" ||
+      locationSource === "ip" ||
+      locationSource === "country" ||
+      Boolean(userLocation) ||
+      Boolean(profileCoords),
+  });
+
+  /**
+   * Unconstrained mixed discovery under an active filter/search — local-first
+   * progressive sales + Inspiration, without search/category/price/accepted.
+   */
+  const continuityDisplayRows = useMemo(() => {
+    if (!discoveryConstraintActive) return [] as ReturnType<
+      typeof interleaveSalesAndInspiration
+    >;
+
+    const continuitySales = locationFilterActive
+      ? (() => {
+          const partitioned = partitionSaleItemsByRadius(
+            saleCandidates,
+            appliedRadius,
+            { scope: appliedScope },
+          );
+          return composeProgressiveNearbySalePool({
+            local: partitioned.local,
+            wider: partitioned.fallback,
+          });
+        })()
+      : saleCandidates;
+
+    const continuityApiInsp = inspiratiePool.filter((item) =>
+      inspirationEligibleForFeedScope({
+        scope: inspirationCompositionScope,
+        item: {
+          lat: item.location?.lat,
+          lng: item.location?.lng,
+          place: item.location?.place,
+        },
+        viewer: effectiveViewerForDistance,
+        radiusKm: appliedRadius,
+      }),
+    );
+    const continuityFeedInsp = feedOnlyInspiration.filter((item) =>
+      inspirationEligibleForFeedScope({
+        scope: inspirationCompositionScope,
+        item: {
+          lat: item.lat,
+          lng: item.lng,
+          place: item.place,
+        },
+        viewer: effectiveViewerForDistance,
+        radiusKm: appliedRadius,
+      }),
+    );
+    const continuitySlots = buildInspSlots(
+      continuityApiInsp,
+      continuityFeedInsp,
+    );
+    const mixed = interleaveSalesAndInspiration(
+      continuitySales,
+      continuitySlots,
+    );
+
+    const exactIds = new Set<string>();
+    for (const row of composedDisplayRows) {
+      if (row.row === "sale") exactIds.add(row.item.id);
+      else if (row.row === "insp") {
+        exactIds.add(
+          row.slot.kind === "api" ? row.slot.item.id : row.slot.item.id,
+        );
+      }
+    }
+
+    return mixed.filter((row) => {
+      const id =
+        row.row === "sale"
+          ? row.item.id
+          : row.slot.kind === "api"
+            ? row.slot.item.id
+            : row.slot.item.id;
+      return !exactIds.has(id);
+    });
+  }, [
+    discoveryConstraintActive,
+    locationFilterActive,
+    saleCandidates,
+    appliedRadius,
+    appliedScope,
+    inspiratiePool,
+    feedOnlyInspiration,
+    inspirationCompositionScope,
+    effectiveViewerForDistance,
+    composedDisplayRows,
+  ]);
+
 
   useEffect(() => {
     logFeedSaleVisibilityAudit({
@@ -4087,6 +4266,23 @@ export default function GeoFeed({
       Math.min(composedDisplayRows.length, FEED_FIRST_PAGE_TAKE),
     );
   }, [nativeMounted, nativeFeedRenderMore, composedDisplayRows]);
+
+  const continuityRowsToRender = useMemo(() => {
+    if (!nativeMounted) return continuityDisplayRows;
+    if (nativeFeedRenderMore) return continuityDisplayRows;
+    const exactShown = Math.min(
+      composedDisplayRows.length,
+      FEED_FIRST_PAGE_TAKE,
+    );
+    const remaining = Math.max(0, FEED_FIRST_PAGE_TAKE - exactShown);
+    if (remaining <= 0) return [];
+    return continuityDisplayRows.slice(0, remaining);
+  }, [
+    nativeMounted,
+    nativeFeedRenderMore,
+    continuityDisplayRows,
+    composedDisplayRows.length,
+  ]);
 
   const applyFilters = useCallback(() => {
     const trimmedPlace = place.trim();
@@ -4631,13 +4827,37 @@ export default function GeoFeed({
     filterTransitionDiagRef.current.zeroStateEligible += 1;
   }
 
+  const discoveryContinuitySettled =
+    feedHydrated &&
+    !showNearbyLocationRequired &&
+    !loading &&
+    !feedRefreshing &&
+    !requestInFlight &&
+    !isFilterSearchingPhase(filterResultPhase);
+
+  const showDiscoveryContinuityBand = shouldShowDiscoveryContinuityBand({
+    hasActiveConstraint: discoveryConstraintActive,
+    settled: discoveryContinuitySettled,
+    composition: exactCompositionSignals,
+  });
+
+  const showDiscoveryContinuityFeed = shouldRenderDiscoveryContinuityFeed({
+    showBand: showDiscoveryContinuityBand,
+    continuityCandidateCount: continuityDisplayRows.length,
+  });
+
+  /** Never dead-end on exclusive empties when continuity band/feed applies. */
+  const blockExclusiveEmpty = showDiscoveryContinuityBand;
+
   const emptyAcceptedValues =
+    !blockExclusiveEmpty &&
     !showNearbyLocationRequired &&
     acceptedValuesFilterActive &&
     zeroResultsGate &&
     displayCount === 0 &&
     !emptyRadiusNoLocal;
   const emptySale =
+    !blockExclusiveEmpty &&
     !showNearbyLocationRequired &&
     !emptyRadiusNoLocal &&
     !emptyAcceptedValues &&
@@ -4645,17 +4865,20 @@ export default function GeoFeed({
     zeroResultsGate &&
     filteredSaleBase.length === 0;
   const emptyInsp =
+    !blockExclusiveEmpty &&
     !showNearbyLocationRequired &&
     feedChip === "inspiration" &&
     zeroResultsGate &&
     inspirationSlots.length === 0;
   const emptyGezocht =
+    !blockExclusiveEmpty &&
     !showNearbyLocationRequired &&
     !emptyAcceptedValues &&
     feedChip === "gezocht" &&
     zeroResultsGate &&
     filteredRequestBase.length === 0;
   const emptyServices =
+    !blockExclusiveEmpty &&
     !showNearbyLocationRequired &&
     isServicesCategorySlug(appliedCategory) &&
     feedChip !== "inspiration" &&
@@ -4663,6 +4886,7 @@ export default function GeoFeed({
     zeroResultsGate &&
     sortedSales.length === 0;
   const emptyAll =
+    !blockExclusiveEmpty &&
     !showNearbyLocationRequired &&
     !emptyRadiusNoLocal &&
     !emptyAcceptedValues &&
@@ -5586,6 +5810,164 @@ export default function GeoFeed({
     />
   ) : null;
 
+
+  const buildFeedGridNodes = (
+    rows: readonly (typeof feedRowsToRender)[number][],
+  ): ReactNode[] => {
+    const nodes: ReactNode[] = [];
+    let feedItemIndex = 0;
+    let firstTilePriorityPending = true;
+    const isLoggedIn = !!session?.user;
+    const insertedPromoIds = new Set<HomePromotionId>();
+
+    const pushInsertIfNeeded = () => {
+      if (!enableMobileFeedInserts || !isMobileFeedUi) return;
+      const insertId = resolveHomeMobileInsert(feedItemIndex, isLoggedIn);
+      if (!insertId || !renderMobileFeedInsert) return;
+      const insertEl = renderMobileFeedInsert(insertId);
+      if (!insertEl) return;
+      const promoId = parsePromoInsertId(insertId);
+      if (promoId) insertedPromoIds.add(promoId);
+      nodes.push(
+        <div key={`feed-insert-${feedItemIndex}-${insertId}`} className="contents">
+          {insertEl}
+        </div>
+      );
+    };
+
+    rows.forEach((row, idx) => {
+      if (row.row === "activity_card") {
+        nodes.push(
+          <ActivityCardFeedBand
+            key={`activity-card-${row.card.id}-${idx}`}
+            cards={[row.card]}
+            maxVisible={activityCardSlotMeta.maxVisible}
+            maxSession={activityCardSlotMeta.maxSession}
+            t={t}
+            surface={isMobileFeedUi ? "feed_mobile_insert" : "home_feed"}
+            className="col-span-full"
+          />
+        );
+        return;
+      }
+      if (row.row === "economy_opportunity") {
+        nodes.push(
+          <div key={`economy-opp-${row.contract.instanceId}-${idx}`} className="col-span-full">
+            <OpportunityEconomyCard
+              contract={row.contract}
+              t={t}
+              surface="feed_mobile_insert"
+            />
+          </div>
+        );
+        return;
+      }
+      if (row.row === "exchange_feed_insert") {
+        nodes.push(
+          <div key={`exchange-insert-${row.card.id}-${idx}`} className="col-span-full">
+            <ExchangeSuggestionsFeedInsert
+              card={row.card}
+              position={row.position}
+              t={t}
+            />
+          </div>
+        );
+        return;
+      }
+      if (row.row === "growth_surface") {
+        nodes.push(
+          <div key={`growth-surface-${row.insert.afterSaleIndex}-${idx}`} className="col-span-full">
+            <GrowthMobileInsertCard insert={row.insert} />
+          </div>
+        );
+        return;
+      }
+      if (row.row === "section") {
+        nodes.push(
+          <DiscoveryFeedSectionHeading
+            key={`section-${row.sectionId}-${idx}`}
+            sectionId={row.sectionId}
+            titleKey={row.titleKey}
+            t={t}
+          />
+        );
+        return;
+      }
+      if (row.row === "sale") {
+        const card = toCardItem(row.item, effectiveViewerForDistance);
+        const priorityMedia = firstTilePriorityPending;
+        if (priorityMedia) firstTilePriorityPending = false;
+        nodes.push(
+          <FeedMarketplaceCard
+            key={`sale-${row.item.id}-${idx}`}
+            item={card}
+            baseUrl={baseUrl}
+            t={t}
+            variant="sale"
+            mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+            priorityMedia={priorityMedia}
+          />
+        );
+        feedItemIndex += 1;
+        pushInsertIfNeeded();
+        return;
+      }
+      const slot = row.slot;
+      if (slot.kind === "api") {
+        const priorityMedia = firstTilePriorityPending;
+        if (priorityMedia) firstTilePriorityPending = false;
+        nodes.push(
+          <FeedMarketplaceCard
+            key={`insp-api-${slot.item.id}-${idx}`}
+            item={inspirationApiToCardItem(slot.item)}
+            baseUrl={baseUrl}
+            t={t}
+            variant="inspiration-api"
+            inspirationApiItem={slot.item}
+            mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+            priorityMedia={priorityMedia}
+          />
+        );
+      } else {
+        const card = toCardItem(slot.item, effectiveViewerForDistance);
+        const priorityMedia = firstTilePriorityPending;
+        if (priorityMedia) firstTilePriorityPending = false;
+        nodes.push(
+          <FeedMarketplaceCard
+            key={`insp-feed-${slot.item.id}-${idx}`}
+            item={card}
+            baseUrl={baseUrl}
+            t={t}
+            variant="inspiration-feed"
+            mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+            priorityMedia={priorityMedia}
+          />
+        );
+      }
+      feedItemIndex += 1;
+      pushInsertIfNeeded();
+    });
+
+    const trailingInsertId = resolveHomeMobileTrailingPromo(
+      feedItemIndex,
+      insertedPromoIds,
+      visibleHomePromotionIds
+    );
+    if (trailingInsertId && renderMobileFeedInsert) {
+      const trailingEl = renderMobileFeedInsert(trailingInsertId);
+      if (trailingEl) {
+        nodes.push(
+          <div key={`feed-insert-trailing-${trailingInsertId}`} className="contents">
+            {trailingEl}
+          </div>
+        );
+      }
+    }
+
+    return nodes;
+  };
+
+
   const feedResultsBlock = (
     <>
       {locationRefineBannerEl}
@@ -5604,6 +5986,88 @@ export default function GeoFeed({
             {t("feed.searchingResults")}
           </p>
           <p className="mt-1 text-emerald-800/80">{t("feed.searchingResultsHint")}</p>
+        </div>
+      ) : showDiscoveryContinuityBand ? (
+        <div
+          className={`space-y-3${showStaleFeedWhileRefreshing ? " opacity-90" : ""}`}
+          data-wx-discovery-continuity-layout=""
+        >
+          {filterSearchingBannerEl}
+          {feedRowsToRender.length > 0 ? (
+            <div
+              key={isMobileFeedUi ? `${effectiveFeedLayoutMode}-exact` : "desktop-exact"}
+              className={feedResultsContainerClass}
+              data-wx-discovery-exact=""
+            >
+              {isMobileFeedUi && feedChip === "sale" && session?.user ? (
+                <div className="col-span-full">
+                  <ExchangeSuggestionsMobileModule context="discovery" className="mb-3" />
+                </div>
+              ) : null}
+              {buildFeedGridNodes(feedRowsToRender)}
+            </div>
+          ) : null}
+          <DiscoveryContinuityBand
+            t={t}
+            exactMatchCount={displayCount}
+            searchQuery={appliedSearchQuery}
+            appliedScope={appliedScope}
+            appliedRadius={appliedRadius}
+            onCreate={() =>
+              createFlow.openCreateFlowWithIntent(
+                createIntentForSaleOrInspiration(category, "sale"),
+              )
+            }
+            onRequest={() => setFeedChip("gezocht")}
+            onTrade={activateTradeDiscovery}
+            onFocusSearch={() => {
+              const el = document.querySelector<HTMLInputElement>(
+                "[data-wx-feed-search]",
+              );
+              el?.focus();
+            }}
+            onOpenFilters={() => {
+              if (feedCompactChrome && !isDesktopSplit) {
+                setMobileFilterSheetOpen(true);
+              } else {
+                setSidebarRefineOpen(true);
+              }
+            }}
+            onClearFilters={() => {
+              clearFilters();
+              setFeedChip("all");
+            }}
+            onUseMyLocation={handleUseMyLocation}
+            onWidenRadius={handleWidenRadius}
+            onViewNearby={() => handleScopeChange(FEED_SCOPE_NEARBY)}
+          />
+          {showDiscoveryContinuityFeed ? (
+            <div
+              key={isMobileFeedUi ? `${effectiveFeedLayoutMode}-cont` : "desktop-cont"}
+              className={feedResultsContainerClass}
+              data-wx-discovery-continuity-feed=""
+            >
+              {buildFeedGridNodes(
+                (nativeMounted && !nativeFeedRenderMore
+                  ? continuityRowsToRender
+                  : continuityDisplayRows) as typeof feedRowsToRender,
+              )}
+            </div>
+          ) : null}
+          {feedHasMore ? (
+            <div
+              ref={feedLoadMoreRef}
+              className="flex min-h-[2rem] justify-center py-3"
+              aria-hidden={!feedLoadingMore}
+            >
+              {feedLoadingMore ? (
+                <Loader2
+                  className="h-5 w-5 animate-spin text-gray-400"
+                  aria-label={t("feed.updating")}
+                />
+              ) : null}
+            </div>
+          ) : null}
         </div>
       ) : emptyRadiusNoLocal ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
@@ -5969,159 +6433,7 @@ export default function GeoFeed({
               <ExchangeSuggestionsMobileModule context="discovery" className="mb-3" />
             </div>
           ) : null}
-          {(() => {
-            const nodes: ReactNode[] = [];
-            let feedItemIndex = 0;
-            let firstTilePriorityPending = true;
-            const isLoggedIn = !!session?.user;
-            const insertedPromoIds = new Set<HomePromotionId>();
-
-            const pushInsertIfNeeded = () => {
-              if (!enableMobileFeedInserts || !isMobileFeedUi) return;
-              const insertId = resolveHomeMobileInsert(feedItemIndex, isLoggedIn);
-              if (!insertId || !renderMobileFeedInsert) return;
-              const insertEl = renderMobileFeedInsert(insertId);
-              if (!insertEl) return;
-              const promoId = parsePromoInsertId(insertId);
-              if (promoId) insertedPromoIds.add(promoId);
-              nodes.push(
-                <div key={`feed-insert-${feedItemIndex}-${insertId}`} className="contents">
-                  {insertEl}
-                </div>
-              );
-            };
-
-            feedRowsToRender.forEach((row, idx) => {
-              if (row.row === "activity_card") {
-                nodes.push(
-                  <ActivityCardFeedBand
-                    key={`activity-card-${row.card.id}-${idx}`}
-                    cards={[row.card]}
-                    maxVisible={activityCardSlotMeta.maxVisible}
-                    maxSession={activityCardSlotMeta.maxSession}
-                    t={t}
-                    surface={isMobileFeedUi ? "feed_mobile_insert" : "home_feed"}
-                    className="col-span-full"
-                  />
-                );
-                return;
-              }
-              if (row.row === "economy_opportunity") {
-                nodes.push(
-                  <div key={`economy-opp-${row.contract.instanceId}-${idx}`} className="col-span-full">
-                    <OpportunityEconomyCard
-                      contract={row.contract}
-                      t={t}
-                      surface="feed_mobile_insert"
-                    />
-                  </div>
-                );
-                return;
-              }
-              if (row.row === "exchange_feed_insert") {
-                nodes.push(
-                  <div key={`exchange-insert-${row.card.id}-${idx}`} className="col-span-full">
-                    <ExchangeSuggestionsFeedInsert
-                      card={row.card}
-                      position={row.position}
-                      t={t}
-                    />
-                  </div>
-                );
-                return;
-              }
-              if (row.row === "growth_surface") {
-                nodes.push(
-                  <div key={`growth-surface-${row.insert.afterSaleIndex}-${idx}`} className="col-span-full">
-                    <GrowthMobileInsertCard insert={row.insert} />
-                  </div>
-                );
-                return;
-              }
-              if (row.row === "section") {
-                nodes.push(
-                  <DiscoveryFeedSectionHeading
-                    key={`section-${row.sectionId}-${idx}`}
-                    sectionId={row.sectionId}
-                    titleKey={row.titleKey}
-                    t={t}
-                  />
-                );
-                return;
-              }
-              if (row.row === "sale") {
-                const card = toCardItem(row.item, effectiveViewerForDistance);
-                const priorityMedia = firstTilePriorityPending;
-                if (priorityMedia) firstTilePriorityPending = false;
-                nodes.push(
-                  <FeedMarketplaceCard
-                    key={`sale-${row.item.id}-${idx}`}
-                    item={card}
-                    baseUrl={baseUrl}
-                    t={t}
-                    variant="sale"
-                    mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
-                    priorityMedia={priorityMedia}
-                  />
-                );
-                feedItemIndex += 1;
-                pushInsertIfNeeded();
-                return;
-              }
-              const slot = row.slot;
-              if (slot.kind === "api") {
-                const priorityMedia = firstTilePriorityPending;
-                if (priorityMedia) firstTilePriorityPending = false;
-                nodes.push(
-                  <FeedMarketplaceCard
-                    key={`insp-api-${slot.item.id}-${idx}`}
-                    item={inspirationApiToCardItem(slot.item)}
-                    baseUrl={baseUrl}
-                    t={t}
-                    variant="inspiration-api"
-                    inspirationApiItem={slot.item}
-                    mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
-                    priorityMedia={priorityMedia}
-                  />
-                );
-              } else {
-                const card = toCardItem(slot.item, effectiveViewerForDistance);
-                const priorityMedia = firstTilePriorityPending;
-                if (priorityMedia) firstTilePriorityPending = false;
-                nodes.push(
-                  <FeedMarketplaceCard
-                    key={`insp-feed-${slot.item.id}-${idx}`}
-                    item={card}
-                    baseUrl={baseUrl}
-                    t={t}
-                    variant="inspiration-feed"
-                    mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
-                    priorityMedia={priorityMedia}
-                  />
-                );
-              }
-              feedItemIndex += 1;
-              pushInsertIfNeeded();
-            });
-
-            const trailingInsertId = resolveHomeMobileTrailingPromo(
-              feedItemIndex,
-              insertedPromoIds,
-              visibleHomePromotionIds
-            );
-            if (trailingInsertId && renderMobileFeedInsert) {
-              const trailingEl = renderMobileFeedInsert(trailingInsertId);
-              if (trailingEl) {
-                nodes.push(
-                  <div key={`feed-insert-trailing-${trailingInsertId}`} className="contents">
-                    {trailingEl}
-                  </div>
-                );
-              }
-            }
-
-            return nodes;
-          })()}
+              {buildFeedGridNodes(feedRowsToRender)}
         </div>
         {feedHasMore ? (
           <div

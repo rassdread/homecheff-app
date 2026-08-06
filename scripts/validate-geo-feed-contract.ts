@@ -134,7 +134,12 @@ assert(
   'native paint key isolates first-paint slice from pagination',
 );
 assert(route.includes('isEligibleForNationalFeedScope'), 'API national filter');
-assert(route.includes('FEED_RADIUS_MODE_STRICT_LOCAL'), 'nearby strict local');
+assert(route.includes('FEED_RADIUS_MODE_LOCAL_FIRST'), 'nearby local-first progressive');
+assert(
+  !route.includes('FEED_RADIUS_MODE_STRICT_LOCAL'),
+  'nearby must not hard-cut to strict local-only (progressive discovery)',
+);
+assert(route.includes('nearby_local_first') || route.includes('nearbyNeedsLocation'), 'nearby branch labelled');
 assert(route.includes('nearbyNeedsLocation'), 'nearby without coords guarded');
 assert(
   route.includes('softNationalFallback') &&

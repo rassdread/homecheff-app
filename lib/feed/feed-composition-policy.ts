@@ -183,6 +183,47 @@ export function inspirationEligibleForFeedScope(input: {
   return true;
 }
 
+/**
+ * Effective inspiration geo-scope for the mixed Alles feed.
+ *
+ * Soft-national / no-location discovery must not apply Nearby coords rules
+ * (that empties Inspiration while sales remain visible). Sparse local supply
+ * widens Inspiration eligibility to the national mainland contract — matching
+ * progressive local-first marketplace enrichment.
+ */
+export const FEED_SPARSE_LOCAL_SALE_THRESHOLD = FEED_SALE_INSPIRATION_STRIDE * 2;
+
+export function resolveInspirationCompositionScope(input: {
+  appliedScope: string;
+  /** True when Nearby has no usable viewer place/coords. */
+  nearbyNeedsLocation: boolean;
+  /** In-radius marketplace sale count (Nearby + known location). */
+  localSaleCount?: number;
+  sparseLocalThreshold?: number;
+}): string {
+  const scope = input.appliedScope;
+  if (scope !== 'nearby') return scope;
+  if (input.nearbyNeedsLocation) return 'national';
+  const threshold =
+    input.sparseLocalThreshold ?? FEED_SPARSE_LOCAL_SALE_THRESHOLD;
+  const localCount = input.localSaleCount ?? 0;
+  if (localCount < threshold) return 'national';
+  return 'nearby';
+}
+
+/**
+ * Progressive Nearby pool: in-radius items first, then wider eligible tail.
+ * Mirrors FEED_RADIUS_MODE_LOCAL_FIRST — local-first must not become local-only.
+ */
+export function composeProgressiveNearbySalePool<T>(input: {
+  local: T[];
+  wider: T[];
+}): T[] {
+  if (input.wider.length === 0) return input.local;
+  if (input.local.length === 0) return input.wider;
+  return [...input.local, ...input.wider];
+}
+
 export type ComposedRowKind = 'sale' | 'insp';
 
 export type RecircSeedItem = {
@@ -329,3 +370,84 @@ export function trimDisplayHistory<T extends { id: string }>(
   if (history.length <= cap) return history;
   return history.slice(history.length - cap);
 }
+
+/**
+ * Signals for whether an exact (constrained) result set already forms a
+ * natural HomeCheff discovery experience. Continuity UI must consume this
+ * composition decision — not invent a separate numeric threshold.
+ */
+export type ExactDiscoveryCompositionSignals = {
+  uniqueItemCount: number;
+  uniqueCreatorCount: number;
+  /** Distinct composed kinds: sale / inspiration / other */
+  contentKindCount: number;
+  /** In-radius marketplace count when Nearby + known location */
+  localSaleCount?: number;
+  /** Exact pool already includes progressive wider tail */
+  progressiveWidenActive?: boolean;
+  /** Inspiration geo scope already widened (e.g. sparse local → national) */
+  inspirationCompositionWidened?: boolean;
+};
+
+export type ExactDiscoveryCompositionSufficiency = {
+  sufficient: boolean;
+  reason:
+    | 'empty'
+    | 'inventory_thin'
+    | 'creator_monoculture'
+    | 'composition_incomplete'
+    | 'healthy';
+};
+
+/**
+ * Composition-owned sufficiency for constrained exact matches.
+ *
+ * Reuses inventory continuation modes, sale/inspiration stride, and sparse-local
+ * inspiration widening already defined in this module. No independent
+ * continuity magic number.
+ */
+export function isExactDiscoveryCompositionSufficient(
+  signals: ExactDiscoveryCompositionSignals,
+): ExactDiscoveryCompositionSufficiency {
+  const mode = resolveInventoryContinuationMode(signals.uniqueItemCount);
+  if (mode === 'empty_state') {
+    return { sufficient: false, reason: 'empty' };
+  }
+  // Thin unique inventory cannot sustain a natural browse without immediate
+  // recirculation (single-seed / pair modes from the recirculation policy).
+  if (mode === 'single_seed_spaced' || mode === 'pair_alternate') {
+    return { sufficient: false, reason: 'inventory_thin' };
+  }
+
+  // Multiple listings from one creator do not read as a living neighbourhood
+  // marketplace — continuity invites others to participate.
+  if (signals.uniqueItemCount > 1 && signals.uniqueCreatorCount < 2) {
+    return { sufficient: false, reason: 'creator_monoculture' };
+  }
+
+  // A natural mixed segment uses FEED_SALE_INSPIRATION_STRIDE marketplace tiles
+  // before an inspiration insert. Exact sets that cannot fill one composition
+  // unit and lack kind diversity are incomplete under a constraint.
+  const fillsCompositionUnit =
+    signals.uniqueItemCount >= FEED_SALE_INSPIRATION_STRIDE ||
+    signals.contentKindCount >= 2;
+  if (!fillsCompositionUnit) {
+    return { sufficient: false, reason: 'composition_incomplete' };
+  }
+
+  // Locality / progressive: when Nearby local supply is still below the existing
+  // sparse-local composition threshold and the exact pool has not progressive-
+  // widened, composition is incomplete even if creator diversity looks fine.
+  const localCount = signals.localSaleCount;
+  if (
+    typeof localCount === 'number' &&
+    localCount < FEED_SPARSE_LOCAL_SALE_THRESHOLD &&
+    !signals.progressiveWidenActive &&
+    !signals.inspirationCompositionWidened
+  ) {
+    return { sufficient: false, reason: 'composition_incomplete' };
+  }
+
+  return { sufficient: true, reason: 'healthy' };
+}
+

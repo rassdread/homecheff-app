@@ -12,7 +12,6 @@ import { isContactOnlyProduct } from "@/lib/product/order-method";
 import {
   FEED_RADIUS_DEFAULT_KM,
   FEED_RADIUS_MODE_LOCAL_FIRST,
-  FEED_RADIUS_MODE_STRICT_LOCAL,
   normalizeFeedRadiusKm,
   sortFeedItemsLocalFirst,
 } from "@/lib/geo/local-discovery";
@@ -1006,10 +1005,7 @@ async function handleFeedGet(
     nearbyNeedsLocation &&
     (!ipCountryCode || ipCountryCode === "NL");
 
-  const radiusModeForSort =
-    feedScope === FEED_SCOPE_NEARBY && viewerGeo && effectiveRadius > 0
-      ? FEED_RADIUS_MODE_STRICT_LOCAL
-      : FEED_RADIUS_MODE_LOCAL_FIRST;
+  const radiusModeForSort = FEED_RADIUS_MODE_LOCAL_FIRST;
 
   let sortedPool = sortFeedItemsLocalFirst(allItems as Record<string, unknown>[], {
     viewerGeo,
@@ -1379,7 +1375,7 @@ async function handleFeedGet(
               : feedScope === FEED_SCOPE_NATIONAL
                 ? 'national_mainland'
                 : feedScope === FEED_SCOPE_NEARBY
-                  ? 'nearby_strict_local'
+                  ? 'nearby_local_first'
                   : 'international_worldwide',
             nearbyNeedsLocation,
             radiusMode: radiusModeForSort,

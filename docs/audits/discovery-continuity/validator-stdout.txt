@@ -1,0 +1,37 @@
+npm warn Unknown project config "lightningcss". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/node". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/postcss". This will stop working in the next major version of npm.
+
+> homecheff-app@0.1.0 test:discovery-continuity
+> npx tsx scripts/validate-discovery-continuity.ts
+
+npm warn Unknown project config "lightningcss". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/node". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/postcss". This will stop working in the next major version of npm.
+=== Discovery continuity (adaptive) ===
+
+PASS no fixed FEED_EXACT_SPARSE_THRESHOLD in continuity module
+PASS composition owns isExactDiscoveryCompositionSufficient
+PASS search is an active constraint
+PASS category is an active constraint
+PASS unconstrained browse is not a continuity constraint
+PASS nearby radius counts as constraint
+PASS Example A: 4 diverse nearby → sufficient (no continuity band)
+PASS Example B: 3 same creator → insufficient (continuity appropriate)
+PASS Example C: 1 exact match → insufficient
+PASS Example D: 0 exact matches → empty / insufficient
+PASS mixed kinds can complete a composition unit below stride
+PASS sufficiency reuses composition stride / sparse-local constants (not a new continuity number)
+PASS band hidden while unsettled even if empty
+PASS band hidden when unconstrained even if thin
+PASS continuity feed renders only with band + candidates
+PASS dedupe keeps non-exact ids
+PASS GeoFeed wires composition signals into continuity band
+PASS GeoFeed builds unconstrained continuity pool
+PASS GeoFeed continuity layout precedes exclusive empties
+PASS exact matches render before continuity band
+PASS DiscoveryContinuityBand exposes CTA hooks
+PASS i18n continuity keys present (EN + NL)
+PASS continuity docs composition ownership (no fixed sparse count)
+
+=== 23 checks passed ===

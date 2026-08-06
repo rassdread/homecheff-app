@@ -1,0 +1,23 @@
+{
+  "originMainShaBefore": "5ea136ce581481fd2ee277a9212466870a1a8d1f",
+  "productionShaBefore": "5ea136ce581481fd2ee277a9212466870a1a8d1f",
+  "productionDeploymentIdBefore": "dpl_BwJCNzWziyvCapXvfB9kndCAomXp",
+  "productionUrlBefore": "https://homecheff-7v0ujgrb6-sergio-s-projects-f7b64ee1.vercel.app",
+  "featureBranch": "fix/feed-composition-progressive-discovery",
+  "featureTip": "7887df1760a55fd458108a47e8aad1cde8e6c75f",
+  "mergeBase": "5ea136ce581481fd2ee277a9212466870a1a8d1f",
+  "commitsIncluded": [
+    "062e94f0ca4e843f05aa5c559f8ebeb0319796d1 fix(feed): restore mixed feed and progressive discovery",
+    "4fb1e8fc3555accbe2a461858a13720dfc342d96 docs(feed): add feed composition and progressive discovery evidence",
+    "79a713f9140a3e0e2ae66e626d63a9d6d21c6e0e docs(feed): clarify controlled recirculation as intentional stage 4",
+    "72f007a46417fd362c309a850731e3bc40bbe613 feat(feed): keep discovery alive under empty or sparse filters",
+    "7887df1760a55fd458108a47e8aad1cde8e6c75f refactor(feed): make discovery continuity composition-driven"
+  ],
+  "rollbackSha": "5ea136ce581481fd2ee277a9212466870a1a8d1f",
+  "rollbackDeploymentId": "dpl_BwJCNzWziyvCapXvfB9kndCAomXp",
+  "worktree": "/tmp/hc-discovery-prod-merge",
+  "worktreeClean": true,
+  "unrelatedBehaviouralWork": false,
+  "diffPathCount": 36,
+  "sensitivePathsTouched": []
+}
