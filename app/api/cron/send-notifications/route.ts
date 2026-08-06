@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { processDuePushOutbox } from '@/lib/notifications/push-outbox-delivery';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,45 +30,44 @@ export async function GET(req: NextRequest) {
 
     for (const notification of notifications) {
       try {
-        // Check if notification is past its scheduled time
         const notifyAtDate = new Date(notification.notifyAt);
         if (notifyAtDate > now) {
           continue;
         }
 
-        // Send the notification
         await NotificationService.sendShiftReminder(
           notification.deliveryProfileId,
           notification.minutesBefore,
           {
             scheduledFor: new Date(notification.scheduledFor),
             timeSlot: notification.timeSlot,
-            dayOfWeek: notification.dayOfWeek
+            dayOfWeek: notification.dayOfWeek,
           }
         );
 
-        // Mark as sent (using raw SQL)
         await prisma.$executeRaw`
           UPDATE "ShiftNotification" 
           SET "status" = 'SENT', "sentAt" = ${new Date()}, "updatedAt" = ${new Date()}
           WHERE "id" = ${notification.id}
         `;
 
-        // If this is the 0-minute notification and autoGoOnline is enabled, go online
         if (notification.minutesBefore === 0) {
-          const settings = await prisma.$queryRaw<any[]>`
+          const settings = await prisma
+            .$queryRaw<any[]>`
             SELECT * FROM "DeliveryNotificationSettings" 
             WHERE "deliveryProfileId" = ${notification.deliveryProfileId}
             LIMIT 1
-          `.then(rows => rows[0]).catch(() => null);
-          
+          `
+            .then((rows) => rows[0])
+            .catch(() => null);
+
           if (settings?.autoGoOnline) {
             await prisma.deliveryProfile.update({
               where: { id: notification.deliveryProfileId },
               data: {
                 isOnline: true,
-                lastOnlineAt: new Date()
-              }
+                lastOnlineAt: new Date(),
+              },
             });
           }
         }
@@ -75,8 +75,7 @@ export async function GET(req: NextRequest) {
         sentCount++;
       } catch (error) {
         console.error(`❌ Failed to send notification ${notification.id}:`, error);
-        
-        // Mark as failed (using raw SQL)
+
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         await prisma.$executeRaw`
           UPDATE "ShiftNotification" 
@@ -88,25 +87,35 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Clean up old notifications (older than 7 days)
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const deletedResult = await prisma.$executeRaw`
       DELETE FROM "ShiftNotification"
       WHERE "createdAt" < ${sevenDaysAgo}
         AND "status" IN ('SENT', 'FAILED', 'CANCELLED')
     `;
+
+    let outbox = null;
+    try {
+      outbox = await processDuePushOutbox(40);
+    } catch (e) {
+      console.warn('[cron/send-notifications] outbox drain failed', e);
+    }
+
     return NextResponse.json({
       success: true,
       sent: sentCount,
       failed: failedCount,
-      cleaned: deletedResult
+      cleaned: deletedResult,
+      outbox,
     });
   } catch (error) {
     console.error('❌ Error sending notifications:', error);
     return NextResponse.json(
-      { error: 'Failed to send notifications', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to send notifications',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
 }
-

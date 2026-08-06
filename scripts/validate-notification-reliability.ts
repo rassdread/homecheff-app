@@ -45,8 +45,9 @@ assert(
     svc.includes('route'),
   'order/delivery FCM resolves route/actionUrl/link'
 );
-assert(svc.includes('await new Promise((r) => setTimeout(r, 350))'), 'FCM transient retry present');
-assert(svc.includes('deactivateFcmToken'), 'invalid token cleanup present');
+assert(svc.includes('enqueuePushOutbox'), 'FCM durable outbox enqueue present');
+assert(svc.includes('processDuePushOutbox'), 'FCM outbox drain present');
+assert(svc.includes('deactivateFcmToken') || read('lib/notifications/push-outbox-delivery.ts').includes('isActive'), 'invalid token cleanup present');
 assert(svc.includes("androidChannelId: 'order_updates_v2'"), 'order channel id wired');
 assert(svc.includes("androidChannelId: 'chat_messages'"), 'chat channel id wired');
 assert(

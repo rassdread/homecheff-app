@@ -12,7 +12,6 @@
 import { pusherServer } from '@/lib/pusher';
 import { prisma } from '@/lib/prisma';
 import type { NotificationType } from '@prisma/client';
-import { getFirebaseMessaging } from '@/lib/firebase/admin';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { getPublicAppUrl } from '@/lib/public-app-url';
 import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
@@ -27,6 +26,11 @@ import {
   pickSenderAvatarUrlForFcm,
   resolveHttpsPublicImageUrlForFcm,
 } from '@/lib/notifications/fcmPublicImageUrl';
+import {
+  createOutboxBatchId,
+  enqueuePushOutbox,
+} from '@/lib/notifications/push-outbox';
+import { processDuePushOutbox } from '@/lib/notifications/push-outbox-delivery';
 import { getDisplayName, type User as DisplayNameUser } from '@/lib/displayName';
 
 /** Alleen waarden uit Prisma `NotificationType` — voorkomt mislukte DB-writes bij bestel-/bezorgmeldingen. */
@@ -981,7 +985,7 @@ export class NotificationService {
   }
 
   /**
-   * FCM: chat + orders/delivery + proposals. Android, iOS en web with active FCM tokens.
+   * FCM: chat + orders/delivery + proposals via durable outbox.
    * Typing indicators must never reach this path (no NotificationMessage for typing).
    */
   private static async sendFcmNotificationsForMessage(
@@ -989,9 +993,6 @@ export class NotificationService {
     message: NotificationMessage,
     receiverId: string
   ): Promise<void> {
-    const messaging = getFirebaseMessaging();
-    if (!messaging) return;
-
     const dataType = message.data?.type as string | undefined;
     const isChat =
       dataType === 'NEW_MESSAGE' || dataType === 'MESSAGE_RECEIVED';
@@ -1067,150 +1068,51 @@ export class NotificationService {
     });
 
     const webIcon = canonicalLogoUrl('notification');
-
-    const platformAttempted: Record<string, number> = {};
-    const platformSucceeded: Record<string, number> = {};
-    let successCount = 0;
-    let failureCount = 0;
+    const batchId = createOutboxBatchId();
+    let queued = 0;
 
     for (const row of fcmTargets) {
       const token = row.token as string;
       if (!isValidFcmTokenShape(token)) continue;
-
-      const notification: {
-        title: string;
-        body: string;
-        imageUrl?: string;
-      } = {
-        title: notificationTitle,
-        body: notificationBody,
-      };
-      if (avatarUrl) {
-        notification.imageUrl = avatarUrl;
-      }
-
-      const androidNotification: {
-        channelId: string;
-        sound: string;
-        title: string;
-        body: string;
-        imageUrl?: string;
-      } = {
-        channelId: androidChannelId,
-        sound: 'default',
-        title: notificationTitle,
-        body: notificationBody,
-      };
-      if (avatarUrl) {
-        androidNotification.imageUrl = avatarUrl;
-      }
-
       const plat = String(row.platform || 'unknown').toLowerCase();
-      platformAttempted[plat] = (platformAttempted[plat] || 0) + 1;
-
-      const payload: Parameters<typeof messaging.send>[0] = {
+      await enqueuePushOutbox({
+        userId: receiverId,
         token,
-        notification,
-        data,
-        android: {
-          priority: 'high',
-          notification: androidNotification,
-        },
-        apns: {
-          headers: {
-            'apns-priority': '10',
-            'apns-push-type': 'alert',
-          },
-          payload: {
-            aps: {
-              alert: {
-                title: notificationTitle,
-                body: notificationBody,
-              },
-              sound: 'default',
-            },
-          },
-          ...(avatarUrl ? { fcmOptions: { imageUrl: avatarUrl } } : {}),
-        },
-        webpush: {
-          notification: {
-            title: notificationTitle,
-            body: notificationBody,
-            icon: webIcon,
-            badge: webIcon,
-            ...(avatarUrl ? { image: avatarUrl } : {}),
-          },
-          fcmOptions: {
-            link: data.route || data.actionUrl || undefined,
-          },
+        platform: plat,
+        pushTokenId: typeof row.id === 'string' ? row.id : null,
+        batchId,
+        payload: {
+          title: notificationTitle,
+          body: notificationBody,
           data,
+          androidChannelId,
+          avatarUrl,
+          webIcon,
+          kind: summaryKind,
         },
-      };
-
-      const sendOnce = async (): Promise<void> => {
-        await messaging.send(payload);
-      };
-
-      try {
-        await sendOnce();
-        successCount += 1;
-        platformSucceeded[plat] = (platformSucceeded[plat] || 0) + 1;
-      } catch (err: unknown) {
-        const code = this.fcmErrorCode(err);
-        const msg = err instanceof Error ? err.message : String(err);
-        const invalid =
-          code.includes('registration-token-not-registered') ||
-          code.includes('invalid-registration-token') ||
-          code === 'messaging/invalid-argument' ||
-          msg.includes('registration-token-not-registered') ||
-          msg.includes('Requested entity was not found');
-
-        if (invalid) {
-          failureCount += 1;
-          await this.deactivateFcmToken(token);
-          if (process.env.NODE_ENV === 'development') {
-            console.info(
-              '[FCM] Token gedeactiveerd (ongeldig/niet geregistreerd)',
-              maskPushTokenForLogs(token)
-            );
-          }
-        } else {
-          // One transient retry (network/quota/unavailable) — no durable outbox yet.
-          try {
-            await new Promise((r) => setTimeout(r, 350));
-            await sendOnce();
-            successCount += 1;
-            platformSucceeded[plat] = (platformSucceeded[plat] || 0) + 1;
-          } catch (retryErr: unknown) {
-            failureCount += 1;
-            const retryCode = this.fcmErrorCode(retryErr);
-            const retryMsg =
-              retryErr instanceof Error ? retryErr.message : String(retryErr);
-            console.warn(
-              '[FCM] Verzenden mislukt na retry:',
-              retryCode || this.truncateFcmVisibleText(retryMsg, 120)
-            );
-          }
-        }
-      }
+      });
+      queued += 1;
     }
 
-    if (
-      fcmTargets.length > 0 &&
-      process.env.NODE_ENV === 'development'
-    ) {
-      console.info('[FCM] push summary', {
-        kind: summaryKind,
-        receiverId,
-        tokenCount: fcmTargets.length,
-        successCount,
-        failureCount,
-        androidChannelId,
-        chatPushSenderAvatar: Boolean(avatarUrl),
-        chatPushSenderNamePresent: senderNamePresent,
-        platformAttempted,
-        platformSucceeded,
-      });
+    if (queued > 0) {
+      try {
+        const result = await processDuePushOutbox(Math.min(queued + 5, 50));
+        if (process.env.NODE_ENV === 'development') {
+          console.info('[FCM] outbox enqueue+drain', {
+            kind: summaryKind,
+            receiverId,
+            queued,
+            chatPushSenderAvatar: Boolean(avatarUrl),
+            chatPushSenderNamePresent: senderNamePresent,
+            ...result,
+          });
+        }
+      } catch (e) {
+        console.warn(
+          '[FCM] outbox immediate drain failed (cron will retry):',
+          e instanceof Error ? e.message : e
+        );
+      }
     }
   }
 

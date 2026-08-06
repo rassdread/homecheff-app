@@ -24,7 +24,7 @@ export type RegisterFcmTokenOptions = {
 };
 
 /**
- * POST FCM-token naar backend. Alleen zinvol in Capacitor native shell.
+ * POST FCM-token naar backend. Native Capacitor of browser (platform=web).
  * Geen throw: 401/offline worden als resultaat teruggegeven.
  */
 export async function registerFcmTokenWithServer(
@@ -33,7 +33,8 @@ export async function registerFcmTokenWithServer(
   deviceId?: string | null,
   options?: RegisterFcmTokenOptions
 ): Promise<PushTokenServerResult> {
-  if (!isNativeApp()) return "error";
+  const isWeb = platform === "web";
+  if (!isWeb && !isNativeApp()) return "error";
 
   const throttleOpts = {
     appVersion: options?.appVersion,
@@ -113,7 +114,6 @@ export async function registerFcmTokenWithServer(
 export async function unregisterFcmTokenWithServer(
   token: string
 ): Promise<PushTokenServerResult> {
-  if (!isNativeApp()) return "error";
   try {
     const res = await fetch("/api/push/register", {
       method: "DELETE",
