@@ -58,8 +58,8 @@ assert.equal(
     requestInFlight: false,
     resultCount: 0,
   }),
-  false,
-  'nearby without location uses Locatie nodig',
+  true,
+  'missing location must not suppress discovery zero-results',
 );
 
 const cache = new FeedFilterResultCache<{ id: string }>();
