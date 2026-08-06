@@ -1,0 +1,36 @@
+{
+  "national": {
+    "kinds": {
+      "PRODUCT": 6,
+      "DISH": 4
+    },
+    "hasMore": true
+  },
+  "nearby_no_coords": {
+    "kinds": {
+      "PRODUCT": 7
+    }
+  },
+  "nearby_rotterdam": {
+    "kinds": {
+      "PRODUCT": 7
+    }
+  },
+  "search_cake": {
+    "kinds": {
+      "DISH": 1
+    }
+  },
+  "search_sushi_sparse": {
+    "count": 0
+  },
+  "garden": {
+    "kinds": {
+      "DISH": 2
+    }
+  },
+  "home": {
+    "status": 200,
+    "hardLocationCopy": false
+  }
+}

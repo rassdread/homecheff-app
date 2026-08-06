@@ -1,0 +1,14 @@
+{
+  "project": "homecheff-app",
+  "status": "Ready",
+  "deploymentId": "dpl_J7hWb2FXmqoujoK2zCCtapsEu9Yc",
+  "url": "https://homecheff-hwregs047-sergio-s-projects-f7b64ee1.vercel.app",
+  "aliases": [
+    "https://homecheff.eu",
+    "https://homecheff.nl"
+  ],
+  "runtimeGitSha": "428f01d269f3267e77dbeaada46169b89d823a34",
+  "rollbackDeploymentId": "dpl_BwJCNzWziyvCapXvfB9kndCAomXp",
+  "cliLocalDeploy": "failed (Prisma datasource undefined during CLI collect-page-data)",
+  "gitTriggeredDeploy": "success"
+}

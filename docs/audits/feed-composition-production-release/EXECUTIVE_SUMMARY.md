@@ -34,3 +34,17 @@ Merge + Production deploy allowed after code gates.
 **Freeze withheld** until real-device/browser matrix completes.
 
 **Working verdict:** `HOMECHEFF_FEED_COMPOSITION_PARTIAL` / `REAL_DEVICE_OR_BROWSER_PROOF_REQUIRED`
+
+
+## Post-promotion
+
+| Field | Value |
+|-------|-------|
+| Merge SHA | `428f01d2` |
+| Parents | `5ea136ce` + `40e82861` |
+| Production deploy | `dpl_J7hWb2FXmqoujoK2zCCtapsEu9Yc` READY |
+| Alias | https://homecheff.eu |
+| Rollback deploy | `dpl_BwJCNzWziyvCapXvfB9kndCAomXp` |
+| Freeze | **NOT FROZEN** |
+
+**Final working verdict:** `HOMECHEFF_FEED_COMPOSITION_PARTIAL` · `REAL_DEVICE_OR_BROWSER_PROOF_REQUIRED`

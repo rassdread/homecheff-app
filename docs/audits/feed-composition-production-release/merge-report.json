@@ -1,0 +1,13 @@
+{
+  "strategy": "merge --no-ff",
+  "squash": false,
+  "rebase": false,
+  "mergeSha": "428f01d269f3267e77dbeaada46169b89d823a34",
+  "parents": [
+    "5ea136ce581481fd2ee277a9212466870a1a8d1f",
+    "40e82861502ca2ad213f973f8c7728920ca4c50a"
+  ],
+  "rollbackSha": "5ea136ce581481fd2ee277a9212466870a1a8d1f",
+  "rollbackDeploymentId": "dpl_BwJCNzWziyvCapXvfB9kndCAomXp",
+  "pushedTo": "origin/main"
+}
