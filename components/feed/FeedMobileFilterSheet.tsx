@@ -22,6 +22,8 @@ import { DISCOVERY_CATEGORY_CHIP_OPTIONS } from '@/lib/marketplace/canonical-mod
 type Props = {
   open: boolean;
   onClose: () => void;
+  /** Focus the place/postcode field when the sheet opens (manual location entry). */
+  focusPlaceOnOpen?: boolean;
   t: (key: string, params?: Record<string, string | number>) => string;
   place: string;
   onPlaceChange: (value: string) => void;
@@ -64,6 +66,7 @@ const inputClass =
 export default function FeedMobileFilterSheet({
   open,
   onClose,
+  focusPlaceOnOpen = false,
   t,
   place,
   onPlaceChange,
@@ -100,11 +103,33 @@ export default function FeedMobileFilterSheet({
   onDiscoveryDirectionChange,
 }: Props) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const localPlaceRef = useRef<HTMLInputElement | null>(null);
+
+  const setPlaceRef = (el: HTMLInputElement | null) => {
+    localPlaceRef.current = el;
+    if (!placeInputRef) return;
+    if (typeof placeInputRef === 'function') {
+      placeInputRef(el);
+    } else {
+      (placeInputRef as { current: HTMLInputElement | null }).current = el;
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
     const previousFocus = document.activeElement as HTMLElement | null;
-    closeButtonRef.current?.focus();
+
+    const focusTimer = window.setTimeout(() => {
+      if (focusPlaceOnOpen) {
+        const el = localPlaceRef.current;
+        if (el) {
+          el.focus({ preventScroll: false });
+          el.select?.();
+          return;
+        }
+      }
+      closeButtonRef.current?.focus();
+    }, 40);
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -115,10 +140,11 @@ export default function FeedMobileFilterSheet({
 
     document.addEventListener('keydown', onKeyDown);
     return () => {
+      window.clearTimeout(focusTimer);
       document.removeEventListener('keydown', onKeyDown);
       previousFocus?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open, onClose, focusPlaceOnOpen]);
 
   if (!open) return null;
 
@@ -232,16 +258,30 @@ export default function FeedMobileFilterSheet({
           </div>
 
           <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+            <label
+              htmlFor="feed-mobile-place-input"
+              className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5"
+            >
               {t('common.place')}
             </label>
             <input
-              ref={placeInputRef}
+              id="feed-mobile-place-input"
+              ref={setPlaceRef}
               value={place}
               onChange={(e) => onPlaceChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (place.trim()) onApply();
+                }
+              }}
               className={inputClass}
               placeholder={t('common.typePlaceOrPostcode')}
               autoComplete="postal-code"
+              inputMode="text"
+              enterKeyHint="search"
+              data-testid="feed-place-input"
+              aria-label={t('common.place')}
             />
             <button
               type="button"
@@ -257,7 +297,9 @@ export default function FeedMobileFilterSheet({
               {t('feed.useMyLocation')}
             </button>
             {locationError ? (
-              <p className="mt-1.5 text-xs text-red-600">{t('common.locationCouldNotBeDetermined')}</p>
+              <p className="mt-1.5 text-xs text-red-600" role="alert">
+                {t('common.locationCouldNotBeDetermined')}
+              </p>
             ) : null}
             {activeLocationChip ? (
               <div className="mt-2 flex flex-wrap items-center gap-2">

@@ -31,6 +31,7 @@ import LocationRefineBanner from "@/components/feed/LocationRefineBanner";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
 import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
 import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
+import { requestPlaceInputFocus } from "@/lib/feed/place-input-focus-request";
 import { useLandscapeWorkPosture } from "@/components/adaptive-workspace/WorkspaceChromeProvider";
 import {
   getFeedItemHref,
@@ -1193,6 +1194,8 @@ export default function GeoFeed({
   /** Capacitor: standaard ingeklapt zodat chips + sorteren boven de vouw blijven. */
   const [nativeFeedExtraOpen, setNativeFeedExtraOpen] = useState(false);
   const [mobileFilterSheetOpen, setMobileFilterSheetOpen] = useState(false);
+  /** When true, mobile filter sheet focuses the place input instead of the close button. */
+  const [mobileSheetFocusPlace, setMobileSheetFocusPlace] = useState(false);
   /** WX 1A — progressive disclosure for AW / non-composed desktop filter wall. */
   const [workspaceFiltersExpanded, setWorkspaceFiltersExpanded] = useState(false);
   const [category, setCategory] = useState(() =>
@@ -1760,12 +1763,16 @@ export default function GeoFeed({
   }, [getCurrentPosition, radius]);
 
   const handleChoosePlaceForNearby = useCallback(() => {
+    // Expand legacy collapsed Discovery Filters before focusing — otherwise
+    // placeInputRef is null while the place field is unmounted.
+    requestPlaceInputFocus({ reason: "choose-place" });
+
     if (feedCompactChrome && !isDesktopSplit) {
       setNativeFeedExtraOpen(true);
       setMobileFilterSheetOpen(true);
+      setMobileSheetFocusPlace(true);
     } else if (isDesktopSplit) {
       setSidebarRefineOpen(true);
-      // Scroll composed sidebar into view so place field is visible on desktop.
       window.setTimeout(() => {
         placeInputRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -1775,12 +1782,19 @@ export default function GeoFeed({
     } else {
       setShowFilters(true);
     }
-    window.setTimeout(() => {
+
+    const focusPlace = (attempt: number) => {
       const el = placeInputRef.current;
-      if (!el) return;
-      el.focus({ preventScroll: false });
-      el.select?.();
-    }, 120);
+      if (el) {
+        el.focus({ preventScroll: false });
+        el.select?.();
+        return;
+      }
+      if (attempt < 8) {
+        window.setTimeout(() => focusPlace(attempt + 1), 60);
+      }
+    };
+    window.setTimeout(() => focusPlace(0), 80);
   }, [feedCompactChrome, isDesktopSplit]);
 
   useEffect(() => {
@@ -4778,9 +4792,19 @@ export default function GeoFeed({
                       ref={placeInputRef}
                       value={place}
                       onChange={(e) => handlePlaceInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (place.trim()) applyFilters();
+                        }
+                      }}
                       className={filterInputClass}
                       placeholder={t("common.typePlaceOrPostcode")}
                       autoComplete="postal-code"
+                      inputMode="text"
+                      enterKeyHint="search"
+                      data-testid="feed-place-input"
+                      aria-label={t("common.place")}
                     />
                     <button
                       type="button"
@@ -5078,7 +5102,11 @@ export default function GeoFeed({
     feedCompactChrome && !isDesktopSplit ? (
       <FeedMobileFilterSheet
         open={mobileFilterSheetOpen}
-        onClose={() => setMobileFilterSheetOpen(false)}
+        onClose={() => {
+          setMobileFilterSheetOpen(false);
+          setMobileSheetFocusPlace(false);
+        }}
+        focusPlaceOnOpen={mobileSheetFocusPlace}
         t={t}
         place={place}
         onPlaceChange={handlePlaceInput}
@@ -5125,6 +5153,7 @@ export default function GeoFeed({
         onApply={() => {
           applyFilters();
           setMobileFilterSheetOpen(false);
+          setMobileSheetFocusPlace(false);
         }}
         onClear={() => {
           clearFilters();

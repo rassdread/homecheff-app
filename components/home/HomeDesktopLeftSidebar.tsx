@@ -17,6 +17,7 @@ import {
   HOME_DESKTOP_ENVIRONMENT_LINKS,
   HOME_DESKTOP_MARKETPLACE_LINKS,
 } from '@/lib/home/home-desktop-sidebar-ia';
+import { subscribePlaceInputFocusRequest } from '@/lib/feed/place-input-focus-request';
 import { cn } from '@/lib/utils';
 
 function SidebarSection({
@@ -41,7 +42,8 @@ function DiscoveryFiltersSection() {
   const hasFiltersPanel = useHasFeedFiltersPanel();
   const bridge = useWorkspaceFeedPresentationBridge();
   const railPortalMode = Boolean(bridge?.startRailActive);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  /** Launch-critical: place/postcode field must be reachable without hunting a closed disclosure. */
+  const [filtersOpen, setFiltersOpen] = useState(true);
 
   useEffect(() => {
     if (!railPortalMode) return;
@@ -49,6 +51,13 @@ function DiscoveryFiltersSection() {
       bridge?.setFilterHost(null);
     };
   }, [railPortalMode, bridge]);
+
+  useEffect(() => {
+    if (railPortalMode) return;
+    return subscribePlaceInputFocusRequest(() => {
+      setFiltersOpen(true);
+    });
+  }, [railPortalMode]);
 
   if (!hasFiltersPanel) return null;
 
@@ -77,12 +86,17 @@ function DiscoveryFiltersSection() {
   }
 
   return (
-    <section className="hc-dorpsplein-card overflow-hidden" data-home-sidebar="discovery-filters">
+    <section
+      className="hc-dorpsplein-card overflow-hidden"
+      data-home-sidebar="discovery-filters"
+      data-hc-filters-open={filtersOpen ? '1' : '0'}
+    >
       <button
         type="button"
         onClick={() => setFiltersOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left"
         aria-expanded={filtersOpen}
+        data-testid="discovery-filters-toggle"
       >
         <span className="hc-section-title text-sm">{t('feed.discoverFiltersHeading')}</span>
         {filtersOpen ? (

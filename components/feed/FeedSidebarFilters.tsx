@@ -242,12 +242,22 @@ export default function FeedSidebarFilters({
           ) : null}
           <input
             ref={placeInputRef}
+            id="feed-sidebar-place-input"
             value={place}
             onChange={(e) => onPlaceChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (place.trim()) onApply();
+              }
+            }}
             className={inputClass}
             placeholder={t("common.typePlaceOrPostcode")}
             autoComplete="postal-code"
+            inputMode="text"
+            enterKeyHint="search"
             data-testid="feed-place-input"
+            aria-label={t("common.place")}
           />
           <button
             type="button"
