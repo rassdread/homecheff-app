@@ -67,25 +67,29 @@ export function isFilterSearchingPhase(phase: FeedResultPhase): boolean {
 
 /**
  * Genuine zero-results may render only when the active generation settled
- * with no eligible content — never while searching / refreshing / location required.
+ * with no eligible content — never while searching / refreshing.
+ * Missing location is NOT a gate: discovery fallback must remain browsable,
+ * and a true empty discovery response may show the confirmed empty state.
  */
 export function isZeroResultsEligible(input: {
   phase: FeedResultPhase;
   loading: boolean;
   feedRefreshing: boolean;
   feedHydrated: boolean;
+  /** @deprecated Kept for call-site compat — no longer suppresses zero-results. */
   nearbyNeedsLocation: boolean;
   requestInFlight: boolean;
   resultCount: number;
   emptyTerminal?: boolean;
 }): boolean {
-  if (input.nearbyNeedsLocation) return false;
+  void input.nearbyNeedsLocation;
   if (!input.feedHydrated) return false;
   if (input.loading || input.feedRefreshing || input.requestInFlight) {
     return false;
   }
   if (isFilterSearchingPhase(input.phase)) return false;
   if (input.phase === FEED_RESULT_PHASE.ERROR) return false;
+  // LOCATION_REQUIRED phase is legacy; discovery must not depend on it.
   if (input.phase === FEED_RESULT_PHASE.LOCATION_REQUIRED) return false;
   if (input.phase === FEED_RESULT_PHASE.STALE_RESPONSE_REJECTED) return false;
 

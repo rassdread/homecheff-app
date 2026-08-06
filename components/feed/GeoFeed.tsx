@@ -1360,19 +1360,15 @@ export default function GeoFeed({
     !userLocation &&
     !!(bootstrapProfile?.place?.trim() || bootstrapProfile?.postalCode?.trim());
 
-  /** Block first fetch only when session loading, or nearby scope needs profile coords from bootstrap. */
-  const nearbyScopeAwaitingProfileCoords =
-    appliedScope === FEED_SCOPE_NEARBY &&
-    !appliedPlace.trim() &&
-    !userLocation &&
-    !coordsForApiLabels?.lat &&
-    !!session?.user;
-
-  const feedStartupBlocked =
-    isAwaitingSessionResolution(sessionStatus, ssrAuthHint) ||
-    (!!session?.user &&
-      bootstrapStatus === "loading" &&
-      nearbyScopeAwaitingProfileCoords);
+  /**
+   * Never block the marketplace on missing location / profile coords.
+   * Session resolution only — discovery (soft-national) fetch may run without
+   * GPS/place; Nearby radius applies once a viewer location is known.
+   */
+  const feedStartupBlocked = isAwaitingSessionResolution(
+    sessionStatus,
+    ssrAuthHint,
+  );
 
   const sessionGateBypassed = shouldBypassSessionLoadingGate(
     sessionStatus,
@@ -3595,10 +3591,18 @@ export default function GeoFeed({
 
   const hasViewerCoordsForSort = effectiveViewerForDistance != null;
 
+  /**
+   * Client radius filter only when Nearby has a known viewer location.
+   * Without location the API soft-national / discovery payload has no
+   * distanceKm — filtering to `local` would blank the entire marketplace.
+   */
   const locationFilterActive =
-    appliedScope === FEED_SCOPE_NEARBY && appliedRadius > 0;
+    appliedScope === FEED_SCOPE_NEARBY &&
+    appliedRadius > 0 &&
+    !nearbyNeedsLocation &&
+    hasViewerCoordsForSort;
 
-  const { local: localSalePool, fallback: saleFallbackPool } = useMemo(
+  const { local: localSalePool } = useMemo(
     () =>
       partitionSaleItemsByRadius(filteredSaleBase, appliedRadius, {
         scope: appliedScope,
@@ -3711,14 +3715,12 @@ export default function GeoFeed({
   ]);
 
   const inspirationSlots = useMemo(() => {
-    // Product integrity: never interleave worldwide inspiration under Nearby
-    // when the viewer has no location.
-    if (nearbyNeedsLocation) return [];
+    // Discovery fallback (no viewer location) still shows inspiration /
+    // recommended mix — location must not gate browsing.
     const built = buildInspSlots(filteredApiInspiration, filteredFeedInspiration);
     if (appliedSortBy === "newest" && appliedSortOrder === "desc") return built;
     return sortInspirationSlots(built, appliedSortBy, appliedSortOrder);
   }, [
-    nearbyNeedsLocation,
     filteredApiInspiration,
     filteredFeedInspiration,
     appliedSortBy,
@@ -3970,11 +3972,10 @@ export default function GeoFeed({
   ]);
 
   const composedDisplayRows = useMemo(() => {
-    if (nearbyNeedsLocation) return displayRows;
     if (feedChip === "sale" || feedChip === "gezocht") return displayRows;
     if (recirculatedRows.length === 0) return displayRows;
     return [...displayRows, ...recirculatedRows];
-  }, [displayRows, recirculatedRows, nearbyNeedsLocation, feedChip]);
+  }, [displayRows, recirculatedRows, feedChip]);
 
   const displayCount = composedDisplayRows.length;
 

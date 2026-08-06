@@ -127,7 +127,14 @@ async function main() {
   assert(feedParams.includes('FEED_FIRST_PAGE_TAKE'), 'query params set take');
   assert(geoFeed.includes('loadMoreFeed'), 'GeoFeed load-more');
   assert(geoFeed.includes('feedLoadMoreRef'), 'load-more sentinel');
-  assert(geoFeed.includes('nearbyScopeAwaitingProfileCoords'), 'scoped session gate');
+  assert(
+    !geoFeed.includes('nearbyScopeAwaitingProfileCoords'),
+    'must not block feed on missing profile coords',
+  );
+  assert(
+    geoFeed.includes('feedStartupBlocked = isAwaitingSessionResolution'),
+    'startup block is session-only',
+  );
   assert(!geoFeed.includes('Promise.all([feedP, inspP])'), 'no parallel inspiratie on feed fetch');
   assert(geoFeed.includes('/api/inspiratie?'), 'deferred inspiratie fetch');
   assert(geoFeed.includes('priorityMedia'), 'first tile priority');

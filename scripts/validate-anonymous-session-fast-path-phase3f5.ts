@@ -71,8 +71,12 @@ assert(
   'anon fast-path perf milestone recorded',
 );
 assert(
-  geoFeed.includes('nearbyScopeAwaitingProfileCoords'),
-  'logged-in nearby bootstrap gate preserved',
+  !geoFeed.includes('nearbyScopeAwaitingProfileCoords'),
+  'must not block discovery feed on missing profile coords',
+);
+assert(
+  geoFeed.includes('feedStartupBlocked = isAwaitingSessionResolution'),
+  'startup block is session-only (location never required)',
 );
 
 console.log('\n3F.5 Observability');
