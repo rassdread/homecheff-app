@@ -1,12 +1,17 @@
 /**
  * Validate Promo Code API
- * 
+ *
  * POST /api/affiliate/validate-promo-code
  * Validates a promo code for use in subscription checkout
+ * (affiliate commission-share OR admin platform full-price discount)
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import {
+  isPlatformPromo,
+  parsePlatformFixedCents,
+} from "@/lib/promo-codes/discount-policy";
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +45,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check status
     if (promoCode.status !== 'ACTIVE') {
       return NextResponse.json({
         valid: false,
@@ -48,7 +52,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Check date range
     const now = new Date();
     if (promoCode.startsAt > now) {
       return NextResponse.json({
@@ -64,7 +67,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Check max redemptions
     if (
       promoCode.maxRedemptions !== null &&
       promoCode.redemptionCount >= promoCode.maxRedemptions
@@ -75,14 +77,23 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Return promo code details (without sensitive info)
+    const platform = isPlatformPromo(promoCode);
+    const fixedCents = parsePlatformFixedCents(promoCode.appliesTo);
+
     return NextResponse.json({
       valid: true,
       promoCode: {
         id: promoCode.id,
         code: promoCode.code,
         discountSharePct: promoCode.discountSharePct,
-        hasL2: !!promoCode.affiliate.parentAffiliate,
+        hasL2: !!promoCode.affiliate?.parentAffiliate,
+        isPlatform: platform,
+        discountMode: platform
+          ? fixedCents != null
+            ? 'platform_fixed'
+            : 'platform_percent'
+          : 'affiliate_commission_share',
+        fixedDiscountCents: fixedCents,
       },
     });
   } catch (error) {
@@ -93,11 +104,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-
-
-
-
-
-
-

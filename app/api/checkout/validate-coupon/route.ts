@@ -3,12 +3,11 @@ import { NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import Stripe from "stripe";
+import { findActiveCouponByCode } from "@/lib/promo-codes/coupon-service";
 
 // Test mode - gebruik sandbox keys
 const isTestMode = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test');
 
-// Laat de SDK zelf de juiste (gepinde) API-versie kiezen.
-// Hiermee voorkom je type-fouten op "2023-08-16".
 // Initialize Stripe for both test and live mode
 const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -18,6 +17,36 @@ const stripe = process.env.STRIPE_SECRET_KEY
 
 export async function POST(req: Request) {
   try {
+    const body = await req.json().catch(() => ({}));
+    const raw = (body?.code ?? "").toString();
+    const code = raw.trim();
+
+    if (!code) {
+      return NextResponse.json(
+        { valid: false, reason: "missing_code" },
+        { status: 400 }
+      );
+    }
+
+    // Platform admin coupons (Prisma) — gift / compensation / launch / testing
+    const dbCoupon = await findActiveCouponByCode(code);
+    if (dbCoupon) {
+      const isAmount = dbCoupon.discountCents != null;
+      return NextResponse.json({
+        valid: true,
+        source: "platform_coupon",
+        discount: isAmount ? dbCoupon.discountCents! : dbCoupon.discountPercent!,
+        discountType: isAmount ? "amount_off" : "percent_off",
+        currency: isAmount ? "eur" : undefined,
+        couponId: dbCoupon.id,
+        name: dbCoupon.description ?? dbCoupon.code,
+        expiresAt: dbCoupon.validUntil?.toISOString() ?? null,
+        redeemBy: dbCoupon.validUntil
+          ? Math.floor(dbCoupon.validUntil.getTime() / 1000)
+          : null,
+      });
+    }
+
     if (!process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json(
         { valid: false, reason: "missing_stripe_key" },
@@ -27,18 +56,6 @@ export async function POST(req: Request) {
 
     // In test mode, simuleer een succesvolle coupon validatie
     if (isTestMode) {
-      const body = await req.json().catch(() => ({}));
-      const raw = (body?.code ?? "").toString();
-      const code = raw.trim();
-
-      if (!code) {
-        return NextResponse.json(
-          { valid: false, reason: "missing_code" },
-          { status: 400 }
-        );
-      }
-
-      // Mock response voor test coupons
       if (code.toLowerCase() === 'test' || code.toLowerCase() === 'welcome') {
         return NextResponse.json({
           valid: true,
@@ -60,17 +77,6 @@ export async function POST(req: Request) {
       });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const raw = (body?.code ?? "").toString();
-    const code = raw.trim();
-
-    if (!code) {
-      return NextResponse.json(
-        { valid: false, reason: "missing_code" },
-        { status: 400 }
-      );
-    }
-
     if (!stripe) {
       return NextResponse.json(
         { valid: false, reason: "stripe_not_configured" },
@@ -80,7 +86,7 @@ export async function POST(req: Request) {
 
     // 1) Voorkeur: Promotion Codes (aanbevolen door Stripe)
     const promos = await stripe.promotionCodes.list({
-      code,             // case-insensitive match op de klantcode
+      code,
       active: true,
       limit: 1,
       expand: ["data.coupon"],
@@ -99,7 +105,6 @@ export async function POST(req: Request) {
         discount,
         discountType: isAmount ? "amount_off" : "percent_off",
         currency: isAmount ? c.currency : undefined,
-        // Handige extra’s:
         couponId: c.id,
         promotionCodeId: promo.id,
         name: c.name,
@@ -109,7 +114,6 @@ export async function POST(req: Request) {
     }
 
     // 2) Fallback: losse Coupons (legacy) op basis van naam of id
-    // (List is paginated; we halen max 100 op als simpele check.)
     const coupons = await stripe.coupons.list();
     const found = coupons.data.find(
       (c) =>
@@ -134,7 +138,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // Niets gevonden
     return NextResponse.json({ valid: false, reason: "not_found" });
   } catch (err) {
     console.error("[coupon-validate] error", err);

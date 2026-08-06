@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic';
 
 import { stripe, PLAN_TO_PRICE, normalizeSubscriptionName } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { calculateSubscriptionPrice } from "@/lib/affiliate-config";
 import { ATTRIBUTION_WINDOW_DAYS } from "@/lib/affiliate-config";
 import { resolveSubscriptionAttributionId } from "@/lib/affiliate-attribution";
 import { auth } from "@/lib/auth";
@@ -189,17 +188,19 @@ export async function POST(req: NextRequest) {
           (promoCodeRecord.maxRedemptions === null || promoCodeRecord.redemptionCount < promoCodeRecord.maxRedemptions)
         ) {
           promoCodeId = promoCodeRecord.id;
-          hasL2 = !!promoCodeRecord.affiliate.parentAffiliate;
+          hasL2 = !!promoCodeRecord.affiliate?.parentAffiliate;
 
-          // Check if this is a sub-affiliate
-          const isSubAffiliate = !!promoCodeRecord.affiliate.parentAffiliateId;
-          
-          // Calculate discount (with sub-affiliate max limit applied in the function)
-          const pricing = calculateSubscriptionPrice(
-            basePriceCents,
-            promoCodeRecord.discountSharePct,
-            isSubAffiliate
+          const { calculatePromoSubscriptionPricing } = await import(
+            '@/lib/promo-codes/discount-policy'
           );
+          const isSubAffiliate = !!promoCodeRecord.affiliate?.parentAffiliateId;
+          const pricing = calculatePromoSubscriptionPricing({
+            basePriceCents,
+            discountSharePct: promoCodeRecord.discountSharePct,
+            affiliateId: promoCodeRecord.affiliateId,
+            appliesTo: promoCodeRecord.appliesTo,
+            isSubAffiliate,
+          });
 
           finalPriceCents = pricing.finalPriceCents;
 
@@ -217,6 +218,7 @@ export async function POST(req: NextRequest) {
                   original_price_id: priceId,
                   promo_code_id: promoCodeRecord.id,
                   discount_cents: pricing.discountCents.toString(),
+                  platform_promo: pricing.isPlatform ? '1' : '0',
                 },
               });
               customPriceId = customPrice.id;
@@ -226,38 +228,40 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // Get or create attribution
-          const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-              attributions: {
-                where: {
-                  affiliateId: promoCodeRecord.affiliateId,
-                  type: 'BUSINESS_SIGNUP',
+          // Attribution only for affiliate-owned promos
+          if (promoCodeRecord.affiliateId) {
+            const user = await prisma.user.findUnique({
+              where: { id: userId },
+              include: {
+                attributions: {
+                  where: {
+                    affiliateId: promoCodeRecord.affiliateId,
+                    type: 'BUSINESS_SIGNUP',
+                  },
+                  orderBy: { createdAt: 'desc' },
+                  take: 1,
                 },
-                orderBy: { createdAt: 'desc' },
-                take: 1,
-              },
-            },
-          });
-
-          if (user?.attributions?.[0]) {
-            attributionId = user.attributions[0].id;
-          } else {
-            // Create new attribution
-            const now = new Date();
-            const endsAt = new Date(now.getTime() + ATTRIBUTION_WINDOW_DAYS * 24 * 60 * 60 * 1000);
-            const attribution = await prisma.attribution.create({
-              data: {
-                affiliateId: promoCodeRecord.affiliateId,
-                userId: userId,
-                type: 'BUSINESS_SIGNUP',
-                source: 'PROMO_CODE',
-                startsAt: now,
-                endsAt,
               },
             });
-            attributionId = attribution.id;
+
+            if (user?.attributions?.[0]) {
+              attributionId = user.attributions[0].id;
+            } else {
+              // Create new attribution
+              const now = new Date();
+              const endsAt = new Date(now.getTime() + ATTRIBUTION_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+              const attribution = await prisma.attribution.create({
+                data: {
+                  affiliateId: promoCodeRecord.affiliateId,
+                  userId: userId,
+                  type: 'BUSINESS_SIGNUP',
+                  source: 'PROMO_CODE',
+                  startsAt: now,
+                  endsAt,
+                },
+              });
+              attributionId = attribution.id;
+            }
           }
         }
       }

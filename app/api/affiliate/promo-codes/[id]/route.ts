@@ -127,29 +127,15 @@ export async function PUT(
         );
       }
 
-      // Import config constants
-      const { 
-        SUB_AFFILIATE_MAX_DISCOUNT_PCT,
-        MAIN_AFFILIATE_MAX_DISCOUNT_PCT
-      } = await import('@/lib/affiliate-config');
-
-      // Check if this is a sub-affiliate
       const isSubAffiliate = !!user.affiliate.parentAffiliateId;
-      
-      // Enforce maximum discount based on affiliate type
-      // Main affiliates: max 80% (20% minimum behouden = 10% van totaal)
-      // Sub-affiliates: max 75% (25% minimum behouden = 10% van totaal)
-      // Sub krijgt 40% commissie, kan max €30 korting geven van €40 (75%), blijft €10 over (25% = 10% van totaal)
-      const maxAllowedDiscountPct = isSubAffiliate 
-        ? SUB_AFFILIATE_MAX_DISCOUNT_PCT
-        : MAIN_AFFILIATE_MAX_DISCOUNT_PCT;
-      
-      if (discountSharePct > maxAllowedDiscountPct) {
-        const minCommissionPct = isSubAffiliate ? 25 : 20; // Sub moet 25% behouden, main 20%
-        return NextResponse.json(
-          { error: `Je moet altijd minimaal ${minCommissionPct}% van je commissie behouden. Maximum korting is ${maxAllowedDiscountPct}%` },
-          { status: 400 }
-        );
+      const { assertDiscountWithinCap } = await import('@/lib/promo-codes/discount-policy');
+      const cap = assertDiscountWithinCap({
+        actor: 'affiliate',
+        discountPct: discountSharePct,
+        isSubAffiliate,
+      });
+      if (!cap.ok) {
+        return NextResponse.json({ error: cap.error }, { status: 400 });
       }
 
       updateData.discountSharePct = Math.round(discountSharePct);
