@@ -12,6 +12,7 @@ import {
   composeProgressiveNearbySalePool,
   inspirationEligibleForFeedScope,
   interleaveSaleInspirationRows,
+  isExactDiscoveryCompositionSufficient,
   resolveInspirationCompositionScope,
 } from '../lib/feed/feed-composition-policy';
 import {
@@ -255,6 +256,23 @@ const batch = buildRecirculationBatch({
 check(
   'recirculation batch does not start with immediate consecutive last id',
   batch.length > 0 && batch[0]!.id !== 'a',
+);
+
+check(
+  'composition sufficiency owns continuity (adaptive, not fixed count)',
+  policy.includes('isExactDiscoveryCompositionSufficient') &&
+    !isExactDiscoveryCompositionSufficient({
+      uniqueItemCount: 0,
+      uniqueCreatorCount: 0,
+      contentKindCount: 0,
+    }).sufficient &&
+    isExactDiscoveryCompositionSufficient({
+      uniqueItemCount: FEED_SALE_INSPIRATION_STRIDE,
+      uniqueCreatorCount: FEED_SALE_INSPIRATION_STRIDE,
+      contentKindCount: 1,
+      localSaleCount: FEED_SPARSE_LOCAL_SALE_THRESHOLD,
+      progressiveWidenActive: true,
+    }).sufficient,
 );
 
 console.log(`\n${passed} checks passed`);

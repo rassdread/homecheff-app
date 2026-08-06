@@ -259,6 +259,7 @@ import {
 } from "@/lib/feed/feed-composition-policy";
 import {
   hasActiveFeedDiscoveryConstraint,
+  buildExactDiscoveryCompositionSignals,
   shouldRenderDiscoveryContinuityFeed,
   shouldShowDiscoveryContinuityBand,
 } from "@/lib/feed/discovery-continuity";
@@ -4000,6 +4001,56 @@ export default function GeoFeed({
 
   const displayCount = composedDisplayRows.length;
 
+  /** Exact-set composition signals (exclude recirculation stage-4 rows). */
+  const exactCompositionSignals = useMemo(() => {
+    const items: Array<{
+      id: string;
+      creatorId: string | null;
+      kind: "sale" | "inspiration" | "other";
+    }> = [];
+    for (const row of displayRows) {
+      if (row.row === "sale") {
+        items.push({
+          id: row.item.id,
+          creatorId: row.item.sellerUserId ?? null,
+          kind: isMarketplaceRequestItem(row.item) ? "other" : "sale",
+        });
+        continue;
+      }
+      if (row.row === "insp") {
+        if (row.slot.kind === "api") {
+          items.push({
+            id: row.slot.item.id,
+            creatorId: row.slot.item.user?.id ?? null,
+            kind: "inspiration",
+          });
+        } else {
+          items.push({
+            id: row.slot.item.id,
+            creatorId: row.slot.item.sellerUserId ?? null,
+            kind: "inspiration",
+          });
+        }
+      }
+    }
+    return buildExactDiscoveryCompositionSignals({
+      items,
+      localSaleCount: locationFilterActive ? localSalePool.length : undefined,
+      progressiveWidenActive:
+        locationFilterActive && saleWiderPool.length > 0,
+      inspirationCompositionWidened:
+        appliedScope === FEED_SCOPE_NEARBY &&
+        inspirationCompositionScope !== "nearby",
+    });
+  }, [
+    displayRows,
+    locationFilterActive,
+    localSalePool.length,
+    saleWiderPool.length,
+    appliedScope,
+    inspirationCompositionScope,
+  ]);
+
   const discoveryConstraintActive = hasActiveFeedDiscoveryConstraint({
     searchQuery: appliedSearchQuery,
     category: appliedCategory,
@@ -4785,9 +4836,9 @@ export default function GeoFeed({
     !isFilterSearchingPhase(filterResultPhase);
 
   const showDiscoveryContinuityBand = shouldShowDiscoveryContinuityBand({
-    exactMatchCount: displayCount,
     hasActiveConstraint: discoveryConstraintActive,
     settled: discoveryContinuitySettled,
+    composition: exactCompositionSignals,
   });
 
   const showDiscoveryContinuityFeed = shouldRenderDiscoveryContinuityFeed({

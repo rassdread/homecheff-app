@@ -1,0 +1,38 @@
+npm warn Unknown project config "lightningcss". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/node". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/postcss". This will stop working in the next major version of npm.
+
+> homecheff-app@0.1.0 test:feed-composition-progressive
+> npx tsx scripts/validate-feed-composition-progressive-discovery.ts
+
+npm warn Unknown project config "lightningcss". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/node". This will stop working in the next major version of npm.
+npm warn Unknown project config "@tailwindcss/postcss". This will stop working in the next major version of npm.
+=== Mixed feed + progressive discovery ===
+
+PASS resolveInspirationCompositionScope exported
+PASS composeProgressiveNearbySalePool exported
+PASS GeoFeed uses inspiration composition scope (not raw appliedScope for geo gate)
+PASS GeoFeed progressive nearby sale pool wired
+PASS API Nearby uses LOCAL_FIRST not STRICT_LOCAL
+PASS Alles mixed feed still uses interleave / mixedRows
+PASS Inspiration chip remains inspiration-only path
+PASS Search applies to inspiration pools
+PASS no-location Nearby → national inspiration scope
+PASS dense local Nearby keeps nearby inspiration scope
+PASS sparse local Nearby widens inspiration to national
+PASS national applied scope unchanged
+PASS Inspiration without coords excluded from strict Nearby
+PASS Inspiration without coords eligible under national mainland place
+PASS progressive pool is local-first then wider
+PASS national scope does not radius-split for progressive need
+PASS interleave inserts inspiration into Alles mix
+PASS stride constant remains 4
+PASS empty-state location gate remains disabled
+PASS contract documents recirculation as intentional stage 4
+PASS recirculation stays inactive while marketplace has more unique pages
+PASS recirculation activates only after marketplace unique pool exhausted
+PASS recirculation batch does not start with immediate consecutive last id
+PASS composition sufficiency owns continuity (adaptive, not fixed count)
+
+24 checks passed

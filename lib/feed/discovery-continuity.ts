@@ -1,12 +1,61 @@
 /**
  * Discovery continuity under search/category/filter constraints.
  *
- * Exact matches always win. When exact supply is empty or sparse, show an
- * honest band + CTA, then continue the normal mixed discovery feed.
+ * Exact matches always win. When the composition layer judges the exact set
+ * insufficient for a natural HomeCheff experience, show an honest band + CTA,
+ * then continue the normal mixed discovery feed.
  * Never replace HomeCheff with a dead empty page while discovery candidates exist.
+ *
+ * Continuity decisions are owned by feed-composition-policy — this module is
+ * the thin bridge for constraint detection and UI gating.
  */
 
-export const FEED_EXACT_SPARSE_THRESHOLD = 5;
+import {
+  isExactDiscoveryCompositionSufficient,
+  type ExactDiscoveryCompositionSignals,
+} from '@/lib/feed/feed-composition-policy';
+
+export type {
+  ExactDiscoveryCompositionSignals,
+  ExactDiscoveryCompositionSufficiency,
+} from '@/lib/feed/feed-composition-policy';
+
+export { isExactDiscoveryCompositionSufficient };
+
+export type ExactDiscoveryCompositionItem = {
+  id: string;
+  /** Stable creator/seller id when known; falls back to item id */
+  creatorId: string | null;
+  kind: 'sale' | 'inspiration' | 'other';
+};
+
+/** Summarize exact rows into composition signals (no presentation thresholds). */
+export function buildExactDiscoveryCompositionSignals(input: {
+  items: readonly ExactDiscoveryCompositionItem[];
+  localSaleCount?: number;
+  progressiveWidenActive?: boolean;
+  inspirationCompositionWidened?: boolean;
+}): ExactDiscoveryCompositionSignals {
+  const ids = new Set<string>();
+  const creators = new Set<string>();
+  const kinds = new Set<ExactDiscoveryCompositionItem['kind']>();
+
+  for (const item of input.items) {
+    ids.add(item.id);
+    const creator = item.creatorId?.trim();
+    creators.add(creator && creator.length > 0 ? creator : `item:${item.id}`);
+    kinds.add(item.kind);
+  }
+
+  return {
+    uniqueItemCount: ids.size,
+    uniqueCreatorCount: creators.size,
+    contentKindCount: kinds.size,
+    localSaleCount: input.localSaleCount,
+    progressiveWidenActive: input.progressiveWidenActive,
+    inspirationCompositionWidened: input.inspirationCompositionWidened,
+  };
+}
 
 export function hasActiveFeedDiscoveryConstraint(input: {
   searchQuery: string;
@@ -31,18 +80,18 @@ export function hasActiveFeedDiscoveryConstraint(input: {
 }
 
 /**
- * Band (message + CTA) when the user constrained discovery and exact supply
- * is empty or below the sparse threshold.
+ * Band (message + CTA) when the user constrained discovery and composition
+ * judges the exact set insufficient for a natural HomeCheff experience.
  */
 export function shouldShowDiscoveryContinuityBand(input: {
-  exactMatchCount: number;
   hasActiveConstraint: boolean;
   /** Hydrated + not mid-search flash */
   settled: boolean;
+  composition: ExactDiscoveryCompositionSignals;
 }): boolean {
   if (!input.settled) return false;
   if (!input.hasActiveConstraint) return false;
-  return input.exactMatchCount < FEED_EXACT_SPARSE_THRESHOLD;
+  return !isExactDiscoveryCompositionSufficient(input.composition).sufficient;
 }
 
 /**

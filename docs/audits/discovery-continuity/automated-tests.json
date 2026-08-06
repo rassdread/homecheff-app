@@ -1,16 +1,18 @@
 {
   "suite": "discovery-continuity",
   "command": "npm run test:discovery-continuity",
-  "passed": 18,
-  "total": 18,
+  "passed": 23,
+  "total": 23,
   "status": "pass",
+  "adaptive": true,
+  "fixedSparseThresholdRemoved": true,
   "related": {
     "feedCompositionProgressive": {
       "command": "npm run test:feed-composition-progressive",
-      "passed": 23,
-      "total": 23
+      "passed": 24,
+      "total": 24
     }
   },
-  "verdict": "HOMECHEFF_DISCOVERY_CONTINUITY_PASS",
+  "verdict": "HOMECHEFF_DISCOVERY_CONTINUITY_ADAPTIVE_PASS",
   "gate": "READY_FOR_FORMAL_REVIEW"
 }

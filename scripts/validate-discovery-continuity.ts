@@ -1,11 +1,17 @@
 /**
  * Discovery continuity under search / category / filter constraints.
+ * Continuity is composition-driven — no fixed numeric sparse threshold.
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  FEED_EXACT_SPARSE_THRESHOLD,
+  FEED_SALE_INSPIRATION_STRIDE,
+  FEED_SPARSE_LOCAL_SALE_THRESHOLD,
+  isExactDiscoveryCompositionSufficient,
+} from '../lib/feed/feed-composition-policy';
+import {
+  buildExactDiscoveryCompositionSignals,
   filterContinuityRowsByExactIds,
   hasActiveFeedDiscoveryConstraint,
   shouldRenderDiscoveryContinuityFeed,
@@ -22,15 +28,26 @@ function check(name: string, cond: boolean) {
   console.log(`PASS ${name}`);
 }
 
-console.log('=== Discovery continuity ===\n');
+console.log('=== Discovery continuity (adaptive) ===\n');
 
 const geo = read('components/feed/GeoFeed.tsx');
 const band = read('components/feed/DiscoveryContinuityBand.tsx');
-const policy = read('lib/feed/discovery-continuity.ts');
+const continuity = read('lib/feed/discovery-continuity.ts');
+const policy = read('lib/feed/feed-composition-policy.ts');
 const en = read('public/i18n/en.json');
 const nl = read('public/i18n/nl.json');
 
-check('sparse threshold is 5', FEED_EXACT_SPARSE_THRESHOLD === 5);
+check(
+  'no fixed FEED_EXACT_SPARSE_THRESHOLD in continuity module',
+  !continuity.includes('FEED_EXACT_SPARSE_THRESHOLD') &&
+    !continuity.includes('exactMatchCount <'),
+);
+
+check(
+  'composition owns isExactDiscoveryCompositionSufficient',
+  policy.includes('isExactDiscoveryCompositionSufficient') &&
+    continuity.includes('isExactDiscoveryCompositionSufficient'),
+);
 
 check(
   'search is an active constraint',
@@ -73,39 +90,109 @@ check(
   }),
 );
 
+// --- Composition sufficiency (examples A–D) ---
+
+const exampleA = buildExactDiscoveryCompositionSignals({
+  items: [
+    { id: '1', creatorId: 'a', kind: 'sale' },
+    { id: '2', creatorId: 'b', kind: 'sale' },
+    { id: '3', creatorId: 'c', kind: 'sale' },
+    { id: '4', creatorId: 'd', kind: 'sale' },
+  ],
+  localSaleCount: 4,
+  progressiveWidenActive: false,
+  inspirationCompositionWidened: true,
+});
 check(
-  'band shows when empty + settled + constrained',
-  shouldShowDiscoveryContinuityBand({
-    exactMatchCount: 0,
-    hasActiveConstraint: true,
-    settled: true,
-  }),
+  'Example A: 4 diverse nearby → sufficient (no continuity band)',
+  isExactDiscoveryCompositionSufficient(exampleA).sufficient &&
+    !shouldShowDiscoveryContinuityBand({
+      hasActiveConstraint: true,
+      settled: true,
+      composition: exampleA,
+    }),
+);
+
+const exampleB = buildExactDiscoveryCompositionSignals({
+  items: [
+    { id: '1', creatorId: 'same', kind: 'sale' },
+    { id: '2', creatorId: 'same', kind: 'sale' },
+    { id: '3', creatorId: 'same', kind: 'sale' },
+  ],
+});
+check(
+  'Example B: 3 same creator → insufficient (continuity appropriate)',
+  !isExactDiscoveryCompositionSufficient(exampleB).sufficient &&
+    isExactDiscoveryCompositionSufficient(exampleB).reason ===
+      'creator_monoculture' &&
+    shouldShowDiscoveryContinuityBand({
+      hasActiveConstraint: true,
+      settled: true,
+      composition: exampleB,
+    }),
+);
+
+const exampleC = buildExactDiscoveryCompositionSignals({
+  items: [{ id: '1', creatorId: 'a', kind: 'sale' }],
+});
+check(
+  'Example C: 1 exact match → insufficient',
+  !isExactDiscoveryCompositionSufficient(exampleC).sufficient &&
+    shouldShowDiscoveryContinuityBand({
+      hasActiveConstraint: true,
+      settled: true,
+      composition: exampleC,
+    }),
+);
+
+const exampleD = buildExactDiscoveryCompositionSignals({ items: [] });
+check(
+  'Example D: 0 exact matches → empty / insufficient',
+  !isExactDiscoveryCompositionSufficient(exampleD).sufficient &&
+    isExactDiscoveryCompositionSufficient(exampleD).reason === 'empty' &&
+    shouldShowDiscoveryContinuityBand({
+      hasActiveConstraint: true,
+      settled: true,
+      composition: exampleD,
+    }),
 );
 
 check(
-  'band shows when sparse (below threshold)',
-  shouldShowDiscoveryContinuityBand({
-    exactMatchCount: 3,
-    hasActiveConstraint: true,
-    settled: true,
-  }),
+  'mixed kinds can complete a composition unit below stride',
+  isExactDiscoveryCompositionSufficient(
+    buildExactDiscoveryCompositionSignals({
+      items: [
+        { id: '1', creatorId: 'a', kind: 'sale' },
+        { id: '2', creatorId: 'b', kind: 'sale' },
+        { id: '3', creatorId: 'c', kind: 'inspiration' },
+      ],
+    }),
+  ).sufficient,
 );
 
 check(
-  'band hidden when enough exact matches',
+  'sufficiency reuses composition stride / sparse-local constants (not a new continuity number)',
+  FEED_SALE_INSPIRATION_STRIDE >= 1 &&
+    FEED_SPARSE_LOCAL_SALE_THRESHOLD === FEED_SALE_INSPIRATION_STRIDE * 2 &&
+    policy.includes('FEED_SALE_INSPIRATION_STRIDE') &&
+    policy.includes('FEED_SPARSE_LOCAL_SALE_THRESHOLD'),
+);
+
+check(
+  'band hidden while unsettled even if empty',
   !shouldShowDiscoveryContinuityBand({
-    exactMatchCount: FEED_EXACT_SPARSE_THRESHOLD,
-    hasActiveConstraint: true,
-    settled: true,
-  }),
-);
-
-check(
-  'band hidden while unsettled',
-  !shouldShowDiscoveryContinuityBand({
-    exactMatchCount: 0,
     hasActiveConstraint: true,
     settled: false,
+    composition: exampleD,
+  }),
+);
+
+check(
+  'band hidden when unconstrained even if thin',
+  !shouldShowDiscoveryContinuityBand({
+    hasActiveConstraint: false,
+    settled: true,
+    composition: exampleC,
   }),
 );
 
@@ -130,15 +217,17 @@ check(
   filterContinuityRowsByExactIds(
     [{ id: 'a' }, { id: 'b' }, { id: 'c' }],
     new Set(['b']),
-  ).map((r) => r.id).join(',') === 'a,c',
+  )
+    .map((r) => r.id)
+    .join(',') === 'a,c',
 );
 
 check(
-  'GeoFeed imports continuity helpers',
-  geo.includes('hasActiveFeedDiscoveryConstraint') &&
-    geo.includes('shouldShowDiscoveryContinuityBand') &&
-    geo.includes('shouldRenderDiscoveryContinuityFeed') &&
-    geo.includes('DiscoveryContinuityBand'),
+  'GeoFeed wires composition signals into continuity band',
+  geo.includes('exactCompositionSignals') &&
+    geo.includes('buildExactDiscoveryCompositionSignals') &&
+    geo.includes('composition: exactCompositionSignals') &&
+    !geo.includes('exactMatchCount: displayCount'),
 );
 
 check(
@@ -159,9 +248,9 @@ check(
   'exact matches render before continuity band',
   (() => {
     const exact = geo.indexOf('data-wx-discovery-exact');
-    const band = geo.indexOf('<DiscoveryContinuityBand');
+    const bandIdx = geo.indexOf('<DiscoveryContinuityBand');
     const cont = geo.indexOf('data-wx-discovery-continuity-feed');
-    return exact > 0 && band > exact && cont > band;
+    return exact > 0 && bandIdx > exact && cont > bandIdx;
   })(),
 );
 
@@ -185,9 +274,10 @@ check(
 );
 
 check(
-  'policy documents exact-first continuity',
-  policy.includes('Exact matches always win') &&
-    policy.includes('Never replace HomeCheff with a dead empty page'),
+  'continuity docs composition ownership (no fixed sparse count)',
+  continuity.includes('composition layer') &&
+    continuity.includes('feed-composition-policy') &&
+    !continuity.includes('below the sparse threshold'),
 );
 
 console.log(`\n=== ${passed} checks passed ===`);

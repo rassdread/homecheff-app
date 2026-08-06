@@ -8,25 +8,30 @@ npm warn Unknown project config "@tailwindcss/postcss". This will stop working i
 npm warn Unknown project config "lightningcss". This will stop working in the next major version of npm.
 npm warn Unknown project config "@tailwindcss/node". This will stop working in the next major version of npm.
 npm warn Unknown project config "@tailwindcss/postcss". This will stop working in the next major version of npm.
-=== Discovery continuity ===
+=== Discovery continuity (adaptive) ===
 
-PASS sparse threshold is 5
+PASS no fixed FEED_EXACT_SPARSE_THRESHOLD in continuity module
+PASS composition owns isExactDiscoveryCompositionSufficient
 PASS search is an active constraint
 PASS category is an active constraint
 PASS unconstrained browse is not a continuity constraint
 PASS nearby radius counts as constraint
-PASS band shows when empty + settled + constrained
-PASS band shows when sparse (below threshold)
-PASS band hidden when enough exact matches
-PASS band hidden while unsettled
+PASS Example A: 4 diverse nearby → sufficient (no continuity band)
+PASS Example B: 3 same creator → insufficient (continuity appropriate)
+PASS Example C: 1 exact match → insufficient
+PASS Example D: 0 exact matches → empty / insufficient
+PASS mixed kinds can complete a composition unit below stride
+PASS sufficiency reuses composition stride / sparse-local constants (not a new continuity number)
+PASS band hidden while unsettled even if empty
+PASS band hidden when unconstrained even if thin
 PASS continuity feed renders only with band + candidates
 PASS dedupe keeps non-exact ids
-PASS GeoFeed imports continuity helpers
+PASS GeoFeed wires composition signals into continuity band
 PASS GeoFeed builds unconstrained continuity pool
 PASS GeoFeed continuity layout precedes exclusive empties
 PASS exact matches render before continuity band
 PASS DiscoveryContinuityBand exposes CTA hooks
 PASS i18n continuity keys present (EN + NL)
-PASS policy documents exact-first continuity
+PASS continuity docs composition ownership (no fixed sparse count)
 
-=== 18 checks passed ===
+=== 23 checks passed ===

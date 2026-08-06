@@ -29,7 +29,12 @@ Price filter never removes compatible inspiration unless the user is in explicit
 When the user applies search, category, chip, accepted values, price, Nearby radius,
 or an explicit location, exact matches always come first.
 
-If the exact set is **empty or sparse** (`exactMatchCount < FEED_EXACT_SPARSE_THRESHOLD`):
+Continuity is **composition-driven** via `isExactDiscoveryCompositionSufficient`
+(in `feed-composition-policy.ts`). It reuses inventory continuation modes,
+sale/inspiration stride, creator/kind diversity, locality, progressive widening,
+and inspiration sparse-local widening — **not** a fixed result-count threshold.
+
+If the exact set is **insufficient** for a natural HomeCheff experience:
 
 1. Show every exact match (never hide valid results).
 2. Show an honest continuity band + CTA (create / Gezocht / invite) — never imply the platform is empty.
@@ -37,7 +42,9 @@ If the exact set is **empty or sparse** (`exactMatchCount < FEED_EXACT_SPARSE_TH
 4. Never replace the feed with a dead exclusive-empty page while continuity candidates exist.
 5. Never require clearing filters to see HomeCheff again.
 
-Implementation: `lib/feed/discovery-continuity.ts`, `DiscoveryContinuityBand`, GeoFeed continuity layout (`data-wx-discovery-continuity-layout`).
+If the exact set is already compositionally healthy → continue normally (no band).
+
+Implementation: composition decision in `lib/feed/feed-composition-policy.ts`; UI bridge in `lib/feed/discovery-continuity.ts`, `DiscoveryContinuityBand`, GeoFeed continuity layout (`data-wx-discovery-continuity-layout`).
 
 ## Progressive discovery stages (product contract)
 

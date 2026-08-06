@@ -1,39 +1,31 @@
-# Discovery continuity — executive summary
+# Discovery continuity — executive summary (adaptive)
 
-**Verdict:** `HOMECHEFF_DISCOVERY_CONTINUITY_PASS`  
+**Verdict:** `HOMECHEFF_DISCOVERY_CONTINUITY_ADAPTIVE_PASS`  
 **Gate:** `READY_FOR_FORMAL_REVIEW`  
 **Branch:** `fix/feed-composition-progressive-discovery`  
-**Status:** Feature-complete on branch — not merged / not deployed / not frozen unless explicitly requested.
+**Status:** Feature-complete on branch — not merged / not deployed / not frozen.
 
-## Product contract
+## Product rule
 
-Exact matches always first → honest band + CTA when empty/sparse → normal mixed discovery continues underneath. Never a dead empty page that replaces HomeCheff while discovery candidates exist. Never require clearing filters to browse again.
+Continuity is **composition-driven**. The feed composition layer decides whether the exact constrained result set is sufficient for a natural HomeCheff experience. No fixed result-count threshold (e.g. “&lt; 5”).
 
-## What changed
+## Decision ownership
 
-| Area | Change |
-|------|--------|
-| Policy | `lib/feed/discovery-continuity.ts` — constraint detection, sparse threshold (5), band/feed gates, id dedupe |
-| UI | `DiscoveryContinuityBand` — contextual empty/sparse copy + create / Gezocht / trade / invite CTAs |
-| GeoFeed | Unconstrained progressive sale + Inspiration continuity pool; layout order exact → band → continuity; exclusive empties blocked when band applies |
-| i18n | EN/NL continuity keys |
-| Contract | Continuity section in `homecheff-feed-composition-contract.md` |
-| Tests | `npm run test:discovery-continuity` (18/18) |
+| Layer | Role |
+|-------|------|
+| `isExactDiscoveryCompositionSufficient` (`feed-composition-policy.ts`) | Owns sufficiency using inventory modes, stride, creator/kind diversity, locality, progressive widen, inspiration sparse-local widening |
+| `discovery-continuity.ts` | Constraint detection + UI band/feed gates consuming that decision |
+| GeoFeed / `DiscoveryContinuityBand` | Presentation only |
 
-## Behaviour examples
+## Behaviour
 
-- Search “Sushi”, 1 nearby → show 1 → band → continue mixed discovery (deduped).
-- Search “Pottery”, 0 nearby → band (“no pottery nearby yet”) → continue discovery.
-- Category with 3 matches → show 3 → continue (band if sparse).
+- Exact matches always first.
+- Healthy exact composition → continue normally (no band).
+- Insufficient exact composition → honest band + CTAs → mixed discovery continues underneath.
 
 ## Validators
 
 ```text
-npm run test:discovery-continuity   # 18/18
-npm run test:feed-composition-progressive  # 23/23 (unchanged contract)
+npm run test:discovery-continuity            # 23/23
+npm run test:feed-composition-progressive    # 24/24
 ```
-
-## Out of scope / not claimed
-
-- Formal Review, merge to main, production deploy, freeze.
-- Interactive Safari / Android device proof of the continuity band (code + static validators only).
