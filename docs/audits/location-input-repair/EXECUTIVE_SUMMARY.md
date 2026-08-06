@@ -24,6 +24,18 @@ Mobile sheet additionally autofocused the close button on open, racing place foc
 4. Enter on place input applies filters (manual fallback without autocomplete).
 5. Accessibility: labels, `data-testid="feed-place-input"`, `enterKeyHint`.
 
+## GPS / Use my location (same phase)
+
+Also repaired:
+
+- `useGeolocation` now respects caller timeout (was overridden to 25–30s by UA sniffing).
+- Structured deny/timeout/unavailable messages with immediate manual place fallback.
+- 20s safety timer clears a stuck GPS spinner.
+- Capacitor Geolocation path for Android (`eu.homecheff.mobile`) with FINE+COARSE only (no background).
+- Best-effort reverse-geocode label after GPS success; feed uses coordinates immediately.
+
+Validators: `npm run test:gps-location-repair` (30/30).
+
 ## Not changed
 
 Auth, GeoFeed ownership, AvailableSpace, Workspace architecture, planners, schema, SEO/AI, geocoder provider replacement.

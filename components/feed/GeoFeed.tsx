@@ -228,6 +228,8 @@ import {
   loadLocationPreference,
   saveLocationPreference,
 } from "@/lib/geo/location-preference";
+import { reverseGeocodeDisplayLabel } from "@/lib/geo/reverse-geocode-label";
+import { mapGpsFailureString } from "@/lib/geo/gps-location-errors";
 import {
   FEED_PREFETCH_MAX_BATCHES,
   FeedPrefetchCache,
@@ -1154,6 +1156,8 @@ export default function GeoFeed({
   /** Desktop sidebar: refinement collapsed by default. */
   const [sidebarRefineOpen, setSidebarRefineOpen] = useState(false);
   const [showGpsError, setShowGpsError] = useState(false);
+  /** Optional reverse-geocoded label after GPS — never blocks feed on coords. */
+  const [gpsDisplayLabel, setGpsDisplayLabel] = useState<string | null>(null);
   /** Product integrity: Nearby without GPS/place → empty state (never inspiration). */
   const [nearbyLocationStatus, setNearbyLocationStatus] =
     useState<NearbyLocationStatus>(
@@ -1203,6 +1207,7 @@ export default function GeoFeed({
   );
   const profileLocationLoadedRef = useRef(false);
   const gpsRequestPendingRef = useRef(false);
+  const gpsSafetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nativeFeedPrefsBootRef = useRef(true);
   const nativeMounted = useIsNativeAppMounted();
   const narrowViewport = useNarrowViewport();
@@ -1393,17 +1398,27 @@ export default function GeoFeed({
     feedPerfMark("location:init-start");
   }, []);
 
-  const { coords, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } =
+  const { coords, loading: locationLoading, error: locationError, errorCode: locationErrorCode, supported: locationSupported, getCurrentPosition } =
     useGeolocation({
-      // Sneller eerste fix voor afstandssortering; hoge nauwkeurigheid houdt mobiel vaak seconden bezig.
+      // Explicit user tap only — high accuracy not required for nearby discovery.
       enableHighAccuracy: false,
-      timeout: 10000,
+      timeout: 12000,
       maximumAge: 300000,
-      fallbackToManual: false,
       onFallback: (reason) => {
         setNearbyLocationStatus(mapGpsFailureToNearbyStatus(reason));
         setShowGpsError(true);
         setLocationAcquiring(false);
+        gpsRequestPendingRef.current = false;
+        // Immediate manual fallback — do not leave the user on a dead GPS button.
+        requestPlaceInputFocus({ reason: `gps-fallback:${reason}` });
+        if (feedCompactChrome && !isDesktopSplit) {
+          setMobileFilterSheetOpen(true);
+          setMobileSheetFocusPlace(true);
+        } else if (isDesktopSplit) {
+          setSidebarRefineOpen(true);
+        } else {
+          setShowFilters(true);
+        }
       },
     });
 
@@ -1702,21 +1717,45 @@ export default function GeoFeed({
   const handleUseMyLocation = useCallback(() => {
     gpsRequestPendingRef.current = true;
     setShowGpsError(false);
+    setGpsDisplayLabel(null);
     setPlace("");
     setLocationAcquiring(true);
     setNearbyLocationStatus(NEARBY_LOCATION_STATUS.NO_LOCATION_SELECTED);
+
+    if (gpsSafetyTimerRef.current) {
+      clearTimeout(gpsSafetyTimerRef.current);
+    }
+    // Hard stop for a stuck spinner if the platform never resolves.
+    gpsSafetyTimerRef.current = setTimeout(() => {
+      if (!gpsRequestPendingRef.current) return;
+      gpsRequestPendingRef.current = false;
+      setLocationAcquiring(false);
+      setShowGpsError(true);
+      setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_TIMEOUT);
+      requestPlaceInputFocus({ reason: "gps-safety-timeout" });
+    }, 20000);
+
     void (async () => {
       if (isNativeApp()) {
         try {
           const { requestAndGetNativeCurrentPosition } = await import(
             "@/lib/native/location"
           );
-          const pos = await requestAndGetNativeCurrentPosition();
+          const pos = await requestAndGetNativeCurrentPosition({
+            enableHighAccuracy: false,
+            timeout: 12000,
+            maximumAge: 300000,
+          });
           gpsRequestPendingRef.current = false;
+          if (gpsSafetyTimerRef.current) {
+            clearTimeout(gpsSafetyTimerRef.current);
+            gpsSafetyTimerRef.current = null;
+          }
           setLocationAcquiring(false);
           setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_GRANTED);
           setUserLocation({ lat: pos.latitude, lng: pos.longitude });
           setLocationSource("gps");
+          setBrowseLocationMode("point");
           setAppliedScope(FEED_SCOPE_NEARBY);
           setAppliedRadius(radius);
           setAppliedPlace("");
@@ -1731,12 +1770,24 @@ export default function GeoFeed({
             radiusKm: radius,
             source: "gps",
             bannerDismissed: true,
+            mode: "point",
+            precision: "gps",
+            label: null,
           });
           setLocationBannerDismissed(true);
+          void reverseGeocodeDisplayLabel(pos.latitude, pos.longitude).then(
+            (r) => {
+              if (r.label) setGpsDisplayLabel(r.label);
+            },
+          );
           return;
         } catch (e) {
           console.warn("[HomeCheff] native geolocation failed, falling back", e);
           gpsRequestPendingRef.current = false;
+          if (gpsSafetyTimerRef.current) {
+            clearTimeout(gpsSafetyTimerRef.current);
+            gpsSafetyTimerRef.current = null;
+          }
           setLocationAcquiring(false);
           if (e instanceof NativeLocationError) {
             setNearbyLocationStatus(mapGpsFailureToNearbyStatus(e.code));
@@ -1744,6 +1795,11 @@ export default function GeoFeed({
             setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_UNAVAILABLE);
           }
           setShowGpsError(true);
+          requestPlaceInputFocus({ reason: "native-gps-failed" });
+          if (feedCompactChrome && !isDesktopSplit) {
+            setMobileFilterSheetOpen(true);
+            setMobileSheetFocusPlace(true);
+          }
         }
       }
       // Always attempt browser GPS when available — never no-op on a stale
@@ -1755,12 +1811,17 @@ export default function GeoFeed({
         getCurrentPosition();
       } else {
         gpsRequestPendingRef.current = false;
+        if (gpsSafetyTimerRef.current) {
+          clearTimeout(gpsSafetyTimerRef.current);
+          gpsSafetyTimerRef.current = null;
+        }
         setLocationAcquiring(false);
         setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_UNAVAILABLE);
         setShowGpsError(true);
+        requestPlaceInputFocus({ reason: "gps-unsupported" });
       }
     })();
-  }, [getCurrentPosition, radius]);
+  }, [getCurrentPosition, radius, feedCompactChrome, isDesktopSplit]);
 
   const handleChoosePlaceForNearby = useCallback(() => {
     // Expand legacy collapsed Discovery Filters before focusing — otherwise
@@ -1799,20 +1860,59 @@ export default function GeoFeed({
 
   useEffect(() => {
     if (!gpsRequestPendingRef.current || locationLoading || coords) return;
-    if (locationError) {
+    if (locationError || locationErrorCode) {
       gpsRequestPendingRef.current = false;
+      if (gpsSafetyTimerRef.current) {
+        clearTimeout(gpsSafetyTimerRef.current);
+        gpsSafetyTimerRef.current = null;
+      }
       setLocationAcquiring(false);
       setShowGpsError(true);
-      const msg = (locationError || "").toLowerCase();
-      if (msg.includes("geweigerd") || msg.includes("denied")) {
-        setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_DENIED);
-      } else if (msg.includes("verlopen") || msg.includes("timeout")) {
-        setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_TIMEOUT);
-      } else {
-        setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_UNAVAILABLE);
-      }
+      const code = locationErrorCode
+        ? locationErrorCode
+        : mapGpsFailureString(locationError);
+      setNearbyLocationStatus(mapGpsFailureToNearbyStatus(code));
     }
-  }, [coords, locationLoading, locationError]);
+  }, [coords, locationLoading, locationError, locationErrorCode]);
+
+  useEffect(() => {
+    if (!coords || !gpsRequestPendingRef.current) return;
+    gpsRequestPendingRef.current = false;
+    if (gpsSafetyTimerRef.current) {
+      clearTimeout(gpsSafetyTimerRef.current);
+      gpsSafetyTimerRef.current = null;
+    }
+    setLocationAcquiring(false);
+    setShowGpsError(false);
+    setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_GRANTED);
+    setUserLocation(coords);
+    setLocationSource("gps");
+    setBrowseLocationMode("point");
+    setAppliedScope(FEED_SCOPE_NEARBY);
+    setAppliedRadius(radius);
+    setAppliedPlace("");
+    setPlace("");
+    setSortBy("distance");
+    setSortOrder("asc");
+    setAppliedSortBy("distance");
+    setAppliedSortOrder("asc");
+    saveLocationPreference({
+      place: null,
+      lat: coords.lat,
+      lng: coords.lng,
+      radiusKm: radius,
+      source: "gps",
+      bannerDismissed: true,
+      mode: "point",
+      precision: "gps",
+      label: null,
+    });
+    setLocationBannerDismissed(true);
+    // Label is best-effort — feed already uses coordinates.
+    void reverseGeocodeDisplayLabel(coords.lat, coords.lng).then((r) => {
+      if (r.label) setGpsDisplayLabel(r.label);
+    });
+  }, [coords, radius]);
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
@@ -2068,33 +2168,6 @@ export default function GeoFeed({
       setNativeGpsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    if (!coords || !gpsRequestPendingRef.current) return;
-    gpsRequestPendingRef.current = false;
-    setLocationAcquiring(false);
-    setShowGpsError(false);
-    setNearbyLocationStatus(NEARBY_LOCATION_STATUS.GPS_GRANTED);
-    setUserLocation(coords);
-    setLocationSource("gps");
-    setAppliedScope(FEED_SCOPE_NEARBY);
-    setAppliedRadius(radius);
-    setAppliedPlace("");
-    setPlace("");
-    setSortBy("distance");
-    setSortOrder("asc");
-    setAppliedSortBy("distance");
-    setAppliedSortOrder("asc");
-    saveLocationPreference({
-      place: null,
-      lat: coords.lat,
-      lng: coords.lng,
-      radiusKm: radius,
-      source: "gps",
-      bannerDismissed: true,
-    });
-    setLocationBannerDismissed(true);
-  }, [coords, radius]);
 
   useEffect(() => {
     if (appliedScope !== FEED_SCOPE_NEARBY) return;
@@ -4115,6 +4188,7 @@ export default function GeoFeed({
       profileLocation?.place ?? profileLocation?.postcode ?? "";
     setUserLocation(null);
     setAppliedPlace("");
+    setGpsDisplayLabel(null);
     setShowGpsError(false);
     if (browseCountryCode) {
       setLocationSource("country");
@@ -4249,7 +4323,9 @@ export default function GeoFeed({
       return t("feed.searchingInPlace", { place: appliedPlace.trim() });
     }
     if (effectiveLocationSource === "gps") {
-      return t("feed.activeLocationGps");
+      return gpsDisplayLabel
+        ? t("feed.searchingInPlace", { place: gpsDisplayLabel })
+        : t("feed.activeLocationGps");
     }
     if (effectiveLocationSource === "ip") {
       return ipLocationLabel
@@ -4272,6 +4348,7 @@ export default function GeoFeed({
     effectiveLocationSource,
     appliedPlace,
     ipLocationLabel,
+    gpsDisplayLabel,
     profileLocation,
     bootstrapProfile?.place,
     bootstrapProfile?.postalCode,
@@ -4833,9 +4910,13 @@ export default function GeoFeed({
                       )}
                     </button>
                   </div>
-                  {locationError && locationSource === "gps" ? (
-                    <p className="mt-1.5 text-xs text-red-600">
-                      {t("common.locationCouldNotBeDetermined")}
+                  {showGpsError && locationError ? (
+                    <p
+                      className="mt-1.5 text-xs text-red-600"
+                      role="alert"
+                      data-testid="feed-gps-error"
+                    >
+                      {locationError}
                     </p>
                   ) : null}
                 </div>
@@ -4900,11 +4981,15 @@ export default function GeoFeed({
                 </div>
               </div>
               <div className="w-full mt-2">
-                {locationError && locationSource !== "profile" && (
-                  <p className="text-xs text-red-600 mb-2">
-                    ⚠️ {t("common.locationCouldNotBeDetermined")}
+                {showGpsError && locationError ? (
+                  <p
+                    className="text-xs text-red-600 mb-2"
+                    role="alert"
+                    data-testid="feed-gps-error"
+                  >
+                    {locationError}
                   </p>
-                )}
+                ) : null}
                 {userLocation && (
                   <p className="text-xs text-green-600 mb-2">
                     {locationSource === "gps" &&

@@ -137,7 +137,6 @@ export default function InspiratieContent({
     enableHighAccuracy: true,
     timeout: 30000,
     maximumAge: 0,
-    fallbackToManual: false
   });
 
   // Get categories with translations

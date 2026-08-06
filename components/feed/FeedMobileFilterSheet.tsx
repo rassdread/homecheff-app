@@ -297,8 +297,12 @@ export default function FeedMobileFilterSheet({
               {t('feed.useMyLocation')}
             </button>
             {locationError ? (
-              <p className="mt-1.5 text-xs text-red-600" role="alert">
-                {t('common.locationCouldNotBeDetermined')}
+              <p
+                className="mt-1.5 text-xs text-red-600"
+                role="alert"
+                data-testid="feed-gps-error"
+              >
+                {locationError}
               </p>
             ) : null}
             {activeLocationChip ? (

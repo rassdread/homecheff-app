@@ -274,7 +274,13 @@ export default function FeedSidebarFilters({
             {t("feed.useMyLocation")}
           </button>
           {locationError ? (
-            <p className="text-[11px] text-red-600 leading-snug">{locationError}</p>
+            <p
+              className="text-[11px] text-red-600 leading-snug"
+              role="alert"
+              data-testid="feed-gps-error"
+            >
+              {locationError}
+            </p>
           ) : null}
           {activeLocationChip ? (
             <div className="flex items-center gap-1.5 min-w-0">
