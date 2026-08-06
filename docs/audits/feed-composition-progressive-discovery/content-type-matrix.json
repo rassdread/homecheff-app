@@ -1,0 +1,23 @@
+{
+  "ALL": {
+    "includes": [
+      "marketplace_offers_sales",
+      "services",
+      "wanted_gezocht",
+      "trade_via_sale_chip_or_direction",
+      "inspiration_interleaved",
+      "recirculation_when_exhausted"
+    ],
+    "excludes": ["ordinary_second_hand_non_craft"]
+  },
+  "SALE": { "includes": ["marketplace_sales"], "excludes": ["inspiration"] },
+  "GEZOCHT": { "includes": ["wanted_requests"] },
+  "INSPIRATION": { "includes": ["inspiration_only"] },
+  "FOOD_GARDEN_CREATIONS_SERVICES": {
+    "role": "vertical_category_filter_on_both_sales_and_inspiration_when_metadata_exists"
+  },
+  "SEARCH_ACTIVE_ALL": {
+    "applies_to": ["marketplace", "inspiration"],
+    "policy": "FEED_FILTER_COMPATIBILITY.search"
+  }
+}

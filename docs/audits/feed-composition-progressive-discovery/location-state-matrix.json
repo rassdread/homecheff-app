@@ -1,0 +1,9 @@
+{
+  "known_gps": "local_first_sales + nearby_or_sparse_national_inspiration",
+  "manual_city_postcode": "same_as_known_when_coords_resolved",
+  "no_location": "soft_national_sales + national_inspiration_scope",
+  "gps_denied_blocked": "same_as_no_location",
+  "reverse_geocode_failure": "coords_still_drive_nearby_sales_labels_optional",
+  "saved_profile_location": "nearby_when_coords_present",
+  "stale_profile": "discovery_usable_no_content_class_removed"
+}

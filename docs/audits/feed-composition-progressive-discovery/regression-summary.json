@@ -1,0 +1,6 @@
+{
+  "no_location_discovery": "validators_pass",
+  "manual_location_keyboard_gps": "validators_pass",
+  "workspace_geofeed_authority": "pass",
+  "auth_schema_checkout_seo": "untouched"
+}
