@@ -181,3 +181,8 @@ export function legalOperatorEntityId(domain: string): string {
 export function websiteEntityId(domain: string): string {
   return `${domain}/#website`;
 }
+
+/** Software/platform node — same brand, distinct @id for graph clarity. */
+export function platformEntityId(domain: string): string {
+  return `${domain}/#platform`;
+}
