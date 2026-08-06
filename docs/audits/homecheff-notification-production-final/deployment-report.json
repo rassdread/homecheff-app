@@ -1,0 +1,25 @@
+{
+  "mergedAt": "2026-08-06",
+  "mergeCommit": "5f1fe295",
+  "pr": "https://github.com/rassdread/homecheff-app/pull/1",
+  "deploymentId": "dpl_94a5FDDHQ1pD9zyjJVnujVoKwaUm",
+  "productionAlias": "https://homecheff.eu",
+  "readyState": "READY",
+  "probes": {
+    "firebaseWebConfig": { "status": 503, "body": "firebase_web_not_configured" },
+    "notificationOutboxCronUnauth": { "status": 401 },
+    "firebaseMessagingSw": { "status": 200 },
+    "outboxTableExists": true,
+    "outboxRowCount": 0
+  },
+  "vercelEnv": {
+    "FIREBASE_ADMIN": true,
+    "CRON_SECRET": true,
+    "NEXT_PUBLIC_FIREBASE_WEB": false
+  },
+  "migration": {
+    "name": "20260806_notification_push_outbox",
+    "applied": true,
+    "destructive": false
+  }
+}
