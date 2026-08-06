@@ -21,65 +21,135 @@ export const VERIFIED_FOUNDER = {
   jobTitle: 'Founder',
 } as const;
 
+/**
+ * Schema.org alternateName — brand-aligned phrases only.
+ * Do NOT include spaced/hyphenated “home cheff” forms (ambiguity with unaffiliated Home Chef brands).
+ */
 export const ORGANIZATION_ALTERNATE_NAMES = [
   'homecheff',
-  'home cheff',
-  'home-cheff',
+  'HomeCheff.eu',
   'HomeCheff platform',
   'HomeCheff marketplace',
+  'HomeCheff neighbourhood marketplace',
+  'HomeCheff buurtmarkt',
+  'digital neighbourhood marketplace',
+  'digitale buurtmarkt',
+  'HomeCheff community',
   'HomeCheff app',
   'HomeCheff Netherlands',
+  'HomeCheff Vlaardingen',
 ] as const;
 
 /** Topics HomeCheff publicly explains — for knowsAbout. */
 export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
   nl: [
+    'HomeCheff',
+    'digitale buurtmarkt',
+    'HomeCheff buurtmarkt',
+    'community-first',
+    'creator-first',
+    'craftsmanship-first',
+    'neighbourhood-first',
+    'local-first',
+    'niet alleen-lokaal',
+    'alles begint dichtbij huis',
+    'afstand bepaalt prioriteit niet mogelijkheid',
+    'local-first ontdekking',
     'persoonlijk vakmanschap',
     'lokale makers',
     'buurt economie',
     'buurthulp',
     'thuisgemaakt eten',
-    'HomeGarden',
-    'HomeDesigner',
+    'tuinoogst',
     'handgemaakte producten',
+    'upcycling',
+    'ambachtelijke transformatie',
+    'reparaties',
+    'lessen',
+    'creatieve diensten',
     'lokale diensten',
     'ruilen',
+    'barter',
+    'Gezocht',
     'lokaal verdienen',
+    'micro-ondernemerschap',
+    'circulaire economie',
     'technologie met geweten',
     'digitaal dorpsplein',
+    'platformvertrouwen',
+    'moderatie',
+    'veiligheid',
+    'privacy',
+    'community vóór data',
+    'mensen zijn niet het product',
+    'communityrichtlijnen',
+    'E-E-A-T',
+    'onafhankelijk Nederlands platform',
   ],
   en: [
+    'HomeCheff',
+    'digital neighbourhood marketplace',
+    'HomeCheff neighbourhood marketplace',
+    'community-first',
+    'creator-first',
+    'craftsmanship-first',
+    'neighbourhood-first',
+    'local-first',
+    'not local-only',
+    'everything starts close to home',
+    'distance determines priority not possibility',
+    'local-first discovery',
     'personal craftsmanship',
     'local makers',
     'community economy',
     'neighbour help',
     'home-prepared food',
-    'HomeGarden',
-    'HomeDesigner',
+    'home-grown produce',
     'handmade products',
+    'upcycling',
+    'craft transformation',
+    'repairs',
+    'lessons',
+    'creative services',
     'local services',
     'barter',
+    'Wanted requests',
     'earn locally',
+    'micro entrepreneurship',
+    'circular economy',
     'technology with conscience',
     'digital village square',
+    'platform trust',
+    'moderation',
+    'safety',
+    'privacy',
+    'community before data',
+    'people are not the product',
+    'community guidelines',
+    'E-E-A-T',
+    'independent Dutch platform',
   ],
 };
 
 /**
- * Official domains controlled by HomeCheff / Arrias Beheer.
- * Social profiles omitted until verified and consistently branded.
+ * Official domains + verified public registry references.
+ * Social profiles remain pending until consistently branded URLs are confirmed.
  */
 export const VERIFIED_SAME_AS = [
   'https://homecheff.eu',
   'https://homecheff.nl',
-  'https://www.kvk.nl/zoeken/handelsregister/?kvknummer=80532829',
+  'https://www.kvk.nl/zoeken/?q=80532829',
 ] as const;
 
-/** Documented for Phase 13S audit — not included in JSON-LD until verified. */
+/** Documented for audits — not included in JSON-LD until verified. */
 export const PENDING_SAME_AS_VERIFICATION = [
   'Official LinkedIn company page URL',
   'Official Instagram profile URL',
-  'Wikidata item (if created)',
+  'Official Facebook Page URL',
+  'Official YouTube channel URL (if published)',
+  'Official TikTok profile URL (if published)',
+  'Wikidata item (if created — requires independent sources)',
+  'Wikipedia article (blocked until notability — do not create promotional stub)',
   'Municipality of Vlaardingen partnership page (if published)',
 ] as const;
 
@@ -87,7 +157,8 @@ export const PENDING_SAME_AS_VERIFICATION = [
 export const ORGANIZATION_OMITTED_FIELDS = {
   foundingDate: 'Not published on About or legal pages — do not guess.',
   streetAddress: 'Only city (Vlaardingen) is published — no full street address.',
-  founderBiography: 'No public About biography — name and role only.',
+  founderBiography:
+    'JSON-LD Person remains name/role/url only. Public knowledge at /sergio-arrias (no invented credentials). About avoids hero narrative.',
   socialProfiles: 'No verified official sameAs URLs in codebase.',
   impactMetrics: 'No measured waste/loneliness metrics published.',
 } as const;
@@ -109,9 +180,4 @@ export function legalOperatorEntityId(domain: string): string {
 
 export function websiteEntityId(domain: string): string {
   return `${domain}/#website`;
-}
-
-/** Software/platform node — same brand, distinct @id for graph clarity. */
-export function platformEntityId(domain: string): string {
-  return `${domain}/#platform`;
 }

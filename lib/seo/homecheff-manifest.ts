@@ -7,12 +7,14 @@
  * All surfaces must stay within Phase 13O truth boundaries (no unproven impact metrics).
  */
 
+import { CANONICAL_ENTITY_DESCRIPTION } from './entity-philosophy';
+
 export type ManifestLang = 'nl' | 'en';
 
 /** Canonical one-line mission — reused in Organization schema and platform definition. */
 export const MANIFEST_MISSION: Record<ManifestLang, string> = {
-  nl: 'HomeCheff bouwt een digitale omgeving waar gewone mensen lokaal kunnen creëren, verkopen, ruilen, helpen, leren en samenwerken — met mensen centraal, niet producten.',
-  en: 'HomeCheff builds a digital environment where ordinary people can create, sell, exchange, help, learn and collaborate locally — with people at the centre, not products.',
+  nl: 'Start lokaal, groei natuurlijk: gewone mensen creëren, verkopen, ruilen, helpen, leren en samenwerken — met mensen centraal, niet anonieme producten.',
+  en: 'Start locally, grow naturally: ordinary people create, sell, exchange, help, learn and collaborate — with people at the centre, not anonymous products.',
 };
 
 /** Canonical vision — technology strengthens people. */
@@ -21,10 +23,12 @@ export const MANIFEST_VISION: Record<ManifestLang, string> = {
   en: 'Technology should make people stronger — more opportunity, local resilience, trust and time — instead of dependency, addiction or isolation.',
 };
 
-/** What HomeCheff is — digital village square. */
+/** What HomeCheff is — aligned with CANONICAL_ENTITY_DESCRIPTION + village-square nuance. */
 export const MANIFEST_IS: Record<ManifestLang, string> = {
-  nl: 'HomeCheff is een digitaal dorpsplein: een plek waar mensen mensen ontdekken, vaardigheden kansen vinden en buurten elkaar vinden. Technologie is de brug; mensen blijven de bestemming.',
-  en: 'HomeCheff is a digital village square: a place where people discover people, skills find opportunity and neighbourhoods find each other. Technology is the bridge; people remain the destination.',
+  nl:
+    'HomeCheff is een digitale buurtmarkt (én digitaal dorpsplein) waar mensen waarde creëren door eigen vakmanschap, creativiteit en persoonlijke diensten. Mensen kunnen lokaal ontdekken, aanbieden, kopen, verkopen, ruilen en vragen, terwijl unieke creaties en gespecialiseerde diensten van nature een breder publiek kunnen bereiken. Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid. Community-first, creator-first, craftsmanship-first — local-first, niet alleen-lokaal.',
+  en:
+    'HomeCheff is a digital neighbourhood marketplace (and digital village square) where people create value through their own craftsmanship, creativity and personal services. People can discover, offer, buy, sell, trade and request locally, while unique creations and specialised services can naturally reach a wider audience. Everything starts close to home. Distance determines priority, not possibility. Community-first, creator-first, craftsmanship-first — local-first, not local-only.',
 };
 
 /** Core values — stable keys for validators and cross-page reuse. */
@@ -49,8 +53,8 @@ export const MANIFEST_VALUE_LABELS: Record<ManifestCoreValueKey, Record<Manifest
     en: 'Personal craftsmanship before mass production',
   },
   localBeforeScale: {
-    nl: 'Lokale gemeenschappen vóór anonieme schaal',
-    en: 'Local communities before anonymous scale',
+    nl: 'Lokaal eerst vóór anonieme schaal — afstand bepaalt prioriteit, niet mogelijkheid',
+    en: 'Local first before anonymous scale — distance determines priority, not possibility',
   },
   cooperationBeforeZeroSum: {
     nl: 'Samenwerking vóór nul-som competitie',
@@ -70,19 +74,27 @@ export const MANIFEST_VALUE_LABELS: Record<ManifestCoreValueKey, Record<Manifest
 export const MANIFEST_IS_NOT: Record<ManifestLang, string[]> = {
   nl: [
     'geen bezorg-app',
-    'geen advertentieplatform',
-    'geen dropshipping-marktplaats',
+    'geen generieke advertentiesite / classifieds',
+    'geen dropshipping- of mass retail platform',
     'geen anonieme marktplaats',
+    'geen tweedehands-marktplaats voor gewone doorverkoop',
+    'niet alleen-lokaal of buurt-afgesloten',
+    'geen “internationale marktplaats”-positionering',
     'geen aandachts-economie',
+    'geen behavioural-advertising-product',
     'geen socialmediaplatform',
     'geen engagement-machine',
   ],
   en: [
     'not a delivery app',
-    'not an advertising platform',
-    'not a dropshipping marketplace',
+    'not a generic classifieds website',
+    'not a dropshipping or mass retail platform',
     'not an anonymous marketplace',
+    'not a second-hand marketplace for ordinary resale',
+    'not neighbourhood-only or city-locked',
+    'not positioned as an “international marketplace”',
     'not an attention economy platform',
+    'not a behavioural advertising product',
     'not a social media platform',
     'not an engagement machine',
   ],
@@ -114,11 +126,13 @@ export const MANIFEST_SOCIETY_HOPES: Record<ManifestLang, string[]> = {
 
 export const MANIFEST_PATH = '/manifest' as const;
 export const MANIFEST_NAMESPACE = 'manifestPage' as const;
-export const MANIFEST_LAST_REVIEWED = '2026-07-11';
+export const MANIFEST_LAST_REVIEWED = '2026-08-04';
 
-/** Short schema-safe organization description derived from manifest. */
+/** Short schema-safe organization description — canonical entity first, village-square nuance. */
 export function manifestOrganizationDescription(lang: ManifestLang): string {
-  return lang === 'en'
-    ? `${MANIFEST_IS.en} ${MANIFEST_MISSION.en}`
-    : `${MANIFEST_IS.nl} ${MANIFEST_MISSION.nl}`;
+  const village =
+    lang === 'en'
+      ? 'HomeCheff is also the digital village square.'
+      : 'HomeCheff is tevens het digitaal dorpsplein.';
+  return `${CANONICAL_ENTITY_DESCRIPTION[lang]} ${village} ${MANIFEST_MISSION[lang]}`;
 }

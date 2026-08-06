@@ -1,0 +1,52 @@
+[
+  {
+    "path": "/manifest",
+    "status": 200,
+    "bytes": 50223
+  },
+  {
+    "path": "/community-guidelines",
+    "status": 200,
+    "bytes": 46235
+  },
+  {
+    "path": "/principles",
+    "status": 200,
+    "bytes": 47227
+  },
+  {
+    "path": "/trust",
+    "status": 200,
+    "bytes": 49650
+  },
+  {
+    "path": "/privacy",
+    "status": 200,
+    "bytes": 50098
+  },
+  {
+    "path": "/safety",
+    "status": 200,
+    "bytes": 47087
+  },
+  {
+    "path": "/terms",
+    "status": 200,
+    "bytes": 47978
+  },
+  {
+    "path": "/over-ons",
+    "status": 200,
+    "bytes": 63958
+  },
+  {
+    "path": "/constitution",
+    "status": 200,
+    "bytes": 52105
+  },
+  {
+    "path": "/docs",
+    "status": 200,
+    "bytes": 51532
+  }
+]

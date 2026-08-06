@@ -87,6 +87,20 @@ export default function OverOnsPage() {
           <p>{t('overOns.story1')}</p>
           <p>{t('overOns.story2')}</p>
           <p>{t('overOns.story3')}</p>
+          <p className="flex flex-wrap gap-x-4 gap-y-2 not-prose text-base">
+            <Link href="/sergio-arrias" className="text-emerald-700 underline-offset-2 hover:underline">
+              Sergio Arrias
+            </Link>
+            <Link href="/oorsprong-homecheff" className="text-emerald-700 underline-offset-2 hover:underline">
+              HomeCheff origin
+            </Link>
+            <Link href="/waarom-homecheff" className="text-emerald-700 underline-offset-2 hover:underline">
+              Why HomeCheff
+            </Link>
+            <Link href="/arriassisme" className="text-emerald-700 underline-offset-2 hover:underline">
+              Arriassisme
+            </Link>
+          </p>
         </Section>
 
         <Section icon={Sparkles} title={t('overOns.philosophyTitle')}>

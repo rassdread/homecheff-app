@@ -1,10 +1,11 @@
 /**
- * SEO 4.0 — Single HomeCheff entity graph (verified relationships only).
+ * Phase 2.2A — Single HomeCheff entity graph (verified relationships only).
+ * Phase 2.3 — Brand entity dominance.
+ * Phase 2.4 — Brand authority & knowledge-graph dominance (more concept links, same identity).
  * Do not invent founding dates, street addresses, social URLs or metrics.
  */
 
 import {
-  HOMECHEFF_BRAND_NAME,
   LEGAL_OPERATOR,
   PRESS_EMAIL,
   SUPPORT_EMAIL,
@@ -12,24 +13,18 @@ import {
   VERIFIED_SAME_AS,
   PENDING_SAME_AS_VERIFICATION,
   ORGANIZATION_OMITTED_FIELDS,
-  platformEntityId,
 } from './organization-identity';
+import { CANONICAL_BRAND_SPELLING, brandEntityBrief } from './brand-entity';
 
 /** Canonical nodes in the public knowledge graph. */
 export const ENTITY_NODES = {
   brand: {
     id: 'brand',
-    name: HOMECHEFF_BRAND_NAME,
+    name: CANONICAL_BRAND_SPELLING,
     role: 'Platform brand / digital neighbourhood marketplace',
     canonicalUrl: 'https://homecheff.eu',
     schemaId: 'https://homecheff.eu/#organization',
-  },
-  platform: {
-    id: 'platform',
-    name: 'HomeCheff platform',
-    role: 'Software / marketplace platform operated under the HomeCheff brand',
-    canonicalUrl: 'https://homecheff.eu',
-    schemaId: 'https://homecheff.eu/#platform',
+    spelling: CANONICAL_BRAND_SPELLING,
   },
   website: {
     id: 'website',
@@ -52,12 +47,121 @@ export const ENTITY_NODES = {
     id: 'founder',
     name: VERIFIED_FOUNDER.name,
     role: VERIFIED_FOUNDER.jobTitle,
-    note: 'Name and role only — no public biography in schema.',
+    path: '/sergio-arrias',
+    note: 'Name and role in schema; public knowledge page /sergio-arrias — no invented credentials.',
   },
-  verticals: {
-    id: 'verticals',
-    names: ['HomeCheff', 'HomeGarden', 'HomeDesigner'] as const,
-    note: 'Marketplace verticals within one brand — not separate legal entities.',
+  arriassisme: {
+    id: 'arriassisme',
+    name: 'Arriassisme',
+    path: '/arriassisme',
+    role: 'Founder’s personal philosophical inspiration',
+    note: 'NOT the HomeCheff Manifest / platform philosophy. Concept node — inspiredBy founder only.',
+  },
+  brandOrigin: {
+    id: 'brandOrigin',
+    name: 'Origin of HomeCheff',
+    path: '/oorsprong-homecheff',
+    role: 'Official origin / history knowledge surface',
+  },
+  brandName: {
+    id: 'brandName',
+    name: 'Why HomeCheff',
+    path: '/waarom-homecheff',
+    role: 'Brand name meaning + two-F spelling surface',
+  },
+  neighbourhoodMarketplace: {
+    id: 'neighbourhoodMarketplace',
+    name: 'Digital neighbourhood marketplace',
+    nameNl: 'Digitale buurtmarkt',
+    role: 'Canonical product category / positioning for the HomeCheff brand',
+    note:
+      'Concept node — not a separate Organization in JSON-LD. Local-first / neighbourhood-first, not neighbourhood-only; craftsmanship-first value creation, not ordinary second-hand resale.',
+  },
+  neighbourhoodEconomy: {
+    id: 'neighbourhoodEconomy',
+    name: 'Neighbourhood economy',
+    nameNl: 'Buurt economie',
+    role: 'Concept — local opportunity and community value exchange',
+    note: 'Concept node — explained on public knowledge pages; not a separate Organization.',
+  },
+  craftsmanship: {
+    id: 'craftsmanship',
+    name: 'Craftsmanship',
+    nameNl: 'Vakmanschap',
+    role: 'Concept — personal labour, creativity and production as value basis',
+    note: 'Concept node — distinguishes HomeCheff from ordinary resale and mass retail.',
+  },
+  communityExchange: {
+    id: 'communityExchange',
+    name: 'Community exchange',
+    nameNl: 'Community-ruil / barter',
+    role: 'Concept — barter and neighbour value exchange',
+    note: 'Concept node — supported settlement path; not a separate legal entity.',
+  },
+  socialCohesion: {
+    id: 'socialCohesion',
+    name: 'Social cohesion',
+    nameNl: 'Sociale cohesie',
+    role: 'Concept — reconnecting neighbours; philosophical motivation for HomeCheff',
+    note: 'Concept node — declining interaction / loneliness / invisible skills as calm motivation; no invented statistics.',
+  },
+  privacyPhilosophy: {
+    id: 'privacyPhilosophy',
+    name: 'Privacy philosophy (community before data)',
+    nameNl: 'Privacyfilosofie (community vóór data)',
+    role: 'Concept — people are the community, not the product',
+    note: 'Concept node — philosophy communication; legal policy remains /privacy.',
+  },
+  neighbourhoodFirstGrowth: {
+    id: 'neighbourhoodFirstGrowth',
+    name: 'Neighbourhood-first growth',
+    nameNl: 'Neighbourhood-first groei',
+    role: 'Concept — local-first scale path without changing philosophy',
+    note: 'Concept node — neighbourhood→…→Oceania; distance = priority not possibility; never anonymous international marketplace.',
+  },
+  community: {
+    id: 'community',
+    name: 'Community',
+    nameNl: 'Community',
+    role: 'Concept — neighbours discovering each other',
+    note: 'Concept node — destination of the platform; technology is the bridge.',
+  },
+  localEconomy: {
+    id: 'localEconomy',
+    name: 'Local economy',
+    nameNl: 'Lokale economie',
+    role: 'Concept — alias emphasis for neighbourhood economy',
+    note: 'Concept node — aligns with neighbourhoodEconomy; craftsmanship visible nearby.',
+  },
+  manifest: {
+    id: 'manifest',
+    name: 'HomeCheff Manifest',
+    path: '/manifest',
+    role: 'Publishing principles / brand philosophy surface',
+  },
+  trust: {
+    id: 'trust',
+    name: 'Trust & transparency',
+    path: '/trust',
+    role: 'Trust / corrections policy surface',
+  },
+  communityGuidelines: {
+    id: 'communityGuidelines',
+    name: 'Community Guidelines',
+    path: '/community-guidelines',
+    role: 'Ethics / community conduct surface',
+  },
+  principles: {
+    id: 'principles',
+    name: 'Principles',
+    path: '/principles',
+    role: 'Public principles / diversity & orientation surface',
+  },
+  openKnowledge: {
+    id: 'openKnowledge',
+    name: 'Open Knowledge',
+    path: '/docs',
+    role: 'Educational documentation hub',
   },
 } as const;
 
@@ -70,12 +174,6 @@ export const ENTITY_RELATIONSHIPS = [
     note: 'HomeCheff brand is operated by Arrias Beheer B.V.',
   },
   {
-    from: 'platform',
-    to: 'brand',
-    relation: 'brand',
-    note: 'Platform software surface is published under the HomeCheff Organization.',
-  },
-  {
     from: 'website',
     to: 'brand',
     relation: 'publisher',
@@ -85,20 +183,146 @@ export const ENTITY_RELATIONSHIPS = [
     from: 'brand',
     to: 'founder',
     relation: 'founder',
-    note: 'Verified founder name and job title only.',
+    note: 'Verified founder name and job title; knowledge at /sergio-arrias.',
+  },
+  {
+    from: 'founder',
+    to: 'brand',
+    relation: 'founded',
+    note: 'Sergio Arrias founded HomeCheff.',
   },
   {
     from: 'brand',
-    to: 'knowledge',
+    to: 'operator',
+    relation: 'operatedBy',
+    note: 'HomeCheff is operated by Arrias Beheer B.V. (also parentOrganization).',
+  },
+  {
+    from: 'founder',
+    to: 'arriassisme',
+    relation: 'inspiredBy',
+    note: 'Arriassisme inspires the founder personally — not the platform Manifest.',
+  },
+  {
+    from: 'brand',
+    to: 'brandOrigin',
+    relation: 'originDocumentedAt',
+    note: 'Official origin narrative at /oorsprong-homecheff.',
+  },
+  {
+    from: 'brand',
+    to: 'brandName',
+    relation: 'nameExplainedAt',
+    note: 'Brand meaning and two-F spelling at /waarom-homecheff.',
+  },
+  {
+    from: 'brand',
+    to: 'neighbourhoodMarketplace',
+    relation: 'positionedAs',
+    note:
+      'HomeCheff is the digital neighbourhood marketplace (digitale buurtmarkt): local-first and scalable; unique craft may reach further. Everything starts close to home.',
+  },
+  {
+    from: 'brand',
+    to: 'neighbourhoodEconomy',
+    relation: 'supports',
+    note: 'Platform supports neighbourhood economy through local-first discovery and personal work.',
+  },
+  {
+    from: 'brand',
+    to: 'craftsmanship',
+    relation: 'emphasises',
+    note: 'Craftsmanship-first value creation — not ordinary second-hand resale.',
+  },
+  {
+    from: 'brand',
+    to: 'communityExchange',
+    relation: 'supports',
+    note: 'Supports barter and community exchange alongside checkout and direct agreements.',
+  },
+  {
+    from: 'brand',
+    to: 'manifest',
+    relation: 'publishingPrinciples',
+    note: 'Manifest states brand philosophy without inventing metrics.',
+  },
+  {
+    from: 'brand',
+    to: 'trust',
+    relation: 'correctionsPolicy',
+    note: 'Trust page is the public corrections / transparency surface.',
+  },
+  {
+    from: 'brand',
+    to: 'communityGuidelines',
+    relation: 'ethicsPolicy',
+    note: 'Community Guidelines define expected conduct for real people in the community.',
+  },
+  {
+    from: 'brand',
+    to: 'principles',
+    relation: 'diversityPolicy',
+    note: 'Principles surface states public orientation without fabricated impact claims.',
+  },
+  {
+    from: 'brand',
+    to: 'openKnowledge',
     relation: 'explains',
-    note: 'Manifest, Constitution, Trust, FAQ, docs explain the same entity.',
+    note: 'Open Knowledge docs explain the same entity as Manifest, Trust, FAQ and About.',
+  },
+  {
+    from: 'neighbourhoodMarketplace',
+    to: 'craftsmanship',
+    relation: 'requires',
+    note: 'Marketplace positioning requires personal craftsmanship or meaningful transformation.',
+  },
+  {
+    from: 'neighbourhoodMarketplace',
+    to: 'communityExchange',
+    relation: 'includes',
+    note: 'Barter and Wanted belong inside the neighbourhood marketplace model.',
+  },
+  {
+    from: 'brand',
+    to: 'community',
+    relation: 'serves',
+    note: 'Platform serves community — neighbours discovering each other.',
+  },
+  {
+    from: 'brand',
+    to: 'socialCohesion',
+    relation: 'motivatedBy',
+    note: 'Philosophical motivation: reconnect people; make invisible skills visible nearby.',
+  },
+  {
+    from: 'brand',
+    to: 'localEconomy',
+    relation: 'supports',
+    note: 'Supports local economy through craftsmanship visible nearby.',
+  },
+  {
+    from: 'brand',
+    to: 'privacyPhilosophy',
+    relation: 'publishes',
+    note: 'Community before data — people are not advertising products.',
+  },
+  {
+    from: 'brand',
+    to: 'neighbourhoodFirstGrowth',
+    relation: 'growsVia',
+    note: 'Neighbourhood→city→…→Oceania without changing local-first philosophy.',
+  },
+  {
+    from: 'founder',
+    to: 'neighbourhoodMarketplace',
+    relation: 'createdAsPracticalApplication',
+    note: 'Years of philosophy became the digital neighbourhood marketplace.',
   },
 ] as const;
 
 /** Public knowledge pages that must describe the same entity. */
 export const ENTITY_KNOWLEDGE_SURFACES = [
   '/wat-is-homecheff',
-  '/hoe-homecheff-werkt',
   '/over-ons',
   '/manifest',
   '/constitution',
@@ -109,10 +333,13 @@ export const ENTITY_KNOWLEDGE_SURFACES = [
   '/safety',
   '/community-guidelines',
   '/privacy',
-  '/seo-hub',
-  '/en/seo-hub',
+  '/persoonlijk-vakmanschap',
+  '/buurt-economie',
+  '/sergio-arrias',
+  '/oorsprong-homecheff',
+  '/waarom-homecheff',
+  '/arriassisme',
   '/llms.txt',
-  '/llms-full.txt',
   '/ai.txt',
 ] as const;
 
@@ -127,16 +354,32 @@ export const ENTITY_OMITTED = ORGANIZATION_OMITTED_FIELDS;
 
 /** Machine-readable summary for AI briefs. */
 export function entityGraphBrief(): string {
+  const relationships = ENTITY_RELATIONSHIPS.map(
+    (r) => `${r.from} -[${r.relation}]-> ${r.to}`,
+  ).join('; ');
   return [
-    `brand: ${ENTITY_NODES.brand.name} (${ENTITY_NODES.brand.schemaId})`,
-    `platform: ${ENTITY_NODES.platform.name} (${platformEntityId('https://homecheff.eu')})`,
+    `brand: ${ENTITY_NODES.brand.name} (${ENTITY_NODES.brand.schemaId}) — spelling=${ENTITY_NODES.brand.spelling}`,
     `website: ${ENTITY_NODES.website.canonicalUrl} (${ENTITY_NODES.website.schemaId})`,
     `legal_operator: ${ENTITY_NODES.operator.name} — KvK ${ENTITY_NODES.operator.kvk}, ${ENTITY_NODES.operator.locality}, ${ENTITY_NODES.operator.country}`,
-    `verticals: ${ENTITY_NODES.verticals.names.join(', ')} — same brand, not separate companies`,
-    `founder: ${ENTITY_NODES.founder.name} (${ENTITY_NODES.founder.role}) — name/role only`,
+    `founder: ${ENTITY_NODES.founder.name} (${ENTITY_NODES.founder.role}) — ${ENTITY_NODES.founder.path}`,
+    `arriassisme: ${ENTITY_NODES.arriassisme.name} (${ENTITY_NODES.arriassisme.path}) — personal inspiration, NOT Manifest`,
+    `origin: ${ENTITY_NODES.brandOrigin.path}; brand_name: ${ENTITY_NODES.brandName.path}`,
+    `positioning: ${ENTITY_NODES.neighbourhoodMarketplace.name} / ${ENTITY_NODES.neighbourhoodMarketplace.nameNl}`,
+    `concepts: ${ENTITY_NODES.neighbourhoodEconomy.name}; ${ENTITY_NODES.craftsmanship.name}; ${ENTITY_NODES.communityExchange.name}; ${ENTITY_NODES.socialCohesion.name}; ${ENTITY_NODES.privacyPhilosophy.name}; ${ENTITY_NODES.neighbourhoodFirstGrowth.name}`,
+    `community: ${ENTITY_NODES.community.name}; local_economy: ${ENTITY_NODES.localEconomy.name}`,
+    `manifest: ${ENTITY_NODES.manifest.path}`,
+    `trust: ${ENTITY_NODES.trust.path}`,
+    `community_guidelines: ${ENTITY_NODES.communityGuidelines.path}`,
+    `principles: ${ENTITY_NODES.principles.path}`,
+    `open_knowledge: ${ENTITY_NODES.openKnowledge.path}`,
+    `relationships: ${relationships}`,
     `contact: support=${ENTITY_CONTACT.support}; press=${ENTITY_CONTACT.press}`,
     `sameAs_verified: ${ENTITY_VERIFIED_SAME_AS.join(', ')}`,
     `sameAs_pending: ${ENTITY_PENDING_SAME_AS.join('; ')}`,
     'rule: one brand identity — never invent foundingDate, streetAddress, social URLs or impact metrics',
+    'rule: Arriassisme ≠ HomeCheff philosophy',
+    'rule: founder = years of philosophy → practical platform (not “just an app”)',
+    '',
+    brandEntityBrief(),
   ].join('\n');
 }

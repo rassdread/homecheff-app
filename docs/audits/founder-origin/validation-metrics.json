@@ -1,0 +1,21 @@
+{
+  "phase": "3.3",
+  "verdict": "HOMECHEFF_FOUNDER_AND_ORIGIN_PASS",
+  "ready_for_formal_review": true,
+  "scores": {
+    "seo": 88,
+    "ai_discoverability": 90,
+    "brand_recognition": 87,
+    "founder_authority": 86,
+    "knowledge_graph": 89,
+    "growth_readiness": 85
+  },
+  "paths": [
+    "/sergio-arrias",
+    "/oorsprong-homecheff",
+    "/waarom-homecheff",
+    "/arriassisme"
+  ],
+  "invented_claims": false,
+  "arriassisme_merged_with_manifest": false
+}

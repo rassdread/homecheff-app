@@ -1,0 +1,40 @@
+{
+  "types": [
+    "Organization",
+    "Organization",
+    "WebSite"
+  ],
+  "ids": [
+    "https://homecheff.eu/#organization",
+    "https://homecheff.eu/#legal-operator",
+    "https://homecheff.eu/#website"
+  ],
+  "fabricated": {
+    "hasAggregateRating": false,
+    "hasTelephone": false,
+    "hasStreetAddress": false,
+    "hasFoundingDate": false,
+    "hasReview": false
+  },
+  "orgName": "HomeCheff",
+  "sameAs": [
+    "https://homecheff.eu",
+    "https://homecheff.nl",
+    "https://www.kvk.nl/zoeken/?q=80532829"
+  ],
+  "policies": {
+    "publishingPrinciples": "https://homecheff.eu/manifest",
+    "privacyPolicy": "https://homecheff.eu/privacy",
+    "ethicsPolicy": "https://homecheff.eu/community-guidelines",
+    "correctionsPolicy": "https://homecheff.eu/trust",
+    "termsOfService": "https://homecheff.eu/terms"
+  },
+  "liveFindings": {
+    "rootEntityGraphSSR": "PASS \u2014 Organization + legal operator + WebSite with filled descriptions and stable @ids",
+    "faqRouteSSR": "PASS \u2014 /faq layout emits filled FAQPage via getFaqPageJsonLd",
+    "homecheffSeoLandingSSR": "PASS \u2014 server component emits filled WebPage/Article + non-empty H1",
+    "seoLandingTemplateClientSSR": "WARN \u2014 client SeoLandingTemplate emits FAQPage/WebPage script tags with empty name/text during SSR (i18n t() empty). Pre-Phase-2 these were hydration-only via useEffect; Phase 2 JsonLdScript made empty shells crawler-visible.",
+    "noFabricatedRatings": true,
+    "duplicateRootEntities": false
+  }
+}
