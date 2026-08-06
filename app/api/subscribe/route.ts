@@ -7,6 +7,12 @@ import { prisma } from "@/lib/prisma";
 import { ATTRIBUTION_WINDOW_DAYS } from "@/lib/affiliate-config";
 import { resolveSubscriptionAttributionId } from "@/lib/affiliate-attribution";
 import { auth } from "@/lib/auth";
+import {
+  extractPromoCodeFromBody,
+  resolveSubscriptionPromo,
+  type SubscriptionPlanKey,
+} from "@/lib/promo-codes/resolve-subscription-promo";
+import { activateFreeSubscriptionEntitlement } from "@/lib/promo-codes/activate-free-subscription";
 
 function getBaseUrl(req: NextRequest) {
   const envUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.BASE_URL;
@@ -23,13 +29,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
     }
 
-    const { plan, userId, promoCode } = await req.json();
+    const body = await req.json();
+    const { plan, userId } = body;
+    // Only accept a code string — ignore any client-forged discount fields.
+    const promoCode = extractPromoCodeFromBody(body);
 
     if (!plan) {
       return NextResponse.json({ error: "Plan ontbreekt" }, { status: 400 });
     }
 
-    const planKey = String(plan).toUpperCase();
+    const planKey = String(plan).toUpperCase() as SubscriptionPlanKey;
     const priceId = PLAN_TO_PRICE[planKey];
 
     if (!priceId) {
@@ -40,10 +49,6 @@ export async function POST(req: NextRequest) {
     }
     if (userId !== authSession.user.id) {
       return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
-    }
-
-    if (!stripe) {
-      return NextResponse.json({ error: "Stripe is niet geconfigureerd" }, { status: 500 });
     }
 
     const sellerProfile = await prisma.sellerProfile.findUnique({
@@ -59,15 +64,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Verkoperprofiel niet gevonden" }, { status: 404 });
     }
 
-    const assignPlanLocally = async (subscriptionId: string | undefined, currentPeriodEnd?: number | null) => {
+    // Re-validate promo server-side (never trust UI quotes).
+    let resolvedPromo: Awaited<ReturnType<typeof resolveSubscriptionPromo>> | null = null;
+    if (promoCode) {
+      resolvedPromo = await resolveSubscriptionPromo(promoCode);
+      if (!resolvedPromo.valid) {
+        return NextResponse.json(
+          { error: resolvedPromo.error, reason: resolvedPromo.reason },
+          { status: 400 },
+        );
+      }
+    }
+
+    const assignPlanLocally = async (
+      subscriptionId: string | undefined,
+      currentPeriodEnd?: number | null,
+    ) => {
       const planName = normalizeSubscriptionName(planKey);
-      const dbSubscription = await prisma.subscription.findFirst({
-        where: { name: planName, isActive: true },
-      }) ?? await prisma.subscription.findUnique({ where: { id: planKey.toLowerCase() } });
+      const dbSubscription =
+        (await prisma.subscription.findFirst({
+          where: { name: planName, isActive: true },
+        })) ??
+        (await prisma.subscription.findUnique({ where: { id: planKey.toLowerCase() } }));
 
       const updateData: Record<string, any> = {
         stripeSubscriptionId: subscriptionId ?? null,
-        subscriptionValidUntil: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
+        subscriptionValidUntil: currentPeriodEnd
+          ? new Date(currentPeriodEnd * 1000)
+          : null,
       };
 
       if (dbSubscription) {
@@ -82,13 +106,20 @@ export async function POST(req: NextRequest) {
       return {
         planName,
         dbSubscriptionId: dbSubscription?.id ?? null,
-        validUntil: updateData.subscriptionValidUntil,
+        validUntil: updateData.subscriptionValidUntil as Date | null,
       };
     };
 
-    if (sellerProfile.stripeSubscriptionId) {
+    // In-place Stripe plan change only when NO promo is applied
+    // (promo must go through priced checkout or free entitlement).
+    if (sellerProfile.stripeSubscriptionId && !promoCode) {
+      if (!stripe) {
+        return NextResponse.json({ error: "Stripe is niet geconfigureerd" }, { status: 500 });
+      }
       try {
-        const existingSubscriptionResponse = await stripe.subscriptions.retrieve(sellerProfile.stripeSubscriptionId);
+        const existingSubscriptionResponse = await stripe.subscriptions.retrieve(
+          sellerProfile.stripeSubscriptionId,
+        );
         const existingSubscription = existingSubscriptionResponse as any;
         const subscriptionItem = existingSubscription.items.data[0];
         const currentPriceId = subscriptionItem?.price?.id;
@@ -98,7 +129,10 @@ export async function POST(req: NextRequest) {
         }
 
         if (currentPriceId === priceId) {
-          const { planName, validUntil } = await assignPlanLocally(existingSubscription.id, existingSubscription.current_period_end);
+          const { planName, validUntil } = await assignPlanLocally(
+            existingSubscription.id,
+            existingSubscription.current_period_end,
+          );
           return NextResponse.json({
             ok: true,
             updated: false,
@@ -108,29 +142,32 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        const updatedSubscriptionResponse = await stripe.subscriptions.update(existingSubscription.id, {
-          items: [
-            {
-              id: subscriptionItem.id,
-              price: priceId,
+        const updatedSubscriptionResponse = await stripe.subscriptions.update(
+          existingSubscription.id,
+          {
+            items: [{ id: subscriptionItem.id, price: priceId }],
+            proration_behavior: 'create_prorations',
+            metadata: {
+              ...(existingSubscription.metadata || {}),
+              plan: planKey,
+              userId,
             },
-          ],
-          proration_behavior: 'create_prorations',
-          metadata: {
-            ...(existingSubscription.metadata || {}),
-            plan: planKey,
-            userId,
           },
-        });
+        );
 
         const updatedSubscription = updatedSubscriptionResponse as any;
-
-        const { planName, validUntil } = await assignPlanLocally(updatedSubscription.id, updatedSubscription.current_period_end);
+        const { planName, validUntil } = await assignPlanLocally(
+          updatedSubscription.id,
+          updatedSubscription.current_period_end,
+        );
 
         await prisma.sellerProfile.update({
           where: { userId },
           data: {
-            stripeCustomerId: typeof updatedSubscription.customer === 'string' ? updatedSubscription.customer : sellerProfile.stripeCustomerId,
+            stripeCustomerId:
+              typeof updatedSubscription.customer === 'string'
+                ? updatedSubscription.customer
+                : sellerProfile.stripeCustomerId,
           },
         });
 
@@ -140,157 +177,191 @@ export async function POST(req: NextRequest) {
           plan: planKey,
           planName,
           validUntil: validUntil ? validUntil.toISOString() : null,
-          prorationInvoiceId: typeof updatedSubscription.latest_invoice === 'string' ? updatedSubscription.latest_invoice : undefined,
+          prorationInvoiceId:
+            typeof updatedSubscription.latest_invoice === 'string'
+              ? updatedSubscription.latest_invoice
+              : undefined,
         });
       } catch (error: any) {
-        console.warn(`Kon bestaand abonnement niet bijwerken (${sellerProfile.stripeSubscriptionId}):`, error?.message || error);
-        // Fallback naar nieuwe checkout sessie als bijwerken faalt
+        console.warn(
+          `Kon bestaand abonnement niet bijwerken (${sellerProfile.stripeSubscriptionId}):`,
+          error?.message || error,
+        );
       }
     }
 
-    // Get subscription details for pricing
     const planName = normalizeSubscriptionName(planKey);
-    const dbSubscription = await prisma.subscription.findFirst({
-      where: { name: planName, isActive: true },
-    }) ?? await prisma.subscription.findUnique({ where: { id: planKey.toLowerCase() } });
+    const dbSubscription =
+      (await prisma.subscription.findFirst({
+        where: { name: planName, isActive: true },
+      })) ??
+      (await prisma.subscription.findUnique({ where: { id: planKey.toLowerCase() } }));
 
     if (!dbSubscription) {
       return NextResponse.json({ error: "Abonnement niet gevonden in database" }, { status: 404 });
     }
 
     const basePriceCents = dbSubscription.priceCents;
-
-    // Handle promo code if provided
     let promoCodeId: string | null = null;
     let attributionId: string | null = null;
     let finalPriceCents = basePriceCents;
+    let discountCents = 0;
     let customPriceId: string | null = null;
-    let hasL2 = false;
+    let isPlatformPromo = false;
 
-    if (promoCode) {
-      const promoCodeRecord = await prisma.promoCode.findUnique({
-        where: { code: promoCode.toUpperCase().trim() },
-        include: {
-          affiliate: {
-            include: {
-              parentAffiliate: true,
+    if (resolvedPromo?.valid) {
+      const quote = resolvedPromo.quotes[planKey];
+      if (!quote) {
+        return NextResponse.json({ error: "Geen prijsquote voor plan" }, { status: 400 });
+      }
+      // Prefer quote from resolver; also recompute against DB base for consistency.
+      if (quote.basePriceCents !== basePriceCents) {
+        // Recalculate against authoritative DB price if DNA/seed drift
+        const { calculatePromoSubscriptionPricing } = await import(
+          '@/lib/promo-codes/discount-policy'
+        );
+        const pricing = calculatePromoSubscriptionPricing({
+          basePriceCents,
+          discountSharePct: resolvedPromo.promo.discountSharePct,
+          affiliateId: resolvedPromo.promo.affiliateId,
+          appliesTo: resolvedPromo.promo.appliesTo,
+          isSubAffiliate: resolvedPromo.promo.isSubAffiliate,
+        });
+        finalPriceCents = pricing.finalPriceCents;
+        discountCents = pricing.discountCents;
+        isPlatformPromo = pricing.isPlatform;
+      } else {
+        finalPriceCents = quote.finalPriceCents;
+        discountCents = quote.discountCents;
+        isPlatformPromo = quote.isPlatform;
+      }
+
+      promoCodeId = resolvedPromo.promo.id;
+
+      if (resolvedPromo.promo.affiliateId) {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          include: {
+            attributions: {
+              where: {
+                affiliateId: resolvedPromo.promo.affiliateId,
+                type: 'BUSINESS_SIGNUP',
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
             },
           },
-        },
-      });
+        });
 
-      if (promoCodeRecord && promoCodeRecord.status === 'ACTIVE') {
-        // Validate promo code
-        const now = new Date();
-        if (
-          promoCodeRecord.startsAt <= now &&
-          (!promoCodeRecord.endsAt || promoCodeRecord.endsAt >= now) &&
-          (promoCodeRecord.maxRedemptions === null || promoCodeRecord.redemptionCount < promoCodeRecord.maxRedemptions)
-        ) {
-          promoCodeId = promoCodeRecord.id;
-          hasL2 = !!promoCodeRecord.affiliate?.parentAffiliate;
-
-          const { calculatePromoSubscriptionPricing } = await import(
-            '@/lib/promo-codes/discount-policy'
+        if (user?.attributions?.[0]) {
+          attributionId = user.attributions[0].id;
+        } else {
+          const now = new Date();
+          const endsAt = new Date(
+            now.getTime() + ATTRIBUTION_WINDOW_DAYS * 24 * 60 * 60 * 1000,
           );
-          const isSubAffiliate = !!promoCodeRecord.affiliate?.parentAffiliateId;
-          const pricing = calculatePromoSubscriptionPricing({
-            basePriceCents,
-            discountSharePct: promoCodeRecord.discountSharePct,
-            affiliateId: promoCodeRecord.affiliateId,
-            appliesTo: promoCodeRecord.appliesTo,
-            isSubAffiliate,
+          const attribution = await prisma.attribution.create({
+            data: {
+              affiliateId: resolvedPromo.promo.affiliateId,
+              userId,
+              type: 'BUSINESS_SIGNUP',
+              source: 'PROMO_CODE',
+              startsAt: now,
+              endsAt,
+            },
           });
-
-          finalPriceCents = pricing.finalPriceCents;
-
-          // Create custom Stripe price if discount applies
-          if (pricing.discountCents > 0 && stripe) {
-            try {
-              const customPrice = await stripe.prices.create({
-                unit_amount: finalPriceCents,
-                currency: 'eur',
-                recurring: {
-                  interval: 'year',
-                },
-                product: (await stripe.prices.retrieve(priceId)).product as string,
-                metadata: {
-                  original_price_id: priceId,
-                  promo_code_id: promoCodeRecord.id,
-                  discount_cents: pricing.discountCents.toString(),
-                  platform_promo: pricing.isPlatform ? '1' : '0',
-                },
-              });
-              customPriceId = customPrice.id;
-            } catch (error) {
-              console.error('Error creating custom price:', error);
-              // Fallback to original price if custom price creation fails
-            }
-          }
-
-          // Attribution only for affiliate-owned promos
-          if (promoCodeRecord.affiliateId) {
-            const user = await prisma.user.findUnique({
-              where: { id: userId },
-              include: {
-                attributions: {
-                  where: {
-                    affiliateId: promoCodeRecord.affiliateId,
-                    type: 'BUSINESS_SIGNUP',
-                  },
-                  orderBy: { createdAt: 'desc' },
-                  take: 1,
-                },
-              },
-            });
-
-            if (user?.attributions?.[0]) {
-              attributionId = user.attributions[0].id;
-            } else {
-              // Create new attribution
-              const now = new Date();
-              const endsAt = new Date(now.getTime() + ATTRIBUTION_WINDOW_DAYS * 24 * 60 * 60 * 1000);
-              const attribution = await prisma.attribution.create({
-                data: {
-                  affiliateId: promoCodeRecord.affiliateId,
-                  userId: userId,
-                  type: 'BUSINESS_SIGNUP',
-                  source: 'PROMO_CODE',
-                  startsAt: now,
-                  endsAt,
-                },
-              });
-              attributionId = attribution.id;
-            }
-          }
+          attributionId = attribution.id;
         }
       }
     }
 
-    // Ref-link signup attribution (no promo): link existing USER_SIGNUP / BUSINESS_SIGNUP row.
     if (!attributionId) {
       attributionId = await resolveSubscriptionAttributionId(userId);
     }
 
-    const baseUrl = getBaseUrl(req);
-    if (!baseUrl || !baseUrl.startsWith('http')) {
-      return NextResponse.json({ error: "Geen geldige base URL gevonden voor Stripe redirect" }, { status: 500 });
+    // 100% / €0 — internal entitlement, no fake Stripe micro-payment.
+    if (finalPriceCents <= 0) {
+      const free = await activateFreeSubscriptionEntitlement({
+        userId,
+        planKey,
+        promoCodeId,
+        attributionId,
+        basePriceCents,
+        finalPriceCents: 0,
+        durationDays: dbSubscription.durationDays,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        freeActivation: true,
+        plan: planKey,
+        planName: free.planName,
+        validUntil: free.validUntil.toISOString(),
+        basePriceCents,
+        discountCents: basePriceCents,
+        finalPriceCents: 0,
+        currency: 'eur',
+        businessSubscriptionId: free.businessSubscriptionId,
+        message: `Abonnement ${free.planName} geactiveerd met 100% korting (geen betaling).`,
+      });
     }
 
-    // Create checkout session with custom price or original price
+    if (!stripe) {
+      return NextResponse.json({ error: "Stripe is niet geconfigureerd" }, { status: 500 });
+    }
+
+    if (discountCents > 0) {
+      try {
+        const catalogPrice = await stripe.prices.retrieve(priceId);
+        const interval =
+          catalogPrice.recurring?.interval === 'month' ||
+          catalogPrice.recurring?.interval === 'year'
+            ? catalogPrice.recurring.interval
+            : 'month';
+        const intervalCount = catalogPrice.recurring?.interval_count ?? 1;
+
+        const customPrice = await stripe.prices.create({
+          unit_amount: finalPriceCents,
+          currency: 'eur',
+          recurring: { interval, interval_count: intervalCount },
+          product: catalogPrice.product as string,
+          metadata: {
+            original_price_id: priceId,
+            promo_code_id: promoCodeId ?? '',
+            discount_cents: discountCents.toString(),
+            platform_promo: isPlatformPromo ? '1' : '0',
+            base_price_cents: basePriceCents.toString(),
+            final_price_cents: finalPriceCents.toString(),
+          },
+        });
+        customPriceId = customPrice.id;
+      } catch (error) {
+        console.error('Error creating custom price:', error);
+        return NextResponse.json(
+          { error: 'Kon kortingsprijs niet aanmaken bij Stripe' },
+          { status: 500 },
+        );
+      }
+    }
+
+    const baseUrl = getBaseUrl(req);
+    if (!baseUrl || !baseUrl.startsWith('http')) {
+      return NextResponse.json(
+        { error: "Geen geldige base URL gevonden voor Stripe redirect" },
+        { status: 500 },
+      );
+    }
+
     const sessionMetadata: Record<string, string> = {
       plan: planKey,
       userId,
       base_price_cents: basePriceCents.toString(),
       final_price_cents: finalPriceCents.toString(),
+      discount_cents: discountCents.toString(),
     };
 
-    if (promoCodeId) {
-      sessionMetadata.promo_code_id = promoCodeId;
-    }
-    if (attributionId) {
-      sessionMetadata.attribution_id = attributionId;
-    }
+    if (promoCodeId) sessionMetadata.promo_code_id = promoCodeId;
+    if (attributionId) sessionMetadata.attribution_id = attributionId;
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -300,16 +371,20 @@ export async function POST(req: NextRequest) {
       metadata: sessionMetadata,
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       url: session.url,
-      hasDiscount: finalPriceCents < basePriceCents,
-      discountCents: basePriceCents - finalPriceCents,
+      hasDiscount: discountCents > 0,
+      basePriceCents,
+      discountCents,
+      finalPriceCents,
+      currency: 'eur',
     });
   } catch (e) {
     console.error("subscribe error", e);
     const message = (e as Error)?.message ?? 'onbekende fout';
-    const errorMessage = `Kon abonnement niet starten: ${message}`;
-
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: `Kon abonnement niet starten: ${message}` },
+      { status: 500 },
+    );
   }
 }

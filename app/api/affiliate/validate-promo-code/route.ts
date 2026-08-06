@@ -2,104 +2,48 @@
  * Validate Promo Code API
  *
  * POST /api/affiliate/validate-promo-code
- * Validates a promo code for use in subscription checkout
- * (affiliate commission-share OR admin platform full-price discount)
+ * Returns server-authoritative pricing quotes for BASIC/PRO/PREMIUM.
+ * UI must display quotes — never invent discounts client-side.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import {
-  isPlatformPromo,
-  parsePlatformFixedCents,
-} from "@/lib/promo-codes/discount-policy";
+import { resolveSubscriptionPromo } from "@/lib/promo-codes/resolve-subscription-promo";
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { code } = body;
+    const body = await req.json().catch(() => ({}));
+    const resolved = await resolveSubscriptionPromo(body?.code ?? body?.promoCode);
 
-    if (!code || typeof code !== 'string') {
+    if (!resolved.valid) {
+      const status = resolved.reason === 'not_found' ? 404 : 200;
       return NextResponse.json(
-        { error: "Promo code is required" },
-        { status: 400 }
+        { valid: false, error: resolved.error, reason: resolved.reason },
+        { status },
       );
     }
-
-    const promoCode = await prisma.promoCode.findUnique({
-      where: { code: code.toUpperCase().trim() },
-      include: {
-        affiliate: {
-          include: {
-            parentAffiliate: true,
-          },
-        },
-      },
-    });
-
-    if (!promoCode) {
-      return NextResponse.json(
-        { valid: false, error: "Promo code not found" },
-        { status: 404 }
-      );
-    }
-
-    if (promoCode.status !== 'ACTIVE') {
-      return NextResponse.json({
-        valid: false,
-        error: "Promo code is disabled",
-      });
-    }
-
-    const now = new Date();
-    if (promoCode.startsAt > now) {
-      return NextResponse.json({
-        valid: false,
-        error: "Promo code is not yet active",
-      });
-    }
-
-    if (promoCode.endsAt && promoCode.endsAt < now) {
-      return NextResponse.json({
-        valid: false,
-        error: "Promo code has expired",
-      });
-    }
-
-    if (
-      promoCode.maxRedemptions !== null &&
-      promoCode.redemptionCount >= promoCode.maxRedemptions
-    ) {
-      return NextResponse.json({
-        valid: false,
-        error: "Promo code has reached maximum redemptions",
-      });
-    }
-
-    const platform = isPlatformPromo(promoCode);
-    const fixedCents = parsePlatformFixedCents(promoCode.appliesTo);
 
     return NextResponse.json({
       valid: true,
       promoCode: {
-        id: promoCode.id,
-        code: promoCode.code,
-        discountSharePct: promoCode.discountSharePct,
-        hasL2: !!promoCode.affiliate?.parentAffiliate,
-        isPlatform: platform,
-        discountMode: platform
-          ? fixedCents != null
-            ? 'platform_fixed'
-            : 'platform_percent'
-          : 'affiliate_commission_share',
-        fixedDiscountCents: fixedCents,
+        id: resolved.promo.id,
+        code: resolved.promo.code,
+        discountSharePct: resolved.promo.discountSharePct,
+        hasL2: resolved.promo.hasL2,
+        isPlatform: resolved.promo.isPlatform,
+        discountMode: resolved.promo.discountMode,
+        fixedDiscountCents: resolved.promo.fixedDiscountCents,
+        isSubAffiliate: resolved.promo.isSubAffiliate,
       },
+      quotes: resolved.quotes,
+      // Explicit: clients must not send discount amounts — only the code.
+      authority: 'server',
     });
   } catch (error) {
     console.error("Error validating promo code:", error);
     return NextResponse.json(
-      { valid: false, error: "Failed to validate promo code" },
+      { valid: false, error: "Failed to validate promo code", reason: 'server_error' },
       { status: 500 }
     );
   }
