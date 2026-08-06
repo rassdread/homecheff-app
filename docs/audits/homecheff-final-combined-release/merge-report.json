@@ -1,0 +1,18 @@
+{
+  "mergeCommit": "7a3b24c5d1dd6f4e149c17f68e0725f76439bee2",
+  "strategy": "merge --no-ff",
+  "parents": [
+    "23043a7d84727e1a512af14e5e6bedad75646df4",
+    "6e30ddbff6dc40202229b698c6ae7ad9b73cc296"
+  ],
+  "rollbackParent": "23043a7d84727e1a512af14e5e6bedad75646df4",
+  "includedSourceTips": {
+    "seoRemountCommit": "7edeffd2",
+    "seoRemountFix": "6e30ddbf",
+    "logoBranchTip": "f7077d46",
+    "qaBranchTip": "611a4b83",
+    "releaseBranchTip": "6e30ddbf"
+  },
+  "conflictsDuringFinalMainMerge": [],
+  "originMainAfterPush": "7a3b24c5d1dd6f4e149c17f68e0725f76439bee2"
+}

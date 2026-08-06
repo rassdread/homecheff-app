@@ -1,0 +1,16 @@
+{
+  "project": "homecheff-app",
+  "deploymentId": "dpl_7zMNTuNm4Yr6d9xpA1zBU55Ru3yJ",
+  "url": "https://homecheff-oquwjcxxf-sergio-s-projects-f7b64ee1.vercel.app",
+  "readyState": "READY",
+  "aliasedTo": [
+    "https://homecheff.eu",
+    "https://homecheff.nl",
+    "https://www.homecheff.eu",
+    "https://www.homecheff.nl"
+  ],
+  "gitShaPromoted": "7a3b24c5d1dd6f4e149c17f68e0725f76439bee2",
+  "failedWrongProjectAttempt": "hc-promote-main (ignored; corrected to homecheff-app)",
+  "wwwRedirect": "307 → https://homecheff.eu/",
+  "nlRedirect": "307 → https://homecheff.eu/"
+}

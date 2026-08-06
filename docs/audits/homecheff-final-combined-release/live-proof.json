@@ -1,0 +1,176 @@
+{
+  "assets": [
+    {
+      "url": "https://homecheff.eu/logo.png",
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 394107,
+      "ok": true
+    },
+    {
+      "url": "https://homecheff.eu/favicon.ico",
+      "status": 200,
+      "contentType": "image/vnd.microsoft.icon",
+      "bytes": 5500,
+      "ok": true
+    },
+    {
+      "url": "https://homecheff.eu/og-brand.png",
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 121461,
+      "ok": true
+    },
+    {
+      "url": "https://homecheff.eu/icon-192.png",
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 28906,
+      "ok": true
+    },
+    {
+      "url": "https://homecheff.eu/llms.txt",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "bytes": 40127,
+      "ok": true
+    },
+    {
+      "url": "https://homecheff.eu/ai.txt",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "bytes": 32468,
+      "ok": true
+    },
+    {
+      "url": "https://homecheff.eu/.well-known/security.txt",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "bytes": 267,
+      "ok": true
+    },
+    {
+      "url": "https://homecheff.eu/robots.txt",
+      "status": 200,
+      "contentType": "text/plain",
+      "bytes": 3875,
+      "ok": true
+    },
+    {
+      "url": "https://homecheff.eu/sitemap.xml",
+      "status": 200,
+      "contentType": "application/xml; charset=utf-8",
+      "bytes": 13871,
+      "ok": true
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://homecheff.eu/",
+      "status": 200,
+      "hasOrganization": true,
+      "hasHomeCheff": true,
+      "hasSergio": true,
+      "hasArriasBeheer": true,
+      "hasLogoPng": true,
+      "hasOgBrand": true,
+      "hasFaviconHc8": true,
+      "soft404": false,
+      "communityBeforeData": true
+    },
+    {
+      "url": "https://homecheff.eu/sergio-arrias",
+      "status": 200,
+      "hasOrganization": true,
+      "hasHomeCheff": true,
+      "hasSergio": true,
+      "hasArriasBeheer": true,
+      "hasLogoPng": true,
+      "hasOgBrand": true,
+      "hasFaviconHc8": true,
+      "soft404": false,
+      "communityBeforeData": true
+    },
+    {
+      "url": "https://homecheff.eu/oorsprong-homecheff",
+      "status": 200,
+      "hasOrganization": true,
+      "hasHomeCheff": true,
+      "hasSergio": true,
+      "hasArriasBeheer": true,
+      "hasLogoPng": true,
+      "hasOgBrand": true,
+      "hasFaviconHc8": true,
+      "soft404": false,
+      "communityBeforeData": true
+    },
+    {
+      "url": "https://homecheff.eu/waarom-homecheff",
+      "status": 200,
+      "hasOrganization": true,
+      "hasHomeCheff": true,
+      "hasSergio": true,
+      "hasArriasBeheer": true,
+      "hasLogoPng": true,
+      "hasOgBrand": true,
+      "hasFaviconHc8": true,
+      "soft404": false,
+      "communityBeforeData": true
+    },
+    {
+      "url": "https://homecheff.eu/arriassisme",
+      "status": 200,
+      "hasOrganization": true,
+      "hasHomeCheff": true,
+      "hasSergio": true,
+      "hasArriasBeheer": true,
+      "hasLogoPng": true,
+      "hasOgBrand": true,
+      "hasFaviconHc8": true,
+      "soft404": false,
+      "communityBeforeData": true
+    },
+    {
+      "url": "https://homecheff.eu/manifest",
+      "status": 200,
+      "hasOrganization": true,
+      "hasHomeCheff": true,
+      "hasSergio": true,
+      "hasArriasBeheer": true,
+      "hasLogoPng": true,
+      "hasOgBrand": true,
+      "hasFaviconHc8": true,
+      "soft404": false,
+      "communityBeforeData": true
+    },
+    {
+      "url": "https://homecheff.eu/trust",
+      "status": 200,
+      "hasOrganization": true,
+      "hasHomeCheff": true,
+      "hasSergio": true,
+      "hasArriasBeheer": true,
+      "hasLogoPng": true,
+      "hasOgBrand": true,
+      "hasFaviconHc8": true,
+      "soft404": false,
+      "communityBeforeData": true
+    }
+  ],
+  "homepage": {
+    "orgLogo": "https://homecheff.eu/logo.png?v=hc8",
+    "h1_or_brand": true,
+    "localFirst": true
+  },
+  "llms": {
+    "hasHomeCheff": true,
+    "hasSergio": true,
+    "hasPrivacy": true,
+    "len": 39657
+  },
+  "ai": {
+    "hasHomeCheff": true,
+    "hasSergio": true,
+    "len": 32086
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "ranAt": "2026-08-06T22:00:00+02:00",
+  "results": {
+    "lint": "PASS",
+    "smoke-check": "PASS",
+    "build": "PASS",
+    "buildAfterRemountFix": "PASS",
+    "test:adaptive-workspace": "PASS",
+    "test:feed-composition-progressive": "PASS",
+    "test:discovery-continuity": "PASS",
+    "test:discovery-feed-without-location": "PASS",
+    "test:gps-location-repair": "PASS",
+    "test:location-mobile-keyboard": "PASS",
+    "test:google-login-repair": "PASS",
+    "test:google-native-signin": "PASS",
+    "validate-auth-origin-resolution": "PASS",
+    "generate-canonical-logo-assets": "PASS",
+    "seo-structure-load": "PASS",
+    "test:final-automated-acceptance": "NOT_RERUN_IN_THIS_RELEASE_WINDOW",
+    "android:assembleDebug": "FAIL_NO_JAVA_RUNTIME",
+    "browser-matrix-live": "HTTP_CRAWL_ONLY_NOT_FULL_PLAYWRIGHT"
+  },
+  "preExistingBuildWarnings": [
+    "Attempted import error for some adaptive-workspace sealed contract symbols (also present on prior main builds; build still succeeds)"
+  ],
+  "p0p1FailuresBlockingPromotion": []
+}

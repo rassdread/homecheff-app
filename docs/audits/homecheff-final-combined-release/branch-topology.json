@@ -1,0 +1,33 @@
+{
+  "baseline": "origin/main@23043a7d",
+  "candidates": [
+    {
+      "branch": "seo/phase3-3-1-founder-refinement",
+      "tip": "4785c398c37c",
+      "ahead": 26,
+      "behind": 60,
+      "role": "latest linear SEO/AI/founder/privacy descendant",
+      "containsPriorSeoPhases": true,
+      "alreadyOnMain": false,
+      "note": "Phase2 content already remounted on main via 2e226714; tip diverged — remounted tip-only + additive wiring, not full merge"
+    },
+    {
+      "branch": "feature/canonical-logo-identity",
+      "tip": "f7077d46dcf1",
+      "ahead": 2,
+      "behind": 60,
+      "alreadyOnMain": false,
+      "merged": true
+    },
+    {
+      "branch": "test/final-automated-product-acceptance",
+      "tip": "611a4b836498",
+      "ahead": 2,
+      "behind": 0,
+      "alreadyOnMain": false,
+      "merged": true,
+      "runtimeProductCode": false
+    }
+  ],
+  "intermediateSeoBranches": "superseded by seo/phase3-3-1-founder-refinement ancestry chain; not merged independently"
+}

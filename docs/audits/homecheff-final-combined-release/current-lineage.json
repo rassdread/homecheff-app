@@ -1,0 +1,22 @@
+{
+  "capturedAt": "2026-08-06T22:05:00+02:00",
+  "preRelease": {
+    "originMain": "23043a7d84727e1a512af14e5e6bedad75646df4",
+    "liveProductionDeploymentId": "dpl_RbmTaMyNVWfDAR6ynSWeE7GsKc3N",
+    "liveAlias": "https://homecheff.eu",
+    "androidVersionName": "1.0.19",
+    "androidVersionCode": 25,
+    "androidPackage": "eu.homecheff.mobile"
+  },
+  "postRelease": {
+    "originMain": "7a3b24c5d1dd6f4e149c17f68e0725f76439bee2",
+    "mergeParents": [
+      "23043a7d84727e1a512af14e5e6bedad75646df4",
+      "6e30ddbff6dc40202229b698c6ae7ad9b73cc296"
+    ],
+    "productionDeploymentId": "dpl_7zMNTuNm4Yr6d9xpA1zBU55Ru3yJ",
+    "productionUrl": "https://homecheff-oquwjcxxf-sergio-s-projects-f7b64ee1.vercel.app",
+    "alias": "https://homecheff.eu",
+    "project": "homecheff-app"
+  }
+}
