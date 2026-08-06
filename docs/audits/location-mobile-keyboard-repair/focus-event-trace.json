@@ -1,0 +1,35 @@
+{
+  "trace_model": "lib/feed/mobile-sheet-focus-lifecycle.ts",
+  "pre_fix": {
+    "sequence": [
+      "open sheet",
+      "focus place (autofocus or user tap)",
+      "parent re-render (unstable onClose)",
+      "effect cleanup: previousFocus.focus()",
+      "blur place-input",
+      "effect re-run: programmatic focus + select (no soft keyboard)"
+    ],
+    "focus_stolen_per_rerender": true,
+    "soft_keyboard": "fails"
+  },
+  "post_fix": {
+    "sequence": [
+      "open sheet",
+      "focus place once on open transition (deps=[open] only)",
+      "user pointerdown: synchronous focus (gesture)",
+      "parent re-render / setPlace",
+      "effect does NOT re-run",
+      "place input retains focus",
+      "input events update controlled value"
+    ],
+    "focus_stolen_per_rerender": false,
+    "soft_keyboard": "expected_pass_pending_device_proof"
+  },
+  "events_instrumented_in_code_review": [
+    "pointerdown",
+    "focus",
+    "keydown Enter",
+    "Escape via document keydown"
+  ],
+  "not_claimed": "live soft-keyboard visualViewport traces on device"
+}

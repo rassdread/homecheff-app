@@ -178,7 +178,6 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
     enableHighAccuracy: true,
     timeout: 30000,
     maximumAge: 0,
-    fallbackToManual: false // No automatic fallback
   });
   const [openOptionsMenu, setOpenOptionsMenu] = useState<string | null>(null);
   const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);

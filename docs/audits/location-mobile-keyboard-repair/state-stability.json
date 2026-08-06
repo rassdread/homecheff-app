@@ -1,0 +1,11 @@
+{
+  "controlled_value": "place state via handlePlaceInput useCallback → setPlace",
+  "value_cleared_by_debounce": false,
+  "loading_disables_place_input": false,
+  "gps_error_closes_keyboard": false,
+  "suggestion_steal_focus_on_render": "n/a_no_inline_suggestion_list_in_sheet",
+  "enter_applies_filters": true,
+  "focus_retained_across_setPlace_rerenders": true,
+  "input_node_identity": "stable while sheet open (no key remount)",
+  "notes": "Autocomplete/suggestion provider behaviour unchanged; this repair is focus retention only."
+}

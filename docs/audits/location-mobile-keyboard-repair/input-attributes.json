@@ -1,0 +1,28 @@
+{
+  "feed_mobile_place_input": {
+    "id": "feed-mobile-place-input",
+    "type": "text",
+    "inputMode": "search",
+    "autoComplete": "postal-code",
+    "enterKeyHint": "search",
+    "autoCapitalize": "off",
+    "autoCorrect": "off",
+    "spellCheck": false,
+    "disabled": false,
+    "readOnly": false,
+    "hidden": false,
+    "fontSizeClass": "text-base",
+    "fontSizePxApprox": 16
+  },
+  "sidebar_place_input": {
+    "id": "feed-sidebar-place-input",
+    "type": "text",
+    "inputMode": "search",
+    "autoComplete": "postal-code",
+    "enterKeyHint": "search",
+    "fontSizeClass": "text-base"
+  },
+  "forbidden_strategies": {
+    "readOnly_to_control_autocomplete": false
+  }
+}

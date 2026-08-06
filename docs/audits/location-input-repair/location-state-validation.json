@@ -1,0 +1,9 @@
+{
+  "draftState": "GeoFeed.place",
+  "appliedState": "GeoFeed.appliedPlace",
+  "persistence": "hc_location_pref_v2 source=manual",
+  "gpsConflict": "manual clears userLocation and sets locationSource=manual",
+  "bannerDismissedOnManual": true,
+  "clearPath": "clearViewerLocation / clearLocation chip",
+  "automatedRuntimeProof": "code_path_only_this_session"
+}

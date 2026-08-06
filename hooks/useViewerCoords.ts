@@ -15,7 +15,6 @@ export function useViewerCoords(profileCoords?: ProfileCoords | null) {
     enableHighAccuracy: false,
     maximumAge: 300000,
     watch: false,
-    fallbackToManual: false,
   });
 
   const viewerCoords = useMemo((): Coords | null => {

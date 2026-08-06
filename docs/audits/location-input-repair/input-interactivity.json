@@ -1,0 +1,13 @@
+{
+  "placeInputEnabled": true,
+  "readOnly": false,
+  "disabled": false,
+  "discoveryFiltersDefaultOpen": true,
+  "focusBridge": "hc:focus-place-input",
+  "focusRetry": true,
+  "mobileFocusPlaceOnOpen": true,
+  "enterAppliesFilters": true,
+  "pointerEventsNoneOnInput": false,
+  "overlayBlockingProven": false,
+  "notes": "Pre-fix: input unmounted when filters collapsed. Post-fix: mounted by default and re-expanded on choose-place."
+}

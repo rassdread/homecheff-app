@@ -242,12 +242,30 @@ export default function FeedSidebarFilters({
           ) : null}
           <input
             ref={placeInputRef}
+            id="feed-sidebar-place-input"
+            type="text"
             value={place}
             onChange={(e) => onPlaceChange(e.target.value)}
-            className={inputClass}
+            onPointerDown={(e) => {
+              const el = e.currentTarget;
+              if (document.activeElement !== el) el.focus();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (place.trim()) onApply();
+              }
+            }}
+            className={`${inputClass} text-base`}
             placeholder={t("common.typePlaceOrPostcode")}
             autoComplete="postal-code"
+            inputMode="search"
+            enterKeyHint="search"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
             data-testid="feed-place-input"
+            aria-label={t("common.place")}
           />
           <button
             type="button"
@@ -264,7 +282,13 @@ export default function FeedSidebarFilters({
             {t("feed.useMyLocation")}
           </button>
           {locationError ? (
-            <p className="text-[11px] text-red-600 leading-snug">{locationError}</p>
+            <p
+              className="text-[11px] text-red-600 leading-snug"
+              role="alert"
+              data-testid="feed-gps-error"
+            >
+              {locationError}
+            </p>
           ) : null}
           {activeLocationChip ? (
             <div className="flex items-center gap-1.5 min-w-0">
