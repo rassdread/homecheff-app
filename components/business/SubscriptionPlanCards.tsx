@@ -7,7 +7,6 @@ import {
 import {
   getBusinessVisibilityProfile,
   stripePlanKeyToBusinessPlanId,
-  type BusinessPlanId,
   type StripeBusinessPlanId,
 } from '@/lib/business/visibility-profile';
 import SubscriptionWhatChangesPanel from '@/components/business/SubscriptionWhatChangesPanel';
@@ -17,18 +16,21 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 type StripePlanKey = 'BASIC' | 'PRO' | 'PREMIUM';
 
+export type ServerPromoQuote = {
+  plan: StripePlanKey;
+  basePriceCents: number;
+  discountCents: number;
+  finalPriceCents: number;
+  currency: 'eur';
+};
+
 type Props = {
   plans: StripePlanKey[];
   loading: StripePlanKey | null;
   planAvailability: Record<StripePlanKey, boolean | null>;
   promoCodeValid: boolean | null;
-  promoCodeData: {
-    discountSharePct: number;
-    hasL2: boolean;
-    isPlatform?: boolean;
-    discountMode?: string;
-    fixedDiscountCents?: number | null;
-  } | null;
+  /** Server-authoritative quotes from /api/affiliate/validate-promo-code */
+  promoQuotes: Partial<Record<StripePlanKey, ServerPromoQuote>> | null;
   onSelect: (plan: StripePlanKey) => void;
   previewPlan: import('@/lib/business/visibility-profile').BusinessPlanId;
   onPreviewPlan: (plan: import('@/lib/business/visibility-profile').BusinessPlanId) => void;
@@ -39,12 +41,16 @@ function planIdFromKey(key: StripePlanKey): StripeBusinessPlanId {
   return stripePlanKeyToBusinessPlanId(key) as StripeBusinessPlanId;
 }
 
+function formatEuroFromCents(cents: number): string {
+  return `€${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}`;
+}
+
 export default function SubscriptionPlanCards({
   plans,
   loading,
   planAvailability,
   promoCodeValid,
-  promoCodeData,
+  promoQuotes,
   onSelect,
   previewPlan,
   onPreviewPlan,
@@ -64,33 +70,10 @@ export default function SubscriptionPlanCards({
         const isPreviewing = previewPlan === planId;
         const benefits = growthBenefitKeysForPlan(planId);
 
-        const basePriceCents = dna.monthlyPriceCents;
-        let displayPrice = basePriceCents / 100;
-        let discountAmount = 0;
-
-        if (promoCodeValid && promoCodeData && basePriceCents > 0) {
-          if (promoCodeData.isPlatform || promoCodeData.discountMode?.startsWith('platform')) {
-            if (
-              promoCodeData.discountMode === 'platform_fixed' &&
-              promoCodeData.fixedDiscountCents != null
-            ) {
-              discountAmount = Math.min(
-                promoCodeData.fixedDiscountCents / 100,
-                displayPrice,
-              );
-            } else {
-              discountAmount =
-                displayPrice * (promoCodeData.discountSharePct / 100);
-            }
-            displayPrice = displayPrice - discountAmount;
-          } else {
-            const affiliateCommission = displayPrice * 0.5;
-            discountAmount = Math.round(
-              affiliateCommission * (promoCodeData.discountSharePct / 100),
-            );
-            displayPrice = displayPrice - discountAmount;
-          }
-        }
+        const quote =
+          promoCodeValid && promoQuotes?.[key] ? promoQuotes[key] : null;
+        const hasDiscount = !!quote && quote.discountCents > 0;
+        const isFree = !!quote && quote.finalPriceCents === 0;
 
         return (
           <div
@@ -108,23 +91,32 @@ export default function SubscriptionPlanCards({
             <div className="mb-2 flex justify-center">
               <BusinessPlanBadge plan={planId} t={t} size="md" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">{t(`business.dna.plan.${planId}`)}</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {t(`business.dna.plan.${planId}`)}
+            </h2>
             <p className="mt-1 text-xs text-gray-600">{t(dna.purposeKey)}</p>
 
             <div className="my-4">
-              {promoCodeValid && discountAmount > 0 ? (
+              {hasDiscount ? (
                 <div>
                   <div className="flex items-center justify-center gap-2">
                     <p className="text-xl font-bold text-gray-400 line-through">
-                      {formatMonthlyPrice(planId)}
+                      {formatEuroFromCents(quote!.basePriceCents)}
                     </p>
-                    <p className="text-3xl font-bold text-emerald-600">€{displayPrice}</p>
+                    <p className="text-3xl font-bold text-emerald-600">
+                      {isFree ? '€0' : formatEuroFromCents(quote!.finalPriceCents)}
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-emerald-600">{t('business.dna.perMonth')}</p>
+                  <p className="mt-1 text-xs text-emerald-600">
+                    {t('business.dna.perMonth')}
+                    {isFree ? ' · 100% korting' : ` · −${formatEuroFromCents(quote!.discountCents)}`}
+                  </p>
                 </div>
               ) : (
                 <>
-                  <p className="text-3xl font-bold text-gray-900">{formatMonthlyPrice(planId)}</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {formatMonthlyPrice(planId)}
+                  </p>
                   <p className="text-xs text-gray-500">{t('business.dna.perMonth')}</p>
                 </>
               )}
@@ -150,7 +142,9 @@ export default function SubscriptionPlanCards({
             />
 
             {isAvailable === false && (
-              <p className="mb-2 text-center text-xs text-red-600">{t('business.dna.unavailable')}</p>
+              <p className="mb-2 text-center text-xs text-red-600">
+                {t('business.dna.unavailable')}
+              </p>
             )}
 
             <Button
@@ -162,7 +156,11 @@ export default function SubscriptionPlanCards({
                 ? t('common.loading')
                 : isAvailable === false
                   ? t('business.dna.unavailable')
-                  : t('business.dna.choosePlan', { plan: t(`business.dna.plan.${planId}`) })}
+                  : isFree
+                    ? `Activeer ${t(`business.dna.plan.${planId}`)} gratis`
+                    : t('business.dna.choosePlan', {
+                        plan: t(`business.dna.plan.${planId}`),
+                      })}
             </Button>
           </div>
         );

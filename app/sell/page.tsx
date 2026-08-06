@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import SubscriptionComparisonTable from '@/components/business/SubscriptionComparisonTable';
-import SubscriptionPlanCards from '@/components/business/SubscriptionPlanCards';
+import SubscriptionPlanCards, {
+  type ServerPromoQuote,
+} from '@/components/business/SubscriptionPlanCards';
 import SubscriptionLivePreview from '@/components/business/SubscriptionLivePreview';
 import BusinessDnaProductPreview from '@/components/business/BusinessDnaProductPreview';
 import SubscriptionWhatChangesPanel, {
@@ -27,13 +29,9 @@ export default function SellPage() {
   const [promoCodeValid, setPromoCodeValid] = useState<boolean | null>(null);
   const [promoCodeError, setPromoCodeError] = useState<string | null>(null);
   const [validatingPromoCode, setValidatingPromoCode] = useState(false);
-  const [promoCodeData, setPromoCodeData] = useState<{
-    discountSharePct: number;
-    hasL2: boolean;
-    isPlatform?: boolean;
-    discountMode?: string;
-    fixedDiscountCents?: number | null;
-  } | null>(null);
+  const [promoQuotes, setPromoQuotes] = useState<Partial<
+    Record<Plan, ServerPromoQuote>
+  > | null>(null);
   const [planAvailability, setPlanAvailability] = useState<Record<Plan, boolean | null>>({
     BASIC: null,
     PRO: null,
@@ -67,6 +65,50 @@ export default function SellPage() {
     }
   }, [status]);
 
+  async function applyPromoCode(raw?: string) {
+    const code = (raw ?? promoCode).trim().toUpperCase();
+    setPromoCode(code);
+    setPromoCodeError(null);
+    setPromoCodeValid(null);
+    setPromoQuotes(null);
+
+    if (!code) {
+      return;
+    }
+
+    setValidatingPromoCode(true);
+    try {
+      const res = await fetch('/api/affiliate/validate-promo-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (data.valid && data.quotes) {
+        setPromoCodeValid(true);
+        setPromoCodeError(null);
+        setPromoQuotes(data.quotes);
+      } else {
+        setPromoCodeValid(false);
+        setPromoCodeError(data.error || 'Ongeldige promo code');
+        setPromoQuotes(null);
+      }
+    } catch {
+      setPromoCodeValid(false);
+      setPromoCodeError('Kon promo code niet valideren');
+      setPromoQuotes(null);
+    } finally {
+      setValidatingPromoCode(false);
+    }
+  }
+
+  function clearPromoCode() {
+    setPromoCode('');
+    setPromoCodeValid(null);
+    setPromoCodeError(null);
+    setPromoQuotes(null);
+  }
+
   async function start(plan: Plan) {
     setError(null);
     setInlineSuccess(null);
@@ -90,7 +132,7 @@ export default function SellPage() {
         return;
       }
 
-      // Validate promo code if provided
+      // Re-validate promo server-side before subscribe (UI quotes are display-only).
       let finalPromoCode = promoCode.trim() || undefined;
       if (finalPromoCode) {
         const validatePromoRes = await fetch('/api/affiliate/validate-promo-code', {
@@ -101,14 +143,19 @@ export default function SellPage() {
         const validatePromoData = await validatePromoRes.json();
         if (!validatePromoData.valid) {
           setError(validatePromoData.error || 'Ongeldige promo code');
+          setPromoCodeValid(false);
+          setPromoQuotes(null);
           setLoading(null);
           return;
         }
+        setPromoQuotes(validatePromoData.quotes ?? null);
+        setPromoCodeValid(true);
       }
 
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // Never send client-calculated discount amounts — code only.
         body: JSON.stringify({ plan, userId, promoCode: finalPromoCode }),
       });
       
@@ -123,7 +170,9 @@ export default function SellPage() {
       if (data?.ok) {
         const message =
           data.message ??
-          `Abonnement bijgewerkt naar ${plan}. Stripe verrekent eventuele verschillen automatisch.`;
+          (data.freeActivation
+            ? `Abonnement ${plan} gratis geactiveerd.`
+            : `Abonnement bijgewerkt naar ${plan}. Stripe verrekent eventuele verschillen automatisch.`);
         setInlineSuccess(message);
         setLoading(null);
         router.refresh();
@@ -154,13 +203,11 @@ export default function SellPage() {
         promoCode={promoCode}
         setPromoCode={setPromoCode}
         promoCodeValid={promoCodeValid}
-        setPromoCodeValid={setPromoCodeValid}
         promoCodeError={promoCodeError}
-        setPromoCodeError={setPromoCodeError}
         validatingPromoCode={validatingPromoCode}
-        setValidatingPromoCode={setValidatingPromoCode}
-        promoCodeData={promoCodeData}
-        setPromoCodeData={setPromoCodeData}
+        promoQuotes={promoQuotes}
+        applyPromoCode={applyPromoCode}
+        clearPromoCode={clearPromoCode}
       />
     </React.Suspense>
   );
@@ -178,14 +225,12 @@ function SellPageContent({
   promoCode,
   setPromoCode,
   promoCodeValid,
-  setPromoCodeValid,
   promoCodeError,
-  setPromoCodeError,
   validatingPromoCode,
-  setValidatingPromoCode,
-  promoCodeData,
-  setPromoCodeData,
-}: {
+  promoQuotes,
+  applyPromoCode,
+  clearPromoCode,
+}: { 
   stripePlans: readonly Plan[];
   loading: Plan | null;
   router: any;
@@ -196,27 +241,11 @@ function SellPageContent({
   promoCode: string;
   setPromoCode: (code: string) => void;
   promoCodeValid: boolean | null;
-  setPromoCodeValid: (valid: boolean | null) => void;
   promoCodeError: string | null;
-  setPromoCodeError: (error: string | null) => void;
   validatingPromoCode: boolean;
-  setValidatingPromoCode: (validating: boolean) => void;
-  promoCodeData: {
-    discountSharePct: number;
-    hasL2: boolean;
-    isPlatform?: boolean;
-    discountMode?: string;
-    fixedDiscountCents?: number | null;
-  } | null;
-  setPromoCodeData: (
-    data: {
-      discountSharePct: number;
-      hasL2: boolean;
-      isPlatform?: boolean;
-      discountMode?: string;
-      fixedDiscountCents?: number | null;
-    } | null,
-  ) => void;
+  promoQuotes: Partial<Record<Plan, ServerPromoQuote>> | null;
+  applyPromoCode: (raw?: string) => Promise<void>;
+  clearPromoCode: () => void;
 }) {
   const { t } = useTranslation();
   const individualDna = getBusinessVisibilityProfile('individual');
@@ -352,73 +381,65 @@ function SellPageContent({
         </div>
       )}
 
-      {/* Promo Code Input */}
+      {/* Promo Code Input — server validates; quotes drive plan card prices */}
       <div className="mb-8 max-w-md mx-auto">
         <label htmlFor="promo-code" className="block text-sm font-medium text-gray-700 mb-2">
-          Heb je een promo code?
+          Heb je een kortingscode?
         </label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             id="promo-code"
             type="text"
+            inputMode="text"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
             value={promoCode}
-            onChange={async (e) => {
-              const code = e.target.value.toUpperCase().trim();
-              setPromoCode(code);
-              setPromoCodeError(null);
-              setPromoCodeValid(null);
-              setPromoCodeData(null);
-
-              if (code.length > 0) {
-                setValidatingPromoCode(true);
-                try {
-                  const res = await fetch('/api/affiliate/validate-promo-code', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code }),
-                  });
-                  const data = await res.json();
-                  if (data.valid) {
-                    setPromoCodeValid(true);
-                    setPromoCodeError(null);
-                    setPromoCodeData(data.promoCode);
-                  } else {
-                    setPromoCodeValid(false);
-                    setPromoCodeError(data.error || 'Ongeldige promo code');
-                    setPromoCodeData(null);
-                  }
-                } catch (err) {
-                  setPromoCodeValid(false);
-                  setPromoCodeError('Kon promo code niet valideren');
-                } finally {
-                  setValidatingPromoCode(false);
-                }
+            onChange={(e) => {
+              const next = e.target.value.toUpperCase();
+              setPromoCode(next);
+              // Typing invalidates a previously applied quote until Toepassen
+              if (promoCodeValid !== null) {
+                clearPromoCode();
+                setPromoCode(next);
               }
             }}
-            placeholder="Voer promo code in"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                void applyPromoCode();
+              }
+            }}
+            placeholder="Voer code in"
+            className="min-h-[44px] flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            aria-invalid={promoCodeValid === false}
+            aria-describedby={promoCodeError ? 'promo-code-error' : undefined}
           />
-          {validatingPromoCode && (
-            <div className="flex items-center px-4">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-emerald-600"></div>
-            </div>
-          )}
-          {promoCodeValid === true && (
-            <div className="flex items-center px-4 text-green-600">
-              <span className="text-sm">✓</span>
-            </div>
-          )}
-          {promoCodeValid === false && promoCodeError && (
-            <div className="flex items-center px-4 text-red-600">
-              <span className="text-sm">✗</span>
-            </div>
+          <button
+            type="button"
+            onClick={() => void applyPromoCode()}
+            disabled={validatingPromoCode || !promoCode.trim()}
+            className="min-h-[44px] rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {validatingPromoCode ? '…' : 'Toepassen'}
+          </button>
+          {(promoCodeValid || promoCode) && (
+            <button
+              type="button"
+              onClick={clearPromoCode}
+              className="min-h-[44px] rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              Wissen
+            </button>
           )}
         </div>
         {promoCodeError && (
-          <p className="mt-1 text-sm text-red-600">{promoCodeError}</p>
+          <p id="promo-code-error" className="mt-1 text-sm text-red-600">{promoCodeError}</p>
         )}
         {promoCodeValid === true && (
-          <p className="mt-1 text-sm text-green-600">Promo code is geldig!</p>
+          <p className="mt-1 text-sm text-green-600">
+            Code geaccepteerd — prijzen hieronder zijn server-berekend.
+          </p>
         )}
       </div>
 
@@ -436,7 +457,7 @@ function SellPageContent({
         loading={loading}
         planAvailability={planAvailability}
         promoCodeValid={promoCodeValid}
-        promoCodeData={promoCodeData}
+        promoQuotes={promoQuotes}
         onSelect={start}
         previewPlan={previewPlan}
         onPreviewPlan={setPreviewPlan}
