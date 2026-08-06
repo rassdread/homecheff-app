@@ -27,7 +27,13 @@ export default function SellPage() {
   const [promoCodeValid, setPromoCodeValid] = useState<boolean | null>(null);
   const [promoCodeError, setPromoCodeError] = useState<string | null>(null);
   const [validatingPromoCode, setValidatingPromoCode] = useState(false);
-  const [promoCodeData, setPromoCodeData] = useState<{ discountSharePct: number; hasL2: boolean } | null>(null);
+  const [promoCodeData, setPromoCodeData] = useState<{
+    discountSharePct: number;
+    hasL2: boolean;
+    isPlatform?: boolean;
+    discountMode?: string;
+    fixedDiscountCents?: number | null;
+  } | null>(null);
   const [planAvailability, setPlanAvailability] = useState<Record<Plan, boolean | null>>({
     BASIC: null,
     PRO: null,
@@ -195,8 +201,22 @@ function SellPageContent({
   setPromoCodeError: (error: string | null) => void;
   validatingPromoCode: boolean;
   setValidatingPromoCode: (validating: boolean) => void;
-  promoCodeData: { discountSharePct: number; hasL2: boolean } | null;
-  setPromoCodeData: (data: { discountSharePct: number; hasL2: boolean } | null) => void;
+  promoCodeData: {
+    discountSharePct: number;
+    hasL2: boolean;
+    isPlatform?: boolean;
+    discountMode?: string;
+    fixedDiscountCents?: number | null;
+  } | null;
+  setPromoCodeData: (
+    data: {
+      discountSharePct: number;
+      hasL2: boolean;
+      isPlatform?: boolean;
+      discountMode?: string;
+      fixedDiscountCents?: number | null;
+    } | null,
+  ) => void;
 }) {
   const { t } = useTranslation();
   const individualDna = getBusinessVisibilityProfile('individual');

@@ -22,7 +22,13 @@ type Props = {
   loading: StripePlanKey | null;
   planAvailability: Record<StripePlanKey, boolean | null>;
   promoCodeValid: boolean | null;
-  promoCodeData: { discountSharePct: number; hasL2: boolean } | null;
+  promoCodeData: {
+    discountSharePct: number;
+    hasL2: boolean;
+    isPlatform?: boolean;
+    discountMode?: string;
+    fixedDiscountCents?: number | null;
+  } | null;
   onSelect: (plan: StripePlanKey) => void;
   previewPlan: import('@/lib/business/visibility-profile').BusinessPlanId;
   onPreviewPlan: (plan: import('@/lib/business/visibility-profile').BusinessPlanId) => void;
@@ -63,9 +69,27 @@ export default function SubscriptionPlanCards({
         let discountAmount = 0;
 
         if (promoCodeValid && promoCodeData && basePriceCents > 0) {
-          const affiliateCommission = displayPrice * 0.5;
-          discountAmount = Math.round(affiliateCommission * (promoCodeData.discountSharePct / 100));
-          displayPrice = displayPrice - discountAmount;
+          if (promoCodeData.isPlatform || promoCodeData.discountMode?.startsWith('platform')) {
+            if (
+              promoCodeData.discountMode === 'platform_fixed' &&
+              promoCodeData.fixedDiscountCents != null
+            ) {
+              discountAmount = Math.min(
+                promoCodeData.fixedDiscountCents / 100,
+                displayPrice,
+              );
+            } else {
+              discountAmount =
+                displayPrice * (promoCodeData.discountSharePct / 100);
+            }
+            displayPrice = displayPrice - discountAmount;
+          } else {
+            const affiliateCommission = displayPrice * 0.5;
+            discountAmount = Math.round(
+              affiliateCommission * (promoCodeData.discountSharePct / 100),
+            );
+            displayPrice = displayPrice - discountAmount;
+          }
         }
 
         return (

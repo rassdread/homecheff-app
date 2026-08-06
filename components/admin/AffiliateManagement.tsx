@@ -33,11 +33,13 @@ import {
   Share2,
   Save,
   X,
-  Edit
+  Edit,
+  Gift,
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
 import { useTranslation } from '@/hooks/useTranslation';
+import AdminPromoCodesPanel from '@/components/admin/AdminPromoCodesPanel';
 
 interface Affiliate {
   id: string;
@@ -189,7 +191,7 @@ export default function AffiliateManagement() {
   const { t } = useTranslation();
   const [data, setData] = useState<AffiliateData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'affiliates' | 'commissions' | 'payouts' | 'income' | 'links' | 'attributions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'affiliates' | 'commissions' | 'payouts' | 'income' | 'links' | 'attributions' | 'promos'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'ACTIVE' | 'SUSPENDED'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'main' | 'sub'>('all');
@@ -727,6 +729,7 @@ export default function AffiliateManagement() {
               { id: 'commissions', label: t('admin.commissions'), icon: Activity, shortLabel: 'Commissies' },
               { id: 'payouts', label: t('admin.payouts'), icon: TrendingUp, shortLabel: 'Uitbetalingen' },
               { id: 'links', label: t('admin.promotionLinks'), icon: LinkIcon, shortLabel: 'Links' },
+              { id: 'promos', label: 'Promocodes', icon: Gift, shortLabel: 'Promo' },
               { id: 'attributions', label: 'Koppelingen', icon: UserCheck, shortLabel: 'Koppelingen' },
             ].map((tab) => (
               <button
@@ -2093,6 +2096,8 @@ export default function AffiliateManagement() {
       )}
 
       {/* Attributions Tab */}
+      {activeTab === 'promos' && <AdminPromoCodesPanel />}
+
       {activeTab === 'attributions' && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border p-6">
