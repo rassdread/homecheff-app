@@ -119,17 +119,28 @@ export default function SubscriptionPlanCards({
                     <p className="mt-2 text-xs text-gray-700">
                       Eerste {quote!.discountDurationCycles}{' '}
                       {quote!.discountDurationCycles === 1 ? 'maand' : 'maanden'}:{' '}
-                      <strong>{isFree ? '€0' : formatEuroFromCents(quote!.finalPriceCents)}</strong>
+                      <strong>{isFree ? 'FREE / €0' : formatEuroFromCents(quote!.finalPriceCents)}</strong>
                       {quote!.endsAutomatically || quote!.postPromotionAction === 'END' ? (
                         <>
                           <br />
-                          Daarna eindigt het abonnement automatisch. Geen betaling.
+                          Daarna eindigt het abonnement automatisch na de
+                          promotieperiode.
+                          <br />
+                          <span className="text-gray-500">
+                            Subscription ends automatically after the promotional
+                            period. No further charges.
+                          </span>
                         </>
                       ) : quote!.resumesAtListPrice !== false ? (
                         <>
                           <br />
-                          Daarna: {formatEuroFromCents(quote!.basePriceCents)} / maand tot je
-                          opzegt.
+                          Daarna: {formatEuroFromCents(quote!.basePriceCents)} / maand
+                          tot je opzegt.
+                          <br />
+                          <span className="text-gray-500">
+                            After that: {formatEuroFromCents(quote!.basePriceCents)}
+                            /month until cancelled.
+                          </span>
                         </>
                       ) : null}
                     </p>

@@ -339,9 +339,11 @@ export default function AdminPromotionsPanel() {
               How often one account may redeem this code.
             </span>
           </label>
-          <label className="block text-sm sm:col-span-2">
-            <span className="font-medium text-gray-700">After promotion</span>
-            <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <fieldset className="sm:col-span-2 space-y-2">
+            <legend className="text-sm font-medium text-gray-700">
+              After promotion / Na de promotie
+            </legend>
+            <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
               <label className="flex items-start gap-2 text-sm text-gray-800">
                 <input
                   type="radio"
@@ -351,10 +353,17 @@ export default function AdminPromotionsPanel() {
                   className="mt-1"
                 />
                 <span>
-                  <strong>Continue paid subscription</strong>
+                  <strong>Continue paid subscription (recommended)</strong>
+                  <span className="block text-xs font-normal text-gray-600">
+                    Doorgaan met betaald abonnement (aanbevolen)
+                  </span>
+                  <span className="mt-1 block text-xs text-gray-500">
+                    The subscription automatically continues at the normal monthly
+                    price until cancelled.
+                  </span>
                   <span className="block text-xs text-gray-500">
-                    After the promo months, billing continues at the normal plan
-                    price (customer must agree before activation).
+                    Het abonnement loopt automatisch door tegen de normale
+                    maandprijs tot je opzegt.
                   </span>
                 </span>
               </label>
@@ -368,14 +377,21 @@ export default function AdminPromotionsPanel() {
                 />
                 <span>
                   <strong>End subscription automatically</strong>
+                  <span className="block text-xs font-normal text-gray-600">
+                    Abonnement automatisch beëindigen
+                  </span>
+                  <span className="mt-1 block text-xs text-gray-500">
+                    The subscription ends automatically after the promotional
+                    period and no further charges are made.
+                  </span>
                   <span className="block text-xs text-gray-500">
-                    After the promo months, access ends. No further payment. User
-                    can subscribe again later.
+                    Het abonnement eindigt automatisch na de promotieperiode; er
+                    volgen geen verdere betalingen.
                   </span>
                 </span>
               </label>
             </div>
-          </label>
+          </fieldset>
           <label className="block text-sm">
             <span className="font-medium text-gray-700">Ends (optional)</span>
             <input
@@ -454,8 +470,8 @@ export default function AdminPromotionsPanel() {
                   </td>
                   <td className="px-3 py-2 text-xs">
                     {(row.postPromotionAction || 'CONTINUE') === 'END'
-                      ? 'End auto'
-                      : 'Continue paid'}
+                      ? 'End auto / Eindigt'
+                      : 'Continue paid / Doorgaan'}
                   </td>
                   <td className="px-3 py-2">
                     {row.redemptionCount}
