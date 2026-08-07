@@ -1,0 +1,51 @@
+{
+  "startedAt": "2026-08-07T10:50:01.838Z",
+  "created": {
+    "TESTCONTINUE": "0e9dde8c-f648-4059-8408-f84cc0a4659f",
+    "TESTEND": "5f3f311e-e39e-4587-ac95-b1260db3d527"
+  },
+  "TESTCONTINUE": {
+    "quote": {
+      "discountDurationCycles": 1,
+      "durationLabel": "1 month",
+      "resumesAtListPrice": true,
+      "endsAutomatically": false,
+      "postPromotionAction": "CONTINUE"
+    },
+    "lifecycle": {
+      "postPromotionAction": "CONTINUE",
+      "useFreeEntitlement": false,
+      "useStripeTrialThenPaid": true,
+      "useRepeatingCouponThenPaid": false,
+      "scheduleCancelAtPromoEnd": false
+    }
+  },
+  "TESTEND": {
+    "quote": {
+      "discountDurationCycles": 1,
+      "durationLabel": "1 month",
+      "resumesAtListPrice": false,
+      "endsAutomatically": true,
+      "postPromotionAction": "END"
+    },
+    "lifecycle": {
+      "postPromotionAction": "END",
+      "useFreeEntitlement": true,
+      "useStripeTrialThenPaid": false,
+      "useRepeatingCouponThenPaid": false,
+      "scheduleCancelAtPromoEnd": false
+    }
+  },
+  "endReserve": {
+    "ok": true,
+    "redemptionId": "e0429992-adff-4dfc-a136-605d7657453c",
+    "snapshot": "END"
+  },
+  "disabled": [
+    "TESTCONTINUE",
+    "TESTEND"
+  ],
+  "finishedAt": "2026-08-07T10:50:03.782Z",
+  "verdict": "HOMECHEFF_POST_PROMOTION_LIVE_VALIDATION_PASS"
+}
+HOMECHEFF_POST_PROMOTION_LIVE_VALIDATION_PASS

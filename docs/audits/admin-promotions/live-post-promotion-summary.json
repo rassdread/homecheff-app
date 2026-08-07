@@ -1,0 +1,21 @@
+{
+  "verdict": "HOMECHEFF_POST_PROMOTION_LIVE_VALIDATION_PASS",
+  "TESTCONTINUE": {
+    "postPromotionAction": "CONTINUE",
+    "lifecycle": "useStripeTrialThenPaid"
+  },
+  "TESTEND": {
+    "postPromotionAction": "END",
+    "lifecycle": "useFreeEntitlement",
+    "redemptionSnapshot": "END"
+  },
+  "disabledAfter": true,
+  "http": {
+    "sell": 200,
+    "validateTESTEND": "disabled",
+    "admin": 401,
+    "cron": 401
+  },
+  "deploymentId": "dpl_9ST993cdXbjw25EgyBM5s8w5ioFx",
+  "mainTip": "7208aa92"
+}
