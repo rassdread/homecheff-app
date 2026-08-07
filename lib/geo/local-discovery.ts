@@ -61,6 +61,13 @@ export function normalizeFeedRadiusKm(input: number | null | undefined): number 
   return input;
 }
 
+/** Clamp UI/API radius input to the supported Nearby control range (0–100 km). */
+export function clampFeedRadiusKm(input: number | null | undefined): number {
+  const n = typeof input === 'number' ? input : Number(input);
+  if (!Number.isFinite(n)) return FEED_RADIUS_DEFAULT_KM;
+  return Math.max(0, Math.min(100, n));
+}
+
 export function isUnlimitedRadius(radiusKm: number): boolean {
   return normalizeFeedRadiusKm(radiusKm) === RADIUS_NATIONAL_KM;
 }
