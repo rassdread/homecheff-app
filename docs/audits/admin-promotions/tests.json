@@ -1,23 +1,18 @@
 {
-  "suite": "admin-platform-promotions",
-  "runner": "npx tsx scripts/validate-admin-promotions.ts",
-  "result": "HOMECHEFF_ADMIN_PROMOTIONS_VALIDATOR_PASS",
-  "checks": 12,
-  "coverage": [
-    "duration parse 1-36",
-    "100% 1 month",
-    "100% 3 months",
-    "50% 3 months",
-    "25% 6 months",
-    "BASIC/PRO/PREMIUM quote shape",
-    "affiliate caps unchanged",
-    "expired/disabled/max_redemptions reason taxonomy",
-    "no fake €0.01 for 100%"
+  "suite": "post-promotion-lifecycle",
+  "runners": [
+    "npx tsx scripts/validate-admin-promotions.ts",
+    "npx tsx scripts/validate-promo-redemption-limits.ts",
+    "npx tsx scripts/validate-admin-promocode-regression.ts",
+    "npx tsx scripts/validate-promocode-e2e-integration.ts"
   ],
-  "related": {
-    "regression": "npx tsx scripts/validate-admin-promocode-regression.ts",
-    "result": "HOMECHEFF_ADMIN_PROMOCODE_REGRESSION_FIXED"
-  },
-  "liveStripe": false,
-  "notes": "Unit/policy coverage; live Stripe checkout and entitlement DB writes require Formal Review / staging."
+  "coverage": [
+    "100% 3 months CONTINUE → Stripe trial plan",
+    "100% 3 months END → free entitlement plan",
+    "50% 6 months CONTINUE → repeating coupon",
+    "50% 6 months END → cancel_at scheduled",
+    "expired/disabled/max per-user/global taxonomy",
+    "affiliate caps unchanged"
+  ],
+  "expected": "HOMECHEFF_POST_PROMOTION_LIFECYCLE_PASS"
 }
