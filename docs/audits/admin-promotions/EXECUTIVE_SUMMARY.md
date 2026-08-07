@@ -1,21 +1,25 @@
-# Admin Promotions — Executive Summary
+# Admin Promotions — Executive Summary (Formal Review)
 
-**Verdict:** `HOMECHEFF_ADMIN_PROMOTIONS_PASS`  
-**Status:** `READY_FOR_FORMAL_REVIEW`  
-**Branch:** `feat/admin-platform-promotions`  
-**Scope:** Dedicated Admin → Promotions for platform-owned subscription codes (not Affiliates).
+**Verdict:** `HOMECHEFF_ADMIN_PROMOTIONS_FORMAL_REVIEW_PASS`  
+**Status:** `READY_FOR_PRODUCTION_PROMOTION`  
+**Branch:** `feat/admin-platform-promotions`
 
-## What shipped
+## Closed gap
 
-- Separate **Promotions** admin nav tab (Gift icon), not nested under Affiliates/Partners/Referrals.
-- `AdminPromotionsPanel` — create, list, activate/deactivate, copy code, usage/redemption/duration.
-- Extended `PromoCode` with `name`, `discountDurationCycles`, `maxRedemptionsPerUser`, `createdByAdminId` (platform: `affiliateId = null`).
-- Duration-aware server quotes + `/sell` UX (“Heb je een promocode?”) showing original / promo period / list price resume.
-- 100% discount → free entitlement (no fake €0.01 Stripe); timed % → Stripe repeating coupon on catalog price.
-- Affiliate commission caps unchanged; admin 0–100% on full price.
+`maxRedemptionsPerUser` is now an **authoritative server-side** rule, enforced at quote and subscribe, with **atomic** reservation via `SELECT … FOR UPDATE` + `PromoCodeRedemption` ledger.
 
-## Explicitly out of scope
+## System capabilities
 
-- Merge to main, production deploy, Formal Review execution.
-- Changing affiliate promocode UX or commission math.
-- Enforcing `maxRedemptionsPerUser` at redeem time (column stored; global max already enforced).
+- Platform-owned promotions (`affiliateId = null`)
+- 0–100% and fixed discounts
+- Configurable billing-cycle duration
+- Global + per-user redemption limits
+- Start/end dates, disabled codes
+- BASIC / PRO / PREMIUM server quotes
+- 100% → free entitlement (no micro-charge)
+- Timed paid → Stripe repeating coupon → list price resumes
+- Affiliate system unchanged
+
+## Do not
+
+Merge / deploy / freeze from this review alone — operator promotion decision remains separate.

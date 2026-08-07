@@ -1,0 +1,42 @@
+{
+  "suites": [
+    {
+      "name": "validate-admin-promotions",
+      "command": "npx tsx scripts/validate-admin-promotions.ts",
+      "result": "HOMECHEFF_ADMIN_PROMOTIONS_VALIDATOR_PASS",
+      "checks": 13
+    },
+    {
+      "name": "validate-promo-redemption-limits",
+      "command": "npx tsx scripts/validate-promo-redemption-limits.ts",
+      "result": "HOMECHEFF_PROMO_REDEMPTION_LIMITS_PASS"
+    },
+    {
+      "name": "validate-admin-promocode-regression",
+      "command": "npx tsx scripts/validate-admin-promocode-regression.ts",
+      "result": "HOMECHEFF_ADMIN_PROMOCODE_REGRESSION_FIXED"
+    },
+    {
+      "name": "validate-promocode-e2e-integration",
+      "command": "npx tsx scripts/validate-promocode-e2e-integration.ts",
+      "result": "HOMECHEFF_PROMOCODE_END_TO_END_PASS"
+    }
+  ],
+  "liveStripeDb": false,
+  "coverage": [
+    "admin 100%",
+    "affiliate caps",
+    "100% 1m/3m",
+    "50% 3m",
+    "25% 6m",
+    "global max",
+    "per-user max",
+    "concurrent duplicate",
+    "expired/disabled taxonomy",
+    "fixed discount",
+    "zero floor",
+    "forged client discount rejected",
+    "BASIC/PRO/PREMIUM",
+    "FOR UPDATE source markers"
+  ]
+}
