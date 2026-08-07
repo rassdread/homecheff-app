@@ -1,6 +1,8 @@
 /**
  * Activate a business subscription at €0 when a platform/admin promo
  * covers the full price — without creating a fake Stripe €0.01 charge.
+ *
+ * Redemption counting is handled by reservePromoRedemption (caller).
  */
 
 import { prisma } from '@/lib/prisma';
@@ -96,13 +98,6 @@ export async function activateFreeSubscriptionEntitlement(params: {
       },
     });
     businessSubscriptionId = created.id;
-  }
-
-  if (params.promoCodeId) {
-    await prisma.promoCode.update({
-      where: { id: params.promoCodeId },
-      data: { redemptionCount: { increment: 1 } },
-    });
   }
 
   return { ok: true, planName, validUntil, businessSubscriptionId, promoPeriodEndsAt: validUntil };

@@ -52,6 +52,8 @@ export type ResolvedSubscriptionPromo = {
 export type ResolvePromoFailure = {
   valid: false;
   error: string;
+  /** Dutch message when available (UI may prefer). */
+  errorNl?: string;
   reason:
     | 'missing_code'
     | 'not_found'
@@ -59,6 +61,7 @@ export type ResolvePromoFailure = {
     | 'not_started'
     | 'expired'
     | 'max_redemptions'
+    | 'max_redemptions_per_user'
     | 'server_error';
 };
 
@@ -86,8 +89,14 @@ async function loadPlanBasePrices(): Promise<Record<SubscriptionPlanKey, number>
   return out;
 }
 
+export type ResolveSubscriptionPromoOptions = {
+  /** When set, enforces maxRedemptionsPerUser against active redemptions. */
+  userId?: string | null;
+};
+
 export async function resolveSubscriptionPromo(
   rawCode: unknown,
+  options: ResolveSubscriptionPromoOptions = {},
 ): Promise<ResolvedSubscriptionPromo | ResolvePromoFailure> {
   const code = normalizePromoCodeInput(rawCode);
   if (!code) {
@@ -125,8 +134,36 @@ export async function resolveSubscriptionPromo(
       return {
         valid: false,
         error: 'Promo code has reached maximum redemptions',
+        errorNl: 'Deze promocode heeft het maximum aantal gebruikers bereikt.',
         reason: 'max_redemptions',
       };
+    }
+
+    if (options.userId && promoCode.maxRedemptionsPerUser != null) {
+      const { evaluatePromoRedemptionLimits } = await import(
+        '@/lib/promo-codes/redemption-limits'
+      );
+      const userActiveCount = await prisma.promoCodeRedemption.count({
+        where: {
+          promoCodeId: promoCode.id,
+          userId: options.userId,
+          status: { in: ['RESERVED', 'CONFIRMED'] },
+        },
+      });
+      const decision = evaluatePromoRedemptionLimits({
+        maxRedemptions: promoCode.maxRedemptions,
+        maxRedemptionsPerUser: promoCode.maxRedemptionsPerUser,
+        globalActiveCount: promoCode.redemptionCount,
+        userActiveCount,
+      });
+      if (!decision.ok && decision.reason === 'max_redemptions_per_user') {
+        return {
+          valid: false,
+          error: decision.error,
+          errorNl: decision.errorNl,
+          reason: 'max_redemptions_per_user',
+        };
+      }
     }
 
     const isSubAffiliate = !!promoCode.affiliate?.parentAffiliateId;

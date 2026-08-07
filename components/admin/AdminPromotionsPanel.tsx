@@ -52,6 +52,7 @@ export default function AdminPromotionsPanel() {
   const [durationCycles, setDurationCycles] = useState<number | ''>(3);
   const [purpose, setPurpose] = useState<string>('launch');
   const [maxRedemptions, setMaxRedemptions] = useState<string>('');
+  const [maxRedemptionsPerUser, setMaxRedemptionsPerUser] = useState<string>('1');
   const [endsAt, setEndsAt] = useState('');
 
   const load = useCallback(async () => {
@@ -102,6 +103,9 @@ export default function AdminPromotionsPanel() {
           target: 'subscription',
           maxRedemptions: maxRedemptions.trim()
             ? Number(maxRedemptions)
+            : undefined,
+          maxRedemptionsPerUser: maxRedemptionsPerUser.trim()
+            ? Number(maxRedemptionsPerUser)
             : undefined,
           endsAt: endsAt ? new Date(endsAt).toISOString() : undefined,
         }),
@@ -299,7 +303,9 @@ export default function AdminPromotionsPanel() {
             </select>
           </label>
           <label className="block text-sm">
-            <span className="font-medium text-gray-700">Max redemptions</span>
+            <span className="font-medium text-gray-700">
+              Max redemptions (all users)
+            </span>
             <input
               type="number"
               min={1}
@@ -308,6 +314,25 @@ export default function AdminPromotionsPanel() {
               placeholder="Unlimited"
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
             />
+            <span className="mt-0.5 block text-xs text-gray-500">
+              Total uses across every account.
+            </span>
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-gray-700">
+              Max redemptions per user
+            </span>
+            <input
+              type="number"
+              min={1}
+              value={maxRedemptionsPerUser}
+              onChange={(e) => setMaxRedemptionsPerUser(e.target.value)}
+              placeholder="Unlimited"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+            />
+            <span className="mt-0.5 block text-xs text-gray-500">
+              How often one account may redeem this code.
+            </span>
           </label>
           <label className="block text-sm">
             <span className="font-medium text-gray-700">Ends (optional)</span>
@@ -340,6 +365,7 @@ export default function AdminPromotionsPanel() {
               <th className="px-3 py-2">Discount</th>
               <th className="px-3 py-2">Duration</th>
               <th className="px-3 py-2">Usage</th>
+              <th className="px-3 py-2">Per user</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2">Actions</th>
             </tr>
@@ -347,13 +373,13 @@ export default function AdminPromotionsPanel() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-gray-500">
+                <td colSpan={7} className="px-3 py-6 text-center text-gray-500">
                   Laden…
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-gray-500">
+                <td colSpan={7} className="px-3 py-6 text-center text-gray-500">
                   Nog geen platform-promoties.
                 </td>
               </tr>
@@ -366,6 +392,11 @@ export default function AdminPromotionsPanel() {
                     </div>
                     {row.name ? (
                       <div className="text-xs text-gray-500">{row.name}</div>
+                    ) : null}
+                    {row.endsAt ? (
+                      <div className="text-xs text-gray-400">
+                        Ends {new Date(row.endsAt).toLocaleDateString()}
+                      </div>
                     ) : null}
                   </td>
                   <td className="px-3 py-2">
@@ -380,10 +411,13 @@ export default function AdminPromotionsPanel() {
                   </td>
                   <td className="px-3 py-2">
                     {row.redemptionCount}
-                    {row.maxRedemptions != null ? ` / ${row.maxRedemptions}` : ''}
-                    {typeof row.businessSubscriptionCount === 'number'
-                      ? ` · ${row.businessSubscriptionCount} subs`
-                      : ''}
+                    {row.maxRedemptions != null ? ` / ${row.maxRedemptions}` : ' / ∞'}
+                    <div className="text-xs text-gray-500">all users</div>
+                  </td>
+                  <td className="px-3 py-2">
+                    {row.maxRedemptionsPerUser != null
+                      ? row.maxRedemptionsPerUser
+                      : '∞'}
                   </td>
                   <td className="px-3 py-2">
                     <span

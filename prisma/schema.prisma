@@ -155,6 +155,7 @@ model User {
   workspaceContentProps                  WorkspaceContentProp[]
   dishReviewsAsReviewer                  DishReview[]              @relation("DishReviewReviewer")
   promoCodesAsSeller                     PromoCode[]               @relation("PromoCodeSeller")
+  promoCodeRedemptions                   PromoCodeRedemption[]
   affiliate                              Affiliate?
   attributions                           Attribution[]
   hcpEvents                              HcpEvent[]
@@ -293,6 +294,7 @@ model PromoCode {
   affiliate             Affiliate?             @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
   seller                User?                  @relation("PromoCodeSeller", fields: [sellerId], references: [id], onDelete: Cascade)
   businessSubscriptions BusinessSubscription[]
+  redemptions           PromoCodeRedemption[]
 
   @@index([affiliateId])
   @@index([sellerId])
@@ -305,6 +307,36 @@ model PromoCode {
 enum PromoCodeStatus {
   ACTIVE
   DISABLED
+}
+
+/**
+ * One redemption attempt/reservation per subscribe (platform or affiliate).
+ * RESERVED counts toward limits until CONFIRMED or RELEASED.
+ */
+model PromoCodeRedemption {
+  id                      String    @id @default(uuid())
+  promoCodeId             String
+  userId                  String
+  businessSubscriptionId  String?
+  planKey                 String
+  /** FREE | PAID */
+  path                    String
+  /** RESERVED | CONFIRMED | RELEASED */
+  status                  String    @default("RESERVED")
+  discountSharePct        Int       @default(0)
+  discountDurationCycles  Int?
+  basePriceCents          Int
+  finalPriceCents         Int
+  stripeCheckoutSessionId String?   @unique
+  createdAt               DateTime  @default(now())
+  confirmedAt             DateTime?
+  promoCode               PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([promoCodeId, userId])
+  @@index([promoCodeId, status])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model BusinessSubscription {

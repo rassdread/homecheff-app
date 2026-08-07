@@ -13,6 +13,12 @@ import {
   type SubscriptionPlanKey,
 } from "@/lib/promo-codes/resolve-subscription-promo";
 import { activateFreeSubscriptionEntitlement } from "@/lib/promo-codes/activate-free-subscription";
+import {
+  attachCheckoutSessionToRedemption,
+  confirmPromoRedemption,
+  releasePromoRedemption,
+  reservePromoRedemption,
+} from "@/lib/promo-codes/redeem-promo";
 
 function getBaseUrl(req: NextRequest) {
   const envUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.BASE_URL;
@@ -67,10 +73,13 @@ export async function POST(req: NextRequest) {
     // Re-validate promo server-side (never trust UI quotes).
     let resolvedPromo: Awaited<ReturnType<typeof resolveSubscriptionPromo>> | null = null;
     if (promoCode) {
-      resolvedPromo = await resolveSubscriptionPromo(promoCode);
+      resolvedPromo = await resolveSubscriptionPromo(promoCode, { userId });
       if (!resolvedPromo.valid) {
         return NextResponse.json(
-          { error: resolvedPromo.error, reason: resolvedPromo.reason },
+          {
+            error: resolvedPromo.errorNl || resolvedPromo.error,
+            reason: resolvedPromo.reason,
+          },
           { status: 400 },
         );
       }
@@ -280,38 +289,75 @@ export async function POST(req: NextRequest) {
       attributionId = await resolveSubscriptionAttributionId(userId);
     }
 
-    // 100% / €0 — internal entitlement, no fake Stripe micro-payment.
+    // 100% / €0 — reserve redemption atomically, then internal entitlement (no Stripe).
     if (finalPriceCents <= 0) {
-      const free = await activateFreeSubscriptionEntitlement({
-        userId,
-        planKey,
-        promoCodeId,
-        attributionId,
-        basePriceCents,
-        finalPriceCents: 0,
-        durationDays: dbSubscription.durationDays,
-        discountDurationCycles: resolvedPromo?.valid
-          ? resolvedPromo.promo.discountDurationCycles
-          : null,
-      });
+      let redemptionId: string | null = null;
+      if (promoCodeId && resolvedPromo?.valid) {
+        const reserved = await reservePromoRedemption({
+          promoCodeId,
+          userId,
+          planKey,
+          path: 'FREE',
+          initialStatus: 'RESERVED',
+          discountSharePct: resolvedPromo.promo.discountSharePct,
+          discountDurationCycles: resolvedPromo.promo.discountDurationCycles,
+          basePriceCents,
+          finalPriceCents: 0,
+        });
+        if (!reserved.ok) {
+          return NextResponse.json(
+            { error: reserved.errorNl || reserved.error, reason: reserved.reason },
+            { status: 400 },
+          );
+        }
+        redemptionId = reserved.redemptionId;
+      }
 
-      return NextResponse.json({
-        ok: true,
-        freeActivation: true,
-        plan: planKey,
-        planName: free.planName,
-        validUntil: free.validUntil.toISOString(),
-        promoPeriodEndsAt: free.promoPeriodEndsAt.toISOString(),
-        discountDurationCycles: resolvedPromo?.valid
-          ? resolvedPromo.promo.discountDurationCycles
-          : null,
-        basePriceCents,
-        discountCents: basePriceCents,
-        finalPriceCents: 0,
-        currency: 'eur',
-        businessSubscriptionId: free.businessSubscriptionId,
-        message: `Abonnement ${free.planName} geactiveerd met 100% korting (geen betaling).`,
-      });
+      try {
+        const free = await activateFreeSubscriptionEntitlement({
+          userId,
+          planKey,
+          promoCodeId,
+          attributionId,
+          basePriceCents,
+          finalPriceCents: 0,
+          durationDays: dbSubscription.durationDays,
+          discountDurationCycles: resolvedPromo?.valid
+            ? resolvedPromo.promo.discountDurationCycles
+            : null,
+        });
+
+        if (redemptionId) {
+          await confirmPromoRedemption({
+            redemptionId,
+            businessSubscriptionId: free.businessSubscriptionId,
+          });
+        }
+
+        return NextResponse.json({
+          ok: true,
+          freeActivation: true,
+          plan: planKey,
+          planName: free.planName,
+          validUntil: free.validUntil.toISOString(),
+          promoPeriodEndsAt: free.promoPeriodEndsAt.toISOString(),
+          discountDurationCycles: resolvedPromo?.valid
+            ? resolvedPromo.promo.discountDurationCycles
+            : null,
+          basePriceCents,
+          discountCents: basePriceCents,
+          finalPriceCents: 0,
+          currency: 'eur',
+          businessSubscriptionId: free.businessSubscriptionId,
+          redemptionId,
+          message: `Abonnement ${free.planName} geactiveerd met 100% korting (geen betaling).`,
+        });
+      } catch (err) {
+        if (redemptionId) {
+          await releasePromoRedemption({ redemptionId }).catch(() => undefined);
+        }
+        throw err;
+      }
     }
 
     if (!stripe) {
@@ -403,6 +449,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let paidRedemptionId: string | null = null;
+    if (promoCodeId && resolvedPromo?.valid) {
+      const reserved = await reservePromoRedemption({
+        promoCodeId,
+        userId,
+        planKey,
+        path: 'PAID',
+        initialStatus: 'RESERVED',
+        discountSharePct: resolvedPromo.promo.discountSharePct,
+        discountDurationCycles: resolvedPromo.promo.discountDurationCycles,
+        basePriceCents,
+        finalPriceCents,
+      });
+      if (!reserved.ok) {
+        return NextResponse.json(
+          { error: reserved.errorNl || reserved.error, reason: reserved.reason },
+          { status: 400 },
+        );
+      }
+      paidRedemptionId = reserved.redemptionId;
+    }
+
     const sessionMetadata: Record<string, string> = {
       plan: planKey,
       userId,
@@ -413,15 +481,35 @@ export async function POST(req: NextRequest) {
 
     if (promoCodeId) sessionMetadata.promo_code_id = promoCodeId;
     if (attributionId) sessionMetadata.attribution_id = attributionId;
+    if (paidRedemptionId) sessionMetadata.promo_redemption_id = paidRedemptionId;
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [{ price: customPriceId || priceId, quantity: 1 }],
-      ...(checkoutDiscounts ? { discounts: checkoutDiscounts } : {}),
-      success_url: `${baseUrl}/sell?success=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/sell?canceled=1`,
-      metadata: sessionMetadata,
-    });
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        line_items: [{ price: customPriceId || priceId, quantity: 1 }],
+        ...(checkoutDiscounts ? { discounts: checkoutDiscounts } : {}),
+        success_url: `${baseUrl}/sell?success=1&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/sell?canceled=1`,
+        metadata: sessionMetadata,
+      });
+    } catch (err) {
+      if (paidRedemptionId) {
+        await releasePromoRedemption({ redemptionId: paidRedemptionId }).catch(
+          () => undefined,
+        );
+      }
+      throw err;
+    }
+
+    if (paidRedemptionId && session.id) {
+      await attachCheckoutSessionToRedemption({
+        redemptionId: paidRedemptionId,
+        stripeCheckoutSessionId: session.id,
+      }).catch((attachErr) =>
+        console.error('[subscribe] attachCheckoutSessionToRedemption', attachErr),
+      );
+    }
 
     return NextResponse.json({
       url: session.url,
@@ -433,6 +521,7 @@ export async function POST(req: NextRequest) {
         ? resolvedPromo.promo.discountDurationCycles
         : null,
       currency: 'eur',
+      redemptionId: paidRedemptionId,
     });
   } catch (e) {
     console.error("subscribe error", e);

@@ -4,9 +4,11 @@
  * POST /api/affiliate/validate-promo-code
  * Returns server-authoritative pricing quotes for BASIC/PRO/PREMIUM.
  * UI must display quotes — never invent discounts client-side.
+ * When authenticated, also enforces maxRedemptionsPerUser.
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { resolveSubscriptionPromo } from "@/lib/promo-codes/resolve-subscription-promo";
 
 export const dynamic = 'force-dynamic';
@@ -14,12 +16,22 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const resolved = await resolveSubscriptionPromo(body?.code ?? body?.promoCode);
+    const session = await auth();
+    const userId = session?.user?.id ?? null;
+
+    const resolved = await resolveSubscriptionPromo(body?.code ?? body?.promoCode, {
+      userId,
+    });
 
     if (!resolved.valid) {
       const status = resolved.reason === 'not_found' ? 404 : 200;
       return NextResponse.json(
-        { valid: false, error: resolved.error, reason: resolved.reason },
+        {
+          valid: false,
+          error: resolved.errorNl || resolved.error,
+          errorEn: resolved.error,
+          reason: resolved.reason,
+        },
         { status },
       );
     }

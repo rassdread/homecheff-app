@@ -22,6 +22,10 @@ import {
   parseDiscountDurationCycles,
 } from '../lib/promo-codes/platform-promo-duration';
 import {
+  evaluatePromoRedemptionLimits,
+  simulateConcurrentRedemptions,
+} from '../lib/promo-codes/redemption-limits';
+import {
   MAIN_AFFILIATE_MAX_DISCOUNT_PCT,
   SUB_AFFILIATE_MAX_DISCOUNT_PCT,
 } from '../lib/affiliate-config';
@@ -150,13 +154,36 @@ const reasons = [
   'disabled',
   'expired',
   'max_redemptions',
+  'max_redemptions_per_user',
   'not_started',
   'missing_code',
 ] as const;
 assert.equal(reasons.includes('expired'), true);
 assert.equal(reasons.includes('disabled'), true);
 assert.equal(reasons.includes('max_redemptions'), true);
+assert.equal(reasons.includes('max_redemptions_per_user'), true);
 ok('invalid/expired/disabled/max redemption reasons defined');
+
+section('Per-user + concurrency policy');
+{
+  assert.equal(
+    evaluatePromoRedemptionLimits({
+      maxRedemptions: 100,
+      maxRedemptionsPerUser: 1,
+      globalActiveCount: 1,
+      userActiveCount: 1,
+    }).ok,
+    false,
+  );
+  const sim = simulateConcurrentRedemptions({
+    maxRedemptions: 100,
+    maxRedemptionsPerUser: 1,
+    attempts: [{ userId: 'a' }, { userId: 'a' }],
+  });
+  assert.equal(sim.succeeded, 1);
+  assert.equal(sim.failed, 1);
+  ok('per-user cap + concurrent double-click serialisation');
+}
 
 section('No fake €0.01 Stripe for 100%');
 {

@@ -46,7 +46,7 @@ function fileContains(rel: string, needles: string[]): void {
 
 section('1. Promo entry inventory (subscription surfaces)');
 fileContains('app/sell/page.tsx', [
-  'Heb je een kortingscode',
+  'Heb je een promocode',
   '/api/affiliate/validate-promo-code',
   '/api/subscribe',
   'promoCode: finalPromoCode',
@@ -117,12 +117,17 @@ const hundred = calculatePlatformSubscriptionDiscount(BASE, {
 assert.equal(hundred.finalPriceCents, 0);
 fileContains('lib/promo-codes/activate-free-subscription.ts', [
   'activateFreeSubscriptionEntitlement',
-  'redemptionCount',
+]);
+fileContains('lib/promo-codes/redeem-promo.ts', [
+  'reservePromoRedemption',
+  'FOR UPDATE',
+  'maxRedemptionsPerUser',
 ]);
 fileContains('app/api/subscribe/route.ts', [
   'finalPriceCents <= 0',
   'freeActivation: true',
   'geen betaling',
+  'reservePromoRedemption',
 ]);
 assert.ok(
   !readFileSync(join(ROOT, 'app/api/subscribe/route.ts'), 'utf8').includes('unit_amount: 0'),

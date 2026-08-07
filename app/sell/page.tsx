@@ -90,7 +90,19 @@ export default function SellPage() {
         setPromoQuotes(data.quotes);
       } else {
         setPromoCodeValid(false);
-        setPromoCodeError(data.error || 'Ongeldige promo code');
+        const reasonMsg =
+          data.reason === 'max_redemptions_per_user'
+            ? 'Deze promotie is al gebruikt door dit account.'
+            : data.reason === 'max_redemptions'
+              ? 'Deze promocode is volledig gebruikt.'
+              : data.reason === 'expired'
+                ? 'Deze promocode is verlopen.'
+                : data.reason === 'disabled'
+                  ? 'Deze promocode is uitgeschakeld.'
+                  : data.reason === 'not_started'
+                    ? 'Deze promocode is nog niet actief.'
+                    : null;
+        setPromoCodeError(data.error || reasonMsg || 'Ongeldige promo code');
         setPromoQuotes(null);
       }
     } catch {

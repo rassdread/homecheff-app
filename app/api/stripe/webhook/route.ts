@@ -159,6 +159,30 @@ export async function POST(req: NextRequest) {
                   });
                   console.log(`✅ BusinessSubscription created for user ${userId}`);
                 }
+
+                // Confirm platform/affiliate promo redemption (idempotent).
+                const redemptionId = session.metadata?.promo_redemption_id || null;
+                if (redemptionId || promoCodeId) {
+                  try {
+                    const { confirmPromoRedemption } = await import(
+                      '@/lib/promo-codes/redeem-promo'
+                    );
+                    const bs = await prisma.businessSubscription.findFirst({
+                      where: { stripeSubscriptionId },
+                      select: { id: true },
+                    });
+                    await confirmPromoRedemption({
+                      redemptionId,
+                      stripeCheckoutSessionId: session.id,
+                      businessSubscriptionId: bs?.id ?? null,
+                    });
+                  } catch (redeemErr: any) {
+                    console.error(
+                      '❌ Failed to confirm promo redemption:',
+                      redeemErr?.message || redeemErr,
+                    );
+                  }
+                }
               } catch (bsError: any) {
                 console.error(`❌ Failed to create BusinessSubscription:`, bsError.message);
                 // Don't fail the whole process
