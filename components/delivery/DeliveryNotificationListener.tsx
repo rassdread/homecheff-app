@@ -64,8 +64,16 @@ export default function DeliveryNotificationListener() {
     if (!userId) return;
     const channel = pusherClient.subscribe(`private-delivery-${userId}`);
     
-    // Listen for general notifications
+    // Delivery-dashboard toasts only for DELIVERY_* / go-online.
+    // App-wide chat/order/proposal toasts live in CommsRealtimeListener (Providers).
     channel.bind('notification', (data: NotificationMessage) => {
+      const type = String(data?.data?.type ?? '').toUpperCase();
+      const isDeliveryScoped =
+        type.startsWith('DELIVERY_') ||
+        type === 'GO_ONLINE' ||
+        data.actions?.some((a) => a.action === 'GO_ONLINE');
+      if (!isDeliveryScoped) return;
+
       const displayId = Date.now();
       const notification: DisplayNotification = {
         ...data,

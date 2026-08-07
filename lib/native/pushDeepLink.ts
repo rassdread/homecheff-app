@@ -37,7 +37,19 @@ export function pathFromPushNotificationData(
         : null;
     if (r) return r;
   }
-  if (t === "chat" || t === "new_message" || t === "message_received") {
+  if (
+    t === "chat" ||
+    t === "new_message" ||
+    t === "message_received" ||
+    t === "proposal"
+  ) {
+    const routeOnly =
+      typeof d.route === "string"
+        ? parseInternalPathFromUnknownInput(d.route)
+        : typeof d.actionUrl === "string"
+          ? parseInternalPathFromUnknownInput(d.actionUrl)
+          : null;
+    if (routeOnly) return routeOnly;
     const cid =
       typeof d.conversationId === "string" ? d.conversationId : null;
     if (cid && /^[a-zA-Z0-9_-]{6,}$/.test(cid)) {

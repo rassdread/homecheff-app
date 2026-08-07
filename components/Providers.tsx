@@ -34,6 +34,11 @@ const CommsRealtimeListener = dynamic(
   { ssr: false },
 );
 
+const WebPushRegistration = dynamic(
+  () => import('@/components/notifications/WebPushRegistration'),
+  { ssr: false },
+);
+
 function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
   useSessionIsolation();
   return <>{children}</>;
@@ -95,6 +100,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <UserBootstrapProvider>
             <CommsUnreadProvider>
               <CommsRealtimeListener />
+              <WebPushRegistration />
               <HcpRewardProvider>
                 <CreateFlowProvider>
                   <WorkspaceChromeProvider>{children}</WorkspaceChromeProvider>

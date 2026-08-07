@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-08-06",
+  "branch": "feature/notification-reliability",
+  "events": {
+    "NEW_ORDER": { "inbox": true, "pusher": true, "outbox": true, "fcm": true, "deepLink": "/verkoper/orders", "e2eDeviceProof": "operator_required" },
+    "CHAT": { "inbox": true, "pusher": true, "outbox": true, "fcm": true, "deepLink": "/messages/{id}/", "e2eDeviceProof": "operator_required" },
+    "PROPOSAL": { "inbox": true, "pusher": true, "outbox": true, "fcm": true, "deepLink": "/messages/{id}/", "e2eDeviceProof": "operator_required" },
+    "PAYMENT": { "inbox": true, "pusher": true, "outbox": true, "fcm": true, "deepLink": "/orders/{id}", "e2eDeviceProof": "operator_required" },
+    "DELIVERY": { "inbox": true, "pusher": true, "outbox": true, "fcm": true, "deepLink": "/delivery|/messages", "e2eDeviceProof": "operator_required" },
+    "REFUND": { "inbox": true, "pusher": true, "outbox": true, "fcm": true, "deepLink": "/orders/{id}", "e2eDeviceProof": "operator_required" },
+    "TYPING": { "inbox": false, "pusher": "user-typing_only", "outbox": false, "fcm": false }
+  },
+  "webPush": {
+    "implemented": true,
+    "requiresPublicFirebaseEnv": true,
+    "closedTabProof": "operator_required"
+  },
+  "outbox": {
+    "table": "NotificationPushOutbox",
+    "cron": "/api/cron/notification-outbox",
+    "replay": "/api/admin/notifications/outbox/replay"
+  }
+}

@@ -198,48 +198,145 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-// Push notifications
-self.addEventListener('push', (event) => {
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body,
-      icon: '/icon-192.png',
-      badge: '/favicon-48.png',
-      vibrate: [100, 50, 100],
-      data: {
-        dateOfArrival: Date.now(),
-        primaryKey: data.primaryKey
-      },
-      actions: [
-        {
-          action: 'explore',
-          title: 'Bekijk bericht',
-          icon: '/images/checkmark.png'
-        },
-        {
-          action: 'close',
-          title: 'Sluiten',
-          icon: '/images/xmark.png'
+/**
+ * Resolve deep-link path from push payload.
+ * Prefer route / actionUrl / link; never default to homepage.
+ */
+function resolvePushDeepLink(data) {
+  if (!data || typeof data !== 'object') return null;
+  const candidates = [data.route, data.actionUrl, data.link, data.path];
+  for (const raw of candidates) {
+    if (typeof raw !== 'string' || !raw.trim()) continue;
+    try {
+      if (raw.startsWith('/')) {
+        const pathOnly = raw.split('?')[0].split('#')[0];
+        if (
+          pathOnly.startsWith('/messages') ||
+          pathOnly.startsWith('/orders') ||
+          pathOnly.startsWith('/profile') ||
+          pathOnly.startsWith('/products') ||
+          pathOnly.startsWith('/product') ||
+          pathOnly.startsWith('/listings') ||
+          pathOnly.startsWith('/delivery') ||
+          pathOnly.startsWith('/deal-review') ||
+          pathOnly.startsWith('/delivery-review') ||
+          pathOnly.startsWith('/verkoper') ||
+          pathOnly.startsWith('/bezorger') ||
+          pathOnly.startsWith('/user') ||
+          pathOnly.startsWith('/notifications') ||
+          pathOnly.startsWith('/settings')
+        ) {
+          return raw.startsWith('/') ? raw : pathOnly;
         }
-      ]
-    };
-
-    event.waitUntil(
-      self.registration.showNotification(data.title, options)
-    );
+      }
+      const u = new URL(raw, self.location.origin);
+      if (u.origin === self.location.origin && u.pathname.startsWith('/')) {
+        return `${u.pathname}${u.search}`;
+      }
+    } catch {
+      /* ignore */
+    }
   }
+  const cid = data.conversationId;
+  if (typeof cid === 'string' && /^[a-zA-Z0-9_-]{6,}$/.test(cid)) {
+    return `/messages/${cid}/`;
+  }
+  const oid = data.orderId;
+  if (typeof oid === 'string' && /^[a-zA-Z0-9_-]{6,}$/.test(oid)) {
+    return `/orders/${oid}`;
+  }
+  return null;
+}
+
+// Push notifications (FCM web / Web Push payload)
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let payload = {};
+  try {
+    payload = event.data.json();
+  } catch {
+    try {
+      payload = { body: event.data.text(), title: 'HomeCheff' };
+    } catch {
+      return;
+    }
+  }
+
+  // FCM web often nests under notification + data
+  const nested = payload.data && typeof payload.data === 'object' ? payload.data : {};
+  const title =
+    (payload.notification && payload.notification.title) ||
+    payload.title ||
+    'HomeCheff';
+  const body =
+    (payload.notification && payload.notification.body) ||
+    payload.body ||
+    '';
+  const route = resolvePushDeepLink({ ...nested, ...payload });
+
+  const options = {
+    body,
+    icon: '/icon-192.png',
+    badge: '/favicon-48.png',
+    vibrate: [100, 50, 100],
+    tag: nested.conversationId || nested.orderId || nested.notificationType || 'homecheff',
+    renotify: true,
+    data: {
+      dateOfArrival: Date.now(),
+      route: route || null,
+      conversationId: nested.conversationId || payload.conversationId || null,
+      orderId: nested.orderId || payload.orderId || null,
+      type: nested.type || payload.type || null,
+      actionUrl: nested.actionUrl || route || null,
+    },
+    actions: [
+      {
+        action: 'open',
+        title: 'Openen',
+      },
+      {
+        action: 'close',
+        title: 'Sluiten',
+      },
+    ],
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Handle notification clicks
+// Handle notification clicks — open exact deep link when present
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  if (event.action === 'close') return;
 
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/messages')
-    );
+  const nd = event.notification.data || {};
+  const target =
+    resolvePushDeepLink(nd) ||
+    (typeof nd.route === 'string' ? nd.route : null) ||
+    (typeof nd.actionUrl === 'string' ? nd.actionUrl : null);
+
+  if (!target) {
+    // Destination missing: stay on messages hub, not homepage
+    event.waitUntil(clients.openWindow('/messages'));
+    return;
   }
+
+  const absolute = new URL(target, self.location.origin).href;
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client && client.url.startsWith(self.location.origin)) {
+          client.focus();
+          if ('navigate' in client) {
+            return client.navigate(absolute);
+          }
+          return clients.openWindow(absolute);
+        }
+      }
+      return clients.openWindow(absolute);
+    })
+  );
 });
 
 // Helper function for background sync

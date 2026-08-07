@@ -1,0 +1,33 @@
+OK: quiet hours suppress live channels without dropping send
+OK: inbox persistence path exists
+OK: proposal events have dedicated FCM payload builders
+OK: proposal FCM data type set
+OK: order/delivery FCM resolves route/actionUrl/link
+OK: FCM transient retry present
+OK: invalid token cleanup present
+OK: order channel id wired
+OK: chat channel id wired
+OK: payment failed / refund treated as order-like FCM
+OK: typing API only emits user-typing — never NotificationService/FCM
+OK: service worker deep-link resolver
+OK: SW click fallback is /messages not homepage
+OK: SW notificationclick handler
+OK: native deep link handles proposal type
+OK: native deep link reads actionUrl
+OK: Android POST_NOTIFICATIONS declared
+OK: Android channels use HIGH importance
+OK: Android lockscreen visibility set
+OK: Android channels created
+OK: token register + logout DELETE
+OK: native permission request path
+OK: in-app toast + sound on live events
+OK: CommsRealtimeListener never binds typing
+OK: server notification service references NEW_ORDER
+OK: server notification service references ORDER_
+OK: server notification service references PAYMENT_FAILED
+OK: server notification service references DELIVERY_
+OK: server notification service references PROPOSAL_RECEIVED
+OK: server notification service references PROPOSAL_ACCEPTED
+OK: server notification service references PROPOSAL_REJECTED
+
+HOMECHEFF_NOTIFICATION_PIPELINE_STATIC_OK

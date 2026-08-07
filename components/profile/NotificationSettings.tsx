@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Bell, Mail, Smartphone, MessageSquare, Clock, ToggleLeft, ToggleRight, Save, Loader2, HelpCircle, X } from 'lucide-react';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import NativePushManageSection from '@/components/native/NativePushManageSection';
+import { enableBrowserPush } from '@/components/notifications/WebPushRegistration';
+import { isFirebaseWebPushConfigured } from '@/lib/firebase/web-public-config';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
@@ -18,6 +20,8 @@ export default function NotificationSettings({ onUpdateSettings }: NotificationS
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [browserPushBusy, setBrowserPushBusy] = useState(false);
+  const [browserPushMsg, setBrowserPushMsg] = useState<string | null>(null);
 
   // Load settings from API
   useEffect(() => {
@@ -256,6 +260,34 @@ export default function NotificationSettings({ onUpdateSettings }: NotificationS
           <Smartphone className="w-5 h-5 text-gray-600" />
           <h3 className="text-lg font-medium text-gray-900">{t('notificationSettings.pushNotifications')}</h3>
         </div>
+        {!nativeMounted && isFirebaseWebPushConfigured() ? (
+          <div className="mb-4 rounded-lg border border-emerald-100 bg-emerald-50/60 p-3">
+            <p className="text-sm text-gray-700 mb-2">
+              Browser push (gesloten tab): meldingen via Firebase Web Messaging.
+            </p>
+            <button
+              type="button"
+              disabled={browserPushBusy}
+              className="rounded-md bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
+              onClick={async () => {
+                setBrowserPushBusy(true);
+                setBrowserPushMsg(null);
+                const r = await enableBrowserPush();
+                setBrowserPushBusy(false);
+                setBrowserPushMsg(
+                  r.ok
+                    ? 'Browser push ingeschakeld.'
+                    : `Kon browser push niet inschakelen (${r.reason || 'fout'}).`
+                );
+              }}
+            >
+              {browserPushBusy ? 'Bezig…' : 'Browser push inschakelen'}
+            </button>
+            {browserPushMsg ? (
+              <p className="mt-2 text-xs text-gray-600">{browserPushMsg}</p>
+            ) : null}
+          </div>
+        ) : null}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
