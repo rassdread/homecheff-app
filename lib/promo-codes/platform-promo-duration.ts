@@ -1,9 +1,5 @@
-/**
- * Platform Admin Promotions — duration & quote helpers (Prisma-free).
- *
- * Duration is measured in billing cycles (months for monthly plans).
- * null duration = legacy forever-discount behaviour (custom recurring price).
- */
+import type { PostPromotionAction } from '@/lib/promo-codes/post-promotion-action';
+import { normalizePostPromotionAction } from '@/lib/promo-codes/post-promotion-action';
 
 export function billingCyclesToDurationDays(cycles: number | null | undefined): number | null {
   if (cycles == null) return null;
@@ -24,12 +20,16 @@ export type PromoDurationQuote = {
   discountDurationCycles: number | null;
   /** Human label for UI (EN/NL callers may translate). */
   durationLabel: string | null;
-  /** After promotional cycles, list price resumes (when duration is set). */
+  /** After promotional cycles, list price resumes (CONTINUE + timed). */
   resumesAtListPrice: boolean;
+  /** After promotional cycles, subscription ends (END). */
+  endsAutomatically: boolean;
+  postPromotionAction: PostPromotionAction;
 };
 
 export function buildPromoDurationQuote(
   discountDurationCycles: number | null | undefined,
+  postPromotionAction?: unknown,
 ): PromoDurationQuote {
   const cycles =
     discountDurationCycles == null
@@ -37,10 +37,14 @@ export function buildPromoDurationQuote(
       : Math.round(Number(discountDurationCycles));
   const normalized =
     cycles != null && Number.isFinite(cycles) && cycles > 0 ? cycles : null;
+  const action = normalizePostPromotionAction(postPromotionAction);
+  const timed = normalized != null;
   return {
     discountDurationCycles: normalized,
     durationLabel: formatPromoDurationLabel(normalized),
-    resumesAtListPrice: normalized != null,
+    resumesAtListPrice: timed && action === 'CONTINUE',
+    endsAutomatically: timed && action === 'END',
+    postPromotionAction: action,
   };
 }
 

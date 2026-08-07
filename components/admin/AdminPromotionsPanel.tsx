@@ -10,6 +10,7 @@ type PromoRow = {
   status: string;
   discountSharePct: number;
   discountDurationCycles: number | null;
+  postPromotionAction?: string;
   appliesTo: string;
   isPlatform?: boolean;
   startsAt: string;
@@ -53,6 +54,9 @@ export default function AdminPromotionsPanel() {
   const [purpose, setPurpose] = useState<string>('launch');
   const [maxRedemptions, setMaxRedemptions] = useState<string>('');
   const [maxRedemptionsPerUser, setMaxRedemptionsPerUser] = useState<string>('1');
+  const [postPromotionAction, setPostPromotionAction] = useState<'CONTINUE' | 'END'>(
+    'CONTINUE',
+  );
   const [endsAt, setEndsAt] = useState('');
 
   const load = useCallback(async () => {
@@ -99,6 +103,7 @@ export default function AdminPromotionsPanel() {
               : Number(discountValue),
           discountDurationCycles:
             durationCycles === '' ? null : Number(durationCycles),
+          postPromotionAction,
           purpose,
           target: 'subscription',
           maxRedemptions: maxRedemptions.trim()
@@ -120,7 +125,7 @@ export default function AdminPromotionsPanel() {
           ? 'zolang actief'
           : `${durationCycles} maand${Number(durationCycles) === 1 ? '' : 'en'}`;
       setSuccess(
-        `Promotie ${data.promoCode.code} aangemaakt (${discountType === 'percent' ? `${discountValue}%` : `€${discountValue}`} · ${cyclesLabel})`,
+        `Promotie ${data.promoCode.code} aangemaakt (${discountType === 'percent' ? `${discountValue}%` : `€${discountValue}`} · ${cyclesLabel} · ${postPromotionAction === 'END' ? 'eindigt daarna' : 'gaat door betaald'})`,
       );
       setCode('');
       setName('');
@@ -334,6 +339,43 @@ export default function AdminPromotionsPanel() {
               How often one account may redeem this code.
             </span>
           </label>
+          <label className="block text-sm sm:col-span-2">
+            <span className="font-medium text-gray-700">After promotion</span>
+            <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <label className="flex items-start gap-2 text-sm text-gray-800">
+                <input
+                  type="radio"
+                  name="postPromotionAction"
+                  checked={postPromotionAction === 'CONTINUE'}
+                  onChange={() => setPostPromotionAction('CONTINUE')}
+                  className="mt-1"
+                />
+                <span>
+                  <strong>Continue paid subscription</strong>
+                  <span className="block text-xs text-gray-500">
+                    After the promo months, billing continues at the normal plan
+                    price (customer must agree before activation).
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-start gap-2 text-sm text-gray-800">
+                <input
+                  type="radio"
+                  name="postPromotionAction"
+                  checked={postPromotionAction === 'END'}
+                  onChange={() => setPostPromotionAction('END')}
+                  className="mt-1"
+                />
+                <span>
+                  <strong>End subscription automatically</strong>
+                  <span className="block text-xs text-gray-500">
+                    After the promo months, access ends. No further payment. User
+                    can subscribe again later.
+                  </span>
+                </span>
+              </label>
+            </div>
+          </label>
           <label className="block text-sm">
             <span className="font-medium text-gray-700">Ends (optional)</span>
             <input
@@ -364,6 +406,7 @@ export default function AdminPromotionsPanel() {
               <th className="px-3 py-2">Code</th>
               <th className="px-3 py-2">Discount</th>
               <th className="px-3 py-2">Duration</th>
+              <th className="px-3 py-2">After</th>
               <th className="px-3 py-2">Usage</th>
               <th className="px-3 py-2">Per user</th>
               <th className="px-3 py-2">Status</th>
@@ -373,13 +416,13 @@ export default function AdminPromotionsPanel() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-gray-500">
+                <td colSpan={8} className="px-3 py-6 text-center text-gray-500">
                   Laden…
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-gray-500">
+                <td colSpan={8} className="px-3 py-6 text-center text-gray-500">
                   Nog geen platform-promoties.
                 </td>
               </tr>
@@ -408,6 +451,11 @@ export default function AdminPromotionsPanel() {
                     {row.discountDurationCycles != null
                       ? `${row.discountDurationCycles} mo`
                       : 'Forever'}
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    {(row.postPromotionAction || 'CONTINUE') === 'END'
+                      ? 'End auto'
+                      : 'Continue paid'}
                   </td>
                   <td className="px-3 py-2">
                     {row.redemptionCount}

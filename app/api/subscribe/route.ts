@@ -289,8 +289,25 @@ export async function POST(req: NextRequest) {
       attributionId = await resolveSubscriptionAttributionId(userId);
     }
 
-    // 100% / €0 — reserve redemption atomically, then internal entitlement (no Stripe).
-    if (finalPriceCents <= 0) {
+    const postPromotionAction =
+      resolvedPromo?.valid
+        ? resolvedPromo.promo.postPromotionAction
+        : 'CONTINUE';
+    const durationCyclesForLifecycle =
+      resolvedPromo?.valid ? resolvedPromo.promo.discountDurationCycles : null;
+
+    // 100% / €0 with END (or untimed): internal entitlement — no Stripe, ends after promo.
+    // CONTINUE + timed 100%: Stripe checkout with trial so paid billing can resume with consent.
+    const useFreeEntitlement =
+      finalPriceCents <= 0 &&
+      !(
+        isPlatformPromo &&
+        postPromotionAction === 'CONTINUE' &&
+        durationCyclesForLifecycle != null &&
+        durationCyclesForLifecycle > 0
+      );
+
+    if (useFreeEntitlement) {
       let redemptionId: string | null = null;
       if (promoCodeId && resolvedPromo?.valid) {
         const reserved = await reservePromoRedemption({
@@ -301,6 +318,7 @@ export async function POST(req: NextRequest) {
           initialStatus: 'RESERVED',
           discountSharePct: resolvedPromo.promo.discountSharePct,
           discountDurationCycles: resolvedPromo.promo.discountDurationCycles,
+          postPromotionAction,
           basePriceCents,
           finalPriceCents: 0,
         });
@@ -344,13 +362,18 @@ export async function POST(req: NextRequest) {
           discountDurationCycles: resolvedPromo?.valid
             ? resolvedPromo.promo.discountDurationCycles
             : null,
+          postPromotionAction,
+          endsAutomatically: postPromotionAction === 'END',
           basePriceCents,
           discountCents: basePriceCents,
           finalPriceCents: 0,
           currency: 'eur',
           businessSubscriptionId: free.businessSubscriptionId,
           redemptionId,
-          message: `Abonnement ${free.planName} geactiveerd met 100% korting (geen betaling).`,
+          message:
+            postPromotionAction === 'END'
+              ? `Abonnement ${free.planName} geactiveerd met 100% korting. Eindigt automatisch na de promotieperiode (geen betaling).`
+              : `Abonnement ${free.planName} geactiveerd met 100% korting (geen betaling).`,
         });
       } catch (err) {
         if (redemptionId) {
@@ -364,10 +387,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Stripe is niet geconfigureerd" }, { status: 500 });
     }
 
+    // CONTINUE + 100% timed: catalog price with trial covering the promo window.
+    let trialPeriodDays: number | undefined;
+    if (
+      finalPriceCents <= 0 &&
+      isPlatformPromo &&
+      postPromotionAction === 'CONTINUE' &&
+      durationCyclesForLifecycle != null &&
+      durationCyclesForLifecycle > 0
+    ) {
+      const { billingCyclesToDurationDays } = await import(
+        '@/lib/promo-codes/platform-promo-duration'
+      );
+      trialPeriodDays =
+        billingCyclesToDurationDays(durationCyclesForLifecycle) ?? undefined;
+      // Checkout uses list price; trial makes first period free with consent for later billing.
+      discountCents = 0;
+      finalPriceCents = basePriceCents;
+    }
+
     if (discountCents > 0) {
-      const durationCycles = resolvedPromo?.valid
-        ? resolvedPromo.promo.discountDurationCycles
-        : null;
+      const durationCycles = durationCyclesForLifecycle;
       const isTimedPlatform =
         isPlatformPromo &&
         durationCycles != null &&
@@ -376,8 +416,7 @@ export async function POST(req: NextRequest) {
 
       try {
         if (isTimedPlatform && resolvedPromo?.valid) {
-          // Temporary platform discount: catalog price + repeating Stripe coupon,
-          // then list price resumes automatically after N billing cycles.
+          // Temporary platform discount: catalog price + repeating Stripe coupon.
           const pct =
             basePriceCents > 0
               ? Math.min(
@@ -400,6 +439,7 @@ export async function POST(req: NextRequest) {
               promo_code_id: promoCodeId ?? '',
               platform_promo: '1',
               discount_duration_cycles: String(durationCycles),
+              post_promotion_action: postPromotionAction,
               base_price_cents: String(basePriceCents),
               final_price_cents: String(finalPriceCents),
             },
@@ -426,6 +466,7 @@ export async function POST(req: NextRequest) {
               promo_code_id: promoCodeId ?? '',
               discount_cents: discountCents.toString(),
               platform_promo: isPlatformPromo ? '1' : '0',
+              post_promotion_action: postPromotionAction,
               base_price_cents: basePriceCents.toString(),
               final_price_cents: finalPriceCents.toString(),
             },
@@ -459,6 +500,7 @@ export async function POST(req: NextRequest) {
         initialStatus: 'RESERVED',
         discountSharePct: resolvedPromo.promo.discountSharePct,
         discountDurationCycles: resolvedPromo.promo.discountDurationCycles,
+        postPromotionAction,
         basePriceCents,
         finalPriceCents,
       });
@@ -477,11 +519,41 @@ export async function POST(req: NextRequest) {
       base_price_cents: basePriceCents.toString(),
       final_price_cents: finalPriceCents.toString(),
       discount_cents: discountCents.toString(),
+      post_promotion_action: postPromotionAction,
     };
 
     if (promoCodeId) sessionMetadata.promo_code_id = promoCodeId;
     if (attributionId) sessionMetadata.attribution_id = attributionId;
     if (paidRedemptionId) sessionMetadata.promo_redemption_id = paidRedemptionId;
+    if (durationCyclesForLifecycle != null) {
+      sessionMetadata.discount_duration_cycles = String(durationCyclesForLifecycle);
+    }
+
+    const subscriptionData: Record<string, unknown> = {
+      metadata: {
+        plan: planKey,
+        userId,
+        promo_code_id: promoCodeId ?? '',
+        post_promotion_action: postPromotionAction,
+      },
+    };
+    if (trialPeriodDays != null && trialPeriodDays > 0) {
+      subscriptionData.trial_period_days = trialPeriodDays;
+    }
+    // END + timed: schedule cancel after promotional window (approx cycles × 30d).
+    if (
+      postPromotionAction === 'END' &&
+      durationCyclesForLifecycle != null &&
+      durationCyclesForLifecycle > 0
+    ) {
+      const { billingCyclesToDurationDays } = await import(
+        '@/lib/promo-codes/platform-promo-duration'
+      );
+      const days = billingCyclesToDurationDays(durationCyclesForLifecycle) ?? 0;
+      if (days > 0) {
+        subscriptionData.cancel_at = Math.floor(Date.now() / 1000) + days * 24 * 60 * 60;
+      }
+    }
 
     let session;
     try {
@@ -492,6 +564,7 @@ export async function POST(req: NextRequest) {
         success_url: `${baseUrl}/sell?success=1&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}/sell?canceled=1`,
         metadata: sessionMetadata,
+        subscription_data: subscriptionData,
       });
     } catch (err) {
       if (paidRedemptionId) {
@@ -513,13 +586,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       url: session.url,
-      hasDiscount: discountCents > 0,
+      hasDiscount: discountCents > 0 || (trialPeriodDays != null && trialPeriodDays > 0),
       basePriceCents,
       discountCents,
-      finalPriceCents,
-      discountDurationCycles: resolvedPromo?.valid
-        ? resolvedPromo.promo.discountDurationCycles
-        : null,
+      finalPriceCents: trialPeriodDays ? 0 : finalPriceCents,
+      discountDurationCycles: durationCyclesForLifecycle,
+      postPromotionAction,
+      endsAutomatically: postPromotionAction === 'END',
+      trialPeriodDays: trialPeriodDays ?? null,
       currency: 'eur',
       redemptionId: paidRedemptionId,
     });

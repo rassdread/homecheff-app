@@ -20,6 +20,7 @@ export type ReservePromoRedemptionInput = {
   initialStatus?: PromoRedemptionStatus;
   discountSharePct: number;
   discountDurationCycles: number | null;
+  postPromotionAction?: string | null;
   basePriceCents: number;
   finalPriceCents: number;
   businessSubscriptionId?: string | null;
@@ -54,6 +55,7 @@ type LockedPromoRow = {
   maxRedemptions: number | null;
   maxRedemptionsPerUser: number | null;
   redemptionCount: number;
+  postPromotionAction: string | null;
 };
 
 export async function countUserActiveRedemptions(
@@ -81,7 +83,7 @@ export async function reservePromoRedemption(
       // Row lock — serializes concurrent subscribe double-clicks.
       const locked = await tx.$queryRaw<LockedPromoRow[]>`
         SELECT id, status, "startsAt", "endsAt", "maxRedemptions",
-               "maxRedemptionsPerUser", "redemptionCount"
+               "maxRedemptionsPerUser", "redemptionCount", "postPromotionAction"
         FROM "PromoCode"
         WHERE id = ${input.promoCodeId}
         FOR UPDATE
@@ -156,6 +158,13 @@ export async function reservePromoRedemption(
         };
       }
 
+      const { normalizePostPromotionAction } = await import(
+        '@/lib/promo-codes/post-promotion-action'
+      );
+      const postPromotionAction = normalizePostPromotionAction(
+        input.postPromotionAction ?? promo.postPromotionAction,
+      );
+
       const redemption = await tx.promoCodeRedemption.create({
         data: {
           promoCodeId: promo.id,
@@ -166,6 +175,7 @@ export async function reservePromoRedemption(
           status: initialStatus,
           discountSharePct: input.discountSharePct,
           discountDurationCycles: input.discountDurationCycles,
+          postPromotionAction,
           basePriceCents: input.basePriceCents,
           finalPriceCents: input.finalPriceCents,
           stripeCheckoutSessionId: input.stripeCheckoutSessionId ?? null,

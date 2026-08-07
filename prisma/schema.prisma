@@ -281,6 +281,12 @@ model PromoCode {
    * Platform promos should set this for temporary campaigns (e.g. 3 = first 3 months).
    */
   discountDurationCycles Int?
+  /**
+   * After the promotional period:
+   * CONTINUE = resume normal paid subscription (default)
+   * END = close entitlement/subscription; no further charge
+   */
+  postPromotionAction   String                 @default("CONTINUE")
   /** Optional per-user redemption cap (platform promos). */
   maxRedemptionsPerUser Int?
   /** Admin user id that created a platform promo (audit). */
@@ -326,6 +332,8 @@ model PromoCodeRedemption {
   status                  String    @default("RESERVED")
   discountSharePct        Int       @default(0)
   discountDurationCycles  Int?
+  /** Snapshot: CONTINUE | END at redemption time */
+  postPromotionAction     String    @default("CONTINUE")
   basePriceCents          Int
   finalPriceCents         Int
   stripeCheckoutSessionId String?   @unique

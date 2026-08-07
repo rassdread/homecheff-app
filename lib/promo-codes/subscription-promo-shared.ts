@@ -16,8 +16,11 @@ export type PromoPricingQuote = {
   isPlatform: boolean;
   /** Billing cycles the promo price applies (platform). null = forever / legacy. */
   discountDurationCycles: number | null;
-  /** After promo cycles, list price resumes when duration is set. */
+  /** After promo cycles, list price resumes (CONTINUE). */
   resumesAtListPrice: boolean;
+  /** After promo cycles, subscription ends (END). */
+  endsAutomatically?: boolean;
+  postPromotionAction?: 'CONTINUE' | 'END';
 };
 
 /** Reject client-forged discount payloads — only a code string is accepted. */

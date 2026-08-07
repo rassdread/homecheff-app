@@ -44,6 +44,8 @@ export type ResolvedSubscriptionPromo = {
     endsAt: Date | null;
     discountDurationCycles: number | null;
     resumesAtListPrice: boolean;
+    endsAutomatically: boolean;
+    postPromotionAction: 'CONTINUE' | 'END';
     durationLabel: string | null;
   };
   quotes: Record<SubscriptionPlanKey, PromoPricingQuote>;
@@ -170,6 +172,7 @@ export async function resolveSubscriptionPromo(
     const fixedDiscountCents = parsePlatformFixedCents(promoCode.appliesTo);
     const duration = buildPromoDurationQuote(
       (promoCode as { discountDurationCycles?: number | null }).discountDurationCycles,
+      (promoCode as { postPromotionAction?: string | null }).postPromotionAction,
     );
     const bases = await loadPlanBasePrices();
     const quotes = {} as Record<SubscriptionPlanKey, PromoPricingQuote>;
@@ -192,6 +195,8 @@ export async function resolveSubscriptionPromo(
         isPlatform: pricing.isPlatform,
         discountDurationCycles: duration.discountDurationCycles,
         resumesAtListPrice: duration.resumesAtListPrice,
+        endsAutomatically: duration.endsAutomatically,
+        postPromotionAction: duration.postPromotionAction,
       };
     }
 
@@ -215,6 +220,8 @@ export async function resolveSubscriptionPromo(
         endsAt: promoCode.endsAt,
         discountDurationCycles: duration.discountDurationCycles,
         resumesAtListPrice: duration.resumesAtListPrice,
+        endsAutomatically: duration.endsAutomatically,
+        postPromotionAction: duration.postPromotionAction,
         durationLabel: duration.durationLabel,
       },
       quotes,

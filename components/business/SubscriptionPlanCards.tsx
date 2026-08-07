@@ -24,6 +24,8 @@ export type ServerPromoQuote = {
   currency: 'eur';
   discountDurationCycles?: number | null;
   resumesAtListPrice?: boolean;
+  endsAutomatically?: boolean;
+  postPromotionAction?: 'CONTINUE' | 'END';
 };
 
 type Props = {
@@ -118,10 +120,16 @@ export default function SubscriptionPlanCards({
                       Eerste {quote!.discountDurationCycles}{' '}
                       {quote!.discountDurationCycles === 1 ? 'maand' : 'maanden'}:{' '}
                       <strong>{isFree ? '€0' : formatEuroFromCents(quote!.finalPriceCents)}</strong>
-                      {quote!.resumesAtListPrice !== false ? (
+                      {quote!.endsAutomatically || quote!.postPromotionAction === 'END' ? (
                         <>
                           <br />
-                          Daarna: {formatEuroFromCents(quote!.basePriceCents)} / maand
+                          Daarna eindigt het abonnement automatisch. Geen betaling.
+                        </>
+                      ) : quote!.resumesAtListPrice !== false ? (
+                        <>
+                          <br />
+                          Daarna: {formatEuroFromCents(quote!.basePriceCents)} / maand tot je
+                          opzegt.
                         </>
                       ) : null}
                     </p>

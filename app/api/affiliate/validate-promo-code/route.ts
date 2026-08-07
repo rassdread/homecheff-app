@@ -50,6 +50,8 @@ export async function POST(req: NextRequest) {
         isSubAffiliate: resolved.promo.isSubAffiliate,
         discountDurationCycles: resolved.promo.discountDurationCycles,
         resumesAtListPrice: resolved.promo.resumesAtListPrice,
+        endsAutomatically: resolved.promo.endsAutomatically,
+        postPromotionAction: resolved.promo.postPromotionAction,
         durationLabel: resolved.promo.durationLabel,
       },
       quotes: resolved.quotes,

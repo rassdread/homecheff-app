@@ -10,6 +10,7 @@ import {
 } from '@/lib/promo-codes/discount-policy';
 import { createAdminCoupon } from '@/lib/promo-codes/coupon-service';
 import { parseDiscountDurationCycles } from '@/lib/promo-codes/platform-promo-duration';
+import { parsePostPromotionAction } from '@/lib/promo-codes/post-promotion-action';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,7 @@ function mapPromoRow(p: {
   status: string;
   discountSharePct: number;
   discountDurationCycles: number | null;
+  postPromotionAction: string;
   maxRedemptionsPerUser: number | null;
   createdByAdminId: string | null;
   startsAt: Date;
@@ -51,6 +53,7 @@ function mapPromoRow(p: {
     status: p.status,
     discountSharePct: p.discountSharePct,
     discountDurationCycles: p.discountDurationCycles,
+    postPromotionAction: p.postPromotionAction || 'CONTINUE',
     maxRedemptionsPerUser: p.maxRedemptionsPerUser,
     createdByAdminId: p.createdByAdminId,
     startsAt: p.startsAt,
@@ -141,6 +144,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: durationParsed.error }, { status: 400 });
   }
 
+  const postActionParsed = parsePostPromotionAction(body.postPromotionAction);
+  if (!postActionParsed.ok) {
+    return NextResponse.json({ error: postActionParsed.error }, { status: 400 });
+  }
+
   if (!codeRaw.trim()) {
     return NextResponse.json({ error: 'Code is required' }, { status: 400 });
   }
@@ -218,6 +226,7 @@ export async function POST(req: NextRequest) {
       discountSharePct:
         discountType === 'percent' ? Math.round(discountValue) : 0,
       discountDurationCycles: durationParsed.value,
+      postPromotionAction: postActionParsed.value,
       maxRedemptionsPerUser:
         body.maxRedemptionsPerUser != null
           ? Number(body.maxRedemptionsPerUser)
@@ -249,6 +258,7 @@ export async function POST(req: NextRequest) {
       discountType,
       discountValue,
       discountDurationCycles: durationParsed.value,
+      postPromotionAction: postActionParsed.value,
       purpose,
       appliesTo,
       target: 'subscription',

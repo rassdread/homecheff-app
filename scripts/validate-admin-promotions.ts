@@ -26,6 +26,11 @@ import {
   simulateConcurrentRedemptions,
 } from '../lib/promo-codes/redemption-limits';
 import {
+  parsePostPromotionAction,
+  postPromotionBehaviourCopy,
+} from '../lib/promo-codes/post-promotion-action';
+import { planPromoLifecycle } from '../lib/promo-codes/post-promotion-lifecycle';
+import {
   MAIN_AFFILIATE_MAX_DISCOUNT_PCT,
   SUB_AFFILIATE_MAX_DISCOUNT_PCT,
 } from '../lib/affiliate-config';
@@ -61,8 +66,68 @@ assert.equal(billingCyclesToDurationDays(null), null);
 const d3 = buildPromoDurationQuote(3);
 assert.equal(d3.discountDurationCycles, 3);
 assert.equal(d3.resumesAtListPrice, true);
+assert.equal(d3.endsAutomatically, false);
+assert.equal(d3.postPromotionAction, 'CONTINUE');
 assert.equal(buildPromoDurationQuote(null).resumesAtListPrice, false);
+const d3end = buildPromoDurationQuote(3, 'END');
+assert.equal(d3end.resumesAtListPrice, false);
+assert.equal(d3end.endsAutomatically, true);
 ok('duration quote helpers');
+
+section('Post-promotion CONTINUE vs END');
+{
+  const def = parsePostPromotionAction(undefined);
+  assert.equal(def.ok, true);
+  if (def.ok) assert.equal(def.value, 'CONTINUE');
+  const endParsed = parsePostPromotionAction('END');
+  assert.equal(endParsed.ok, true);
+  if (endParsed.ok) assert.equal(endParsed.value, 'END');
+  assert.equal(parsePostPromotionAction('nope').ok, false);
+  const cont = planPromoLifecycle({
+    finalPriceCents: 0,
+    isPlatform: true,
+    discountDurationCycles: 3,
+    postPromotionAction: 'CONTINUE',
+  });
+  assert.equal(cont.useStripeTrialThenPaid, true);
+  assert.equal(cont.useFreeEntitlement, false);
+  const end = planPromoLifecycle({
+    finalPriceCents: 0,
+    isPlatform: true,
+    discountDurationCycles: 3,
+    postPromotionAction: 'END',
+  });
+  assert.equal(end.useFreeEntitlement, true);
+  assert.equal(end.useStripeTrialThenPaid, false);
+  const paidCont = planPromoLifecycle({
+    finalPriceCents: 9950,
+    isPlatform: true,
+    discountDurationCycles: 6,
+    postPromotionAction: 'CONTINUE',
+  });
+  assert.equal(paidCont.useRepeatingCouponThenPaid, true);
+  assert.equal(paidCont.scheduleCancelAtPromoEnd, false);
+  const paidEnd = planPromoLifecycle({
+    finalPriceCents: 9950,
+    isPlatform: true,
+    discountDurationCycles: 6,
+    postPromotionAction: 'END',
+  });
+  assert.equal(paidEnd.scheduleCancelAtPromoEnd, true);
+  const copyCont = postPromotionBehaviourCopy({
+    action: 'CONTINUE',
+    basePriceCents: PREMIUM,
+    discountDurationCycles: 3,
+  });
+  assert.ok(copyCont.afterLabelNl.includes('199'));
+  const copyEnd = postPromotionBehaviourCopy({
+    action: 'END',
+    basePriceCents: PREMIUM,
+    discountDurationCycles: 6,
+  });
+  assert.ok(copyEnd.endsAutomatically);
+  ok('100% 3m CONTINUE/END + 50% 6m CONTINUE lifecycle plans');
+}
 
 section('100% × 1 / 3 months');
 for (const cycles of [1, 3] as const) {
