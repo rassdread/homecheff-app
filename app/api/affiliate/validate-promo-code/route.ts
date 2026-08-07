@@ -29,12 +29,16 @@ export async function POST(req: NextRequest) {
       promoCode: {
         id: resolved.promo.id,
         code: resolved.promo.code,
+        name: resolved.promo.name,
         discountSharePct: resolved.promo.discountSharePct,
         hasL2: resolved.promo.hasL2,
         isPlatform: resolved.promo.isPlatform,
         discountMode: resolved.promo.discountMode,
         fixedDiscountCents: resolved.promo.fixedDiscountCents,
         isSubAffiliate: resolved.promo.isSubAffiliate,
+        discountDurationCycles: resolved.promo.discountDurationCycles,
+        resumesAtListPrice: resolved.promo.resumesAtListPrice,
+        durationLabel: resolved.promo.durationLabel,
       },
       quotes: resolved.quotes,
       // Explicit: clients must not send discount amounts — only the code.

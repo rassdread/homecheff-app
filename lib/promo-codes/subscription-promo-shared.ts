@@ -14,6 +14,10 @@ export type PromoPricingQuote = {
   currency: 'eur';
   mode: 'platform_percent' | 'platform_fixed' | 'affiliate_commission_share';
   isPlatform: boolean;
+  /** Billing cycles the promo price applies (platform). null = forever / legacy. */
+  discountDurationCycles: number | null;
+  /** After promo cycles, list price resumes when duration is set. */
+  resumesAtListPrice: boolean;
 };
 
 /** Reject client-forged discount payloads — only a code string is accepted. */

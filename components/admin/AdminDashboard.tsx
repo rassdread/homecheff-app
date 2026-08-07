@@ -30,6 +30,7 @@ import DisputeResolution from './DisputeResolution';
 import PlatformSettings from './PlatformSettings';
 import AuditLog from './AuditLog';
 import AffiliateManagement from './AffiliateManagement';
+import AdminPromotionsPanel from './AdminPromotionsPanel';
 import FinancialAlerts from './FinancialAlerts';
 import MigrateOrdersButton from './MigrateOrdersButton';
 import VariabelenOverview from './VariabelenOverview';
@@ -243,11 +244,11 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
   
   const allowedTabs = useMemo(() => {
     let tabs = isSuperAdmin
-      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates']
+      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'promotions']
       : isAdmin && adminRoles.length > 0
         ? getUserAllowedTabs(adminRoles)
         : isAdmin
-          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates']
+          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates', 'promotions']
           : [];
 
     if (permissions && !isSuperAdmin) {
@@ -574,6 +575,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         {activeTab === 'notifications' && <NotificationCenter />}
         {activeTab === 'admin-management' && <AdminManagement />}
         {activeTab === 'affiliates' && <AffiliateManagement />}
+        {activeTab === 'promotions' && <AdminPromotionsPanel />}
     </>
   );
 

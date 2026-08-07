@@ -14,12 +14,16 @@ export async function activateFreeSubscriptionEntitlement(params: {
   attributionId: string | null;
   basePriceCents: number;
   finalPriceCents: number;
+  /** Free entitlement window in days (defaults to plan durationDays). */
   durationDays?: number;
+  /** Prefer billing-cycle duration from platform promo when set. */
+  discountDurationCycles?: number | null;
 }): Promise<{
   ok: true;
   planName: string;
   validUntil: Date;
   businessSubscriptionId: string;
+  promoPeriodEndsAt: Date;
 }> {
   const planName = normalizeSubscriptionName(params.planKey);
   const dbSubscription =
@@ -35,7 +39,12 @@ export async function activateFreeSubscriptionEntitlement(params: {
   }
 
   const now = new Date();
-  const durationDays = params.durationDays ?? dbSubscription.durationDays ?? 365;
+  const { billingCyclesToDurationDays } = await import(
+    '@/lib/promo-codes/platform-promo-duration'
+  );
+  const fromCycles = billingCyclesToDurationDays(params.discountDurationCycles);
+  const durationDays =
+    fromCycles ?? params.durationDays ?? dbSubscription.durationDays ?? 365;
   const validUntil = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
   const endsAt = new Date(now.getTime() + ATTRIBUTION_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
@@ -96,5 +105,5 @@ export async function activateFreeSubscriptionEntitlement(params: {
     });
   }
 
-  return { ok: true, planName, validUntil, businessSubscriptionId };
+  return { ok: true, planName, validUntil, businessSubscriptionId, promoPeriodEndsAt: validUntil };
 }

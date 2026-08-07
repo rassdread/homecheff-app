@@ -384,7 +384,7 @@ function SellPageContent({
       {/* Promo Code Input — server validates; quotes drive plan card prices */}
       <div className="mb-8 max-w-md mx-auto">
         <label htmlFor="promo-code" className="block text-sm font-medium text-gray-700 mb-2">
-          Heb je een kortingscode?
+          Heb je een promocode?
         </label>
         <div className="flex flex-wrap gap-2">
           <input
@@ -438,7 +438,8 @@ function SellPageContent({
         )}
         {promoCodeValid === true && (
           <p className="mt-1 text-sm text-green-600">
-            Code geaccepteerd — prijzen hieronder zijn server-berekend.
+            Code geaccepteerd — originele prijs, korting, duur en actuele prijs
+            staan bij de plannen (server-berekend).
           </p>
         )}
       </div>

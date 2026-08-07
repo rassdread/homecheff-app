@@ -22,6 +22,8 @@ export type ServerPromoQuote = {
   discountCents: number;
   finalPriceCents: number;
   currency: 'eur';
+  discountDurationCycles?: number | null;
+  resumesAtListPrice?: boolean;
 };
 
 type Props = {
@@ -111,6 +113,19 @@ export default function SubscriptionPlanCards({
                     {t('business.dna.perMonth')}
                     {isFree ? ' · 100% korting' : ` · −${formatEuroFromCents(quote!.discountCents)}`}
                   </p>
+                  {quote!.discountDurationCycles != null && quote!.discountDurationCycles > 0 ? (
+                    <p className="mt-2 text-xs text-gray-700">
+                      Eerste {quote!.discountDurationCycles}{' '}
+                      {quote!.discountDurationCycles === 1 ? 'maand' : 'maanden'}:{' '}
+                      <strong>{isFree ? '€0' : formatEuroFromCents(quote!.finalPriceCents)}</strong>
+                      {quote!.resumesAtListPrice !== false ? (
+                        <>
+                          <br />
+                          Daarna: {formatEuroFromCents(quote!.basePriceCents)} / maand
+                        </>
+                      ) : null}
+                    </p>
+                  ) : null}
                 </div>
               ) : (
                 <>

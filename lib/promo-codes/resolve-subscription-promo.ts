@@ -16,6 +16,7 @@ import {
   type PromoPricingQuote,
   type SubscriptionPlanKey,
 } from '@/lib/promo-codes/subscription-promo-shared';
+import { buildPromoDurationQuote } from '@/lib/promo-codes/platform-promo-duration';
 
 export type { PromoPricingQuote, SubscriptionPlanKey };
 export {
@@ -29,6 +30,7 @@ export type ResolvedSubscriptionPromo = {
   promo: {
     id: string;
     code: string;
+    name: string | null;
     discountSharePct: number;
     affiliateId: string | null;
     appliesTo: string;
@@ -40,6 +42,9 @@ export type ResolvedSubscriptionPromo = {
     maxRedemptions: number | null;
     redemptionCount: number;
     endsAt: Date | null;
+    discountDurationCycles: number | null;
+    resumesAtListPrice: boolean;
+    durationLabel: string | null;
   };
   quotes: Record<SubscriptionPlanKey, PromoPricingQuote>;
 };
@@ -126,6 +131,9 @@ export async function resolveSubscriptionPromo(
 
     const isSubAffiliate = !!promoCode.affiliate?.parentAffiliateId;
     const fixedDiscountCents = parsePlatformFixedCents(promoCode.appliesTo);
+    const duration = buildPromoDurationQuote(
+      (promoCode as { discountDurationCycles?: number | null }).discountDurationCycles,
+    );
     const bases = await loadPlanBasePrices();
     const quotes = {} as Record<SubscriptionPlanKey, PromoPricingQuote>;
 
@@ -145,6 +153,8 @@ export async function resolveSubscriptionPromo(
         currency: 'eur',
         mode: pricing.mode,
         isPlatform: pricing.isPlatform,
+        discountDurationCycles: duration.discountDurationCycles,
+        resumesAtListPrice: duration.resumesAtListPrice,
       };
     }
 
@@ -154,6 +164,7 @@ export async function resolveSubscriptionPromo(
       promo: {
         id: promoCode.id,
         code: promoCode.code,
+        name: (promoCode as { name?: string | null }).name ?? null,
         discountSharePct: promoCode.discountSharePct,
         affiliateId: promoCode.affiliateId,
         appliesTo: promoCode.appliesTo,
@@ -165,6 +176,9 @@ export async function resolveSubscriptionPromo(
         maxRedemptions: promoCode.maxRedemptions,
         redemptionCount: promoCode.redemptionCount,
         endsAt: promoCode.endsAt,
+        discountDurationCycles: duration.discountDurationCycles,
+        resumesAtListPrice: duration.resumesAtListPrice,
+        durationLabel: duration.durationLabel,
       },
       quotes,
     };

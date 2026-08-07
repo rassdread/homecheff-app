@@ -9,7 +9,7 @@ export const ADMIN_ROLE_TAB_MAPPING: Record<string, string[]> = {
   'content_moderator': ['moderation'],
   'user_support': ['messages', 'notifications'],
   'financial_viewer': ['analytics', 'variabelen', 'orders'],
-  'system_admin': ['users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'variabelen', 'moderation', 'notifications', 'admin-management']
+  'system_admin': ['users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'variabelen', 'moderation', 'notifications', 'admin-management', 'affiliates', 'promotions']
 };
 
 export const ADMIN_ROLE_WIDGET_MAPPING: Record<string, string[]> = {

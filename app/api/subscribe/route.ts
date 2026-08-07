@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
     let discountCents = 0;
     let customPriceId: string | null = null;
     let isPlatformPromo = false;
+    let checkoutDiscounts: Array<{ coupon: string }> | undefined;
 
     if (resolvedPromo?.valid) {
       const quote = resolvedPromo.quotes[planKey];
@@ -289,6 +290,9 @@ export async function POST(req: NextRequest) {
         basePriceCents,
         finalPriceCents: 0,
         durationDays: dbSubscription.durationDays,
+        discountDurationCycles: resolvedPromo?.valid
+          ? resolvedPromo.promo.discountDurationCycles
+          : null,
       });
 
       return NextResponse.json({
@@ -297,6 +301,10 @@ export async function POST(req: NextRequest) {
         plan: planKey,
         planName: free.planName,
         validUntil: free.validUntil.toISOString(),
+        promoPeriodEndsAt: free.promoPeriodEndsAt.toISOString(),
+        discountDurationCycles: resolvedPromo?.valid
+          ? resolvedPromo.promo.discountDurationCycles
+          : null,
         basePriceCents,
         discountCents: basePriceCents,
         finalPriceCents: 0,
@@ -311,32 +319,75 @@ export async function POST(req: NextRequest) {
     }
 
     if (discountCents > 0) {
-      try {
-        const catalogPrice = await stripe.prices.retrieve(priceId);
-        const interval =
-          catalogPrice.recurring?.interval === 'month' ||
-          catalogPrice.recurring?.interval === 'year'
-            ? catalogPrice.recurring.interval
-            : 'month';
-        const intervalCount = catalogPrice.recurring?.interval_count ?? 1;
+      const durationCycles = resolvedPromo?.valid
+        ? resolvedPromo.promo.discountDurationCycles
+        : null;
+      const isTimedPlatform =
+        isPlatformPromo &&
+        durationCycles != null &&
+        durationCycles > 0 &&
+        resolvedPromo?.valid;
 
-        const customPrice = await stripe.prices.create({
-          unit_amount: finalPriceCents,
-          currency: 'eur',
-          recurring: { interval, interval_count: intervalCount },
-          product: catalogPrice.product as string,
-          metadata: {
-            original_price_id: priceId,
-            promo_code_id: promoCodeId ?? '',
-            discount_cents: discountCents.toString(),
-            platform_promo: isPlatformPromo ? '1' : '0',
-            base_price_cents: basePriceCents.toString(),
-            final_price_cents: finalPriceCents.toString(),
-          },
-        });
-        customPriceId = customPrice.id;
+      try {
+        if (isTimedPlatform && resolvedPromo?.valid) {
+          // Temporary platform discount: catalog price + repeating Stripe coupon,
+          // then list price resumes automatically after N billing cycles.
+          const pct =
+            basePriceCents > 0
+              ? Math.min(
+                  100,
+                  Math.round((discountCents / basePriceCents) * 100),
+                )
+              : 0;
+          if (pct <= 0) {
+            return NextResponse.json(
+              { error: 'Ongeldige korting voor tijdelijke promotie' },
+              { status: 400 },
+            );
+          }
+          const coupon = await stripe.coupons.create({
+            percent_off: pct,
+            duration: 'repeating',
+            duration_in_months: durationCycles,
+            name: `HC-${resolvedPromo.promo.code}`.slice(0, 40),
+            metadata: {
+              promo_code_id: promoCodeId ?? '',
+              platform_promo: '1',
+              discount_duration_cycles: String(durationCycles),
+              base_price_cents: String(basePriceCents),
+              final_price_cents: String(finalPriceCents),
+            },
+          });
+          checkoutDiscounts = [{ coupon: coupon.id }];
+          customPriceId = null;
+        } else {
+          // Legacy forever discounted recurring price (affiliate / no duration).
+          const catalogPrice = await stripe.prices.retrieve(priceId);
+          const interval =
+            catalogPrice.recurring?.interval === 'month' ||
+            catalogPrice.recurring?.interval === 'year'
+              ? catalogPrice.recurring.interval
+              : 'month';
+          const intervalCount = catalogPrice.recurring?.interval_count ?? 1;
+
+          const customPrice = await stripe.prices.create({
+            unit_amount: finalPriceCents,
+            currency: 'eur',
+            recurring: { interval, interval_count: intervalCount },
+            product: catalogPrice.product as string,
+            metadata: {
+              original_price_id: priceId,
+              promo_code_id: promoCodeId ?? '',
+              discount_cents: discountCents.toString(),
+              platform_promo: isPlatformPromo ? '1' : '0',
+              base_price_cents: basePriceCents.toString(),
+              final_price_cents: finalPriceCents.toString(),
+            },
+          });
+          customPriceId = customPrice.id;
+        }
       } catch (error) {
-        console.error('Error creating custom price:', error);
+        console.error('Error creating promo Stripe price/coupon:', error);
         return NextResponse.json(
           { error: 'Kon kortingsprijs niet aanmaken bij Stripe' },
           { status: 500 },
@@ -366,6 +417,7 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: customPriceId || priceId, quantity: 1 }],
+      ...(checkoutDiscounts ? { discounts: checkoutDiscounts } : {}),
       success_url: `${baseUrl}/sell?success=1&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/sell?canceled=1`,
       metadata: sessionMetadata,
@@ -377,6 +429,9 @@ export async function POST(req: NextRequest) {
       basePriceCents,
       discountCents,
       finalPriceCents,
+      discountDurationCycles: resolvedPromo?.valid
+        ? resolvedPromo.promo.discountDurationCycles
+        : null,
       currency: 'eur',
     });
   } catch (e) {

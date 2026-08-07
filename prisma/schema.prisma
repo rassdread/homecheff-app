@@ -268,9 +268,21 @@ model PromoCode {
   id                    String                 @id @default(uuid())
   affiliateId           String?
   sellerId              String?
+  /** Optional display title for platform/admin promotions */
+  name                  String?
   code                  String                 @unique
   appliesTo             String                 @default("SUBSCRIPTION_ONLY")
-  discountSharePct      Int                    @default(0) // 0-100, percentage of L1 share
+  discountSharePct      Int                    @default(0) // 0-100, percentage of L1 share (affiliate) or full price (platform)
+  /**
+   * How many billing cycles (months) the discount applies.
+   * null = for the life of the subscription while the code rules allow (legacy / forever).
+   * Platform promos should set this for temporary campaigns (e.g. 3 = first 3 months).
+   */
+  discountDurationCycles Int?
+  /** Optional per-user redemption cap (platform promos). */
+  maxRedemptionsPerUser Int?
+  /** Admin user id that created a platform promo (audit). */
+  createdByAdminId      String?
   startsAt              DateTime
   endsAt                DateTime?
   maxRedemptions        Int?
@@ -287,6 +299,7 @@ model PromoCode {
   @@index([code])
   @@index([status])
   @@index([startsAt, endsAt])
+  @@index([createdByAdminId])
 }
 
 enum PromoCodeStatus {

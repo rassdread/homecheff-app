@@ -26,7 +26,9 @@ export type PlatformPromoPurpose =
   | 'launch'
   | 'testing'
   | 'marketing'
-  | 'general';
+  | 'general'
+  | 'invited_business'
+  | 'pilot';
 
 /** Affiliate max (% of their commission share). Admin max = 100% of full price. */
 export function resolveMaxDiscountPct(params: {

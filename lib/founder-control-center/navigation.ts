@@ -22,6 +22,7 @@ import {
   Truck,
   UserCheck,
   Users,
+  Gift,
 } from 'lucide-react';
 
 export type AdminDomainId =
@@ -47,6 +48,7 @@ export type AdminTabId =
   | 'delivery'
   | 'live-locations'
   | 'affiliates'
+  | 'promotions'
   | 'notifications'
   | 'disputes'
   | 'moderation'
@@ -99,6 +101,7 @@ export const ADMIN_TAB_DEFINITIONS: AdminTabDef[] = [
   { id: 'delivery', domain: 'logistics', labelKey: 'admin.delivery', fallbackLabel: 'Delivery', icon: Truck },
   { id: 'live-locations', domain: 'logistics', labelKey: 'admin.liveLocations', fallbackLabel: 'Live map', icon: Truck },
   { id: 'affiliates', domain: 'growth', labelKey: 'admin.affiliates', fallbackLabel: 'Affiliates', icon: UserCheck },
+  { id: 'promotions', domain: 'growth', labelKey: 'admin.promotions', fallbackLabel: 'Promotions', icon: Gift },
   { id: 'notifications', domain: 'growth', labelKey: 'admin.notifications', fallbackLabel: 'Notifications', icon: Bell },
   { id: 'disputes', domain: 'trust', labelKey: 'admin.disputes', fallbackLabel: 'Disputes', icon: AlertTriangle },
   { id: 'moderation', domain: 'trust', labelKey: 'admin.contentModeration', fallbackLabel: 'Moderation', icon: Shield },
