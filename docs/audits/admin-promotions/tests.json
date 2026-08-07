@@ -1,0 +1,23 @@
+{
+  "suite": "admin-platform-promotions",
+  "runner": "npx tsx scripts/validate-admin-promotions.ts",
+  "result": "HOMECHEFF_ADMIN_PROMOTIONS_VALIDATOR_PASS",
+  "checks": 12,
+  "coverage": [
+    "duration parse 1-36",
+    "100% 1 month",
+    "100% 3 months",
+    "50% 3 months",
+    "25% 6 months",
+    "BASIC/PRO/PREMIUM quote shape",
+    "affiliate caps unchanged",
+    "expired/disabled/max_redemptions reason taxonomy",
+    "no fake €0.01 for 100%"
+  ],
+  "related": {
+    "regression": "npx tsx scripts/validate-admin-promocode-regression.ts",
+    "result": "HOMECHEFF_ADMIN_PROMOCODE_REGRESSION_FIXED"
+  },
+  "liveStripe": false,
+  "notes": "Unit/policy coverage; live Stripe checkout and entitlement DB writes require Formal Review / staging."
+}
