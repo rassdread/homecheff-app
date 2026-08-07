@@ -1,25 +1,10 @@
-# Admin Promotions — Executive Summary (Formal Review)
+# Admin Promotions — Executive Summary (Production)
 
-**Verdict:** `HOMECHEFF_ADMIN_PROMOTIONS_FORMAL_REVIEW_PASS`  
-**Status:** `READY_FOR_PRODUCTION_PROMOTION`  
-**Branch:** `feat/admin-platform-promotions`
+**Verdict:** `HOMECHEFF_ADMIN_PROMOTIONS_PRODUCTION_SUCCESS`  
+**Status:** Production released and **frozen**  
+**Main tip:** `e095563c`  
+**Deploy:** `dpl_Gwnj8d4mrDeVSk7HQDY7cyZZTzyz` → https://homecheff.eu
 
-## Closed gap
+Platform Admin → Promotions is live: duration, 0–100%, free entitlement, paid repeating coupons, global + per-user atomic limits, RESERVED TTL cleanup.
 
-`maxRedemptionsPerUser` is now an **authoritative server-side** rule, enforced at quote and subscribe, with **atomic** reservation via `SELECT … FOR UPDATE` + `PromoCodeRedemption` ledger.
-
-## System capabilities
-
-- Platform-owned promotions (`affiliateId = null`)
-- 0–100% and fixed discounts
-- Configurable billing-cycle duration
-- Global + per-user redemption limits
-- Start/end dates, disabled codes
-- BASIC / PRO / PREMIUM server quotes
-- 100% → free entitlement (no micro-charge)
-- Timed paid → Stripe repeating coupon → list price resumes
-- Affiliate system unchanged
-
-## Do not
-
-Merge / deploy / freeze from this review alone — operator promotion decision remains separate.
+See `PRODUCTION_RELEASE.md` for freeze evidence.

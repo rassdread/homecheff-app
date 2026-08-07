@@ -1,0 +1,18 @@
+{
+  "verdict": "HOMECHEFF_ADMIN_PROMOTIONS_LIVE_VALIDATION_PASS",
+  "code": "TESTADMIN",
+  "quote": { "basePriceCents": 19900, "finalPriceCents": 0, "discountDurationCycles": 1 },
+  "firstRedeem": "PASS",
+  "secondSameUser": "REJECT max_redemptions_per_user",
+  "otherUser": "PASS",
+  "disabledAfter": true,
+  "http": {
+    "sell": 200,
+    "validateDisabled": true,
+    "adminPromoCodes": 401,
+    "expireCron": 401,
+    "subscribeUnauth": "Niet ingelogd"
+  },
+  "deploymentId": "dpl_Gwnj8d4mrDeVSk7HQDY7cyZZTzyz",
+  "mainTip": "e095563c"
+}
