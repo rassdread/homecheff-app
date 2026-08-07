@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Mail, Send, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
+import ContactTurnstile, {
+  type ContactTurnstileHandle,
+} from '@/components/contact/ContactTurnstile';
+import { CONTACT_HONEYPOT_FIELD } from '@/lib/contact-security/honeypot';
 
 export default function ContactPage() {
   const { t, language } = useTranslation();
@@ -12,11 +16,32 @@ export default function ContactPage() {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>(
+    'idle',
+  );
   const [errorMessage, setErrorMessage] = useState('');
+  const [formStartedAt] = useState(() => Date.now());
+  const [honeypot, setHoneypot] = useState('');
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string | null>(null);
+  const turnstileRef = useRef<ContactTurnstileHandle>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/public/turnstile-config')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data?.siteKey) setTurnstileSiteKey(data.siteKey);
+      })
+      .catch(() => {
+        /* optional in local/dev */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +50,10 @@ export default function ContactPage() {
     setErrorMessage('');
 
     try {
+      const turnstileToken = turnstileSiteKey
+        ? await turnstileRef.current?.getToken()
+        : null;
+
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -32,7 +61,10 @@ export default function ContactPage() {
         },
         body: JSON.stringify({
           ...formData,
-          language: language
+          language,
+          formStartedAt,
+          turnstileToken: turnstileToken || undefined,
+          [CONTACT_HONEYPOT_FIELD]: honeypot,
         }),
       });
 
@@ -44,27 +76,39 @@ export default function ContactPage() {
 
       setSubmitStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
+      setHoneypot('');
+      turnstileRef.current?.reset();
     } catch (error: any) {
       setSubmitStatus('error');
-      setErrorMessage(error.message || 'Er is een fout opgetreden. Probeer het later opnieuw.');
+      setErrorMessage(
+        error.message ||
+          'Er is een fout opgetreden. Probeer het later opnieuw.',
+      );
+      turnstileRef.current?.reset();
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
         <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-emerald-600 hover:text-emerald-700 mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center text-emerald-600 hover:text-emerald-700 mb-6"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             {t('common.back')}
           </Link>
@@ -74,12 +118,9 @@ export default function ContactPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {t('contact.title')}
           </h1>
-          <p className="text-gray-600">
-            {t('contact.description')}
-          </p>
+          <p className="text-gray-600">{t('contact.description')}</p>
         </div>
 
-        {/* Success Message */}
         {submitStatus === 'success' && (
           <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-3">
             <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
@@ -94,7 +135,6 @@ export default function ContactPage() {
           </div>
         )}
 
-        {/* Error Message */}
         {submitStatus === 'error' && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -109,12 +149,37 @@ export default function ContactPage() {
           </div>
         )}
 
-        {/* Contact Form */}
         <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate={false}>
+            {/* Honeypot — hidden from humans, SR leaves it alone via aria-hidden + tabIndex */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: '-10000px',
+                top: 'auto',
+                width: '1px',
+                height: '1px',
+                overflow: 'hidden',
+              }}
+            >
+              <label htmlFor={CONTACT_HONEYPOT_FIELD}>Company website</label>
+              <input
+                type="text"
+                id={CONTACT_HONEYPOT_FIELD}
+                name={CONTACT_HONEYPOT_FIELD}
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t('contact.name')} *
               </label>
               <input
@@ -122,6 +187,7 @@ export default function ContactPage() {
                 id="name"
                 name="name"
                 required
+                maxLength={120}
                 value={formData.name}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
@@ -129,9 +195,11 @@ export default function ContactPage() {
               />
             </div>
 
-            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t('contact.email')} *
               </label>
               <input
@@ -139,6 +207,7 @@ export default function ContactPage() {
                 id="email"
                 name="email"
                 required
+                maxLength={254}
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
@@ -146,9 +215,11 @@ export default function ContactPage() {
               />
             </div>
 
-            {/* Subject */}
             <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="subject"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t('contact.subject')} *
               </label>
               <select
@@ -161,17 +232,23 @@ export default function ContactPage() {
               >
                 <option value="">{t('contact.selectSubject')}</option>
                 <option value="general">{t('contact.subjectGeneral')}</option>
-                <option value="technical">{t('contact.subjectTechnical')}</option>
+                <option value="technical">
+                  {t('contact.subjectTechnical')}
+                </option>
                 <option value="payment">{t('contact.subjectPayment')}</option>
-                <option value="delivery">{t('contact.subjectDelivery')}</option>
+                <option value="delivery">
+                  {t('contact.subjectDelivery')}
+                </option>
                 <option value="account">{t('contact.subjectAccount')}</option>
                 <option value="other">{t('contact.subjectOther')}</option>
               </select>
             </div>
 
-            {/* Message */}
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="message"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t('contact.message')} *
               </label>
               <textarea
@@ -179,6 +256,7 @@ export default function ContactPage() {
                 name="message"
                 required
                 rows={6}
+                maxLength={5000}
                 value={formData.message}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors resize-none"
@@ -186,7 +264,8 @@ export default function ContactPage() {
               />
             </div>
 
-            {/* Submit Button */}
+            <ContactTurnstile ref={turnstileRef} siteKey={turnstileSiteKey} />
+
             <div className="flex items-center gap-4">
               <button
                 type="submit"
@@ -195,7 +274,7 @@ export default function ContactPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     {t('contact.sending')}
                   </>
                 ) : (
@@ -215,7 +294,6 @@ export default function ContactPage() {
           </form>
         </div>
 
-        {/* Alternative Contact Methods */}
         <div className="mt-8 p-6 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl border border-emerald-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t('contact.alternativeTitle')}
@@ -227,8 +305,12 @@ export default function ContactPage() {
             >
               <Mail className="w-5 h-5 text-emerald-600" />
               <div className="flex flex-col">
-                <span className="text-emerald-700 font-medium">{t('contact.supportEmail')}</span>
-                <span className="text-xs text-gray-500">{t('contact.supportDescription')}</span>
+                <span className="text-emerald-700 font-medium">
+                  {t('contact.supportEmail')}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {t('contact.supportDescription')}
+                </span>
               </div>
             </a>
             <a
@@ -237,8 +319,12 @@ export default function ContactPage() {
             >
               <Mail className="w-5 h-5 text-emerald-600" />
               <div className="flex flex-col">
-                <span className="text-emerald-700 font-medium">{t('contact.infoEmail')}</span>
-                <span className="text-xs text-gray-500">{t('contact.infoDescription')}</span>
+                <span className="text-emerald-700 font-medium">
+                  {t('contact.infoEmail')}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {t('contact.infoDescription')}
+                </span>
               </div>
             </a>
           </div>
@@ -247,4 +333,3 @@ export default function ContactPage() {
     </main>
   );
 }
-
