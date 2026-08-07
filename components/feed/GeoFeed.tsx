@@ -28,6 +28,7 @@ import DiscoveryDirectionToggle, {
 import AcceptedValueChip from "@/components/marketplace/AcceptedValueChip";
 import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
 import LocationRefineBanner from "@/components/feed/LocationRefineBanner";
+import FeedSearchContextBar from "@/components/feed/FeedSearchContextBar";
 import DiscoveryContinuityBand from "@/components/feed/DiscoveryContinuityBand";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
 import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
@@ -287,6 +288,11 @@ import {
   RADIUS_LOCAL_KM,
 } from "@/lib/geo/local-discovery";
 import { partitionSaleItemsByRadius } from "@/lib/geo/feed-radius-filter";
+import {
+  buildSearchContextChips,
+  formatSearchContextRadiusKm,
+  resolveSearchContextLocation,
+} from "@/lib/feed/feed-search-context";
 import {
   countMarketplaceSaleItems,
   countMarketplaceRequestItems,
@@ -4569,6 +4575,106 @@ export default function GeoFeed({
   const distanceSortEnabled =
     appliedScope === FEED_SCOPE_INTERNATIONAL || hasViewerCoordsForSort;
 
+  const searchContextChips = useMemo(() => {
+    const resolved = resolveSearchContextLocation({
+      appliedPlace,
+      locationSource: effectiveLocationSource,
+      gpsDisplayLabel,
+      ipLocationLabel,
+      profilePlace:
+        profileLocation?.place ?? bootstrapProfile?.place ?? null,
+      profilePostcode:
+        profileLocation?.postcode ?? bootstrapProfile?.postalCode ?? null,
+      countryCode: browseCountryCode || null,
+      browseLocationMode,
+    });
+
+    let locationLabel: string;
+    switch (resolved.kind) {
+      case "gps":
+        locationLabel =
+          resolved.label?.trim() || t("feed.searchContext.currentLocation");
+        break;
+      case "approx":
+        locationLabel =
+          resolved.label?.trim() ||
+          t("feed.searchContext.approximateLocation");
+        break;
+      case "country":
+        locationLabel =
+          resolved.label?.trim() || t("feed.scopeNational");
+        break;
+      case "fallback":
+        locationLabel = t("feed.searchContext.locationUnavailable");
+        break;
+      default:
+        locationLabel =
+          resolved.label?.trim() ||
+          t("feed.searchContext.locationUnavailable");
+        break;
+    }
+
+    const categoryOpt = CATEGORY_CHIP_OPTIONS.find(
+      (o) => o.slug === appliedCategory,
+    );
+    const categoryLabel =
+      appliedCategory !== "all" && categoryOpt
+        ? t(categoryOpt.labelKey)
+        : null;
+
+    let sortLabel: string;
+    if (appliedSortBy === "distance") {
+      sortLabel = scopeUsesFarthestFirstSort(appliedScope)
+        ? t("feed.sortFarthestFirst")
+        : t("feed.sortDistanceFirst");
+    } else if (appliedSortBy === "views") {
+      sortLabel = t("feed.searchContext.sortPopular");
+    } else if (appliedSortBy === "price") {
+      sortLabel = t("feed.searchContext.sortPrice");
+    } else {
+      sortLabel = t("filters.sortNewest");
+    }
+
+    const radiusLabel = formatSearchContextRadiusKm(
+      appliedRadius,
+      t("feed.radiusNational"),
+    );
+
+    const query =
+      appliedSearchQuery.trim() || appliedQ.trim() || null;
+
+    return buildSearchContextChips({
+      scope: appliedScope,
+      appliedRadiusKm: appliedRadius,
+      appliedCategory,
+      appliedSortBy,
+      categoryLabel,
+      sortLabel,
+      radiusLabel,
+      locationLabel,
+      appliedQuery: query,
+      showSort: true,
+    });
+  }, [
+    appliedPlace,
+    effectiveLocationSource,
+    gpsDisplayLabel,
+    ipLocationLabel,
+    profileLocation?.place,
+    profileLocation?.postcode,
+    bootstrapProfile?.place,
+    bootstrapProfile?.postalCode,
+    browseCountryCode,
+    browseLocationMode,
+    appliedCategory,
+    appliedSortBy,
+    appliedScope,
+    appliedRadius,
+    appliedSearchQuery,
+    appliedQ,
+    t,
+  ]);
+
   const sortOptions = useMemo(
     () =>
       [
@@ -5833,6 +5939,18 @@ export default function GeoFeed({
     />
   ) : null;
 
+  const searchContextBarEl = (
+    <FeedSearchContextBar
+      ariaLabel={t("feed.searchContext.ariaLabel")}
+      locationPrefix={t("feed.searchContext.fromPrefix")}
+      radiusPrefix={t("feed.searchContext.radiusPrefix")}
+      categoryPrefix={t("feed.searchContext.categoryPrefix")}
+      sortPrefix={t("feed.searchContext.sortPrefix")}
+      queryPrefix={t("feed.searchContext.queryPrefix")}
+      chips={searchContextChips}
+    />
+  );
+
 
   const buildFeedGridNodes = (
     rows: readonly (typeof feedRowsToRender)[number][],
@@ -5993,6 +6111,7 @@ export default function GeoFeed({
 
   const feedResultsBlock = (
     <>
+      {searchContextBarEl}
       {locationRefineBannerEl}
       {showFeedSkeleton ? (
         <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 4} compact={isMobileFeedUi} />

@@ -1,0 +1,14 @@
+{
+  "feature": "feed-search-context-bar",
+  "verdict": "HOMECHEFF_SEARCH_CONTEXT_BAR_COMPLETE",
+  "screenshots": [
+    "screenshots/desktop-1440.png",
+    "screenshots/desktop-1440-bar.png",
+    "screenshots/mobile-390.png",
+    "screenshots/mobile-390-bar.png"
+  ],
+  "tests": {
+    "test-feed-search-context": "20/20",
+    "test-radius-filter-chain": "36/36"
+  }
+}
