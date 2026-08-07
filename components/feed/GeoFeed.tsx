@@ -282,6 +282,7 @@ import {
   logFeedSaleVisibilityAudit,
 } from "@/lib/feed/feed-sale-visibility-audit";
 import {
+  clampFeedRadiusKm,
   nextWiderFeedRadiusKm,
   RADIUS_LOCAL_KM,
 } from "@/lib/geo/local-discovery";
@@ -3620,14 +3621,14 @@ export default function GeoFeed({
   );
 
   /**
-   * Progressive Nearby: in-radius first, then wider eligible tail (local-first).
+   * Nearby + known location: primary marketplace pool is radius-strict.
+   * Out-of-radius items stay available via discovery continuity (progressive
+   * widen), not silently mixed into the exact/primary feed — otherwise radius
+   * selection has no visible effect (same IDs at 5 km vs 25 km).
    * Without location, keep the full soft-national / discovery set.
    */
   const salePoolForRanking = locationFilterActive
-    ? composeProgressiveNearbySalePool({
-        local: localSalePool,
-        wider: saleWiderPool,
-      })
+    ? localSalePool
     : filteredSaleBase;
 
   const inspirationCompositionScope = resolveInspirationCompositionScope({
@@ -4036,8 +4037,9 @@ export default function GeoFeed({
     return buildExactDiscoveryCompositionSignals({
       items,
       localSaleCount: locationFilterActive ? localSalePool.length : undefined,
-      progressiveWidenActive:
-        locationFilterActive && saleWiderPool.length > 0,
+      // Primary/exact pool is radius-strict; do not claim progressive widen
+      // already happened — continuity owns out-of-radius inventory.
+      progressiveWidenActive: false,
       inspirationCompositionWidened:
         appliedScope === FEED_SCOPE_NEARBY &&
         inspirationCompositionScope !== "nearby",
@@ -4046,7 +4048,6 @@ export default function GeoFeed({
     displayRows,
     locationFilterActive,
     localSalePool.length,
-    saleWiderPool.length,
     appliedScope,
     inspirationCompositionScope,
   ]);
@@ -4901,10 +4902,34 @@ export default function GeoFeed({
       isFilterSearchingPhase(filterResultPhase)) &&
     composedDisplayRows.length === 0;
 
-  const handleWidenRadius = () => {
-    const next = Math.min(100, nextWiderFeedRadiusKm(appliedRadius));
+  /**
+   * Radius is applied immediately (draft === applied). Visual selection alone
+   * must never leave the feed stuck on the previous radius (default 25 km).
+   */
+  const handleRadiusChange = useCallback((nextRaw: number) => {
+    const next = clampFeedRadiusKm(nextRaw);
     setRadius(next);
     setAppliedRadius(next);
+    const pref = loadLocationPreference();
+    if (pref) {
+      saveLocationPreference({
+        place: pref.place,
+        lat: pref.lat,
+        lng: pref.lng,
+        radiusKm: next,
+        source: pref.source,
+        bannerDismissed: pref.bannerDismissed,
+        countryCode: pref.countryCode,
+        regionCode: pref.regionCode,
+        mode: pref.mode,
+        precision: pref.precision,
+        label: pref.label,
+      });
+    }
+  }, []);
+
+  const handleWidenRadius = () => {
+    handleRadiusChange(nextWiderFeedRadiusKm(appliedRadius));
   };
 
   const handleViewNationalScope = () => {
@@ -5176,9 +5201,7 @@ export default function GeoFeed({
                       value={radius}
                       disabled={appliedScope !== FEED_SCOPE_NEARBY}
                       onChange={(e) =>
-                        setRadius(
-                          Math.max(0, Math.min(100, Number(e.target.value)))
-                        )
+                        handleRadiusChange(Number(e.target.value))
                       }
                       className={filterInputClass}
                     />
@@ -5465,7 +5488,7 @@ export default function GeoFeed({
         appliedScope={appliedScope}
         onScopeChange={handleScopeChange}
         radius={radius}
-        onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
+        onRadiusChange={handleRadiusChange}
         q={q}
         onQChange={setQ}
         category={category}
@@ -5524,7 +5547,7 @@ export default function GeoFeed({
         scope={appliedScope}
         onScopeChange={handleScopeChange}
         radius={radius}
-        onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
+        onRadiusChange={handleRadiusChange}
         distanceSortEnabled={distanceSortEnabled}
         q={q}
         onQChange={setQ}
@@ -5585,7 +5608,7 @@ export default function GeoFeed({
         scope={appliedScope}
         onScopeChange={handleScopeChange}
         radius={radius}
-        onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
+        onRadiusChange={handleRadiusChange}
         distanceSortEnabled={distanceSortEnabled}
         q={q}
         onQChange={setQ}
@@ -6501,7 +6524,7 @@ export default function GeoFeed({
             scope={appliedScope}
             onScopeChange={handleScopeChange}
             radius={radius}
-            onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
+            onRadiusChange={handleRadiusChange}
             distanceSortEnabled={distanceSortEnabled}
             q={q}
             onQChange={setQ}
