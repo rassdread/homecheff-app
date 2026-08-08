@@ -1,16 +1,20 @@
 # Audit — Phase I.2 HomeCheff SSO Backend
 
-**Status:** COMPLETE (certification in progress in companion Growth audit)  
+**Status:** COMPLETE / LIVE (Production SSO OFF)  
 **Date:** 2026-08-08  
-**Implementation:** [phase-i2-homecheff-sso-backend.md](../implementation/phase-i2-homecheff-sso-backend.md)
+**Feature commit:** `c8757eaf`  
+**Merge:** `1a8eae8c` (PR #6)  
+**Production:** `dpl_8u5c2MtDKkY5CrkR4G5YzTdP4zL2` · https://homecheff.eu  
+**Preview:** `dpl_4SfbzAik7s2XMY9aS91T39ZTdsh1`
 
-## Delivered
+Implementation: [phase-i2-homecheff-sso-backend.md](../implementation/phase-i2-homecheff-sso-backend.md)
 
-- Gated `POST /api/identity/v1/sso/authorize`
-- Gated `POST /api/identity/v1/sso/exchange`
-- Client registry (growth), PKCE S256 required, atomic single-use, rate limits, audit, metrics
-- `npm run test:phase-i2-sso` — unit + DB integration (sequential + concurrent replay)
+## Production smoke
 
-## Production posture
+- authorize/exchange → 404 `SSO_DISABLED`
+- `/`, `/login`, `/api/auth/session` → 200
+- SsoAuthorizationCode / SsoAuditEvent row counts: 0
 
-`CENTRAL_SSO_ENABLED` remains **OFF**. No user-facing SSO UI. No Growth callback. No migration/JIT.
+## Decision
+
+GO FOR PHASE I.3 (Growth callback) — do not enable Production SSO yet.
