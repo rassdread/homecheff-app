@@ -173,6 +173,56 @@ model User {
   @@index([country])
 }
 
+/// Phase I.1 — product-local identity ↔ central User (no cross-DB FK; HC User remains canonical)
+model AuthIdentityLink {
+  id                    String   @id @default(cuid())
+  centralUserId         String
+  sourceSystem          String
+  sourceUserId          String
+  sourceEmailNormalized String
+  status                String   @default("linked")
+  conflictCode          String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([sourceSystem, sourceUserId])
+  @@index([centralUserId])
+  @@index([sourceEmailNormalized])
+  @@index([status])
+}
+
+/// Phase I.1 — one-time SSO authorization codes (store hash only; TTL + single-use)
+model SsoAuthorizationCode {
+  id                  String    @id @default(cuid())
+  codeHash            String    @unique
+  centralUserId       String
+  product             String
+  redirectUri         String
+  codeChallenge       String?
+  codeChallengeMethod String?
+  state               String?
+  expiresAt           DateTime
+  usedAt              DateTime?
+  createdAt           DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([centralUserId, product])
+}
+
+/// Phase I.1 — identity/SSO audit (separate from sales activity)
+model SsoAuditEvent {
+  id            String   @id @default(cuid())
+  action        String
+  product       String?
+  centralUserId String?
+  codeId        String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([action, createdAt])
+  @@index([centralUserId, createdAt])
+}
+
 model Business {
   id              String   @id @default(uuid())
   userId          String   @unique
