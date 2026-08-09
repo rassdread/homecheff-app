@@ -1100,6 +1100,7 @@ export default function GeoFeed({
   const feedLoadMoreRef = useRef<HTMLDivElement | null>(null);
   /** Prevents repeat auto-kick of broadened page 0 for the same requestKey. */
   const broadenedKickKeyRef = useRef<string | null>(null);
+  const loadMoreFeedRef = useRef<(() => void) | null>(null);
   const feedLoadingMoreRef = useRef(false);
   /** Unified composition pagination / recirculation (one source must not kill the feed). */
   const [compositionState, setCompositionState] = useState<FeedCompositionState>(
@@ -3248,6 +3249,19 @@ export default function GeoFeed({
             identityKey,
           });
         }
+        // Chain next widened page while sentinel remains in view (short pages).
+        if (more && shouldFetchBroadenedDiscovery(next)) {
+          queueMicrotask(() => {
+            const el = feedLoadMoreRef.current;
+            if (!el || feedLoadingMoreRef.current || !feedHasMoreRef.current) {
+              return;
+            }
+            const top = el.getBoundingClientRect().top;
+            if (top <= (window.innerHeight || 800) + 240) {
+              void loadMoreFeedRef.current?.();
+            }
+          });
+        }
       } catch (error) {
         console.error("[GeoFeed] broadened load-more failed", error);
       } finally {
@@ -3469,6 +3483,10 @@ export default function GeoFeed({
     effectiveViewerForDistance,
     commitCompositionState,
   ]);
+
+  loadMoreFeedRef.current = () => {
+    void loadMoreFeed();
+  };
 
   // Track scroll velocity for adaptive prefetch distance
   useEffect(() => {
@@ -4258,12 +4276,10 @@ export default function GeoFeed({
     return buildExactDiscoveryCompositionSignals({
       items,
       localSaleCount: locationFilterActive ? localSalePool.length : undefined,
-      // Exact pool stays radius-strict; widened discovery is a separate stage
-      // after exact exhaust (load-more), reflected here for continuity UI.
-      progressiveWidenActive:
-        compositionState.stage === "broadened" ||
-        (compositionState.exactExhausted &&
-          !compositionState.broadenedExhausted),
+      // Do NOT treat composition-stage `broadened` as progressiveWidenActive.
+      // That flag marks sufficiency and would hide the continuity band while
+      // the primary pool stays radius-strict — widened pages would never show.
+      progressiveWidenActive: false,
       inspirationCompositionWidened:
         appliedScope === FEED_SCOPE_NEARBY &&
         inspirationCompositionScope !== "nearby",
@@ -4274,9 +4290,6 @@ export default function GeoFeed({
     localSalePool.length,
     appliedScope,
     inspirationCompositionScope,
-    compositionState.stage,
-    compositionState.exactExhausted,
-    compositionState.broadenedExhausted,
   ]);
 
   const discoveryConstraintActive = hasActiveFeedDiscoveryConstraint({
@@ -5163,11 +5176,21 @@ export default function GeoFeed({
     !requestInFlight &&
     !isFilterSearchingPhase(filterResultPhase);
 
-  const showDiscoveryContinuityBand = shouldShowDiscoveryContinuityBand({
-    hasActiveConstraint: discoveryConstraintActive,
-    settled: discoveryContinuitySettled,
-    composition: exactCompositionSignals,
-  });
+  /** Intentional exact→widened transition after radius inventory exhausts. */
+  const widenedDiscoveryActive =
+    compositionState.exactExhausted &&
+    !compositionState.broadenedExhausted &&
+    !compositionState.emptyTerminal;
+
+  const showDiscoveryContinuityBand =
+    shouldShowDiscoveryContinuityBand({
+      hasActiveConstraint: discoveryConstraintActive,
+      settled: discoveryContinuitySettled,
+      composition: exactCompositionSignals,
+    }) ||
+    (discoveryContinuitySettled &&
+      discoveryConstraintActive &&
+      widenedDiscoveryActive);
 
   const showDiscoveryContinuityFeed = shouldRenderDiscoveryContinuityFeed({
     showBand: showDiscoveryContinuityBand,
