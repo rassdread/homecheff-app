@@ -46,6 +46,12 @@ check(
 );
 
 check(
+  'broadened national omits countryCode seal',
+  geo.includes('useBroadenedNational ? null : browseCountryCode') ||
+    /useBroadenedNational\s*\?\s*null\s*:\s*browseCountryCode/.test(geo),
+);
+
+check(
   'GeoFeed recirculation requires broadenedExhausted',
   /broadenedExhausted/.test(geo) &&
     geo.includes('shouldFetchBroadenedDiscovery(comp)'),

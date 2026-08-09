@@ -2868,7 +2868,10 @@ export default function GeoFeed({
                 : appliedScope === FEED_SCOPE_NEARBY
                   ? apiLocationSource
                   : null,
-          countryCode: browseCountryCode || null,
+          // Widened discovery must not reuse the nearby country seal — that
+          // collapses national inventory to in-country products only and hides
+          // eligible dishes / further discovery pages after exact exhaust.
+          countryCode: useBroadenedNational ? null : browseCountryCode || null,
           locationMode:
             browseLocationMode === "global" || useBroadenedNational
               ? null
