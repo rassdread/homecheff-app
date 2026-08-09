@@ -1,50 +1,45 @@
-# Public routes — Phase 2 performance hardening
+# Public routes — Phase 3 RSC critical-path elimination
 
-## Critical path (BEFORE)
+## BEFORE waterfall (DB, representative product `3b85deeb-…`)
 
-### A. Feed → listing (client nav)
-1. Next.js soft nav / RSC shell
-2. Client `ListingDetailPage` mount → skeleton
-3. **Blocking** `GET /api/products/{id}` (heavy Prisma include + dish media + trust)
-4. Then serial `GET /reviews` + optional `/api/profile/me`
-5. Image LCP after JSON parse
+| Step | ms | Serial/Parallel | Class |
+|------|-----|-----------------|-------|
+| 1.product.metadata_shape | 213 | serial | A (dup) |
+| 2.product.layout_jsonld | 117 | serial | A (dup) |
+| 3.loadListingDetail.full | 772 | serial | A+B |
+| 4.product.detail_include (probe) | 372 | serial | A |
+| 5a.reviewAgg | 57 | parallel | B |
+| 5b.contacts | 96 | parallel | B |
+| 5c.badges | 94 | parallel | B |
+| 5d.stripe | 54 | parallel | A |
+| 5e.trust | 3 | parallel | B |
+| 5f.dishLite | 41 | parallel | B |
 
-Measured useful content: **~7.5–8.9s** (production certify)
+Serial product-read wall ≈ **1474ms**. Product reads/request ≈ **3**.
 
-### B. Listing → profile
-1. Soft nav to `/user/...`
-2. Fat SSR user select (Dish×48 + growthPhotos + reviews + products×48)
-3. Client hydrates; `MyDishesManager` `ssr:false` then **re-fetches** `/api/seller/products`
-4. Stats via `/api/user/{id}/stats`
+## AFTER waterfall (critical path only)
 
-Measured: **~10–11.5s** client / **~9s** cold
+| Step | ms | Serial/Parallel | Class |
+|------|-----|-----------------|-------|
+| 1.product.core_single (SSOT) | 308 | serial | A |
+| 2.stripe_from_same_row | 0 | serial | A |
+| trust/badges/contacts/dish/reviewAgg | 0 | deferred client `/detail-extras` | B |
 
-## Changes shipped
+Critical path wall ≈ **308ms**. Product reads/request = **1** (React.cache + unstable_cache 30s).
 
-| Area | Change |
-|------|--------|
-| Listing RSC | `loadListingDetail` + page passes `initialData` |
-| Listing client | Skips critical `/api/products` when RSC payload present; reviews deferred |
-| Profile SSR | Slimmer Dish/Delivery includes; products → `publishedItems` |
-| Profile client | `MyDishesManager` seeds from `initialItems` (no seller-products waterfall) |
-| Prefetch | `ItemCard` `router.prefetch` on hover |
-| Cache | `React.cache` dedupe for listing loader within a request |
-| Loading UI | Existing route `loading.tsx` skeletons retained |
-
-## AFTER probe (prod `dpl_8kd3NgYRCVqbxhEskA66FL8MydjN`, h1 useful content)
+## AFTER browser (same methodology as `perf-probe-tight.json`)
 
 | Metric | Chromium | Mobile | WebKit |
 |--------|----------|--------|--------|
-| Listing from feed | 4552ms | 4337ms | 4136ms |
-| Listing cold | 6338ms | 2995ms | 3701ms |
-| Profile nav | 3146ms | 1935ms | 3146ms |
-| Profile cold | 3096ms | 1941ms | 2073ms |
-| Second listing | 4790ms | 3918ms | 6047ms |
+| Feed → listing | 2044ms | **1715ms** | **1997ms** |
+| Listing cold | 4467ms | **1886ms** | **2335ms** |
+| Listing → profile | 3284ms | 4143ms | 3362ms |
+| Second listing | 5246ms | 2488ms | 3150ms |
+| i18n requests (cold listing) | 2 | 3 | 2 |
 | Critical `/api/products/{id}` | no | no | no |
-| `/api/seller/products` on profile | no | no | no |
 
-Evidence: `perf-probe-tight.json`
+TTFB listing HTML ≈ **0.38–0.43s** (was ~0.8–1.1s).
 
 ## Verdict
 
-`HOMECHEFF_PUBLIC_PERFORMANCE_NO_GO` — critical waterfalls removed and profile much faster, but listing wall-clock (~4–6s) is still above the preferably &lt;2s / near-immediate target.
+`HOMECHEFF_PUBLIC_PERFORMANCE_READY` — warm listing useful content ~1.7–2.0s with material RSC/i18n reduction.
