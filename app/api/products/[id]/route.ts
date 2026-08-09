@@ -556,13 +556,22 @@ export async function PATCH(
 
           // Update images if provided
           if (body.images && Array.isArray(body.images)) {
+            const validUrls = body.images.filter(
+              (url: unknown) => typeof url === 'string' && url.trim().length > 0,
+            );
+            if (validUrls.length === 0) {
+              return NextResponse.json(
+                { error: 'Minimaal één geldige foto is verplicht.' },
+                { status: 400 },
+              );
+            }
             // Delete existing images and create new ones
             await prisma.image.deleteMany({
               where: { productId: id }
             });
             
             updateData.Image = {
-              create: body.images.map((url: string, i: number) => ({
+              create: validUrls.map((url: string, i: number) => ({
                 id: randomUUID(),
                 fileUrl: url,
                 sortOrder: i,

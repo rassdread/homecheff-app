@@ -7,6 +7,15 @@ import { authOptions } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
+const MAX_PROFILE_PHOTO_BYTES = 50 * 1024 * 1024;
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -21,11 +30,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Geen bestand ontvangen" }, { status: 400 });
     }
 
-    // Convert file to buffer
+    const mime = (file.type || '').toLowerCase();
+    if (!ALLOWED_IMAGE_TYPES.includes(mime)) {
+      return NextResponse.json({
+        error: "Alleen JPG, PNG, WebP en GIF bestanden zijn toegestaan.",
+      }, { status: 400 });
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Try Vercel Blob first
+    if (buffer.length === 0) {
+      return NextResponse.json({ error: "Leeg bestand is niet toegestaan." }, { status: 400 });
+    }
+
+    if (buffer.length > MAX_PROFILE_PHOTO_BYTES) {
+      return NextResponse.json({ error: "Foto is te groot. Probeer een kleinere foto." }, { status: 400 });
+    }
+
     const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
     let publicUrl: string | null = null;
 
@@ -39,20 +61,17 @@ export async function POST(req: Request) {
           addRandomSuffix: true,
         });
         publicUrl = blob.url;
-
       } catch (error) {
         console.error("Profile photo upload failed:", error);
       }
     }
 
-    // Fallback: use base64 data URL for development
     if (!publicUrl) {
       try {
         const base64 = buffer.toString('base64');
         const mimeType = file.type || 'image/jpeg';
         publicUrl = `data:${mimeType};base64,${base64}`;
-
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error("Base64 conversion failed:", e);
         return NextResponse.json({ error: "File processing failed" }, { status: 500 });
       }

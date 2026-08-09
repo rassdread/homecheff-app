@@ -1,0 +1,135 @@
+{
+  "at": "2026-08-09T17:01:05.784Z",
+  "base": "https://homecheff.eu",
+  "passed": 17,
+  "total": 23,
+  "failed": [
+    "security.upload_logged_out",
+    "validation.empty_or_handled",
+    "listing.create_single",
+    "listing.create_multi",
+    "profile.heic_server_validation",
+    "recovery.double_create_separate_rows"
+  ],
+  "results": [
+    {
+      "name": "auth.login",
+      "pass": true,
+      "detail": "mediacert+homecheff@example.com"
+    },
+    {
+      "name": "security.upload_logged_out",
+      "pass": false,
+      "status": 200,
+      "detail": "CRITICAL: /api/upload accepts unauthenticated uploads"
+    },
+    {
+      "name": "upload.jpg",
+      "pass": true,
+      "detail": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/uploads/2e22f74b-f09c-44"
+    },
+    {
+      "name": "upload.png",
+      "pass": true,
+      "detail": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/uploads/450cdc09-889d-4b"
+    },
+    {
+      "name": "upload.webp",
+      "pass": true,
+      "detail": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/uploads/2f3fa786-ac2e-47"
+    },
+    {
+      "name": "validation.heic_rejected",
+      "pass": true,
+      "status": 400,
+      "detail": "Alleen JPG, PNG, WebP en GIF bestanden zijn toegestaan."
+    },
+    {
+      "name": "validation.pdf_rejected",
+      "pass": true,
+      "status": 400,
+      "detail": "Alleen afbeeldingen en video's zijn toegestaan."
+    },
+    {
+      "name": "validation.empty_or_handled",
+      "pass": false,
+      "status": 200,
+      "detail": "accepted empty"
+    },
+    {
+      "name": "security.profile_upload_logged_out",
+      "pass": true,
+      "status": 401
+    },
+    {
+      "name": "listing.create_single",
+      "pass": false,
+      "detail": "ACCOUNT_REQUIREMENTS_MISSING"
+    },
+    {
+      "name": "listing.create_multi",
+      "pass": false,
+      "detail": "ACCOUNT_REQUIREMENTS_MISSING"
+    },
+    {
+      "name": "listing.no_image_rejected",
+      "pass": true,
+      "status": 400,
+      "detail": "400"
+    },
+    {
+      "name": "security.cross_user_listing_patch",
+      "pass": true,
+      "status": 403,
+      "detail": "You don't have permission to update this product"
+    },
+    {
+      "name": "profile.upload_bytes",
+      "pass": true,
+      "detail": "https://it3xt8um5uqzpebe.public.blob.vercel-storage.com/profile-photos/7087dc0d-"
+    },
+    {
+      "name": "profile.persist",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "profile.db_both_fields",
+      "pass": true,
+      "detail": "image=true profileImage=true"
+    },
+    {
+      "name": "profile.public_page",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "profile.replace",
+      "pass": true
+    },
+    {
+      "name": "profile.delete",
+      "pass": true
+    },
+    {
+      "name": "profile.reupload",
+      "pass": true
+    },
+    {
+      "name": "profile.heic_server_validation",
+      "pass": false,
+      "status": 200,
+      "detail": "CRITICAL: profile upload accepts HEIC without server MIME check"
+    },
+    {
+      "name": "recovery.double_create_separate_rows",
+      "pass": false,
+      "detail": "undefined vs undefined"
+    },
+    {
+      "name": "cleanup.test_listings",
+      "pass": true,
+      "detail": "deleted=0 leftover=0"
+    }
+  ]
+}

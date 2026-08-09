@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +11,11 @@ export const maxDuration = 60; // 60 seconds timeout
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email && !(session?.user as { id?: string } | undefined)?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const type = formData.get("type") as string || "general";
@@ -41,6 +48,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ 
         error: `Fout bij verwerken van bestand: ${bufferError.message || 'onbekende fout'}` 
       }, { status: 400 });
+    }
+
+    if (buffer.length === 0) {
+      return NextResponse.json({ error: "Leeg bestand is niet toegestaan." }, { status: 400 });
     }
     
     // Enhanced file validation for images and videos
