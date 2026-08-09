@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from '@/hooks/useTranslation';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import { getListingHref } from '@/lib/routing/public-hrefs';
 import {
   mapProfileListingToTileModel,
   type ProfileListingInput,
@@ -16,11 +16,12 @@ export type ProfilePublicAanbodTileGridProps = {
 };
 
 function productHref(item: ProfileListingInput): string {
-  const title = item.title?.trim();
-  if (title) {
-    return `/product/${buildProductSlugPath(title, item.place ?? null, item.id)}`;
-  }
-  return `/product/${item.id}`;
+  return getListingHref({
+    id: item.id,
+    title: item.title?.trim() || 'listing',
+    place: item.place ?? null,
+    listingIntent: (item as { listingIntent?: string | null }).listingIntent,
+  });
 }
 
 export default function ProfilePublicAanbodTileGrid({

@@ -5,6 +5,7 @@ import { Star, MessageSquare, ChefHat, Sprout, Palette, Package } from 'lucide-r
 import Link from 'next/link';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
+import { buildListingDetailHref } from '@/lib/seo/listing-routes';
 
 interface ReviewItem {
   id: string;
@@ -46,7 +47,11 @@ export default function ItemsWithReviews({ userId, productsOnly = true }: ItemsW
   // Helper function to get the correct detail page URL based on type and category
   const getItemDetailUrl = (item: ItemWithReviews): string => {
     if (item.type === 'product') {
-      return `/product/${item.id}`;
+      return buildListingDetailHref({
+        id: item.id,
+        title: item.title || 'listing',
+        place: null,
+      });
     }
     // For dishes, check category
     if (item.category === 'CHEFF') {

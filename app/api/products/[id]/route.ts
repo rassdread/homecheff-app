@@ -11,7 +11,6 @@ import {
   resolveProductPublishState,
 } from '@/lib/product/order-method';
 import { buildPublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
-import { refreshSellerStripeSnapshotIfStale } from '@/lib/stripe/sync-seller-payment-status';
 import {
   saleProductRequiresLocation,
   validateProductLocationForPublish,
@@ -82,42 +81,6 @@ export async function GET(
       }
     });
 
-    // Get analytics statistics
-    const [viewCount, orderCount, favoriteCount, reviewAgg] = await Promise.all([
-      // Count unique views from AnalyticsEvent (support both VIEW and PRODUCT_VIEW for compatibility)
-      prisma.analyticsEvent.count({
-        where: {
-          entityId: id,
-          eventType: { in: ['VIEW', 'PRODUCT_VIEW'] },
-          entityType: 'PRODUCT'
-        }
-      }),
-      // Count completed orders for this product
-      prisma.orderItem.count({
-        where: {
-          productId: id,
-          Order: {
-            status: {
-              in: ['PROCESSING', 'SHIPPED', 'DELIVERED']
-            }
-          }
-        }
-      }),
-      // Count favorites
-      prisma.favorite.count({
-        where: { productId: id }
-      }),
-      prisma.productReview.aggregate({
-        where: {
-          productId: id,
-          reviewSubmittedAt: { not: null },
-          rating: { gt: 0 },
-        },
-        _count: { _all: true },
-        _avg: { rating: true },
-      }),
-    ]);
-
     // If not found in new model, try old Listing model
     if (!product) {
       const listing = await prisma.listing.findUnique({
@@ -170,48 +133,101 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // Check if product is linked to a dish (for print/download functionality and showing steps)
-    const dish = await prisma.dish.findUnique({
-      where: { id },
-      include: {
-        stepPhotos: {
-          select: {
-            id: true,
-            url: true,
-            stepNumber: true,
-            description: true,
-            idx: true
+    const sellerUserId =
+      product.seller?.User?.id ?? (product as { User?: { id?: string } }).User?.id;
+
+    // Parallelize public secondary data — do NOT block on Stripe network refresh.
+    const [
+      [viewCount, orderCount, favoriteCount, reviewAgg],
+      dish,
+      publicContactChannels,
+      sellerBadgesMap,
+      sellerStripe,
+      trustBundles,
+    ] = await Promise.all([
+      Promise.all([
+        prisma.analyticsEvent.count({
+          where: {
+            entityId: id,
+            eventType: { in: ['VIEW', 'PRODUCT_VIEW'] },
+            entityType: 'PRODUCT',
           },
-          orderBy: [
-            { stepNumber: 'asc' },
-            { idx: 'asc' }
-          ]
+        }),
+        prisma.orderItem.count({
+          where: {
+            productId: id,
+            Order: {
+              status: {
+                in: ['PROCESSING', 'SHIPPED', 'DELIVERED'],
+              },
+            },
+          },
+        }),
+        prisma.favorite.count({
+          where: { productId: id },
+        }),
+        prisma.productReview.aggregate({
+          where: {
+            productId: id,
+            reviewSubmittedAt: { not: null },
+            rating: { gt: 0 },
+          },
+          _count: { _all: true },
+          _avg: { rating: true },
+        }),
+      ]),
+      prisma.dish.findUnique({
+        where: { id },
+        include: {
+          stepPhotos: {
+            select: {
+              id: true,
+              url: true,
+              stepNumber: true,
+              description: true,
+              idx: true,
+            },
+            orderBy: [{ stepNumber: 'asc' }, { idx: 'asc' }],
+          },
+          growthPhotos: {
+            select: {
+              id: true,
+              url: true,
+              phaseNumber: true,
+              description: true,
+              idx: true,
+            },
+            orderBy: [{ phaseNumber: 'asc' }, { idx: 'asc' }],
+          },
+          videos: {
+            select: {
+              id: true,
+              url: true,
+              thumbnail: true,
+              duration: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
         },
-        growthPhotos: {
-          select: {
-            id: true,
-            url: true,
-            phaseNumber: true,
-            description: true,
-            idx: true
-          },
-          orderBy: [
-            { phaseNumber: 'asc' },
-            { idx: 'asc' }
-          ]
-        },
-        videos: {
-          select: {
-            id: true,
-            url: true,
-            thumbnail: true,
-            duration: true
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
-      }
-    });
+      }),
+      loadPublicContactChannelsForUser(sellerUserId),
+      sellerUserId
+        ? fetchAuthorBadgeSummariesByUserIds([sellerUserId], 2)
+        : Promise.resolve(new Map()),
+      sellerUserId
+        ? prisma.user.findUnique({
+            where: { id: sellerUserId },
+            select: {
+              stripeConnectAccountId: true,
+              stripeConnectOnboardingCompleted: true,
+            },
+          })
+        : Promise.resolve(null),
+      sellerUserId
+        ? fetchSellerTrustBundles([sellerUserId])
+        : Promise.resolve(new Map()),
+    ]);
 
     // Check if it's a dish based on category-specific fields (for print/download buttons)
     let isDish = false;
@@ -247,34 +263,10 @@ export async function GET(
         })
       : product.Video;
 
-    const sellerUserId =
-      product.seller?.User?.id ?? (product as { User?: { id?: string } }).User?.id;
-    const publicContactChannels = await loadPublicContactChannelsForUser(sellerUserId);
-
-    const sellerBadgesMap = sellerUserId
-      ? await fetchAuthorBadgeSummariesByUserIds([sellerUserId], 2)
-      : new Map();
     const sellerBadges = sellerUserId ? sellerBadgesMap.get(sellerUserId) ?? [] : [];
     const isBusiness = Boolean(
       product.seller?.kvk && product.seller?.companyName,
     );
-
-    let sellerStripe = sellerUserId
-      ? await prisma.user.findUnique({
-          where: { id: sellerUserId },
-          select: {
-            stripeConnectAccountId: true,
-            stripeConnectOnboardingCompleted: true,
-          },
-        })
-      : null;
-
-    if (sellerUserId && sellerStripe?.stripeConnectAccountId) {
-      sellerStripe = await refreshSellerStripeSnapshotIfStale(
-        sellerUserId,
-        sellerStripe,
-      );
-    }
 
     const productCheckoutShape = {
       orderMethod: (product as { orderMethod?: string }).orderMethod,
@@ -292,9 +284,6 @@ export async function GET(
       : false;
     const checkoutBlockedReason = paymentStatus.reason;
 
-    const trustBundles = sellerUserId
-      ? await fetchSellerTrustBundles([sellerUserId])
-      : new Map();
     const trustBundle = sellerUserId ? trustBundles.get(sellerUserId) : undefined;
     const discoveryTrust = buildDiscoveryTrust({
       listingProductReviewCount: reviewStats.reviewCount,
@@ -310,25 +299,35 @@ export async function GET(
       isOwner: boolean;
     } | null = null;
 
+    // Public listings: published inspiration links without waiting on auth.
+    // Owner-only draft visibility still requires a session (rare on public GET).
     if (isDish && dish && dishCategory) {
-      const session = await auth();
-      let viewerId: string | null = null;
-      if (session?.user?.email) {
-        const viewer = await prisma.user.findUnique({
-          where: { email: session.user.email },
-          select: { id: true },
-        });
-        viewerId = viewer?.id ?? null;
-      }
-      const isOwner = Boolean(viewerId && sellerUserId && viewerId === sellerUserId);
-      const canViewLinked = dish.status === 'PUBLISHED' || isOwner;
-      if (canViewLinked) {
+      if (dish.status === 'PUBLISHED') {
         linkedInspiration = {
           href: getInspiratieDetailHref(dishCategory as InspirationCategory, id),
           category: dishCategory as InspirationCategory,
           status: dish.status,
-          isOwner,
+          isOwner: false,
         };
+      } else {
+        const session = await auth();
+        let viewerId: string | null = null;
+        if (session?.user?.email) {
+          const viewer = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true },
+          });
+          viewerId = viewer?.id ?? null;
+        }
+        const isOwner = Boolean(viewerId && sellerUserId && viewerId === sellerUserId);
+        if (isOwner) {
+          linkedInspiration = {
+            href: getInspiratieDetailHref(dishCategory as InspirationCategory, id),
+            category: dishCategory as InspirationCategory,
+            status: dish.status,
+            isOwner: true,
+          };
+        }
       }
     }
 

@@ -2,52 +2,50 @@
 
 import Link from 'next/link';
 import { getDisplayName, isNameClickable, type User } from '@/lib/displayName';
+import {
+  getPublicProfileHref,
+  profileFallbackHref,
+} from '@/lib/user/public-profile';
 
 interface ClickableNameProps {
   user: User | null | undefined;
   className?: string;
   showUsername?: boolean;
   fallbackText?: string;
+  /** @deprecated Prefer canonical /user links; seller legacy ids still resolve via redirect. */
   linkTo?: 'profile' | 'seller';
 }
 
-export default function ClickableName({ 
-  user, 
-  className = '', 
+export default function ClickableName({
+  user,
+  className = '',
   showUsername = false,
   fallbackText = 'Onbekend',
-  linkTo = 'profile'
+  linkTo = 'profile',
 }: ClickableNameProps) {
   const displayName = getDisplayName(user);
   const isClickable = isNameClickable(user);
-  
+
   if (!isClickable) {
-    return (
-      <span className={className}>
-        {displayName}
-      </span>
-    );
+    return <span className={className}>{displayName || fallbackText}</span>;
   }
-  
+
+  // Canonical public profile: /user/[username|uuid]. Legacy /seller only when
+  // an explicit sellerProfileId is available for linkTo="seller".
   const href = user?.id
-    ? linkTo === "seller"
-      ? `/seller/${user.sellerProfileId || user.id}`
-      : linkTo === "profile"
-        ? user?.username
-          ? `/user/${encodeURIComponent(user.username.trim())}`
-          : `/user/${encodeURIComponent(user.id)}`
-        : `/user/${encodeURIComponent(user.id)}`
-    : "";
+    ? linkTo === 'seller' && user.sellerProfileId
+      ? `/seller/${user.sellerProfileId}`
+      : getPublicProfileHref(user.id, user.username) ??
+        profileFallbackHref(user.id)
+    : '';
 
   if (!href) {
     return (
       <span className={className}>
         {displayName}
-        {showUsername && user?.username && (
-          <span className="ml-1 text-sm text-gray-500">
-            @{user.username}
-          </span>
-        )}
+        {showUsername && user?.username ? (
+          <span className="ml-1 text-sm text-gray-500">@{user.username}</span>
+        ) : null}
       </span>
     );
   }
@@ -59,11 +57,9 @@ export default function ClickableName({
       className={`hover:text-primary-600 transition-colors ${className}`}
     >
       {displayName}
-      {showUsername && user?.username && (
-        <span className="text-sm text-gray-500 ml-1">
-          @{user.username}
-        </span>
-      )}
+      {showUsername && user?.username ? (
+        <span className="ml-1 text-sm text-gray-500">@{user.username}</span>
+      ) : null}
     </Link>
   );
 }

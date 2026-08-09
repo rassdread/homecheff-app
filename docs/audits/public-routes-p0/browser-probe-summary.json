@@ -1,0 +1,86 @@
+{
+  "dpl": "dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz",
+  "chainCount": 7,
+  "badChain": [],
+  "badDirect": [],
+  "profiles": [],
+  "pageerrors": [],
+  "consoleErrors": [
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "ReferenceError: hasPublicDisplayPrice is not defined\n    at er (https://homecheff.eu/_next/static/chunks/common-ee85ce02517f9909.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:1:886129)\n    at nz (https://homecheff.eu/_next/static/chunks/nextjs-7ecba312561b9897.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:2:786"
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "ReferenceError: hasPublicDisplayPrice is not defined\n    at er (https://homecheff.eu/_next/static/chunks/common-ee85ce02517f9909.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:1:886129)\n    at nz (https://homecheff.eu/_next/static/chunks/nextjs-7ecba312561b9897.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:2:786"
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "ReferenceError: hasPublicDisplayPrice is not defined\n    at er (https://homecheff.eu/_next/static/chunks/common-ee85ce02517f9909.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:1:886129)\n    at nz (https://homecheff.eu/_next/static/chunks/nextjs-7ecba312561b9897.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:2:786"
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    }
+  ],
+  "homeHrefs": {
+    "homeHrefsSample": [
+      "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+      "/user/Lioness010",
+      "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+      "/user/Kunstgalerij",
+      "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+      "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+      "/user/temp_1777716708506_1tlo6e7r8",
+      "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+      "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+      "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+      "/user/Rass"
+    ],
+    "homeLoadMs": 8053
+  }
+}
