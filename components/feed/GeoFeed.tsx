@@ -3249,18 +3249,16 @@ export default function GeoFeed({
             identityKey,
           });
         }
-        // Chain next widened page while sentinel remains in view (short pages).
+        // Chain widened pages until true end. Inventory after exact exhaust is
+        // small; waiting for IO alone stalls on tall desktop viewports.
         if (more && shouldFetchBroadenedDiscovery(next)) {
-          queueMicrotask(() => {
-            const el = feedLoadMoreRef.current;
-            if (!el || feedLoadingMoreRef.current || !feedHasMoreRef.current) {
+          window.setTimeout(() => {
+            if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+            if (!shouldFetchBroadenedDiscovery(compositionStateRef.current)) {
               return;
             }
-            const top = el.getBoundingClientRect().top;
-            if (top <= (window.innerHeight || 800) + 240) {
-              void loadMoreFeedRef.current?.();
-            }
-          });
+            void loadMoreFeedRef.current?.();
+          }, 80);
         }
       } catch (error) {
         console.error("[GeoFeed] broadened load-more failed", error);
