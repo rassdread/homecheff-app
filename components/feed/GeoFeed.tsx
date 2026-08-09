@@ -3858,14 +3858,19 @@ export default function GeoFeed({
   );
 
   /**
-   * Nearby + known location: primary marketplace pool is radius-strict.
-   * Out-of-radius items stay available via discovery continuity (progressive
-   * widen), not silently mixed into the exact/primary feed — otherwise radius
-   * selection has no visible effect (same IDs at 5 km vs 25 km).
+   * Progressive Nearby (restored known-good UX @ 5d500f3d): in-radius first,
+   * then wider eligible tail (local-first). Radius still applies instantly via
+   * handleRadiusChange; order remains local-first so nearby stays primary.
    * Without location, keep the full soft-national / discovery set.
+   *
+   * Broader API pages (composition stage `broadened`) remain as pagination
+   * after exact marketplace exhaust — they do not replace this client pool.
    */
   const salePoolForRanking = locationFilterActive
-    ? localSalePool
+    ? composeProgressiveNearbySalePool({
+        local: localSalePool,
+        wider: saleWiderPool,
+      })
     : filteredSaleBase;
 
   const inspirationCompositionScope = resolveInspirationCompositionScope({
@@ -4274,10 +4279,8 @@ export default function GeoFeed({
     return buildExactDiscoveryCompositionSignals({
       items,
       localSaleCount: locationFilterActive ? localSalePool.length : undefined,
-      // Do NOT treat composition-stage `broadened` as progressiveWidenActive.
-      // That flag marks sufficiency and would hide the continuity band while
-      // the primary pool stays radius-strict — widened pages would never show.
-      progressiveWidenActive: false,
+      progressiveWidenActive:
+        locationFilterActive && saleWiderPool.length > 0,
       inspirationCompositionWidened:
         appliedScope === FEED_SCOPE_NEARBY &&
         inspirationCompositionScope !== "nearby",
@@ -4286,6 +4289,7 @@ export default function GeoFeed({
     displayRows,
     locationFilterActive,
     localSalePool.length,
+    saleWiderPool.length,
     appliedScope,
     inspirationCompositionScope,
   ]);

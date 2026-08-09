@@ -27,7 +27,7 @@ export function HomeMobileFeedInsert({
 
   if (insertId === 'verticals') {
     return (
-      <div className="col-span-2 w-full my-1">
+      <div className="col-span-2 w-full my-1" data-hc-feed-insert="verticals">
         <HomeVerticalChipStrip />
       </div>
     );
@@ -35,7 +35,7 @@ export function HomeMobileFeedInsert({
 
   if (insertId === 'pulse') {
     return (
-      <div className="col-span-2 w-full my-1">
+      <div className="col-span-2 w-full my-1" data-hc-feed-insert="pulse">
         <CommunityPulseBar variant="insertCompact" />
       </div>
     );
@@ -43,7 +43,7 @@ export function HomeMobileFeedInsert({
 
   if (insertId === 'reputation' && session?.user) {
     return (
-      <div className="col-span-2 w-full my-1">
+      <div className="col-span-2 w-full my-1" data-hc-feed-insert="reputation">
         <HomeReputationCompactCard variant="sidebar" />
       </div>
     );
@@ -51,7 +51,7 @@ export function HomeMobileFeedInsert({
 
   if (insertId === 'share') {
     return (
-      <div className="col-span-2 w-full my-1">
+      <div className="col-span-2 w-full my-1" data-hc-feed-insert="share">
         <div className="flex items-center justify-between gap-2 rounded-xl border border-gray-200/80 bg-white px-3 py-2">
           <p className="min-w-0 text-xs font-medium text-gray-800 truncate">
             {t('homeDorpsplein.mobileShareInsertTitle')}
@@ -84,7 +84,10 @@ export function HomeMobileFeedInsert({
   const promoId = parsePromoInsertId(insertId);
   if (promoId) {
     return (
-      <div className="col-span-2 w-full my-1">
+      <div
+        className="col-span-2 w-full my-1"
+        data-hc-feed-insert={`promo:${promoId}`}
+      >
         <HomeRecommendedPromotions variant="feedInsert" promotionId={promoId} />
       </div>
     );

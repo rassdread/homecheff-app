@@ -25,6 +25,8 @@ export default function HomeVerticalChipStrip({ className }: { className?: strin
 
   return (
     <div
+      data-testid="home-vertical-chip-strip"
+      data-hc-feed-insert="verticals"
       className={cn(
         'flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         className
