@@ -64,7 +64,10 @@ check(
 check(
   'GeoFeed progressive nearby sale pool wired',
   geo.includes('composeProgressiveNearbySalePool') &&
-    geo.includes('saleWiderPool'),
+    geo.includes('saleWiderPool') &&
+    /const salePoolForRanking = locationFilterActive\s*\?\s*composeProgressiveNearbySalePool\(\{/.test(
+      geo,
+    ),
 );
 
 check(

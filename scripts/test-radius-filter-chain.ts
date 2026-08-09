@@ -136,17 +136,18 @@ ok(
   ),
 );
 
-// Primary pool must be radius-strict when location known
+// Primary pool: progressive Nearby (known-good UX) — local-first then wider tail.
+// Instant radius apply is preserved separately; do not require local-only primary.
 ok(
-  'primary sale pool is localSalePool when locationFilterActive',
-  /const salePoolForRanking = locationFilterActive\s*\?\s*localSalePool\s*:\s*filteredSaleBase/.test(
+  'primary sale pool uses progressive Nearby when locationFilterActive',
+  /const salePoolForRanking = locationFilterActive\s*\?\s*composeProgressiveNearbySalePool\(\{/.test(
     geoFeed,
-  ),
+  ) && geoFeed.includes('wider: saleWiderPool'),
 );
 
-// Progressive widen retained for continuity (not local-only product)
+// Progressive helper remains the SSOT for local-first composition
 ok(
-  'continuity still uses composeProgressiveNearbySalePool',
+  'GeoFeed wires composeProgressiveNearbySalePool + saleWiderPool',
   geoFeed.includes('composeProgressiveNearbySalePool') &&
     geoFeed.includes('saleWiderPool'),
 );

@@ -1,0 +1,281 @@
+{
+  "at": "2026-08-09T20:18:28.432Z",
+  "base": "https://homecheff.eu",
+  "out": "/Users/sergioarrias/Homecheff-app git/docs/audits/feed-original-ux-restore/run-1786306708432",
+  "results": {
+    "chromiumDesktop": {
+      "label": "chromium-desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900,
+        "deviceScaleFactor": 1,
+        "isMobile": false,
+        "hasTouch": false
+      },
+      "snaps": [
+        {
+          "tag": "initial",
+          "uniqueHrefs": 0,
+          "hrefs": [],
+          "products": 0,
+          "recipes": 0,
+          "gardens": 0,
+          "designs": 0,
+          "verticalsHint": false,
+          "promoLike": true,
+          "insertIds": [],
+          "contentsInsertCount": 1,
+          "path": "/"
+        },
+        {
+          "tag": "scroll-1",
+          "uniqueHrefs": 7,
+          "hrefs": [
+            "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+            "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+            "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+            "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+            "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+          ],
+          "products": 7,
+          "recipes": 0,
+          "gardens": 0,
+          "designs": 0,
+          "verticalsHint": true,
+          "promoLike": true,
+          "insertIds": [],
+          "contentsInsertCount": 1,
+          "path": "/"
+        },
+        {
+          "tag": "scroll-2",
+          "uniqueHrefs": 11,
+          "hrefs": [
+            "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+            "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+            "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+            "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+            "/design/8c609bde-4e0a-4e65-9f4f-4405c42c4d44",
+            "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "/design/a98b3401-6c56-44c6-bc06-8bde6cfb5a32",
+            "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+            "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+          ],
+          "products": 7,
+          "recipes": 2,
+          "gardens": 0,
+          "designs": 2,
+          "verticalsHint": true,
+          "promoLike": true,
+          "insertIds": [],
+          "contentsInsertCount": 1,
+          "path": "/"
+        },
+        {
+          "tag": "scroll-3",
+          "uniqueHrefs": 11,
+          "hrefs": [
+            "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+            "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+            "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+            "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+            "/design/8c609bde-4e0a-4e65-9f4f-4405c42c4d44",
+            "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "/design/a98b3401-6c56-44c6-bc06-8bde6cfb5a32",
+            "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+            "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+          ],
+          "products": 7,
+          "recipes": 2,
+          "gardens": 0,
+          "designs": 2,
+          "verticalsHint": true,
+          "promoLike": true,
+          "insertIds": [],
+          "contentsInsertCount": 1,
+          "path": "/"
+        }
+      ],
+      "listingNav": {
+        "ok": true,
+        "href": "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+        "statusHint": "Skip to main content\nHomeCheff\nneighbourhood cook, grow & make\nHome\nProfile\nMessages\nReputation\nSell or share\n🇬🇧\nLogin",
+        "path": "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0"
+      },
+      "infiniteScrollGrew": true,
+      "ctaHint": true,
+      "maxUnique": 11
+    },
+    "chromiumMobile": {
+      "label": "chromium-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "deviceScaleFactor": 2,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "snaps": [
+        {
+          "tag": "initial",
+          "uniqueHrefs": 0,
+          "hrefs": [],
+          "products": 0,
+          "recipes": 0,
+          "gardens": 0,
+          "designs": 0,
+          "verticalsHint": false,
+          "promoLike": true,
+          "insertIds": [],
+          "contentsInsertCount": 1,
+          "path": "/"
+        },
+        {
+          "tag": "scroll-1",
+          "uniqueHrefs": 11,
+          "hrefs": [
+            "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+            "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+            "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+            "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+            "/design/8c609bde-4e0a-4e65-9f4f-4405c42c4d44",
+            "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "/design/a98b3401-6c56-44c6-bc06-8bde6cfb5a32",
+            "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+            "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+          ],
+          "products": 7,
+          "recipes": 2,
+          "gardens": 0,
+          "designs": 2,
+          "verticalsHint": true,
+          "promoLike": true,
+          "insertIds": [
+            "verticals",
+            "verticals",
+            "pulse",
+            "promo:android-beta",
+            "promo:affiliate-12-12",
+            "share"
+          ],
+          "contentsInsertCount": 5,
+          "path": "/"
+        },
+        {
+          "tag": "scroll-2",
+          "uniqueHrefs": 21,
+          "hrefs": [
+            "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+            "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+            "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+            "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+            "/design/8c609bde-4e0a-4e65-9f4f-4405c42c4d44",
+            "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "/design/a98b3401-6c56-44c6-bc06-8bde6cfb5a32",
+            "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+            "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336",
+            "/recipe/968a88c1-acd2-43e9-848d-e902e827ad5d",
+            "/garden/7ba381df-6f74-4f20-9ef7-99389f13943d",
+            "/recipe/85f31b81-f473-483a-b4fa-af7bb266b9a4",
+            "/recipe/8c8225d2-9dba-44f6-a7bc-dfeee3ae58ed",
+            "/design/1a94a2b8-a96b-4a0c-861c-e026c12c7dc4",
+            "/garden/5f37b9da-687e-4f43-9fd4-0aeff1d448a1",
+            "/design/c9a5ef3c-a4c0-497f-b678-7f3c70471061",
+            "/recipe/c0b3cc4d-32e6-4d6d-8205-bd9f437f0b61",
+            "/recipe/6758bb31-6c1f-43b9-b2e2-dbac9358e132",
+            "/recipe/bf4828ff-e506-4dd5-b631-a1be80328a92"
+          ],
+          "products": 7,
+          "recipes": 8,
+          "gardens": 2,
+          "designs": 4,
+          "verticalsHint": true,
+          "promoLike": true,
+          "insertIds": [
+            "verticals",
+            "verticals",
+            "pulse",
+            "promo:android-beta",
+            "promo:affiliate-12-12",
+            "share",
+            "promo:werken-bij"
+          ],
+          "contentsInsertCount": 7,
+          "path": "/"
+        },
+        {
+          "tag": "scroll-3",
+          "uniqueHrefs": 21,
+          "hrefs": [
+            "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+            "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+            "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+            "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+            "/design/8c609bde-4e0a-4e65-9f4f-4405c42c4d44",
+            "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "/design/a98b3401-6c56-44c6-bc06-8bde6cfb5a32",
+            "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+            "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336",
+            "/recipe/968a88c1-acd2-43e9-848d-e902e827ad5d",
+            "/garden/7ba381df-6f74-4f20-9ef7-99389f13943d",
+            "/recipe/85f31b81-f473-483a-b4fa-af7bb266b9a4",
+            "/recipe/8c8225d2-9dba-44f6-a7bc-dfeee3ae58ed",
+            "/design/1a94a2b8-a96b-4a0c-861c-e026c12c7dc4",
+            "/garden/5f37b9da-687e-4f43-9fd4-0aeff1d448a1",
+            "/design/c9a5ef3c-a4c0-497f-b678-7f3c70471061",
+            "/recipe/c0b3cc4d-32e6-4d6d-8205-bd9f437f0b61",
+            "/recipe/6758bb31-6c1f-43b9-b2e2-dbac9358e132",
+            "/recipe/bf4828ff-e506-4dd5-b631-a1be80328a92"
+          ],
+          "products": 7,
+          "recipes": 8,
+          "gardens": 2,
+          "designs": 4,
+          "verticalsHint": true,
+          "promoLike": true,
+          "insertIds": [
+            "verticals",
+            "verticals",
+            "pulse",
+            "promo:android-beta",
+            "promo:affiliate-12-12",
+            "share",
+            "promo:werken-bij"
+          ],
+          "contentsInsertCount": 7,
+          "path": "/"
+        }
+      ],
+      "listingNav": {
+        "ok": true,
+        "href": "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+        "statusHint": "Skip to main content\nLogin\nSign Up\nTerug\nGeen audio\n1 / 4\n▶\nL\nLioness\n\nBerkel & Rodenrijs 📍\n\n3 fans\n\n✨\n100 HCP\n🥇\nEerst",
+        "path": "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0"
+      },
+      "infiniteScrollGrew": true,
+      "ctaHint": true,
+      "maxUnique": 21
+    }
+  },
+  "gates": {
+    "mobileCtaHint": true,
+    "mobileInfiniteScroll": true,
+    "desktopInfiniteScroll": true,
+    "mobileListingNav": true,
+    "desktopListingNav": true,
+    "mobileMaxUniqueAtLeast12": true
+  },
+  "verdict": "HOMECHEFF_ORIGINAL_FEED_UX_RESTORED"
+}
