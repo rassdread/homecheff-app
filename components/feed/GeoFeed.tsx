@@ -3746,46 +3746,47 @@ export default function GeoFeed({
   ]);
 
   /**
-   * Keep chaining recirculation batches while the user remains near the end.
-   * Historical endless feed: ≥1 seed ⇒ no hard stop.
+   * After exact marketplace exhaust, keep driving the EXISTING loadMore engine
+   * through broadened → recirculation. Nested-scroll IntersectionObserver is
+   * unreliable on some WebKit desktop layouts; without this chain the endless
+   * feed starves even though recirculation is implemented.
+   *
+   * Caps auto recirculation batches so we prepare continuity without unbounded
+   * background append while the user is idle far from the bottom.
    */
   useEffect(() => {
     if (loading || feedStartupBlocked || !feedHydrated) return;
-    if (!feedHasMore || feedLoadingMore) return;
+    if (!feedHasMore) return;
     const comp = compositionStateRef.current;
-    if (!comp.recirculationActive || comp.emptyTerminal) return;
-    if (comp.recirculationBatchIndex < 1) return;
-    const timer = window.setTimeout(() => {
-      if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
-      if (!shouldActivateRecirculation(compositionStateRef.current)) return;
-      // Only auto-chain when the sentinel / nested scroller is near the end.
-      const sentinel = feedLoadMoreRef.current;
-      if (!sentinel) return;
-      const root = resolveFeedIntersectionRoot(sentinel, isDesktopSplit);
-      if (root instanceof HTMLElement) {
-        const remaining =
-          root.scrollHeight - root.scrollTop - root.clientHeight;
-        if (remaining > 900) return;
-      } else if (typeof window !== "undefined") {
-        const remaining =
-          document.documentElement.scrollHeight -
-          window.scrollY -
-          window.innerHeight;
-        if (remaining > 900) return;
+    if (!comp.marketplaceExhausted || comp.emptyTerminal) return;
+
+    const timer = window.setInterval(() => {
+      if (feedLoadingMoreRef.current || recirculationInFlightRef.current) return;
+      if (!feedHasMoreRef.current) return;
+      const c = compositionStateRef.current;
+      if (c.emptyTerminal) return;
+      if (shouldFetchBroadenedDiscovery(c)) {
+        void loadMoreFeedRef.current?.();
+        return;
       }
+      if (!shouldActivateRecirculation(c)) return;
+      // Auto-prepare the first two recirculation batches; further batches rely
+      // on sentinel / nested-scroll near-end (existing historical path).
+      if (c.recirculationBatchIndex >= 2) return;
       void loadMoreFeedRef.current?.();
-    }, 120);
-    return () => window.clearTimeout(timer);
+    }, 350);
+
+    return () => window.clearInterval(timer);
   }, [
     loading,
     feedStartupBlocked,
     feedHydrated,
     feedHasMore,
-    feedLoadingMore,
+    compositionState.marketplaceExhausted,
+    compositionState.broadenedExhausted,
     compositionState.recirculationActive,
     compositionState.recirculationBatchIndex,
-    recirculatedRows.length,
-    isDesktopSplit,
+    compositionState.emptyTerminal,
   ]);
 
   useEffect(() => {
