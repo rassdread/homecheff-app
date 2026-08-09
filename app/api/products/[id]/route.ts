@@ -794,6 +794,12 @@ export async function DELETE(
             await tx.productVideo.deleteMany({
               where: { productId: id }
             });
+
+            // Linked Dish shares product id (create dual-write for inspiration parity).
+            // Remove only that same-id Dish so Product delete does not leave an orphan recipe.
+            await tx.dish.deleteMany({
+              where: { id },
+            });
             
             // Finally delete the product
             await tx.product.delete({

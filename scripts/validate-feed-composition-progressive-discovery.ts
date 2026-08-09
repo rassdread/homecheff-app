@@ -16,8 +16,11 @@ import {
   resolveInspirationCompositionScope,
 } from '../lib/feed/feed-composition-policy';
 import {
+  composedFeedCanContinue,
   createFeedCompositionState,
+  markBroadenedPageResult,
   markMarketplacePageResult,
+  shouldFetchBroadenedDiscovery,
 } from '../lib/feed/feed-composition-state';
 import { partitionSaleItemsByRadius } from '../lib/geo/feed-radius-filter';
 import { FEED_SCOPE_NEARBY, FEED_SCOPE_NATIONAL } from '../lib/feed/feed-scope';
@@ -229,16 +232,41 @@ check(
     beforeExhaust.stage !== 'recirculation',
 );
 
-const afterExhaust = markMarketplacePageResult(comp, {
+const afterExactExhaust = markMarketplacePageResult(comp, {
   fetchedCount: 0,
   apiHasMore: false,
   skipUsed: 30,
 });
 check(
-  'recirculation activates only after marketplace unique pool exhausted',
-  afterExhaust.recirculationActive === true &&
-    afterExhaust.stage === 'recirculation' &&
-    afterExhaust.exactExhausted === true,
+  'exact exhaust enters broadened discovery (not recirculation yet)',
+  afterExactExhaust.recirculationActive === false &&
+    afterExactExhaust.stage === 'broadened' &&
+    afterExactExhaust.exactExhausted === true &&
+    afterExactExhaust.broadenedExhausted === false,
+);
+check(
+  'feedHasMore stays true after exact exhaust while broadened available',
+  composedFeedCanContinue(afterExactExhaust) === true &&
+    shouldFetchBroadenedDiscovery(afterExactExhaust) === true,
+);
+
+const afterBroadened = markBroadenedPageResult(
+  {
+    ...afterExactExhaust,
+    uniqueEligibleCount: 3,
+  },
+  {
+    fetchedCount: 10,
+    newUniqueCount: 5,
+    apiHasMore: false,
+    skipUsed: 0,
+  },
+);
+check(
+  'recirculation activates only after broadened discovery exhausted',
+  afterBroadened.broadenedExhausted === true &&
+    afterBroadened.recirculationActive === true &&
+    afterBroadened.stage === 'recirculation',
 );
 
 const batch = buildRecirculationBatch({

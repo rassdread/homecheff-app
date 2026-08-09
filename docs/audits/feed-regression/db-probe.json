@@ -1,0 +1,100 @@
+PRODUCTS [
+  {
+    "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+    "title": "Kᴇᴋsɪ",
+    "category": "CHEFF",
+    "priceCents": 450,
+    "priceModel": "FIXED",
+    "listingIntent": "OFFER",
+    "marketplaceCategory": "CREATE",
+    "isActive": true,
+    "subcategory": "CHEFF",
+    "createdAt": "2026-02-07T00:34:08.101Z"
+  }
+]
+TABLE dish 4 [
+  {
+    "id": "301ada54-401f-4a78-89c3-34562e1f4bea",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2",
+    "title": "MediaCert UI edited 1786296354981",
+    "description": "UI media certification listing — safe to delete",
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:25:41.387Z",
+    "updatedAt": "2026-08-09T17:25:58.242Z",
+    "priceCents": 299,
+    "deliveryMode": "PICKUP",
+    "lat": null,
+    "lng": null,
+    "place": null,
+    "maxStock": null,
+    "stock": 0,
+    "cate
+TABLE Dish 4 [
+  {
+    "id": "301ada54-401f-4a78-89c3-34562e1f4bea",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2",
+    "title": "MediaCert UI edited 1786296354981",
+    "description": "UI media certification listing — safe to delete",
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:25:41.387Z",
+    "updatedAt": "2026-08-09T17:25:58.242Z",
+    "priceCents": 299,
+    "deliveryMode": "PICKUP",
+    "lat": null,
+    "lng": null,
+    "place": null,
+    "maxStock": null,
+    "stock": 0,
+    "cate
+TABLE recipe 0 []
+TABLE Recipe 0 []
+/Users/sergioarrias/Homecheff-app git/node_modules/@prisma/client/src/runtime/core/errorRendering/throwValidationException.ts:45
+  throw new PrismaClientValidationError(messageWithContext, { clientVersion })
+        ^
+
+PrismaClientValidationError: 
+Invalid `prisma.product.findMany()` invocation:
+
+{
+  where: {
+    OR: [
+      {
+        priceModel: "ON_REQUEST"
+      },
+      {
+        priceCents: null
+      },
+      {
+        priceCents: 0
+      }
+    ],
+    isActive: true
+  },
+  select: {
+    id: true,
+    title: true,
+    category: true,
+    priceCents: true,
+    priceModel: true,
+    listingIntent: true,
+    marketplaceCategory: true,
+    subcategory: true,
+    isActive: true
+  },
+  take: 15,
+  orderBy: {
+    createdAt: "desc"
+  }
+}
+
+Argument `priceCents` is missing.
+    at throwValidationException (/Users/sergioarrias/Homecheff-app git/node_modules/@prisma/client/src/runtime/core/errorRendering/throwValidationException.ts:45:9)
+    at ei.handleRequestError (/Users/sergioarrias/Homecheff-app git/node_modules/@prisma/client/src/runtime/RequestHandler.ts:202:7)
+    at ei.handleAndLogRequestError (/Users/sergioarrias/Homecheff-app git/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/Users/sergioarrias/Homecheff-app git/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at async a (/Users/sergioarrias/Homecheff-app git/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at async main ([eval]:31:17) {
+  clientVersion: '6.16.2'
+}
+
+Node.js v22.22.1

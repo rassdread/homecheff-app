@@ -1,0 +1,302 @@
+ON_REQUEST [
+  {
+    "id": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+    "title": "HomeCheff Design Studio",
+    "category": "DESIGNER",
+    "priceCents": 0,
+    "priceModel": "ON_REQUEST",
+    "listingIntent": "OFFER",
+    "marketplaceCategory": "DESIGN",
+    "subcategory": "design.website",
+    "isActive": true,
+    "createdAt": "2026-07-05T18:28:25.401Z"
+  }
+]
+ZERO_PRICE [
+  {
+    "id": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+    "title": "HomeCheff Design Studio",
+    "category": "DESIGNER",
+    "priceCents": 0,
+    "priceModel": "ON_REQUEST",
+    "listingIntent": "OFFER"
+  }
+]
+RECENT_DISHES [
+  {
+    "id": "64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+    "title": "MediaCert Broken 1786296471021",
+    "category": "CHEFF",
+    "priceCents": 100,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:27:53.745Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "d22b7aeb-2a77-475d-b49c-dad87982168d",
+    "title": "MediaCert UI edited 1786296460713",
+    "category": "CHEFF",
+    "priceCents": 299,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:27:27.778Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "fe000780-e5ac-4a34-a293-b2f5e2b5fe3e",
+    "title": "MediaCert Broken 1786296365014",
+    "category": "CHEFF",
+    "priceCents": 100,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:26:08.050Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "301ada54-401f-4a78-89c3-34562e1f4bea",
+    "title": "MediaCert UI edited 1786296354981",
+    "category": "CHEFF",
+    "priceCents": 299,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:25:41.387Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "b5fb5d16-94a4-49ce-92a9-5f1d377fb68d",
+    "title": "MediaCert Broken 1786296168699",
+    "category": "CHEFF",
+    "priceCents": 100,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:22:51.519Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "48a3516f-0c9b-428c-bc4a-97dcd22b184c",
+    "title": "MediaCert UI edited 1786296158396",
+    "category": "CHEFF",
+    "priceCents": 299,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:22:24.992Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "e7dc2e0a-1bc3-440d-ac6b-4d5dd8026f97",
+    "title": "MediaCert UI edited 1786295991829",
+    "category": "CHEFF",
+    "priceCents": 299,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:19:38.189Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "beb9c4f1-68f5-4927-8d25-5a90177c4710",
+    "title": "MediaCert Broken 1786295846716",
+    "category": "CHEFF",
+    "priceCents": 100,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:17:29.831Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "587ec9ef-192b-4ee3-bb6f-3b32f5379c7f",
+    "title": "MediaCert UI edited 1786295822419",
+    "category": "CHEFF",
+    "priceCents": 299,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:16:48.012Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "de433c6b-fc05-4faf-906c-d3a71997e84e",
+    "title": "MediaCert DupB 1786295597546",
+    "category": "CHEFF",
+    "priceCents": 250,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:13:19.826Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "b1d6ceff-12a2-4eb0-949c-fa65d18f11fa",
+    "title": "MediaCert DupA 1786295592298",
+    "category": "CHEFF",
+    "priceCents": 250,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:13:14.884Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "9f48b4f4-ca22-4259-8525-684927ec0688",
+    "title": "MediaCert Multi Text2 1786295564384",
+    "category": "CHEFF",
+    "priceCents": 280,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:12:27.524Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "209613b4-46a9-4be8-a778-02e3d91f18cb",
+    "title": "MediaCert Single 1786295538404",
+    "category": "CHEFF",
+    "priceCents": 250,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:12:21.552Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "5ad60f9d-257b-468c-8b22-1052f2745a27",
+    "title": "MediaCert DupB 1786295450541",
+    "category": "CHEFF",
+    "priceCents": 250,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:10:53.498Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  },
+  {
+    "id": "9864cd0e-10bd-4d3d-8153-d8717e329c45",
+    "title": "MediaCert DupA 1786295445143",
+    "category": "CHEFF",
+    "priceCents": 250,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-09T17:10:47.730Z",
+    "userId": "8d818ef6-2035-47a1-ba9c-3be7111823e2"
+  }
+]
+MEDIACERT_DISHES [
+  {
+    "id": "64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+    "title": "MediaCert Broken 1786296471021",
+    "status": "PUBLISHED",
+    "priceCents": 100,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:27:53.745Z"
+  },
+  {
+    "id": "e7dc2e0a-1bc3-440d-ac6b-4d5dd8026f97",
+    "title": "MediaCert UI edited 1786295991829",
+    "status": "PUBLISHED",
+    "priceCents": 299,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:19:38.189Z"
+  },
+  {
+    "id": "b5fb5d16-94a4-49ce-92a9-5f1d377fb68d",
+    "title": "MediaCert Broken 1786296168699",
+    "status": "PUBLISHED",
+    "priceCents": 100,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:22:51.519Z"
+  },
+  {
+    "id": "de433c6b-fc05-4faf-906c-d3a71997e84e",
+    "title": "MediaCert DupB 1786295597546",
+    "status": "PUBLISHED",
+    "priceCents": 250,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:13:19.826Z"
+  },
+  {
+    "id": "301ada54-401f-4a78-89c3-34562e1f4bea",
+    "title": "MediaCert UI edited 1786296354981",
+    "status": "PUBLISHED",
+    "priceCents": 299,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:25:41.387Z"
+  },
+  {
+    "id": "587ec9ef-192b-4ee3-bb6f-3b32f5379c7f",
+    "title": "MediaCert UI edited 1786295822419",
+    "status": "PUBLISHED",
+    "priceCents": 299,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:16:48.012Z"
+  },
+  {
+    "id": "48a3516f-0c9b-428c-bc4a-97dcd22b184c",
+    "title": "MediaCert UI edited 1786296158396",
+    "status": "PUBLISHED",
+    "priceCents": 299,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:22:24.992Z"
+  },
+  {
+    "id": "fe000780-e5ac-4a34-a293-b2f5e2b5fe3e",
+    "title": "MediaCert Broken 1786296365014",
+    "status": "PUBLISHED",
+    "priceCents": 100,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:26:08.050Z"
+  },
+  {
+    "id": "beb9c4f1-68f5-4927-8d25-5a90177c4710",
+    "title": "MediaCert Broken 1786295846716",
+    "status": "PUBLISHED",
+    "priceCents": 100,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:17:29.831Z"
+  },
+  {
+    "id": "d22b7aeb-2a77-475d-b49c-dad87982168d",
+    "title": "MediaCert UI edited 1786296460713",
+    "status": "PUBLISHED",
+    "priceCents": 299,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:27:27.778Z"
+  },
+  {
+    "id": "64aa0df2-9875-493b-9d54-9bc7d40a9702",
+    "title": "MediaCert Single 1786295385211",
+    "status": "PUBLISHED",
+    "priceCents": 250,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:09:48.152Z"
+  },
+  {
+    "id": "209613b4-46a9-4be8-a778-02e3d91f18cb",
+    "title": "MediaCert Single 1786295538404",
+    "status": "PUBLISHED",
+    "priceCents": 250,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:12:21.552Z"
+  },
+  {
+    "id": "b86e28b1-29de-4bae-9e31-9f884d771432",
+    "title": "MediaCert Multi Text2 1786295415493",
+    "status": "PUBLISHED",
+    "priceCents": 280,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:09:55.682Z"
+  },
+  {
+    "id": "9864cd0e-10bd-4d3d-8153-d8717e329c45",
+    "title": "MediaCert DupA 1786295445143",
+    "status": "PUBLISHED",
+    "priceCents": 250,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:10:47.730Z"
+  },
+  {
+    "id": "5ad60f9d-257b-468c-8b22-1052f2745a27",
+    "title": "MediaCert DupB 1786295450541",
+    "status": "PUBLISHED",
+    "priceCents": 250,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:10:53.498Z"
+  },
+  {
+    "id": "9f48b4f4-ca22-4259-8525-684927ec0688",
+    "title": "MediaCert Multi Text2 1786295564384",
+    "status": "PUBLISHED",
+    "priceCents": 280,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:12:27.524Z"
+  },
+  {
+    "id": "b1d6ceff-12a2-4eb0-949c-fa65d18f11fa",
+    "title": "MediaCert DupA 1786295592298",
+    "status": "PUBLISHED",
+    "priceCents": 250,
+    "category": "CHEFF",
+    "createdAt": "2026-08-09T17:13:14.884Z"
+  }
+]
+DISH_PRODUCT_OVERLAP []
+{ activeProducts: 7, publishedDishes: 38 }
+NEARBY_25KM_COUNT 0 []

@@ -268,6 +268,8 @@ import {
   composedFeedCanContinue,
   createFeedCompositionState,
   markMarketplacePageResult,
+  markBroadenedPageResult,
+  shouldFetchBroadenedDiscovery,
   recordDisplayedSeeds,
   resetFeedCompositionState,
   bumpRecirculatedCount,
@@ -2774,21 +2776,29 @@ export default function GeoFeed({
   }, [feedHydrated, items]);
 
   const buildLoadMoreParams = useCallback(
-    (skip: number) => {
+    (skip: number, opts?: { broadened?: boolean }) => {
       const softNationalFallback =
         nearbyNeedsLocation &&
         browseLocationMode !== "country" &&
         browseLocationMode !== "region" &&
         !browseCountryCode;
+      /** After exact nearby exhaust: fetch national discovery (not the sealed radius query). */
+      const useBroadenedNational =
+        Boolean(opts?.broadened) &&
+        appliedScope === FEED_SCOPE_NEARBY &&
+        !softNationalFallback;
       return buildGeoFeedApiParams(
         {
-          scope: softNationalFallback
-            ? FEED_SCOPE_NATIONAL
-            : browseLocationMode === "country" || browseLocationMode === "region"
-              ? FEED_SCOPE_INTERNATIONAL
-              : appliedScope,
+          scope:
+            softNationalFallback || useBroadenedNational
+              ? FEED_SCOPE_NATIONAL
+              : browseLocationMode === "country" || browseLocationMode === "region"
+                ? FEED_SCOPE_INTERNATIONAL
+                : appliedScope,
           radius:
-            softNationalFallback || browseLocationMode === "country"
+            softNationalFallback ||
+            useBroadenedNational ||
+            browseLocationMode === "country"
               ? 0
               : appliedRadius,
           q: appliedQ,
@@ -2802,19 +2812,25 @@ export default function GeoFeed({
               ? null
               : (coordsForApiLabels?.lng ?? null),
           place:
-            softNationalFallback || browseLocationMode === "country"
+            softNationalFallback ||
+            useBroadenedNational ||
+            browseLocationMode === "country"
               ? ""
               : viewerPlaceForApi,
           locationSource: softNationalFallback
             ? null
             : browseLocationMode === "country"
               ? "country"
-              : appliedScope === FEED_SCOPE_NEARBY
-                ? apiLocationSource
-                : null,
+              : useBroadenedNational
+                ? null
+                : appliedScope === FEED_SCOPE_NEARBY
+                  ? apiLocationSource
+                  : null,
           countryCode: browseCountryCode || null,
           locationMode:
-            browseLocationMode === "global" ? null : browseLocationMode,
+            browseLocationMode === "global" || useBroadenedNational
+              ? null
+              : browseLocationMode,
         },
         { take: FEED_FIRST_PAGE_TAKE, skip },
       );
@@ -3086,9 +3102,108 @@ export default function GeoFeed({
       setFeedHasMore(false);
       return;
     }
+
+    /**
+     * Exact nearby/scope exhausted → fetch widened national discovery pages
+     * before intentional recirculation. Keeps feedHasMore = "can discover more".
+     */
+    if (shouldFetchBroadenedDiscovery(comp)) {
+      const skip = comp.broadenedSkip;
+      const identityKey = `broadened:${latestFeedRequestKeyRef.current || "feed"}:${skip}`;
+      const appendStartedAt = Date.now();
+      spinnerShownAtRef.current = Date.now();
+      setFeedLoadingMore(true);
+      try {
+        const params = buildLoadMoreParams(skip, { broadened: true });
+        const feedRes = await fetch(`/api/feed?${params.toString()}`, {
+          cache: "no-store",
+        });
+        if (!feedRes.ok) {
+          const sealed = markBroadenedPageResult(compositionStateRef.current, {
+            fetchedCount: 0,
+            newUniqueCount: 0,
+            apiHasMore: false,
+            skipUsed: skip,
+          });
+          setCompositionState(sealed);
+          setFeedHasMore(composedFeedCanContinue(sealed));
+          return;
+        }
+        const data = (await feedRes.json()) as {
+          items?: unknown;
+          pagination?: { hasMore?: boolean };
+        };
+        const rawItems = (data.items || []) as Record<string, unknown>[];
+        const viewerForDistance = effectiveViewerForDistance;
+        const valid = mapRawFeedApiItems(rawItems, viewerForDistance);
+        const seen = new Set(itemsRef.current.map((row) => row.id));
+        const uniqueNew = valid.filter((row) => !seen.has(row.id));
+        const apiHasMore = Boolean(data.pagination?.hasMore);
+
+        if (uniqueNew.length > 0) {
+          setItems((prev) => {
+            const ids = new Set(prev.map((row) => row.id));
+            const merged = [...prev];
+            for (const row of uniqueNew) {
+              if (!ids.has(row.id)) merged.push(row);
+            }
+            return merged;
+          });
+        }
+
+        let next = recordDisplayedSeeds(
+          compositionStateRef.current,
+          uniqueNew.map((row) => ({
+            id: row.id,
+            kind: isMarketplaceSaleItem(row)
+              ? ("sale" as const)
+              : ("insp" as const),
+          })),
+        );
+        next = markBroadenedPageResult(next, {
+          fetchedCount: valid.length,
+          newUniqueCount: uniqueNew.length,
+          apiHasMore,
+          skipUsed: skip,
+        });
+        setCompositionState(next);
+        setFeedHasMore(composedFeedCanContinue(next));
+        feedSealedNotePaginationCursor({
+          hasMore: composedFeedCanContinue(next),
+          itemCount: itemsRef.current.length + uniqueNew.length,
+        });
+        const latency = Date.now() - appendStartedAt;
+        feedPrefetchCacheRef.current.diag.batchAppendLatencyMsTotal += latency;
+        feedPrefetchCacheRef.current.diag.batchAppendCount += 1;
+        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+          console.info("[hc-native-scroll]", "broadened-append", {
+            skip,
+            fetched: valid.length,
+            newUnique: uniqueNew.length,
+            apiHasMore,
+            stage: next.stage,
+            feedHasMore: composedFeedCanContinue(next),
+            identityKey,
+          });
+        }
+      } catch (error) {
+        console.error("[GeoFeed] broadened load-more failed", error);
+      } finally {
+        if (spinnerShownAtRef.current != null) {
+          feedPrefetchCacheRef.current.diag.spinnerVisibleMsTotal +=
+            Date.now() - spinnerShownAtRef.current;
+          feedPrefetchCacheRef.current.diag.spinnerVisibleCount += 1;
+          spinnerShownAtRef.current = null;
+        }
+        setFeedLoadingMore(false);
+      }
+      return;
+    }
+
     const shouldRecirculate =
       comp.recirculationActive ||
       (comp.marketplaceExhausted &&
+        comp.broadenedExhausted &&
         comp.uniqueEligibleCount >= FEED_RECIRC_MIN_SEED &&
         !comp.emptyTerminal);
 
@@ -4043,9 +4158,12 @@ export default function GeoFeed({
     return buildExactDiscoveryCompositionSignals({
       items,
       localSaleCount: locationFilterActive ? localSalePool.length : undefined,
-      // Primary/exact pool is radius-strict; do not claim progressive widen
-      // already happened — continuity owns out-of-radius inventory.
-      progressiveWidenActive: false,
+      // Exact pool stays radius-strict; widened discovery is a separate stage
+      // after exact exhaust (load-more), reflected here for continuity UI.
+      progressiveWidenActive:
+        compositionState.stage === "broadened" ||
+        (compositionState.exactExhausted &&
+          !compositionState.broadenedExhausted),
       inspirationCompositionWidened:
         appliedScope === FEED_SCOPE_NEARBY &&
         inspirationCompositionScope !== "nearby",
@@ -4056,6 +4174,9 @@ export default function GeoFeed({
     localSalePool.length,
     appliedScope,
     inspirationCompositionScope,
+    compositionState.stage,
+    compositionState.exactExhausted,
+    compositionState.broadenedExhausted,
   ]);
 
   const discoveryConstraintActive = hasActiveFeedDiscoveryConstraint({

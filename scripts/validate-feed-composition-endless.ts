@@ -18,10 +18,30 @@ import {
 import {
   composedFeedCanContinue,
   createFeedCompositionState,
+  markBroadenedPageResult,
   markMarketplacePageResult,
   recordDisplayedSeeds,
   resetFeedCompositionState,
 } from '../lib/feed/feed-composition-state';
+
+/** Exact exhaust → broadened → (optional) recirculation when widened inventory ends. */
+function exhaustToRecirculation(
+  st: ReturnType<typeof createFeedCompositionState>,
+) {
+  let next = markMarketplacePageResult(st, {
+    fetchedCount: 0,
+    apiHasMore: false,
+    skipUsed: st.marketplaceSkip,
+  });
+  if (next.stage === 'empty') return next;
+  next = markBroadenedPageResult(next, {
+    fetchedCount: 0,
+    newUniqueCount: 0,
+    apiHasMore: false,
+    skipUsed: next.broadenedSkip,
+  });
+  return next;
+}
 
 console.log('=== Feed composition & endless scroll ===\n');
 
@@ -123,11 +143,7 @@ assert.equal(resolveInventoryContinuationMode(10), 'standard_recirc');
   assert.equal(b2.length, 1);
   let st = createFeedCompositionState('k1');
   st = recordDisplayedSeeds(st, seed);
-  st = markMarketplacePageResult(st, {
-    fetchedCount: 0,
-    apiHasMore: false,
-    skipUsed: 1,
-  });
+  st = exhaustToRecirculation(st);
   assert.equal(st.recirculationActive, true);
   assert.equal(st.emptyTerminal, false);
   assert.equal(composedFeedCanContinue(st), true);
@@ -197,12 +213,9 @@ assert.equal(resolveInventoryContinuationMode(10), 'standard_recirc');
   }
   let st = createFeedCompositionState('k3');
   st = recordDisplayedSeeds(st, seeds);
-  st = markMarketplacePageResult(st, {
-    fetchedCount: 0,
-    apiHasMore: false,
-    skipUsed: 10,
-  });
+  st = exhaustToRecirculation(st);
   assert.equal(st.marketplaceExhausted, true);
+  assert.equal(st.broadenedExhausted, true);
   assert.equal(st.recirculationActive, true);
   assert.equal(st.stage, 'recirculation');
   assert.equal(composedFeedCanContinue(st), true);

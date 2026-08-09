@@ -1,0 +1,1519 @@
+{
+  "at": "2026-08-09T18:08:29.436Z",
+  "chromium": {
+    "label": "chromium",
+    "pages": [
+      {
+        "scroll": 0,
+        "uniqueHrefs": 7,
+        "hrefSamples": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "recipeCount": 0,
+        "productCount": 7,
+        "requestCount": 0,
+        "gardenCount": 0,
+        "designCount": 0,
+        "scrollH": 925,
+        "clientH": 900,
+        "markers": {
+          "dataInfinite": 0,
+          "observerCandidates": 0
+        },
+        "textHasEnd": false,
+        "reqCount": 27
+      },
+      {
+        "scroll": 1,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 25,
+        "scrollH": 925,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 28
+      },
+      {
+        "scroll": 2,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 25,
+        "scrollH": 925,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 29
+      },
+      {
+        "scroll": 3,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 25,
+        "scrollH": 925,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 29
+      },
+      {
+        "scroll": "3-retry",
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "reqCount": 29
+      }
+    ],
+    "onRequest": [],
+    "feedResponses": [
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "count": 10,
+        "hasMore": true,
+        "ids": [
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+          "d22b7aeb-2a77-475d-b49c-dad87982168d"
+        ],
+        "sample": [
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "646126bf-236b-4866-ba39-254b77067dbd",
+            "title": "Spiegel van de ziel",
+            "priceCents": 5000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10",
+        "count": 7,
+        "hasMore": false,
+        "ids": [
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "sample": [
+          {
+            "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+            "title": "Kᴇᴋsɪ",
+            "priceCents": 450,
+            "priceModel": "FIXED",
+            "category": "CHEFF",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/stats-preview",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "count": 10,
+        "hasMore": true,
+        "ids": [
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+          "d22b7aeb-2a77-475d-b49c-dad87982168d"
+        ],
+        "sample": [
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "646126bf-236b-4866-ba39-254b77067dbd",
+            "title": "Spiegel van de ziel",
+            "priceCents": 5000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=sale&vertical=cheff&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=sale&vertical=garden&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=sale&vertical=designer&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=sale&vertical=services&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=inspiration&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=gezocht&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/faq?_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/app?_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/affiliate?_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0?_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=all&_rsc=19zvn"
+      },
+      {
+        "method": "POST",
+        "url": "https://homecheff.eu/api/feed/stats-preview"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10",
+        "count": 7,
+        "hasMore": false,
+        "ids": [
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "sample": [
+          {
+            "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+            "title": "Kᴇᴋsɪ",
+            "priceCents": 450,
+            "priceModel": "FIXED",
+            "category": "CHEFF",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/login?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/register?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/faq?_rsc=8kzk2"
+      },
+      {
+        "method": "POST",
+        "url": "https://homecheff.eu/api/feed/stats-preview"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/stats-preview",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      }
+    ]
+  },
+  "mobile": {
+    "label": "mobile",
+    "pages": [
+      {
+        "scroll": 0,
+        "uniqueHrefs": 7,
+        "hrefSamples": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "recipeCount": 0,
+        "productCount": 7,
+        "requestCount": 0,
+        "gardenCount": 0,
+        "designCount": 0,
+        "scrollH": 3490,
+        "clientH": 839,
+        "markers": {
+          "dataInfinite": 0,
+          "observerCandidates": 0
+        },
+        "textHasEnd": false,
+        "reqCount": 21
+      },
+      {
+        "scroll": 1,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 32170,
+        "scrollH": 33009,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 32
+      },
+      {
+        "scroll": 2,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 51441,
+        "scrollH": 52280,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 32
+      },
+      {
+        "scroll": 3,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 65228,
+        "scrollH": 66067,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 32
+      },
+      {
+        "scroll": "3-retry",
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "reqCount": 32
+      }
+    ],
+    "onRequest": [],
+    "feedResponses": [
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "count": 10,
+        "hasMore": true,
+        "ids": [
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+          "d22b7aeb-2a77-475d-b49c-dad87982168d"
+        ],
+        "sample": [
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "646126bf-236b-4866-ba39-254b77067dbd",
+            "title": "Spiegel van de ziel",
+            "priceCents": 5000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10",
+        "count": 7,
+        "hasMore": false,
+        "ids": [
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "sample": [
+          {
+            "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+            "title": "Kᴇᴋsɪ",
+            "priceCents": 450,
+            "priceModel": "FIXED",
+            "category": "CHEFF",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/stats-preview",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "count": 10,
+        "hasMore": true,
+        "ids": [
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+          "d22b7aeb-2a77-475d-b49c-dad87982168d"
+        ],
+        "sample": [
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "646126bf-236b-4866-ba39-254b77067dbd",
+            "title": "Spiegel van de ziel",
+            "priceCents": 5000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/user/Lioness010?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/user/MediaCertHC?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/recipe/64615fb1-12f4-4cb2-a601-eccd3190a7ee?_rsc=8kzk2"
+      },
+      {
+        "method": "POST",
+        "url": "https://homecheff.eu/api/feed/stats-preview"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10",
+        "count": 7,
+        "hasMore": false,
+        "ids": [
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "sample": [
+          {
+            "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+            "title": "Kᴇᴋsɪ",
+            "priceCents": 450,
+            "priceModel": "FIXED",
+            "category": "CHEFF",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "method": "POST",
+        "url": "https://homecheff.eu/api/feed/stats-preview"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/login?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/register?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/faq?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/app?_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/user/83221c39-f756-43bd-99cd-da9a48de8409?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/user/Rass?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17?_rsc=8kzk2"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/stats-preview",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/user/Kunstgalerij?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc?_rsc=8kzk2"
+      }
+    ]
+  },
+  "webkit": {
+    "label": "webkit",
+    "pages": [
+      {
+        "scroll": 0,
+        "uniqueHrefs": 5,
+        "hrefSamples": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/recipe/64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+          "/recipe/d22b7aeb-2a77-475d-b49c-dad87982168d",
+          "/recipe/fe000780-e5ac-4a34-a293-b2f5e2b5fe3e",
+          "/recipe/301ada54-401f-4a78-89c3-34562e1f4bea"
+        ],
+        "recipeCount": 4,
+        "productCount": 1,
+        "requestCount": 0,
+        "gardenCount": 0,
+        "designCount": 0,
+        "scrollH": 825,
+        "clientH": 800,
+        "markers": {
+          "dataInfinite": 0,
+          "observerCandidates": 0
+        },
+        "textHasEnd": false,
+        "reqCount": 26
+      },
+      {
+        "scroll": 1,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 25,
+        "scrollH": 825,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 28
+      },
+      {
+        "scroll": 2,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 25,
+        "scrollH": 825,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 29
+      },
+      {
+        "scroll": 3,
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "productCount": 7,
+        "scrollY": 25,
+        "scrollH": 825,
+        "hrefTail": [
+          "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+          "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+          "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "reqCount": 29
+      },
+      {
+        "scroll": "3-retry",
+        "uniqueHrefs": 7,
+        "recipeCount": 0,
+        "reqCount": 29
+      }
+    ],
+    "onRequest": [],
+    "feedResponses": [
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "count": 10,
+        "hasMore": true,
+        "ids": [
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+          "d22b7aeb-2a77-475d-b49c-dad87982168d"
+        ],
+        "sample": [
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "646126bf-236b-4866-ba39-254b77067dbd",
+            "title": "Spiegel van de ziel",
+            "priceCents": 5000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/stats-preview",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10",
+        "count": 7,
+        "hasMore": false,
+        "ids": [
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "sample": [
+          {
+            "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+            "title": "Kᴇᴋsɪ",
+            "priceCents": 450,
+            "priceModel": "FIXED",
+            "category": "CHEFF",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/stats-preview",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=0&scope=national&take=10",
+        "count": 10,
+        "hasMore": true,
+        "ids": [
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "64615fb1-12f4-4cb2-a601-eccd3190a7ee",
+          "d22b7aeb-2a77-475d-b49c-dad87982168d"
+        ],
+        "sample": [
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "646126bf-236b-4866-ba39-254b77067dbd",
+            "title": "Spiegel van de ziel",
+            "priceCents": 5000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=sale&vertical=cheff&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=sale&vertical=garden&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=sale&vertical=designer&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=sale&vertical=services&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=inspiration&_rsc=19zvn"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=33392889-a509-4598-a379-c0671b2c37e0&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=4f822286-6043-417d-8be5-1bae8342d3a9&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "method": "POST",
+        "url": "https://homecheff.eu/api/feed/stats-preview"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=1823cae9-2aae-400f-9a28-eadbdcded3bc&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/media?type=product&id=e648aaec-31c2-4d7d-b2f9-83a96857b5d7&i=0",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=gezocht&_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/faq?_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/app?_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0?_rsc=19zvn"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/?chip=all&_rsc=19zvn"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/stats-preview",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/login?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/register?_rsc=8kzk2"
+      },
+      {
+        "method": "GET",
+        "url": "https://homecheff.eu/faq?_rsc=8kzk2"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed?radius=25&scope=nearby&locationMode=point&countryCode=NL&lat=51.9088&lng=4.3444&take=10",
+        "count": 7,
+        "hasMore": false,
+        "ids": [
+          "3b85deeb-5801-417a-a087-5b6027130ae0",
+          "4f822286-6043-417d-8be5-1bae8342d3a9",
+          "33392889-a509-4598-a379-c0671b2c37e0",
+          "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+          "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+          "646126bf-236b-4866-ba39-254b77067dbd",
+          "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+        ],
+        "sample": [
+          {
+            "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+            "title": "Kᴇᴋsɪ",
+            "priceCents": 450,
+            "priceModel": "FIXED",
+            "category": "CHEFF",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "33392889-a509-4598-a379-c0671b2c37e0",
+            "title": "Kunstschilderijen",
+            "priceCents": 8000,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+            "title": "Marilyn Monroe A3 formaat",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          },
+          {
+            "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+            "title": "Elvis presley tekening A3",
+            "priceCents": 12500,
+            "priceModel": "FIXED",
+            "category": "DESIGNER",
+            "listingIntent": "OFFER"
+          }
+        ]
+      },
+      {
+        "method": "POST",
+        "url": "https://homecheff.eu/api/feed/stats-preview"
+      },
+      {
+        "type": "response",
+        "status": 200,
+        "url": "https://homecheff.eu/api/feed/stats-preview",
+        "count": 0,
+        "ids": [],
+        "sample": []
+      }
+    ]
+  }
+}

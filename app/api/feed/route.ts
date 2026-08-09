@@ -1350,6 +1350,8 @@ async function handleFeedGet(
   apiPerf?.mark('response_mapped');
 
   const feedTotal = responseItems.length;
+  // pagination.hasMore = more rows for THIS query (scope/radius/filters).
+  // Client GeoFeed composes a broader feedHasMore (exact → broadened → recirculation).
   const pagination = buildFeedPaginationMeta(feedTake, feedSkip, feedTotal);
   const pageItems = sanitizeFeedItemsForResponse(
     responseItems.slice(feedSkip, feedSkip + feedTake) as Record<string, unknown>[],

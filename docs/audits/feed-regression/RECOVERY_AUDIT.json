@@ -1,0 +1,22 @@
+{
+  "status": "HOMECHEFF_FEED_DATA_INTACT_REGRESSION_IDENTIFIED",
+  "at": "2026-08-09T18:15:00Z",
+  "currentProductionCommit": "f0e31defff3e7b55d6c0ab970aef4a53a8c915bb",
+  "lastKnownGoodInfiniteScroll": {
+    "commit": "5d500f3d2e7070b311caea1af768ee9110ce1aac",
+    "note": "Immediate parent of d70f8cf6; progressive widen still available before radius-strict primary pool change"
+  },
+  "infiniteScrollRegressionCommit": "d70f8cf65ccdefd5c0de699162f82d09a1a97220",
+  "onRequestClassification": {
+    "exampleId": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+    "dbIntact": true,
+    "routedAs": "/product/...",
+    "taxonomyKind": "SERVICE",
+    "notRecipe": true
+  },
+  "recipeSightings": {
+    "cause": "Dish dual-write + orphan MediaCert Dish rows after Product-only cleanup; type=dish \u2192 /recipe/",
+    "notCausedByPriceOnRequest": true
+  },
+  "sameRootCause": false
+}
