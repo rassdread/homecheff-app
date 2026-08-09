@@ -1,0 +1,112 @@
+{
+  "chromium": {
+    "name": "chromium",
+    "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+    "listingCold": 6338,
+    "listingFromFeed": 4552,
+    "profileNav": 3146,
+    "profileCold": 3096,
+    "secondListing": 4790,
+    "listingCriticalProductApi": false,
+    "profileSellerProductsApi": false,
+    "listingApis": [
+      "/api/auth/session",
+      "/api/geo/approx",
+      "/api/feed",
+      "/api/home/community-pulse",
+      "/api/marketplace/pending-accepted-values",
+      "/api/onboarding/analytics",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews",
+      "/api/analytics/track-view",
+      "/api/video-proxy"
+    ],
+    "profileApis": [
+      "/api/auth/session",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/analytics/track-profile-view"
+    ],
+    "clickApis": [
+      "/api/auth/session",
+      "/api/feed",
+      "/api/home/community-pulse",
+      "/api/marketplace/pending-accepted-values",
+      "/api/onboarding/analytics",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews",
+      "/api/analytics/track-view",
+      "/api/video-proxy"
+    ]
+  },
+  "mobile": {
+    "name": "mobile",
+    "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+    "listingCold": 2995,
+    "listingFromFeed": 4337,
+    "profileNav": 1935,
+    "profileCold": 1941,
+    "secondListing": 3918,
+    "listingCriticalProductApi": false,
+    "profileSellerProductsApi": false,
+    "listingApis": [
+      "/api/auth/session",
+      "/api/geo/approx",
+      "/api/feed",
+      "/api/home/community-pulse",
+      "/api/onboarding/analytics",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews",
+      "/api/analytics/track-view",
+      "/api/video-proxy"
+    ],
+    "profileApis": [
+      "/api/auth/session",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/analytics/track-profile-view"
+    ],
+    "clickApis": [
+      "/api/auth/session",
+      "/api/feed",
+      "/api/home/community-pulse",
+      "/api/onboarding/analytics",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews",
+      "/api/analytics/track-view",
+      "/api/video-proxy"
+    ]
+  },
+  "webkit": {
+    "name": "webkit",
+    "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+    "listingCold": 3701,
+    "listingFromFeed": 4136,
+    "profileNav": 3146,
+    "profileCold": 2073,
+    "secondListing": 6047,
+    "listingCriticalProductApi": false,
+    "profileSellerProductsApi": false,
+    "listingApis": [
+      "/api/auth/session",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews",
+      "/api/analytics/track-view"
+    ],
+    "profileApis": [
+      "/api/video-proxy",
+      "/api/auth/session",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/analytics/track-profile-view"
+    ],
+    "clickApis": [
+      "/api/auth/session",
+      "/api/geo/approx",
+      "/api/feed",
+      "/api/home/community-pulse",
+      "/api/marketplace/pending-accepted-values",
+      "/api/onboarding/analytics",
+      "/api/user/e6cbd036-d954-4c69-8664-0677a892ca6b/stats",
+      "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews",
+      "/api/analytics/track-view"
+    ]
+  }
+}

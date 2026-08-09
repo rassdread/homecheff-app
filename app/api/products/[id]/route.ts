@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { randomUUID } from 'crypto';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
@@ -32,6 +33,7 @@ import {
   shouldRevalidateAfterProductMutation,
 } from '@/lib/feed/revalidate-public-feed';
 import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-dish';
+import { listingProductCacheTag } from '@/lib/marketplace/detail/get-cached-listing-product-core';
 
 export const dynamic = 'force-dynamic';
 
@@ -642,6 +644,7 @@ export async function PATCH(
           if (shouldRevalidateAfterProductMutation(product, updatedProduct)) {
             revalidatePublicFeedCache('product:patch');
           }
+          revalidateTag(listingProductCacheTag(updatedProduct.id));
 
           return NextResponse.json({
             product: updatedProduct,
@@ -662,6 +665,7 @@ export async function PATCH(
           if (shouldRevalidateAfterListingMutation(product, updatedListing)) {
             revalidatePublicFeedCache('listing:patch');
           }
+          revalidateTag(listingProductCacheTag(updatedListing.id));
           return NextResponse.json({ product: updatedListing });
         }
     }
@@ -817,6 +821,7 @@ export async function DELETE(
         } else if (shouldRevalidateAfterListingMutation(product, null)) {
           revalidatePublicFeedCache('listing:delete');
         }
+        revalidateTag(listingProductCacheTag(id));
 
         return NextResponse.json({ success: true });
     }

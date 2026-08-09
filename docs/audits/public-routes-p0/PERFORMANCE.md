@@ -19,29 +19,32 @@ Measured useful content: **~7.5–8.9s** (production certify)
 
 Measured: **~10–11.5s** client / **~9s** cold
 
-### C–E
-Second listing and cold loads still paid the client product API tax.
-
 ## Changes shipped
 
 | Area | Change |
 |------|--------|
-| Listing RSC | `loadListingDetail` + `app/product/[id]/page.tsx` passes `initialData` |
+| Listing RSC | `loadListingDetail` + page passes `initialData` |
 | Listing client | Skips critical `/api/products` when RSC payload present; reviews deferred |
-| Profile SSR | Slimmer Dish/Delivery includes; products mapped to `publishedItems` |
-| Profile client | `MyDishesManager` seeds from `initialItems`, no seller-products waterfall on aanbod |
-| Prefetch | `ItemCard` `router.prefetch` on hover; existing Link prefetch on tiles/names |
+| Profile SSR | Slimmer Dish/Delivery includes; products → `publishedItems` |
+| Profile client | `MyDishesManager` seeds from `initialItems` (no seller-products waterfall) |
+| Prefetch | `ItemCard` `router.prefetch` on hover |
 | Cache | `React.cache` dedupe for listing loader within a request |
-| Loading UI | Existing `loading.tsx` skeletons retained |
+| Loading UI | Existing route `loading.tsx` skeletons retained |
 
-## Query counts
+## AFTER probe (prod `dpl_8kd3NgYRCVqbxhEskA66FL8MydjN`, h1 useful content)
 
-| Path | BEFORE (approx) | AFTER |
-|------|-----------------|-------|
-| Listing useful body | Layout product×2 + full API product + dish media + reviews rows (multi-request) | **~7** parallelizable Prisma ops in one RSC load |
-| Profile first paint | Fat nested user + client seller products re-query | Slim user + products in SSR; **0** seller-products API for aanbod first paint |
+| Metric | Chromium | Mobile | WebKit |
+|--------|----------|--------|--------|
+| Listing from feed | 4552ms | 4337ms | 4136ms |
+| Listing cold | 6338ms | 2995ms | 3701ms |
+| Profile nav | 3146ms | 1935ms | 3146ms |
+| Profile cold | 3096ms | 1941ms | 2073ms |
+| Second listing | 4790ms | 3918ms | 6047ms |
+| Critical `/api/products/{id}` | no | no | no |
+| `/api/seller/products` on profile | no | no | no |
 
-## Targets
+Evidence: `perf-probe-tight.json`
 
-- Useful listing preferably &lt;2s; profile &lt;2.5s after deploy (measure in `perf-probe.json`)
-- No avoidable client API waterfall for critical content
+## Verdict
+
+`HOMECHEFF_PUBLIC_PERFORMANCE_NO_GO` — critical waterfalls removed and profile much faster, but listing wall-clock (~4–6s) is still above the preferably &lt;2s / near-immediate target.

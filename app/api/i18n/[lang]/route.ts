@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCorsHeaders } from '@/lib/apiCors';
 import { mergeProgrammaticI18n } from '@/lib/i18n/translations';
 
-export const dynamic = 'force-dynamic';
+/** Static locale JSON — allow CDN/browser caching (no force-dynamic). */
+export const revalidate = 86400;
 
 /** Serve i18n JSON (nl/en) with CORS so Safari/lokaal IP kan vertalingen laden; gekoppeld aan taalwisselaar en homecheff-language cookie. */
 export async function GET(
@@ -28,6 +29,7 @@ export async function GET(
       headers: {
         ...cors,
         'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+        'CDN-Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
       },
     });
   } catch {

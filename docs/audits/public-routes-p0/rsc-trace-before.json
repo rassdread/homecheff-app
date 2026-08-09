@@ -1,0 +1,78 @@
+{
+  "productId": "3b85deeb-5801-417a-a087-5b6027130ae0",
+  "productReadsApproxPerRequest": 3,
+  "steps": [
+    {
+      "label": "1.product.metadata_shape",
+      "ms": 213,
+      "serialOrParallel": "serial",
+      "class": "A"
+    },
+    {
+      "label": "2.product.layout_jsonld",
+      "ms": 117,
+      "serialOrParallel": "serial",
+      "class": "A"
+    },
+    {
+      "label": "3.loadListingDetail.full",
+      "ms": 772,
+      "serialOrParallel": "serial",
+      "class": "A"
+    },
+    {
+      "label": "4.product.detail_include",
+      "ms": 372,
+      "serialOrParallel": "serial",
+      "class": "A"
+    },
+    {
+      "label": "5a.enrich.reviewAgg",
+      "ms": 57,
+      "serialOrParallel": "parallel",
+      "class": "B"
+    },
+    {
+      "label": "5b.enrich.contacts",
+      "ms": 96,
+      "serialOrParallel": "parallel",
+      "class": "B"
+    },
+    {
+      "label": "5c.enrich.badges",
+      "ms": 94,
+      "serialOrParallel": "parallel",
+      "class": "B"
+    },
+    {
+      "label": "5d.enrich.stripe",
+      "ms": 54,
+      "serialOrParallel": "parallel",
+      "class": "A"
+    },
+    {
+      "label": "5e.enrich.trust",
+      "ms": 3,
+      "serialOrParallel": "parallel",
+      "class": "B"
+    },
+    {
+      "label": "5f.enrich.dishLite",
+      "ms": 41,
+      "serialOrParallel": "parallel",
+      "class": "B"
+    }
+  ],
+  "enrichmentParallelWallMs": 96,
+  "serialProductReadsMs": 1474,
+  "dominant": {
+    "label": "5b.enrich.contacts",
+    "ms": 96,
+    "result": [
+      {
+        "id": "chat",
+        "href": ""
+      }
+    ]
+  }
+}

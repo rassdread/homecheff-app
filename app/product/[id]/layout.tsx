@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
 import {
   getCurrentDomain,
   getCurrentLanguage,
@@ -19,12 +18,14 @@ import {
 import { isRequestListing } from '@/lib/marketplace/product-visibility';
 import { buildListingJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
+import { getCachedListingProductCore } from '@/lib/marketplace/detail/get-cached-listing-product-core';
 
 const BREADCRUMB_HOME_NL = 'Home';
 const BREADCRUMB_HOME_EN = 'Home';
 const BREADCRUMB_SQUARE_NL = 'Dorpsplein';
 const BREADCRUMB_SQUARE_EN = 'Village Square';
 
+/** Keep redirects dynamic; product core is request-deduped via React.cache. */
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(
@@ -36,33 +37,7 @@ export async function generateMetadata(
   const currentDomain = await getCurrentDomain();
 
   try {
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        seller: {
-          include: {
-            User: {
-              select: {
-                name: true,
-                username: true,
-                place: true,
-                displayFullName: true,
-                displayNameOption: true,
-              },
-            },
-          },
-        },
-        Image: {
-          select: { fileUrl: true },
-          orderBy: { sortOrder: 'asc' },
-          take: 1,
-        },
-        reviews: {
-          select: { rating: true },
-          where: { reviewSubmittedAt: { not: null } },
-        },
-      },
-    });
+    const product = id ? await getCachedListingProductCore(id) : null;
 
     if (!product || !product.isActive) {
       return {
@@ -83,14 +58,6 @@ export async function generateMetadata(
       ? getDisplayName(product.seller.User)
       : '';
     const city = formatCityLabel(product.seller?.User?.place);
-    const price = (product.priceCents / 100).toFixed(2);
-    const averageRating =
-      product.reviews.length > 0
-        ? (
-            product.reviews.reduce((sum, r) => sum + r.rating, 0) /
-            product.reviews.length
-          ).toFixed(1)
-        : null;
 
     const title =
       lang === 'en'
@@ -126,7 +93,7 @@ export async function generateMetadata(
       product.title,
       sellerName,
       city,
-      product.category.toLowerCase(),
+      String(product.category || '').toLowerCase(),
       product.subcategory || '',
       lang === 'en' ? 'homemade' : 'thuisgemaakt',
       lang === 'en' ? 'local' : 'lokaal',
@@ -198,41 +165,11 @@ export default async function ProductLayout({
   let structuredData: Record<string, unknown> | null = null;
   let breadcrumbData: Record<string, unknown> | null = null;
 
-  const productForLayout = await prisma.product.findUnique({
-    where: { id: resolvedId },
-    include: {
-      seller: {
-        include: {
-          User: {
-            select: {
-              name: true,
-              username: true,
-              place: true,
-              displayFullName: true,
-              displayNameOption: true,
-            },
-          },
-        },
-      },
-      Image: {
-        select: { fileUrl: true },
-        orderBy: { sortOrder: 'asc' },
-        take: 1,
-      },
-      reviews: {
-        where: { reviewSubmittedAt: { not: null } },
-        select: {
-          rating: true,
-          comment: true,
-          title: true,
-          buyer: { select: { name: true } },
-        },
-        take: 10,
-      },
-    },
-  });
+  const productForLayout = resolvedId
+    ? await getCachedListingProductCore(resolvedId)
+    : null;
 
-  if (productForLayout?.isActive && isRequestListing(productForLayout)) {
+  if (productForLayout?.isActive && isRequestListing(productForLayout as any)) {
     redirect(
       buildListingDetailPath(
         'request',
@@ -270,14 +207,9 @@ export default async function ProductLayout({
       const city = formatCityLabel(product.seller?.User?.place);
       const username = product.seller?.User?.username;
       const price = (product.priceCents / 100).toFixed(2);
-      const averageRating =
-        product.reviews.length > 0
-          ? (
-              product.reviews.reduce((sum, r) => sum + r.rating, 0) /
-              product.reviews.length
-            ).toFixed(1)
-          : null;
-      const reviewCount = product.reviews.length;
+      // Individual review rows deferred — aggregateRating filled by extras later; JSON-LD stays valid without reviews array.
+      const averageRating = null;
+      const reviewCount = 0;
       const imageUrl = product.Image?.[0]?.fileUrl
         ? product.Image[0].fileUrl.startsWith('http')
           ? product.Image[0].fileUrl
@@ -298,12 +230,7 @@ export default async function ProductLayout({
         stock: product.stock,
         averageRating,
         reviewCount,
-        reviews: product.reviews.map((review) => ({
-          rating: review.rating,
-          comment: review.comment,
-          title: review.title,
-          buyerName: review.buyer?.name,
-        })),
+        reviews: [],
       });
 
       const homeLabel = lang === 'en' ? BREADCRUMB_HOME_EN : BREADCRUMB_HOME_NL;

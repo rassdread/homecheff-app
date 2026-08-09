@@ -414,34 +414,85 @@ export default function ListingDetailPage({
         }
       }
 
-      try {
-        const reviewResponse = await fetch(`/api/products/${productId}/reviews`);
-        if (reviewResponse.ok) {
-          const reviewPayload = await reviewResponse.json();
-          const loadedReviews = reviewPayload.reviews || [];
-          setReviews(loadedReviews);
-          if (product) {
-            persistListingDetailSnapshot(product, {
-              stats,
-              reviews: loadedReviews,
-              sellerBadges,
-              discoveryTrust,
-              dishInfo,
-              linkedInspiration,
-              publicContactChannels,
-              checkoutAvailable,
-              paymentStatus,
-              isBusiness,
-              companyName,
-            });
-          }
+      // B-class enrichment + reviews in parallel after first paint
+      const [extrasResult, reviewResult] = await Promise.all([
+        fetch(`/api/products/${productId}/detail-extras`)
+          .then(async (r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+        fetch(`/api/products/${productId}/reviews`)
+          .then(async (r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ]);
+
+      let nextSellerBadges = sellerBadges;
+      let nextDiscoveryTrust = discoveryTrust;
+      let nextPublicContactChannels = publicContactChannels;
+      let nextDishInfo = dishInfo;
+      let nextLinkedInspiration = linkedInspiration;
+      let nextStats = stats;
+
+      if (extrasResult) {
+        if (Array.isArray(extrasResult.sellerBadges)) {
+          nextSellerBadges = extrasResult.sellerBadges;
+          setSellerBadges(nextSellerBadges);
         }
-      } catch (reviewError) {
-        console.error('Error loading reviews:', reviewError);
+        if (extrasResult.discoveryTrust) {
+          nextDiscoveryTrust = extrasResult.discoveryTrust as DiscoveryTrustContract;
+          setDiscoveryTrust(nextDiscoveryTrust);
+        }
+        if (Array.isArray(extrasResult.publicContactChannels)) {
+          nextPublicContactChannels = extrasResult.publicContactChannels;
+          setPublicContactChannels(nextPublicContactChannels);
+        }
+        if (extrasResult.stats) {
+          nextStats = {
+            ...stats,
+            averageRating: extrasResult.stats.averageRating ?? stats.averageRating,
+            reviewCount: extrasResult.stats.reviewCount ?? stats.reviewCount,
+          };
+          setStats(nextStats);
+        }
+        if (extrasResult.isDish || extrasResult.dishCategory) {
+          nextDishInfo = {
+            ...dishInfo,
+            isDish: Boolean(extrasResult.isDish),
+            category: extrasResult.dishCategory ?? null,
+          };
+          setDishInfo(nextDishInfo);
+        }
+        if (extrasResult.linkedInspiration?.href && extrasResult.linkedInspiration?.category) {
+          nextLinkedInspiration = {
+            href: extrasResult.linkedInspiration.href,
+            category: extrasResult.linkedInspiration.category,
+          };
+          setLinkedInspiration(nextLinkedInspiration);
+        }
+      }
+
+      let loadedReviews: unknown[] = [];
+      if (reviewResult?.reviews) {
+        loadedReviews = reviewResult.reviews;
+        setReviews(loadedReviews);
+      }
+
+      if (product) {
+        persistListingDetailSnapshot(product, {
+          stats: nextStats,
+          reviews: loadedReviews,
+          sellerBadges: nextSellerBadges,
+          discoveryTrust: nextDiscoveryTrust,
+          dishInfo: nextDishInfo,
+          linkedInspiration: nextLinkedInspiration,
+          publicContactChannels: nextPublicContactChannels,
+          checkoutAvailable,
+          paymentStatus,
+          isBusiness,
+          companyName,
+        });
       }
     };
 
-    // Server-first: critical body already present — defer reviews / me / analytics only.
+    // Server-first: critical body already present — defer reviews / extras / me / analytics.
     if (hasServerInitialRef.current && product?.id) {
       setIsLoading(false);
       setShowClientSkeleton(false);

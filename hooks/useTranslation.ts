@@ -15,6 +15,9 @@ let translations: Translations = {};
 let previousTranslations: Translations = {}; // Keep previous translations during language switch
 let translationListeners: Set<() => void> = new Set();
 let isChangingLanguage = false; // Flag to prevent race conditions during language change
+/** In-flight fetch shared across all useTranslation() mounts — kills i18n storm. */
+const inflightTranslationLoads = new Map<Language, Promise<Translations>>();
+const loadedTranslationLangs = new Set<Language>();
 // Dedup warnings: log "key not found" maximaal 1x per key per pagina-load om
 // console-spam te voorkomen wanneer een (mogelijk gecachete) component dezelfde
 // missende key tientallen keren rendert.
@@ -264,6 +267,13 @@ export function useTranslation() {
   }, [userLanguagePreference, userPreferenceLoaded, language]);
 
   const loadTranslations = async (lang: Language) => {
+    // Module-level: already loaded this language in this tab session
+    if (loadedTranslationLangs.has(lang) && Object.keys(translations).length > 0) {
+      setIsReady(true);
+      setIsLoading(false);
+      return;
+    }
+
     // Prevent multiple simultaneous loads of the same language
     if (isLoading && language === lang && isReady) {
       if (
@@ -307,33 +317,37 @@ export function useTranslation() {
             console.debug(`[i18n] Using cached translations for ${lang} (instant load)`);
           }
           translations = cachedTranslations;
+          loadedTranslationLangs.add(lang);
           setIsReady(true);
           setIsLoading(false);
           notifyListeners(); // Notify immediately so UI can render
           
-          // Fetch fresh in background for next time (don't await or block)
-          // Use default cache strategy for better cross-browser compatibility
-          fetch(`/api/i18n/${lang}?t=${now}`, {
-            cache: 'default',
-            credentials: 'include'
-          }).then(response => {
-            if (response.ok) {
-              return response.json().then(newTranslations => {
+          // Single shared background refresh — no ?t= cache-bust (allows HTTP cache)
+          if (!inflightTranslationLoads.has(lang)) {
+            const bg = fetch(`/api/i18n/${lang}`, {
+              cache: 'force-cache',
+              credentials: 'same-origin',
+            })
+              .then(async (response) => {
+                if (!response.ok) return translations;
+                const newTranslations = await response.json();
                 if (newTranslations && typeof newTranslations === 'object' && Object.keys(newTranslations).length > 0) {
                   safeLocalStorage.setItem(cacheKey, JSON.stringify(newTranslations));
-                  safeLocalStorage.setItem(cacheTimeKey, now.toString());
+                  safeLocalStorage.setItem(cacheTimeKey, String(Date.now()));
                   safeLocalStorage.setItem(cacheVersionKey, CACHE_VERSION);
-                  // Only update if translations actually changed
                   if (JSON.stringify(translations) !== JSON.stringify(newTranslations)) {
                     translations = newTranslations;
                     notifyListeners();
                   }
                 }
+                return translations;
+              })
+              .catch(() => translations)
+              .finally(() => {
+                inflightTranslationLoads.delete(lang);
               });
-            }
-          }).catch(() => {
-            // Silently fail background update
-          });
+            inflightTranslationLoads.set(lang, bg);
+          }
           
           return; // Exit early - cache was used, no need to fetch
         }
@@ -345,41 +359,43 @@ export function useTranslation() {
       }
     }
     
-    // No valid cache - need to fetch
+    // No valid cache - need to fetch (deduped across all hook instances)
     setIsLoading(true);
     setIsReady(false);
-    
+
+    let shared = inflightTranslationLoads.get(lang);
+    if (!shared) {
+      shared = fetch(`/api/i18n/${lang}`, {
+        cache: 'force-cache',
+        credentials: 'same-origin',
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          const newTranslations = await response.json();
+          if (!newTranslations || typeof newTranslations !== 'object' || Object.keys(newTranslations).length === 0) {
+            throw new Error('Empty or invalid translations received');
+          }
+          return newTranslations as Translations;
+        })
+        .finally(() => {
+          inflightTranslationLoads.delete(lang);
+        });
+      inflightTranslationLoads.set(lang, shared);
+    }
+
     try {
-      
-      // Fetch fresh translations with cache-busting query param for better browser compatibility
-      // Use default cache strategy (better cross-browser support than force-cache)
-      const response = await fetch(`/api/i18n/${lang}?t=${now}`, {
-        cache: 'default',
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      // Keep previous translations as fallback during switch
       if (Object.keys(translations).length > 0) {
         previousTranslations = { ...translations };
       }
-      
-      const newTranslations = await response.json();
-      
-      // Validate that translations were loaded correctly
-      if (!newTranslations || typeof newTranslations !== 'object' || Object.keys(newTranslations).length === 0) {
-        throw new Error('Empty or invalid translations received');
-      }
+
+      const newTranslations = await shared;
       
       translations = newTranslations;
-      // Reset dedup zodat een key die in NL ontbreekt maar in EN bestaat (of andersom)
-      // alsnog wordt gemeld na een taalwissel.
+      loadedTranslationLangs.add(lang);
       warnedMissingKeys.clear();
       
-      // Cache in localStorage for faster future loads (only if available)
       if (safeLocalStorage.isAvailable()) {
         safeLocalStorage.setItem(cacheKey, JSON.stringify(newTranslations));
         safeLocalStorage.setItem(cacheTimeKey, now.toString());
@@ -387,8 +403,6 @@ export function useTranslation() {
       }
       
       setIsReady(true);
-      
-      // Notify all listeners that translations have changed
       notifyListeners();
       
       if (
