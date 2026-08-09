@@ -1098,13 +1098,23 @@ export default function GeoFeed({
   const [feedHasMore, setFeedHasMore] = useState(false);
   const [feedLoadingMore, setFeedLoadingMore] = useState(false);
   const feedLoadMoreRef = useRef<HTMLDivElement | null>(null);
+  /** Prevents repeat auto-kick of broadened page 0 for the same requestKey. */
+  const broadenedKickKeyRef = useRef<string | null>(null);
   const feedLoadingMoreRef = useRef(false);
   /** Unified composition pagination / recirculation (one source must not kill the feed). */
   const [compositionState, setCompositionState] = useState<FeedCompositionState>(
     () => createFeedCompositionState(),
   );
   const compositionStateRef = useRef(compositionState);
-  compositionStateRef.current = compositionState;
+  /**
+   * Do NOT assign compositionState → ref during render.
+   * Async paths write the ref first; a render with a stale closure would
+   * clobber broadened/exact transitions before React commits setState.
+   */
+  const commitCompositionState = useCallback((next: FeedCompositionState) => {
+    compositionStateRef.current = next;
+    setCompositionState(next);
+  }, []);
   /** Client-side recirculated rows appended after unique inventory is exhausted. */
   const [recirculatedRows, setRecirculatedRows] = useState<
     Array<{ row: "sale"; item: FeedItem } | { row: "insp"; slot: InspSlot }>
@@ -2221,11 +2231,14 @@ export default function GeoFeed({
     // requestKey settles — clearing here caused a false zero-results flash.
     setDiscoveryFeed(null);
     setFeedHasMore(false);
+    feedHasMoreRef.current = false;
     setApiRawItems([]);
     setRecirculatedRows([]);
-    setCompositionState((prev) =>
-      resetFeedCompositionState(prev, `scope=${next}`),
-    );
+    setCompositionState((prev) => {
+      const reset = resetFeedCompositionState(prev, `scope=${next}`);
+      compositionStateRef.current = reset;
+      return reset;
+    });
     clearHomeFeedReturnCache();
     feedRestoredFromCacheRef.current = false;
     setFilterResultPhase(FEED_RESULT_PHASE.FILTER_TRANSITION_STARTED);
@@ -2332,7 +2345,12 @@ export default function GeoFeed({
     feedSealedNoteRequestKey(requestKey);
 
     setRecirculatedRows([]);
-    setCompositionState((prev) => resetFeedCompositionState(prev, requestKey));
+    broadenedKickKeyRef.current = null;
+    setCompositionState((prev) => {
+      const next = resetFeedCompositionState(prev, requestKey);
+      compositionStateRef.current = next;
+      return next;
+    });
 
     if (isFilterTransition) {
       setFilterResultPhase(FEED_RESULT_PHASE.FILTER_TRANSITION_STARTED);
@@ -2379,10 +2397,32 @@ export default function GeoFeed({
       setItems(cached.items as FeedItem[]);
       setDiscoveryFeed(cached.discoveryFeed ?? null);
       setInspiratiePool(cached.inspiratiePool);
-      setFeedHasMore(
-        cached.feedHasMore ??
-          cached.items.length >= FEED_FIRST_PAGE_TAKE,
-      );
+      // Rehydrate composition so exact-exhaust → broadened can continue after cache restore.
+      {
+        const cachedHasMore = Boolean(
+          cached.feedHasMore ??
+            cached.items.length >= FEED_FIRST_PAGE_TAKE,
+        );
+        let restored = recordDisplayedSeeds(
+          compositionStateRef.current,
+          (cached.items as FeedItem[]).map((row) => ({
+            id: row.id,
+            kind: isMarketplaceSaleItem(row)
+              ? ("sale" as const)
+              : ("insp" as const),
+          })),
+        );
+        restored = markMarketplacePageResult(restored, {
+          fetchedCount: (cached.items as FeedItem[]).length,
+          apiHasMore: cachedHasMore,
+          skipUsed: 0,
+        });
+        const restoredHasMore =
+          cachedHasMore || composedFeedCanContinue(restored);
+        commitCompositionState(restored);
+        feedHasMoreRef.current = restoredHasMore;
+        setFeedHasMore(restoredHasMore);
+      }
       if (cached.apiViewerCoords) {
         setApiViewerCoords(cached.apiViewerCoords);
       }
@@ -2633,9 +2673,10 @@ export default function GeoFeed({
             apiHasMore,
             skipUsed: 0,
           });
-          setCompositionState(nextComp);
+          commitCompositionState(nextComp);
           const composedHasMore =
             apiHasMore || composedFeedCanContinue(nextComp);
+          feedHasMoreRef.current = composedHasMore;
           setFeedHasMore(composedHasMore);
           feedSealedNotePreparedBatchIdentity({
             itemCount: valid.length,
@@ -2758,6 +2799,7 @@ export default function GeoFeed({
     appliedCategory,
     browseCountryCode,
     browseLocationMode,
+    commitCompositionState,
   ]);
 
   useEffect(() => {
@@ -2865,8 +2907,10 @@ export default function GeoFeed({
           apiHasMore: false,
           skipUsed: skip,
         });
-        setCompositionState(next);
-        setFeedHasMore(composedFeedCanContinue(next));
+        const more = composedFeedCanContinue(next);
+        commitCompositionState(next);
+        feedHasMoreRef.current = more;
+        setFeedHasMore(more);
         return;
       }
 
@@ -2902,8 +2946,10 @@ export default function GeoFeed({
         apiHasMore,
         skipUsed: skip,
       });
-      setCompositionState(next);
-      setFeedHasMore(apiHasMore || composedFeedCanContinue(next));
+      const more = apiHasMore || composedFeedCanContinue(next);
+      commitCompositionState(next);
+      feedHasMoreRef.current = more;
+      setFeedHasMore(more);
       feedPerfIncrementFeedFetch("refresh");
       feedSealedNoteRequestStart();
 
@@ -2943,6 +2989,7 @@ export default function GeoFeed({
       coordsForApiLabels?.lat,
       coordsForApiLabels?.lng,
       session?.user,
+      commitCompositionState,
     ],
   );
 
@@ -3087,7 +3134,14 @@ export default function GeoFeed({
   }, []);
 
   const loadMoreFeed = useCallback(async () => {
-    if (!feedHasMore || feedLoadingMore || feedStartupBlocked) return;
+    // Prefer refs so auto-kick / IO can run in the same tick as composition commit.
+    if (
+      !feedHasMoreRef.current ||
+      feedLoadingMoreRef.current ||
+      feedStartupBlocked
+    ) {
+      return;
+    }
     if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
       console.info("[hc-native-scroll]", "loadMore-entered", {
         marketplaceItems: itemsRef.current.length,
@@ -3112,6 +3166,7 @@ export default function GeoFeed({
       const identityKey = `broadened:${latestFeedRequestKeyRef.current || "feed"}:${skip}`;
       const appendStartedAt = Date.now();
       spinnerShownAtRef.current = Date.now();
+      feedLoadingMoreRef.current = true;
       setFeedLoadingMore(true);
       try {
         const params = buildLoadMoreParams(skip, { broadened: true });
@@ -3125,8 +3180,10 @@ export default function GeoFeed({
             apiHasMore: false,
             skipUsed: skip,
           });
-          setCompositionState(sealed);
-          setFeedHasMore(composedFeedCanContinue(sealed));
+          const more = composedFeedCanContinue(sealed);
+          commitCompositionState(sealed);
+          feedHasMoreRef.current = more;
+          setFeedHasMore(more);
           return;
         }
         const data = (await feedRes.json()) as {
@@ -3166,10 +3223,12 @@ export default function GeoFeed({
           apiHasMore,
           skipUsed: skip,
         });
-        setCompositionState(next);
-        setFeedHasMore(composedFeedCanContinue(next));
+        const more = composedFeedCanContinue(next);
+        commitCompositionState(next);
+        feedHasMoreRef.current = more;
+        setFeedHasMore(more);
         feedSealedNotePaginationCursor({
-          hasMore: composedFeedCanContinue(next),
+          hasMore: more,
           itemCount: itemsRef.current.length + uniqueNew.length,
         });
         const latency = Date.now() - appendStartedAt;
@@ -3195,6 +3254,7 @@ export default function GeoFeed({
           feedPrefetchCacheRef.current.diag.spinnerVisibleCount += 1;
           spinnerShownAtRef.current = null;
         }
+        feedLoadingMoreRef.current = false;
         setFeedLoadingMore(false);
       }
       return;
@@ -3250,12 +3310,19 @@ export default function GeoFeed({
           });
         preparedRecircBatchRef.current = null;
         if (batch.length === 0) {
-          setCompositionState((prev) => ({
-            ...prev,
-            emptyTerminal: prev.uniqueEligibleCount === 0,
-            recirculationActive: false,
-            stage: prev.uniqueEligibleCount === 0 ? "empty" : prev.stage,
-          }));
+          setCompositionState((prev) => {
+            const next = {
+              ...prev,
+              emptyTerminal: prev.uniqueEligibleCount === 0,
+              recirculationActive: false,
+              stage: (prev.uniqueEligibleCount === 0
+                ? "empty"
+                : prev.stage) as FeedCompositionState["stage"],
+            };
+            compositionStateRef.current = next;
+            return next;
+          });
+          feedHasMoreRef.current = false;
           setFeedHasMore(false);
           return;
         }
@@ -3289,19 +3356,23 @@ export default function GeoFeed({
           }
         }
         if (nextRows.length === 0) {
+          feedHasMoreRef.current = false;
           setFeedHasMore(false);
           return;
         }
         setRecirculatedRows((prev) => [...prev, ...nextRows]);
-        setCompositionState((prev) =>
-          bumpRecirculatedCount(
+        setCompositionState((prev) => {
+          const next = bumpRecirculatedCount(
             recordDisplayedSeeds(
               { ...prev, recirculationActive: true, stage: "recirculation" },
               batch,
             ),
             nextRows.length,
-          ),
-        );
+          );
+          compositionStateRef.current = next;
+          return next;
+        });
+        feedHasMoreRef.current = true;
         setFeedHasMore(true);
         prepareRecirculationIfNeeded();
         const latency = Date.now() - appendStartedAt;
@@ -3315,6 +3386,7 @@ export default function GeoFeed({
           feedPrefetchCacheRef.current.diag.spinnerVisibleCount += 1;
           spinnerShownAtRef.current = null;
         }
+        feedLoadingMoreRef.current = false;
         setFeedLoadingMore(false);
       }
       return;
@@ -3341,6 +3413,7 @@ export default function GeoFeed({
     }
 
     spinnerShownAtRef.current = Date.now();
+    feedLoadingMoreRef.current = true;
     setFeedLoadingMore(true);
     try {
       const params = buildLoadMoreParams(skip);
@@ -3377,11 +3450,10 @@ export default function GeoFeed({
         feedPrefetchCacheRef.current.diag.spinnerVisibleCount += 1;
         spinnerShownAtRef.current = null;
       }
+      feedLoadingMoreRef.current = false;
       setFeedLoadingMore(false);
     }
   }, [
-    feedHasMore,
-    feedLoadingMore,
     feedStartupBlocked,
     nearbyNeedsLocation,
     recirculatedRows,
@@ -3392,6 +3464,7 @@ export default function GeoFeed({
     appliedScope,
     feedCoords,
     effectiveViewerForDistance,
+    commitCompositionState,
   ]);
 
   // Track scroll velocity for adaptive prefetch distance
@@ -3523,6 +3596,30 @@ export default function GeoFeed({
       }
     };
   }, [feedHasMore, loading, loadMoreFeed]);
+
+  /** One-shot kick into widened discovery when exact exhausts (short pages / IO miss). */
+  useEffect(() => {
+    if (loading || feedStartupBlocked || !feedHydrated) return;
+    if (!feedHasMore || feedLoadingMore) return;
+    const comp = compositionStateRef.current;
+    if (!shouldFetchBroadenedDiscovery(comp)) return;
+    // Only auto-kick the first broadened page for this requestKey (skip=0).
+    if (comp.broadenedSkip > 0) return;
+    const kickKey = `${comp.requestKey}|broadened0`;
+    if (broadenedKickKeyRef.current === kickKey) return;
+    broadenedKickKeyRef.current = kickKey;
+    void loadMoreFeed();
+  }, [
+    loading,
+    feedStartupBlocked,
+    feedHydrated,
+    feedHasMore,
+    feedLoadingMore,
+    compositionState.stage,
+    compositionState.exactExhausted,
+    compositionState.broadenedSkip,
+    loadMoreFeed,
+  ]);
 
   useEffect(() => {
     if (feedStartupBlocked || !feedHydrated) return;
