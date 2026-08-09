@@ -9,6 +9,7 @@ import ClickableName from '@/components/ui/ClickableName';
 import SafeImage from '@/components/ui/SafeImage';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getFeedItemHref, getListingHref } from '@/lib/routing/public-hrefs';
 
 type Follow = { 
   id: string; 
@@ -260,17 +261,20 @@ export default function FansAndFollowsList({ userId, initialTab = 'follows' }: F
                                 (favorite.Listing as any)?.image ||
                                 favorite.Dish?.photos?.[0]?.url ||
                                 "/placeholder.webp";
-                const href = favorite.Product
-                  ? `/product/${item.id}`
-                  : favorite.Listing
-                    ? `/listing/${item.id}`
-                    : favorite.Dish
-                      ? (favorite.Dish.category === 'CHEFF'
-                          ? `/recipe/${item.id}`
-                          : favorite.Dish.category === 'GROWN'
-                            ? `/garden/${item.id}`
-                            : `/design/${item.id}`)
-                      : "#";
+                const href = favorite.Product || favorite.Listing
+                  ? getListingHref({
+                      id: item.id,
+                      title: (item as { title?: string | null }).title || 'listing',
+                      place: null,
+                    })
+                  : favorite.Dish
+                    ? getFeedItemHref({
+                        id: item.id,
+                        title: (item as { title?: string | null }).title ?? null,
+                        type: 'dish',
+                        category: favorite.Dish.category ?? null,
+                      })
+                    : '#';
                 const title = (item as any).title || 'Item';
                 const description = (item as any).description ?? null;
                 const priceCents = (item as any).priceCents ?? null;

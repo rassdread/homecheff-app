@@ -11,7 +11,7 @@ import {
   trackExchangeSuggestionImpression,
   trackExchangeSuggestionOpen,
 } from '@/lib/marketplace/exchange-suggestions';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import { buildListingDetailHref } from '@/lib/seo/listing-routes';
 
 export type ExchangeSuggestionsFeedInsertProps = {
   card: ExchangeSuggestionCard;
@@ -30,7 +30,13 @@ export default function ExchangeSuggestionsFeedInsert({
   className = '',
 }: ExchangeSuggestionsFeedInsertProps) {
   const tracked = useRef(false);
-  const listingHref = `/product/${buildProductSlugPath(card.counterpartyTitle, null, card.counterpartyListingId)}`;
+  const listingHref = buildListingDetailHref({
+    title: card.counterpartyTitle,
+    id: card.counterpartyListingId,
+    place: null,
+    listingIntent: card.counterpartyListingIntent ?? null,
+    listingKind: card.counterpartyListingKind ?? null,
+  });
 
   useEffect(() => {
     if (tracked.current) return;

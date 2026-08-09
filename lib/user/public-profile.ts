@@ -1,6 +1,6 @@
 /**
- * Safe links naar publieke maker-profielen (/user/[username]).
- * Gebruikersnamen die tijdelijk of ongeldig lijken krijgen geen klikbare publieke URL.
+ * Safe links naar publieke maker-profielen (/user/[username|uuid]).
+ * Tijdelijke / ongeldige usernames: link via UUID wanneer beschikbaar.
  */
 export function isPublicUsername(username: string | null | undefined): boolean {
   if (!username || typeof username !== 'string') return false;
@@ -12,15 +12,35 @@ export function isPublicUsername(username: string | null | undefined): boolean {
   return /^[a-zA-Z0-9._-]+$/.test(u);
 }
 
-/** Publieke profiel-URL of `null` als we beter geen link tonen. */
-export function publicProfileHref(userId: string, username: string | null): string | null {
-  if (isPublicUsername(username)) return `/user/${username as string}`;
+/**
+ * Canonical public profile href.
+ * Prefer a stable public username; otherwise `/user/[uuid]`.
+ */
+export function publicProfileHref(
+  userId: string,
+  username: string | null | undefined,
+): string | null {
+  if (isPublicUsername(username)) {
+    return `/user/${encodeURIComponent((username as string).trim())}`;
+  }
+  if (isPublicUserIdSegment(userId)) {
+    return `/user/${userId.trim()}`;
+  }
   return null;
 }
 
-/** Fallback voor eigen rij of legacy: alleen gebruiken als expliciet gewenst. */
+/** Alias used by routing contract / UI surfaces. */
+export function getPublicProfileHref(
+  userId: string,
+  username?: string | null,
+): string | null {
+  return publicProfileHref(userId, username ?? null);
+}
+
+/** Legacy name — always `/user/[id]` (never dead `/profile/[id]`). */
 export function profileFallbackHref(userId: string): string {
-  return `/profile/${userId}`;
+  const id = userId.trim();
+  return isPublicUserIdSegment(id) ? `/user/${id}` : `/user/${encodeURIComponent(id)}`;
 }
 
 const UUID_RE =
@@ -41,7 +61,9 @@ export function publicLeaderboardProfileHref(
   profilePublic: boolean
 ): string | null {
   if (!profilePublic) return null;
-  if (isPublicUsername(username)) return `/user/${(username as string).trim()}`;
+  if (isPublicUsername(username)) {
+    return `/user/${encodeURIComponent((username as string).trim())}`;
+  }
   if (isPublicUserIdSegment(userId)) return `/user/${userId.trim()}`;
   return null;
 }

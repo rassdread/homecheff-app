@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 import ClickableName from '@/components/ui/ClickableName';
 import BusinessBadge from '@/components/ui/BusinessBadge';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import { getListingHref } from '@/lib/routing/public-hrefs';
 import { formatMarketplaceDistanceKm } from '@/lib/geo/distance-format';
 
 type HomeItem = {
@@ -104,10 +104,13 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
       return;
     }
     
-    const path = item.title?.trim()
-      ? `/product/${buildProductSlugPath(item.title, item.place, item.id)}`
-      : `/product/${item.id}`;
-    router.push(path);
+    router.push(
+      getListingHref({
+        id: item.id,
+        title: item.title?.trim() || 'listing',
+        place: item.place ?? null,
+      }),
+    );
   };
   
   // Prepare media items for ImageSlider (images + video)

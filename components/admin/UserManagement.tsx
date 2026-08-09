@@ -405,7 +405,7 @@ export default function UserManagement() {
                       <div className="ml-4">
                         <div className="flex items-center gap-2">
                           <Link 
-                            href={user.username ? `/user/${user.username}` : `/profile/${user.id}`}
+                            href={user.username ? `/user/${encodeURIComponent(user.username)}` : `/user/${user.id}`}
                             className="text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
                           >
                             {getDisplayName(user)}
@@ -446,7 +446,7 @@ export default function UserManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-1 sm:space-x-2">
                       <Link
-                        href={user.username ? `/user/${user.username}` : `/profile/${user.id}`}
+                        href={user.username ? `/user/${encodeURIComponent(user.username)}` : `/user/${user.id}`}
                         target="_blank"
                         className="p-3 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title={t('common.viewProfile')}

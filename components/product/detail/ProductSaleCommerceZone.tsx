@@ -18,7 +18,10 @@ import {
   resolveMarketplaceCtaActions,
   toMarketplaceCtaContext,
 } from '@/lib/marketplace/settlement/settlement-router';
-import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import {
+  hasPublicDisplayPrice,
+  type ProductOrderMethodValue,
+} from '@/lib/product/order-method';
 import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';

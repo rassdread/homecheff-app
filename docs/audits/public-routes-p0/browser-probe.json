@@ -1,0 +1,270 @@
+{
+  "dpl": "dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz",
+  "feedClickChain": [
+    {
+      "href": "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+      "finalUrl": "https://homecheff.eu/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+      "status": 200,
+      "title": "Kᴇᴋsɪ — Lioness in Berkel & Rodenrijs 📍 | HomeCheff | HomeCheff",
+      "bad": false,
+      "profileHref": null,
+      "loadMs": 4347,
+      "newPageErrors": [],
+      "snippet": "Skip to main content Login Sign Up 🧭 Discover 💬 Messages 👤 Profile"
+    },
+    {
+      "href": "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+      "finalUrl": "https://homecheff.eu/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+      "status": 200,
+      "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+      "bad": false,
+      "profileHref": null,
+      "loadMs": 4869,
+      "newPageErrors": [],
+      "snippet": "Skip to main content Login Sign Up 🧭 Discover 💬 Messages 👤 Profile"
+    },
+    {
+      "href": "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+      "finalUrl": "https://homecheff.eu/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+      "status": 200,
+      "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+      "bad": false,
+      "profileHref": null,
+      "loadMs": 7051,
+      "newPageErrors": [],
+      "snippet": "Skip to main content Login Sign Up 🧭 Discover 💬 Messages 👤 Profile"
+    },
+    {
+      "href": "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+      "finalUrl": "https://homecheff.eu/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+      "status": 200,
+      "title": "Marilyn Monroe A3 formaat — Camila Rijs in Midwolda | HomeCheff | HomeCheff",
+      "bad": false,
+      "profileHref": null,
+      "loadMs": 7350,
+      "newPageErrors": [],
+      "snippet": "Skip to main content Login Sign Up 🧭 Discover 💬 Messages 👤 Profile"
+    },
+    {
+      "href": "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+      "finalUrl": "https://homecheff.eu/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+      "status": 200,
+      "title": "Elvis presley tekening A3 — Camila Rijs in Midwolda | HomeCheff | HomeCheff",
+      "bad": false,
+      "profileHref": null,
+      "loadMs": 5604,
+      "newPageErrors": [],
+      "snippet": "Skip to main content Login Sign Up 🧭 Discover 💬 Messages 👤 Profile"
+    },
+    {
+      "href": "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+      "finalUrl": "https://homecheff.eu/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+      "status": 200,
+      "title": "Spiegel van de ziel — Camila Rijs in Midwolda | HomeCheff | HomeCheff",
+      "bad": false,
+      "profileHref": null,
+      "loadMs": 4324,
+      "newPageErrors": [],
+      "snippet": "Skip to main content Login Sign Up 🧭 Discover 💬 Messages 👤 Profile"
+    },
+    {
+      "href": "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+      "finalUrl": "https://homecheff.eu/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+      "status": 200,
+      "title": "HomeCheff Design Studio — Sergio in Vlaardingen | HomeCheff | HomeCheff",
+      "bad": false,
+      "profileHref": null,
+      "loadMs": 4418,
+      "newPageErrors": [],
+      "snippet": "Skip to main content Login Sign Up 🧭 Discover 💬 Messages 👤 Profile"
+    }
+  ],
+  "directUrls": [
+    {
+      "id": "4f822286-6043-417d-8be5-1bae8342d3a9",
+      "path": "/product/4f822286-6043-417d-8be5-1bae8342d3a9/",
+      "status": 200,
+      "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+      "loadMs": 3523,
+      "bad": false
+    },
+    {
+      "id": "33392889-a509-4598-a379-c0671b2c37e0",
+      "path": "/product/33392889-a509-4598-a379-c0671b2c37e0/",
+      "status": 200,
+      "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+      "loadMs": 3610,
+      "bad": false
+    },
+    {
+      "id": "1823cae9-2aae-400f-9a28-eadbdcded3bc",
+      "path": "/product/1823cae9-2aae-400f-9a28-eadbdcded3bc/",
+      "status": 200,
+      "title": "Marilyn Monroe A3 formaat — Camila Rijs in Midwolda | HomeCheff | HomeCheff",
+      "loadMs": 3678,
+      "bad": false
+    },
+    {
+      "id": "e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+      "path": "/product/e648aaec-31c2-4d7d-b2f9-83a96857b5d7/",
+      "status": 200,
+      "title": "Elvis presley tekening A3 — Camila Rijs in Midwolda | HomeCheff | HomeCheff",
+      "loadMs": 3625,
+      "bad": false
+    },
+    {
+      "id": "646126bf-236b-4866-ba39-254b77067dbd",
+      "path": "/product/646126bf-236b-4866-ba39-254b77067dbd/",
+      "status": 200,
+      "title": "Spiegel van de ziel — Camila Rijs in Midwolda | HomeCheff | HomeCheff",
+      "loadMs": 3027,
+      "bad": false
+    },
+    {
+      "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+      "path": "/product/3b85deeb-5801-417a-a087-5b6027130ae0/",
+      "status": 200,
+      "title": "Kᴇᴋsɪ — Lioness in Berkel & Rodenrijs 📍 | HomeCheff | HomeCheff",
+      "loadMs": 2853,
+      "bad": false
+    },
+    {
+      "id": "8c609bde-4e0a-4e65-9f4f-4405c42c4d44",
+      "type": "dish",
+      "path": "/design/8c609bde-4e0a-4e65-9f4f-4405c42c4d44/",
+      "status": 200,
+      "title": "Zelf geschreven songteksten! - HomeCheff Atelier | HomeCheff",
+      "loadMs": 4380,
+      "bad": false
+    },
+    {
+      "id": "a98b3401-6c56-44c6-bc06-8bde6cfb5a32",
+      "type": "dish",
+      "path": "/design/a98b3401-6c56-44c6-bc06-8bde6cfb5a32/",
+      "status": 200,
+      "title": "Handgeschilderd Schilderij - HomeCheff Atelier | HomeCheff",
+      "loadMs": 3316,
+      "bad": false
+    },
+    {
+      "id": "d086099a-b7f3-4661-9a2e-f3c834c6714c",
+      "type": "dish",
+      "path": "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c/",
+      "status": 200,
+      "title": "Kᴇᴋsɪ - HomeCheff Keuken | HomeCheff",
+      "loadMs": 4401,
+      "bad": false
+    },
+    {
+      "id": "bffec0e8-91ba-4eff-9b34-f8265169e336",
+      "type": "dish",
+      "path": "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336/",
+      "status": 200,
+      "title": "Zᥱᥣ𝖿 ɡᥱɱᥲᥲktᥱ ᥱksι kυkυ - HomeCheff Keuken | HomeCheff",
+      "loadMs": 4072,
+      "bad": false
+    }
+  ],
+  "profiles": [],
+  "pageerrors": [],
+  "consoleErrors": [
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "ReferenceError: hasPublicDisplayPrice is not defined\n    at er (https://homecheff.eu/_next/static/chunks/common-ee85ce02517f9909.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:1:886129)\n    at nz (https://homecheff.eu/_next/static/chunks/nextjs-7ecba312561b9897.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:2:786"
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "ReferenceError: hasPublicDisplayPrice is not defined\n    at er (https://homecheff.eu/_next/static/chunks/common-ee85ce02517f9909.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:1:886129)\n    at nz (https://homecheff.eu/_next/static/chunks/nextjs-7ecba312561b9897.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:2:786"
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "ReferenceError: hasPublicDisplayPrice is not defined\n    at er (https://homecheff.eu/_next/static/chunks/common-ee85ce02517f9909.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:1:886129)\n    at nz (https://homecheff.eu/_next/static/chunks/nextjs-7ecba312561b9897.js?dpl=dpl_8pnHiXeBqtbV5hu2kCRRFDwWKGuz:2:786"
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    },
+    {
+      "bucket": "mobile",
+      "text": "Loading the script 'https://www.googletagmanager.com/gtag/js?id=G-5D0PR6ERQG' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com\"."
+    }
+  ],
+  "notes": [
+    {
+      "homeHrefsSample": [
+        "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+        "/user/Lioness010",
+        "/product/kunstschilderijen-grotestraat-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+        "/user/Kunstgalerij",
+        "/product/kunstschilderijen-grotestraat-hcid-33392889-a509-4598-a379-c0671b2c37e0",
+        "/product/marilyn-monroe-a3-formaat-midwolda-hcid-1823cae9-2aae-400f-9a28-eadbdcded3bc",
+        "/user/temp_1777716708506_1tlo6e7r8",
+        "/product/elvis-presley-tekening-a3-midwolda-hcid-e648aaec-31c2-4d7d-b2f9-83a96857b5d7",
+        "/product/spiegel-van-de-ziel-midwolda-hcid-646126bf-236b-4866-ba39-254b77067dbd",
+        "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "/user/Rass"
+      ],
+      "homeLoadMs": 8053
+    }
+  ]
+}

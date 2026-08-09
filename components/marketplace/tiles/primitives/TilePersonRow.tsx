@@ -5,6 +5,7 @@ import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import { getDisplayName } from '@/lib/displayName';
 import { formatItemPlaceDistanceLine } from '@/lib/geo/item-location';
 import type { MarketplaceTileModel, TranslateFn } from '@/lib/marketplace/tiles';
+import { getPublicProfileHref } from '@/lib/user/public-profile';
 
 export default function TilePersonRow({
   model,
@@ -34,9 +35,9 @@ export default function TilePersonRow({
     unknownDistanceLabel: t('feed.unknownDistance'),
   });
 
-  const profileHref = person.username
-    ? `/user/${person.username}`
-    : `/user/${person.userId}`;
+  const profileHref =
+    getPublicProfileHref(person.userId, person.username) ??
+    `/user/${encodeURIComponent(person.userId)}`;
 
   const fallbackName = isRequest
     ? t('marketplace.tile.person.requester')

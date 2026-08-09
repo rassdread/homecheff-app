@@ -1,0 +1,36 @@
+{
+  "base": "http://127.0.0.1:3011",
+  "build": "standalone after hasPublicDisplayPrice import fix",
+  "results": [
+    {
+      "path": "/product/4f822286-6043-417d-8be5-1bae8342d3a9/",
+      "status": 200,
+      "redirectedTo": "/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+      "hasPublicDisplayPriceErr": false,
+      "hasContent": true
+    },
+    {
+      "path": "/listing/4f822286-6043-417d-8be5-1bae8342d3a9/",
+      "status": 200,
+      "redirectedTo": "/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+      "hasPublicDisplayPriceErr": false
+    },
+    {
+      "path": "/user/Kunstgalerij/",
+      "status": 200,
+      "hasContent": true,
+      "snippetIncludes": "Sacco Van munster @Kunstgalerij"
+    },
+    {
+      "path": "/seller/d59000ec-5a12-4c1c-bfa6-ba8cd3aca379/",
+      "status": 200,
+      "redirectedTo": "/user/Kunstgalerij",
+      "note": "userId legacy seller URL now redirects to canonical profile"
+    },
+    {
+      "path": "/profile/d59000ec-5a12-4c1c-bfa6-ba8cd3aca379/",
+      "status": 200,
+      "redirectedTo": "/user/d59000ec-5a12-4c1c-bfa6-ba8cd3aca379"
+    }
+  ]
+}

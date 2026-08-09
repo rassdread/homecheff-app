@@ -4,6 +4,7 @@ import type {
   ProfileV2TabId,
   ProfileV2User,
 } from './types';
+import { publicProfileHref } from '@/lib/user/public-profile';
 
 export type WorkspacePhotoCounts = {
   CHEFF: number;
@@ -271,8 +272,7 @@ export function getHighlightedCommunityAction(
 }
 
 export function getPublicProfileHref(user: ProfileV2User): string | null {
-  if (!user.username?.trim()) return null;
-  return `/user/${encodeURIComponent(user.username)}`;
+  return publicProfileHref(user.id, user.username ?? null);
 }
 
 export function emptyWorkspaceCounts(): WorkspacePhotoCounts {
