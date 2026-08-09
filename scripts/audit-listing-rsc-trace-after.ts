@@ -3,7 +3,7 @@
  */
 import { performance } from 'node:perf_hooks';
 import { prisma } from '../lib/prisma';
-import { fetchListingProductCore } from '../lib/marketplace/detail/get-cached-listing-product-core';
+import { fetchListingProductCore } from '../lib/marketplace/detail/listing-product-core';
 import { requiresStripeForHomecheffCheckout } from '../lib/product/order-method';
 import { buildPublicPaymentStatus } from '../lib/stripe/seller-payment-status';
 
