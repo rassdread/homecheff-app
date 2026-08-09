@@ -58,6 +58,7 @@ export type ProfileV2ClientProps = {
   publicHcp?: PublicProfileHcpPayload | null;
   ecosystemChipKeys?: string[];
   publicContactChannels?: PublicContactChannel[];
+  publishedItems?: unknown[];
 };
 
 function searchParamTruthy(
@@ -140,6 +141,7 @@ export default function ProfileV2Client({
   publicHcp = null,
   ecosystemChipKeys = [],
   publicContactChannels = [],
+  publishedItems,
 }: ProfileV2ClientProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -161,7 +163,21 @@ export default function ProfileV2Client({
   const [inspiratieFilter, setInspiratieFilter] = useState<ProfileV2InspiratieFilter>(() =>
     resolveInitialInspiratieFilter(searchParams),
   );
-  const [stats, setStats] = useState<ProfileV2Stats | null>(null);
+  const [stats, setStats] = useState<ProfileV2Stats | null>(() => {
+    if (variant !== 'public' || !Array.isArray(publishedItems)) return null;
+    const n = publishedItems.length;
+    return {
+      items: n,
+      dishes: 0,
+      products: n,
+      followers: 0,
+      following: 0,
+      favorites: 0,
+      orders: 0,
+      reviews: 0,
+      props: 0,
+    };
+  });
   const [ownerHcp, setOwnerHcp] = useState<PublicProfileHcpPayload | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
 
@@ -177,17 +193,17 @@ export default function ProfileV2Client({
       if (variant === 'private') {
         setStats(data as ProfileV2Stats);
       } else {
-        setStats({
-          items: 0,
-          dishes: 0,
-          products: 0,
+        setStats((prev) => ({
+          items: prev?.items ?? 0,
+          dishes: prev?.dishes ?? 0,
+          products: prev?.products ?? 0,
           followers: data.fansCount ?? 0,
           following: data.followingCount ?? 0,
           favorites: data.totalFavorites ?? 0,
           orders: 0,
           reviews: data.totalReviews ?? 0,
           props: data.totalProps ?? 0,
-        });
+        }));
       }
     } catch {
       /* ignore */
@@ -315,6 +331,7 @@ export default function ProfileV2Client({
       hcp: variant === 'private' ? ownerHcp : publicHcp,
       publicContact: publicContactChannels,
       ecosystemChipKeys,
+      publishedItems,
     }),
     [
       viewerIsOwner,
@@ -326,6 +343,7 @@ export default function ProfileV2Client({
       ownerHcp,
       publicContactChannels,
       ecosystemChipKeys,
+      publishedItems,
     ],
   );
 

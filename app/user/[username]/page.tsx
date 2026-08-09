@@ -162,16 +162,11 @@ export default async function PublicProfilePage({
         subcategory: true,
         photos: {
           select: { url: true, idx: true, isMain: true },
+          take: 4,
         },
-        growthPhotos: {
-          select: { id: true, url: true, phaseNumber: true },
-          orderBy: { phaseNumber: "asc" as const },
-        },
-        reviews: { select: { rating: true } },
-        _count: { select: { reviews: true } },
       },
       orderBy: { createdAt: "desc" as const },
-      take: 48,
+      take: 24,
     },
     SellerProfile: {
       select: {
@@ -190,11 +185,18 @@ export default async function PublicProfilePage({
             description: true,
             priceCents: true,
             category: true,
+            subcategory: true,
             createdAt: true,
-            Image: { select: { fileUrl: true }, take: 1 },
+            listingIntent: true,
+            marketplaceCategory: true,
+            specializations: true,
+            stock: true,
+            maxStock: true,
+            pickupAddress: true,
+            Image: { select: { id: true, fileUrl: true, sortOrder: true }, take: 1, orderBy: { sortOrder: "asc" as const } },
           },
           orderBy: { createdAt: "desc" as const },
-          take: 48,
+          take: 24,
         },
       },
     },
@@ -216,7 +218,11 @@ export default async function PublicProfilePage({
         totalEarnings: true,
         createdAt: true,
         reviews: {
-          include: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
             reviewer: {
               select: {
                 id: true,
@@ -229,11 +235,11 @@ export default async function PublicProfilePage({
             },
           },
           orderBy: { createdAt: "desc" as const },
-          take: 10,
+          take: 5,
         },
         vehiclePhotos: {
           orderBy: { sortOrder: "asc" as const },
-          take: 12,
+          take: 6,
         },
       },
     },
@@ -348,6 +354,42 @@ export default async function PublicProfilePage({
     ecosystemChipKeys.push('ecosystemProfile.chips.makerHere');
   }
 
+  /** Server-first aanbod tiles — avoids client /api/seller/products waterfall. */
+  const publishedAanbodItems = (user.SellerProfile?.products ?? []).map((product) => ({
+    id: product.id,
+    title: product.title,
+    description: product.description,
+    status: 'PUBLISHED' as const,
+    createdAt:
+      product.createdAt instanceof Date
+        ? product.createdAt.toISOString()
+        : String(product.createdAt),
+    priceCents: product.priceCents,
+    place:
+      product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
+      user.place ||
+      null,
+    category:
+      product.category === 'CHEFF'
+        ? 'CHEFF'
+        : product.category === 'GROWN'
+          ? 'GROWN'
+          : 'DESIGNER',
+    marketplaceCategory: product.marketplaceCategory ?? null,
+    specializations: product.specializations ?? [],
+    subcategory: product.subcategory,
+    stock: product.stock,
+    maxStock: product.maxStock,
+    listingIntent: product.listingIntent ?? null,
+    photos:
+      product.Image?.map((img, index) => ({
+        id: img.id,
+        url: img.fileUrl,
+        idx: img.sortOrder ?? index,
+        isMain: (img.sortOrder ?? index) === 0,
+      })) || [],
+  }));
+
   const currentDomain = await getCurrentDomain();
   const profileDisplay = getDisplayName(user);
   const canonicalUsername = user.username || username;
@@ -382,6 +424,7 @@ export default async function PublicProfilePage({
           publicHcp={publicHcp}
           ecosystemChipKeys={ecosystemChipKeys}
           publicContactChannels={publicContactChannels}
+          publishedItems={publishedAanbodItems}
         />
       </div>
     </>

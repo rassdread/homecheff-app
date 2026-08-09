@@ -171,6 +171,8 @@ interface MyDishesManagerProps {
   /** Profile V2: owner user voor empty-state CTA in ProductManagement. */
   ownerUser?: import('@/lib/profile/profile-v2/types').ProfileV2User;
   aanbodFilter?: import('@/lib/profile/profile-v2/types').ProfileV2AanbodFilter;
+  /** RSC-seeded public aanbod — skips blocking /api/seller/products on first paint. */
+  initialItems?: unknown[];
 }
 
 export default function MyDishesManager({
@@ -185,13 +187,19 @@ export default function MyDishesManager({
   hideCreateActions = false,
   ownerUser,
   aanbodFilter = 'all',
+  initialItems,
 }: MyDishesManagerProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const safeFetch = useSafeFetch();
   const hcpRewardUi = useHcpRewardUi();
-  const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState<Dish[]>([]);
+  const seededItems = Array.isArray(initialItems)
+    ? (initialItems as Dish[])
+    : null;
+  const [loading, setLoading] = useState(
+    () => !(isPublic && contentSubTab === 'dorpsplein' && seededItems),
+  );
+  const [items, setItems] = useState<Dish[]>(() => seededItems ?? []);
   
   // Determine initial tab based on role
   // For chef: start on recipes tab
@@ -248,6 +256,12 @@ export default function MyDishesManager({
   }, [title, uploadedFiles, publish, priceEuro, stock]);
 
   async function load() {
+    // Public aanbod already painted from RSC — do not block/re-waterfall.
+    if (isPublic && contentSubTab === 'dorpsplein' && Array.isArray(initialItems)) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -508,7 +522,7 @@ export default function MyDishesManager({
     }
   }
 
-  useEffect(() => { load(); }, [contentSubTab, activeRole, role, userId, isPublic, showOnlyActive]);
+  useEffect(() => { load(); }, [contentSubTab, activeRole, role, userId, isPublic, showOnlyActive, initialItems]);
 
   function onFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
     const filesArr = Array.from(e.target.files || []).slice(0, 5 - uploadedFiles.length);

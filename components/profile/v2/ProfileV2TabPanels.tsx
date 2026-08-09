@@ -41,7 +41,8 @@ import type {
 
 const MyDishesManager = dynamic(() => import('@/components/profile/MyDishesManager'), {
   loading: () => <div className="h-64 animate-pulse rounded-2xl bg-gray-100" />,
-  ssr: false,
+  // Allow SSR so server-provided aanbod can paint without waiting on client chunk+fetch.
+  ssr: true,
 });
 
 const ItemsWithReviews = dynamic(() => import('@/components/profile/ItemsWithReviews'), {
@@ -269,6 +270,11 @@ export function ProfileV2AanbodPanel({
             hideCreateActions={viewerIsOwner}
             ownerUser={user}
             aanbodFilter={aanbodFilter}
+            initialItems={
+              !viewerIsOwner && Array.isArray(ctx.publishedItems)
+                ? ctx.publishedItems
+                : undefined
+            }
           />
         </Suspense>
       </div>

@@ -103,15 +103,20 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
         target.closest('[data-image-slider]')) {
       return;
     }
-    
-    router.push(
-      getListingHref({
-        id: item.id,
-        title: item.title?.trim() || 'listing',
-        place: item.place ?? null,
-      }),
-    );
+
+    const href = getListingHref({
+      id: item.id,
+      title: item.title?.trim() || 'listing',
+      place: item.place ?? null,
+    });
+    router.push(href);
   };
+
+  const listingHref = getListingHref({
+    id: item.id,
+    title: item.title?.trim() || 'listing',
+    place: item.place ?? null,
+  });
   
   // Prepare media items for ImageSlider (images + video)
   const allImages = item.images || (item.image ? [item.image] : []);
@@ -121,7 +126,14 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
     <article 
       className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden hover:shadow-md transition-shadow duration-200 group cursor-pointer"
       onClick={handleCardClick}
-      onMouseEnter={() => setCardHovered(true)}
+      onMouseEnter={() => {
+        setCardHovered(true);
+        try {
+          router.prefetch(listingHref);
+        } catch {
+          /* ignore */
+        }
+      }}
       onMouseLeave={() => setCardHovered(false)}
     >
       {/* Image/Video */}

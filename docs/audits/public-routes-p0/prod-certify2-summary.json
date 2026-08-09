@@ -1,0 +1,9 @@
+file:///Users/sergioarrias/Homecheff-app%20git/scripts/_tmp-prod-certify2.mjs:28
+  await page.goto(feedHref.startsWith('http')?feedHref:BASE+feedHref,{waitUntil:'domcontentloaded'});
+                           ^
+
+TypeError: Cannot read properties of undefined (reading 'startsWith')
+    at chain (file:///Users/sergioarrias/Homecheff-app%20git/scripts/_tmp-prod-certify2.mjs:28:28)
+    at async file:///Users/sergioarrias/Homecheff-app%20git/scripts/_tmp-prod-certify2.mjs:95:13
+
+Node.js v22.22.1

@@ -57,6 +57,8 @@ import {
   saveListingDetailReturnCache,
   type ListingDetailReturnSnapshot,
 } from '@/lib/instant-experience/listing-detail-return-cache';
+import type { ListingDetailPayload } from '@/lib/marketplace/detail/load-listing-detail';
+import { mapListingDetailPayload } from '@/lib/marketplace/detail/map-listing-detail-payload';
 
 type Product = {
   id: string;
@@ -178,7 +180,14 @@ const getSellerDisplayName = (product: Product | null) => {
   return getDisplayNameUtil(product.seller.User);
 };
 
-export default function ListingDetailPage() {
+type ListingDetailPageProps = {
+  /** RSC-loaded critical listing payload — skips client /api/products waterfall. */
+  initialData?: ListingDetailPayload | null;
+};
+
+export default function ListingDetailPage({
+  initialData = null,
+}: ListingDetailPageProps = {}) {
   const params = useParams();
   const router = useRouter();
   const routeParam =
@@ -200,15 +209,25 @@ export default function ListingDetailPage() {
   const { data: session } = useSession();
   const { t } = useTranslation();
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [stats, setStats] = useState<ProductStats>({
-    viewCount: 0,
-    orderCount: 0,
-    favoriteCount: 0,
-    averageRating: 0,
-    reviewCount: 0
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const mappedInitial = initialData
+    ? mapListingDetailPayload(initialData)
+    : null;
+
+  const [product, setProduct] = useState<Product | null>(
+    () => (mappedInitial?.product as Product) ?? null,
+  );
+  const [stats, setStats] = useState<ProductStats>(() =>
+    mappedInitial?.stats
+      ? (mappedInitial.stats as ProductStats)
+      : {
+          viewCount: 0,
+          orderCount: 0,
+          favoriteCount: 0,
+          averageRating: 0,
+          reviewCount: 0,
+        },
+  );
+  const [isLoading, setIsLoading] = useState(() => !mappedInitial);
   const [quantity, setQuantity] = useState(1);
   const [baseUrl, setBaseUrl] = useState('');
   const [isOwner, setIsOwner] = useState(false);
@@ -226,32 +245,62 @@ export default function ListingDetailPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [publicContactChannels, setPublicContactChannels] = useState<PublicContactChannel[]>([]);
-  const [checkoutAvailable, setCheckoutAvailable] = useState(true);
-  const [paymentStatus, setPaymentStatus] = useState<PublicPaymentStatus | null>(null);
-  const [sellerBadges, setSellerBadges] = useState<UserBadgeChipItem[]>([]);
-  const [isBusiness, setIsBusiness] = useState(false);
-  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [publicContactChannels, setPublicContactChannels] = useState<PublicContactChannel[]>(
+    () =>
+      (mappedInitial?.publicContactChannels as PublicContactChannel[]) ?? [],
+  );
+  const [checkoutAvailable, setCheckoutAvailable] = useState(
+    () => mappedInitial?.checkoutAvailable !== false,
+  );
+  const [paymentStatus, setPaymentStatus] = useState<PublicPaymentStatus | null>(
+    () => (mappedInitial?.paymentStatus as PublicPaymentStatus | null) ?? null,
+  );
+  const [sellerBadges, setSellerBadges] = useState<UserBadgeChipItem[]>(
+    () => (mappedInitial?.sellerBadges as UserBadgeChipItem[]) ?? [],
+  );
+  const [isBusiness, setIsBusiness] = useState(
+    () => Boolean(mappedInitial?.isBusiness),
+  );
+  const [companyName, setCompanyName] = useState<string | null>(
+    () => mappedInitial?.companyName ?? null,
+  );
   const [profileViewerCoords, setProfileViewerCoords] = useState<{
     lat?: number | null;
     lng?: number | null;
   } | null>(null);
-  const [linkedInspiration, setLinkedInspiration] = useState<ProductInspirationLink | null>(null);
-  const [dishInfo, setDishInfo] = useState<import('@/components/product/detail/ProductSaleDomainStory').ProductSaleDishInfo>({
-    isDish: false,
-    category: null,
-  });
+  const [linkedInspiration, setLinkedInspiration] = useState<ProductInspirationLink | null>(
+    () => mappedInitial?.linkedInspiration ?? null,
+  );
+  const [dishInfo, setDishInfo] = useState<import('@/components/product/detail/ProductSaleDomainStory').ProductSaleDishInfo>(
+    () =>
+      mappedInitial?.dishInfo ?? {
+        isDish: false,
+        category: null,
+      },
+  );
   const [discoveryTrust, setDiscoveryTrust] = useState<DiscoveryTrustContract>(
-    EMPTY_DISCOVERY_TRUST_CONTRACT,
+    () =>
+      (mappedInitial?.discoveryTrust as DiscoveryTrustContract) ??
+      EMPTY_DISCOVERY_TRUST_CONTRACT,
   );
   const [loadError, setLoadError] = useState<ListingDetailLoadError | null>(null);
   const [fetchGeneration, setFetchGeneration] = useState(0);
-  const [showClientSkeleton, setShowClientSkeleton] = useState(true);
+  const [showClientSkeleton, setShowClientSkeleton] = useState(() => !mappedInitial);
   const handoffCheckedRef = useRef(false);
-  const hasStaleSnapshotRef = useRef(false);
+  const hasStaleSnapshotRef = useRef(Boolean(mappedInitial));
+  const hasServerInitialRef = useRef(Boolean(mappedInitial));
 
   useLayoutEffect(() => {
     if (!routeParam || typeof window === 'undefined') return;
+
+    // Server-first payload already hydrated — no blank skeleton.
+    if (hasServerInitialRef.current && product) {
+      setIsLoading(false);
+      setShowClientSkeleton(false);
+      hasStaleSnapshotRef.current = true;
+      return;
+    }
+
     const resolvedId = listingDetailResolvedId(routeParam);
     const snapshot = readListingDetailReturnCache(resolvedId);
     if (snapshot?.product) {
@@ -290,7 +339,7 @@ export default function ListingDetailPage() {
         setShowClientSkeleton(false);
       }
     }
-  }, [routeParam]);
+  }, [routeParam, product]);
 
   const persistListingDetailSnapshot = (
     nextProduct: Product,
@@ -329,6 +378,90 @@ export default function ListingDetailPage() {
   useEffect(() => {
     if (!routeParam) return;
     setBaseUrl(window.location.origin);
+
+    // Explicit retry after error: abandon RSC snapshot and re-fetch API.
+    if (fetchGeneration > 0) {
+      hasServerInitialRef.current = false;
+    }
+
+    const applySecondaryClientLoads = async (productId: string, sellerUserId?: string) => {
+      if (session?.user?.email) {
+        try {
+          const userResponse = await fetch('/api/profile/me');
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setCurrentUser(userData);
+            setProfileViewerCoords({
+              lat: userData.lat ?? null,
+              lng: userData.lng ?? null,
+            });
+            if (sellerUserId) {
+              setIsOwner(userData.id === sellerUserId);
+            }
+            const p = product;
+            if (p && userData.id === sellerUserId) {
+              setEditData({
+                title: p.title || '',
+                description: p.description || '',
+                priceCents: p.priceCents || 0,
+                stock: p.stock || 0,
+                maxStock: p.maxStock || 0,
+              });
+            }
+          }
+        } catch (authError) {
+          console.error('Error checking user profile:', authError);
+        }
+      }
+
+      try {
+        const reviewResponse = await fetch(`/api/products/${productId}/reviews`);
+        if (reviewResponse.ok) {
+          const reviewPayload = await reviewResponse.json();
+          const loadedReviews = reviewPayload.reviews || [];
+          setReviews(loadedReviews);
+          if (product) {
+            persistListingDetailSnapshot(product, {
+              stats,
+              reviews: loadedReviews,
+              sellerBadges,
+              discoveryTrust,
+              dishInfo,
+              linkedInspiration,
+              publicContactChannels,
+              checkoutAvailable,
+              paymentStatus,
+              isBusiness,
+              companyName,
+            });
+          }
+        }
+      } catch (reviewError) {
+        console.error('Error loading reviews:', reviewError);
+      }
+    };
+
+    // Server-first: critical body already present — defer reviews / me / analytics only.
+    if (hasServerInitialRef.current && product?.id) {
+      setIsLoading(false);
+      setShowClientSkeleton(false);
+      trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.detailView, {
+        listingId: product.id,
+        barterOpenness: product.barterOpenness,
+        acceptedSpecializations: product.acceptedSpecializations,
+        listingIntent: product.listingIntent,
+        specializations: product.specializations,
+        orderMethod: product.orderMethod,
+        surface: 'detail',
+        entrypoint: 'product_detail_rsc',
+      });
+      void applySecondaryClientLoads(
+        product.id,
+        product.seller?.User?.id,
+      );
+      trackView(listingDetailResolvedId(routeParam));
+      return;
+    }
     
     const fetchProduct = async () => {
       const resolvedId = listingDetailResolvedId(routeParam);
@@ -428,119 +561,10 @@ export default function ListingDetailPage() {
           setStats(data.stats);
         }
 
-        // Store dish info for print/download buttons and showing steps
-        const dishData = {
-          isDish: data.isDish || false,
-          category: data.dishCategory || null,
-          ingredients: data.dish?.ingredients || [],
-          instructions: data.dish?.instructions || [],
-          stepPhotos: (data.dish?.stepPhotos || []).map((p: { id: string; url: string; stepNumber: number; description?: string | null }) => ({
-            id: p.id,
-            url: p.url,
-            stepNumber: p.stepNumber,
-            description: p.description,
-          })),
-          growthPhotos: (data.dish?.growthPhotos || []).map((p: { id: string; url: string; phaseNumber: number; description?: string | null }) => ({
-            id: p.id,
-            url: p.url,
-            phaseNumber: p.phaseNumber,
-            description: p.description,
-          })),
-          materials: data.dish?.materials || [],
-          plantType: data.dish?.plantType || null,
-          sunlight: data.dish?.sunlight || null,
-          waterNeeds: data.dish?.waterNeeds || null,
-          harvestDate: data.dish?.harvestDate || null,
-          location: data.dish?.location || null,
-          soilType: data.dish?.soilType || null,
-          growthDuration: data.dish?.growthDuration ?? null,
-          dimensions: data.dish?.dimensions || null,
-          notes: data.dish?.notes || null,
-          difficulty: data.dish?.difficulty || null,
-          prepTime: data.dish?.prepTime ?? null,
-          servings: data.dish?.servings ?? null,
-          tags: data.dish?.tags || [],
-        };
-        
-        setDishInfo(dishData);
-
-        if (data.linkedInspiration?.href && data.linkedInspiration?.category) {
-          setLinkedInspiration({
-            href: data.linkedInspiration.href,
-            category: data.linkedInspiration.category,
-          });
-        } else {
-          setLinkedInspiration(null);
-        }
-        
-        const transformedProduct: Product = {
-          id: data.product.id,
-          title: data.product.title,
-          description: data.product.description,
-          priceCents: data.product.priceCents,
-          orderMethod: data.product.orderMethod ?? 'HOMECHEFF_PAYMENT',
-          acceptHomeCheffPayment: data.product.acceptHomeCheffPayment ?? null,
-          acceptDirectContact: data.product.acceptDirectContact ?? null,
-          image: data.product.photos?.[0]?.url || data.product.ListingMedia?.[0]?.url || data.product.Image?.[0]?.fileUrl || null,
-          photos: data.product.photos || data.product.ListingMedia?.map((media: any) => ({
-            id: media.id,
-            url: media.url,
-            idx: media.order || media.idx
-          })) || [],
-          stock: data.product.stock,
-          maxStock: data.product.maxStock,
-          deliveryMode: data.product.deliveryMode,
-          delivery: data.product.delivery || 'PICKUP',
-          createdAt: data.product.createdAt,
-          category: data.product.category,
-          subcategory: data.product.subcategory,
-          marketplaceCategory: data.product.marketplaceCategory ?? null,
-          specializations: Array.isArray(data.product.specializations)
-            ? data.product.specializations
-            : [],
-          acceptedSpecializations: Array.isArray(data.product.acceptedSpecializations)
-            ? data.product.acceptedSpecializations
-            : [],
-          barterOpenness: data.product.barterOpenness ?? null,
-          listingIntent: data.product.listingIntent ?? 'OFFER',
-          priceModel: data.product.priceModel ?? 'FIXED',
-          tags: Array.isArray(data.product.tags) ? data.product.tags : [],
-          pickupAddress: data.product.pickupAddress ?? null,
-          pickupLat: data.product.pickupLat ?? null,
-          pickupLng: data.product.pickupLng ?? null,
-          sellerCanDeliver: Boolean(data.product.sellerCanDeliver),
-          deliveryRadiusKm: data.product.deliveryRadiusKm ?? null,
-          displayNameType: data.product.displayNameType || 'fullname',
-          Image: data.product.Image?.map((img: any) => ({
-            id: img.id,
-            fileUrl: img.fileUrl
-          })) || [],
-          Video: data.product.Video ?? null,
-          seller: {
-            lat: data.product.seller?.lat ?? null,
-            lng: data.product.seller?.lng ?? null,
-            kvk: data.product.seller?.kvk ?? null,
-            companyName: data.product.seller?.companyName ?? null,
-            User: {
-              id:
-                data.product.seller?.User?.id ||
-                data.product.User?.id ||
-                '',
-              name: data.product.seller?.User?.name || data.product.User?.name,
-              username: data.product.seller?.User?.username || data.product.User?.username,
-              avatar: data.product.seller?.User?.image || data.product.seller?.User?.profileImage || data.product.User?.image || data.product.User?.profileImage,
-              image: data.product.seller?.User?.image || data.product.User?.image,
-              profileImage: data.product.seller?.User?.profileImage || data.product.User?.profileImage,
-              displayFullName: data.product.seller?.User?.displayFullName || data.product.User?.displayFullName,
-              displayNameOption: data.product.seller?.User?.displayNameOption || data.product.User?.displayNameOption,
-              place: data.product.seller?.User?.place || data.product.User?.place,
-              city: data.product.seller?.User?.city || data.product.User?.city,
-              lat: data.product.seller?.User?.lat ?? data.product.User?.lat ?? null,
-              lng: data.product.seller?.User?.lng ?? data.product.User?.lng ?? null,
-              sellerRoles: data.product.seller?.User?.sellerRoles || data.product.User?.sellerRoles
-            }
-          }
-        };
+        const mapped = mapListingDetailPayload(data);
+        const transformedProduct = mapped.product as Product;
+        setDishInfo(mapped.dishInfo);
+        setLinkedInspiration(mapped.linkedInspiration);
         
         setProduct(transformedProduct);
         trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.detailView, {
@@ -553,30 +577,22 @@ export default function ListingDetailPage() {
           surface: 'detail',
           entrypoint: 'product_detail_load',
         });
-        const nextSellerBadges = Array.isArray(data.sellerBadges) ? data.sellerBadges : [];
+        const nextSellerBadges = mapped.sellerBadges as UserBadgeChipItem[];
         setSellerBadges(nextSellerBadges);
-        const nextIsBusiness = Boolean(data.isBusiness);
+        const nextIsBusiness = mapped.isBusiness;
         setIsBusiness(nextIsBusiness);
-        const nextCompanyName = data.companyName ?? data.product.seller?.companyName ?? null;
+        const nextCompanyName = mapped.companyName;
         setCompanyName(nextCompanyName);
 
-        const nextPublicContactChannels = Array.isArray(data.publicContactChannels)
-          ? data.publicContactChannels
-          : [];
-        if (Array.isArray(data.publicContactChannels)) {
-          setPublicContactChannels(nextPublicContactChannels);
-        }
+        const nextPublicContactChannels = mapped.publicContactChannels as PublicContactChannel[];
+        setPublicContactChannels(nextPublicContactChannels);
 
-        const nextCheckoutAvailable = data.checkoutAvailable !== false;
+        const nextCheckoutAvailable = mapped.checkoutAvailable;
         setCheckoutAvailable(nextCheckoutAvailable);
-        const nextPaymentStatus = data.paymentStatus ?? null;
+        const nextPaymentStatus = mapped.paymentStatus as PublicPaymentStatus | null;
         setPaymentStatus(nextPaymentStatus);
-        const nextDiscoveryTrust = data.discoveryTrust
-          ? (data.discoveryTrust as DiscoveryTrustContract)
-          : EMPTY_DISCOVERY_TRUST_CONTRACT;
-        if (data.discoveryTrust) {
-          setDiscoveryTrust(nextDiscoveryTrust);
-        }
+        const nextDiscoveryTrust = (mapped.discoveryTrust as DiscoveryTrustContract) ?? EMPTY_DISCOVERY_TRUST_CONTRACT;
+        setDiscoveryTrust(nextDiscoveryTrust);
         
         if (session?.user?.email) {
           try {
@@ -624,14 +640,8 @@ export default function ListingDetailPage() {
           reviews: loadedReviews,
           sellerBadges: nextSellerBadges,
           discoveryTrust: nextDiscoveryTrust,
-          dishInfo: dishData,
-          linkedInspiration:
-            data.linkedInspiration?.href && data.linkedInspiration?.category
-              ? {
-                  href: data.linkedInspiration.href,
-                  category: data.linkedInspiration.category,
-                }
-              : null,
+          dishInfo: mapped.dishInfo,
+          linkedInspiration: mapped.linkedInspiration,
           publicContactChannels: nextPublicContactChannels,
           checkoutAvailable: nextCheckoutAvailable,
           paymentStatus: nextPaymentStatus,

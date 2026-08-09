@@ -1,0 +1,105 @@
+{
+  "dpl": "dpl_EetpzdeGMHzJf7QWu2c5jND7KYu2",
+  "chromium": {
+    "listingCrash": false,
+    "listingOk": true,
+    "profileOk": true,
+    "tempLinks": [],
+    "redirects": {
+      "listing": {
+        "finalUrl": "https://homecheff.eu/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+        "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+        "sellerNotFound": false,
+        "loop": false
+      },
+      "profile": {
+        "finalUrl": "https://homecheff.eu/user/d59000ec-5a12-4c1c-bfa6-ba8cd3aca379",
+        "title": "Profiel | HomeCheff",
+        "sellerNotFound": false,
+        "loop": false
+      },
+      "sellerUserId": {
+        "finalUrl": "https://homecheff.eu/user/Kunstgalerij",
+        "title": "Sacco Van munster | HomeCheff | HomeCheff",
+        "sellerNotFound": false,
+        "loop": false
+      },
+      "sellerProfileId": {
+        "id": "5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d",
+        "finalUrl": "https://homecheff.eu/seller/5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d/",
+        "title": "Sacco Van munster - Seller on HomeCheff | Borne, NL | HomeCheff",
+        "sellerNotFound": false
+      }
+    },
+    "timings": {
+      "homeMs": 8235,
+      "listingClientNavMs": 8884,
+      "listingUsefulContentMs": 8884,
+      "listingApiCalls": [
+        "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0",
+        "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews"
+      ],
+      "listingColdMs": 7029,
+      "profileColdMs": 6073
+    },
+    "pageerrors": []
+  },
+  "mobile": {
+    "listingCrash": false,
+    "listingOk": true,
+    "profileOk": true,
+    "timings": {
+      "homeMs": 7501,
+      "listingClientNavMs": 6862,
+      "listingUsefulContentMs": 6862,
+      "listingApiCalls": [
+        "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0",
+        "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews"
+      ],
+      "listingColdMs": 6108,
+      "profileColdMs": 5115
+    }
+  },
+  "webkit": {
+    "listingCrash": false,
+    "listingOk": true,
+    "profileOk": true,
+    "timings": {
+      "homeMs": 7808,
+      "listingClientNavMs": 6146,
+      "listingUsefulContentMs": 6146,
+      "listingApiCalls": [
+        "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0",
+        "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews"
+      ],
+      "listingColdMs": 5546,
+      "profileColdMs": 5614
+    },
+    "redirects": {
+      "listing": {
+        "finalUrl": "https://homecheff.eu/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+        "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+        "sellerNotFound": false,
+        "loop": false
+      },
+      "profile": {
+        "finalUrl": "https://homecheff.eu/user/d59000ec-5a12-4c1c-bfa6-ba8cd3aca379",
+        "title": "Profiel | HomeCheff",
+        "sellerNotFound": false,
+        "loop": false
+      },
+      "sellerUserId": {
+        "finalUrl": "https://homecheff.eu/user/Kunstgalerij",
+        "title": "Sacco Van munster | HomeCheff | HomeCheff",
+        "sellerNotFound": false,
+        "loop": false
+      },
+      "sellerProfileId": {
+        "id": "5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d",
+        "finalUrl": "https://homecheff.eu/seller/5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d/",
+        "title": "Sacco Van munster - Seller on HomeCheff | Borne, NL | HomeCheff",
+        "sellerNotFound": false
+      }
+    }
+  }
+}

@@ -1,0 +1,228 @@
+{
+  "dpl": "dpl_EetpzdeGMHzJf7QWu2c5jND7KYu2",
+  "mainShaExpected": "ae72a411a83be3fb12ab8bcaaba59f98e841dfe8",
+  "browsers": {
+    "chromiumDesktop": {
+      "name": "chromium-desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "chain": {
+        "feedHref": "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+        "tempUserLinks": [],
+        "listing": {
+          "url": "https://homecheff.eu/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "title": "Kᴇᴋsɪ — Lioness in Berkel & Rodenrijs 📍 | HomeCheff | HomeCheff",
+          "hasCrash": false,
+          "hasErrorPage": false,
+          "hasContent": true,
+          "snippet": "Skip to main content HomeCheff neighbourhood cook, grow & make Home Profile Messages Reputation Sell or share 🇬🇧 Login Sign Up Terug 1 / 4 ▶ From the kitchen Only 4 left Kᴇᴋsɪ PRICE €4.50 This maker still needs to conn"
+        },
+        "directListing": {
+          "url": "https://homecheff.eu/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "hasCrash": false,
+          "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff"
+        },
+        "directProfile": {
+          "url": "https://homecheff.eu/user/Kunstgalerij/",
+          "title": "Sacco Van munster | HomeCheff | HomeCheff"
+        }
+      },
+      "redirects": {
+        "listing": {
+          "finalUrl": "https://homecheff.eu/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "profile": {
+          "finalUrl": "https://homecheff.eu/user/d59000ec-5a12-4c1c-bfa6-ba8cd3aca379",
+          "title": "Profiel | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "sellerUserId": {
+          "finalUrl": "https://homecheff.eu/user/Kunstgalerij",
+          "title": "Sacco Van munster | HomeCheff | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "sellerProfileId": {
+          "id": "5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d",
+          "finalUrl": "https://homecheff.eu/seller/5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d/",
+          "title": "Sacco Van munster - Seller on HomeCheff | Borne, NL | HomeCheff",
+          "sellerNotFound": false
+        }
+      },
+      "pageerrors": [],
+      "timings": {
+        "homeMs": 8235,
+        "listingClientNavMs": 8884,
+        "listingUsefulContentMs": 8884,
+        "listingApiCalls": [
+          "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews"
+        ],
+        "listingColdMs": 7029,
+        "profileColdMs": 6073
+      }
+    },
+    "chromiumMobile": {
+      "name": "chromium-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "chain": {
+        "feedHref": "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+        "tempUserLinks": [],
+        "listing": {
+          "url": "https://homecheff.eu/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "title": "Kᴇᴋsɪ — Lioness in Berkel & Rodenrijs 📍 | HomeCheff | HomeCheff",
+          "hasCrash": false,
+          "hasErrorPage": false,
+          "hasContent": true,
+          "snippet": "Skip to main content Login Sign Up Terug 1 / 4 ▶ From the kitchen Only 4 left Kᴇᴋsɪ PRICE €4.50 CHEFF #Zoet Favorite Share About this product ʟᴜᴄʜᴛɪɢᴇ ᴄᴀᴋᴇ ᴍᴇᴛ ᴋᴀɴᴇᴇʟ ᴇɴ ʀᴜᴍ Disclaimer: Let op⚠️mijn gerechten bevatten al"
+        },
+        "directListing": {
+          "url": "https://homecheff.eu/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "hasCrash": false,
+          "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff"
+        },
+        "directProfile": {
+          "url": "https://homecheff.eu/user/Kunstgalerij/",
+          "title": "Sacco Van munster | HomeCheff | HomeCheff"
+        }
+      },
+      "redirects": {
+        "listing": {
+          "finalUrl": "https://homecheff.eu/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "profile": {
+          "finalUrl": "https://homecheff.eu/user/d59000ec-5a12-4c1c-bfa6-ba8cd3aca379",
+          "title": "Profiel | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "sellerUserId": {
+          "finalUrl": "https://homecheff.eu/user/Kunstgalerij",
+          "title": "Sacco Van munster | HomeCheff | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "sellerProfileId": {
+          "id": "5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d",
+          "finalUrl": "https://homecheff.eu/seller/5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d/",
+          "title": "Sacco Van munster - Seller on HomeCheff | Borne, NL | HomeCheff",
+          "sellerNotFound": false
+        }
+      },
+      "pageerrors": [],
+      "timings": {
+        "homeMs": 7501,
+        "listingClientNavMs": 6862,
+        "listingUsefulContentMs": 6862,
+        "listingApiCalls": [
+          "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews"
+        ],
+        "listingColdMs": 6108,
+        "profileColdMs": 5115
+      }
+    },
+    "webkitMobile": {
+      "name": "webkit-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "chain": {
+        "feedHref": "/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+        "tempUserLinks": [],
+        "listing": {
+          "url": "https://homecheff.eu/product/k-s-berkel-rodenrijs-hcid-3b85deeb-5801-417a-a087-5b6027130ae0",
+          "title": "Kᴇᴋsɪ — Lioness in Berkel & Rodenrijs 📍 | HomeCheff | HomeCheff",
+          "hasCrash": false,
+          "hasErrorPage": false,
+          "hasContent": true,
+          "snippet": "Skip to main content Login Sign Up Terug 1 / 4 ▶ From the kitchen Kᴇᴋsɪ €4.50 CHEFF #Zoet Over dit product ʟᴜᴄʜᴛɪɢᴇ ᴄᴀᴋᴇ ᴍᴇᴛ ᴋᴀɴᴇᴇʟ ᴇɴ ʀᴜᴍ Disclaimer: Let op⚠️mijn gerechten bevatten allergenen of sporen daarvan (gluten,"
+        },
+        "directListing": {
+          "url": "https://homecheff.eu/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "hasCrash": false,
+          "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff"
+        },
+        "directProfile": {
+          "url": "https://homecheff.eu/user/Kunstgalerij/",
+          "title": "Sacco Van munster | HomeCheff | HomeCheff"
+        }
+      },
+      "redirects": {
+        "listing": {
+          "finalUrl": "https://homecheff.eu/product/kunstschilderijen-borne-hcid-4f822286-6043-417d-8be5-1bae8342d3a9",
+          "title": "Kunstschilderijen — Sacco Van munster in Borne | HomeCheff | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "profile": {
+          "finalUrl": "https://homecheff.eu/user/d59000ec-5a12-4c1c-bfa6-ba8cd3aca379",
+          "title": "Profiel | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "sellerUserId": {
+          "finalUrl": "https://homecheff.eu/user/Kunstgalerij",
+          "title": "Sacco Van munster | HomeCheff | HomeCheff",
+          "sellerNotFound": false,
+          "loop": false
+        },
+        "sellerProfileId": {
+          "id": "5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d",
+          "finalUrl": "https://homecheff.eu/seller/5cc7f4d1-1c7b-4817-9c06-1cf40fb2fa7d/",
+          "title": "Sacco Van munster - Seller on HomeCheff | Borne, NL | HomeCheff",
+          "sellerNotFound": false
+        }
+      },
+      "pageerrors": [
+        "/homecheff.eu/api/video-proxy?url=https%3A%2F%2Fit3xt8um5uqzpebe.public.blob.vercel-storage.com%2Fvideos%2Ftranscoded%2Fproductvideo-2ef07124-3717-485a-ad12-c1305b727c23-1773073977856-T4manBOq2omOjW71mlvjC7fYgm7c7T.mp4 due to access control checks.",
+        "/homecheff.eu/api/video-proxy?url=https%3A%2F%2Fit3xt8um5uqzpebe.public.blob.vercel-storage.com%2Fvideos%2Ftranscoded%2Fproductvideo-2ef07124-3717-485a-ad12-c1305b727c23-1773073977856-T4manBOq2omOjW71mlvjC7fYgm7c7T.mp4 due to access control checks.",
+        "/homecheff.eu/api/i18n/en?t=1786278663666 due to access control checks.",
+        "/homecheff.eu/privacy?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/terms?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/community-guidelines?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/safety?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/contact?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/over-ons?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/constitution?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/manifest?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/faq?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/hcp-ranglijsten?_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/contact?subject=feedback&_rsc=1tsx4 due to access control checks.",
+        "/homecheff.eu/api/i18n/en?t=1786278670558 due to access control checks.",
+        "/homecheff.eu/api/i18n/en?t=1786278670568 due to access control checks.",
+        "/homecheff.eu/api/i18n/en?t=1786278670572 due to access control checks.",
+        "/homecheff.eu/api/i18n/en?t=1786278670575 due to access control checks.",
+        "/homecheff.eu/api/i18n/en?t=1786278670578 due to access control checks.",
+        "/homecheff.eu/api/i18n/en?t=1786278670580 due to access control checks."
+      ],
+      "timings": {
+        "homeMs": 7808,
+        "listingClientNavMs": 6146,
+        "listingUsefulContentMs": 6146,
+        "listingApiCalls": [
+          "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0",
+          "/api/products/3b85deeb-5801-417a-a087-5b6027130ae0/reviews"
+        ],
+        "listingColdMs": 5546,
+        "profileColdMs": 5614
+      }
+    }
+  },
+  "legacy": {},
+  "perf": {},
+  "ssotNotes": []
+}

@@ -13,6 +13,7 @@ interface PublicProfileClientProps {
   publicHcp?: PublicProfileHcpPayload | null;
   ecosystemChipKeys?: string[];
   publicContactChannels?: PublicContactChannel[];
+  publishedItems?: unknown[];
 }
 
 export default function PublicProfileClient({
@@ -22,6 +23,7 @@ export default function PublicProfileClient({
   publicHcp = null,
   ecosystemChipKeys = [],
   publicContactChannels = [{ id: 'chat', href: '' }],
+  publishedItems,
 }: PublicProfileClientProps) {
   return (
     <ProfileV2Client
@@ -32,6 +34,7 @@ export default function PublicProfileClient({
       publicHcp={publicHcp}
       ecosystemChipKeys={ecosystemChipKeys}
       publicContactChannels={publicContactChannels}
+      publishedItems={publishedItems}
     />
   );
 }
