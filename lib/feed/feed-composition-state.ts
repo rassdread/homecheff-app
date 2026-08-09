@@ -11,14 +11,16 @@
  *
  * Stages:
  * 1. exact — in-radius / current-scope marketplace pages
- * 2. broadened — controlled wider discovery after exact exhaust (national /
- *    out-of-radius inventory), still paginated + deduped
- * 3. recirculation — intentional re-show of already-seen seeds
+ * 2. broadened — optional wider API discovery after exact exhaust when it
+ *    still contributes new eligible uniques (client progressive widen already
+ *    ran via composeProgressiveNearbySalePool)
+ * 3. recirculation — intentional re-show of already-seen seeds (historical
+ *    endless feed; must not be starved by a stuck broadened stage)
  * 4. empty — intentional terminal (no seeds)
  *
- * hasMore stays true while exact OR broadened inventory may still yield new
- * pages, or while recirculation can run. It becomes false only when exact and
- * broadened are exhausted AND recirculation cannot continue (empty terminal).
+ * hasMore stays true while exact OR productive broadened inventory may still
+ * yield new pages, or while recirculation can run. It becomes false only when
+ * exact/broadened are done AND recirculation cannot continue (empty terminal).
  */
 
 import {
@@ -29,6 +31,13 @@ import {
   trimDisplayHistory,
 } from '@/lib/feed/feed-composition-policy';
 
+/**
+ * After this many consecutive broadened pages with zero newly appended uniques,
+ * hand off to historical recirculation even if the API still reports hasMore.
+ * Prevents duplicate-page starvation without inventing a second recycle engine.
+ */
+export const FEED_BROADENED_ZERO_UNIQUE_HANDOFF = 2;
+
 export type FeedCompositionState = {
   requestKey: string;
   generation: number;
@@ -36,6 +45,11 @@ export type FeedCompositionState = {
   inspirationSkip: number;
   /** Skip cursor for widened/national discovery continuation pages. */
   broadenedSkip: number;
+  /**
+   * Consecutive broadened pages that advanced the cursor but added 0 new
+   * unique ids. Reset when a page contributes newUniqueCount > 0.
+   */
+  broadenedZeroUniqueStreak: number;
   marketplaceExhausted: boolean;
   inspirationExhausted: boolean;
   exactExhausted: boolean;
@@ -60,6 +74,7 @@ export function createFeedCompositionState(
     marketplaceSkip: 0,
     inspirationSkip: 0,
     broadenedSkip: 0,
+    broadenedZeroUniqueStreak: 0,
     marketplaceExhausted: false,
     inspirationExhausted: false,
     exactExhausted: false,
@@ -106,9 +121,37 @@ export function recordDisplayedSeeds(
 }
 
 /**
+ * Enter historical recirculation when ≥1 seed exists; otherwise empty terminal.
+ * Shared by broadened exhaust and zero-unique handoff.
+ */
+function enterRecirculationOrEmpty(
+  state: FeedCompositionState,
+): FeedCompositionState {
+  const mode = resolveInventoryContinuationMode(state.uniqueEligibleCount);
+  if (mode === 'empty_state') {
+    return {
+      ...state,
+      broadenedExhausted: true,
+      recirculationActive: false,
+      emptyTerminal: true,
+      stage: 'empty',
+    };
+  }
+  return {
+    ...state,
+    broadenedExhausted: true,
+    recirculationActive: true,
+    emptyTerminal: false,
+    stage: 'recirculation',
+  };
+}
+
+/**
  * Record an exact-scope marketplace page result.
- * When the exact pool ends, enter `broadened` (wider discovery) — not
- * recirculation — so eligible out-of-radius / national inventory stays reachable.
+ * When the exact pool ends, enter optional `broadened` API discovery — not
+ * recirculation yet — so national/out-of-radius uniques stay reachable.
+ * Recirculation remains the historical endless-feed stage after broadened
+ * finishes or stops contributing new uniques.
  */
 export function markMarketplacePageResult(
   state: FeedCompositionState,
@@ -128,6 +171,7 @@ export function markMarketplacePageResult(
     stage: 'broadened',
     recirculationActive: false,
     emptyTerminal: false,
+    broadenedZeroUniqueStreak: 0,
   };
 
   // Zero seeds and exact empty → terminal empty (no broaden / recirc loop).
@@ -145,7 +189,11 @@ export function markMarketplacePageResult(
 
 /**
  * Record a widened discovery page (national / out-of-radius continuation).
- * Only after broadened exhaust do we activate intentional recirculation.
+ *
+ * - Advance skip even when the page contributes zero new uniques.
+ * - Keep fetching while API hasMore AND pages still look productive.
+ * - When API ends OR consecutive zero-unique pages hit the handoff streak,
+ *   activate historical recirculation (never starve the endless feed).
  */
 export function markBroadenedPageResult(
   state: FeedCompositionState,
@@ -159,41 +207,30 @@ export function markBroadenedPageResult(
   },
 ): FeedCompositionState {
   const nextSkip = input.skipUsed + Math.max(0, input.fetchedCount);
+  const streak =
+    input.newUniqueCount > 0 ? 0 : state.broadenedZeroUniqueStreak + 1;
+
   const next: FeedCompositionState = {
     ...state,
     stage: 'broadened',
     broadenedSkip: nextSkip,
+    broadenedZeroUniqueStreak: streak,
     recirculationActive: false,
     emptyTerminal: false,
   };
 
-  // More widened API pages may still exist (even if this page was all duplicates).
-  if (input.apiHasMore) {
+  const productiveContinue =
+    input.apiHasMore && streak < FEED_BROADENED_ZERO_UNIQUE_HANDOFF;
+
+  if (productiveContinue) {
     return next;
   }
 
-  // No further widened API pages — end broadened phase.
-  const exhausted: FeedCompositionState = {
+  // API exhausted, or broadened stopped contributing new uniques → recirculation.
+  return enterRecirculationOrEmpty({
     ...next,
     broadenedExhausted: true,
-  };
-
-  const mode = resolveInventoryContinuationMode(exhausted.uniqueEligibleCount);
-  if (mode === 'empty_state') {
-    return {
-      ...exhausted,
-      recirculationActive: false,
-      emptyTerminal: true,
-      stage: 'empty',
-    };
-  }
-
-  return {
-    ...exhausted,
-    recirculationActive: true,
-    emptyTerminal: false,
-    stage: 'recirculation',
-  };
+  });
 }
 
 export function markInspirationExhausted(
@@ -224,7 +261,7 @@ export function bumpRecirculatedCount(
  *
  * Continues when:
  * - exact marketplace still has pages, OR
- * - widened discovery has not been exhausted, OR
+ * - productive widened discovery has not been exhausted, OR
  * - recirculation can run (1+ seeds).
  *
  * Stops only for intentional empty terminal (0 seeds after all phases).
@@ -245,5 +282,23 @@ export function shouldFetchBroadenedDiscovery(
   if (state.emptyTerminal) return false;
   if (!state.marketplaceExhausted) return false;
   if (state.broadenedExhausted) return false;
+  if (state.broadenedZeroUniqueStreak >= FEED_BROADENED_ZERO_UNIQUE_HANDOFF) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Historical recirculation gate: marketplace exhausted, ≥1 seed, and
+ * broadened is done (or no longer eligible to fetch).
+ */
+export function shouldActivateRecirculation(
+  state: FeedCompositionState,
+): boolean {
+  if (state.emptyTerminal) return false;
+  if (state.recirculationActive) return true;
+  if (!state.marketplaceExhausted) return false;
+  if (state.uniqueEligibleCount < FEED_RECIRC_MIN_SEED) return false;
+  if (shouldFetchBroadenedDiscovery(state)) return false;
   return true;
 }

@@ -16,13 +16,17 @@ import {
   resolveInventoryContinuationMode,
 } from '../lib/feed/feed-composition-policy';
 import {
+  FEED_BROADENED_ZERO_UNIQUE_HANDOFF,
   composedFeedCanContinue,
   createFeedCompositionState,
   markBroadenedPageResult,
   markMarketplacePageResult,
   recordDisplayedSeeds,
   resetFeedCompositionState,
+  shouldActivateRecirculation,
+  shouldFetchBroadenedDiscovery,
 } from '../lib/feed/feed-composition-state';
+import { FEED_LAYOUT_MODE_DEFAULT, readFeedLayoutMode } from '../lib/feed/feedLayoutPreference';
 
 /** Exact exhaust → broadened → (optional) recirculation when widened inventory ends. */
 function exhaustToRecirculation(
@@ -228,11 +232,54 @@ const reset = resetFeedCompositionState(
 assert.equal(reset.requestKey, 'k2');
 assert.equal(reset.recirculationActive, false);
 
+// Zero-unique broadened pages advance skip, then hand off to recirculation.
+{
+  let st = createFeedCompositionState('k-zero');
+  st = recordDisplayedSeeds(st, [
+    { id: 'a', kind: 'sale' },
+    { id: 'b', kind: 'sale' },
+  ]);
+  st = markMarketplacePageResult(st, {
+    fetchedCount: 2,
+    apiHasMore: false,
+    skipUsed: 0,
+  });
+  assert.equal(st.stage, 'broadened');
+  assert.equal(shouldFetchBroadenedDiscovery(st), true);
+  st = markBroadenedPageResult(st, {
+    fetchedCount: 10,
+    newUniqueCount: 0,
+    apiHasMore: true,
+    skipUsed: 0,
+  });
+  assert.equal(st.broadenedSkip, 10);
+  assert.equal(st.broadenedZeroUniqueStreak, 1);
+  assert.equal(st.recirculationActive, false);
+  assert.equal(FEED_BROADENED_ZERO_UNIQUE_HANDOFF, 2);
+  st = markBroadenedPageResult(st, {
+    fetchedCount: 10,
+    newUniqueCount: 0,
+    apiHasMore: true,
+    skipUsed: 10,
+  });
+  assert.equal(st.broadenedSkip, 20);
+  assert.equal(st.broadenedExhausted, true);
+  assert.equal(st.recirculationActive, true);
+  assert.equal(st.stage, 'recirculation');
+  assert.equal(shouldActivateRecirculation(st), true);
+  assert.equal(composedFeedCanContinue(st), true);
+}
+
+assert.equal(FEED_LAYOUT_MODE_DEFAULT, 'cards');
+assert.equal(readFeedLayoutMode(), 'cards');
+
 const geo = readFileSync('components/feed/GeoFeed.tsx', 'utf8');
 assert(geo.includes('inspirationEligibleForFeedScope'), 'GeoFeed geo insp');
 assert(geo.includes('buildRecirculationBatch'), 'GeoFeed recirculation');
 assert(geo.includes('composedFeedCanContinue'), 'GeoFeed continuation gate');
 assert(geo.includes('emptyTerminal'), 'GeoFeed empty terminal');
+assert(geo.includes('shouldActivateRecirculation'), 'GeoFeed recirc handoff');
+assert(geo.includes('resolveFeedIntersectionRoot'), 'GeoFeed nested scroll root');
 
 const route = readFileSync('app/api/feed/route.ts', 'utf8');
 assert(route.includes('nearbyNeedsLocation'), 'geo nearby guard intact');

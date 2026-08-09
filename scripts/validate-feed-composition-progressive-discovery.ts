@@ -272,6 +272,42 @@ check(
     afterBroadened.stage === 'recirculation',
 );
 
+let zeroUnique = markMarketplacePageResult(
+  {
+    ...comp,
+    uniqueEligibleCount: 3,
+  },
+  {
+    fetchedCount: 3,
+    apiHasMore: false,
+    skipUsed: 0,
+  },
+);
+zeroUnique = markBroadenedPageResult(zeroUnique, {
+  fetchedCount: 10,
+  newUniqueCount: 0,
+  apiHasMore: true,
+  skipUsed: 0,
+});
+check(
+  'zero-unique broadened page advances skip without ending feed',
+  zeroUnique.broadenedSkip === 10 &&
+    zeroUnique.recirculationActive === false &&
+    composedFeedCanContinue(zeroUnique) === true,
+);
+zeroUnique = markBroadenedPageResult(zeroUnique, {
+  fetchedCount: 10,
+  newUniqueCount: 0,
+  apiHasMore: true,
+  skipUsed: 10,
+});
+check(
+  'consecutive zero-unique broadened pages hand off to historical recirculation',
+  zeroUnique.broadenedExhausted === true &&
+    zeroUnique.recirculationActive === true &&
+    zeroUnique.stage === 'recirculation',
+);
+
 const batch = buildRecirculationBatch({
   seeds: [
     { id: 'a', kind: 'sale' },

@@ -52,9 +52,10 @@ check(
 );
 
 check(
-  'GeoFeed recirculation requires broadenedExhausted',
-  /broadenedExhausted/.test(geo) &&
-    geo.includes('shouldFetchBroadenedDiscovery(comp)'),
+  'GeoFeed recirculation uses historical handoff helper (no broadened starvation)',
+  geo.includes('shouldActivateRecirculation') &&
+    geo.includes('resolveFeedIntersectionRoot') &&
+    geo.includes('homecheff-feed-desktop'),
 );
 
 check(

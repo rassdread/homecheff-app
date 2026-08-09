@@ -5645,7 +5645,7 @@
     "desktopColumns2": "2 columns",
     "desktopColumns3": "3 columns",
     "desktopColumns1Hint": "Single column — feed style",
-    "desktopColumns2Hint": "Two columns — HomeCheff default",
+    "desktopColumns2Hint": "Two columns — optional denser grid",
     "desktopColumns3Hint": "Three columns — marketplace grid",
     "locationSectionLabel": "Location and feed search",
     "refineSectionLabel": "Refine these results (search, sort, price)",

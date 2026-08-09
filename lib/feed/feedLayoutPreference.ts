@@ -2,20 +2,24 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-/** Large vertical feed cards (default). */
+/** Large vertical feed cards (platform default). Discover grid is opt-in. */
 export type FeedLayoutMode = "cards" | "discover";
 
 const STORAGE_KEY = "homecheff.feedLayoutMode";
 const CHANGE_EVENT = "hc-feed-layout-mode";
 
+/** Clean-state / SSR default — one column everywhere. */
+export const FEED_LAYOUT_MODE_DEFAULT: FeedLayoutMode = "cards";
+
 export function readFeedLayoutMode(): FeedLayoutMode {
-  if (typeof window === "undefined") return "discover";
+  if (typeof window === "undefined") return FEED_LAYOUT_MODE_DEFAULT;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw === "cards") return "cards";
-    return "discover";
+    // Only an explicit "discover" choice opts into two-column grid.
+    if (raw === "discover") return "discover";
+    return FEED_LAYOUT_MODE_DEFAULT;
   } catch {
-    return "discover";
+    return FEED_LAYOUT_MODE_DEFAULT;
   }
 }
 
@@ -44,7 +48,7 @@ export function useFeedLayoutMode(): [FeedLayoutMode, (mode: FeedLayoutMode) => 
   const mode = useSyncExternalStore(
     subscribeFeedLayoutMode,
     readFeedLayoutMode,
-    () => "discover" as FeedLayoutMode
+    () => FEED_LAYOUT_MODE_DEFAULT,
   );
   const setMode = useCallback((next: FeedLayoutMode) => {
     writeFeedLayoutMode(next);

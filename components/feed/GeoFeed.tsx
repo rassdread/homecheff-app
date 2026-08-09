@@ -270,6 +270,7 @@ import {
   markMarketplacePageResult,
   markBroadenedPageResult,
   shouldFetchBroadenedDiscovery,
+  shouldActivateRecirculation,
   recordDisplayedSeeds,
   resetFeedCompositionState,
   bumpRecirculatedCount,
@@ -1005,6 +1006,39 @@ export function useHomeSurfacePlan() {
 
 /** Category discovery axis — Phase 7E canonical model (services is category-only). */
 const CATEGORY_CHIP_OPTIONS = DISCOVERY_CATEGORY_CHIP_OPTIONS;
+
+/**
+ * Desktop composed home scrolls inside `#homecheff-feed-desktop`, not the window.
+ * IntersectionObserver must use that element (or the nearest overflow parent) as
+ * `root`; otherwise the sentinel never intersects and load-more / recirculation stall.
+ * Mobile and non-composed contexts keep viewport root (`null`).
+ */
+function resolveFeedIntersectionRoot(
+  sentinel: Element,
+  preferDesktopFeedColumn: boolean,
+): Element | null {
+  if (typeof document === "undefined") return null;
+
+  const isScrollContainer = (el: Element): el is HTMLElement => {
+    if (!(el instanceof HTMLElement)) return false;
+    const { overflowY } = window.getComputedStyle(el);
+    return overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay";
+  };
+
+  if (preferDesktopFeedColumn) {
+    const desktop = document.getElementById("homecheff-feed-desktop");
+    if (desktop && isScrollContainer(desktop)) return desktop;
+  }
+
+  let node: Element | null = sentinel.parentElement;
+  while (node && node !== document.documentElement && node !== document.body) {
+    if (isScrollContainer(node) && node.scrollHeight > node.clientHeight + 1) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+  return null;
+}
 
 export default function GeoFeed({
   ssrAuthHint,
@@ -3188,6 +3222,13 @@ export default function GeoFeed({
           commitCompositionState(sealed);
           feedHasMoreRef.current = more;
           setFeedHasMore(more);
+          // Failed broadened fetch must not silence the endless feed — hand off.
+          if (more && shouldActivateRecirculation(sealed)) {
+            window.setTimeout(() => {
+              if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+              void loadMoreFeedRef.current?.();
+            }, 80);
+          }
           return;
         }
         const data = (await feedRes.json()) as {
@@ -3249,14 +3290,23 @@ export default function GeoFeed({
             identityKey,
           });
         }
-        // Chain widened pages until true end. Inventory after exact exhaust is
-        // small; waiting for IO alone stalls on tall desktop viewports.
+        // Chain productive widened pages, then immediately hand off into the
+        // existing recirculation engine (historical endless feed). Do not wait
+        // solely on IntersectionObserver — desktop nested scroll can miss it.
         if (more && shouldFetchBroadenedDiscovery(next)) {
           window.setTimeout(() => {
             if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
             if (!shouldFetchBroadenedDiscovery(compositionStateRef.current)) {
+              if (shouldActivateRecirculation(compositionStateRef.current)) {
+                void loadMoreFeedRef.current?.();
+              }
               return;
             }
+            void loadMoreFeedRef.current?.();
+          }, 80);
+        } else if (more && shouldActivateRecirculation(next)) {
+          window.setTimeout(() => {
+            if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
             void loadMoreFeedRef.current?.();
           }, 80);
         }
@@ -3275,12 +3325,7 @@ export default function GeoFeed({
       return;
     }
 
-    const shouldRecirculate =
-      comp.recirculationActive ||
-      (comp.marketplaceExhausted &&
-        comp.broadenedExhausted &&
-        comp.uniqueEligibleCount >= FEED_RECIRC_MIN_SEED &&
-        !comp.emptyTerminal);
+    const shouldRecirculate = shouldActivateRecirculation(comp);
 
     if (shouldRecirculate) {
       if (recirculationInFlightRef.current) return;
@@ -3537,6 +3582,7 @@ export default function GeoFeed({
   useEffect(() => {
     const el = feedLoadMoreRef.current;
     if (!el || !feedHasMore || loading) return;
+    const scrollRoot = resolveFeedIntersectionRoot(el, isDesktopSplit);
     const net = readNetworkHints();
     const marginPx = computePrefetchRootMarginPx({
       viewportHeight: typeof window !== "undefined" ? window.innerHeight : 800,
@@ -3551,13 +3597,14 @@ export default function GeoFeed({
           console.info("[hc-feed-prefetch]", "early-zone", {
             marginPx,
             prepared: feedPrefetchCacheRef.current.preparedCount(),
+            root: scrollRoot ? "nested" : "viewport",
           });
         }
         void prefetchNextMarketplacePage("early");
         prepareRecirculationIfNeeded();
       },
       {
-        root: null,
+        root: scrollRoot,
         rootMargin: buildPrefetchObserverRootMargin(marginPx),
         threshold: 0,
       },
@@ -3567,15 +3614,17 @@ export default function GeoFeed({
   }, [
     feedHasMore,
     loading,
+    isDesktopSplit,
     prefetchNextMarketplacePage,
     prepareRecirculationIfNeeded,
   ]);
 
   // Near-end append — consume prefetch (no spinner) or fetch (spinner only on miss).
-  // Keep rootMargin identical across Desktop / Android WebView / Chrome Android.
+  // Composed desktop: observe #homecheff-feed-desktop. Mobile/other: viewport.
   useEffect(() => {
     const el = feedLoadMoreRef.current;
     if (!el || !feedHasMore || loading) return;
+    const scrollRoot = resolveFeedIntersectionRoot(el, isDesktopSplit);
     const nearMarginPx = 480;
     const obs = new IntersectionObserver(
       (entries) => {
@@ -3589,12 +3638,13 @@ export default function GeoFeed({
             rows: itemsRef.current.length,
             marginPx: nearMarginPx,
             prepared: feedPrefetchCacheRef.current.preparedCount(),
+            root: scrollRoot ? "nested" : "viewport",
           });
         }
         if (hit) void loadMoreFeed();
       },
       {
-        root: null,
+        root: scrollRoot,
         rootMargin: buildPrefetchObserverRootMargin(nearMarginPx),
         threshold: 0,
       },
@@ -3606,6 +3656,7 @@ export default function GeoFeed({
         feedHasMore,
         marginPx: nearMarginPx,
         nativeExpanded: nativeFeedRenderMoreRef.current,
+        root: scrollRoot ? "nested" : "viewport",
       });
     }
     return () => {
@@ -3614,7 +3665,7 @@ export default function GeoFeed({
         console.info("[hc-native-scroll]", "observer-detached");
       }
     };
-  }, [feedHasMore, loading, loadMoreFeed]);
+  }, [feedHasMore, loading, loadMoreFeed, isDesktopSplit]);
 
   /** One-shot kick into widened discovery when exact exhausts (short pages / IO miss). */
   useEffect(() => {
@@ -3637,6 +3688,34 @@ export default function GeoFeed({
     compositionState.stage,
     compositionState.exactExhausted,
     compositionState.broadenedSkip,
+    loadMoreFeed,
+  ]);
+
+  /**
+   * One-shot kick into historical recirculation when broadened ends / hands off.
+   * Ensures endless feed continues even if nested-scroll IO misses the sentinel.
+   */
+  useEffect(() => {
+    if (loading || feedStartupBlocked || !feedHydrated) return;
+    if (!feedHasMore || feedLoadingMore) return;
+    const comp = compositionStateRef.current;
+    if (!shouldActivateRecirculation(comp)) return;
+    if (comp.recirculationBatchIndex > 0) return;
+    if (recirculatedRows.length > 0) return;
+    const kickKey = `${comp.requestKey}|recirc0`;
+    if (broadenedKickKeyRef.current === kickKey) return;
+    broadenedKickKeyRef.current = kickKey;
+    void loadMoreFeed();
+  }, [
+    loading,
+    feedStartupBlocked,
+    feedHydrated,
+    feedHasMore,
+    feedLoadingMore,
+    compositionState.stage,
+    compositionState.broadenedExhausted,
+    compositionState.recirculationActive,
+    recirculatedRows.length,
     loadMoreFeed,
   ]);
 
