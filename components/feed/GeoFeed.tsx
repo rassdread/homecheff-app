@@ -1027,7 +1027,9 @@ function resolveFeedIntersectionRoot(
 
   if (preferDesktopFeedColumn) {
     const desktop = document.getElementById("homecheff-feed-desktop");
-    if (desktop && isScrollContainer(desktop)) return desktop;
+    // Composed home always scrolls this column (lg fixed-height shell).
+    // Prefer it even if WebKit reports a quirky computed overflow value.
+    if (desktop instanceof HTMLElement) return desktop;
   }
 
   let node: Element | null = sentinel.parentElement;
@@ -3667,6 +3669,32 @@ export default function GeoFeed({
     };
   }, [feedHasMore, loading, loadMoreFeed, isDesktopSplit]);
 
+  /**
+   * WebKit/desktop nested-scroll fallback: IntersectionObserver can miss the
+   * sentinel inside `#homecheff-feed-desktop`. Near-bottom scroll still must
+   * drive the existing loadMore → broadened → recirculation path.
+   */
+  useEffect(() => {
+    if (!isDesktopSplit || !feedHasMore || loading) return;
+    const root =
+      typeof document !== "undefined"
+        ? document.getElementById("homecheff-feed-desktop")
+        : null;
+    if (!(root instanceof HTMLElement)) return;
+
+    const onScroll = () => {
+      if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+      const remaining = root.scrollHeight - root.scrollTop - root.clientHeight;
+      if (remaining > 640) return;
+      void loadMoreFeed();
+    };
+
+    root.addEventListener("scroll", onScroll, { passive: true });
+    // Catch already-near-bottom layouts (short first page / tall viewport).
+    onScroll();
+    return () => root.removeEventListener("scroll", onScroll);
+  }, [isDesktopSplit, feedHasMore, loading, loadMoreFeed, items.length, recirculatedRows.length]);
+
   /** One-shot kick into widened discovery when exact exhausts (short pages / IO miss). */
   useEffect(() => {
     if (loading || feedStartupBlocked || !feedHydrated) return;
@@ -3692,8 +3720,9 @@ export default function GeoFeed({
   ]);
 
   /**
-   * One-shot kick into historical recirculation when broadened ends / hands off.
-   * Ensures endless feed continues even if nested-scroll IO misses the sentinel.
+   * Kick historical recirculation when broadened ends / hands off.
+   * Re-armed whenever batchIndex is still 0 so WebKit nested-scroll misses
+   * cannot leave the feed silent after unique exhaustion.
    */
   useEffect(() => {
     if (loading || feedStartupBlocked || !feedHydrated) return;
@@ -3702,9 +3731,6 @@ export default function GeoFeed({
     if (!shouldActivateRecirculation(comp)) return;
     if (comp.recirculationBatchIndex > 0) return;
     if (recirculatedRows.length > 0) return;
-    const kickKey = `${comp.requestKey}|recirc0`;
-    if (broadenedKickKeyRef.current === kickKey) return;
-    broadenedKickKeyRef.current = kickKey;
     void loadMoreFeed();
   }, [
     loading,
@@ -3717,6 +3743,49 @@ export default function GeoFeed({
     compositionState.recirculationActive,
     recirculatedRows.length,
     loadMoreFeed,
+  ]);
+
+  /**
+   * Keep chaining recirculation batches while the user remains near the end.
+   * Historical endless feed: ≥1 seed ⇒ no hard stop.
+   */
+  useEffect(() => {
+    if (loading || feedStartupBlocked || !feedHydrated) return;
+    if (!feedHasMore || feedLoadingMore) return;
+    const comp = compositionStateRef.current;
+    if (!comp.recirculationActive || comp.emptyTerminal) return;
+    if (comp.recirculationBatchIndex < 1) return;
+    const timer = window.setTimeout(() => {
+      if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+      if (!shouldActivateRecirculation(compositionStateRef.current)) return;
+      // Only auto-chain when the sentinel / nested scroller is near the end.
+      const sentinel = feedLoadMoreRef.current;
+      if (!sentinel) return;
+      const root = resolveFeedIntersectionRoot(sentinel, isDesktopSplit);
+      if (root instanceof HTMLElement) {
+        const remaining =
+          root.scrollHeight - root.scrollTop - root.clientHeight;
+        if (remaining > 900) return;
+      } else if (typeof window !== "undefined") {
+        const remaining =
+          document.documentElement.scrollHeight -
+          window.scrollY -
+          window.innerHeight;
+        if (remaining > 900) return;
+      }
+      void loadMoreFeedRef.current?.();
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [
+    loading,
+    feedStartupBlocked,
+    feedHydrated,
+    feedHasMore,
+    feedLoadingMore,
+    compositionState.recirculationActive,
+    compositionState.recirculationBatchIndex,
+    recirculatedRows.length,
+    isDesktopSplit,
   ]);
 
   useEffect(() => {
