@@ -148,6 +148,11 @@ export default function ProfileV2Client({
 
   const [activeTab, setActiveTab] = useState<ProfileV2TabId>(() => {
     if (openNewProducts) return 'aanbod';
+    // Public visitors land on aanbod so listing↔profile navigation works.
+    if (variant === 'public' && !isOwnProfile) {
+      const fromUrl = resolveInitialTab(searchParams);
+      return fromUrl === 'overview' ? 'aanbod' : fromUrl;
+    }
     return resolveInitialTab(searchParams);
   });
   const [aanbodFilter, setAanbodFilter] = useState<ProfileV2AanbodFilter>(() =>

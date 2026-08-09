@@ -6,6 +6,7 @@ import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-ki
 import { deriveListingKind } from '@/lib/marketplace/listing-kind';
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
+import { getFeedItemHref, getListingHref } from '@/lib/routing/public-hrefs';
 import type { MarketplaceTileModel, MarketplaceTilePerson } from './types';
 import { EMPTY_TILE_TRUST } from './map-trust';
 
@@ -73,10 +74,12 @@ export type FavoriteApiRecord = {
 };
 
 function dishHref(dish: FavoriteDish): string {
-  const cat = (dish.category || 'CHEFF').toUpperCase();
-  if (cat === 'GROWN') return `/garden/${dish.id}`;
-  if (cat === 'DESIGNER') return `/design/${dish.id}`;
-  return `/recipe/${dish.id}`;
+  return getFeedItemHref({
+    id: dish.id,
+    title: dish.title,
+    type: 'dish',
+    category: dish.category,
+  });
 }
 
 export function mapFavoriteRecordToTileModel(
@@ -85,7 +88,12 @@ export function mapFavoriteRecordToTileModel(
 ): MarketplaceTileModel | null {
   if (record.Product) {
     const p = record.Product;
-    const href = `/product/${p.id}`;
+    const href = getListingHref({
+      id: p.id,
+      title: p.title?.trim() || 'listing',
+      place: null,
+      listingIntent: p.listingIntent,
+    });
     const kind = deriveListingKind({
       marketplaceCategory: null,
       category: p.category,
@@ -191,7 +199,11 @@ export function mapFavoriteRecordToTileModel(
     });
     return {
       id: l.id,
-      href: `/product/${l.id}`,
+      href: getListingHref({
+        id: l.id,
+        title: l.title?.trim() || 'listing',
+        place: l.place ?? null,
+      }),
       entityType: 'listing',
       title: l.title ?? '',
       description: null,

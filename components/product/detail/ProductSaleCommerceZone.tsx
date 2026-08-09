@@ -7,6 +7,7 @@ import ProductSalePrimaryActions from '@/components/product/detail/ProductSalePr
 import ProductSaleSecondaryContact from '@/components/product/detail/ProductSaleSecondaryContact';
 import ProductValueExchangeSection from '@/components/product/detail/ProductValueExchangeSection';
 import ProductDetailTrustBlock from '@/components/product/detail/ProductDetailTrustBlock';
+import ProductMakerTrustStrip from '@/components/product/detail/ProductMakerTrustStrip';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 import type { DiscoveryTrustContract } from '@/lib/discovery/contracts/discovery-trust-contract';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
@@ -26,6 +27,7 @@ import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
+import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
 
 type ProductShape = {
   id: string;
@@ -56,6 +58,8 @@ type ProductShape = {
   seller?: {
     lat?: number | null;
     lng?: number | null;
+    kvk?: string | null;
+    companyName?: string | null;
     User?: {
       id?: string;
       name?: string | null;
@@ -84,6 +88,9 @@ type Props = {
   trust: DiscoveryTrustContract;
   listingKind: ListingKind;
   sellerName: string;
+  sellerBadges?: UserBadgeChipItem[] | null;
+  isBusiness?: boolean;
+  companyName?: string | null;
   quantity: number;
   availableStock: number | null;
   isOwner: boolean;
@@ -104,6 +111,9 @@ export default function ProductSaleCommerceZone({
   trust,
   listingKind,
   sellerName,
+  sellerBadges = null,
+  isBusiness = false,
+  companyName = null,
   quantity,
   availableStock,
   isOwner,
@@ -168,6 +178,28 @@ export default function ProductSaleCommerceZone({
         className,
       )}
     >
+      {product.seller?.User?.id ? (
+        <ProductMakerTrustStrip
+          sellerUser={{
+            id: product.seller.User.id,
+            name: product.seller.User.name,
+            username: product.seller.User.username,
+            avatar: product.seller.User.avatar,
+            profileImage: product.seller.User.profileImage,
+            image: product.seller.User.image,
+            displayFullName: product.seller.User.displayFullName,
+            displayNameOption: product.seller.User.displayNameOption,
+            place: product.seller.User.place || product.seller.User.city,
+          }}
+          sellerBadges={sellerBadges}
+          isBusiness={
+            isBusiness ||
+            Boolean(product.seller?.kvk && product.seller?.companyName)
+          }
+          companyName={companyName ?? product.seller?.companyName ?? null}
+        />
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-2">
         <span
           className={cn(

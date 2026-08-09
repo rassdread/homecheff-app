@@ -253,19 +253,81 @@ export default function MyDishesManager({
     try {
       // Openbaar profiel met subtabs Dorpsplein/Inspiratie (zelfde data als privé)
       if (isPublic && contentSubTab && userId) {
+        if (contentSubTab === 'dorpsplein') {
+          // Sale listings live on Product (seller API), not Dish.
+          const productsUrl = `/api/seller/products?userId=${encodeURIComponent(userId)}`;
+          const productsRes = await safeFetch(productsUrl);
+          if (productsRes.ok) {
+            const data = await productsRes.json();
+            const activeProducts =
+              data.products?.filter((product: any) => product.isActive) || [];
+            let transformedItems = activeProducts.map((product: any) => ({
+              id: product.id,
+              title: product.title,
+              description: product.description,
+              status: 'PUBLISHED',
+              createdAt: product.createdAt,
+              priceCents: product.priceCents,
+              place:
+                product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
+                null,
+              category:
+                product.category === 'CHEFF'
+                  ? 'CHEFF'
+                  : product.category === 'GROWN'
+                    ? 'GROWN'
+                    : 'DESIGNER',
+              marketplaceCategory: product.marketplaceCategory ?? null,
+              specializations: product.specializations ?? [],
+              subcategory: product.subcategory,
+              stock: product.stock,
+              maxStock: product.maxStock,
+              listingIntent: product.listingIntent ?? null,
+              photos:
+                product.Image?.map((img: any, index: number) => ({
+                  id: img.id,
+                  url: img.fileUrl,
+                  idx: img.sortOrder || index,
+                  isMain: img.sortOrder === 0,
+                })) || [],
+            }));
+            if (activeRole === 'chef') {
+              transformedItems = transformedItems.filter(
+                (item: any) => item.category === 'CHEFF',
+              );
+            } else if (activeRole === 'garden') {
+              transformedItems = transformedItems.filter(
+                (item: any) => item.category === 'GROWN',
+              );
+            } else if (activeRole === 'designer') {
+              transformedItems = transformedItems.filter(
+                (item: any) => item.category === 'DESIGNER',
+              );
+            }
+            setItems(transformedItems);
+          }
+          setLoading(false);
+          return;
+        }
+
         const apiUrl = `/api/profile/dishes?userId=${userId}`;
         const dishesRes = await safeFetch(apiUrl);
         if (dishesRes.ok) {
           const dishesData = await dishesRes.json();
-          let filtered = (dishesData.items || []).filter((item: any) => item.status === 'PUBLISHED');
-          if (contentSubTab === 'dorpsplein') {
-            filtered = filtered.filter((item: any) => item.priceCents && item.priceCents > 0);
-          } else {
-            filtered = filtered.filter((item: any) => !item.priceCents || item.priceCents === 0);
-          }
-          if (activeRole === 'chef') filtered = filtered.filter((item: any) => item.category === 'CHEFF');
-          else if (activeRole === 'garden') filtered = filtered.filter((item: any) => item.category === 'GROWN');
-          else if (activeRole === 'designer') filtered = filtered.filter((item: any) => item.category === 'DESIGNER');
+          let filtered = (dishesData.items || []).filter(
+            (item: any) => item.status === 'PUBLISHED',
+          );
+          filtered = filtered.filter(
+            (item: any) => !item.priceCents || item.priceCents === 0,
+          );
+          if (activeRole === 'chef')
+            filtered = filtered.filter((item: any) => item.category === 'CHEFF');
+          else if (activeRole === 'garden')
+            filtered = filtered.filter((item: any) => item.category === 'GROWN');
+          else if (activeRole === 'designer')
+            filtered = filtered.filter(
+              (item: any) => item.category === 'DESIGNER',
+            );
           setItems(filtered);
         }
         setLoading(false);

@@ -1028,6 +1028,9 @@ export default function ListingDetailPage() {
                   trust={discoveryTrust}
                   listingKind={listingKind}
                   sellerName={getSellerDisplayName(product)}
+                  sellerBadges={sellerBadges}
+                  isBusiness={isBusiness}
+                  companyName={companyName}
                   quantity={quantity}
                   availableStock={availableStock}
                   isOwner={isOwner}

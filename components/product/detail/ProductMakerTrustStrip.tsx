@@ -14,6 +14,10 @@ import {
   getCachedUserStats,
 } from '@/lib/userStatsClientCache';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
+import {
+  getPublicProfileHref,
+  profileFallbackHref,
+} from '@/lib/user/public-profile';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -136,16 +140,17 @@ export default function ProductMakerTrustStrip({
               <p className="text-xs leading-snug text-gray-600">{makerLine}</p>
             ) : null}
           </div>
-          <Link
-            href={
-              sellerUser.username
-                ? `/user/${encodeURIComponent(sellerUser.username)}`
-                : '/profile'
-            }
-            className="shrink-0 text-xs font-semibold text-secondary-brand hover:text-secondary-700"
-          >
-            {t('productDetail.viewProfile') || 'Profiel'} →
-          </Link>
+          {sellerUser.id ? (
+            <Link
+              href={
+                getPublicProfileHref(sellerUser.id, sellerUser.username) ??
+                profileFallbackHref(sellerUser.id)
+              }
+              className="shrink-0 text-xs font-semibold text-secondary-brand hover:text-secondary-700"
+            >
+              {t('productDetail.viewProfile') || 'Profiel'} →
+            </Link>
+          ) : null}
         </div>
       </div>
     );
