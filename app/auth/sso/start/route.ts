@@ -1,9 +1,10 @@
 /**
- * Phase I.3 / SP.2B.3 — GET /auth/sso/start (browser)
+ * Phase I.3 / SP.2B.3 / SP.2B.5 — GET /auth/sso/start (browser)
  *
  * silent (+ session) → issue code → product callback
+ * silent (no session) → redirect product callback with error=login_required (no HC login UI)
  * interactive (login|select_account|claim) + session → /auth/sso/continue
- * no session → /login with callbackUrl back here (Google prompt when interactive)
+ * interactive (no session) → /login with callbackUrl back here
  */
 
 import { NextResponse } from "next/server";
@@ -56,6 +57,18 @@ export async function GET(req: Request) {
   const centralUserId = (session?.user as { id?: string } | undefined)?.id;
 
   if (!centralUserId) {
+    // SP.2B.5 — silent must not open HC login UI (no loops / no account picker).
+    if (params.interaction === "silent") {
+      logSsoEvent("silent_sso_no_central_session", {
+        product: params.product,
+        interaction: params.interaction,
+      });
+      const dest = new URL(params.redirectUri);
+      dest.searchParams.set("error", "login_required");
+      dest.searchParams.set("state", params.state);
+      return NextResponse.redirect(dest.toString(), 302);
+    }
+
     const login = new URL("/login", originFrom(req));
     login.searchParams.set("callbackUrl", ssoStartRelativePath(params));
     login.searchParams.set("ssoInteraction", params.interaction);
