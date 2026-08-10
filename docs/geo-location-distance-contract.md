@@ -6,9 +6,8 @@ When location is required for publish (`saleProductRequiresLocation`):
 
 A publishable location **must resolve to coordinates** via:
 
-1. `pickupLat` + `pickupLng`, or
-2. `useProfileLocation` with SellerProfile / User lat/lng, or
-3. another source resolved by `resolveProductCoords()`.
+1. Custom place mode: `pickupLat` + `pickupLng` (required — seller profile coords are not a silent fallback), or
+2. `useProfileLocation=true` with resolvable SellerProfile / User lat/lng (and optional pickup override).
 
 Place/address **text alone is not sufficient**.
 

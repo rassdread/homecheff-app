@@ -493,25 +493,51 @@ export async function PATCH(
                 },
               },
             });
-            const locCheck = validateProductLocationForPublish({
-              pickupAddress:
-                body.pickupAddress !== undefined
-                  ? body.pickupAddress
-                  : (product as { pickupAddress?: string | null }).pickupAddress,
-              pickupLat:
-                body.pickupLat !== undefined
-                  ? body.pickupLat != null
-                    ? Number(body.pickupLat)
-                    : null
-                  : (product as { pickupLat?: number | null }).pickupLat,
-              pickupLng:
-                body.pickupLng !== undefined
-                  ? body.pickupLng != null
-                    ? Number(body.pickupLng)
-                    : null
-                  : (product as { pickupLng?: number | null }).pickupLng,
-              seller: sellerProfile,
-            });
+            const useProfileLocation =
+              body.useProfileLocation !== undefined
+                ? body.useProfileLocation !== false &&
+                  body.useProfileLocation !== 'false'
+                : (product as { useProfileLocation?: boolean }).useProfileLocation !==
+                  false;
+            const pickupAddress =
+              body.pickupAddress !== undefined
+                ? body.pickupAddress
+                : (product as { pickupAddress?: string | null }).pickupAddress;
+            const pickupLat =
+              body.pickupLat !== undefined
+                ? body.pickupLat != null
+                  ? Number(body.pickupLat)
+                  : null
+                : (product as { pickupLat?: number | null }).pickupLat;
+            const pickupLng =
+              body.pickupLng !== undefined
+                ? body.pickupLng != null
+                  ? Number(body.pickupLng)
+                  : null
+                : (product as { pickupLng?: number | null }).pickupLng;
+            const locCheck = validateProductLocationForPublish(
+              useProfileLocation
+                ? {
+                    pickupAddress,
+                    pickupLat,
+                    pickupLng,
+                    seller: sellerProfile,
+                  }
+                : {
+                    pickupAddress,
+                    pickupLat,
+                    pickupLng,
+                    seller: {
+                      User: {
+                        place:
+                          (typeof body.placeName === 'string'
+                            ? body.placeName
+                            : (product as { placeName?: string | null }).placeName) ||
+                          null,
+                      },
+                    },
+                  }
+            );
             if (!locCheck.ok) {
               return NextResponse.json(
                 { error: locCheck.message, code: locCheck.errorCode },

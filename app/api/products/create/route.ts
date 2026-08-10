@@ -261,36 +261,54 @@ export async function POST(req: Request) {
     const digitalOnly = fulfillmentIsDigitalOnly(v2Resolved.fulfillmentOptions);
     const placeNameStr =
       typeof placeNameRaw === 'string' ? placeNameRaw.trim() : v2Resolved.placeName;
+    const useProfileLocation =
+      useProfileLocationRaw !== false && useProfileLocationRaw !== 'false';
 
     if (
       publishState.isActive &&
       !digitalOnly &&
       saleProductRequiresLocation(orderMethod, priceCentsNum, v2Resolved.priceModel)
     ) {
-      const locCheck = validateProductLocationForPublish({
-        pickupAddress: pickupAddressStr || placeNameStr || null,
-        pickupLat: pickupLatNum,
-        pickupLng: pickupLngNum,
-        seller: user.SellerProfile
+      // Profile mode may resolve SellerProfile/User coords.
+      // Custom place mode requires explicit pickupLat/Lng (no silent seller fallback).
+      const locCheck = validateProductLocationForPublish(
+        useProfileLocation
           ? {
-              lat: user.SellerProfile.lat,
-              lng: user.SellerProfile.lng,
-              User: {
-                place: placeNameStr || user.place,
-                city: placeNameStr || user.city,
-                lat: user.lat,
-                lng: user.lng,
-              },
+              pickupAddress: pickupAddressStr || placeNameStr || null,
+              pickupLat: pickupLatNum,
+              pickupLng: pickupLngNum,
+              seller: user.SellerProfile
+                ? {
+                    lat: user.SellerProfile.lat,
+                    lng: user.SellerProfile.lng,
+                    User: {
+                      place: placeNameStr || user.place,
+                      city: placeNameStr || user.city,
+                      lat: user.lat,
+                      lng: user.lng,
+                    },
+                  }
+                : {
+                    User: {
+                      place: placeNameStr || user.place,
+                      city: placeNameStr || user.city,
+                      lat: user.lat,
+                      lng: user.lng,
+                    },
+                  },
             }
           : {
-              User: {
-                place: placeNameStr || user.place,
-                city: placeNameStr || user.city,
-                lat: user.lat,
-                lng: user.lng,
+              pickupAddress: pickupAddressStr || placeNameStr || null,
+              pickupLat: pickupLatNum,
+              pickupLng: pickupLngNum,
+              seller: {
+                User: {
+                  place: placeNameStr || null,
+                  city: placeNameStr || null,
+                },
               },
-            },
-      });
+            }
+      );
       if (!locCheck.ok) {
         return NextResponse.json(
           { error: locCheck.message, code: locCheck.errorCode },
