@@ -1,5 +1,7 @@
 import { getServerSession } from 'next-auth';
+import { cookies, headers } from 'next/headers';
 import { authOptions } from '@/lib/auth';
+import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 import HomePageClient from '@/components/home/HomePageClient';
 import {
   isLegacyServicesViewChip,
@@ -12,6 +14,9 @@ import {
   parseFeedWorkspacePreviewRequested,
   resolveFeedWorkspaceVisibilityMode,
 } from '@/lib/adaptive-workspace-react';
+import { resolveIpApproxLocationForBrowse } from '@/lib/geo/ip-approx-location';
+import { countryOptionLabel } from '@/lib/geo/structured-location';
+import type { ServerIpApproxSeed } from '@/lib/geo/seeded-feed-location';
 
 export const revalidate = 60;
 
@@ -77,8 +82,14 @@ export default async function HomePage({
 }) {
   let ssrAuthHint: SsrAuthHint = 'anonymous';
   try {
-    const session = await getServerSession(authOptions);
-    ssrAuthHint = session?.user ? 'authenticated' : 'anonymous';
+    const cookieStore = await cookies();
+    const hasSessionCookie =
+      cookieStore.has(NEXTAUTH_SESSION_COOKIE_NAME) ||
+      cookieStore.has(`__Secure-${NEXTAUTH_SESSION_COOKIE_NAME}`);
+    if (hasSessionCookie) {
+      const session = await getServerSession(authOptions);
+      ssrAuthHint = session?.user ? 'authenticated' : 'anonymous';
+    }
   } catch (e) {
     console.error('[HomePage] getServerSession failed:', e);
     ssrAuthHint = undefined;
@@ -96,12 +107,37 @@ export default async function HomePage({
     searchParams?.awFeedWorkspace,
   );
 
+  // Header-only IP approx (same as /api/geo/approx) — seeds GeoFeed first paint.
+  let initialIpApprox: ServerIpApproxSeed | null = null;
+  try {
+    const hdrs = await headers();
+    const approx = resolveIpApproxLocationForBrowse(hdrs);
+    const label =
+      approx.city ||
+      approx.region ||
+      (approx.countryCode
+        ? countryOptionLabel(approx.countryCode).replace(/\s*\([A-Z]{2}\)\s*$/, '')
+        : null);
+    initialIpApprox = {
+      lat: approx.lat,
+      lng: approx.lng,
+      label,
+      city: approx.city,
+      countryCode: approx.countryCode,
+      mode: approx.mode,
+      source: approx.source,
+    };
+  } catch (e) {
+    console.error('[HomePage] IP approx seed failed:', e);
+  }
+
   return (
     <HomePageClient
       ssrAuthHint={ssrAuthHint}
       initialFeedChip={initialFeedChip}
       initialFeedCategory={initialFeedCategory}
       initialFeedPlace={initialFeedPlace}
+      initialIpApprox={initialIpApprox}
       stickyTestMode={stickyTestMode}
       feedWorkspaceVisibilityMode={feedWorkspaceVisibilityMode}
       feedWorkspacePreviewRequested={feedWorkspacePreviewRequested}

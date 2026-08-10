@@ -7,6 +7,7 @@ import { getCorsHeaders } from "@/lib/apiCors";
 import { isStripeTestId } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { NEXTAUTH_SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie-name";
 import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
 import { isContactOnlyProduct } from "@/lib/product/order-method";
 import {
@@ -295,7 +296,14 @@ async function handleFeedGet(
   >();
   apiPerf?.mark('params_parsed');
 
-  const session = await getServerSession(authOptions as any);
+  // Anonymous fast-path: skip NextAuth JWT work when no session cookie is present.
+  // Preserves authenticated personalization when a cookie exists.
+  const sessionCookiePresent =
+    Boolean(req.cookies.get(NEXTAUTH_SESSION_COOKIE_NAME)?.value) ||
+    Boolean(req.cookies.get(`__Secure-${NEXTAUTH_SESSION_COOKIE_NAME}`)?.value);
+  const session = sessionCookiePresent
+    ? await getServerSession(authOptions as any)
+    : null;
   apiPerf?.mark('session_resolved');
   const userId = (session as any)?.user?.id || null;
   const cachePolicy = classifyFeedCachePolicy({
