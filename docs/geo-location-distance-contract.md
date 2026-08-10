@@ -13,6 +13,16 @@ Place/address **text alone is not sufficient**.
 
 City-level / area centroids are acceptable for privacy.
 
+## Write-time place → coordinates
+
+Create/edit/profile resolve human place input to coordinates **before** persist:
+
+- Provider path: existing Google Maps (+ Nominatim fallback) via `resolvePlaceInput` / `/api/geocoding/resolve-place`
+- Unambiguous single match (e.g. Vlaardingen + NL) → auto-accept
+- Ambiguous / known-risk names (e.g. Sint Maarten) → user must confirm; never silent guess
+- Changing place text invalidates previous coordinates until re-resolved
+- **Never** geocode listing places during `/api/feed`, GeoFeed, card render, sort, or radius
+
 ## Distance
 
 - Computed only from coordinates (haversine), never from place text.

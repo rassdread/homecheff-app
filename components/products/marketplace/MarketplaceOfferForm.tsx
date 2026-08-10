@@ -7,6 +7,8 @@ import { Loader2 } from 'lucide-react';
 import SimpleImageUploader from '@/components/products/SimpleImageUploader';
 import VideoUploader from '@/components/ui/VideoUploader';
 import DynamicAddressFields, { type AddressData } from '@/components/ui/DynamicAddressFields';
+import { PlaceResolveFeedback } from '@/components/geo/PlaceResolveFeedback';
+import { usePlaceAutoResolve } from '@/hooks/usePlaceAutoResolve';
 import PaymentMethodCheckboxes from '@/components/products/marketplace/PaymentMethodCheckboxes';
 import FulfillmentCheckboxes from '@/components/products/marketplace/FulfillmentCheckboxes';
 import {
@@ -119,10 +121,14 @@ export default function MarketplaceOfferForm({
   const [pickupAddress, setPickupAddress] = useState('');
   const [pickupLat, setPickupLat] = useState<number | null>(null);
   const [pickupLng, setPickupLng] = useState<number | null>(null);
+  const [coordsSource, setCoordsSource] = useState<
+    'none' | 'place' | 'address' | 'profile'
+  >('none');
   const [profilePlace, setProfilePlace] = useState<string | null>(null);
   const [profileCity, setProfileCity] = useState<string | null>(null);
   const [profileLat, setProfileLat] = useState<number | null>(null);
   const [profileLng, setProfileLng] = useState<number | null>(null);
+  const [profileCountry, setProfileCountry] = useState<string>('NL');
   const [stock, setStock] = useState('1');
   const [maxStock, setMaxStock] = useState('');
   const [isActive, setIsActive] = useState(true);
@@ -160,19 +166,63 @@ export default function MarketplaceOfferForm({
         if (!u) return;
         setProfilePlace(u.place ?? u.city ?? null);
         setProfileCity(u.city ?? null);
-        setProfileLat(u.lat ?? null);
-        setProfileLng(u.lng ?? null);
+        setProfileLat(u.lat != null ? Number(u.lat) : null);
+        setProfileLng(u.lng != null ? Number(u.lng) : null);
+        if (u.country) setProfileCountry(String(u.country));
         if (!placeName && (u.place || u.city)) {
           setPlaceName(String(u.place || u.city || ''));
         }
         if (useProfileLocation && u.address) {
           setPickupAddress(String(u.address));
-          if (u.lat != null) setPickupLat(Number(u.lat));
-          if (u.lng != null) setPickupLng(Number(u.lng));
+        }
+        if (
+          useProfileLocation &&
+          u.lat != null &&
+          u.lng != null &&
+          Number.isFinite(Number(u.lat)) &&
+          Number.isFinite(Number(u.lng))
+        ) {
+          setPickupLat(Number(u.lat));
+          setPickupLng(Number(u.lng));
+          setCoordsSource('profile');
         }
       })
       .catch(() => undefined);
   }, [session?.user, useProfileLocation, placeName]);
+
+  const profileHasCoords =
+    profileLat != null &&
+    profileLng != null &&
+    Number.isFinite(profileLat) &&
+    Number.isFinite(profileLng) &&
+    !(profileLat === 0 && profileLng === 0);
+
+  const placeAutoResolveEnabled =
+    !digitalOnly &&
+    locationRequired &&
+    placeName.trim().length >= 2 &&
+    coordsSource !== 'address' &&
+    (!useProfileLocation || !profileHasCoords);
+
+  const { state: placeResolveState, selectCandidate } = usePlaceAutoResolve({
+    query: placeName,
+    countryCode: profileCountry || 'NL',
+    enabled: placeAutoResolveEnabled,
+    onInvalidate: () => {
+      // Changing place must never keep stale coordinates.
+      setPickupLat(null);
+      setPickupLng(null);
+      setCoordsSource('none');
+      if (!useProfileLocation) {
+        setPickupAddress('');
+      }
+    },
+    onResolved: (result) => {
+      setPickupLat(result.lat);
+      setPickupLng(result.lng);
+      setCoordsSource('place');
+    },
+  });
 
   useEffect(() => {
     if (!editMode || !existingProduct) return;
@@ -239,11 +289,18 @@ export default function MarketplaceOfferForm({
     if (existingProduct.deliveryRadiusKm != null) {
       setDeliveryRadiusKm(String(existingProduct.deliveryRadiusKm));
     }
+    if (existingProduct.placeName) {
+      setPlaceName(String(existingProduct.placeName));
+    }
+    if (existingProduct.useProfileLocation != null) {
+      setUseProfileLocation(Boolean(existingProduct.useProfileLocation));
+    }
     if (existingProduct.pickupAddress) {
       setPickupAddress(String(existingProduct.pickupAddress));
     }
     if (existingProduct.pickupLat != null) {
       setPickupLat(Number(existingProduct.pickupLat));
+      setCoordsSource('place');
     }
     if (existingProduct.pickupLng != null) {
       setPickupLng(Number(existingProduct.pickupLng));
@@ -361,6 +418,14 @@ export default function MarketplaceOfferForm({
         (loc.pickupLat == null || loc.pickupLng == null)
       ) {
         setMessage(t(MARKETPLACE_ERROR_KEYS.locationCoordsRequired));
+        return;
+      }
+      if (placeResolveState.status === 'resolving') {
+        setMessage('Locatie wordt nog opgezocht… even geduld.');
+        return;
+      }
+      if (placeResolveState.status === 'ambiguous') {
+        setMessage('Welke locatie bedoel je? Kies een van de opties.');
         return;
       }
       const locCheck = validateProductLocationForPublish({
@@ -696,14 +761,39 @@ export default function MarketplaceOfferForm({
               value={placeName}
               onChange={(e) => setPlaceName(e.target.value)}
               placeholder={t('marketplace.form.placeNamePlaceholder')}
+              autoComplete="address-level2"
             />
+            {placeAutoResolveEnabled || placeResolveState.status !== 'idle' ? (
+              <div className="mt-2">
+                <PlaceResolveFeedback
+                  state={placeResolveState}
+                  onSelect={(c) => {
+                    selectCandidate(c);
+                    setPickupLat(c.lat);
+                    setPickupLng(c.lng);
+                    setCoordsSource('place');
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="radio"
                 checked={useProfileLocation}
-                onChange={() => setUseProfileLocation(true)}
+                onChange={() => {
+                  setUseProfileLocation(true);
+                  if (profileHasCoords) {
+                    setPickupLat(profileLat);
+                    setPickupLng(profileLng);
+                    setCoordsSource('profile');
+                  } else {
+                    setPickupLat(null);
+                    setPickupLng(null);
+                    setCoordsSource('none');
+                  }
+                }}
               />
               {t('marketplace.form.useProfileAddress')}
             </label>
@@ -711,7 +801,12 @@ export default function MarketplaceOfferForm({
               <input
                 type="radio"
                 checked={!useProfileLocation}
-                onChange={() => setUseProfileLocation(false)}
+                onChange={() => {
+                  setUseProfileLocation(false);
+                  setPickupLat(null);
+                  setPickupLng(null);
+                  setCoordsSource('none');
+                }}
               />
               {t('marketplace.form.useCustomAddress')}
             </label>
@@ -725,8 +820,15 @@ export default function MarketplaceOfferForm({
               }}
               onChange={(data: AddressData) => {
                 setPickupAddress(data.address ?? '');
-                setPickupLat(data.lat ?? null);
-                setPickupLng(data.lng ?? null);
+                if (data.lat != null && data.lng != null) {
+                  setPickupLat(data.lat);
+                  setPickupLng(data.lng);
+                  setCoordsSource('address');
+                } else {
+                  setPickupLat(null);
+                  setPickupLng(null);
+                  setCoordsSource('none');
+                }
               }}
               geocodingEnabled
             />

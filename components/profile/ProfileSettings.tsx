@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { User, MapPin, Calendar, Edit3, Save, X } from 'lucide-react';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
+import { PlaceResolveFeedback } from '@/components/geo/PlaceResolveFeedback';
+import { usePlaceAutoResolve } from '@/hooks/usePlaceAutoResolve';
 import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
 
 export interface ProfileSettingsRef {
@@ -184,6 +186,35 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   const [success, setSuccess] = useState<string | null>(null);
 
   const canRenameUsername = usernameContainsTempPlaceholder(user?.username);
+
+  const profilePlaceResolveEnabled =
+    isEditing &&
+    formData.place.trim().length >= 2 &&
+    (formData.lat == null || formData.lng == null);
+
+  const onPlaceInvalidate = useCallback(() => {
+    setFormData((prev) => ({ ...prev, lat: null, lng: null }));
+  }, []);
+
+  const onPlaceResolved = useCallback(
+    (result: { lat: number; lng: number }) => {
+      setFormData((prev) => {
+        // Never downgrade an already-precise coordinate set via address fields
+        // while place text is unchanged (enabled gate already requires null coords).
+        if (prev.lat != null && prev.lng != null) return prev;
+        return { ...prev, lat: result.lat, lng: result.lng };
+      });
+    },
+    [],
+  );
+
+  const { state: placeResolveState, selectCandidate } = usePlaceAutoResolve({
+    query: formData.place,
+    countryCode: formData.country || 'NL',
+    enabled: profilePlaceResolveEnabled,
+    onInvalidate: onPlaceInvalidate,
+    onResolved: onPlaceResolved,
+  });
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -600,11 +631,32 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
           <input
             type="text"
             value={formData.place}
-            onChange={(e) => setFormData(prev => ({ ...prev, place: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                place: e.target.value,
+              }))
+            }
             disabled={!isEditing}
             placeholder={t('profileSettings.locationPlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
+            autoComplete="address-level2"
           />
+          {isEditing ? (
+            <div className="mt-2">
+              <PlaceResolveFeedback
+                state={placeResolveState}
+                onSelect={(c) => {
+                  selectCandidate(c);
+                  setFormData((prev) => ({
+                    ...prev,
+                    lat: c.lat,
+                    lng: c.lng,
+                  }));
+                }}
+              />
+            </div>
+          ) : null}
           <p className="text-xs text-gray-500 mt-1">
             {t('profileSettings.locationHint')}
           </p>

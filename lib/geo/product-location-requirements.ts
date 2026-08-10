@@ -51,9 +51,9 @@ const LOCATION_REQUIRED_EN =
   'Add a place or pickup address so people nearby can find your listing.';
 
 const LOCATION_COORDS_REQUIRED_NL =
-  'Selecteer een locatie uit de suggesties zodat de afstand kan worden berekend.';
+  'Kies een herkenbare plaats of selecteer een optie zodat de afstand kan worden berekend.';
 const LOCATION_COORDS_REQUIRED_EN =
-  'Select a location from the suggestions so distance can be calculated.';
+  'Choose a recognizable place or select an option so distance can be calculated.';
 
 /**
  * Sale products (payment or contact-only) require resolvable coordinates when publishing (isActive).

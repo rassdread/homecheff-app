@@ -17,6 +17,10 @@ import {
   saleProductRequiresLocation,
   validateProductLocationForPublish,
 } from '@/lib/geo/product-location-requirements';
+import {
+  ambiguousLocationResponse,
+  ensureCoordsFromPlaceQuery,
+} from '@/lib/geo/ensure-place-coords';
 import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
 import {
   parseMarketplaceV2FromBody,
@@ -264,6 +268,42 @@ export async function POST(req: Request) {
     const useProfileLocation =
       useProfileLocationRaw !== false && useProfileLocationRaw !== 'false';
 
+    // Write-time place → coords (never feed-time). Prefer precise client coords when present.
+    const countryForGeo =
+      (typeof user.country === 'string' && user.country.trim()) || 'NL';
+    const placeQueryForResolve =
+      pickupAddressStr ||
+      placeNameStr ||
+      (useProfileLocation ? user.place || user.city || null : null);
+
+    let resolvedPickupLat = pickupLatNum;
+    let resolvedPickupLng = pickupLngNum;
+    const needsWriteTimeGeocode =
+      publishState.isActive &&
+      !digitalOnly &&
+      saleProductRequiresLocation(orderMethod, priceCentsNum, v2Resolved.priceModel) &&
+      (resolvedPickupLat == null ||
+        resolvedPickupLng == null ||
+        !Number.isFinite(resolvedPickupLat) ||
+        !Number.isFinite(resolvedPickupLng));
+
+    if (needsWriteTimeGeocode && placeQueryForResolve) {
+      const ensured = await ensureCoordsFromPlaceQuery({
+        placeQuery: placeQueryForResolve,
+        countryCode: countryForGeo,
+        lat: resolvedPickupLat,
+        lng: resolvedPickupLng,
+      });
+      if (ensured.resolution?.status === 'ambiguous') {
+        return NextResponse.json(
+          ambiguousLocationResponse(ensured.resolution.candidates),
+          { status: 400 },
+        );
+      }
+      resolvedPickupLat = ensured.lat;
+      resolvedPickupLng = ensured.lng;
+    }
+
     if (
       publishState.isActive &&
       !digitalOnly &&
@@ -275,8 +315,8 @@ export async function POST(req: Request) {
         useProfileLocation
           ? {
               pickupAddress: pickupAddressStr || placeNameStr || null,
-              pickupLat: pickupLatNum,
-              pickupLng: pickupLngNum,
+              pickupLat: resolvedPickupLat,
+              pickupLng: resolvedPickupLng,
               seller: user.SellerProfile
                 ? {
                     lat: user.SellerProfile.lat,
@@ -299,8 +339,8 @@ export async function POST(req: Request) {
             }
           : {
               pickupAddress: pickupAddressStr || placeNameStr || null,
-              pickupLat: pickupLatNum,
-              pickupLng: pickupLngNum,
+              pickupLat: resolvedPickupLat,
+              pickupLng: resolvedPickupLng,
               seller: {
                 User: {
                   place: placeNameStr || null,
@@ -354,8 +394,8 @@ export async function POST(req: Request) {
         availabilityDate: availabilityDate ? new Date(availabilityDate) : null,
         isFutureProduct: Boolean(isFutureProduct),
         pickupAddress: pickupAddress || null,
-        pickupLat: pickupLat !== undefined && pickupLat !== null ? Number(pickupLat) : null,
-        pickupLng: pickupLng !== undefined && pickupLng !== null ? Number(pickupLng) : null,
+        pickupLat: resolvedPickupLat,
+        pickupLng: resolvedPickupLng,
         sellerCanDeliver: Boolean(sellerCanDeliver),
         deliveryRadiusKm: deliveryRadiusKm !== undefined && deliveryRadiusKm !== null ? Number(deliveryRadiusKm) : null,
         stock: stock !== undefined && stock !== null ? Number(stock) : 0,
@@ -693,10 +733,10 @@ export async function POST(req: Request) {
       console.error('[Products Create API] ❌ ERROR: Product not found in database after creation!');
     }
 
-    if (sellerProfileId && pickupLatNum != null && pickupLngNum != null) {
+    if (sellerProfileId && resolvedPickupLat != null && resolvedPickupLng != null) {
       await syncSellerProfileCoordsIfEmpty(sellerProfileId, {
-        lat: pickupLatNum,
-        lng: pickupLngNum,
+        lat: resolvedPickupLat,
+        lng: resolvedPickupLng,
       }).catch((e) => console.warn('[Products Create] seller coords sync', e));
     } else if (sellerProfileId && user.lat != null && user.lng != null) {
       await syncSellerProfileCoordsIfEmpty(sellerProfileId, {
