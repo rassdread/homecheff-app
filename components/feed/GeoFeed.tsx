@@ -296,6 +296,7 @@ import {
   clampFeedRadiusKm,
   nextWiderFeedRadiusKm,
   RADIUS_LOCAL_KM,
+  RADIUS_PRESET_OPTIONS,
 } from "@/lib/geo/local-discovery";
 import { partitionSaleItemsByRadius } from "@/lib/geo/feed-radius-filter";
 import {
@@ -1896,34 +1897,6 @@ export default function GeoFeed({
     setMobileSheetFocusPlace(false);
   }, []);
 
-  const focusExistingFeedControl = useCallback(
-    (selector: string, opts?: { scrollRail?: boolean }) => {
-      const tryFocus = (attempt: number) => {
-        const el = document.querySelector<HTMLElement>(selector);
-        if (el) {
-          if (opts?.scrollRail) {
-            const rail = el.closest(
-              "aside, [data-home-sidebar='left-workspace'], [data-wx-filter-portal-host]",
-            );
-            if (rail instanceof HTMLElement) {
-              rail.scrollIntoView({ behavior: "smooth", block: "nearest" });
-            }
-          }
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          if (typeof el.focus === "function") {
-            el.focus({ preventScroll: false });
-          }
-          return;
-        }
-        if (attempt < 10) {
-          window.setTimeout(() => tryFocus(attempt + 1), 50);
-        }
-      };
-      window.setTimeout(() => tryFocus(0), 60);
-    },
-    [],
-  );
-
   const openExistingDesktopFilters = useCallback(() => {
     if (workspaceRailOwnsFilters) {
       requestPlaceInputFocus({ reason: "context-bar" });
@@ -1984,49 +1957,6 @@ export default function GeoFeed({
       window.setTimeout(() => focusPlace(0), 80);
     }
   }, [feedCompactChrome, isDesktopSplit, workspaceRailOwnsFilters]);
-
-  const handleContextRadiusActivate = useCallback(() => {
-    if (feedCompactChrome && !isDesktopSplit) {
-      setMobileFilterSheetOpen(true);
-      focusExistingFeedControl(
-        "#feed-mobile-radius, [data-testid='feed-mobile-radius']",
-      );
-      return;
-    }
-    openExistingDesktopFilters();
-    focusExistingFeedControl(
-      "#feed-sidebar-radius, [data-testid='feed-sidebar-radius']",
-      { scrollRail: true },
-    );
-  }, [
-    feedCompactChrome,
-    isDesktopSplit,
-    openExistingDesktopFilters,
-    focusExistingFeedControl,
-  ]);
-
-  const handleContextSortActivate = useCallback(() => {
-    if (feedCompactChrome && !isDesktopSplit) {
-      const mobileSort = document.querySelector<HTMLElement>("#feed-mobile-sort");
-      if (mobileSort) {
-        focusExistingFeedControl("#feed-mobile-sort");
-        return;
-      }
-      // Landscape work-compact hides toolbar sort — open sheet as fallback.
-      setMobileFilterSheetOpen(true);
-      return;
-    }
-    openExistingDesktopFilters();
-    focusExistingFeedControl(
-      "#feed-sidebar-sort, [data-testid='feed-sidebar-sort']",
-      { scrollRail: true },
-    );
-  }, [
-    feedCompactChrome,
-    isDesktopSplit,
-    openExistingDesktopFilters,
-    focusExistingFeedControl,
-  ]);
 
   const handleContextFiltersActivate = useCallback(() => {
     if (feedCompactChrome && !isDesktopSplit) {
@@ -4861,8 +4791,11 @@ export default function GeoFeed({
     composedDisplayRows.length,
   ]);
 
-  const applyFilters = useCallback(() => {
-    const trimmedPlace = place.trim();
+  const applyFilters = useCallback((overrides?: { place?: string }) => {
+    const trimmedPlace = (overrides?.place ?? place).trim();
+    if (overrides?.place !== undefined) {
+      setPlace(trimmedPlace);
+    }
     setAppliedRadius(radius);
     setAppliedPlace(trimmedPlace);
     setAppliedQ(q);
@@ -6124,8 +6057,6 @@ export default function GeoFeed({
                 </button>
               </div>
 
-              {!filterChrome && sortRowEl}
-
               {showFilters && (
                 <div className="border-t pt-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -6372,10 +6303,6 @@ export default function GeoFeed({
         onCategoryChange={selectVerticalChip}
         appliedScope={appliedScope}
         onScopeChange={handleScopeChange}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        sortOptions={sortOptions}
-        onSort={handleSort}
         onOpenFilters={() => setMobileFilterSheetOpen(true)}
         filterActive={mobileToolbarFilterActive}
         activeFilterCount={mobileActiveFilterCount}
@@ -6561,6 +6488,11 @@ export default function GeoFeed({
     />
   ) : null;
 
+  const radiusPresetOptionsKm = useMemo(
+    () => RADIUS_PRESET_OPTIONS.filter((km) => km > 0),
+    [],
+  );
+
   const searchContextBarEl = (
     <FeedSearchContextBar
       ariaLabel={t("feed.searchContext.ariaLabel")}
@@ -6570,25 +6502,40 @@ export default function GeoFeed({
       sortPrefix={t("feed.searchContext.sortPrefix")}
       queryPrefix={t("feed.searchContext.queryPrefix")}
       chips={searchContextChips}
-      onLocationActivate={handleChoosePlaceForNearby}
-      onRadiusActivate={handleContextRadiusActivate}
-      onSortActivate={handleContextSortActivate}
       onCategoryActivate={handleContextFiltersActivate}
       onQueryActivate={handleContextFiltersActivate}
-      locationActionAria={(place) =>
-        t("feed.searchContext.editLocationAria", { place })
+      locationActionAria={(placeLabel) =>
+        t("feed.searchContext.editLocationAria", { place: placeLabel })
       }
-      radiusActionAria={(radius) =>
-        t("feed.searchContext.editRadiusAria", { radius })
+      radiusActionAria={(radiusLabel) =>
+        t("feed.searchContext.editRadiusAria", { radius: radiusLabel })
       }
-      sortActionAria={(sort) =>
-        t("feed.searchContext.editSortAria", { sort })
+      sortActionAria={(sortLabel) =>
+        t("feed.searchContext.editSortAria", { sort: sortLabel })
       }
-      categoryActionAria={(category) =>
-        t("feed.searchContext.editCategoryAria", { category })
+      categoryActionAria={(categoryLabel) =>
+        t("feed.searchContext.editCategoryAria", { category: categoryLabel })
       }
-      queryActionAria={(query) =>
-        t("feed.searchContext.editQueryAria", { query })
+      queryActionAria={(queryLabel) =>
+        t("feed.searchContext.editQueryAria", { query: queryLabel })
+      }
+      sortBy={sortBy}
+      sortOptions={sortOptions}
+      onSort={handleSort}
+      radiusKm={radius}
+      radiusOptions={radiusPresetOptionsKm}
+      radiusOptionLabel={(km) => `${km} km`}
+      onRadiusChange={handleRadiusChange}
+      placeDraft={place}
+      onPlaceDraftChange={handlePlaceInput}
+      onPlaceApply={(nextPlace) => applyFilters({ place: nextPlace })}
+      onUseMyLocation={handleUseMyLocation}
+      locationBusy={locationBusy}
+      placePlaceholder={t("common.typePlaceOrPostcode")}
+      applyLabel={t("feed.applyFilters")}
+      useMyLocationLabel={t("feed.useMyLocationShort")}
+      currentLocationSummary={
+        searchContextChips.find((c) => c.id === "location")?.value ?? null
       }
     />
   );

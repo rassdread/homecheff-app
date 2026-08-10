@@ -9,7 +9,6 @@ import {
   FEED_SCOPE_NATIONAL,
   FEED_SCOPE_NEARBY,
 } from '@/lib/feed/feed-scope';
-import type { FeedClientSortField } from '@/lib/feed/feed-client-sort';
 import FeedLayoutToggle from '@/components/feed/FeedLayoutToggle';
 import type { FeedLayoutMode } from '@/lib/feed/feedLayoutPreference';
 import {
@@ -21,8 +20,6 @@ import {
   MOBILE_FEED_FILTER_STICKY_TOP,
 } from '@/lib/feed/mobile-filter-sticky';
 
-type SortId = 'newest' | 'price' | 'views' | 'distance';
-
 type Props = {
   t: (key: string, params?: Record<string, string | number>) => string;
   feedChip: FeedChip;
@@ -31,10 +28,6 @@ type Props = {
   onCategoryChange: (slug: string) => void;
   appliedScope: FeedScope;
   onScopeChange: (scope: FeedScope) => void;
-  sortBy: SortId;
-  sortOrder: 'asc' | 'desc';
-  sortOptions: readonly { id: SortId; label: string }[];
-  onSort: (field: FeedClientSortField) => void;
   onOpenFilters: () => void;
   filterActive: boolean;
   activeFilterCount: number;
@@ -50,6 +43,7 @@ type Props = {
   /** WX 1C.1.1 — trade as a visible Workspace action. */
   onActivateTrade?: () => void;
   tradeActive?: boolean;
+  workCompact?: boolean;
 };
 
 const chipClass = (active: boolean) =>
@@ -77,6 +71,10 @@ function collapsedFilterAriaLabel(
   return t('feed.mobileFilterCollapsedAria');
 }
 
+/**
+ * Mobile feed chrome: search, chips, layout toggle, Filters entry.
+ * Sort lives on FeedSearchContextBar (canonical quick control) — not duplicated here.
+ */
 export default function FeedMobileToolbar({
   t,
   feedChip,
@@ -85,9 +83,6 @@ export default function FeedMobileToolbar({
   onCategoryChange,
   appliedScope,
   onScopeChange,
-  sortBy,
-  sortOptions,
-  onSort,
   onOpenFilters,
   filterActive,
   activeFilterCount,
@@ -242,34 +237,12 @@ export default function FeedMobileToolbar({
       ) : null}
 
       <div className="flex items-center gap-2">
-        {!workCompact ? (
-          <>
-            <label className="sr-only" htmlFor="feed-mobile-sort">
-              {t('common.sortBy')}
-            </label>
-            <select
-              id="feed-mobile-sort"
-              value={sortBy}
-              onChange={(e) => onSort(e.target.value as FeedClientSortField)}
-              className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-[#faf8f4] px-2 py-1.5 text-xs font-medium text-gray-800"
-            >
-              {sortOptions.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
-          </>
-        ) : (
-          <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
-        )}
+        <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
         <button
           type="button"
           onClick={onOpenFilters}
           className={cn(
-            'inline-flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold touch-manipulation',
-            workCompact && 'ml-auto',
+            'ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold touch-manipulation',
             filterActive
               ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
               : 'border-gray-200 bg-gray-50 text-gray-800',
