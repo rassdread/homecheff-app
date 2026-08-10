@@ -1,0 +1,116 @@
+{
+  "at": "2026-08-10T14:59:25.581Z",
+  "base": "https://homecheff.eu",
+  "chromium": {
+    "desktop": {
+      "browser": "chromium",
+      "viewport": "desktop",
+      "home": 200,
+      "columns1": false,
+      "feedItems": 0,
+      "contextBar": true,
+      "growth": [
+        0,
+        16,
+        16,
+        16
+      ],
+      "cta": false,
+      "listing": {
+        "status": 200,
+        "url": "https://homecheff.eu/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+      },
+      "profile": {
+        "status": null,
+        "note": "no profile link found on listing"
+      },
+      "geocodeDuringFeed": 0,
+      "errors": [],
+      "grew": true
+    },
+    "mobile": {
+      "browser": "chromium",
+      "viewport": "mobile",
+      "home": 200,
+      "columns1": false,
+      "feedItems": 0,
+      "contextBar": true,
+      "growth": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "cta": false,
+      "listing": {
+        "status": 200,
+        "url": "https://homecheff.eu/"
+      },
+      "profile": {
+        "status": 200,
+        "url": "https://homecheff.eu/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17"
+      },
+      "geocodeDuringFeed": 0,
+      "errors": [],
+      "grew": true
+    }
+  },
+  "webkit": {
+    "desktop": {
+      "browser": "webkit",
+      "viewport": "desktop",
+      "home": 200,
+      "columns1": false,
+      "feedItems": 0,
+      "contextBar": true,
+      "growth": [
+        0,
+        16,
+        36,
+        16
+      ],
+      "cta": false,
+      "listing": {
+        "status": 200,
+        "url": "https://homecheff.eu/"
+      },
+      "profile": {
+        "status": 200,
+        "url": "https://homecheff.eu/user/Rass"
+      },
+      "geocodeDuringFeed": 0,
+      "errors": [],
+      "grew": true
+    },
+    "mobile": {
+      "browser": "webkit",
+      "viewport": "mobile",
+      "home": 200,
+      "columns1": false,
+      "feedItems": 0,
+      "contextBar": true,
+      "growth": [
+        14,
+        36,
+        16,
+        16
+      ],
+      "cta": false,
+      "listing": {
+        "status": 200,
+        "url": "https://homecheff.eu/"
+      },
+      "profile": null,
+      "geocodeDuringFeed": 0,
+      "errors": [
+        "locator.click: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('a[href*=\"/user/\"], a[href*=\"/verkoper/\"], a[href*=\"/seller/\"]').first()\n    - locator resolved to <a class=\"shrink-0\" href=\"/user/Rass\">…</a>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n"
+      ]
+    }
+  },
+  "routes": {
+    "/product/fcc5ff2a-651a-4983-9d17-b3f1acf7ca17": 200,
+    "/user/Tiego": 200,
+    "/inspiratie": 200,
+    "/api/feed?limit=8": 200
+  }
+}
