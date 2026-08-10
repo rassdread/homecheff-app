@@ -40,7 +40,17 @@ export function defaultGrowthRedirectUris(): string[] {
   return [];
 }
 
-/** Default Studio callbacks per environment (overridable via STUDIO_SSO_REDIRECT_URI). */
+/**
+ * Default Studio callbacks per environment (overridable via STUDIO_SSO_REDIRECT_URI).
+ *
+ * SP.2B safety:
+ * - Exact URIs only (assertRedirectAllowed — no wildcards).
+ * - Preview defaults are empty: Preview Studio callbacks MUST be set explicitly
+ *   via STUDIO_SSO_REDIRECT_URI (CSV of exact URIs) so Production IdP (Option A)
+ *   or Preview IdP never accepts sibling-domain / arbitrary return targets.
+ * - Production defaults are production Studio hosts only; do not add Preview
+ *   hosts here — add Preview callbacks only via env allowlist when certifying.
+ */
 export function defaultStudioRedirectUris(): string[] {
   const env = vercelEnv();
   if (env === "production") {
