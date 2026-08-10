@@ -1,9 +1,6 @@
 /**
- * Phase I.3 / SP.2B.3 — GET /auth/sso/start (browser)
- *
- * silent (+ session) → issue code → product callback
- * interactive (login|select_account|claim) + session → /auth/sso/continue
- * no session → /login with callbackUrl back here (Google prompt when interactive)
+ * SP.2B.3 — GET /auth/sso/continue/confirm
+ * User confirmed "Continue as [current account]" → issue SSO code.
  */
 
 import { NextResponse } from "next/server";
@@ -11,27 +8,10 @@ import { auth } from "@/lib/auth";
 import { issueSsoAuthorizationCode } from "@/lib/identity/sso/authorize";
 import { SsoError } from "@/lib/identity/sso/constants";
 import { isCentralSsoEnabled } from "@/lib/identity/sso/flags";
-import {
-  googlePromptForInteraction,
-  requiresInteractiveConfirmation,
-} from "@/lib/identity/sso/interaction";
 import { logSsoEvent } from "@/lib/identity/sso/metrics";
-import {
-  readSsoStartParams,
-  ssoContinueRelativePath,
-  ssoStartRelativePath,
-} from "@/lib/identity/sso/start-params";
+import { readSsoStartParams } from "@/lib/identity/sso/start-params";
 
 export const dynamic = "force-dynamic";
-
-function originFrom(req: Request): string {
-  const env =
-    process.env.NEXTAUTH_URL?.trim() ||
-    process.env.AUTH_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (env) return env.replace(/\/$/, "");
-  return new URL(req.url).origin;
-}
 
 export async function GET(req: Request) {
   if (!isCentralSsoEnabled()) {
@@ -47,38 +27,20 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: code, code }, { status: 400 });
   }
 
-  logSsoEvent("sso_interaction_started", {
-    product: params.product,
-    interaction: params.interaction,
-  });
-
   const session = await auth();
   const centralUserId = (session?.user as { id?: string } | undefined)?.id;
-
   if (!centralUserId) {
-    const login = new URL("/login", originFrom(req));
-    login.searchParams.set("callbackUrl", ssoStartRelativePath(params));
-    login.searchParams.set("ssoInteraction", params.interaction);
-    const prompt = googlePromptForInteraction(params.interaction);
-    if (prompt) login.searchParams.set("prompt", prompt);
-    if (params.loginHint) login.searchParams.set("email", params.loginHint);
-    return NextResponse.redirect(login.toString(), 302);
+    return NextResponse.json({ error: "UNAUTHORIZED", code: "UNAUTHORIZED" }, { status: 401 });
   }
 
-  if (requiresInteractiveConfirmation(params.interaction)) {
-    logSsoEvent("interactive_login", {
+  logSsoEvent(
+    params.interaction === "claim" ? "claim_identity_confirmed" : "interactive_login",
+    {
       product: params.product,
       interaction: params.interaction,
-      phase: "continue_required",
-    });
-    const continueUrl = new URL(ssoContinueRelativePath(params), originFrom(req));
-    return NextResponse.redirect(continueUrl.toString(), 302);
-  }
-
-  logSsoEvent("silent_sso", {
-    product: params.product,
-    interaction: params.interaction,
-  });
+      phase: "confirmed",
+    },
+  );
 
   try {
     const issued = await issueSsoAuthorizationCode({
@@ -95,7 +57,7 @@ export async function GET(req: Request) {
     const dest = new URL(issued.redirectUri);
     dest.searchParams.set("code", issued.authorizationCode);
     dest.searchParams.set("state", issued.state);
-    logSsoEvent("sso_success", { product: params.product, phase: "authorize_redirect" });
+    logSsoEvent("sso_success", { product: params.product, phase: "confirm_redirect" });
     return NextResponse.redirect(dest.toString(), 302);
   } catch (err) {
     const code = err instanceof SsoError ? err.code : "INTERNAL_ERROR";
