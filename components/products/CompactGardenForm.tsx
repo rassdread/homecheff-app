@@ -15,7 +15,7 @@ import ProductOrderMethodSelector from '@/components/products/ProductOrderMethod
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 import ProductEditInspirationLink from '@/components/products/ProductEditInspirationLink';
 import type { InspirationCategory } from '@/lib/inspiratie/instruction-content';
-import { productHasUsableLocation } from '@/lib/geo/product-location-requirements';
+import { validateProductLocationForPublish } from '@/lib/geo/product-location-requirements';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 
@@ -429,16 +429,20 @@ export default function CompactGardenForm({
 
     const isSaleListing =
       isActive && (priceCents > 0 || orderMethod === 'CONTACT');
-    if (
-      isSaleListing &&
-      !productHasUsableLocation({
+    if (isSaleListing) {
+      const locCheck = validateProductLocationForPublish({
         pickupAddress: finalPickupAddress,
         pickupLat: finalPickupLat,
         pickupLng: finalPickupLng,
-      })
-    ) {
-      setMessage(t('productForm.locationRequired'));
-      return;
+      });
+      if (!locCheck.ok) {
+        setMessage(
+          locCheck.errorCode === 'location_coords_required'
+            ? t('marketplace.errors.locationCoordsRequired')
+            : t('productForm.locationRequired')
+        );
+        return;
+      }
     }
 
     setSubmitting(true);

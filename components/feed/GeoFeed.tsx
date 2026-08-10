@@ -338,7 +338,9 @@ function enrichFeedItemDistance(
   item: FeedItem,
   viewer: ViewerCoords | null | undefined
 ): FeedItem {
-  if (item.distanceKm != null && item.distanceKm > 0) return item;
+  if (item.distanceKm != null && Number.isFinite(item.distanceKm) && item.distanceKm >= 0) {
+    return item;
+  }
   const km = computeViewerDistanceKm(viewer, item.lat, item.lng);
   if (km == null) return item;
   return { ...item, distanceKm: km };
@@ -620,7 +622,9 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     videoThumbnail,
     createdAt,
     distanceKm:
-      raw.distanceKm != null && Number(raw.distanceKm) > 0
+      raw.distanceKm != null &&
+      Number.isFinite(Number(raw.distanceKm)) &&
+      Number(raw.distanceKm) >= 0
         ? Number(raw.distanceKm)
         : undefined,
     viewCount:
@@ -893,7 +897,7 @@ function toCardItem(
   viewer: ViewerCoords | null | undefined
 ): GeoFeedCardItem {
   const distanceKm =
-    it.distanceKm != null && it.distanceKm > 0
+    it.distanceKm != null && Number.isFinite(it.distanceKm) && it.distanceKm >= 0
       ? it.distanceKm
       : computeViewerDistanceKm(viewer, it.lat, it.lng);
   const fav = getDiscoveryFavoriteCount(it);

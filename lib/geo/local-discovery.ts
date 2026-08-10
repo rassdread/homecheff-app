@@ -79,9 +79,8 @@ export function roundedDistanceKm(
   lng2: number
 ): number | null {
   const d = safeDistanceKm(lat1, lng1, lat2, lng2);
-  if (d == null || !Number.isFinite(d) || d <= 0) return null;
-  const rounded = Math.round(d * 10) / 10;
-  return rounded > 0 ? rounded : null;
+  if (d == null || !Number.isFinite(d) || d < 0) return null;
+  return Math.round(d * 10) / 10;
 }
 
 export function isWithinRadiusKm(

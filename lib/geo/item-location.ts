@@ -177,8 +177,14 @@ export function resolveDishCoords(dish: {
   return null;
 }
 
+/** Valid computed distance including same-point 0 km. Null/NaN remain unknown. */
 function isUsableDistanceKm(km: unknown): km is number {
-  return typeof km === 'number' && Number.isFinite(km) && km > 0 && km !== Infinity;
+  return (
+    typeof km === 'number' &&
+    Number.isFinite(km) &&
+    km >= 0 &&
+    km !== Infinity
+  );
 }
 
 /** Coords from /api/feed item payload — pickup → seller profile → user. */
@@ -239,7 +245,7 @@ export function computeViewerDistanceKm(
   if (!viewer || itemLat == null || itemLng == null) return undefined;
   if (!Number.isFinite(itemLat) || !Number.isFinite(itemLng)) return undefined;
   const km = safeDistanceKm(viewer.lat, viewer.lng, itemLat, itemLng);
-  if (km == null || !Number.isFinite(km) || km <= 0) return undefined;
+  if (km == null || !Number.isFinite(km) || km < 0) return undefined;
   return Math.round(km * 10) / 10;
 }
 
@@ -248,7 +254,7 @@ export { formatMarketplaceDistanceKm, formatMarketplaceDistanceLabel } from '@/l
 /**
  * Consistent feed card location line:
  * - place + distance → "Plaats · 3.2 km"
- * - place only → "Plaats" (no "afstand onbekend" on cards)
+ * - place + unknown distance → "Plaats · afstand onbekend"
  * - distance only → "Locatie onbekend · 3.2 km"
  * - neither → "Locatie onbekend"
  */
@@ -256,17 +262,17 @@ export function formatItemPlaceDistanceLine(input: {
   place?: string | null;
   distanceKm?: number | null;
   unknownPlaceLabel: string;
-  /** Reserved for filters/detail UI — not appended when place is known. */
   unknownDistanceLabel: string;
 }): string {
   const unknownPlace = input.unknownPlaceLabel;
+  const unknownDistance = input.unknownDistanceLabel;
   const placeLabel = resolveDisplayPlace(input.place, unknownPlace);
   const hasPlace = placeLabel !== unknownPlace;
   const hasDistance = isUsableDistanceKm(input.distanceKm);
   const distanceStr = hasDistance ? formatMarketplaceDistanceKm(input.distanceKm!) : null;
 
   if (hasPlace && hasDistance) return `${placeLabel} · ${distanceStr}`;
-  if (hasPlace && !hasDistance) return placeLabel;
+  if (hasPlace && !hasDistance) return `${placeLabel} · ${unknownDistance}`;
   if (!hasPlace && hasDistance) return `${unknownPlace} · ${distanceStr}`;
   return unknownPlace;
 }

@@ -122,11 +122,11 @@ export function compareFeedSaleItems(
     }
     case 'distance': {
       const ad =
-        a.distanceKm != null && Number.isFinite(a.distanceKm) && a.distanceKm > 0
+        a.distanceKm != null && Number.isFinite(a.distanceKm) && a.distanceKm >= 0
           ? a.distanceKm
           : null;
       const bd =
-        b.distanceKm != null && Number.isFinite(b.distanceKm) && b.distanceKm > 0
+        b.distanceKm != null && Number.isFinite(b.distanceKm) && b.distanceKm >= 0
           ? b.distanceKm
           : null;
       cmp = compareNullableNumbers(ad, bd, sortOrder, true);

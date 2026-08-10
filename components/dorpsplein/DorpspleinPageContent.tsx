@@ -897,7 +897,7 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
             it.location.lng!
           );
           distance = d != null ? Math.round(d * 10) / 10 : null;
-        } else if (it.location.distanceKm != null && it.location.distanceKm > 0) {
+        } else if (it.location.distanceKm != null && it.location.distanceKm >= 0) {
           distance = it.location.distanceKm;
         } else {
           const d = safeDistanceKm(
@@ -1362,7 +1362,7 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                         <div className="flex items-center mt-2 text-sm text-gray-500">
                           <MapPin className="w-4 h-4 mr-1" />
                           <span>{user.location.place}</span>
-                          {user.location.distanceKm != null && user.location.distanceKm > 0 && (
+                          {user.location.distanceKm != null && user.location.distanceKm >= 0 && (
                             <span className="ml-2">({user.location.distanceKm.toFixed(1)} km)</span>
                           )}
                         </div>

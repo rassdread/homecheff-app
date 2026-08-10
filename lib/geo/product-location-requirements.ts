@@ -5,9 +5,13 @@ export type ProductLocationCheckInput = ProductLocationInput & {
   seller?: (SellerLocationInput & { User?: UserPlaceInput | null }) | null;
 };
 
-/** True when the product has coords or a non-country place/address for display. */
-export function productHasUsableLocation(input: ProductLocationCheckInput): boolean {
-  if (resolveProductCoords(input)) return true;
+/**
+ * Display-only: listing has a human place/address label (may lack coordinates).
+ * Do NOT use this alone for publish of distance-capable physical listings.
+ */
+export function productHasDisplayableLocation(
+  input: ProductLocationCheckInput
+): boolean {
   if (resolveProductPlaceLabel(input)) return true;
   const addr = input.pickupAddress?.trim();
   if (addr && addr.length >= 3) return true;
@@ -16,26 +20,64 @@ export function productHasUsableLocation(input: ProductLocationCheckInput): bool
   return false;
 }
 
+/** True when pickup or seller/user coords resolve for distance calculation. */
+export function productHasResolvableCoordinates(
+  input: ProductLocationCheckInput
+): boolean {
+  return resolveProductCoords(input) != null;
+}
+
+/**
+ * Distance-capable publish contract: coordinates required.
+ * Place text alone is NOT sufficient.
+ */
+export function productHasUsableLocation(
+  input: ProductLocationCheckInput
+): boolean {
+  return productHasResolvableCoordinates(input);
+}
+
 export type ProductLocationValidationResult =
   | { ok: true }
-  | { ok: false; errorCode: 'location_required'; message: string };
+  | {
+      ok: false;
+      errorCode: 'location_required' | 'location_coords_required';
+      message: string;
+    };
 
 const LOCATION_REQUIRED_NL =
   'Voeg een plaats of ophaaladres toe zodat mensen uit je buurt je aanbod kunnen vinden.';
 const LOCATION_REQUIRED_EN =
   'Add a place or pickup address so people nearby can find your listing.';
 
+const LOCATION_COORDS_REQUIRED_NL =
+  'Selecteer een locatie uit de suggesties zodat de afstand kan worden berekend.';
+const LOCATION_COORDS_REQUIRED_EN =
+  'Select a location from the suggestions so distance can be calculated.';
+
 /**
- * Sale products (payment or contact-only) require a usable location when publishing (isActive).
+ * Sale products (payment or contact-only) require resolvable coordinates when publishing (isActive).
+ * Place/address text alone is not enough for distance-capable physical listings.
  */
 export function validateProductLocationForPublish(
   input: ProductLocationCheckInput,
   opts?: { lang?: 'nl' | 'en' }
 ): ProductLocationValidationResult {
-  if (productHasUsableLocation(input)) {
+  const lang = opts?.lang ?? 'nl';
+
+  if (productHasResolvableCoordinates(input)) {
     return { ok: true };
   }
-  const lang = opts?.lang ?? 'nl';
+
+  if (productHasDisplayableLocation(input)) {
+    return {
+      ok: false,
+      errorCode: 'location_coords_required',
+      message:
+        lang === 'en' ? LOCATION_COORDS_REQUIRED_EN : LOCATION_COORDS_REQUIRED_NL,
+    };
+  }
+
   return {
     ok: false,
     errorCode: 'location_required',

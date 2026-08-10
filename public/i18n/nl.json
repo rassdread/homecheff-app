@@ -8982,6 +8982,7 @@
       "invalidPrice": "Voer een geldige prijs in.",
       "placeNameRequired": "Vul een plaatsnaam in zodat mensen uit je buurt je kunnen vinden.",
       "locationRequired": "Voeg een plaats of adres toe zodat mensen uit je buurt je aanbod kunnen vinden.",
+      "locationCoordsRequired": "Selecteer een locatie uit de suggesties zodat de afstand kan worden berekend.",
       "saveFailed": "Opslaan mislukt",
       "invalidFields": "Ontbrekende of ongeldige velden",
       "validPhotoUrlRequired": "Minstens één geldige foto-URL is verplicht.",
