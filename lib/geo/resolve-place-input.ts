@@ -24,6 +24,7 @@ export type ResolvedPlaceCandidate = {
   countryCode?: string;
   placeId?: string;
   source: string;
+  resultTypes?: string[];
 };
 
 export type ResolvePlaceInputResult =
@@ -98,6 +99,24 @@ function countryMatches(
   return candidateCountryCode.toUpperCase() === requested.toUpperCase();
 }
 
+function isCountryOnlyResult(candidate: ResolvedPlaceCandidate): boolean {
+  const types = candidate.resultTypes || [];
+  if (types.length === 0) return false;
+  const coarse = new Set(['country', 'political', 'continent']);
+  if (types.every((t) => coarse.has(t))) return true;
+  // Google sometimes returns the country polygon for garbage queries under country:NL.
+  const label = (candidate.label || '').trim().toLowerCase();
+  if (
+    !candidate.city &&
+    (label === 'netherlands' ||
+      label === 'nederland' ||
+      label === candidate.country?.toLowerCase())
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function parseGoogleResult(raw: any, fallbackCountry: string): ResolvedPlaceCandidate | null {
   const location = raw?.geometry?.location;
   if (!location) return null;
@@ -114,7 +133,7 @@ function parseGoogleResult(raw: any, fallbackCountry: string): ResolvedPlaceCand
       c.types?.includes('administrative_area_level_2'),
   );
 
-  return {
+  const candidate: ResolvedPlaceCandidate = {
     label: String(raw.formatted_address || cityComponent?.long_name || ''),
     lat,
     lng,
@@ -123,7 +142,10 @@ function parseGoogleResult(raw: any, fallbackCountry: string): ResolvedPlaceCand
     countryCode: countryComponent?.short_name || fallbackCountry,
     placeId: typeof raw.place_id === 'string' ? raw.place_id : undefined,
     source: 'GoogleMaps',
+    resultTypes: Array.isArray(raw.types) ? raw.types.map(String) : [],
   };
+  if (isCountryOnlyResult(candidate)) return null;
+  return candidate;
 }
 
 /** Collapse near-duplicate results; keep geographically distinct options. */
