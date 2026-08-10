@@ -368,7 +368,7 @@ export default function FeedMobileFilterSheet({
             ) : null}
           </div>
 
-          <div>
+          <div data-testid="feed-mobile-radius" id="feed-mobile-radius">
             <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
               {t('feed.radiusLabel')}
             </label>
