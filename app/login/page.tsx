@@ -71,6 +71,14 @@ function LoginForm() {
         : '/';
   const oauthError = searchParams?.get('error');
   const prefillEmail = searchParams?.get('email');
+  /** SP.2B.3 — when arriving from SSO switch / interactive IdP login */
+  const ssoInteraction = searchParams?.get('ssoInteraction');
+  const oauthPrompt = searchParams?.get('prompt');
+  const preferGoogleAccountPicker =
+    oauthPrompt === 'select_account' ||
+    ssoInteraction === 'select_account' ||
+    ssoInteraction === 'login' ||
+    ssoInteraction === 'claim';
 
   // Native app: standaard aan laten staan (geen “onthoud mij”-UI); sessie voelt persistent.
   useEffect(() => {
@@ -453,13 +461,24 @@ function LoginForm() {
     try {
       setRememberPreference(state.rememberMe);
       if (provider === "google") {
-        logGoogleLoginDiag("google_login_web_start", { surface: "login" });
+        logGoogleLoginDiag("google_login_web_start", {
+          surface: "login",
+          ...(preferGoogleAccountPicker ? { prompt: "select_account" } : {}),
+        });
       }
 
-      await signIn(provider, {
-        callbackUrl: buildSocialSuccessCallbackUrl(callbackUrl),
-        redirect: true,
-      });
+      const authorizationParams =
+        provider === "google" && preferGoogleAccountPicker
+          ? { prompt: "select_account" as const }
+          : undefined;
+      await signIn(
+        provider,
+        {
+          callbackUrl: buildSocialSuccessCallbackUrl(callbackUrl),
+          redirect: true,
+        },
+        authorizationParams,
+      );
     } catch (error) {
       if (provider === "google") {
         logGoogleLoginDiag("google_login_web_failed", { surface: "login" });

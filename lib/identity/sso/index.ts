@@ -3,6 +3,12 @@ export { SsoError, SSO_ERROR_HTTP, SSO_CODE_TTL_SECONDS } from "./constants";
 export { issueSsoAuthorizationCode } from "./authorize";
 export { exchangeSsoAuthorizationCode } from "./exchange";
 export {
+  parseSsoInteraction,
+  requiresInteractiveConfirmation,
+  googlePromptForInteraction,
+  type SsoInteraction,
+} from "./interaction";
+export {
   generateAuthorizationCode,
   hashAuthorizationCode,
   verifyPkceS256,
