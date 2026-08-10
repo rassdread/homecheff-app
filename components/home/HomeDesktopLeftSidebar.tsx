@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -42,18 +42,40 @@ function DiscoveryFiltersSection() {
   const hasFiltersPanel = useHasFeedFiltersPanel();
   const bridge = useWorkspaceFeedPresentationBridge();
   const railPortalMode = Boolean(bridge?.startRailActive);
+  /** Stable setter ref — bridge object identity must not clear the portal host. */
+  const setFilterHostRef = useRef(bridge?.setFilterHost);
+  setFilterHostRef.current = bridge?.setFilterHost;
   /** Launch-critical: place/postcode field must be reachable without hunting a closed disclosure. */
   const [filtersOpen, setFiltersOpen] = useState(true);
+
+  const bindFilterHost = useCallback((el: HTMLDivElement | null) => {
+    setFilterHostRef.current?.(el);
+  }, []);
 
   useEffect(() => {
     if (!railPortalMode) return;
     return () => {
-      bridge?.setFilterHost(null);
+      // Clear only when leaving rail-portal mode / unmount — not on bridge identity churn.
+      setFilterHostRef.current?.(null);
     };
-  }, [railPortalMode, bridge]);
+  }, [railPortalMode]);
 
   useEffect(() => {
-    if (railPortalMode) return;
+    if (railPortalMode) {
+      return subscribePlaceInputFocusRequest(() => {
+        const host = document.querySelector<HTMLElement>(
+          '[data-wx-filter-portal-host]',
+        );
+        host?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const rail = host?.closest('aside, [data-home-sidebar="left-workspace"]');
+        if (rail instanceof HTMLElement) {
+          const place = rail.querySelector<HTMLElement>(
+            '#feed-sidebar-place-input, [data-testid="feed-place-input"]',
+          );
+          place?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    }
     return subscribePlaceInputFocusRequest(() => {
       setFiltersOpen(true);
     });
@@ -76,7 +98,7 @@ function DiscoveryFiltersSection() {
         </div>
         <div className="border-t border-gray-100 px-1 pb-2 pt-1">
           <div
-            ref={(el) => bridge?.setFilterHost(el)}
+            ref={bindFilterHost}
             data-wx-filter-portal-host=""
             className="min-w-0"
           />
