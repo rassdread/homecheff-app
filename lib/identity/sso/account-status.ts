@@ -3,7 +3,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { SsoError } from "./constants";
+import { SsoError, type SsoProduct } from "./constants";
 
 export type AccountStatus = "active" | "disabled" | "suspended" | "deleted";
 
@@ -54,7 +54,7 @@ export function assertAccountActiveForSso(user: CentralUserForSso): void {
   }
 }
 
-export function toMinimalClaims(user: CentralUserForSso, product: "growth") {
+export function toMinimalClaims(user: CentralUserForSso, product: SsoProduct) {
   return {
     iss: "https://homecheff.eu" as const,
     aud: product,
