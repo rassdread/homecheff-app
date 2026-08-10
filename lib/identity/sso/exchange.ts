@@ -12,7 +12,7 @@ import {
 import { writeSsoAudit } from "./audit";
 import {
   assertRedirectAllowed,
-  authenticateGrowthClient,
+  authenticateSsoClient,
   type SsoClientConfig,
 } from "./client-registry";
 import { hashAuthorizationCode, requirePkceS256 } from "./code";
@@ -41,7 +41,7 @@ export async function exchangeSsoAuthorizationCode(input: ExchangeInput) {
   let client: SsoClientConfig | null = null;
   try {
     try {
-      client = authenticateGrowthClient({
+      client = authenticateSsoClient({
         authorizationHeader: input.authorizationHeader,
         clientIdHeader: input.clientIdHeader,
         product: input.product,
@@ -148,7 +148,7 @@ export async function exchangeSsoAuthorizationCode(input: ExchangeInput) {
       throw new SsoError("INVALID_CODE");
     }
 
-    const claims = toMinimalClaims(user, "growth");
+    const claims = toMinimalClaims(user, client.product);
 
     await writeSsoAudit({
       action: "SSO_EXCHANGE_SUCCESS",

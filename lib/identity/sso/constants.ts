@@ -6,7 +6,7 @@ export const SSO_CODE_TTL_SECONDS = 60;
 export const SSO_CODE_MIN_ENTROPY_BITS = 256;
 export const SSO_ISSUER = "https://homecheff.eu" as const;
 
-export const SSO_PRODUCTS = ["growth"] as const;
+export const SSO_PRODUCTS = ["growth", "studio"] as const;
 export type SsoProduct = (typeof SSO_PRODUCTS)[number];
 
 export const SSO_ERROR_CODES = [

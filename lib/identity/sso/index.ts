@@ -8,4 +8,10 @@ export {
   verifyPkceS256,
   base64UrlEncode,
 } from "./code";
-export { authenticateGrowthClient, getSsoClient, resolveGrowthClient } from "./client-registry";
+export {
+  authenticateGrowthClient,
+  authenticateSsoClient,
+  getSsoClient,
+  resolveGrowthClient,
+  resolveStudioClient,
+} from "./client-registry";
