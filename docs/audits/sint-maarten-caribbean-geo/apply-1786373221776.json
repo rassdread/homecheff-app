@@ -1,0 +1,44 @@
+{
+  "mutated": [
+    {
+      "id": "c31d06c4-293e-4d19-a269-fe4c41e6a660",
+      "lat": 18.04248,
+      "lng": -63.05483,
+      "place": "Sint Maarten"
+    },
+    {
+      "id": "47ce973a-8d93-4ae2-a3af-d1a5064e1b32",
+      "lat": 18.04248,
+      "lng": -63.05483,
+      "place": "Sint Maarten"
+    }
+  ],
+  "verify": [
+    {
+      "id": "c31d06c4-293e-4d19-a269-fe4c41e6a660",
+      "place": "Sint Maarten",
+      "lat": 18.04248,
+      "lng": -63.05483,
+      "distanceKmFromRotterdam": 6905.4,
+      "isCaribbean": true,
+      "isNotNoordHolland": true
+    },
+    {
+      "id": "47ce973a-8d93-4ae2-a3af-d1a5064e1b32",
+      "place": "Sint Maarten",
+      "lat": 18.04248,
+      "lng": -63.05483,
+      "distanceKmFromRotterdam": 6905.4,
+      "isCaribbean": true,
+      "isNotNoordHolland": true
+    }
+  ],
+  "geocode": {
+    "provider": "GoogleMaps",
+    "query": "Sint Maarten, Caribbean",
+    "label": "Sint Maarten",
+    "countryCode": "SX",
+    "lat": 18.04248,
+    "lng": -63.05483
+  }
+}

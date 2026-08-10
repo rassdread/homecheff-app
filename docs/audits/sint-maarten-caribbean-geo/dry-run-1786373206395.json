@@ -1,0 +1,70 @@
+{
+  "mode": "DRY_RUN",
+  "candidateCount": 2,
+  "geocode": {
+    "provider": "GoogleMaps",
+    "query": "Sint Maarten, Caribbean",
+    "label": "Sint Maarten",
+    "countryCode": "SX",
+    "lat": 18.04248,
+    "lng": -63.05483
+  },
+  "candidates": [
+    {
+      "id": "c31d06c4-293e-4d19-a269-fe4c41e6a660",
+      "title": "Madame jeanette",
+      "ownerUserId": "35a29f1c-80e4-43e7-b665-ec2893b4faa0",
+      "ownerUsername": "Tiego",
+      "ownerPlace": "Sint Maarten",
+      "ownerCountry": "NL",
+      "oldPlace": null,
+      "oldCountry": "NL",
+      "oldLat": null,
+      "oldLng": null,
+      "proposedCanonicalPlace": "Sint Maarten",
+      "proposedCountryContext": "SX (SX) — Caribbean Sint Maarten",
+      "proposedLat": 18.04248,
+      "proposedLng": -63.05483,
+      "geocoderProvider": "GoogleMaps",
+      "geocoderQuery": "Sint Maarten, Caribbean",
+      "geocoderLabel": "Sint Maarten",
+      "confidence": "HIGH_OWNER_CONFIRMED_CARIBBEAN",
+      "evidence": [
+        "Prior MANUAL_REVIEW audit IDs",
+        "Owner profile place=Sint Maarten",
+        "Title Madame jeanette (Caribbean chile pepper)",
+        "Product owner confirmation: Caribbean constituent country",
+        "HomeCheff kingdom Caribbean place-label contract (SX)"
+      ],
+      "proposedDistanceKmFromRotterdam": 6905.4
+    },
+    {
+      "id": "47ce973a-8d93-4ae2-a3af-d1a5064e1b32",
+      "title": "Madame jeanette",
+      "ownerUserId": "35a29f1c-80e4-43e7-b665-ec2893b4faa0",
+      "ownerUsername": "Tiego",
+      "ownerPlace": "Sint Maarten",
+      "ownerCountry": "NL",
+      "oldPlace": null,
+      "oldCountry": "NL",
+      "oldLat": null,
+      "oldLng": null,
+      "proposedCanonicalPlace": "Sint Maarten",
+      "proposedCountryContext": "SX (SX) — Caribbean Sint Maarten",
+      "proposedLat": 18.04248,
+      "proposedLng": -63.05483,
+      "geocoderProvider": "GoogleMaps",
+      "geocoderQuery": "Sint Maarten, Caribbean",
+      "geocoderLabel": "Sint Maarten",
+      "confidence": "HIGH_OWNER_CONFIRMED_CARIBBEAN",
+      "evidence": [
+        "Prior MANUAL_REVIEW audit IDs",
+        "Owner profile place=Sint Maarten",
+        "Title Madame jeanette (Caribbean chile pepper)",
+        "Product owner confirmation: Caribbean constituent country",
+        "HomeCheff kingdom Caribbean place-label contract (SX)"
+      ],
+      "proposedDistanceKmFromRotterdam": 6905.4
+    }
+  ]
+}
