@@ -8982,6 +8982,7 @@
       "invalidPrice": "Enter a valid price.",
       "placeNameRequired": "Enter a place name so people nearby can find you.",
       "locationRequired": "Add a place or address so people nearby can find your listing.",
+      "locationCoordsRequired": "Select a location from the suggestions so distance can be calculated.",
       "saveFailed": "Could not save",
       "invalidFields": "Missing or invalid fields",
       "validPhotoUrlRequired": "At least one valid photo URL is required.",

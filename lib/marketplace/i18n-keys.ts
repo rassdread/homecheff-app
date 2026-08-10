@@ -80,6 +80,7 @@ export const MARKETPLACE_ERROR_KEYS = {
   invalidPrice: 'marketplace.errors.invalidPrice',
   placeNameRequired: 'marketplace.errors.placeNameRequired',
   locationRequired: 'marketplace.errors.locationRequired',
+  locationCoordsRequired: 'marketplace.errors.locationCoordsRequired',
   saveFailed: 'marketplace.errors.saveFailed',
   invalidFields: 'marketplace.errors.invalidFields',
   validPhotoUrlRequired: 'marketplace.errors.validPhotoUrlRequired',

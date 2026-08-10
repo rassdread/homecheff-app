@@ -480,7 +480,11 @@ export async function PATCH(
               : (product as { orderMethod?: string }).orderMethod;
           const priceCents =
             body.priceCents ?? (product as { priceCents?: number }).priceCents;
-          if (saleProductRequiresLocation(orderMethod, priceCents)) {
+          const priceModel =
+            body.priceModel !== undefined
+              ? body.priceModel
+              : (product as { priceModel?: string | null }).priceModel;
+          if (saleProductRequiresLocation(orderMethod, priceCents, priceModel)) {
             const sellerProfile = await prisma.sellerProfile.findUnique({
               where: { id: (product as { sellerId: string }).sellerId },
               include: {

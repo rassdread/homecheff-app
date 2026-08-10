@@ -12,7 +12,7 @@ export function hasUsableItemDistanceKm(
   return (
     distanceKm != null &&
     Number.isFinite(distanceKm) &&
-    distanceKm > 0
+    distanceKm >= 0
   );
 }
 

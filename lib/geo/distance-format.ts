@@ -1,11 +1,15 @@
 /**
  * Marketplace/card distance label (feed, product, listing cards):
+ * - 0 km → "0 km" (same-point / sub-rounding)
  * - < 1 km → meters (e.g. "850 m")
  * - < 10 km → one decimal (e.g. "3.2 km", "8.7 km")
  * - ≥ 10 km → whole km (e.g. "12 km", "230 km")
+ *
+ * Null/NaN/negative are unknown — never format as distance.
  */
 export function formatMarketplaceDistanceKm(km: number): string {
-  if (!Number.isFinite(km) || km <= 0) return '';
+  if (!Number.isFinite(km) || km < 0) return '';
+  if (km === 0) return '0 km';
   if (km < 1) return `${Math.round(km * 1000)} m`;
   if (km < 10) {
     const rounded = Math.round(km * 10) / 10;
@@ -18,6 +22,6 @@ export function formatMarketplaceDistanceKm(km: number): string {
 export function formatMarketplaceDistanceLabel(
   km: number | null | undefined
 ): string | null {
-  if (km == null || !Number.isFinite(km) || km <= 0) return null;
+  if (km == null || !Number.isFinite(km) || km < 0) return null;
   return formatMarketplaceDistanceKm(km);
 }

@@ -32,7 +32,7 @@ export function computeRecencyBoost(createdAt: string, nowMs: number): number {
 }
 
 export function computeDistanceBoost(distanceKm?: number): number {
-  if (distanceKm == null || !Number.isFinite(distanceKm) || distanceKm <= 0) {
+  if (distanceKm == null || !Number.isFinite(distanceKm) || distanceKm < 0) {
     return 0;
   }
   const d = distanceKm;

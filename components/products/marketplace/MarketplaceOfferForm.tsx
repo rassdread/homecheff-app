@@ -38,7 +38,6 @@ import {
   priceRequiredForModel,
 } from '@/lib/marketplace/form-config';
 import {
-  productHasUsableLocation,
   validateProductLocationForPublish,
 } from '@/lib/geo/product-location-requirements';
 import { fulfillmentIsDigitalOnly } from '@/lib/marketplace/listing-taxonomy';
@@ -357,11 +356,20 @@ export default function MarketplaceOfferForm({
         setMessage(t(MARKETPLACE_ERROR_KEYS.placeNameRequired));
         return;
       }
+      if (
+        useProfileLocation &&
+        (loc.pickupLat == null || loc.pickupLng == null)
+      ) {
+        setMessage(t(MARKETPLACE_ERROR_KEYS.locationCoordsRequired));
+        return;
+      }
       const locCheck = validateProductLocationForPublish({
         pickupAddress: loc.pickupAddress,
         pickupLat: loc.pickupLat,
         pickupLng: loc.pickupLng,
         seller: {
+          lat: loc.pickupLat,
+          lng: loc.pickupLng,
           User: {
             place: loc.placeName,
             city: loc.placeName,
@@ -371,20 +379,13 @@ export default function MarketplaceOfferForm({
         },
       });
       if (!locCheck.ok) {
-        setMessage(t(MARKETPLACE_ERROR_KEYS.locationRequired));
-        return;
-      }
-      if (
-        !productHasUsableLocation({
-          pickupAddress: loc.pickupAddress,
-          pickupLat: loc.pickupLat,
-          pickupLng: loc.pickupLng,
-          seller: {
-            User: { place: loc.placeName, city: loc.placeName },
-          },
-        })
-      ) {
-        setMessage(t(MARKETPLACE_ERROR_KEYS.locationRequired));
+        setMessage(
+          t(
+            locCheck.errorCode === 'location_coords_required'
+              ? MARKETPLACE_ERROR_KEYS.locationCoordsRequired
+              : MARKETPLACE_ERROR_KEYS.locationRequired
+          )
+        );
         return;
       }
     }

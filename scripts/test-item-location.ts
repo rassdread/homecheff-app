@@ -64,7 +64,7 @@ function testPlaceDistanceLine() {
       unknownPlaceLabel: unknown,
       unknownDistanceLabel: unknownDist,
     }),
-    'Utrecht'
+    'Utrecht · afstand onbekend'
   );
   assert.equal(
     formatItemPlaceDistanceLine({
@@ -91,7 +91,16 @@ function testPlaceDistanceLine() {
       unknownPlaceLabel: unknown,
       unknownDistanceLabel: unknownDist,
     }),
-    'Locatie onbekend'
+    'Locatie onbekend · 0 km'
+  );
+  assert.equal(
+    formatItemPlaceDistanceLine({
+      place: 'Berkel',
+      distanceKm: 0,
+      unknownPlaceLabel: unknown,
+      unknownDistanceLabel: unknownDist,
+    }),
+    'Berkel · 0 km'
   );
   assert.equal(
     formatItemPlaceDistanceLine({
@@ -111,6 +120,7 @@ function testPlaceDistanceLine() {
     }),
     'Midwolda · 230 km'
   );
+  assert.equal(formatMarketplaceDistanceKm(0), '0 km');
   assert.equal(formatMarketplaceDistanceKm(8.7), '8.7 km');
   assert.equal(formatMarketplaceDistanceKm(37.4), '37 km');
 }
@@ -136,25 +146,50 @@ function testRequirements() {
   assert.equal(saleProductRequiresLocation('HOMECHEFF_PAYMENT', 500), true);
   assert.equal(saleProductRequiresLocation('HOMECHEFF_PAYMENT', 0), false);
 
+  // Place text alone is NOT enough for publish
   assert.equal(
     productHasUsableLocation({
       pickupAddress: '1012 AB Amsterdam',
       pickupLat: null,
       pickupLng: null,
     }),
-    true
+    false
   );
   assert.equal(
     validateProductLocationForPublish({
       seller: { User: { place: 'Utrecht' } },
     }).ok,
-    true
+    false
+  );
+  assert.equal(
+    validateProductLocationForPublish({
+      seller: { User: { place: 'Utrecht' } },
+    }).errorCode,
+    'location_coords_required'
   );
   assert.equal(
     validateProductLocationForPublish({
       seller: { User: {} },
     }).ok,
     false
+  );
+  assert.equal(
+    validateProductLocationForPublish({
+      pickupLat: 52.09,
+      pickupLng: 5.12,
+      seller: { User: { place: 'Utrecht' } },
+    }).ok,
+    true
+  );
+  assert.equal(
+    validateProductLocationForPublish({
+      seller: {
+        lat: 51.91,
+        lng: 4.34,
+        User: { place: 'Vlaardingen' },
+      },
+    }).ok,
+    true
   );
 }
 
@@ -215,6 +250,10 @@ function testViewerDistance() {
   assert.ok(km != null && km > 0);
   assert.equal(computeViewerDistanceKm(null, 52.37, 4.89), undefined);
   assert.equal(computeViewerDistanceKm({ lat: 52.09, lng: 5.12 }, null, 4.89), undefined);
+  assert.equal(
+    computeViewerDistanceKm({ lat: 52.09, lng: 5.12 }, 52.09, 5.12),
+    0
+  );
 }
 
 import {
