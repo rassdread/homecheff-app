@@ -313,6 +313,8 @@ export default function FeedSidebarFilters({
               onChange={(e) => onRadiusChange(Number(e.target.value))}
               className={inputClass}
               disabled={scope !== FEED_SCOPE_NEARBY}
+              data-testid="feed-sidebar-radius"
+              id="feed-sidebar-radius"
             >
               {RADIUS_PRESET_OPTIONS.filter((opt) => opt > 0).map((opt) => (
                 <option key={opt} value={opt}>
@@ -330,7 +332,7 @@ export default function FeedSidebarFilters({
       </section>
 
       {/* Sorteren */}
-      <section>
+      <section data-testid="feed-sidebar-sort" id="feed-sidebar-sort">
         <p className={sectionLabelClass}>{t("common.sortBy")}</p>
         <div className="flex flex-wrap gap-1.5">
           {sortOptions.map((option) => (

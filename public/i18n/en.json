@@ -5711,6 +5711,12 @@
       "currentLocation": "Current location",
       "approximateLocation": "Approximate location",
       "locationUnavailable": "Location not set",
+      "chooseLocation": "Choose location",
+      "editLocationAria": "Change location, currently {place}",
+      "editRadiusAria": "Change radius, currently {radius}",
+      "editSortAria": "Change sort, currently {sort}",
+      "editCategoryAria": "Change category, currently {category}",
+      "editQueryAria": "Change search, currently {query}",
       "sortPopular": "Popular",
       "sortPrice": "Price"
     },

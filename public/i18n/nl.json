@@ -6959,6 +6959,12 @@
       "currentLocation": "Huidige locatie",
       "approximateLocation": "Geschatte locatie",
       "locationUnavailable": "Locatie niet ingesteld",
+      "chooseLocation": "Kies locatie",
+      "editLocationAria": "Locatie wijzigen, nu {place}",
+      "editRadiusAria": "Straal wijzigen, nu {radius}",
+      "editSortAria": "Sortering wijzigen, nu {sort}",
+      "editCategoryAria": "Categorie wijzigen, nu {category}",
+      "editQueryAria": "Zoekopdracht wijzigen, nu {query}",
       "sortPopular": "Populair",
       "sortPrice": "Prijs"
     },

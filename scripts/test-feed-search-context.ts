@@ -149,9 +149,32 @@ ok(
   'context bar mounted in feedResultsBlock before refine banner',
   /searchContextBarEl[\s\S]{0,80}locationRefineBannerEl/.test(geo),
 );
-ok('bar is read-only status region', bar.includes('role="status"'));
+ok(
+  'bar is interactive region with chip actions',
+  bar.includes('role="region"') &&
+    bar.includes('onLocationActivate') &&
+    bar.includes('-action'),
+);
 ok('bar has test id', bar.includes('feed-search-context-bar'));
-ok('en i18n searchContext keys', en.includes('"searchContext"') && en.includes('fromPrefix'));
-ok('nl i18n searchContext keys', nl.includes('"searchContext"') && nl.includes('fromPrefix'));
+ok(
+  'GeoFeed wires context bar to existing controls',
+  geo.includes('onLocationActivate={handleChoosePlaceForNearby}') &&
+    geo.includes('onRadiusActivate={handleContextRadiusActivate}') &&
+    geo.includes('onSortActivate={handleContextSortActivate}') &&
+    geo.includes('feed-sidebar-radius') &&
+    geo.includes('feed-mobile-sort'),
+);
+ok(
+  'no second location/sort/radius state invented for context bar',
+  !geo.includes('manualLocation') &&
+    !geo.includes('contextBarRadius') &&
+    !geo.includes('contextBarSort'),
+);
+ok(
+  'fallback location chip uses chooseLocation',
+  geo.includes('feed.searchContext.chooseLocation'),
+);
+ok('en i18n searchContext keys', en.includes('"searchContext"') && en.includes('fromPrefix') && en.includes('chooseLocation'));
+ok('nl i18n searchContext keys', nl.includes('"searchContext"') && nl.includes('fromPrefix') && nl.includes('Kies locatie'));
 
 console.log(`\n✅ feed search context: ${passed} checks passed`);

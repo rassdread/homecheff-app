@@ -1896,6 +1896,47 @@ export default function GeoFeed({
     setMobileSheetFocusPlace(false);
   }, []);
 
+  const focusExistingFeedControl = useCallback(
+    (selector: string, opts?: { scrollRail?: boolean }) => {
+      const tryFocus = (attempt: number) => {
+        const el = document.querySelector<HTMLElement>(selector);
+        if (el) {
+          if (opts?.scrollRail) {
+            const rail = el.closest(
+              "aside, [data-home-sidebar='left-workspace'], [data-wx-filter-portal-host]",
+            );
+            if (rail instanceof HTMLElement) {
+              rail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+          }
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (typeof el.focus === "function") {
+            el.focus({ preventScroll: false });
+          }
+          return;
+        }
+        if (attempt < 10) {
+          window.setTimeout(() => tryFocus(attempt + 1), 50);
+        }
+      };
+      window.setTimeout(() => tryFocus(0), 60);
+    },
+    [],
+  );
+
+  const openExistingDesktopFilters = useCallback(() => {
+    if (workspaceRailOwnsFilters) {
+      requestPlaceInputFocus({ reason: "context-bar" });
+      return;
+    }
+    if (isDesktopSplit) {
+      setSidebarRefineOpen(true);
+      return;
+    }
+    setShowFilters(true);
+    setWorkspaceFiltersExpanded(true);
+  }, [workspaceRailOwnsFilters, isDesktopSplit]);
+
   const handleChoosePlaceForNearby = useCallback(() => {
     // Expand legacy collapsed Discovery Filters before focusing — otherwise
     // placeInputRef is null while the place field is unmounted.
@@ -1922,6 +1963,7 @@ export default function GeoFeed({
       }, 50);
     } else {
       setShowFilters(true);
+      setWorkspaceFiltersExpanded(true);
     }
 
     // Desktop / non-sheet paths: retry until mounted. Do not select()-all —
@@ -1942,6 +1984,57 @@ export default function GeoFeed({
       window.setTimeout(() => focusPlace(0), 80);
     }
   }, [feedCompactChrome, isDesktopSplit, workspaceRailOwnsFilters]);
+
+  const handleContextRadiusActivate = useCallback(() => {
+    if (feedCompactChrome && !isDesktopSplit) {
+      setMobileFilterSheetOpen(true);
+      focusExistingFeedControl(
+        "#feed-mobile-radius, [data-testid='feed-mobile-radius']",
+      );
+      return;
+    }
+    openExistingDesktopFilters();
+    focusExistingFeedControl(
+      "#feed-sidebar-radius, [data-testid='feed-sidebar-radius']",
+      { scrollRail: true },
+    );
+  }, [
+    feedCompactChrome,
+    isDesktopSplit,
+    openExistingDesktopFilters,
+    focusExistingFeedControl,
+  ]);
+
+  const handleContextSortActivate = useCallback(() => {
+    if (feedCompactChrome && !isDesktopSplit) {
+      const mobileSort = document.querySelector<HTMLElement>("#feed-mobile-sort");
+      if (mobileSort) {
+        focusExistingFeedControl("#feed-mobile-sort");
+        return;
+      }
+      // Landscape work-compact hides toolbar sort — open sheet as fallback.
+      setMobileFilterSheetOpen(true);
+      return;
+    }
+    openExistingDesktopFilters();
+    focusExistingFeedControl(
+      "#feed-sidebar-sort, [data-testid='feed-sidebar-sort']",
+      { scrollRail: true },
+    );
+  }, [
+    feedCompactChrome,
+    isDesktopSplit,
+    openExistingDesktopFilters,
+    focusExistingFeedControl,
+  ]);
+
+  const handleContextFiltersActivate = useCallback(() => {
+    if (feedCompactChrome && !isDesktopSplit) {
+      setMobileFilterSheetOpen(true);
+      return;
+    }
+    openExistingDesktopFilters();
+  }, [feedCompactChrome, isDesktopSplit, openExistingDesktopFilters]);
 
   useEffect(() => {
     if (!gpsRequestPendingRef.current || locationLoading || coords) return;
@@ -5082,12 +5175,12 @@ export default function GeoFeed({
           resolved.label?.trim() || t("feed.scopeNational");
         break;
       case "fallback":
-        locationLabel = t("feed.searchContext.locationUnavailable");
+        locationLabel = t("feed.searchContext.chooseLocation");
         break;
       default:
         locationLabel =
           resolved.label?.trim() ||
-          t("feed.searchContext.locationUnavailable");
+          t("feed.searchContext.chooseLocation");
         break;
     }
 
@@ -6477,6 +6570,26 @@ export default function GeoFeed({
       sortPrefix={t("feed.searchContext.sortPrefix")}
       queryPrefix={t("feed.searchContext.queryPrefix")}
       chips={searchContextChips}
+      onLocationActivate={handleChoosePlaceForNearby}
+      onRadiusActivate={handleContextRadiusActivate}
+      onSortActivate={handleContextSortActivate}
+      onCategoryActivate={handleContextFiltersActivate}
+      onQueryActivate={handleContextFiltersActivate}
+      locationActionAria={(place) =>
+        t("feed.searchContext.editLocationAria", { place })
+      }
+      radiusActionAria={(radius) =>
+        t("feed.searchContext.editRadiusAria", { radius })
+      }
+      sortActionAria={(sort) =>
+        t("feed.searchContext.editSortAria", { sort })
+      }
+      categoryActionAria={(category) =>
+        t("feed.searchContext.editCategoryAria", { category })
+      }
+      queryActionAria={(query) =>
+        t("feed.searchContext.editQueryAria", { query })
+      }
     />
   );
 
