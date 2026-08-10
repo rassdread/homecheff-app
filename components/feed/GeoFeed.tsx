@@ -230,6 +230,7 @@ import {
   loadLocationPreference,
   saveLocationPreference,
 } from "@/lib/geo/location-preference";
+import { readSeededFeedLocation } from "@/lib/geo/seeded-feed-location";
 import { reverseGeocodeDisplayLabel } from "@/lib/geo/reverse-geocode-label";
 import { mapGpsFailureString } from "@/lib/geo/gps-location-errors";
 import {
@@ -962,6 +963,8 @@ type GeoFeedProps = {
   initialFeedCategory?: string;
   /** Vrije plaats-tekst vanuit URL (`/?place=Utrecht`). */
   initialFeedPlace?: string;
+  /** Server-resolved IP approx (same as /api/geo/approx) for first-paint seed. */
+  initialIpApprox?: import('@/lib/geo/seeded-feed-location').ServerIpApproxSeed | null;
   /** Inject community/reputation cards between feed items on mobile. */
   enableMobileFeedInserts?: boolean;
   /** Render homepage-only insert UI (keeps GeoFeed free of components/home imports). */
@@ -1056,6 +1059,7 @@ export default function GeoFeed({
   initialFeedChip,
   initialFeedCategory,
   initialFeedPlace,
+  initialIpApprox = null,
   enableMobileFeedInserts = false,
   renderMobileFeedInsert,
   visibleHomePromotionIds = [],
@@ -1074,10 +1078,15 @@ export default function GeoFeed({
   const landscapeWork = useLandscapeWorkPosture();
   const workCompactChrome = landscapeWork.workPostureActive;
 
+  /** Sync LS/URL place seed — first feed request uses settled location (no soft-national throwaway). */
+  const [seededFeedLocation] = useState(() =>
+    readSeededFeedLocation(initialFeedPlace, initialIpApprox),
+  );
+
   useEffect(() => {
     feedPerfIncrementGeoFeedMount();
     feedSealedNoteGeoFeedMount();
-    feedSealedNoteNativePaintKeyAbsent();
+  1080|    feedSealedNoteNativePaintKeyAbsent();
     installFeedPerfBaselineReporter();
     installFeedSealedProbeBridge();
     feedPerfMark("nav:start");
@@ -1188,26 +1197,35 @@ export default function GeoFeed({
   const discoveryFeedRef = useRef<DiscoveryFeedPayload | null>(null);
   const nativeFeedRenderMoreRef = useRef(false);
   const feedStableMarkedRef = useRef(false);
-  const [radius, setRadius] = useState(RADIUS_LOCAL_KM);
+  const [radius, setRadius] = useState(seededFeedLocation.radiusKm);
   const [q, setQ] = useState("");
   const [place, setPlace] = useState(
-    () => initialFeedPlace?.trim().slice(0, 200) || ""
+    () =>
+      seededFeedLocation.place ||
+      initialFeedPlace?.trim().slice(0, 200) ||
+      "",
   );
   const [baseUrl, setBaseUrl] = useState("");
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
-  } | null>(null);
+  } | null>(() => seededFeedLocation.userLocation);
   const [locationSource, setLocationSource] = useState<
     "gps" | "manual" | "profile" | "ip" | "country" | null
-  >(null);
-  const [browseCountryCode, setBrowseCountryCode] = useState<string>("");
+  >(() => seededFeedLocation.locationSource);
+  const [browseCountryCode, setBrowseCountryCode] = useState<string>(
+    () => seededFeedLocation.browseCountryCode,
+  );
   const [browseLocationMode, setBrowseLocationMode] = useState<
     "point" | "country" | "region" | "global"
-  >("global");
-  const [ipLocationLabel, setIpLocationLabel] = useState<string | null>(null);
-  const [locationBannerDismissed, setLocationBannerDismissed] = useState(false);
-  const ipBootstrapDoneRef = useRef(false);
+  >(() => seededFeedLocation.browseLocationMode);
+  const [ipLocationLabel, setIpLocationLabel] = useState<string | null>(
+    () => seededFeedLocation.ipLocationLabel,
+  );
+  const [locationBannerDismissed, setLocationBannerDismissed] = useState(
+    () => seededFeedLocation.bannerDismissed,
+  );
+  const ipBootstrapDoneRef = useRef(seededFeedLocation.bootstrapDone);
   const [profileLocation, setProfileLocation] = useState<{
     place?: string;
     postcode?: string;
@@ -1239,12 +1257,17 @@ export default function GeoFeed({
   const [locationAcquiring, setLocationAcquiring] = useState(false);
   const placeInputRef = useRef<HTMLInputElement | null>(null);
   /** Applied filter state — drives API fetch and client-side ranking. */
-  const [appliedRadius, setAppliedRadius] = useState(RADIUS_LOCAL_KM);
+  const [appliedRadius, setAppliedRadius] = useState(
+    () => seededFeedLocation.radiusKm,
+  );
   const [appliedScope, setAppliedScope] = useState<FeedScope>(
     FEED_SCOPE_NEARBY
   );
   const [appliedPlace, setAppliedPlace] = useState(
-    () => initialFeedPlace?.trim().slice(0, 200) || ""
+    () =>
+      seededFeedLocation.appliedPlace ||
+      initialFeedPlace?.trim().slice(0, 200) ||
+      "",
   );
   const [appliedQ, setAppliedQ] = useState("");
   const [appliedCategory, setAppliedCategory] = useState(() =>
@@ -2029,8 +2052,49 @@ export default function GeoFeed({
   }, []);
 
   // First-visit: IP approximate location (or restore preference) — never block feed.
+  // When seededFeedLocation.bootstrapDone, preference/server IP already applied at first paint.
   useEffect(() => {
-    if (ipBootstrapDoneRef.current) return;
+    if (ipBootstrapDoneRef.current) {
+      // Persist server IP seed once so subsequent visits hit LS fast-path.
+      if (
+        initialIpApprox &&
+        !loadLocationPreference() &&
+        seededFeedLocation.locationSource === "ip" &&
+        seededFeedLocation.userLocation
+      ) {
+        saveLocationPreference({
+          place: seededFeedLocation.ipLocationLabel,
+          lat: seededFeedLocation.userLocation.lat,
+          lng: seededFeedLocation.userLocation.lng,
+          radiusKm: seededFeedLocation.radiusKm,
+          source: "ip",
+          bannerDismissed: seededFeedLocation.bannerDismissed,
+          countryCode: seededFeedLocation.browseCountryCode || null,
+          mode: "point",
+          precision: "approx",
+          label: seededFeedLocation.ipLocationLabel,
+        });
+      } else if (
+        initialIpApprox &&
+        !loadLocationPreference() &&
+        seededFeedLocation.locationSource === "country" &&
+        seededFeedLocation.browseCountryCode
+      ) {
+        saveLocationPreference({
+          place: seededFeedLocation.ipLocationLabel,
+          lat: null,
+          lng: null,
+          radiusKm: seededFeedLocation.radiusKm,
+          source: "country",
+          bannerDismissed: seededFeedLocation.bannerDismissed,
+          countryCode: seededFeedLocation.browseCountryCode,
+          mode: "country",
+          precision: "country",
+          label: seededFeedLocation.ipLocationLabel,
+        });
+      }
+      return;
+    }
     if (typeof window === "undefined") return;
     if (initialFeedPlace?.trim()) {
       ipBootstrapDoneRef.current = true;
@@ -2179,7 +2243,7 @@ export default function GeoFeed({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- first-visit bootstrap once
-  }, [initialFeedPlace]);
+  }, [initialFeedPlace, initialIpApprox]);
 
   useEffect(() => {
     if (!(SHOW_CAPACITOR_PUSH_DEBUG && nativeMounted)) return;

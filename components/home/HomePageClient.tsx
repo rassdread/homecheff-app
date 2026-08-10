@@ -30,6 +30,7 @@ import type { FeedWorkspaceVisibilityMode } from "@/lib/adaptive-workspace-react
 import { isFeedWorkspaceLayoutVisible } from "@/lib/adaptive-workspace-react";
 
 import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
+import type { ServerIpApproxSeed } from '@/lib/geo/seeded-feed-location';
 
 /** Phase 3B.3.2/3B.3.3 — module-stable metadata. */
 const FEED_CONTROLLED_HOST_CONTRACT = createControlledFeedHostContract();
@@ -86,6 +87,7 @@ type Props = {
   initialFeedChip?: HomeFeedChip;
   initialFeedCategory?: string;
   initialFeedPlace?: string;
+  initialIpApprox?: ServerIpApproxSeed | null;
   stickyTestMode?: boolean;
   feedWorkspaceVisibilityMode?: FeedWorkspaceVisibilityMode;
   feedWorkspacePreviewRequested?: boolean;
@@ -96,6 +98,7 @@ export default function HomePageClient({
   initialFeedChip,
   initialFeedCategory,
   initialFeedPlace,
+  initialIpApprox = null,
   stickyTestMode = false,
   feedWorkspaceVisibilityMode = "off",
   feedWorkspacePreviewRequested = false,
@@ -115,6 +118,8 @@ export default function HomePageClient({
     feedPerfMark("home:shell-mounted");
     feedPerfMark("home:viewport-resolved");
     feedPerfMark("layout:hydration-complete");
+    // Overlap GeoFeed chunk download with shell paint (ssr:false dynamic import).
+    void import("@/components/feed/GeoFeed");
   }, []);
 
   useEffect(() => {
@@ -143,6 +148,7 @@ export default function HomePageClient({
     initialFeedChip,
     initialFeedCategory,
     initialFeedPlace,
+    initialIpApprox,
     enableMobileFeedInserts: true as const,
     feedColumnLayout: 'home-main' as const,
     visibleHomePromotionIds,
