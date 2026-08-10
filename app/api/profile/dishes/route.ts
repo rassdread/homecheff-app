@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
+import {
+  ambiguousLocationResponse,
+  ensureCoordsFromPlaceQuery,
+} from "@/lib/geo/ensure-place-coords";
 import { auth } from "@/lib/auth";
 import {
   awardDishInspirationContentHcp,
@@ -167,6 +171,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
+    let dishLat =
+      lat != null && Number.isFinite(Number(lat)) ? Number(lat) : null;
+    let dishLng =
+      lng != null && Number.isFinite(Number(lng)) ? Number(lng) : null;
+    const dishPlace = typeof place === 'string' ? place.trim() : place || null;
+
+    if (dishPlace && (dishLat == null || dishLng == null)) {
+      const ensured = await ensureCoordsFromPlaceQuery({
+        placeQuery: dishPlace,
+        countryCode: user.country || 'NL',
+        lat: dishLat,
+        lng: dishLng,
+      });
+      if (ensured.resolution?.status === 'ambiguous') {
+        return NextResponse.json(
+          ambiguousLocationResponse(ensured.resolution.candidates),
+          { status: 400 },
+        );
+      }
+      dishLat = ensured.lat;
+      dishLng = ensured.lng;
+    }
+
     // Create a new dish instead of listing
     const dish = await prisma.dish.create({
       data: {
@@ -176,9 +203,9 @@ export async function POST(req: NextRequest) {
         status: status || 'PRIVATE',
         priceCents: priceCents || null,
         deliveryMode: deliveryMode || null,
-        place: place || null,
-        lat: lat || null,
-        lng: lng || null,
+        place: dishPlace || null,
+        lat: dishLat,
+        lng: dishLng,
         stock: stock || 0,
         maxStock: maxStock || null,
         category: category || null,

@@ -5,7 +5,8 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ensureSellerProfileForUser } from '@/lib/seller-access';
-import { geocodePlaceQuery } from '@/lib/global-geocoding';
+import { resolvePlaceInput } from '@/lib/geo/resolve-place-input';
+import { placeTextMateriallyChanged } from '@/lib/geo/resolve-place-input';
 import { needsDefinitiveUsername } from '@/lib/account-requirements';
 import { validateUsernameCandidate } from '@/lib/username-validation';
 import { tryAwardProfileCompleted } from '@/lib/gamification/profile-hcp';
@@ -56,7 +57,16 @@ export async function PUT(request: NextRequest) {
     // Get current user to check if username is being changed
     const currentUser = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true, username: true, messageGuidelinesAcceptedAt: true },
+      select: {
+        id: true,
+        username: true,
+        messageGuidelinesAcceptedAt: true,
+        place: true,
+        city: true,
+        lat: true,
+        lng: true,
+        country: true,
+      },
     });
     let resolvedUsername = trimmedIncomingUsername;
 
@@ -82,37 +92,66 @@ export async function PUT(request: NextRequest) {
     }
 
     // Use provided lat/lng if available (from client-side geocoding), otherwise geocode
-    let finalLat: number | null = lat ?? null;
-    let finalLng: number | null = lng ?? null;
-    
-    // Geocode when lat/lng not provided but place/postcode/address is available
-    if (!finalLat || !finalLng) {
-      const countryCode =
-        country ||
-        (
-          await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { country: true },
-          })
-        )?.country ||
-        "NL";
+    let finalLat: number | null =
+      lat != null && Number.isFinite(Number(lat)) ? Number(lat) : null;
+    let finalLng: number | null =
+      lng != null && Number.isFinite(Number(lng)) ? Number(lng) : null;
+
+    const placeChanged = placeTextMateriallyChanged(
+      currentUser?.place || currentUser?.city,
+      place || city,
+    );
+    // Changing place without new coords must invalidate stale coordinates.
+    if (placeChanged) {
+      const clientSentFreshCoords =
+        lat != null &&
+        lng != null &&
+        Number.isFinite(Number(lat)) &&
+        Number.isFinite(Number(lng));
+      if (!clientSentFreshCoords) {
+        finalLat = null;
+        finalLng = null;
+      }
+    }
+
+    const countryCode =
+      (typeof country === 'string' && country.trim()) ||
+      currentUser?.country ||
+      'NL';
+
+    // Do not overwrite an already precise valid profile coordinate with a city
+    // centroid when place text did not change and coords were provided.
+    const hasUsableCoords =
+      finalLat != null &&
+      finalLng != null &&
+      !(finalLat === 0 && finalLng === 0);
+
+    if (!hasUsableCoords) {
       const geocodeParts = [address, postalCode, place, city]
-        .map((part) => (typeof part === "string" ? part.trim() : ""))
+        .map((part) => (typeof part === 'string' ? part.trim() : ''))
         .filter(Boolean);
-      const geocodeQuery = geocodeParts.join(", ");
+      const geocodeQuery = geocodeParts.join(', ');
 
       if (geocodeQuery) {
-        const geocodeResult = await geocodePlaceQuery(
-          geocodeQuery,
+        const resolution = await resolvePlaceInput({
+          query: geocodeQuery,
           countryCode,
-          process.env.GOOGLE_MAPS_API_KEY
-        );
+        });
 
-        if (geocodeResult.error) {
-          console.warn("Geocoding failed:", geocodeResult.error);
+        if (resolution.status === 'resolved') {
+          finalLat = resolution.result.lat;
+          finalLng = resolution.result.lng;
+        } else if (resolution.status === 'ambiguous') {
+          return NextResponse.json(
+            {
+              error: resolution.message,
+              code: 'location_ambiguous',
+              candidates: resolution.candidates,
+            },
+            { status: 400 },
+          );
         } else {
-          finalLat = geocodeResult.lat;
-          finalLng = geocodeResult.lng;
+          console.warn('Profile place resolution:', resolution);
         }
       }
     }

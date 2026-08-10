@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
+import {
+  ambiguousLocationResponse,
+  ensureCoordsFromPlaceQuery,
+} from "@/lib/geo/ensure-place-coords";
+import { placeTextMateriallyChanged } from "@/lib/geo/resolve-place-input";
 import { auth } from "@/lib/auth";
 import {
   awardDishInspirationContentHcp,
@@ -188,6 +193,66 @@ export async function PATCH(
     if (lng !== undefined) updateData.lng = lng;
     if (stock !== undefined) updateData.stock = stock;
     if (maxStock !== undefined) updateData.maxStock = maxStock;
+
+    const placeChanged =
+      place !== undefined &&
+      placeTextMateriallyChanged(dish.place, place);
+    let nextLat =
+      lat !== undefined
+        ? lat != null && Number.isFinite(Number(lat))
+          ? Number(lat)
+          : null
+        : dish.lat;
+    let nextLng =
+      lng !== undefined
+        ? lng != null && Number.isFinite(Number(lng))
+          ? Number(lng)
+          : null
+        : dish.lng;
+    const nextPlace =
+      place !== undefined
+        ? typeof place === 'string'
+          ? place.trim()
+          : place
+        : dish.place;
+
+    if (placeChanged) {
+      const bodyHasNewCoords =
+        lat != null &&
+        lng != null &&
+        Number.isFinite(Number(lat)) &&
+        Number.isFinite(Number(lng));
+      if (!bodyHasNewCoords) {
+        nextLat = null;
+        nextLng = null;
+      }
+    }
+
+    if (
+      nextPlace &&
+      (nextLat == null || nextLng == null)
+    ) {
+      const ensured = await ensureCoordsFromPlaceQuery({
+        placeQuery: String(nextPlace),
+        countryCode: user.country || 'NL',
+        lat: nextLat,
+        lng: nextLng,
+      });
+      if (ensured.resolution?.status === 'ambiguous') {
+        return NextResponse.json(
+          ambiguousLocationResponse(ensured.resolution.candidates),
+          { status: 400 },
+        );
+      }
+      nextLat = ensured.lat;
+      nextLng = ensured.lng;
+    }
+
+    if (place !== undefined || lat !== undefined || lng !== undefined || placeChanged) {
+      updateData.place = nextPlace || null;
+      updateData.lat = nextLat;
+      updateData.lng = nextLng;
+    }
     
     // Recipe-specific fields
     if (ingredients !== undefined) updateData.ingredients = ingredients;

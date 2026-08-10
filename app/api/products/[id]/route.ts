@@ -16,6 +16,11 @@ import {
   saleProductRequiresLocation,
   validateProductLocationForPublish,
 } from '@/lib/geo/product-location-requirements';
+import {
+  ambiguousLocationResponse,
+  ensureCoordsFromPlaceQuery,
+} from '@/lib/geo/ensure-place-coords';
+import { placeTextMateriallyChanged } from '@/lib/geo/resolve-place-input';
 import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
 import { buildMarketplaceV2PatchFields } from '@/lib/marketplace/patch-v2-fields';
 import { auth } from '@/lib/auth';
@@ -489,7 +494,13 @@ export async function PATCH(
               where: { id: (product as { sellerId: string }).sellerId },
               include: {
                 User: {
-                  select: { place: true, city: true, lat: true, lng: true },
+                  select: {
+                    place: true,
+                    city: true,
+                    lat: true,
+                    lng: true,
+                    country: true,
+                  },
                 },
               },
             });
@@ -503,18 +514,79 @@ export async function PATCH(
               body.pickupAddress !== undefined
                 ? body.pickupAddress
                 : (product as { pickupAddress?: string | null }).pickupAddress;
-            const pickupLat =
+            const placeNameIncoming =
+              typeof body.placeName === 'string'
+                ? body.placeName.trim()
+                : (product as { placeName?: string | null }).placeName || null;
+            const placeChanged =
+              body.placeName !== undefined &&
+              placeTextMateriallyChanged(
+                (product as { placeName?: string | null }).placeName,
+                body.placeName,
+              );
+
+            let pickupLat =
               body.pickupLat !== undefined
                 ? body.pickupLat != null
                   ? Number(body.pickupLat)
                   : null
                 : (product as { pickupLat?: number | null }).pickupLat;
-            const pickupLng =
+            let pickupLng =
               body.pickupLng !== undefined
                 ? body.pickupLng != null
                   ? Number(body.pickupLng)
                   : null
                 : (product as { pickupLng?: number | null }).pickupLng;
+
+            // New place text must never keep old coordinates.
+            if (placeChanged) {
+              const bodyHasNewCoords =
+                body.pickupLat != null &&
+                body.pickupLng != null &&
+                Number.isFinite(Number(body.pickupLat)) &&
+                Number.isFinite(Number(body.pickupLng));
+              if (!bodyHasNewCoords) {
+                pickupLat = null;
+                pickupLng = null;
+              }
+            }
+
+            const countryForGeo =
+              typeof sellerProfile?.User?.country === 'string' &&
+              sellerProfile.User.country.trim()
+                ? sellerProfile.User.country
+                : 'NL';
+            const placeQuery =
+              (typeof pickupAddress === 'string' && pickupAddress.trim()) ||
+              placeNameIncoming ||
+              (useProfileLocation
+                ? sellerProfile?.User?.place || sellerProfile?.User?.city || null
+                : null);
+
+            if (
+              (pickupLat == null || pickupLng == null) &&
+              placeQuery
+            ) {
+              const ensured = await ensureCoordsFromPlaceQuery({
+                placeQuery,
+                countryCode: countryForGeo,
+                lat: pickupLat,
+                lng: pickupLng,
+              });
+              if (ensured.resolution?.status === 'ambiguous') {
+                return NextResponse.json(
+                  ambiguousLocationResponse(ensured.resolution.candidates),
+                  { status: 400 },
+                );
+              }
+              pickupLat = ensured.lat;
+              pickupLng = ensured.lng;
+            }
+
+            // Persist resolved coords for later updateData
+            (body as { pickupLat?: number | null }).pickupLat = pickupLat;
+            (body as { pickupLng?: number | null }).pickupLng = pickupLng;
+
             const locCheck = validateProductLocationForPublish(
               useProfileLocation
                 ? {
@@ -529,11 +601,7 @@ export async function PATCH(
                     pickupLng,
                     seller: {
                       User: {
-                        place:
-                          (typeof body.placeName === 'string'
-                            ? body.placeName
-                            : (product as { placeName?: string | null }).placeName) ||
-                          null,
+                        place: placeNameIncoming,
                       },
                     },
                   }
@@ -567,10 +635,20 @@ export async function PATCH(
             tags: Array.isArray(body.tags)
               ? body.tags.filter((tag: string) => tag && tag.trim().length > 0)
               : undefined,
-            // Pickup location fields
+            // Pickup location fields — use write-time resolved coords when present on body
             pickupAddress: body.pickupAddress !== undefined ? body.pickupAddress : null,
-            pickupLat: body.pickupLat !== undefined && body.pickupLat !== null ? Number(body.pickupLat) : null,
-            pickupLng: body.pickupLng !== undefined && body.pickupLng !== null ? Number(body.pickupLng) : null,
+            pickupLat:
+              body.pickupLat !== undefined
+                ? body.pickupLat != null
+                  ? Number(body.pickupLat)
+                  : null
+                : null,
+            pickupLng:
+              body.pickupLng !== undefined
+                ? body.pickupLng != null
+                  ? Number(body.pickupLng)
+                  : null
+                : null,
             // Seller delivery fields
             sellerCanDeliver: body.sellerCanDeliver !== undefined ? Boolean(body.sellerCanDeliver) : undefined,
             deliveryRadiusKm: body.deliveryRadiusKm !== undefined && body.deliveryRadiusKm !== null ? Number(body.deliveryRadiusKm) : null,
