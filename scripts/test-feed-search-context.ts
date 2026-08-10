@@ -1,5 +1,5 @@
 /**
- * Feed search context bar — applied-state chips only.
+ * Feed search context bar — applied-state chips + inline controls.
  * Run: npx tsx scripts/test-feed-search-context.ts
  */
 import assert from 'node:assert/strict';
@@ -11,6 +11,7 @@ import {
   resolveSearchContextLocation,
 } from '../lib/feed/feed-search-context';
 import { FEED_SCOPE_NEARBY, FEED_SCOPE_NATIONAL } from '../lib/feed/feed-scope';
+import { RADIUS_PRESET_OPTIONS } from '../lib/geo/local-discovery';
 
 let passed = 0;
 function ok(name: string, cond: boolean) {
@@ -23,6 +24,10 @@ const root = path.resolve(__dirname, '..');
 const geo = fs.readFileSync(path.join(root, 'components/feed/GeoFeed.tsx'), 'utf8');
 const bar = fs.readFileSync(
   path.join(root, 'components/feed/FeedSearchContextBar.tsx'),
+  'utf8',
+);
+const toolbar = fs.readFileSync(
+  path.join(root, 'components/feed/FeedMobileToolbar.tsx'),
   'utf8',
 );
 const en = fs.readFileSync(path.join(root, 'public/i18n/en.json'), 'utf8');
@@ -150,19 +155,82 @@ ok(
   /searchContextBarEl[\s\S]{0,80}locationRefineBannerEl/.test(geo),
 );
 ok(
-  'bar is interactive region with chip actions',
+  'bar is interactive region with inline panels',
   bar.includes('role="region"') &&
-    bar.includes('onLocationActivate') &&
+    bar.includes('aria-expanded') &&
+    bar.includes('feed-search-context-panel') &&
     bar.includes('-action'),
 );
 ok('bar has test id', bar.includes('feed-search-context-bar'));
+
 ok(
-  'GeoFeed wires context bar to existing controls',
-  geo.includes('onLocationActivate={handleChoosePlaceForNearby}') &&
-    geo.includes('onRadiusActivate={handleContextRadiusActivate}') &&
-    geo.includes('onSortActivate={handleContextSortActivate}') &&
-    geo.includes('feed-sidebar-radius') &&
-    geo.includes('feed-mobile-sort'),
+  'location chip opens inline location control',
+  bar.includes("togglePanel('location')") &&
+    bar.includes('feed-search-context-location-input') &&
+    bar.includes('feed-search-context-location-apply'),
+);
+ok(
+  'radius chip opens inline radius control',
+  bar.includes("togglePanel('radius')") &&
+    bar.includes('feed-search-context-radius-option-'),
+);
+ok(
+  'sort chip opens inline sort control',
+  bar.includes("togglePanel('sort')") &&
+    bar.includes('feed-search-context-sort-option-'),
+);
+
+ok(
+  'sort selection writes canonical onSort',
+  bar.includes('props.onSort(option.id)') && geo.includes('onSort={handleSort}'),
+);
+ok(
+  'radius selection writes canonical onRadiusChange',
+  bar.includes('props.onRadiusChange(km)') &&
+    geo.includes('onRadiusChange={handleRadiusChange}'),
+);
+ok(
+  'location apply writes canonical applyFilters place',
+  bar.includes('props.onPlaceApply(next)') &&
+    geo.includes('onPlaceApply={(nextPlace) => applyFilters({ place: nextPlace })}') &&
+    geo.includes('applyFilters = useCallback((overrides?: { place?: string })'),
+);
+ok(
+  'location GPS reuses handleUseMyLocation',
+  geo.includes('onUseMyLocation={handleUseMyLocation}') &&
+    bar.includes('props.onUseMyLocation()'),
+);
+ok(
+  'full filters share same sort/radius/place state wiring',
+  geo.includes('onSort={handleSort}') &&
+    geo.includes('onRadiusChange={handleRadiusChange}') &&
+    geo.includes('onPlaceChange={handlePlaceInput}'),
+);
+ok(
+  'duplicate standalone mobile sort control absent',
+  !toolbar.includes('feed-mobile-sort') &&
+    !toolbar.includes('onSort') &&
+    !geo.includes('#feed-mobile-sort') &&
+    !geo.includes('id="feed-mobile-sort"'),
+);
+ok(
+  'mobile toolbar has no sort select',
+  !toolbar.includes('feed-mobile-sort') && !toolbar.includes('<select'),
+);
+ok(
+  'legacy top sort row not rendered when filterChrome false',
+  !geo.includes('{!filterChrome && sortRowEl}'),
+);
+ok(
+  'opening panel does not call fetch/geo APIs',
+  !bar.includes('/api/geo') &&
+    !bar.includes('fetch(') &&
+    !bar.includes('getCurrentPosition'),
+);
+ok(
+  'context bar uses existing radius presets',
+  geo.includes('RADIUS_PRESET_OPTIONS') &&
+    RADIUS_PRESET_OPTIONS.filter((k) => k > 0).length >= 5,
 );
 ok(
   'no second location/sort/radius state invented for context bar',
@@ -173,6 +241,12 @@ ok(
 ok(
   'fallback location chip uses chooseLocation',
   geo.includes('feed.searchContext.chooseLocation'),
+);
+ok(
+  'a11y: escape + aria-controls + dialog',
+  bar.includes("e.key === 'Escape'") &&
+    bar.includes('aria-controls') &&
+    bar.includes('role="dialog"'),
 );
 ok('en i18n searchContext keys', en.includes('"searchContext"') && en.includes('fromPrefix') && en.includes('chooseLocation'));
 ok('nl i18n searchContext keys', nl.includes('"searchContext"') && nl.includes('fromPrefix') && nl.includes('Kies locatie'));
