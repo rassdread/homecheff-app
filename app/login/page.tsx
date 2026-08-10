@@ -170,9 +170,14 @@ function LoginForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillEmail]);
 
-  // Al ingelogd: pending intent wint van generieke callback; anders callback of home
+  // Al ingelogd: pending intent wint van generieke callback; anders callback of home.
+  // Depend on stable user id — not the whole session object — to avoid replace loops.
+  const authenticatedUserId =
+    sessionStatus === 'authenticated' && session?.user
+      ? String((session.user as { id?: string }).id || session.user.email || '')
+      : '';
   useEffect(() => {
-    if (sessionStatus !== 'authenticated' || !session?.user) return;
+    if (!authenticatedUserId || !session?.user) return;
     const u = session.user as {
       username?: string | null;
       socialOnboardingCompleted?: boolean | null;
@@ -184,8 +189,14 @@ function LoginForm() {
     const intentUrl = consumeAndResolvePostAuthUrl(u);
     const target =
       intentUrl || (callbackUrl && callbackUrl !== '/' ? callbackUrl : '/');
+    // Never replace back onto /login (would spin).
+    if (target === '/login' || target.startsWith('/login?')) {
+      router.replace('/');
+      return;
+    }
     router.replace(target);
-  }, [sessionStatus, session, router, callbackUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: once per authenticated identity
+  }, [authenticatedUserId, callbackUrl, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

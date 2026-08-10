@@ -22,6 +22,7 @@ import {
   resolveGoogleWebOAuthClient,
 } from "./auth/google-oauth-clients";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
+import { withPrismaRetry } from "./auth/prisma-retry";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -82,6 +83,23 @@ export const authOptions: NextAuthOptions = {
       options: {
         ...sessionCookieOptions,
         maxAge: 60 * 60, // 1 hour
+      },
+    },
+    // Keep OAuth state/PKCE on the same Domain policy as csrf/session.
+    // Mixed host-only (__Secure-*) + Domain=.homecheff.eu cookies caused brittle
+    // Google callback failures when the browser jar / subdomain navigation diverged.
+    state: {
+      name: `next-auth.state`,
+      options: {
+        ...sessionCookieOptions,
+        maxAge: 60 * 15,
+      },
+    },
+    pkceCodeVerifier: {
+      name: `next-auth.pkce.code_verifier`,
+      options: {
+        ...sessionCookieOptions,
+        maxAge: 60 * 15,
       },
     },
   },
@@ -208,18 +226,22 @@ export const authOptions: NextAuthOptions = {
           const prof = profile as { email_verified?: boolean };
           const emailVerified = prof?.email_verified !== false;
 
-          const sync = await syncGoogleProfileToDatabase({
-            email: user.email!,
-            name: user.name,
-            image: user.image,
-            firstName: (user as any).firstName,
-            lastName: (user as any).lastName,
-            googleSub: account?.providerAccountId ?? null,
-            emailVerified,
-            accessToken: account?.access_token ?? null,
-            refreshToken: account?.refresh_token ?? null,
-            expiresAt: account?.expires_at ?? null,
-          });
+          const sync = await withPrismaRetry(
+            () =>
+              syncGoogleProfileToDatabase({
+                email: user.email!,
+                name: user.name,
+                image: user.image,
+                firstName: (user as any).firstName,
+                lastName: (user as any).lastName,
+                googleSub: account?.providerAccountId ?? null,
+                emailVerified,
+                accessToken: account?.access_token ?? null,
+                refreshToken: account?.refresh_token ?? null,
+                expiresAt: account?.expires_at ?? null,
+              }),
+            { label: "google_signIn_sync", attempts: 3, delayMs: 200 },
+          );
 
           if (sync.isNewSocialUser) {
             (user as any).isNewSocialUser = true;
@@ -329,15 +351,26 @@ export const authOptions: NextAuthOptions = {
       const shouldCheckDB = user || trigger === 'update' || !minimalToken.onboardingChecked || isSocialLogin;
       
       if (shouldCheckDB && minimalToken.email) {
-        const dbUser = await findUserByCanonicalEmail(prisma, minimalToken.email as string, {
-          select: {
-            id: true,
-            role: true,
-            socialOnboardingCompleted: true,
-            username: true,
-            suspendedAt: true,
-          },
-        });
+        let dbUser = null;
+        try {
+          dbUser = await withPrismaRetry(
+            () =>
+              findUserByCanonicalEmail(prisma, minimalToken.email as string, {
+                select: {
+                  id: true,
+                  role: true,
+                  socialOnboardingCompleted: true,
+                  username: true,
+                  suspendedAt: true,
+                },
+              }),
+            { label: "jwt_user_lookup", attempts: 3, delayMs: 150 },
+          );
+        } catch (err) {
+          // Prefer completing OAuth with token essentials over failing the whole login on pool blips.
+          console.error("❌ jwt callback DB lookup failed after retries:", err);
+          dbUser = null;
+        }
         
         if (dbUser) {
           // MINIMAL TOKEN: Only store essential IDs and boolean flags
