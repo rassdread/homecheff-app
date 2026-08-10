@@ -287,6 +287,7 @@
     "test:discovery-feed-without-location": "npx tsx scripts/validate-discovery-feed-without-location.ts",
     "test:feed-composition-progressive": "npx tsx scripts/validate-feed-composition-progressive-discovery.ts",
     "test:discovery-continuity": "npx tsx scripts/validate-discovery-continuity.ts",
+    "test:feed-radius-presentation": "npx tsx scripts/test-feed-radius-presentation.ts",
     "test:final-automated-acceptance": "node scripts/final-automated-product-acceptance.mjs",
     "test:feed-recovery-continuity": "npx tsx scripts/validate-feed-recovery-continuity.ts"
   },

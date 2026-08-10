@@ -239,9 +239,18 @@ check(
 
 check(
   'GeoFeed continuity layout precedes exclusive empties',
-  /showDiscoveryContinuityBand\s*\?/.test(geo) &&
+  (/showDiscoveryContinuityBand\s*\?/.test(geo) ||
+    /showRadiusStageLayout\s*\?/.test(geo)) &&
     geo.includes('blockExclusiveEmpty') &&
     geo.includes('data-wx-discovery-continuity-layout'),
+);
+
+check(
+  'GeoFeed splits exact vs widened presentation for Nearby radius',
+  geo.includes('splitFeedRowsByRadiusMembership') &&
+    geo.includes('showRadiusStageLayout') &&
+    geo.includes('sortProgressiveNearbyPoolsPreservingLocalFirst') &&
+    geo.includes('!locationFilterActive'),
 );
 
 check(

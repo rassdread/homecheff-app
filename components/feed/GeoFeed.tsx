@@ -259,11 +259,18 @@ import {
   type RecircSeedItem,
 } from "@/lib/feed/feed-composition-policy";
 import {
+  collectFeedRowListingIds,
+  dedupeFeedRowsByListingId,
+  sortProgressiveNearbyPoolsPreservingLocalFirst,
+  splitFeedRowsByRadiusMembership,
+} from "@/lib/feed/feed-radius-presentation";
+import {
   hasActiveFeedDiscoveryConstraint,
   buildExactDiscoveryCompositionSignals,
   shouldRenderDiscoveryContinuityFeed,
   shouldShowDiscoveryContinuityBand,
 } from "@/lib/feed/discovery-continuity";
+import { isLocalFeedItem } from "@/lib/geo/feed-radius-filter";
 import {
   composedFeedCanContinue,
   createFeedCompositionState,
@@ -1898,6 +1905,13 @@ export default function GeoFeed({
       setNativeFeedExtraOpen(true);
       setMobileFilterSheetOpen(true);
       setMobileSheetFocusPlace(true);
+    } else if (workspaceRailOwnsFilters) {
+      // AW start rail owns FeedSidebarFilters via portal — focus existing place input.
+      window.setTimeout(() => {
+        const el = placeInputRef.current;
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.focus({ preventScroll: false });
+      }, 50);
     } else if (isDesktopSplit) {
       setSidebarRefineOpen(true);
       window.setTimeout(() => {
@@ -1927,7 +1941,7 @@ export default function GeoFeed({
       };
       window.setTimeout(() => focusPlace(0), 80);
     }
-  }, [feedCompactChrome, isDesktopSplit]);
+  }, [feedCompactChrome, isDesktopSplit, workspaceRailOwnsFilters]);
 
   useEffect(() => {
     if (!gpsRequestPendingRef.current || locationLoading || coords) return;
@@ -4035,10 +4049,16 @@ export default function GeoFeed({
     !locationFilterActive &&
     !discoveryFeedActive(discoveryFeed);
 
+  /**
+   * Discovery section order must not scramble the Nearby radius boundary.
+   * When a viewer location + radius are active, keep local-first stages and
+   * apply newest/discovery ordering inside each partition instead.
+   */
   const useDiscoverySections =
     feedChip !== "inspiration" &&
     isDiscoverySmartFeedSort(appliedSortBy, appliedSortOrder) &&
-    discoveryFeedActive(discoveryFeed);
+    discoveryFeedActive(discoveryFeed) &&
+    !locationFilterActive;
 
   /** Vaste tijd per dataset zodat score-ranking niet verschuift tussen re-renders. */
   const rankNowMs = useMemo(
@@ -4166,11 +4186,32 @@ export default function GeoFeed({
     }
 
     if (!useSmartRanking) {
-      const ordered = sortFeedSaleItems(
-        salePoolForRanking,
-        appliedSortBy,
-        appliedSortOrder
-      );
+      // Nearby + location: sort each radius partition, then local-first concat.
+      // Flat-sorting the progressive pool lets 170km "newer" rows beat 12km.
+      const ordered = locationFilterActive
+        ? isDiscoverySmartFeedSort(appliedSortBy, appliedSortOrder) &&
+          discoveryFeedActive(discoveryFeed)
+          ? composeProgressiveNearbySalePool({
+              local: orderItemsFromDiscoveryFeed(
+                localSalePool,
+                discoveryFeed,
+              ),
+              wider: orderItemsFromDiscoveryFeed(
+                saleWiderPool,
+                discoveryFeed,
+              ),
+            })
+          : sortProgressiveNearbyPoolsPreservingLocalFirst({
+              local: localSalePool,
+              wider: saleWiderPool,
+              sortBy: appliedSortBy,
+              sortOrder: appliedSortOrder,
+            })
+        : sortFeedSaleItems(
+            salePoolForRanking,
+            appliedSortBy,
+            appliedSortOrder,
+          );
       return {
         orderedForMix: ordered,
         orderedSaleOnly: ordered,
@@ -4200,6 +4241,9 @@ export default function GeoFeed({
     };
   }, [
     salePoolForRanking,
+    localSalePool,
+    saleWiderPool,
+    locationFilterActive,
     rankNowMs,
     useSmartRanking,
     useDiscoverySections,
@@ -4238,10 +4282,39 @@ export default function GeoFeed({
         discoveryFeed?.insertion.itemsBetweenSections ?? 4,
       );
     } else if (!useSmartRanking) {
-      rows = interleaveSalesAndInspiration(
-        rankingResult.orderedForMix,
-        inspirationSlots
-      );
+      if (locationFilterActive) {
+        // Keep inspiration inside the same radius stage as nearby sales so a
+        // 12km design cannot appear after 170km marketplace rows.
+        const localInsp = inspirationSlots.filter((slot) =>
+          isLocalFeedItem(inspSlotToSortable(slot).distanceKm, appliedRadius),
+        );
+        const widerInsp = inspirationSlots.filter(
+          (slot) =>
+            !isLocalFeedItem(
+              inspSlotToSortable(slot).distanceKm,
+              appliedRadius,
+            ),
+        );
+        rows = [
+          ...interleaveSalesAndInspiration(
+            rankingResult.orderedForMix.filter((item) =>
+              isLocalFeedItem(item.distanceKm, appliedRadius),
+            ),
+            localInsp,
+          ),
+          ...interleaveSalesAndInspiration(
+            rankingResult.orderedForMix.filter(
+              (item) => !isLocalFeedItem(item.distanceKm, appliedRadius),
+            ),
+            widerInsp,
+          ),
+        ];
+      } else {
+        rows = interleaveSalesAndInspiration(
+          rankingResult.orderedForMix,
+          inspirationSlots,
+        );
+      }
     } else {
       rows = interleaveWithSmartPrefix(
         rankingResult.orderedForMix,
@@ -4258,6 +4331,8 @@ export default function GeoFeed({
     feedChip,
     useDiscoverySections,
     useSmartRanking,
+    locationFilterActive,
+    appliedRadius,
     rankingResult.orderedForMix,
     rankingResult.topForMix,
     rankingResult.discoverySectionRows,
@@ -4393,7 +4468,7 @@ export default function GeoFeed({
 
   const displayCount = composedDisplayRows.length;
 
-  /** Exact-set composition signals (exclude recirculation stage-4 rows). */
+  /** Exact-set composition signals (exclude recirculation + outside-radius rows). */
   const exactCompositionSignals = useMemo(() => {
     const items: Array<{
       id: string;
@@ -4402,6 +4477,12 @@ export default function GeoFeed({
     }> = [];
     for (const row of displayRows) {
       if (row.row === "sale") {
+        if (
+          locationFilterActive &&
+          !isLocalFeedItem(row.item.distanceKm, appliedRadius)
+        ) {
+          continue;
+        }
         items.push({
           id: row.item.id,
           creatorId: row.item.sellerUserId ?? null,
@@ -4410,6 +4491,16 @@ export default function GeoFeed({
         continue;
       }
       if (row.row === "insp") {
+        const inspDistance =
+          row.slot.kind === "api"
+            ? row.slot.item.location?.distanceKm
+            : row.slot.item.distanceKm;
+        if (
+          locationFilterActive &&
+          !isLocalFeedItem(inspDistance, appliedRadius)
+        ) {
+          continue;
+        }
         if (row.slot.kind === "api") {
           items.push({
             id: row.slot.item.id,
@@ -4437,6 +4528,7 @@ export default function GeoFeed({
   }, [
     displayRows,
     locationFilterActive,
+    appliedRadius,
     localSalePool.length,
     saleWiderPool.length,
     appliedScope,
@@ -5343,13 +5435,55 @@ export default function GeoFeed({
       discoveryConstraintActive &&
       widenedDiscoveryActive);
 
+  /**
+   * Nearby + location: split progressive composition into honest exact vs
+   * widened presentation. Recirculation always belongs after the band.
+   */
+  const radiusPresentation = useMemo(() => {
+    if (!locationFilterActive) {
+      return {
+        exactRows: null as typeof displayRows | null,
+        widenedRows: [] as typeof displayRows,
+        hasWidened: false,
+        exactListingCount: displayRows.length,
+      };
+    }
+    const { exact, widened } = splitFeedRowsByRadiusMembership(
+      displayRows,
+      appliedRadius,
+    );
+    const afterBand = [
+      ...widened,
+      ...recirculatedRows,
+    ] as typeof displayRows;
+    return {
+      exactRows: exact,
+      widenedRows: afterBand,
+      hasWidened: afterBand.length > 0 || saleWiderPool.length > 0,
+      exactListingCount: exact.filter(
+        (row) => row.row === "sale" || row.row === "insp",
+      ).length,
+    };
+  }, [
+    locationFilterActive,
+    displayRows,
+    appliedRadius,
+    recirculatedRows,
+    saleWiderPool.length,
+  ]);
+
+  const showRadiusStageLayout =
+    showDiscoveryContinuityBand ||
+    (locationFilterActive && radiusPresentation.hasWidened);
+
   const showDiscoveryContinuityFeed = shouldRenderDiscoveryContinuityFeed({
-    showBand: showDiscoveryContinuityBand,
-    continuityCandidateCount: continuityDisplayRows.length,
+    showBand: showRadiusStageLayout,
+    continuityCandidateCount:
+      radiusPresentation.widenedRows.length + continuityDisplayRows.length,
   });
 
   /** Never dead-end on exclusive empties when continuity band/feed applies. */
-  const blockExclusiveEmpty = showDiscoveryContinuityBand;
+  const blockExclusiveEmpty = showRadiusStageLayout;
 
   const emptyAcceptedValues =
     !blockExclusiveEmpty &&
@@ -6524,73 +6658,118 @@ export default function GeoFeed({
           </p>
           <p className="mt-1 text-emerald-800/80">{t("feed.searchingResultsHint")}</p>
         </div>
-      ) : showDiscoveryContinuityBand ? (
+      ) : showRadiusStageLayout ? (
         <div
           className={`space-y-3${showStaleFeedWhileRefreshing ? " opacity-90" : ""}`}
           data-wx-discovery-continuity-layout=""
         >
           {filterSearchingBannerEl}
-          {feedRowsToRender.length > 0 ? (
-            <div
-              key={isMobileFeedUi ? `${effectiveFeedLayoutMode}-exact` : "desktop-exact"}
-              className={feedResultsContainerClass}
-              data-wx-discovery-exact=""
-            >
-              {isMobileFeedUi && feedChip === "sale" && session?.user ? (
-                <div className="col-span-full">
-                  <ExchangeSuggestionsMobileModule context="discovery" className="mb-3" />
-                </div>
-              ) : null}
-              {buildFeedGridNodes(feedRowsToRender)}
-            </div>
-          ) : null}
-          <DiscoveryContinuityBand
-            t={t}
-            exactMatchCount={displayCount}
-            searchQuery={appliedSearchQuery}
-            appliedScope={appliedScope}
-            appliedRadius={appliedRadius}
-            onCreate={() =>
-              createFlow.openCreateFlowWithIntent(
-                createIntentForSaleOrInspiration(category, "sale"),
-              )
-            }
-            onRequest={() => setFeedChip("gezocht")}
-            onTrade={activateTradeDiscovery}
-            onFocusSearch={() => {
-              const el = document.querySelector<HTMLInputElement>(
-                "[data-wx-feed-search]",
-              );
-              el?.focus();
-            }}
-            onOpenFilters={() => {
-              if (feedCompactChrome && !isDesktopSplit) {
-                setMobileFilterSheetOpen(true);
-              } else {
-                setSidebarRefineOpen(true);
-              }
-            }}
-            onClearFilters={() => {
-              clearFilters();
-              setFeedChip("all");
-            }}
-            onUseMyLocation={handleUseMyLocation}
-            onWidenRadius={handleWidenRadius}
-            onViewNearby={() => handleScopeChange(FEED_SCOPE_NEARBY)}
-          />
-          {showDiscoveryContinuityFeed ? (
-            <div
-              key={isMobileFeedUi ? `${effectiveFeedLayoutMode}-cont` : "desktop-cont"}
-              className={feedResultsContainerClass}
-              data-wx-discovery-continuity-feed=""
-            >
-              {buildFeedGridNodes(
-                (nativeMounted && !nativeFeedRenderMore
+          {(() => {
+            const exactSource =
+              radiusPresentation.exactRows ?? feedRowsToRender;
+            const exactIds = collectFeedRowListingIds(exactSource);
+            const widenedMerged = dedupeFeedRowsByListingId(
+              [
+                ...radiusPresentation.widenedRows,
+                ...((nativeMounted && !nativeFeedRenderMore
                   ? continuityRowsToRender
-                  : continuityDisplayRows) as typeof feedRowsToRender,
-              )}
-            </div>
-          ) : null}
+                  : continuityDisplayRows) as typeof feedRowsToRender),
+              ] as typeof feedRowsToRender,
+              exactIds,
+            );
+            const exactForPaint =
+              nativeMounted && !nativeFeedRenderMore
+                ? exactSource.slice(
+                    0,
+                    Math.min(exactSource.length, FEED_FIRST_PAGE_TAKE),
+                  )
+                : exactSource;
+            const widenedBudget =
+              nativeMounted && !nativeFeedRenderMore
+                ? Math.max(0, FEED_FIRST_PAGE_TAKE - exactForPaint.length)
+                : widenedMerged.length;
+            const widenedForPaint = widenedMerged.slice(0, widenedBudget);
+            return (
+              <>
+                {exactForPaint.length > 0 ? (
+                  <div
+                    key={
+                      isMobileFeedUi
+                        ? `${effectiveFeedLayoutMode}-exact`
+                        : "desktop-exact"
+                    }
+                    className={feedResultsContainerClass}
+                    data-wx-discovery-exact=""
+                  >
+                    {isMobileFeedUi && feedChip === "sale" && session?.user ? (
+                      <div className="col-span-full">
+                        <ExchangeSuggestionsMobileModule
+                          context="discovery"
+                          className="mb-3"
+                        />
+                      </div>
+                    ) : null}
+                    {buildFeedGridNodes(exactForPaint as typeof feedRowsToRender)}
+                  </div>
+                ) : null}
+                <DiscoveryContinuityBand
+                  t={t}
+                  exactMatchCount={
+                    locationFilterActive
+                      ? radiusPresentation.exactListingCount
+                      : displayCount
+                  }
+                  searchQuery={appliedSearchQuery}
+                  appliedScope={appliedScope}
+                  appliedRadius={appliedRadius}
+                  onCreate={() =>
+                    createFlow.openCreateFlowWithIntent(
+                      createIntentForSaleOrInspiration(category, "sale"),
+                    )
+                  }
+                  onRequest={() => setFeedChip("gezocht")}
+                  onTrade={activateTradeDiscovery}
+                  onFocusSearch={() => {
+                    const el = document.querySelector<HTMLInputElement>(
+                      "[data-wx-feed-search]",
+                    );
+                    el?.focus();
+                  }}
+                  onOpenFilters={() => {
+                    if (feedCompactChrome && !isDesktopSplit) {
+                      setMobileFilterSheetOpen(true);
+                    } else if (workspaceRailOwnsFilters) {
+                      requestPlaceInputFocus({ reason: "continuity-filters" });
+                    } else {
+                      setSidebarRefineOpen(true);
+                    }
+                  }}
+                  onClearFilters={() => {
+                    clearFilters();
+                    setFeedChip("all");
+                  }}
+                  onUseMyLocation={handleUseMyLocation}
+                  onWidenRadius={handleWidenRadius}
+                  onViewNearby={() => handleScopeChange(FEED_SCOPE_NEARBY)}
+                />
+                {showDiscoveryContinuityFeed && widenedForPaint.length > 0 ? (
+                  <div
+                    key={
+                      isMobileFeedUi
+                        ? `${effectiveFeedLayoutMode}-cont`
+                        : "desktop-cont"
+                    }
+                    className={feedResultsContainerClass}
+                    data-wx-discovery-continuity-feed=""
+                  >
+                    {buildFeedGridNodes(
+                      widenedForPaint as typeof feedRowsToRender,
+                    )}
+                  </div>
+                ) : null}
+              </>
+            );
+          })()}
           {feedHasMore ? (
             <div
               ref={feedLoadMoreRef}
