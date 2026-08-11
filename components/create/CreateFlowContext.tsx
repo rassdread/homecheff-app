@@ -36,8 +36,14 @@ import {
 } from "@/lib/create/create-placement-roles";
 import { registerCreateRolesGate } from "@/lib/create/create-roles-gate-bus";
 import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
-import CreateGuestAuthModal from "./CreateGuestAuthModal";
-import CreateRolesGateModal from "./CreateRolesGateModal";
+import dynamic from "next/dynamic";
+
+const CreateGuestAuthModal = dynamic(() => import("./CreateGuestAuthModal"), {
+  ssr: false,
+});
+const CreateRolesGateModal = dynamic(() => import("./CreateRolesGateModal"), {
+  ssr: false,
+});
 
 type CreateFlowContextValue = {
   /** Marketplace Entry Flow V3 — /sell/new */
@@ -297,17 +303,21 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
   return (
     <CreateFlowContext.Provider value={{ openCreateFlow, openCreateFlowWithIntent }}>
       {children}
-      <CreateGuestAuthModal
-        open={guestOpen}
-        onAbandon={handleAbandonGuestModal}
-        onAuthNavigate={handleAuthNavigateFromModal}
-        loginHref={authUrls.login}
-        registerHref={authUrls.register}
-      />
-      <CreateRolesGateModal
-        open={rolesGateOpen}
-        onClose={() => setRolesGateOpen(false)}
-      />
+      {guestOpen ? (
+        <CreateGuestAuthModal
+          open={guestOpen}
+          onAbandon={handleAbandonGuestModal}
+          onAuthNavigate={handleAuthNavigateFromModal}
+          loginHref={authUrls.login}
+          registerHref={authUrls.register}
+        />
+      ) : null}
+      {rolesGateOpen ? (
+        <CreateRolesGateModal
+          open={rolesGateOpen}
+          onClose={() => setRolesGateOpen(false)}
+        />
+      ) : null}
     </CreateFlowContext.Provider>
   );
 }

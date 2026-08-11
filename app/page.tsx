@@ -3,6 +3,7 @@ import { cookies, headers } from 'next/headers';
 import { authOptions } from '@/lib/auth';
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 import HomePageClient from '@/components/home/HomePageClient';
+import { buildHomeFeedEarlyBootstrapInlineScript } from '@/lib/feed/home-feed-early-bootstrap';
 import {
   isLegacyServicesViewChip,
   migrateLegacyServicesViewChip,
@@ -132,15 +133,27 @@ export default async function HomePage({
   }
 
   return (
-    <HomePageClient
-      ssrAuthHint={ssrAuthHint}
-      initialFeedChip={initialFeedChip}
-      initialFeedCategory={initialFeedCategory}
-      initialFeedPlace={initialFeedPlace}
-      initialIpApprox={initialIpApprox}
-      stickyTestMode={stickyTestMode}
-      feedWorkspaceVisibilityMode={feedWorkspaceVisibilityMode}
-      feedWorkspacePreviewRequested={feedWorkspacePreviewRequested}
-    />
+    <>
+      {/* Overlap first /api/feed with critical JS download (IP/place seed only). */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: buildHomeFeedEarlyBootstrapInlineScript({
+            initialFeedPlace,
+            initialIpApprox,
+            category: initialFeedCategory,
+          }),
+        }}
+      />
+      <HomePageClient
+        ssrAuthHint={ssrAuthHint}
+        initialFeedChip={initialFeedChip}
+        initialFeedCategory={initialFeedCategory}
+        initialFeedPlace={initialFeedPlace}
+        initialIpApprox={initialIpApprox}
+        stickyTestMode={stickyTestMode}
+        feedWorkspaceVisibilityMode={feedWorkspaceVisibilityMode}
+        feedWorkspacePreviewRequested={feedWorkspacePreviewRequested}
+      />
+    </>
   );
 }

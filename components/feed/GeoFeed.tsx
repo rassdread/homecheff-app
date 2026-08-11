@@ -21,17 +21,15 @@ import {
   feedLocationLine,
 } from "@/components/feed/GeoFeedCards";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
-import AcceptedValuesDiscoveryFilter from "@/components/feed/AcceptedValuesDiscoveryFilter";
 import DiscoveryDirectionToggle, {
   type DiscoveryDirection,
 } from "@/components/feed/DiscoveryDirectionToggle";
 import AcceptedValueChip from "@/components/marketplace/AcceptedValueChip";
-import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
+import dynamic from "next/dynamic";
 import LocationRefineBanner from "@/components/feed/LocationRefineBanner";
 import FeedSearchContextBar from "@/components/feed/FeedSearchContextBar";
 import DiscoveryContinuityBand from "@/components/feed/DiscoveryContinuityBand";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
-import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
 import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
 import { requestPlaceInputFocus } from "@/lib/feed/place-input-focus-request";
 import { useLandscapeWorkPosture } from "@/components/adaptive-workspace/WorkspaceChromeProvider";
@@ -209,6 +207,7 @@ import {
   buildGeoFeedApiParams,
   buildInspiratieCategoryParam,
 } from "@/lib/feed/feed-query-params";
+import { takeHomeFeedEarlyBootstrap } from "@/lib/feed/home-feed-early-bootstrap";
 import { FEED_FIRST_PAGE_TAKE } from "@/lib/feed/feed-pagination";
 import {
   FEED_SCOPE_INTERNATIONAL,
@@ -1029,6 +1028,21 @@ const CATEGORY_CHIP_OPTIONS = DISCOVERY_CATEGORY_CHIP_OPTIONS;
  * `root`; otherwise the sentinel never intersects and load-more / recirculation stall.
  * Mobile and non-composed contexts keep viewport root (`null`).
  */
+
+/** Heavy filter chrome — not required to paint the first feed card. */
+const FeedSidebarFilters = dynamic(
+  () => import("@/components/feed/FeedSidebarFilters"),
+  { ssr: false },
+);
+const FeedMobileFilterSheet = dynamic(
+  () => import("@/components/feed/FeedMobileFilterSheet"),
+  { ssr: false },
+);
+const AcceptedValuesDiscoveryFilter = dynamic(
+  () => import("@/components/feed/AcceptedValuesDiscoveryFilter"),
+  { ssr: false },
+);
+
 function resolveFeedIntersectionRoot(
   sentinel: Element,
   preferDesktopFeedColumn: boolean,
@@ -1189,52 +1203,6 @@ export default function GeoFeed({
   const spinnerShownAtRef = useRef<number | null>(null);
   const preparedRecircBatchRef = useRef<RecircSeedItem[] | null>(null);
   const feedHasMoreRef = useRef(false);
-  const recirculatedRowsLenRef = useRef(0);
-  /** Temporary endless-recirc handoff diagnostics (Phase 1). */
-  const feedHandoffDiagRef = useRef<
-    Array<Record<string, unknown>>
-  >([]);
-  const pushFeedHandoffDiag = useCallback((event: string, payload: Record<string, unknown>) => {
-    const row = {
-      at: new Date().toISOString(),
-      event,
-      ...payload,
-    };
-    const buf = feedHandoffDiagRef.current;
-    buf.push(row);
-    if (buf.length > 80) buf.splice(0, buf.length - 80);
-    if (typeof window !== "undefined") {
-      (
-        window as Window & {
-          __HC_FEED_HANDOFF_DIAG__?: unknown;
-        }
-      ).__HC_FEED_HANDOFF_DIAG__ = {
-        latest: row,
-        log: buf.slice(),
-        snapshot: () => ({
-          stage: compositionStateRef.current.stage,
-          marketplaceExhausted:
-            compositionStateRef.current.marketplaceExhausted,
-          exactExhausted: compositionStateRef.current.exactExhausted,
-          broadenedExhausted: compositionStateRef.current.broadenedExhausted,
-          recirculationActive: compositionStateRef.current.recirculationActive,
-          emptyTerminal: compositionStateRef.current.emptyTerminal,
-          uniqueEligibleCount: compositionStateRef.current.uniqueEligibleCount,
-          displayedHistoryLen:
-            compositionStateRef.current.displayedHistory.length,
-          recentIdsLen: compositionStateRef.current.recentIds.length,
-          recirculationBatchIndex:
-            compositionStateRef.current.recirculationBatchIndex,
-          recirculatedRowsLen: recirculatedRowsLenRef.current,
-          feedHasMore: feedHasMoreRef.current,
-          sentinelMounted: Boolean(feedLoadMoreRef.current),
-        }),
-      };
-    }
-    if (isGeoFeedDiagnosticsEnabled()) {
-      console.info("[hc-feed-handoff]", event, payload);
-    }
-  }, []);
   const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
   /** Prevents duplicate concurrent network fetch for the same query key. */
@@ -2675,20 +2643,35 @@ export default function GeoFeed({
 
     const run = async () => {
       try {
-        const feedRes = await fetch(feedUrl, {
-          signal: ac.signal,
-          cache: "no-store",
-        });
+        let data: {
+          items?: unknown;
+          discovery?: DiscoveryFeedPayload;
+          pagination?: { hasMore?: boolean; total?: number };
+          debug?: Record<string, unknown>;
+        } | null = null;
 
+        const early = await takeHomeFeedEarlyBootstrap(requestKey);
         if (cancelled) return;
-
-        if (feedRes.ok) {
-          let data: {
+        if (early?.ok && early.json && typeof early.json === "object") {
+          data = early.json as {
             items?: unknown;
             discovery?: DiscoveryFeedPayload;
             pagination?: { hasMore?: boolean; total?: number };
             debug?: Record<string, unknown>;
           };
+          feedPerfMark("feed:early-bootstrap-hit");
+        } else {
+          const feedRes = await fetch(feedUrl, {
+            signal: ac.signal,
+            cache: "no-store",
+          });
+          if (cancelled) return;
+          if (!feedRes.ok) {
+            setDiscoveryFeed(null);
+            setFeedHasMore(false);
+            setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
+            return;
+          }
           try {
             data = await feedRes.json();
           } catch {
@@ -2697,6 +2680,14 @@ export default function GeoFeed({
             setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
             return;
           }
+        }
+        if (!data) {
+          setDiscoveryFeed(null);
+          setFeedHasMore(false);
+          setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
+          return;
+        }
+        {
           if (cancelled) return;
           // Reject late responses from a previous scope/radius/coords selection.
           if (latestFeedRequestKeyRef.current !== requestKey) {
@@ -2867,24 +2858,6 @@ export default function GeoFeed({
             apiHasMore || composedFeedCanContinue(nextComp);
           feedHasMoreRef.current = composedHasMore;
           setFeedHasMore(composedHasMore);
-          pushFeedHandoffDiag("first-page-composition", {
-            apiHasMore,
-            fetched: valid.length,
-            stage: nextComp.stage,
-            marketplaceExhausted: nextComp.marketplaceExhausted,
-            exactExhausted: nextComp.exactExhausted,
-            broadenedExhausted: nextComp.broadenedExhausted,
-            recirculationActive: nextComp.recirculationActive,
-            emptyTerminal: nextComp.emptyTerminal,
-            uniqueEligibleCount: nextComp.uniqueEligibleCount,
-            displayedHistoryLen: nextComp.displayedHistory.length,
-            recentIdsLen: nextComp.recentIds.length,
-            composedHasMore,
-            feedHasMore: composedHasMore,
-            canContinue: composedFeedCanContinue(nextComp),
-            shouldBroaden: shouldFetchBroadenedDiscovery(nextComp),
-            shouldRecirc: shouldActivateRecirculation(nextComp),
-          });
           feedSealedNotePreparedBatchIdentity({
             itemCount: valid.length,
             firstId: valid[0]?.id ?? null,
@@ -2926,10 +2899,6 @@ export default function GeoFeed({
               ? FEED_RESULT_PHASE.ZERO_RESULTS_CONFIRMED
               : FEED_RESULT_PHASE.RESULTS_READY,
           );
-        } else {
-          setDiscoveryFeed(null);
-          setFeedHasMore(false);
-          setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
         }
       } catch (error) {
         if ((error as Error)?.name === "AbortError") return;
@@ -3006,17 +2975,12 @@ export default function GeoFeed({
     appliedCategory,
     browseCountryCode,
     browseLocationMode,
-    commitCompositionState,
-    pushFeedHandoffDiag,
+    commitCompositionState
   ]);
 
   useEffect(() => {
     feedHasMoreRef.current = feedHasMore;
   }, [feedHasMore]);
-
-  useEffect(() => {
-    recirculatedRowsLenRef.current = recirculatedRows.length;
-  }, [recirculatedRows.length]);
 
   useEffect(() => {
     feedLoadingMoreRef.current = feedLoadingMore;
@@ -3394,16 +3358,6 @@ export default function GeoFeed({
         commitCompositionState(sealed);
         feedHasMoreRef.current = more;
         setFeedHasMore(more);
-        pushFeedHandoffDiag("broadened-fail-handoff", {
-          reason,
-          skip,
-          identityKey,
-          stage: sealed.stage,
-          recirculationActive: sealed.recirculationActive,
-          broadenedExhausted: sealed.broadenedExhausted,
-          feedHasMore: more,
-          shouldRecirc: shouldActivateRecirculation(sealed),
-        });
         if (more && shouldActivateRecirculation(sealed)) {
           window.setTimeout(() => {
             if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
@@ -3462,26 +3416,6 @@ export default function GeoFeed({
         commitCompositionState(next);
         feedHasMoreRef.current = more;
         setFeedHasMore(more);
-        pushFeedHandoffDiag("broadened-page", {
-          skip,
-          fetched: valid.length,
-          newUnique: uniqueNew.length,
-          apiHasMore,
-          stage: next.stage,
-          marketplaceExhausted: next.marketplaceExhausted,
-          exactExhausted: next.exactExhausted,
-          broadenedExhausted: next.broadenedExhausted,
-          recirculationActive: next.recirculationActive,
-          emptyTerminal: next.emptyTerminal,
-          uniqueEligibleCount: next.uniqueEligibleCount,
-          displayedHistoryLen: next.displayedHistory.length,
-          recentIdsLen: next.recentIds.length,
-          recirculationBatchIndex: next.recirculationBatchIndex,
-          feedHasMore: more,
-          shouldBroaden: shouldFetchBroadenedDiscovery(next),
-          shouldRecirc: shouldActivateRecirculation(next),
-          identityKey,
-        });
         feedSealedNotePaginationCursor({
           hasMore: more,
           itemCount: itemsRef.current.length + uniqueNew.length,
@@ -3585,23 +3519,6 @@ export default function GeoFeed({
             batchIndex: comp.recirculationBatchIndex,
           });
         preparedRecircBatchRef.current = null;
-        pushFeedHandoffDiag("recirc-batch", {
-          stage: comp.stage,
-          marketplaceExhausted: comp.marketplaceExhausted,
-          exactExhausted: comp.exactExhausted,
-          broadenedExhausted: comp.broadenedExhausted,
-          recirculationActive: comp.recirculationActive,
-          emptyTerminal: comp.emptyTerminal,
-          uniqueEligibleCount: comp.uniqueEligibleCount,
-          displayedHistoryLen: comp.displayedHistory.length,
-          recentIdsLen: comp.recentIds.length,
-          recirculationBatchIndex: comp.recirculationBatchIndex,
-          recirculatedRowsLen: recirculatedRows.length,
-          batchLen: batch.length,
-          usedPrepared: Boolean(prepared),
-          feedHasMore: feedHasMoreRef.current,
-          sentinelMounted: Boolean(feedLoadMoreRef.current),
-        });
         if (batch.length === 0) {
           setCompositionState((prev) => {
             const next = {
@@ -3617,10 +3534,6 @@ export default function GeoFeed({
           });
           feedHasMoreRef.current = false;
           setFeedHasMore(false);
-          pushFeedHandoffDiag("recirc-empty-batch-kill", {
-            uniqueEligibleCount: comp.uniqueEligibleCount,
-            feedHasMore: false,
-          });
           return;
         }
 
@@ -3652,18 +3565,9 @@ export default function GeoFeed({
             }
           }
         }
-        pushFeedHandoffDiag("recirc-resolve-rows", {
-          batchLen: batch.length,
-          nextRowsLen: nextRows.length,
-          itemsRefLen: itemsRef.current.length,
-        });
         if (nextRows.length === 0) {
           feedHasMoreRef.current = false;
           setFeedHasMore(false);
-          pushFeedHandoffDiag("recirc-empty-rows-kill", {
-            batchLen: batch.length,
-            feedHasMore: false,
-          });
           return;
         }
         setRecirculatedRows((prev) => [...prev, ...nextRows]);
@@ -3680,13 +3584,6 @@ export default function GeoFeed({
         });
         feedHasMoreRef.current = true;
         setFeedHasMore(true);
-        pushFeedHandoffDiag("recirc-append", {
-          nextRowsLen: nextRows.length,
-          recirculationBatchIndex:
-            compositionStateRef.current.recirculationBatchIndex,
-          feedHasMore: true,
-          recirculationActive: true,
-        });
         prepareRecirculationIfNeeded();
         const latency = Date.now() - appendStartedAt;
         feedPrefetchCacheRef.current.diag.batchAppendLatencyMsTotal += latency;
@@ -3777,8 +3674,7 @@ export default function GeoFeed({
     appliedScope,
     feedCoords,
     effectiveViewerForDistance,
-    commitCompositionState,
-    pushFeedHandoffDiag,
+    commitCompositionState
   ]);
 
   loadMoreFeedRef.current = () => {

@@ -18,6 +18,9 @@ import {
   feedPerfMark,
   installFeedPerfBaselineReporter,
 } from "@/lib/feed/feed-performance-baseline";
+import {
+  startHomeFeedEarlyBootstrap,
+} from "@/lib/feed/home-feed-early-bootstrap";
 import GeoFeed, { FeedContent } from "@/components/home/HomeGeoFeedDynamic";
 import FeedControlledHostShell from "@/components/adaptive-workspace/FeedControlledHostShell";
 import FeedWorkspaceVisibleLayout from "@/components/adaptive-workspace/FeedWorkspaceVisibleLayout";
@@ -118,9 +121,15 @@ export default function HomePageClient({
     feedPerfMark("home:shell-mounted");
     feedPerfMark("home:viewport-resolved");
     feedPerfMark("layout:hydration-complete");
+    // Start canonical first feed ASAP (localStorage seed wins over IP).
+    startHomeFeedEarlyBootstrap({
+      initialFeedPlace,
+      initialIpApprox,
+      category: initialFeedCategory,
+    });
     // Overlap GeoFeed chunk download with shell paint (ssr:false dynamic import).
     void import("@/components/feed/GeoFeed");
-  }, []);
+  }, [initialFeedPlace, initialIpApprox, initialFeedCategory]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
