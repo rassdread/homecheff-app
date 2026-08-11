@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import {
   collectFeedRowListingIds,
+  composeWidenedStageRowsForPaint,
   dedupeFeedRowsByListingId,
   sortProgressiveNearbyPoolsPreservingLocalFirst,
   splitFeedRowsByRadiusMembership,
@@ -129,6 +130,52 @@ ok(
 ok(
   'discovery sections disabled while locationFilterActive',
   /useDiscoverySections\s*=\s*[\s\S]*!locationFilterActive/.test(geo),
+);
+
+type PaintRow =
+  | { row: 'sale'; item: { id: string } }
+  | { row: 'insp'; slot: { item: { id: string } } };
+
+const exactPaint: PaintRow[] = [
+  { row: 'sale', item: { id: 'a' } },
+  { row: 'sale', item: { id: 'b' } },
+];
+const recircPaint: PaintRow[] = [
+  { row: 'sale', item: { id: 'a' } },
+  { row: 'sale', item: { id: 'b' } },
+];
+const exactPaintIds = collectFeedRowListingIds(exactPaint);
+
+const buggyDedupeAll = dedupeFeedRowsByListingId(
+  [...recircPaint],
+  exactPaintIds,
+);
+ok(
+  'REGRESSION: exact-id dedupe alone strips recirculation (failure class D)',
+  buggyDedupeAll.length === 0,
+);
+
+const painted = composeWidenedStageRowsForPaint({
+  widenedRows: [] as PaintRow[],
+  continuityRows: [] as PaintRow[],
+  recirculatedRows: recircPaint,
+  exactIds: exactPaintIds,
+});
+ok(
+  'composeWidenedStageRowsForPaint keeps recirculated ids after exact stage',
+  painted.length === 2 &&
+    painted[0]?.row === 'sale' &&
+    painted[0].item.id === 'a' &&
+    painted[1]?.row === 'sale' &&
+    painted[1].item.id === 'b',
+);
+ok(
+  'GeoFeed uses composeWidenedStageRowsForPaint for radius stage',
+  geo.includes('composeWidenedStageRowsForPaint'),
+);
+ok(
+  'GeoFeed marks load-more sentinel for probes',
+  geo.includes('data-feed-sentinel') && geo.includes('data-testid="feed-sentinel"'),
 );
 
 console.log(`\n✅ feed radius presentation: ${passed} checks passed`);

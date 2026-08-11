@@ -136,6 +136,33 @@ export function dedupeFeedRowsByListingId<
   });
 }
 
+/**
+ * Paint rows for the post-band widened stage.
+ *
+ * Outside-radius / continuity discovery must not repeat exact-stage listing
+ * ids. Historical recirculation intentionally re-shows those ids and must
+ * NEVER be deduped against the exact set — that was the endless-feed runtime
+ * regression after unique inventory exhaustion.
+ */
+export function composeWidenedStageRowsForPaint<
+  T extends {
+    row: string;
+    item?: { id?: string };
+    slot?: { item?: { id?: string } };
+  },
+>(input: {
+  widenedRows: readonly T[];
+  continuityRows: readonly T[];
+  recirculatedRows: readonly T[];
+  exactIds: ReadonlySet<string>;
+}): T[] {
+  const discovery = dedupeFeedRowsByListingId(
+    [...input.widenedRows, ...input.continuityRows],
+    input.exactIds,
+  );
+  return [...discovery, ...input.recirculatedRows];
+}
+
 export function collectFeedRowListingIds<
   T extends {
     row: string;
