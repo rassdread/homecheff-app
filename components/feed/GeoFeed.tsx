@@ -261,7 +261,7 @@ import {
 } from "@/lib/feed/feed-composition-policy";
 import {
   collectFeedRowListingIds,
-  dedupeFeedRowsByListingId,
+  composeWidenedStageRowsForPaint,
   sortProgressiveNearbyPoolsPreservingLocalFirst,
   splitFeedRowsByRadiusMembership,
 } from "@/lib/feed/feed-radius-presentation";
@@ -1188,6 +1188,52 @@ export default function GeoFeed({
   const spinnerShownAtRef = useRef<number | null>(null);
   const preparedRecircBatchRef = useRef<RecircSeedItem[] | null>(null);
   const feedHasMoreRef = useRef(false);
+  const recirculatedRowsLenRef = useRef(0);
+  /** Temporary endless-recirc handoff diagnostics (Phase 1). */
+  const feedHandoffDiagRef = useRef<
+    Array<Record<string, unknown>>
+  >([]);
+  const pushFeedHandoffDiag = useCallback((event: string, payload: Record<string, unknown>) => {
+    const row = {
+      at: new Date().toISOString(),
+      event,
+      ...payload,
+    };
+    const buf = feedHandoffDiagRef.current;
+    buf.push(row);
+    if (buf.length > 80) buf.splice(0, buf.length - 80);
+    if (typeof window !== "undefined") {
+      (
+        window as Window & {
+          __HC_FEED_HANDOFF_DIAG__?: unknown;
+        }
+      ).__HC_FEED_HANDOFF_DIAG__ = {
+        latest: row,
+        log: buf.slice(),
+        snapshot: () => ({
+          stage: compositionStateRef.current.stage,
+          marketplaceExhausted:
+            compositionStateRef.current.marketplaceExhausted,
+          exactExhausted: compositionStateRef.current.exactExhausted,
+          broadenedExhausted: compositionStateRef.current.broadenedExhausted,
+          recirculationActive: compositionStateRef.current.recirculationActive,
+          emptyTerminal: compositionStateRef.current.emptyTerminal,
+          uniqueEligibleCount: compositionStateRef.current.uniqueEligibleCount,
+          displayedHistoryLen:
+            compositionStateRef.current.displayedHistory.length,
+          recentIdsLen: compositionStateRef.current.recentIds.length,
+          recirculationBatchIndex:
+            compositionStateRef.current.recirculationBatchIndex,
+          recirculatedRowsLen: recirculatedRowsLenRef.current,
+          feedHasMore: feedHasMoreRef.current,
+          sentinelMounted: Boolean(feedLoadMoreRef.current),
+        }),
+      };
+    }
+    if (isGeoFeedDiagnosticsEnabled()) {
+      console.info("[hc-feed-handoff]", event, payload);
+    }
+  }, []);
   const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
   /** Prevents duplicate concurrent network fetch for the same query key. */
@@ -2820,6 +2866,24 @@ export default function GeoFeed({
             apiHasMore || composedFeedCanContinue(nextComp);
           feedHasMoreRef.current = composedHasMore;
           setFeedHasMore(composedHasMore);
+          pushFeedHandoffDiag("first-page-composition", {
+            apiHasMore,
+            fetched: valid.length,
+            stage: nextComp.stage,
+            marketplaceExhausted: nextComp.marketplaceExhausted,
+            exactExhausted: nextComp.exactExhausted,
+            broadenedExhausted: nextComp.broadenedExhausted,
+            recirculationActive: nextComp.recirculationActive,
+            emptyTerminal: nextComp.emptyTerminal,
+            uniqueEligibleCount: nextComp.uniqueEligibleCount,
+            displayedHistoryLen: nextComp.displayedHistory.length,
+            recentIdsLen: nextComp.recentIds.length,
+            composedHasMore,
+            feedHasMore: composedHasMore,
+            canContinue: composedFeedCanContinue(nextComp),
+            shouldBroaden: shouldFetchBroadenedDiscovery(nextComp),
+            shouldRecirc: shouldActivateRecirculation(nextComp),
+          });
           feedSealedNotePreparedBatchIdentity({
             itemCount: valid.length,
             firstId: valid[0]?.id ?? null,
@@ -2942,11 +3006,16 @@ export default function GeoFeed({
     browseCountryCode,
     browseLocationMode,
     commitCompositionState,
+    pushFeedHandoffDiag,
   ]);
 
   useEffect(() => {
     feedHasMoreRef.current = feedHasMore;
   }, [feedHasMore]);
+
+  useEffect(() => {
+    recirculatedRowsLenRef.current = recirculatedRows.length;
+  }, [recirculatedRows.length]);
 
   useEffect(() => {
     feedLoadingMoreRef.current = feedLoadingMore;
@@ -3379,6 +3448,26 @@ export default function GeoFeed({
         commitCompositionState(next);
         feedHasMoreRef.current = more;
         setFeedHasMore(more);
+        pushFeedHandoffDiag("broadened-page", {
+          skip,
+          fetched: valid.length,
+          newUnique: uniqueNew.length,
+          apiHasMore,
+          stage: next.stage,
+          marketplaceExhausted: next.marketplaceExhausted,
+          exactExhausted: next.exactExhausted,
+          broadenedExhausted: next.broadenedExhausted,
+          recirculationActive: next.recirculationActive,
+          emptyTerminal: next.emptyTerminal,
+          uniqueEligibleCount: next.uniqueEligibleCount,
+          displayedHistoryLen: next.displayedHistory.length,
+          recentIdsLen: next.recentIds.length,
+          recirculationBatchIndex: next.recirculationBatchIndex,
+          feedHasMore: more,
+          shouldBroaden: shouldFetchBroadenedDiscovery(next),
+          shouldRecirc: shouldActivateRecirculation(next),
+          identityKey,
+        });
         feedSealedNotePaginationCursor({
           hasMore: more,
           itemCount: itemsRef.current.length + uniqueNew.length,
@@ -3476,6 +3565,23 @@ export default function GeoFeed({
             batchIndex: comp.recirculationBatchIndex,
           });
         preparedRecircBatchRef.current = null;
+        pushFeedHandoffDiag("recirc-batch", {
+          stage: comp.stage,
+          marketplaceExhausted: comp.marketplaceExhausted,
+          exactExhausted: comp.exactExhausted,
+          broadenedExhausted: comp.broadenedExhausted,
+          recirculationActive: comp.recirculationActive,
+          emptyTerminal: comp.emptyTerminal,
+          uniqueEligibleCount: comp.uniqueEligibleCount,
+          displayedHistoryLen: comp.displayedHistory.length,
+          recentIdsLen: comp.recentIds.length,
+          recirculationBatchIndex: comp.recirculationBatchIndex,
+          recirculatedRowsLen: recirculatedRows.length,
+          batchLen: batch.length,
+          usedPrepared: Boolean(prepared),
+          feedHasMore: feedHasMoreRef.current,
+          sentinelMounted: Boolean(feedLoadMoreRef.current),
+        });
         if (batch.length === 0) {
           setCompositionState((prev) => {
             const next = {
@@ -3491,6 +3597,10 @@ export default function GeoFeed({
           });
           feedHasMoreRef.current = false;
           setFeedHasMore(false);
+          pushFeedHandoffDiag("recirc-empty-batch-kill", {
+            uniqueEligibleCount: comp.uniqueEligibleCount,
+            feedHasMore: false,
+          });
           return;
         }
 
@@ -3522,9 +3632,18 @@ export default function GeoFeed({
             }
           }
         }
+        pushFeedHandoffDiag("recirc-resolve-rows", {
+          batchLen: batch.length,
+          nextRowsLen: nextRows.length,
+          itemsRefLen: itemsRef.current.length,
+        });
         if (nextRows.length === 0) {
           feedHasMoreRef.current = false;
           setFeedHasMore(false);
+          pushFeedHandoffDiag("recirc-empty-rows-kill", {
+            batchLen: batch.length,
+            feedHasMore: false,
+          });
           return;
         }
         setRecirculatedRows((prev) => [...prev, ...nextRows]);
@@ -3541,6 +3660,13 @@ export default function GeoFeed({
         });
         feedHasMoreRef.current = true;
         setFeedHasMore(true);
+        pushFeedHandoffDiag("recirc-append", {
+          nextRowsLen: nextRows.length,
+          recirculationBatchIndex:
+            compositionStateRef.current.recirculationBatchIndex,
+          feedHasMore: true,
+          recirculationActive: true,
+        });
         prepareRecirculationIfNeeded();
         const latency = Date.now() - appendStartedAt;
         feedPrefetchCacheRef.current.diag.batchAppendLatencyMsTotal += latency;
@@ -3632,6 +3758,7 @@ export default function GeoFeed({
     feedCoords,
     effectiveViewerForDistance,
     commitCompositionState,
+    pushFeedHandoffDiag,
   ]);
 
   loadMoreFeedRef.current = () => {
@@ -4552,7 +4679,8 @@ export default function GeoFeed({
   ]);
 
   const composedDisplayRows = useMemo(() => {
-    if (feedChip === "sale" || feedChip === "gezocht") return displayRows;
+    // Gezocht is request-only — do not append sale/insp recirculation.
+    if (feedChip === "gezocht") return displayRows;
     if (recirculatedRows.length === 0) return displayRows;
     return [...displayRows, ...recirculatedRows];
   }, [displayRows, recirculatedRows, feedChip]);
@@ -5546,14 +5674,15 @@ export default function GeoFeed({
       displayRows,
       appliedRadius,
     );
-    const afterBand = [
-      ...widened,
-      ...recirculatedRows,
-    ] as typeof displayRows;
+    // Keep recirculation out of widenedRows so exact-id dedupe cannot strip
+    // intentional re-shows (see composeWidenedStageRowsForPaint).
     return {
       exactRows: exact,
-      widenedRows: afterBand,
-      hasWidened: afterBand.length > 0 || saleWiderPool.length > 0,
+      widenedRows: widened as typeof displayRows,
+      hasWidened:
+        widened.length > 0 ||
+        recirculatedRows.length > 0 ||
+        saleWiderPool.length > 0,
       exactListingCount: exact.filter(
         (row) => row.row === "sale" || row.row === "insp",
       ).length,
@@ -6796,15 +6925,15 @@ export default function GeoFeed({
             const exactSource =
               radiusPresentation.exactRows ?? feedRowsToRender;
             const exactIds = collectFeedRowListingIds(exactSource);
-            const widenedMerged = dedupeFeedRowsByListingId(
-              [
-                ...radiusPresentation.widenedRows,
-                ...((nativeMounted && !nativeFeedRenderMore
-                  ? continuityRowsToRender
-                  : continuityDisplayRows) as typeof feedRowsToRender),
-              ] as typeof feedRowsToRender,
+            const continuityForStage = (nativeMounted && !nativeFeedRenderMore
+              ? continuityRowsToRender
+              : continuityDisplayRows) as typeof feedRowsToRender;
+            const widenedMerged = composeWidenedStageRowsForPaint({
+              widenedRows: radiusPresentation.widenedRows as typeof feedRowsToRender,
+              continuityRows: continuityForStage,
+              recirculatedRows: recirculatedRows as typeof feedRowsToRender,
               exactIds,
-            );
+            });
             const exactForPaint =
               nativeMounted && !nativeFeedRenderMore
                 ? exactSource.slice(
@@ -6901,6 +7030,8 @@ export default function GeoFeed({
           {feedHasMore ? (
             <div
               ref={feedLoadMoreRef}
+              data-feed-sentinel=""
+              data-testid="feed-sentinel"
               className="flex min-h-[2rem] justify-center py-3"
               aria-hidden={!feedLoadingMore}
             >
@@ -7282,6 +7413,8 @@ export default function GeoFeed({
         {feedHasMore ? (
           <div
             ref={feedLoadMoreRef}
+            data-feed-sentinel=""
+            data-testid="feed-sentinel"
             className="flex min-h-[2rem] justify-center py-3"
             aria-hidden={!feedLoadingMore}
           >
