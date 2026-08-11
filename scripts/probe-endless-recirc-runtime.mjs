@@ -35,7 +35,7 @@ async function dump(page) {
   });
 }
 
-async function scrollFeed(page, times = 14) {
+async function scrollFeed(page, times = 24) {
   const series = [];
   for (let i = 0; i < times; i++) {
     await page.evaluate(() => {
@@ -46,7 +46,8 @@ async function scrollFeed(page, times = 14) {
         window.scrollTo(0, document.body.scrollHeight);
       }
     });
-    await page.waitForTimeout(900);
+    // Allow broadened timeout handoff (12s) + recirculation batches.
+    await page.waitForTimeout(i < 16 ? 1200 : 800);
     series.push({ i, ...(await dump(page)) });
   }
   return series;

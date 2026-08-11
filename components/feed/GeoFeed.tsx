@@ -282,6 +282,7 @@ import {
   recordDisplayedSeeds,
   resetFeedCompositionState,
   bumpRecirculatedCount,
+  FEED_BROADENED_FETCH_TIMEOUT_MS,
   type FeedCompositionState,
 } from "@/lib/feed/feed-composition-state";
 import {
@@ -3382,29 +3383,42 @@ export default function GeoFeed({
       spinnerShownAtRef.current = Date.now();
       feedLoadingMoreRef.current = true;
       setFeedLoadingMore(true);
+      const handoffBroadenedFailure = (reason: string) => {
+        const sealed = markBroadenedPageResult(compositionStateRef.current, {
+          fetchedCount: 0,
+          newUniqueCount: 0,
+          apiHasMore: false,
+          skipUsed: skip,
+        });
+        const more = composedFeedCanContinue(sealed);
+        commitCompositionState(sealed);
+        feedHasMoreRef.current = more;
+        setFeedHasMore(more);
+        pushFeedHandoffDiag("broadened-fail-handoff", {
+          reason,
+          skip,
+          identityKey,
+          stage: sealed.stage,
+          recirculationActive: sealed.recirculationActive,
+          broadenedExhausted: sealed.broadenedExhausted,
+          feedHasMore: more,
+          shouldRecirc: shouldActivateRecirculation(sealed),
+        });
+        if (more && shouldActivateRecirculation(sealed)) {
+          window.setTimeout(() => {
+            if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+            void loadMoreFeedRef.current?.();
+          }, 80);
+        }
+      };
       try {
         const params = buildLoadMoreParams(skip, { broadened: true });
         const feedRes = await fetch(`/api/feed?${params.toString()}`, {
           cache: "no-store",
+          signal: AbortSignal.timeout(FEED_BROADENED_FETCH_TIMEOUT_MS),
         });
         if (!feedRes.ok) {
-          const sealed = markBroadenedPageResult(compositionStateRef.current, {
-            fetchedCount: 0,
-            newUniqueCount: 0,
-            apiHasMore: false,
-            skipUsed: skip,
-          });
-          const more = composedFeedCanContinue(sealed);
-          commitCompositionState(sealed);
-          feedHasMoreRef.current = more;
-          setFeedHasMore(more);
-          // Failed broadened fetch must not silence the endless feed — hand off.
-          if (more && shouldActivateRecirculation(sealed)) {
-            window.setTimeout(() => {
-              if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
-              void loadMoreFeedRef.current?.();
-            }, 80);
-          }
+          handoffBroadenedFailure(`http-${feedRes.status}`);
           return;
         }
         const data = (await feedRes.json()) as {
@@ -3508,6 +3522,12 @@ export default function GeoFeed({
         }
       } catch (error) {
         console.error("[GeoFeed] broadened load-more failed", error);
+        const name = (error as Error)?.name || "error";
+        handoffBroadenedFailure(
+          name === "TimeoutError" || name === "AbortError"
+            ? "timeout"
+            : "exception",
+        );
       } finally {
         if (spinnerShownAtRef.current != null) {
           feedPrefetchCacheRef.current.diag.spinnerVisibleMsTotal +=

@@ -38,6 +38,9 @@ import {
  */
 export const FEED_BROADENED_ZERO_UNIQUE_HANDOFF = 2;
 
+/** Abort hung widened discovery so recirculation is not starved by a stuck fetch. */
+export const FEED_BROADENED_FETCH_TIMEOUT_MS = 12_000;
+
 export type FeedCompositionState = {
   requestKey: string;
   generation: number;
