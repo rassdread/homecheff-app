@@ -10,7 +10,7 @@ import NativePushUpdatePrompt from '@/components/native/NativePushUpdatePrompt';
 import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
 import AuthCompletionGate from '@/components/auth/AuthCompletionGate';
-import SoftAuthGateHost from '@/components/auth/SoftAuthGateHost';
+import dynamic from 'next/dynamic';
 import AccountRequirementsGateHost from '@/components/account/AccountRequirementsGateHost';
 import EmailVerificationPromptHost from '@/components/auth/EmailVerificationPromptHost';
 import ScrollRestoreFromSoftGate from '@/components/auth/ScrollRestoreFromSoftGate';
@@ -24,10 +24,14 @@ import PlayStoreMigrationGate from '@/components/app/PlayStoreMigrationGate';
 import { AppUpdateStatusProvider } from '@/components/app/AppUpdateStatusProvider';
 import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
 import { CommsUnreadProvider } from '@/components/communication/CommsUnreadProvider';
-import dynamic from 'next/dynamic';
 import NavigationHistorySync from '@/components/navigation/NavigationHistorySync';
 import FeedPerfBaselineMount from '@/components/performance/FeedPerfBaselineMount';
 import { WorkspaceChromeProvider } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
+
+const SoftAuthGateHost = dynamic(
+  () => import('@/components/auth/SoftAuthGateHost'),
+  { ssr: false },
+);
 
 const CommsRealtimeListener = dynamic(
   () => import('@/components/communication/CommsRealtimeListener'),
