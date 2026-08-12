@@ -2,11 +2,13 @@
  * Start the canonical first /api/feed request as early as possible so it
  * overlaps JS download/parse of GeoFeed — without a second location source.
  *
- * Contract:
+ * Contract (PERFORMANCE HINT — not authoritative):
  * - Same seed as GeoFeed (`readSeededFeedLocation`)
  * - Same param builder (`buildGeoFeedApiParams`) + nearby soft-national fallback
- * - GeoFeed consumes the in-flight/completed result only when requestKey matches
- * - Mismatch → discard (GeoFeed fetches normally; no dual engines)
+ * - GeoFeed may consume a fast hit when requestKey matches
+ * - Wait is BOUNDED (`HOME_FEED_EARLY_BOOTSTRAP_WAIT_MS`); timeout/fail →
+ *   normal GeoFeed fetch. Late early results are ignored (never mutate state).
+ * - Mismatch / ignored / non-2xx → discard (no dual engines)
  */
 
 import { buildGeoFeedApiParams } from '@/lib/feed/feed-query-params';
@@ -18,6 +20,9 @@ import {
   type SeededFeedLocation,
   type ServerIpApproxSeed,
 } from '@/lib/geo/seeded-feed-location';
+
+/** Max time GeoFeed may wait on early bootstrap before canonical fetch. */
+export const HOME_FEED_EARLY_BOOTSTRAP_WAIT_MS = 2500;
 
 export type HomeFeedEarlyBootstrapResult = {
   requestKey: string;
@@ -32,6 +37,8 @@ type EarlySlot = {
   requestKey: string;
   startedAt: number;
   promise: Promise<HomeFeedEarlyBootstrapResult | null>;
+  /** Set when GeoFeed timed out waiting — late settle must not be consumed. */
+  ignored?: boolean;
 };
 
 declare global {
@@ -126,6 +133,35 @@ function writeWindowSlot(slot: EarlySlot | null) {
 }
 
 /**
+ * Pure bounded race used by takeHomeFeedEarlyBootstrap (and unit tests).
+ * Timeout wins → null (caller uses canonical fetch). Late promise is ignored.
+ */
+export function raceHomeFeedEarlyBootstrap<T>(
+  promise: Promise<T | null>,
+  waitMs: number,
+): Promise<{ timedOut: boolean; value: T | null }> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (timedOut: boolean, value: T | null) => {
+      if (settled) return;
+      settled = true;
+      resolve({ timedOut, value });
+    };
+    const timer = setTimeout(() => finish(true, null), Math.max(0, waitMs));
+    void promise.then(
+      (value) => {
+        clearTimeout(timer);
+        finish(false, value ?? null);
+      },
+      () => {
+        clearTimeout(timer);
+        finish(false, null);
+      },
+    );
+  });
+}
+
+/**
  * Begin early first-feed fetch if none is in flight for this key.
  * Safe to call from inline HTML bootstrap and from HomePageClient.
  */
@@ -142,7 +178,9 @@ export function startHomeFeedEarlyBootstrap(input: {
   const params = buildHomeFeedEarlyRequestParams(seed, input.category);
   const requestKey = params.toString();
   const existing = readWindowSlot();
-  if (existing?.requestKey === requestKey) return requestKey;
+  if (existing?.requestKey === requestKey && !existing.ignored) {
+    return requestKey;
+  }
 
   const startedAt = Date.now();
   const promise = (async (): Promise<HomeFeedEarlyBootstrapResult | null> => {
@@ -162,20 +200,43 @@ export function startHomeFeedEarlyBootstrap(input: {
     }
   })();
 
-  writeWindowSlot({ requestKey, startedAt, promise });
+  writeWindowSlot({ requestKey, startedAt, promise, ignored: false });
   return requestKey;
 }
 
 /**
- * Consume early bootstrap when GeoFeed's canonical requestKey matches.
- * Returns null on miss / failure — caller must fetch normally.
+ * Opportunistically consume early bootstrap when requestKey matches.
+ * Waits at most `waitMs` (default HOME_FEED_EARLY_BOOTSTRAP_WAIT_MS).
+ * On timeout/fail/mismatch → null; caller MUST use the normal GeoFeed fetch.
+ * Timed-out slots are marked ignored so a late settle cannot overwrite state.
  */
 export async function takeHomeFeedEarlyBootstrap(
   requestKey: string,
+  opts?: { waitMs?: number },
 ): Promise<HomeFeedEarlyBootstrapResult | null> {
+  const waitMs = opts?.waitMs ?? HOME_FEED_EARLY_BOOTSTRAP_WAIT_MS;
   const slot = readWindowSlot();
-  if (!slot || slot.requestKey !== requestKey) return null;
-  const result = await slot.promise;
+  if (!slot || slot.requestKey !== requestKey || slot.ignored) return null;
+
+  const { timedOut, value: result } = await raceHomeFeedEarlyBootstrap(
+    slot.promise,
+    waitMs,
+  );
+
+  if (timedOut) {
+    const current = readWindowSlot();
+    if (current && current.requestKey === requestKey) {
+      current.ignored = true;
+      void current.promise.finally(() => {
+        const latest = readWindowSlot();
+        if (latest?.requestKey === requestKey && latest.ignored) {
+          writeWindowSlot(null);
+        }
+      });
+    }
+    return null;
+  }
+
   // One-shot for this key so filter transitions do not reuse a stale payload.
   if (readWindowSlot()?.requestKey === requestKey) {
     writeWindowSlot(null);
@@ -187,7 +248,8 @@ export async function takeHomeFeedEarlyBootstrap(
 /**
  * Inline script body for homepage HTML — overlaps /api/feed with critical JS.
  * Uses server IP/place seed only (no localStorage). Client bootstrap may replace
- * with a preference-matched key; GeoFeed only consumes on exact key match.
+ * with a preference-matched key; GeoFeed only consumes on exact key match +
+ * bounded wait.
  */
 export function buildHomeFeedEarlyBootstrapInlineScript(input: {
   initialFeedPlace?: string | null;
@@ -200,5 +262,5 @@ export function buildHomeFeedEarlyBootstrapInlineScript(input: {
   const requestKey = params.toString();
   const url = `/api/feed?${requestKey}`;
   // Minimal IIFE — no imports; stores promise on window for GeoFeed take().
-  return `(()=>{try{var k=${JSON.stringify(requestKey)};var u=${JSON.stringify(url)};if(window.__HC_EARLY_FEED__&&window.__HC_EARLY_FEED__.requestKey===k)return;var t=Date.now();var p=fetch(u,{cache:'no-store'}).then(function(r){return r.json().then(function(j){return{requestKey:k,status:r.status,ok:r.ok,json:j,startedAt:t,completedAt:Date.now()};},function(){return null;});}).catch(function(){return null;});window.__HC_EARLY_FEED__={requestKey:k,startedAt:t,promise:p};}catch(e){}})();`;
+  return `(()=>{try{var k=${JSON.stringify(requestKey)};var u=${JSON.stringify(url)};if(window.__HC_EARLY_FEED__&&window.__HC_EARLY_FEED__.requestKey===k&&!window.__HC_EARLY_FEED__.ignored)return;var t=Date.now();var p=fetch(u,{cache:'no-store'}).then(function(r){return r.json().then(function(j){return{requestKey:k,status:r.status,ok:r.ok,json:j,startedAt:t,completedAt:Date.now()};},function(){return null;});}).catch(function(){return null;});window.__HC_EARLY_FEED__={requestKey:k,startedAt:t,promise:p,ignored:false};}catch(e){}})();`;
 }

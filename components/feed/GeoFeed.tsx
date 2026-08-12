@@ -2650,8 +2650,14 @@ export default function GeoFeed({
           debug?: Record<string, unknown>;
         } | null = null;
 
+        // Opportunistic hint only — bounded wait; never block canonical fetch.
         const early = await takeHomeFeedEarlyBootstrap(requestKey);
         if (cancelled) return;
+        // Re-check key: a filter transition may have superseded while we waited.
+        if (latestFeedRequestKeyRef.current !== requestKey) {
+          filterTransitionDiagRef.current.responseRejectedStale += 1;
+          return;
+        }
         if (early?.ok && early.json && typeof early.json === "object") {
           data = early.json as {
             items?: unknown;
@@ -2661,6 +2667,7 @@ export default function GeoFeed({
           };
           feedPerfMark("feed:early-bootstrap-hit");
         } else {
+          feedPerfMark("feed:early-bootstrap-miss");
           const feedRes = await fetch(feedUrl, {
             signal: ac.signal,
             cache: "no-store",
