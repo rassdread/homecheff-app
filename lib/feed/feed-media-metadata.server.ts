@@ -1,5 +1,9 @@
 /**
  * Lightweight feed media metadata — avoids loading inline base64 bytes into Node.
+ *
+ * Prefer substring()/left() prefix reads over LIKE on the full url/fileUrl column
+ * so multi-MB data: TOAST values are not fully detoasted just to classify media
+ * for /api/feed. Legacy data: rows still map to the existing media proxy.
  */
 
 import { prisma } from '@/lib/prisma';
@@ -39,8 +43,10 @@ export async function loadProductImageMetadata(
   >`
     SELECT "productId", "sortOrder",
       CASE
-        WHEN "fileUrl" LIKE 'data:%' THEN ${LEGACY_SENTINEL}
-        WHEN "fileUrl" LIKE 'http%' OR "fileUrl" LIKE '/%' THEN LEFT("fileUrl", 1024)
+        WHEN substring("fileUrl" from 1 for 5) = 'data:' THEN ${LEGACY_SENTINEL}
+        WHEN substring("fileUrl" from 1 for 4) = 'http'
+          OR substring("fileUrl" from 1 for 1) = '/'
+          THEN left("fileUrl", 1024)
         ELSE NULL
       END as url_ref
     FROM "Image"
@@ -69,8 +75,10 @@ export async function loadDishPhotoMetadata(
   >`
     SELECT "dishId", "idx",
       CASE
-        WHEN "url" LIKE 'data:%' THEN ${LEGACY_SENTINEL}
-        WHEN "url" LIKE 'http%' OR "url" LIKE '/%' THEN LEFT("url", 1024)
+        WHEN substring("url" from 1 for 5) = 'data:' THEN ${LEGACY_SENTINEL}
+        WHEN substring("url" from 1 for 4) = 'http'
+          OR substring("url" from 1 for 1) = '/'
+          THEN left("url", 1024)
         ELSE NULL
       END as url_ref
     FROM "DishPhoto"

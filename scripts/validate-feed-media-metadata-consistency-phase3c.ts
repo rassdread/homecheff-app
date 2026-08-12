@@ -88,6 +88,14 @@ const loader = require('fs').readFileSync(
 );
 ok('loader product orderBy sortOrder asc', loader.includes("orderBy: { sortOrder: 'asc' }"));
 ok('loader dish orderBy idx asc', loader.includes("orderBy: { idx: 'asc' }"));
+ok('metadata product uses substring prefix (no full LIKE detoast)', require('fs').readFileSync(
+  'lib/feed/feed-media-metadata.server.ts',
+  'utf8',
+).includes('substring("fileUrl" from 1 for 5)'));
+ok('metadata dish uses substring prefix (no full LIKE detoast)', require('fs').readFileSync(
+  'lib/feed/feed-media-metadata.server.ts',
+  'utf8',
+).includes('substring("url" from 1 for 5)'));
 ok('metadata product ORDER BY sortOrder', require('fs').readFileSync(
   'lib/feed/feed-media-metadata.server.ts',
   'utf8',
@@ -96,6 +104,14 @@ ok('metadata dish ORDER BY idx', require('fs').readFileSync(
   'lib/feed/feed-media-metadata.server.ts',
   'utf8',
 ).includes('"idx" ASC'));
+ok('feed route single dish metadata batch', !require('fs').readFileSync(
+  'app/api/feed/route.ts',
+  'utf8',
+).includes('linkedDishMetadataPromise'));
+ok('feed route joins dishPhotoMetadataPromise', require('fs').readFileSync(
+  'app/api/feed/route.ts',
+  'utf8',
+).includes('dishPhotoMetadataPromise'));
 
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===\n`);
 process.exit(failed > 0 ? 1 : 0);

@@ -207,7 +207,10 @@ import {
   buildGeoFeedApiParams,
   buildInspiratieCategoryParam,
 } from "@/lib/feed/feed-query-params";
-import { takeHomeFeedEarlyBootstrap } from "@/lib/feed/home-feed-early-bootstrap";
+import {
+  joinOrFetchHomeFeedFirstPage,
+  takeHomeFeedEarlyBootstrap,
+} from "@/lib/feed/home-feed-early-bootstrap";
 import { FEED_FIRST_PAGE_TAKE } from "@/lib/feed/feed-pagination";
 import {
   FEED_SCOPE_INTERNATIONAL,
@@ -2668,25 +2671,27 @@ export default function GeoFeed({
           feedPerfMark("feed:early-bootstrap-hit");
         } else {
           feedPerfMark("feed:early-bootstrap-miss");
-          const feedRes = await fetch(feedUrl, {
-            signal: ac.signal,
-            cache: "no-store",
-          });
+          // Join identical in-flight early request when present — do not
+          // duplicate the expensive first-page nearby DB work after the
+          // bounded UI wait. Fresh fetch only if shared work is absent/failed.
+          const joined = await joinOrFetchHomeFeedFirstPage(
+            requestKey,
+            feedUrl,
+            ac.signal,
+          );
           if (cancelled) return;
-          if (!feedRes.ok) {
+          if (!joined?.ok || !joined.json || typeof joined.json !== "object") {
             setDiscoveryFeed(null);
             setFeedHasMore(false);
             setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
             return;
           }
-          try {
-            data = await feedRes.json();
-          } catch {
-            reportAppDiagnostic("feed_fetch_json_invalid", { surface: "feed" });
-            if (cancelled) return;
-            setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
-            return;
-          }
+          data = joined.json as {
+            items?: unknown;
+            discovery?: DiscoveryFeedPayload;
+            pagination?: { hasMore?: boolean; total?: number };
+            debug?: Record<string, unknown>;
+          };
         }
         if (!data) {
           setDiscoveryFeed(null);

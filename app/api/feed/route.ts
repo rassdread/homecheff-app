@@ -612,10 +612,6 @@ async function handleFeedGet(
   });
 
   const linkedDishMetaStart = performance.now();
-  const linkedDishMetadataPromise =
-    linkedIdsNeedingDonor.length > 0
-      ? loadDishPhotoMetadata(linkedIdsNeedingDonor)
-      : Promise.resolve(new Map<string, import('@/lib/feed/resolve-feed-media-url').FeedMediaMetaRow[]>());
 
   const dbDishStart = performance.now();
   const dbLinkedStart = performance.now();
@@ -640,6 +636,17 @@ async function handleFeedGet(
     },
   );
 
+  // One DishPhoto metadata round-trip for linked donors + published dishes.
+  const dishPhotoMetadataPromise = dishQuery.then((dishes) => {
+    const ids = [
+      ...new Set([
+        ...linkedIdsNeedingDonor,
+        ...dishes.map((d) => d.id),
+      ]),
+    ];
+    return loadDishPhotoMetadata(ids);
+  });
+
   const linkedMediaQuery =
     linkedIdsNeedingDonor.length > 0
       ? prisma.dish.findMany({
@@ -662,29 +669,18 @@ async function handleFeedGet(
           return rows;
         });
 
-  const [rawProductsFromDb, publishedDishes, linkedDishMediaRows, productImageMetadata, linkedDishMetaEarly, oldListings] =
+  const [rawProductsFromDb, publishedDishes, linkedDishMediaRows, productImageMetadata, dishPhotoMetadata, oldListings] =
     await Promise.all([
       productHydratePromise,
       dishQuery,
       linkedMediaQuery,
       productImageMetadataPromise,
-      linkedDishMetadataPromise,
+      dishPhotoMetadataPromise,
       listingQuery,
     ]);
   apiPerf?.mark('db_product_listing_done');
   apiPerf?.mark('db_dish_linked_done');
 
-  const publishedOnlyIds = publishedDishes
-    .map((d) => d.id)
-    .filter((id) => !linkedIdsNeedingDonor.includes(id));
-  const publishedDishMeta =
-    publishedOnlyIds.length > 0
-      ? await loadDishPhotoMetadata(publishedOnlyIds)
-      : new Map<string, import('@/lib/feed/resolve-feed-media-url').FeedMediaMetaRow[]>();
-  const dishPhotoMetadata = new Map([
-    ...linkedDishMetaEarly.entries(),
-    ...publishedDishMeta.entries(),
-  ]);
   apiPerf?.setCounts({
     dishMetadataMs: Math.round(performance.now() - linkedDishMetaStart),
   });
