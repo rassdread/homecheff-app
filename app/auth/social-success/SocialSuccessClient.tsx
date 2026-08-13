@@ -137,10 +137,20 @@ function SocialSuccessInner() {
     trackOnboardingEvent('SOCIAL_AUTH_SUCCESS', { target });
     const isIOSDevice = isIOS();
     const isSafariOnIOS = isSafariIOS();
-    const delay = isSafariOnIOS ? 400 : isIOSDevice ? 300 : 150;
+    // Soft navigation when session is already confirmed — avoids remount guest-flash.
+    // Keep hard replace on iOS/Safari where cookie visibility after OAuth is flaky.
+    const delay = isSafariOnIOS ? 400 : isIOSDevice ? 300 : 100;
     await new Promise((r) => setTimeout(r, delay));
 
-    navigateHard(target);
+    if (isIOSDevice || isSafariOnIOS) {
+      navigateHard(target);
+      return;
+    }
+    try {
+      router.replace(target);
+    } catch {
+      navigateHard(target);
+    }
   }, [clearTimers, router, searchParams, updateSession]);
 
   const fail = useCallback(

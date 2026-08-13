@@ -33,9 +33,15 @@ Studio/Growth reference this URL — they do not invent alternate HomeCheff mark
 
 | Product | Desktop | Mobile | Public |
 |---|---|---|---|
-| HomeCheff | Profile dropdown (above logout); guest header | Hamburger menu | Guest header + mobile |
-| Studio | Header control + account menu | Header control | Same AppShell (public pages keep public) |
-| Growth | Sidebar footer above Account | Top bar compact control | Marketing header (`sm+`) |
+| HomeCheff | **Top header** (next to language), guest + auth | Hamburger menu | Guest header + mobile |
+| Studio | Header control (sole primary) | Header control | Same AppShell (public pages keep public) |
+| Growth | **Sidebar top** (above primary nav links) | Top bar compact control | Marketing header (all breakpoints) |
+
+Profile/account menus do **not** bury the primary discovery entry.
+
+## Panel positioning
+
+Ecosystem panels render via `createPortal` → `document.body` with viewport-aware `fixed` coordinates (flip up/down, clamp edges). Escape + outside click close. No parent `overflow` clipping.
 
 ## SSO behavior
 

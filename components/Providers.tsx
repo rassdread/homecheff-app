@@ -1,5 +1,6 @@
 'use client';
 import { Suspense } from 'react';
+import type { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import AppShellHtmlClasses from '@/components/layout/AppShellHtmlClasses';
 import NativeAppUxFoundation from '@/components/native/NativeAppUxFoundation';
@@ -48,9 +49,17 @@ function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({
+  children,
+  session,
+}: {
+  children: React.ReactNode;
+  /** Seed from RSC so post-OAuth / hard navigations skip a false logged-out flash. */
+  session?: Session | null;
+}) {
   return (
     <SessionProvider
+      session={session ?? undefined}
       refetchInterval={5 * 60}
       refetchOnWindowFocus={false}
     >
