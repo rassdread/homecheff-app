@@ -32,6 +32,7 @@ import {
   userHasEarningsHub,
 } from '@/lib/navigation/primary-dashboard';
 import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
+import { OntdekHomeCheffMenu } from '@/components/ecosystem/OntdekHomeCheffMenu';
 import { useCommsUnread } from '@/hooks/useCommsUnread';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
@@ -528,6 +529,14 @@ export default function NavBar() {
             </div>
             {(status === 'unauthenticated' || status === 'loading') && !user && (
               <>
+                <div className="hidden lg:block">
+                  <OntdekHomeCheffMenu
+                    currentProduct="homecheff"
+                    authenticated={false}
+                    surface="header"
+                    variant="compact"
+                  />
+                </div>
                 <Link
                   href="/login"
                   prefetch={false}
@@ -731,6 +740,17 @@ export default function NavBar() {
                         variant="dropdown"
                         onNavigate={() => setIsProfileDropdownOpen(false)}
                       />
+
+                      <div className="border-t border-gray-100 my-2"></div>
+
+                      <div className="px-1 py-1">
+                        <OntdekHomeCheffMenu
+                          currentProduct="homecheff"
+                          authenticated
+                          surface="account_menu"
+                          variant="inline"
+                        />
+                      </div>
 
                       <div className="border-t border-gray-100 my-2"></div>
                       
@@ -1118,6 +1138,15 @@ export default function NavBar() {
                     <span>{t('navigation.settings') || 'Instellingen'}</span>
                   </Link>
 
+                  <div className="px-1 py-1">
+                    <OntdekHomeCheffMenu
+                      currentProduct="homecheff"
+                      authenticated={status === 'authenticated'}
+                      surface="mobile_menu"
+                      variant="inline"
+                    />
+                  </div>
+
                   <div className="border-t border-gray-200 my-2"></div>
                   
                   <Button 
@@ -1138,6 +1167,14 @@ export default function NavBar() {
               {!user ? (
                 <>
                   <div className="my-2 border-t border-gray-200" />
+                  <div className="px-1 py-1">
+                    <OntdekHomeCheffMenu
+                      currentProduct="homecheff"
+                      authenticated={false}
+                      surface="mobile_menu"
+                      variant="inline"
+                    />
+                  </div>
                   <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                     {t('navbar.secondaryLinksLabel')}
                   </p>
