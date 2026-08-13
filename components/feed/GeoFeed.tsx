@@ -243,6 +243,7 @@ import {
   FEED_PREFETCH_MAX_BATCHES,
   FeedPrefetchCache,
   buildPrefetchObserverRootMargin,
+  computeNearEndLoadMoreThresholdPx,
   computePrefetchRootMarginPx,
   readNetworkHints,
   scheduleIdleWork,
@@ -3912,11 +3913,21 @@ export default function GeoFeed({
 
   // Near-end append — consume prefetch (no spinner) or fetch (spinner only on miss).
   // Composed desktop: observe #homecheff-feed-desktop. Mobile/other: viewport.
+  // Threshold is viewport-aware so natural scrolling invites loadMore before a
+  // hard end (fixed 480px was too late after auto-chain batch cap).
   useEffect(() => {
     const el = feedLoadMoreRef.current;
     if (!el || !feedHasMore || loading) return;
     const scrollRoot = resolveFeedIntersectionRoot(el, isDesktopSplit);
-    const nearMarginPx = 480;
+    const viewportH =
+      scrollRoot instanceof HTMLElement && scrollRoot.clientHeight > 0
+        ? scrollRoot.clientHeight
+        : typeof window !== "undefined"
+          ? window.innerHeight || 800
+          : 800;
+    const nearMarginPx = computeNearEndLoadMoreThresholdPx({
+      viewportHeight: viewportH,
+    });
     const obs = new IntersectionObserver(
       (entries) => {
         const hit = Boolean(entries[0]?.isIntersecting);
@@ -3959,30 +3970,70 @@ export default function GeoFeed({
   }, [feedHasMore, loading, loadMoreFeed, isDesktopSplit]);
 
   /**
-   * WebKit/desktop nested-scroll fallback: IntersectionObserver can miss the
-   * sentinel inside `#homecheff-feed-desktop`. Near-bottom scroll still must
-   * drive the existing loadMore → broadened → recirculation path.
+   * Near-end scroll fallback for BOTH desktop nested root and mobile viewport.
+   * IntersectionObserver can miss the sentinel; remaining-distance still drives
+   * the existing loadMore → broadened → recirculation path. Threshold matches
+   * the viewport-aware observer margin (not a fixed 640 desktop-only value).
    */
   useEffect(() => {
-    if (!isDesktopSplit || !feedHasMore || loading) return;
-    const root =
-      typeof document !== "undefined"
-        ? document.getElementById("homecheff-feed-desktop")
-        : null;
-    if (!(root instanceof HTMLElement)) return;
+    if (!feedHasMore || loading) return;
+
+    const resolveScrollMetrics = (): {
+      remaining: number;
+      viewportH: number;
+      attach: Window | HTMLElement;
+    } | null => {
+      if (typeof document === "undefined") return null;
+      if (isDesktopSplit) {
+        const root = document.getElementById("homecheff-feed-desktop");
+        if (
+          root instanceof HTMLElement &&
+          (getComputedStyle(root).overflowY === "auto" ||
+            getComputedStyle(root).overflowY === "scroll" ||
+            getComputedStyle(root).overflowY === "overlay")
+        ) {
+          return {
+            remaining: root.scrollHeight - root.scrollTop - root.clientHeight,
+            viewportH: root.clientHeight || window.innerHeight || 800,
+            attach: root,
+          };
+        }
+      }
+      const doc = document.documentElement;
+      return {
+        remaining:
+          doc.scrollHeight - window.scrollY - window.innerHeight,
+        viewportH: window.innerHeight || 800,
+        attach: window,
+      };
+    };
 
     const onScroll = () => {
       if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
-      const remaining = root.scrollHeight - root.scrollTop - root.clientHeight;
-      if (remaining > 640) return;
+      const metrics = resolveScrollMetrics();
+      if (!metrics) return;
+      const threshold = computeNearEndLoadMoreThresholdPx({
+        viewportHeight: metrics.viewportH,
+      });
+      if (metrics.remaining > threshold) return;
       void loadMoreFeed();
     };
 
-    root.addEventListener("scroll", onScroll, { passive: true });
+    const metrics = resolveScrollMetrics();
+    if (!metrics) return;
+    const target = metrics.attach;
+    target.addEventListener("scroll", onScroll, { passive: true });
     // Catch already-near-bottom layouts (short first page / tall viewport).
     onScroll();
-    return () => root.removeEventListener("scroll", onScroll);
-  }, [isDesktopSplit, feedHasMore, loading, loadMoreFeed, items.length, recirculatedRows.length]);
+    return () => target.removeEventListener("scroll", onScroll);
+  }, [
+    isDesktopSplit,
+    feedHasMore,
+    loading,
+    loadMoreFeed,
+    items.length,
+    recirculatedRows.length,
+  ]);
 
   /** One-shot kick into widened discovery when exact exhausts (short pages / IO miss). */
   useEffect(() => {
