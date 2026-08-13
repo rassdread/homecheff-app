@@ -4,6 +4,7 @@
 	"outputDirectory": ".next",
 	"framework": "nextjs",
 	"ignoreCommand": "node vercel-ignore-build.js",
+	"regions": ["fra1"],
 	"env": {
 		"NODE_ENV": "production"
 	},
