@@ -106,15 +106,21 @@ export function buildPrefetchObserverRootMargin(px: number): string {
 /**
  * Near-end threshold for EXISTING loadMoreFeed continuation (append path).
  * Viewport-aware so natural scrolling anticipates the end before a hard stop.
+ * For tall already-rendered feeds (post auto-chain), also scale with content
+ * height so users are not forced through 20k+ px of dead continuation.
  * Does not change recirculation content — only WHEN loadMore is invited.
  */
 export const FEED_NEAR_END_LOAD_MORE_VIEWPORTS = 3;
 export const FEED_NEAR_END_LOAD_MORE_MIN_PX = 900;
-export const FEED_NEAR_END_LOAD_MORE_MAX_PX = 3200;
+export const FEED_NEAR_END_LOAD_MORE_MAX_PX = 14_000;
+/** When feed content is already tall, invite loadMore this fraction from the end. */
+export const FEED_NEAR_END_CONTENT_FRACTION = 0.4;
 
 export function computeNearEndLoadMoreThresholdPx(input?: {
   /** Scrollport height (nested desktop column or window.innerHeight). */
   viewportHeight?: number;
+  /** Current scrollHeight of the scrollport (optional content-aware boost). */
+  scrollHeight?: number;
 }): number {
   const vh =
     typeof input?.viewportHeight === 'number' && input.viewportHeight > 0
@@ -122,11 +128,15 @@ export function computeNearEndLoadMoreThresholdPx(input?: {
       : typeof window !== 'undefined'
         ? window.innerHeight || 800
         : 800;
-  const px = Math.round(vh * FEED_NEAR_END_LOAD_MORE_VIEWPORTS);
-  return Math.min(
-    FEED_NEAR_END_LOAD_MORE_MAX_PX,
-    Math.max(FEED_NEAR_END_LOAD_MORE_MIN_PX, px),
+  let px = Math.max(
+    FEED_NEAR_END_LOAD_MORE_MIN_PX,
+    Math.round(vh * FEED_NEAR_END_LOAD_MORE_VIEWPORTS),
   );
+  const sh = input?.scrollHeight;
+  if (typeof sh === 'number' && sh > vh * 4) {
+    px = Math.max(px, Math.round(sh * FEED_NEAR_END_CONTENT_FRACTION));
+  }
+  return Math.min(FEED_NEAR_END_LOAD_MORE_MAX_PX, px);
 }
 
 export class FeedPrefetchCache<TItem> {

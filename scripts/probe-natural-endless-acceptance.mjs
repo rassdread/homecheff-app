@@ -29,26 +29,40 @@ async function dump(page) {
         'a[href*="/product/"],a[href*="/recipe/"],a[href*="/dish/"],a[href*="/listing/"]',
       ),
     ];
-    const s = document.querySelector('[data-feed-sentinel]');
+    const s = document.querySelector(
+      '[data-feed-sentinel], [data-testid="feed-sentinel"]',
+    );
     const root = document.getElementById('homecheff-feed-desktop');
     const nested =
       root &&
       (getComputedStyle(root).overflowY === 'auto' ||
-        getComputedStyle(root).overflowY === 'scroll')
+        getComputedStyle(root).overflowY === 'scroll' ||
+        getComputedStyle(root).overflowY === 'overlay')
         ? root
         : null;
     let fiber = null;
-    const el = s || document.body;
-    const k = Object.keys(el).find((x) => x.startsWith('__reactFiber'));
-    if (k) {
+    const probeEls = [
+      s,
+      document.getElementById('homecheff-feed-desktop'),
+      document.getElementById('homecheff-feed'),
+      document.body,
+    ].filter(Boolean);
+    for (const el of probeEls) {
+      const k = Object.keys(el).find((x) => x.startsWith('__reactFiber'));
+      if (!k) continue;
       let f = el[k];
-      for (let i = 0; i < 120 && f; i++) {
+      for (let i = 0; i < 160 && f; i++) {
         let h = f.memoizedState;
-        for (let n = 0; n < 100 && h; n++) {
+        for (let n = 0; n < 120 && h; n++) {
           const q = h.memoizedState;
-          if (q && typeof q === 'object' && 'recirculationBatchIndex' in q) {
+          if (
+            q &&
+            typeof q === 'object' &&
+            !Array.isArray(q) &&
+            ('recirculationBatchIndex' in q || 'marketplaceExhausted' in q)
+          ) {
             fiber = {
-              batch: q.recirculationBatchIndex,
+              batch: q.recirculationBatchIndex ?? 0,
               stage: q.stage,
               empty: q.emptyTerminal,
               recirc: q.recirculationActive,
@@ -62,6 +76,7 @@ async function dump(page) {
         if (fiber) break;
         f = f.return;
       }
+      if (fiber) break;
     }
     const rem = nested
       ? nested.scrollHeight - nested.scrollTop - nested.clientHeight
@@ -75,11 +90,28 @@ async function dump(page) {
       fiber,
       sentinel: !!s,
       rem,
-      dist: sr ? (nested ? sr.top - rr.bottom : sr.top - window.innerHeight) : null,
+      dist: sr
+        ? nested && rr
+          ? sr.top - rr.bottom
+          : sr.top - window.innerHeight
+        : null,
       scrollTop: nested ? nested.scrollTop : window.scrollY,
       clientH: nested ? nested.clientHeight : window.innerHeight,
+      scrollHeight: nested
+        ? nested.scrollHeight
+        : document.documentElement.scrollHeight,
     };
   });
+}
+
+async function waitForFeed(page, timeoutMs = 45000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const s = await dump(page);
+    if (s.cards >= 4 && s.sentinel) return s;
+    await page.waitForTimeout(500);
+  }
+  return dump(page);
 }
 
 async function naturalStep(page, mobile) {
@@ -115,7 +147,9 @@ async function runIdleOnly(browserType, label, opts = {}) {
   }, SEED);
   const page = await context.newPage();
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-  await page.waitForTimeout(4000);
+  await waitForFeed(page);
+  // Allow initial auto-chain (batch cap < 2) to settle before idle window.
+  await page.waitForTimeout(6000);
   const a = await dump(page);
   await page.waitForTimeout(30000);
   const b = await dump(page);
@@ -161,20 +195,38 @@ async function runNatural(browserType, label, opts = {}) {
   });
 
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-  await page.waitForTimeout(3500);
+  const ready = await waitForFeed(page);
+  if (ready.cards < 4) {
+    await browser.close();
+    return {
+      label,
+      pass: false,
+      maxBatch: 0,
+      maxDeadMs: 0,
+      maxDeadPx: 0,
+      appends: [],
+      appendCount: 0,
+      final: ready,
+      spaBack: null,
+      apiDuringDeepRecirc: [],
+      elapsed: 0,
+      error: 'feed-not-ready',
+    };
+  }
 
   const t0 = Date.now();
   const appends = [];
-  let lastCards = 0;
-  let lastBatch = -1;
+  let lastCards = ready.cards;
+  let lastBatch = ready.fiber?.batch ?? 0;
   let lastAppendAt = t0;
   let maxDeadMs = 0;
   let maxDeadPx = 0;
   let scrollSinceAppend = 0;
   let timeSinceAppend = 0;
-  let maxBatch = 0;
+  let maxBatch = lastBatch;
+  let approachArmed = false;
 
-  const maxSteps = opts.maxSteps || 140;
+  const maxSteps = opts.maxSteps || 160;
   for (let step = 0; step < maxSteps; step++) {
     await page.waitForTimeout(320 + Math.random() * 280);
     const before = await dump(page);
@@ -185,13 +237,24 @@ async function runNatural(browserType, label, opts = {}) {
     if (batch > maxBatch) maxBatch = batch;
 
     const scrolled = Math.max(0, s.scrollTop - before.scrollTop);
-    scrollSinceAppend += scrolled;
-    timeSinceAppend = Date.now() - lastAppendAt;
+    // Dead-zone metrics only while approaching the end — reset when mid-list.
+    const approachPx = Math.max(s.clientH * 4, 6000);
+    const inApproach = s.rem < approachPx;
+    if (!inApproach) {
+      approachArmed = false;
+      scrollSinceAppend = 0;
+    } else {
+      if (!approachArmed) {
+        approachArmed = true;
+        scrollSinceAppend = 0;
+        lastAppendAt = Date.now();
+      }
+      scrollSinceAppend += scrolled;
+      timeSinceAppend = Date.now() - lastAppendAt;
+    }
 
     if (s.cards > lastCards || batch > lastBatch) {
-      // Dead zone = gap while already approaching the end (not mid-list
-      // traversal of already-rendered auto-chain content).
-      if (lastBatch >= 2 && before.rem < before.clientH * 4) {
+      if (lastBatch >= 2 && approachArmed) {
         maxDeadMs = Math.max(maxDeadMs, timeSinceAppend);
         maxDeadPx = Math.max(maxDeadPx, scrollSinceAppend);
       }
@@ -204,7 +267,7 @@ async function runNatural(browserType, label, opts = {}) {
         dist: s.dist == null ? null : Math.round(s.dist),
         gapMs: timeSinceAppend,
         gapPx: Math.round(scrollSinceAppend),
-        approachGap: lastBatch >= 2 && before.rem < before.clientH * 4,
+        approachGap: lastBatch >= 2 && approachArmed,
       });
       lastCards = s.cards;
       lastBatch = batch;

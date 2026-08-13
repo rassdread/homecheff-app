@@ -3927,6 +3927,12 @@ export default function GeoFeed({
           : 800;
     const nearMarginPx = computeNearEndLoadMoreThresholdPx({
       viewportHeight: viewportH,
+      scrollHeight:
+        scrollRoot instanceof HTMLElement
+          ? scrollRoot.scrollHeight
+          : typeof document !== "undefined"
+            ? document.documentElement.scrollHeight
+            : undefined,
     });
     const obs = new IntersectionObserver(
       (entries) => {
@@ -3967,7 +3973,7 @@ export default function GeoFeed({
         console.info("[hc-native-scroll]", "observer-detached");
       }
     };
-  }, [feedHasMore, loading, loadMoreFeed, isDesktopSplit]);
+  }, [feedHasMore, loading, loadMoreFeed, isDesktopSplit, items.length, recirculatedRows.length]);
 
   /**
    * Near-end scroll fallback for BOTH desktop nested root and mobile viewport.
@@ -3981,6 +3987,7 @@ export default function GeoFeed({
     const resolveScrollMetrics = (): {
       remaining: number;
       viewportH: number;
+      scrollHeight: number;
       attach: Window | HTMLElement;
     } | null => {
       if (typeof document === "undefined") return null;
@@ -3995,6 +4002,7 @@ export default function GeoFeed({
           return {
             remaining: root.scrollHeight - root.scrollTop - root.clientHeight,
             viewportH: root.clientHeight || window.innerHeight || 800,
+            scrollHeight: root.scrollHeight,
             attach: root,
           };
         }
@@ -4004,6 +4012,7 @@ export default function GeoFeed({
         remaining:
           doc.scrollHeight - window.scrollY - window.innerHeight,
         viewportH: window.innerHeight || 800,
+        scrollHeight: doc.scrollHeight,
         attach: window,
       };
     };
@@ -4014,6 +4023,7 @@ export default function GeoFeed({
       if (!metrics) return;
       const threshold = computeNearEndLoadMoreThresholdPx({
         viewportHeight: metrics.viewportH,
+        scrollHeight: metrics.scrollHeight,
       });
       if (metrics.remaining > threshold) return;
       void loadMoreFeed();
