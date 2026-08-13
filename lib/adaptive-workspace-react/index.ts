@@ -235,6 +235,14 @@ export type {
 } from "./resolve-visible-adaptive-workspace";
 
 export {
+  HC_AW_FEED_OWNS_DOCUMENT_SCROLL_CLASS,
+  HC_AW_DOC_SCROLL_LOCK_ATTR,
+  shouldLockDocumentScrollForFeedOwner,
+  applyDocumentFeedScrollLock,
+  releaseDocumentFeedScrollLock,
+} from "./document-feed-scroll-lock";
+
+export {
   WORKSPACE_SURFACE_REGISTRY,
   WORKSPACE_SURFACE_IDS,
   WORKSPACE_RESERVED_SURFACE_IDS,
