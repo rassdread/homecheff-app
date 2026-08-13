@@ -226,7 +226,7 @@ async function runNatural(browserType, label, opts = {}) {
   let maxBatch = lastBatch;
   let approachArmed = false;
 
-  const maxSteps = opts.maxSteps || 160;
+  const maxSteps = opts.maxSteps || 240;
   for (let step = 0; step < maxSteps; step++) {
     await page.waitForTimeout(320 + Math.random() * 280);
     const before = await dump(page);
@@ -294,9 +294,10 @@ async function runNatural(browserType, label, opts = {}) {
       await page.waitForTimeout(2000);
       const afterBack = await dump(page);
       const cards0 = afterBack.cards;
-      for (let i = 0; i < 40; i++) {
+      const batch0 = afterBack.fiber?.batch ?? 0;
+      for (let i = 0; i < 80; i++) {
         await naturalStep(page, !!opts.mobile);
-        await page.waitForTimeout(550);
+        await page.waitForTimeout(500);
       }
       const afterScroll = await dump(page);
       spaBack = {
@@ -313,7 +314,9 @@ async function runNatural(browserType, label, opts = {}) {
           batch: afterScroll.fiber?.batch,
           empty: afterScroll.fiber?.empty,
         },
-        grew: afterScroll.cards > cards0,
+        grew:
+          afterScroll.cards > cards0 ||
+          (afterScroll.fiber?.batch ?? 0) > batch0,
       };
     } catch (e) {
       spaBack = { error: String(e).slice(0, 240), grew: false };

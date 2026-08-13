@@ -108,17 +108,17 @@ assert.ok(nearDesktop > 480, 'must exceed legacy fixed 480px margin');
 assert.ok(nearDesktop > 640, 'must exceed legacy fixed 640px desktop fallback');
 assert.equal(
   computeNearEndLoadMoreThresholdPx({ viewportHeight: 844 }),
-  Math.min(9_000, Math.max(900, Math.round(844 * 3))),
+  Math.min(10_000, Math.max(900, Math.round(844 * 3))),
 );
 const tall = computeNearEndLoadMoreThresholdPx({
   viewportHeight: 844,
   scrollHeight: 30_000,
 });
 assert.ok(
-  tall >= Math.round(30_000 * 0.25),
+  tall >= Math.round(30_000 * 0.3),
   'tall feed boosts near-end threshold from content height',
 );
-assert.ok(tall <= 9_000);
+assert.ok(tall <= 10_000);
 
 const geo = readFileSync('components/feed/GeoFeed.tsx', 'utf8');
 assert(geo.includes('FeedPrefetchCache') || geo.includes('feed-prefetch-cache'), 'GeoFeed wires prefetch');

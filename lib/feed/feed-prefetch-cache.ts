@@ -112,9 +112,9 @@ export function buildPrefetchObserverRootMargin(px: number): string {
  */
 export const FEED_NEAR_END_LOAD_MORE_VIEWPORTS = 3;
 export const FEED_NEAR_END_LOAD_MORE_MIN_PX = 900;
-export const FEED_NEAR_END_LOAD_MORE_MAX_PX = 9_000;
+export const FEED_NEAR_END_LOAD_MORE_MAX_PX = 10_000;
 /** When feed content is already tall, invite loadMore this fraction from the end. */
-export const FEED_NEAR_END_CONTENT_FRACTION = 0.25;
+export const FEED_NEAR_END_CONTENT_FRACTION = 0.3;
 
 export function computeNearEndLoadMoreThresholdPx(input?: {
   /** Scrollport height (nested desktop column or window.innerHeight). */
