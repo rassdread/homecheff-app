@@ -102,6 +102,7 @@ saveHomeFeedReturnCache({
   apiViewerCoords: null,
   nativeFeedRenderMore: false,
   discoveryFeed: null,
+  feedHasMore: true,
 });
 assert.equal(
   readHomeFeedReturnCache('scope=nearby&radius=25&lat=51.9&lng=4.3&take=10&skip=0'),

@@ -156,6 +156,10 @@ import {
   saveHomeFeedReturnCache,
   clearHomeFeedReturnCache,
   isHomeFeedReturnCacheStale,
+  rehydrateHomeFeedContinuation,
+  HOME_FEED_RETURN_CACHE_VERSION,
+  type HomeFeedReturnRecirculatedRow,
+  type HomeFeedReturnScrollSnapshot,
 } from "@/lib/feed/home-feed-return-cache";
 import {
   isGeoFeedDiagnosticsEnabled,
@@ -1195,6 +1199,11 @@ export default function GeoFeed({
   const [recirculatedRows, setRecirculatedRows] = useState<
     Array<{ row: "sale"; item: FeedItem } | { row: "insp"; slot: InspSlot }>
   >([]);
+  const recirculatedRowsRef = useRef(recirculatedRows);
+  /** SPA-back scroll restore — applied once after paint. */
+  const pendingReturnScrollRef = useRef<HomeFeedReturnScrollSnapshot | null>(
+    null,
+  );
   const recirculationInFlightRef = useRef(false);
   /** Predictive prefetch — max 2 prepared pages per requestKey. */
   const feedPrefetchCacheRef = useRef(
@@ -1710,6 +1719,10 @@ export default function GeoFeed({
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
+
+  useEffect(() => {
+    recirculatedRowsRef.current = recirculatedRows;
+  }, [recirculatedRows]);
 
   useEffect(() => {
     inspiratiePoolRef.current = inspiratiePool;
@@ -2504,14 +2517,6 @@ export default function GeoFeed({
     preparedRecircBatchRef.current = null;
     feedSealedNoteRequestKey(requestKey);
 
-    setRecirculatedRows([]);
-    broadenedKickKeyRef.current = null;
-    setCompositionState((prev) => {
-      const next = resetFeedCompositionState(prev, requestKey);
-      compositionStateRef.current = next;
-      return next;
-    });
-
     if (isFilterTransition) {
       setFilterResultPhase(FEED_RESULT_PHASE.FILTER_TRANSITION_STARTED);
       filterTransitionStartedAtRef.current = Date.now();
@@ -2521,15 +2526,12 @@ export default function GeoFeed({
       }
     }
 
-    if (feedRequestKeyInFlightRef.current === requestKey) {
-      return;
-    }
-    feedRequestKeyInFlightRef.current = requestKey;
-
     // Multi-key recent filter first-batch cache, then single-slot return cache.
+    // Read BEFORE any composition wipe so SPA remount can restore atomically.
     const recentHit = filterResultCacheRef.current.get(requestKey);
     const cached = recentHit
       ? {
+          version: 1 as const,
           requestKey,
           items: recentHit.items,
           inspiratiePool: recentHit.inspiratiePool as InspirationItem[],
@@ -2541,6 +2543,11 @@ export default function GeoFeed({
         }
       : readHomeFeedReturnCache(requestKey);
 
+    if (feedRequestKeyInFlightRef.current === requestKey && !cached) {
+      return;
+    }
+    feedRequestKeyInFlightRef.current = requestKey;
+
     feedPerfMark("cache:restore-start");
     let backgroundRefresh = false;
     if (cached) {
@@ -2549,40 +2556,38 @@ export default function GeoFeed({
       if (recentHit) {
         filterTransitionDiagRef.current.filterCacheHit += 1;
       }
-      if (!isHomeFeedReturnCacheStale(cached)) {
-        feedPerfMark("feed:cache-hit");
-      } else {
-        feedPerfMark("feed:cache-stale-refresh");
-      }
+
+      const itemSeeds = (cached.items as FeedItem[]).map((row) => ({
+        id: row.id,
+        kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
+          | "sale"
+          | "insp",
+      }));
+      const restored = rehydrateHomeFeedContinuation({
+        requestKey,
+        itemSeeds,
+        payload: cached,
+        firstPageTake: FEED_FIRST_PAGE_TAKE,
+      });
+
+      // Atomic continuation restore — never leave uniqueEligibleCount=0 while
+      // marketplace items are visible (SPA-back emptyTerminal guard).
+      itemsRef.current = cached.items as FeedItem[];
       setItems(cached.items as FeedItem[]);
       setDiscoveryFeed(cached.discoveryFeed ?? null);
       setInspiratiePool(cached.inspiratiePool);
-      // Rehydrate composition so exact-exhaust → broadened can continue after cache restore.
-      {
-        const cachedHasMore = Boolean(
-          cached.feedHasMore ??
-            cached.items.length >= FEED_FIRST_PAGE_TAKE,
-        );
-        let restored = recordDisplayedSeeds(
-          compositionStateRef.current,
-          (cached.items as FeedItem[]).map((row) => ({
-            id: row.id,
-            kind: isMarketplaceSaleItem(row)
-              ? ("sale" as const)
-              : ("insp" as const),
-          })),
-        );
-        restored = markMarketplacePageResult(restored, {
-          fetchedCount: (cached.items as FeedItem[]).length,
-          apiHasMore: cachedHasMore,
-          skipUsed: 0,
-        });
-        const restoredHasMore =
-          cachedHasMore || composedFeedCanContinue(restored);
-        commitCompositionState(restored);
-        feedHasMoreRef.current = restoredHasMore;
-        setFeedHasMore(restoredHasMore);
-      }
+      const nextRecirc = (restored.recirculatedRows ||
+        []) as typeof recirculatedRows;
+      recirculatedRowsRef.current = nextRecirc;
+      setRecirculatedRows(nextRecirc);
+      commitCompositionState(restored.composition);
+      feedHasMoreRef.current = restored.feedHasMore;
+      setFeedHasMore(restored.feedHasMore);
+      pendingReturnScrollRef.current = restored.scroll;
+      broadenedKickKeyRef.current = restored.composition.marketplaceExhausted
+        ? `${requestKey}|broadened0`
+        : null;
+
       if (cached.apiViewerCoords) {
         setApiViewerCoords(cached.apiViewerCoords);
       }
@@ -2594,18 +2599,101 @@ export default function GeoFeed({
       feedInteractionStartedRef.current = true;
       setFeedHydrated(true);
       setFilterResultPhase(FEED_RESULT_PHASE.RESULTS_READY);
-      if (!isHomeFeedReturnCacheStale(cached) && !recentHit) {
+
+      // Resume the existing loadMore engine after SPA remount — do not wait
+      // solely on IntersectionObserver (nested desktop can miss one frame).
+      if (restored.feedHasMore) {
+        window.setTimeout(() => {
+          if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+          const c = compositionStateRef.current;
+          if (c.emptyTerminal) return;
+          if (
+            shouldFetchBroadenedDiscovery(c) ||
+            shouldActivateRecirculation(c)
+          ) {
+            void loadMoreFeedRef.current?.();
+          }
+        }, 120);
+      }
+
+      const allowBackgroundRefresh =
+        !restored.skipBackgroundRefresh &&
+        (isHomeFeedReturnCacheStale(cached) || Boolean(recentHit));
+
+      if (!allowBackgroundRefresh) {
+        if (!isHomeFeedReturnCacheStale(cached)) {
+          feedPerfMark("feed:cache-hit");
+        } else {
+          feedPerfMark("feed:cache-hit-continuation");
+        }
         feedRequestKeyInFlightRef.current = null;
         setRequestInFlight(false);
         requestInFlightStateRef.current = false;
-        return;
+        // Still register save cleanup so SPA back → scroll → leave persists
+        // the deeper continuation snapshot (not the stale pre-back cache).
+        return () => {
+          const snapshot = itemsRef.current;
+          if (snapshot.length === 0) return;
+          const desktopRoot =
+            typeof document !== "undefined"
+              ? document.getElementById("homecheff-feed-desktop")
+              : null;
+          const scroll: HomeFeedReturnScrollSnapshot | null =
+            desktopRoot instanceof HTMLElement &&
+            getComputedStyle(desktopRoot).overflowY !== "visible"
+              ? { root: "desktop", top: desktopRoot.scrollTop }
+              : typeof window !== "undefined"
+                ? { root: "viewport", top: window.scrollY }
+                : null;
+          saveHomeFeedReturnCache({
+            version: HOME_FEED_RETURN_CACHE_VERSION,
+            requestKey,
+            items: snapshot,
+            inspiratiePool: inspiratiePoolRef.current,
+            apiViewerCoords: apiViewerCoordsRef.current,
+            nativeFeedRenderMore: nativeFeedRenderMoreRef.current,
+            discoveryFeed: discoveryFeedRef.current,
+            feedHasMore: feedHasMoreRef.current,
+            composition: {
+              ...compositionStateRef.current,
+              requestKey,
+            },
+            recirculatedRows:
+              recirculatedRowsRef.current as HomeFeedReturnRecirculatedRow[],
+            scroll,
+          });
+          filterResultCacheRef.current.put({
+            requestKey,
+            items: snapshot,
+            inspiratiePool: inspiratiePoolRef.current,
+            discoveryFeed: discoveryFeedRef.current,
+            apiViewerCoords: apiViewerCoordsRef.current,
+            feedHasMore: feedHasMoreRef.current,
+          });
+        };
       }
-      // Recent-filter hit or stale return cache: show instantly, revalidate.
+
+      if (!isHomeFeedReturnCacheStale(cached)) {
+        feedPerfMark("feed:cache-hit");
+      } else {
+        feedPerfMark("feed:cache-stale-refresh");
+      }
+      // Recent-filter hit or stale first-page cache: show instantly, revalidate.
       backgroundRefresh = true;
     } else {
       feedPerfMark("cache:restore-end");
       feedPerfMark("feed:cache-miss");
       filterTransitionDiagRef.current.filterCacheMiss += 1;
+      // No cache — safe to reset continuation state before network fetch.
+      setRecirculatedRows([]);
+      recirculatedRowsRef.current = [];
+      broadenedKickKeyRef.current = null;
+      pendingReturnScrollRef.current = null;
+      const reset = resetFeedCompositionState(
+        compositionStateRef.current,
+        requestKey,
+      );
+      commitCompositionState(reset);
     }
 
     feedPerfIncrementFeedFetch(
@@ -2954,7 +3042,24 @@ export default function GeoFeed({
       }
       const snapshot = itemsRef.current;
       if (snapshot.length > 0) {
+        const desktopRoot =
+          typeof document !== "undefined"
+            ? document.getElementById("homecheff-feed-desktop")
+            : null;
+        const scroll: HomeFeedReturnScrollSnapshot | null =
+          desktopRoot instanceof HTMLElement &&
+          getComputedStyle(desktopRoot).overflowY !== "visible"
+            ? { root: "desktop", top: desktopRoot.scrollTop }
+            : typeof window !== "undefined"
+              ? { root: "viewport", top: window.scrollY }
+              : null;
+        // Point-in-time snapshot: items + composition + recirculated rows together.
+        const compositionSnapshot = {
+          ...compositionStateRef.current,
+          requestKey,
+        };
         saveHomeFeedReturnCache({
+          version: HOME_FEED_RETURN_CACHE_VERSION,
           requestKey,
           items: snapshot,
           inspiratiePool: inspiratiePoolRef.current,
@@ -2962,6 +3067,10 @@ export default function GeoFeed({
           nativeFeedRenderMore: nativeFeedRenderMoreRef.current,
           discoveryFeed: discoveryFeedRef.current,
           feedHasMore: feedHasMoreRef.current,
+          composition: compositionSnapshot,
+          recirculatedRows:
+            recirculatedRowsRef.current as HomeFeedReturnRecirculatedRow[],
+          scroll,
         });
         filterResultCacheRef.current.put({
           requestKey,
@@ -2997,6 +3106,26 @@ export default function GeoFeed({
   useEffect(() => {
     feedLoadingMoreRef.current = feedLoadingMore;
   }, [feedLoadingMore]);
+
+  /** SPA-back: restore nested/viewport scroll after continuation paint. */
+  useEffect(() => {
+    const pending = pendingReturnScrollRef.current;
+    if (!pending || !feedHydrated) return;
+    pendingReturnScrollRef.current = null;
+    const apply = () => {
+      if (pending.root === "desktop") {
+        const root = document.getElementById("homecheff-feed-desktop");
+        if (root instanceof HTMLElement) {
+          root.scrollTop = pending.top;
+          return;
+        }
+      }
+      window.scrollTo(0, pending.top);
+    };
+    apply();
+    const t = window.setTimeout(apply, 50);
+    return () => window.clearTimeout(t);
+  }, [feedHydrated, items.length, recirculatedRows.length]);
 
   useEffect(() => {
     if (!feedHydrated || items.length === 0) return;
