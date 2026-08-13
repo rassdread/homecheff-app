@@ -2586,6 +2586,12 @@ export default function GeoFeed({
       commitCompositionState(restored.composition);
       feedHasMoreRef.current = restored.feedHasMore;
       setFeedHasMore(restored.feedHasMore);
+      // Clear any in-flight loadMore locks from the pre-navigation session so
+      // near-end invites / resume kick cannot stay permanently suppressed.
+      recirculationInFlightRef.current = false;
+      feedLoadingMoreRef.current = false;
+      nearEndInviteCooldownUntilRef.current = 0;
+      setFeedLoadingMore(false);
       pendingReturnScrollRef.current = restored.scroll;
       broadenedKickKeyRef.current = restored.composition.marketplaceExhausted
         ? `${requestKey}|broadened0`
