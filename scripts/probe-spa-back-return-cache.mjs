@@ -1,7 +1,6 @@
 /**
- * SPA-back endless continuation probe (local/preview/production).
- * Scrolls into recirculation → listing → back → scroll again.
- * Does not mutate app data.
+ * Focused SPA-back continuation probe (local/preview/prod).
+ * Waits for cards, scrolls into recirculation, listing→back→scroll growth.
  */
 import { chromium, webkit } from '@playwright/test';
 
@@ -15,8 +14,8 @@ const SEED = {
   radiusKm: 25,
 };
 
-function fiberScript() {
-  return (() => {
+async function snap(page) {
+  return page.evaluate(() => {
     const s = document.querySelector('[data-feed-sentinel]');
     const cards = [
       ...document.querySelectorAll(
@@ -29,9 +28,9 @@ function fiberScript() {
     const k2 = Object.keys(el).find((k) => k.startsWith('__reactFiber'));
     if (k2) {
       let f = el[k2];
-      for (let i = 0; i < 120 && f; i++) {
+      for (let i = 0; i < 140 && f; i++) {
         let h = f.memoizedState;
-        for (let n = 0; n < 100 && h; n++) {
+        for (let n = 0; n < 120 && h; n++) {
           const q = h.memoizedState;
           if (
             q &&
@@ -47,7 +46,7 @@ function fiberScript() {
               unique: q.uniqueEligibleCount,
               hist: q.displayedHistory?.length,
               recent: q.recentIds?.length,
-              rk: (q.requestKey || '').slice(0, 100),
+              rk: q.requestKey || '',
               empty: q.emptyTerminal,
               recircCount: q.recirculatedCount,
             };
@@ -62,16 +61,16 @@ function fiberScript() {
     return {
       cards: cards.length,
       sentinel: !!s,
-      rem: root
-        ? root.scrollHeight - root.scrollTop - root.clientHeight
-        : null,
       fiber,
       path: location.pathname,
+      rem: root
+        ? root.scrollHeight - root.scrollTop - root.clientHeight
+        : document.documentElement.scrollHeight - window.scrollY - window.innerHeight,
     };
-  })();
+  });
 }
 
-async function scrollFeed(page, times, waitMs = 500) {
+async function scrollFeed(page, times, waitMs = 600) {
   for (let i = 0; i < times; i++) {
     await page.evaluate(() => {
       const root = document.getElementById('homecheff-feed-desktop');
@@ -85,7 +84,21 @@ async function scrollFeed(page, times, waitMs = 500) {
   }
 }
 
-async function runMatrix(browserType, label, opts = {}) {
+async function waitForCards(page, min = 1, timeoutMs = 60000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) {
+    const n = await page
+      .locator(
+        'a[href*="/product/"],a[href*="/recipe/"],a[href*="/dish/"],a[href*="/listing/"]',
+      )
+      .count();
+    if (n >= min) return n;
+    await page.waitForTimeout(500);
+  }
+  return 0;
+}
+
+async function runOne(browserType, label, opts = {}) {
   const browser = await browserType.launch({ headless: true });
   const context = await browser.newContext({
     viewport: opts.viewport || { width: 1280, height: 800 },
@@ -133,50 +146,70 @@ async function runMatrix(browserType, label, opts = {}) {
   });
 
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-  await page.waitForTimeout(3000);
+  const initialCards = await waitForCards(page, 1, 90000);
+  if (initialCards < 1) {
+    await browser.close();
+    return { label, pass: false, error: 'no-cards' };
+  }
 
-  await scrollFeed(page, opts.mobile ? 18 : 14, opts.mobile ? 650 : 500);
-  const before = await page.evaluate(fiberScript);
+  // Grow until recirculation or enough depth
+  let before = await snap(page);
+  for (let i = 0; i < 40; i++) {
+    await scrollFeed(page, 1, 700);
+    before = await snap(page);
+    if ((before.fiber?.batch ?? 0) >= 3 || (before.fiber?.recirc && (before.fiber?.batch ?? 0) >= 1)) {
+      break;
+    }
+  }
+
   const apiBefore = apis.length;
-
-  await page.locator('a[href*="/product/"]').first().click({ timeout: 15000 });
-  await page.waitForURL(/\/product\//, { timeout: 20000 });
-  await page.waitForTimeout(800);
+  const link = page
+    .locator(
+      'a[href*="/product/"],a[href*="/recipe/"],a[href*="/dish/"],a[href*="/listing/"]',
+    )
+    .first();
+  await link.click({ timeout: 20000 });
+  await page.waitForTimeout(1200);
   await page.goBack({ waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(2000);
-  const afterBack = await page.evaluate(fiberScript);
+  await page.waitForTimeout(2500);
+  const afterBack = await snap(page);
 
-  await scrollFeed(page, 10, 700);
-  const afterScroll = await page.evaluate(fiberScript);
+  await scrollFeed(page, 12, 750);
+  const afterScroll = await snap(page);
 
   // 3 cycles
-  let cycleOk = true;
-  let lastCards = afterScroll.cards;
+  let cyclesOk = true;
+  let last = afterScroll.cards;
   for (let c = 0; c < 3; c++) {
-    await page.locator('a[href*="/product/"]').first().click({ timeout: 15000 });
-    await page.waitForURL(/\/product\//, { timeout: 20000 });
-    await page.waitForTimeout(600);
+    await page
+      .locator(
+        'a[href*="/product/"],a[href*="/recipe/"],a[href*="/dish/"],a[href*="/listing/"]',
+      )
+      .first()
+      .click({ timeout: 20000 });
+    await page.waitForTimeout(900);
     await page.goBack({ waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(1500);
-    await scrollFeed(page, 6, 650);
-    const st = await page.evaluate(fiberScript);
-    if (!st.sentinel || st.fiber?.empty || st.cards <= lastCards) {
-      // allow equal if already huge, but must have sentinel and not empty
-      if (!st.sentinel || st.fiber?.empty) cycleOk = false;
+    await page.waitForTimeout(1800);
+    await scrollFeed(page, 8, 700);
+    const st = await snap(page);
+    if (!st.sentinel || st.fiber?.empty || (st.fiber?.unique ?? 0) < 1) {
+      cyclesOk = false;
     }
-    if (st.cards > lastCards) lastCards = st.cards;
+    if (st.cards > last) last = st.cards;
   }
-  const afterCycles = await page.evaluate(fiberScript);
+  const afterCycles = await snap(page);
 
+  const grew = afterScroll.cards > afterBack.cards;
   const pass =
     afterBack.sentinel === true &&
     afterBack.fiber?.empty !== true &&
     (afterBack.fiber?.unique ?? 0) > 0 &&
-    afterBack.fiber?.rk &&
-    afterScroll.cards > afterBack.cards &&
+    Boolean(afterBack.fiber?.rk) &&
+    afterBack.fiber.rk.length > 0 &&
+    grew &&
     afterScroll.sentinel === true &&
     afterScroll.fiber?.empty !== true &&
-    cycleOk;
+    cyclesOk;
 
   await browser.close();
   return {
@@ -186,26 +219,25 @@ async function runMatrix(browserType, label, opts = {}) {
     afterBack,
     afterScroll,
     afterCycles,
-    cycleOk,
+    cyclesOk,
+    grew,
     apiAfterBack: apis.slice(apiBefore),
-    apiTotal: apis.length,
   };
 }
 
 const results = [];
-results.push(await runMatrix(chromium, 'chromium-desktop'));
+results.push(await runOne(chromium, 'chromium-desktop'));
 results.push(
-  await runMatrix(chromium, 'chromium-mobile', {
+  await runOne(chromium, 'chromium-mobile', {
     mobile: true,
     viewport: { width: 390, height: 844 },
   }),
 );
 try {
-  results.push(await runMatrix(webkit, 'webkit-desktop'));
+  results.push(await runOne(webkit, 'webkit-desktop'));
 } catch (e) {
-  results.push({ label: 'webkit-desktop', pass: false, error: String(e) });
+  results.push({ label: 'webkit-desktop', pass: false, error: String(e).slice(0, 300) });
 }
 
 console.log(JSON.stringify({ base: BASE, results }, null, 2));
-const failed = results.filter((r) => !r.pass);
-process.exit(failed.length ? 1 : 0);
+process.exit(results.every((r) => r.pass) ? 0 : 1);

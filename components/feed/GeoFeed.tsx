@@ -2600,6 +2600,22 @@ export default function GeoFeed({
       setFeedHydrated(true);
       setFilterResultPhase(FEED_RESULT_PHASE.RESULTS_READY);
 
+      // Resume the existing loadMore engine after SPA remount — do not wait
+      // solely on IntersectionObserver (nested desktop can miss one frame).
+      if (restored.feedHasMore) {
+        window.setTimeout(() => {
+          if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+          const c = compositionStateRef.current;
+          if (c.emptyTerminal) return;
+          if (
+            shouldFetchBroadenedDiscovery(c) ||
+            shouldActivateRecirculation(c)
+          ) {
+            void loadMoreFeedRef.current?.();
+          }
+        }, 120);
+      }
+
       const allowBackgroundRefresh =
         !restored.skipBackgroundRefresh &&
         (isHomeFeedReturnCacheStale(cached) || Boolean(recentHit));

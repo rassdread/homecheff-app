@@ -280,8 +280,10 @@ export function rehydrateHomeFeedContinuation(input: {
       Boolean(payload.feedHasMore) || composedFeedCanContinue(composition);
     const skipBackgroundRefresh =
       composition.marketplaceExhausted ||
+      composition.broadenedExhausted ||
       composition.recirculationActive ||
       composition.stage === 'recirculation' ||
+      composition.stage === 'broadened' ||
       (Array.isArray(payload.recirculatedRows) &&
         payload.recirculatedRows.length > 0);
 
