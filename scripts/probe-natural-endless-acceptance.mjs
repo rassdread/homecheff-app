@@ -128,8 +128,16 @@ async function naturalStep(page, mobile) {
           ? root.clientHeight
           : window.innerHeight) * 0.6,
     );
-    if (nested && !mobile) root.scrollBy(0, delta);
-    else window.scrollBy(0, delta);
+    if (nested && !mobile) {
+      root.scrollBy(0, delta);
+      // Programmatic scrollBy on nested roots may not emit "scroll" in
+      // headless Chromium; real wheel/touch does. Dispatch so the existing
+      // remaining-distance fallback is exercised.
+      root.dispatchEvent(new Event('scroll', { bubbles: true }));
+    } else {
+      window.scrollBy(0, delta);
+      window.dispatchEvent(new Event('scroll', { bubbles: true }));
+    }
   }, mobile);
 }
 
