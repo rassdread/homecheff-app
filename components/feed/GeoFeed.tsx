@@ -3927,12 +3927,6 @@ export default function GeoFeed({
           : 800;
     const nearMarginPx = computeNearEndLoadMoreThresholdPx({
       viewportHeight: viewportH,
-      scrollHeight:
-        scrollRoot instanceof HTMLElement
-          ? scrollRoot.scrollHeight
-          : typeof document !== "undefined"
-            ? document.documentElement.scrollHeight
-            : undefined,
     });
     const obs = new IntersectionObserver(
       (entries) => {
@@ -3973,13 +3967,16 @@ export default function GeoFeed({
         console.info("[hc-native-scroll]", "observer-detached");
       }
     };
-  }, [feedHasMore, loading, loadMoreFeed, isDesktopSplit, items.length, recirculatedRows.length]);
+  }, [feedHasMore, loading, loadMoreFeed, isDesktopSplit]);
 
   /**
    * Near-end scroll fallback for BOTH desktop nested root and mobile viewport.
    * IntersectionObserver can miss the sentinel; remaining-distance still drives
    * the existing loadMore → broadened → recirculation path. Threshold matches
    * the viewport-aware observer margin (not a fixed 640 desktop-only value).
+   * Content-aware boost (scrollHeight) is applied ONLY on real scroll events —
+   * not on effect re-entry — to avoid max-update-depth loops when rem is already
+   * inside a tall-feed threshold after auto-chain.
    */
   useEffect(() => {
     if (!feedHasMore || loading) return;
@@ -4033,16 +4030,23 @@ export default function GeoFeed({
     if (!metrics) return;
     const target = metrics.attach;
     target.addEventListener("scroll", onScroll, { passive: true });
-    // Catch already-near-bottom layouts (short first page / tall viewport).
-    onScroll();
+    // One-shot short-feed kick only (viewport window), never the tall-feed boost.
+    const shortKick = computeNearEndLoadMoreThresholdPx({
+      viewportHeight: metrics.viewportH,
+    });
+    if (
+      !feedLoadingMoreRef.current &&
+      feedHasMoreRef.current &&
+      metrics.remaining <= shortKick
+    ) {
+      void loadMoreFeed();
+    }
     return () => target.removeEventListener("scroll", onScroll);
   }, [
     isDesktopSplit,
     feedHasMore,
     loading,
     loadMoreFeed,
-    items.length,
-    recirculatedRows.length,
   ]);
 
   /** One-shot kick into widened discovery when exact exhausts (short pages / IO miss). */
