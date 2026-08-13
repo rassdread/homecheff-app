@@ -1182,6 +1182,8 @@ export default function GeoFeed({
   const broadenedKickKeyRef = useRef<string | null>(null);
   const loadMoreFeedRef = useRef<(() => void) | null>(null);
   const feedLoadingMoreRef = useRef(false);
+  /** Prevents near-end IO/scroll from nested-update looping (React #185). */
+  const nearEndInviteCooldownUntilRef = useRef(0);
   /** Unified composition pagination / recirculation (one source must not kill the feed). */
   const [compositionState, setCompositionState] = useState<FeedCompositionState>(
     () => createFeedCompositionState(),
@@ -3622,6 +3624,7 @@ export default function GeoFeed({
     if (shouldRecirculate) {
       if (recirculationInFlightRef.current) return;
       recirculationInFlightRef.current = true;
+      feedLoadingMoreRef.current = true;
       const appendStartedAt = Date.now();
       const prepared = preparedRecircBatchRef.current;
       const showSpinner = !prepared;
@@ -3630,7 +3633,8 @@ export default function GeoFeed({
         setFeedLoadingMore(true);
       }
       try {
-        const lastRow = recirculatedRows[recirculatedRows.length - 1];
+        const lastRow =
+          recirculatedRowsRef.current[recirculatedRowsRef.current.length - 1];
         const lastId = !lastRow
           ? null
           : lastRow.row === "sale"
@@ -3808,7 +3812,6 @@ export default function GeoFeed({
   }, [
     feedStartupBlocked,
     nearbyNeedsLocation,
-    recirculatedRows,
     buildLoadMoreParams,
     applyMarketplacePage,
     prefetchNextMarketplacePage,
@@ -3822,6 +3825,15 @@ export default function GeoFeed({
   loadMoreFeedRef.current = () => {
     void loadMoreFeed();
   };
+
+  const inviteNearEndLoadMore = useCallback(() => {
+    if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+    if (recirculationInFlightRef.current) return;
+    const now = Date.now();
+    if (now < nearEndInviteCooldownUntilRef.current) return;
+    nearEndInviteCooldownUntilRef.current = now + 450;
+    void loadMoreFeedRef.current?.();
+  }, []);
 
   // Track scroll velocity for adaptive prefetch distance
   useEffect(() => {
@@ -3915,6 +3927,7 @@ export default function GeoFeed({
   // Composed desktop: observe #homecheff-feed-desktop. Mobile/other: viewport.
   // Threshold is viewport-aware so natural scrolling invites loadMore before a
   // hard end (fixed 480px was too late after auto-chain batch cap).
+  // Uses loadMoreFeedRef + cooldown so observer remounts cannot nested-update loop.
   useEffect(() => {
     const el = feedLoadMoreRef.current;
     if (!el || !feedHasMore || loading) return;
@@ -3943,7 +3956,7 @@ export default function GeoFeed({
             root: scrollRoot ? "nested" : "viewport",
           });
         }
-        if (hit) void loadMoreFeed();
+        if (hit) inviteNearEndLoadMore();
       },
       {
         root: scrollRoot,
@@ -3967,16 +3980,14 @@ export default function GeoFeed({
         console.info("[hc-native-scroll]", "observer-detached");
       }
     };
-  }, [feedHasMore, loading, loadMoreFeed, isDesktopSplit]);
+  }, [feedHasMore, loading, isDesktopSplit, inviteNearEndLoadMore]);
 
   /**
    * Near-end scroll fallback for BOTH desktop nested root and mobile viewport.
    * IntersectionObserver can miss the sentinel; remaining-distance still drives
-   * the existing loadMore → broadened → recirculation path. Threshold matches
-   * the viewport-aware observer margin (not a fixed 640 desktop-only value).
-   * Content-aware boost (scrollHeight) is applied ONLY on real scroll events —
-   * not on effect re-entry — to avoid max-update-depth loops when rem is already
-   * inside a tall-feed threshold after auto-chain.
+   * the existing loadMore → broadened → recirculation path.
+   * Content-aware boost applies on scroll events only; cooldown prevents
+   * append→scrollHeight-change→scroll-event nested update loops.
    */
   useEffect(() => {
     if (!feedHasMore || loading) return;
@@ -4015,7 +4026,6 @@ export default function GeoFeed({
     };
 
     const onScroll = () => {
-      if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
       const metrics = resolveScrollMetrics();
       if (!metrics) return;
       const threshold = computeNearEndLoadMoreThresholdPx({
@@ -4023,31 +4033,15 @@ export default function GeoFeed({
         scrollHeight: metrics.scrollHeight,
       });
       if (metrics.remaining > threshold) return;
-      void loadMoreFeed();
+      inviteNearEndLoadMore();
     };
 
     const metrics = resolveScrollMetrics();
     if (!metrics) return;
     const target = metrics.attach;
     target.addEventListener("scroll", onScroll, { passive: true });
-    // One-shot short-feed kick only (viewport window), never the tall-feed boost.
-    const shortKick = computeNearEndLoadMoreThresholdPx({
-      viewportHeight: metrics.viewportH,
-    });
-    if (
-      !feedLoadingMoreRef.current &&
-      feedHasMoreRef.current &&
-      metrics.remaining <= shortKick
-    ) {
-      void loadMoreFeed();
-    }
     return () => target.removeEventListener("scroll", onScroll);
-  }, [
-    isDesktopSplit,
-    feedHasMore,
-    loading,
-    loadMoreFeed,
-  ]);
+  }, [isDesktopSplit, feedHasMore, loading, inviteNearEndLoadMore]);
 
   /** One-shot kick into widened discovery when exact exhausts (short pages / IO miss). */
   useEffect(() => {
