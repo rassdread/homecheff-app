@@ -527,16 +527,26 @@ export default function NavBar() {
             <div className="hidden lg:block shrink-0">
               <LanguageSwitcher />
             </div>
-            {(status === 'unauthenticated' || status === 'loading') && !user && (
+            {/* Ecosystem discovery — desktop top chrome (guest + auth). Not buried in profile. */}
+            <div className="hidden lg:block shrink-0">
+              <OntdekHomeCheffMenu
+                currentProduct="homecheff"
+                authenticated={status === 'authenticated'}
+                surface="header"
+                variant="compact"
+              />
+            </div>
+            {status === 'loading' && !user ? (
+              <div
+                className="hidden lg:flex shrink-0 items-center gap-2"
+                aria-busy="true"
+                aria-label="Sessie laden"
+              >
+                <div className="h-9 w-9 animate-pulse rounded-full bg-gray-100" />
+              </div>
+            ) : null}
+            {status === 'unauthenticated' && !user && (
               <>
-                <div className="hidden lg:block">
-                  <OntdekHomeCheffMenu
-                    currentProduct="homecheff"
-                    authenticated={false}
-                    surface="header"
-                    variant="compact"
-                  />
-                </div>
                 <Link
                   href="/login"
                   prefetch={false}
@@ -740,17 +750,6 @@ export default function NavBar() {
                         variant="dropdown"
                         onNavigate={() => setIsProfileDropdownOpen(false)}
                       />
-
-                      <div className="border-t border-gray-100 my-2"></div>
-
-                      <div className="px-1 py-1">
-                        <OntdekHomeCheffMenu
-                          currentProduct="homecheff"
-                          authenticated
-                          surface="account_menu"
-                          variant="inline"
-                        />
-                      </div>
 
                       <div className="border-t border-gray-100 my-2"></div>
                       

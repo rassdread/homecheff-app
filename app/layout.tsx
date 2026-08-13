@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import { canonicalLogoUrl, FAVICON_ASSET_Q } from '@/lib/brand/canonical-logo';
 import { MAIN_DOMAIN, getMetadataBaseFromHeaders, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 import { getPlatformDefinition, PLATFORM_KEYWORDS } from '@/lib/seo/platform-definition';
+import { auth } from '@/lib/auth';
 
 // Lazy load non-critical components for faster initial page load
 const PrivacyNotice = dynamic(() => import('@/components/PrivacyNotice'), {
@@ -178,6 +179,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
     htmlLang = languageCookie.value as 'en' | 'nl';
   }
+  // Seed client SessionProvider — avoids guest CTA flash after OAuth / hard navigations.
+  const session = await auth();
   return (
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
@@ -207,7 +210,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
       </head>
       <body className="min-h-screen bg-gray-50 font-sans antialiased overflow-x-clip max-w-[100vw] w-full">
-        <Providers>
+        <Providers session={session}>
           <SkipLink />
           <PerformanceMonitor />
           <ConsentAwareAnalytics />

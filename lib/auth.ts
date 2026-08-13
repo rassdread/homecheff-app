@@ -23,6 +23,7 @@ import {
 } from "./auth/google-oauth-clients";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
+import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -562,6 +563,18 @@ export const authOptions: NextAuthOptions = {
           return resolveSafeAuthRedirect('/auth/social-success', baseUrl);
         }
         if (url.includes('/social-login-success') || url.includes('/auth/social-success')) {
+          try {
+            const parsed = new URL(url, actualBaseUrl);
+            const safeNext = sanitizePostAuthRelativeUrl(parsed.searchParams.get('next'));
+            if (safeNext && safeNext !== '/') {
+              return resolveSafeAuthRedirect(
+                `/auth/social-success?next=${encodeURIComponent(safeNext)}`,
+                baseUrl,
+              );
+            }
+          } catch {
+            /* fall through */
+          }
           return resolveSafeAuthRedirect('/auth/social-success', baseUrl);
         }
         if (url.startsWith('/')) {

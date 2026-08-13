@@ -1,4 +1,5 @@
-/** Lightweight NavBar placeholder — prevents layout shift while NavBar chunk loads. */
+/** Lightweight NavBar placeholder — prevents layout shift while NavBar chunk loads.
+ * Neutral (not guest-CTA shaped) so OAuth transition does not flash Inloggen/Aanmelden. */
 export default function NavBarShell() {
   return (
     <header
@@ -13,10 +14,9 @@ export default function NavBarShell() {
           <div className="h-8 w-20 animate-pulse rounded-full bg-gray-100" />
           <div className="h-8 w-20 animate-pulse rounded-full bg-gray-100" />
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <div className="h-9 w-16 animate-pulse rounded-xl bg-gray-100 sm:w-20" />
-          <div className="h-9 w-20 animate-pulse rounded-xl bg-gray-200 sm:w-24" />
-          <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-100 lg:hidden" />
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="hidden h-8 w-8 animate-pulse rounded-full bg-gray-100 lg:block" />
+          <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
         </div>
       </div>
     </header>
