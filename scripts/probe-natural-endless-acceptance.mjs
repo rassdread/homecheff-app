@@ -218,35 +218,43 @@ async function runNatural(browserType, label, opts = {}) {
   // Optional SPA back
   let spaBack = null;
   if (opts.spaBack) {
-    const beforeBack = await dump(page);
-    await page.locator('a[href*="/product/"]').first().click({ timeout: 15000 });
-    await page.waitForURL(/\/product\//, { timeout: 20000 }).catch(() => {});
-    await page.waitForTimeout(900);
-    await page.goBack({ waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    const afterBack = await dump(page);
-    const cards0 = afterBack.cards;
-    for (let i = 0; i < 40; i++) {
-      await naturalStep(page, !!opts.mobile);
-      await page.waitForTimeout(550);
+    try {
+      const beforeBack = await dump(page);
+      const link = page
+        .locator(
+          'a[href*="/product/"],a[href*="/recipe/"],a[href*="/dish/"],a[href*="/listing/"]',
+        )
+        .first();
+      await link.click({ timeout: 20000 });
+      await page.waitForTimeout(1200);
+      await page.goBack({ waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(2000);
+      const afterBack = await dump(page);
+      const cards0 = afterBack.cards;
+      for (let i = 0; i < 40; i++) {
+        await naturalStep(page, !!opts.mobile);
+        await page.waitForTimeout(550);
+      }
+      const afterScroll = await dump(page);
+      spaBack = {
+        beforeBatch: beforeBack.fiber?.batch,
+        afterBack: {
+          cards: afterBack.cards,
+          batch: afterBack.fiber?.batch,
+          empty: afterBack.fiber?.empty,
+          recirc: afterBack.fiber?.recirc,
+          sentinel: afterBack.sentinel,
+        },
+        afterNatural: {
+          cards: afterScroll.cards,
+          batch: afterScroll.fiber?.batch,
+          empty: afterScroll.fiber?.empty,
+        },
+        grew: afterScroll.cards > cards0,
+      };
+    } catch (e) {
+      spaBack = { error: String(e).slice(0, 240), grew: false };
     }
-    const afterScroll = await dump(page);
-    spaBack = {
-      beforeBatch: beforeBack.fiber?.batch,
-      afterBack: {
-        cards: afterBack.cards,
-        batch: afterBack.fiber?.batch,
-        empty: afterBack.fiber?.empty,
-        recirc: afterBack.fiber?.recirc,
-        sentinel: afterBack.sentinel,
-      },
-      afterNatural: {
-        cards: afterScroll.cards,
-        batch: afterScroll.fiber?.batch,
-        empty: afterScroll.fiber?.empty,
-      },
-      grew: afterScroll.cards > cards0,
-    };
   }
 
   const final = await dump(page);
