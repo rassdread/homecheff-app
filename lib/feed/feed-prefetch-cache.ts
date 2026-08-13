@@ -103,6 +103,32 @@ export function buildPrefetchObserverRootMargin(px: number): string {
   return `${px}px 0px`;
 }
 
+/**
+ * Near-end threshold for EXISTING loadMoreFeed continuation (append path).
+ * Viewport-aware so natural scrolling anticipates the end before a hard stop.
+ * Does not change recirculation content — only WHEN loadMore is invited.
+ */
+export const FEED_NEAR_END_LOAD_MORE_VIEWPORTS = 3;
+export const FEED_NEAR_END_LOAD_MORE_MIN_PX = 900;
+export const FEED_NEAR_END_LOAD_MORE_MAX_PX = 3200;
+
+export function computeNearEndLoadMoreThresholdPx(input?: {
+  /** Scrollport height (nested desktop column or window.innerHeight). */
+  viewportHeight?: number;
+}): number {
+  const vh =
+    typeof input?.viewportHeight === 'number' && input.viewportHeight > 0
+      ? input.viewportHeight
+      : typeof window !== 'undefined'
+        ? window.innerHeight || 800
+        : 800;
+  const px = Math.round(vh * FEED_NEAR_END_LOAD_MORE_VIEWPORTS);
+  return Math.min(
+    FEED_NEAR_END_LOAD_MORE_MAX_PX,
+    Math.max(FEED_NEAR_END_LOAD_MORE_MIN_PX, px),
+  );
+}
+
 export class FeedPrefetchCache<TItem> {
   private readonly maxBatches: number;
   private batches: FeedPrefetchBatch<TItem>[] = [];
