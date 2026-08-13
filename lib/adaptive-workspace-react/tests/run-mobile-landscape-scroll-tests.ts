@@ -10,6 +10,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { resolveFeedWorkspaceVisibleLayout } from "../resolve-feed-workspace-visible-layout";
+import {
+  HC_AW_FEED_OWNS_DOCUMENT_SCROLL_CLASS,
+  shouldLockDocumentScrollForFeedOwner,
+} from "../document-feed-scroll-lock";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "../../..");
@@ -67,9 +71,29 @@ console.log("\n[mobile-landscape-scroll] layout source: height propagation for m
     layoutSrc,
     /multiCol\s*\?\s*"min-h-0 flex-1 overflow-y-auto overscroll-y-contain/,
   );
+  // Desktop white-bottom: lock document when feed owns scroll; release on cleanup
+  assert.match(layoutSrc, /shouldLockDocumentScrollForFeedOwner/);
+  assert.match(layoutSrc, /applyDocumentFeedScrollLock/);
+  assert.match(layoutSrc, /releaseDocumentFeedScrollLock/);
+  assert.match(
+    layoutSrc,
+    /visiblePlan\.scrollOwner/,
+  );
   // Must not key by Mode
   assert.equal(/key=\{[^}]*modePlan/i.test(layoutSrc), false);
   ok("multiCol primary host uses h-full overflow-hidden; feed scroll owner gated");
+}
+
+console.log("\n[mobile-landscape-scroll] document scroll lock helper");
+{
+  assert.equal(shouldLockDocumentScrollForFeedOwner("feed"), true);
+  assert.equal(shouldLockDocumentScrollForFeedOwner("document"), false);
+  assert.equal(shouldLockDocumentScrollForFeedOwner(null), false);
+  assert.match(HC_AW_FEED_OWNS_DOCUMENT_SCROLL_CLASS, /hc-aw-feed-owns-document-scroll/);
+  const css = readFileSync(join(root, "app/globals.css"), "utf8");
+  assert.match(css, /html\.hc-aw-feed-owns-document-scroll/);
+  assert.match(css, /overflow:\s*hidden\s*!important/);
+  ok("document lock only for scrollOwner=feed + CSS class present");
 }
 
 console.log("\n[mobile-landscape-scroll] wrappers fill height");

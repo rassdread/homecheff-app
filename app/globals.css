@@ -257,6 +257,26 @@ html {
   /* NO overflow-x: hidden on html - can block vertical scroll in Chrome */
   /* This fix helps all pages, not just inspiratie */
 }
+
+/**
+ * AW feed scroll owner (desktop / multiCol): document must not be a second
+ * vertical scroller — otherwise the workspace shell can be wheeled off-screen
+ * into blank body/html (white-bottom). Applied only while
+ * html.hc-aw-feed-owns-document-scroll is set by FeedWorkspaceVisibleLayout.
+ * Portrait mobile (window scroll) never gets this class.
+ */
+html.hc-aw-feed-owns-document-scroll,
+html.hc-aw-feed-owns-document-scroll body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+html.hc-aw-feed-owns-document-scroll body {
+  /* Keep horizontal clip behaviour from the base body rule without reopening
+     a vertical document scrollport. */
+  overflow-x: clip !important;
+  overflow-y: hidden !important;
+}
+
 /* Desktop: full height for layout */
 @media (min-width: 768px) {
   html {

@@ -89,6 +89,11 @@ import {
   type WorkspaceModePlan,
 } from "@/lib/adaptive-workspace-react";
 import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
+import {
+  applyDocumentFeedScrollLock,
+  releaseDocumentFeedScrollLock,
+  shouldLockDocumentScrollForFeedOwner,
+} from "@/lib/adaptive-workspace-react/document-feed-scroll-lock";
 
 export type FeedWorkspaceVisibleLayoutProps = {
   /**
@@ -243,6 +248,22 @@ export default function FeedWorkspaceVisibleLayout({
       presentationBridge.setStartRailActive(false);
     };
   }, [presentationBridge, visiblePlan.railOwnsFilters]);
+
+  /**
+   * When scrollOwner=feed (desktop / multiCol AW), lock document scroll so the
+   * shell cannot be wheeled into blank body/html. Portrait mobile keeps
+   * scrollOwner=document and must remain unlocked.
+   */
+  useEffect(() => {
+    if (!shouldLockDocumentScrollForFeedOwner(visiblePlan.scrollOwner)) {
+      releaseDocumentFeedScrollLock();
+      return;
+    }
+    applyDocumentFeedScrollLock();
+    return () => {
+      releaseDocumentFeedScrollLock();
+    };
+  }, [visiblePlan.scrollOwner]);
 
   /** WX 1B.1 — authoritative Mode identity; does not drive layout. */
   const modePlan = resolveWorkspaceMode({
