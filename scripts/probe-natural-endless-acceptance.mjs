@@ -295,9 +295,20 @@ async function runNatural(browserType, label, opts = {}) {
       const afterBack = await dump(page);
       const cards0 = afterBack.cards;
       const batch0 = afterBack.fiber?.batch ?? 0;
-      for (let i = 0; i < 80; i++) {
+      // Return-cache can restore mid-list with a large remaining buffer; keep
+      // scrolling naturally until continuation is observed or budget ends.
+      for (let i = 0; i < 200; i++) {
         await naturalStep(page, !!opts.mobile);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(420);
+        if (i % 10 === 9) {
+          const mid = await dump(page);
+          if (
+            mid.cards > cards0 ||
+            (mid.fiber?.batch ?? 0) > batch0
+          ) {
+            break;
+          }
+        }
       }
       const afterScroll = await dump(page);
       spaBack = {
