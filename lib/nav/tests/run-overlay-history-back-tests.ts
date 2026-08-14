@@ -30,6 +30,7 @@ const nav = readFileSync(join(root, "components/NavBar.tsx"), "utf8");
 assert.match(nav, /useOverlayHistoryBack/);
 assert.match(nav, /data-wx-landscape-menu/);
 assert.match(nav, /z-\[200\]/);
+assert.match(nav, /!z-\[300\]/);
 
 const search = readFileSync(
   join(root, "components/feed/FeedSearchContextBar.tsx"),

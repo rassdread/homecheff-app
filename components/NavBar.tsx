@@ -439,6 +439,8 @@ export default function NavBar() {
         nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : '',
         suppressNavbarChrome &&
           'h-0 min-h-0 overflow-visible border-0 p-0 shadow-none bg-transparent backdrop-blur-none',
+        // Escape feed/workspace paint order while the landscape panel is open.
+        suppressNavbarChrome && isMobileMenuOpen && '!z-[300]',
       )}
     >
       <div
