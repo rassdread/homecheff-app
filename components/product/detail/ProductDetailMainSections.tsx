@@ -23,6 +23,8 @@ import {
   ExchangeSuggestionsDetailBlock,
   ExchangeSuggestionsMobileModule,
 } from '@/components/marketplace/exchange-suggestions';
+import FoodAllergenListingInfo from '@/components/legal/FoodAllergenListingInfo';
+import { buildFoodAllergenContext } from '@/lib/legal/food-allergen-context';
 
 type ProductShape = {
   id: string;
@@ -44,6 +46,8 @@ type ProductShape = {
   pickupAddress?: string | null;
   sellerCanDeliver?: boolean;
   deliveryRadiusKm?: number | null;
+  allergens?: string[] | null;
+  allergensConfirmedAt?: string | Date | null;
   seller?: {
     User?: {
       place?: string | null;
@@ -199,6 +203,24 @@ export default function ProductDetailMainSections({
           </div>
         </>
       ) : null}
+
+      <FoodAllergenListingInfo
+        {...(() => {
+          const ctx = buildFoodAllergenContext({
+            category: product.category,
+            marketplaceCategory: product.marketplaceCategory,
+            specializations: product.specializations,
+            subcategory: product.subcategory,
+            allergens: product.allergens,
+            allergensConfirmedAt: product.allergensConfirmedAt,
+          });
+          return {
+            applicable: ctx.applicable,
+            status: ctx.status,
+            allergens: ctx.allergens,
+          };
+        })()}
+      />
 
       <ProductSaleDomainStory
         dishInfo={dishInfo}

@@ -33,6 +33,8 @@ import {
   shouldRevalidateAfterProductMutation,
 } from '@/lib/feed/revalidate-public-feed';
 import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
+import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
+import { buildAllergenConfirmationUpdate } from '@/lib/legal/food-allergen-context';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -259,6 +261,21 @@ export async function POST(req: Request) {
     });
     if (commerceBlock) return commerceBlock;
 
+    const allergenApplicable = productRequiresAllergenConfirmation({
+      category: CATEGORY_MAP[category as string] || category,
+      marketplaceCategory: v2Preview.marketplaceCategory,
+      specializations: v2Preview.specializations,
+      subcategory: v2Preview.subcategory,
+    });
+    // Store confirmation when provided; do not force confirm to publish (UNKNOWN remains valid for browse).
+    // Transaction paths enforce confirmation separately.
+    const allergenUpdate = allergenApplicable
+      ? buildAllergenConfirmationUpdate({
+          allergens: body.allergens,
+          confirmed: body.allergensConfirmed === true,
+        })
+      : { allergens: [] as string[], allergensConfirmedAt: null };
+
     const publishState = resolveProductPublishState({
       requestedActive: finalIsPublic,
       orderMethod,
@@ -427,6 +444,8 @@ export async function POST(req: Request) {
         placeName: placeNameStr || null,
         useProfileLocation:
           useProfileLocationRaw !== false && useProfileLocationRaw !== 'false',
+        allergens: allergenUpdate?.allergens ?? [],
+        allergensConfirmedAt: allergenUpdate?.allergensConfirmedAt ?? null,
         sellerId: sellerProfileId!,
         Image: {
           create: validImageUrls.map((url: string, i: number) => ({
