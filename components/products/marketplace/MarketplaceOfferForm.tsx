@@ -56,6 +56,10 @@ import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { useTranslation } from '@/hooks/useTranslation';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
+import { offerRequiresCommerceDeclaration } from '@/lib/legal/commerce-declaration-gate';
+import CommerceDeclarationModal, {
+  type CommerceDeclarationChoice,
+} from '@/components/legal/CommerceDeclarationModal';
 
 type Uploaded = { url: string; uploading?: boolean; error?: string };
 
@@ -142,6 +146,12 @@ export default function MarketplaceOfferForm({
   } | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [commerceDeclarationKnown, setCommerceDeclarationKnown] = useState<
+    string | null
+  >(null);
+  const [commerceModalOpen, setCommerceModalOpen] = useState(false);
+  const [commerceBusy, setCommerceBusy] = useState(false);
+  const [commerceError, setCommerceError] = useState<string | null>(null);
 
   const fieldConfig = useMemo(
     () =>
@@ -494,6 +504,36 @@ export default function MarketplaceOfferForm({
       category: marketplaceCategory === 'GROW' ? 'GARDEN' : marketplaceCategory === 'DESIGN' || marketplaceCategory === 'ARTISTIC_SERVICE' ? 'DESIGNER' : 'CHEFF',
     };
 
+    const needsCommerceGate = offerRequiresCommerceDeclaration({
+      priceCents,
+      priceModel,
+      barterOpenness: resolvedBarterOpenness,
+      acceptHomeCheffPayment,
+    });
+
+    if (needsCommerceGate) {
+      let declaration = commerceDeclarationKnown;
+      if (!declaration) {
+        try {
+          const cRes = await fetch('/api/seller/commerce-declaration');
+          if (cRes.ok) {
+            const cData = await cRes.json();
+            declaration = cData?.commerce?.declaration ?? 'UNDECLARED';
+            setCommerceDeclarationKnown(declaration);
+          } else {
+            declaration = 'UNDECLARED';
+          }
+        } catch {
+          declaration = 'UNDECLARED';
+        }
+      }
+      if (declaration === 'UNDECLARED') {
+        setCommerceError(null);
+        setCommerceModalOpen(true);
+        return;
+      }
+    }
+
     setBusy(true);
     try {
       const url = editMode && existingProduct?.id
@@ -538,9 +578,45 @@ export default function MarketplaceOfferForm({
     }
   };
 
+  const confirmCommerceDeclaration = async (
+    declaration: CommerceDeclarationChoice,
+  ) => {
+    setCommerceBusy(true);
+    setCommerceError(null);
+    try {
+      const res = await fetch('/api/seller/commerce-declaration', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ declaration }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCommerceError(
+          typeof data.error === 'string' ? data.error : 'Opslaan mislukt',
+        );
+        return;
+      }
+      setCommerceDeclarationKnown(declaration);
+      setCommerceModalOpen(false);
+      await validateAndSubmit({
+        preventDefault() {},
+      } as React.FormEvent);
+    } catch {
+      setCommerceError('Opslaan mislukt');
+    } finally {
+      setCommerceBusy(false);
+    }
+  };
+
   return (
     <form onSubmit={(e) => void validateAndSubmit(e)} className="space-y-6">
-      {!editMode ? (
+      <CommerceDeclarationModal
+        open={commerceModalOpen}
+        busy={commerceBusy}
+        error={commerceError}
+        onCancel={() => setCommerceModalOpen(false)}
+        onConfirm={(d) => void confirmCommerceDeclaration(d)}
+      />      {!editMode ? (
         <div className="rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2 text-sm text-emerald-900">
           <span className="font-medium">
             {listingIntent === 'REQUEST'

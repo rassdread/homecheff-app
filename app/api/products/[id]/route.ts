@@ -37,6 +37,7 @@ import {
   shouldRevalidateAfterListingMutation,
   shouldRevalidateAfterProductMutation,
 } from '@/lib/feed/revalidate-public-feed';
+import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
 import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-dish';
 import { listingProductCacheTag } from '@/lib/marketplace/detail/get-cached-listing-product-core';
 
@@ -471,6 +472,31 @@ export async function PATCH(
             stripeConnectOnboardingCompleted: true,
           },
         });
+
+        if (isNewModel) {
+          const priceCentsGate =
+            body.priceCents ?? (product as { priceCents?: number }).priceCents ?? 0;
+          const priceModelGate =
+            body.priceModel !== undefined
+              ? body.priceModel
+              : (product as { priceModel?: string | null }).priceModel;
+          const barterGate =
+            body.barterOpenness !== undefined
+              ? body.barterOpenness
+              : (product as { barterOpenness?: string | null }).barterOpenness;
+          const commerceBlock = await assertOrApplyCommerceDeclarationForPaidOffer({
+            sellerProfileId: (product as { sellerId: string }).sellerId,
+            gate: {
+              priceCents: Number(priceCentsGate) || 0,
+              priceModel:
+                typeof priceModelGate === 'string' ? priceModelGate : null,
+              barterOpenness:
+                typeof barterGate === 'string' ? barterGate : null,
+            },
+            bodyDeclaration: body.commerceDeclaration,
+          });
+          if (commerceBlock) return commerceBlock;
+        }
 
         const publishState = computePublishGateFromProductUpdate(
           body,

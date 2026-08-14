@@ -32,6 +32,7 @@ import {
   revalidatePublicFeedCache,
   shouldRevalidateAfterProductMutation,
 } from '@/lib/feed/revalidate-public-feed';
+import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -243,6 +244,20 @@ export async function POST(req: Request) {
     }
     
     console.log('[Products Create API] Using sellerProfileId:', sellerProfileId);
+
+    const commerceBlock = await assertOrApplyCommerceDeclarationForPaidOffer({
+      sellerProfileId,
+      gate: {
+        priceCents: priceCentsNum,
+        priceModel: v2Preview.priceModel,
+        barterOpenness: v2Preview.barterOpenness,
+        acceptHomeCheffPayment:
+          acceptHomeCheffPaymentRaw !== false &&
+          acceptHomeCheffPaymentRaw !== 'false',
+      },
+      bodyDeclaration: body.commerceDeclaration,
+    });
+    if (commerceBlock) return commerceBlock;
 
     const publishState = resolveProductPublishState({
       requestedActive: finalIsPublic,
