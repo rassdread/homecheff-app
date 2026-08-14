@@ -277,6 +277,23 @@ html.hc-aw-feed-owns-document-scroll body {
   overflow-y: hidden !important;
 }
 
+/**
+ * Homepage information chrome (1-column): show under orientation only when
+ * the start rail is hidden. Short landscape hides it — nav menu remains.
+ */
+[data-hc-homepage-info-workspace] {
+  display: none;
+  border-bottom: 1px solid rgb(229 231 235);
+}
+[data-aw-feed-workspace][data-aw-supporting-panels="0"] [data-hc-homepage-info-workspace] {
+  display: block;
+}
+@media (max-height: 500px) {
+  [data-hc-homepage-info-workspace] {
+    display: none !important;
+  }
+}
+
 /* Desktop: full height for layout */
 @media (min-width: 768px) {
   html {

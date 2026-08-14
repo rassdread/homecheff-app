@@ -7,6 +7,7 @@ import Logo from '@/components/Logo';
 import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp, ShieldAlert, Users, Scroll, Library, BarChart3, Scale } from 'lucide-react';
 import { COMMUNITY_GUIDELINES_URL, SAFETY_STANDARDS_URL } from '@/lib/legal/policy-urls';
 import { isCompactMobileFooterPath } from '@/lib/layout/compactFooterRoutes';
+import { formatLegalOperatorRegistryLine } from '@/lib/seo/legal-operator-display';
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -88,7 +89,11 @@ export default function Footer() {
         </nav>
       </div>
       <div className="mt-6 pt-6 border-t border-gray-100">
-        <p className="text-xs text-gray-500">{t('siteFooter.companyLine')}</p>
+        <p className="text-xs text-gray-500">
+          {formatLegalOperatorRegistryLine()}
+          {' · '}
+          {t('siteFooter.contactViaForm')}
+        </p>
       </div>
     </>
   );

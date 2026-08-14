@@ -6084,7 +6084,24 @@
     "hcpRankings": "Reputation nearby",
     "affiliateProgram": "Affiliate programme",
     "feedback": "Feedback",
-    "companyLine": "Arrias Beheer B.V. · Chamber of Commerce 80532829 · Vlaardingen · Contact via contact form"
+    "companyLine": "Arrias Beheer B.V. · Chamber of Commerce 80532829 · Vlaardingen · Contact via contact form",
+    "contactViaForm": "Contact via contact form"
+  },
+  "homepageInfo": {
+    "navAria": "About HomeCheff",
+    "about": "About HomeCheff",
+    "help": "Help",
+    "more": "More",
+    "moreTitle": "About HomeCheff",
+    "groupAbout": "About HomeCheff",
+    "groupTrust": "Safe & trusted",
+    "groupParticipate": "Take part",
+    "groupMore": "More",
+    "guides": "Guides",
+    "knowledge": "Knowledge base",
+    "evidence": "Transparency",
+    "constitution": "Principles",
+    "kvkLine": "CoC {kvk}"
   },
   "emptyState": {
     "ordersTitle": "No orders yet",

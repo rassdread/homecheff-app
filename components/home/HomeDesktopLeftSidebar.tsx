@@ -17,6 +17,7 @@ import {
   HOME_DESKTOP_ENVIRONMENT_LINKS,
   HOME_DESKTOP_MARKETPLACE_LINKS,
 } from '@/lib/home/home-desktop-sidebar-ia';
+import HomepageInfoChrome from '@/components/home/HomepageInfoChrome';
 import { subscribePlaceInputFocusRequest } from '@/lib/feed/place-input-focus-request';
 import { cn } from '@/lib/utils';
 
@@ -150,7 +151,7 @@ export default function HomeDesktopLeftSidebar() {
 
   return (
     <>
-      <div className="flex flex-col gap-2.5 pb-2" data-home-sidebar="left-workspace">
+      <div className="flex min-h-full flex-col gap-2.5 pb-2" data-home-sidebar="left-workspace">
         {session?.user ? (
           <RoleQuickLinksSection
             ctx={ctx}
@@ -204,6 +205,8 @@ export default function HomeDesktopLeftSidebar() {
         </SidebarSection>
 
         <DiscoveryFiltersSection />
+
+        <HomepageInfoChrome variant="rail" />
       </div>
       {guestAuthPanel}
     </>
