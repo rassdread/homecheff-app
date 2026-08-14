@@ -191,7 +191,8 @@ function densityFor(
 function chromeInsetFor(
   posture: LandscapeWorkPosturePlan,
 ): VisibleAdaptiveChromeInset {
-  const topRem = 3.5;
+  /** Short landscape toolbar nav ≈ 3rem; otherwise standard top nav ≈ 3.5rem. */
+  const topRem = posture.shortChromeCompact ? 3 : 3.5;
   const bottomRem = posture.bottomNavCollapsed ? 0 : 5;
   const total = topRem + bottomRem;
   return {

@@ -16,6 +16,7 @@ import {
   FEED_WORKSPACE_LAYOUT_BANDS,
   type FeedWorkspaceLayoutBands,
 } from "./resolve-feed-workspace-visible-layout";
+import { LANDSCAPE_SHORT_CHROME_MAX_HEIGHT_EXCLUSIVE } from "./resolve-landscape-work-posture";
 
 export const ORIENTATION_EXPLANATION = {
   phase: "1c.2",
@@ -82,7 +83,8 @@ function orientationOf(widthPx: number, heightPx: number): "portrait" | "landsca
 }
 
 /** Short landscape height → workspace posture (not tablet canvas). */
-const LANDSCAPE_COMPACT_MAX_HEIGHT_EXCLUSIVE = 520;
+const LANDSCAPE_COMPACT_MAX_HEIGHT_EXCLUSIVE =
+  LANDSCAPE_SHORT_CHROME_MAX_HEIGHT_EXCLUSIVE;
 
 /** Default top-nav / chrome reserve when caller does not measure it. */
 const DEFAULT_CHROME_RESERVE_PX = 64;

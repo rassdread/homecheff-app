@@ -51,6 +51,7 @@ export function WorkspaceChromeProvider({ children }: { children: ReactNode }) {
       prev.posture === next.posture &&
       prev.bottomNavCollapsed === next.bottomNavCollapsed &&
       prev.orientationCompact === next.orientationCompact &&
+      prev.shortChromeCompact === next.shortChromeCompact &&
       prev.usableWidthPx === next.usableWidthPx &&
       prev.usableHeightPx === next.usableHeightPx
         ? prev
@@ -75,12 +76,14 @@ export function WorkspaceChromeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.dataset.wxPosture = plan.posture;
     root.dataset.wxLandscapeWork = plan.workPostureActive ? '1' : '0';
+    root.dataset.wxShortLandscape = plan.shortChromeCompact ? '1' : '0';
     root.dataset.wxBottomNavCollapsed = plan.bottomNavCollapsed ? '1' : '0';
     root.dataset.wxChromeDensity = plan.chromeDensity;
     root.dataset.wxLandscapePhase = plan.phase;
     return () => {
       delete root.dataset.wxPosture;
       delete root.dataset.wxLandscapeWork;
+      delete root.dataset.wxShortLandscape;
       delete root.dataset.wxBottomNavCollapsed;
       delete root.dataset.wxChromeDensity;
       delete root.dataset.wxLandscapePhase;

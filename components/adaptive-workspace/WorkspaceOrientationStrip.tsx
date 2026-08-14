@@ -4,7 +4,8 @@
  * Workspace orientation strip — Available Space messaging (WX Phase 1C.2).
  *
  * Presentation only. Sacred HomeCheff meaning stays complete at every level.
- * Landscape chrome stays compact (WX 1B.4). No marketing hero.
+ * Landscape chrome stays compact (WX 1B.4).
+ * Short landscape uses a one-line work toolbar (visual density only).
  */
 
 import { cn } from '@/lib/utils';
@@ -25,6 +26,9 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
   });
   const level = explain.level;
   const landscapePosture = landscape.orientationCompact || explain.singleLine;
+  /** One-line visual toolbar — meaning kept via aria-label + sr-only copy. */
+  const workToolbar =
+    landscape.shortChromeCompact && explain.singleLine;
 
   const whereLabel = `${t('homePhase1.heroTitleHighlight')}${t('homePhase1.heroTitleAfter')}`;
 
@@ -59,6 +63,11 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
         ? `${actionsPrimary} · ${actionsSecondary}`
         : t('homePhase1.orientationActions');
 
+  const identityLabel = t('homePhase1.orientationIdentity');
+  const bannerAria = workToolbar
+    ? `${identityLabel}. ${whereLabel}. ${primaryBody}. ${actionsPrimary}`
+    : identityLabel;
+
   return (
     <div
       data-wx-orientation-strip=""
@@ -67,12 +76,14 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
       data-wx-orientation-explain={level}
       data-wx-orientation-budget={explain.chromeBudget}
       data-wx-orientation-complete="1"
+      data-wx-work-toolbar={workToolbar ? '1' : '0'}
       className={cn(
         'hc-wx-orientation-strip w-full min-w-0',
         'rounded-none sm:rounded-t-2xl border-b border-primary-brand/30',
         'bg-gradient-to-r from-primary-brand via-primary-brand to-emerald-800',
         'text-white',
-        level === 'ultra_compact' && 'px-3 py-1 sm:px-4 sm:py-1.5',
+        workToolbar && 'px-3 py-1 sm:px-4',
+        !workToolbar && level === 'ultra_compact' && 'px-3 py-1 sm:px-4 sm:py-1.5',
         level === 'compact_complete' && 'px-3 py-2 sm:px-4 sm:py-2.5',
         level === 'standard_complete' && 'px-3 py-2.5 sm:px-5 sm:py-3',
         level === 'expanded' && 'px-3 py-3 sm:px-5 sm:py-3.5',
@@ -80,33 +91,44 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
         className,
       )}
       role="banner"
-      aria-label={t('homePhase1.orientationIdentity')}
+      aria-label={bannerAria}
     >
+      {workToolbar ? (
+        <p className="sr-only" data-wx-orientation-meaning="">
+          {identityLabel}. {whereLabel}. {primaryBody}. {actionsPrimary}
+        </p>
+      ) : null}
+
       <div
         className={cn(
           'flex min-w-0',
-          explain.singleLine
+          explain.singleLine || workToolbar
             ? 'flex-row items-center justify-between gap-2'
             : 'flex-col gap-1 sm:gap-1.5',
         )}
       >
         <div className="min-w-0 flex-1">
-          <p
-            data-wx-orientation-identity=""
-            className={cn(
-              'font-semibold uppercase tracking-[0.14em] text-emerald-100/95',
-              explain.singleLine
-                ? 'text-[9px] leading-tight'
-                : 'text-[10px] sm:text-[11px] leading-tight',
-            )}
-          >
-            {t('homePhase1.orientationIdentity')}
-          </p>
+          {!workToolbar ? (
+            <p
+              data-wx-orientation-identity=""
+              className={cn(
+                'font-semibold uppercase tracking-[0.14em] text-emerald-100/95',
+                explain.singleLine
+                  ? 'text-[9px] leading-tight'
+                  : 'text-[10px] sm:text-[11px] leading-tight',
+              )}
+            >
+              {identityLabel}
+            </p>
+          ) : null}
           <h1
             data-wx-orientation-title=""
             className={cn(
               'font-bold tracking-tight text-white',
-              explain.singleLine &&
+              workToolbar &&
+                'truncate text-[clamp(0.8rem,2vw,0.95rem)] leading-none',
+              !workToolbar &&
+                explain.singleLine &&
                 'mt-0.5 text-[clamp(0.875rem,2.4vw,1.05rem)] leading-snug',
               level === 'compact_complete' &&
                 'mt-0.5 text-[clamp(1rem,3.2vw,1.2rem)] leading-snug',
@@ -121,7 +143,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
             {whereLabel}
           </h1>
 
-          {explain.showBody ? (
+          {explain.showBody && !workToolbar ? (
             <p
               data-wx-orientation-explain-body=""
               className={cn(
@@ -176,7 +198,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
             data-wx-orientation-actions=""
             className={cn(
               'min-w-0 text-emerald-50/95',
-              explain.singleLine
+              workToolbar || explain.singleLine
                 ? 'shrink-0 max-w-[48%] text-right text-[clamp(0.6rem,1.6vw,0.7rem)] leading-tight'
                 : cn(
                     'border-t border-white/15 pt-1.5',

@@ -63,6 +63,8 @@ export default function NavBar() {
   const { openCreateFlow } = useCreateFlow();
   const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
   const landscapeWork = useLandscapeWorkPosture();
+  /** Short mobile landscape only — never compact tall/desktop landscape chrome. */
+  const shortLandscapeChrome = landscapeWork.shortChromeCompact;
   /** WX 1C.1 — when bottom nav collapses, Create must remain in command chrome. */
   const showLandscapeCreate =
     landscapeWork.bottomNavCollapsed;
@@ -381,16 +383,28 @@ export default function NavBar() {
 
   return (
     <header
+      data-wx-navbar=""
+      data-wx-short-landscape={shortLandscapeChrome ? '1' : '0'}
       className={`w-full max-w-[100vw] overflow-x-clip lg:overflow-x-visible border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
         nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : ''
       }`}
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 xl:px-8 relative min-w-0">
-        <div className="flex items-center justify-between h-16 min-w-0 gap-1 sm:gap-2">
+      <div
+        className={cn(
+          'max-w-7xl mx-auto relative min-w-0',
+          shortLandscapeChrome ? 'px-2.5 sm:px-3' : 'px-3 sm:px-5 lg:px-6 xl:px-8',
+        )}
+      >
+        <div
+          className={cn(
+            'flex items-center justify-between min-w-0 gap-1 sm:gap-2',
+            shortLandscapeChrome ? 'h-12' : 'h-16',
+          )}
+        >
           {/* Logo — icoon tot xl, volledig merk xl+; never steal nav label space */}
           <div className="flex shrink-0 items-center min-w-0">
             <div className="xl:hidden">
-              <Logo size="md" showText={false} />
+              <Logo size={shortLandscapeChrome ? 'sm' : 'md'} showText={false} />
             </div>
             <div className="hidden xl:block">
               <Logo size="md" />
@@ -502,8 +516,10 @@ export default function NavBar() {
                 data-wx-landscape-create=""
                 className={cn(
                   'lg:hidden inline-flex shrink-0 items-center justify-center gap-1',
-                  'rounded-xl px-2.5 py-2 min-h-[40px]',
-                  'text-[13px] font-bold whitespace-nowrap leading-none',
+                  shortLandscapeChrome
+                    ? 'rounded-lg px-2 py-1.5 min-h-[36px] text-xs'
+                    : 'rounded-xl px-2.5 py-2 min-h-[40px] text-[13px]',
+                  'font-bold whitespace-nowrap leading-none',
                   'bg-primary-brand text-white hover:bg-primary-700',
                   'shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-brand',
                   'touch-manipulation select-none',

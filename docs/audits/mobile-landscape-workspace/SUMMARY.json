@@ -1,0 +1,32 @@
+{
+  "phase": "WX-1B.4-mobile-landscape-workspace-compaction",
+  "mainBefore": "31337f56c16a59b26cffd8f0b12ed09e4799419a",
+  "productionBefore": "dpl_DJd7pUB7vWndQDckEJme2qFQUjWz",
+  "condition": "AvailableSpace landscape AND usableHeightPx < 520 → shortChromeCompact (data-wx-short-landscape=1)",
+  "beforeProductionChromium": {
+    "844x390": { "header": 65, "strip": 84, "useful": 232, "chromePct": 40.6, "rail": true },
+    "932x430": { "header": 65, "strip": 84, "useful": 272, "chromePct": 36.8, "rail": true },
+    "740x360": { "header": 65, "strip": 84, "useful": 202, "chromePct": 44.0, "rail": true },
+    "667x375": { "header": 65, "strip": 83, "useful": 218, "chromePct": 41.9, "rail": true }
+  },
+  "afterLocalChromium": {
+    "844x390": { "header": 49, "strip": 24, "useful": 308, "chromePct": 21.1, "rail": true, "toolbar": "1" },
+    "932x430": { "header": 49, "strip": 24, "useful": 348, "chromePct": 19.1, "rail": true, "toolbar": "1" },
+    "740x360": { "header": 49, "strip": 24, "useful": 278, "chromePct": 22.7, "rail": true, "toolbar": "1" },
+    "667x375": { "header": 49, "strip": 22, "useful": 295, "chromePct": 21.4, "rail": true, "toolbar": "1" },
+    "390x844-portrait": { "header": 65, "strip": 158, "toolbar": "0", "rail": false },
+    "1280x900-desktop": { "header": 65, "strip": 185, "toolbar": "0", "shortLandscape": "0" }
+  },
+  "owners": {
+    "header": "components/NavBar.tsx (data-wx-navbar)",
+    "hero": "components/adaptive-workspace/WorkspaceOrientationStrip.tsx",
+    "sideRail": "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx start slot",
+    "infoChrome": "components/home/HomepageInfoChrome.tsx (hidden max-height:500px)",
+    "scrollBeforeAfter": "feed (#homecheff-feed-desktop) for multiCol landscape; document for portrait 1-col"
+  },
+  "chromeReduction844": {
+    "beforeChromeBottom": 158,
+    "afterChromeBottom": 82,
+    "reductionPct": 48.1
+  }
+}

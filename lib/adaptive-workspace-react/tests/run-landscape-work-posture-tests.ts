@@ -52,6 +52,7 @@ begin("AvailableSpace geometry only");
   assert.equal(portrait.workPostureActive, false);
   assert.equal(portrait.bottomNavCollapsed, false);
   assert.equal(portrait.orientationCompact, false);
+  assert.equal(portrait.shortChromeCompact, false);
   assert.equal(portrait.chromeDensity, "standard");
 
   const landscape = resolveLandscapeWorkPosture({
@@ -62,6 +63,7 @@ begin("AvailableSpace geometry only");
   assert.equal(landscape.workPostureActive, true);
   assert.equal(landscape.bottomNavCollapsed, true);
   assert.equal(landscape.orientationCompact, true);
+  assert.equal(landscape.shortChromeCompact, true);
   assert.equal(landscape.chromeDensity, "compact");
   assert.equal(landscape.phase, "1b.4");
   assert.equal(landscape.contractId, "wx-landscape-work-posture-v1");
@@ -81,6 +83,7 @@ begin("tablet / desktop / ultrawide landscape");
     });
     assert.equal(plan.workPostureActive, true, `${w}x${h}`);
     assert.equal(plan.bottomNavCollapsed, true, `${w}x${h}`);
+    assert.equal(plan.shortChromeCompact, false, `${w}x${h} tall — no short chrome`);
   }
   ok("tablet/desktop/ultrawide landscape collapses bottom nav");
 }
@@ -159,11 +162,14 @@ begin("source seals — no UA/device branching in policy + chrome");
   );
   assert.match(strip, /orientationCompact/);
   assert.match(strip, /data-wx-orientation-compact/);
+  assert.match(strip, /shortChromeCompact|workToolbar|data-wx-work-toolbar/);
 
   const navBar = readFileSync(join(root, "components/NavBar.tsx"), "utf8");
   assert.match(navBar, /data-wx-mobile-create/);
   assert.match(navBar, /data-wx-mobile-mijn-hcp/);
   assert.match(navBar, /\/mijn-hcp/);
+  assert.match(navBar, /shortChromeCompact|shortLandscapeChrome/);
+  assert.match(navBar, /data-wx-navbar/);
 
   const layout = readFileSync(
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),

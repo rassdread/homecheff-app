@@ -1492,6 +1492,11 @@ html[data-wx-bottom-nav-collapsed="1"] .hc-wx-shell {
   min-height: calc(100dvh - 3.5rem);
 }
 
+/* WX 1B.4 short landscape — compact top toolbar (≈3rem), no bottom nav */
+html[data-wx-short-landscape="1"][data-wx-bottom-nav-collapsed="1"] .hc-wx-shell {
+  min-height: calc(100dvh - 3rem);
+}
+
 .hc-wx-frame {
   /* Single continuous Workspace surface: orientation + rails + stage */
   isolation: isolate;
@@ -1524,6 +1529,12 @@ html[data-wx-bottom-nav-collapsed="1"] .hc-wx-shell {
 html[data-wx-landscape-work="1"] .hc-wx-orientation-strip,
 .hc-wx-orientation-strip[data-wx-orientation-budget="tight"] {
   max-height: none;
+}
+
+/* Short landscape work toolbar — one visual row */
+html[data-wx-short-landscape="1"] .hc-wx-orientation-strip[data-wx-work-toolbar="1"] {
+  max-height: none;
+  min-height: 0;
 }
 
 .hc-wx-orientation-strip[data-wx-orientation-budget="balanced"],
