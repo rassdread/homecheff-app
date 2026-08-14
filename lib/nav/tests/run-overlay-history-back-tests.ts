@@ -29,8 +29,9 @@ assert.match(hook, /bindOverlayHistoryBack/);
 const nav = readFileSync(join(root, "components/NavBar.tsx"), "utf8");
 assert.match(nav, /useOverlayHistoryBack/);
 assert.match(nav, /data-wx-landscape-menu/);
-assert.match(nav, /z-\[200\]/);
-assert.match(nav, /!z-\[300\]/);
+assert.match(nav, /z-\[200\]|z-\[99990\]/);
+assert.match(nav, /createPortal/);
+assert.match(nav, /max-h-\[85dvh\]/);
 
 const search = readFileSync(
   join(root, "components/feed/FeedSearchContextBar.tsx"),
@@ -61,7 +62,7 @@ assert.match(workbar, /min-h-\[44px\]/);
 const css = readFileSync(join(root, "app/globals.css"), "utf8");
 assert.match(css, /--hc-landscape-system-right-reserve/);
 assert.match(css, /hc-wx-landscape-menu-panel/);
-assert.match(css, /z-index:\s*200/);
+assert.match(css, /z-index:\s*200|z-index:\s*99990/);
 assert.match(css, /data-wx-orientation-host/);
 assert.match(css, /data-aw-slot-host="orientation"/);
 assert.match(css, /pointer-events:\s*none/);

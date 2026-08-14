@@ -861,16 +861,18 @@ export default function NavBar() {
         </div>
       </div>
 
-        {/* Compact / mobile navigation (< lg) — overlays when navbar chrome is suppressed */}
-        {isMobileMenuOpen && (
+        {/* Compact / mobile navigation (< lg). Short landscape portals to body so the
+            panel is not clipped by the height-0 suppressed header / feed stacking. */}
+        {isMobileMenuOpen &&
+          (() => {
+            const panel = (
           <div
             id="navbar-mobile-menu"
             data-wx-landscape-menu={suppressNavbarChrome ? '1' : '0'}
             className={cn(
               'lg:hidden border-t border-gray-200 py-4 bg-white dark:bg-gray-900',
               suppressNavbarChrome &&
-                // Above orientation workbar (sibling stacking); history-back fix alone is not enough in short landscape.
-                'hc-wx-landscape-menu-panel fixed top-0 z-[200] max-h-[min(85dvh,100%)] overflow-y-auto shadow-lg border-b',
+                'hc-wx-landscape-menu-panel fixed top-0 z-[99990] max-h-[85dvh] overflow-y-auto shadow-lg border-b pointer-events-auto',
               suppressNavbarChrome &&
                 'pt-[max(3.75rem,calc(3.25rem+env(safe-area-inset-top,0px)))]',
               !suppressNavbarChrome && 'max-w-7xl mx-auto px-3 sm:px-5',
@@ -1287,7 +1289,12 @@ export default function NavBar() {
               />
             </nav>
           </div>
-        )}
+            );
+            if (suppressNavbarChrome && typeof document !== 'undefined') {
+              return createPortal(panel, document.body);
+            }
+            return panel;
+          })()}
       {guestAuthPanel}
     </header>
   );
