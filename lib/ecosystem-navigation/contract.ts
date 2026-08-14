@@ -14,7 +14,7 @@ export const ECOSYSTEM_PANEL_SUPPORT =
 
 /** Canonical square mark on the identity owner (cache-busted). */
 export const ECOSYSTEM_BRAND_MARK_URL =
-  "https://homecheff.eu/icon-192.png?v=hc8";
+  "https://homecheff.eu/icon-192.png?v=hc8a2";
 
 export type EcosystemProduct = {
   id: EcosystemProductId;
