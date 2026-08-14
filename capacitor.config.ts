@@ -36,8 +36,11 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      /** Lang genoeg om WebView-wit te maskeren; directe load naar homecheff.eu. */
-      launchShowDuration: 3250,
+      /**
+       * SP.2C.2: never artificially delay startup.
+       * OS/native Theme.SplashScreen still covers cold start; hide as soon as the shell is ready.
+       */
+      launchShowDuration: 0,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',

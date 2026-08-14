@@ -198,6 +198,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           sizes="any"
         />
         <link
+          rel="icon"
+          href={`/favicon-16.png${FAVICON_ASSET_Q}`}
+          type="image/png"
+          sizes="16x16"
+        />
+        <link
+          rel="icon"
+          href={`/favicon-32.png${FAVICON_ASSET_Q}`}
+          type="image/png"
+          sizes="32x32"
+        />
+        <link
           rel="apple-touch-icon"
           href={`/apple-touch-icon.png${FAVICON_ASSET_Q}`}
           sizes="180x180"

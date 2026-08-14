@@ -25,7 +25,7 @@ Current product shows **Je bent hier** and is not treated as an outbound switch.
 
 Canonical square mark (SSOT in HomeCheff `lib/brand/canonical-logo.ts`):
 
-`https://homecheff.eu/icon-192.png?v=hc8`
+`https://homecheff.eu/icon-192.png?v=hc8a2`
 
 Studio/Growth reference this URL — they do not invent alternate HomeCheff marks.
 

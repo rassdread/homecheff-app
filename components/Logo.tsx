@@ -35,9 +35,8 @@ export default function Logo({ size = 'md', showText = true, className = '', log
     }
   };
 
-  const useImageLogo = logoPath
-    ? logoPath
-    : `${canonicalLogoPath('square')}?v=${CANONICAL_LOGO_VERSION}`;
+  // Plain path for next/image (query strings break Image Optimizer — SP.2C.1 lesson).
+  const useImageLogo = logoPath ?? canonicalLogoPath('square');
 
   return (
     <div 
@@ -53,8 +52,9 @@ export default function Logo({ size = 'md', showText = true, className = '', log
       }`}>
         {useImageLogo ? (
           <Image
+            key={CANONICAL_LOGO_VERSION}
             src={useImageLogo}
-            alt="HomeCheff Logo"
+            alt="HomeCheff"
             fill
             className="object-contain"
             unoptimized={process.env.NODE_ENV === 'development'}

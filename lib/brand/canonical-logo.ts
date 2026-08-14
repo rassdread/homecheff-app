@@ -5,7 +5,7 @@
 import { MAIN_DOMAIN } from '@/lib/seo/constants';
 
 /** Query string appended to logo URLs after asset replacement (Safari/CDN cache bust). */
-export const CANONICAL_LOGO_VERSION = 'hc8';
+export const CANONICAL_LOGO_VERSION = 'hc8a2';
 
 /** Relative public paths — served from /public or Next app icon routes. */
 export const CANONICAL_LOGO_PATHS = {
@@ -13,15 +13,18 @@ export const CANONICAL_LOGO_PATHS = {
   primary: '/brand/homecheff-logo-primary.png',
   /** Organization JSON-LD logo — square, ≥112px, white-background safe. */
   organization: '/logo.png',
-  /** Default UI/nav square logo. */
+  /** Default UI/nav square logo (certified Production mark). */
   square: '/icon-192.png',
-  /** PWA / maskable source. */
+  /** PWA any-purpose large icon. */
   square512: '/icon-512.png',
+  /** PWA/Android maskable derivative (safe-zone padded). */
+  maskable512: '/icon-maskable-512.png',
   /** Small notification / email icon. */
   notification: '/icon.png',
   faviconIco: '/favicon.ico',
   favicon48: '/favicon-48.png',
   favicon32: '/favicon-32.png',
+  favicon16: '/favicon-16.png',
   appleTouch: '/apple-touch-icon.png',
   /** Homepage hero mascot — same approved artwork, full composition. */
   heroMascot: '/homecheff-globeman.png',

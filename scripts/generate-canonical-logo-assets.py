@@ -1,30 +1,50 @@
 #!/usr/bin/env python3
-"""Generate public logo/icon variants from the approved canonical primary asset."""
+"""Generate public logo/icon variants from the approved canonical primary asset.
+
+Source priority:
+1. public/brand/homecheff-logo-primary.png (repo SSOT full mark, 886×886)
+2. Optional operator override via HC_LOGO_SOURCE env
+
+IMPORTANT: public/icon-192.png is the certified Production square mark
+(SHA-256 7f84f4c4…ad37de). Prefer deriving favicons / maskable from that
+file when present so Studio/Growth sync stays byte-compatible.
+"""
 from __future__ import annotations
 
-import shutil
+import os
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
-APPROVED_SOURCE = Path(
-    "/Users/sergioarrias/.cursor/projects/Users-sergioarrias-Homecheff-app-git/assets/"
-    "2339BC13-0560-43CC-863E-7AA018C9BCE1_1_105_c-e5c5c204-d01e-451b-b84d-72ec6d7d041e.png"
-)
 BRAND_DIR = ROOT / "public" / "brand"
 PUBLIC = ROOT / "public"
 APP = ROOT / "app"
+
+PRIMARY_REPO = BRAND_DIR / "homecheff-logo-primary.png"
+CERTIFIED_SQUARE = PUBLIC / "icon-192.png"
 
 BRAND_GREEN = (16, 185, 129)  # #10b981
 WHITE = (255, 255, 255)
 
 
 def load_primary() -> Image.Image:
-    if not APPROVED_SOURCE.exists():
-        raise SystemExit(f"Approved logo source missing: {APPROVED_SOURCE}")
-    img = Image.open(APPROVED_SOURCE).convert("RGBA")
-    return img
+    override = os.environ.get("HC_LOGO_SOURCE")
+    if override:
+        path = Path(override)
+        if not path.exists():
+            raise SystemExit(f"HC_LOGO_SOURCE missing: {path}")
+        return Image.open(path).convert("RGBA")
+    if PRIMARY_REPO.exists():
+        return Image.open(PRIMARY_REPO).convert("RGBA")
+    raise SystemExit(f"Approved logo source missing: {PRIMARY_REPO}")
+
+
+def load_square_master() -> Image.Image:
+    """Prefer certified square export for app icons."""
+    if CERTIFIED_SQUARE.exists():
+        return Image.open(CERTIFIED_SQUARE).convert("RGBA")
+    return load_primary()
 
 
 def save_png(img: Image.Image, path: Path) -> None:
@@ -38,11 +58,11 @@ def resize_square(img: Image.Image, size: int) -> Image.Image:
     return img.resize((size, size), Image.Resampling.LANCZOS)
 
 
-def padded_square(img: Image.Image, size: int, padding_ratio: float = 0.08) -> Image.Image:
+def on_white(img: Image.Image, size: int, padding_ratio: float = 0.0) -> Image.Image:
     pad = int(size * padding_ratio)
-    inner = size - pad * 2
+    inner = max(1, size - pad * 2)
     scaled = resize_square(img, inner)
-    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    canvas = Image.new("RGBA", (size, size), (*WHITE, 255))
     canvas.paste(scaled, (pad, pad), scaled)
     return canvas
 
@@ -60,23 +80,6 @@ def make_og_brand(img: Image.Image) -> Image.Image:
     return canvas
 
 
-def make_favicon_ico(sizes: dict[str, int]) -> None:
-    images: list[Image.Image] = []
-    primary = load_primary()
-    for path, size in sizes.items():
-        if path.endswith(".ico"):
-            images.append(resize_square(primary, size))
-        else:
-            save_png(resize_square(primary, size), ROOT / path.lstrip("/"))
-    ico_path = ROOT / "public" / "favicon.ico"
-    images[0].save(
-        ico_path,
-        format="ICO",
-        sizes=[(img.width, img.height) for img in images],
-        append_images=images[1:],
-    )
-
-
 def sync_android_launcher(img: Image.Image) -> None:
     densities = {
         "mipmap-mdpi": 48,
@@ -89,48 +92,52 @@ def sync_android_launcher(img: Image.Image) -> None:
     for folder, size in densities.items():
         base = res_root / folder
         base.mkdir(parents=True, exist_ok=True)
-        icon = padded_square(img, size, padding_ratio=0.12)
+        icon = on_white(img, size, padding_ratio=0.12)
         save_png(icon, base / "ic_launcher.png")
         save_png(icon, base / "ic_launcher_round.png")
-        fg = padded_square(img, size, padding_ratio=0.18)
+        fg = on_white(img, size, padding_ratio=0.18)
         save_png(fg, base / "ic_launcher_foreground.png")
 
 
 def main() -> None:
     primary = load_primary()
+    square = load_square_master()
     BRAND_DIR.mkdir(parents=True, exist_ok=True)
 
     save_png(primary, BRAND_DIR / "homecheff-logo-primary.png")
     save_png(primary, PUBLIC / "logo.png")
     save_png(primary, PUBLIC / "homecheff-globeman.png")
 
-    square_exports = {
-        PUBLIC / "icon-512.png": 512,
-        PUBLIC / "icon-192.png": 192,
-        PUBLIC / "icon-96x96.png": 96,
-        PUBLIC / "icon.png": 96,
-        PUBLIC / "favicon-48.png": 48,
-        PUBLIC / "favicon-32.png": 32,
-        PUBLIC / "apple-touch-icon.png": 180,
-        APP / "icon.png": 48,
-        APP / "apple-icon.png": 180,
-    }
-    for path, size in square_exports.items():
-        save_png(resize_square(primary, size), path)
+    if not CERTIFIED_SQUARE.exists():
+        save_png(resize_square(primary, 192), CERTIFIED_SQUARE)
+
+    save_png(resize_square(square, 512), PUBLIC / "icon-512.png")
+    save_png(resize_square(square, 96), PUBLIC / "icon-96x96.png")
+    save_png(resize_square(square, 96), PUBLIC / "icon.png")
+    save_png(on_white(square, 512, padding_ratio=0.14), PUBLIC / "icon-maskable-512.png")
+
+    for path, size in (
+        (PUBLIC / "favicon-16.png", 16),
+        (PUBLIC / "favicon-32.png", 32),
+        (PUBLIC / "favicon-48.png", 48),
+        (PUBLIC / "apple-touch-icon.png", 180),
+        (APP / "icon.png", 48),
+        (APP / "apple-icon.png", 180),
+    ):
+        save_png(on_white(square, size, 0.0), path)
 
     save_png(make_og_brand(primary), PUBLIC / "og-brand.png")
 
     ico_sizes = [16, 32, 48]
-    ico_images = [resize_square(primary, s) for s in ico_sizes]
+    ico_images = [resize_square(square, s) for s in ico_sizes]
     ico_images[-1].save(
         PUBLIC / "favicon.ico",
         format="ICO",
         sizes=[(s, s) for s in ico_sizes],
-        append_images=ico_images[:-1],
     )
 
-    sync_android_launcher(primary)
-    print("generate-canonical-logo-assets: done")
+    sync_android_launcher(square)
+    print("generate-canonical-logo-assets: done (icon-192 preserved if present)")
 
 
 if __name__ == "__main__":
