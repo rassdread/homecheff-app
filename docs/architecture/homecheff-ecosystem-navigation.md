@@ -45,11 +45,15 @@ Ecosystem panels render via `createPortal` → `document.body` with viewport-awa
 
 ## SSO behavior
 
-Links are plain navigations to product origins.
+Links are plain navigations to product **origins** (public roots).
 
-- If a central HomeCheff session exists and the target private surface has no product session → existing **silent SSO** runs.
-- Navigation never creates `studio_session` / `growth_session` / shared `.homecheff.eu` product cookies.
+- Public `/` on Studio and Growth performs **one** silent HomeCheff SSO attempt when no local product session exists and skip/attempt cookies allow it.
+- If a central HomeCheff session exists → product session is created/reused → authenticated UX (Growth then routes to `/growth` or onboarding).
+- If no central session → `login_required` returns to the **public** page (not `/login`). Marketing stays public.
+- Private surfaces (`/growth`, `/account`, `/login`, etc.) keep existing silent SSO.
+- Navigation never creates `studio_session` / `growth_session` / shared `.homecheff.eu` product cookies itself.
 - Account switching remains the separate **Use another account** / `select_account` flow.
+- Product logout sets skip-silent (~15 min) so logout is not instantly undone; intentional later ecosystem navigation may silent-SSO again once skip expires / after interactive clear.
 
 ## Analytics
 
