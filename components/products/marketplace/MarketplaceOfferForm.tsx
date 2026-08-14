@@ -60,6 +60,10 @@ import { offerRequiresCommerceDeclaration } from '@/lib/legal/commerce-declarati
 import CommerceDeclarationModal, {
   type CommerceDeclarationChoice,
 } from '@/components/legal/CommerceDeclarationModal';
+import FoodAllergenSelector from '@/components/legal/FoodAllergenSelector';
+import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
+import type { EuFoodAllergenId } from '@/lib/legal/eu-food-allergens';
+import { sanitizeEuFoodAllergenIds } from '@/lib/legal/eu-food-allergens';
 
 type Uploaded = { url: string; uploading?: boolean; error?: string };
 
@@ -152,6 +156,8 @@ export default function MarketplaceOfferForm({
   const [commerceModalOpen, setCommerceModalOpen] = useState(false);
   const [commerceBusy, setCommerceBusy] = useState(false);
   const [commerceError, setCommerceError] = useState<string | null>(null);
+  const [allergens, setAllergens] = useState<EuFoodAllergenId[]>([]);
+  const [allergensConfirmed, setAllergensConfirmed] = useState(false);
 
   const fieldConfig = useMemo(
     () =>
@@ -345,7 +351,30 @@ export default function MarketplaceOfferForm({
         thumbnail: (vid as { thumbnail?: string }).thumbnail ?? null,
       });
     }
+    if (existingProduct.allergensConfirmedAt) {
+      setAllergens(sanitizeEuFoodAllergenIds(existingProduct.allergens));
+      setAllergensConfirmed(true);
+    } else {
+      setAllergens(sanitizeEuFoodAllergenIds(existingProduct.allergens));
+      setAllergensConfirmed(false);
+    }
   }, [editMode, existingProduct, marketplaceCategory]);
+
+  const showFoodAllergens = useMemo(
+    () =>
+      productRequiresAllergenConfirmation({
+        category:
+          marketplaceCategory === 'GROW'
+            ? 'GARDEN'
+            : marketplaceCategory === 'DESIGN' ||
+                marketplaceCategory === 'ARTISTIC_SERVICE'
+              ? 'DESIGNER'
+              : 'CHEFF',
+        marketplaceCategory,
+        specializations,
+      }),
+    [marketplaceCategory, specializations],
+  );
 
   const resolveLocationPayload = () => {
     if (digitalOnly) {
@@ -397,6 +426,13 @@ export default function MarketplaceOfferForm({
     }
     if (images.length === 0 || images.some((i) => i.uploading)) {
       setMessage(t(MARKETPLACE_ERROR_KEYS.photosRequired));
+      return;
+    }
+
+    if (showFoodAllergens && !allergensConfirmed) {
+      setMessage(
+        'Bevestig de allergeneninformatie (checkbox) voordat je opslaat. Zonder bevestiging kunnen kopers dit voedselaanbod niet bestellen.',
+      );
       return;
     }
 
@@ -502,6 +538,12 @@ export default function MarketplaceOfferForm({
       images: imageUrls,
       video,
       category: marketplaceCategory === 'GROW' ? 'GARDEN' : marketplaceCategory === 'DESIGN' || marketplaceCategory === 'ARTISTIC_SERVICE' ? 'DESIGNER' : 'CHEFF',
+      ...(showFoodAllergens
+        ? {
+            allergens,
+            allergensConfirmed,
+          }
+        : {}),
     };
 
     const needsCommerceGate = offerRequiresCommerceDeclaration({
@@ -699,6 +741,16 @@ export default function MarketplaceOfferForm({
       <p className="text-xs text-gray-600 leading-relaxed">
         {t('marketplace.form.settlementIntro')}
       </p>
+
+      {showFoodAllergens ? (
+        <FoodAllergenSelector
+          selected={allergens}
+          confirmed={allergensConfirmed}
+          onChangeSelected={setAllergens}
+          onChangeConfirmed={setAllergensConfirmed}
+          disabled={busy}
+        />
+      ) : null}
 
       <PaymentMethodCheckboxes
         acceptHomeCheffPayment={acceptHomeCheffPayment}

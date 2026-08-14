@@ -15,6 +15,7 @@ import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
 import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/community-order-checkout';
 import { resolveCheckoutBlockReason } from '@/lib/marketplace/settlement/settlement-router';
+import { assertProductsAllergenConfirmationOr400 } from '@/lib/legal/assert-food-allergens-for-transaction';
 import {
   requiresStripeForHomecheffCheckout,
   sellerPaymentsReady,
@@ -134,6 +135,9 @@ export async function POST(req: NextRequest) {
 
     // Get all products from cart with ATOMIC stock check to prevent race conditions
     const productIds = items.map((item: any) => item.productId);
+
+    const allergenBlock = await assertProductsAllergenConfirmationOr400(productIds);
+    if (allergenBlock) return allergenBlock;
     
     // Use transaction to atomically check stock for all products
     const stockCheckResult = await prisma.$transaction(async (tx) => {

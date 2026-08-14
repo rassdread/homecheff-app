@@ -551,6 +551,10 @@ model Product {
   widthCm                 Float?
   heightCm                Float?
   weightKg                Float?
+  /// LEGAL-2: EU-14 allergen ids. Meaningful only when allergensConfirmedAt is set.
+  /// Confirmed + empty = seller confirmed none of the 14 apply. Null confirmedAt = UNKNOWN.
+  allergens               String[]             @default([])
+  allergensConfirmedAt    DateTime?
   conversations           Conversation[]
   proposals               Proposal[]
   deliveryOrders          DeliveryOrder[]
@@ -577,6 +581,7 @@ model Product {
   @@index([priceModel])
   @@index([specializations], type: Gin)
   @@index([acceptedSpecializations], type: Gin)
+  @@index([allergensConfirmedAt])
 }
 
 enum PendingAcceptedValueStatus {

@@ -38,6 +38,8 @@ import {
   shouldRevalidateAfterProductMutation,
 } from '@/lib/feed/revalidate-public-feed';
 import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
+import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
+import { buildAllergenConfirmationUpdate } from '@/lib/legal/food-allergen-context';
 import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-dish';
 import { listingProductCacheTag } from '@/lib/marketplace/detail/get-cached-listing-product-core';
 
@@ -498,6 +500,43 @@ export async function PATCH(
           if (commerceBlock) return commerceBlock;
         }
 
+        if (
+          isNewModel &&
+          (body.allergens !== undefined || body.allergensConfirmed !== undefined)
+        ) {
+          const mcat =
+            body.marketplaceCategory !== undefined
+              ? body.marketplaceCategory
+              : (product as { marketplaceCategory?: string | null })
+                  .marketplaceCategory;
+          const specs =
+            body.specializations !== undefined
+              ? body.specializations
+              : (product as { specializations?: string[] }).specializations;
+          const sub =
+            body.subcategory !== undefined
+              ? body.subcategory
+              : (product as { subcategory?: string | null }).subcategory;
+          const cat = (product as { category?: string }).category;
+          if (
+            productRequiresAllergenConfirmation({
+              category: typeof cat === 'string' ? cat : null,
+              marketplaceCategory:
+                typeof mcat === 'string' ? mcat : null,
+              specializations: Array.isArray(specs) ? specs : null,
+              subcategory: typeof sub === 'string' ? sub : null,
+            })
+          ) {
+            const allergenUpdate = buildAllergenConfirmationUpdate({
+              allergens: body.allergens,
+              confirmed: body.allergensConfirmed === true,
+            });
+            if (allergenUpdate) {
+              (body as Record<string, unknown>).__allergenPatch = allergenUpdate;
+            }
+          }
+        }
+
         const publishState = computePublishGateFromProductUpdate(
           body,
           product,
@@ -687,6 +726,15 @@ export async function PATCH(
                 .marketplaceCategory,
             }),
           };
+
+          const allergenPatch = (body as { __allergenPatch?: {
+            allergens: string[];
+            allergensConfirmedAt: Date | null;
+          } }).__allergenPatch;
+          if (allergenPatch) {
+            updateData.allergens = allergenPatch.allergens;
+            updateData.allergensConfirmedAt = allergenPatch.allergensConfirmedAt;
+          }
 
           // Update images if provided
           if (body.images && Array.isArray(body.images)) {
