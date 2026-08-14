@@ -648,8 +648,21 @@ report.cases.footer = await withPage("desk1280", async (page) => {
   for (const href of [...new Set(hrefs)]) {
     const link = page.locator(`[data-homecheff-site-footer] a[href="${href}"]`).first();
     try {
-      await link.click({ timeout: 4000 });
-      await page.waitForTimeout(800);
+      await link.scrollIntoViewIfNeeded();
+      await Promise.all([
+        page
+          .waitForURL(
+            (url) => {
+              const p = url.pathname + url.search;
+              const expected = href.split("?")[0];
+              return p === href || p.startsWith(expected);
+            },
+            { timeout: 8000 },
+          )
+          .catch(() => null),
+        link.click({ timeout: 4000 }),
+      ]);
+      await page.waitForTimeout(400);
       const path = await page.evaluate(() => location.pathname + location.search);
       const expected = href.split("?")[0];
       const ok = path === href || path.startsWith(expected);
