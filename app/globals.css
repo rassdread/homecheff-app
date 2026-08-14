@@ -1510,6 +1510,11 @@ html[data-wx-navbar-suppressed="1"][data-wx-short-landscape="1"][data-wx-bottom-
 :root {
   /* Conservative landscape edge gutter when env(safe-area-inset-*) is 0 (Android browser). */
   --hc-wx-landscape-edge-gutter: 1.5rem; /* 24px */
+  /*
+   * Non-rotating Android-style system navigation strip on the physical RIGHT edge.
+   * Do not rely on env(safe-area-inset-right) alone in short landscape.
+   */
+  --hc-landscape-system-right-reserve: 56px;
 }
 
 html[data-wx-short-landscape="1"] .hc-wx-orientation-strip[data-wx-single-bar="1"],
@@ -1525,10 +1530,46 @@ html[data-wx-short-landscape="1"] .hc-wx-orientation-strip[data-wx-single-bar="1
     var(--hc-wx-landscape-edge-gutter, 1.5rem)
   );
   padding-right: max(
+    4rem, /* 64px floor */
+    calc(
+      env(safe-area-inset-right, 0px) +
+        var(--hc-landscape-system-right-reserve, 56px)
+    )
+  );
+}
+
+/* Landscape menu opens inward (left of simulated OS right strip). */
+html[data-wx-short-landscape="1"] #navbar-mobile-menu[data-wx-landscape-menu="1"],
+.hc-wx-landscape-menu-panel {
+  left: 0;
+  right: max(
+    4rem,
+    calc(
+      env(safe-area-inset-right, 0px) +
+        var(--hc-landscape-system-right-reserve, 56px)
+    )
+  );
+  width: auto;
+  padding-left: max(
     0.75rem,
-    env(safe-area-inset-right, 0px),
+    env(safe-area-inset-left, 0px),
     var(--hc-wx-landscape-edge-gutter, 1.5rem)
   );
+  padding-right: 0.75rem;
+}
+
+/* Short landscape search readability */
+html[data-wx-short-landscape="1"] [data-wx-feed-search] {
+  min-height: 44px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #111827;
+  background-color: #fff;
+  border-color: #d1d5db;
+}
+html[data-wx-short-landscape="1"] [data-wx-feed-search]::placeholder {
+  color: #4b5563;
+  opacity: 1;
 }
 
 html[data-wx-navbar-suppressed="1"] header[data-wx-navbar] {

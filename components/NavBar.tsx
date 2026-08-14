@@ -43,6 +43,7 @@ import {
   NAVBAR_TOGGLE_MENU_EVENT,
   publishNavbarMobileMenuOpen,
 } from '@/lib/nav/navbar-command-bus';
+import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
 
 function resolveNavDashboardHref(user: Record<string, unknown> | null | undefined): string | null {
   if (!user) return null;
@@ -132,6 +133,10 @@ export default function NavBar() {
   useEffect(() => {
     publishNavbarMobileMenuOpen(isMobileMenuOpen);
   }, [isMobileMenuOpen]);
+
+  useOverlayHistoryBack('navbar-mobile-menu', isMobileMenuOpen, () => {
+    setIsMobileMenuOpen(false);
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -858,14 +863,11 @@ export default function NavBar() {
         {isMobileMenuOpen && (
           <div
             id="navbar-mobile-menu"
+            data-wx-landscape-menu={suppressNavbarChrome ? '1' : '0'}
             className={cn(
               'lg:hidden border-t border-gray-200 py-4 bg-white dark:bg-gray-900',
               suppressNavbarChrome &&
-                'fixed inset-x-0 top-0 z-[110] max-h-[min(85dvh,100%)] overflow-y-auto shadow-lg border-b',
-              suppressNavbarChrome &&
-                'pl-[max(0.75rem,env(safe-area-inset-left,0px),var(--hc-wx-landscape-edge-gutter,1.5rem))]',
-              suppressNavbarChrome &&
-                'pr-[max(0.75rem,env(safe-area-inset-right,0px),var(--hc-wx-landscape-edge-gutter,1.5rem))]',
+                'hc-wx-landscape-menu-panel fixed top-0 z-[110] max-h-[min(85dvh,100%)] overflow-y-auto shadow-lg border-b',
               suppressNavbarChrome &&
                 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]',
               !suppressNavbarChrome && 'max-w-7xl mx-auto px-3 sm:px-5',

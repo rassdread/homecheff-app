@@ -33,6 +33,7 @@ import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
 import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
 import { requestPlaceInputFocus } from "@/lib/feed/place-input-focus-request";
 import { useLandscapeWorkPosture } from "@/components/adaptive-workspace/WorkspaceChromeProvider";
+import { useOverlayHistoryBack } from "@/hooks/useOverlayHistoryBack";
 import {
   getFeedItemHref,
 } from "@/components/feed/feedItemClassification";
@@ -1957,6 +1958,12 @@ export default function GeoFeed({
     setMobileFilterSheetOpen(false);
     setMobileSheetFocusPlace(false);
   }, []);
+
+  useOverlayHistoryBack(
+    "feed-mobile-filter-sheet",
+    mobileFilterSheetOpen,
+    closeMobileFilterSheet,
+  );
 
   const openExistingDesktopFilters = useCallback(() => {
     if (workspaceRailOwnsFilters) {

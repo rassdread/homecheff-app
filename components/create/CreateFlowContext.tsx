@@ -37,6 +37,7 @@ import {
 import { registerCreateRolesGate } from "@/lib/create/create-roles-gate-bus";
 import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
 import dynamic from "next/dynamic";
+import { useOverlayHistoryBack } from "@/hooks/useOverlayHistoryBack";
 
 const CreateGuestAuthModal = dynamic(() => import("./CreateGuestAuthModal"), {
   ssr: false,
@@ -299,6 +300,11 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return registerCreateRolesGate(() => setRolesGateOpen(true));
   }, []);
+
+  useOverlayHistoryBack("create-guest-auth", guestOpen, handleAbandonGuestModal);
+  useOverlayHistoryBack("create-roles-gate", rolesGateOpen, () => {
+    setRolesGateOpen(false);
+  });
 
   return (
     <CreateFlowContext.Provider value={{ openCreateFlow, openCreateFlowWithIntent }}>
