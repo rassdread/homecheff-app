@@ -32,6 +32,8 @@
     "probe:legal-2-food-allergens": "node scripts/probe-legal-2-food-allergens.mjs",
     "probe:trust-1-marketplace-integrity": "node scripts/probe-trust-1-marketplace-integrity.mjs",
     "probe:legal-0-integrity": "node scripts/probe-legal-0-integrity.mjs",
+    "probe:interaction-integrity": "node scripts/probe-interaction-integrity.mjs",
+    "test:overlay-history-back": "npx tsx lib/nav/tests/run-overlay-history-back-tests.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:migration:validate": "tsx scripts/validate-migration-cutoff.ts --strict && tsx scripts/validate-dual-track-migration-config.ts",
     "db:migrate:shared": "echo 'Shared Neon only — requires DATABASE_URL and human approval' && npx prisma migrate deploy --schema prisma/schema.prisma",
