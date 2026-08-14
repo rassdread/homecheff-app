@@ -1,0 +1,22 @@
+{
+  "phase": "WX-1B.4.1-short-landscape-single-bar",
+  "mainBefore": "b4a727fd36a2ea9daec508a86d7e32a5cb756f58",
+  "productionBefore": "dpl_8GmDYotSQtLNFQpcFA4eR1KpLkzm",
+  "condition": "shortChromeCompact + homepage pathname=/ → suppress navbar; single work bar in orientation slot",
+  "beforeProductionChromium": {
+    "844x390": { "header": 49, "strip": 24, "combined": 73, "useful": 308 },
+    "740x360": { "header": 49, "strip": 24, "combined": 73, "useful": 278 },
+    "667x375": { "header": 49, "strip": 22, "combined": 71, "useful": 295 }
+  },
+  "afterLocal": {
+    "844x390": { "header": 0, "workbar": 45, "useful": 336, "menuRightGap": 33, "rail": true },
+    "edgeGutterPx": 24,
+    "safeArea": "max(0.75rem, env(safe-area-inset-*), var(--hc-wx-landscape-edge-gutter, 1.5rem))"
+  },
+  "owners": {
+    "whiteNavbar": "components/NavBar.tsx (suppressed on homepage short landscape)",
+    "workBar": "WorkspaceOrientationStrip + LandscapeWorkBarCommands",
+    "create": "useCreateFlow via LandscapeWorkBarCommands",
+    "menu": "NavBar mobile menu via lib/nav/navbar-command-bus.ts"
+  }
+}

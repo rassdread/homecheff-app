@@ -163,6 +163,7 @@ begin("source seals — no UA/device branching in policy + chrome");
   assert.match(strip, /orientationCompact/);
   assert.match(strip, /data-wx-orientation-compact/);
   assert.match(strip, /shortChromeCompact|workToolbar|data-wx-work-toolbar/);
+  assert.match(strip, /data-wx-single-bar|LandscapeWorkBarCommands/);
 
   const navBar = readFileSync(join(root, "components/NavBar.tsx"), "utf8");
   assert.match(navBar, /data-wx-mobile-create/);
@@ -170,6 +171,22 @@ begin("source seals — no UA/device branching in policy + chrome");
   assert.match(navBar, /\/mijn-hcp/);
   assert.match(navBar, /shortChromeCompact|shortLandscapeChrome/);
   assert.match(navBar, /data-wx-navbar/);
+  assert.match(navBar, /suppressNavbarChrome|data-wx-navbar-suppressed/);
+  assert.match(navBar, /NAVBAR_TOGGLE_MENU_EVENT|navbar-command-bus/);
+
+  const workBar = readFileSync(
+    join(root, "components/adaptive-workspace/LandscapeWorkBarCommands.tsx"),
+    "utf8",
+  );
+  assert.match(workBar, /toggleNavbarMobileMenu/);
+  assert.match(workBar, /openCreateFlow/);
+  assert.match(workBar, /data-wx-workbar-menu/);
+  assert.match(workBar, /safe-area|workbar-logo|data-wx-workbar-create/);
+
+  const globals = readFileSync(join(root, "app/globals.css"), "utf8");
+  assert.match(globals, /--hc-wx-landscape-edge-gutter/);
+  assert.match(globals, /safe-area-inset-right/);
+  assert.match(globals, /data-wx-navbar-suppressed/);
 
   const layout = readFileSync(
     join(root, "components/adaptive-workspace/FeedWorkspaceVisibleLayout.tsx"),
