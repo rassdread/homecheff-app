@@ -8,11 +8,16 @@ import { formatLegalEffectiveDate } from '@/lib/legal/format-legal-effective-dat
 
 type LegalDocumentVersionStampProps = {
   document: LegalDocumentId;
-  versionLabel: string;
-  effectiveFromLabel: string;
+  versionLabel?: string;
+  effectiveFromLabel?: string;
   locale: 'nl' | 'en';
   className?: string;
 };
+
+const DEFAULT_LABELS = {
+  nl: { version: 'Versie', effectiveFrom: 'Geldig vanaf' },
+  en: { version: 'Version', effectiveFrom: 'Effective from' },
+} as const;
 
 /**
  * Renders immutable legal version + effective date.
@@ -27,10 +32,14 @@ export function LegalDocumentVersionStamp({
 }: LegalDocumentVersionStampProps) {
   const meta = getLegalDocumentVersion(document);
   const dateLabel = formatLegalEffectiveDate(meta.effectiveDate, locale);
+  const defaults = DEFAULT_LABELS[locale];
+  const version = (versionLabel && versionLabel.trim()) || defaults.version;
+  const effectiveFrom =
+    (effectiveFromLabel && effectiveFromLabel.trim()) || defaults.effectiveFrom;
 
   return (
     <p className={className} data-legal-document={document}>
-      {versionLabel} {meta.version} · {effectiveFromLabel} {dateLabel}
+      {version} {meta.version} · {effectiveFrom} {dateLabel}
     </p>
   );
 }
