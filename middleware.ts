@@ -9,7 +9,6 @@ import {
 } from '@/lib/user-suspend-middleware';
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 import { isKnownHomecheffRootPath } from '@/lib/seo/known-root-path-segments';
-import { entityExistsForHttp404 } from '@/lib/seo/entity-exists-for-http-404';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -184,16 +183,42 @@ export async function middleware(request: NextRequest) {
   }
 
   if (canRewrite404) {
-    const entityExists = await entityExistsForHttp404(pathname);
-    if (entityExists === false) {
-      const notFoundUrl = request.nextUrl.clone();
-      notFoundUrl.pathname = '/hc-http-404';
-      notFoundUrl.search = '';
-      const notFoundResponse = NextResponse.rewrite(notFoundUrl, {
-        request: { headers: requestHeaders },
-      });
-      notFoundResponse.headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
-      return notFoundResponse;
+    const first = pathname.split('/').filter(Boolean)[0];
+    const entityPrefixes = new Set([
+      'product',
+      'listing',
+      'recipe',
+      'inspiratie',
+      'user',
+      'seller',
+      'profile',
+    ]);
+    if (first && entityPrefixes.has(first) && pathname.split('/').filter(Boolean).length >= 2) {
+      try {
+        const checkUrl = new URL('/api/internal/entity-exists', request.url);
+        checkUrl.searchParams.set('pathname', pathname);
+        const checkRes = await fetch(checkUrl.toString(), {
+          headers: {
+            'x-internal-secret': process.env.INTERNAL_API_SECRET || process.env.NEXTAUTH_SECRET || '',
+          },
+          cache: 'no-store',
+        });
+        if (checkRes.ok) {
+          const body = (await checkRes.json()) as { exists?: boolean | null };
+          if (body.exists === false) {
+            const notFoundUrl = request.nextUrl.clone();
+            notFoundUrl.pathname = '/hc-http-404';
+            notFoundUrl.search = '';
+            const notFoundResponse = NextResponse.rewrite(notFoundUrl, {
+              request: { headers: requestHeaders },
+            });
+            notFoundResponse.headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
+            return notFoundResponse;
+          }
+        }
+      } catch {
+        // Fall through to App Router notFound() if the lookup fails.
+      }
     }
   }
 
