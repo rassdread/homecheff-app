@@ -51,27 +51,37 @@ export async function generateMetadata({
   const username = normalizeUsernameParam(params.username);
   const currentDomain = await getCurrentDomain();
 
-  if (!username) {
-    return { title: "Profiel" };
-  }
+  if (!username) notFound();
 
-  const user = await prisma.user.findFirst({
-    where: { username: { equals: username, mode: "insensitive" } },
-    select: {
-      name: true,
-      username: true,
-      profileImage: true,
-      bio: true,
-      place: true,
-      showProfileToEveryone: true,
-      accountDeletedAt: true,
-      displayFullName: true,
-      displayNameOption: true,
-    },
-  });
+  const isUUID =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      username,
+    );
+
+  const profileMetaSelect = {
+    name: true,
+    username: true,
+    profileImage: true,
+    bio: true,
+    place: true,
+    showProfileToEveryone: true,
+    accountDeletedAt: true,
+    displayFullName: true,
+    displayNameOption: true,
+  } as const;
+
+  const user = isUUID
+    ? await prisma.user.findUnique({
+        where: { id: username },
+        select: profileMetaSelect,
+      })
+    : await prisma.user.findFirst({
+        where: { username: { equals: username, mode: "insensitive" } },
+        select: profileMetaSelect,
+      });
 
   if (!user || user.accountDeletedAt || !user.showProfileToEveryone) {
-    return { title: "Profiel" };
+    notFound();
   }
 
   const displayName = getDisplayName(user);

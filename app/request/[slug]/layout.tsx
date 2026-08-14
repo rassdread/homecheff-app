@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import {
   getCurrentDomain,
@@ -14,6 +14,7 @@ import {
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import { formatCityLabel } from '@/lib/seo/productSlug';
 import { isRequestListing } from '@/lib/marketplace/product-visibility';
+import { rethrowIfNotFound } from '@/lib/seo/rethrow-if-not-found';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,7 +51,9 @@ export async function generateMetadata(
       },
     });
 
-    if (!product || !product.isActive || !isRequestListing(product)) {
+    if (!product) notFound();
+
+    if (!product.isActive || !isRequestListing(product)) {
       return {
         title: lang === 'en' ? 'Request not found' : 'Verzoek niet gevonden',
         robots: { index: false, follow: false },
@@ -109,6 +112,7 @@ export async function generateMetadata(
       robots: { index: true, follow: true },
     };
   } catch (error) {
+    rethrowIfNotFound(error);
     console.error('Error generating request metadata:', error);
     return {
       title: lang === 'en' ? 'Request - HomeCheff' : 'Verzoek - HomeCheff',

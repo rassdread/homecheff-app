@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import { NOT_FOUND_METADATA } from '@/lib/seo/not-found-metadata';
+
+export const metadata = NOT_FOUND_METADATA;
 
 /**
- * Server not-found — keeps a real HTTP 404 (client not-found previously risked soft-200).
+ * Server not-found UI (entity routes that call `notFound()`).
+ * Must not inherit homepage canonical / index from the root layout.
  */
 export default function NotFound() {
   return (

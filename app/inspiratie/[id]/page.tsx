@@ -59,9 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 
   if (!item || item.status !== 'PUBLISHED') {
-    return {
-      title: 'Inspiratie-item niet gevonden',
-    };
+    notFound();
   }
 
   const mainPhoto = item.photos[0];

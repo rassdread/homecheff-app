@@ -19,7 +19,7 @@ export async function generateMetadata({
   params: { stad: string };
 }) {
   if (!ETEN_VERKOPEN_CITY_SLUGS.includes(params.stad as (typeof ETEN_VERKOPEN_CITY_SLUGS)[number])) {
-    return { title: "HomeCheff" };
+    notFound();
   }
   const lang = await getCurrentLanguage();
   const city = getEtenVerkopenCityLabel(params.stad, lang);

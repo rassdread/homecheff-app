@@ -2,9 +2,10 @@
 
 import { Shield, Lock, Eye, Database, Users, FileText } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { LegalDocumentVersionStamp } from '@/components/legal/LegalDocumentVersionStamp';
 
 export default function PrivacyPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -227,9 +228,13 @@ export default function PrivacyPage() {
               </div>
 
               <div className="mt-8 pt-8 border-t border-gray-200 space-y-3">
-                <p className="text-sm text-gray-500">
-                  {t('register.privacyPage.lastUpdated')} {new Date().toLocaleDateString()}
-                </p>
+                <LegalDocumentVersionStamp
+                  document="privacy"
+                  versionLabel={t('register.privacyPage.version')}
+                  effectiveFromLabel={t('register.privacyPage.effectiveFrom')}
+                  locale={language === 'en' ? 'en' : 'nl'}
+                  className="text-sm text-gray-500"
+                />
                 <p className="text-xs text-amber-700 italic">
                   {t('register.privacyPage.legalDisclaimer')}
                 </p>
