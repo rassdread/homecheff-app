@@ -1541,7 +1541,8 @@ html[data-wx-short-landscape="1"] .hc-wx-orientation-strip[data-wx-single-bar="1
 /* Landscape menu opens inward (left of simulated OS right strip). */
 html[data-wx-short-landscape="1"] #navbar-mobile-menu[data-wx-landscape-menu="1"],
 .hc-wx-landscape-menu-panel {
-  z-index: 200;
+  z-index: 99990;
+  max-height: 85dvh;
   left: 0;
   right: max(
     4rem,
