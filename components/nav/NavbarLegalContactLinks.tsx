@@ -1,10 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { Shield, FileText, Mail, Info, ShieldAlert, Users } from 'lucide-react';
-import { COMMUNITY_GUIDELINES_URL, SAFETY_STANDARDS_URL } from '@/lib/legal/policy-urls';
-import { useTranslation } from '@/hooks/useTranslation';
-import { cn } from '@/lib/utils';
+import HomepageInfoChrome from '@/components/home/HomepageInfoChrome';
 
 type MobileProps = {
   variant: 'mobile';
@@ -19,88 +15,16 @@ type DropdownProps = {
 
 export type NavbarLegalContactLinksProps = MobileProps | DropdownProps;
 
+/**
+ * Mobile menu + profile dropdown legal/info surface.
+ * Homepage desktop uses HomepageInfoChrome in the start rail; this keeps
+ * Privacy / Terms / Contact / Over HomeCheff / Help reachable on mobile
+ * without a document footer above the bottom navigation.
+ */
 export function NavbarLegalContactLinks(props: NavbarLegalContactLinksProps) {
-  const { variant, onNavigate } = props;
-  const { t } = useTranslation();
-
-  const rowClass =
-    variant === 'mobile'
-      ? props.mobileNavRowClass
-      : cn(
-          'flex min-h-[44px] items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors'
-        );
-
   return (
-    <div
-      className={
-        variant === 'mobile' ? 'mt-2 border-t border-gray-200 pt-2' : 'border-t border-gray-100 pt-1'
-      }
-    >
-      <p
-        className={
-          variant === 'mobile'
-            ? 'px-3 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-gray-500'
-            : 'px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500'
-        }
-      >
-        {t('navbar.legalAndContact')}
-      </p>
-      <nav className="flex flex-col" aria-label={t('navbar.legalNavAria')}>
-        <Link
-          href="/privacy"
-          prefetch={false}
-          className={rowClass}
-          onClick={() => onNavigate?.()}
-        >
-          <Shield className="h-4 w-4 shrink-0" aria-hidden />
-          <span>{t('siteFooter.privacy')}</span>
-        </Link>
-        <Link
-          href="/terms"
-          prefetch={false}
-          className={rowClass}
-          onClick={() => onNavigate?.()}
-        >
-          <FileText className="h-4 w-4 shrink-0" aria-hidden />
-          <span>{t('siteFooter.terms')}</span>
-        </Link>
-        <Link
-          href={COMMUNITY_GUIDELINES_URL}
-          prefetch={false}
-          className={rowClass}
-          onClick={() => onNavigate?.()}
-        >
-          <Users className="h-4 w-4 shrink-0" aria-hidden />
-          <span>{t('siteFooter.communityGuidelines')}</span>
-        </Link>
-        <Link
-          href={SAFETY_STANDARDS_URL}
-          prefetch={false}
-          className={rowClass}
-          onClick={() => onNavigate?.()}
-        >
-          <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden />
-          <span>{t('siteFooter.safety')}</span>
-        </Link>
-        <Link
-          href="/contact"
-          prefetch={false}
-          className={rowClass}
-          onClick={() => onNavigate?.()}
-        >
-          <Mail className="h-4 w-4 shrink-0" aria-hidden />
-          <span>{t('siteFooter.contact')}</span>
-        </Link>
-        <Link
-          href="/faq"
-          prefetch={false}
-          className={rowClass}
-          onClick={() => onNavigate?.()}
-        >
-          <Info className="h-4 w-4 shrink-0" aria-hidden />
-          <span>{t('siteFooter.faq')}</span>
-        </Link>
-      </nav>
+    <div data-hc-legal-surface={props.variant}>
+      <HomepageInfoChrome variant="nav" onNavigate={props.onNavigate} />
     </div>
   );
 }

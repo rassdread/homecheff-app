@@ -6618,7 +6618,24 @@
     "hcpRankings": "Reputatie in de buurt",
     "affiliateProgram": "Affiliateprogramma",
     "feedback": "Feedback",
-    "companyLine": "Arrias Beheer B.V. · KvK 80532829 · Vlaardingen · Contact via contactformulier"
+    "companyLine": "Arrias Beheer B.V. · KvK 80532829 · Vlaardingen · Contact via contactformulier",
+    "contactViaForm": "Contact via contactformulier"
+  },
+  "homepageInfo": {
+    "navAria": "Over HomeCheff",
+    "about": "Over HomeCheff",
+    "help": "Help",
+    "more": "Meer",
+    "moreTitle": "Over HomeCheff",
+    "groupAbout": "Over HomeCheff",
+    "groupTrust": "Veilig & vertrouwd",
+    "groupParticipate": "Meedoen",
+    "groupMore": "Meer",
+    "guides": "Gidsen",
+    "knowledge": "Kennisbank",
+    "evidence": "Transparantie",
+    "constitution": "Beginselen",
+    "kvkLine": "KvK {kvk}"
   },
   "emptyState": {
     "ordersTitle": "Nog geen bestellingen",
