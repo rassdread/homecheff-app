@@ -4103,6 +4103,8 @@
       "contactInfoEmail": "Info:",
       "contactInfoEmailValue": "info@homecheff.eu",
       "lastUpdated": "Laatst bijgewerkt:",
+      "version": "Versie",
+      "effectiveFrom": "Geldig vanaf",
       "legalDisclaimer": "Deze teksten zijn niet juridisch getoetst. Laat ze controleren door een jurist."
     },
     "privacyFullStatement": "Voor de volledige privacyverklaring, zie:",
@@ -6716,6 +6718,7 @@
     "title": "Algemene Voorwaarden HomeCheff",
     "subtitle": "Gebruik van het platform valt onder deze voorwaarden.",
     "lastUpdated": "Laatst bijgewerkt",
+    "effectiveFrom": "Geldig vanaf",
     "version": "Versie",
     "footerNote": "Deze algemene voorwaarden zijn opgesteld in overeenstemming met het Nederlandse recht en de Europese consumentenwetgeving.",
     "contactTitle": "Contact",

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import {
   getCurrentDomain,
   getCurrentLanguage,
@@ -19,6 +19,7 @@ import { isRequestListing } from '@/lib/marketplace/product-visibility';
 import { buildListingJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import { getCachedListingProductCore } from '@/lib/marketplace/detail/get-cached-listing-product-core';
+import { rethrowIfNotFound } from '@/lib/seo/rethrow-if-not-found';
 
 const BREADCRUMB_HOME_NL = 'Home';
 const BREADCRUMB_HOME_EN = 'Home';
@@ -36,15 +37,27 @@ export async function generateMetadata(
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
 
-  try {
-    const product = id ? await getCachedListingProductCore(id) : null;
+  if (!id) notFound();
 
-    if (!product || !product.isActive) {
-      return {
-        title: lang === 'en' ? 'Product Not Found' : 'Product Niet Gevonden',
-        robots: { index: false, follow: false },
-      };
-    }
+  let product: Awaited<ReturnType<typeof getCachedListingProductCore>> = null;
+  try {
+    product = await getCachedListingProductCore(id);
+  } catch (error) {
+    rethrowIfNotFound(error);
+    console.error('Error loading product for metadata:', error);
+    notFound();
+  }
+
+  if (!product) notFound();
+
+  if (!product.isActive) {
+    return {
+      title: lang === 'en' ? 'Product Not Found' : 'Product Niet Gevonden',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  try {
 
     const slugSegment = buildProductSlugPath(
       product.title,
@@ -142,6 +155,7 @@ export async function generateMetadata(
       },
     };
   } catch (error) {
+    rethrowIfNotFound(error);
     console.error('Error generating product metadata:', error);
     return {
       title: lang === 'en' ? 'Product - HomeCheff' : 'Product - HomeCheff',
@@ -168,6 +182,8 @@ export default async function ProductLayout({
   const productForLayout = resolvedId
     ? await getCachedListingProductCore(resolvedId)
     : null;
+
+  if (!resolvedId || !productForLayout) notFound();
 
   if (productForLayout?.isActive && isRequestListing(productForLayout as any)) {
     redirect(
@@ -262,6 +278,7 @@ export default async function ProductLayout({
       };
     }
   } catch (error) {
+    rethrowIfNotFound(error);
     console.error('Error generating structured data:', error);
   }
 

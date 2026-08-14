@@ -4,11 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import { FileText } from 'lucide-react';
+import { LegalDocumentVersionStamp } from '@/components/legal/LegalDocumentVersionStamp';
 
 export default function TermsPage() {
   const { t, language } = useTranslation();
-  const locale = language === 'en' ? 'en-GB' : 'nl-NL';
-  const lastUpdated = new Date().toLocaleDateString(locale);
+  const locale = language === 'en' ? 'en' : 'nl';
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -27,10 +27,13 @@ export default function TermsPage() {
 
           {/* Content */}
           <div className="px-8 py-12">
-            <p className="text-gray-600 mb-8">
-              <strong>{t('termsPage.lastUpdated')}:</strong> {lastUpdated}<br />
-              <strong>{t('termsPage.version')}:</strong> 1.0
-            </p>
+            <LegalDocumentVersionStamp
+              document="terms"
+              versionLabel={t('termsPage.version')}
+              effectiveFromLabel={t('termsPage.effectiveFrom')}
+              locale={locale}
+              className="text-gray-600 mb-8"
+            />
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('termsPage.s1Title')}</h2>

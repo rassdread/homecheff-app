@@ -21,9 +21,7 @@ export async function generateMetadata({
   params: { seoSlug: string };
 }): Promise<Metadata> {
   const page = getSeoPageByNlSlug(params.seoSlug);
-  if (!page) {
-    return { title: "HomeCheff" };
-  }
+  if (!page) notFound();
   const { title, description } = page.nl;
   const canonical = getSeoCanonicalUrl(page, "nl");
   const enUrl = getSeoAlternateLanguageUrl(page, "nl");

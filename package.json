@@ -24,6 +24,8 @@
     "start:local": "npm run clean && npm run build && (lsof -ti:3000 | xargs kill -9 2>/dev/null || true) && next start -p 3000",
     "lint": "eslint",
     "smoke-check": "node scripts/smoke-check.mjs",
+    "validate:legal-0-integrity": "npx tsx scripts/validate-legal-0-integrity.ts",
+    "probe:legal-0-integrity": "node scripts/probe-legal-0-integrity.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "db:migration:validate": "tsx scripts/validate-migration-cutoff.ts --strict && tsx scripts/validate-dual-track-migration-config.ts",
     "db:migrate:shared": "echo 'Shared Neon only — requires DATABASE_URL and human approval' && npx prisma migrate deploy --schema prisma/schema.prisma",

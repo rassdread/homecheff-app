@@ -4180,6 +4180,8 @@
       "contactInfoEmail": "Info:",
       "contactInfoEmailValue": "info@homecheff.eu",
       "lastUpdated": "Last updated:",
+      "version": "Version",
+      "effectiveFrom": "Effective from",
       "legalDisclaimer": "These texts have not been legally reviewed. Have them checked by a legal professional."
     },
     "privacyFullStatement": "For the full privacy policy, see:",
@@ -6182,6 +6184,7 @@
     "title": "HomeCheff Terms and Conditions",
     "subtitle": "Use of the platform is subject to these terms.",
     "lastUpdated": "Last updated",
+    "effectiveFrom": "Effective from",
     "version": "Version",
     "footerNote": "These terms and conditions are drawn up in accordance with Dutch law and European consumer legislation.",
     "contactTitle": "Contact",

@@ -8,6 +8,7 @@ import {
   suspensionMutationBlockedResponse,
 } from '@/lib/user-suspend-middleware';
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
+import { isKnownHomecheffRootPath } from '@/lib/seo/known-root-path-segments';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -161,6 +162,24 @@ export async function middleware(request: NextRequest) {
       );
       return NextResponse.redirect(url);
     }
+  }
+
+  const method = request.method;
+  if (
+    (method === 'GET' || method === 'HEAD') &&
+    !pathname.startsWith('/api/') &&
+    !pathname.startsWith('/_next/') &&
+    !isPublicIconOrManifestPath(pathname) &&
+    !isKnownHomecheffRootPath(pathname)
+  ) {
+    const notFoundUrl = request.nextUrl.clone();
+    notFoundUrl.pathname = '/hc-http-404';
+    notFoundUrl.search = '';
+    const notFoundResponse = NextResponse.rewrite(notFoundUrl, {
+      request: { headers: requestHeaders },
+    });
+    notFoundResponse.headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
+    return notFoundResponse;
   }
 
   const res = NextResponse.next({

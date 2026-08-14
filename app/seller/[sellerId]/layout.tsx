@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import {
@@ -7,6 +8,7 @@ import {
   getCurrentLanguage,
   seoHreflangLanguagesOnEu,
 } from '@/lib/seo/metadata';
+import { rethrowIfNotFound } from '@/lib/seo/rethrow-if-not-found';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,10 +43,17 @@ export async function generateMetadata(
     });
 
     if (!seller) {
-      return {
-        title: lang === 'en' ? 'Seller Not Found' : 'Verkoper Niet Gevonden',
-        robots: { index: false, follow: false }
-      };
+      const user = await prisma.user.findUnique({
+        where: { id: sellerId },
+        select: { id: true },
+      });
+      if (user) {
+        return {
+          title: lang === 'en' ? 'Seller' : 'Verkoper',
+          robots: { index: false, follow: false },
+        };
+      }
+      notFound();
     }
 
     const sellerName = seller.User
@@ -113,6 +122,7 @@ export async function generateMetadata(
       },
     };
   } catch (error) {
+    rethrowIfNotFound(error);
     console.error('Error generating seller metadata:', error);
     return {
       title: lang === 'en' ? 'Seller - HomeCheff' : 'Verkoper - HomeCheff',
@@ -173,6 +183,7 @@ export default async function SellerLayout({
       };
     }
   } catch (error) {
+    rethrowIfNotFound(error);
     console.error('Error generating seller structured data:', error);
   }
 

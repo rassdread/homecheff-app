@@ -54,9 +54,7 @@ export async function generateMetadata({ params }: PageProps) {
     },
   });
 
-  if (!recipe) {
-    return { title: 'Recept niet gevonden' };
-  }
+  if (!recipe) notFound();
 
   const imageUrl = recipe.photos[0]?.url
     ? (recipe.photos[0].url.startsWith('http')
@@ -67,6 +65,7 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: `${recipe.title} - HomeCheff Keuken`,
     description: recipe.description || `Bekijk dit recept: ${recipe.title}`,
+    robots: { index: true, follow: true },
     openGraph: {
       title: recipe.title || 'Recept',
       description: recipe.description || undefined,

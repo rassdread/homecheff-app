@@ -23,13 +23,9 @@ export async function generateMetadata({
 }: {
   params: { seoSlug: string };
 }): Promise<Metadata> {
-  if (RESERVED_EN_SINGLE_SEGMENTS.has(params.seoSlug)) {
-    return { title: "HomeCheff" };
-  }
+  if (RESERVED_EN_SINGLE_SEGMENTS.has(params.seoSlug)) notFound();
   const page = getSeoPageByEnSlug(params.seoSlug);
-  if (!page) {
-    return { title: "HomeCheff" };
-  }
+  if (!page) notFound();
   const { title, description } = page.en;
   const canonical = getSeoCanonicalUrl(page, "en");
   const nlUrl = getSeoAlternateLanguageUrl(page, "en");
