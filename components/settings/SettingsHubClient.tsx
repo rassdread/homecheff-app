@@ -22,6 +22,7 @@ import NotificationSettings from '@/components/profile/NotificationSettings';
 import AccountSettings from '@/components/profile/AccountSettings';
 import StripeConnectSetup from '@/components/profile/StripeConnectSetup';
 import HelpSettings from '@/components/onboarding/HelpSettings';
+import SellerCommerceDeclarationSettings from '@/components/settings/SellerCommerceDeclarationSettings';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   getVisibleSettingsTabs,
@@ -258,6 +259,7 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
 
               {activeTab === 'payments' && (
                 <div className="space-y-6">
+                  <SellerCommerceDeclarationSettings />
                   <StripeConnectSetup
                     stripeConnectAccountId={user.stripeConnectAccountId}
                     stripeConnectOnboardingCompleted={user.stripeConnectOnboardingCompleted}

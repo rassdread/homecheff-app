@@ -127,6 +127,18 @@ export async function PUT(req: NextRequest) {
       }
     });
 
+    // LEGAL-1: KvK/companyName are review signals only — never auto-professional.
+    try {
+      const { getSellerCommerceContextForUserId } = await import(
+        '@/lib/legal/get-seller-commerce-context'
+      );
+      await getSellerCommerceContextForUserId(user.id, {
+        persistReviewSignals: true,
+      });
+    } catch (signalErr) {
+      console.warn('[seller/profile] review signal refresh skipped', signalErr);
+    }
+
     return NextResponse.json({ 
       success: true, 
       profile 
