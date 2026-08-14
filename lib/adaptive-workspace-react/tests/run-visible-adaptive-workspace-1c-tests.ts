@@ -84,7 +84,8 @@ console.log("\n[visible-adaptive-1c] landscape reclaims bottom chrome");
   assert.equal(land.bottomNavCollapsed, true);
   assert.equal(land.orientationCompact, true);
   assert.equal(land.chromeInset.bottomRem, 0);
-  assert.match(land.chromeInset.frameHeightCss, /3\.5rem/);
+  assert.equal(land.chromeInset.topRem, 3);
+  assert.match(land.chromeInset.frameHeightCss, /3rem/);
   ok("landscape frame uses top-nav-only inset");
 }
 

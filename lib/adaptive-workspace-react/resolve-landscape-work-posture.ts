@@ -21,6 +21,13 @@ export const LANDSCAPE_WORK_POSTURE = {
   presentationOnly: true,
 } as const;
 
+/**
+ * Short-height landscape → aggressive top-chrome compaction (toolbar posture).
+ * Tall landscape (tablet/desktop) keeps standard landscape chrome.
+ * Aligned with orientation ultra_compact landscape band.
+ */
+export const LANDSCAPE_SHORT_CHROME_MAX_HEIGHT_EXCLUSIVE = 520;
+
 export type WorkspaceChromeDensity = "standard" | "compact";
 
 export type LandscapeWorkPosturePlan = {
@@ -31,6 +38,11 @@ export type LandscapeWorkPosturePlan = {
   bottomNavCollapsed: boolean;
   /** Orientation strip uses compact Workspace chrome. */
   orientationCompact: boolean;
+  /**
+   * Short landscape only: compact top nav + one-line orientation toolbar.
+   * False on tall landscape (e.g. desktop AW) so desktop chrome stays unchanged.
+   */
+  shortChromeCompact: boolean;
   chromeDensity: WorkspaceChromeDensity;
   usableWidthPx: number;
   usableHeightPx: number;
@@ -61,12 +73,17 @@ export function resolveLandscapeWorkPosture(
   const posture: "portrait" | "landscape" =
     usableWidthPx > usableHeightPx ? "landscape" : "portrait";
   const workPostureActive = posture === "landscape";
+  const shortChromeCompact =
+    workPostureActive &&
+    usableHeightPx > 0 &&
+    usableHeightPx < LANDSCAPE_SHORT_CHROME_MAX_HEIGHT_EXCLUSIVE;
 
   return {
     posture,
     workPostureActive,
     bottomNavCollapsed: workPostureActive,
     orientationCompact: workPostureActive,
+    shortChromeCompact,
     chromeDensity: workPostureActive ? "compact" : "standard",
     usableWidthPx,
     usableHeightPx,
@@ -84,6 +101,7 @@ export function isSameLandscapeWorkPosturePlan(
     a.workPostureActive === b.workPostureActive &&
     a.bottomNavCollapsed === b.bottomNavCollapsed &&
     a.orientationCompact === b.orientationCompact &&
+    a.shortChromeCompact === b.shortChromeCompact &&
     a.chromeDensity === b.chromeDensity &&
     a.usableWidthPx === b.usableWidthPx &&
     a.usableHeightPx === b.usableHeightPx
