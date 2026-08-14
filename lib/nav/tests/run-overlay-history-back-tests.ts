@@ -61,6 +61,8 @@ const css = readFileSync(join(root, "app/globals.css"), "utf8");
 assert.match(css, /--hc-landscape-system-right-reserve/);
 assert.match(css, /hc-wx-landscape-menu-panel/);
 assert.match(css, /z-index:\s*200/);
+assert.match(css, /data-wx-orientation-host/);
+assert.match(css, /data-aw-slot-host="orientation"/);
 assert.match(css, /pointer-events:\s*none/);
 assert.match(css, /data-wx-feed-search/);
 

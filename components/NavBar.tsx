@@ -870,7 +870,7 @@ export default function NavBar() {
                 // Above orientation workbar (sibling stacking); history-back fix alone is not enough in short landscape.
                 'hc-wx-landscape-menu-panel fixed top-0 z-[200] max-h-[min(85dvh,100%)] overflow-y-auto shadow-lg border-b',
               suppressNavbarChrome &&
-                'pt-[max(3.25rem,calc(2.75rem+env(safe-area-inset-top,0px)))]',
+                'pt-[max(3.75rem,calc(3.25rem+env(safe-area-inset-top,0px)))]',
               !suppressNavbarChrome && 'max-w-7xl mx-auto px-3 sm:px-5',
             )}
           >
