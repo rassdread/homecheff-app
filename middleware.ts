@@ -8,11 +8,11 @@ import {
   suspensionMutationBlockedResponse,
 } from '@/lib/user-suspend-middleware';
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
-import { isKnownHomecheffRootPath } from '@/lib/seo/known-root-path-segments';
+import { isKnownHomecheffRootPath, isPublicStaticAssetPath } from '@/lib/seo/known-root-path-segments';
 
 const EU_HOST = 'homecheff.eu';
 
-/** Tab/PWA assets: geen CSP op deze responses — Safari weigert anders vaak de favicon en blijft op platform-default (Vercel-driehoek). Alleen favicon.ico zat al in de matcher-exclude. */
+/** Tab/PWA + brand static assets: geen CSP; nooit LEGAL-0 rewrite naar /hc-http-404. */
 function isPublicIconOrManifestPath(pathname: string): boolean {
   return (
     pathname.startsWith('/favicon') ||
@@ -20,7 +20,8 @@ function isPublicIconOrManifestPath(pathname: string): boolean {
     pathname === '/icon.png' ||
     pathname === '/apple-icon.png' ||
     pathname === '/apple-touch-icon.png' ||
-    pathname === '/manifest.json'
+    pathname === '/manifest.json' ||
+    isPublicStaticAssetPath(pathname)
   );
 }
 

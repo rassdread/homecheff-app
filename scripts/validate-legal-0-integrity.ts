@@ -107,6 +107,14 @@ assert.equal(isKnownHomecheffRootPath('/eten-verkopen-rotterdam'), true);
 assert.equal(isKnownHomecheffRootPath('/this-slug-does-not-exist-legal0-xyz'), false);
 assert.equal(isKnownHomecheffRootPath('/en/this-en-slug-does-not-exist-legal0'), false);
 assert.equal(isKnownHomecheffRootPath('/en/seo-hub'), true);
+assert.equal(isKnownHomecheffRootPath('/logo.png'), true);
+assert.equal(isKnownHomecheffRootPath('/homecheff-globeman.png'), true);
+assert.equal(isKnownHomecheffRootPath('/og-brand.png'), true);
+assert.equal(isKnownHomecheffRootPath('/avatar-placeholder.png'), true);
+assert.equal(isKnownHomecheffRootPath('/brand/homecheff-logo-primary.png'), true);
+assert.equal(isKnownHomecheffRootPath('/icon-192.png'), true);
+assert.equal(isKnownHomecheffRootPath('/this-slug-does-not-exist-legal0-xyz.png'), true);
+assert.equal(isKnownHomecheffRootPath('/unknown-dir/file.png'), false);
 
 assert.equal(NOT_FOUND_METADATA.robots && typeof NOT_FOUND_METADATA.robots === 'object' && !Array.isArray(NOT_FOUND_METADATA.robots) && NOT_FOUND_METADATA.robots.index, false);
 assert.equal(
