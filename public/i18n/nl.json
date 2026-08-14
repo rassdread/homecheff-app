@@ -6471,6 +6471,8 @@
       "wrongCategoryDesc": "Product hoort niet in deze categorie",
       "fakeProduct": "Nep product",
       "fakeProductDesc": "Product lijkt nep of scam te zijn",
+      "unmodifiedResale": "Dit lijkt ongewijzigde wederverkoop",
+      "unmodifiedResaleDesc": "HomeCheff is bedoeld voor aanbod waar de aanbieder zelf iets aan maakt, bereidt, kweekt, ontwerpt, personaliseert, bewerkt, restaureert, samenstelt of als eigen dienst uitvoert.",
       "spam": "Spam",
       "spamDesc": "Herhaalde of irrelevante content",
       "other": "Anders",

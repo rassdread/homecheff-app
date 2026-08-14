@@ -42,6 +42,9 @@ import {
   trackExchangeFunnelEvent,
 } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
+import ReportContentButton from '@/components/reporting/ReportContentButton';
+import ProductIntegrityUnavailable from '@/components/trust/ProductIntegrityUnavailable';
+import { isIntegrityPubliclyDiscoverable } from '@/lib/trust/integrity-status';
 import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
 import { deriveListingKind } from '@/lib/marketplace/listing-kind/derive-listing-kind';
@@ -1082,27 +1085,61 @@ export default function ListingDetailPage({
                   </div>
                 </div>
               ) : (
-                <ProductSaleCommerceZone
-                  product={product}
-                  theme={theme}
-                  categoryIcon={CategoryIcon}
-                  trust={discoveryTrust}
-                  listingKind={listingKind}
-                  sellerName={getSellerDisplayName(product)}
-                  sellerBadges={sellerBadges}
-                  isBusiness={isBusiness}
-                  companyName={companyName}
-                  quantity={quantity}
-                  availableStock={availableStock}
-                  isOwner={isOwner}
-                  checkoutAvailable={checkoutAvailable}
-                  paymentStatus={paymentStatus}
-                  publicContactChannels={publicContactChannels}
-                  carouselImageUrl={carouselImageUrl}
-                  shareUrl={productShareUrl}
-                  onQuantityChange={setQuantity}
-                  onAddedToCart={() => setQuantity(1)}
-                />
+                <>
+                  {!isIntegrityPubliclyDiscoverable(
+                    (product as { integrityStatus?: string }).integrityStatus,
+                  ) ? (
+                    <div className="mb-4">
+                      <ProductIntegrityUnavailable
+                        status={String(
+                          (product as { integrityStatus?: string }).integrityStatus ||
+                            'TEMPORARILY_HIDDEN',
+                        )}
+                        isOwner={isOwner}
+                      />
+                    </div>
+                  ) : null}
+                  {isIntegrityPubliclyDiscoverable(
+                    (product as { integrityStatus?: string }).integrityStatus,
+                  ) || isOwner ? (
+                    <ProductSaleCommerceZone
+                      product={product}
+                      theme={theme}
+                      categoryIcon={CategoryIcon}
+                      trust={discoveryTrust}
+                      listingKind={listingKind}
+                      sellerName={getSellerDisplayName(product)}
+                      sellerBadges={sellerBadges}
+                      isBusiness={isBusiness}
+                      companyName={companyName}
+                      quantity={quantity}
+                      availableStock={availableStock}
+                      isOwner={isOwner}
+                      checkoutAvailable={
+                        checkoutAvailable &&
+                        isIntegrityPubliclyDiscoverable(
+                          (product as { integrityStatus?: string }).integrityStatus,
+                        )
+                      }
+                      paymentStatus={paymentStatus}
+                      publicContactChannels={publicContactChannels}
+                      carouselImageUrl={carouselImageUrl}
+                      shareUrl={productShareUrl}
+                      onQuantityChange={setQuantity}
+                      onAddedToCart={() => setQuantity(1)}
+                    />
+                  ) : null}
+                  {currentUser && !isOwner ? (
+                    <div className="mt-3 flex justify-end">
+                      <ReportContentButton
+                        entityId={product.id}
+                        entityType="PRODUCT"
+                        entityTitle={product.title}
+                        size="sm"
+                      />
+                    </div>
+                  ) : null}
+                </>
               )}
             </div>
 

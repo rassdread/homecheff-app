@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { submitProductIntegrityReport } from '@/lib/trust/submit-integrity-report';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions as any);
@@ -18,6 +19,29 @@ export async function POST(req: NextRequest) {
 
     if (!entityId || !entityType || !reason) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // TRUST-1: Product marketplace integrity reports (canonical path)
+    if (entityType === 'PRODUCT') {
+      const result = await submitProductIntegrityReport({
+        reporterId: (session as any).user.id,
+        productId: entityId,
+        reasonRaw: String(reason),
+        explanation: description || null,
+      });
+      if (!result.ok) {
+        return NextResponse.json(
+          { error: result.error, errorKey: result.errorKey },
+          { status: result.status },
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        reportId: result.reportId,
+        temporarilyHidden: result.temporarilyHidden,
+        message:
+          'Bedankt. We bekijken je melding. De aanbieder ziet niet wie heeft gemeld.',
+      });
     }
 
     // Check if user has already reported this entity

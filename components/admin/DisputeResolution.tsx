@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import TrustQueuePanel from './TrustQueuePanel';
+import IntegrityQueuePanel from './IntegrityQueuePanel';
 
 interface Dispute {
   id: string;
@@ -135,6 +136,9 @@ export default function DisputeResolution() {
   return (
     <div className="space-y-6">
       <TrustQueuePanel />
+      <div className="mt-8 border-t border-gray-200 pt-6">
+        <IntegrityQueuePanel />
+      </div>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Dispute Resolutie</h2>

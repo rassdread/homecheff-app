@@ -32,12 +32,12 @@ export default function ReportContentButton({
   const getReasons = () => {
     const baseReasons = {
       PRODUCT: [
-        { id: 'inappropriate_content', labelKey: 'reporting.product.inappropriateContent', descriptionKey: 'reporting.product.inappropriateContentDesc' },
-        { id: 'misleading_info', labelKey: 'reporting.product.misleadingInfo', descriptionKey: 'reporting.product.misleadingInfoDesc' },
-        { id: 'wrong_category', labelKey: 'reporting.product.wrongCategory', descriptionKey: 'reporting.product.wrongCategoryDesc' },
-        { id: 'fake_product', labelKey: 'reporting.product.fakeProduct', descriptionKey: 'reporting.product.fakeProductDesc' },
-        { id: 'spam', labelKey: 'reporting.product.spam', descriptionKey: 'reporting.product.spamDesc' },
-        { id: 'other', labelKey: 'reporting.product.other', descriptionKey: 'reporting.product.otherDesc' }
+        { id: 'NO_MEANINGFUL_SELLER_CONTRIBUTION', labelKey: 'reporting.product.unmodifiedResale', descriptionKey: 'reporting.product.unmodifiedResaleDesc' },
+        { id: 'MISLEADING_OR_FALSE', labelKey: 'reporting.product.misleadingInfo', descriptionKey: 'reporting.product.misleadingInfoDesc' },
+        { id: 'PROHIBITED_OR_UNSAFE', labelKey: 'reporting.product.inappropriateContent', descriptionKey: 'reporting.product.inappropriateContentDesc' },
+        { id: 'SPAM_OR_DUPLICATE', labelKey: 'reporting.product.spam', descriptionKey: 'reporting.product.spamDesc' },
+        { id: 'WRONG_CATEGORY', labelKey: 'reporting.product.wrongCategory', descriptionKey: 'reporting.product.wrongCategoryDesc' },
+        { id: 'OTHER', labelKey: 'reporting.product.other', descriptionKey: 'reporting.product.otherDesc' }
       ],
       USER: [
         { id: 'inappropriate_behavior', labelKey: 'reporting.user.inappropriateBehavior', descriptionKey: 'reporting.user.inappropriateBehaviorDesc' },

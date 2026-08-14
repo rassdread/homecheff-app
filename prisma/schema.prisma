@@ -146,6 +146,8 @@ model User {
   notificationPushOutbox                 NotificationPushOutbox[]
   Report_Report_reporterIdToUser         Report[]                  @relation("Report_reporterIdToUser")
   Report_Report_targetUserIdToUser       Report[]                  @relation("Report_targetUserIdToUser")
+  productIntegrityReportsFiled           ProductIntegrityReport[]  @relation("ProductIntegrityReporter")
+  productIntegrityActionsTaken           ProductIntegrityAction[]  @relation("ProductIntegrityActionActor")
   Reservation_Reservation_buyerIdToUser  Reservation[]             @relation("Reservation_buyerIdToUser")
   Reservation_Reservation_sellerIdToUser Reservation[]             @relation("Reservation_sellerIdToUser")
   reviewResponsesAsSeller                ReviewResponse[]          @relation("ReviewResponseSeller")
@@ -555,6 +557,11 @@ model Product {
   /// Confirmed + empty = seller confirmed none of the 14 apply. Null confirmedAt = UNKNOWN.
   allergens               String[]             @default([])
   allergensConfirmedAt    DateTime?
+  /// TRUST-1: marketplace integrity moderation (separate from isActive seller pause)
+  /// ACTIVE | REVIEW_REQUIRED | TEMPORARILY_HIDDEN | UNDER_REVIEW | REMOVED
+  integrityStatus         String               @default("ACTIVE")
+  integrityHiddenAt       DateTime?
+  integrityHiddenReason   String?
   conversations           Conversation[]
   proposals               Proposal[]
   deliveryOrders          DeliveryOrder[]
@@ -565,6 +572,8 @@ model Product {
   seller                  SellerProfile        @relation("SellerProducts", fields: [sellerId], references: [id])
   reviews                 ProductReview[]
   stockReservations       StockReservation[]   @relation("ProductStockReservations")
+  integrityReports        ProductIntegrityReport[]
+  integrityActions        ProductIntegrityAction[]
 
   @@index([category])
   @@index([sellerId])
@@ -582,6 +591,7 @@ model Product {
   @@index([specializations], type: Gin)
   @@index([acceptedSpecializations], type: Gin)
   @@index([allergensConfirmedAt])
+  @@index([integrityStatus])
 }
 
 enum PendingAcceptedValueStatus {
@@ -1159,6 +1169,42 @@ model Report {
   Listing                        Listing?      @relation(fields: [listingId], references: [id])
   User_Report_reporterIdToUser   User          @relation("Report_reporterIdToUser", fields: [reporterId], references: [id], onDelete: Cascade)
   User_Report_targetUserIdToUser User?         @relation("Report_targetUserIdToUser", fields: [targetUserId], references: [id])
+}
+
+/// TRUST-1: community marketplace-integrity reports (Product-scoped).
+model ProductIntegrityReport {
+  id                 String   @id @default(uuid())
+  productId          String
+  reporterId         String
+  reason             String
+  explanation        String?
+  status             String   @default("OPEN")
+  credibilityWeight  Float    @default(1)
+  createdAt          DateTime @default(now())
+  resolvedAt         DateTime?
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reporter           User     @relation("ProductIntegrityReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, productId, reason])
+  @@index([productId, status, createdAt])
+  @@index([status, createdAt])
+  @@index([reporterId, createdAt])
+}
+
+/// TRUST-1: audit trail for integrity automation + admin actions.
+model ProductIntegrityAction {
+  id          String   @id @default(uuid())
+  productId   String
+  actorUserId String?
+  action      String
+  note        String?
+  meta        Json?
+  createdAt   DateTime @default(now())
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  actor       User?    @relation("ProductIntegrityActionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([productId, createdAt])
+  @@index([action, createdAt])
 }
 
 model Reservation {
