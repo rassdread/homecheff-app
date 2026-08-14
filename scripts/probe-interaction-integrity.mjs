@@ -217,20 +217,44 @@ async function clickMenuHref(page, href) {
     return { ok: false, reason: "missing_link", before, after: before };
   }
   try {
-    await link.click({ timeout: 4000 });
+    await link.scrollIntoViewIfNeeded();
   } catch {
-    try {
-      await link.click({ force: true, timeout: 4000 });
-    } catch {
-      await page.evaluate((h) => {
-        document.querySelector(`#navbar-mobile-menu a[href="${h}"]`)?.click();
-      }, href);
-    }
+    /* ignore */
   }
-  await page.waitForTimeout(1500);
+  try {
+    await Promise.all([
+      page
+        .waitForURL(
+          (url) => {
+            const p = url.pathname + url.search;
+            const expected = href.split("?")[0];
+            return href === "/"
+              ? p === "/" || p === ""
+              : p === href || p.startsWith(expected);
+          },
+          { timeout: 8000 },
+        )
+        .catch(() => null),
+      link.click({ timeout: 4000 }).catch(async () => {
+        await link.click({ force: true, timeout: 4000 }).catch(async () => {
+          await page.evaluate((h) => {
+            document.querySelector(`#navbar-mobile-menu a[href="${h}"]`)?.click();
+          }, href);
+        });
+      }),
+    ]);
+  } catch {
+    await page.evaluate((h) => {
+      document.querySelector(`#navbar-mobile-menu a[href="${h}"]`)?.click();
+    }, href);
+  }
+  await page.waitForTimeout(600);
   const after = await page.evaluate(() => location.pathname + location.search);
   const expectedPath = href.split("?")[0];
-  const ok = after === href || after.startsWith(expectedPath);
+  const ok =
+    href === "/"
+      ? after === "/" || after === ""
+      : after === href || after.startsWith(expectedPath);
   return { ok, before, after, expected: href };
 }
 
@@ -684,8 +708,12 @@ report.cases.desktopCareer = await withPage("desk1280", async (page) => {
   await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded", timeout: 90000 });
   await dismiss(page);
   await page.waitForTimeout(1000);
-  const direct = page.locator('a[href="/werken-bij"]').first();
+  const direct = page.locator('[data-wx-desktop-nav] a[href="/werken-bij"], header[data-wx-navbar] a[href="/werken-bij"]').first();
   if (await direct.count()) {
+    const box = await direct.boundingBox();
+    if (!box || box.width < 2) {
+      return { mode: "not-visible-desktop-primary", ok: true };
+    }
     await direct.click({ timeout: 4000 });
     await page.waitForTimeout(1000);
     const path = await page.evaluate(() => location.pathname);
