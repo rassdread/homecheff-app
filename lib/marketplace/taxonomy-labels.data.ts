@@ -148,17 +148,17 @@ export const BLOCKLIST_LABELS: Record<string, BlocklistLabelPair> = {
     nl: 'Dropshipping',
     en: 'Dropshipping',
     reasonNl:
-      'HomeCheff is bedoeld voor zelfgemaakte en lokaal geoogste producten, niet voor doorverkoop van anonieme massaproducten.',
+      'HomeCheff is bedoeld voor aanbod waar jij zelf betekenisvolle waarde toevoegt — niet voor ongewijzigde doorverkoop of dropshipping.',
     reasonEn:
-      'HomeCheff is for self-made and locally grown products, not resale of anonymous mass products.',
+      'HomeCheff is for offers where you personally add meaningful value — not unmodified resale or dropshipping.',
   },
   resale: {
-    nl: 'Wederverkoop',
-    en: 'Resale',
+    nl: 'Ongewijzigde wederverkoop',
+    en: 'Unmodified resale',
     reasonNl:
-      'Alleen producten die je zelf maakt, oogst of aanbiedt zijn toegestaan — geen wederverkoop van bestaande goederen.',
+      'Ongewijzigde wederverkoop hoort niet op HomeCheff. Zelf maken, bereiden, kweken, ontwerpen, personaliseren, bewerken, restaureren of samenstellen wel — herkomst van onderdelen is niet doorslaggevend.',
     reasonEn:
-      'Only products you make, grow or offer yourself are allowed — no resale of existing goods.',
+      'Unmodified resale does not belong on HomeCheff. Making, preparing, growing, designing, personalising, transforming, restoring or assembling does — material origin is not decisive.',
   },
   rental: {
     nl: 'Verhuur',

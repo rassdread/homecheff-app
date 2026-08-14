@@ -55,6 +55,7 @@ export async function GET(req: Request) {
       console.log('[Products API] Executing Prisma query...');
       allProducts = await prisma.product.findMany({
         where: { 
+          integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] },
           ...(q ? buildProductTextSearchWhere(q) : {}),
           ...(searchFilters.listingIntent === 'REQUEST'
             ? { listingIntent: 'REQUEST' as const }

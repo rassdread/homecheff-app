@@ -56,6 +56,7 @@ export default async function PublicSellerProfilePage({
       products: {
         where: {
           isActive: true,
+          integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] },
         },
         select: {
           id: true,

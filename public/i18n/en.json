@@ -5227,6 +5227,8 @@
       "wrongCategoryDesc": "Product does not belong in this category",
       "fakeProduct": "Fake product",
       "fakeProductDesc": "Product appears to be fake or a scam",
+      "unmodifiedResale": "This looks like unmodified resale",
+      "unmodifiedResaleDesc": "HomeCheff is for offers where the provider personally makes, prepares, grows, designs, personalises, transforms, restores, assembles, or performs their own service.",
       "spam": "Spam",
       "spamDesc": "Repeated or irrelevant content",
       "other": "Other",

@@ -8,6 +8,7 @@ import {
   batchHydrateFeedSellers,
   type FeedSellerHydrated,
 } from '@/lib/feed/feed-seller-hydration.server';
+import { productIntegrityPublicWhere } from '@/lib/trust/integrity-status';
 
 export type FeedProductQueryStrategy =
   | 'or_single'
@@ -156,15 +157,20 @@ type ProductIdRow = {
 
 function baseVisibilityWhere(): Prisma.ProductWhereInput {
   return {
-    OR: [
-      { isActive: true },
+    AND: [
+      productIntegrityPublicWhere(),
       {
-        isActive: false,
-        orderItems: {
-          some: {
-            Order: { stripeSessionId: { not: null } },
+        OR: [
+          { isActive: true },
+          {
+            isActive: false,
+            orderItems: {
+              some: {
+                Order: { stripeSessionId: { not: null } },
+              },
+            },
           },
-        },
+        ],
       },
     ],
   };
@@ -204,13 +210,21 @@ async function fetchProductIdRows(
     take: FEED_DB_PRODUCT_CAP,
     select: PRODUCT_ID_SELECT,
   };
-  const activeWhere = andWhere({ isActive: true }, whereExtras);
+  const activeWhere = andWhere(
+    { AND: [{ isActive: true }, productIntegrityPublicWhere()] },
+    whereExtras,
+  );
   const inactiveWhere = andWhere(
     {
-      isActive: false,
-      orderItems: {
-        some: { Order: { stripeSessionId: { not: null } } },
-      },
+      AND: [
+        productIntegrityPublicWhere(),
+        {
+          isActive: false,
+          orderItems: {
+            some: { Order: { stripeSessionId: { not: null } } },
+          },
+        },
+      ],
     },
     whereExtras,
   );
@@ -371,13 +385,21 @@ export async function fetchFeedProducts(
     return { rows };
   }
 
-  const activeWhere = andWhere({ isActive: true }, input.whereExtras);
+  const activeWhere = andWhere(
+    { AND: [{ isActive: true }, productIntegrityPublicWhere()] },
+    input.whereExtras,
+  );
   const inactiveWhere = andWhere(
     {
-      isActive: false,
-      orderItems: {
-        some: { Order: { stripeSessionId: { not: null } } },
-      },
+      AND: [
+        productIntegrityPublicWhere(),
+        {
+          isActive: false,
+          orderItems: {
+            some: { Order: { stripeSessionId: { not: null } } },
+          },
+        },
+      ],
     },
     input.whereExtras,
   );

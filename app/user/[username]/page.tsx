@@ -188,7 +188,10 @@ export default async function PublicProfilePage({
           select: { id: true, name: true },
         },
         products: {
-          where: { isActive: true },
+          where: {
+            isActive: true,
+            integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] },
+          },
           select: {
             id: true,
             title: true,

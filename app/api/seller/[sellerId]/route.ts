@@ -36,7 +36,10 @@ export async function GET(
           }
         },
         products: {
-          where: { isActive: true },
+          where: {
+            isActive: true,
+            integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] },
+          },
           include: {
             Image: {
               select: {
