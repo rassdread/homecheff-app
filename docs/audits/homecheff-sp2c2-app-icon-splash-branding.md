@@ -47,3 +47,7 @@ Remain for operator confirmation after Production deploy (hard refresh / reinsta
 ## Cache note
 
 Deployment alone does not refresh already-installed PWA icons on every device. Users may need reinstall or OS icon cache clear; HTML/manifest version query helps new installs and tab favicons.
+
+## Residual (resolved in SP.2C.2a)
+
+Production 404 for `/logo.png` and `/homecheff-globeman.png` was middleware LEGAL-0 allowlist, not missing files. See [homecheff-sp2c2a-brand-asset-404-cleanup.md](homecheff-sp2c2a-brand-asset-404-cleanup.md).

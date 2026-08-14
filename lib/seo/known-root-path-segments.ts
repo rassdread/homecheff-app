@@ -152,6 +152,25 @@ const ROOT_FILE_SEGMENTS = new Set([
   'twitter-image',
 ]);
 
+/** Root /brand/* and single-segment public static files (PNG/ICO/etc.). */
+const ROOT_STATIC_ASSET_RE =
+  /\.(?:png|jpe?g|webp|gif|ico|svg|woff2?|ttf|map)$/i;
+
+/**
+ * True for deployable `public/` brand and chrome assets that must never be
+ * rewritten to `/hc-http-404` (LEGAL-0 unknown-slug guard).
+ *
+ * SP.2C.2a: `/logo.png`, `/homecheff-globeman.png`, `/og-brand.png`,
+ * `/avatar-placeholder.png`, `/brand/*` were 404 despite existing on disk.
+ */
+export function isPublicStaticAssetPath(pathname: string): boolean {
+  const parts = firstPathSegments(pathname);
+  if (parts.length === 0) return false;
+  if (parts[0] === 'brand') return true;
+  if (parts.length === 1 && ROOT_STATIC_ASSET_RE.test(parts[0])) return true;
+  return false;
+}
+
 function firstPathSegments(pathname: string): string[] {
   return pathname.split('/').filter(Boolean);
 }
@@ -173,6 +192,7 @@ export function isKnownHomecheffRootPath(pathname: string): boolean {
 
   const first = parts[0];
   if (ROOT_FILE_SEGMENTS.has(first)) return true;
+  if (isPublicStaticAssetPath(pathname)) return true;
   if (first === 'api' || first === 'i18n') return true;
   if (APP_FIRST_SEGMENT_SET.has(first)) {
     if (first === 'en') {

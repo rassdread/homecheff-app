@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 /**
- * SP.2C.2 — lightweight HomeCheff app/PWA icon validation (no sharp).
- * Checks existence, PNG/ICO signatures, IHDR dimensions, manifest paths,
- * and certified icon-192 SHA-256.
+ * SP.2C.2 / SP.2C.2a — HomeCheff app/PWA + brand-contract validation (no sharp).
  */
 import {
   existsSync,
@@ -32,8 +30,11 @@ const expected = [
   { path: "public/icon-512.png", w: 512, h: 512, kind: "png" },
   { path: "public/icon-maskable-512.png", w: 512, h: 512, kind: "png" },
   { path: "public/icon-96x96.png", w: 96, h: 96, kind: "png" },
+  { path: "public/logo.png", w: 886, h: 886, kind: "png", sha256SameAs: "public/homecheff-globeman.png" },
   { path: "public/homecheff-globeman.png", w: 886, h: 886, kind: "png" },
-  { path: "public/brand/homecheff-logo-primary.png", w: 886, h: 886, kind: "png" },
+  { path: "public/brand/homecheff-logo-primary.png", w: 886, h: 886, kind: "png", sha256SameAs: "public/homecheff-globeman.png" },
+  { path: "public/og-brand.png", w: 1200, h: 630, kind: "png" },
+  { path: "public/avatar-placeholder.png", w: 128, h: 128, kind: "png" },
 ];
 
 let failed = 0;
@@ -85,7 +86,7 @@ for (const item of expected) {
       fail(`${item.path} not a valid PNG`);
       continue;
     }
-    if (dims.w !== item.w || dims.h !== item.h) {
+    if (item.w != null && item.h != null && (dims.w !== item.w || dims.h !== item.h)) {
       fail(`${item.path} dims ${dims.w}x${dims.h}, expected ${item.w}x${item.h}`);
       continue;
     }
@@ -108,6 +109,19 @@ for (const item of expected) {
       continue;
     }
   }
+  if (item.sha256SameAs) {
+    const other = join(root, item.sha256SameAs);
+    if (!existsSync(other)) {
+      fail(`${item.path} sha256SameAs missing: ${item.sha256SameAs}`);
+      continue;
+    }
+    const a = createHash("sha256").update(readFileSync(abs)).digest("hex");
+    const b = createHash("sha256").update(readFileSync(other)).digest("hex");
+    if (a !== b) {
+      fail(`${item.path} must be byte-identical to ${item.sha256SameAs}`);
+      continue;
+    }
+  }
   ok(item.path);
 }
 
@@ -124,9 +138,9 @@ if (!existsSync(manifestPath)) {
   const icons = manifest.icons || [];
   const purposes = new Set(icons.map((i) => i.purpose));
   if (!purposes.has("any")) fail('manifest missing purpose "any"');
-  else ok('manifest purpose any');
+  else ok("manifest purpose any");
   if (!purposes.has("maskable")) fail('manifest missing purpose "maskable"');
-  else ok('manifest purpose maskable');
+  else ok("manifest purpose maskable");
 
   const maskable = icons.find((i) => i.purpose === "maskable");
   const any512 = icons.find((i) => i.purpose === "any" && String(i.sizes).includes("512"));
@@ -158,6 +172,19 @@ if (existsSync(capPath)) {
   else if (Number(m[1]) > 500) {
     fail(`artificial splash delay launchShowDuration=${m[1]} (must be ≤500 / prefer 0)`);
   } else ok(`capacitor launchShowDuration=${m[1]}`);
+}
+
+const knownRoot = readFileSync(join(root, "lib/seo/known-root-path-segments.ts"), "utf8");
+if (!knownRoot.includes("isPublicStaticAssetPath")) {
+  fail("known-root-path-segments missing isPublicStaticAssetPath (SP.2C.2a)");
+} else {
+  ok("isPublicStaticAssetPath exported in known-root-path-segments");
+}
+const middleware = readFileSync(join(root, "middleware.ts"), "utf8");
+if (!middleware.includes("isPublicStaticAssetPath")) {
+  fail("middleware does not use isPublicStaticAssetPath");
+} else {
+  ok("middleware uses isPublicStaticAssetPath");
 }
 
 if (failed) {

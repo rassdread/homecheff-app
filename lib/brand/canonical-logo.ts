@@ -1,6 +1,11 @@
 /**
  * Canonical HomeCheff logo SSOT — all public logo consumers should derive from here.
  * Bump CANONICAL_LOGO_VERSION when replacing public logo assets (cache bust).
+ *
+ * Ownership hierarchy (SP.2C.2 / SP.2C.2a):
+ * 1. Full master: `heroMascot` / `primary` (886×886) — same bytes
+ * 2. Square app/icon master: `square` (`/icon-192.png`, certified hash)
+ * 3. Compatibility: `organization` (`/logo.png`) — byte-identical copy of full master for JSON-LD / legacy URL
  */
 import { MAIN_DOMAIN } from '@/lib/seo/constants';
 
