@@ -2,7 +2,16 @@ import type { Metadata } from 'next';
 import { ReactNode } from 'react';
 import { cookies, headers } from 'next/headers';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params?: Promise<{ userId?: string }> | { userId?: string };
+}): Promise<Metadata> {
+  const resolved = params ? await Promise.resolve(params) : undefined;
+  if (resolved && 'userId' in resolved && resolved.userId) {
+    // Dynamic /profile/[userId] owns its metadata (including notFound).
+    return {};
+  }
   const headersList = await headers();
   const languageHeader = headersList.get('X-HomeCheff-Language');
   const cookieStore = await cookies();

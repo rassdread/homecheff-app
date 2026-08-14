@@ -125,5 +125,7 @@ rethrowIfNotFound(new Error('other'));
 const productLayout = read('app/product/[id]/layout.tsx');
 assert.match(productLayout, /rethrowIfNotFound/);
 assert.match(productLayout, /if \(!product\) notFound\(\)/);
+assert.match(read('middleware.ts'), /entityExistsForHttp404/);
+assert.match(read('lib/seo/entity-exists-for-http-404.ts'), /entityExistsForHttp404/);
 
 console.log('LEGAL-0 integrity tests passed');

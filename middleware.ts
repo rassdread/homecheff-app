@@ -9,6 +9,7 @@ import {
 } from '@/lib/user-suspend-middleware';
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 import { isKnownHomecheffRootPath } from '@/lib/seo/known-root-path-segments';
+import { entityExistsForHttp404 } from '@/lib/seo/entity-exists-for-http-404';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -165,13 +166,13 @@ export async function middleware(request: NextRequest) {
   }
 
   const method = request.method;
-  if (
+  const canRewrite404 =
     (method === 'GET' || method === 'HEAD') &&
     !pathname.startsWith('/api/') &&
     !pathname.startsWith('/_next/') &&
-    !isPublicIconOrManifestPath(pathname) &&
-    !isKnownHomecheffRootPath(pathname)
-  ) {
+    !isPublicIconOrManifestPath(pathname);
+
+  if (canRewrite404 && !isKnownHomecheffRootPath(pathname)) {
     const notFoundUrl = request.nextUrl.clone();
     notFoundUrl.pathname = '/hc-http-404';
     notFoundUrl.search = '';
@@ -180,6 +181,20 @@ export async function middleware(request: NextRequest) {
     });
     notFoundResponse.headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
     return notFoundResponse;
+  }
+
+  if (canRewrite404) {
+    const entityExists = await entityExistsForHttp404(pathname);
+    if (entityExists === false) {
+      const notFoundUrl = request.nextUrl.clone();
+      notFoundUrl.pathname = '/hc-http-404';
+      notFoundUrl.search = '';
+      const notFoundResponse = NextResponse.rewrite(notFoundUrl, {
+        request: { headers: requestHeaders },
+      });
+      notFoundResponse.headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
+      return notFoundResponse;
+    }
   }
 
   const res = NextResponse.next({

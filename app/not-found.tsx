@@ -10,6 +10,8 @@ export const metadata = NOT_FOUND_METADATA;
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      {/* Streamed App Router 200s may omit head metadata; keep robots in the document. */}
+      <meta name="robots" content="noindex, nofollow, noarchive" />
       <div className="text-center max-w-md w-full">
         <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
         <h2 className="text-2xl font-semibold text-gray-700 mb-4">

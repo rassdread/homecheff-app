@@ -50,13 +50,6 @@ export async function generateMetadata(
 
   if (!product) notFound();
 
-  if (!product.isActive) {
-    return {
-      title: lang === 'en' ? 'Product Not Found' : 'Product Niet Gevonden',
-      robots: { index: false, follow: false },
-    };
-  }
-
   try {
 
     const slugSegment = buildProductSlugPath(
