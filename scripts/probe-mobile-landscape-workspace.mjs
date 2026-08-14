@@ -77,7 +77,7 @@ async function measure(page) {
       "[data-wx-landscape-create], [data-wx-primary-action]",
     );
     const menu = document.querySelector(
-      'button[aria-controls="navbar-mobile-menu"], button[aria-label="Menu"]',
+      '[data-wx-workbar-menu], button[aria-controls="navbar-mobile-menu"], button[aria-label="Menu"]',
     );
     const loc = document.querySelector(
       '[data-testid="feed-search-context-location"], [data-testid="feed-search-context-location-action"]',
@@ -132,6 +132,25 @@ async function measure(page) {
         menu.getBoundingClientRect().width > 0 &&
         menu.getBoundingClientRect().height > 0
       ),
+      menuRightGap: (() => {
+        const el =
+          document.querySelector("[data-wx-workbar-menu]") ||
+          document.querySelector(
+            'button[aria-controls="navbar-mobile-menu"]',
+          );
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return Math.round(window.innerWidth - r.right);
+      })(),
+      navbarSuppressed:
+        document.documentElement.dataset.wxNavbarSuppressed || null,
+      navbarHeightContribution: (() => {
+        const header = document.querySelector("header[data-wx-navbar]");
+        if (!header) return null;
+        const r = header.getBoundingClientRect();
+        return Math.round(r.height);
+      })(),
+      singleBar: strip?.getAttribute("data-wx-single-bar") || null,
       locationPresent: Boolean(loc),
       radiusPresent: Boolean(radius),
       sortPresent: Boolean(sort),

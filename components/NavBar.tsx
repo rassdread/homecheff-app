@@ -38,6 +38,11 @@ import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
+import {
+  NAVBAR_CLOSE_MENU_EVENT,
+  NAVBAR_TOGGLE_MENU_EVENT,
+  publishNavbarMobileMenuOpen,
+} from '@/lib/nav/navbar-command-bus';
 
 function resolveNavDashboardHref(user: Record<string, unknown> | null | undefined): string | null {
   if (!user) return null;
@@ -65,9 +70,15 @@ export default function NavBar() {
   const landscapeWork = useLandscapeWorkPosture();
   /** Short mobile landscape only — never compact tall/desktop landscape chrome. */
   const shortLandscapeChrome = landscapeWork.shortChromeCompact;
+  /**
+   * WX 1B.4.1 — homepage short landscape: suppress white navbar layout height.
+   * Listing/profile keep a usable navbar. Menu panel stays mounted via overlay.
+   */
+  const suppressNavbarChrome =
+    shortLandscapeChrome && (pathname === '/' || pathname === '');
   /** WX 1C.1 — when bottom nav collapses, Create must remain in command chrome. */
   const showLandscapeCreate =
-    landscapeWork.bottomNavCollapsed;
+    landscapeWork.bottomNavCollapsed && !suppressNavbarChrome;
   const [sellerOrdersUnread, setSellerOrdersUnread] = useState(0);
   const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
   const hasFetchedProfileRef = useRef(false);
@@ -99,14 +110,46 @@ export default function NavBar() {
   /** WX 1B.4: Escape closes below-lg hamburger (landscape path preservation). */
   useEffect(() => {
     if (!isMobileMenuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMobileMenuOpen(false);
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false);
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [isMobileMenuOpen]);
+
+  /** WX 1B.4.1 — work bar menu toggles the same NavBar mobile menu owner. */
+  useEffect(() => {
+    const onToggle = () => setIsMobileMenuOpen((open) => !open);
+    const onClose = () => setIsMobileMenuOpen(false);
+    window.addEventListener(NAVBAR_TOGGLE_MENU_EVENT, onToggle);
+    window.addEventListener(NAVBAR_CLOSE_MENU_EVENT, onClose);
+    return () => {
+      window.removeEventListener(NAVBAR_TOGGLE_MENU_EVENT, onToggle);
+      window.removeEventListener(NAVBAR_CLOSE_MENU_EVENT, onClose);
+    };
+  }, []);
+
+  useEffect(() => {
+    publishNavbarMobileMenuOpen(isMobileMenuOpen);
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (suppressNavbarChrome) {
+      root.dataset.wxNavbarSuppressed = '1';
+    } else {
+      delete root.dataset.wxNavbarSuppressed;
+    }
+    return () => {
+      delete root.dataset.wxNavbarSuppressed;
+    };
+  }, [suppressNavbarChrome]);
+
+  /** Close overlay menu when leaving homepage short-landscape suppression. */
+  useEffect(() => {
+    if (!suppressNavbarChrome) return;
+    return () => setIsMobileMenuOpen(false);
+  }, [suppressNavbarChrome]);
 
   const nativeShell = useIsNativeAppMounted();
   const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), []);
@@ -385,15 +428,22 @@ export default function NavBar() {
     <header
       data-wx-navbar=""
       data-wx-short-landscape={shortLandscapeChrome ? '1' : '0'}
-      className={`w-full max-w-[100vw] overflow-x-clip lg:overflow-x-visible border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
-        nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : ''
-      }`}
+      data-wx-navbar-suppressed={suppressNavbarChrome ? '1' : '0'}
+      className={cn(
+        'w-full max-w-[100vw] overflow-x-clip lg:overflow-x-visible border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800',
+        nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : '',
+        suppressNavbarChrome &&
+          'h-0 min-h-0 overflow-visible border-0 p-0 shadow-none bg-transparent backdrop-blur-none',
+      )}
     >
       <div
+        data-wx-navbar-row=""
         className={cn(
           'max-w-7xl mx-auto relative min-w-0',
           shortLandscapeChrome ? 'px-2.5 sm:px-3' : 'px-3 sm:px-5 lg:px-6 xl:px-8',
+          suppressNavbarChrome && 'hidden',
         )}
+        aria-hidden={suppressNavbarChrome}
       >
         <div
           className={cn(
@@ -802,10 +852,25 @@ export default function NavBar() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Compact / mobile navigation (< lg) */}
+        {/* Compact / mobile navigation (< lg) — overlays when navbar chrome is suppressed */}
         {isMobileMenuOpen && (
-          <div id="navbar-mobile-menu" className="lg:hidden border-t border-gray-200 py-4">
+          <div
+            id="navbar-mobile-menu"
+            className={cn(
+              'lg:hidden border-t border-gray-200 py-4 bg-white dark:bg-gray-900',
+              suppressNavbarChrome &&
+                'fixed inset-x-0 top-0 z-[110] max-h-[min(85dvh,100%)] overflow-y-auto shadow-lg border-b',
+              suppressNavbarChrome &&
+                'pl-[max(0.75rem,env(safe-area-inset-left,0px),var(--hc-wx-landscape-edge-gutter,1.5rem))]',
+              suppressNavbarChrome &&
+                'pr-[max(0.75rem,env(safe-area-inset-right,0px),var(--hc-wx-landscape-edge-gutter,1.5rem))]',
+              suppressNavbarChrome &&
+                'pt-[max(0.5rem,env(safe-area-inset-top,0px))]',
+              !suppressNavbarChrome && 'max-w-7xl mx-auto px-3 sm:px-5',
+            )}
+          >
             <nav className="flex flex-col space-y-2">
               <Link
                 href="/"
@@ -1218,7 +1283,6 @@ export default function NavBar() {
             </nav>
           </div>
         )}
-      </div>
       {guestAuthPanel}
     </header>
   );

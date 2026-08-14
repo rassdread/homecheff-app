@@ -1497,6 +1497,49 @@ html[data-wx-short-landscape="1"][data-wx-bottom-nav-collapsed="1"] .hc-wx-shell
   min-height: calc(100dvh - 3rem);
 }
 
+/*
+ * WX 1B.4.1 — homepage short landscape: global navbar layout suppressed.
+ * Single work bar lives inside the workspace frame; shell uses full dvh.
+ */
+html[data-wx-navbar-suppressed="1"][data-wx-short-landscape="1"][data-wx-bottom-nav-collapsed="1"] .hc-wx-shell {
+  min-height: 100dvh;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+:root {
+  /* Conservative landscape edge gutter when env(safe-area-inset-*) is 0 (Android browser). */
+  --hc-wx-landscape-edge-gutter: 1.5rem; /* 24px */
+}
+
+html[data-wx-short-landscape="1"] .hc-wx-orientation-strip[data-wx-single-bar="1"],
+.hc-wx-single-workbar {
+  box-sizing: border-box;
+  min-height: 2.75rem; /* 44px */
+  max-height: 3.25rem; /* soft ceiling ≈52px */
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  padding-left: max(
+    0.75rem,
+    env(safe-area-inset-left, 0px),
+    var(--hc-wx-landscape-edge-gutter, 1.5rem)
+  );
+  padding-right: max(
+    0.75rem,
+    env(safe-area-inset-right, 0px),
+    var(--hc-wx-landscape-edge-gutter, 1.5rem)
+  );
+}
+
+html[data-wx-navbar-suppressed="1"] header[data-wx-navbar] {
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: visible;
+}
+
 .hc-wx-frame {
   /* Single continuous Workspace surface: orientation + rails + stage */
   isolation: isolate;

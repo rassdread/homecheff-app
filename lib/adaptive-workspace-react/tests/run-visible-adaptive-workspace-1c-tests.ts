@@ -84,9 +84,9 @@ console.log("\n[visible-adaptive-1c] landscape reclaims bottom chrome");
   assert.equal(land.bottomNavCollapsed, true);
   assert.equal(land.orientationCompact, true);
   assert.equal(land.chromeInset.bottomRem, 0);
-  assert.equal(land.chromeInset.topRem, 3);
-  assert.match(land.chromeInset.frameHeightCss, /3rem/);
-  ok("landscape frame uses top-nav-only inset");
+  assert.equal(land.chromeInset.topRem, 0);
+  assert.equal(land.chromeInset.frameHeightCss, "100dvh");
+  ok("landscape frame uses full dvh when navbar suppressed");
 }
 
 console.log("\n[visible-adaptive-1c] portrait keeps bottom nav inset");

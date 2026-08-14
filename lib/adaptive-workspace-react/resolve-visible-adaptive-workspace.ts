@@ -191,14 +191,18 @@ function densityFor(
 function chromeInsetFor(
   posture: LandscapeWorkPosturePlan,
 ): VisibleAdaptiveChromeInset {
-  /** Short landscape toolbar nav ≈ 3rem; otherwise standard top nav ≈ 3.5rem. */
-  const topRem = posture.shortChromeCompact ? 3 : 3.5;
+  /**
+   * WX 1B.4.1 — short landscape homepage suppresses the global navbar;
+   * the single work bar lives inside the workspace frame (orientation slot).
+   */
+  const topRem = posture.shortChromeCompact ? 0 : 3.5;
   const bottomRem = posture.bottomNavCollapsed ? 0 : 5;
   const total = topRem + bottomRem;
   return {
     topRem,
     bottomRem,
-    frameHeightCss: `calc(100dvh - ${total}rem)`,
+    frameHeightCss:
+      total === 0 ? "100dvh" : `calc(100dvh - ${total}rem)`,
   };
 }
 
