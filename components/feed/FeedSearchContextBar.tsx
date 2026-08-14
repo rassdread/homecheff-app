@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom';
 import { Loader2, MapPin } from 'lucide-react';
 import type { SearchContextChip } from '@/lib/feed/feed-search-context';
 import type { FeedClientSortField } from '@/lib/feed/feed-client-sort';
+import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
 
 export type ContextBarSortOption = {
   id: FeedClientSortField;
@@ -277,6 +278,12 @@ export default function FeedSearchContextBar(props: FeedSearchContextBarProps) {
       else if (which === 'sort') sortBtnRef.current?.focus();
     });
   }, [openPanel]);
+
+  useOverlayHistoryBack(
+    'feed-search-context-panel',
+    openPanel !== null,
+    closePanel,
+  );
 
   const togglePanel = useCallback((id: PanelId) => {
     setOpenPanel((prev) => (prev === id ? null : id));

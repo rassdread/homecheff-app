@@ -1,0 +1,17 @@
+{
+  "phase": "mobile-back-and-landscape-actions",
+  "mainBefore": "1682457b",
+  "productionBeforeNote": "reconfirm at deploy time; prior single-bar was dpl_mZZt8s3ZDCq6NCBDHyFTvfBCSfrX",
+  "backRootCause": "Most overlays (menu, search panels, filter sheet, create modals) were React-state only — no history.pushState and no Android back handler — so device Back called history.back()/exit while overlays stayed open.",
+  "backContract": "bindOverlayHistoryBack: one pushState per open overlay + Capacitor handler; Back dismisses topmost layer before route history.",
+  "landscapeReserve": "--hc-landscape-system-right-reserve: 56px; padding-right max(64px, safe-area + reserve)",
+  "createWording": { "before": "Verkoop of deel / +", "after": "Aanbieden" },
+  "localProbe": {
+    "menuRightGap": 73,
+    "menuIntersectsOsZone": false,
+    "menuBackCloses": true,
+    "sortBackCloses": true,
+    "createText": "Aanbieden",
+    "searchMinH": "44px"
+  }
+}

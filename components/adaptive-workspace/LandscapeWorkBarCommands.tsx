@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * WX 1B.4.1 — Commands hosted inside the short-landscape single work bar.
+ * WX 1B.4.1 / mobile-actions — Commands hosted in the short-landscape work bar.
  * Reuses CreateFlow + GuestAuthGate; menu opens via NavBar command bus.
  */
 
@@ -37,11 +37,13 @@ export default function LandscapeWorkBarCommands({
 
   useEffect(() => subscribeNavbarMobileMenuOpen(setMenuOpen), []);
 
+  const createLabel = t('homePhase1.ctaOfferCompact');
+
   return (
     <div
       data-wx-workbar-commands=""
       className={cn(
-        'flex min-w-0 flex-1 items-center gap-2',
+        'flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2',
         className,
       )}
     >
@@ -54,7 +56,7 @@ export default function LandscapeWorkBarCommands({
 
       <p
         data-wx-workbar-context=""
-        className="min-w-0 flex-1 truncate text-[clamp(0.7rem,1.6vw,0.8125rem)] font-semibold leading-none tracking-tight text-white"
+        className="min-w-0 flex-1 truncate text-[clamp(0.65rem,1.5vw,0.75rem)] font-semibold leading-none tracking-tight text-white/95"
         title={contextLabel}
       >
         {contextLabel}
@@ -67,10 +69,11 @@ export default function LandscapeWorkBarCommands({
         data-wx-workbar-create=""
         className={cn(
           'inline-flex shrink-0 items-center justify-center gap-1',
-          'rounded-lg px-2 py-1 min-h-[40px]',
-          'text-xs font-bold whitespace-nowrap leading-none',
+          'rounded-lg px-2.5 py-1.5 min-h-[40px]',
+          'text-[13px] font-bold whitespace-nowrap leading-none',
           'bg-white text-primary-brand hover:bg-emerald-50',
-          'shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
+          'border border-white/90 shadow-sm',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
           'touch-manipulation select-none',
         )}
         onClick={() => {
@@ -81,15 +84,10 @@ export default function LandscapeWorkBarCommands({
           }
           navDebug('workbar:landscape-create', { action: 'create' });
         }}
-        aria-label={t('homePhase1.ctaShare')}
+        aria-label={createLabel}
       >
         <Plus className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="hidden min-[380px]:inline whitespace-nowrap">
-          {t('homePhase1.ctaShare')}
-        </span>
-        <span className="inline min-[380px]:hidden whitespace-nowrap" aria-hidden>
-          +
-        </span>
+        <span className="whitespace-nowrap">{createLabel}</span>
       </button>
 
       <button
@@ -97,7 +95,7 @@ export default function LandscapeWorkBarCommands({
         data-wx-workbar-menu=""
         className={cn(
           'inline-flex shrink-0 items-center justify-center',
-          'rounded-lg min-h-[40px] min-w-[40px]',
+          'rounded-lg min-h-[44px] min-w-[44px]',
           'text-white hover:bg-white/15',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
           'touch-manipulation',

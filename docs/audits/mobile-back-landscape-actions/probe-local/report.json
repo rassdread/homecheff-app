@@ -1,0 +1,165 @@
+{
+  "base": "http://127.0.0.1:3091",
+  "at": "2026-08-14T19:35:16.805Z",
+  "cases": {
+    "667": {
+      "vh": 375,
+      "vw": 667,
+      "headerH": 0,
+      "stripH": 49,
+      "createText": "Aanbieden",
+      "createReadable": true,
+      "createRight": 542,
+      "menuRight": 594,
+      "menuRightGap": 73,
+      "menuIntersectsOsZone": false,
+      "searchFont": "14px",
+      "searchColor": "rgb(17, 24, 39)",
+      "searchPh": "rgb(75, 85, 99)",
+      "searchMinH": "44px",
+      "rail": true,
+      "singleBar": "1"
+    },
+    "740": {
+      "vh": 360,
+      "vw": 740,
+      "headerH": 0,
+      "stripH": 49,
+      "createText": "Aanbieden",
+      "createReadable": true,
+      "createRight": 615,
+      "menuRight": 667,
+      "menuRightGap": 73,
+      "menuIntersectsOsZone": false,
+      "searchFont": "14px",
+      "searchColor": "rgb(17, 24, 39)",
+      "searchPh": "rgb(75, 85, 99)",
+      "searchMinH": "44px",
+      "rail": true,
+      "singleBar": "1"
+    },
+    "land844": {
+      "vh": 390,
+      "vw": 844,
+      "headerH": 0,
+      "stripH": 49,
+      "createText": "Aanbieden",
+      "createReadable": true,
+      "createRight": 719,
+      "menuRight": 771,
+      "menuRightGap": 73,
+      "menuIntersectsOsZone": false,
+      "searchFont": "14px",
+      "searchColor": "rgb(17, 24, 39)",
+      "searchPh": "rgb(75, 85, 99)",
+      "searchMinH": "44px",
+      "rail": true,
+      "singleBar": "1"
+    },
+    "menuOpen": {
+      "histBefore": 2,
+      "visible": true,
+      "right": 780,
+      "intersectsOsZone": false,
+      "hist": 3,
+      "state": {
+        "hcOverlayBack": "navbar-mobile-menu",
+        "__NA": true,
+        "__PRIVATE_NEXTJS_INTERNALS_TREE": [
+          "",
+          {
+            "children": [
+              "__PAGE__",
+              {},
+              "/",
+              "refresh"
+            ]
+          },
+          null,
+          null,
+          true
+        ]
+      }
+    },
+    "menuBack": {
+      "panel": false,
+      "path": "/",
+      "hist": 3
+    },
+    "historyInflation": {
+      "panel": false,
+      "path": "/",
+      "hist": 3
+    },
+    "sortOpen": {
+      "panel": true,
+      "state": {
+        "hcOverlayBack": "feed-search-context-panel",
+        "__NA": true,
+        "__PRIVATE_NEXTJS_INTERNALS_TREE": [
+          "",
+          {
+            "children": [
+              "__PAGE__",
+              {},
+              "/",
+              "refresh"
+            ]
+          },
+          null,
+          null,
+          true
+        ]
+      }
+    },
+    "sortBack": {
+      "panel": false,
+      "path": "/"
+    },
+    "listing": {
+      "path": "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+      "headerH": 49,
+      "suppressed": "0"
+    },
+    "listingBack": {
+      "path": "/",
+      "singleBar": "1"
+    },
+    "port": {
+      "vh": 844,
+      "vw": 390,
+      "headerH": 65,
+      "stripH": 158,
+      "createText": null,
+      "createReadable": false,
+      "createRight": null,
+      "menuRight": null,
+      "menuRightGap": null,
+      "menuIntersectsOsZone": null,
+      "searchFont": "14px",
+      "searchColor": "rgb(17, 24, 39)",
+      "searchPh": "rgb(107, 114, 128)",
+      "searchMinH": "40px",
+      "rail": false,
+      "singleBar": "0"
+    },
+    "desk": {
+      "vh": 900,
+      "vw": 1280,
+      "headerH": 65,
+      "stripH": 185,
+      "createText": null,
+      "createReadable": false,
+      "createRight": null,
+      "menuRight": null,
+      "menuRightGap": null,
+      "menuIntersectsOsZone": null,
+      "searchFont": "14px",
+      "searchColor": "rgb(17, 24, 39)",
+      "searchPh": "rgb(156, 163, 175)",
+      "searchMinH": "40px",
+      "rail": true,
+      "singleBar": "0"
+    }
+  }
+}
