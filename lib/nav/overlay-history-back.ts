@@ -2,15 +2,18 @@
  * Overlay Back contract (web + Capacitor).
  *
  * Temporary UI layers register while open. Phone/browser Back dismisses the
- * topmost layer before route history. Avoids fake endless history: one
- * pushState per open overlay, cleaned on programmatic close.
+ * topmost layer before route history.
+ *
+ * Programmatic close (X, Link click, backdrop) MUST NOT call history.back() —
+ * that races Next.js <Link> navigation and cancels the destination (e.g. Careers).
+ * Instead strip the overlay marker via replaceState.
  */
 
 import { pushAndroidBackHandler } from "@/lib/native/androidCreateFlowBack";
 
 export const OVERLAY_BACK_STATE_KEY = "hcOverlayBack";
 
-type OverlayBackState = {
+type OverlayBackState = Record<string, unknown> & {
   [OVERLAY_BACK_STATE_KEY]?: string;
 };
 
@@ -18,6 +21,13 @@ function readOverlayKey(state: unknown): string | null {
   if (!state || typeof state !== "object") return null;
   const key = (state as OverlayBackState)[OVERLAY_BACK_STATE_KEY];
   return typeof key === "string" && key.length > 0 ? key : null;
+}
+
+function stripOverlayKey(state: unknown): object {
+  if (!state || typeof state !== "object") return {};
+  const next = { ...(state as OverlayBackState) };
+  delete next[OVERLAY_BACK_STATE_KEY];
+  return next;
 }
 
 /**
@@ -40,7 +50,11 @@ export function bindOverlayHistoryBack(args: {
   let disposed = false;
 
   try {
-    window.history.pushState({ [OVERLAY_BACK_STATE_KEY]: id }, "");
+    const base =
+      window.history.state && typeof window.history.state === "object"
+        ? { ...(window.history.state as object) }
+        : {};
+    window.history.pushState({ ...base, [OVERLAY_BACK_STATE_KEY]: id }, "");
     ownedHistory = true;
   } catch {
     ownedHistory = false;
@@ -48,7 +62,6 @@ export function bindOverlayHistoryBack(args: {
 
   const onPop = (event: PopStateEvent) => {
     if (disposed) return;
-    // Our entry was popped (or any back while we are the active owner).
     const nextKey = readOverlayKey(event.state);
     if (nextKey === id) return;
     closedByPop = true;
@@ -88,7 +101,8 @@ export function bindOverlayHistoryBack(args: {
     if (closedByPop || !ownedHistory) return;
     try {
       if (readOverlayKey(window.history.state) === id) {
-        window.history.back();
+        // Do NOT history.back() — that aborts concurrent <Link> navigations.
+        window.history.replaceState(stripOverlayKey(window.history.state), "");
       }
     } catch {
       /* ignore */
