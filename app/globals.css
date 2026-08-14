@@ -1559,13 +1559,17 @@ html[data-wx-short-landscape="1"] #navbar-mobile-menu[data-wx-landscape-menu="1"
   padding-right: 0.75rem;
 }
 
-/* While landscape menu is open, do not let the green workbar steal taps. */
+/* While landscape menu is open, do not let orientation chrome steal taps.
+ * The slot host (not only the inner strip) covers the menu hit-target. */
+html[data-wx-short-landscape="1"]:has(#navbar-mobile-menu[data-wx-landscape-menu="1"])
+  [data-wx-orientation-host],
+html[data-wx-short-landscape="1"]:has(#navbar-mobile-menu[data-wx-landscape-menu="1"])
+  [data-aw-slot-host="orientation"],
 html[data-wx-short-landscape="1"]:has(#navbar-mobile-menu[data-wx-landscape-menu="1"])
   .hc-wx-orientation-strip[data-wx-single-bar="1"] {
   pointer-events: none;
 }
 html[data-wx-short-landscape="1"]:has(#navbar-mobile-menu[data-wx-landscape-menu="1"])
-  .hc-wx-orientation-strip[data-wx-single-bar="1"]
   [data-wx-workbar-menu] {
   pointer-events: auto;
 }
