@@ -63,10 +63,11 @@ const visibleBlock = homeSrc.slice(
   homeSrc.indexOf('const visibleWorkspaceTree'),
   homeSrc.indexOf('const pageShellClass'),
 );
-assert.match(visibleBlock, /HomepageWorkspaceInfoBar/);
+assert.equal(visibleBlock.includes('HomepageWorkspaceInfoBar'), false);
+assert.match(visibleBlock, /WorkspaceOrientationStrip/);
 assert.match(visibleBlock, /homeComposedLayout=\{false\}/);
 assert.equal(visibleBlock.includes('<GeoFeed'), true);
-ok('1-col info bar sits in orientation chrome, not GeoFeed composition');
+ok('orientation chrome is hero strip only — no inline legal/company bar');
 
 const leftSrc = readFileSync(
   join(root, 'components/home/HomeDesktopLeftSidebar.tsx'),
@@ -76,13 +77,25 @@ assert.match(leftSrc, /HomepageInfoChrome/);
 assert.match(leftSrc, /variant="rail"/);
 ok('desktop chrome lives in start-rail sidebar');
 
+const navLegalSrc = readFileSync(
+  join(root, 'components/nav/NavbarLegalContactLinks.tsx'),
+  'utf8',
+);
+assert.match(navLegalSrc, /HomepageInfoChrome/);
+assert.match(navLegalSrc, /variant="nav"/);
+ok('mobile hamburger keeps legal/info via nav chrome');
+
 const geoFeedSrc = readFileSync(join(root, 'components/feed/GeoFeed.tsx'), 'utf8');
 assert.equal(geoFeedSrc.includes('HomepageInfoChrome'), false);
 ok('GeoFeed does not import info chrome');
 
 const cssSrc = readFileSync(join(root, 'app/globals.css'), 'utf8');
 assert.match(cssSrc, /data-hc-homepage-info-workspace/);
-assert.match(cssSrc, /data-aw-supporting-panels="0"/);
-ok('1-col workspace info bar is CSS-gated off the start rail');
+assert.match(cssSrc, /display:\s*none\s*!important/);
+assert.equal(
+  /supporting-panels="0"[^\n]*\n[^\n]*display:\s*block/.test(cssSrc),
+  false,
+);
+ok('workspace info bar cannot appear under hero on 1-col');
 
 console.log('\n[homepage-info-chrome] all assertions passed\n');

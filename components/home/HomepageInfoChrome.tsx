@@ -218,10 +218,10 @@ export default function HomepageInfoChrome({ variant, onNavigate }: Props) {
   );
 }
 
-/** 1-column homepage only (start rail hidden). Lives in orientation chrome, not the feed. */
+/** Kept for seals/tests — must not be mounted in homepage orientation chrome. */
 export function HomepageWorkspaceInfoBar() {
   return (
-    <div data-hc-homepage-info-workspace="">
+    <div data-hc-homepage-info-workspace="" hidden aria-hidden="true">
       <HomepageInfoChrome variant="workspace" />
     </div>
   );

@@ -278,20 +278,16 @@ html.hc-aw-feed-owns-document-scroll body {
 }
 
 /**
- * Homepage information chrome (1-column): show under orientation only when
- * the start rail is hidden. Short landscape hides it — nav menu remains.
+ * Homepage information chrome — never inline under the orientation/hero strip.
+ * Mobile portrait previously showed this when supporting panels = 0; that broke
+ * hero → search → feed flow. Legal/company access stays in:
+ * - start-rail HomepageInfoChrome (desktop)
+ * - hamburger NavbarLegalContactLinks (mobile/landscape)
+ * - non-home Footer
+ * - structured data / legal pages
  */
 [data-hc-homepage-info-workspace] {
-  display: none;
-  border-bottom: 1px solid rgb(229 231 235);
-}
-[data-aw-feed-workspace][data-aw-supporting-panels="0"] [data-hc-homepage-info-workspace] {
-  display: block;
-}
-@media (max-height: 500px) {
-  [data-hc-homepage-info-workspace] {
-    display: none !important;
-  }
+  display: none !important;
 }
 
 /* Desktop: full height for layout */
