@@ -1,6 +1,7 @@
 # LEGAL-4A — DSA Article 29 SME evidence (internal)
 
 **Status:** Internal audit note — not a legal opinion.  
+**LEGAL-4A.1 update:** Size evidence reassessment lives in `docs/audits/legal-evidence/dsa-sme-evidence-4a1-reassessment.md` (recommended `SME_EXCLUSION_EXPECTED`; production state not auto-flipped).  
 **Related code:** `lib/compliance/dsa-applicability.ts`, `CompliancePlatformAssessment`
 
 ---
