@@ -22,9 +22,15 @@ export async function POST(
     if ('error' in authResult) return authResult.error;
 
     let commitmentAccepted = false;
+    let serviceStartDuringWithdrawalAck = false;
     try {
-      const body = (await req.json()) as { commitmentAccepted?: unknown };
+      const body = (await req.json()) as {
+        commitmentAccepted?: unknown;
+        serviceStartDuringWithdrawalAck?: unknown;
+      };
       commitmentAccepted = body?.commitmentAccepted === true;
+      serviceStartDuringWithdrawalAck =
+        body?.serviceStartDuringWithdrawalAck === true;
     } catch {
       commitmentAccepted = false;
     }
@@ -47,7 +53,7 @@ export async function POST(
     const result = await ProposalService.acceptProposal(
       authResult.userId,
       params.proposalId,
-      { commitmentAccepted },
+      { commitmentAccepted, serviceStartDuringWithdrawalAck },
     );
 
     return NextResponse.json(result);

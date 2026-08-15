@@ -9,6 +9,9 @@ import { requiresStripeForHomecheffCheckout } from '@/lib/product/order-method';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 import { buildPublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import type { InspirationCategory } from '@/lib/inspiratie/instruction-content';
+import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-from-product';
+import { toPublicSellerCommerceView } from '@/lib/legal/seller-commerce-context';
+import { buildSellerCommerceContext } from '@/lib/legal/seller-commerce-context';
 
 export type ListingDetailPayload = {
   product: Record<string, unknown>;
@@ -19,6 +22,10 @@ export type ListingDetailPayload = {
   sellerBadges: unknown[];
   isBusiness: boolean;
   companyName: string | null;
+  /** LEGAL-1 public subset — no review internals. */
+  publicSellerCommerce: ReturnType<typeof toPublicSellerCommerceView> | null;
+  /** LEGAL-3 consumer disclosure context for this listing. */
+  consumerCommerce: ReturnType<typeof consumerContextFromProductPayload>;
   isDish: boolean;
   dishCategory: string | null;
   linkedInspiration: {
@@ -75,6 +82,28 @@ export async function loadListingDetail(
 
   const isBusiness = Boolean(product.seller?.kvk && product.seller?.companyName);
 
+  const sellerSlice = product.seller as
+    | {
+        commerceDeclaration?: string | null;
+        kvk?: string | null;
+        companyName?: string | null;
+        User?: { Business?: { verified?: boolean } | null };
+      }
+    | undefined;
+  const sellerCommerceCtx = buildSellerCommerceContext({
+    seller: {
+      commerceDeclaration: sellerSlice?.commerceDeclaration,
+      kvk: sellerSlice?.kvk,
+      companyName: sellerSlice?.companyName,
+    },
+    businessVerified: sellerSlice?.User?.Business?.verified === true,
+    products: [product as { category?: string; marketplaceCategory?: string; priceCents?: number; isActive?: boolean }],
+  });
+  const publicSellerCommerce = toPublicSellerCommerceView(sellerCommerceCtx);
+  const consumerCommerce = consumerContextFromProductPayload(
+    product as unknown as Record<string, unknown>,
+  );
+
   const requiresStripeCheckout = requiresStripeForHomecheffCheckout({
     orderMethod: (product as { orderMethod?: string }).orderMethod,
     priceCents: product.priceCents,
@@ -106,6 +135,8 @@ export async function loadListingDetail(
     sellerBadges: [],
     isBusiness,
     companyName: product.seller?.companyName ?? null,
+    publicSellerCommerce,
+    consumerCommerce,
     isDish: false,
     dishCategory: null,
     linkedInspiration: null,

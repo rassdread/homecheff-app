@@ -364,7 +364,10 @@ export class ProposalService {
   static async acceptProposal(
     userId: string,
     proposalId: string,
-    options?: { commitmentAccepted?: boolean },
+    options?: {
+      commitmentAccepted?: boolean;
+      serviceStartDuringWithdrawalAck?: boolean;
+    },
   ): Promise<ProposalActionResult> {
     const existing = await prisma.proposal.findUnique({
       where: { id: proposalId },
@@ -420,6 +423,12 @@ export class ProposalService {
         proposalId: proposal.id,
         commitmentAcceptedAt: new Date().toISOString(),
         commitmentAcceptedById: userId,
+        ...(options?.serviceStartDuringWithdrawalAck
+          ? {
+              serviceStartDuringWithdrawalAck: true,
+              serviceStartDuringWithdrawalAckAt: new Date().toISOString(),
+            }
+          : {}),
       };
 
       if (

@@ -475,6 +475,8 @@ export async function POST(req: Request) {
           contribution.sellerContributionNote
             ? new Date()
             : null,
+        madeToConsumerSpecifications: body.madeToConsumerSpecifications === true,
+        rapidlyPerishable: body.rapidlyPerishable === true,
         sellerId: sellerProfileId!,
         Image: {
           create: validImageUrls.map((url: string, i: number) => ({

@@ -286,6 +286,9 @@ export default function ListingDetailPage({
       (mappedInitial?.discoveryTrust as DiscoveryTrustContract) ??
       EMPTY_DISCOVERY_TRUST_CONTRACT,
   );
+  const [consumerCommerce, setConsumerCommerce] = useState(
+    () => mappedInitial?.consumerCommerce ?? null,
+  );
   const [loadError, setLoadError] = useState<ListingDetailLoadError | null>(null);
   const [fetchGeneration, setFetchGeneration] = useState(0);
   const [showClientSkeleton, setShowClientSkeleton] = useState(() => !mappedInitial);
@@ -647,6 +650,7 @@ export default function ListingDetailPage({
         setPaymentStatus(nextPaymentStatus);
         const nextDiscoveryTrust = (mapped.discoveryTrust as DiscoveryTrustContract) ?? EMPTY_DISCOVERY_TRUST_CONTRACT;
         setDiscoveryTrust(nextDiscoveryTrust);
+        setConsumerCommerce(mapped.consumerCommerce ?? null);
         
         if (session?.user?.email) {
           try {
@@ -1168,6 +1172,9 @@ export default function ListingDetailPage({
                 dishInfo={dishInfo}
                 linkedInspiration={linkedInspiration}
                 variant="main"
+                consumerCommerce={
+                  consumerCommerce as import('@/lib/legal/consumer-commerce-context').ConsumerCommerceContext | null
+                }
               />
             </div>
           ) : null}

@@ -35,6 +35,7 @@ export type MappedListingDetail = {
   paymentStatus: unknown;
   discoveryTrust: unknown;
   stats: unknown;
+  consumerCommerce?: unknown;
 };
 
 export function mapListingDetailPayload(data: {
@@ -51,6 +52,7 @@ export function mapListingDetailPayload(data: {
   paymentStatus?: unknown;
   discoveryTrust?: unknown;
   stats?: unknown;
+  consumerCommerce?: unknown;
 }): MappedListingDetail {
   const dishData = {
     isDish: data.isDish || false,
@@ -155,18 +157,25 @@ export function mapListingDetailPayload(data: {
     pickupLng: data.product.pickupLng ?? null,
     sellerCanDeliver: Boolean(data.product.sellerCanDeliver),
     deliveryRadiusKm: data.product.deliveryRadiusKm ?? null,
-    displayNameType: data.product.displayNameType || 'fullname',
-    Image:
-      data.product.Image?.map((img: any) => ({
-        id: img.id,
-        fileUrl: img.fileUrl,
-      })) || [],
-    Video: data.product.Video ?? null,
+    allergens: Array.isArray(data.product.allergens)
+      ? data.product.allergens
+      : [],
+    allergensConfirmedAt: data.product.allergensConfirmedAt ?? null,
+    sellerContributionTypes: Array.isArray(data.product.sellerContributionTypes)
+      ? data.product.sellerContributionTypes
+      : [],
+    sellerContributionNote: data.product.sellerContributionNote ?? null,
+    madeToConsumerSpecifications: Boolean(
+      data.product.madeToConsumerSpecifications,
+    ),
+    rapidlyPerishable: Boolean(data.product.rapidlyPerishable),
+    integrityStatus: data.product.integrityStatus ?? 'ACTIVE',
     seller: {
       lat: data.product.seller?.lat ?? null,
       lng: data.product.seller?.lng ?? null,
       kvk: data.product.seller?.kvk ?? null,
       companyName: data.product.seller?.companyName ?? null,
+      commerceDeclaration: data.product.seller?.commerceDeclaration ?? null,
       User: {
         id: data.product.seller?.User?.id || data.product.User?.id || '',
         name: data.product.seller?.User?.name || data.product.User?.name,
@@ -193,6 +202,7 @@ export function mapListingDetailPayload(data: {
         lng: data.product.seller?.User?.lng ?? data.product.User?.lng ?? null,
         sellerRoles:
           data.product.seller?.User?.sellerRoles || data.product.User?.sellerRoles,
+        Business: data.product.seller?.User?.Business ?? null,
       },
     },
   };
@@ -217,5 +227,6 @@ export function mapListingDetailPayload(data: {
     paymentStatus: data.paymentStatus ?? null,
     discoveryTrust: data.discoveryTrust ?? null,
     stats: data.stats ?? null,
+    consumerCommerce: data.consumerCommerce ?? null,
   };
 }

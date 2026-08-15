@@ -68,6 +68,7 @@ export async function GET(
             lng: true,
             kvk: true,
             companyName: true,
+            commerceDeclaration: true,
             User: {
               select: {
                 id: true,
@@ -81,6 +82,7 @@ export async function GET(
                 lng: true,
                 displayFullName: true,
                 displayNameOption: true,
+                Business: { select: { verified: true } },
               }
             }
           }
@@ -773,6 +775,14 @@ export async function PATCH(
             updateData.sellerContributionNote =
               contribution.sellerContributionNote;
             updateData.sellerContributionUpdatedAt = new Date();
+          }
+
+          if (body.madeToConsumerSpecifications !== undefined) {
+            updateData.madeToConsumerSpecifications =
+              body.madeToConsumerSpecifications === true;
+          }
+          if (body.rapidlyPerishable !== undefined) {
+            updateData.rapidlyPerishable = body.rapidlyPerishable === true;
           }
 
           // Update images if provided

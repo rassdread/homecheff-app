@@ -158,6 +158,20 @@ export default function TermsPage() {
               </ul>
             </section>
 
+            <section className="mb-8" data-hc-legal3-terms="">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('termsPage.s9Title')}</h2>
+              <p className="text-gray-700 mb-4">{t('termsPage.s9P1')}</p>
+              <p className="text-gray-700 mb-4">{t('termsPage.s9P2')}</p>
+              <p className="text-gray-700 mb-4">{t('termsPage.s9P3')}</p>
+              <p className="text-gray-700 mb-4">{t('termsPage.s9P4')}</p>
+              <p className="text-gray-700 mb-4">{t('termsPage.s9P5')}</p>
+              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
+                <li>{t('termsPage.s9L1')}</li>
+                <li>{t('termsPage.s9L2')}</li>
+                <li>{t('termsPage.s9L3')}</li>
+              </ul>
+            </section>
+
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('termsPage.contactTitle')}</h2>
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">

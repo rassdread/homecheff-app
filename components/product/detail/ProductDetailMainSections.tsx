@@ -26,6 +26,9 @@ import {
 import FoodAllergenListingInfo from '@/components/legal/FoodAllergenListingInfo';
 import { buildFoodAllergenContext } from '@/lib/legal/food-allergen-context';
 import SellerContributionSection from '@/components/trust/SellerContributionSection';
+import ConsumerCommerceDisclosure from '@/components/legal/ConsumerCommerceDisclosure';
+import type { ConsumerCommerceContext } from '@/lib/legal/consumer-commerce-context';
+import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-from-product';
 
 type ProductShape = {
   id: string;
@@ -78,6 +81,8 @@ type Props = {
   /** Desktop: hide sections duplicated in sidebar. */
   variant?: 'main' | 'mobile_stack';
   childrenAfterDescription?: ReactNode;
+  /** LEGAL-3 — optional precomputed context from RSC payload. */
+  consumerCommerce?: ConsumerCommerceContext | null;
 };
 
 export default function ProductDetailMainSections({
@@ -95,6 +100,7 @@ export default function ProductDetailMainSections({
   linkedInspiration,
   variant = 'main',
   childrenAfterDescription,
+  consumerCommerce,
 }: Props) {
   const { listingKind } = deriveListingKind({
     listingIntent: product.listingIntent,
@@ -233,6 +239,17 @@ export default function ProductDetailMainSections({
             .sellerContributionNote
         }
       />
+
+      {(() => {
+        const ctx =
+          consumerCommerce ??
+          consumerContextFromProductPayload(
+            product as unknown as Record<string, unknown>,
+          );
+        return ctx ? (
+          <ConsumerCommerceDisclosure context={ctx} variant="listing" />
+        ) : null;
+      })()}
 
       <ProductSaleDomainStory
         dishInfo={dishInfo}

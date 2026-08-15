@@ -6797,7 +6797,16 @@
     "s8_2L3": "Wij kunnen accounts opzeggen bij schending van voorwaarden",
     "s8_2L4": "Gegevens worden 1 jaar bewaard na opzegging",
     "contactEmail": "E-mail",
-    "contactAddress": "Adres"
+    "contactAddress": "Adres",
+    "s9Title": "9. Particuliere en professionele aanbieders & consumenteninformatie",
+    "s9P1": "Aanbieders kunnen op HomeCheff aangeven of zij als particulier (incidenteel) of professioneel/zakelijk aanbieden. HomeCheff bepaalt handelsstatus niet automatisch op basis van omzet, aantal verkopen, KvK, Stripe of vergelijkbare signalen.",
+    "s9P2": "Bij aankoop van een aanbieder die zichzelf als professioneel heeft opgegeven (of een geverifieerd bedrijf) kan consumentenrechtelijke informatie van toepassing zijn, waaronder informatie over herroepingsrecht waar relevant.",
+    "s9P3": "Bij een particuliere aanbieder volgens eigen opgave zijn consumentenrechten die specifiek gelden jegens professionele verkopers (zoals het wettelijke herroepingsrecht) mogelijk niet van toepassing. Dit betekent niet dat er ‘geen rechten’ bestaan: platformregels, productveiligheid, voedselinformatie en overeenkomstenrecht kunnen nog steeds relevant zijn.",
+    "s9P4": "Herroepingsrecht (waar van toepassing) bedraagt in beginsel 14 dagen. Uitzonderingen kunnen gelden voor goederen die volgens de specificaties van de consument zijn gemaakt, snel bederfelijke goederen, en diensten die na uitdrukkelijk verzoek tijdens de bedenktijd volledig zijn uitgevoerd. HomeCheff markeert deze uitzonderingen alleen op basis van expliciete aanbieder-opgaven of duidelijke transactiekenmerken — niet door stille aannames over ‘handgemaakt’ of TRUST-herkomst.",
+    "s9P5": "HomeCheff is een marketplaceplatform. De onderliggende prestatie wordt geleverd door de aanbieder. Betalingen kunnen via Stripe via het platform verlopen; de precieze kwalificatie van HomeCheff’s rol bij betalingen blijft onderwerp van juridische toetsing. Deze voorwaarden doen geen sterkere claims over merchant-of-record dan hier staat.",
+    "s9L1": "Particulier vs professioneel: op basis van zelfopgave van de aanbieder (LEGAL-1).",
+    "s9L2": "Consumenteninformatie wordt progressief getoond vóór commitment (listing, checkout, voorstel/akkoord).",
+    "s9L3": "Allergeneninformatie voor voedsel (LEGAL-2) blijft volledig gescheiden van herroepingsuitzonderingen."
   },
   "errorPage": {
     "title": "Er is een fout opgetreden",
@@ -10126,6 +10135,61 @@
       "showQr": "Toon QR-code",
       "promoCodes": "Promo codes",
       "networkEarnings": "Verdiensten uit netwerk"
+    }
+  },
+  "legal3": {
+    "sectionTitle": "Consumenteninformatie",
+    "sellerLabel": "Aanbieder",
+    "withdrawalLabel": "Herroepen",
+    "sellerDeclared": "Door aanbieder opgegeven",
+    "moreInfo": "Meer informatie",
+    "lessInfo": "Minder informatie",
+    "termsLink": "Lees de voorwaarden",
+    "platformRole": "HomeCheff is een marketplaceplatform. De verkoper/dienstverlener levert het aanbod; HomeCheff faciliteert de verbinding. Betalingen via Stripe verlopen via het platform — de precieze juridische rol van HomeCheff bij betalingen is onderwerp van verdere juridische toetsing.",
+    "professionalNote": "Deze aanbieder heeft zichzelf als professioneel/zakelijk opgegeven. Dat is geen HomeCheff-certificaat van ondernemerschap.",
+    "privateNote": "Deze aanbieder heeft aangegeven als particulier aan te bieden. Consumentenrechten die specifiek gelden bij aankoop van een professionele verkoper, zoals het wettelijke herroepingsrecht, zijn daarom mogelijk niet van toepassing. Overige rechten (platformregels, voedselinformatie, productveiligheid, overeenkomstenrecht) blijven relevant waar van toepassing.",
+    "undeclaredNote": "De aanbieder heeft nog geen particulier/professioneel-status opgegeven. Toon voorzichtigheid; HomeCheff bepaalt geen handelsstatus automatisch.",
+    "serviceStartAck": "Ik vraag dat de dienst tijdens de bedenktijd mag beginnen en begrijp dat ik het herroepingsrecht kan verliezen zodra de dienst volledig is uitgevoerd.",
+    "serviceStartAckRequired": "Bevestig de start van de dienst tijdens de bedenktijd om door te gaan.",
+    "serviceStartRequest": "Ik wil dat deze dienst tijdens de bedenktijd mag beginnen.",
+    "seller": {
+      "private": "Particuliere aanbieder",
+      "professional": "Professionele aanbieder",
+      "verifiedBusiness": "Geverifieerd bedrijf",
+      "undeclared": "Status niet opgegeven"
+    },
+    "withdrawal": {
+      "STANDARD_14_DAY": "14 dagen bedenktijd",
+      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Uitzondering: op maat gemaakt",
+      "PERISHABLE_EXCEPTION": "Uitzondering: snel bederfelijk",
+      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Dienst — herroepingsrecht hangt af van uitvoering",
+      "NOT_APPLICABLE_PRIVATE_C2C": "Wettelijk herroepingsrecht (B2C) mogelijk niet van toepassing",
+      "NOT_APPLICABLE_FREE": "Geen betaalde aankoop — herroepingsmachine niet van toepassing",
+      "REQUIRES_REVIEW": "Nog niet vastgesteld"
+    },
+    "summary": {
+      "STANDARD_14_DAY": "Bij aankoop van deze professionele aanbieder geldt in beginsel 14 dagen bedenktijd, tenzij een uitzondering van toepassing is.",
+      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Dit aanbod is door de aanbieder gemarkeerd als gemaakt volgens jouw specificaties. In dat geval kan het wettelijke herroepingsrecht niet gelden.",
+      "PERISHABLE_EXCEPTION": "Dit aanbod is gemarkeerd als snel bederfelijk. Voor zulke goederen kan het wettelijke herroepingsrecht niet gelden. Allergenen- en voedselinformatie blijven apart gelden.",
+      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Voor diensten geldt doorgaans bedenktijd. Bij volledige uitvoering na jouw uitdrukkelijke verzoek tijdens de bedenktijd kun je het herroepingsrecht verliezen.",
+      "NOT_APPLICABLE_PRIVATE_C2C": "Particuliere aanbieder volgens eigen opgave — specifieke B2C-herroepingsrechten mogelijk niet van toepassing.",
+      "NOT_APPLICABLE_FREE": "Gratis delen: geen betaalde aankoop.",
+      "REQUIRES_REVIEW": "Zonder duidelijke particulier/professioneel-opgave tonen we geen standaard B2C-herroepingsclaim."
+    },
+    "detail": {
+      "STANDARD_14_DAY": "Je kunt de overeenkomst in beginsel binnen 14 dagen zonder opgave van reden ontbinden, behalve waar een wettelijke uitzondering geldt. Hoe je herroept en wat je terugstuurt, hangt af van het type aanbod en de afspraken met de aanbieder.",
+      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Goederen die volgens jouw specificaties zijn gemaakt of duidelijk persoonlijk zijn, kunnen van het herroepingsrecht zijn uitgesloten. Dit is alleen van toepassing als de aanbieder dat expliciet heeft aangegeven voor dit aanbod — niet enkel omdat iets ‘gepersonaliseerd’ is als herkomstclaim.",
+      "PERISHABLE_EXCEPTION": "Snel bederfelijke goederen kunnen van herroeping zijn uitgesloten. Dit vervangt géén allergeneninformatie of voedselveiligheidsverplichtingen.",
+      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Vraag alleen om start tijdens de bedenktijd als je dat echt wilt. Automatisch ‘werk is begonnen → geen herroeping’ doen we niet.",
+      "NOT_APPLICABLE_PRIVATE_C2C": "Dit is géén verklaring dat je ‘geen rechten’ hebt. Het betekent dat specifieke consumentenrechten t.o.v. professionele verkopers mogelijk niet gelden.",
+      "NOT_APPLICABLE_FREE": "Geen herroepingsprocedure voor zuiver gratis delen.",
+      "REQUIRES_REVIEW": "Zodra de aanbieder particulier of professioneel opgeeft, wordt de juiste informatie getoond."
+    },
+    "sellerFlags": {
+      "title": "Uitzonderingen herroepingsrecht (optioneel)",
+      "help": "Vink alleen aan wat feitelijk klopt voor dit aanbod. Dit is geen automatische vrijstelling — het informeert kopers. TRUST-herkomst ‘gepersonaliseerd’ is niet hetzelfde.",
+      "madeToSpec": "Dit item wordt/is gemaakt volgens de individuele specificaties van de koper (op maat / duidelijk gepersonaliseerd).",
+      "rapidlyPerishable": "Dit is snel bederfelijk bereid voedsel (niet automatisch elk GROW-product)."
     }
   }
 }

@@ -8,6 +8,7 @@ export const listingProductCoreInclude = {
       lng: true,
       kvk: true,
       companyName: true,
+      commerceDeclaration: true,
       User: {
         select: {
           id: true,
@@ -23,6 +24,9 @@ export const listingProductCoreInclude = {
           displayNameOption: true,
           stripeConnectAccountId: true,
           stripeConnectOnboardingCompleted: true,
+          Business: {
+            select: { verified: true },
+          },
         },
       },
     },
