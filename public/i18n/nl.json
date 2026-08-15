@@ -6458,10 +6458,10 @@
     "extraDetailsPlaceholder": "Voeg extra details toe om ons te helpen de situatie beter te begrijpen...",
     "characters": "karakters",
     "reporting": "Melden",
-    "reported": "Gemeld!",
+    "reported": "Bedankt voor je melding. HomeCheff bekijkt deze.",
     "submitError": "Er is een fout opgetreden bij het melden",
     "importantInfo": "Belangrijke informatie",
-    "importantInfoText": "Alle meldingen worden vertrouwelijk behandeld en binnen 24 uur door ons team bekeken. Misbruik van het meldsysteem kan leiden tot account beperkingen.",
+    "importantInfoText": "Alle meldingen worden vertrouwelijk behandeld. HomeCheff bekijkt ze — we beloven geen specifieke uitkomst. Misbruik van het meldsysteem kan leiden tot accountbeperkingen.",
     "product": {
       "inappropriateContent": "Ongepaste inhoud",
       "inappropriateContentDesc": "Foto of beschrijving bevat ongepaste inhoud",
@@ -9672,6 +9672,26 @@
       "deliveryNotCompleted": "Bezorging is nog niet afgerond.",
       "noCourierAssignment": "Geen afgeronde bezorgtoewijzing.",
       "courierProfileNotFound": "Bezorgerprofiel niet gevonden."
+    },
+    "contribution": {
+      "question": "Wat heb jij zelf aan dit aanbod gedaan?",
+      "help": "Kies wat bij jou past. Materialen inkopen mag — ongewijzigd doorverkopen niet. Dit is geen HomeCheff-certificaat.",
+      "noteLabel": "Vertel kort wat jouw eigen bijdrage is (optioneel)",
+      "notePlaceholder": "Bijv. blanco vazen ingekocht en zelf gespoten in drie kleuren.",
+      "required": "Geef aan wat jij zelf aan dit aanbod hebt gedaan (minimaal één bijdrage).",
+      "displayTitle": "Eigen bijdrage van de aanbieder",
+      "sellerDeclared": "Door aanbieder opgegeven",
+      "ownerHiddenTitle": "Je aanbod is tijdelijk niet zichtbaar",
+      "ownerHiddenBody": "We controleren meldingen. Kopers zien dit aanbod niet in de feed tot HomeCheff het weer zichtbaar maakt. Je aanbod is niet verwijderd.",
+      "clarifyCta": "Geef toelichting",
+      "clarifyPrompt": "Leg kort uit wat jij zelf aan dit product hebt gemaakt, aangepast, bereid, gekweekt of toegevoegd.",
+      "clarifyLabel": "Toelichting voor moderatie",
+      "clarifyPlaceholder": "Beschrijf je eigen bijdrage zo concreet mogelijk.",
+      "clarifySubmit": "Toelichting versturen",
+      "clarifySending": "Versturen…",
+      "clarifyNoteRequired": "Toelichting is verplicht.",
+      "clarifySubmitted": "Toelichting ontvangen. HomeCheff beoordeelt deze — je kunt de zichtbaarheid niet zelf herstellen.",
+      "noSelfRestore": "Alleen HomeCheff kan dit aanbod weer zichtbaar maken."
     }
   },
   "communityOrder": {

@@ -35,6 +35,10 @@ import {
 import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
 import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
 import { buildAllergenConfirmationUpdate } from '@/lib/legal/food-allergen-context';
+import {
+  contributionRequiredForPublish,
+  parseContributionPayloadFromBody,
+} from '@/lib/trust/seller-contribution';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -276,6 +280,24 @@ export async function POST(req: Request) {
         })
       : { allergens: [] as string[], allergensConfirmedAt: null };
 
+    const contribution = parseContributionPayloadFromBody(body);
+    if (
+      contributionRequiredForPublish({
+        listingIntent: v2Preview.listingIntent,
+        isEdit: false,
+      }) &&
+      contribution.sellerContributionTypes.length === 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            'Geef aan wat jij zelf aan dit aanbod hebt gedaan (minimaal één bijdrage).',
+          errorKey: 'trust.contribution.required',
+        },
+        { status: 400 },
+      );
+    }
+
     const publishState = resolveProductPublishState({
       requestedActive: finalIsPublic,
       orderMethod,
@@ -446,6 +468,13 @@ export async function POST(req: Request) {
           useProfileLocationRaw !== false && useProfileLocationRaw !== 'false',
         allergens: allergenUpdate?.allergens ?? [],
         allergensConfirmedAt: allergenUpdate?.allergensConfirmedAt ?? null,
+        sellerContributionTypes: contribution.sellerContributionTypes,
+        sellerContributionNote: contribution.sellerContributionNote,
+        sellerContributionUpdatedAt:
+          contribution.sellerContributionTypes.length > 0 ||
+          contribution.sellerContributionNote
+            ? new Date()
+            : null,
         sellerId: sellerProfileId!,
         Image: {
           create: validImageUrls.map((url: string, i: number) => ({

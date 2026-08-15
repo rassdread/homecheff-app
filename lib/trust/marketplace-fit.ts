@@ -74,18 +74,8 @@ export const MARKETPLACE_FIT_RULE_NL =
 export const MARKETPLACE_FIT_RULE_EN =
   'HomeCheff is for offers where the provider personally adds meaningful value through making, preparing, growing, designing, personalising, transforming, restoring, assembling, or performing their own service. Unmodified resale does not belong. Origin of materials or components is not decisive.';
 
-/** Contribution types reserved for TRUST-1.1 provenance UX — not required in TRUST-1. */
-export const SELLER_CONTRIBUTION_TYPES = [
-  'MADE',
-  'PREPARED',
-  'GROWN',
-  'DESIGNED',
-  'PERSONALISED',
-  'TRANSFORMED',
-  'RESTORED',
-  'ASSEMBLED',
-  'OTHER_OWN_WORK',
-] as const;
-
-export type SellerContributionType =
-  (typeof SELLER_CONTRIBUTION_TYPES)[number];
+/** Contribution types — SSOT in seller-contribution.ts (TRUST-1.1). */
+export {
+  SELLER_CONTRIBUTION_TYPES,
+  type SellerContributionType,
+} from '@/lib/trust/seller-contribution';
