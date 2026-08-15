@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Loader2, ClipboardList } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
@@ -98,12 +98,16 @@ export default function ProposalCard({
   const [commitmentAccepted, setCommitmentAccepted] = useState(false);
   const [consumerCommerce, setConsumerCommerce] =
     useState<ConsumerCommerceContext | null>(null);
+  const productPayloadRef = useRef<Record<string, unknown> | null>(null);
   const [serviceStartAck, setServiceStartAck] = useState(false);
   const [serviceStartRequested, setServiceStartRequested] = useState(false);
 
   const isCreator = proposal.createdById === currentUserId;
   const canAct = proposal.status === "PENDING" && !isCreator;
   const canCancel = proposal.status === "PENDING" && isCreator;
+  const viewerIsSeller = currentUserId === proposal.sellerId;
+  const loadConsumerCommerce =
+    Boolean(proposal.productId) && (canAct || viewerIsSeller);
 
   const barterActors = {
     currentUserId,
@@ -124,7 +128,7 @@ export default function ProposalCard({
   );
 
   useEffect(() => {
-    if (!canAct || !proposal.productId) {
+    if (!loadConsumerCommerce || !proposal.productId) {
       setConsumerCommerce(null);
       return;
     }
@@ -137,6 +141,7 @@ export default function ProposalCard({
         if (!res.ok) return;
         const data = await res.json();
         const product = (data.product || data) as Record<string, unknown>;
+        productPayloadRef.current = product;
         // Overlay proposal money/barter onto product for LEGAL-3 path
         const barter =
           proposal.settlementMode === "VALUE_ONLY"
@@ -172,12 +177,96 @@ export default function ProposalCard({
     })();
     return () => ac.abort();
   }, [
-    canAct,
+    loadConsumerCommerce,
     proposal.productId,
     proposal.amountCents,
     proposal.settlementMode,
     serviceStartRequested,
   ]);
+
+  const refreshConsumerCommerce = async () => {
+    if (!proposal.productId) return;
+    try {
+      const res = await fetch(`/api/products/${proposal.productId}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const product = (data.product || data) as Record<string, unknown>;
+      productPayloadRef.current = product;
+      const barter =
+        proposal.settlementMode === "VALUE_ONLY"
+          ? "BARTER_ONLY"
+          : proposal.settlementMode === "MONEY_AND_VALUE"
+            ? "MONEY_AND_BARTER"
+            : proposal.settlementMode === "FREE" ||
+                proposal.settlementMode === "VOLUNTARY"
+              ? "MONEY"
+              : "MONEY";
+      const priceModel =
+        proposal.settlementMode === "VOLUNTARY"
+          ? "VOLUNTARY"
+          : proposal.settlementMode === "FREE"
+            ? "VOLUNTARY"
+            : "FIXED";
+      setConsumerCommerce(
+        consumerContextFromProductPayload(
+          {
+            ...product,
+            priceCents: proposal.amountCents ?? product.priceCents,
+            priceModel,
+            barterOpenness: barter,
+          },
+          {
+            serviceStartDuringWithdrawalRequested: serviceStartRequested,
+          },
+        ),
+      );
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const applyDeclaredCommerce = (declaration: string) => {
+    const product = productPayloadRef.current;
+    if (!product) {
+      void refreshConsumerCommerce();
+      return;
+    }
+    const seller = {
+      ...((product.seller as Record<string, unknown> | undefined) ?? {}),
+      commerceDeclaration: declaration,
+    };
+    const barter =
+      proposal.settlementMode === "VALUE_ONLY"
+        ? "BARTER_ONLY"
+        : proposal.settlementMode === "MONEY_AND_VALUE"
+          ? "MONEY_AND_BARTER"
+          : proposal.settlementMode === "FREE" ||
+              proposal.settlementMode === "VOLUNTARY"
+            ? "MONEY"
+            : "MONEY";
+    const priceModel =
+      proposal.settlementMode === "VOLUNTARY"
+        ? "VOLUNTARY"
+        : proposal.settlementMode === "FREE"
+          ? "VOLUNTARY"
+          : "FIXED";
+    const nextPayload = {
+      ...product,
+      seller,
+      priceCents: proposal.amountCents ?? product.priceCents,
+      priceModel,
+      barterOpenness: barter,
+    };
+    productPayloadRef.current = nextPayload;
+    setConsumerCommerce(
+      consumerContextFromProductPayload(nextPayload, {
+        serviceStartDuringWithdrawalRequested: serviceStartRequested,
+      }),
+    );
+    void refreshConsumerCommerce();
+  };
 
   const priceLabel = getMarketplacePriceDisplay(
     {
@@ -518,6 +607,12 @@ export default function ProposalCard({
                     variant="proposal"
                     serviceStartAckChecked={serviceStartAck}
                     onServiceStartAckChange={setServiceStartAck}
+                    allowInlineDeclaration={
+                      viewerIsSeller && consumerCommerce.isUndeclaredPath
+                    }
+                    onCommerceDeclared={(declaration) => {
+                      applyDeclaredCommerce(declaration);
+                    }}
                   />
                   {consumerCommerce.isService &&
                   consumerCommerce.isProfessionalSellerPath ? (
@@ -586,6 +681,20 @@ export default function ProposalCard({
               </button>
             </div>
             </div>
+          ) : null}
+
+          {!canAct &&
+          viewerIsSeller &&
+          consumerCommerce?.showConsumerDisclosure &&
+          consumerCommerce.isUndeclaredPath ? (
+            <ConsumerCommerceDisclosure
+              context={consumerCommerce}
+              variant="proposal"
+              allowInlineDeclaration
+              onCommerceDeclared={(declaration) => {
+                applyDeclaredCommerce(declaration);
+              }}
+            />
           ) : null}
 
           {canCancel ? (

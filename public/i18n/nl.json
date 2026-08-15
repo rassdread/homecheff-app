@@ -10231,6 +10231,16 @@
       "help": "Vink alleen aan wat feitelijk klopt voor dit aanbod. Dit is geen automatische vrijstelling — het informeert kopers. TRUST-herkomst ‘gepersonaliseerd’ is niet hetzelfde.",
       "madeToSpec": "Dit item wordt/is gemaakt volgens de individuele specificaties van de koper (op maat / duidelijk gepersonaliseerd).",
       "rapidlyPerishable": "Dit is snel bederfelijk bereid voedsel (niet automatisch elk GROW-product)."
+    },
+    "inlineDeclaration": {
+      "heading": "Geef eenmalig aan hoe je dit aanbiedt",
+      "hint": "Deze keuze bewaren we in je profiel en gebruiken we voortaan automatisch bij je aanbod. Je kunt dit later wijzigen in je instellingen.",
+      "private": "Als particulier",
+      "professional": "Als professioneel / bedrijf",
+      "confirmPrivate": "Bevestig: je biedt aan als particulier / af en toe?",
+      "confirmProfessional": "Bevestig: je biedt aan als professioneel / bedrijf?",
+      "error": "Opslaan mislukt. Probeer het opnieuw.",
+      "settingsLink": "Later wijzigen in instellingen"
     }
   }
 }

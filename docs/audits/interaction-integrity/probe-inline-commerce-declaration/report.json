@@ -1,0 +1,9 @@
+{
+  "at": "2026-08-15T17:15:00.000Z",
+  "mainBefore": "792d99cadb10a7fb893a990c1191c21cb4e569f4",
+  "productionBefore": "dpl_4SBgFswhCmZigsJ9Q47S5w6bCXyC",
+  "mutationOwner": "PUT /api/seller/commerce-declaration",
+  "newField": false,
+  "newEnum": false,
+  "schemaChanged": false
+}

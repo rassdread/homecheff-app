@@ -10231,6 +10231,16 @@
       "help": "Only tick what is factually true for this offer. This informs buyers; it is not an automatic exemption. TRUST ‘personalised’ provenance is not the same.",
       "madeToSpec": "This item is/will be made to the buyer’s individual specifications (custom / clearly personalised).",
       "rapidlyPerishable": "This is rapidly perishable prepared food (not automatically every GROW product)."
+    },
+    "inlineDeclaration": {
+      "heading": "Tell us once how you offer this",
+      "hint": "We save this choice on your profile and reuse it for future offers. You can change it later in settings.",
+      "private": "As a private individual",
+      "professional": "As a professional / business",
+      "confirmPrivate": "Confirm: you offer as a private / occasional seller?",
+      "confirmProfessional": "Confirm: you offer as a professional / business?",
+      "error": "Could not save. Please try again.",
+      "settingsLink": "Change later in settings"
     }
   }
 }
