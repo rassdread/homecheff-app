@@ -9,6 +9,10 @@ import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normali
 import type { ProposalPaymentPath } from './proposal-product-binding';
 import { validateProposalSettlement } from './proposal-settlement';
 import type { ProposalFormValues } from './proposal-form-types';
+import {
+  canProposalHomeCheffCheckout,
+  parseProposalAmountEurosToCents,
+} from './proposal-homecheff-eligibility';
 
 export type ProposalProductContext = {
   id: string;
@@ -16,7 +20,9 @@ export type ProposalProductContext = {
   availableStock: number | null;
   acceptHomeCheffPayment: boolean;
   acceptDirectContact: boolean;
+  /** Seller Connect + HC opt-in (amount checked separately for HC path). */
   canHomeCheffCheckout: boolean;
+  sellerStripeReady?: boolean;
   isActive?: boolean;
 };
 
@@ -29,15 +35,6 @@ export type ProposalReadinessInput = {
 export type ProposalReadinessResult =
   | { ok: true }
   | { ok: false; errorKey: string };
-
-function parseAmountCents(amountEuros: string, showMoney: boolean): number | null {
-  if (!showMoney) return null;
-  const euros = amountEuros.trim()
-    ? parseFloat(amountEuros.replace(',', '.'))
-    : undefined;
-  if (euros == null || !Number.isFinite(euros)) return null;
-  return Math.round(euros * 100);
-}
 
 export function validateProposalReadiness(
   input: ProposalReadinessInput,
@@ -61,7 +58,9 @@ export function validateProposalReadiness(
     form.acceptedValueTaxonomyIds,
   );
 
-  const amountCents = parseAmountCents(form.amountEuros, showMoney);
+  const amountCents = showMoney
+    ? parseProposalAmountEurosToCents(form.amountEuros)
+    : null;
 
   const settlementCheck = validateProposalSettlement({
     settlementMode: form.settlementMode,
@@ -96,8 +95,19 @@ export function validateProposalReadiness(
       return { ok: false, errorKey: 'proposal.productBinding.outOfStock' };
     }
 
-    if (showMoney && form.paymentPath === 'HOMECHEFF_CHECKOUT' && !product.canHomeCheffCheckout) {
-      return { ok: false, errorKey: 'proposal.errors.checkoutNotAvailable' };
+    if (showMoney && form.paymentPath === 'HOMECHEFF_CHECKOUT') {
+      const sellerStripeReady =
+        product.sellerStripeReady ?? product.canHomeCheffCheckout;
+      if (
+        !canProposalHomeCheffCheckout({
+          acceptHomeCheffPayment: product.acceptHomeCheffPayment,
+          sellerStripeReady,
+          settlementMode: form.settlementMode,
+          amountCents,
+        })
+      ) {
+        return { ok: false, errorKey: 'proposal.errors.checkoutNotAvailable' };
+      }
     }
   }
 
@@ -129,13 +139,9 @@ export function formValuesToApiPayload(form: ProposalFormValues, options: {
     form.settlementMode === 'MONEY_AND_VALUE';
 
   const quantity = form.quantity.trim() ? parseInt(form.quantity, 10) : undefined;
-  const euros = form.amountEuros.trim()
-    ? parseFloat(form.amountEuros.replace(',', '.'))
-    : undefined;
-  const amountCents =
-    showMoney && euros != null && Number.isFinite(euros)
-      ? Math.round(euros * 100)
-      : null;
+  const amountCents = showMoney
+    ? parseProposalAmountEurosToCents(form.amountEuros)
+    : null;
 
   return {
     title: form.title.trim(),

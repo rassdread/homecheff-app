@@ -781,22 +781,55 @@ report.cases.ownerListingCardSourceContract = (() => {
       );
     const editAction =
       /data-owner-action="edit"/.test(src) && /handleEdit\(product\)/.test(src);
+    const deleteAction =
+      /data-owner-action="delete"/.test(src) && /confirmDelete\(product\)/.test(src);
     const cardBodyNotEdit =
       !/data-owner-listing-card="true"[\s\S]*?onClick=\{\(\) =>[\s\S]*?buildProductEditPath/.test(
         src,
       );
-    const ok = cardBodyPublic && editAction && cardBodyNotEdit;
+    const ok = cardBodyPublic && editAction && deleteAction && cardBodyNotEdit;
     if (!ok) {
       fail("ownerEdit", "card-body-edit-contract", {
         cardBodyPublic,
         editAction,
+        deleteAction,
         cardBodyNotEdit,
       });
     }
-    return { ok, cardBodyPublic, editAction, cardBodyNotEdit };
+    return { ok, cardBodyPublic, editAction, deleteAction, cardBodyNotEdit };
   } catch (e) {
     fail("ownerEdit", "card-source-read", String(e).slice(0, 120));
     return { ok: false, error: String(e).slice(0, 120) };
+  }
+})();
+
+// --- Negotiated proposal HC eligibility source contract ---
+report.cases.proposalHomecheffEligibilityContract = (() => {
+  try {
+    const elig = readFileSync(
+      join(process.cwd(), "lib/proposals/proposal-homecheff-eligibility.ts"),
+      "utf8",
+    );
+    const fields = readFileSync(
+      join(process.cwd(), "components/chat/proposals/ProposalFieldsSection.tsx"),
+      "utf8",
+    );
+    const binding = readFileSync(
+      join(process.cwd(), "lib/proposals/proposal-product-binding.ts"),
+      "utf8",
+    );
+    const ok =
+      /canProposalHomeCheffCheckout/.test(elig) &&
+      /amountCents/.test(elig) &&
+      !/listing\.priceCents/.test(elig) &&
+      /canProposalHomeCheffCheckout/.test(fields) &&
+      /parseProposalAmountEurosToCents/.test(fields) &&
+      /amountCents: input\.amountCents/.test(binding);
+    if (!ok) fail("proposalHc", "eligibility-source-contract", {});
+    return { ok };
+  } catch (e) {
+    fail("proposalHc", "eligibility-source-read", String(e).slice(0, 120));
+    return { ok: false };
   }
 })();
 
@@ -819,6 +852,8 @@ report.counts = {
   menuBackOk: report.cases.menuBack && !report.cases.menuBack.stillOpen,
   ownerEditPathOk: !!report.cases.ownerEditPathIntegrity?.ok,
   ownerListingCardContractOk: !!report.cases.ownerListingCardSourceContract?.ok,
+  proposalHomecheffEligibilityOk:
+    !!report.cases.proposalHomecheffEligibilityContract?.ok,
 };
 
 const pass =
@@ -828,6 +863,7 @@ const pass =
   report.counts.menuBackOk &&
   report.counts.ownerEditPathOk &&
   report.counts.ownerListingCardContractOk &&
+  report.counts.proposalHomecheffEligibilityOk &&
   report.counts.httpBroken === 0;
 
 report.verdict = pass

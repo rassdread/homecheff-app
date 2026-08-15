@@ -17,6 +17,11 @@ import {
 } from '@/lib/marketplace/listing-taxonomy';
 import { allowedFulfillmentTypes } from './proposal-fulfillment-utils';
 import type { ProposalFulfillmentType } from '@prisma/client';
+import {
+  canProposalHomeCheffCheckout,
+  isSellerEligibleForProposalHomeCheff,
+  proposalHomeCheffCheckoutBlockedReason,
+} from './proposal-homecheff-eligibility';
 
 export type ProposalPaymentPath =
   | 'HOMECHEFF_CHECKOUT'
@@ -38,6 +43,22 @@ export type ProductProposalContext = {
   delivery: string;
   fulfillmentOptions: FulfillmentOptions;
   sellerUser: SellerPaymentsUser;
+  /** Seller Connect ready (canonical). */
+  sellerStripeReady: boolean;
+  /**
+   * Listing/cart HomeCheff eligibility (public price > 0 + accept + Connect).
+   * Do NOT use this alone to gate negotiated proposal checkout.
+   */
+  canListingHomeCheffCheckout: boolean;
+  /**
+   * Seller eligible for proposal HomeCheff once amountCents > 0
+   * (accept + Connect; listing price not required).
+   */
+  sellerEligibleForProposalHomeCheff: boolean;
+  /**
+   * @deprecated Prefer canProposalHomeCheffCheckout(...) with amount.
+   * Kept as sellerEligibleForProposalHomeCheff for older callers.
+   */
   canHomeCheffCheckout: boolean;
   homeCheffCheckoutBlockedReason: string | null;
 };
@@ -115,11 +136,15 @@ export async function loadProductProposalContext(
     product.acceptHomeCheffPayment &&
     product.orderMethod !== 'CONTACT';
   const stripeReady = sellerPaymentsReady(sellerUser);
-  const canHomeCheffCheckout =
+  const canListingHomeCheffCheckout =
     acceptsHomeCheff &&
     hasPublicDisplayPrice(product) &&
     stripeReady &&
     canPurchaseViaHomecheff(product, sellerUser);
+  const sellerEligibleForProposalHomeCheff = isSellerEligibleForProposalHomeCheff({
+    acceptHomeCheffPayment: acceptsHomeCheff,
+    sellerStripeReady: stripeReady,
+  });
 
   const fulfillmentOptions = product.fulfillmentOptions
     ? parseFulfillmentOptions(product.fulfillmentOptions)
@@ -141,7 +166,11 @@ export async function loadProductProposalContext(
     delivery: product.delivery,
     fulfillmentOptions,
     sellerUser,
-    canHomeCheffCheckout,
+    sellerStripeReady: stripeReady,
+    canListingHomeCheffCheckout,
+    sellerEligibleForProposalHomeCheff,
+    // Seller-side eligibility for proposals (amount checked when selecting path).
+    canHomeCheffCheckout: sellerEligibleForProposalHomeCheff,
     homeCheffCheckoutBlockedReason: acceptsHomeCheff && !stripeReady
       ? 'proposal.productBinding.paymentsRequired'
       : null,
@@ -199,6 +228,8 @@ export function validatePaymentPath(input: {
   paymentPath: ProposalPaymentPath;
   settlementMode: string;
   productCtx: ProductProposalContext | null;
+  /** Negotiated proposal amount — required for HOMECHEFF_CHECKOUT. */
+  amountCents?: number | null;
 }): { ok: true } | { ok: false; errorKey: string } {
   const { paymentPath, settlementMode, productCtx } = input;
   const moneyLeg =
@@ -212,11 +243,16 @@ export function validatePaymentPath(input: {
   }
 
   if (paymentPath === 'HOMECHEFF_CHECKOUT') {
-    if (!productCtx?.acceptHomeCheffPayment) {
-      return { ok: false, errorKey: 'proposal.productBinding.checkoutNotAllowed' };
-    }
-    if (!productCtx.canHomeCheffCheckout) {
-      return { ok: false, errorKey: 'proposal.productBinding.paymentsRequired' };
+    const blocked = proposalHomeCheffCheckoutBlockedReason({
+      acceptHomeCheffPayment: Boolean(productCtx?.acceptHomeCheffPayment),
+      sellerStripeReady: Boolean(
+        productCtx?.sellerStripeReady ?? productCtx?.sellerEligibleForProposalHomeCheff,
+      ),
+      settlementMode,
+      amountCents: input.amountCents,
+    });
+    if (blocked) {
+      return { ok: false, errorKey: blocked };
     }
     return { ok: true };
   }
@@ -238,15 +274,30 @@ export function validatePaymentPath(input: {
 export function defaultPaymentPath(input: {
   settlementMode: string;
   productCtx: ProductProposalContext | null;
+  amountCents?: number | null;
 }): ProposalPaymentPath {
   const moneyLeg =
     input.settlementMode === 'MONEY' ||
     input.settlementMode === 'MONEY_AND_VALUE';
   if (!moneyLeg) return 'NONE';
-  if (input.productCtx?.canHomeCheffCheckout) return 'HOMECHEFF_CHECKOUT';
+  if (
+    input.productCtx &&
+    canProposalHomeCheffCheckout({
+      acceptHomeCheffPayment: input.productCtx.acceptHomeCheffPayment,
+      sellerStripeReady: input.productCtx.sellerStripeReady,
+      settlementMode: input.settlementMode,
+      amountCents: input.amountCents,
+    })
+  ) {
+    return 'HOMECHEFF_CHECKOUT';
+  }
+  // Seller eligible but amount not yet set → prefer direct contact as safe default.
   if (input.productCtx?.acceptDirectContact) return 'DIRECT_CONTACT';
+  if (input.productCtx?.sellerEligibleForProposalHomeCheff) return 'NONE';
   return 'NONE';
 }
+
+export { canProposalHomeCheffCheckout, proposalHomeCheffCheckoutBlockedReason };
 
 export async function decrementProductStockOnAccept(
   tx: Pick<typeof prisma, 'product' | 'stockReservation'>,

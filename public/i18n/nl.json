@@ -9500,6 +9500,7 @@
       "fulfillmentOffered": "Fulfillment",
       "fulfillmentDigital": "Digitaal",
       "paymentsRequired": "Verkoper moet betalingen nog instellen voor HomeCheff-checkout.",
+      "amountRequiredForCheckout": "Vul eerst een bedrag in om via HomeCheff af te rekenen.",
       "checkoutNotAllowed": "HomeCheff-checkout niet toegestaan voor dit aanbod.",
       "checkoutNotApplicable": "Checkout niet van toepassing.",
       "directContactNotAllowed": "Direct contact niet toegestaan voor dit aanbod.",

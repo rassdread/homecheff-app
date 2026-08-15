@@ -9500,6 +9500,7 @@
       "fulfillmentOffered": "Fulfillment",
       "fulfillmentDigital": "Digital",
       "paymentsRequired": "Seller must set up payments before HomeCheff checkout.",
+      "amountRequiredForCheckout": "Enter an amount first to pay via HomeCheff.",
       "checkoutNotAllowed": "HomeCheff checkout not allowed for this listing.",
       "checkoutNotApplicable": "Checkout not applicable.",
       "directContactNotAllowed": "Direct contact not allowed for this listing.",

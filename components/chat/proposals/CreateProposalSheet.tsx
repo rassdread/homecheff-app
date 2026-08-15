@@ -159,6 +159,7 @@ export default function CreateProposalSheet({
             acceptHomeCheffPayment: product.acceptHomeCheffPayment,
             acceptDirectContact: product.acceptDirectContact,
             canHomeCheffCheckout: product.canHomeCheffCheckout,
+            sellerStripeReady: product.sellerStripeReady,
             isActive: true,
           }
         : null,
@@ -286,6 +287,7 @@ export default function CreateProposalSheet({
                     acceptHomeCheffPayment: product.acceptHomeCheffPayment,
                     acceptDirectContact: product.acceptDirectContact,
                     canHomeCheffCheckout: product.canHomeCheffCheckout,
+                    sellerStripeReady: product.sellerStripeReady,
                     homeCheffCheckoutBlockedReason:
                       product.homeCheffCheckoutBlockedReason,
                     fulfillmentOptions: product.fulfillmentOptions,

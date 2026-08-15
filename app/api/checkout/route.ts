@@ -17,6 +17,7 @@ import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/
 import { resolveCheckoutBlockReason } from '@/lib/marketplace/settlement/settlement-router';
 import { assertProductsAllergenConfirmationOr400 } from '@/lib/legal/assert-food-allergens-for-transaction';
 import {
+  isHomecheffCheckoutProduct,
   requiresStripeForHomecheffCheckout,
   sellerPaymentsReady,
 } from '@/lib/product/order-method';
@@ -179,7 +180,10 @@ export async function POST(req: NextRequest) {
             orderMethod: p.orderMethod,
             barterOpenness: p.barterOpenness,
             acceptedSpecializations: p.acceptedSpecializations,
-            priceCents: p.priceCents,
+            // Negotiated proposal amounts may exceed listing.priceCents (ON_REQUEST €0).
+            priceCents:
+              items.find((i: { productId: string }) => i.productId === p.id)
+                ?.priceCents ?? p.priceCents,
             priceModel: p.priceModel,
             listingIntent: p.listingIntent,
             sellerStripeReady: sellerPaymentsReady(p.seller?.User),
@@ -202,7 +206,9 @@ export async function POST(req: NextRequest) {
             orderMethod: p.orderMethod,
             barterOpenness: p.barterOpenness,
             acceptedSpecializations: p.acceptedSpecializations,
-            priceCents: p.priceCents,
+            priceCents:
+              items.find((i: { productId: string }) => i.productId === p.id)
+                ?.priceCents ?? p.priceCents,
             priceModel: p.priceModel,
             listingIntent: p.listingIntent,
             sellerStripeReady: sellerPaymentsReady(p.seller?.User),
@@ -218,6 +224,9 @@ export async function POST(req: NextRequest) {
       }
 
       const sellersWithoutPayments = products.filter((product) => {
+        const dealPriceCents =
+          items.find((i: { productId: string }) => i.productId === product.id)
+            ?.priceCents ?? product.priceCents;
         return (
           resolveCheckoutBlockReason({
             acceptHomeCheffPayment: product.acceptHomeCheffPayment,
@@ -225,7 +234,7 @@ export async function POST(req: NextRequest) {
             orderMethod: product.orderMethod,
             barterOpenness: product.barterOpenness,
             acceptedSpecializations: product.acceptedSpecializations,
-            priceCents: product.priceCents,
+            priceCents: dealPriceCents,
             priceModel: product.priceModel,
             listingIntent: product.listingIntent,
             sellerStripeReady: sellerPaymentsReady(product.seller?.User),
@@ -802,7 +811,16 @@ export async function POST(req: NextRequest) {
     // A buyer can be anyone (no Stripe Connect required)
     // Only the sellers need Stripe Connect to receive payouts
     const sellersWithoutConnect = products.filter(product => {
-      if (!requiresStripeForHomecheffCheckout(product)) return false;
+      const dealPriceCents =
+        items.find((i: { productId: string }) => i.productId === product.id)
+          ?.priceCents ?? product.priceCents;
+      // Listing ON_REQUEST (€0) + negotiated deal price still needs Connect.
+      const needsConnect =
+        requiresStripeForHomecheffCheckout(product) ||
+        (isHomecheffCheckoutProduct(product) &&
+          typeof dealPriceCents === 'number' &&
+          dealPriceCents > 0);
+      if (!needsConnect) return false;
       const hasSellerProfile = product.seller && product.seller.User;
       if (!hasSellerProfile) return false;
       return !sellerPaymentsReady(product.seller?.User);

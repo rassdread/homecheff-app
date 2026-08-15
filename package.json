@@ -36,6 +36,7 @@
     "probe:legal-0-integrity": "node scripts/probe-legal-0-integrity.mjs",
     "probe:interaction-integrity": "node scripts/probe-interaction-integrity.mjs",
     "validate:listing-owner-edit-integrity": "npx tsx scripts/validate-listing-owner-edit-integrity.ts",
+    "validate:proposal-homecheff-eligibility": "npx tsx scripts/validate-proposal-homecheff-eligibility.ts",
     "test:overlay-history-back": "npx tsx lib/nav/tests/run-overlay-history-back-tests.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:migration:validate": "tsx scripts/validate-migration-cutoff.ts --strict && tsx scripts/validate-dual-track-migration-config.ts",

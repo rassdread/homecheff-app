@@ -155,7 +155,11 @@ async function resolveProposalFields(
 
   const paymentPath = input.paymentPath
     ? parsePaymentPath(input.paymentPath)
-    : defaultPaymentPath({ settlementMode, productCtx });
+    : defaultPaymentPath({
+        settlementMode,
+        productCtx,
+        amountCents: input.amountCents,
+      });
 
   const validation = validateProposalSettlement({
     settlementMode,
@@ -180,6 +184,7 @@ async function resolveProposalFields(
     paymentPath,
     settlementMode,
     productCtx,
+    amountCents: input.amountCents,
   });
   if (!paymentValidation.ok) {
     throw new ProposalServiceError(paymentValidation.errorKey, 400);

@@ -32,6 +32,10 @@ export type ConversationHeaderProduct = {
   availableStock: number | null;
   acceptHomeCheffPayment: boolean;
   acceptDirectContact: boolean;
+  sellerStripeReady: boolean;
+  sellerEligibleForProposalHomeCheff: boolean;
+  canListingHomeCheffCheckout: boolean;
+  /** Seller eligible for proposal HC once amount > 0 (listing price not required). */
   canHomeCheffCheckout: boolean;
   homeCheffCheckoutBlockedReason: string | null;
   fulfillmentOptions: FulfillmentOptions;
@@ -157,18 +161,22 @@ async function buildProductHeader(product: {
   const acceptsHomeCheff =
     product.acceptHomeCheffPayment && product.orderMethod !== 'CONTACT';
   const stripeReady = sellerPaymentsReady(sellerUser);
-  const canHomeCheffCheckout =
+  const canListingHomeCheffCheckout =
     acceptsHomeCheff &&
     product.isActive &&
     product.priceCents > 0 &&
     stripeReady &&
     canPurchaseViaHomecheff(product, sellerUser);
+  const sellerEligibleForProposalHomeCheff =
+    acceptsHomeCheff && product.isActive && stripeReady;
 
   const fulfillmentOptions = product.fulfillmentOptions
     ? parseFulfillmentOptions(product.fulfillmentOptions)
     : legacyDeliveryToFulfillment(product.delivery);
 
-  const defaultPaymentPath: ProposalPaymentPath = canHomeCheffCheckout
+  // Prefill: HC only when listing already has a public price; otherwise Direct.
+  // Negotiated ON_REQUEST enables HC in the form once amountCents > 0.
+  const defaultPaymentPath: ProposalPaymentPath = canListingHomeCheffCheckout
     ? 'HOMECHEFF_CHECKOUT'
     : product.acceptDirectContact || product.orderMethod === 'CONTACT'
       ? 'DIRECT_CONTACT'
@@ -186,7 +194,7 @@ async function buildProductHeader(product: {
       delivery: product.delivery,
       imageUrl: product.Image[0]?.fileUrl ?? null,
       href: `/product/${product.id}`,
-      canCheckout: canHomeCheffCheckout,
+      canCheckout: canListingHomeCheffCheckout,
       acceptedSpecializations: product.acceptedSpecializations ?? [],
       barterOpenness: product.barterOpenness,
       stock: product.stock,
@@ -195,7 +203,10 @@ async function buildProductHeader(product: {
       acceptHomeCheffPayment: acceptsHomeCheff,
       acceptDirectContact:
         product.acceptDirectContact || product.orderMethod === 'CONTACT',
-      canHomeCheffCheckout,
+      sellerStripeReady: stripeReady,
+      sellerEligibleForProposalHomeCheff,
+      canListingHomeCheffCheckout,
+      canHomeCheffCheckout: sellerEligibleForProposalHomeCheff,
       homeCheffCheckoutBlockedReason:
         acceptsHomeCheff && !stripeReady
           ? 'proposal.productBinding.paymentsRequired'

@@ -39,6 +39,7 @@ function resolveDealUnitPriceCents(input: {
   amountCents: number | null;
   productPriceCents: number;
 }): number {
+  // Negotiated proposal amount is authoritative when present and positive.
   if (typeof input.amountCents === 'number' && input.amountCents > 0) {
     return input.amountCents;
   }

@@ -347,11 +347,46 @@ assert(
       acceptHomeCheffPayment: true,
       acceptDirectContact: true,
       canHomeCheffCheckout: false,
+      sellerStripeReady: false,
       isActive: true,
     },
     isAuthenticated: true,
   }).ok === false,
-  'checkout blocked when canHomeCheffCheckout false',
+  'checkout blocked when seller not Connect-ready',
+);
+assert(
+  validateProposalReadiness({
+    form: moneyForm,
+    product: {
+      id: 'listing-1',
+      barterOpenness: 'MONEY',
+      availableStock: 5,
+      acceptHomeCheffPayment: true,
+      acceptDirectContact: true,
+      canHomeCheffCheckout: true,
+      sellerStripeReady: true,
+      isActive: true,
+    },
+    isAuthenticated: true,
+  }).ok === true,
+  'ON_REQUEST-style: seller eligible + amount enables HC path',
+);
+assert(
+  validateProposalReadiness({
+    form: { ...moneyForm, amountEuros: '' },
+    product: {
+      id: 'listing-1',
+      barterOpenness: 'MONEY',
+      availableStock: 5,
+      acceptHomeCheffPayment: true,
+      acceptDirectContact: true,
+      canHomeCheffCheckout: true,
+      sellerStripeReady: true,
+      isActive: true,
+    },
+    isAuthenticated: true,
+  }).ok === false,
+  'HC path blocked when amount empty (settlement or checkout)',
 );
 const checkoutPayload = formValuesToApiPayload(moneyForm, {
   productId: 'listing-1',

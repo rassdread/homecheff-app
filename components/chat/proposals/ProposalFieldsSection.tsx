@@ -11,6 +11,11 @@ import {
 import type { ProposalFormValues } from '@/lib/proposals/proposal-form-types';
 import type { ProposalPaymentPath } from '@/lib/proposals/proposal-product-binding';
 import { allowedFulfillmentTypes } from '@/lib/proposals/proposal-fulfillment-utils';
+import {
+  canProposalHomeCheffCheckout,
+  parseProposalAmountEurosToCents,
+  proposalHomeCheffCheckoutBlockedReason,
+} from '@/lib/proposals/proposal-homecheff-eligibility';
 
 export type ProposalFieldsProduct = {
   id: string;
@@ -19,7 +24,9 @@ export type ProposalFieldsProduct = {
   availableStock: number | null;
   acceptHomeCheffPayment: boolean;
   acceptDirectContact: boolean;
+  /** Seller eligible once amount > 0 (Connect + HC opt-in). */
   canHomeCheffCheckout: boolean;
+  sellerStripeReady?: boolean;
   homeCheffCheckoutBlockedReason?: string | null;
   fulfillmentOptions?: string | null;
   delivery?: string | null;
@@ -80,9 +87,61 @@ export default function ProposalFieldsSection({
     return 0;
   });
 
+  const amountCents = showMoneyField
+    ? parseProposalAmountEurosToCents(form.amountEuros)
+    : null;
+  const sellerStripeReady =
+    product?.sellerStripeReady ?? Boolean(product?.canHomeCheffCheckout);
+  const canSelectHomeCheff = Boolean(
+    product &&
+      canProposalHomeCheffCheckout({
+        acceptHomeCheffPayment: product.acceptHomeCheffPayment,
+        sellerStripeReady,
+        settlementMode: form.settlementMode,
+        amountCents,
+      }),
+  );
+  const homeCheffDisabledReason =
+    product && showMoneyField && product.acceptHomeCheffPayment && !canSelectHomeCheff
+      ? proposalHomeCheffCheckoutBlockedReason({
+          acceptHomeCheffPayment: product.acceptHomeCheffPayment,
+          sellerStripeReady,
+          settlementMode: form.settlementMode,
+          amountCents,
+        })
+      : null;
+
   const showHomecheffRecommended =
-    product?.canHomeCheffCheckout && product?.acceptHomeCheffPayment;
+    canSelectHomeCheff && product?.acceptHomeCheffPayment;
   const maxQuantity = product?.availableStock ?? undefined;
+
+  // Keep paymentPath coherent when amount enables/disables HomeCheff.
+  const onAmountChange = (value: string) => {
+    const nextCents = parseProposalAmountEurosToCents(value);
+    const next = { ...form, amountEuros: value };
+    if (
+      !product ||
+      (form.settlementMode !== 'MONEY' &&
+        form.settlementMode !== 'MONEY_AND_VALUE')
+    ) {
+      onChange(next);
+      return;
+    }
+    const eligible = canProposalHomeCheffCheckout({
+      acceptHomeCheffPayment: product.acceptHomeCheffPayment,
+      sellerStripeReady,
+      settlementMode: form.settlementMode,
+      amountCents: nextCents,
+    });
+    if (eligible && form.paymentPath !== 'HOMECHEFF_CHECKOUT') {
+      next.paymentPath = 'HOMECHEFF_CHECKOUT';
+    } else if (!eligible && form.paymentPath === 'HOMECHEFF_CHECKOUT') {
+      next.paymentPath = product.acceptDirectContact
+        ? 'DIRECT_CONTACT'
+        : 'NONE';
+    }
+    onChange(next);
+  };
 
   return (
     <div className="space-y-3">
@@ -121,10 +180,15 @@ export default function ProposalFieldsSection({
               {t(DEAL_COMMITMENT_I18N.homecheffHint)}
             </p>
           ) : null}
+          {homeCheffDisabledReason ? (
+            <p className="text-[11px] text-amber-800 mb-2">
+              {t(homeCheffDisabledReason)}
+            </p>
+          ) : null}
           <div className="flex flex-col gap-2">
             {availablePaymentPaths.map((path) => {
               const disabled =
-                path === 'HOMECHEFF_CHECKOUT' && !product?.canHomeCheffCheckout;
+                path === 'HOMECHEFF_CHECKOUT' && !canSelectHomeCheff;
               return (
                 <button
                   key={path}
@@ -207,7 +271,7 @@ export default function ProposalFieldsSection({
               id={`${idPrefix}-amount`}
               inputMode="decimal"
               value={form.amountEuros}
-              onChange={set('amountEuros')}
+              onChange={(e) => onAmountChange(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
           </div>
