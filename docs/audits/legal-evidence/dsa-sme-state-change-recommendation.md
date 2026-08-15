@@ -4,10 +4,11 @@
 
 | Field | Value |
 |---|---|
-| STATE_CHANGE_RECOMMENDED | **YES** |
+| STATE_CHANGE_RECOMMENDED | **YES** — **APPLIED in LEGAL-4A.2** (2026-08-15) |
 | STATE_CHANGE_TARGET | `SME_EXCLUSION_EXPECTED` |
-| CURRENT_PRODUCTION_STATE | `NOT_ASSESSED` |
-| PRODUCTION_CHANGED_IN_4A1 | **NO** |
+| CURRENT_PRODUCTION_STATE | `SME_EXCLUSION_EXPECTED` (see `dsa-sme-promotion-4a2.md`) |
+| PRODUCTION_CHANGED_IN_4A1 | **NO** (docs only) |
+| PRODUCTION_CHANGED_IN_4A2 | **YES** — CompliancePlatformAssessment only |
 | REASON | See `dsa-sme-evidence-4a1-reassessment.md` |
 | REMAINING_MATERIAL_BLOCKERS | **None** for recording `SME_EXCLUSION_EXPECTED` |
 | OPTIONAL_BEFORE_FLIP | Written owner confirmation: no other controlled enterprises in same/adjacent markets; optional accountant one-liner on omzet |

@@ -14,6 +14,7 @@
 | [dsa-sme-evidence-4a1-reassessment.md](./dsa-sme-evidence-4a1-reassessment.md) | **Current** Article 29 / SME reassessment |
 | [dsa-sme-evidence-matrix.md](./dsa-sme-evidence-matrix.md) | Fact matrix |
 | [dsa-sme-state-change-recommendation.md](./dsa-sme-state-change-recommendation.md) | Human gate for state flip |
+| [dsa-sme-promotion-4a2.md](./dsa-sme-promotion-4a2.md) | LEGAL-4A.2 promotion record (applied) |
 | [payment-role-evidence.md](./payment-role-evidence.md) | Part B — Stripe / MoR factual evidence |
 | [stripe-dashboard-checklist.md](./stripe-dashboard-checklist.md) | Part B2 — manual Dashboard checks |
 | [dac7-data-quality.md](./dac7-data-quality.md) | Part D — derive-layer data quality |
