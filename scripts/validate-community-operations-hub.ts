@@ -92,7 +92,10 @@ assert(
 console.log('\nCE-2B.2 Cancel flow');
 assert(exists('app/api/community-orders/[id]/cancel/route.ts'), 'cancel API route exists');
 const cancelService = read('lib/trust/community-order-service.ts');
-assert(cancelService.includes('cancelCommunityOrder'), 'cancelCommunityOrder service exists');
+assert(
+  cancelService.includes('cancelCommunityOrder'),
+  'cancelCommunityOrder service exists',
+);
 assert(
   cancelService.includes("status === 'COMPLETED'") &&
     cancelService.includes("'CANCELLED'"),
@@ -103,12 +106,32 @@ assert(
     cancelService.includes('courierAssignment.updateMany'),
   'cancel cascades DeliveryRequest + CourierAssignment',
 );
+assert(
+  cancelService.includes('checkoutOrderId') &&
+    cancelService.includes("status: 'CANCELLED'") &&
+    cancelService.includes('proposal.updateMany'),
+  'unpaid cancel soft-cancels linked Proposal (no hard delete)',
+);
 const dealCard = read('components/profile/ProfileDealCard.tsx');
 assert(
   dealCard.includes('/cancel') && dealCard.includes('window.confirm'),
   'cancel CTA calls API behind a confirm dialog',
 );
 assert(dealCard.includes("deal.status === 'OPEN'"), 'cancel CTA only for OPEN deals');
+const chatDealCard = read('components/chat/proposals/DealCard.tsx');
+assert(
+  chatDealCard.includes('/api/community-orders/') &&
+    chatDealCard.includes('/cancel') &&
+    chatDealCard.includes('window.confirm'),
+  'chat DealCard exposes confirmed Afspraak annuleren',
+);
+assert(chatDealCard.includes("order.status === 'OPEN'"), 'chat cancel only for OPEN');
+const proposalCard = read('components/chat/proposals/ProposalCard.tsx');
+assert(
+  proposalCard.includes('PROPOSAL_I18N.cancelConfirm') &&
+    proposalCard.includes('canCancel'),
+  'pending sender withdraw uses confirm + cancelProposal',
+);
 
 // ── CE-2B.3 Action required ────────────────────────────────────────────────────
 console.log('\nCE-2B.3 Action required');

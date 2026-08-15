@@ -164,7 +164,7 @@ export function resolveDealUxState(input: {
         deliveryRequestId: null,
       },
       nextAction: 'NONE',
-      checkoutUrl,
+      checkoutUrl: null,
       showPaymentRequired: false,
       showDeliveryRequired: false,
       dealComplete: true,

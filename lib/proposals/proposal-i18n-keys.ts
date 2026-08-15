@@ -61,6 +61,7 @@ export const PROPOSAL_I18N = {
     send: 'proposal.actions.send',
     sendQuote: 'proposal.actions.sendQuote',
   },
+  cancelConfirm: 'proposal.cancelConfirm',
 } as const;
 
 /** User-facing "Jullie afspraak" deal card — hides CommunityOrder terminology */

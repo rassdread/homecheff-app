@@ -8687,7 +8687,7 @@
         "discussPayment": "Bespreek betaling",
         "cancel": "Afspraak annuleren"
       },
-      "cancelConfirm": "Weet je zeker dat je deze afspraak wilt annuleren? Dit kan niet ongedaan worden gemaakt.",
+      "cancelConfirm": "Wil je deze afspraak annuleren?",
       "role": {
         "buyer": "Koper",
         "seller": "Verkoper"
@@ -9554,13 +9554,14 @@
     },
     "actions": {
       "accept": "Accepteren",
-      "reject": "Afwijzen",
-      "counter": "Tegenvoorstel",
-      "cancel": "Voorstel annuleren",
+      "reject": "Weigeren",
+      "counter": "Tegenbod doen",
+      "cancel": "Voorstel intrekken",
       "sendCounter": "Verstuur tegenvoorstel",
       "send": "Voorstel sturen",
       "sendQuote": "Offerte sturen"
     },
+    "cancelConfirm": "Wil je dit voorstel intrekken?",
     "offerHeading": "Wat bied je aan?",
     "preference": {
       "money": "De aanbieder geeft voorkeur aan betaling in geld. Je kunt ook een ander voorstel doen.",

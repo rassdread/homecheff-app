@@ -183,6 +183,13 @@ export default function ProposalCard({
     action: "accept" | "reject" | "counter" | "cancel",
     body?: Record<string, unknown>,
   ) => {
+    if (
+      action === "cancel" &&
+      typeof window !== "undefined" &&
+      !window.confirm(t(PROPOSAL_I18N.cancelConfirm))
+    ) {
+      return;
+    }
     setError(null);
     setBusy(action === "cancel" ? "reject" : action);
     try {

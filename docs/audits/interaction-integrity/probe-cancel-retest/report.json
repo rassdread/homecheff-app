@@ -1,0 +1,43 @@
+{
+  "at": "2026-08-15T15:45:00.000Z",
+  "mainBefore": "62673a535b38539b67cc3efdd8f4efe9ea5c5b5a",
+  "productionBefore": "dpl_Hp1v6kUAJnkY366soQ9dqcMtmwZi",
+  "existingDeal": {
+    "proposalId": "da33d3d8-fde2-4579-8661-ab450c2a464c",
+    "before": { "proposal": "ACCEPTED", "communityOrder": "OPEN", "checkoutOrderId": null },
+    "after": { "proposal": "CANCELLED", "communityOrder": "CANCELLED", "agreementRetained": true },
+    "productStockUnchanged": 0,
+    "stripeMutation": false
+  },
+  "serviceRetest": {
+    "createStayedPending": true,
+    "proposalId": "013fe45b-e93b-4c61-94b6-a1b5b286d518",
+    "withdraw": { "sellerBlocked": true, "buyerCancelled": true },
+    "counter": {
+      "parent": "COUNTERED",
+      "childId": "a11c52cb-f37a-42c3-91dc-7ba07b870bc4",
+      "childStatus": "PENDING",
+      "amountCents": 300,
+      "sellerIsSender": true,
+      "agreementBeforeAccept": false
+    },
+    "accept": {
+      "agreementId": "14f0b1f4-46da-4712-9ec9-264f4cbd4a1a",
+      "communityOrderId": "4c2a9766-98eb-4299-8ff4-ddc7d625f113",
+      "communityOrderStatus": "OPEN",
+      "checkoutOrderId": null
+    },
+    "cleanupCancelled": true
+  },
+  "livePendingForSellerUi": {
+    "proposalId": "63a5bf61-2b09-4317-b01c-f228ea903fbb",
+    "status": "PENDING",
+    "amountCents": 200,
+    "conversationId": "e7fa3394-79d8-4d53-bd8b-db36275f252b",
+    "instruction": "Open chat as seller — expect Accepteren / Tegenbod doen / Weigeren (after deploy for NL labels)"
+  },
+  "httpProbe": {
+    "phase51Login": false,
+    "note": "Disposable Phase51 credentials no longer valid on production; used ProposalService against prod DB instead"
+  }
+}

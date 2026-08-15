@@ -137,6 +137,18 @@ export async function cancelCommunityOrder(
       data: { status: 'CANCELLED', cancelledAt: now },
     });
 
+    // Unpaid accepted deals: soft-cancel the proposal for a clear audit trail.
+    // Agreement row is retained (no hard delete). No Stripe / Product / inventory mutation.
+    if (!existing.checkoutOrderId) {
+      await tx.proposal.updateMany({
+        where: {
+          id: existing.proposalId,
+          status: { in: ['ACCEPTED', 'PENDING', 'COUNTERED'] },
+        },
+        data: { status: 'CANCELLED' },
+      });
+    }
+
     const deliveryRequests = await tx.deliveryRequest.findMany({
       where: { communityOrderId },
       select: { id: true },

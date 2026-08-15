@@ -8687,7 +8687,7 @@
         "discussPayment": "Discuss payment",
         "cancel": "Cancel agreement"
       },
-      "cancelConfirm": "Are you sure you want to cancel this agreement? This cannot be undone.",
+      "cancelConfirm": "Do you want to cancel this agreement?",
       "role": {
         "buyer": "Buyer",
         "seller": "Seller"
@@ -9556,11 +9556,12 @@
       "accept": "Accept",
       "reject": "Decline",
       "counter": "Counter offer",
-      "cancel": "Cancel proposal",
+      "cancel": "Withdraw proposal",
       "sendCounter": "Send counter offer",
       "send": "Send proposal",
       "sendQuote": "Send quote"
     },
+    "cancelConfirm": "Do you want to withdraw this proposal?",
     "offerHeading": "What are you offering?",
     "preference": {
       "money": "The provider prefers payment in money. You can still make a different proposal.",

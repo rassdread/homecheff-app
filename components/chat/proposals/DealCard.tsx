@@ -14,7 +14,12 @@ import MarketplaceBadgeList from '@/components/marketplace/MarketplaceBadgeList'
 import { useTranslation } from '@/hooks/useTranslation';
 import { resolveDealUxState, type DealPrimaryCtaKind } from '@/lib/proposals/deal-ux-state';
 import { paymentPathFromSummary } from '@/lib/proposals/proposal-accept-routing';
-import { DEAL_I18N, DEAL_COMMITMENT_I18N, PROPOSAL_I18N } from '@/lib/proposals/proposal-i18n-keys';
+import {
+  DEAL_I18N,
+  DEAL_COMMITMENT_I18N,
+  PROPOSAL_I18N,
+  PROFILE_DEALS_I18N,
+} from '@/lib/proposals/proposal-i18n-keys';
 import { normalizeBarterOfferImageUrls } from '@/lib/proposals/barter-offer-images';
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
@@ -158,6 +163,39 @@ export default function DealCard({
         if (data.communityOrder.status === 'COMPLETED') {
           setCanReviewDeal(true);
         }
+      }
+    } catch {
+      setActionError(t('common.error'));
+    } finally {
+      setActionBusy(false);
+    }
+  }, [order.id, onCommunityOrderUpdated, t]);
+
+  const cancelOrder = useCallback(async () => {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(t(PROFILE_DEALS_I18N.cancelConfirm))
+    ) {
+      return;
+    }
+    setActionError(null);
+    setActionBusy(true);
+    try {
+      const res = await fetch(`/api/community-orders/${order.id}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errKey =
+          typeof data.errorKey === 'string' ? data.errorKey : null;
+        setActionError(errKey ? t(errKey) : data.error || t('common.error'));
+        return;
+      }
+      if (data.communityOrder) {
+        setOrder(data.communityOrder);
+        onCommunityOrderUpdated?.(data.communityOrder);
       }
     } catch {
       setActionError(t('common.error'));
@@ -344,6 +382,17 @@ export default function DealCard({
             </p>
           ) : null}
         </div>
+      ) : null}
+
+      {order.status === 'OPEN' ? (
+        <button
+          type="button"
+          disabled={actionBusy}
+          onClick={() => void cancelOrder()}
+          className="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+        >
+          {t(PROFILE_DEALS_I18N.actions.cancel)}
+        </button>
       ) : null}
 
       {actionError ? (
