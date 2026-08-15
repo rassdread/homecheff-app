@@ -9506,7 +9506,8 @@
       "directContactNotAllowed": "Direct contact niet toegestaan voor dit aanbod.",
       "paymentPathRequired": "Kies een betaalwijze.",
       "fulfillmentNotOffered": "Deze fulfillment-optie wordt niet aangeboden.",
-      "stockUnavailableOnAccept": "Voorraad niet meer beschikbaar bij accepteren."
+      "stockUnavailableOnAccept": "Voorraad niet meer beschikbaar bij accepteren.",
+      "stockNegotiable": "Beschikbaarheid wordt bij afspraak bevestigd — je kunt wel een voorstel sturen."
     },
     "nextAction": {
       "none": "Afspraak vastgelegd.",

@@ -27,6 +27,7 @@ import {
 } from './proposal-product-binding';
 import { allowedBuyerProposalSettlementModes } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import { normalizeBarterOfferImageUrls } from '@/lib/proposals/barter-offer-images';
+import { proposalNegotiationIgnoresStockAvailability } from '@/lib/proposals/proposal-stock-policy';
 import { DeliveryRequestService } from '@/lib/delivery/delivery-request-service';
 import { serializeDeliveryRequest } from '@/lib/delivery/serialize-delivery-marketplace';
 import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
@@ -196,6 +197,11 @@ async function resolveProposalFields(
     const stockCheck = validateProposalQuantityAgainstStock(
       productCtx.availableStock,
       input.quantity,
+      {
+        priceModel: productCtx.priceModel,
+        marketplaceCategory: productCtx.marketplaceCategory,
+        fulfillmentOptions: productCtx.fulfillmentOptions,
+      },
     );
     if (!stockCheck.ok) {
       throw new ProposalServiceError(stockCheck.errorKey, 400);
@@ -446,7 +452,10 @@ export class ProposalService {
         proposal.productId &&
         proposal.quantity &&
         proposal.quantity > 0 &&
-        paymentPath !== 'HOMECHEFF_CHECKOUT'
+        paymentPath !== 'HOMECHEFF_CHECKOUT' &&
+        !proposalNegotiationIgnoresStockAvailability({
+          priceModel: summaryBase?.priceModel ?? null,
+        })
       ) {
         try {
           await decrementProductStockOnAccept(

@@ -22,6 +22,17 @@ import {
   isSellerEligibleForProposalHomeCheff,
   proposalHomeCheffCheckoutBlockedReason,
 } from './proposal-homecheff-eligibility';
+import {
+  proposalNegotiationIgnoresStockAvailability,
+  validateProposalQuantityAgainstStock,
+  type ProposalStockPolicyInput,
+} from './proposal-stock-policy';
+
+export {
+  proposalNegotiationIgnoresStockAvailability,
+  validateProposalQuantityAgainstStock,
+};
+export type { ProposalStockPolicyInput };
 
 export type ProposalPaymentPath =
   | 'HOMECHEFF_CHECKOUT'
@@ -33,6 +44,7 @@ export type ProductProposalContext = {
   title: string;
   priceCents: number;
   priceModel: string;
+  marketplaceCategory: string | null;
   stock: number;
   maxStock: number | null;
   availableStock: number | null;
@@ -90,6 +102,7 @@ export async function loadProductProposalContext(
       title: true,
       priceCents: true,
       priceModel: true,
+      marketplaceCategory: true,
       stock: true,
       maxStock: true,
       acceptHomeCheffPayment: true,
@@ -155,6 +168,7 @@ export async function loadProductProposalContext(
     title: product.title,
     priceCents: product.priceCents,
     priceModel: product.priceModel,
+    marketplaceCategory: product.marketplaceCategory,
     stock: product.stock,
     maxStock: product.maxStock,
     availableStock,
@@ -178,32 +192,6 @@ export async function loadProductProposalContext(
 }
 
 export { allowedFulfillmentTypes } from './proposal-fulfillment-utils';
-
-export function validateProposalQuantityAgainstStock(
-  availableStock: number | null,
-  quantity: number | null | undefined,
-): { ok: true } | { ok: false; errorKey: string; available?: number } {
-  if (availableStock == null) return { ok: true };
-  const qty = quantity ?? 1;
-  if (qty < 1) {
-    return { ok: false, errorKey: 'proposal.errors.quantityRequired' };
-  }
-  if (availableStock <= 0) {
-    return {
-      ok: false,
-      errorKey: 'proposal.productBinding.outOfStock',
-      available: 0,
-    };
-  }
-  if (qty > availableStock) {
-    return {
-      ok: false,
-      errorKey: 'proposal.productBinding.exceedsStock',
-      available: availableStock,
-    };
-  }
-  return { ok: true };
-}
 
 export function validateFulfillmentForProduct(
   productCtx: ProductProposalContext,

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +6,7 @@ import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList"
 import { useTranslation } from "@/hooks/useTranslation";
 import { getMarketplacePriceDisplay } from "@/lib/marketplace/price-display";
 import type { ConversationHeaderProduct } from "@/lib/communication/resolveConversationHeader";
+import { proposalNegotiationIgnoresStockAvailability } from "@/lib/proposals/proposal-stock-policy";
 
 type Props = {
   product: ConversationHeaderProduct;
@@ -33,6 +34,12 @@ export default function ProposalProductSummary({ product }: Props) {
   if (product.fulfillmentOptions.digital) {
     fulfillmentLabels.push(t("proposal.productBinding.fulfillmentDigital"));
   }
+
+  const stockIsInformational = proposalNegotiationIgnoresStockAvailability({
+    priceModel: product.priceModel,
+    marketplaceCategory: product.marketplaceCategory,
+    fulfillmentOptions: product.fulfillmentOptions,
+  });
 
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 space-y-2">
@@ -65,7 +72,9 @@ export default function ProposalProductSummary({ product }: Props) {
       {product.availableStock != null ? (
         <p className="text-[11px] text-indigo-700">
           {product.availableStock <= 0
-            ? t("proposal.productBinding.outOfStock")
+            ? stockIsInformational
+              ? t("proposal.productBinding.stockNegotiable")
+              : t("proposal.productBinding.outOfStock")
             : t("proposal.productBinding.stockAvailable", {
                 count: product.availableStock,
               })}

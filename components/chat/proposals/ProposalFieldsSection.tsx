@@ -12,12 +12,14 @@ import {
 import type { ProposalFormValues } from '@/lib/proposals/proposal-form-types';
 import type { ProposalPaymentPath } from '@/lib/proposals/proposal-product-binding';
 import { allowedFulfillmentTypes } from '@/lib/proposals/proposal-fulfillment-utils';
+import type { FulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
 import {
   canProposalHomeCheffCheckout,
   parseProposalAmountEurosToCents,
   proposalHomeCheffCheckoutBlockedReason,
 } from '@/lib/proposals/proposal-homecheff-eligibility';
 import { sellerBarterPreferenceHintKey } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { proposalNegotiationIgnoresStockAvailability } from '@/lib/proposals/proposal-stock-policy';
 
 export type ProposalFieldsProduct = {
   id: string;
@@ -30,9 +32,11 @@ export type ProposalFieldsProduct = {
   canHomeCheffCheckout: boolean;
   sellerStripeReady?: boolean;
   homeCheffCheckoutBlockedReason?: string | null;
-  fulfillmentOptions?: string | null;
+  fulfillmentOptions?: FulfillmentOptions;
   delivery?: string | null;
   barterOpenness?: string | null;
+  priceModel?: string | null;
+  marketplaceCategory?: string | null;
 };
 
 type Props = {
@@ -75,7 +79,7 @@ export default function ProposalFieldsSection({
     form.settlementMode === 'MONEY_AND_VALUE';
   const showPaymentPath = showMoneyField && Boolean(product);
 
-  const fulfillmentOptions = product
+  const fulfillmentOptions = product?.fulfillmentOptions
     ? allowedFulfillmentTypes(product.fulfillmentOptions)
     : (['PICKUP', 'DELIVERY'] as const);
 
@@ -116,7 +120,21 @@ export default function ProposalFieldsSection({
 
   const showHomecheffRecommended =
     canSelectHomeCheff && product?.acceptHomeCheffPayment;
-  const maxQuantity = product?.availableStock ?? undefined;
+  const ignoreStockCap =
+    product != null &&
+    proposalNegotiationIgnoresStockAvailability({
+      priceModel: product.priceModel,
+      marketplaceCategory: product.marketplaceCategory,
+      fulfillmentOptions:
+        product.fulfillmentOptions &&
+        typeof product.fulfillmentOptions === 'object'
+          ? product.fulfillmentOptions
+          : null,
+    });
+  const maxQuantity =
+    ignoreStockCap || product?.availableStock == null
+      ? undefined
+      : product.availableStock;
   const preferenceKey = product
     ? sellerBarterPreferenceHintKey(product.barterOpenness)
     : null;

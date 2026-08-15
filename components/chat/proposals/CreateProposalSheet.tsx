@@ -130,7 +130,39 @@ export default function CreateProposalSheet({
     Boolean(product);
 
   const sendLabelKey = resolveProposalSendLabelKey(product?.marketplaceCategory);
-  const maxQuantity = product?.availableStock ?? undefined;
+
+  const readinessProduct = useMemo(
+    () =>
+      product
+        ? {
+            id: product.id,
+            barterOpenness: product.barterOpenness,
+            availableStock: product.availableStock,
+            acceptHomeCheffPayment: product.acceptHomeCheffPayment,
+            acceptDirectContact: product.acceptDirectContact,
+            canHomeCheffCheckout: product.canHomeCheffCheckout,
+            sellerStripeReady: product.sellerStripeReady,
+            isActive: true as const,
+            priceModel: product.priceModel,
+            marketplaceCategory: product.marketplaceCategory,
+            fulfillmentDigital: Boolean(product.fulfillmentOptions?.digital),
+          }
+        : null,
+    [product],
+  );
+
+  const liveReadiness = useMemo(
+    () =>
+      validateProposalReadiness({
+        form,
+        product: readinessProduct,
+        isAuthenticated: sessionStatus === "authenticated",
+      }),
+    [form, readinessProduct, sessionStatus],
+  );
+
+  const submitBlockedReason =
+    !busy && !liveReadiness.ok ? liveReadiness.errorKey : null;
 
   if (!open) return null;
 
@@ -140,18 +172,7 @@ export default function CreateProposalSheet({
 
     const readiness = validateProposalReadiness({
       form,
-      product: product
-        ? {
-            id: product.id,
-            barterOpenness: product.barterOpenness,
-            availableStock: product.availableStock,
-            acceptHomeCheffPayment: product.acceptHomeCheffPayment,
-            acceptDirectContact: product.acceptDirectContact,
-            canHomeCheffCheckout: product.canHomeCheffCheckout,
-            sellerStripeReady: product.sellerStripeReady,
-            isActive: true,
-          }
-        : null,
+      product: readinessProduct,
       isAuthenticated: sessionStatus === "authenticated",
     });
     if (!readiness.ok) {
@@ -282,6 +303,8 @@ export default function CreateProposalSheet({
                     fulfillmentOptions: product.fulfillmentOptions,
                     delivery: product.delivery,
                     barterOpenness: product.barterOpenness,
+                    priceModel: product.priceModel,
+                    marketplaceCategory: product.marketplaceCategory,
                   }
                 : null
             }
@@ -297,11 +320,15 @@ export default function CreateProposalSheet({
             <p className="text-sm text-red-600" role="alert">
               {error}
             </p>
+          ) : submitBlockedReason ? (
+            <p className="text-sm text-amber-800" role="status">
+              {t(submitBlockedReason)}
+            </p>
           ) : null}
 
           <button
             type="submit"
-            disabled={busy || (maxQuantity != null && maxQuantity <= 0)}
+            disabled={busy || !liveReadiness.ok}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {busy ? (

@@ -856,6 +856,10 @@ report.cases.buyerCounterofferBarterContract = (() => {
       join(process.cwd(), "components/chat/proposals/CounterProposalForm.tsx"),
       "utf8",
     );
+    const stockPolicy = readFileSync(
+      join(process.cwd(), "lib/proposals/proposal-stock-policy.ts"),
+      "utf8",
+    );
     const ok =
       /allowedBuyerProposalSettlementModes/.test(align) &&
       /sellerBarterPreferenceHintKey/.test(align) &&
@@ -864,7 +868,11 @@ report.cases.buyerCounterofferBarterContract = (() => {
       /BarterOfferImageUploader/.test(fields) &&
       /sellerBarterPreferenceHintKey/.test(fields) &&
       /allowedBuyerProposalSettlementModes/.test(counter) &&
-      !/validateSettlementAgainstBarterOpenness/.test(service);
+      !/validateSettlementAgainstBarterOpenness/.test(service) &&
+      /proposalNegotiationIgnoresStockAvailability/.test(stockPolicy) &&
+      /liveReadiness/.test(sheet) &&
+      /submitBlockedReason/.test(sheet) &&
+      !/maxQuantity != null && maxQuantity <= 0/.test(sheet);
     if (!ok) fail("buyerBarter", "counteroffer-source-contract", {});
     return { ok };
   } catch (e) {

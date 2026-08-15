@@ -9506,7 +9506,8 @@
       "directContactNotAllowed": "Direct contact not allowed for this listing.",
       "paymentPathRequired": "Choose a payment path.",
       "fulfillmentNotOffered": "This fulfillment option is not offered.",
-      "stockUnavailableOnAccept": "Stock no longer available on accept."
+      "stockUnavailableOnAccept": "Stock no longer available on accept.",
+      "stockNegotiable": "Availability is confirmed when you agree — you can still send a proposal."
     },
     "nextAction": {
       "none": "Deal confirmed.",

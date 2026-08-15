@@ -14,6 +14,7 @@ import {
   parseProposalAmountEurosToCents,
 } from './proposal-homecheff-eligibility';
 import { normalizeBarterOfferImageUrls } from './barter-offer-images';
+import { validateProposalQuantityAgainstStock } from './proposal-stock-policy';
 
 export type ProposalProductContext = {
   id: string;
@@ -25,6 +26,9 @@ export type ProposalProductContext = {
   canHomeCheffCheckout: boolean;
   sellerStripeReady?: boolean;
   isActive?: boolean;
+  priceModel?: string | null;
+  marketplaceCategory?: string | null;
+  fulfillmentDigital?: boolean;
 };
 
 export type ProposalReadinessInput = {
@@ -81,20 +85,16 @@ export function validateProposalReadiness(
     }
 
     const qty = form.quantity.trim() ? parseInt(form.quantity, 10) : undefined;
-    if (
-      product.availableStock != null &&
-      qty != null &&
-      Number.isFinite(qty) &&
-      qty > product.availableStock
-    ) {
-      return {
-        ok: false,
-        errorKey: 'proposal.productBinding.exceedsStock',
-      };
-    }
-    if (product.availableStock != null && product.availableStock <= 0) {
-      return { ok: false, errorKey: 'proposal.productBinding.outOfStock' };
-    }
+    const stockCheck = validateProposalQuantityAgainstStock(
+      product.availableStock,
+      Number.isFinite(qty!) ? qty : null,
+      {
+        priceModel: product.priceModel,
+        marketplaceCategory: product.marketplaceCategory,
+        fulfillmentOptions: { digital: product.fulfillmentDigital === true },
+      },
+    );
+    if (!stockCheck.ok) return { ok: false, errorKey: stockCheck.errorKey };
 
     if (showMoney && form.paymentPath === 'HOMECHEFF_CHECKOUT') {
       const sellerStripeReady =
