@@ -32,8 +32,8 @@ Classification: layout SEO redirect applied to edit child route.
 
 | Control | Surface | Expected | Before | After |
 |---|---|---|---|---|
-| Bewerken / Edit | Profile Aanbod card | `/product/.../edit` | Public detail | Edit route |
-| Card body click | Profile Aanbod | Edit (card is edit-primary) | Same redirect bug | Edit route |
+| Bewerken / Edit | Profile Aanbod card | `/product/.../edit` | Public detail (SEO strip) | Edit route |
+| Card body click | Profile Aanbod | Public listing | Went to edit (then stripped) | Public listing |
 | View on marketplace | Profile Aanbod | Public listing | OK (stopPropagation) | OK + boundary |
 | Delete | Profile Aanbod | Confirm delete | OK | OK + boundary |
 | Product bewerken | Listing detail owner CTA | slug/edit | Already slug | `buildProductEditPath` |

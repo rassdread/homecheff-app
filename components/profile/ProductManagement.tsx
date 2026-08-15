@@ -10,7 +10,7 @@ import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodA
 import type { ProfileV2AanbodFilter, ProfileV2User } from '@/lib/profile/profile-v2/types';
 import type { DiscoveryReadModel } from '@/lib/discovery/contracts/discovery-read-model';
 import { getDiscoveryLegacyVerticalCategory } from '@/lib/discovery/consumer-accessors';
-import { buildProductDetailPath, buildProductEditPath } from '@/lib/seo/productSlug';
+import { buildProductEditPath } from '@/lib/seo/productSlug';
 import { cardActionBoundaryProps, stopCardNavigation } from '@/lib/ui/card-action-boundary';
 
 type Product = {
@@ -249,9 +249,8 @@ export default function ProductManagement({
               <div 
                 key={product.id} 
                 className="rounded-xl border bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() =>
-                  router.push(buildProductEditPath(product.title, null, product.id))
-                }
+                data-owner-listing-card="true"
+                onClick={() => router.push(`/product/${product.id}`)}
               >
                 {/* Product Image */}
                 <div className="relative">
@@ -382,6 +381,7 @@ export default function ProductManagement({
                     <div className="flex items-center space-x-2">
                       <button 
                         type="button"
+                        data-owner-action="edit"
                         onClick={(e) => {
                           stopCardNavigation(e);
                           handleEdit(product);
@@ -395,6 +395,7 @@ export default function ProductManagement({
                       
                       <button 
                         type="button"
+                        data-owner-action="view-public"
                         onClick={(e) => {
                           stopCardNavigation(e);
                           router.push(`/product/${product.id}`);
@@ -408,6 +409,7 @@ export default function ProductManagement({
                       
                       <button 
                         type="button"
+                        data-owner-action="delete"
                         onClick={(e) => {
                           stopCardNavigation(e);
                           confirmDelete(product);

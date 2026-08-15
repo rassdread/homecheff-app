@@ -65,4 +65,16 @@ assert.match(boundary, /cardActionBoundaryProps/);
 assert.match(productMgmt, /cardActionBoundaryProps/);
 assert.match(productMgmt, /buildProductEditPath/);
 
+console.log('5) Profile Aanbod card contract: body → public, Edit → edit');
+assert.match(
+  productMgmt,
+  /data-owner-listing-card="true"[\s\S]*?onClick=\{\(\) => router\.push\(`\/product\/\$\{product\.id\}`\)\}/,
+);
+assert.match(productMgmt, /data-owner-action="edit"/);
+assert.match(productMgmt, /handleEdit\(product\)/);
+assert.doesNotMatch(
+  productMgmt,
+  /data-owner-listing-card="true"[\s\S]*?onClick=\{\(\) =>[\s\S]*?buildProductEditPath/,
+);
+
 console.log('\nHOMECHEFF_LISTING_OWNER_EDIT_INTEGRITY_VALIDATED');

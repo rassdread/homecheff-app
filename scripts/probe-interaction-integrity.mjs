@@ -768,6 +768,38 @@ report.cases.ownerEditPathIntegrity = await withPage("desk1280", async (page) =>
   };
 });
 
+// --- Source contract: owner listing card body ≠ Edit destination ---
+report.cases.ownerListingCardSourceContract = (() => {
+  try {
+    const src = readFileSync(
+      join(process.cwd(), "components/profile/ProductManagement.tsx"),
+      "utf8",
+    );
+    const cardBodyPublic =
+      /data-owner-listing-card="true"[\s\S]*?onClick=\{\(\) => router\.push\(`\/product\/\$\{product\.id\}`\)\}/.test(
+        src,
+      );
+    const editAction =
+      /data-owner-action="edit"/.test(src) && /handleEdit\(product\)/.test(src);
+    const cardBodyNotEdit =
+      !/data-owner-listing-card="true"[\s\S]*?onClick=\{\(\) =>[\s\S]*?buildProductEditPath/.test(
+        src,
+      );
+    const ok = cardBodyPublic && editAction && cardBodyNotEdit;
+    if (!ok) {
+      fail("ownerEdit", "card-body-edit-contract", {
+        cardBodyPublic,
+        editAction,
+        cardBodyNotEdit,
+      });
+    }
+    return { ok, cardBodyPublic, editAction, cardBodyNotEdit };
+  } catch (e) {
+    fail("ownerEdit", "card-source-read", String(e).slice(0, 120));
+    return { ok: false, error: String(e).slice(0, 120) };
+  }
+})();
+
 await browser.close();
 
 const tested =
@@ -786,6 +818,7 @@ report.counts = {
   careerLandscapeOk: !!report.cases.careerLandscape?.ok,
   menuBackOk: report.cases.menuBack && !report.cases.menuBack.stillOpen,
   ownerEditPathOk: !!report.cases.ownerEditPathIntegrity?.ok,
+  ownerListingCardContractOk: !!report.cases.ownerListingCardSourceContract?.ok,
 };
 
 const pass =
@@ -794,6 +827,7 @@ const pass =
   report.counts.careerLandscapeOk &&
   report.counts.menuBackOk &&
   report.counts.ownerEditPathOk &&
+  report.counts.ownerListingCardContractOk &&
   report.counts.httpBroken === 0;
 
 report.verdict = pass
