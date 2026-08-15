@@ -40,6 +40,10 @@ import {
 import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
 import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
 import { buildAllergenConfirmationUpdate } from '@/lib/legal/food-allergen-context';
+import {
+  contributionRequiredForPublish,
+  parseContributionPayloadFromBody,
+} from '@/lib/trust/seller-contribution';
 import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-dish';
 import { listingProductCacheTag } from '@/lib/marketplace/detail/get-cached-listing-product-core';
 
@@ -734,6 +738,41 @@ export async function PATCH(
           if (allergenPatch) {
             updateData.allergens = allergenPatch.allergens;
             updateData.allergensConfirmedAt = allergenPatch.allergensConfirmedAt;
+          }
+
+          if (
+            body.sellerContributionTypes !== undefined ||
+            body.sellerContributionNote !== undefined
+          ) {
+            const contribution = parseContributionPayloadFromBody(body);
+            const intent =
+              body.listingIntent !== undefined
+                ? body.listingIntent
+                : (product as { listingIntent?: string }).listingIntent;
+            if (
+              contributionRequiredForPublish({
+                listingIntent:
+                  typeof intent === 'string' ? intent : 'OFFER',
+                isEdit: true,
+                integrityStatus: (product as { integrityStatus?: string })
+                  .integrityStatus,
+              }) &&
+              contribution.sellerContributionTypes.length === 0
+            ) {
+              return NextResponse.json(
+                {
+                  error:
+                    'Geef aan wat jij zelf aan dit aanbod hebt gedaan (minimaal één bijdrage).',
+                  errorKey: 'trust.contribution.required',
+                },
+                { status: 400 },
+              );
+            }
+            updateData.sellerContributionTypes =
+              contribution.sellerContributionTypes;
+            updateData.sellerContributionNote =
+              contribution.sellerContributionNote;
+            updateData.sellerContributionUpdatedAt = new Date();
           }
 
           // Update images if provided

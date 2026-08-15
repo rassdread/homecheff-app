@@ -22,6 +22,13 @@ import {
   shouldTemporarilyHideFromCredibility,
   INTEGRITY_HIDE_MIN_UNIQUE_REPORTERS,
 } from '../lib/trust/credibility';
+import {
+  SELLER_CONTRIBUTION_TYPES,
+  contributionDeclarationState,
+  contributionRequiredForPublish,
+  parseSellerContributionTypes,
+  suggestedContributionTypes,
+} from '../lib/trust/seller-contribution';
 
 const ROOT = process.cwd();
 function read(rel: string) {
@@ -169,4 +176,99 @@ assert.deepEqual(productIntegrityPublicWhere().integrityStatus.in, [
   assert.equal(submit.includes('allergensConfirmedAt'), false);
 }
 
-console.log('TRUST-1 marketplace integrity validation: OK');
+// TRUST-1.1 — seller contribution registry + publish policy + no feed cost
+{
+  assert.equal(SELLER_CONTRIBUTION_TYPES.includes('OWN_SERVICE'), true);
+  assert.equal(SELLER_CONTRIBUTION_TYPES.includes('TRANSFORMED'), true);
+  assert.equal(contributionDeclarationState([]), 'NOT_DECLARED');
+  assert.equal(contributionDeclarationState(['MADE']), 'DECLARED');
+  assert.equal(
+    contributionRequiredForPublish({ listingIntent: 'OFFER', isEdit: false }),
+    true,
+  );
+  assert.equal(
+    contributionRequiredForPublish({ listingIntent: 'REQUEST', isEdit: false }),
+    false,
+  );
+  assert.equal(
+    contributionRequiredForPublish({
+      listingIntent: 'OFFER',
+      isEdit: true,
+      integrityStatus: 'ACTIVE',
+    }),
+    false,
+  );
+  assert.equal(
+    contributionRequiredForPublish({
+      listingIntent: 'OFFER',
+      isEdit: true,
+      integrityStatus: 'TEMPORARILY_HIDDEN',
+    }),
+    true,
+  );
+  assert.deepEqual(suggestedContributionTypes({ marketplaceCategory: 'GROW' }), [
+    'GROWN',
+  ]);
+  assert.deepEqual(
+    suggestedContributionTypes({ marketplaceCategory: 'ARTISTIC_SERVICE' }),
+    ['OWN_SERVICE'],
+  );
+  assert.deepEqual(parseSellerContributionTypes(['TRANSFORMED', 'bogus']), [
+    'TRANSFORMED',
+  ]);
+
+  const schema = read('prisma/schema.prisma');
+  assert.match(schema, /sellerContributionTypes/);
+  assert.match(schema, /sellerContributionNote/);
+  const mig11 = read(
+    'prisma/migrations/20260815120000_trust11_seller_contribution/migration.sql',
+  );
+  assert.match(mig11, /sellerContributionTypes/);
+  assert.equal(mig11.toLowerCase().includes('update "product" set'), false);
+  assert.equal(/UPDATE\s+"Product"\s+SET/i.test(mig11), false);
+
+  const feedQ = read('lib/feed/feed-product-query.server.ts');
+  assert.equal(feedQ.includes('sellerContribution'), false);
+
+  const clarify = read('lib/trust/seller-integrity-clarification.ts');
+  assert.match(clarify, /SELLER_CLARIFICATION/);
+  assert.equal(clarify.includes('isActive: true'), false);
+  assert.equal(clarify.includes("integrityStatus: 'ACTIVE'"), false);
+
+  const admin = read('lib/trust/admin-integrity-actions.ts');
+  assert.match(admin, /adminRequestContributionChanges/);
+  assert.match(admin, /sellerIsActiveUnchanged/);
+
+  // Threshold frozen
+  assert.equal(INTEGRITY_HIDE_MIN_UNIQUE_REPORTERS, 3);
+  const cred = read('lib/trust/credibility.ts');
+  assert.match(cred, /INTEGRITY_HIDE_MIN_WEIGHT_SUM = 2\.5/);
+
+  // UI wiring present (no dead control markers)
+  assert.match(
+    read('components/trust/SellerContributionSelector.tsx'),
+    /data-hc-seller-contribution/,
+  );
+  assert.match(
+    read('components/trust/ProductIntegrityUnavailable.tsx'),
+    /data-hc-integrity-clarify-submit/,
+  );
+  assert.match(
+    read('components/admin/IntegrityQueuePanel.tsx'),
+    /data-hc-integrity-request-changes/,
+  );
+  assert.match(
+    read('components/products/marketplace/MarketplaceOfferForm.tsx'),
+    /SellerContributionSelector/,
+  );
+  assert.equal(
+    read('lib/trust/seller-contribution.ts').includes('commerceDeclaration'),
+    false,
+  );
+  assert.equal(
+    read('lib/trust/seller-contribution.ts').includes('allergensConfirmed'),
+    false,
+  );
+}
+
+console.log('TRUST-1 / TRUST-1.1 marketplace integrity validation: OK');

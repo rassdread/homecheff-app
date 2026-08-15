@@ -1096,6 +1096,15 @@ export default function ListingDetailPage({
                             'TEMPORARILY_HIDDEN',
                         )}
                         isOwner={isOwner}
+                        productId={product.id}
+                        initialTypes={
+                          (product as { sellerContributionTypes?: string[] })
+                            .sellerContributionTypes
+                        }
+                        initialNote={
+                          (product as { sellerContributionNote?: string | null })
+                            .sellerContributionNote
+                        }
                       />
                     </div>
                   ) : null}

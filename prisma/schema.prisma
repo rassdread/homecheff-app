@@ -562,6 +562,10 @@ model Product {
   integrityStatus         String               @default("ACTIVE")
   integrityHiddenAt       DateTime?
   integrityHiddenReason   String?
+  /// TRUST-1.1: seller-declared contribution (listing-level). Empty = NOT DECLARED (legacy OK).
+  sellerContributionTypes String[]             @default([])
+  sellerContributionNote  String?
+  sellerContributionUpdatedAt DateTime?
   conversations           Conversation[]
   proposals               Proposal[]
   deliveryOrders          DeliveryOrder[]

@@ -25,6 +25,7 @@ import {
 } from '@/components/marketplace/exchange-suggestions';
 import FoodAllergenListingInfo from '@/components/legal/FoodAllergenListingInfo';
 import { buildFoodAllergenContext } from '@/lib/legal/food-allergen-context';
+import SellerContributionSection from '@/components/trust/SellerContributionSection';
 
 type ProductShape = {
   id: string;
@@ -220,6 +221,17 @@ export default function ProductDetailMainSections({
             allergens: ctx.allergens,
           };
         })()}
+      />
+
+      <SellerContributionSection
+        types={
+          (product as { sellerContributionTypes?: string[] | null })
+            .sellerContributionTypes
+        }
+        note={
+          (product as { sellerContributionNote?: string | null })
+            .sellerContributionNote
+        }
       />
 
       <ProductSaleDomainStory

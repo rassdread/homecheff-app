@@ -5214,10 +5214,10 @@
     "extraDetailsPlaceholder": "Add extra details to help us better understand the situation...",
     "characters": "characters",
     "reporting": "Reporting",
-    "reported": "Reported!",
+    "reported": "Thank you for your report. HomeCheff is reviewing it.",
     "submitError": "An error occurred while submitting the report",
     "importantInfo": "Important information",
-    "importantInfoText": "All reports are handled confidentially and reviewed by our team within 24 hours. Abuse or the reporting system may lead to account restrictions.",
+    "importantInfoText": "All reports are handled confidentially. HomeCheff reviews them — we do not promise a specific outcome. Abuse of the reporting system may lead to account restrictions.",
     "product": {
       "inappropriateContent": "Ongepaste inhoud",
       "inappropriateContentDesc": "Photo or description contains inappropriate content",
@@ -9672,6 +9672,26 @@
       "deliveryNotCompleted": "Delivery is not completed yet.",
       "noCourierAssignment": "No completed courier assignment.",
       "courierProfileNotFound": "Courier profile not found."
+    },
+    "contribution": {
+      "question": "What did you personally contribute to this offer?",
+      "help": "Pick what fits. Buying materials is fine — reselling unchanged is not. This is not a HomeCheff certificate.",
+      "noteLabel": "Briefly describe your own contribution (optional)",
+      "notePlaceholder": "E.g. bought blank vases and spray-painted them in three colours myself.",
+      "required": "Please select at least one contribution type before publishing.",
+      "displayTitle": "Seller’s own contribution",
+      "sellerDeclared": "Declared by seller",
+      "ownerHiddenTitle": "Your listing is temporarily not visible",
+      "ownerHiddenBody": "We are reviewing reports. Buyers will not see this listing in the feed until HomeCheff restores it. Your listing was not deleted.",
+      "clarifyCta": "Add clarification",
+      "clarifyPrompt": "Briefly explain what you personally made, changed, prepared, grew, or added to this product.",
+      "clarifyLabel": "Clarification for moderation",
+      "clarifyPlaceholder": "Describe your contribution as concretely as possible.",
+      "clarifySubmit": "Submit clarification",
+      "clarifySending": "Sending…",
+      "clarifyNoteRequired": "Clarification is required.",
+      "clarifySubmitted": "Clarification received. HomeCheff will review it — you cannot restore visibility yourself.",
+      "noSelfRestore": "Only HomeCheff can make this listing visible again."
     }
   },
   "communityOrder": {

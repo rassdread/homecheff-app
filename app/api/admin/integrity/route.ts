@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma';
 import {
   adminMarkUnderReview,
   adminRemoveProductIntegrity,
+  adminRequestContributionChanges,
   adminRestoreProductIntegrity,
 } from '@/lib/trust/admin-integrity-actions';
 import {
@@ -65,6 +66,9 @@ export async function GET() {
       integrityStatus: true,
       integrityHiddenAt: true,
       integrityHiddenReason: true,
+      sellerContributionTypes: true,
+      sellerContributionNote: true,
+      sellerContributionUpdatedAt: true,
       createdAt: true,
       seller: {
         select: {
@@ -115,6 +119,9 @@ export async function GET() {
       integrityStatus: p.integrityStatus,
       integrityHiddenAt: p.integrityHiddenAt,
       integrityHiddenReason: p.integrityHiddenReason,
+      sellerContributionTypes: p.sellerContributionTypes,
+      sellerContributionNote: p.sellerContributionNote,
+      sellerContributionUpdatedAt: p.sellerContributionUpdatedAt,
       uniqueReporters: agg.uniqueReporters,
       weightSum: agg.weightSum,
       reasons: [...new Set(p.integrityReports.map((r) => r.reason))],
@@ -173,6 +180,14 @@ export async function POST(req: NextRequest) {
     }
     if (action === 'UNDER_REVIEW') {
       const result = await adminMarkUnderReview({
+        productId,
+        actorUserId: admin.id,
+        note,
+      });
+      return NextResponse.json({ ok: true, ...result });
+    }
+    if (action === 'REQUEST_CHANGES') {
+      const result = await adminRequestContributionChanges({
         productId,
         actorUserId: admin.id,
         note,

@@ -64,6 +64,13 @@ import FoodAllergenSelector from '@/components/legal/FoodAllergenSelector';
 import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
 import type { EuFoodAllergenId } from '@/lib/legal/eu-food-allergens';
 import { sanitizeEuFoodAllergenIds } from '@/lib/legal/eu-food-allergens';
+import SellerContributionSelector from '@/components/trust/SellerContributionSelector';
+import {
+  contributionRequiredForPublish,
+  parseSellerContributionTypes,
+  suggestedContributionTypes,
+  type SellerContributionType,
+} from '@/lib/trust/seller-contribution';
 
 type Uploaded = { url: string; uploading?: boolean; error?: string };
 
@@ -158,6 +165,10 @@ export default function MarketplaceOfferForm({
   const [commerceError, setCommerceError] = useState<string | null>(null);
   const [allergens, setAllergens] = useState<EuFoodAllergenId[]>([]);
   const [allergensConfirmed, setAllergensConfirmed] = useState(false);
+  const [sellerContributionTypes, setSellerContributionTypes] = useState<
+    SellerContributionType[]
+  >([]);
+  const [sellerContributionNote, setSellerContributionNote] = useState('');
 
   const fieldConfig = useMemo(
     () =>
@@ -358,6 +369,14 @@ export default function MarketplaceOfferForm({
       setAllergens(sanitizeEuFoodAllergenIds(existingProduct.allergens));
       setAllergensConfirmed(false);
     }
+    setSellerContributionTypes(
+      parseSellerContributionTypes(existingProduct.sellerContributionTypes),
+    );
+    setSellerContributionNote(
+      typeof existingProduct.sellerContributionNote === 'string'
+        ? existingProduct.sellerContributionNote
+        : '',
+    );
   }, [editMode, existingProduct, marketplaceCategory]);
 
   const showFoodAllergens = useMemo(
@@ -374,6 +393,23 @@ export default function MarketplaceOfferForm({
         specializations,
       }),
     [marketplaceCategory, specializations],
+  );
+
+  const showSellerContribution = listingIntent !== 'REQUEST';
+  const contributionRequired = contributionRequiredForPublish({
+    listingIntent,
+    isEdit: editMode,
+    integrityStatus: editMode
+      ? (existingProduct?.integrityStatus as string | null | undefined)
+      : undefined,
+  });
+  const contributionSuggestions = useMemo(
+    () =>
+      suggestedContributionTypes({
+        marketplaceCategory,
+        listingIntent,
+      }),
+    [marketplaceCategory, listingIntent],
   );
 
   const resolveLocationPayload = () => {
@@ -433,6 +469,15 @@ export default function MarketplaceOfferForm({
       setMessage(
         'Bevestig de allergeneninformatie (checkbox) voordat je opslaat. Zonder bevestiging kunnen kopers dit voedselaanbod niet bestellen.',
       );
+      return;
+    }
+
+    if (
+      showSellerContribution &&
+      contributionRequired &&
+      sellerContributionTypes.length === 0
+    ) {
+      setMessage(t('trust.contribution.required'));
       return;
     }
 
@@ -542,6 +587,12 @@ export default function MarketplaceOfferForm({
         ? {
             allergens,
             allergensConfirmed,
+          }
+        : {}),
+      ...(showSellerContribution
+        ? {
+            sellerContributionTypes,
+            sellerContributionNote: sellerContributionNote.trim() || null,
           }
         : {}),
     };
@@ -749,6 +800,18 @@ export default function MarketplaceOfferForm({
           onChangeSelected={setAllergens}
           onChangeConfirmed={setAllergensConfirmed}
           disabled={busy}
+        />
+      ) : null}
+
+      {showSellerContribution ? (
+        <SellerContributionSelector
+          selected={sellerContributionTypes}
+          note={sellerContributionNote}
+          onChangeSelected={setSellerContributionTypes}
+          onChangeNote={setSellerContributionNote}
+          required={contributionRequired}
+          disabled={busy}
+          suggested={contributionSuggestions}
         />
       ) : null}
 
