@@ -35,6 +35,11 @@ export type ProposalReadinessInput = {
   form: ProposalFormValues;
   product?: ProposalProductContext | null;
   isAuthenticated: boolean;
+  /**
+   * When true (listing/product-bound money proposals), money legs require
+   * HOMECHEFF_CHECKOUT or DIRECT_CONTACT — mirrors server validatePaymentPath.
+   */
+  requirePaymentPathForMoney?: boolean;
 };
 
 export type ProposalReadinessResult =
@@ -110,6 +115,17 @@ export function validateProposalReadiness(
         return { ok: false, errorKey: 'proposal.errors.checkoutNotAvailable' };
       }
     }
+  }
+
+  if (
+    showMoney &&
+    (input.requirePaymentPathForMoney || Boolean(product)) &&
+    (form.paymentPath === 'NONE' || !form.paymentPath)
+  ) {
+    return {
+      ok: false,
+      errorKey: 'proposal.productBinding.paymentPathRequired',
+    };
   }
 
   if (

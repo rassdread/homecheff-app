@@ -218,6 +218,18 @@ assert(counterRoute.includes('POST'), 'counter API exists');
 assert(counterUi.includes('ProposalFieldsSection'), 'counter uses full ProposalFieldsSection');
 assert(counterUi.includes('ProposalSummaryPreview'), 'counter shows summary preview');
 assert(counterUi.includes('settlementMode'), 'counter edits settlement mode');
+assert(
+  counterUi.includes('loadCounterProduct') ||
+    counterUi.includes('contextHeader') ||
+    counterUi.includes('/api/conversations/'),
+  'counter loads product payment readiness (create parity)',
+);
+assert(counterUi.includes('product={product}'), 'counter passes product into ProposalFieldsSection');
+assert(
+  counterUi.includes('requirePaymentPathForMoney') &&
+    counterUi.includes('submitBlockedReason'),
+  'counter shows visible payment-path validation (no silent fail)',
+);
 
 console.log('\nScenario 3 — Exchange suggestion → proposal → deal');
 const startChat = readRepoFile('components/chat/StartChatButton.tsx');

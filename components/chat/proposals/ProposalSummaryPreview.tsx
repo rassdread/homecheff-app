@@ -61,20 +61,29 @@ export default function ProposalSummaryPreview({
 
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-          {t(PROPOSAL_POLISH_I18N.summary.offer)}
+          {t(PROPOSAL_POLISH_I18N.summary.settlement)}
         </p>
         <p className="font-medium text-gray-900">
-          {offerLabel ?? (form.title || '—')}
+          {t(PROPOSAL_I18N.settlement[form.settlementMode])}
         </p>
-        {showMoney && form.amountEuros.trim() ? (
-          <p className="text-gray-700">€ {form.amountEuros.trim()}</p>
+        {offerLabel || form.title ? (
+          <p className="text-gray-700">{offerLabel ?? form.title}</p>
         ) : null}
       </div>
+
+      {showMoney && form.amountEuros.trim() ? (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+            {t(PROPOSAL_POLISH_I18N.summary.moneyLeg)}
+          </p>
+          <p className="font-medium text-gray-900">€ {form.amountEuros.trim()}</p>
+        </div>
+      ) : null}
 
       {showValue && form.requestedValueTaxonomyIds.length > 0 ? (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-            {t(PROPOSAL_POLISH_I18N.summary.counterOffer)}
+            {t(PROPOSAL_POLISH_I18N.summary.barterLeg)}
           </p>
           <MarketplaceBadgeList
             specializations={form.requestedValueTaxonomyIds}
@@ -85,17 +94,17 @@ export default function ProposalSummaryPreview({
         </div>
       ) : null}
 
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-          {t(PROPOSAL_POLISH_I18N.summary.payment)}
-        </p>
-        <p className="font-medium text-gray-900">
-          {t(PROPOSAL_I18N.settlement[form.settlementMode])}
-        </p>
-        {paymentPathLabel ? (
-          <p className="text-gray-600">{paymentPathLabel}</p>
-        ) : null}
-      </div>
+      {showPaymentPath ? (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+            {t(PROPOSAL_POLISH_I18N.summary.moneyPayment)}
+          </p>
+          <p className="font-medium text-gray-900">
+            {paymentPathLabel ??
+              t('proposal.productBinding.paymentPathRequired')}
+          </p>
+        </div>
+      ) : null}
 
       {conditions.length > 0 ? (
         <div>

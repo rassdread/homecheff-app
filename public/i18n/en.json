@@ -8785,7 +8785,11 @@
         "offer": "Offer",
         "counterOffer": "Counter-offer",
         "payment": "Payment method",
-        "conditions": "Conditions"
+        "conditions": "Conditions",
+        "settlement": "Agreement type",
+        "moneyLeg": "Money part",
+        "barterLeg": "Barter part",
+        "moneyPayment": "Money payment"
       },
       "counter": {
         "heading": "Adjust counter-proposal",

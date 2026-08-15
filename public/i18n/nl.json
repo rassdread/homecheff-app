@@ -8785,7 +8785,11 @@
         "offer": "Aanbod",
         "counterOffer": "Tegenprestatie",
         "payment": "Betaalwijze",
-        "conditions": "Voorwaarden"
+        "conditions": "Voorwaarden",
+        "settlement": "Afspraak",
+        "moneyLeg": "Gelddeel",
+        "barterLeg": "Ruildeel",
+        "moneyPayment": "Betaling gelddeel"
       },
       "counter": {
         "heading": "Tegenvoorstel aanpassen",

@@ -1,0 +1,19 @@
+{
+  "at": "2026-08-15T16:15:00.000Z",
+  "mainBefore": "6a31fcfea86156e883b86ba24995ac48db20421c",
+  "productionBefore": "dpl_GSWAaE1ummGCv39Q9zwzKTqdrnsU",
+  "rootCause": "H=E+C: CounterProposalForm omitted product prop → payment path UI hidden; submit failed paymentPathRequired",
+  "notRootCause": {
+    "listingPriceEligibility": false,
+    "wrongCommercialSellerInService": false,
+    "barterOpennessFirewall": false
+  },
+  "validators": [
+    "validate-counter-payment-path-parity.ts",
+    "validate-marketplace-proposal-flow.ts",
+    "validate-buyer-counteroffer-barter.ts",
+    "validate-proposal-homecheff-eligibility.ts"
+  ],
+  "livePendingUntouched": "63a5bf61-2b09-4317-b01c-f228ea903fbb",
+  "manualUiCheck": "Seller opens counter on live PENDING → Geld+ruilen €1+Taart → HC/Direct buttons visible → submit"
+}

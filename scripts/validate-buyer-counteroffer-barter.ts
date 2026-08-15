@@ -119,7 +119,7 @@ const fields = readFileSync(
 );
 assert.match(fields, /BarterOfferImageUploader/);
 assert.match(fields, /sellerBarterPreferenceHintKey/);
-assert.match(fields, /deal\.paymentHeading/);
+assert.match(fields, /PROPOSAL_POLISH_I18N\.summary\.moneyPayment|moneyPayment/);
 assert.ok(
   fields.indexOf('proposal.offerHeading') <
     fields.indexOf('marketplace.form.titleLabel'),

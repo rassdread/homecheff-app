@@ -157,8 +157,9 @@ export default function CreateProposalSheet({
         form,
         product: readinessProduct,
         isAuthenticated: sessionStatus === "authenticated",
+        requirePaymentPathForMoney: Boolean(product),
       }),
-    [form, readinessProduct, sessionStatus],
+    [form, readinessProduct, sessionStatus, product],
   );
 
   const submitBlockedReason =
@@ -174,6 +175,7 @@ export default function CreateProposalSheet({
       form,
       product: readinessProduct,
       isAuthenticated: sessionStatus === "authenticated",
+      requirePaymentPathForMoney: Boolean(product),
     });
     if (!readiness.ok) {
       setError(t(readiness.errorKey));

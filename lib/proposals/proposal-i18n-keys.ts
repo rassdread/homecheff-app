@@ -136,6 +136,10 @@ export const PROPOSAL_POLISH_I18N = {
     offer: 'marketplace.proposals.summary.offer',
     counterOffer: 'marketplace.proposals.summary.counterOffer',
     payment: 'marketplace.proposals.summary.payment',
+    settlement: 'marketplace.proposals.summary.settlement',
+    moneyLeg: 'marketplace.proposals.summary.moneyLeg',
+    barterLeg: 'marketplace.proposals.summary.barterLeg',
+    moneyPayment: 'marketplace.proposals.summary.moneyPayment',
     conditions: 'marketplace.proposals.summary.conditions',
   },
   counter: {

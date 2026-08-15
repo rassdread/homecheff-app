@@ -304,7 +304,7 @@ export default function ProposalFieldsSection({
       {showPaymentPath ? (
         <div>
           <p className="text-xs font-semibold text-gray-900 mb-2">
-            {t('deal.paymentHeading')}
+            {t(PROPOSAL_POLISH_I18N.summary.moneyPayment)}
           </p>
           {showHomecheffRecommended ? (
             <p className="text-[11px] text-indigo-700 mb-2">
