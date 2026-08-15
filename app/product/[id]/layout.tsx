@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { redirect, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import {
   getCurrentDomain,
   getCurrentLanguage,
@@ -9,13 +9,8 @@ import {
 import {
   buildProductSlugPath,
   formatCityLabel,
-  isBareProductUuidParam,
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
-import {
-  buildListingDetailPath,
-} from '@/lib/seo/listing-routes';
-import { isRequestListing } from '@/lib/marketplace/product-visibility';
 import { buildListingJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import { getCachedListingProductCore } from '@/lib/marketplace/detail/get-cached-listing-product-core';
@@ -178,26 +173,9 @@ export default async function ProductLayout({
 
   if (!resolvedId || !productForLayout) notFound();
 
-  if (productForLayout?.isActive && isRequestListing(productForLayout as any)) {
-    redirect(
-      buildListingDetailPath(
-        'request',
-        productForLayout.title,
-        productForLayout.seller?.User?.place,
-        productForLayout.id,
-      ),
-    );
-  }
-
-  if (productForLayout?.isActive && isBareProductUuidParam(routeParam)) {
-    redirect(
-      `/product/${buildProductSlugPath(
-        productForLayout.title,
-        productForLayout.seller?.User?.place,
-        productForLayout.id
-      )}`
-    );
-  }
+  // NOTE: Do not redirect bare-UUID→slug or REQUEST→/request here.
+  // This layout also wraps `/product/[id]/edit`. Public-detail redirects belong
+  // in `app/product/[id]/page.tsx` only (owner Edit integrity).
 
   try {
     const product = productForLayout;

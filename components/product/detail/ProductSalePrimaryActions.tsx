@@ -18,7 +18,7 @@ import {
   type PublicPaymentStatus,
 } from '@/lib/stripe/seller-payment-status';
 import { useTranslation } from '@/hooks/useTranslation';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import { buildProductEditPath } from '@/lib/seo/productSlug';
 import { cn } from '@/lib/utils';
 
 type ProductShape = {
@@ -179,7 +179,11 @@ export default function ProductSalePrimaryActions({
     return (
       <div id="commerce-cta" className={cn(className)}>
         <Link
-          href={`/product/${buildProductSlugPath(product.title, product.seller?.User?.place, product.id)}/edit`}
+          href={buildProductEditPath(
+            product.title,
+            product.seller?.User?.place,
+            product.id,
+          )}
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-2xl bg-primary-brand py-3 px-4 text-center font-bold text-white shadow-md transition hover:bg-primary-700',
             compact && 'py-2 text-sm',

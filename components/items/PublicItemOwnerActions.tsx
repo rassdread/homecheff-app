@@ -8,6 +8,8 @@ import { dishCategoryToVertical } from '@/lib/items/public-item-detail';
 import type { InspiratieDetailItem } from '@/lib/items/load-inspiratie-detail';
 import { buildProfileV2Href } from '@/lib/profileProductTab';
 
+import { cardActionBoundaryProps, stopCardNavigation } from '@/lib/ui/card-action-boundary';
+
 type Props = {
   item: InspiratieDetailItem;
   isOwner: boolean;
@@ -153,13 +155,19 @@ export default function PublicItemOwnerActions({ item, isOwner }: Props) {
   const canSell = !item.priceCents || item.priceCents === 0;
 
   return (
-    <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-primary-brand/15 bg-white p-3 shadow-sm sm:p-4">
+    <div
+      className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-primary-brand/15 bg-white p-3 shadow-sm sm:p-4"
+      {...cardActionBoundaryProps()}
+    >
       <p className="w-full text-xs font-semibold uppercase tracking-wide text-gray-500">
         {t('publicItemDetail.ownerActions')}
       </p>
       <button
         type="button"
-        onClick={handleEdit}
+        onClick={(e) => {
+          stopCardNavigation(e);
+          handleEdit();
+        }}
         className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 touch-manipulation"
       >
         <Edit3 className="h-4 w-4" aria-hidden />
@@ -168,7 +176,10 @@ export default function PublicItemOwnerActions({ item, isOwner }: Props) {
       {canSell ? (
         <button
           type="button"
-          onClick={handleSell}
+          onClick={(e) => {
+            stopCardNavigation(e);
+            handleSell();
+          }}
           className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 touch-manipulation"
         >
           <ShoppingCart className="h-4 w-4" aria-hidden />
@@ -177,7 +188,10 @@ export default function PublicItemOwnerActions({ item, isOwner }: Props) {
       ) : null}
       <button
         type="button"
-        onClick={handleTogglePublish}
+        onClick={(e) => {
+          stopCardNavigation(e);
+          void handleTogglePublish();
+        }}
         className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-100 touch-manipulation"
       >
         {isPublished ? (
@@ -191,7 +205,10 @@ export default function PublicItemOwnerActions({ item, isOwner }: Props) {
       </button>
       <button
         type="button"
-        onClick={handleDelete}
+        onClick={(e) => {
+          stopCardNavigation(e);
+          void handleDelete();
+        }}
         disabled={deleting}
         className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 touch-manipulation disabled:opacity-50"
       >

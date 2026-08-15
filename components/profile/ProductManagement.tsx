@@ -10,6 +10,8 @@ import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodA
 import type { ProfileV2AanbodFilter, ProfileV2User } from '@/lib/profile/profile-v2/types';
 import type { DiscoveryReadModel } from '@/lib/discovery/contracts/discovery-read-model';
 import { getDiscoveryLegacyVerticalCategory } from '@/lib/discovery/consumer-accessors';
+import { buildProductDetailPath, buildProductEditPath } from '@/lib/seo/productSlug';
+import { cardActionBoundaryProps, stopCardNavigation } from '@/lib/ui/card-action-boundary';
 
 type Product = {
   id: string;
@@ -123,14 +125,11 @@ export default function ProductManagement({
   };
 
   const handleEdit = (product: Product) => {
-    console.log('🔧 handleEdit called for product:', product.id);
-    // Navigate to full edit page
-    router.push(`/product/${product.id}/edit`);
+    router.push(buildProductEditPath(product.title, null, product.id));
   };
 
   const handleEditStock = (product: Product) => {
-    // Navigate to full edit page (same as handleEdit)
-    router.push(`/product/${product.id}/edit`);
+    router.push(buildProductEditPath(product.title, null, product.id));
   };
 
 
@@ -250,7 +249,9 @@ export default function ProductManagement({
               <div 
                 key={product.id} 
                 className="rounded-xl border bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => router.push(`/product/${product.id}/edit`)}
+                onClick={() =>
+                  router.push(buildProductEditPath(product.title, null, product.id))
+                }
               >
                 {/* Product Image */}
                 <div className="relative">
@@ -374,11 +375,15 @@ export default function ProductManagement({
                   </div>
                   
                   {/* Actions */}
-                  <div className="flex items-center justify-between pt-3 border-t" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="flex items-center justify-between pt-3 border-t"
+                    {...cardActionBoundaryProps()}
+                  >
                     <div className="flex items-center space-x-2">
                       <button 
+                        type="button"
                         onClick={(e) => {
-                          e.stopPropagation();
+                          stopCardNavigation(e);
                           handleEdit(product);
                         }}
                         className="flex items-center space-x-1 text-sm px-3 py-1 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
@@ -389,8 +394,9 @@ export default function ProductManagement({
                       </button>
                       
                       <button 
+                        type="button"
                         onClick={(e) => {
-                          e.stopPropagation();
+                          stopCardNavigation(e);
                           router.push(`/product/${product.id}`);
                         }}
                         className="flex items-center space-x-1 text-sm px-3 py-1 rounded-lg text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 transition-colors"
@@ -401,8 +407,9 @@ export default function ProductManagement({
                       </button>
                       
                       <button 
+                        type="button"
                         onClick={(e) => {
-                          e.stopPropagation();
+                          stopCardNavigation(e);
                           confirmDelete(product);
                         }}
                         className="flex items-center space-x-1 text-sm px-3 py-1 rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"

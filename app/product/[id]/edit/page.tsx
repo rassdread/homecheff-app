@@ -7,7 +7,12 @@ import { ArrowLeft, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import CategoryFormSelector from '@/components/products/CategoryFormSelector';
 import { getProfileHrefAfterProductEdit } from '@/lib/profileProductTab';
-import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import {
+  buildProductEditPath,
+  buildProductSlugPath,
+  isBareProductUuidParam,
+  resolveProductIdFromParam,
+} from '@/lib/seo/productSlug';
 
 export default function EditProductPage() {
   const { t } = useTranslation();
@@ -19,11 +24,14 @@ export default function EditProductPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const routeParam = typeof params?.id === 'string' ? params.id : '';
+  const productId = resolveProductIdFromParam(routeParam);
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/products/${params?.id}`);
+        const response = await fetch(`/api/products/${productId}`);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('API Error:', errorData);
@@ -70,6 +78,16 @@ export default function EditProductPage() {
           acceptDirectContact: data.product.acceptDirectContact ?? null,
           orderMethod: data.product.orderMethod ?? null,
         };
+
+        // Canonicalize bare UUID edit URLs to slug/edit without leaving the edit flow.
+        if (isBareProductUuidParam(routeParam) && transformedProduct.isActive) {
+          const canonicalEdit = buildProductEditPath(
+            transformedProduct.title,
+            transformedProduct.sellerPlace,
+            transformedProduct.id,
+          );
+          router.replace(canonicalEdit);
+        }
         
         setProduct(transformedProduct);
       } catch (error) {
@@ -80,10 +98,10 @@ export default function EditProductPage() {
       }
     };
 
-    if (params?.id) {
+    if (productId) {
       fetchProduct();
     }
-  }, [params?.id, router]);
+  }, [productId, routeParam, router, t]);
 
   const handleSave = () => {
     if (!product) return;
@@ -107,7 +125,7 @@ export default function EditProductPage() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/products/${params?.id}`, {
+      const response = await fetch(`/api/products/${productId}`, {
         method: 'DELETE',
       });
 

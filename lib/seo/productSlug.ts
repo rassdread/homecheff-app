@@ -31,6 +31,35 @@ export function buildProductSlugPath(
   return `${t}-${p}${PRODUCT_SLUG_ID_MARKER}${id}`;
 }
 
+/** Canonical public listing path `/product/{slug}`. */
+export function buildProductDetailPath(
+  title: string,
+  place: string | null | undefined,
+  id: string,
+): string {
+  return `/product/${buildProductSlugPath(title, place, id)}`;
+}
+
+/**
+ * Canonical listing edit path `/product/{slug}/edit`.
+ * Prefer this over bare `/product/{uuid}/edit` — the product layout SEO redirect
+ * must never strip `/edit` when normalizing UUIDs to slugs.
+ */
+export function buildProductEditPath(
+  title: string,
+  place: string | null | undefined,
+  id: string,
+): string {
+  return `${buildProductDetailPath(title, place, id)}/edit`;
+}
+
+/** True when a request pathname is the listing edit route (not public detail). */
+export function isProductEditPathname(pathname: string | null | undefined): boolean {
+  if (!pathname) return false;
+  const path = pathname.split('?')[0]?.replace(/\/+$/, '') || '';
+  return /\/product\/[^/]+\/edit$/i.test(path);
+}
+
 /** Haalt het product-UUID uit route-param (plain UUID of slug met marker). */
 export function resolveProductIdFromParam(param: string): string {
   let dec = decodeURIComponent(param).trim();

@@ -724,6 +724,50 @@ report.cases.desktopCareer = await withPage("desk1280", async (page) => {
   return { mode: "not-in-desktop-primary", ok: true, note: "guest careers in hamburger only" };
 });
 
+// --- Owner Edit integrity: bare UUID /edit must NOT strip to public listing ---
+report.cases.ownerEditPathIntegrity = await withPage("desk1280", async (page) => {
+  let productId = null;
+  try {
+    const feed = await page.request.get(`${BASE}/api/feed?limit=5`);
+    const json = await feed.json();
+    const item = (json.items || []).find(
+      (it) => it.feedSource === "PRODUCT" && typeof it.id === "string" && it.id.includes("-"),
+    );
+    productId = item?.id || null;
+  } catch (e) {
+    fail("ownerEdit", "feed-lookup", String(e).slice(0, 120));
+    return { ok: false, error: "feed-lookup" };
+  }
+  if (!productId) {
+    fail("ownerEdit", "no-product-id", {});
+    return { ok: false, error: "no-product-id" };
+  }
+
+  const start = `${BASE}/product/${productId}/edit`;
+  await page.goto(start, { waitUntil: "domcontentloaded", timeout: 90000 });
+  await page.waitForTimeout(2500);
+  const finalUrl = page.url();
+  const path = await page.evaluate(() => location.pathname);
+  const stayedOnEdit = /\/product\/[^/]+\/edit\/?$/.test(path);
+  const landedPublicDetail =
+    /\/product\/[^/]+\/?$/.test(path) && !/\/edit\/?$/.test(path);
+  // Unauthenticated may bounce to login/verkoper AFTER edit route resolves — that is OK.
+  // Forbidden: SEO layout stripping /edit onto public listing detail.
+  const ok = stayedOnEdit || (!landedPublicDetail && !path.startsWith("/product/"));
+  if (!ok) {
+    fail("ownerEdit", "uuid-edit-stripped-to-public-detail", { start, finalUrl, path });
+  }
+  return {
+    ok,
+    productId,
+    start,
+    finalUrl,
+    path,
+    stayedOnEdit,
+    landedPublicDetail,
+  };
+});
+
 await browser.close();
 
 const tested =
@@ -741,6 +785,7 @@ report.counts = {
   careerPortraitOk: !!report.cases.careerPortrait?.ok,
   careerLandscapeOk: !!report.cases.careerLandscape?.ok,
   menuBackOk: report.cases.menuBack && !report.cases.menuBack.stillOpen,
+  ownerEditPathOk: !!report.cases.ownerEditPathIntegrity?.ok,
 };
 
 const pass =
@@ -748,6 +793,7 @@ const pass =
   report.counts.careerPortraitOk &&
   report.counts.careerLandscapeOk &&
   report.counts.menuBackOk &&
+  report.counts.ownerEditPathOk &&
   report.counts.httpBroken === 0;
 
 report.verdict = pass
