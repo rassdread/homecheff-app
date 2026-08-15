@@ -25,7 +25,6 @@ import GeoFeed, { FeedContent } from "@/components/home/HomeGeoFeedDynamic";
 import FeedControlledHostShell from "@/components/adaptive-workspace/FeedControlledHostShell";
 import FeedWorkspaceVisibleLayout from "@/components/adaptive-workspace/FeedWorkspaceVisibleLayout";
 import WorkspaceOrientationStrip from "@/components/adaptive-workspace/WorkspaceOrientationStrip";
-import { HomepageWorkspaceInfoBar } from "@/components/home/HomepageInfoChrome";
 import { WorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
 import { createControlledFeedHostContract } from "@/lib/adaptive-workspace/sealed/create-controlled-feed-host-contract";
 import { createControlledFeedHostShadowPlacement } from "@/lib/adaptive-workspace/sealed/controlled-feed-host-shadow-placement";
@@ -249,12 +248,7 @@ export default function HomePageClient({
         >
           <FeedWorkspaceVisibleLayout
             ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
-            orientation={
-              <>
-                <WorkspaceOrientationStrip />
-                <HomepageWorkspaceInfoBar />
-              </>
-            }
+            orientation={<WorkspaceOrientationStrip />}
             primary={<GeoFeed {...geoFeedProps} homeComposedLayout={false} />}
             startPanel={<HomeDesktopLeftSidebar />}
             endPanel={<HomeDesktopSidebar welcomeLine={welcomeLine} />}
