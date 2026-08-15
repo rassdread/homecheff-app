@@ -25,6 +25,9 @@ export type AgreementSummarySnapshot = ProposalSummarySnapshot & {
   proposalId: string;
   commitmentAcceptedAt?: string;
   commitmentAcceptedById?: string;
+  /** LEGAL-3 — optional service-start-during-withdrawal acknowledgement. */
+  serviceStartDuringWithdrawalAck?: boolean;
+  serviceStartDuringWithdrawalAckAt?: string;
 };
 
 const VALID_SETTLEMENT: SettlementMode[] = [

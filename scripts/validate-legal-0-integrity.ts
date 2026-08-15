@@ -29,9 +29,9 @@ function read(rel: string): string {
 }
 
 // --- A. Static legal dates ---
-assert.equal(TERMS_VERSION, '1.0');
+assert.equal(TERMS_VERSION, '1.1');
 assert.equal(PRIVACY_VERSION, '1.0');
-assert.equal(TERMS_EFFECTIVE_DATE, '2026-08-14');
+assert.equal(TERMS_EFFECTIVE_DATE, '2026-08-15');
 assert.equal(PRIVACY_EFFECTIVE_DATE, '2026-08-14');
 assert.equal(LEGAL_DOCUMENTS.terms.effectiveDate, TERMS_EFFECTIVE_DATE);
 assert.equal(LEGAL_DOCUMENTS.privacy.effectiveDate, PRIVACY_EFFECTIVE_DATE);
@@ -40,25 +40,25 @@ const RealDate = Date;
 const FakeDate = class extends RealDate {
   constructor(...args: never[]) {
     if (args.length === 0) {
-      super('2026-08-15T12:00:00.000Z');
+      super('2026-08-16T12:00:00.000Z');
       return;
     }
     super(...(args as []));
   }
   static now() {
-    return Date.parse('2026-08-15T12:00:00.000Z');
+    return Date.parse('2026-08-16T12:00:00.000Z');
   }
 } as unknown as DateConstructor;
 // @ts-expect-error test double
 globalThis.Date = FakeDate;
-assert.equal(LEGAL_DOCUMENTS.terms.effectiveDate, '2026-08-14');
+assert.equal(LEGAL_DOCUMENTS.terms.effectiveDate, '2026-08-15');
 assert.equal(LEGAL_DOCUMENTS.privacy.effectiveDate, '2026-08-14');
-assert.equal(formatLegalEffectiveDate('2026-08-14', 'nl'), '14 augustus 2026');
-assert.equal(formatLegalEffectiveDate('2026-08-14', 'en'), '14 August 2026');
+assert.equal(formatLegalEffectiveDate('2026-08-15', 'nl'), '15 augustus 2026');
+assert.equal(formatLegalEffectiveDate('2026-08-15', 'en'), '15 August 2026');
 globalThis.Date = RealDate;
 
-assert.equal(formatLegalEffectiveDate(TERMS_EFFECTIVE_DATE, 'nl'), '14 augustus 2026');
-assert.equal(formatLegalEffectiveDate(TERMS_EFFECTIVE_DATE, 'en'), '14 August 2026');
+assert.equal(formatLegalEffectiveDate(TERMS_EFFECTIVE_DATE, 'nl'), '15 augustus 2026');
+assert.equal(formatLegalEffectiveDate(TERMS_EFFECTIVE_DATE, 'en'), '15 August 2026');
 
 const termsSrc = read('app/terms/page.tsx');
 const privacySrc = read('app/privacy/page.tsx');

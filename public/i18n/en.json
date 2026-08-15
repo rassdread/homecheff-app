@@ -6263,7 +6263,16 @@
     "s8_2L3": "We may close accounts for breach of terms",
     "s8_2L4": "Data is retained for 1 year after termination",
     "contactEmail": "Email",
-    "contactAddress": "Address"
+    "contactAddress": "Address",
+    "s9Title": "9. Private and professional providers & consumer information",
+    "s9P1": "Providers on HomeCheff may declare whether they offer as a private (occasional) individual or as a professional/business. HomeCheff does not automatically determine trader status from revenue, sales counts, KvK, Stripe, or similar signals.",
+    "s9P2": "When buying from a provider who self-declared as professional (or a verified business), consumer-law information may apply, including withdrawal information where relevant.",
+    "s9P3": "For a private provider by self-declaration, consumer rights that specifically apply against professional traders (such as the statutory right of withdrawal) may not apply. This does not mean ‘you have no rights’: platform rules, product safety, food information and contract law may still be relevant.",
+    "s9P4": "Where applicable, the right of withdrawal is generally 14 days. Exceptions may apply to goods made to the consumer’s specifications, rapidly perishable goods, and services fully performed after an express request during the cooling-off period. HomeCheff only marks these exceptions based on explicit provider declarations or clear transaction characteristics — not silent assumptions from ‘handmade’ or TRUST provenance.",
+    "s9P5": "HomeCheff is a marketplace platform. The underlying performance is supplied by the provider. Payments may run via Stripe through the platform; the precise qualification of HomeCheff’s payment role remains subject to legal review. These terms do not make stronger merchant-of-record claims than stated here.",
+    "s9L1": "Private vs professional: based on the provider’s self-declaration (LEGAL-1).",
+    "s9L2": "Consumer information is shown progressively before commitment (listing, checkout, proposal/agreement).",
+    "s9L3": "Food allergen information (LEGAL-2) remains fully separate from withdrawal exceptions."
   },
   "errorPage": {
     "title": "Something went wrong",
@@ -10126,6 +10135,61 @@
       "showQr": "Show QR code",
       "promoCodes": "Promo codes",
       "networkEarnings": "Network earnings"
+    }
+  },
+  "legal3": {
+    "sectionTitle": "Consumer information",
+    "sellerLabel": "Provider",
+    "withdrawalLabel": "Withdrawal",
+    "sellerDeclared": "Declared by seller",
+    "moreInfo": "More information",
+    "lessInfo": "Less information",
+    "termsLink": "Read the terms",
+    "platformRole": "HomeCheff is a marketplace platform. The seller/provider supplies the offer; HomeCheff facilitates the connection. Payments via Stripe run through the platform — HomeCheff’s precise legal role in payments remains subject to further legal review.",
+    "professionalNote": "This provider self-declared as professional/business. That is not a HomeCheff certificate of entrepreneurship.",
+    "privateNote": "This provider indicated they offer as a private individual. Consumer rights that specifically apply when buying from a professional trader, such as the statutory right of withdrawal, may therefore not apply. Other rights (platform rules, food information, product safety, contract law) remain relevant where applicable.",
+    "undeclaredNote": "The provider has not yet declared private/professional status. Proceed carefully; HomeCheff does not auto-determine trader status.",
+    "serviceStartAck": "I request that the service may begin during the cooling-off period and understand I may lose the right of withdrawal once the service is fully performed.",
+    "serviceStartAckRequired": "Confirm service start during the cooling-off period to continue.",
+    "serviceStartRequest": "I want this service to be allowed to start during the cooling-off period.",
+    "seller": {
+      "private": "Private provider",
+      "professional": "Professional provider",
+      "verifiedBusiness": "Verified business",
+      "undeclared": "Status not declared"
+    },
+    "withdrawal": {
+      "STANDARD_14_DAY": "14-day cooling-off period",
+      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Exception: made to order / personalised",
+      "PERISHABLE_EXCEPTION": "Exception: rapidly perishable",
+      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Service — withdrawal depends on performance",
+      "NOT_APPLICABLE_PRIVATE_C2C": "Statutory B2C withdrawal may not apply",
+      "NOT_APPLICABLE_FREE": "Not a paid purchase — withdrawal machinery not applicable",
+      "REQUIRES_REVIEW": "Not yet determined"
+    },
+    "summary": {
+      "STANDARD_14_DAY": "When buying from this professional provider, a 14-day cooling-off period generally applies unless an exception applies.",
+      "CUSTOM_OR_PERSONALISED_EXCEPTION": "This offer is marked as made to your specifications. Statutory withdrawal may not apply.",
+      "PERISHABLE_EXCEPTION": "This offer is marked rapidly perishable. Statutory withdrawal may not apply. Allergen and food information remain separate.",
+      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Services usually have a cooling-off period. After full performance following your express request during that period, you may lose withdrawal rights.",
+      "NOT_APPLICABLE_PRIVATE_C2C": "Private provider by self-declaration — specific B2C withdrawal rights may not apply.",
+      "NOT_APPLICABLE_FREE": "Free sharing: not a paid purchase.",
+      "REQUIRES_REVIEW": "Without a clear private/professional declaration we do not claim standard B2C withdrawal."
+    },
+    "detail": {
+      "STANDARD_14_DAY": "You may generally withdraw within 14 days without giving a reason, except where a statutory exception applies.",
+      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Goods made to your specifications or clearly personalised may be excluded from withdrawal. This applies only when the seller explicitly marked this offer — not merely from a TRUST ‘personalised’ provenance claim.",
+      "PERISHABLE_EXCEPTION": "Rapidly perishable goods may be excluded from withdrawal. This never replaces allergen or food-safety duties.",
+      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Only request start during the cooling-off period if you truly want that. We do not auto-remove withdrawal merely because work started.",
+      "NOT_APPLICABLE_PRIVATE_C2C": "This does not mean ‘you have no rights’. It means specific consumer rights vs professional traders may not apply.",
+      "NOT_APPLICABLE_FREE": "No withdrawal procedure for pure free sharing.",
+      "REQUIRES_REVIEW": "Once the provider declares private or professional, the correct information is shown."
+    },
+    "sellerFlags": {
+      "title": "Withdrawal exceptions (optional)",
+      "help": "Only tick what is factually true for this offer. This informs buyers; it is not an automatic exemption. TRUST ‘personalised’ provenance is not the same.",
+      "madeToSpec": "This item is/will be made to the buyer’s individual specifications (custom / clearly personalised).",
+      "rapidlyPerishable": "This is rapidly perishable prepared food (not automatically every GROW product)."
     }
   }
 }

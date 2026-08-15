@@ -169,6 +169,9 @@ export default function MarketplaceOfferForm({
     SellerContributionType[]
   >([]);
   const [sellerContributionNote, setSellerContributionNote] = useState('');
+  const [madeToConsumerSpecifications, setMadeToConsumerSpecifications] =
+    useState(false);
+  const [rapidlyPerishable, setRapidlyPerishable] = useState(false);
 
   const fieldConfig = useMemo(
     () =>
@@ -377,6 +380,10 @@ export default function MarketplaceOfferForm({
         ? existingProduct.sellerContributionNote
         : '',
     );
+    setMadeToConsumerSpecifications(
+      Boolean(existingProduct.madeToConsumerSpecifications),
+    );
+    setRapidlyPerishable(Boolean(existingProduct.rapidlyPerishable));
   }, [editMode, existingProduct, marketplaceCategory]);
 
   const showFoodAllergens = useMemo(
@@ -595,6 +602,8 @@ export default function MarketplaceOfferForm({
             sellerContributionNote: sellerContributionNote.trim() || null,
           }
         : {}),
+      madeToConsumerSpecifications,
+      rapidlyPerishable,
     };
 
     const needsCommerceGate = offerRequiresCommerceDeclaration({
@@ -813,6 +822,44 @@ export default function MarketplaceOfferForm({
           disabled={busy}
           suggested={contributionSuggestions}
         />
+      ) : null}
+
+      {showSellerContribution && listingIntent === 'OFFER' ? (
+        <div
+          data-hc-legal3-listing-flags=""
+          className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 space-y-3"
+        >
+          <p className="text-sm font-semibold text-gray-900">
+            {t('legal3.sellerFlags.title')}
+          </p>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            {t('legal3.sellerFlags.help')}
+          </p>
+          <label className="flex items-start gap-2 text-sm text-gray-800">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={madeToConsumerSpecifications}
+              disabled={busy}
+              data-hc-made-to-spec=""
+              onChange={(e) => setMadeToConsumerSpecifications(e.target.checked)}
+            />
+            <span>{t('legal3.sellerFlags.madeToSpec')}</span>
+          </label>
+          {showFoodAllergens ? (
+            <label className="flex items-start gap-2 text-sm text-gray-800">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={rapidlyPerishable}
+                disabled={busy}
+                data-hc-rapidly-perishable=""
+                onChange={(e) => setRapidlyPerishable(e.target.checked)}
+              />
+              <span>{t('legal3.sellerFlags.rapidlyPerishable')}</span>
+            </label>
+          ) : null}
+        </div>
       ) : null}
 
       <PaymentMethodCheckboxes

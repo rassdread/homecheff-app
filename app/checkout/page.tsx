@@ -26,6 +26,12 @@ import {
   isSellerDeliveryCheckoutSelection,
   outboundLocalProviderMode,
 } from '@/lib/delivery/delivery-fulfillment-vocabulary';
+import ConsumerCommerceDisclosure from '@/components/legal/ConsumerCommerceDisclosure';
+import {
+  mergeConsumerCommerceContexts,
+  type ConsumerCommerceContext,
+} from '@/lib/legal/consumer-commerce-context';
+import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-from-product';
 
 function ManualBookingPoller({
   bookingRequestId,
@@ -222,6 +228,10 @@ export default function CheckoutPage() {
   // Get product locations from cart for delivery matching
   const [sellerLocations, setSellerLocations] = useState<Array<{lat: number, lng: number, productId: string}>>([]);
   const [productDataMap, setProductDataMap] = useState<Map<string, {sellerCanDeliver?: boolean}>>(new Map());
+  const [checkoutConsumerContexts, setCheckoutConsumerContexts] = useState<
+    ConsumerCommerceContext[]
+  >([]);
+  const [serviceStartAck, setServiceStartAck] = useState(false);
   
   // Fetch product locations when cart items change
   useEffect(() => {
@@ -229,6 +239,7 @@ export default function CheckoutPage() {
       if (checkoutItems.length === 0) {
         setSellerLocations([]);
         setProductDataMap(new Map());
+        setCheckoutConsumerContexts([]);
         return;
       }
 
@@ -236,6 +247,7 @@ export default function CheckoutPage() {
         const productIds = checkoutItems.map(item => item.productId);
         const locations: Array<{lat: number, lng: number, productId: string}> = [];
         const productMap = new Map<string, {sellerCanDeliver?: boolean}>();
+        const contexts: ConsumerCommerceContext[] = [];
 
         // Fetch all product locations in parallel (UX-FIN-4C.10) — was a serial loop.
         const responses = await Promise.all(
@@ -267,6 +279,11 @@ export default function CheckoutPage() {
             sellerCanDeliver: product.sellerCanDeliver || false
           });
 
+          const ctx = consumerContextFromProductPayload(
+            product as Record<string, unknown>,
+          );
+          if (ctx) contexts.push(ctx);
+
           if (sellerLat && sellerLng) {
             locations.push({ lat: sellerLat, lng: sellerLng, productId });
           }
@@ -274,6 +291,7 @@ export default function CheckoutPage() {
 
         setSellerLocations(locations);
         setProductDataMap(productMap);
+        setCheckoutConsumerContexts(contexts);
       } catch (error) {
         if ((error as Error)?.name === 'AbortError') return;
         console.error('Error fetching product locations:', error);
@@ -284,6 +302,11 @@ export default function CheckoutPage() {
     fetchProductLocations();
     return () => ac.abort();
   }, [checkoutItems]);
+
+  const mergedConsumerCommerce = useMemo(
+    () => mergeConsumerCommerceContexts(checkoutConsumerContexts),
+    [checkoutConsumerContexts],
+  );
 
   useEffect(() => {
     if (!isCheckoutHydrated || dealCommunityOrderId) {
@@ -688,6 +711,13 @@ export default function CheckoutPage() {
 
   const handleCheckout = async () => {
     setCheckoutError(null);
+    if (
+      mergedConsumerCommerce?.serviceStartAckRequired &&
+      !serviceStartAck
+    ) {
+      setCheckoutError(t('legal3.serviceStartAckRequired'));
+      return;
+    }
     if (!checkoutDraft.selectedDelivery) {
       setCheckoutError(t('checkout.selectDeliveryOption'));
       return;
@@ -1327,6 +1357,25 @@ export default function CheckoutPage() {
                         rows={2}
                       />
                     </div>
+
+                    {/* LEGAL-3 consumer information before payment */}
+                    {mergedConsumerCommerce?.showConsumerDisclosure ? (
+                      <div className="mt-4">
+                        <ConsumerCommerceDisclosure
+                          context={
+                            mergedConsumerCommerce.serviceStartAckRequired
+                              ? {
+                                  ...mergedConsumerCommerce,
+                                  serviceStartAckRequired: true,
+                                }
+                              : mergedConsumerCommerce
+                          }
+                          variant="checkout"
+                          serviceStartAckChecked={serviceStartAck}
+                          onServiceStartAckChange={setServiceStartAck}
+                        />
+                      </div>
+                    ) : null}
 
                     {/* SMS Notification Option */}
                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">

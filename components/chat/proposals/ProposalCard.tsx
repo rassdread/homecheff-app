@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, ClipboardList } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
@@ -23,6 +23,9 @@ import {
   PROPOSAL_FLOW_EVENTS,
   trackProposalFlowEvent,
 } from "@/lib/proposals/proposal-analytics";
+import ConsumerCommerceDisclosure from "@/components/legal/ConsumerCommerceDisclosure";
+import type { ConsumerCommerceContext } from "@/lib/legal/consumer-commerce-context";
+import { consumerContextFromProductPayload } from "@/lib/legal/consumer-context-from-product";
 
 type Props = {
   proposal: ProposalDTO;
@@ -86,10 +89,70 @@ export default function ProposalCard({
   const [showCounter, setShowCounter] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [commitmentAccepted, setCommitmentAccepted] = useState(false);
+  const [consumerCommerce, setConsumerCommerce] =
+    useState<ConsumerCommerceContext | null>(null);
+  const [serviceStartAck, setServiceStartAck] = useState(false);
+  const [serviceStartRequested, setServiceStartRequested] = useState(false);
 
   const isCreator = proposal.createdById === currentUserId;
   const canAct = proposal.status === "PENDING" && !isCreator;
   const canCancel = proposal.status === "PENDING" && isCreator;
+
+  useEffect(() => {
+    if (!canAct || !proposal.productId) {
+      setConsumerCommerce(null);
+      return;
+    }
+    const ac = new AbortController();
+    void (async () => {
+      try {
+        const res = await fetch(`/api/products/${proposal.productId}`, {
+          signal: ac.signal,
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const product = (data.product || data) as Record<string, unknown>;
+        // Overlay proposal money/barter onto product for LEGAL-3 path
+        const barter =
+          proposal.settlementMode === "VALUE_ONLY"
+            ? "BARTER_ONLY"
+            : proposal.settlementMode === "MONEY_AND_VALUE"
+              ? "MONEY_AND_BARTER"
+              : proposal.settlementMode === "FREE" ||
+                  proposal.settlementMode === "VOLUNTARY"
+                ? "MONEY"
+                : "MONEY";
+        const priceModel =
+          proposal.settlementMode === "VOLUNTARY"
+            ? "VOLUNTARY"
+            : proposal.settlementMode === "FREE"
+              ? "VOLUNTARY"
+              : "FIXED";
+        setConsumerCommerce(
+          consumerContextFromProductPayload(
+            {
+              ...product,
+              priceCents: proposal.amountCents ?? product.priceCents,
+              priceModel,
+              barterOpenness: barter,
+            },
+            {
+              serviceStartDuringWithdrawalRequested: serviceStartRequested,
+            },
+          ),
+        );
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => ac.abort();
+  }, [
+    canAct,
+    proposal.productId,
+    proposal.amountCents,
+    proposal.settlementMode,
+    serviceStartRequested,
+  ]);
 
   const priceLabel = getMarketplacePriceDisplay(
     {
@@ -182,7 +245,14 @@ export default function ProposalCard({
       setError(t(DEAL_COMMITMENT_I18N.requiredError));
       return;
     }
-    void runAction("accept", { commitmentAccepted: true });
+    if (consumerCommerce?.serviceStartAckRequired && !serviceStartAck) {
+      setError(t("legal3.serviceStartAckRequired"));
+      return;
+    }
+    void runAction("accept", {
+      commitmentAccepted: true,
+      serviceStartDuringWithdrawalAck: serviceStartAck || undefined,
+    });
   };
 
   const handleCountered = (child: ProposalDTO) => {
@@ -336,6 +406,41 @@ export default function ProposalCard({
 
           {canAct && !showCounter ? (
             <div className="space-y-2 pt-1">
+              {consumerCommerce?.showConsumerDisclosure ? (
+                <div className="space-y-2">
+                  <ConsumerCommerceDisclosure
+                    context={
+                      serviceStartRequested
+                        ? {
+                            ...consumerCommerce,
+                            serviceStartAckRequired:
+                              consumerCommerce.isProfessionalSellerPath &&
+                              consumerCommerce.isService,
+                          }
+                        : consumerCommerce
+                    }
+                    variant="proposal"
+                    serviceStartAckChecked={serviceStartAck}
+                    onServiceStartAckChange={setServiceStartAck}
+                  />
+                  {consumerCommerce.isService &&
+                  consumerCommerce.isProfessionalSellerPath ? (
+                    <label className="flex items-start gap-2 text-xs text-gray-700">
+                      <input
+                        type="checkbox"
+                        className="mt-0.5"
+                        checked={serviceStartRequested}
+                        onChange={(e) => {
+                          setServiceStartRequested(e.target.checked);
+                          if (!e.target.checked) setServiceStartAck(false);
+                        }}
+                        data-hc-legal3-service-start-request=""
+                      />
+                      <span>{t("legal3.serviceStartRequest")}</span>
+                    </label>
+                  ) : null}
+                </div>
+              ) : null}
               <label className="flex items-start gap-2 cursor-pointer">
                 <input
                   type="checkbox"

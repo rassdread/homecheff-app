@@ -566,6 +566,11 @@ model Product {
   sellerContributionTypes String[]             @default([])
   sellerContributionNote  String?
   sellerContributionUpdatedAt DateTime?
+  /// LEGAL-3: made specifically to this consumer's specifications (withdrawal exception evidence).
+  /// Never auto-derived from TRUST PERSONALISED contribution type.
+  madeToConsumerSpecifications Boolean           @default(false)
+  /// LEGAL-3: seller declares goods are rapidly perishable (withdrawal exception). Default false = no claim.
+  rapidlyPerishable       Boolean              @default(false)
   conversations           Conversation[]
   proposals               Proposal[]
   deliveryOrders          DeliveryOrder[]
