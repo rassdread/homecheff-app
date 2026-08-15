@@ -1,0 +1,1506 @@
+{
+  "base": "https://homecheff.eu",
+  "at": "2026-08-15T03:13:34.523Z",
+  "sourceInventoryHrefs": [
+    "/affiliate",
+    "/app",
+    "/checkout",
+    "/community-guidelines",
+    "/constitution",
+    "/contact",
+    "/docs",
+    "/evidence",
+    "/faq",
+    "/favorites",
+    "/hcp-ranglijsten",
+    "/login",
+    "/manifest",
+    "/messages",
+    "/mijn-hcp",
+    "/notifications",
+    "/orders",
+    "/over-ons",
+    "/privacy",
+    "/profile",
+    "/register",
+    "/safety",
+    "/seo-hub",
+    "/settings",
+    "/terms",
+    "/verdiensten",
+    "/werken-bij"
+  ],
+  "http": {
+    "/privacy": {
+      "path": "/privacy",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/terms": {
+      "path": "/terms",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/contact": {
+      "path": "/contact",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/faq": {
+      "path": "/faq",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/over-ons": {
+      "path": "/over-ons",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/community-guidelines": {
+      "path": "/community-guidelines",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/safety": {
+      "path": "/safety",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/constitution": {
+      "path": "/constitution",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/manifest": {
+      "path": "/manifest",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/affiliate": {
+      "path": "/affiliate",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/seo-hub": {
+      "path": "/seo-hub",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/werken-bij": {
+      "path": "/werken-bij",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/docs": {
+      "path": "/docs",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/evidence": {
+      "path": "/evidence",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/hcp-ranglijsten": {
+      "path": "/hcp-ranglijsten",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/login": {
+      "path": "/login",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/register": {
+      "path": "/register",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/app": {
+      "path": "/app",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/checkout": {
+      "path": "/checkout",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/favorites": {
+      "path": "/favorites",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/messages": {
+      "path": "/messages",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/mijn-hcp": {
+      "path": "/mijn-hcp",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/notifications": {
+      "path": "/notifications",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/orders": {
+      "path": "/orders",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/profile": {
+      "path": "/profile",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/settings": {
+      "path": "/settings",
+      "status": 200,
+      "location": null,
+      "ok": true
+    },
+    "/verdiensten": {
+      "path": "/verdiensten",
+      "status": 200,
+      "location": null,
+      "ok": true
+    }
+  },
+  "legal0": {
+    "/help": {
+      "path": "/help",
+      "status": 404,
+      "location": null,
+      "ok": false
+    },
+    "/gidsen": {
+      "path": "/gidsen",
+      "status": 404,
+      "location": null,
+      "ok": false
+    },
+    "/reputatie": {
+      "path": "/reputatie",
+      "status": 404,
+      "location": null,
+      "ok": false
+    }
+  },
+  "cases": {
+    "careerPortrait": {
+      "opened": true,
+      "ok": true,
+      "before": "/",
+      "after": "/werken-bij",
+      "expected": "/werken-bij"
+    },
+    "careerLandscape": {
+      "opened": true,
+      "ok": true,
+      "before": "/",
+      "after": "/werken-bij",
+      "expected": "/werken-bij"
+    },
+    "hamburgerMatrix": {
+      "hrefs": [
+        "/",
+        "/login",
+        "/app",
+        "/register",
+        "/werken-bij",
+        "/over-ons",
+        "/faq",
+        "/contact",
+        "/privacy",
+        "/terms"
+      ],
+      "results": [
+        {
+          "href": "/",
+          "ok": true,
+          "before": "/",
+          "after": "/",
+          "expected": "/"
+        },
+        {
+          "href": "/login",
+          "ok": true,
+          "before": "/",
+          "after": "/login",
+          "expected": "/login"
+        },
+        {
+          "href": "/app",
+          "ok": true,
+          "before": "/",
+          "after": "/app",
+          "expected": "/app"
+        },
+        {
+          "href": "/register",
+          "ok": true,
+          "before": "/",
+          "after": "/register",
+          "expected": "/register"
+        },
+        {
+          "href": "/werken-bij",
+          "ok": true,
+          "before": "/",
+          "after": "/werken-bij",
+          "expected": "/werken-bij"
+        },
+        {
+          "href": "/over-ons",
+          "ok": true,
+          "before": "/",
+          "after": "/over-ons",
+          "expected": "/over-ons"
+        },
+        {
+          "href": "/faq",
+          "ok": true,
+          "before": "/",
+          "after": "/faq",
+          "expected": "/faq"
+        },
+        {
+          "href": "/contact",
+          "ok": true,
+          "before": "/",
+          "after": "/contact",
+          "expected": "/contact"
+        },
+        {
+          "href": "/privacy",
+          "ok": true,
+          "before": "/",
+          "after": "/privacy",
+          "expected": "/privacy"
+        },
+        {
+          "href": "/terms",
+          "ok": true,
+          "before": "/",
+          "after": "/terms",
+          "expected": "/terms"
+        }
+      ]
+    },
+    "menuBack": {
+      "stillOpen": false,
+      "path": "/"
+    },
+    "home-portrait390": {
+      "controlCount": 309,
+      "controlsSample": [
+        {
+          "tag": "a",
+          "href": "/login",
+          "text": "Login",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/register",
+          "text": "Sign Up",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "input",
+          "href": null,
+          "text": "",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "All",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Offered",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Ask / Wanted",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Inspiration",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Trade",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "All",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Food",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Garden",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Creations",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Services",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Nearby",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Netherlands",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "International",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Feed",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Grid",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Filters",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "📍Searching from: Vlaardingen",
+          "id": "feed-search-context-location-action",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "📏Radius: 25 km",
+          "id": "feed-search-context-radius-action",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "↕Sort: Newest",
+          "id": "feed-search-context-sort-action",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Use my precise location",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Change location",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Open media fullscreen",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Show listing preview",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/user/Rass",
+          "text": "",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/user/Rass",
+          "text": "Sergio",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+          "text": "HomeCheff Design Studio",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "🍲HomeCheff",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "🌱HomeGarden",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "🎨HomeDesigner",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Open media fullscreen",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Show listing preview",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/user/Lioness010",
+          "text": "L",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/user/Lioness010",
+          "text": "Lioness",
+          "id": null,
+          "disabled": false
+        }
+      ],
+      "checks": {
+        "logoVisible": true,
+        "searchVisible": true,
+        "searchFocused": true,
+        "createVisible": true,
+        "createError": "TimeoutError: locator.click: Timeout 4000ms exceeded.\nCall log:\n  - waiting for locator('[data-wx-wo",
+        "infoHrefs": [],
+        "bottomNav": [
+          {
+            "href": "/#homecheff-feed",
+            "text": "🧭Discover",
+            "tag": "a"
+          },
+          {
+            "href": null,
+            "text": "",
+            "tag": "button"
+          },
+          {
+            "href": null,
+            "text": "💬Messages",
+            "tag": "button"
+          },
+          {
+            "href": null,
+            "text": "👤Profile",
+            "tag": "button"
+          }
+        ],
+        "bottom:/#homecheff-feed": {
+          "ok": true,
+          "path": "/"
+        }
+      }
+    },
+    "home-land844": {
+      "controlCount": 420,
+      "controlsSample": [
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Offer",
+          "id": "workbar-create",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "",
+          "id": "workbar-menu",
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Sell or share",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=sale&vertical=cheff#homecheff-feed",
+          "text": "Food",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=sale&vertical=garden#homecheff-feed",
+          "text": "Garden",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=sale&vertical=designer#homecheff-feed",
+          "text": "Creations",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=sale&vertical=services#homecheff-feed",
+          "text": "Services",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=inspiration#homecheff-feed",
+          "text": "Inspiration",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=gezocht#homecheff-feed",
+          "text": "Ask / Wanted",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "I wantWhat am I looking for?",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "I offerWhat can I offer?",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Meals",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Baking",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Bread",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Cake",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Cupcakes",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Cookies",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Soup",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Pasta",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Rice",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Catering",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "BBQ",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Clothing",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Jewelry",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Decoration",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Art",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Surinamese",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Indonesian",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Caribbean",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Coffee",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Tea",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Cacao",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Olive oil",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Spices",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Sauces",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Preserves & jam",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Vegetables",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Tomato",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Carrot",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Pepper",
+          "id": null,
+          "disabled": false
+        }
+      ],
+      "checks": {
+        "logoVisible": true,
+        "searchVisible": true,
+        "searchFocused": true,
+        "createVisible": true,
+        "createError": "TimeoutError: locator.click: Timeout 4000ms exceeded.\nCall log:\n  - waiting for locator('[data-wx-wo",
+        "infoHrefs": [],
+        "workbar": {
+          "menu": true,
+          "create": true,
+          "logo": true,
+          "menuIntersectsOsZone": false
+        }
+      }
+    },
+    "home-desk1280": {
+      "controlCount": 243,
+      "controlsSample": [
+        {
+          "tag": "a",
+          "href": "/",
+          "text": "Home",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/login",
+          "text": "Profile",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/login",
+          "text": "Messages",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/login",
+          "text": "Reputation",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Sell or share",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "🇬🇧",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Ontdek HomeCheff",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/login",
+          "text": "Login",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/register",
+          "text": "Sign Up",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Sell or share",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=sale&vertical=cheff#homecheff-feed",
+          "text": "Food",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=sale&vertical=garden#homecheff-feed",
+          "text": "Garden",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=sale&vertical=designer#homecheff-feed",
+          "text": "Creations",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=sale&vertical=services#homecheff-feed",
+          "text": "Services",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=inspiration#homecheff-feed",
+          "text": "Inspiration",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "href": "/?chip=gezocht#homecheff-feed",
+          "text": "Ask / Wanted",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "I wantWhat am I looking for?",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "I offerWhat can I offer?",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Meals",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Baking",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Bread",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Cake",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Cupcakes",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Cookies",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Soup",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Pasta",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Rice",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Catering",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "BBQ",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Clothing",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Jewelry",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Decoration",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Art",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Surinamese",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Indonesian",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Caribbean",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Coffee",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Tea",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Cacao",
+          "id": null,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "href": null,
+          "text": "Olive oil",
+          "id": null,
+          "disabled": false
+        }
+      ],
+      "checks": {
+        "logoVisible": true,
+        "searchVisible": true,
+        "searchFocused": true,
+        "createVisible": true,
+        "createOverlay": true,
+        "infoHrefs": []
+      }
+    },
+    "listing": {
+      "href": "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+      "path": "/product/homecheff-design-studio-vlaardingen-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+      "controlCount": 17,
+      "reportUi": {
+        "opened": false
+      },
+      "backPath": "/"
+    },
+    "footer": {
+      "hrefs": [
+        "/",
+        "/affiliate",
+        "/docs",
+        "/evidence",
+        "/seo-hub",
+        "/privacy",
+        "/terms",
+        "/community-guidelines",
+        "/safety",
+        "/contact",
+        "/over-ons",
+        "/constitution",
+        "/manifest",
+        "/faq",
+        "/hcp-ranglijsten",
+        "/contact?subject=feedback"
+      ],
+      "results": [
+        {
+          "href": "/",
+          "ok": true,
+          "path": "/"
+        },
+        {
+          "href": "/affiliate",
+          "ok": true,
+          "path": "/affiliate"
+        },
+        {
+          "href": "/docs",
+          "ok": true,
+          "path": "/docs"
+        },
+        {
+          "href": "/evidence",
+          "ok": true,
+          "path": "/evidence"
+        },
+        {
+          "href": "/seo-hub",
+          "ok": true,
+          "path": "/seo-hub"
+        },
+        {
+          "href": "/privacy",
+          "ok": true,
+          "path": "/privacy"
+        },
+        {
+          "href": "/terms",
+          "ok": true,
+          "path": "/terms"
+        },
+        {
+          "href": "/community-guidelines",
+          "ok": true,
+          "path": "/community-guidelines"
+        },
+        {
+          "href": "/safety",
+          "ok": true,
+          "path": "/safety"
+        },
+        {
+          "href": "/contact",
+          "ok": true,
+          "path": "/contact"
+        },
+        {
+          "href": "/over-ons",
+          "ok": true,
+          "path": "/over-ons"
+        },
+        {
+          "href": "/constitution",
+          "ok": true,
+          "path": "/constitution"
+        },
+        {
+          "href": "/manifest",
+          "ok": true,
+          "path": "/manifest"
+        },
+        {
+          "href": "/faq",
+          "ok": true,
+          "path": "/faq"
+        },
+        {
+          "href": "/hcp-ranglijsten",
+          "ok": true,
+          "path": "/hcp-ranglijsten"
+        },
+        {
+          "href": "/contact?subject=feedback",
+          "ok": true,
+          "path": "/contact?subject=feedback"
+        }
+      ]
+    },
+    "desktopCareer": {
+      "mode": "not-in-desktop-primary",
+      "ok": true,
+      "note": "guest careers in hamburger only"
+    }
+  },
+  "failures": [],
+  "consoleErrors": [
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "land844",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 401 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "portrait390",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "vp": "desk1280",
+      "msg": "Failed to load resource: the server responded with a status of 404 ()"
+    }
+  ],
+  "pageErrors": [],
+  "counts": {
+    "sourceInventory": 27,
+    "httpProbed": 27,
+    "httpBroken": 0,
+    "failures": 0,
+    "pageErrors": 0,
+    "consoleErrors": 35,
+    "careerPortraitOk": true,
+    "careerLandscapeOk": true,
+    "menuBackOk": true
+  },
+  "verdict": "HOMECHEFF_FULL_INTERACTION_INTEGRITY_PROBE_PASS"
+}

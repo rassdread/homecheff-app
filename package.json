@@ -28,6 +28,7 @@
     "validate:legal-1-seller-classification": "npx tsx scripts/validate-legal-1-seller-classification.ts",
     "validate:legal-2-food-allergens": "npx tsx scripts/validate-legal-2-food-allergens.ts",
     "validate:legal-3-consumer-information": "npx tsx scripts/validate-legal-3-consumer-information.ts",
+    "validate:legal-4a-compliance-foundation": "npx tsx scripts/validate-legal-4a-compliance-foundation.ts",
     "validate:trust-1-marketplace-integrity": "npx tsx scripts/validate-trust-1-marketplace-integrity.ts",
     "probe:legal-1-seller-classification": "node scripts/probe-legal-1-seller-classification.mjs",
     "probe:legal-2-food-allergens": "node scripts/probe-legal-2-food-allergens.mjs",
