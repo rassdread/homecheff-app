@@ -24,6 +24,7 @@ type Props = {
   communityOrder: CommunityOrderDTO;
   proposal: ProposalDTO;
   deliveryRequest?: DeliveryRequestDTO | null;
+  currentUserId: string;
   onDeliveryRequestCreated?: (deliveryRequest: DeliveryRequestDTO) => void;
   onCommunityOrderUpdated?: (order: CommunityOrderDTO) => void;
 };
@@ -31,6 +32,8 @@ type Props = {
 function ctaIcon(kind: DealPrimaryCtaKind) {
   switch (kind) {
     case 'PAY_CHECKOUT':
+      return CreditCard;
+    case 'WAIT_FOR_PAYMENT':
       return CreditCard;
     case 'DISCUSS_PAYMENT':
       return MessageCircle;
@@ -53,6 +56,7 @@ export default function DealCard({
   communityOrder,
   proposal,
   deliveryRequest,
+  currentUserId,
   onDeliveryRequestCreated,
   onCommunityOrderUpdated,
 }: Props) {
@@ -85,6 +89,7 @@ export default function DealCard({
     communityOrder: order,
     deliveryRequest,
     canReviewDeal,
+    currentUserId,
   });
   const paymentPath = paymentPathFromSummary(proposal.proposalSummary);
 
@@ -163,6 +168,7 @@ export default function DealCard({
 
   const CtaIcon = ctaIcon(deal.primaryCta.kind);
   const isCompleteCta = deal.primaryCta.kind === 'COMPLETE';
+  const isWaitCta = deal.primaryCta.kind === 'WAIT_FOR_PAYMENT';
 
   const handlePrimaryClick = () => {
     if (deal.primaryCta.kind === 'REQUEST_DELIVERY') {
@@ -258,7 +264,9 @@ export default function DealCard({
         </p>
       ) : null}
 
-      {paymentPath === 'HOMECHEFF_CHECKOUT' && deal.showPaymentRequired ? (
+      {paymentPath === 'HOMECHEFF_CHECKOUT' &&
+      deal.showPaymentRequired &&
+      deal.primaryCta.kind === 'PAY_CHECKOUT' ? (
         <p className="text-[11px] text-indigo-800">
           {t(DEAL_COMMITMENT_I18N.homecheffHint)}
         </p>
@@ -297,7 +305,7 @@ export default function DealCard({
             <CtaIcon className="h-4 w-4 shrink-0" aria-hidden />
             {t(deal.primaryCta.labelKey)}
           </Link>
-        ) : isCompleteCta ? (
+        ) : isCompleteCta || isWaitCta ? (
           <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold text-emerald-900">
             <CtaIcon className="h-4 w-4 shrink-0" aria-hidden />
             {t(deal.primaryCta.labelKey)}

@@ -31,6 +31,7 @@ type Props = {
 function ctaIcon(kind: DealPrimaryCtaKind) {
   switch (kind) {
     case 'PAY_CHECKOUT':
+    case 'WAIT_FOR_PAYMENT':
       return CreditCard;
     case 'DISCUSS_PAYMENT':
       return MessageCircle;
@@ -324,7 +325,8 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
               <CtaIcon className="h-4 w-4 shrink-0" aria-hidden />
               {t(ux.primaryCta.labelKey)}
             </Link>
-          ) : ux.primaryCta.kind === 'COMPLETE' ? (
+          ) : ux.primaryCta.kind === 'COMPLETE' ||
+            ux.primaryCta.kind === 'WAIT_FOR_PAYMENT' ? (
             <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold text-emerald-900">
               <CtaIcon className="h-4 w-4 shrink-0" aria-hidden />
               {t(ux.primaryCta.labelKey)}

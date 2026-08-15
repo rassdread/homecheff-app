@@ -9441,7 +9441,10 @@
       "highlightPrice": "Prijs",
       "highlightDelivery": "Bezorging",
       "highlightPayment": "Betaling",
-      "highlightValue": "Ruil"
+      "highlightValue": "Ruil",
+      "receivedHeading": "Voorstel ontvangen",
+      "sentHeading": "Voorstel verzonden",
+      "awaitingCounterpart": "Wacht op reactie van de andere partij. Je kunt je eigen voorstel niet accepteren."
     },
     "status": {
       "pending": "Wacht op reactie",
@@ -9449,7 +9452,9 @@
       "rejected": "Afgewezen",
       "countered": "Tegenvoorstel",
       "expired": "Verlopen",
-      "cancelled": "Geannuleerd"
+      "cancelled": "Geannuleerd",
+      "received": "Voorstel ontvangen",
+      "awaitingResponse": "Wacht op reactie"
     },
     "settlement": {
       "heading": "Waarde",
@@ -9601,7 +9606,8 @@
       "deliveryPending": "Bezorging mogelijk",
       "deliveryActive": "Bezorging actief",
       "completed": "Afgerond",
-      "cancelled": "Geannuleerd"
+      "cancelled": "Geannuleerd",
+      "waitingBuyerPayment": "Wacht op betaling door koper"
     },
     "nextStep": {
       "payHomecheff": "Betaal veilig via HomeCheff om de afspraak af te ronden.",
@@ -9611,7 +9617,8 @@
       "viewDelivery": "Bekijk de status van jullie bezorging.",
       "discussDeal": "Spreek de details van jullie afspraak af in de chat.",
       "complete": "Deze afspraak is afgerond.",
-      "cancelled": "Deze afspraak is geannuleerd."
+      "cancelled": "Deze afspraak is geannuleerd.",
+      "waitBuyerPayment": "De koper rondt de afspraak af met betaling via HomeCheff."
     },
     "cta": {
       "payHomecheff": "Betaal via HomeCheff",
@@ -9620,7 +9627,8 @@
       "completeExchange": "Rond jullie ruil af",
       "requestDelivery": "Bezorging aanvragen",
       "viewDelivery": "Bekijk bezorging",
-      "complete": "Afgerond"
+      "complete": "Afgerond",
+      "waitBuyerPayment": "Wacht op betaling door koper"
     },
     "delivery": {
       "statusPending": "Bezorging nog niet aangevraagd",

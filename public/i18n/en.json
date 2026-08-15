@@ -9441,7 +9441,10 @@
       "highlightPrice": "Price",
       "highlightDelivery": "Delivery",
       "highlightPayment": "Payment",
-      "highlightValue": "Trade"
+      "highlightValue": "Trade",
+      "receivedHeading": "Proposal received",
+      "sentHeading": "Proposal sent",
+      "awaitingCounterpart": "Waiting for the other party to respond. You cannot accept your own proposal."
     },
     "status": {
       "pending": "Awaiting response",
@@ -9449,7 +9452,9 @@
       "rejected": "Declined",
       "countered": "Counter offer",
       "expired": "Expired",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "received": "Proposal received",
+      "awaitingResponse": "Waiting for response"
     },
     "settlement": {
       "heading": "Value",
@@ -9601,7 +9606,8 @@
       "deliveryPending": "Delivery available",
       "deliveryActive": "Delivery active",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "waitingBuyerPayment": "Waiting for buyer payment"
     },
     "nextStep": {
       "payHomecheff": "Pay securely via HomeCheff to complete the deal.",
@@ -9611,7 +9617,8 @@
       "viewDelivery": "View your delivery status.",
       "discussDeal": "Arrange the details of your deal in chat.",
       "complete": "This deal is complete.",
-      "cancelled": "This deal was cancelled."
+      "cancelled": "This deal was cancelled.",
+      "waitBuyerPayment": "The buyer completes the deal with payment via HomeCheff."
     },
     "cta": {
       "payHomecheff": "Pay via HomeCheff",
@@ -9620,7 +9627,8 @@
       "completeExchange": "Complete your trade",
       "requestDelivery": "Request delivery",
       "viewDelivery": "View delivery",
-      "complete": "Completed"
+      "complete": "Completed",
+      "waitBuyerPayment": "Waiting for buyer payment"
     },
     "delivery": {
       "statusPending": "Delivery not yet requested",

@@ -294,6 +294,10 @@ export function resolveProfileDealPresentation(input: {
     communityOrder: input.communityOrder,
     deliveryRequest: input.deliveryRequest,
     canReviewDeal: input.canReview,
+    currentUserId:
+      input.userRoleInDeal === 'BUYER'
+        ? input.proposal.buyerId
+        : input.proposal.sellerId,
   });
   const courierName = input.deliveryRequest?.courierName ?? null;
   const statusBlocks = buildProfileDealStatusBlocks({

@@ -9,6 +9,7 @@ import type { CommunityOrderDTO, ProposalDTO } from './proposal-types';
 export type DealPrimaryCtaKind =
   | 'COMPLETE'
   | 'PAY_CHECKOUT'
+  | 'WAIT_FOR_PAYMENT'
   | 'DISCUSS_PAYMENT'
   | 'MARK_COMPLETE'
   | 'REQUEST_DELIVERY'
@@ -83,13 +84,34 @@ function completeState(checkoutUrl: string | null): DealUxState {
   };
 }
 
+/**
+ * Buyer pays HomeCheff Checkout for ordinary buyer→seller money deals.
+ * Never infer payer from UI role labels alone.
+ */
+export function isHomecheffCheckoutPayer(input: {
+  currentUserId: string | null | undefined;
+  buyerId: string;
+}): boolean {
+  return Boolean(
+    input.currentUserId && input.currentUserId === input.buyerId,
+  );
+}
+
 export function resolveDealUxState(input: {
   proposal: ProposalDTO;
   communityOrder: CommunityOrderDTO;
   deliveryRequest?: DeliveryRequestDTO | null;
   canReviewDeal?: boolean;
+  /** Required for actor-aware payment CTA. */
+  currentUserId?: string | null;
 }): DealUxState {
-  const { proposal, communityOrder, deliveryRequest, canReviewDeal } = input;
+  const {
+    proposal,
+    communityOrder,
+    deliveryRequest,
+    canReviewDeal,
+    currentUserId,
+  } = input;
   const paymentPath = paymentPathFromSummary(proposal.proposalSummary);
   const moneyLeg = hasMoneyLeg(proposal.settlementMode);
   const valueLeg = hasValueLeg(proposal);
@@ -103,6 +125,10 @@ export function resolveDealUxState(input: {
   const showPaymentRequired = moneyLeg && !isPaid;
   const showDeliveryRequired =
     communityOrder.deliveryRequested && deliveryRequest == null;
+  const viewerIsPayer = isHomecheffCheckoutPayer({
+    currentUserId,
+    buyerId: proposal.buyerId,
+  });
 
   if (communityOrder.status === 'COMPLETED') {
     if (canReviewDeal) {
@@ -146,18 +172,36 @@ export function resolveDealUxState(input: {
   }
 
   if (needsCheckout) {
+    if (viewerIsPayer) {
+      return {
+        statusLabelKey: 'deal.status.waitingPayment',
+        nextStepHintKey: 'deal.nextStep.payHomecheff',
+        primaryCta: {
+          kind: 'PAY_CHECKOUT',
+          labelKey: 'deal.cta.payHomecheff',
+          hintKey: 'deal.nextStep.payHomecheff',
+          href: checkoutUrl,
+          deliveryRequestId: null,
+        },
+        nextAction: 'CHECKOUT_REQUIRED',
+        checkoutUrl,
+        showPaymentRequired: true,
+        showDeliveryRequired,
+        dealComplete: false,
+      };
+    }
     return {
-      statusLabelKey: 'deal.status.waitingPayment',
-      nextStepHintKey: 'deal.nextStep.payHomecheff',
+      statusLabelKey: 'deal.status.waitingBuyerPayment',
+      nextStepHintKey: 'deal.nextStep.waitBuyerPayment',
       primaryCta: {
-        kind: 'PAY_CHECKOUT',
-        labelKey: 'deal.cta.payHomecheff',
-        hintKey: 'deal.nextStep.payHomecheff',
-        href: checkoutUrl,
+        kind: 'WAIT_FOR_PAYMENT',
+        labelKey: 'deal.cta.waitBuyerPayment',
+        hintKey: 'deal.nextStep.waitBuyerPayment',
+        href: null,
         deliveryRequestId: null,
       },
       nextAction: 'CHECKOUT_REQUIRED',
-      checkoutUrl,
+      checkoutUrl: null,
       showPaymentRequired: true,
       showDeliveryRequired,
       dealComplete: false,

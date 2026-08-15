@@ -283,18 +283,29 @@ export default function ProposalCard({
     proposal.acceptedValueTaxonomyIds.length > 0 ||
     proposal.requestedValueTaxonomyIds.length > 0;
 
+  const statusChipKey =
+    proposal.status === "PENDING" && canAct
+      ? "proposal.status.received"
+      : proposal.status === "PENDING" && isCreator
+        ? "proposal.status.awaitingResponse"
+        : PROPOSAL_I18N.status[proposal.status];
+
   return (
     <div className="flex justify-center px-1">
       <div className="w-full max-w-md rounded-xl border border-indigo-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center gap-2 border-b border-indigo-100 bg-indigo-50 px-3 py-2">
           <ClipboardList className="h-4 w-4 text-indigo-600 shrink-0" aria-hidden />
           <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-900">
-            {t(PROPOSAL_I18N.cardHeading)}
+            {proposal.status === "PENDING" && canAct
+              ? t("proposal.card.receivedHeading")
+              : proposal.status === "PENDING" && isCreator
+                ? t("proposal.card.sentHeading")
+                : t(PROPOSAL_I18N.cardHeading)}
           </span>
           <span
             className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${statusBadgeClass(proposal.status)}`}
           >
-            {t(PROPOSAL_I18N.status[proposal.status])}
+            {t(statusChipKey)}
           </span>
         </div>
 
@@ -398,11 +409,18 @@ export default function ProposalCard({
             </p>
           ) : null}
 
+          {proposal.status === "PENDING" && isCreator && !showCounter ? (
+            <p className="text-[11px] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-2.5 py-2">
+              {t("proposal.card.awaitingCounterpart")}
+            </p>
+          ) : null}
+
           {proposal.status === "ACCEPTED" && communityOrder ? (
             <DealCard
               communityOrder={communityOrder}
               proposal={proposal}
               deliveryRequest={deliveryRequest}
+              currentUserId={currentUserId}
               onDeliveryRequestCreated={(dr) =>
                 onUpdated?.(proposal, { deliveryRequest: dr })
               }

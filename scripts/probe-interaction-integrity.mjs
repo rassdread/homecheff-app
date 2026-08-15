@@ -860,6 +860,14 @@ report.cases.buyerCounterofferBarterContract = (() => {
       join(process.cwd(), "lib/proposals/proposal-stock-policy.ts"),
       "utf8",
     );
+    const dealUx = readFileSync(
+      join(process.cwd(), "lib/proposals/deal-ux-state.ts"),
+      "utf8",
+    );
+    const dealCard = readFileSync(
+      join(process.cwd(), "components/chat/proposals/DealCard.tsx"),
+      "utf8",
+    );
     const ok =
       /allowedBuyerProposalSettlementModes/.test(align) &&
       /sellerBarterPreferenceHintKey/.test(align) &&
@@ -872,7 +880,10 @@ report.cases.buyerCounterofferBarterContract = (() => {
       /proposalNegotiationIgnoresStockAvailability/.test(stockPolicy) &&
       /liveReadiness/.test(sheet) &&
       /submitBlockedReason/.test(sheet) &&
-      !/maxQuantity != null && maxQuantity <= 0/.test(sheet);
+      !/maxQuantity != null && maxQuantity <= 0/.test(sheet) &&
+      /isHomecheffCheckoutPayer/.test(dealUx) &&
+      /WAIT_FOR_PAYMENT/.test(dealUx) &&
+      /currentUserId/.test(dealCard);
     if (!ok) fail("buyerBarter", "counteroffer-source-contract", {});
     return { ok };
   } catch (e) {
