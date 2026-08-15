@@ -45,6 +45,8 @@ type Props = {
   allowedSettlementModes: SettlementMode[];
   product?: ProposalFieldsProduct | null;
   idPrefix?: string;
+  /** Actor-aware barter picker heading (buyer offers vs seller asks). */
+  valuePickerHeadingKey?: string;
 };
 
 const PAYMENT_PATHS: ProposalPaymentPath[] = [
@@ -59,6 +61,7 @@ export default function ProposalFieldsSection({
   allowedSettlementModes,
   product,
   idPrefix = 'proposal',
+  valuePickerHeadingKey = 'marketplace.acceptedValues.offeredInReturnHeading',
 }: Props) {
   const { t } = useTranslation();
 
@@ -289,7 +292,7 @@ export default function ProposalFieldsSection({
             onChange={(ids) =>
               onChange({ ...form, requestedValueTaxonomyIds: ids })
             }
-            headingKey="marketplace.acceptedValues.offeredInReturnHeading"
+            headingKey={valuePickerHeadingKey}
           />
           <BarterOfferImageUploader
             value={form.barterOfferImageUrls}

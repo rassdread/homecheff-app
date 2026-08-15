@@ -17,6 +17,7 @@ import {
   canProposalHomeCheffCheckout,
   parseProposalAmountEurosToCents,
 } from '@/lib/proposals/proposal-homecheff-eligibility';
+import { resolveValuePickerHeadingKey } from '@/lib/proposals/proposal-barter-actor-labels';
 import {
   PROPOSAL_FLOW_EVENTS,
   trackProposalFlowEvent,
@@ -28,6 +29,7 @@ import ProposalSummaryPreview from './ProposalSummaryPreview';
 
 type Props = {
   proposal: ProposalDTO;
+  currentUserId: string;
   onCancel: () => void;
   onCountered: (proposal: ProposalDTO) => void;
 };
@@ -147,6 +149,7 @@ async function loadCounterProduct(
 
 export default function CounterProposalForm({
   proposal,
+  currentUserId,
   onCancel,
   onCountered,
 }: Props) {
@@ -263,6 +266,12 @@ export default function CounterProposalForm({
         ? 'proposal.errors.listingInactive'
         : null;
 
+  const valuePickerHeadingKey = resolveValuePickerHeadingKey({
+    currentUserId,
+    buyerId: proposal.buyerId,
+    sellerId: proposal.sellerId,
+  });
+
   const handleSubmit = async () => {
     setError(null);
     const readiness = validateProposalReadiness({
@@ -328,6 +337,7 @@ export default function CounterProposalForm({
         allowedSettlementModes={allowedSettlementModes}
         product={product}
         idPrefix="counter-proposal"
+        valuePickerHeadingKey={valuePickerHeadingKey}
       />
 
       <ProposalSummaryPreview

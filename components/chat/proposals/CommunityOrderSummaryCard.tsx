@@ -3,7 +3,12 @@
 import Link from 'next/link';
 import MarketplaceBadgeList from '@/components/marketplace/MarketplaceBadgeList';
 import { useTranslation } from '@/hooks/useTranslation';
-import { COMMUNITY_ORDER_I18N, PROPOSAL_I18N } from '@/lib/proposals/proposal-i18n-keys';
+import { COMMUNITY_ORDER_I18N } from '@/lib/proposals/proposal-i18n-keys';
+import {
+  resolveAcceptedAlternativesLabelKey,
+  resolveBuyerConsiderationLabelKey,
+  resolveSellerTargetLabelKey,
+} from '@/lib/proposals/proposal-barter-actor-labels';
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 import type { ProposalNextAction } from '@/lib/proposals/proposal-accept-routing';
 import { paymentPathFromSummary } from '@/lib/proposals/proposal-accept-routing';
@@ -14,6 +19,7 @@ type Props = {
   proposal: ProposalDTO;
   nextAction?: ProposalNextAction;
   checkoutUrl?: string | null;
+  currentUserId?: string;
 };
 
 export default function CommunityOrderSummaryCard({
@@ -21,6 +27,7 @@ export default function CommunityOrderSummaryCard({
   proposal,
   nextAction,
   checkoutUrl,
+  currentUserId,
 }: Props) {
   const { t } = useTranslation();
 
@@ -40,6 +47,17 @@ export default function CommunityOrderSummaryCard({
   );
 
   const paymentPath = paymentPathFromSummary(proposal.proposalSummary);
+  const actors = {
+    currentUserId: currentUserId ?? communityOrder.buyerId,
+    buyerId: proposal.buyerId,
+    sellerId: proposal.sellerId,
+    createdById: proposal.createdById,
+  };
+  const buyerDeliversKey = resolveBuyerConsiderationLabelKey(actors, {
+    asAgreement: true,
+  });
+  const sellerDeliversKey = resolveSellerTargetLabelKey({ asAgreement: true });
+  const alternativesKey = resolveAcceptedAlternativesLabelKey();
 
   return (
     <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5 space-y-2">
@@ -82,26 +100,38 @@ export default function CommunityOrderSummaryCard({
       ) : proposal.settlementMode !== 'MONEY' ? (
         <p className="text-sm font-semibold text-emerald-900">{priceLabel}</p>
       ) : null}
+      <div className="space-y-0.5">
+        <p className="text-[10px] font-medium text-emerald-800">
+          {t(sellerDeliversKey)}
+        </p>
+        <p className="text-xs font-medium text-emerald-950">{proposal.title}</p>
+      </div>
+      {proposal.requestedValueTaxonomyIds.length > 0 ||
+      (proposal.amountCents != null && proposal.amountCents > 0) ? (
+        <div className="space-y-1">
+          <p className="text-[10px] font-medium text-emerald-800">
+            {t(buyerDeliversKey)}
+          </p>
+          {proposal.amountCents != null && proposal.amountCents > 0 ? (
+            <p className="text-xs font-semibold text-emerald-900">{priceLabel}</p>
+          ) : null}
+          {proposal.requestedValueTaxonomyIds.length > 0 ? (
+            <MarketplaceBadgeList
+              specializations={proposal.requestedValueTaxonomyIds}
+              variant="accepted"
+              maxVisible={4}
+              size="sm"
+            />
+          ) : null}
+        </div>
+      ) : null}
       {proposal.acceptedValueTaxonomyIds.length > 0 ? (
         <div className="space-y-0.5">
           <p className="text-[10px] font-medium text-emerald-800">
-            {t(PROPOSAL_I18N.acceptsLabel)}
+            {t(alternativesKey)}
           </p>
           <MarketplaceBadgeList
             specializations={proposal.acceptedValueTaxonomyIds}
-            variant="accepted"
-            maxVisible={4}
-            size="sm"
-          />
-        </div>
-      ) : null}
-      {proposal.requestedValueTaxonomyIds.length > 0 ? (
-        <div className="space-y-0.5">
-          <p className="text-[10px] font-medium text-emerald-800">
-            {t(PROPOSAL_I18N.seeksLabel)}
-          </p>
-          <MarketplaceBadgeList
-            specializations={proposal.requestedValueTaxonomyIds}
             variant="accepted"
             maxVisible={4}
             size="sm"

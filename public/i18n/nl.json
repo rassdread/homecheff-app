@@ -8956,7 +8956,8 @@
       "searchPlaceholder": "Zoek op categorie of product…",
       "offeredInReturnHeading": "Wat bied je terug?",
       "filterAll": "Alles",
-      "emptySearch": "Geen resultaten voor deze zoekopdracht."
+      "emptySearch": "Geen resultaten voor deze zoekopdracht.",
+      "askBuyerConsiderationHeading": "Welke tegenprestatie vraag je van de koper?"
     },
     "pendingAcceptedValue": {
       "proposeCta": "Staat jouw tegenwaarde er niet tussen? Voeg zelf een voorstel toe",
@@ -9439,8 +9440,8 @@
   "proposal": {
     "card": {
       "heading": "Voorstel",
-      "acceptsLabel": "Accepteert als ruil",
-      "seeksLabel": "Vraagt terug",
+      "acceptsLabel": "Accepteert ook als ruil",
+      "seeksLabel": "Tegenprestatie van koper",
       "settlementHeading": "Wat wordt afgesproken?",
       "highlightPrice": "Prijs",
       "highlightDelivery": "Bezorging",
@@ -9448,7 +9449,17 @@
       "highlightValue": "Ruil",
       "receivedHeading": "Voorstel ontvangen",
       "sentHeading": "Voorstel verzonden",
-      "awaitingCounterpart": "Wacht op reactie van de andere partij. Je kunt je eigen voorstel niet accepteren."
+      "awaitingCounterpart": "Wacht op reactie van de andere partij. Je kunt je eigen voorstel niet accepteren.",
+      "buyerOffers": "Koper biedt aan",
+      "youOffer": "Jij biedt aan",
+      "youAskConsideration": "Je vraagt als tegenprestatie",
+      "sellerAsks": "De aanbieder vraagt",
+      "buyerDelivers": "Koper levert",
+      "sellerDelivers": "Verkoper levert",
+      "inExchangeFor": "In ruil voor",
+      "acceptedAlternatives": "Ook open voor",
+      "buyerConsiderationPhotos": "Wat de koper aanbiedt",
+      "yourConsiderationPhotos": "Foto’s van wat jij aanbiedt"
     },
     "status": {
       "pending": "Wacht op reactie",

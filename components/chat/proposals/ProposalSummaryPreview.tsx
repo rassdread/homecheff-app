@@ -85,6 +85,9 @@ export default function ProposalSummaryPreview({
           <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
             {t(PROPOSAL_POLISH_I18N.summary.barterLeg)}
           </p>
+          <p className="text-[10px] text-gray-500 mb-1">
+            {t('proposal.card.buyerOffers')}
+          </p>
           <MarketplaceBadgeList
             specializations={form.requestedValueTaxonomyIds}
             variant="accepted"

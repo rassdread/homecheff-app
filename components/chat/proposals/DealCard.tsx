@@ -14,12 +14,13 @@ import MarketplaceBadgeList from '@/components/marketplace/MarketplaceBadgeList'
 import { useTranslation } from '@/hooks/useTranslation';
 import { resolveDealUxState, type DealPrimaryCtaKind } from '@/lib/proposals/deal-ux-state';
 import { paymentPathFromSummary } from '@/lib/proposals/proposal-accept-routing';
+import { DEAL_I18N, DEAL_COMMITMENT_I18N, PROFILE_DEALS_I18N } from '@/lib/proposals/proposal-i18n-keys';
 import {
-  DEAL_I18N,
-  DEAL_COMMITMENT_I18N,
-  PROPOSAL_I18N,
-  PROFILE_DEALS_I18N,
-} from '@/lib/proposals/proposal-i18n-keys';
+  resolveAcceptedAlternativesLabelKey,
+  resolveBuyerConsiderationLabelKey,
+  resolveBuyerConsiderationPhotosLabelKey,
+  resolveSellerTargetLabelKey,
+} from '@/lib/proposals/proposal-barter-actor-labels';
 import { normalizeBarterOfferImageUrls } from '@/lib/proposals/barter-offer-images';
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
@@ -97,6 +98,24 @@ export default function DealCard({
     currentUserId,
   });
   const paymentPath = paymentPathFromSummary(proposal.proposalSummary);
+  const agreementActors = {
+    currentUserId,
+    buyerId: proposal.buyerId,
+    sellerId: proposal.sellerId,
+    createdById: proposal.createdById,
+  };
+  const buyerDeliversKey = resolveBuyerConsiderationLabelKey(agreementActors, {
+    asAgreement: true,
+  });
+  const sellerDeliversKey = resolveSellerTargetLabelKey({ asAgreement: true });
+  const buyerPhotosKey = resolveBuyerConsiderationPhotosLabelKey(
+    agreementActors,
+    { asAgreement: true },
+  );
+  const alternativesKey = resolveAcceptedAlternativesLabelKey();
+  const barterPhotos = normalizeBarterOfferImageUrls(
+    proposal.proposalSummary?.barterOfferImageUrls,
+  );
 
   const priceLabel = getMarketplacePriceDisplay(
     {
@@ -233,17 +252,61 @@ export default function DealCard({
         </span>
       </div>
 
-      <p className="text-sm font-semibold text-emerald-950">{proposal.title}</p>
+      <div className="space-y-0.5">
+        <p className="text-[10px] font-medium text-emerald-800">
+          {t(sellerDeliversKey)}
+        </p>
+        <p className="text-sm font-semibold text-emerald-950">{proposal.title}</p>
+      </div>
 
       {(proposal.amountCents != null && proposal.amountCents > 0) ||
-      proposal.settlementMode !== 'MONEY' ? (
-        <p className="text-sm font-semibold text-emerald-900">{priceLabel}</p>
+      proposal.settlementMode !== 'MONEY' ||
+      proposal.requestedValueTaxonomyIds.length > 0 ||
+      barterPhotos.length > 0 ? (
+        <div className="space-y-1.5 rounded-lg border border-emerald-200/80 bg-white/60 p-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-800">
+            {t(buyerDeliversKey)}
+          </p>
+          {(proposal.amountCents != null && proposal.amountCents > 0) ||
+          proposal.settlementMode !== 'MONEY' ? (
+            <p className="text-sm font-semibold text-emerald-900">{priceLabel}</p>
+          ) : null}
+          {proposal.requestedValueTaxonomyIds.length > 0 ? (
+            <MarketplaceBadgeList
+              specializations={proposal.requestedValueTaxonomyIds}
+              variant="accepted"
+              maxVisible={4}
+              size="sm"
+            />
+          ) : null}
+          {barterPhotos.length > 0 ? (
+            <div className="space-y-1">
+              <p className="text-[10px] font-medium text-emerald-800">
+                {t(buyerPhotosKey)}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {barterPhotos.map((url) => (
+                  <a
+                    key={url}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block h-12 w-12 overflow-hidden rounded-md border border-emerald-200"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {proposal.acceptedValueTaxonomyIds.length > 0 ? (
         <div className="space-y-0.5">
           <p className="text-[10px] font-medium text-emerald-800">
-            {t(PROPOSAL_I18N.acceptsLabel)}
+            {t(alternativesKey)}
           </p>
           <MarketplaceBadgeList
             specializations={proposal.acceptedValueTaxonomyIds}
@@ -251,41 +314,6 @@ export default function DealCard({
             maxVisible={4}
             size="sm"
           />
-        </div>
-      ) : null}
-
-      {proposal.requestedValueTaxonomyIds.length > 0 ? (
-        <div className="space-y-0.5">
-          <p className="text-[10px] font-medium text-emerald-800">
-            {t(PROPOSAL_I18N.seeksLabel)}
-          </p>
-          <MarketplaceBadgeList
-            specializations={proposal.requestedValueTaxonomyIds}
-            variant="accepted"
-            maxVisible={4}
-            size="sm"
-          />
-        </div>
-      ) : null}
-
-      {normalizeBarterOfferImageUrls(
-        proposal.proposalSummary?.barterOfferImageUrls,
-      ).length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {normalizeBarterOfferImageUrls(
-            proposal.proposalSummary?.barterOfferImageUrls,
-          ).map((url) => (
-            <a
-              key={url}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block h-12 w-12 overflow-hidden rounded-md border border-emerald-200"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="h-full w-full object-cover" />
-            </a>
-          ))}
         </div>
       ) : null}
 

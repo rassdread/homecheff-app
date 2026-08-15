@@ -17,8 +17,11 @@ import {
   DEAL_COMMITMENT_I18N,
   DEAL_I18N,
   PROFILE_DEALS_I18N,
-  PROPOSAL_I18N,
 } from '@/lib/proposals/proposal-i18n-keys';
+import {
+  resolveAcceptedAlternativesLabelKey,
+  resolveBuyerConsiderationLabelKey,
+} from '@/lib/proposals/proposal-barter-actor-labels';
 import type { ProfileDealDTO } from '@/lib/proposals/profile-deal-types';
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 
@@ -252,10 +255,37 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
       {deal.acceptedValueTaxonomyIds.length > 0 ? (
         <div className="space-y-0.5">
           <p className="text-[10px] font-medium text-gray-600">
-            {t(PROPOSAL_I18N.acceptsLabel)}
+            {t(resolveAcceptedAlternativesLabelKey())}
           </p>
           <MarketplaceBadgeList
             specializations={deal.acceptedValueTaxonomyIds}
+            variant="accepted"
+            maxVisible={4}
+            size="sm"
+          />
+        </div>
+      ) : null}
+
+      {deal.requestedValueTaxonomyIds.length > 0 ? (
+        <div className="space-y-0.5">
+          <p className="text-[10px] font-medium text-gray-600">
+            {t(
+              resolveBuyerConsiderationLabelKey(
+                {
+                  currentUserId:
+                    deal.userRoleInDeal === 'BUYER'
+                      ? deal.buyerId
+                      : deal.sellerId,
+                  buyerId: deal.buyerId,
+                  sellerId: deal.sellerId,
+                  createdById: deal.proposal.createdById,
+                },
+                { asAgreement: true },
+              ),
+            )}
+          </p>
+          <MarketplaceBadgeList
+            specializations={deal.requestedValueTaxonomyIds}
             variant="accepted"
             maxVisible={4}
             size="sm"

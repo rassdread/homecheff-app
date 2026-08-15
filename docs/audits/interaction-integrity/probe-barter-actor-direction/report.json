@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-15T16:50:00.000Z",
+  "mainBefore": "f665cfb9090530732ff4e63a343715057f9a36d7",
+  "productionBefore": "dpl_8EUKCKFE7CXLBmuvD2qgny3gFKow",
+  "requestedValueMeaning": "B_buyer_consideration",
+  "acceptedValueMeaning": "proposer_alternatives",
+  "storedDataCorrect": true,
+  "migrationRequired": false,
+  "screenshotRootCause": "proposal.card.seeksLabel 'Vraagt terug' on requestedValueTaxonomyIds",
+  "validators": ["validate-barter-actor-direction.ts"]
+}

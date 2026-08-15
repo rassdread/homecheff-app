@@ -8956,7 +8956,8 @@
       "searchPlaceholder": "Search by category or item…",
       "offeredInReturnHeading": "What do you offer in return?",
       "filterAll": "All",
-      "emptySearch": "No results for this search."
+      "emptySearch": "No results for this search.",
+      "askBuyerConsiderationHeading": "What consideration do you ask from the buyer?"
     },
     "pendingAcceptedValue": {
       "proposeCta": "Can't find your counter-value? Add your own proposal",
@@ -9439,8 +9440,8 @@
   "proposal": {
     "card": {
       "heading": "Proposal",
-      "acceptsLabel": "Accepts as trade",
-      "seeksLabel": "Asks in return",
+      "acceptsLabel": "Also accepts as trade",
+      "seeksLabel": "Buyer's consideration",
       "settlementHeading": "What are you agreeing on?",
       "highlightPrice": "Price",
       "highlightDelivery": "Delivery",
@@ -9448,7 +9449,17 @@
       "highlightValue": "Trade",
       "receivedHeading": "Proposal received",
       "sentHeading": "Proposal sent",
-      "awaitingCounterpart": "Waiting for the other party to respond. You cannot accept your own proposal."
+      "awaitingCounterpart": "Waiting for the other party to respond. You cannot accept your own proposal.",
+      "buyerOffers": "Buyer offers",
+      "youOffer": "You offer",
+      "youAskConsideration": "You ask in return",
+      "sellerAsks": "Seller asks in return",
+      "buyerDelivers": "Buyer delivers",
+      "sellerDelivers": "Seller delivers",
+      "inExchangeFor": "In exchange for",
+      "acceptedAlternatives": "Also open to",
+      "buyerConsiderationPhotos": "What the buyer offers",
+      "yourConsiderationPhotos": "Photos of what you offer"
     },
     "status": {
       "pending": "Awaiting response",
