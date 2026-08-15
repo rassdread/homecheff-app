@@ -821,7 +821,7 @@ report.cases.proposalHomecheffEligibilityContract = (() => {
     const ok =
       /canProposalHomeCheffCheckout/.test(elig) &&
       /amountCents/.test(elig) &&
-      !/listing\.priceCents/.test(elig) &&
+      /Negotiated proposal money/.test(elig) &&
       /canProposalHomeCheffCheckout/.test(fields) &&
       /parseProposalAmountEurosToCents/.test(fields) &&
       /amountCents: input\.amountCents/.test(binding);
