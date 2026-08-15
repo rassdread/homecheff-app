@@ -17,6 +17,8 @@ export type ProposalSummarySnapshot = {
   paymentPath?: import('./proposal-product-binding').ProposalPaymentPath;
   priceModel?: string | null;
   productId?: string | null;
+  /** Optional barter counter-value photo URLs (max 2); snapshotted into Agreement. */
+  barterOfferImageUrls?: string[];
 };
 
 export type AgreementSummarySnapshot = ProposalSummarySnapshot & {
@@ -84,7 +86,9 @@ export function buildProposalSummary(input: {
   paymentPath?: import('./proposal-product-binding').ProposalPaymentPath;
   priceModel?: string | null;
   productId?: string | null;
+  barterOfferImageUrls?: string[];
 }): ProposalSummarySnapshot {
+  const barterOfferImageUrls = input.barterOfferImageUrls ?? [];
   return {
     settlementMode: input.settlementMode,
     amountCents: input.amountCents ?? null,
@@ -97,6 +101,7 @@ export function buildProposalSummary(input: {
     paymentPath: input.paymentPath ?? 'NONE',
     priceModel: input.priceModel ?? null,
     productId: input.productId ?? null,
+    ...(barterOfferImageUrls.length > 0 ? { barterOfferImageUrls } : {}),
   };
 }
 

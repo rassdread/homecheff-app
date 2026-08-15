@@ -4,7 +4,8 @@
  */
 
 import type { SettlementMode } from '@prisma/client';
-import { allowedSettlementModesForBarterOpenness } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { normalizeBarterOpenness } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { hasPublicDisplayPrice } from '@/lib/product/order-method';
 import { deriveSettlementModeFromProduct } from './proposal-settlement';
 import type { ProposalFormValues } from './proposal-form-types';
 import { paymentPathFromSummary } from './proposal-accept-routing';
@@ -66,6 +67,7 @@ function baseFromHeader(
     paymentPath: 'NONE',
     acceptedValueTaxonomyIds: [],
     requestedValueTaxonomyIds: [],
+    barterOfferImageUrls: [],
   };
 
   if (contextHeader?.kind !== 'PRODUCT') return base;
@@ -79,16 +81,27 @@ function baseFromHeader(
         ? 'PICKUP'
         : allowed[0] ?? '';
 
-  let settlementMode = deriveSettlementModeFromProduct({
-    priceCents: product.priceCents,
-    priceModel: product.priceModel,
-    acceptedSpecializations: product.acceptedSpecializations,
-    barterOpenness: product.barterOpenness as import('@prisma/client').BarterOpenness | null,
-  });
-
-  const allowedModes = allowedSettlementModesForBarterOpenness(product.barterOpenness);
-  if (!allowedModes.includes(settlementMode)) {
-    settlementMode = allowedModes[0] ?? 'MONEY';
+  /** Prefill default follows seller preference; buyer may still change to any mode. */
+  const openness = normalizeBarterOpenness(product.barterOpenness);
+  let settlementMode: SettlementMode;
+  if (openness === 'BARTER_ONLY') {
+    settlementMode = 'VALUE_ONLY';
+  } else if (openness === 'MONEY_AND_BARTER') {
+    settlementMode = deriveSettlementModeFromProduct({
+      priceCents: product.priceCents,
+      priceModel: product.priceModel,
+      acceptedSpecializations: product.acceptedSpecializations,
+      barterOpenness: product.barterOpenness as import('@prisma/client').BarterOpenness | null,
+    });
+  } else if (product.priceModel === 'VOLUNTARY') {
+    settlementMode = 'VOLUNTARY';
+  } else if (
+    !hasPublicDisplayPrice({ priceCents: product.priceCents }) &&
+    product.priceModel !== 'ON_REQUEST'
+  ) {
+    settlementMode = 'FREE';
+  } else {
+    settlementMode = 'MONEY';
   }
 
   return {
@@ -121,6 +134,8 @@ function fromParentProposal(proposal: ProposalDTO): ProposalFormValues {
     paymentPath,
     acceptedValueTaxonomyIds: [...proposal.acceptedValueTaxonomyIds],
     requestedValueTaxonomyIds: [...proposal.requestedValueTaxonomyIds],
+    // Do not silently carry prior barter photos into a counter-offer.
+    barterOfferImageUrls: [],
   };
 }
 

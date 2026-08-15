@@ -2,10 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { X, Loader2, ClipboardList } from "lucide-react";
-import type { SettlementMode } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { allowedSettlementModesForBarterOpenness } from "@/lib/marketplace/commerce/barter-commerce-alignment";
+import { allowedBuyerProposalSettlementModes } from "@/lib/marketplace/commerce/barter-commerce-alignment";
 import {
   PROPOSAL_I18N,
   PROPOSAL_POLISH_I18N,
@@ -75,7 +74,7 @@ export default function CreateProposalSheet({
     });
 
     if (product) {
-      const allowed = allowedSettlementModesForBarterOpenness(
+      const allowed = allowedBuyerProposalSettlementModes(
         product.barterOpenness,
       );
       if (!allowed.includes(result.form.settlementMode)) {
@@ -122,18 +121,8 @@ export default function CreateProposalSheet({
   }, [open, contextHeader, product]);
 
   const allowedSettlementModes = useMemo(() => {
-    if (!product) {
-      const all: SettlementMode[] = [
-        "MONEY",
-        "MONEY_AND_VALUE",
-        "VALUE_ONLY",
-        "FREE",
-        "VOLUNTARY",
-      ];
-      return all;
-    }
-    return allowedSettlementModesForBarterOpenness(product.barterOpenness);
-  }, [product]);
+    return allowedBuyerProposalSettlementModes(product?.barterOpenness);
+  }, [product?.barterOpenness]);
 
   const showPaymentPath =
     (form.settlementMode === "MONEY" ||
@@ -292,6 +281,7 @@ export default function CreateProposalSheet({
                       product.homeCheffCheckoutBlockedReason,
                     fulfillmentOptions: product.fulfillmentOptions,
                     delivery: product.delivery,
+                    barterOpenness: product.barterOpenness,
                   }
                 : null
             }

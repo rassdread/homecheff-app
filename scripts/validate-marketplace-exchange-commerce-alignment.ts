@@ -49,46 +49,53 @@ assert(blocksHomecheffCartCheckout('BARTER_ONLY'), 'BARTER_ONLY blocks cart chec
 assert(!blocksHomecheffCartCheckout('MONEY'), 'MONEY allows cart checkout');
 assert(!blocksHomecheffCartCheckout('MONEY_AND_BARTER'), 'MONEY_AND_BARTER allows cart checkout');
 
-console.log('\nProposal settlement vs barterOpenness');
+console.log('\nProposal settlement vs listing preference (preference helper retained)');
 assert(
   validateSettlementAgainstBarterOpenness({
     barterOpenness: 'MONEY',
     settlementMode: 'VALUE_ONLY',
   }).ok === false,
-  'MONEY listing rejects VALUE_ONLY proposal',
+  'preference helper: MONEY listing prefers no VALUE_ONLY',
 );
 assert(
   validateSettlementAgainstBarterOpenness({
     barterOpenness: 'BARTER_ONLY',
     settlementMode: 'MONEY',
   }).ok === false,
-  'BARTER_ONLY listing rejects MONEY proposal',
+  'preference helper: BARTER_ONLY prefers no MONEY',
 );
 assert(
   validateSettlementAgainstBarterOpenness({
     barterOpenness: 'MONEY_AND_BARTER',
     settlementMode: 'MONEY_AND_VALUE',
   }).ok === true,
-  'MONEY_AND_BARTER allows MONEY_AND_VALUE',
+  'preference helper: MONEY_AND_BARTER allows MONEY_AND_VALUE',
 );
 
-console.log('\nAllowed settlement modes in UI');
+console.log('\nListing preference filter (direct/listing semantics — not buyer proposal firewall)');
 assert(
   !allowedSettlementModesForBarterOpenness('MONEY').includes('VALUE_ONLY'),
-  'MONEY hides barter-only settlement modes',
+  'listing preference filter: MONEY hides barter settlement modes',
 );
 assert(
   !allowedSettlementModesForBarterOpenness('BARTER_ONLY').includes('MONEY'),
-  'BARTER_ONLY hides money settlement modes',
+  'listing preference filter: BARTER_ONLY hides money settlement modes',
 );
 
 console.log('\nWiring presence');
 const checkoutRoute = readRepoFile('app/api/checkout/route.ts');
 assert(
-  checkoutRoute.includes('blocksHomecheffCartCheckout') &&
-    checkoutRoute.includes('communityOrderId') &&
+  checkoutRoute.includes('communityOrderId') &&
     checkoutRoute.includes('validateCommunityOrderCheckoutItems'),
-  'checkout API blocks barter-only + validates communityOrderId',
+  'checkout API validates communityOrderId deal checkout',
+);
+
+const cartHooks = readRepoFile('hooks/useCart.ts');
+const addToCart = readRepoFile('components/cart/AddToCartButton.tsx');
+assert(
+  cartHooks.includes('blocksHomecheffCartCheckout') &&
+    addToCart.includes('blocksHomecheffCartCheckout'),
+  'cart path blocks BARTER_ONLY direct checkout',
 );
 
 const webhook = readRepoFile('app/api/stripe/webhook/route.ts');
@@ -106,21 +113,22 @@ assert(
 
 const proposalService = readRepoFile('lib/proposals/proposal-service.ts');
 assert(
-  proposalService.includes('validateSettlementAgainstBarterOpenness'),
-  'proposal-service validates settlement vs barterOpenness',
+  proposalService.includes('allowedBuyerProposalSettlementModes') &&
+    !proposalService.includes('validateSettlementAgainstBarterOpenness'),
+  'proposal-service allows buyer counter-offer modes (no hard openness firewall)',
 );
 
 const createSheet = readRepoFile('components/chat/proposals/CreateProposalSheet.tsx');
 assert(
-  createSheet.includes('allowedSettlementModesForBarterOpenness'),
-  'CreateProposalSheet filters settlement modes',
+  createSheet.includes('allowedBuyerProposalSettlementModes'),
+  'CreateProposalSheet uses buyer proposal settlement modes',
 );
 
 const primaryActions = readRepoFile('components/product/detail/ProductSalePrimaryActions.tsx');
 assert(
-  primaryActions.includes('resolveProductCommerceActions') &&
+  primaryActions.includes('barterOpenness') &&
     primaryActions.includes('ProductSaleProposalAction'),
-  'detail primary actions use barter-aware CTA matrix',
+  'detail primary actions use barter-aware proposal CTA',
 );
 
 console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);

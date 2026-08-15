@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { allowedSettlementModesForBarterOpenness } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { allowedBuyerProposalSettlementModes } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import {
   PROPOSAL_I18N,
   PROPOSAL_POLISH_I18N,
@@ -46,7 +46,7 @@ export default function CounterProposalForm({
   const [error, setError] = useState<string | null>(null);
 
   const allowedSettlementModes = useMemo(() => {
-    return allowedSettlementModesForBarterOpenness(null);
+    return allowedBuyerProposalSettlementModes(null);
   }, []);
 
   const showPaymentPath =

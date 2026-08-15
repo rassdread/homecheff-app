@@ -25,7 +25,8 @@ import {
   validatePaymentPath,
   validateProposalQuantityAgainstStock,
 } from './proposal-product-binding';
-import { validateSettlementAgainstBarterOpenness } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { allowedBuyerProposalSettlementModes } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { normalizeBarterOfferImageUrls } from '@/lib/proposals/barter-offer-images';
 import { DeliveryRequestService } from '@/lib/delivery/delivery-request-service';
 import { serializeDeliveryRequest } from '@/lib/delivery/serialize-delivery-marketplace';
 import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
@@ -170,15 +171,16 @@ async function resolveProposalFields(
     throw new ProposalServiceError(validation.errorKey, 400);
   }
 
-  if (productCtx) {
-    const barterValidation = validateSettlementAgainstBarterOpenness({
-      barterOpenness: productCtx.barterOpenness,
-      settlementMode,
-    });
-    if (!barterValidation.ok) {
-      throw new ProposalServiceError(barterValidation.errorKey, 400);
-    }
+  // Listing barterOpenness is seller preference only — buyer may counter-offer any
+  // valid SettlementMode; seller still accept / counter / reject.
+  if (!allowedBuyerProposalSettlementModes().includes(settlementMode)) {
+    throw new ProposalServiceError('proposal.errors.settlementNotAllowed', 400);
   }
+
+  const barterOfferImageUrls =
+    settlementMode === 'VALUE_ONLY' || settlementMode === 'MONEY_AND_VALUE'
+      ? normalizeBarterOfferImageUrls(input.barterOfferImageUrls)
+      : [];
 
   const paymentValidation = validatePaymentPath({
     paymentPath,
@@ -219,6 +221,7 @@ async function resolveProposalFields(
     paymentPath,
     priceModel: productCtx?.priceModel ?? null,
     productId: boundProductId,
+    barterOfferImageUrls,
   });
 
   return {
@@ -422,6 +425,9 @@ export class ProposalService {
           paymentPath,
           priceModel: summaryBase?.priceModel ?? null,
           productId: proposal.productId,
+          barterOfferImageUrls: normalizeBarterOfferImageUrls(
+            summaryBase?.barterOfferImageUrls,
+          ),
         }),
         acceptedById: userId,
         acceptedAt: new Date().toISOString(),

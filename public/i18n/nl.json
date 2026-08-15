@@ -9454,8 +9454,8 @@
     "settlement": {
       "heading": "Waarde",
       "money": "Geld",
-      "moneyAndValue": "Geld + waarde",
-      "valueOnly": "Andere waarde",
+      "moneyAndValue": "Geld + ruilen",
+      "valueOnly": "Ruilen",
       "free": "Gratis",
       "voluntary": "Vrijwillige bijdrage"
     },
@@ -9554,6 +9554,21 @@
       "sendCounter": "Verstuur tegenvoorstel",
       "send": "Voorstel sturen",
       "sendQuote": "Offerte sturen"
+    },
+    "offerHeading": "Wat bied je aan?",
+    "preference": {
+      "money": "De aanbieder geeft voorkeur aan betaling in geld. Je kunt ook een ander voorstel doen.",
+      "moneyAndBarter": "De aanbieder staat open voor geld en ruil. Je kunt ook een ander voorstel doen.",
+      "barterOnly": "De aanbieder geeft voorkeur aan ruil. Je kunt ook een ander voorstel doen."
+    },
+    "barterPhotos": {
+      "heading": "Foto van wat je aanbiedt",
+      "hint": "Optioneel · maximaal 2",
+      "add": "Foto toevoegen",
+      "addAnother": "+ Nog een foto",
+      "remove": "Foto verwijderen",
+      "imageOnly": "Alleen afbeeldingen zijn toegestaan.",
+      "uploadFailed": "Upload mislukt. Probeer opnieuw."
     }
   },
   "deal": {

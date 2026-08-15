@@ -15,6 +15,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { resolveDealUxState, type DealPrimaryCtaKind } from '@/lib/proposals/deal-ux-state';
 import { paymentPathFromSummary } from '@/lib/proposals/proposal-accept-routing';
 import { DEAL_I18N, DEAL_COMMITMENT_I18N, PROPOSAL_I18N } from '@/lib/proposals/proposal-i18n-keys';
+import { normalizeBarterOfferImageUrls } from '@/lib/proposals/barter-offer-images';
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
 import type { CommunityOrderDTO, ProposalDTO } from '@/lib/proposals/proposal-types';
@@ -220,6 +221,27 @@ export default function DealCard({
             maxVisible={4}
             size="sm"
           />
+        </div>
+      ) : null}
+
+      {normalizeBarterOfferImageUrls(
+        proposal.proposalSummary?.barterOfferImageUrls,
+      ).length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {normalizeBarterOfferImageUrls(
+            proposal.proposalSummary?.barterOfferImageUrls,
+          ).map((url) => (
+            <a
+              key={url}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block h-12 w-12 overflow-hidden rounded-md border border-emerald-200"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="h-full w-full object-cover" />
+            </a>
+          ))}
         </div>
       ) : null}
 

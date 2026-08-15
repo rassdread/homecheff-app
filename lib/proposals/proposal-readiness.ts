@@ -4,7 +4,7 @@
  */
 
 import type { SettlementMode } from '@prisma/client';
-import { allowedSettlementModesForBarterOpenness } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { allowedBuyerProposalSettlementModes } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import type { ProposalPaymentPath } from './proposal-product-binding';
 import { validateProposalSettlement } from './proposal-settlement';
@@ -13,6 +13,7 @@ import {
   canProposalHomeCheffCheckout,
   parseProposalAmountEurosToCents,
 } from './proposal-homecheff-eligibility';
+import { normalizeBarterOfferImageUrls } from './barter-offer-images';
 
 export type ProposalProductContext = {
   id: string;
@@ -74,7 +75,7 @@ export function validateProposalReadiness(
       return { ok: false, errorKey: 'proposal.errors.listingInactive' };
     }
 
-    const allowed = allowedSettlementModesForBarterOpenness(product.barterOpenness);
+    const allowed = allowedBuyerProposalSettlementModes(product.barterOpenness);
     if (!allowed.includes(form.settlementMode)) {
       return { ok: false, errorKey: 'proposal.errors.settlementNotAllowed' };
     }
@@ -156,5 +157,8 @@ export function formValuesToApiPayload(form: ProposalFormValues, options: {
     paymentPath: options.showPaymentPath ? form.paymentPath : ('NONE' as ProposalPaymentPath),
     acceptedValueTaxonomyIds: form.acceptedValueTaxonomyIds,
     requestedValueTaxonomyIds: showValue ? form.requestedValueTaxonomyIds : [],
+    barterOfferImageUrls: showValue
+      ? normalizeBarterOfferImageUrls(form.barterOfferImageUrls)
+      : [],
   };
 }

@@ -16,6 +16,7 @@ import {
   trackExchangeFunnelEvent,
 } from "@/lib/marketplace/exchange/exchange-funnel-analytics";
 import { PROPOSAL_I18N, DEAL_COMMITMENT_I18N } from "@/lib/proposals/proposal-i18n-keys";
+import { normalizeBarterOfferImageUrls } from "@/lib/proposals/barter-offer-images";
 import type { SettlementMode } from "@prisma/client";
 import DealCard from "./DealCard";
 import CounterProposalForm from "./CounterProposalForm";
@@ -360,6 +361,27 @@ export default function ProposalCard({
                 maxVisible={4}
                 size="sm"
               />
+            </div>
+          ) : null}
+
+          {normalizeBarterOfferImageUrls(
+            proposal.proposalSummary?.barterOfferImageUrls,
+          ).length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {normalizeBarterOfferImageUrls(
+                proposal.proposalSummary?.barterOfferImageUrls,
+              ).map((url) => (
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block h-14 w-14 overflow-hidden rounded-md border border-gray-200"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                </a>
+              ))}
             </div>
           ) : null}
 

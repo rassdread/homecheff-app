@@ -9454,8 +9454,8 @@
     "settlement": {
       "heading": "Value",
       "money": "Money",
-      "moneyAndValue": "Money + value",
-      "valueOnly": "Alternative value",
+      "moneyAndValue": "Money + trade",
+      "valueOnly": "Trade",
       "free": "Free",
       "voluntary": "Voluntary contribution"
     },
@@ -9554,6 +9554,21 @@
       "sendCounter": "Send counter offer",
       "send": "Send proposal",
       "sendQuote": "Send quote"
+    },
+    "offerHeading": "What are you offering?",
+    "preference": {
+      "money": "The provider prefers payment in money. You can still make a different proposal.",
+      "moneyAndBarter": "The provider is open to money and trade. You can still make a different proposal.",
+      "barterOnly": "The provider prefers trade. You can still make a different proposal."
+    },
+    "barterPhotos": {
+      "heading": "Photo of what you offer",
+      "hint": "Optional · max 2",
+      "add": "Add photo",
+      "addAnother": "+ Add another photo",
+      "remove": "Remove photo",
+      "imageOnly": "Only images are allowed.",
+      "uploadFailed": "Upload failed. Please try again."
     }
   },
   "deal": {

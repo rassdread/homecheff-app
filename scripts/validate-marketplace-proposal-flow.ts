@@ -10,7 +10,10 @@ import type {
   ConversationHeaderProduct,
   ResolvedConversationHeader,
 } from '../lib/communication/resolveConversationHeader';
-import { allowedSettlementModesForBarterOpenness } from '../lib/marketplace/commerce/barter-commerce-alignment';
+import {
+  allowedBuyerProposalSettlementModes,
+  allowedSettlementModesForBarterOpenness,
+} from '../lib/marketplace/commerce/barter-commerce-alignment';
 import { PROPOSAL_POLISH_I18N } from '../lib/proposals/proposal-i18n-keys';
 import {
   PROPOSAL_FLOW_EVENTS,
@@ -259,8 +262,12 @@ assert(
   'barter-only proposal passes readiness',
 );
 assert(
+  allowedBuyerProposalSettlementModes('BARTER_ONLY').includes('MONEY'),
+  'buyer may still propose MONEY on BARTER_ONLY listing (counter-offer)',
+);
+assert(
   !allowedSettlementModesForBarterOpenness('BARTER_ONLY').includes('MONEY'),
-  'barter listing disallows MONEY settlement mode',
+  'listing preference filter still excludes MONEY for BARTER_ONLY direct semantics',
 );
 
 console.log('\nScenario 5 — Money and barter');
@@ -428,8 +435,8 @@ assert(
       isActive: true,
     },
     isAuthenticated: true,
-  }).ok === false,
-  'settlement incompatible with barter openness blocked',
+  }).ok === true,
+  'MONEY listing still allows Ruilen counter-offer proposal',
 );
 
 console.log('\nAnalytics events');

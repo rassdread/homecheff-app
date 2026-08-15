@@ -833,6 +833,46 @@ report.cases.proposalHomecheffEligibilityContract = (() => {
   }
 })();
 
+// --- Buyer counter-offer barter (listing preference ≠ proposal firewall) ---
+report.cases.buyerCounterofferBarterContract = (() => {
+  try {
+    const align = readFileSync(
+      join(process.cwd(), "lib/marketplace/commerce/barter-commerce-alignment.ts"),
+      "utf8",
+    );
+    const fields = readFileSync(
+      join(process.cwd(), "components/chat/proposals/ProposalFieldsSection.tsx"),
+      "utf8",
+    );
+    const sheet = readFileSync(
+      join(process.cwd(), "components/chat/proposals/CreateProposalSheet.tsx"),
+      "utf8",
+    );
+    const service = readFileSync(
+      join(process.cwd(), "lib/proposals/proposal-service.ts"),
+      "utf8",
+    );
+    const counter = readFileSync(
+      join(process.cwd(), "components/chat/proposals/CounterProposalForm.tsx"),
+      "utf8",
+    );
+    const ok =
+      /allowedBuyerProposalSettlementModes/.test(align) &&
+      /sellerBarterPreferenceHintKey/.test(align) &&
+      /allowedBuyerProposalSettlementModes/.test(sheet) &&
+      /allowedBuyerProposalSettlementModes/.test(service) &&
+      /BarterOfferImageUploader/.test(fields) &&
+      /sellerBarterPreferenceHintKey/.test(fields) &&
+      /allowedBuyerProposalSettlementModes/.test(counter) &&
+      !/validateSettlementAgainstBarterOpenness/.test(service);
+    if (!ok) fail("buyerBarter", "counteroffer-source-contract", {});
+    return { ok };
+  } catch (e) {
+    fail("buyerBarter", "counteroffer-source-read", String(e).slice(0, 120));
+    return { ok: false };
+  }
+})();
+
 await browser.close();
 
 const tested =
@@ -854,6 +894,8 @@ report.counts = {
   ownerListingCardContractOk: !!report.cases.ownerListingCardSourceContract?.ok,
   proposalHomecheffEligibilityOk:
     !!report.cases.proposalHomecheffEligibilityContract?.ok,
+  buyerCounterofferBarterOk:
+    !!report.cases.buyerCounterofferBarterContract?.ok,
 };
 
 const pass =
@@ -864,6 +906,7 @@ const pass =
   report.counts.ownerEditPathOk &&
   report.counts.ownerListingCardContractOk &&
   report.counts.proposalHomecheffEligibilityOk &&
+  report.counts.buyerCounterofferBarterOk &&
   report.counts.httpBroken === 0;
 
 report.verdict = pass

@@ -2,6 +2,7 @@
 
 import type { SettlementMode } from '@prisma/client';
 import AcceptedValuesPicker from '@/components/products/marketplace/AcceptedValuesPicker';
+import BarterOfferImageUploader from '@/components/chat/proposals/BarterOfferImageUploader';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   DEAL_COMMITMENT_I18N,
@@ -16,6 +17,7 @@ import {
   parseProposalAmountEurosToCents,
   proposalHomeCheffCheckoutBlockedReason,
 } from '@/lib/proposals/proposal-homecheff-eligibility';
+import { sellerBarterPreferenceHintKey } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 
 export type ProposalFieldsProduct = {
   id: string;
@@ -30,6 +32,7 @@ export type ProposalFieldsProduct = {
   homeCheffCheckoutBlockedReason?: string | null;
   fulfillmentOptions?: string | null;
   delivery?: string | null;
+  barterOpenness?: string | null;
 };
 
 type Props = {
@@ -114,6 +117,23 @@ export default function ProposalFieldsSection({
   const showHomecheffRecommended =
     canSelectHomeCheff && product?.acceptHomeCheffPayment;
   const maxQuantity = product?.availableStock ?? undefined;
+  const preferenceKey = product
+    ? sellerBarterPreferenceHintKey(product.barterOpenness)
+    : null;
+
+  const onSettlementChange = (mode: SettlementMode) => {
+    const next: ProposalFormValues = { ...form, settlementMode: mode };
+    const valueLeg = mode === 'VALUE_ONLY' || mode === 'MONEY_AND_VALUE';
+    if (!valueLeg) {
+      next.requestedValueTaxonomyIds = [];
+      next.barterOfferImageUrls = [];
+    }
+    if (mode !== 'MONEY' && mode !== 'MONEY_AND_VALUE') {
+      next.paymentPath = 'NONE';
+      next.amountEuros = '';
+    }
+    onChange(next);
+  };
 
   // Keep paymentPath coherent when amount enables/disables HomeCheff.
   const onAmountChange = (value: string) => {
@@ -147,17 +167,22 @@ export default function ProposalFieldsSection({
     <div className="space-y-3">
       <div>
         <p className="text-xs font-semibold text-gray-900 mb-2">
-          {t(PROPOSAL_I18N.settlementHeading)}
+          {t('proposal.offerHeading')}
         </p>
         <p className="text-[11px] text-gray-500 mb-2">
           {t(PROPOSAL_POLISH_I18N.counter.settlementHint)}
         </p>
+        {preferenceKey ? (
+          <p className="text-[11px] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-2.5 py-2 mb-2">
+            {t(preferenceKey)}
+          </p>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           {allowedSettlementModes.map((mode) => (
             <button
               key={mode}
               type="button"
-              onClick={() => onChange({ ...form, settlementMode: mode })}
+              onClick={() => onSettlementChange(mode)}
               className={`rounded-full border px-3 py-1 text-xs font-medium ${
                 form.settlementMode === mode
                   ? 'border-indigo-500 bg-indigo-50 text-indigo-900'
@@ -169,45 +194,6 @@ export default function ProposalFieldsSection({
           ))}
         </div>
       </div>
-
-      {showPaymentPath ? (
-        <div>
-          <p className="text-xs font-semibold text-gray-900 mb-2">
-            {t('deal.paymentHeading')}
-          </p>
-          {showHomecheffRecommended ? (
-            <p className="text-[11px] text-indigo-700 mb-2">
-              {t(DEAL_COMMITMENT_I18N.homecheffHint)}
-            </p>
-          ) : null}
-          {homeCheffDisabledReason ? (
-            <p className="text-[11px] text-amber-800 mb-2">
-              {t(homeCheffDisabledReason)}
-            </p>
-          ) : null}
-          <div className="flex flex-col gap-2">
-            {availablePaymentPaths.map((path) => {
-              const disabled =
-                path === 'HOMECHEFF_CHECKOUT' && !canSelectHomeCheff;
-              return (
-                <button
-                  key={path}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onChange({ ...form, paymentPath: path })}
-                  className={`rounded-lg border px-3 py-2 text-left text-xs ${
-                    form.paymentPath === path
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-900'
-                      : 'border-gray-200 text-gray-700'
-                  } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {t(PROPOSAL_I18N.paymentPath[path])}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
 
       <div>
         <label
@@ -279,13 +265,61 @@ export default function ProposalFieldsSection({
       </div>
 
       {showValuePicker ? (
-        <AcceptedValuesPicker
-          value={form.requestedValueTaxonomyIds}
-          onChange={(ids) =>
-            onChange({ ...form, requestedValueTaxonomyIds: ids })
-          }
-          headingKey="marketplace.acceptedValues.offeredInReturnHeading"
-        />
+        <div className="space-y-3">
+          <AcceptedValuesPicker
+            value={form.requestedValueTaxonomyIds}
+            onChange={(ids) =>
+              onChange({ ...form, requestedValueTaxonomyIds: ids })
+            }
+            headingKey="marketplace.acceptedValues.offeredInReturnHeading"
+          />
+          <BarterOfferImageUploader
+            value={form.barterOfferImageUrls}
+            onChange={(barterOfferImageUrls) =>
+              onChange({ ...form, barterOfferImageUrls })
+            }
+            idPrefix={idPrefix}
+          />
+        </div>
+      ) : null}
+
+      {showPaymentPath ? (
+        <div>
+          <p className="text-xs font-semibold text-gray-900 mb-2">
+            {t('deal.paymentHeading')}
+          </p>
+          {showHomecheffRecommended ? (
+            <p className="text-[11px] text-indigo-700 mb-2">
+              {t(DEAL_COMMITMENT_I18N.homecheffHint)}
+            </p>
+          ) : null}
+          {homeCheffDisabledReason ? (
+            <p className="text-[11px] text-amber-800 mb-2">
+              {t(homeCheffDisabledReason)}
+            </p>
+          ) : null}
+          <div className="flex flex-col gap-2">
+            {availablePaymentPaths.map((path) => {
+              const disabled =
+                path === 'HOMECHEFF_CHECKOUT' && !canSelectHomeCheff;
+              return (
+                <button
+                  key={path}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onChange({ ...form, paymentPath: path })}
+                  className={`rounded-lg border px-3 py-2 text-left text-xs ${
+                    form.paymentPath === path
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-900'
+                      : 'border-gray-200 text-gray-700'
+                  } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {t(PROPOSAL_I18N.paymentPath[path])}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       ) : null}
 
       <div className="grid grid-cols-2 gap-3">

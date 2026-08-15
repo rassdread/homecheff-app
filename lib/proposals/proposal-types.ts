@@ -88,6 +88,8 @@ export type CreateProposalInput = {
   acceptedValueTaxonomyIds?: string[];
   requestedValueTaxonomyIds?: string[];
   paymentPath?: ProposalPaymentPath;
+  /** Optional https barter counter-value photos (max 2). */
+  barterOfferImageUrls?: string[];
 };
 
 export type CounterProposalInput = Omit<

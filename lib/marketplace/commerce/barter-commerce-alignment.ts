@@ -100,6 +100,10 @@ export function validateSettlementAgainstBarterOpenness(input: {
   return { ok: true };
 }
 
+/**
+ * Listing / direct-commerce filter — seller advertised preference.
+ * Do NOT use as the hard buyer-proposal mode firewall.
+ */
 export function allowedSettlementModesForBarterOpenness(
   barterOpenness?: string | null,
 ): SettlementMode[] {
@@ -118,6 +122,37 @@ export function allowedSettlementModesForBarterOpenness(
     return all.filter((m) => !MONEY_SETTLEMENT.includes(m));
   }
   return all;
+}
+
+/**
+ * Buyer negotiation modes — full settlement set regardless of listing preference.
+ * Seller still accept / counter / reject; listing barterOpenness is unchanged.
+ */
+export const BUYER_PROPOSAL_SETTLEMENT_MODES: SettlementMode[] = [
+  'MONEY',
+  'VALUE_ONLY',
+  'MONEY_AND_VALUE',
+  'FREE',
+  'VOLUNTARY',
+];
+
+export function allowedBuyerProposalSettlementModes(
+  _barterOpenness?: string | null,
+): SettlementMode[] {
+  return [...BUYER_PROPOSAL_SETTLEMENT_MODES];
+}
+
+/** i18n key for seller preference hint in the proposal sheet. */
+export function sellerBarterPreferenceHintKey(
+  barterOpenness?: string | null,
+):
+  | 'proposal.preference.money'
+  | 'proposal.preference.moneyAndBarter'
+  | 'proposal.preference.barterOnly' {
+  const openness = normalizeBarterOpenness(barterOpenness);
+  if (openness === 'BARTER_ONLY') return 'proposal.preference.barterOnly';
+  if (openness === 'MONEY_AND_BARTER') return 'proposal.preference.moneyAndBarter';
+  return 'proposal.preference.money';
 }
 
 export function isBarterOpennessValue(

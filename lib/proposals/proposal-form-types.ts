@@ -13,6 +13,8 @@ export type ProposalFormValues = {
   paymentPath: ProposalPaymentPath;
   acceptedValueTaxonomyIds: string[];
   requestedValueTaxonomyIds: string[];
+  /** Optional https URLs of barter counter-value photos (max 2). */
+  barterOfferImageUrls: string[];
 };
 
 export const EMPTY_PROPOSAL_FORM: ProposalFormValues = {
@@ -27,4 +29,5 @@ export const EMPTY_PROPOSAL_FORM: ProposalFormValues = {
   paymentPath: 'NONE',
   acceptedValueTaxonomyIds: [],
   requestedValueTaxonomyIds: [],
+  barterOfferImageUrls: [],
 };
