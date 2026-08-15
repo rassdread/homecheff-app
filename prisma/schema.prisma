@@ -226,20 +226,38 @@ model SsoAuditEvent {
 }
 
 model Business {
-  id              String   @id @default(uuid())
-  userId          String   @unique
+  id              String    @id @default(uuid())
+  userId          String    @unique
   name            String
   kvkNumber       String?
   vatNumber       String?
   address         String?
   city            String?
-  country         String?  @default("NL")
-  verified        Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  country         String?   @default("NL")
+  verified        Boolean   @default(false)
+  /// LEGAL-4A: factual admin verification metadata (never auto from KvK/VAT/Stripe/declaration)
+  verifiedAt      DateTime?
+  verifiedNote    String?
+  verifiedByUserId String?
+  createdAt       DateTime  @default(now())
   workplacePhotos String[]
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([verified])
+}
+
+/// LEGAL-4A: platform-level DSA Article 29/30 applicability assessment (singleton id = "platform").
+/// No automatic legal SME conclusion — admin/counsel records reviewed state only.
+model CompliancePlatformAssessment {
+  id                    String   @id // "platform"
+  dsaApplicabilityState String   @default("NOT_ASSESSED")
+  assessedAt            DateTime?
+  assessmentNote        String?
+  reviewDueAt           DateTime?
+  updatedByUserId       String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 // ============================================

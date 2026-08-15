@@ -16,9 +16,11 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  Shield
 } from 'lucide-react';
 import AdminFinancialOverview from './AdminFinancialOverview';
+import ComplianceFoundationPanel from './ComplianceFoundationPanel';
 
 // Financial Reports Component
 function FinancialReports() {
@@ -228,7 +230,8 @@ export default function FinancialManagement() {
     { id: 'transactions', label: 'Transacties', icon: DollarSign },
     { id: 'payouts', label: 'Uitbetalingen', icon: ArrowUpRight },
     { id: 'refunds', label: 'Refunds', icon: ArrowDownRight },
-    { id: 'subscriptions', label: 'Abonnementen', icon: CreditCard }
+    { id: 'subscriptions', label: 'Abonnementen', icon: CreditCard },
+    { id: 'compliance', label: 'Compliance', icon: Shield }
   ];
 
   useEffect(() => {
@@ -376,6 +379,8 @@ export default function FinancialManagement() {
               formatDate={formatDate}
             />
           )}
+
+          {activeSubTab === 'compliance' && <ComplianceFoundationPanel />}
         </div>
       </div>
     </div>
