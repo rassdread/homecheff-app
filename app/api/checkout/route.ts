@@ -35,6 +35,8 @@ import {
 } from '@/lib/delivery/booking-request-service';
 import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
+import { requiresInventoryForCheckout } from '@/lib/proposals/proposal-stock-policy';
+import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
 
 const prisma = new PrismaClient();
 
@@ -310,7 +312,14 @@ export async function POST(req: NextRequest) {
         // Get current stock (atomically locked in transaction)
         const currentProduct = await tx.product.findUnique({
           where: { id: item.productId },
-          select: { stock: true, maxStock: true, title: true }
+          select: {
+            stock: true,
+            maxStock: true,
+            title: true,
+            priceModel: true,
+            marketplaceCategory: true,
+            fulfillmentOptions: true,
+          },
         });
 
         if (!currentProduct) {
@@ -320,6 +329,21 @@ export async function POST(req: NextRequest) {
             available: 0,
             title: product.title
           });
+          continue;
+        }
+
+        const fulfillmentOptions = currentProduct.fulfillmentOptions
+          ? parseFulfillmentOptions(currentProduct.fulfillmentOptions)
+          : null;
+        const inventoryRequired = requiresInventoryForCheckout({
+          priceModel: currentProduct.priceModel,
+          marketplaceCategory: currentProduct.marketplaceCategory,
+          fulfillmentOptions,
+        });
+
+        // Negotiated ON_REQUEST / service / digital: accepted deal is entitlement.
+        // Do not block (or reserve) on Product.stock.
+        if (!inventoryRequired) {
           continue;
         }
 
@@ -959,13 +983,34 @@ export async function POST(req: NextRequest) {
     try {
       await prisma.$transaction(async (tx) => {
         for (const item of items) {
-          // Only create reservation if product has stock management
+          // Only create reservation if product has inventory-managed stock
           const product = await tx.product.findUnique({
             where: { id: item.productId },
-            select: { stock: true, maxStock: true }
+            select: {
+              stock: true,
+              maxStock: true,
+              priceModel: true,
+              marketplaceCategory: true,
+              fulfillmentOptions: true,
+            },
           });
 
-          if (product && (product.stock !== null || product.maxStock !== null)) {
+          if (!product) continue;
+
+          const fulfillmentOptions = product.fulfillmentOptions
+            ? parseFulfillmentOptions(product.fulfillmentOptions)
+            : null;
+          if (
+            !requiresInventoryForCheckout({
+              priceModel: product.priceModel,
+              marketplaceCategory: product.marketplaceCategory,
+              fulfillmentOptions,
+            })
+          ) {
+            continue;
+          }
+
+          if (product.stock !== null || product.maxStock !== null) {
             await tx.stockReservation.create({
               data: {
                 productId: item.productId,

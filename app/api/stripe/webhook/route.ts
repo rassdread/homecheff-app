@@ -22,6 +22,8 @@ import {
   resolveDelivererPosition,
   resolveSellerCoords,
 } from "@/lib/delivery/delivery-position";
+import { requiresInventoryForCheckout } from "@/lib/proposals/proposal-stock-policy";
+import { parseFulfillmentOptions } from "@/lib/marketplace/listing-taxonomy";
 
 async function readBuffer(stream: ReadableStream<Uint8Array>) {
   const reader = stream.getReader();
@@ -922,12 +924,27 @@ export async function POST(req: NextRequest) {
             // Check stock availability before decrementing (race condition prevention)
             const product = await tx.product.findUnique({
               where: { id: item.productId },
-              select: { stock: true, maxStock: true }
+              select: {
+                stock: true,
+                maxStock: true,
+                priceModel: true,
+                marketplaceCategory: true,
+                fulfillmentOptions: true,
+              },
             });
 
             if (!product) {
               throw new Error(`Product ${item.productId} not found`);
             }
+
+            const fulfillmentOptions = product.fulfillmentOptions
+              ? parseFulfillmentOptions(product.fulfillmentOptions)
+              : null;
+            const inventoryRequired = requiresInventoryForCheckout({
+              priceModel: product.priceModel,
+              marketplaceCategory: product.marketplaceCategory,
+              fulfillmentOptions,
+            });
 
             const availableStock = typeof product.stock === 'number' 
               ? product.stock 
@@ -935,8 +952,8 @@ export async function POST(req: NextRequest) {
                 ? product.maxStock 
                 : null;
 
-            // Strict stock check: must have enough stock (not just >= 0)
-            if (availableStock !== null) {
+            // Strict stock check only for inventory-managed listings
+            if (inventoryRequired && availableStock !== null) {
               if (availableStock <= 0) {
                 throw new Error(`Product ${item.productId} is out of stock. Available: ${availableStock}, Requested: ${item.quantity}`);
               }
@@ -979,9 +996,12 @@ export async function POST(req: NextRequest) {
               });
             }
 
-            // Update product stock (within transaction for atomicity)
-            // Only decrement if stock is not null (products with stock management)
-            if (product.stock !== null && typeof product.stock === 'number') {
+            // Decrement only inventory-managed products
+            if (
+              inventoryRequired &&
+              product.stock !== null &&
+              typeof product.stock === 'number'
+            ) {
               // Use decrement which is atomic and prevents negative stock
               const updatedProduct = await tx.product.update({
                 where: { id: item.productId },

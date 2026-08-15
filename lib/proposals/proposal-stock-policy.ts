@@ -2,7 +2,8 @@
  * Proposal negotiation vs direct-purchase stock policy.
  *
  * FIXED cart purchase stays strict elsewhere.
- * ON_REQUEST / services / digital work: stock=0 must not block negotiation.
+ * ON_REQUEST / services / digital work: stock=0 must not block negotiation
+ * or negotiated HomeCheff checkout. Direct FIXED inventory stays enforced.
  */
 
 export type ProposalStockPolicyInput = {
@@ -45,6 +46,17 @@ export function proposalNegotiationIgnoresStockAvailability(
   }
 
   return false;
+}
+
+/**
+ * Physical FIXED (and other non-exempt) listings must enforce stock at checkout.
+ * Negotiated ON_REQUEST / service / digital entitlements do not use Product stock
+ * as a payment gate — and must not decrement stock on capture.
+ */
+export function requiresInventoryForCheckout(
+  input: ProposalStockPolicyInput,
+): boolean {
+  return !proposalNegotiationIgnoresStockAvailability(input);
 }
 
 export function validateProposalQuantityAgainstStock(

@@ -1,0 +1,14 @@
+{
+  "at": "2026-08-15T17:05:00.000Z",
+  "mainBefore": "fdbc5a2b5ff810528e3c643588493bb7d0749aa4",
+  "productionBefore": "dpl_DUcGhYuuabpKnA4TVAzcLUCk5NPi",
+  "productId": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+  "communityOrderId": "9c13e76d-23c3-402f-a453-ec1a19923947",
+  "proposalId": "f1271e00-dd6a-4c32-a8b6-74919e68e9c4",
+  "agreementId": "47daa842-abbd-4188-9b29-f3009c89067b",
+  "amountCents": 200,
+  "errorOwner": "app/api/checkout/route.ts insufficientStock",
+  "helper": "requiresInventoryForCheckout",
+  "controlledPayment": "NOT_EXECUTED_IN_AGENT — buyer must complete Stripe Checkout after deploy",
+  "transferP0": "KNOWN_SEPARATE — do not declare routing ready until transfer verified"
+}
