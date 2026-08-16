@@ -1161,7 +1161,9 @@ export async function executeRefundSettlement(
     errors,
   };
 
-  if (opts.persist !== false && settlementId.startsWith('rset_')) {
+  // Finalize durable RefundSettlement whenever a real row id was used
+  // (even if persist:false because the caller already persisted the plan).
+  if (settlementId.startsWith('rset_') && !settlementId.startsWith('rset_ephemeral_')) {
     try {
       await prisma.refundSettlement.update({
         where: { id: settlementId },
