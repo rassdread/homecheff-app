@@ -23,6 +23,12 @@ import {
   sellerTransactionId,
 } from '@/lib/payments/seller-settlement';
 import { calculatePlatformFeeCents, calculateStripeFeeForBuyer } from '@/lib/fees';
+import {
+  cumulativeProportionalReversalCents,
+  reverseRecipientTransfer,
+} from '@/lib/payments/recipient-reversal';
+
+export { cumulativeProportionalReversalCents } from '@/lib/payments/recipient-reversal';
 
 export const REFUND_SETTLEMENT_SCHEMA_VERSION = 1;
 
@@ -206,46 +212,6 @@ export type ExecuteRefundResult = {
   affiliate: { status: string; reversedCount?: number; error?: string };
   errors: string[];
 };
-
-/**
- * Deterministic floor proportional share.
- * cumulativeDesired = floor(cumConsiderationRefunded * transfer / gross)
- * thisLeg = cumulativeDesired - alreadyReversed
- */
-export function cumulativeProportionalReversalCents(args: {
-  sellerGrossCents: number;
-  transferCents: number;
-  priorConsiderationRefundedCents: number;
-  thisConsiderationRefundCents: number;
-  alreadyReversedCents: number;
-}): number {
-  const {
-    sellerGrossCents,
-    transferCents,
-    priorConsiderationRefundedCents,
-    thisConsiderationRefundCents,
-    alreadyReversedCents,
-  } = args;
-
-  if (
-    sellerGrossCents <= 0 ||
-    transferCents <= 0 ||
-    thisConsiderationRefundCents <= 0
-  ) {
-    return 0;
-  }
-
-  const cumConsideration = Math.min(
-    sellerGrossCents,
-    priorConsiderationRefundedCents + thisConsiderationRefundCents,
-  );
-  const cumulativeDesired = Math.floor(
-    (cumConsideration * transferCents) / sellerGrossCents,
-  );
-  const cappedDesired = Math.min(transferCents, cumulativeDesired);
-  const remaining = Math.max(0, transferCents - alreadyReversedCents);
-  return Math.max(0, Math.min(remaining, cappedDesired - alreadyReversedCents));
-}
 
 export function buyerRefundIdempotencyKey(
   orderId: string,
@@ -921,67 +887,35 @@ export async function executeRefundSettlement(
       continue;
     }
 
-    try {
-      const reversal = await stripe.transfers.createReversal(
-        leg.transferId,
-        {
-          amount: leg.transferReversalCents,
-          description: `HomeCheff refund clawback order=${plan.orderId} product=${leg.productId}`,
-          metadata: {
-            orderId: plan.orderId,
-            productId: leg.productId,
-            homecheff_app: 'true',
-            refund_settlement: settlementId,
-          },
-        },
-        { idempotencyKey: leg.idempotencyKey },
-      );
-
-      await prisma.refund.create({
-        data: {
-          id: `refund_trr_${leg.productId}_${reversal.id}`,
-          transactionId: leg.transactionId,
-          amountCents: leg.transferReversalCents,
-          providerRef: reversal.id,
-        },
-      });
-
-      sellerReversals.push({
+    const rev = await reverseRecipientTransfer({
+      stripe,
+      transferId: leg.transferId,
+      amountCents: leg.transferReversalCents,
+      idempotencyKey: leg.idempotencyKey,
+      description: `HomeCheff refund clawback order=${plan.orderId} product=${leg.productId}`,
+      metadata: {
+        orderId: plan.orderId,
         productId: leg.productId,
-        transferId: leg.transferId,
-        reversalId: reversal.id,
-        amountCents: leg.transferReversalCents,
-        status: 'SUCCEEDED',
-      });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      // Idempotent replay: already reversed under same key
-      if (
-        message.includes('idempoten') ||
-        message.includes('already been reversed')
-      ) {
-        sellerReversals.push({
-          productId: leg.productId,
-          transferId: leg.transferId,
-          reversalId: null,
-          amountCents: leg.transferReversalCents,
-          status: 'ALREADY_DONE',
-          error: message,
-        });
-      } else {
-        errors.push(
-          `Seller reversal failed product=${leg.productId}: ${message}`,
-        );
-        sellerReversals.push({
-          productId: leg.productId,
-          transferId: leg.transferId,
-          reversalId: null,
-          amountCents: leg.transferReversalCents,
-          status: 'FAILED',
-          error: message,
-        });
-      }
+        homecheff_app: 'true',
+        refund_settlement: settlementId,
+        source: 'REFUND',
+      },
+      transactionId: leg.transactionId,
+    });
+
+    if (rev.status === 'FAILED') {
+      errors.push(
+        `Seller reversal failed product=${leg.productId}: ${rev.error}`,
+      );
     }
+    sellerReversals.push({
+      productId: leg.productId,
+      transferId: leg.transferId,
+      reversalId: rev.reversalId,
+      amountCents: leg.transferReversalCents,
+      status: rev.status,
+      error: rev.error,
+    });
   }
 
   // 2) Courier (Stripe transfer only when present)
@@ -989,34 +923,27 @@ export async function executeRefundSettlement(
   if (plan.courierLeg && plan.courierLeg.transferReversalCents > 0) {
     const c = plan.courierLeg;
     if (c.transferId && c.status === 'PLANNED') {
-      try {
-        const reversal = await stripe.transfers.createReversal(
-          c.transferId,
-          {
-            amount: c.transferReversalCents,
-            metadata: {
-              orderId: plan.orderId,
-              kind: 'COURIER',
-              refund_settlement: settlementId,
-            },
-          },
-          { idempotencyKey: c.idempotencyKey },
-        );
-        courierReversal = {
-          status: 'SUCCEEDED',
-          reversalId: reversal.id,
-          amountCents: c.transferReversalCents,
-        };
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        errors.push(`Courier reversal failed: ${message}`);
-        courierReversal = {
-          status: 'FAILED',
-          reversalId: null,
-          amountCents: c.transferReversalCents,
-          error: message,
-        };
+      const rev = await reverseRecipientTransfer({
+        stripe,
+        transferId: c.transferId,
+        amountCents: c.transferReversalCents,
+        idempotencyKey: c.idempotencyKey,
+        metadata: {
+          orderId: plan.orderId,
+          kind: 'COURIER',
+          refund_settlement: settlementId,
+          source: 'REFUND',
+        },
+      });
+      if (rev.status === 'FAILED') {
+        errors.push(`Courier reversal failed: ${rev.error}`);
       }
+      courierReversal = {
+        status: rev.status,
+        reversalId: rev.reversalId,
+        amountCents: c.transferReversalCents,
+        error: rev.error,
+      };
     } else {
       courierReversal = {
         status: c.status,

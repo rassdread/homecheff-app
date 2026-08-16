@@ -1204,6 +1204,35 @@ model RefundSettlement {
   @@index([status])
 }
 
+/// Durable Stripe dispute / chargeback financial recovery (≠ ordinary Refund).
+model DisputeSettlement {
+  id                     String    @id
+  stripeDisputeId        String    @unique
+  orderId                String?
+  chargeId               String?
+  paymentIntentId        String?
+  amountCents            Int
+  currency               String    @default("eur")
+  reason                 String?
+  stripeStatus           String
+  financialStatus        String
+  evidenceDueBy          DateTime?
+  recoveredSellerCents   Int       @default(0)
+  recoveredAffiliateCents Int      @default(0)
+  recoveredCourierCents  Int       @default(0)
+  outstandingSellerCents Int       @default(0)
+  planJson               String
+  resultJson             String?
+  lastError              String?
+  lastStripeEventId      String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([financialStatus])
+  @@index([chargeId])
+}
+
 model Report {
   id                             String        @id
   listingId                      String?

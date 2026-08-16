@@ -49,9 +49,26 @@ interface Dispute {
 export default function DisputeResolution() {
   const { t } = useTranslation();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const [stripeDisputes, setStripeDisputes] = useState<Array<{
+    id: string;
+    stripeDisputeId: string;
+    orderId: string | null;
+    amountCents: number;
+    reason: string | null;
+    stripeStatus: string;
+    financialStatus: string;
+    evidenceDueBy: string | null;
+    recoveredSellerCents: number;
+    recoveredAffiliateCents: number;
+    recoveredCourierCents: number;
+    outstandingSellerCents: number;
+    lastError: string | null;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
   const [filter, setFilter] = useState('all');
+  const [previewOrderId, setPreviewOrderId] = useState('');
+  const [preview, setPreview] = useState<Record<string, number> | null>(null);
 
   useEffect(() => {
     fetchDisputes();
@@ -95,11 +112,30 @@ export default function DisputeResolution() {
         ];
         setDisputes(combined);
       }
+      const stripeRes = await fetch('/api/admin/disputes/stripe');
+      if (stripeRes.ok) {
+        const stripeData = await stripeRes.json();
+        setStripeDisputes(stripeData.disputes || []);
+      }
     } catch (error) {
       console.error('Error fetching disputes:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const runStripePreview = async () => {
+    if (!previewOrderId.trim()) return;
+    const res = await fetch('/api/admin/disputes/stripe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: previewOrderId.trim(),
+        disputeAmountCents: 127,
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) setPreview(data.preview);
   };
 
   const handleResolve = async (disputeId: string, action: string, notes: string) => {
@@ -170,6 +206,53 @@ export default function DisputeResolution() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+        <h3 className="font-semibold text-amber-950">Stripe chargebacks (financial)</h3>
+        <p className="text-xs text-amber-800">
+          Preview only — geen live dispute of transfer reversal vanaf deze knop.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <input
+            className="px-3 py-2 border rounded-lg text-sm min-w-[260px]"
+            placeholder="Order ID"
+            value={previewOrderId}
+            onChange={(e) => setPreviewOrderId(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={runStripePreview}
+            className="px-3 py-2 rounded-lg bg-amber-800 text-white text-sm"
+          >
+            Preview recovery
+          </button>
+        </div>
+        {preview && (
+          <dl className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+            {Object.entries(preview).map(([k, v]) => (
+              <div key={k}>
+                <dt className="text-amber-700">{k}</dt>
+                <dd className="font-semibold">€{(v / 100).toFixed(2)}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {stripeDisputes.length > 0 && (
+          <ul className="text-sm space-y-2 border-t border-amber-200 pt-2">
+            {stripeDisputes.map((d) => (
+              <li key={d.id} className="flex flex-wrap gap-x-4 gap-y-1">
+                <span className="font-mono text-xs">{d.stripeDisputeId}</span>
+                <span>{d.financialStatus}</span>
+                <span>€{(d.amountCents / 100).toFixed(2)}</span>
+                <span>seller recovered €{(d.recoveredSellerCents / 100).toFixed(2)}</span>
+                {d.outstandingSellerCents > 0 && (
+                  <span className="text-red-700">outstanding €{(d.outstandingSellerCents / 100).toFixed(2)}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Disputes List */}

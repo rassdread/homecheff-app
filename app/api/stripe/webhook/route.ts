@@ -394,65 +394,40 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-    // Handle chargebacks (commission reversal)
-    else if (event.type === "charge.dispute.created") {
-      const dispute = event.data.object as Stripe.Dispute;
-      const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id;
-
-      if (chargeId) {
-        try {
-          // Get charge to find invoice / payment_intent → order
-          const charge = await stripe.charges.retrieve(chargeId);
-          // invoice is an expandable field in Stripe
-          const invoice = (charge as any).invoice as string | Stripe.Invoice | null | undefined;
-          const invoiceId = typeof invoice === 'string' ? invoice : invoice?.id || null;
-
-          let orderId: string | null =
-            typeof charge.metadata?.orderId === 'string' && charge.metadata.orderId
-              ? charge.metadata.orderId
-              : null;
-          if (!orderId) {
-            const piId =
-              typeof charge.payment_intent === 'string'
-                ? charge.payment_intent
-                : charge.payment_intent?.id || null;
-            if (piId) {
-              try {
-                const sessions = await stripe.checkout.sessions.list({
-                  payment_intent: piId,
-                  limit: 1,
-                });
-                const sessionId = sessions.data[0]?.id;
-                if (sessionId) {
-                  const order = await prisma.order.findFirst({
-                    where: { stripeSessionId: sessionId },
-                    select: { id: true },
-                  });
-                  orderId = order?.id ?? null;
-                }
-              } catch (lookupErr: any) {
-                console.warn(
-                  `Could not resolve order for dispute ${dispute.id}:`,
-                  lookupErr?.message || lookupErr
-                );
-              }
-            }
-          }
-
-          if (invoiceId || orderId) {
-            const { processCommissionReversal } = await import('@/lib/affiliate-commission');
-            await processCommissionReversal({
-              reversalEventId: dispute.id,
-              eventType: 'CHARGEBACK',
-              refundedAmountCents: dispute.amount,
-              chargeAmountCents: charge.amount,
-              invoiceId,
-              orderId,
-            });
-          }
-        } catch (reversalError: any) {
-          console.error(`❌ Failed to process commission reversal for dispute ${dispute.id}:`, reversalError.message);
-        }
+    // Handle chargebacks / disputes — durable DisputeSettlement + recipient recovery
+    else if (
+      event.type === "charge.dispute.created" ||
+      event.type === "charge.dispute.updated" ||
+      event.type === "charge.dispute.closed" ||
+      event.type === "charge.dispute.funds_withdrawn" ||
+      event.type === "charge.dispute.funds_reinstated"
+    ) {
+      try {
+        const { handleStripeDisputeEvent } = await import(
+          '@/lib/payments/dispute-settlement'
+        );
+        // Auto-recover on real disputes (SCT platform exposure). No mutation unless
+        // Stripe delivers a live dispute event. Idempotent + durable.
+        const result = await handleStripeDisputeEvent({
+          stripe,
+          event,
+          autoRecover: true,
+        });
+        console.log(
+          `[dispute-settlement] ${event.type} ${result.message}`,
+        );
+      } catch (disputeError: any) {
+        console.error(
+          `❌ Dispute settlement failed for ${event.type}:`,
+          disputeError.message,
+        );
+        // Durable failures that leave financial risk: non-2xx so Stripe retries
+        // after we persist would risk duplicates — prefer 2xx when row exists.
+        // Uncaught path: return 500 only if we could not even start handling.
+        return NextResponse.json(
+          { error: 'dispute_settlement_failed' },
+          { status: 500 },
+        );
       }
     }
     // Handle subscription cancellations
