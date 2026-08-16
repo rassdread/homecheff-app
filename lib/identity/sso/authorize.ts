@@ -1,12 +1,12 @@
 /**
- * Phase I.2 — authorize core (HomeCheff session → one-time code).
+ * Phase I.2 / SP.2D-C6 — authorize core (HomeCheff session → one-time code).
  * Does not call Growth DB.
  */
 
 import { prisma } from "@/lib/prisma";
 import {
   assertAccountActiveForSso,
-  loadCentralUserOrThrow,
+  loadCentralUserForAuthorizeOrThrow,
 } from "./account-status";
 import { writeSsoAudit } from "./audit";
 import { assertRedirectAllowed, getSsoClient } from "./client-registry";
@@ -35,6 +35,8 @@ export type AuthorizeResult = {
   expiresIn: number;
   redirectUri: string;
   state: string;
+  /** Duration marks for Server-Timing (ms); no secrets. */
+  timing?: { user: number; code: number; persist: number };
 };
 
 function validateState(state: string): void {
@@ -69,12 +71,16 @@ export async function issueSsoAuthorizationCode(
     const client = getSsoClient(input.product);
     assertRedirectAllowed(client, input.redirectUri);
 
-    const user = await loadCentralUserOrThrow(input.centralUserId);
+    const tUser0 = performance.now();
+    const user = await loadCentralUserForAuthorizeOrThrow(input.centralUserId);
     assertAccountActiveForSso(user);
+    const userMs = Math.round(performance.now() - tUser0);
 
+    const tCode0 = performance.now();
     const rawCode = generateAuthorizationCode();
     const codeHash = hashAuthorizationCode(rawCode);
     const expiresAt = codeExpiresAt();
+    const codeMs = Math.round(performance.now() - tCode0);
 
     // Lazy cleanup of expired unused codes (best-effort; never blocks issue)
     void prisma.ssoAuthorizationCode
@@ -86,6 +92,7 @@ export async function issueSsoAuthorizationCode(
       })
       .catch(() => undefined);
 
+    const tPersist0 = performance.now();
     const row = await prisma.ssoAuthorizationCode.create({
       data: {
         codeHash,
@@ -99,8 +106,10 @@ export async function issueSsoAuthorizationCode(
         usedAt: null,
       },
     });
+    const persistMs = Math.round(performance.now() - tPersist0);
 
-    await writeSsoAudit({
+    // Audit must not delay the redirect (still written; failures logged).
+    void writeSsoAudit({
       action: "SSO_CODE_ISSUED",
       product: client.product,
       centralUserId: user.id,
@@ -122,6 +131,7 @@ export async function issueSsoAuthorizationCode(
       expiresIn: SSO_CODE_TTL_SECONDS,
       redirectUri: input.redirectUri,
       state: input.state,
+      timing: { user: userMs, code: codeMs, persist: persistMs },
     };
   } catch (err) {
     ssoMetrics.authorizeFailed();

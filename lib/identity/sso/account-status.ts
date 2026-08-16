@@ -27,6 +27,7 @@ export function resolveAccountStatus(user: {
   return "active";
 }
 
+/** Full claim-oriented select (exchange / continue UI). */
 export async function loadCentralUserOrThrow(centralUserId: string): Promise<CentralUserForSso> {
   const user = await prisma.user.findUnique({
     where: { id: centralUserId },
@@ -47,7 +48,32 @@ export async function loadCentralUserOrThrow(centralUserId: string): Promise<Cen
   return user;
 }
 
-export function assertAccountActiveForSso(user: CentralUserForSso): void {
+/**
+ * SP.2D-C6 — authorize-only active check (narrow select).
+ * Does not load profile/image fields unused by code issuance.
+ */
+export async function loadCentralUserForAuthorizeOrThrow(
+  centralUserId: string,
+): Promise<Pick<CentralUserForSso, "id" | "email" | "accountDeletedAt" | "suspendedAt">> {
+  const user = await prisma.user.findUnique({
+    where: { id: centralUserId },
+    select: {
+      id: true,
+      email: true,
+      accountDeletedAt: true,
+      suspendedAt: true,
+    },
+  });
+  if (!user || !user.email) {
+    throw new SsoError("ACCOUNT_DISABLED");
+  }
+  return user;
+}
+
+export function assertAccountActiveForSso(user: {
+  accountDeletedAt: Date | null;
+  suspendedAt: Date | null;
+}): void {
   const status = resolveAccountStatus(user);
   if (status !== "active") {
     throw new SsoError("ACCOUNT_DISABLED");
