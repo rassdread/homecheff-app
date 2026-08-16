@@ -1354,7 +1354,8 @@ model Tag {
 
 model Transaction {
   id             String            @id
-  reservationId  String            @unique
+  /// Optional: legacy listing reservations only. Marketplace checkout has no Reservation.
+  reservationId  String?           @unique
   buyerId        String
   sellerId       String
   amountCents    Int
@@ -1366,7 +1367,7 @@ model Transaction {
   updatedAt      DateTime
   Payout         Payout[]
   Refund         Refund[]
-  Reservation    Reservation       @relation(fields: [reservationId], references: [id])
+  Reservation    Reservation?      @relation(fields: [reservationId], references: [id])
   User           User              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
   @@index([buyerId, status, createdAt])

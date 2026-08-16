@@ -75,10 +75,13 @@ export async function middleware(request: NextRequest) {
 
   // Canonical host for OAuth cookies/PKCE: www and .nl must not start Google OAuth
   // with a different redirect_uri than https://homecheff.eu/api/auth/callback/google.
+  // Stripe webhooks must NEVER 307 — Stripe does not follow redirects; settlement would never run.
   const requestHost = resolveRequestHost(request);
   const isWwwEu = requestHost === 'www.homecheff.eu';
   const isNlDomain = requestHost === 'homecheff.nl' || requestHost === 'www.homecheff.nl';
-  if (isWwwEu || isNlDomain) {
+  const isStripeWebhookPath =
+    pathname === '/api/stripe/webhook' || pathname === '/api/stripe/connect/webhook';
+  if ((isWwwEu || isNlDomain) && !isStripeWebhookPath) {
     const search = request.nextUrl.search || '';
     const redirectUrl = `https://${EU_HOST}${pathname}${search}`;
     const redirectResponse = NextResponse.redirect(redirectUrl, 307);
