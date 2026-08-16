@@ -10233,13 +10233,17 @@
       "rapidlyPerishable": "This is rapidly perishable prepared food (not automatically every GROW product)."
     },
     "inlineDeclaration": {
-      "heading": "Tell us once how you offer this",
-      "hint": "We save this choice on your profile and reuse it for future offers. You can change it later in settings.",
+      "heading": "How do you offer on HomeCheff?",
+      "hint": "We'll save this choice to your profile. You can change it later.",
       "private": "As a private individual",
       "professional": "As a professional / business",
+      "youSelected": "You selected:",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "saving": "Saving…",
       "confirmPrivate": "Confirm: you offer as a private / occasional seller?",
       "confirmProfessional": "Confirm: you offer as a professional / business?",
-      "error": "Could not save. Please try again.",
+      "error": "Your choice could not be saved. Please try again.",
       "settingsLink": "Change later in settings"
     }
   }

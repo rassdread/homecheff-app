@@ -1,0 +1,10 @@
+{
+  "at": "2026-08-16T14:55:00.000Z",
+  "mainBefore": "c027f99b4ee536dcb486067bd78b7ead4c423dd0",
+  "productionBefore": "dpl_3i8P86yrNXbT5CpyypxobAU3S8c1",
+  "rootCause": "stale i18n localStorage/CDN cache + t() returns empty string for missing keys; CACHE_VERSION not bumped when inlineDeclaration keys shipped",
+  "cssRootCause": false,
+  "i18nRootCause": true,
+  "fix": "tOr hard fallbacks + CACHE_VERSION 2.37 + inline confirm UX",
+  "emptyLabelsImpossible": true
+}

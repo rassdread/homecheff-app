@@ -3,11 +3,13 @@
 /**
  * LEGAL-3 — compact consumer information / withdrawal disclosure.
  * LEGAL-1 — optional first-time inline commerce declaration (seller only).
+ *
+ * Critical control labels use tOr() so stale i18n cache can never render empty buttons.
  */
 
 import { useId, useState } from 'react';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { Building2, Loader2, User } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { ConsumerCommerceContext } from '@/lib/legal/consumer-commerce-context';
 import type { CommerceDeclarationChoice } from '@/components/legal/CommerceDeclarationModal';
@@ -29,6 +31,59 @@ type Props = {
   onCommerceDeclared?: (declaration: CommerceDeclarationChoice) => void;
 };
 
+const LABELS = {
+  heading: {
+    key: 'legal3.inlineDeclaration.heading',
+    en: 'How do you offer on HomeCheff?',
+    nl: 'Hoe bied je aan op HomeCheff?',
+  },
+  hint: {
+    key: 'legal3.inlineDeclaration.hint',
+    en: "We'll save this choice to your profile. You can change it later.",
+    nl: 'We bewaren deze keuze in je profiel. Je kunt dit later wijzigen.',
+  },
+  private: {
+    key: 'legal3.inlineDeclaration.private',
+    en: 'As a private individual',
+    nl: 'Als particulier',
+  },
+  professional: {
+    key: 'legal3.inlineDeclaration.professional',
+    en: 'As a professional / business',
+    nl: 'Als professioneel / bedrijf',
+  },
+  youSelected: {
+    key: 'legal3.inlineDeclaration.youSelected',
+    en: 'You selected:',
+    nl: 'Je kiest:',
+  },
+  confirm: {
+    key: 'legal3.inlineDeclaration.confirm',
+    en: 'Confirm',
+    nl: 'Bevestigen',
+  },
+  cancel: {
+    key: 'legal3.inlineDeclaration.cancel',
+    en: 'Cancel',
+    nl: 'Annuleren',
+  },
+  saving: {
+    key: 'legal3.inlineDeclaration.saving',
+    en: 'Saving…',
+    nl: 'Opslaan…',
+  },
+  error: {
+    key: 'legal3.inlineDeclaration.error',
+    en: 'Your choice could not be saved. Please try again.',
+    nl: 'Je keuze kon niet worden opgeslagen. Probeer opnieuw.',
+  },
+  settingsLink: {
+    key: 'legal3.inlineDeclaration.settingsLink',
+    en: 'Change later in settings',
+    nl: 'Later wijzigen in instellingen',
+  },
+} as const;
+
 export default function ConsumerCommerceDisclosure({
   context,
   variant = 'listing',
@@ -38,17 +93,22 @@ export default function ConsumerCommerceDisclosure({
   allowInlineDeclaration = false,
   onCommerceDeclared,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, tOr } = useTranslation();
   const panelId = useId();
   const showInline =
     allowInlineDeclaration && context.isUndeclaredPath;
   const [open, setOpen] = useState(
     variant !== 'listing' && (showInline || context.isUndeclaredPath),
   );
-  const [busy, setBusy] = useState<CommerceDeclarationChoice | null>(null);
+  const [pendingChoice, setPendingChoice] =
+    useState<CommerceDeclarationChoice | null>(null);
+  const [busy, setBusy] = useState(false);
   const [declareError, setDeclareError] = useState<string | null>(null);
 
   if (!context.showConsumerDisclosure) return null;
+
+  const label = (entry: (typeof LABELS)[keyof typeof LABELS]) =>
+    tOr(entry.key, entry.en, entry.nl);
 
   const sellerStatusKey =
     context.publicLabel === 'geverifieerd_bedrijf'
@@ -62,16 +122,14 @@ export default function ConsumerCommerceDisclosure({
   const withdrawalKey = `legal3.withdrawal.${context.withdrawalRule}`;
   const summaryKey = `legal3.summary.${context.withdrawalRule}`;
 
+  const choiceLabel = (declaration: CommerceDeclarationChoice) =>
+    declaration === 'PRIVATE_OCCASIONAL'
+      ? label(LABELS.private)
+      : label(LABELS.professional);
+
   const persistDeclaration = async (declaration: CommerceDeclarationChoice) => {
-    const confirmKey =
-      declaration === 'PRIVATE_OCCASIONAL'
-        ? 'legal3.inlineDeclaration.confirmPrivate'
-        : 'legal3.inlineDeclaration.confirmProfessional';
-    if (typeof window !== 'undefined' && !window.confirm(t(confirmKey))) {
-      return;
-    }
     setDeclareError(null);
-    setBusy(declaration);
+    setBusy(true);
     try {
       const res = await fetch('/api/seller/commerce-declaration', {
         method: 'PUT',
@@ -81,17 +139,17 @@ export default function ConsumerCommerceDisclosure({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setDeclareError(
-          typeof data.error === 'string'
-            ? data.error
-            : t('legal3.inlineDeclaration.error'),
+          typeof data.error === 'string' ? data.error : label(LABELS.error),
         );
         return;
       }
+      setPendingChoice(null);
+      setOpen(false);
       onCommerceDeclared?.(declaration);
     } catch {
-      setDeclareError(t('legal3.inlineDeclaration.error'));
+      setDeclareError(label(LABELS.error));
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
@@ -129,50 +187,106 @@ export default function ConsumerCommerceDisclosure({
 
       {showInline ? (
         <div
-          className="rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 space-y-2"
+          className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2.5"
           data-hc-inline-commerce-declaration=""
         >
-          <p className="text-xs font-semibold text-amber-950">
-            {t('legal3.inlineDeclaration.heading')}
-          </p>
-          <p className="text-[11px] text-amber-900 leading-relaxed">
-            {t('legal3.inlineDeclaration.hint')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              disabled={busy !== null}
-              onClick={() => void persistDeclaration('PRIVATE_OCCASIONAL')}
-              className="flex-1 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-900 hover:bg-emerald-50 disabled:opacity-50"
-              data-hc-declare-private=""
-            >
-              {busy === 'PRIVATE_OCCASIONAL' ? (
-                <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-              ) : (
-                t('legal3.inlineDeclaration.private')
-              )}
-            </button>
-            <button
-              type="button"
-              disabled={busy !== null}
-              onClick={() =>
-                void persistDeclaration('SELF_DECLARED_PROFESSIONAL')
-              }
-              className="flex-1 rounded-lg border border-indigo-300 bg-white px-3 py-2 text-xs font-semibold text-indigo-900 hover:bg-indigo-50 disabled:opacity-50"
-              data-hc-declare-professional=""
-            >
-              {busy === 'SELF_DECLARED_PROFESSIONAL' ? (
-                <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-              ) : (
-                t('legal3.inlineDeclaration.professional')
-              )}
-            </button>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-gray-900">
+              {label(LABELS.heading)}
+            </p>
+            <p className="text-xs text-gray-700 leading-relaxed">
+              {label(LABELS.hint)}
+            </p>
           </div>
+
+          {pendingChoice ? (
+            <div
+              className="rounded-lg border border-gray-200 bg-white p-3 space-y-3"
+              data-hc-inline-commerce-confirm=""
+            >
+              <p className="text-sm text-gray-900">
+                <span className="font-medium">{label(LABELS.youSelected)}</span>{' '}
+                <span className="font-semibold">{choiceLabel(pendingChoice)}</span>
+              </p>
+              {busy ? (
+                <p
+                  className="flex items-center gap-2 text-sm font-medium text-gray-700"
+                  data-hc-inline-commerce-saving=""
+                >
+                  <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                  {label(LABELS.saving)}
+                </p>
+              ) : (
+                <div className="flex flex-col xs:flex-row sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void persistDeclaration(pendingChoice)}
+                    className="flex-1 min-h-[44px] rounded-lg bg-gray-900 px-3 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
+                    data-hc-declare-confirm=""
+                  >
+                    {label(LABELS.confirm)}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => {
+                      setPendingChoice(null);
+                      setDeclareError(null);
+                    }}
+                    className="flex-1 min-h-[44px] rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                    data-hc-declare-cancel=""
+                  >
+                    {label(LABELS.cancel)}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setDeclareError(null);
+                  setPendingChoice('PRIVATE_OCCASIONAL');
+                }}
+                className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+                data-hc-declare-private=""
+              >
+                <User className="h-4 w-4 shrink-0 text-gray-700" aria-hidden />
+                <span>{label(LABELS.private)}</span>
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setDeclareError(null);
+                  setPendingChoice('SELF_DECLARED_PROFESSIONAL');
+                }}
+                className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+                data-hc-declare-professional=""
+              >
+                <Building2
+                  className="h-4 w-4 shrink-0 text-gray-700"
+                  aria-hidden
+                />
+                <span>{label(LABELS.professional)}</span>
+              </button>
+            </div>
+          )}
+
           {declareError ? (
-            <p className="text-[11px] text-red-600" role="alert">
+            <p className="text-xs font-medium text-red-700" role="alert">
               {declareError}
             </p>
           ) : null}
+
+          <p className="text-[11px] text-gray-600">
+            <Link href="/settings" className="text-emerald-800 underline">
+              {label(LABELS.settingsLink)}
+            </Link>
+          </p>
         </div>
       ) : (
         <p className="text-xs text-gray-600 leading-relaxed">{t(summaryKey)}</p>
@@ -209,13 +323,6 @@ export default function ConsumerCommerceDisclosure({
             {t('legal3.termsLink')}
           </Link>
         </p>
-        {showInline ? (
-          <p>
-            <Link href="/settings" className="text-emerald-800 underline">
-              {t('legal3.inlineDeclaration.settingsLink')}
-            </Link>
-          </p>
-        ) : null}
       </div>
 
       {context.serviceStartAckRequired && onServiceStartAckChange ? (
