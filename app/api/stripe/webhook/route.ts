@@ -9,7 +9,6 @@ import { NotificationService } from "@/lib/notifications/notification-service";
 import { calculateDistance } from "@/lib/geocoding";
 import { createShippingLabel, EctaroShipLabelRequest } from "@/lib/ectaroship";
 import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
-import { getBusinessVisibilityProfile } from "@/lib/business/visibility-profile";
 import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
 import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
 import {
@@ -24,6 +23,10 @@ import {
 } from "@/lib/delivery/delivery-position";
 import { requiresInventoryForCheckout } from "@/lib/proposals/proposal-stock-policy";
 import { parseFulfillmentOptions } from "@/lib/marketplace/listing-taxonomy";
+import {
+  settleAllSellerLegsForOrder,
+  settleSellerOrderItem,
+} from "@/lib/payments/seller-settlement";
 
 async function readBuffer(stream: ReadableStream<Uint8Array>) {
   const reader = stream.getReader();
@@ -756,7 +759,39 @@ export async function POST(req: NextRequest) {
             );
           }
         }
-        console.log(`✅ Order ${existingOrder.id} already exists for session ${session.id}`);
+
+        // Order existence ≠ settlement complete. Retry seller legs; 2xx only if complete.
+        console.log(
+          `🔁 Order ${existingOrder.id} exists for session ${session.id} — ensuring seller settlement`,
+        );
+        const settlement = await settleAllSellerLegsForOrder(
+          stripe,
+          existingOrder.id,
+          { chargeProviderRef: session.id },
+        );
+        if (!settlement.complete) {
+          console.error(
+            JSON.stringify({
+              event: 'settlement_incomplete_on_existing_order',
+              sessionId: session.id,
+              orderId: existingOrder.id,
+              expectedSellerLegs: settlement.expectedSellerLegs,
+              succeededLegs: settlement.succeededLegs,
+              pendingOrFailedLegs: settlement.pendingOrFailedLegs,
+              results: settlement.results.map((r) => ({
+                productId: r.productId,
+                status: r.status,
+                transferId: r.transferId,
+                error: r.error,
+              })),
+            }),
+          );
+          return new NextResponse(
+            'Settlement incomplete — Stripe will retry',
+            { status: 500 },
+          );
+        }
+        console.log(`✅ Order ${existingOrder.id} settlement complete (idempotent)`);
         return new NextResponse("ok", { status: 200 });
       }
       
@@ -1586,8 +1621,9 @@ export async function POST(req: NextRequest) {
           // Don't fail the whole process if review token creation fails
         }
 
-        // 💰 CREATE PAYOUTS FOR SELLERS
-        // Process each item in the order to create seller payouts
+        // 💰 IDEMPOTENT SELLER SETTLEMENT (separate charges & transfers)
+        // Do NOT return 2xx while any required seller leg is pending/failed.
+        const sellerSettlementResults = [];
         for (const item of items) {
           const product = await prisma.product.findUnique({
             where: { id: item.productId },
@@ -1599,197 +1635,97 @@ export async function POST(req: NextRequest) {
                       id: true,
                       stripeConnectAccountId: true,
                       stripeConnectOnboardingCompleted: true,
-                      phoneNumber: true
-                    }
-                  }
-                }
-              }
-            }
+                    },
+                  },
+                },
+              },
+            },
           });
 
           if (!product?.seller?.User) continue;
 
           const itemTotal = item.priceCents * item.quantity;
-          
-          // Calculate platform fee based on seller's subscription
-          let platformFeePercentage = 12; // Default for individuals
-          
-          // Check if seller has a business subscription
-          const sellerProfile = await prisma.sellerProfile.findUnique({
-            where: { userId: product.seller.User.id },
-            include: {
-              Subscription: true
-            }
-          });
-          
-          const visibility = getBusinessVisibilityProfile({
-            subscriptionId: sellerProfile?.subscriptionId,
-            subscriptionValidUntil: sellerProfile?.subscriptionValidUntil,
-            Subscription: sellerProfile?.Subscription,
-          });
-          platformFeePercentage = visibility.feePercent;
-          
-          const platformFeeCents = Math.round(itemTotal * platformFeePercentage / 100);
-          
-          // Calculate SMS costs if seller has SMS notifications enabled in preferences
-          // SMS provider cost: ~€0.05 per SMS, platform fee: 20% = €0.01, total: €0.06 per seller
-          const smsBaseCostCents = 5; // €0.05 base SMS cost
-          const smsPlatformFeePercentage = 20; // 20% platform fee on SMS
-          let smsCostCents = 0;
-          
-          // Check if seller has SMS notifications enabled in preferences
-          const sellerPreferences = await prisma.$queryRaw<any[]>`
-            SELECT "smsOrderUpdates" FROM "NotificationPreferences" 
-            WHERE "userId" = ${product.seller.User.id}
-            LIMIT 1
-          `.then(rows => rows[0]).catch(() => null);
-          
-          // If seller has SMS enabled and has phone number, charge for SMS
-          if (sellerPreferences?.smsOrderUpdates && product.seller.User.phoneNumber) {
-            // Calculate SMS cost: base cost + platform fee percentage
-            const smsPlatformFeeCents = Math.round(smsBaseCostCents * smsPlatformFeePercentage / 100);
-            smsCostCents = smsBaseCostCents + smsPlatformFeeCents; // Total: €0.05 + €0.01 = €0.06
-            console.log(`📱 SMS cost (€${(smsCostCents / 100).toFixed(2)}) will be deducted from seller ${product.seller.User.id} payout (base: €${(smsBaseCostCents / 100).toFixed(2)}, platform fee: €${(smsPlatformFeeCents / 100).toFixed(2)})`);
-          }
-          
-          // Deduct SMS costs from seller payout
-          const sellerPayoutCents = itemTotal - platformFeeCents - smsCostCents;
-
-          // Check if this is a shipping order (needs escrow)
           const isShippingOrder = (mappedDeliveryMode as string) === 'SHIPPING';
-
-          // Create transaction record (for tracking)
-          // Note: reservationId is optional - we don't use reservations for orders    
-          const transactionData: any = {
-            id: `txn_${createdOrder.id}_${item.productId}_${Date.now()}`,
-            buyerId: buyerId,
-            sellerId: product.seller.User.id,
-            amountCents: itemTotal,
-            platformFeeBps: Math.round(platformFeePercentage * 100), // Convert to basis points
-            status: 'CAPTURED',
-            provider: 'STRIPE',
-            providerRef: session.id,
-            updatedAt: new Date()
-          };
-          const transaction = await prisma.transaction.create({
-            data: transactionData
+          const settlement = await settleSellerOrderItem(stripe, {
+            orderId: createdOrder.id,
+            productId: item.productId,
+            buyerId,
+            sellerUserId: product.seller.User.id,
+            sellerGrossCents: itemTotal,
+            chargeProviderRef: session.id,
+            holdInEscrow: isShippingOrder,
           });
+          sellerSettlementResults.push(settlement);
 
-          // For shipping orders: create escrow instead of immediate payout
-          if (isShippingOrder) {
-            // Create escrow to hold seller payment until delivery
-            await prisma.paymentEscrow.create({
-              data: {
-                orderId: createdOrder.id,
-                sellerId: product.seller.User.id,
-                amountCents: sellerPayoutCents,
-                payoutTrigger: 'DELIVERED', // Wait for delivery confirmation
-                currentStatus: 'held',
-              }
-            });
-            
-            console.log(`💰 Escrow created for shipping order ${createdOrder.id}: €${(sellerPayoutCents / 100).toFixed(2)} (will be paid after delivery)`);
-            
-            // Still create payout record for tracking, but don't transfer yet
-            const payout = await prisma.payout.create({
-              data: {
-                id: `payout_seller_${createdOrder.id}_${item.productId}_${Date.now()}`,
-                transactionId: transaction.id,
-                toUserId: product.seller.User.id,
-                amountCents: sellerPayoutCents,
-                providerRef: null // Will be set after delivery
-              }
-            });
-            
-            // Skip immediate Stripe transfer - will be done after delivery via webhook
-            continue; // Skip to next item
+          if (settlement.status === 'TRANSFER_SUCCEEDED') {
+            console.log(
+              `✅ Transfer created for seller ${settlement.sellerUserId}: ${settlement.transferId}`,
+            );
+          } else if (settlement.status === 'ESCROW_HELD') {
+            console.log(
+              `💰 Escrow held for shipping order ${createdOrder.id} seller ${settlement.sellerUserId}: €${(settlement.sellerNetCents / 100).toFixed(2)}`,
+            );
+          } else if (
+            settlement.status === 'TRANSFER_FAILED' ||
+            settlement.status === 'CONNECT_NOT_READY'
+          ) {
+            console.error(
+              `❌ Seller settlement incomplete for ${settlement.sellerUserId}: ${settlement.status} ${settlement.error || ''}`,
+            );
           }
 
-          // Create payout record for seller (SMS costs + platform fee already deducted)
-          // For non-shipping orders: immediate payout
-          const payout = await prisma.payout.create({
-            data: {
-              id: `payout_seller_${createdOrder.id}_${item.productId}_${Date.now()}`,
-              transactionId: transaction.id,
-              toUserId: product.seller.User.id,
-              amountCents: sellerPayoutCents,
-              providerRef: session.payment_intent as string || null
-            }
-          });
-          
-          // Log SMS cost deduction if applicable
-          if (smsCostCents > 0) {
-            const smsPlatformFeeCents = Math.round(smsBaseCostCents * smsPlatformFeePercentage / 100);
-            console.log(`💰 SMS cost (€${(smsCostCents / 100).toFixed(2)}) deducted from seller ${product.seller.User.id} payout. Breakdown: base €${(smsBaseCostCents / 100).toFixed(2)} + platform fee €${(smsPlatformFeeCents / 100).toFixed(2)}. Original payout: €${((itemTotal - platformFeeCents) / 100).toFixed(2)}, After SMS: €${(sellerPayoutCents / 100).toFixed(2)}`);
-          }
-
-          // 💰 ACTUAL STRIPE TRANSFER TO CONNECT ACCOUNT
-          // Note: SMS costs are already deducted from sellerPayoutCents
-          if (product.seller.User.stripeConnectAccountId && sellerPayoutCents > 0) {
+          // Affiliate commission from HomeCheff platform fee (not seller net).
+          if (settlement.platformFeeCents > 0) {
             try {
-              const transfer = await stripe.transfers.create({
-                amount: sellerPayoutCents,
-                currency: 'eur',
-                destination: product.seller.User.stripeConnectAccountId,
-                transfer_group: `order_${createdOrder.id}`,
-                metadata: {
-                  orderId: createdOrder.id,
-                  productId: item.productId,
-                  sellerId: product.seller.User.id,
-                  platformFeeCents: platformFeeCents.toString(),
-                  smsCostCents: smsCostCents.toString(),
-                  smsBaseCostCents: smsCostCents > 0 ? smsBaseCostCents.toString() : '0',
-                  smsPlatformFeeCents: smsCostCents > 0 ? Math.round(smsBaseCostCents * smsPlatformFeePercentage / 100).toString() : '0',
-                  homecheff_app: 'true'
-                }
-              });
-
-              // Update payout with transfer reference
-              await prisma.payout.update({
-                where: { id: payout.id },
-                data: { 
-                  providerRef: transfer.id
-                }
-              });
-
-              console.log(`✅ Transfer created for seller ${product.seller.User.id}: ${transfer.id}`);
-            } catch (transferError: any) {
-              console.error(`❌ Transfer failed for seller ${product.seller.User.id}:`, transferError.message);
-              
-              // Update payout as failed
-              await prisma.payout.update({
-                where: { id: payout.id },
-                data: { 
-                  providerRef: `failed_${Date.now()}`
-                }
-              });
-            }
-          }
-
-          // 💰 PROCESS AFFILIATE COMMISSION FOR ORDER
-          // Commission: 25% van HomeCheff fee per gebruiker (koper/verkoper)
-          // Als beide zijn aangebracht: 50% (25% + 25%)
-          if (platformFeeCents > 0) {
-            try {
-              const { processCommissionForOrder } = await import('@/lib/affiliate-commission');
+              const { processCommissionForOrder } = await import(
+                '@/lib/affiliate-commission'
+              );
               await processCommissionForOrder(
                 `${createdOrder.id}_${item.productId}`,
-                platformFeeCents,
+                settlement.platformFeeCents,
                 buyerId,
                 product.seller.User.id,
                 {
                   orderId: createdOrder.id,
                   productId: item.productId,
                   itemTotal: itemTotal.toString(),
-                  platformFeePercentage: platformFeePercentage.toString(),
-                }
+                  platformFeeBps: settlement.platformFeeBps.toString(),
+                },
               );
             } catch (commissionError: any) {
-              console.error(`❌ Failed to process affiliate commission for order ${createdOrder.id}:`, commissionError.message);
-              // Don't fail the whole process if commission processing fails
+              console.error(
+                `❌ Failed to process affiliate commission for order ${createdOrder.id}:`,
+                commissionError.message,
+              );
             }
           }
+        }
 
+        const incompleteSellerLegs = sellerSettlementResults.filter(
+          (r) =>
+            r.status === 'TRANSFER_FAILED' ||
+            r.status === 'CONNECT_NOT_READY' ||
+            r.status === 'TRANSFER_PENDING',
+        );
+        if (incompleteSellerLegs.length > 0) {
+          console.error(
+            JSON.stringify({
+              event: 'seller_settlement_incomplete_after_order_create',
+              sessionId: session.id,
+              orderId: createdOrder.id,
+              incomplete: incompleteSellerLegs.map((r) => ({
+                productId: r.productId,
+                status: r.status,
+                error: r.error,
+              })),
+            }),
+          );
+          // Order may exist; settlement incomplete → non-2xx so Stripe retries.
+          // Retry path uses settleAllSellerLegsForOrder (idempotent).
+          return new NextResponse(
+            'Seller settlement incomplete — Stripe will retry',
+            { status: 500 },
+          );
         }
 
         // 📦 AUTOMATICALLY CREATE SHIPPING LABEL FOR SHIPPING ORDERS
@@ -2019,13 +1955,37 @@ export async function POST(req: NextRequest) {
         console.error(`❌ CRITICAL: Failed to process order for session ${session.id}:`, orderError);
         
         // Check if order was already created (might have been created before error)
-        const existingOrder = await prisma.order.findFirst({
+        const existingOrderAfterError = await prisma.order.findFirst({
           where: { stripeSessionId: session.id }
         });
         
-        if (existingOrder) {
-          console.log(`✅ Order ${existingOrder.id} exists for session ${session.id}, returning OK despite error`);
-          return new NextResponse("ok", { status: 200 });
+        if (existingOrderAfterError) {
+          // Order existence is NOT success. Attempt settlement; 2xx only if complete.
+          console.log(
+            `⚠️ Order ${existingOrderAfterError.id} exists after error — ensuring settlement (no silent 200)`,
+          );
+          try {
+            const settlement = await settleAllSellerLegsForOrder(
+              stripe,
+              existingOrderAfterError.id,
+              { chargeProviderRef: session.id },
+            );
+            if (settlement.complete) {
+              console.log(
+                `✅ Settlement recovered for order ${existingOrderAfterError.id}`,
+              );
+              return new NextResponse("ok", { status: 200 });
+            }
+          } catch (settleErr: any) {
+            console.error(
+              'Settlement recovery after order error failed:',
+              settleErr?.message,
+            );
+          }
+          return new NextResponse(
+            'Order exists but settlement incomplete — Stripe will retry',
+            { status: 500 },
+          );
         }
         
         // Log full error details for debugging

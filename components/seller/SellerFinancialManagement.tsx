@@ -829,8 +829,16 @@ function PayoutsTab({
   formatDate: (date: string) => string;
 }) {
   const totalPayouts = payouts.reduce((sum, p) => sum + p.amountCents, 0);
-  const completedPayouts = payouts.filter(p => p.providerRef && !p.providerRef.startsWith('failed')).length;
-  const pendingPayouts = payouts.filter(p => !p.providerRef || p.providerRef.startsWith('failed')).length;
+  const isTransferSuccess = (ref: string | null | undefined) =>
+    Boolean(ref && ref.startsWith('tr_'));
+  const isTransferFailed = (ref: string | null | undefined) =>
+    Boolean(ref?.startsWith('failed_'));
+  const completedPayouts = payouts.filter((p) =>
+    isTransferSuccess(p.providerRef),
+  ).length;
+  const pendingPayouts = payouts.filter(
+    (p) => !isTransferSuccess(p.providerRef),
+  ).length;
   const isManualPayout = (payout: Payout) => payout.id.includes('_') && payout.id.split('_').length >= 3;
 
   return (
@@ -971,18 +979,19 @@ function PayoutsTab({
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          payout.providerRef && !payout.providerRef.startsWith('failed')
+                          isTransferSuccess(payout.providerRef)
                             ? 'bg-green-100 text-green-800'
-                            : payout.providerRef?.startsWith('failed')
+                            : isTransferFailed(payout.providerRef)
                             ? 'bg-red-100 text-red-800'
                             : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {payout.providerRef && !payout.providerRef.startsWith('failed') ? (
+                          {isTransferSuccess(payout.providerRef) ? (
                             <>
                               <CheckCircle className="w-3 h-3" />
-                              {t('seller.paidOut')}
+                              {t('seller.sellerTransferProcessed') ||
+                                'Verkopersbedrag verwerkt'}
                             </>
-                          ) : payout.providerRef?.startsWith('failed') ? (
+                          ) : isTransferFailed(payout.providerRef) ? (
                             <>
                               <XCircle className="w-3 h-3" />
                               {t('seller.failed')}
@@ -990,7 +999,8 @@ function PayoutsTab({
                           ) : (
                             <>
                               <Clock className="w-3 h-3" />
-                              {t('seller.inProgress')}
+                              {t('seller.sellerTransferPending') ||
+                                'Betaling ontvangen door HomeCheff — uitbetaling wordt verwerkt'}
                             </>
                           )}
                         </span>

@@ -50,6 +50,57 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // SETTLEMENT_PENDING: payout obligation without successful tr_
+    const pendingSettlement = await prisma.payout.findMany({
+      where: {
+        OR: [
+          { providerRef: null },
+          { providerRef: 'pending_transfer' },
+          { providerRef: { startsWith: 'failed_' } },
+        ],
+        createdAt: {
+          gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        },
+        NOT: {
+          providerRef: { startsWith: 'tr_' },
+        },
+      },
+      take: 50,
+      include: {
+        Transaction: {
+          select: {
+            id: true,
+            sellerId: true,
+            amountCents: true,
+            status: true,
+            providerRef: true,
+          },
+        },
+        User: { select: { id: true, username: true } },
+      },
+    });
+
+    const pendingOnly = pendingSettlement.filter(
+      (p) => !p.providerRef?.startsWith('tr_'),
+    );
+    if (pendingOnly.length > 0) {
+      alerts.push({
+        type: 'SETTLEMENT_PENDING',
+        severity: 'critical',
+        message: `${pendingOnly.length} verkopersuitbetaling(en) wachten of zijn mislukt (geen tr_)`,
+        count: pendingOnly.length,
+        data: pendingOnly.map((p) => ({
+          payoutId: p.id,
+          amountCents: p.amountCents,
+          providerRef: p.providerRef,
+          sellerId: p.toUserId,
+          seller: p.User?.username,
+          transactionId: p.transactionId,
+          transactionStatus: p.Transaction?.status,
+        })),
+      });
+    }
+
     // Check for high refund rate
     const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const [recentOrders, recentRefunds] = await Promise.all([
