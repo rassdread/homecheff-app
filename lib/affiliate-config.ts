@@ -95,7 +95,11 @@ export function calculateUserTransactionCommission(
     commissionPct += userCommissionPct;
   }
   
-  return Math.round(homecheffFeeCents * commissionPct);
+  // Cap: affiliate funded from platform fee must never exceed fee
+  return Math.min(
+    Math.max(0, homecheffFeeCents),
+    Math.round(homecheffFeeCents * commissionPct),
+  );
 }
 
 /**
@@ -126,7 +130,10 @@ export function calculateParentAffiliateUserTransactionCommission(
     commissionPct += parentCommissionPct;
   }
   
-  return Math.round(homecheffFeeCents * commissionPct);
+  return Math.min(
+    Math.max(0, homecheffFeeCents),
+    Math.round(homecheffFeeCents * commissionPct),
+  );
 }
 
 /**

@@ -315,7 +315,8 @@
     "dry-run:refund-order": "npx tsx scripts/dry-run-refund-order.ts",
     "validate:seller-settlement-unit": "npx tsx scripts/validate-seller-settlement-unit.ts",
     "validate:dispute-settlement-unit": "npx tsx scripts/validate-dispute-settlement-unit.ts",
-    "dry-run:dispute-order": "npx tsx scripts/dry-run-dispute-order.ts"
+    "dry-run:dispute-order": "npx tsx scripts/dry-run-dispute-order.ts",
+    "validate:multi-recipient-settlement": "npx tsx scripts/validate-multi-recipient-settlement.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

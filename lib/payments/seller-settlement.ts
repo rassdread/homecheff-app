@@ -7,6 +7,7 @@ import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 import { getBusinessVisibilityProfile } from '@/lib/business/visibility-profile';
 import { calculatePlatformFeeCents } from '@/lib/fees';
+import { assertSourceChargeAllocationCapacity } from '@/lib/payments/payment-waterfall';
 
 export const PAYOUT_PROVIDER_REF_PENDING = 'pending_transfer';
 export const PAYOUT_PROVIDER_REF_FAILED_PREFIX = 'failed_';
@@ -437,7 +438,10 @@ export async function settleSellerOrderItem(
 
     await prisma.payout.update({
       where: { id: payout.id },
-      data: { providerRef: transfer.id },
+      data: {
+        providerRef: transfer.id,
+        destinationConnectAccountId: destination,
+      },
     });
     await prisma.transaction.update({
       where: { id: transactionId },
@@ -561,6 +565,57 @@ export async function settleAllSellerLegsForOrder(
 
   const isShipping = order.deliveryMode === 'SHIPPING';
   const results: SellerSettlementResult[] = [];
+
+  // Pre-flight: plan seller nets and assert source Charge capacity (multi-seller)
+  if (!isShipping && sourceTransactionChargeId) {
+    let plannedNet = 0;
+    let alreadyTransferred = 0;
+    for (const item of order.items) {
+      const sellerUserId = item.Product?.seller?.User?.id;
+      if (!sellerUserId) continue;
+      const sellerGrossCents = item.priceCents * item.quantity;
+      const bps = await resolvePlatformFeeBps(sellerUserId);
+      const fee = calculatePlatformFeeCents(sellerGrossCents, bps / 100);
+      const net = Math.max(0, sellerGrossCents - fee);
+      const existingPayout = await prisma.payout.findUnique({
+        where: { id: sellerPayoutId(orderId, item.productId) },
+      });
+      if (isSuccessfulTransferRef(existingPayout?.providerRef)) {
+        alreadyTransferred += existingPayout!.amountCents;
+      } else {
+        plannedNet += net;
+      }
+    }
+
+    let chargeAmountCents: number | null = null;
+    try {
+      const charge = await stripe.charges.retrieve(sourceTransactionChargeId);
+      chargeAmountCents = charge.amount;
+    } catch {
+      /* capacity soft-skip if charge unreadable */
+    }
+
+    if (chargeAmountCents != null) {
+      const cap = assertSourceChargeAllocationCapacity({
+        chargeAmountCents,
+        plannedTransferCents: plannedNet,
+        alreadyTransferredCents: alreadyTransferred,
+      });
+      if (!cap.ok) {
+        console.error(
+          `[seller-settlement] OVER_ALLOCATION order=${orderId}: ${cap.error}`,
+        );
+        return {
+          complete: false,
+          orderId,
+          expectedSellerLegs: order.items.length,
+          succeededLegs: 0,
+          pendingOrFailedLegs: order.items.length,
+          results: [],
+        };
+      }
+    }
+  }
 
   for (const item of order.items) {
     const sellerUserId = item.Product?.seller?.User?.id;

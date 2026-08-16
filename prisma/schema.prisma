@@ -1164,14 +1164,16 @@ model ShippingLabel {
 }
 
 model Payout {
-  id            String      @id
-  transactionId String
-  amountCents   Int
-  toUserId      String
-  createdAt     DateTime    @default(now())
-  providerRef   String?
-  User          User        @relation(fields: [toUserId], references: [id], onDelete: Cascade)
-  Transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  id                          String      @id
+  transactionId               String
+  amountCents                 Int
+  toUserId                    String
+  createdAt                   DateTime    @default(now())
+  providerRef                 String?
+  /// Connect account id snapshotted at transfer time (immutable obligation destination)
+  destinationConnectAccountId String?
+  User                        User        @relation(fields: [toUserId], references: [id], onDelete: Cascade)
+  Transaction                 Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 }
 
 model Refund {
