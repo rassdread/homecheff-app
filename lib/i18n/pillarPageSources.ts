@@ -120,8 +120,8 @@ const earnLocallyPage: Record<string, Bi> = {
   },
   sectionFeesTitle: { nl: 'Fees en uitbetaling', en: 'Fees and payouts' },
   sectionFeesBody: {
-    nl: 'Particulieren: 12% platformfee op betaalde checkout (Stripe-kosten voor de koper). Zakelijke plannen: 9%, 7% of 5% plus maandabonnement. Uitbetaling via Stripe Connect wanneer je checkout gebruikt. Geen verborgen discovery-beloftes.',
-    en: 'Individuals: 12% platform fee on paid checkout (Stripe costs for the buyer). Business plans: 9%, 7% or 5% plus monthly subscription. Payouts via Stripe Connect when you use checkout. No hidden discovery promises.',
+    nl: 'Particulieren: 12% platformfee op betaalde checkout (betaalkosten voor de koper). Zakelijke plannen: 9%, 7% of 5% plus maandabonnement. Uitbetaling via Stripe Connect wanneer je checkout gebruikt. Geen verborgen discovery-beloftes.',
+    en: 'Individuals: 12% platform fee on paid checkout (payment/transaction fees for the buyer). Business plans: 9%, 7% or 5% plus monthly subscription. Payouts via Stripe Connect when you use checkout. No hidden discovery promises.',
   },
   sectionStepsTitle: { nl: 'Zo begin je', en: 'How to start' },
   step1: { nl: 'Maak een account en profiel aan.', en: 'Create an account and profile.' },

@@ -2833,11 +2833,11 @@
       },
       "5": {
         "question": "Can I earn extra income alongside my benefits?",
-        "answer": "Yes, you can earn extra income alongside your benefits, but there are rules:\n\n💰 BENEFITS AND EXTRA INCOME:\n• Wajong: 70% of your income is deducted from your benefits\n• Social assistance: You can keep part of your income\n• All income must be reported to the UWV within 1 week\n\n💡 PRACTICAL TIPS:\n• Keep track of your expenses for deduction from your revenue\n• Consult with the UWV about your specific situation\n• Use your hobby to generate extra income\n• Take advantage of available exemptions\n\n⚠️ IMPORTANT: Always contact the UWV before you start selling! HomeCheff is only a platform and does not provide tax or benefits advice."
+        "answer": "Yes, you can earn extra income alongside your benefits, but there are rules:\n\n💰 BENEFITS AND EXTRA INCOME:\n• Wajong: 70% of your income is deducted from your benefits\n• Social assistance: You can keep part of your income\n• All income must be reported to the UWV within 1 week\n\n💡 PRACTICAL TIPS:\n• Keep track of your expenses for deduction from your revenue\n• Consult with the UWV about your specific situation\n• Use your hobby to generate extra income\n• Take advantage of available exemptions\n\n⚠️ IMPORTANT: Always contact the UWV before you start selling! HomeCheff does not provide tax or benefits advice; the product/service agreement is between buyer and provider."
       },
       "6": {
         "question": "What is HomeCheff's liability?",
-        "answer": "⚠️ IMPORTANT LEGAL INFORMATION:\n\nHomeCheff is only a platform that connects sellers and buyers. We are NOT responsible for:\n• Product quality\n• Disputes between sellers and buyers\n• Damage from products\n• Loss or theft during delivery\n• User tax returns\n• Benefits arrangements\n\nAll transactions are between seller and buyer. HomeCheff only mediates in disputes but is not liable for the outcome.\n\nBy using HomeCheff, you agree to these terms."
+        "answer": "⚠️ IMPORTANT LEGAL INFORMATION:\n\nHomeCheff is a platform. The agreement for the product or service is concluded between buyer and provider. HomeCheff facilitates among other things the platform, payment via Stripe, and certain settlement actions. The precise legal characterisation of the payment role may depend on the transaction and applicable law.\n\nHomeCheff is not, as a starting point, responsible for:\n• Product quality\n• Disputes between sellers and buyers about product quality\n• Damage from products\n• Loss or theft during delivery\n• User tax returns\n• Benefits arrangements\n\nHomeCheff may mediate in disputes but is not automatically liable for the outcome.\n\nBy using HomeCheff, you agree to these terms."
       },
       "7": {
         "question": "Who is Sergio Arrias?",
@@ -2871,7 +2871,7 @@
       },
       "3": {
         "question": "How do I get my money paid out?",
-        "answer": "Payouts happen automatically via Stripe Connect to your specified bank account.\n\n⏱️ PAYOUT PERIOD:\n• Normal orders: 7 days after payment (new accounts)\n• Faster payout: 2-3 business days (with positive history)\n• Shipping (parcel post): After delivery confirmation (escrow system)\n\n💰 PRACTICAL BENEFITS:\n• Faster payout for handmade products\n• Extra reward for reducing waste\n• Transparent costs for local makers\n• Escrow protection for shipping\n\n📧 NOTIFICATION:\nYou will receive an email when the payout is processed.\n\n⚠️ IMPORTANT: HomeCheff is only a platform. We are not responsible for product quality or disputes between sellers and buyers."
+        "answer": "Payouts happen automatically via Stripe Connect to your specified bank account.\n\n⏱️ PAYOUT PERIOD:\n• Normal orders: 7 days after payment (new accounts)\n• Faster payout: 2-3 business days (with positive history)\n• Shipping (parcel post): After delivery confirmation (payout reservation system)\n\n💰 PRACTICAL BENEFITS:\n• Faster payout for handmade products\n• Extra reward for reducing waste\n• Transparent costs for local makers\n• payout reservation protection for shipping\n\n📧 NOTIFICATION:\nYou will receive an email when the payout is processed.\n\nIMPORTANT: The product/service agreement is between buyer and provider; HomeCheff facilitates the platform and payment. We are not responsible for product quality or disputes between sellers and buyers."
       },
       "4": {
         "question": "How can I sell effectively on HomeCheff?",
@@ -2901,7 +2901,7 @@
       },
       "3": {
         "question": "What if I'm not satisfied with my purchase?",
-        "answer": "First contact the seller. If that doesn't work, we can mediate. We have a complaint procedure and can arrange a refund in extreme cases.\n\n♻️ AGAINST WASTE:\n• Reuse products where possible\n• Composting of organic products\n• Feedback for improvement\n• Learn from handmade practices\n\n⚠️ IMPORTANT: HomeCheff is only a platform. We are not responsible for product quality or disputes between sellers and buyers."
+        "answer": "First contact the seller. If that doesn't work, we can mediate. We have a complaint procedure and can arrange a refund in extreme cases.\n\n♻️ AGAINST WASTE:\n• Reuse products where possible\n• Composting of organic products\n• Feedback for improvement\n• Learn from handmade practices\n\nIMPORTANT: The product/service agreement is between buyer and provider; HomeCheff facilitates the platform and payment. We are not responsible for product quality or disputes between sellers and buyers."
       },
       "4": {
         "question": "Can I become a fan or sellers?",
@@ -2931,13 +2931,13 @@
       },
       "4": {
         "question": "Can I track my payouts?",
-        "answer": "Yes, you can track your payouts in your seller dashboard. There you'll see all transactions, payouts, and costs clearly together.\n\n⚠️ IMPORTANT: HomeCheff is only a platform. We are not responsible for product quality or disputes between sellers and buyers."
+        "answer": "Yes, you can track your payouts in your seller dashboard. There you'll see all transactions, payouts, and costs clearly together.\n\nIMPORTANT: The product/service agreement is between buyer and provider; HomeCheff facilitates the platform and payment. We are not responsible for product quality or disputes between sellers and buyers."
       }
     },
     "delivery": {
       "0": {
         "question": "How does delivery work on HomeCheff?",
-        "answer": "Sellers can choose pickup, delivery, shipping (parcel post), or a combination of these.\n\n📦 DELIVERY OPTIONS:\n• Pickup: Customer picks up product from seller\n• Delivery: Seller delivers locally in the neighborhood\n• Shipping: Parcel post via DHL/PostNL (for Designer and Garden products)\n• Both: Combination of options\n\n🤝 LOCAL COMMUNITY:\n• Local delivery supports the neighborhood\n• Bike delivery is more practical\n• Pickup prevents extra packaging\n• Shipping works nationally and internationally\n\n⚠️ IMPORTANT: HomeCheff is only a platform. We are not responsible for delivery or disputes between sellers and buyers."
+        "answer": "Sellers can choose pickup, delivery, shipping (parcel post), or a combination of these.\n\n📦 DELIVERY OPTIONS:\n• Pickup: Customer picks up product from seller\n• Delivery: Seller delivers locally in the neighborhood\n• Shipping: Parcel post via DHL/PostNL (for Designer and Garden products)\n• Both: Combination of options\n\n🤝 LOCAL COMMUNITY:\n• Local delivery supports the neighborhood\n• Bike delivery is more practical\n• Pickup prevents extra packaging\n• Shipping works nationally and internationally\n\nIMPORTANT: The product/service agreement is between buyer and provider; HomeCheff facilitates the platform and payment. We are not responsible for delivery or disputes between sellers and buyers."
       },
       "1": {
         "question": "What are the delivery costs?",
@@ -2957,11 +2957,11 @@
       },
       "5": {
         "question": "How do I become a deliverer on HomeCheff?",
-        "answer": "Deliverers can sign up via /delivery/signup. You must be between 15-23 years old, have a valid ID, and agree to our terms. Minors need parental consent.\n\n🤝 LOCAL COMMUNITY:\n• Bike delivery is preferred\n• Local routes support the neighborhood\n• Combined delivery is more efficient\n• Use reusable packaging\n\n⚠️ IMPORTANT: As a deliverer, you are a self-employed entrepreneur. HomeCheff is only a platform and not your employer."
+        "answer": "Deliverers can sign up via /delivery/signup. You must be between 15-23 years old, have a valid ID, and agree to our terms. Minors need parental consent.\n\n🤝 LOCAL COMMUNITY:\n• Bike delivery is preferred\n• Local routes support the neighborhood\n• Combined delivery is more efficient\n• Use reusable packaging\n\n⚠️ IMPORTANT: As a deliverer, you are a self-employed entrepreneur. HomeCheff is not your employer; selected couriers act as independent delivery providers."
       },
       "6": {
         "question": "What do I earn as a deliverer?",
-        "answer": "You earn per delivery. The exact amount depends on distance and complexity. You are a self-employed entrepreneur and are responsible for taxes and insurance.\n\n💰 PRACTICAL BENEFITS:\n• Extra reward for bike delivery\n• Bonus for combined routes\n• Reward for reusable packaging\n• Incentive for local delivery\n\n⚠️ IMPORTANT: HomeCheff is only a platform. We are not your employer and do not provide employer insurance."
+        "answer": "You earn per delivery. The exact amount depends on distance and complexity. You are a self-employed entrepreneur and are responsible for taxes and insurance.\n\n💰 PRACTICAL BENEFITS:\n• Extra reward for bike delivery\n• Bonus for combined routes\n• Reward for reusable packaging\n• Incentive for local delivery\n\nIMPORTANT: The product/service agreement is between buyer and provider; HomeCheff facilitates the platform and payment. We are not your employer and do not provide employer insurance."
       },
       "7": {
         "question": "What insurance do I need as a deliverer?",
@@ -2985,11 +2985,11 @@
       },
       "12": {
         "question": "How does parcel post shipping work?",
-        "answer": "For Designer and Garden products, you can choose parcel post shipping. Shipping costs are automatically calculated based on:\n\n📦 PRODUCT DETAILS:\n• Weight and dimensions of the product\n• Distance between seller and buyer\n• Destination country (national or international)\n\n💰 COSTS:\n• Shipping costs are calculated real-time in checkout\n• Customer pays the actual shipping costs\n• Seller receives automatic shipping label immediately after payment\n• Payment to seller happens after delivery (escrow system)\n\n🚚 SHIPPING:\n• Automatic label generation via EctaroShip immediately after payment confirmation\n• Label is automatically created as soon as payment is confirmed\n• Tracking number for buyer and seller\n• Support for PostNL, DHL and other carriers\n• Works nationally and internationally\n\n💡 TIP: Make sure your address is complete in your profile (postal code, country) for correct shipping cost calculation and automatic label generation."
+        "answer": "For Designer and Garden products, you can choose parcel post shipping. Shipping costs are automatically calculated based on:\n\n📦 PRODUCT DETAILS:\n• Weight and dimensions of the product\n• Distance between seller and buyer\n• Destination country (national or international)\n\n💰 COSTS:\n• Shipping costs are calculated real-time in checkout\n• Customer pays the actual shipping costs\n• Seller receives automatic shipping label immediately after payment\n• Payment to seller happens after delivery (payout reservation system)\n\n🚚 SHIPPING:\n• Automatic label generation via EctaroShip immediately after payment confirmation\n• Label is automatically created as soon as payment is confirmed\n• Tracking number for buyer and seller\n• Support for PostNL, DHL and other carriers\n• Works nationally and internationally\n\n💡 TIP: Make sure your address is complete in your profile (postal code, country) for correct shipping cost calculation and automatic label generation."
       },
       "13": {
         "question": "When do I get my money as a seller for shipping?",
-        "answer": "For parcel post shipping, your payment is held in escrow until the package is delivered. This protects both buyer and seller:\n\n🔒 ESCROW SYSTEM:\n• Payment is locked after order confirmation\n• Money is released after delivery confirmation\n• Automatic payout via Stripe Connect\n• Tracking updates trigger automatic payout\n\n⏱️ TIMELINE:\n• Order confirmed → Payment in escrow\n• Package shipped → Status update\n• Package delivered → Automatic payout\n• Payout within 2-3 workdays to your account\n\n✅ BENEFITS:\n• Protection for buyer (money back if problems)\n• Protection for seller (payment guaranteed)\n• Automatic process (no manual action needed)\n• Transparent and reliable"
+        "answer": "For parcel post shipping, your payment is held in payout reservation until the package is delivered. This protects both buyer and seller:\n\n🔒 payout reservation SYSTEM:\n• Payment is held on the platform after order confirmation\n• Money is released after delivery confirmation\n• Automatic payout via Stripe Connect\n• Tracking updates trigger automatic payout\n\n⏱️ TIMELINE:\n• Order confirmed → Payment in payout reservation\n• Package shipped → Status update\n• Package delivered → Automatic payout\n• Payout within 2-3 workdays to your account\n\n✅ BENEFITS:\n• Protection for buyer (money back if problems)\n• Protection for seller (payment guaranteed)\n• Automatic process (no manual action needed)\n• Transparent and reliable"
       },
       "14": {
         "question": "Which products can be shipped?",
@@ -3027,7 +3027,7 @@
       },
       "2": {
         "question": "Does HomeCheff share my data with the tax authorities?",
-        "answer": "Yes, according to EU directive DAC7, we are required to share your data if you perform more than 30 transactions per year or achieve more than €2,000 revenue."
+        "answer": "HomeCheff may be legally required to collect and report relevant data when applicable rules (such as DAC7) so require. Whether and when that happens depends on thresholds and law. This does not mean HomeCheff already files a full return for you, and it does not automatically determine your tax liability. Consult an adviser if unsure."
       },
       "3": {
         "question": "Do I need to register with the Chamber or Commerce?",
@@ -3067,7 +3067,7 @@
     "safety": {
       "0": {
         "question": "How do I know sellers are trustworthy?",
-        "answer": "We have a verification system, reviews from other users, and a complaint procedure. New sellers are extra checked. Always read reviews before buying.\n\n⚠️ IMPORTANT: HomeCheff is only a platform. We are not responsible for product quality, safety, or disputes. All transactions are between seller and buyer."
+        "answer": "We have a verification system, reviews from other users, and a complaint procedure. New sellers are extra checked. Always read reviews before buying.\n\nIMPORTANT: The product/service agreement is between buyer and provider; HomeCheff facilitates the platform and payment. We are not responsible for product quality, safety, or disputes. All transactions are between seller and buyer."
       },
       "1": {
         "question": "What if I have problems with a seller?",
@@ -3147,7 +3147,7 @@
       },
       "3": {
         "question": "How do I become an affiliate?",
-        "answer": "Signing up as an affiliate is very simple:\n\n📝 STEPS:\n1. Go to the affiliate page (/affiliate)\n2. Log in with your existing HomeCheff account (or create one)\n3. Accept the privacy policy, terms and conditions, and affiliate agreement\n4. Click 'Become an affiliate now'\n5. You immediately get access to your affiliate dashboard\n\n✅ REQUIREMENTS:\n• You must have a HomeCheff account\n• You must accept the terms\n• No costs, no obligations\n\n🎯 AFTER SIGNUP:\n• You immediately get your unique referral link\n• You can start sharing your link\n• All commissions are automatically tracked\n• Weekly payouts via Stripe Connect"
+        "answer": "Signing up as an affiliate is very simple:\n\n📝 STEPS:\n1. Go to the affiliate page (/affiliate)\n2. Log in with your existing HomeCheff account (or create one)\n3. Accept the privacy policy, terms and conditions, and affiliate agreement\n4. Click 'Become an affiliate now'\n5. You immediately get access to your affiliate dashboard\n\n✅ REQUIREMENTS:\n• You must have a HomeCheff account\n• You must accept the terms\n• No costs, no obligations\n\n🎯 AFTER SIGNUP:\n• You immediately get your unique referral link\n• You can start sharing your link\n• All commissions are automatically tracked\n• Weekly payouts (ledger; Connect when the payout batch is available)"
       },
       "4": {
         "question": "What is a made affiliate and how does it work?",
@@ -3155,7 +3155,7 @@
       },
       "5": {
         "question": "How do I get my commissions paid out?",
-        "answer": "Commissions are processed weekly through Stripe Connect after onboarding, subject to payout rules shown in your dashboard.\n\nYour dashboard shows pending, available, and paid amounts per period. You remain responsible for proper tax handling in your jurisdiction."
+        "answer": "Commissions are tracked in your dashboard (pending / available / paid). Connect payout follows after onboarding when the affiliate payout batch is available; funding comes from the HomeCheff platform fee, not an extra buyer or seller fee.\n\nYour dashboard shows pending, available, and paid amounts per period. You remain responsible for proper tax handling in your jurisdiction."
       }
     },
     "localCommunity": {
@@ -3352,8 +3352,8 @@
       "grossTurnover": "Gross turnover",
       "yourPayout": "Your payout",
       "availableToRequest": "Available to request",
-      "netIncludesEscrow": "Part of this is still in escrow until orders are delivered or picked up.",
-      "availableNowZero": "Your net earnings are still in escrow; after delivery or pickup the amount becomes available to request.",
+      "netIncludesEscrow": "Part of this is still reserved for payout until orders are delivered or picked up.",
+      "availableNowZero": "Your net earnings are partly still reserved for payout; after delivery/pickup the amount becomes available for transfer to your Stripe Connect account.",
       "netAlreadyTransferred": "Completed order payments have already been transferred to your Stripe Connect account. Request a payout to your bank in Stripe (or the Stripe app).",
       "waitingForPayout": "Waiting for Payout",
       "viaStripeToBank": "Via Stripe to your linked bank account",
@@ -3369,8 +3369,8 @@
       "notYetPaidOut": "Not yet paid out",
       "deliveryEarnings": "Delivery payments",
       "deliveryTotal": "Total earned from deliveries",
-      "deliveryPaidOut": "Paid out to Stripe (after completed delivery)",
-      "deliveryPayoutAutomatic": "Delivery payments are automatically transferred to your Stripe Connect account when you mark a delivery as completed. No separate request needed.",
+      "deliveryPaidOut": "Delivery fee (ledger-tracked)",
+      "deliveryPayoutAutomatic": "Delivery fees are tracked as a separate ledger entitlement. Automatic Stripe Connect payout for couriers is not guaranteed in the current settlement design.",
       "combinedNetEarnings": "Total net (sales + delivery)",
       "verkoopEnBezorging": "Sales + delivery",
       "availableSellerOnly": "Sales only; delivery is already on Stripe.",
@@ -3386,7 +3386,7 @@
       "goToDeliveryDashboard": "Go to delivery dashboard",
       "deliveryDashboardHint": "For available delivery runs, deliverer settings and earnings: use the full Delivery Dashboard.",
       "deliveryRequestable": "Requestable now (in payout below)",
-      "deliveryAlreadyOnStripeExplanation": "Your delivery earnings are already in your Stripe Connect account. Use the 'Request Payout' button below to send the balance to your bank – no need to log in to Stripe.",
+      "deliveryAlreadyOnStripeExplanation": "Delivery earnings are currently ledger-tracked. Confirm a Connect transfer actually occurred before requesting a bank payout.",
       "stripeBalanceTitle": "Balance on your payout account",
       "stripeBalanceDescription": "This is what's on your connected account (Stripe), including past funds. Request a payout to your bank with the button below – no Stripe login required.",
       "stripeBalanceAvailable": "Available for payout",
@@ -3395,8 +3395,8 @@
       "confirmBankPayout": "Send €{amount} from your payout account to your bank?",
       "stripeBalancePayoutHint": "You have €{amount} on your payout account. Click to send to your bank – no Stripe login needed.",
       "payoutError": "An error occurred while requesting payout.",
-      "escrowReleaseHint": "Mark shipping orders as Delivered to release this amount for payout.",
-      "deliveryAlreadyOnStripe": "Delivery earnings are transferred to the same Stripe account after each completed delivery.",
+      "escrowReleaseHint": "Mark shipping orders as Delivered to release this amount for transfer to your Stripe Connect account.",
+      "deliveryAlreadyOnStripe": "Delivery amounts are ledger-tracked; Connect transfer depends on the current settlement path.",
       "payoutBannerDeliveryNote": "Delivery earnings are already on your Stripe account. Request seller payout here; then you can withdraw the total from Stripe to your bank.",
       "waitingPayoutIncludesDeliveryNote": "This is the amount you can request now (sales). Delivery earnings are already on Stripe; you can withdraw the total to your bank there.",
       "stripeNotConnected": "Stripe account not connected",
@@ -3410,8 +3410,8 @@
       "payoutViaStripeBullet4": "Payouts tab: overview of all payouts",
       "minimumAmount": "Minimum amount: You need at least €10.00 to request a payout. You currently have €{amount}.",
       "payoutReasonNoTransactions": "There are no completed payments ready for payout yet. Once a customer has paid and the order is completed (delivered/picked up), the amount will appear here. Check that your orders are completed.",
-      "payoutReasonAllInEscrow": "Your earnings are still in escrow because you have shipping orders. Once an order is marked \"Delivered\" (by you, the deliverer or admin), the amount will be transferred to your Stripe account and then to your bank (2–5 business days).",
-      "payoutReasonEscrowAdmin": "Are your orders already marked Delivered but you don't see a payout? Ask the admin to click \"Release escrow\" in Order Management.",
+      "payoutReasonAllInEscrow": "Your earnings are still reserved for payout because you have shipping orders. Once an order is marked Delivered, the amount is transferred to your Stripe Connect account. Bank payout then follows via Stripe (typically 2–5 business days).",
+      "payoutReasonEscrowAdmin": "Orders already marked Delivered but no transfer yet? Ask an admin to use \"Release payout\" in Order Management.",
       "payoutReasonAlreadyPaidOut": "The amounts from your completed orders have already been transferred to your Stripe account. Stripe will credit your bank within 2–5 business days. New sales will appear here once they are delivered/picked up (min. €10 to request again).",
       "payoutReasonBelowMinimum": "You don't have €10.00 available yet. The minimum for a payout is €10.00. Once you reach that amount, the button will become active.",
       "payoutReasonDefault": "You need at least €10.00 available and a connected Stripe account. Check the \"Stripe Connect\" tab.",
@@ -4194,7 +4194,7 @@
     "termsSales": "Sales and transactions:",
     "termsSalesTax": "Sellers are responsible for tax filing",
     "termsSalesLegislation": "Products must comply with Dutch legislation",
-    "termsSalesPlatform": "HomeCheff is a platform, not a party in transactions",
+    "termsSalesPlatform": "The agreement for the product or service is concluded between buyer and provider. HomeCheff facilitates among other things the platform, payment via Stripe, and certain settlement actions. The precise legal characterisation of the payment role may depend on the transaction and applicable law.",
     "termsPayments": "Payments:",
     "termsPaymentsStripe": "Payments are processed via Stripe",
     "termsPaymentsFees": "Platform fees are charged",
@@ -4337,10 +4337,10 @@
     "itemQuantity": "Quantity: {count}",
     "subtotal": "Subtotal",
     "deliveryFee": "Delivery costs",
-    "transactionFeeStripe": "Transaction fee (Stripe)",
+    "transactionFeeStripe": "Transaction fee",
     "total": "Total",
     "free": "Free",
-    "feeDisclaimer": "Stripe fees are passed on to the buyer. HomeCheff fees are settled with the seller.",
+    "feeDisclaimer": "Payment/transaction fees are charged to the buyer. HomeCheff platform fees are settled with the seller.",
     "processing": "Processing...",
     "payNow": "Pay - €{amount}",
     "trustLine": "Pay securely via HomeCheff and Stripe.",
@@ -6219,7 +6219,7 @@
     "s4_1Title": "4.1 Seller obligations",
     "s4_1L1": "Sellers are responsible for their own tax returns",
     "s4_1L2": "Products must comply with applicable legislation",
-    "s4_1L3": "HomeCheff is a platform, not a party to transactions",
+    "s4_1L3": "The agreement for the product or service is concluded between buyer and provider. HomeCheff facilitates among other things the platform, payment via Stripe, and certain settlement actions. The precise legal characterisation of the payment role may depend on the transaction and applicable law.",
     "s4_1L4": "Sellers are responsible for product quality and safety",
     "s4_1L5": "All products must be described accurately",
     "s4_2Heading": "4.2 Tax responsibility",
@@ -6237,7 +6237,7 @@
     "s5L4": "Marketing communication only with consent",
     "s6Title": "6. Liability and warranties",
     "s6_1Title": "6.1 Platform liability",
-    "s6_1L1": "HomeCheff is a platform, not a party to transactions",
+    "s6_1L1": "The agreement for the product or service is concluded between buyer and provider. HomeCheff facilitates among other things the platform, payment via Stripe, and certain settlement actions. The precise legal characterisation of the payment role may depend on the transaction and applicable law.",
     "s6_1L2": "We are not liable for product quality",
     "s6_1L3": "We mediate in disputes but are not responsible for outcomes",
     "s6_1L4": "Platform is provided \"as is\" without warranties",
@@ -7102,7 +7102,7 @@
     "step3": "Earn commission automatically",
     "step3Desc": "As soon as a user or business becomes active via your link, you automatically earn commission: 25% per user (50% if you bring both) or 50% per business. All commissions are automatically tracked and paid weekly.",
     "step4": "Get paid weekly",
-    "step4Desc": "Commissions are automatically paid weekly via Stripe Connect. No hassle, everything arranged.",
+    "step4Desc": "Commissions are ledger-tracked and paid according to dashboard rules after onboarding. Connect payout is not an extra charge to buyers or sellers.",
     "examples": "Examples: How much do you earn?",
     "exampleUsers": "Example: Bringing Users",
     "transactionValue": "Transaction value",
@@ -7209,7 +7209,7 @@
       "attributionPolicyFirstTouch": "First-touch: the first valid affiliate link you share sets a {days}-day cookie. Later affiliate links do not replace it until the cookie expires.",
       "attributionPolicyCookie": "Cookie: {name} ({days} days). Sign-up or social onboarding must happen in the same browser/device while the cookie is active.",
       "attributionPolicyCrossDevice": "Cross-device: not supported yet. A desktop click does not follow someone who registers on mobile.",
-      "attributionPolicyCommission": "Commission: pending after payment, available after the hold period, then paid via Stripe Connect when you request a payout.",
+      "attributionPolicyCommission": "Commission: pending after payment, available after the hold period, then payable per dashboard rules (Connect when the batch route is available). Funded from the HomeCheff platform fee.",
       "attributionPolicySubscription": "Business subscriptions: commission applies when the referred business subscribes — via your promo code or your ref link at sign-up.",
       "earnings": "Earnings",
       "referrals": "Sign-ups via link",
@@ -7546,7 +7546,7 @@
       "snapshotModelNote": "Each referred business subscription accrues subscription commission for up to twelve months in the standard model while active. Transactions follow programme rules.",
       "monthlyDetailsToggle": "Month-by-month breakdown",
       "ctaSlimTitle": "Grow the ecosystem with us",
-      "ctaSlimSubtitle": "Transparent terms · Weekly Stripe payouts · Creator- and community-first, built to scale internationally",
+      "ctaSlimSubtitle": "Transparent terms · Dashboard-tracked commissions · Creator- and community-first, built to scale internationally",
       "legalFootnote": "Exact percentages, caps, and windows are defined in your affiliate agreement and general terms.",
       "becomeAffiliate": "Become an affiliate — start free",
       "readyToStartDesc": "Become an affiliate and build recurring commission with your community over time, within your agreement."
@@ -7560,7 +7560,7 @@
       "sectionModelTitle": "What you earn",
       "modelBullet1": "Transactions: up to 25% of the HomeCheff fee per side; up to 50% if you refer both buyer and seller.",
       "modelBullet2": "Subscriptions: up to 50% per month in the standard model, for up to 12 months per active referred business.",
-      "modelBullet3": "Payouts: weekly via Stripe Connect after onboarding.",
+      "modelBullet3": "Payouts: according to dashboard rules after onboarding (Connect when the batch route is available).",
       "modelExampleHint": "Illustrative scenario",
       "sectionFlowTitle": "Four quick steps",
       "dashboardBandTitle": "Dashboard & tools",
@@ -7611,7 +7611,7 @@
       "toolPromoTitle": "Your own promo codes",
       "toolPromoBody": "Create codes for business subscriptions; discounts come from your commission share within the limits shown in the dashboard.",
       "toolStatsTitle": "Insights & payouts",
-      "toolStatsBody": "See referrals, status, and payouts. Weekly payouts via Stripe Connect after onboarding.",
+      "toolStatsBody": "See referrals, status, and payouts. Weekly payouts (ledger; Connect when the payout batch is available) after onboarding.",
       "dashboardPreviewTitle": "Overview in your affiliate dashboard",
       "dashboardPreviewBody": "After signup you’ll see your link, QR options, promo codes, and commission overview — control without spreadsheet stress.",
       "linkFaq": "Full HomeCheff FAQ",
@@ -7625,7 +7625,7 @@
       "faq3Q": "How long does commission run?",
       "faq3A": "Transaction commission follows usage from your referrals. For business subscriptions, the standard window runs up to twelve months per active business under the current model; if the subscription ends or is cancelled, that commission stream ends.",
       "faq4Q": "When do I get paid?",
-      "faq4A": "Payouts are weekly via Stripe Connect, after successful onboarding and subject to dashboard payout rules.",
+      "faq4A": "Payouts follow dashboard rules after onboarding; Connect payout when the affiliate batch route is available. Commission is funded from the HomeCheff platform fee.",
       "faq5Q": "Can I create my own discount codes?",
       "faq5A": "Yes — as a main affiliate you can create promo codes for business subscriptions. Discounts are applied from your commission share within the maximum rules shown in the dashboard.",
       "faq6Q": "Can I promote internationally?",
@@ -10246,5 +10246,6 @@
       "error": "Your choice could not be saved. Please try again.",
       "settingsLink": "Change later in settings"
     }
-  }
+  },
+  "taxOurObligationText": "HomeCheff may be legally required to collect and report data when applicable rules (such as DAC7) so require. This does not automatically determine your tax liability."
 }

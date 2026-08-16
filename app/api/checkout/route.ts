@@ -822,7 +822,7 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency: 'eur',
           product_data: {
-            name: 'Transactiekosten (Stripe)',
+            name: 'Transactiekosten',
             description: 'Kosten voor betaalprovider Stripe',
           },
           unit_amount: stripeFeeCents,

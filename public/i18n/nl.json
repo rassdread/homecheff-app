@@ -2651,8 +2651,8 @@
       "grossTurnover": "Bruto omzet",
       "yourPayout": "Jouw uitbetaling",
       "availableToRequest": "Beschikbaar om uit te betalen",
-      "netIncludesEscrow": "Een deel hiervan staat nog in reservering (escrow) tot bestellingen zijn afgeleverd of afgehaald.",
-      "availableNowZero": "Je netto verdiensten staan deels nog in escrow; na aflevering/afhalen wordt het bedrag beschikbaar om uit te betalen.",
+      "netIncludesEscrow": "Een deel hiervan staat nog gereserveerd voor uitbetaling tot bestellingen zijn afgeleverd of afgehaald.",
+      "availableNowZero": "Je netto verdiensten staan deels nog gereserveerd voor uitbetaling; na aflevering/afhalen wordt het bedrag beschikbaar voor overboeking naar je Stripe Connect-account.",
       "netAlreadyTransferred": "Betalingen van voltooide bestellingen zijn al naar je Stripe Connect-account overgemaakt. Vraag in Stripe (of de Stripe-app) een uitbetaling naar je bank aan.",
       "waitingForPayout": "Wachtend op Uitbetaling",
       "viaStripeToBank": "Via Stripe naar je gekoppelde bankrekening",
@@ -2668,8 +2668,8 @@
       "notYetPaidOut": "Nog niet uitbetaald",
       "deliveryEarnings": "Bezorgbetalingen",
       "deliveryTotal": "Totaal verdiend met bezorgingen",
-      "deliveryPaidOut": "Uitbetaald naar Stripe (na voltooide bezorging)",
-      "deliveryPayoutAutomatic": "Bezorgbetalingen worden automatisch naar je Stripe Connect-account overgemaakt zodra je een bezorging als afgeleverd markeert. Geen aparte aanvraag nodig.",
+      "deliveryPaidOut": "Bezorgvergoeding (administratief bijgehouden)",
+      "deliveryPayoutAutomatic": "Bezorgvergoedingen worden administratief bijgehouden als aparte aanspraak. Uitbetaling naar Stripe Connect voor bezorgers is niet automatisch gegarandeerd in de huidige afwikkeling.",
       "combinedNetEarnings": "Totaal net (verkoop + bezorging)",
       "verkoopEnBezorging": "Verkoop + bezorging",
       "availableSellerOnly": "Alleen verkoop; bezorging staat al op Stripe.",
@@ -2685,7 +2685,7 @@
       "goToDeliveryDashboard": "Naar bezorgdashboard",
       "deliveryDashboardHint": "Voor beschikbare bezorgritten, bezorgerinstellingen en verdiensten: gebruik het volledige Bezorgdashboard.",
       "deliveryRequestable": "Nu aanvraagbaar (bij uitbetaling hieronder)",
-      "deliveryAlreadyOnStripeExplanation": "Je bezorgverdiensten staan al op je Stripe Connect-account (ze zijn per bezorging overgemaakt). Gebruik de knop 'Uitbetaling aanvragen' hieronder om het saldo naar je bank te laten uitbetalen – je hoeft niet op Stripe in te loggen.",
+      "deliveryAlreadyOnStripeExplanation": "Bezorgverdiensten worden in de huidige afwikkeling administratief bijgehouden. Controleer of een Connect-overboeking daadwerkelijk heeft plaatsgevonden voordat je bankuitbetaling aanvraagt.",
       "stripeBalanceTitle": "Saldo op je uitbetalingsaccount",
       "stripeBalanceDescription": "Dit staat er op je gekoppelde account (Stripe), inclusief bedragen uit het verleden. Uitbetaling naar je bank doe je via de knop hieronder – geen Stripe-login nodig.",
       "stripeBalanceAvailable": "Beschikbaar voor uitbetaling",
@@ -2694,8 +2694,8 @@
       "confirmBankPayout": "€{amount} van je uitbetalingsaccount naar je bank laten uitbetalen?",
       "stripeBalancePayoutHint": "Je hebt €{amount} op je uitbetalingsaccount. Klik om naar je bank te laten uitbetalen – geen Stripe-login nodig.",
       "payoutError": "Er is een fout opgetreden bij de uitbetaling.",
-      "escrowReleaseHint": "Zet verzendbestellingen op Bezorgd om dit bedrag vrij te geven voor uitbetaling.",
-      "deliveryAlreadyOnStripe": "Bezorggelden worden na elke voltooide bezorging naar hetzelfde Stripe-account overgemaakt.",
+      "escrowReleaseHint": "Zet verzendbestellingen op Bezorgd om dit bedrag vrij te geven voor overboeking naar je Stripe Connect-account.",
+      "deliveryAlreadyOnStripe": "Bezorggelden worden administratief bijgehouden; Connect-overboeking is afhankelijk van de actuele afwikkeling.",
       "payoutBannerDeliveryNote": "Bezorggelden staan al op je Stripe-account. Vraag hier verkoop-uitbetaling aan; daarna kun je het totaal van Stripe naar je bank uitbetalen.",
       "waitingPayoutIncludesDeliveryNote": "Dit is het bedrag dat je nu kunt aanvragen (verkoop). Bezorggelden staan al op Stripe; het totaal kun je daar naar je bank uitbetalen.",
       "stripeNotConnected": "Stripe Account niet gekoppeld",
@@ -2709,8 +2709,8 @@
       "payoutViaStripeBullet4": "Tab \"Uitbetalingen\": overzicht van alle uitbetalingen",
       "minimumAmount": "Minimum bedrag: Je moet minimaal €10,00 hebben om een uitbetaling aan te vragen. Je hebt nu €{amount}.",
       "payoutReasonNoTransactions": "Er staan nog geen voltooide betalingen klaar voor uitbetaling. Zodra een klant heeft betaald en de bestelling is afgehandeld (afgeleverd/afgehaald), komt het bedrag hier beschikbaar. Controleer of je bestellingen zijn voltooid.",
-      "payoutReasonAllInEscrow": "Je verdiensten zitten nog in reservering (escrow) omdat je verzendbestellingen hebt. Zodra een bestelling als \"Bezorgd\" is gemarkeerd (door jou, de bezorger of admin), wordt het bedrag automatisch naar je Stripe-account overgemaakt en daarna naar je bankrekening (2–5 werkdagen).",
-      "payoutReasonEscrowAdmin": "Staan je bestellingen al op Bezorgd maar zie je nog geen uitbetaling? Vraag de admin om bij Order Beheer op \"Escrow vrijgeven\" te drukken.",
+      "payoutReasonAllInEscrow": "Je verdiensten staan nog gereserveerd voor uitbetaling omdat je verzendbestellingen hebt. Zodra een bestelling als \"Bezorgd\" is gemarkeerd, wordt het bedrag overgeboekt naar je Stripe Connect-account. Bankuitbetaling volgt daarna via Stripe (doorgaans 2–5 werkdagen).",
+      "payoutReasonEscrowAdmin": "Staan je bestellingen al op Bezorgd maar zie je nog geen overboeking? Vraag de admin om bij Order Beheer op \"Uitbetaling vrijgeven\" te drukken.",
       "payoutReasonAlreadyPaidOut": "De bedragen van je voltooide bestellingen zijn al naar je Stripe-account overgemaakt. Stripe schrijft ze binnen 2–5 werkdagen op je bankrekening. Nieuwe verkopen verschijnen hier zodra ze zijn afgeleverd/afgehaald (min. €10 om opnieuw uit te betalen).",
       "payoutReasonBelowMinimum": "Je hebt nog geen €10,00 beschikbaar. Het minimum voor een uitbetaling is €10,00. Zodra je dat bedrag hebt bereikt, wordt de knop actief.",
       "payoutReasonDefault": "Je hebt minimaal €10,00 beschikbaar nodig en een gekoppeld Stripe-account. Controleer de tab \"Stripe Connect\".",
@@ -3364,11 +3364,11 @@
       },
       "5": {
         "question": "Kan ik bijverdienen naast mijn uitkering?",
-        "answer": "Ja, je kunt bijverdienen naast je uitkering, maar er zijn wel regels:\n\n💰 UITKERINGEN EN BIJVERDIENEN:\n• Wajong: 70% van je inkomsten wordt verrekend met je uitkering\n• Bijstand: Je mag een deel van je inkomsten houden\n• Alle inkomsten moeten binnen 1 week worden gemeld aan het UWV\n\n💡 PRAKTISCHE TIPS:\n• Houd je uitgaven bij voor aftrek van je omzet\n• Overleg met het UWV over je specifieke situatie\n• Gebruik je hobby om extra inkomen te genereren\n• Maak gebruik van de vrijstellingen die er zijn\n\n⚠️ BELANGRIJK: Neem altijd contact op met het UWV voordat je begint met verkopen! HomeCheff is alleen een platform en biedt geen belasting- of uitkeringsadvies."
+        "answer": "Ja, je kunt bijverdienen naast je uitkering, maar er zijn wel regels:\n\n💰 UITKERINGEN EN BIJVERDIENEN:\n• Wajong: 70% van je inkomsten wordt verrekend met je uitkering\n• Bijstand: Je mag een deel van je inkomsten houden\n• Alle inkomsten moeten binnen 1 week worden gemeld aan het UWV\n\n💡 PRAKTISCHE TIPS:\n• Houd je uitgaven bij voor aftrek van je omzet\n• Overleg met het UWV over je specifieke situatie\n• Gebruik je hobby om extra inkomen te genereren\n• Maak gebruik van de vrijstellingen die er zijn\n\n⚠️ BELANGRIJK: Neem altijd contact op met het UWV voordat je begint met verkopen! De product-/dienstovereenkomst is tussen koper en aanbieder; HomeCheff faciliteert platform en betaling. en biedt geen belasting- of uitkeringsadvies."
       },
       "6": {
         "question": "Wat is de aansprakelijkheid van HomeCheff?",
-        "answer": "⚠️ BELANGRIJKE JURIDISCHE INFORMATIE:\n\nHomeCheff is alleen een platform dat verkopers en kopers met elkaar verbindt. Wij zijn NIET verantwoordelijk voor:\n• De kwaliteit van producten\n• Geschillen tussen verkopers en kopers\n• Schade door producten\n• Verlies of diefstal tijdens levering\n• Belastingaangifte van gebruikers\n• Uitkeringsregelingen\n\nAlle transacties zijn tussen verkoper en koper. HomeCheff bemiddelt alleen bij geschillen maar is niet aansprakelijk voor de uitkomst.\n\nDoor gebruik te maken van HomeCheff ga je akkoord met deze voorwaarden."
+        "answer": "HomeCheff is een platform. De overeenkomst over het product of de dienst wordt gesloten tussen koper en aanbieder. HomeCheff faciliteert onder meer het platform, de betaling via Stripe en bepaalde afwikkelingshandelingen. De precieze juridische kwalificatie van de betaalrol kan afhangen van de transactie en toepasselijke wetgeving.\n\nHomeCheff is in beginsel niet verantwoordelijk voor:\n• De kwaliteit van producten\n• Geschillen tussen verkopers en kopers over productkwaliteit\n• Schade door producten\n• Verlies of diefstal tijdens levering\n• Belastingaangifte van gebruikers\n• Uitkeringsregelingen\n\nHomeCheff kan bemiddelen bij geschillen maar is niet automatisch aansprakelijk voor de uitkomst.\n\nDoor gebruik te maken van HomeCheff ga je akkoord met deze voorwaarden."
       },
       "7": {
         "question": "Wie is Sergio Arrias?",
@@ -3402,7 +3402,7 @@
       },
       "3": {
         "question": "Hoe krijg ik mijn geld uitbetaald?",
-        "answer": "Uitbetalingen gebeuren automatisch via Stripe Connect naar je opgegeven bankrekening. Voor nieuwe accounts is de uitbetalingstermijn 7 dagen na de betaling. Naarmate je account ouder wordt en een positieve geschiedenis opbouwt, kunnen uitbetalingen sneller worden (2-3 werkdagen).\n\n💰 PRAKTISCHE VOORDELEN:\n• Snellere uitbetaling voor handgemaakte producten\n• Extra beloning voor verspilling tegengaan\n• Transparante kosten voor lokale makers\n• Uitgaven aftrekken van je omzet\n\nJe ontvangt een email wanneer de uitbetaling is verwerkt.\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
+        "answer": "Na een succesvolle HomeCheff Checkout-betaling ontvangt de verkoper eerst een Stripe Connect-overboeking (seller settlement). Dat is nog niet hetzelfde als een bankuitbetaling. Daarna volgt uitbetaling van Connect naar je bankrekening volgens Stripe-schema (vaak 2–5 werkdagen; nieuwe accounts kunnen langer duren).\n\nLet op:\n• “Betaald door koper” ≠ “al op je bank”\n• Bij verzending kan overboeking naar Connect wachten tot levering (bedrag gereserveerd voor uitbetaling)\n• HomeCheff is het platform; de product-/dienstovereenkomst is tussen koper en aanbieder\n\nJe ontvangt een melding wanneer een uitbetalingstraject is verwerkt."
       },
       "4": {
         "question": "Hoe kan ik effectief verkopen op HomeCheff?",
@@ -3432,7 +3432,7 @@
       },
       "3": {
         "question": "Wat als ik niet tevreden ben over mijn aankoop?",
-        "answer": "Neem eerst contact op met de verkoper. Als dat niet lukt, kunnen wij bemiddelen. We hebben een klachtenprocedure en kunnen in extreme gevallen een terugbetaling regelen.\n\n♻️ TEGEN VERSPILLING:\n• Hergebruik van producten waar mogelijk\n• Compostering van organische producten\n• Feedback voor verbetering\n• Leren van handgemaakte praktijken\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
+        "answer": "Neem eerst contact op met de verkoper. Als dat niet lukt, kunnen wij bemiddelen. We hebben een klachtenprocedure en kunnen in extreme gevallen een terugbetaling regelen.\n\n♻️ TEGEN VERSPILLING:\n• Hergebruik van producten waar mogelijk\n• Compostering van organische producten\n• Feedback voor verbetering\n• Leren van handgemaakte praktijken\n\n⚠️ BELANGRIJK: De product-/dienstovereenkomst is tussen koper en aanbieder; HomeCheff faciliteert platform en betaling. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
       },
       "4": {
         "question": "Kan ik verkopers fan worden?",
@@ -3462,13 +3462,13 @@
       },
       "4": {
         "question": "Kan ik mijn uitbetalingen volgen?",
-        "answer": "Ja, je kunt je uitbetalingen volgen in je verkopersdashboard. Daar zie je alle transacties, uitbetalingen en kosten overzichtelijk bij elkaar.\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
+        "answer": "Ja, je kunt je uitbetalingen volgen in je verkopersdashboard. Daar zie je alle transacties, uitbetalingen en kosten overzichtelijk bij elkaar.\n\n⚠️ BELANGRIJK: De product-/dienstovereenkomst is tussen koper en aanbieder; HomeCheff faciliteert platform en betaling. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
       }
     },
     "delivery": {
       "0": {
         "question": "Hoe werkt levering op HomeCheff?",
-        "answer": "Verkopers kunnen kiezen voor afhalen, bezorgen, verzenden (pakketpost), of een combinatie hiervan.\n\n📦 BEZORGOPties:\n• Afhalen: Klant haalt product op bij verkoper\n• Bezorgen: Verkoper bezorgt zelf in de buurt\n• Verzenden: Pakketpost via DHL/PostNL (voor Designer en Garden producten)\n• Beide: Combinatie van opties\n\n🤝 LOKALE GEMEENSCHAP:\n• Lokale bezorging ondersteunt de buurt\n• Fietsbezorging is praktischer\n• Afhalen voorkomt extra verpakking\n• Verzending werkt nationaal en internationaal\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor levering of geschillen tussen verkopers en kopers."
+        "answer": "Verkopers kunnen kiezen voor afhalen, bezorgen, verzenden (pakketpost), of een combinatie hiervan.\n\n📦 BEZORGOPties:\n• Afhalen: Klant haalt product op bij verkoper\n• Bezorgen: Verkoper bezorgt zelf in de buurt\n• Verzenden: Pakketpost via DHL/PostNL (voor Designer en Garden producten)\n• Beide: Combinatie van opties\n\n🤝 LOKALE GEMEENSCHAP:\n• Lokale bezorging ondersteunt de buurt\n• Fietsbezorging is praktischer\n• Afhalen voorkomt extra verpakking\n• Verzending werkt nationaal en internationaal\n\n⚠️ BELANGRIJK: De product-/dienstovereenkomst is tussen koper en aanbieder; HomeCheff faciliteert platform en betaling. Wij zijn niet verantwoordelijk voor levering of geschillen tussen verkopers en kopers."
       },
       "1": {
         "question": "Wat zijn de leverkosten?",
@@ -3488,11 +3488,11 @@
       },
       "5": {
         "question": "Hoe word ik bezorger op HomeCheff?",
-        "answer": "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet tussen de 15-23 jaar oud zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden. Minderjarigen hebben ouderlijke toestemming nodig.\n\n🤝 LOKALE GEMEENSCHAP:\n• Fietsbezorging is de voorkeur\n• Lokale routes ondersteunen de buurt\n• Gecombineerde bezorging is efficiënter\n• Herbruikbare verpakking gebruiken\n\n⚠️ BELANGRIJK: Als bezorger ben je zelfstandige ondernemer. HomeCheff is alleen een platform en niet je werkgever."
+        "answer": "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet tussen de 15-23 jaar oud zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden. Minderjarigen hebben ouderlijke toestemming nodig.\n\n🤝 LOKALE GEMEENSCHAP:\n• Fietsbezorging is de voorkeur\n• Lokale routes ondersteunen de buurt\n• Gecombineerde bezorging is efficiënter\n• Herbruikbare verpakking gebruiken\n\n⚠️ BELANGRIJK: Als bezorger ben je zelfstandige ondernemer. HomeCheff is niet je werkgever; geselecteerde bezorgers handelen als zelfstandige bezorgdienst."
       },
       "6": {
         "question": "Wat verdien ik als bezorger?",
-        "answer": "Je verdient per bezorging. Het exacte bedrag hangt af van de afstand en complexiteit. Je bent zelfstandige ondernemer en bent zelf verantwoordelijk voor belastingen en verzekeringen.\n\n💰 PRAKTISCHE VOORDELEN:\n• Extra beloning voor fietsbezorging\n• Bonus voor gecombineerde routes\n• Beloning voor herbruikbare verpakking\n• Incentive voor lokale bezorging\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet je werkgever en bieden geen werkgeversverzekeringen."
+        "answer": "Je verdient per bezorging. Het exacte bedrag hangt af van de afstand en complexiteit. Je bent zelfstandige ondernemer en bent zelf verantwoordelijk voor belastingen en verzekeringen.\n\n💰 PRAKTISCHE VOORDELEN:\n• Extra beloning voor fietsbezorging\n• Bonus voor gecombineerde routes\n• Beloning voor herbruikbare verpakking\n• Incentive voor lokale bezorging\n\n⚠️ BELANGRIJK: De product-/dienstovereenkomst is tussen koper en aanbieder; HomeCheff faciliteert platform en betaling. Wij zijn niet je werkgever en bieden geen werkgeversverzekeringen."
       },
       "7": {
         "question": "Welke verzekeringen heb ik nodig als bezorger?",
@@ -3500,7 +3500,7 @@
       },
       "8": {
         "question": "Hoe werkt de betaling voor bezorgers?",
-        "answer": "Je verdiensten worden automatisch uitbetaald via het platform. Je bent zelf verantwoordelijk voor het opgeven van je inkomsten bij de Belastingdienst en het betalen van belastingen."
+        "answer": "Bezorgerverdiensten zijn een aparte bezorgvergoeding voor de geselecteerde zelfstandige bezorgdienst. Op dit moment worden deze verdiensten in de administratie bijgehouden; bankuitbetaling volgt via het platformproces wanneer daarvoor is opgezet. Je blijft zelf verantwoordelijk voor het opgeven van inkomsten bij de Belastingdienst."
       },
       "9": {
         "question": "Kan ik als bezorger mijn werktijden zelf bepalen?",
@@ -3516,11 +3516,11 @@
       },
       "12": {
         "question": "Hoe werkt verzending via pakketpost?",
-        "answer": "Voor Designer en Garden producten kun je kiezen voor verzending via pakketpost. De verzendkosten worden automatisch berekend op basis van:\n\n📦 PRODUCTGEGEVENS:\n• Gewicht en afmetingen van het product\n• Afstand tussen verkoper en koper\n• Land van bestemming (nationaal of internationaal)\n\n💰 KOSTEN:\n• Verzendkosten worden real-time berekend in checkout\n• Klant betaalt de werkelijke verzendkosten\n• Verkoper ontvangt automatisch verzendlabel direct na betaling\n• Betaling aan verkoper gebeurt na levering (escrow systeem)\n\n🚚 VERZENDING:\n• Automatische label generatie via EctaroShip direct na betaling\n• Label wordt automatisch aangemaakt zodra de betaling is bevestigd\n• Tracking nummer voor koper en verkoper\n• Ondersteuning voor PostNL, DHL en andere carriers\n• Werkt nationaal en internationaal\n\n💡 TIP: Zorg dat je adres compleet is in je profiel (postcode, land) voor correcte verzendkostenberekening en automatische label generatie."
+        "answer": "Voor Designer en Garden producten kun je kiezen voor verzending via pakketpost. De verzendkosten worden automatisch berekend op basis van:\n\n📦 PRODUCTGEGEVENS:\n• Gewicht en afmetingen van het product\n• Afstand tussen verkoper en koper\n• Land van bestemming (nationaal of internationaal)\n\n💰 KOSTEN:\n• Verzendkosten worden real-time berekend in checkout\n• Klant betaalt de werkelijke verzendkosten\n• Verkoper ontvangt automatisch verzendlabel direct na betaling\n• Uitbetaling aan de verkoper wordt vrijgegeven na levering (bedrag gereserveerd voor uitbetaling)\n\n🚚 VERZENDING:\n• Automatische label generatie via EctaroShip direct na betaling\n• Label wordt automatisch aangemaakt zodra de betaling is bevestigd\n• Tracking nummer voor koper en verkoper\n• Ondersteuning voor PostNL, DHL en andere carriers\n• Werkt nationaal en internationaal\n\n💡 TIP: Zorg dat je adres compleet is in je profiel (postcode, land) voor correcte verzendkostenberekening en automatische label generatie."
       },
       "13": {
         "question": "Wanneer krijg ik mijn geld als verkoper bij verzending?",
-        "answer": "Bij verzending via pakketpost wordt je betaling in escrow gehouden totdat het pakket is afgeleverd. Dit beschermt zowel koper als verkoper:\n\n🔒 ESCROW SYSTEEM:\n• Betaling wordt vastgezet na orderbevestiging\n• Geld wordt vrijgegeven na levering bevestiging\n• Automatische uitbetaling via Stripe Connect\n• Tracking updates triggeren automatisch uitbetaling\n\n⏱️ TIMELINE:\n• Order bevestigd → Betaling in escrow\n• Pakket verzonden → Status update\n• Pakket afgeleverd → Automatische uitbetaling\n• Uitbetaling binnen 2-3 werkdagen op je rekening\n\n✅ VOORDELEN:\n• Bescherming voor koper (geld terug bij problemen)\n• Bescherming voor verkoper (betaling gegarandeerd)\n• Automatisch proces (geen handmatige actie nodig)\n• Transparant en betrouwbaar"
+        "answer": "Bij verzending via pakketpost wordt het bedrag eerst gereserveerd voor uitbetaling tot het pakket is afgeleverd. Dit is een technische uitstel van de Connect-overboeking — geen aparte juridische derdenrekening of wettelijk beschermde escrow-dienst.\n\n🔒 RESERVERING VOOR UITBETALING:\n• Na betaling staat het bedrag bij het platform\n• Na leveringsbevestiging volgt overboeking naar je Stripe Connect-account\n• Daarna volgt bankuitbetaling volgens Stripe (doorgaans 2–5 werkdagen)\n\n⏱️ TIJDLIJN:\n• Order bevestigd → betaling ontvangen / gereserveerd\n• Pakket verzonden → statusupdate\n• Pakket afgeleverd → Connect-overboeking\n• Bankuitbetaling volgt daarna\n\nDit beschermt het afwikkelingsproces; productafspraken blijven tussen koper en aanbieder."
       },
       "14": {
         "question": "Welke producten kunnen verzonden worden?",
@@ -3558,7 +3558,7 @@
       },
       "2": {
         "question": "Geeft HomeCheff mijn gegevens door aan de Belastingdienst?",
-        "answer": "Ja, volgens de EU-richtlijn DAC7 zijn we verplicht om je gegevens door te geven als je meer dan 30 transacties per jaar uitvoert of meer dan €2.000 omzet behaalt."
+        "answer": "HomeCheff kan wettelijk verplicht zijn relevante gegevens te verzamelen en te rapporteren wanneer de toepasselijke regels (zoals DAC7) dat vereisen. Of en wanneer dat gebeurt hangt af van drempels en wetgeving. Dit is geen bewijs dat HomeCheff al een volledige aangifte voor jou indient, en het bepaalt niet automatisch jouw belastingplicht. Raadpleeg bij twijfel een adviseur."
       },
       "3": {
         "question": "Moet ik me inschrijven bij de KvK?",
@@ -3598,7 +3598,7 @@
     "safety": {
       "0": {
         "question": "Hoe weet ik dat verkopers betrouwbaar zijn?",
-        "answer": "We hebben een verificatiesysteem, reviews van andere gebruikers, en een klachtenprocedure. Nieuwe verkopers worden extra gecontroleerd. Lees altijd reviews voordat je koopt.\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit, veiligheid of geschillen van producten. Alle transacties zijn tussen verkoper en koper."
+        "answer": "We hebben een verificatiesysteem, reviews van andere gebruikers, en een klachtenprocedure. Nieuwe verkopers worden extra gecontroleerd. Lees altijd reviews voordat je koopt.\n\n⚠️ BELANGRIJK: De product-/dienstovereenkomst is tussen koper en aanbieder; HomeCheff faciliteert platform en betaling. Wij zijn niet verantwoordelijk voor de kwaliteit, veiligheid of geschillen van producten. Alle transacties zijn tussen verkoper en koper."
       },
       "1": {
         "question": "Wat als ik problemen heb met een verkoper?",
@@ -3708,7 +3708,7 @@
       },
       "3": {
         "question": "Hoe word ik affiliate?",
-        "answer": "Het aanmelden als affiliate is heel eenvoudig:\n\n📝 STAPPEN:\n1. Ga naar de affiliate pagina (/affiliate)\n2. Log in met je bestaande HomeCheff account (of maak er een aan)\n3. Accepteer de privacyverklaring, algemene voorwaarden en affiliate overeenkomst\n4. Klik op 'Word nu affiliate'\n5. Je krijgt direct toegang tot je affiliate dashboard\n\n✅ VEREISTEN:\n• Je moet een HomeCheff account hebben\n• Je moet de voorwaarden accepteren\n• Geen kosten, geen verplichtingen\n\n🎯 NA AANMELDING:\n• Je krijgt direct je unieke referral link\n• Je kunt starten met het delen van je link\n• Alle commissies worden automatisch bijgehouden\n• Wekelijkse uitbetalingen via Stripe Connect"
+        "answer": "Het aanmelden als affiliate is heel eenvoudig:\n\n📝 STAPPEN:\n1. Ga naar de affiliate pagina (/affiliate)\n2. Log in met je bestaande HomeCheff account (of maak er een aan)\n3. Accepteer de privacyverklaring, algemene voorwaarden en affiliate overeenkomst\n4. Klik op 'Word nu affiliate'\n5. Je krijgt direct toegang tot je affiliate dashboard\n\n✅ VEREISTEN:\n• Je moet een HomeCheff account hebben\n• Je moet de voorwaarden accepteren\n• Geen kosten, geen verplichtingen\n\n🎯 NA AANMELDING:\n• Je krijgt direct je unieke referral link\n• Je kunt starten met het delen van je link\n• Alle commissies worden automatisch bijgehouden\n• Commissies worden administratief bijgehouden; Connect-uitbetaling volgt wanneer die batchroute beschikbaar is"
       },
       "4": {
         "question": "Wat is een made affiliate en hoe werkt het?",
@@ -3716,7 +3716,7 @@
       },
       "5": {
         "question": "Hoe krijg ik mijn commissies uitbetaald?",
-        "answer": "Commissies worden wekelijks verwerkt via Stripe Connect, na onboarding en volgens de uitbetalingsregels in je dashboard.\n\nIn je dashboard zie je per periode wat pending, available en paid is. Je blijft zelf verantwoordelijk voor correcte fiscale verwerking in je eigen land."
+        "answer": "Commissies worden in je dashboard bijgehouden (pending / available / paid). Connect-uitbetaling volgt na onboarding wanneer de affiliate-batchroute beschikbaar is; financiering komt uit de HomeCheff-platformfee, niet als extra koper- of verkoperskosten.\n\nIn je dashboard zie je per periode wat pending, available en paid is. Je blijft zelf verantwoordelijk voor correcte fiscale verwerking in je eigen land."
       }
     },
     "localCommunity": {
@@ -4117,7 +4117,7 @@
     "termsSales": "Verkoop en transacties:",
     "termsSalesTax": "Verkopers zijn zelf verantwoordelijk voor belastingaangifte",
     "termsSalesLegislation": "Producten moeten voldoen aan Nederlandse wetgeving",
-    "termsSalesPlatform": "HomeCheff is een platform, geen partij in transacties",
+    "termsSalesPlatform": "De overeenkomst over het product of de dienst wordt gesloten tussen koper en aanbieder. HomeCheff faciliteert onder meer het platform, de betaling via Stripe en bepaalde afwikkelingshandelingen. De precieze juridische kwalificatie van de betaalrol kan afhangen van de transactie en toepasselijke wetgeving.",
     "termsPayments": "Betalingen:",
     "termsPaymentsStripe": "Betalingen worden verwerkt via Stripe",
     "termsPaymentsFees": "Platformkosten worden in rekening gebracht",
@@ -5737,10 +5737,10 @@
     "itemQuantity": "Aantal: {count}",
     "subtotal": "Subtotaal",
     "deliveryFee": "Bezorgkosten",
-    "transactionFeeStripe": "Transactiekosten (Stripe)",
+    "transactionFeeStripe": "Transactiekosten",
     "total": "Totaal",
     "free": "Gratis",
-    "feeDisclaimer": "Stripe-kosten worden doorberekend aan de koper. HomeCheff-kosten worden verrekend met de verkoper.",
+    "feeDisclaimer": "Betaalkosten (transactiekosten) worden aan de koper in rekening gebracht. HomeCheff-platformkosten worden verrekend met de verkoper.",
     "processing": "Verwerken...",
     "payNow": "Afrekenen - €{amount}",
     "trustLine": "Veilig betalen via HomeCheff en Stripe.",
@@ -6753,7 +6753,7 @@
     "s4_1Title": "4.1 Verkoopverplichtingen",
     "s4_1L1": "Verkopers zijn zelf verantwoordelijk voor belastingaangifte",
     "s4_1L2": "Producten moeten voldoen aan Nederlandse wetgeving",
-    "s4_1L3": "HomeCheff is een platform, geen partij in transacties",
+    "s4_1L3": "De overeenkomst over het product of de dienst wordt gesloten tussen koper en aanbieder. HomeCheff faciliteert onder meer het platform, de betaling via Stripe en bepaalde afwikkelingshandelingen. De precieze juridische kwalificatie van de betaalrol kan afhangen van de transactie en toepasselijke wetgeving.",
     "s4_1L4": "Verkopers zijn verantwoordelijk voor productkwaliteit en veiligheid",
     "s4_1L5": "Alle producten moeten accuraat worden beschreven",
     "s4_2Heading": "4.2 Belastingverantwoordelijkheid",
@@ -6771,7 +6771,7 @@
     "s5L4": "Marketingcommunicatie alleen met toestemming",
     "s6Title": "6. Aansprakelijkheid en garanties",
     "s6_1Title": "6.1 Platform aansprakelijkheid",
-    "s6_1L1": "HomeCheff is een platform, geen partij in transacties",
+    "s6_1L1": "De overeenkomst over het product of de dienst wordt gesloten tussen koper en aanbieder. HomeCheff faciliteert onder meer het platform, de betaling via Stripe en bepaalde afwikkelingshandelingen. De precieze juridische kwalificatie van de betaalrol kan afhangen van de transactie en toepasselijke wetgeving.",
     "s6_1L2": "Wij zijn niet aansprakelijk voor productkwaliteit",
     "s6_1L3": "Wij bemiddelen bij geschillen maar zijn niet verantwoordelijk",
     "s6_1L4": "Platform wordt geleverd \"as is\" zonder garanties",
@@ -10246,5 +10246,6 @@
       "error": "Je keuze kon niet worden opgeslagen. Probeer opnieuw.",
       "settingsLink": "Later wijzigen in instellingen"
     }
-  }
+  },
+  "taxOurObligationText": "HomeCheff kan wettelijk verplicht zijn gegevens te verzamelen en te rapporteren wanneer de toepasselijke regels (zoals DAC7) dat vereisen. Dit is geen automatische vaststelling van jouw belastingplicht."
 }

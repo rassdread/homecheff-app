@@ -295,7 +295,7 @@ export function useTranslation() {
     // Bump bij elke wijziging in public/i18n/{nl,en}.json zodat browsers met stale
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
     // 2.37 — LEGAL-1 inlineDeclaration keys + declaration UX copy
-    const CACHE_VERSION = '2.37';
+    const CACHE_VERSION = '2.38';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state

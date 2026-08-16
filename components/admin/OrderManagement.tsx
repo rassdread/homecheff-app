@@ -287,14 +287,14 @@ export default function OrderManagement() {
                   alert(data.error || 'Mislukt');
                 }
               } catch (e) {
-                alert('Escrow vrijgeven mislukt');
+                alert('Uitbetaling vrijgeven mislukt');
               }
             }}
             className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition-colors"
             title="Alleen voor herstel: escrow vrijgeven voor bestellingen die al Bezorgd zijn. Normaal gebeurt dit automatisch bij status Bezorgd (verzendbestellingen)."
           >
             <DollarSign className="w-4 h-4" />
-            Escrow vrijgeven
+            Uitbetaling vrijgeven
           </button>
         </div>
       </div>
