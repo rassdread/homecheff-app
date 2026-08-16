@@ -142,4 +142,22 @@ NL default + complete title drive most of the senior gain. Landscape still hurts
 
 ## Deployment
 
-Filled after push/deploy in this session.
+| Field | Value |
+|---|---|
+| Feature commit | `d765c9d801a3e52f9a117a50b92b9b96b0932d87` |
+| Merge/main SHA | `d765c9d801a3e52f9a117a50b92b9b96b0932d87` |
+| Production deployment ID | `dpl_9YPqtFNZRsM4JyFUwZJLsASmBG72` |
+| Production URL | https://homecheff.eu |
+| Rollback SHA | `2bc36cb8e1040e78adb296fca2960bed6aec37cc` |
+| Rollback deployment | `dpl_Fp3SMaYdt6HYburefhiNbEWF86hq` |
+
+**Production smoke (post-deploy):** `nl-NL` → `lang=nl`, Model B title NL; `en-US` → `lang=en`, Model B title EN; keyword strip gone; Discover/Sell CTAs present.
+
+---
+
+## Final recommendation
+
+Ship accepted with known P1 landscape/fold follow-ups. Re-probe production mobile fold after CDN cache warm and feed hydration under load.
+
+**HOMECHEFF_MULTI_PERSONA_UX_IMPLEMENTATION_READY_WITH_P1_GAPS**
+
