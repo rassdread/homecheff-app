@@ -23,7 +23,13 @@ export function sellerPayoutId(orderId: string, productId: string): string {
 export function sellerTransferIdempotencyKey(
   orderId: string,
   productId: string,
+  sourceTransactionChargeId?: string | null,
 ): string {
+  // Include charge id when funding via source_transaction so a prior
+  // insufficient-funds failure (cached under the legacy key) cannot block retry.
+  if (sourceTransactionChargeId) {
+    return `hc_seller_xfer_${orderId}_${productId}_stx_${sourceTransactionChargeId}`;
+  }
   return `hc_seller_xfer_${orderId}_${productId}`;
 }
 
@@ -40,8 +46,63 @@ export function isSuccessfulTransferRef(
 export function isFailedTransferRef(
   providerRef: string | null | undefined,
 ): boolean {
-  return Boolean(
-    providerRef?.startsWith(PAYOUT_PROVIDER_REF_FAILED_PREFIX),
+  return Boolean(providerRef?.startsWith(PAYOUT_PROVIDER_REF_FAILED_PREFIX));
+}
+
+/**
+ * Resolve the Stripe Charge object id (ch_… / py_…) for a Checkout Session.
+ * source_transaction requires the Charge — never PI or Session ids.
+ */
+export async function resolveChargeIdForCheckoutSession(
+  stripe: Stripe,
+  checkoutSessionId: string,
+): Promise<{
+  chargeId: string | null;
+  paymentIntentId: string | null;
+  charge: Stripe.Charge | null;
+}> {
+  const session = await stripe.checkout.sessions.retrieve(checkoutSessionId, {
+    expand: ['payment_intent.latest_charge'],
+  });
+  const pi = session.payment_intent;
+  if (!pi || typeof pi === 'string') {
+    const paymentIntentId = typeof pi === 'string' ? pi : null;
+    if (!paymentIntentId) {
+      return { chargeId: null, paymentIntentId: null, charge: null };
+    }
+    const fullPi = await stripe.paymentIntents.retrieve(paymentIntentId, {
+      expand: ['latest_charge'],
+    });
+    const charge = fullPi.latest_charge;
+    if (charge && typeof charge === 'object') {
+      return { chargeId: charge.id, paymentIntentId: fullPi.id, charge };
+    }
+    return {
+      chargeId: typeof charge === 'string' ? charge : null,
+      paymentIntentId: fullPi.id,
+      charge: null,
+    };
+  }
+  const charge = pi.latest_charge;
+  if (charge && typeof charge === 'object') {
+    return { chargeId: charge.id, paymentIntentId: pi.id, charge };
+  }
+  return {
+    chargeId: typeof charge === 'string' ? charge : null,
+    paymentIntentId: pi.id,
+    charge: null,
+  };
+}
+
+export function isEligibleSourceCharge(
+  charge: Stripe.Charge | null | undefined,
+): charge is Stripe.Charge {
+  if (!charge) return false;
+  return (
+    charge.paid === true &&
+    charge.status === 'succeeded' &&
+    charge.refunded !== true &&
+    charge.disputed !== true
   );
 }
 
@@ -57,6 +118,11 @@ export type SellerSettlementInput = {
   deliveryMode?: string | null;
   /** When true, create escrow and skip immediate Stripe transfer */
   holdInEscrow?: boolean;
+  /**
+   * Stripe Charge id (ch_/py_) for source_transaction funding.
+   * Required for immediate marketplace transfers while funds may be pending.
+   */
+  sourceTransactionChargeId?: string | null;
 };
 
 export type SellerSettlementResult = {
@@ -108,6 +174,7 @@ export async function settleSellerOrderItem(
     sellerGrossCents,
     chargeProviderRef,
     holdInEscrow,
+    sourceTransactionChargeId,
   } = input;
 
   const transactionId = sellerTransactionId(orderId, productId);
@@ -310,25 +377,63 @@ export async function settleSellerOrderItem(
     };
   }
 
-  try {
-    const transfer = await stripe.transfers.create(
-      {
-        amount: sellerNetCents,
-        currency: 'eur',
-        destination,
-        transfer_group: `order_${orderId}`,
-        metadata: {
-          orderId,
-          productId,
-          sellerId: sellerUserId,
-          platformFeeCents: String(platformFeeCents),
-          platformFeeBps: String(platformFeeBps),
-          sellerGrossCents: String(sellerGrossCents),
-          homecheff_app: 'true',
-        },
+  // Immediate marketplace transfers must fund from the originating Charge while
+  // proceeds may still be pending (Stripe Separate Charges and Transfers).
+  // Docs: https://docs.stripe.com/connect/separate-charges-and-transfers
+  if (!holdInEscrow && !sourceTransactionChargeId) {
+    await prisma.payout.update({
+      where: { id: payout.id },
+      data: {
+        providerRef: `${PAYOUT_PROVIDER_REF_FAILED_PREFIX}missing_source_charge_${Date.now()}`,
       },
-      { idempotencyKey: sellerTransferIdempotencyKey(orderId, productId) },
-    );
+    });
+    await prisma.transaction.update({
+      where: { id: transactionId },
+      data: { status: 'FAILED', updatedAt: new Date() },
+    });
+    return {
+      productId,
+      sellerUserId,
+      sellerGrossCents,
+      platformFeeBps,
+      platformFeeCents,
+      sellerNetCents,
+      transactionId,
+      payoutId: payout.id,
+      status: 'TRANSFER_FAILED',
+      transferId: null,
+      error: 'Missing source_transaction Charge id',
+    };
+  }
+
+  try {
+    const transferParams: Stripe.TransferCreateParams = {
+      amount: sellerNetCents,
+      currency: 'eur',
+      destination,
+      transfer_group: `order_${orderId}`,
+      metadata: {
+        orderId,
+        productId,
+        sellerId: sellerUserId,
+        platformFeeCents: String(platformFeeCents),
+        platformFeeBps: String(platformFeeBps),
+        sellerGrossCents: String(sellerGrossCents),
+        sourceTransactionChargeId: sourceTransactionChargeId || '',
+        homecheff_app: 'true',
+      },
+    };
+    if (sourceTransactionChargeId) {
+      transferParams.source_transaction = sourceTransactionChargeId;
+    }
+
+    const transfer = await stripe.transfers.create(transferParams, {
+      idempotencyKey: sellerTransferIdempotencyKey(
+        orderId,
+        productId,
+        sourceTransactionChargeId,
+      ),
+    });
 
     await prisma.payout.update({
       where: { id: payout.id },
@@ -394,12 +499,15 @@ export type OrderSettlementCompleteness = {
 
 /**
  * Settle all non-shipping seller legs for an existing Order from OrderItems.
- * Idempotent. Returns completeness for webhook 2xx gating.
+ * Idempotent. Resolves Charge id from Checkout Session for source_transaction.
  */
 export async function settleAllSellerLegsForOrder(
   stripe: Stripe,
   orderId: string,
-  opts?: { chargeProviderRef?: string | null },
+  opts?: {
+    chargeProviderRef?: string | null;
+    sourceTransactionChargeId?: string | null;
+  },
 ): Promise<OrderSettlementCompleteness> {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -437,6 +545,20 @@ export async function settleAllSellerLegsForOrder(
     };
   }
 
+  let sourceTransactionChargeId = opts?.sourceTransactionChargeId ?? null;
+  if (!sourceTransactionChargeId && order.stripeSessionId) {
+    const resolved = await resolveChargeIdForCheckoutSession(
+      stripe,
+      order.stripeSessionId,
+    );
+    if (resolved.charge && isEligibleSourceCharge(resolved.charge)) {
+      sourceTransactionChargeId = resolved.chargeId;
+    } else if (resolved.chargeId) {
+      // Charge id present but not expanded — still usable as source_transaction
+      sourceTransactionChargeId = resolved.chargeId;
+    }
+  }
+
   const isShipping = order.deliveryMode === 'SHIPPING';
   const results: SellerSettlementResult[] = [];
 
@@ -452,6 +574,9 @@ export async function settleAllSellerLegsForOrder(
       sellerGrossCents,
       chargeProviderRef: opts?.chargeProviderRef ?? order.stripeSessionId,
       holdInEscrow: isShipping,
+      sourceTransactionChargeId: isShipping
+        ? null
+        : sourceTransactionChargeId,
     });
     results.push(result);
   }

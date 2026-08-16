@@ -26,6 +26,8 @@ import { parseFulfillmentOptions } from "@/lib/marketplace/listing-taxonomy";
 import {
   settleAllSellerLegsForOrder,
   settleSellerOrderItem,
+  resolveChargeIdForCheckoutSession,
+  isEligibleSourceCharge,
 } from "@/lib/payments/seller-settlement";
 
 async function readBuffer(stream: ReadableStream<Uint8Array>) {
@@ -1623,6 +1625,27 @@ export async function POST(req: NextRequest) {
 
         // 💰 IDEMPOTENT SELLER SETTLEMENT (separate charges & transfers)
         // Do NOT return 2xx while any required seller leg is pending/failed.
+        let sourceTransactionChargeId: string | null = null;
+        if ((mappedDeliveryMode as string) !== 'SHIPPING') {
+          try {
+            const resolved = await resolveChargeIdForCheckoutSession(
+              stripe,
+              session.id,
+            );
+            if (
+              resolved.chargeId &&
+              (!resolved.charge || isEligibleSourceCharge(resolved.charge))
+            ) {
+              sourceTransactionChargeId = resolved.chargeId;
+            }
+          } catch (chargeResolveErr: any) {
+            console.error(
+              'Failed to resolve Charge for source_transaction:',
+              chargeResolveErr?.message,
+            );
+          }
+        }
+
         const sellerSettlementResults = [];
         for (const item of items) {
           const product = await prisma.product.findUnique({
@@ -1654,6 +1677,9 @@ export async function POST(req: NextRequest) {
             sellerGrossCents: itemTotal,
             chargeProviderRef: session.id,
             holdInEscrow: isShippingOrder,
+            sourceTransactionChargeId: isShippingOrder
+              ? null
+              : sourceTransactionChargeId,
           });
           sellerSettlementResults.push(settlement);
 

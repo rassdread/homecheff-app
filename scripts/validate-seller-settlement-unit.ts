@@ -18,6 +18,10 @@ assert.equal(
   sellerTransferIdempotencyKey('o1', 'p1'),
   'hc_seller_xfer_o1_p1',
 );
+assert.equal(
+  sellerTransferIdempotencyKey('o1', 'p1', 'py_abc'),
+  'hc_seller_xfer_o1_p1_stx_py_abc',
+);
 
 assert.equal(isSuccessfulTransferRef('tr_abc'), true);
 assert.equal(isSuccessfulTransferRef('pending_transfer'), false);
