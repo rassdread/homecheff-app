@@ -19,6 +19,8 @@ import {
   EN_APP_FIRST_SEGMENTS,
   isKnownHomecheffRootPath,
 } from '../lib/seo/known-root-path-segments';
+import { HOMECHEFF_SEO_PAGE_DEFS } from '../lib/seo/homecheffSeoPages.data';
+import { EN_SEO_PAGE_SLUGS, NL_SEO_PAGE_SLUGS } from '../lib/seo/homecheffSeoPageSlugs';
 import { NOT_FOUND_METADATA } from '../lib/seo/not-found-metadata';
 import { rethrowIfNotFound } from '../lib/seo/rethrow-if-not-found';
 
@@ -135,5 +137,16 @@ assert.match(productLayout, /rethrowIfNotFound/);
 assert.match(productLayout, /if \(!product\) notFound\(\)/);
 assert.match(read('middleware.ts'), /entity-exists/);
 assert.match(read('lib/seo/entity-exists-for-http-404.ts'), /entityExistsForHttp404/);
+
+// SP.2D-C7 — slim slug module must match SEO page defs (middleware must not load page copy).
+assert.deepEqual(
+  [...NL_SEO_PAGE_SLUGS],
+  HOMECHEFF_SEO_PAGE_DEFS.map((p) => p.nlSlug),
+);
+assert.deepEqual(
+  [...EN_SEO_PAGE_SLUGS],
+  HOMECHEFF_SEO_PAGE_DEFS.map((p) => p.enSlug),
+);
+assert.doesNotMatch(read('lib/seo/known-root-path-segments.ts'), /homecheffSeoPages\.data/);
 
 console.log('LEGAL-0 integrity tests passed');

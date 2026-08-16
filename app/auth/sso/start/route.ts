@@ -11,7 +11,6 @@
  */
 
 import { NextResponse } from "next/server";
-import { issueSsoAuthorizationCode } from "@/lib/identity/sso/authorize";
 import { SsoError } from "@/lib/identity/sso/constants";
 import { isCentralSsoEnabled } from "@/lib/identity/sso/flags";
 import {
@@ -110,6 +109,8 @@ export async function GET(req: Request) {
   });
 
   try {
+    // SP.2D-C7 — load Prisma/authorize only when issuing a code (not on login_required / continue).
+    const { issueSsoAuthorizationCode } = await import("@/lib/identity/sso/authorize");
     const issued = await issueSsoAuthorizationCode({
       centralUserId,
       product: params.product,

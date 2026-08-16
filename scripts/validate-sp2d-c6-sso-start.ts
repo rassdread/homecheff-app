@@ -37,7 +37,9 @@ function main() {
   assert.match(startSrc, /applySsoStartServerTiming|SsoStartTimer/);
   assert.doesNotMatch(startSrc, /await auth\(\)/);
   assert.doesNotMatch(startSrc, /from \"@\/lib\/auth\"/);
-  ok("start uses JWT resolve; no auth() marketplace hydrate");
+  assert.match(startSrc, /import\(\"@\/lib\/identity\/sso\/authorize\"\)/);
+  assert.doesNotMatch(startSrc, /import \{ issueSsoAuthorizationCode \}/);
+  ok("start uses JWT resolve; dynamic authorize; no auth() marketplace hydrate");
 
   const authorizeSrc = readFileSync(resolve(root, "lib/identity/sso/authorize.ts"), "utf8");
   assert.match(authorizeSrc, /loadCentralUserForAuthorizeOrThrow/);

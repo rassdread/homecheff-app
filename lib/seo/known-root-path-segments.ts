@@ -10,15 +10,15 @@
  */
 
 import { ETEN_VERKOPEN_CITY_SLUGS } from '@/lib/seo/etenVerkopenCities';
-import { HOMECHEFF_SEO_PAGE_DEFS } from '@/lib/seo/homecheffSeoPages.data';
+import { EN_SEO_PAGE_SLUGS, NL_SEO_PAGE_SLUGS } from '@/lib/seo/homecheffSeoPageSlugs';
 
 const ETEN_VERKOPEN_PREFIX = 'eten-verkopen-';
 
 /** Static `app/en/*` folders (not the `[seoSlug]` catch-all). */
 export const EN_APP_FIRST_SEGMENTS = ['seo-hub', 'welkom', 'what-is-homecheff'] as const;
 
-const NL_SEO_SLUGS = HOMECHEFF_SEO_PAGE_DEFS.map((p) => p.nlSlug);
-const EN_SEO_SLUGS = HOMECHEFF_SEO_PAGE_DEFS.map((p) => p.enSlug);
+const NL_SEO_SLUGS: readonly string[] = NL_SEO_PAGE_SLUGS;
+const EN_SEO_SLUGS: readonly string[] = EN_SEO_PAGE_SLUGS;
 
 /**
  * First URL segment of every `app/<segment>` route except `[seoSlug]`
