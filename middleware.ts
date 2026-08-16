@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import { getCorsHeaders } from '@/lib/apiCors';
-import { getSecurityHeaders } from '@/lib/security';
+import { getSecurityHeaders } from '@/lib/security-headers';
 import {
   shouldBlockSuspendedMutation,
   suspensionMutationBlockedResponse,
@@ -38,6 +37,8 @@ export async function middleware(request: NextRequest) {
 
   // Phase 13T — block API mutations for suspended authenticated users (SSOT in user-suspend-middleware.ts)
   if (shouldBlockSuspendedMutation(pathname, request.method)) {
+    // SP.2D-C7 — load jose/next-auth/jwt only when this path actually needs it.
+    const { getToken } = await import('next-auth/jwt');
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
@@ -123,6 +124,16 @@ export async function middleware(request: NextRequest) {
       });
     }
     return redirectResponse;
+  }
+
+  // SP.2D-C7 — SSO browser hops: host already canonicalized; skip LEGAL-0 / affiliate /
+  // entity-exists work. Route handler performs its own client/PKCE/session validation.
+  // Security headers still applied for defense-in-depth on any HTML error pages.
+  if (pathname.startsWith('/auth/sso/')) {
+    const res = NextResponse.next();
+    const security = getSecurityHeaders();
+    Object.entries(security).forEach(([key, value]) => res.headers.set(key, value));
+    return res;
   }
 
   // CORS voor API en i18n: één bron van waarheid via getCorsHeaders (Safari preflight + credentials).
