@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { OrderMessagingService } from '@/lib/orderMessaging';
-import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-08-27.basil' });
 
 // Get order details
 export async function GET(
@@ -386,49 +383,20 @@ export async function DELETE(
       data: { status: 'CANCELLED' }
     });
 
-    // Process refund if Stripe session exists
+    // Refunds after cancel must go through refund-settlement (transfer clawback).
+    // Do NOT call stripe.refunds.create here — that left seller transfers intact (P0).
     if (order.stripeSessionId && refundAmount) {
-      try {
-        const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
-        if (session.payment_intent) {
-          const paymentIntentId = typeof session.payment_intent === 'string' 
-            ? session.payment_intent 
-            : session.payment_intent.id;
-
-          const refund = await stripe.refunds.create({
-            payment_intent: paymentIntentId,
-            amount: refundAmount || order.totalAmount,
-            reason: 'requested_by_customer',
-            metadata: {
-              orderId: order.id,
-              orderNumber: order.orderNumber || '',
-              adminId: user.id,
-              reason: reason || 'Admin cancellation'
-            }
-          });
-
-          // Create refund record
-          const transactions = await prisma.transaction.findMany({
-            where: {
-              providerRef: order.stripeSessionId
-            }
-          });
-
-          for (const transaction of transactions) {
-            await prisma.refund.create({
-              data: {
-                id: `refund_${order.id}_${Date.now()}`,
-                transactionId: transaction.id,
-                amountCents: refundAmount || order.totalAmount,
-                providerRef: refund.id
-              }
-            });
-          }
-        }
-      } catch (error: any) {
-        console.error('Error processing refund:', error);
-        // Continue even if refund fails
-      }
+      return NextResponse.json(
+        {
+          error:
+            'Order cancelled, but Stripe refund must use /api/admin/refunds/preview + /api/admin/refunds/execute (transfer reversal required).',
+          orderId,
+          cancelled: true,
+          refundAmount,
+          hint: 'POST /api/admin/refunds/preview { orderId } then execute with confirm flags',
+        },
+        { status: 409 },
+      );
     }
 
     // Log admin action

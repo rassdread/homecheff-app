@@ -572,6 +572,44 @@ function RefundsTab({
   formatDate: (date: string) => string;
 }) {
   const totalRefunds = refunds.reduce((sum, r) => sum + r.amountCents, 0);
+  const [previewOrderId, setPreviewOrderId] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [preview, setPreview] = useState<{
+    buyerRefundCents: number;
+    sellerReversalCents: number;
+    affiliateReversalCents: number;
+    courierReversalCents: number;
+    platformEconomicImpactCents: number;
+    stripeFeeTreatment: string;
+  } | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  const runPreview = async () => {
+    if (!previewOrderId.trim()) return;
+    setPreviewLoading(true);
+    setPreviewError(null);
+    setPreview(null);
+    try {
+      const res = await fetch('/api/admin/refunds/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: previewOrderId.trim(),
+          mode: 'FULL_BUYER_GROSS',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPreviewError(data.error || 'Preview failed');
+        return;
+      }
+      setPreview(data.preview);
+    } catch (e: unknown) {
+      setPreviewError(e instanceof Error ? e.message : 'Preview failed');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -594,6 +632,63 @@ function RefundsTab({
             className="px-3 py-2 border rounded-lg"
           />
         </div>
+      </div>
+
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-3">
+        <p className="text-sm font-medium text-amber-900">
+          Refund preview (geen Stripe-mutatie) — toont koper-refund én seller transfer-reversal
+        </p>
+        <div className="flex flex-wrap gap-2 items-center">
+          <input
+            type="text"
+            placeholder="Order ID"
+            value={previewOrderId}
+            onChange={(e) => setPreviewOrderId(e.target.value)}
+            className="px-3 py-2 border rounded-lg text-sm min-w-[280px]"
+          />
+          <button
+            type="button"
+            onClick={runPreview}
+            disabled={previewLoading || !previewOrderId.trim()}
+            className="px-3 py-2 rounded-lg bg-amber-800 text-white text-sm disabled:opacity-50"
+          >
+            {previewLoading ? 'Berekenen…' : 'Bereken impact'}
+          </button>
+        </div>
+        {previewError && (
+          <p className="text-sm text-red-700">{previewError}</p>
+        )}
+        {preview && (
+          <dl className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-amber-950">
+            <div>
+              <dt className="text-amber-700">Buyer refund</dt>
+              <dd className="font-semibold">{formatCurrency(preview.buyerRefundCents)}</dd>
+            </div>
+            <div>
+              <dt className="text-amber-700">Seller reversal</dt>
+              <dd className="font-semibold">{formatCurrency(preview.sellerReversalCents)}</dd>
+            </div>
+            <div>
+              <dt className="text-amber-700">Affiliate reversal</dt>
+              <dd className="font-semibold">{formatCurrency(preview.affiliateReversalCents)}</dd>
+            </div>
+            <div>
+              <dt className="text-amber-700">Courier reversal</dt>
+              <dd className="font-semibold">{formatCurrency(preview.courierReversalCents)}</dd>
+            </div>
+            <div>
+              <dt className="text-amber-700">HomeCheff impact</dt>
+              <dd className="font-semibold">{formatCurrency(preview.platformEconomicImpactCents)}</dd>
+            </div>
+            <div>
+              <dt className="text-amber-700">Stripe fee</dt>
+              <dd className="font-semibold text-xs">{preview.stripeFeeTreatment}</dd>
+            </div>
+          </dl>
+        )}
+        <p className="text-xs text-amber-800">
+          Uitvoeren vereist aparte bevestiging via API (confirmLiveMutation + confirmFinancialPreview). Gecontroleerde live order is geblokkeerd zonder owner token.
+        </p>
       </div>
 
       {loading ? (

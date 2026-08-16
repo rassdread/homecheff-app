@@ -1183,6 +1183,27 @@ model Refund {
   Transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 }
 
+/// Durable refund + Connect transfer-reversal plan (buyer refund ≠ transfer reverse).
+model RefundSettlement {
+  id               String    @id
+  orderId          String
+  idempotencyKey   String    @unique
+  status           String
+  mode             String
+  buyerRefundCents Int
+  planJson         String
+  resultJson       String?
+  stripeRefundId   String?
+  createdByAdminId String?
+  reason           String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  executedAt       DateTime?
+
+  @@index([orderId])
+  @@index([status])
+}
+
 model Report {
   id                             String        @id
   listingId                      String?
