@@ -1,14 +1,16 @@
 /**
- * Phase I.3 / SP.2B.3 / SP.2B.5 — GET /auth/sso/start (browser)
+ * Phase I.3 / SP.2B.3 / SP.2B.5 / SP.2D-C6 — GET /auth/sso/start (browser)
  *
  * silent (+ session) → issue code → product callback
  * silent (no session) → redirect product callback with error=login_required (no HC login UI)
  * interactive (login|select_account|claim) + session → /auth/sso/continue
  * interactive (no session) → /login with callbackUrl back here
+ *
+ * SP.2D-C6: identity via JWT getToken (no session-callback marketplace hydrate);
+ * Server-Timing durations only.
  */
 
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { issueSsoAuthorizationCode } from "@/lib/identity/sso/authorize";
 import { SsoError } from "@/lib/identity/sso/constants";
 import { isCentralSsoEnabled } from "@/lib/identity/sso/flags";
@@ -17,6 +19,11 @@ import {
   requiresInteractiveConfirmation,
 } from "@/lib/identity/sso/interaction";
 import { logSsoEvent } from "@/lib/identity/sso/metrics";
+import { resolveCentralUserIdFromRequest } from "@/lib/identity/sso/resolve-central-user-id";
+import {
+  applySsoStartServerTiming,
+  SsoStartTimer,
+} from "@/lib/identity/sso/start-timing";
 import {
   readSsoStartParams,
   ssoContinueRelativePath,
@@ -34,7 +41,14 @@ function originFrom(req: Request): string {
   return new URL(req.url).origin;
 }
 
+function withTiming(res: NextResponse, timer: SsoStartTimer): NextResponse {
+  applySsoStartServerTiming(res, timer);
+  return res;
+}
+
 export async function GET(req: Request) {
+  const timer = new SsoStartTimer();
+
   if (!isCentralSsoEnabled()) {
     return NextResponse.json({ error: "Not Found", code: "SSO_DISABLED" }, { status: 404 });
   }
@@ -43,6 +57,7 @@ export async function GET(req: Request) {
   let params;
   try {
     params = readSsoStartParams(url);
+    timer.mark("parse");
   } catch (err) {
     const code = err instanceof SsoError ? err.code : "INVALID_REQUEST";
     return NextResponse.json({ error: code, code }, { status: 400 });
@@ -53,8 +68,9 @@ export async function GET(req: Request) {
     interaction: params.interaction,
   });
 
-  const session = await auth();
-  const centralUserId = (session?.user as { id?: string } | undefined)?.id;
+  // SP.2D-C6 — JWT id only; skip getServerSession marketplace hydrate.
+  const centralUserId = await resolveCentralUserIdFromRequest(req);
+  timer.mark("session");
 
   if (!centralUserId) {
     // SP.2B.5 — silent must not open HC login UI (no loops / no account picker).
@@ -66,7 +82,7 @@ export async function GET(req: Request) {
       const dest = new URL(params.redirectUri);
       dest.searchParams.set("error", "login_required");
       dest.searchParams.set("state", params.state);
-      return NextResponse.redirect(dest.toString(), 302);
+      return withTiming(NextResponse.redirect(dest.toString(), 302), timer);
     }
 
     const login = new URL("/login", originFrom(req));
@@ -75,7 +91,7 @@ export async function GET(req: Request) {
     const prompt = googlePromptForInteraction(params.interaction);
     if (prompt) login.searchParams.set("prompt", prompt);
     if (params.loginHint) login.searchParams.set("email", params.loginHint);
-    return NextResponse.redirect(login.toString(), 302);
+    return withTiming(NextResponse.redirect(login.toString(), 302), timer);
   }
 
   if (requiresInteractiveConfirmation(params.interaction)) {
@@ -85,7 +101,7 @@ export async function GET(req: Request) {
       phase: "continue_required",
     });
     const continueUrl = new URL(ssoContinueRelativePath(params), originFrom(req));
-    return NextResponse.redirect(continueUrl.toString(), 302);
+    return withTiming(NextResponse.redirect(continueUrl.toString(), 302), timer);
   }
 
   logSsoEvent("silent_sso", {
@@ -105,15 +121,24 @@ export async function GET(req: Request) {
       correlationId: req.headers.get("x-request-id") ?? undefined,
     });
 
+    if (issued.timing) {
+      timer.setDuration("user", issued.timing.user);
+      timer.setDuration("code", issued.timing.code);
+      timer.setDuration("persist", issued.timing.persist);
+    }
+
     const dest = new URL(issued.redirectUri);
     dest.searchParams.set("code", issued.authorizationCode);
     dest.searchParams.set("state", issued.state);
     logSsoEvent("sso_success", { product: params.product, phase: "authorize_redirect" });
-    return NextResponse.redirect(dest.toString(), 302);
+    return withTiming(NextResponse.redirect(dest.toString(), 302), timer);
   } catch (err) {
     const code = err instanceof SsoError ? err.code : "INTERNAL_ERROR";
     const status = err instanceof SsoError ? err.httpStatus : 500;
     logSsoEvent("sso_failure", { product: params.product, code });
-    return NextResponse.json({ error: code, code }, { status });
+    return withTiming(
+      NextResponse.json({ error: code, code }, { status }),
+      timer,
+    );
   }
 }
