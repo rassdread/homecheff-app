@@ -89,12 +89,14 @@ const LANDSCAPE_COMPACT_MAX_HEIGHT_EXCLUSIVE =
 /** Default top-nav / chrome reserve when caller does not measure it. */
 const DEFAULT_CHROME_RESERVE_PX = 64;
 
-/** Remaining-height bands for portrait / tall AvailableSpace (not device names). */
+/** Remaining-height bands for portrait / tall AvailableSpace (not device names).
+ * Multi-persona UX: keep phone portrait at compact_complete so listings enter the fold.
+ */
 const REMAINING_HEIGHT = {
-  ultraExclusive: 420,
-  compactExclusive: 560,
-  standardExclusive: 780,
-  expandedExclusive: 980,
+  ultraExclusive: 480,
+  compactExclusive: 900,
+  standardExclusive: 1100,
+  expandedExclusive: 1300,
 } as const;
 
 /**
@@ -167,13 +169,10 @@ export function resolveOrientationExplanation(
     level,
     showBody: true,
     showActions: true,
-    showSecondaryBody:
-      level === "compact_complete" ||
-      level === "standard_complete" ||
-      level === "expanded" ||
-      level === "rich",
-    showSupport: level === "expanded" || level === "rich",
-    showExamples: level === "rich",
+    // Model B: no secondary/keyword fold chrome — support/examples only on rich desktop.
+    showSecondaryBody: false,
+    showSupport: level === 'rich',
+    showExamples: level === 'rich',
     singleLine,
     chromeBudget,
     usableWidthPx,

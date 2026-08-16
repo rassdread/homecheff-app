@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { addLocalePrefix } from '@/lib/locale';
+import { addLocalePrefix, preferLanguageFromAcceptLanguage, resolveColdStartLanguage } from '@/lib/locale';
 import { useSession } from 'next-auth/react';
 import { interpolateTranslation } from '@/lib/i18n/interpolate';
 
@@ -209,23 +209,25 @@ export function useTranslation() {
       safeLocalStorage.setItem('homecheff-language', 'en');
       safeCookie.set('homecheff-language', 'en');
     } else {
-      const hostname = window.location.hostname;
-      const domainLanguage = hostname.includes('homecheff.eu') ? 'en' : hostname.includes('homecheff.nl') ? 'nl' : null;
-      if (domainLanguage) {
-        detectedLanguage = domainLanguage;
-        safeLocalStorage.setItem('homecheff-language', domainLanguage);
-        safeCookie.set('homecheff-language', domainLanguage);
-      } else {
-        const cookieLanguage = safeCookie.get('homecheff-language') as Language;
-        if (cookieLanguage && (cookieLanguage === 'nl' || cookieLanguage === 'en')) {
-          detectedLanguage = cookieLanguage;
-          safeLocalStorage.setItem('homecheff-language', cookieLanguage);
-        } else {
-          detectedLanguage = 'nl';
-          safeLocalStorage.setItem('homecheff-language', detectedLanguage);
-          safeCookie.set('homecheff-language', detectedLanguage);
-        }
-      }
+      // Cold start: Accept-Language — never force EN solely because host is .eu
+      const cookieLanguage = safeCookie.get('homecheff-language') as Language | null;
+      const navLangs =
+        typeof navigator !== 'undefined' && navigator.languages?.length
+          ? navigator.languages.join(',')
+          : typeof navigator !== 'undefined'
+            ? navigator.language
+            : null;
+      const fromNav = preferLanguageFromAcceptLanguage(navLangs);
+      detectedLanguage =
+        fromNav ||
+        resolveColdStartLanguage({
+          cookieLanguage,
+          pathname,
+          host: window.location.hostname,
+          acceptLanguage: navLangs,
+        });
+      safeLocalStorage.setItem('homecheff-language', detectedLanguage);
+      safeCookie.set('homecheff-language', detectedLanguage);
     }
 
     // Only re-initialize if language actually changed or if this is the first initialization

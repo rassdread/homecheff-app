@@ -39,34 +39,37 @@ const PrivacyNotice: React.FC = () => {
     <div
       data-wx-cookie-banner=""
       data-wx-cookie-compact="1"
-      className="pointer-events-none fixed inset-x-0 z-[35] flex justify-center px-3 max-lg:bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:bottom-5 lg:justify-end lg:px-5"
+      className="pointer-events-none fixed inset-x-0 z-[35] flex justify-center px-3 max-lg:bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:bottom-5 lg:justify-end lg:px-5"
     >
-      <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-emerald-100/90 bg-white/95 p-3.5 shadow-[0_8px_28px_-12px_rgba(16,185,129,0.35),0_4px_14px_-8px_rgba(0,0,0,0.12)] backdrop-blur-md sm:p-4">
+      <div
+        data-wx-cookie-compact="1"
+        className="pointer-events-auto w-full max-w-[22rem] rounded-xl border border-emerald-100/90 bg-white/95 p-3 shadow-[0_8px_28px_-12px_rgba(16,185,129,0.35),0_4px_14px_-8px_rgba(0,0,0,0.12)] backdrop-blur-md sm:max-w-sm sm:p-3.5"
+      >
         <p className="text-sm font-semibold text-gray-900 tracking-tight">
           {t('cookieBanner.title')}
         </p>
-        <p className="mt-1 text-xs leading-relaxed text-gray-600">
+        <p className="mt-0.5 text-[11px] leading-snug text-gray-600 sm:text-xs sm:leading-relaxed">
           {t('cookieBanner.cookieNoteShort')}
         </p>
 
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-2.5 flex gap-2">
           <button
             onClick={handleOnlyNecessary}
             type="button"
-            className="flex-1 rounded-xl bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-200 sm:text-sm"
+            className="flex-1 min-h-[40px] rounded-xl bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-200 sm:text-sm"
           >
             {t('cookieBanner.onlyNecessary')}
           </button>
           <button
             onClick={handleAcceptAll}
             type="button"
-            className="flex-1 rounded-xl bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 sm:text-sm"
+            className="flex-1 min-h-[40px] rounded-xl bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 sm:text-sm"
           >
             {t('cookieBanner.acceptAll')}
           </button>
         </div>
 
-        <p className="mt-2.5 text-center text-[11px] text-gray-500">
+        <p className="mt-2 text-center text-[11px] text-gray-500">
           <button
             type="button"
             onClick={handleMoreInfo}

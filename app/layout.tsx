@@ -56,7 +56,6 @@ export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
   const metadataBase = getMetadataBaseFromHeaders(headersList);
   const hostname = headersList.get('host') || '';
-  const isEnglishDomain = hostname.includes('homecheff.eu');
   const currentDomain = MAIN_DOMAIN;
 
   const languageHeader = headersList.get('X-HomeCheff-Language');
@@ -68,7 +67,12 @@ export async function generateMetadata(): Promise<Metadata> {
   } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
     lang = languageCookie.value as 'nl' | 'en';
   } else {
-    lang = isEnglishDomain ? 'en' : 'nl';
+    const { resolveColdStartLanguage } = await import('@/lib/locale');
+    lang = resolveColdStartLanguage({
+      cookieLanguage: languageCookie?.value,
+      host: hostname,
+      acceptLanguage: headersList.get('accept-language'),
+    });
   }
 
   const platform = getPlatformDefinition(lang);
@@ -171,13 +175,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const languageHeader = headersList.get('X-HomeCheff-Language');
   const cookieStore = await cookies();
   const languageCookie = cookieStore.get('homecheff-language');
-  const isEnglishDomain = hostname.includes('homecheff.eu');
-  // Cookie/header overrides domain so header and logo subtitle match chosen language (EN vs NL)
-  let htmlLang: 'en' | 'nl' = isEnglishDomain ? 'en' : 'nl';
+  let htmlLang: 'en' | 'nl' = 'nl';
   if (languageHeader === 'nl' || languageHeader === 'en') {
     htmlLang = languageHeader;
   } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
     htmlLang = languageCookie.value as 'en' | 'nl';
+  } else {
+    const { resolveColdStartLanguage } = await import('@/lib/locale');
+    htmlLang = resolveColdStartLanguage({
+      cookieLanguage: languageCookie?.value,
+      host: hostname,
+      acceptLanguage: headersList.get('accept-language'),
+    });
   }
   // Seed client SessionProvider — avoids guest CTA flash after OAuth / hard navigations.
   const session = await auth();

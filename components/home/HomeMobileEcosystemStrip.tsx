@@ -38,15 +38,8 @@ export default function HomeMobileEcosystemStrip({
     <nav
       aria-label={t('home.ecosystem.ariaLabel')}
       className={`md:hidden ${className}`}
+      data-hc-ecosystem-strip-compact="1"
     >
-      <p className="mb-1 px-0.5 text-[11px] font-medium uppercase tracking-wide text-gray-500">
-        {t('home.ecosystem.title')}
-      </p>
-      {!isLoggedIn ? (
-        <p className="mb-2 px-0.5 text-xs leading-snug text-gray-600">
-          {t('homePhase1.heroDefinition')}
-        </p>
-      ) : null}
       <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {PILLS.map((pill) => (
           <Link

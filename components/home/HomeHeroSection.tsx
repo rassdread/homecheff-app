@@ -20,17 +20,6 @@ const HeroVisualCluster = dynamic(
   { ssr: false },
 );
 
-const HERO_CHIP_KEYS = [
-  { key: 'heroChipFood', emoji: '🍲' },
-  { key: 'heroChipGarden', emoji: '🌱' },
-  { key: 'heroChipCreations', emoji: '🎨' },
-  { key: 'heroChipInspiration', emoji: '✨' },
-  { key: 'heroChipChores', emoji: '🔧' },
-  { key: 'heroChipBarter', emoji: '⇄' },
-  { key: 'heroChipRequests', emoji: '🙋' },
-  { key: 'heroChipNearby', emoji: '📍' },
-] as const;
-
 const ctaClassPrimary = cn(
   'inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl px-4 lg:px-5 py-1.5 text-sm font-bold',
   'bg-white text-primary-brand shadow-md',
@@ -104,37 +93,36 @@ export default function HomeHeroSection() {
 
   return (
     <>
-      {/* Mobile / tablet: compact strip (~120–160px) — feed-first */}
-      <section className="lg:hidden relative overflow-hidden rounded-xl hc-hero-dorpsplein mb-2 shadow-md min-h-[7.5rem] max-h-[10rem]">
+      {/* Mobile / tablet: Model B compact strip — feed-first; landscape ultra-thin */}
+      <section className="lg:hidden relative overflow-hidden rounded-xl hc-hero-dorpsplein mb-1.5 shadow-md min-h-[5.5rem] max-h-[8.5rem] max-[900px]:landscape:min-h-0 max-[900px]:landscape:max-h-[3.25rem] max-[900px]:landscape:mb-1">
         <div
           className="absolute inset-0 bg-gradient-to-br from-primary-brand via-[#007a5c] to-secondary-brand"
           aria-hidden
         />
-        <div className="relative z-[1] flex h-full min-h-[7.5rem] items-center justify-between gap-2 px-3 py-2.5 sm:px-4">
+        <div className="relative z-[1] flex h-full min-h-[5.5rem] max-[900px]:landscape:min-h-0 items-center justify-between gap-2 px-3 py-2 sm:px-4 max-[900px]:landscape:py-1 max-[900px]:landscape:px-2">
           <div className="min-w-0 flex-1">
-            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white/95 mb-1">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white/95 mb-0.5 max-[900px]:landscape:hidden">
               <span className="hc-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-amber-300" aria-hidden />
-              {t('homeDorpsplein.heroLiveLabel')}
+              {t('homePhase1.orientationIdentity')}
             </p>
-            <h1 className="text-base sm:text-lg font-extrabold text-white leading-tight line-clamp-2 tracking-tight">
-              {t('homePhase1.heroTitleHighlight')}
-              {t('homePhase1.heroTitleAfter')}
+            <h1 className="text-sm sm:text-base font-extrabold text-white leading-snug line-clamp-2 tracking-tight max-[900px]:landscape:text-xs max-[900px]:landscape:line-clamp-1">
+              {t('homePhase1.orientationTitle')}
             </h1>
-              <p className="hidden min-[380px]:block text-[11px] text-white/90 line-clamp-2 mt-0.5 font-medium">
-              {t('homePhase1.heroValueExchange')}
-            </p>
-            <p className="hidden min-[380px]:block text-[11px] text-white/75 line-clamp-1 mt-0.5">
-              {t('homePhase1.heroSubtitle')}
+            <p className="hidden min-[400px]:block text-[11px] text-white/90 line-clamp-1 mt-0.5 font-medium max-[900px]:landscape:hidden">
+              {t('homePhase1.orientationExplainCompactPrimary')}
             </p>
           </div>
-          <div className="flex shrink-0 flex-col gap-1.5 sm:flex-row">
-            <button type="button" onClick={scrollToFeed} className={mobileActionClass}>
+          <div className="flex shrink-0 flex-col gap-1 sm:flex-row max-[900px]:landscape:flex-row max-[900px]:landscape:gap-1">
+            <button type="button" onClick={scrollToFeed} className={cn(mobileActionClass, 'max-[900px]:landscape:py-1 max-[900px]:landscape:text-[10px]')}>
               <Compass className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              {t('homePhase1.ctaDiscover')}
+              <span className="max-[900px]:landscape:hidden">{t('homePhase1.ctaDiscover')}</span>
+              <span className="hidden max-[900px]:landscape:inline" aria-hidden>
+                {t('homePhase1.orientationActionPrimary').split(' ')[0]}
+              </span>
             </button>
-            <button type="button" onClick={handleMobileShareClick} className={mobileActionClass}>
+            <button type="button" onClick={handleMobileShareClick} className={cn(mobileActionClass, 'max-[900px]:landscape:py-1 max-[900px]:landscape:text-[10px]')}>
               <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              {t('homePhase1.ctaShare')}
+              <span className="max-[900px]:landscape:sr-only">{t('homePhase1.ctaShare')}</span>
             </button>
           </div>
         </div>
@@ -159,41 +147,13 @@ export default function HomeHeroSection() {
                 {t('homeDorpsplein.heroLiveLabel')}
               </p>
 
-              <h1 className="text-[1.65rem] sm:text-3xl lg:text-[1.95rem] xl:text-[2.1rem] font-extrabold text-white mb-1 sm:mb-1.5 leading-[1.12] tracking-tight max-w-[18ch] lg:max-w-[24ch] mx-auto lg:mx-0">
-                {t('homePhase1.heroTitleBefore')}
-                <span className="relative inline-block">
-                  {t('homePhase1.heroTitleHighlight')}
-                  <span
-                    className="absolute -bottom-0.5 left-0 right-0 h-1 rounded-full bg-amber-300/90"
-                    aria-hidden
-                  />
-                </span>
-                {t('homePhase1.heroTitleAfter')}
+              <h1 className="text-[1.65rem] sm:text-3xl lg:text-[1.95rem] xl:text-[2.1rem] font-extrabold text-white mb-1 sm:mb-1.5 leading-[1.12] tracking-tight max-w-[22ch] lg:max-w-[28ch] mx-auto lg:mx-0">
+                {t('homePhase1.orientationTitle')}
               </h1>
 
-              <p className="text-sm sm:text-[0.9375rem] lg:text-[0.975rem] text-white/90 mb-1 sm:mb-1.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug font-medium">
-                {t('homePhase1.heroSubtitle')}
+              <p className="text-sm sm:text-[0.9375rem] lg:text-[0.975rem] text-white/90 mb-2 sm:mb-2.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug font-medium">
+                {t('homePhase1.orientationExplainCompactPrimary')}
               </p>
-              <p className="text-xs sm:text-sm text-white/95 mb-1 sm:mb-1.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug font-semibold">
-                {t('homePhase1.heroValueExchange')}
-              </p>
-              <p className="text-[11px] sm:text-xs text-white/70 mb-2 sm:mb-2.5 max-w-xl lg:max-w-[40rem] mx-auto lg:mx-0 leading-snug">
-                {t('homePhase1.heroDefinition')}
-              </p>
-
-              <ul
-                className="hidden sm:flex flex-nowrap lg:flex-wrap justify-center lg:justify-start gap-1.5 mb-2 lg:mb-2 list-none p-0 m-0 overflow-x-auto lg:overflow-visible"
-                aria-label={t('homePhase1.heroTitleHighlight')}
-              >
-                {HERO_CHIP_KEYS.map(({ key, emoji }) => (
-                  <li key={key} className="shrink-0">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/12 border border-white/22 px-2 py-0.5 text-[11px] font-semibold text-white/95 backdrop-blur-sm whitespace-nowrap">
-                      <span aria-hidden>{emoji}</span>
-                      {t(`homePhase1.${key}`)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
 
               <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
                 <button type="button" onClick={handleDesktopDiscoverClick} className={ctaClassPrimary}>
@@ -205,6 +165,11 @@ export default function HomeHeroSection() {
                   {t('homePhase1.ctaShare')}
                 </button>
               </div>
+              {/* Secondary / below-fold meaning — not first-impression chrome */}
+              <p className="mt-2 max-w-xl text-[11px] leading-snug text-white/70 mx-auto lg:mx-0">
+                {t('homePhase1.heroValueExchange')}
+              </p>
+              <p className="sr-only">{t('homePhase1.heroDefinition')}</p>
             </div>
           </div>
 

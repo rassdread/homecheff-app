@@ -54,12 +54,6 @@ const chipClass = (active: boolean) =>
       : 'bg-[#faf8f4] text-gray-700 border border-gray-200/80'
   );
 
-const scopeClass = (active: boolean) =>
-  cn(
-    'shrink-0 rounded-lg px-2 py-1 text-[10px] font-semibold transition-colors touch-manipulation',
-    active ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700'
-  );
-
 function collapsedFilterAriaLabel(
   t: Props['t'],
   filterActive: boolean,
@@ -82,7 +76,7 @@ export default function FeedMobileToolbar({
   appliedCategory,
   onCategoryChange,
   appliedScope,
-  onScopeChange,
+  onScopeChange: _onScopeChange,
   onOpenFilters,
   filterActive,
   activeFilterCount,
@@ -178,36 +172,64 @@ export default function FeedMobileToolbar({
       data-wx-work-compact={workCompact ? '1' : '0'}
       aria-expanded={true}
     >
-      <div className="flex items-center gap-2">{searchField}</div>
-
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
-          <button
-            key={legacyChip}
-            type="button"
-            className={chipClass(feedChip === legacyChip)}
-            onClick={() => onFeedChipChange(legacyChip)}
-          >
-            {t(labelKey)}
-          </button>
-        ))}
-        {onActivateTrade ? (
-          <button
-            type="button"
-            data-wx-trade-action=""
-            className={chipClass(tradeActive)}
-            onClick={onActivateTrade}
-            aria-pressed={tradeActive}
-            title={t('feed.tradeActionHint')}
-          >
-            {t('feed.tradeActionChip')}
-          </button>
-        ) : null}
+      <div className="flex items-center gap-2">
+        {searchField}
+        <button
+          type="button"
+          onClick={onOpenFilters}
+          className={cn(
+            'inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold touch-manipulation',
+            filterActive
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+              : 'border-gray-200 bg-gray-50 text-gray-800',
+          )}
+          aria-label={
+            appliedScope !== FEED_SCOPE_NEARBY
+              ? `${t('common.filters')} · ${t(scopes.find(([id]) => id === appliedScope)?.[1] || 'feed.scopeNearby')}`
+              : t('common.filters')
+          }
+        >
+          <Filter className="h-3.5 w-3.5" aria-hidden />
+          {t('common.filters')}
+          {filterActive && activeFilterCount > 0 ? (
+            <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums">
+              {activeFilterCount}
+            </span>
+          ) : null}
+        </button>
       </div>
 
+      {/* View chips — hidden in landscape work-compact to protect fold. */}
       {!workCompact ? (
-        <>
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
+            <button
+              key={legacyChip}
+              type="button"
+              className={chipClass(feedChip === legacyChip)}
+              onClick={() => onFeedChipChange(legacyChip)}
+            >
+              {t(labelKey)}
+            </button>
+          ))}
+          {onActivateTrade ? (
+            <button
+              type="button"
+              data-wx-trade-action=""
+              className={chipClass(Boolean(tradeActive))}
+              onClick={onActivateTrade}
+              aria-pressed={tradeActive}
+              title={t('feed.tradeActionHint')}
+            >
+              {t('feed.tradeActionChip')}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {!workCompact ? (
+        <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {DISCOVERY_CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
               <button
                 key={slug}
@@ -219,45 +241,13 @@ export default function FeedMobileToolbar({
               </button>
             ))}
           </div>
-
-          <div className="flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {scopes.map(([id, labelKey]) => (
-              <button
-                key={id}
-                type="button"
-                className={scopeClass(appliedScope === id)}
-                onClick={() => onScopeChange(id)}
-                aria-pressed={appliedScope === id}
-              >
-                {t(labelKey)}
-              </button>
-            ))}
-          </div>
-        </>
-      ) : null}
-
-      <div className="flex items-center gap-2">
-        <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
-        <button
-          type="button"
-          onClick={onOpenFilters}
-          className={cn(
-            'ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold touch-manipulation',
-            filterActive
-              ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-              : 'border-gray-200 bg-gray-50 text-gray-800',
-          )}
-          aria-label={t('common.filters')}
-        >
-          <Filter className="h-3.5 w-3.5" aria-hidden />
-          {t('common.filters')}
-          {filterActive && activeFilterCount > 0 ? (
-            <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </button>
-      </div>
+          <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
+        </div>
+      ) : (
+        <div className="flex justify-end">
+          <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
+        </div>
+      )}
     </div>
   );
 }

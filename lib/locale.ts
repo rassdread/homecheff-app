@@ -9,6 +9,70 @@ export type Language = 'nl' | 'en';
 export const SUPPORTED_LOCALES: readonly Language[] = ['nl', 'en'];
 
 /**
+ * Parse Accept-Language → preferred supported language.
+ * nl* → nl, en* → en. Unknown / empty → null (caller chooses fallback).
+ */
+export function preferLanguageFromAcceptLanguage(
+  header: string | null | undefined,
+): Language | null {
+  if (!header || typeof header !== 'string') return null;
+  const parts = header
+    .split(',')
+    .map((raw) => {
+      const [tagPart, ...params] = raw.trim().split(';');
+      const tag = (tagPart || '').trim().toLowerCase();
+      let q = 1;
+      for (const p of params) {
+        const m = p.trim().match(/^q=([0-9.]+)$/i);
+        if (m) q = Number(m[1]) || 0;
+      }
+      return { tag, q };
+    })
+    .filter((p) => p.tag)
+    .sort((a, b) => b.q - a.q);
+
+  for (const { tag } of parts) {
+    if (tag === '*' || !tag) continue;
+    if (tag === 'nl' || tag.startsWith('nl-')) return 'nl';
+    if (tag === 'en' || tag.startsWith('en-')) return 'en';
+  }
+  return null;
+}
+
+export type ColdStartLanguageInput = {
+  /** Explicit cookie / stored choice */
+  cookieLanguage?: string | null;
+  /** Pathname for /en routes */
+  pathname?: string | null;
+  /** Host header */
+  host?: string | null;
+  /** Accept-Language header */
+  acceptLanguage?: string | null;
+};
+
+/**
+ * Cold-start language for first-time visitors (no stored preference).
+ * Priority: cookie → /en path → Accept-Language → .nl host → NL fallback.
+ * .eu must NOT force English — Dutch product market + NL browser → NL UI.
+ */
+export function resolveColdStartLanguage(input: ColdStartLanguageInput): Language {
+  const cookie = input.cookieLanguage;
+  if (cookie === 'nl' || cookie === 'en') return cookie;
+
+  const pathname = input.pathname || '';
+  if (pathname.startsWith('/en/') || pathname === '/en') return 'en';
+
+  const fromHeader = preferLanguageFromAcceptLanguage(input.acceptLanguage);
+  if (fromHeader) return fromHeader;
+
+  const host = (input.host || '').toLowerCase();
+  if (host.includes('homecheff.nl')) return 'nl';
+
+  // .eu / preview / unknown without Accept-Language → NL (primary market)
+  return 'nl';
+}
+
+/**
  * Get the current language from the pathname
  */
 export function getLanguageFromPath(pathname: string): Language {

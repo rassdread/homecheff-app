@@ -300,7 +300,7 @@ export default function FeedSearchContextBar(props: FeedSearchContextBarProps) {
       data-testid="feed-search-context-bar"
       role="region"
       aria-label={ariaLabel}
-      className="rounded-xl border border-emerald-200/70 bg-white/90 px-3 py-2 text-xs text-emerald-950 shadow-sm sm:text-[13px]"
+      className="rounded-lg border border-emerald-200/60 bg-white/90 px-2.5 py-1.5 text-[11px] text-emerald-950 shadow-sm sm:text-xs"
     >
       <ul className="m-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1.5 p-0">
         {chips.map((chip) => {

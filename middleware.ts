@@ -8,6 +8,7 @@ import {
 } from '@/lib/user-suspend-middleware';
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 import { isKnownHomecheffRootPath, isPublicStaticAssetPath } from '@/lib/seo/known-root-path-segments';
+import { resolveColdStartLanguage } from '@/lib/locale';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -150,11 +151,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Taal: cookie heeft voorrang (zo kan .eu ook NL tonen zonder redirect naar .nl → Safari-safe)
+  // Taal: cookie > /en path > Accept-Language > NL fallback.
+  // .eu forceert GEEN Engels meer — NL-browser op .eu krijgt NL first impression.
   const host = request.headers.get('host') || '';
-  const domainLang = host.includes('homecheff.eu') ? 'en' : 'nl';
   const langCookie = request.cookies.get('homecheff-language')?.value;
-  const lang = (langCookie === 'nl' || langCookie === 'en') ? langCookie : domainLang;
+  const lang = resolveColdStartLanguage({
+    cookieLanguage: langCookie,
+    pathname,
+    host,
+    acceptLanguage: request.headers.get('accept-language'),
+  });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('X-HomeCheff-Language', lang);
 

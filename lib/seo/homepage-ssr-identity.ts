@@ -13,12 +13,12 @@ export type HomepageSsrIdentity = {
 const COPY: Record<PlatformLang, Omit<HomepageSsrIdentity, 'lang'>> = {
   nl: {
     identity: 'Digitale buurtmarkt',
-    h1: 'dichtbij koken, groeien, maken en helpen',
+    h1: 'Ontdek wat mensen bij jou in de buurt koken, groeien, maken en doen',
     definition: ENTITY_HOMEPAGE_DEFINITION.nl,
   },
   en: {
     identity: 'Digital neighbourhood marketplace',
-    h1: 'nearby cook, grow, make and help',
+    h1: 'Discover what people nearby cook, grow, make and do',
     definition: ENTITY_HOMEPAGE_DEFINITION.en,
   },
 };
