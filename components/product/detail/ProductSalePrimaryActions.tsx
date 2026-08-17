@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Edit3 } from 'lucide-react';
+import { Edit3, Sparkles } from 'lucide-react';
 import AddToCartButton from '@/components/cart/AddToCartButton';
 import MakerContactSection from '@/components/profile/MakerContactSection';
 import ProductSaleProposalAction from '@/components/product/detail/ProductSaleProposalAction';
@@ -19,6 +19,10 @@ import {
 } from '@/lib/stripe/seller-payment-status';
 import { useTranslation } from '@/hooks/useTranslation';
 import { buildProductEditPath } from '@/lib/seo/productSlug';
+import {
+  buildStudioListingCreateHref,
+  shouldShowStudioCreateCta,
+} from '@/lib/studio/px4-source-context';
 import { cn } from '@/lib/utils';
 
 type ProductShape = {
@@ -177,7 +181,7 @@ export default function ProductSalePrimaryActions({
 
   if (isOwner) {
     return (
-      <div id="commerce-cta" className={cn(className)}>
+      <div id="commerce-cta" className={cn('space-y-2', className)}>
         <Link
           href={buildProductEditPath(
             product.title,
@@ -192,6 +196,19 @@ export default function ProductSalePrimaryActions({
           <Edit3 className="h-4 w-4" aria-hidden />
           {t('product.editProduct')}
         </Link>
+        {shouldShowStudioCreateCta(isOwner) ? (
+          <a
+            href={buildStudioListingCreateHref(product.id)}
+            data-testid="px4-studio-create-cta"
+            className={cn(
+              'flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary-brand bg-white py-3 px-4 text-center font-bold text-primary-brand shadow-sm transition hover:bg-primary-50',
+              compact && 'py-2 text-sm',
+            )}
+          >
+            <Sparkles className="h-4 w-4" aria-hidden />
+            {t('product.makeContent')}
+          </a>
+        ) : null}
       </div>
     );
   }
