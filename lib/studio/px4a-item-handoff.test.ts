@@ -18,6 +18,13 @@ import {
   signItemHandoffPayload,
   verifyItemHandoffToken,
 } from './px4a-item-handoff-hmac';
+import {
+  PX4A_ITEM_FORM_DRAFT_TTL_MS,
+  clearPx4aItemFormDraft,
+  readPx4aItemFormDraft,
+  shouldRestorePx4aItemFormDraft,
+  writePx4aItemFormDraft,
+} from './px4a-item-form-draft';
 
 describe('PX.4A.4 HomeCheff item handoff', () => {
   it('accepts only https listing URLs and /sell/new return', () => {
@@ -78,5 +85,74 @@ describe('PX.4A.4 HomeCheff item handoff', () => {
     assert.match(block, /px4a-make-free-video/);
     assert.match(block, /videoReplace/);
     assert.doesNotMatch(block, /Open HomeCheff Studio/);
+  });
+
+  it('restores the listing snapshot on browser Back without a query string', () => {
+    const form = readFileSync('components/products/marketplace/MarketplaceOfferForm.tsx', 'utf8');
+    assert.match(form, /shouldRestorePx4aItemFormDraft/);
+    assert.doesNotMatch(form, /isPx4aItemReturnSearch\(window\.location\.search\)/);
+    const draft = readFileSync('lib/studio/px4a-item-form-draft.ts', 'utf8');
+    assert.match(draft, /sessionStorage/);
+    assert.match(draft, /shouldRestorePx4aItemFormDraft/);
+  });
+
+  it('treats sessionStorage as the HomeCheff draft source of truth', () => {
+    const store = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        store.set(key, value);
+      },
+      removeItem: (key: string) => {
+        store.delete(key);
+      },
+    };
+    (globalThis as { sessionStorage?: typeof storage }).sessionStorage = storage;
+    (globalThis as { window?: { sessionStorage: typeof storage } }).window = {
+      sessionStorage: storage,
+    };
+
+    assert.equal(shouldRestorePx4aItemFormDraft(), false);
+    const ok = writePx4aItemFormDraft({
+      listingIntent: 'OFFER',
+      marketplaceCategory: 'FOOD',
+      specializations: ['soup'],
+      acceptedSpecializations: [],
+      barterOpenness: 'MONEY',
+      title: 'Verse roti',
+      description: 'Huisgemaakt',
+      price: '12,50',
+      priceModel: 'FIXED',
+      acceptHomeCheffPayment: true,
+      acceptDirectContact: false,
+      fulfillment: { pickup: true },
+      sellerCanDeliver: false,
+      deliveryRadiusKm: '5',
+      useProfileLocation: true,
+      placeName: 'Utrecht',
+      pickupAddress: '',
+      pickupLat: 52.09,
+      pickupLng: 5.12,
+      coordsSource: 'place',
+      stock: '1',
+      maxStock: '',
+      isActive: true,
+      images: [{ url: 'https://cdn.example/a.jpg' }, { url: 'blob:local' }],
+      video: null,
+      allergens: [],
+      allergensConfirmed: false,
+      sellerContributionTypes: [],
+      sellerContributionNote: '',
+      madeToConsumerSpecifications: false,
+      rapidlyPerishable: false,
+    });
+    assert.equal(ok, true);
+    assert.equal(shouldRestorePx4aItemFormDraft(), true);
+    const snap = readPx4aItemFormDraft();
+    assert.equal(snap?.title, 'Verse roti');
+    assert.deepEqual(snap?.images, [{ url: 'https://cdn.example/a.jpg' }]);
+    assert.equal(shouldRestorePx4aItemFormDraft(Date.now() + PX4A_ITEM_FORM_DRAFT_TTL_MS + 1), false);
+    clearPx4aItemFormDraft();
+    assert.equal(shouldRestorePx4aItemFormDraft(), false);
   });
 });

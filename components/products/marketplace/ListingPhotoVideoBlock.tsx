@@ -31,7 +31,6 @@ export function ListingPhotoVideoBlock({
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasVideo = Boolean(video?.url);
-  const showCreator = !hasVideo || replaceIntent;
 
   const startCreator = async () => {
     setError(null);

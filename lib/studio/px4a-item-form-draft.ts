@@ -65,6 +65,15 @@ export function writePx4aItemFormDraft(draft: Omit<Px4aItemFormDraft, 'v' | 'sav
   }
 }
 
+/**
+ * Browser Back from Studio reloads /sell/new without ?px4a=.
+ * SessionStorage is the source of truth; the query string only distinguishes
+ * cancel vs ready. Restore whenever a valid same-tab snapshot exists.
+ */
+export function shouldRestorePx4aItemFormDraft(now = Date.now()): boolean {
+  return readPx4aItemFormDraft(now) != null;
+}
+
 export function readPx4aItemFormDraft(now = Date.now()): Px4aItemFormDraft | null {
   if (!isBrowser()) return null;
   try {

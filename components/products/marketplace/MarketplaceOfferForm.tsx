@@ -59,12 +59,10 @@ import { useTranslation } from '@/hooks/useTranslation';
 import {
   clearPx4aItemFormDraft,
   readPx4aItemFormDraft,
+  shouldRestorePx4aItemFormDraft,
   writePx4aItemFormDraft,
 } from '@/lib/studio/px4a-item-form-draft';
-import {
-  isPx4aItemReturnSearch,
-  px4aItemReturnResult,
-} from '@/lib/studio/px4a-item-handoff';
+import { px4aItemReturnResult } from '@/lib/studio/px4a-item-handoff';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 import { offerRequiresCommerceDeclaration } from '@/lib/legal/commerce-declaration-gate';
 import CommerceDeclarationModal, {
@@ -233,7 +231,7 @@ export default function MarketplaceOfferForm({
 
   useEffect(() => {
     if (editMode || typeof window === 'undefined') return;
-    if (!isPx4aItemReturnSearch(window.location.search)) return;
+    if (!shouldRestorePx4aItemFormDraft()) return;
     setExportPending(px4aItemReturnResult(window.location.search) === 'ready');
     const snap = readPx4aItemFormDraft();
     if (!snap) return;
