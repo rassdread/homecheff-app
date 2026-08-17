@@ -20,6 +20,7 @@ interface VideoUploaderProps {
   className?: string;
   /** 'dish' = alleen MP4/MOV toegestaan (recepten, inspiratie) voorzelfde formaat op alle items */
   uploadContext?: 'dish' | 'general';
+  hideHeading?: boolean;
 }
 
 const DISH_ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/x-m4v'];
@@ -33,7 +34,8 @@ export default function VideoUploader({
   maxDuration = MAX_VIDEO_DURATION,
   disabled = false,
   className = '',
-  uploadContext = 'general'
+  uploadContext = 'general',
+  hideHeading = false,
 }: VideoUploaderProps) {
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
@@ -706,12 +708,16 @@ export default function VideoUploader({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700">
-        Video (optioneel)
-      </label>
-      <p className="text-xs text-gray-500 mb-2">
-        Maximaal {maxDuration} seconden, maximaal 50MB. Ondersteunde formaten: MP4, WebM, MOV, AVI, 3GP, MKV, M4V.
-      </p>
+      {hideHeading ? null : (
+        <>
+          <label className="block text-sm font-medium text-gray-700">
+            Video (optioneel)
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            Maximaal {maxDuration} seconden, maximaal 50MB. Ondersteunde formaten: MP4, WebM, MOV, AVI, 3GP, MKV, M4V.
+          </p>
+        </>
+      )}
 
       {preview ? (
         <div className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-50">

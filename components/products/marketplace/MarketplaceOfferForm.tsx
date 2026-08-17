@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 import SimpleImageUploader from '@/components/products/SimpleImageUploader';
 import VideoUploader from '@/components/ui/VideoUploader';
+import { ListingPhotoVideoBlock } from '@/components/products/marketplace/ListingPhotoVideoBlock';
 import DynamicAddressFields, { type AddressData } from '@/components/ui/DynamicAddressFields';
 import { PlaceResolveFeedback } from '@/components/geo/PlaceResolveFeedback';
 import { usePlaceAutoResolve } from '@/hooks/usePlaceAutoResolve';
@@ -55,6 +56,15 @@ import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-acco
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  clearPx4aItemFormDraft,
+  readPx4aItemFormDraft,
+  writePx4aItemFormDraft,
+} from '@/lib/studio/px4a-item-form-draft';
+import {
+  isPx4aItemReturnSearch,
+  px4aItemReturnResult,
+} from '@/lib/studio/px4a-item-handoff';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 import { offerRequiresCommerceDeclaration } from '@/lib/legal/commerce-declaration-gate';
 import CommerceDeclarationModal, {
@@ -172,6 +182,7 @@ export default function MarketplaceOfferForm({
   const [madeToConsumerSpecifications, setMadeToConsumerSpecifications] =
     useState(false);
   const [rapidlyPerishable, setRapidlyPerishable] = useState(false);
+  const [exportPending, setExportPending] = useState(false);
 
   const fieldConfig = useMemo(
     () =>
@@ -219,6 +230,83 @@ export default function MarketplaceOfferForm({
       })
       .catch(() => undefined);
   }, [session?.user, useProfileLocation, placeName]);
+
+  useEffect(() => {
+    if (editMode || typeof window === 'undefined') return;
+    if (!isPx4aItemReturnSearch(window.location.search)) return;
+    setExportPending(px4aItemReturnResult(window.location.search) === 'ready');
+    const snap = readPx4aItemFormDraft();
+    if (!snap) return;
+    setListingIntent(snap.listingIntent as ListingIntentValue);
+    setMarketplaceCategory(snap.marketplaceCategory as MarketplaceCategory);
+    setSpecializations(snap.specializations);
+    setAcceptedSpecializations(snap.acceptedSpecializations);
+    setBarterOpenness(snap.barterOpenness as BarterOpennessValue);
+    setTitle(snap.title);
+    setDescription(snap.description);
+    setPrice(snap.price);
+    setPriceModel(snap.priceModel as PriceModel);
+    setAcceptHomeCheffPayment(snap.acceptHomeCheffPayment);
+    setAcceptDirectContact(snap.acceptDirectContact);
+    if (snap.fulfillment && typeof snap.fulfillment === 'object') {
+      setFulfillment(snap.fulfillment as FulfillmentOptions);
+    }
+    setSellerCanDeliver(snap.sellerCanDeliver);
+    setDeliveryRadiusKm(snap.deliveryRadiusKm);
+    setUseProfileLocation(snap.useProfileLocation);
+    setPlaceName(snap.placeName);
+    setPickupAddress(snap.pickupAddress);
+    setPickupLat(snap.pickupLat);
+    setPickupLng(snap.pickupLng);
+    setCoordsSource(snap.coordsSource as typeof coordsSource);
+    setStock(snap.stock);
+    setMaxStock(snap.maxStock);
+    setIsActive(snap.isActive);
+    setImages(snap.images.map((image) => ({ url: image.url })));
+    setVideo(snap.video);
+    setAllergens(snap.allergens as EuFoodAllergenId[]);
+    setAllergensConfirmed(snap.allergensConfirmed);
+    setSellerContributionTypes(snap.sellerContributionTypes as SellerContributionType[]);
+    setSellerContributionNote(snap.sellerContributionNote);
+    setMadeToConsumerSpecifications(snap.madeToConsumerSpecifications);
+    setRapidlyPerishable(snap.rapidlyPerishable);
+  }, [editMode]);
+
+  const persistItemDraft = () => {
+    writePx4aItemFormDraft({
+      listingIntent,
+      marketplaceCategory,
+      specializations,
+      acceptedSpecializations,
+      barterOpenness,
+      title,
+      description,
+      price,
+      priceModel,
+      acceptHomeCheffPayment,
+      acceptDirectContact,
+      fulfillment,
+      sellerCanDeliver,
+      deliveryRadiusKm,
+      useProfileLocation,
+      placeName,
+      pickupAddress,
+      pickupLat,
+      pickupLng,
+      coordsSource,
+      stock,
+      maxStock,
+      isActive,
+      images: images.map((image) => ({ url: image.url })),
+      video,
+      allergens,
+      allergensConfirmed,
+      sellerContributionTypes,
+      sellerContributionNote,
+      madeToConsumerSpecifications,
+      rapidlyPerishable,
+    });
+  };
 
   const profileHasCoords =
     profileLat != null &&
@@ -671,6 +759,7 @@ export default function MarketplaceOfferForm({
       }
       onSave?.(data.product ?? data);
       if (!editMode && data.product?.id) {
+        clearPx4aItemFormDraft();
         window.location.href = getProfileHrefAfterProductSave(data.product.id);
       }
     } catch {
@@ -773,21 +862,6 @@ export default function MarketplaceOfferForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('marketplace.form.videoLabel')}
-        </label>
-        <p className="text-xs text-gray-500 mb-2">
-          {t('marketplace.form.videoHint')}
-        </p>
-        <VideoUploader
-          value={video}
-          onChange={setVideo}
-          maxDuration={30}
-          uploadContext="dish"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
           {t('marketplace.form.photosLabel')}
         </label>
         <SimpleImageUploader
@@ -797,6 +871,35 @@ export default function MarketplaceOfferForm({
           category="CHEFF"
         />
       </div>
+
+      {editMode ? (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('marketplace.form.videoLabel')}
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            {t('marketplace.form.videoHint')}
+          </p>
+          <VideoUploader
+            value={video}
+            onChange={setVideo}
+            maxDuration={30}
+            uploadContext="dish"
+            hideHeading
+          />
+        </div>
+      ) : (
+        <ListingPhotoVideoBlock
+          video={video}
+          onVideoChange={setVideo}
+          photoUrls={images
+            .map((image) => image.url)
+            .filter((url): url is string => Boolean(url?.startsWith('https://')))}
+          onPersistDraft={persistItemDraft}
+          exportPending={exportPending}
+          disabled={busy}
+        />
+      )}
 
       <p className="text-xs text-gray-600 leading-relaxed">
         {t('marketplace.form.settlementIntro')}
