@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import {
+  signStudioSourceContextRequest,
+  verifyStudioSourceContextRequest,
+} from './px4-source-context-hmac';
+import {
   PX4_EXCLUDED_LISTING_FIELDS,
   PX4_MEDIA_CAP,
   authorizeOwnerProductProjection,
@@ -10,10 +14,8 @@ import {
   normalizeListingMediaUrls,
   sellerDisplayNameFromUser,
   shouldShowStudioCreateCta,
-  signStudioSourceContextRequest,
   studioPx4CanonicalPath,
   toStudioListingProjection,
-  verifyStudioSourceContextRequest,
 } from './px4-source-context';
 
 const OWNER = '11111111-1111-4111-8111-111111111111';
@@ -120,5 +122,9 @@ describe('PX.4 HomeCheff → Studio context', () => {
     assert.match(api, /authorizeOwnerProductProjection/);
     assert.doesNotMatch(api, /prisma\.product\.update/);
     assert.doesNotMatch(api, /priceCents/);
+    assert.doesNotMatch(actions, /node:crypto/);
+    assert.doesNotMatch(actions, /px4-source-context-hmac/);
+    const clientLib = readFileSync('lib/studio/px4-source-context.ts', 'utf8');
+    assert.doesNotMatch(clientLib, /node:crypto/);
   });
 });

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { studioContextSecretsFromEnv, verifyStudioSourceContextRequest } from '@/lib/studio/px4-source-context-hmac';
 import {
   authorizeOwnerProductProjection,
   isPx4OpaqueId,
   isPx4ProductSourceType,
   sellerDisplayNameFromUser,
-  studioContextSecretsFromEnv,
   toStudioListingProjection,
-  verifyStudioSourceContextRequest,
 } from '@/lib/studio/px4-source-context';
 
 export const runtime = 'nodejs';

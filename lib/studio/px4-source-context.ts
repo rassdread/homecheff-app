@@ -1,12 +1,7 @@
 /**
- * PX.4 — HomeCheff owner listing projection for Studio (server-to-server).
- *
- * Do not put title/description/media in URLs. Studio sends:
- * source type + opaque id + HMAC over centralUserId.
+ * PX.4 — client-safe listing → Studio deep link helpers.
+ * Keep Node crypto out of this file: ProductSalePrimaryActions is a client component.
  */
-
-import { createHmac, timingSafeEqual } from 'node:crypto';
-
 export const PX4_STUDIO_SOURCE = 'homecheff' as const;
 export const PX4_STUDIO_SOURCE_TYPE_PRODUCT = 'product' as const;
 export const PX4_MEDIA_CAP = 8;
@@ -91,61 +86,6 @@ export function homecheffProductReturnTarget(productId: string): string {
     .trim()
     .replace(/\/$/, '');
   return `${origin}/product/${productId}`;
-}
-
-export function signStudioSourceContextRequest(opts: {
-  secret: string;
-  timestampSec: number;
-  centralUserId: string;
-  sourceType: string;
-  sourceId: string;
-}): string {
-  const body = `${opts.timestampSec}\n${opts.centralUserId}\n${opts.sourceType}\n${opts.sourceId}`;
-  return createHmac('sha256', opts.secret).update(body).digest('base64url');
-}
-
-function signaturesMatch(a: string, b: string): boolean {
-  try {
-    const left = Buffer.from(a);
-    const right = Buffer.from(b);
-    return left.length === right.length && timingSafeEqual(left, right);
-  } catch {
-    return false;
-  }
-}
-
-export function verifyStudioSourceContextRequest(opts: {
-  secrets: string[];
-  timestampSec: number;
-  nowSec?: number;
-  signature: string;
-  centralUserId: string;
-  sourceType: string;
-  sourceId: string;
-}): boolean {
-  const now = opts.nowSec ?? Math.floor(Date.now() / 1000);
-  if (!Number.isFinite(opts.timestampSec)) return false;
-  if (Math.abs(now - opts.timestampSec) > PX4_CONTEXT_MAX_SKEW_SEC) return false;
-  if (!opts.centralUserId.trim() || !isPx4OpaqueId(opts.sourceId)) return false;
-  for (const secret of opts.secrets) {
-    if (!secret) continue;
-    const expected = signStudioSourceContextRequest({
-      secret,
-      timestampSec: opts.timestampSec,
-      centralUserId: opts.centralUserId,
-      sourceType: opts.sourceType,
-      sourceId: opts.sourceId,
-    });
-    if (signaturesMatch(opts.signature, expected)) return true;
-  }
-  return false;
-}
-
-export function studioContextSecretsFromEnv(): string[] {
-  return [
-    process.env.STUDIO_SSO_CLIENT_SECRET?.trim() ?? '',
-    process.env.STUDIO_SSO_CLIENT_SECRET_PREVIOUS?.trim() ?? '',
-  ].filter(Boolean);
 }
 
 export function authorizeOwnerProductProjection(
