@@ -254,6 +254,7 @@ describe('PX.4A.4D HomeCheff listing draft round-trip', () => {
     assert.match(block, /setStarting\(false\);\s*return;/);
     const form = readFileSync('components/products/marketplace/MarketplaceOfferForm.tsx', 'utf8');
     assert.match(form, /const persistItemDraft = \(\): boolean => \{/);
+    assert.match(form, /images\.some\(\(image\) => image\.uploading\)/);
     assert.match(form, /return writePx4aItemFormDraft\(/);
     const nl = readFileSync('public/i18n/nl.json', 'utf8');
     assert.match(nl, /Je item kon niet tijdelijk worden bewaard/);
