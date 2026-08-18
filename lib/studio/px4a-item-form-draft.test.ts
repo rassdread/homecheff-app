@@ -97,7 +97,8 @@ describe('PX.4A.4D HomeCheff listing draft round-trip', () => {
     assert.equal(shouldRestorePx4aItemFormDraft(), true);
     const form = readFileSync('components/products/marketplace/MarketplaceOfferForm.tsx', 'utf8');
     assert.match(form, /shouldRestorePx4aItemFormDraft\(\)/);
-    assert.match(form, /setExportPending\(px4aItemReturnResult\(window\.location\.search\) === 'ready'\)/);
+    assert.match(form, /readPx4aExportVideo\(\)/);
+    assert.match(form, /attachPx4aExportVideo/);
     assert.match(form, /setTitle\(snap\.title\)/);
     assert.match(form, /setDescription\(snap\.description\)/);
     assert.match(form, /setMarketplaceCategory/);
