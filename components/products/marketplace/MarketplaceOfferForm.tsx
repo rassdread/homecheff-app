@@ -62,7 +62,11 @@ import {
   shouldRestorePx4aItemFormDraft,
   writePx4aItemFormDraft,
 } from '@/lib/studio/px4a-item-form-draft';
-import { px4aItemReturnResult } from '@/lib/studio/px4a-item-handoff';
+import {
+  clearPx4aExportVideo,
+  readPx4aExportVideo,
+} from '@/lib/studio/px4a-export-attach';
+import { attachPx4aExportVideo } from '@/lib/studio/px4a-listing-video-upload';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
 import { offerRequiresCommerceDeclaration } from '@/lib/legal/commerce-declaration-gate';
 import CommerceDeclarationModal, {
@@ -181,6 +185,7 @@ export default function MarketplaceOfferForm({
     useState(false);
   const [rapidlyPerishable, setRapidlyPerishable] = useState(false);
   const [exportPending, setExportPending] = useState(false);
+  const exportAttachStarted = React.useRef(false);
 
   const fieldConfig = useMemo(
     () =>
@@ -231,44 +236,66 @@ export default function MarketplaceOfferForm({
 
   useEffect(() => {
     if (editMode || typeof window === 'undefined') return;
-    if (!shouldRestorePx4aItemFormDraft()) return;
-    setExportPending(px4aItemReturnResult(window.location.search) === 'ready');
+    const pendingExport = readPx4aExportVideo();
+    if (!shouldRestorePx4aItemFormDraft() && !pendingExport) return;
+    setExportPending(Boolean(pendingExport));
     const snap = readPx4aItemFormDraft();
-    if (!snap) return;
-    setListingIntent(snap.listingIntent as ListingIntentValue);
-    setMarketplaceCategory(snap.marketplaceCategory as MarketplaceCategory);
-    setSpecializations(snap.specializations);
-    setAcceptedSpecializations(snap.acceptedSpecializations);
-    setBarterOpenness(snap.barterOpenness as BarterOpennessValue);
-    setTitle(snap.title);
-    setDescription(snap.description);
-    setPrice(snap.price);
-    setPriceModel(snap.priceModel as PriceModel);
-    setAcceptHomeCheffPayment(snap.acceptHomeCheffPayment);
-    setAcceptDirectContact(snap.acceptDirectContact);
-    if (snap.fulfillment && typeof snap.fulfillment === 'object') {
-      setFulfillment(snap.fulfillment as FulfillmentOptions);
+    if (snap) {
+      setListingIntent(snap.listingIntent as ListingIntentValue);
+      setMarketplaceCategory(snap.marketplaceCategory as MarketplaceCategory);
+      setSpecializations(snap.specializations);
+      setAcceptedSpecializations(snap.acceptedSpecializations);
+      setBarterOpenness(snap.barterOpenness as BarterOpennessValue);
+      setTitle(snap.title);
+      setDescription(snap.description);
+      setPrice(snap.price);
+      setPriceModel(snap.priceModel as PriceModel);
+      setAcceptHomeCheffPayment(snap.acceptHomeCheffPayment);
+      setAcceptDirectContact(snap.acceptDirectContact);
+      if (snap.fulfillment && typeof snap.fulfillment === 'object') {
+        setFulfillment(snap.fulfillment as FulfillmentOptions);
+      }
+      setSellerCanDeliver(snap.sellerCanDeliver);
+      setDeliveryRadiusKm(snap.deliveryRadiusKm);
+      setUseProfileLocation(snap.useProfileLocation);
+      setPlaceName(snap.placeName);
+      setPickupAddress(snap.pickupAddress);
+      setPickupLat(snap.pickupLat);
+      setPickupLng(snap.pickupLng);
+      setCoordsSource(snap.coordsSource as typeof coordsSource);
+      setStock(snap.stock);
+      setMaxStock(snap.maxStock);
+      setIsActive(snap.isActive);
+      setImages(snap.images.map((image) => ({ url: image.url })));
+      setVideo(snap.video);
+      setAllergens(snap.allergens as EuFoodAllergenId[]);
+      setAllergensConfirmed(snap.allergensConfirmed);
+      setSellerContributionTypes(snap.sellerContributionTypes as SellerContributionType[]);
+      setSellerContributionNote(snap.sellerContributionNote);
+      setMadeToConsumerSpecifications(snap.madeToConsumerSpecifications);
+      setRapidlyPerishable(snap.rapidlyPerishable);
     }
-    setSellerCanDeliver(snap.sellerCanDeliver);
-    setDeliveryRadiusKm(snap.deliveryRadiusKm);
-    setUseProfileLocation(snap.useProfileLocation);
-    setPlaceName(snap.placeName);
-    setPickupAddress(snap.pickupAddress);
-    setPickupLat(snap.pickupLat);
-    setPickupLng(snap.pickupLng);
-    setCoordsSource(snap.coordsSource as typeof coordsSource);
-    setStock(snap.stock);
-    setMaxStock(snap.maxStock);
-    setIsActive(snap.isActive);
-    setImages(snap.images.map((image) => ({ url: image.url })));
-    setVideo(snap.video);
-    setAllergens(snap.allergens as EuFoodAllergenId[]);
-    setAllergensConfirmed(snap.allergensConfirmed);
-    setSellerContributionTypes(snap.sellerContributionTypes as SellerContributionType[]);
-    setSellerContributionNote(snap.sellerContributionNote);
-    setMadeToConsumerSpecifications(snap.madeToConsumerSpecifications);
-    setRapidlyPerishable(snap.rapidlyPerishable);
-  }, [editMode]);
+    if (pendingExport && !exportAttachStarted.current) {
+      exportAttachStarted.current = true;
+      void attachPx4aExportVideo(pendingExport)
+        .then((next) => {
+          setVideo(next);
+          clearPx4aExportVideo();
+          setExportPending(false);
+          if (snap) {
+            writePx4aItemFormDraft({
+              ...snap,
+              images: snap.images.map((image) => ({ url: image.url })),
+              video: next,
+            });
+          }
+        })
+        .catch(() => {
+          setExportPending(false);
+          setMessage(t('marketplace.form.videoExportAttachError'));
+        });
+    }
+  }, [editMode, t]);
 
   const persistItemDraft = (): boolean => {
     if (images.some((image) => image.uploading)) {
@@ -898,7 +925,7 @@ export default function MarketplaceOfferForm({
             .filter((url): url is string => Boolean(url?.startsWith('https://')))}
           onPersistDraft={persistItemDraft}
           exportPending={exportPending}
-          disabled={busy}
+          disabled={busy || exportPending}
         />
       )}
 
