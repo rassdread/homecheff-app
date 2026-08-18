@@ -223,7 +223,14 @@ describe('PX.4A.4D HomeCheff listing draft round-trip', () => {
       logoutFn.indexOf('clearSessionStorageExcept'),
       logoutFn.indexOf("if ('caches' in window)"),
     );
-    assert.doesNotMatch(logoutKeep, /PX4A_ITEM_FORM_DRAFT_KEY/);
+    assert.match(logoutKeep, /PX4A_ITEM_FORM_DRAFT_KEY/);
+    const isolationHook = readFileSync('hooks/useSessionIsolation.ts', 'utf8');
+    const guard = readFileSync('components/SessionGuard.tsx', 'utf8');
+    assert.match(isolationHook, /clearPx4aItemFormDraft\(\)/);
+    assert.match(guard, /clearPx4aItemFormDraft\(\)/);
+    const identity = readFileSync('lib/session-cleanup.ts', 'utf8');
+    assert.match(identity, /isDistinctSellerStorageIdentity/);
+    assert.match(identity, /lastIsEmail !== currentIsEmail/);
   });
 
   it('Q. expired and corrupt drafts are cleared safely', () => {

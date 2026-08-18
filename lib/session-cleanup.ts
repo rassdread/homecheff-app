@@ -227,8 +227,15 @@ export function clearStorageForCredentialLoginStart(): void {
 
 /**
  * Na bevestigde logout (authenticated → unauthenticated): gevoelige data weg.
- * Create-flow intents blijven; hc-px4a-item-form:v1 wordt gewist zodat een volgende
- * verkoper in hetzelfde tabblad geen listing-draft van de vorige sessie herstelt.
+ * Create-flow intents en hc-px4a-item-form:v1 blijven hier staan.
+ *
+ * NavBar stores current_user_id as email; useCart stores it as user.id.
+ * setupSessionIsolation therefore used to treat the same seller as a
+ * "different user" and wipe the unpublished listing draft on every
+ * /sell/new remount (HomeCheff → Studio → HomeCheff).
+ *
+ * Real logout still clears the listing draft via clearPx4aItemFormDraft()
+ * in SessionGuard / useSessionIsolation.
  */
 export function clearSensitiveUserDataOnLogout(): void {
   if (typeof window === 'undefined') return;
@@ -286,6 +293,7 @@ export function clearSensitiveUserDataOnLogout(): void {
       REGISTER_DRAFT_STORAGE_KEY,
       HC_CREATE_FLOW_INTENT_KEY,
       AFTER_LOGIN_CREATE_ACTION_KEY,
+      PX4A_ITEM_FORM_DRAFT_KEY,
       'register_cleared',
       'hc_npush_gate',
     ]),
@@ -466,20 +474,26 @@ export function clearNextAuthData(): void {
   sessionStorage.clear();
 }
 
+export function isDistinctSellerStorageIdentity(lastUserId: string, currentUserId: string): boolean {
+  if (lastUserId === currentUserId) return false;
+  const lastIsEmail = lastUserId.includes('@');
+  const currentIsEmail = currentUserId.includes('@');
+  // NavBar writes email; useCart writes user.id. That is not a user switch.
+  if (lastIsEmail !== currentIsEmail) return false;
+  return true;
+}
+
 // Setup automatic session cleanup on page load
 export function setupSessionIsolation(): void {
   if (typeof window === 'undefined') return;
 
-  // Only clear data if we detect a different user (not on initial load)
   const lastUserId = sessionStorage.getItem('last_user_id');
   const currentUserId = localStorage.getItem('current_user_id');
-  
-  // Only clear if we have a previous user and it's different from current
-  if (lastUserId && currentUserId && lastUserId !== currentUserId) {
+
+  if (lastUserId && currentUserId && isDistinctSellerStorageIdentity(lastUserId, currentUserId)) {
     clearSensitiveUserDataOnLogout();
   }
-  
-  // Store current user ID for next session (only if we have one)
+
   if (currentUserId) {
     sessionStorage.setItem('last_user_id', currentUserId);
   }

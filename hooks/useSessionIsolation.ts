@@ -6,6 +6,7 @@
 import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { clearSensitiveUserDataOnLogout, setupSessionIsolation } from '@/lib/session-cleanup';
+import { clearPx4aItemFormDraft } from '@/lib/studio/px4a-item-form-draft';
 
 export function useSessionIsolation() {
   const { data: session, status } = useSession();
@@ -21,6 +22,7 @@ export function useSessionIsolation() {
     // clear hc-px4a-item-form:v1 during a HomeCheff → Studio → HomeCheff round-trip.
     if (prev.current === 'authenticated' && status === 'unauthenticated') {
       clearSensitiveUserDataOnLogout();
+      clearPx4aItemFormDraft();
     }
     prev.current = status;
   }, [status]);

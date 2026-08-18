@@ -7,7 +7,7 @@
  * - successful listing publish
  * - TTL expiry (24h)
  * - corrupt / unreadable snapshot
- * - confirmed logout (authenticated → unauthenticated)
+ * - confirmed logout (authenticated → unauthenticated) via SessionGuard / useSessionIsolation
  *
  * Must NOT be cleared on Studio departure, return, cancel, Video gebruiken,
  * browser Back, chooser remount, or ordinary refresh while recoverable.
