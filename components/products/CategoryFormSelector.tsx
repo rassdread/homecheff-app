@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import CompactChefForm from './CompactChefForm';
 import CompactGardenForm from './CompactGardenForm';
 import CompactDesignerForm from './CompactDesignerForm';
@@ -14,6 +14,10 @@ import {
   entryPrefillIsComplete,
   type MarketplaceEntryPrefill,
 } from '@/lib/marketplace/entry-prefill';
+import {
+  entryResultFromPx4aItemFormDraft,
+  readPx4aItemFormDraft,
+} from '@/lib/studio/px4a-item-form-draft';
 
 interface CategoryFormSelectorProps {
   category: 'CHEFF' | 'GARDEN' | 'DESIGNER';
@@ -56,9 +60,28 @@ export default function CategoryFormSelector({
           }
         : null,
   );
+  const [draftResumeChecked, setDraftResumeChecked] = useState(
+    () => Boolean(editMode || prefillComplete),
+  );
+
+  useLayoutEffect(() => {
+    if (editMode) {
+      setDraftResumeChecked(true);
+      return;
+    }
+    if (draftResumeChecked) return;
+    if (entryResult) {
+      setDraftResumeChecked(true);
+      return;
+    }
+    const resume = entryResultFromPx4aItemFormDraft(readPx4aItemFormDraft());
+    if (resume) setEntryResult(resume);
+    setDraftResumeChecked(true);
+  }, [editMode, entryResult, draftResumeChecked]);
 
   if (platform === 'dorpsplein' && useMarketplaceV2) {
     if (!editMode && !entryResult) {
+      if (!draftResumeChecked) return null;
       return (
         <MarketplaceEntryFlow
           onComplete={setEntryResult}

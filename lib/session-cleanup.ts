@@ -9,6 +9,7 @@ import { HC_CREATE_FLOW_INTENT_KEY } from '@/lib/createFlowIntent';
 import { PENDING_INTENT_STORAGE_KEY } from '@/lib/onboarding/pending-intent';
 import { clearAllNativePersistedCaches } from '@/lib/native/nativePersistedCache';
 import { NATIVE_SHELL_STORAGE_KEY } from '@/lib/native/nativeShellKeys';
+import { PX4A_ITEM_FORM_DRAFT_KEY } from '@/lib/studio/px4a-item-form-draft';
 
 // Clear all user-specific data from localStorage and sessionStorage
 export function clearAllUserData(): void {
@@ -66,8 +67,20 @@ export function clearAllUserData(): void {
     localStorage.removeItem(key);
   });
 
-  // Clear ALL sessionStorage (more aggressive cleanup)
-  sessionStorage.clear();
+  // Preserve create-flow and PX.4A listing drafts. Do not sessionStorage.clear().
+  clearSessionStorageExcept(
+    new Set([
+      PENDING_INTENT_STORAGE_KEY,
+      REGISTER_DRAFT_STORAGE_KEY,
+      HC_CREATE_FLOW_INTENT_KEY,
+      AFTER_LOGIN_CREATE_ACTION_KEY,
+      PX4A_ITEM_FORM_DRAFT_KEY,
+      'pendingRegistration',
+      'register_cleared',
+      'login_cleared',
+      'hc_npush_gate',
+    ]),
+  );
 
   // Clear any cached data
   if ('caches' in window) {
@@ -203,6 +216,7 @@ export function clearStorageForCredentialLoginStart(): void {
       REGISTER_DRAFT_STORAGE_KEY,
       HC_CREATE_FLOW_INTENT_KEY,
       AFTER_LOGIN_CREATE_ACTION_KEY,
+      PX4A_ITEM_FORM_DRAFT_KEY,
       'pendingRegistration',
       'register_cleared',
       'login_cleared',
@@ -212,7 +226,9 @@ export function clearStorageForCredentialLoginStart(): void {
 }
 
 /**
- * Na bevestigde logout (authenticated → unauthenticated): gevoelige data weg, concepten/listings-draft bewaren.
+ * Na bevestigde logout (authenticated → unauthenticated): gevoelige data weg.
+ * Create-flow intents blijven; hc-px4a-item-form:v1 wordt gewist zodat een volgende
+ * verkoper in hetzelfde tabblad geen listing-draft van de vorige sessie herstelt.
  */
 export function clearSensitiveUserDataOnLogout(): void {
   if (typeof window === 'undefined') return;

@@ -24,7 +24,7 @@
     "start:local": "npm run clean && npm run build && (lsof -ti:3000 | xargs kill -9 2>/dev/null || true) && next start -p 3000",
     "lint": "eslint",
     "test:px4-studio-context": "npx tsx --test lib/studio/px4-source-context.test.ts",
-    "test:px4a-item-handoff": "npx tsx --test lib/studio/px4a-item-handoff.test.ts",
+    "test:px4a-item-handoff": "npx tsx --test lib/studio/px4a-item-handoff.test.ts lib/studio/px4a-item-form-draft.test.ts",
     "smoke-check": "node scripts/smoke-check.mjs",
     "validate:legal-0-integrity": "npx tsx scripts/validate-legal-0-integrity.ts",
     "validate:legal-1-seller-classification": "npx tsx scripts/validate-legal-1-seller-classification.ts",

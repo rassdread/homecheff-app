@@ -8997,6 +8997,7 @@
       "videoStudioAttribution": "Mogelijk gemaakt door HomeCheff Studio",
       "videoMakeFreeStarting": "Bezig…",
       "videoMakeFreeError": "De videomaker kon nu niet worden geopend. Probeer het opnieuw.",
+      "videoDraftPersistError": "Je item kon niet tijdelijk worden bewaard. Probeer het opnieuw.",
       "videoReplace": "Vervangen",
       "videoReplaceHint": "Kies hoe je de huidige video vervangt.",
       "videoReplaceCancel": "Behoud huidige video",

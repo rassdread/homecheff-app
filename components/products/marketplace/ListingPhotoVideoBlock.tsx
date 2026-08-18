@@ -22,7 +22,7 @@ export function ListingPhotoVideoBlock({
   video: ListingVideo;
   onVideoChange: (video: ListingVideo) => void;
   photoUrls: string[];
-  onPersistDraft: () => void;
+  onPersistDraft: () => boolean;
   exportPending?: boolean;
   disabled?: boolean;
 }) {
@@ -36,7 +36,12 @@ export function ListingPhotoVideoBlock({
     setError(null);
     setStarting(true);
     try {
-      onPersistDraft();
+      const persisted = onPersistDraft();
+      if (!persisted) {
+        setError(t('marketplace.form.videoDraftPersistError'));
+        setStarting(false);
+        return;
+      }
       await startHomeCheffPhotoVideoCreator(photoUrls);
     } catch {
       setError(t('marketplace.form.videoMakeFreeError'));
