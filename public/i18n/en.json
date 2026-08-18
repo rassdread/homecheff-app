@@ -8997,6 +8997,7 @@
       "videoStudioAttribution": "Powered by HomeCheff Studio",
       "videoMakeFreeStarting": "Starting…",
       "videoMakeFreeError": "The video maker could not be opened. Try again.",
+      "videoDraftPersistError": "Your item could not be saved temporarily. Try again.",
       "videoReplace": "Replace",
       "videoReplaceHint": "Choose how you want to replace the current video.",
       "videoReplaceCancel": "Keep current video",

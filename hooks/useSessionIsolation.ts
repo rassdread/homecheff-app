@@ -3,25 +3,27 @@
  * Prevents data leakage between different user sessions
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { clearAllUserData, setupSessionIsolation } from '@/lib/session-cleanup';
+import { clearSensitiveUserDataOnLogout, setupSessionIsolation } from '@/lib/session-cleanup';
 
 export function useSessionIsolation() {
   const { data: session, status } = useSession();
+  const prev = useRef<typeof status | null>(null);
 
   useEffect(() => {
     setupSessionIsolation();
   }, []);
 
   useEffect(() => {
-    // Clear only local/session storage when unauthenticated (no cookie wipe + reload).
-    // Avoids reload loop in Chrome when session refetch fails temporarily.
-    if (status === 'unauthenticated') {
-      clearAllUserData();
+    // Match SessionGuard: only wipe on a confirmed logout.
+    // A brief NextAuth "unauthenticated" flicker on /sell/new remount must not
+    // clear hc-px4a-item-form:v1 during a HomeCheff → Studio → HomeCheff round-trip.
+    if (prev.current === 'authenticated' && status === 'unauthenticated') {
+      clearSensitiveUserDataOnLogout();
     }
+    prev.current = status;
   }, [status]);
 
-  // Return session data for convenience
   return { session, status };
 }

@@ -270,8 +270,8 @@ export default function MarketplaceOfferForm({
     setRapidlyPerishable(snap.rapidlyPerishable);
   }, [editMode]);
 
-  const persistItemDraft = () => {
-    writePx4aItemFormDraft({
+  const persistItemDraft = (): boolean => {
+    return writePx4aItemFormDraft({
       listingIntent,
       marketplaceCategory,
       specializations,
