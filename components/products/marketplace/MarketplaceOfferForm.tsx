@@ -271,6 +271,9 @@ export default function MarketplaceOfferForm({
   }, [editMode]);
 
   const persistItemDraft = (): boolean => {
+    if (images.some((image) => image.uploading)) {
+      return false;
+    }
     return writePx4aItemFormDraft({
       listingIntent,
       marketplaceCategory,
