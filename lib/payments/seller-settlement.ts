@@ -146,7 +146,7 @@ export type SellerSettlementResult = {
   error?: string;
 };
 
-async function resolvePlatformFeeBps(sellerUserId: string): Promise<number> {
+export async function resolvePlatformFeeBps(sellerUserId: string): Promise<number> {
   const sellerProfile = await prisma.sellerProfile.findUnique({
     where: { userId: sellerUserId },
     include: { Subscription: true },
@@ -177,6 +177,26 @@ export async function settleSellerOrderItem(
     holdInEscrow,
     sourceTransactionChargeId,
   } = input;
+
+  const orderPayment = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { paymentMethod: true },
+  });
+  if (orderPayment?.paymentMethod === 'HC_ONLY') {
+    return {
+      productId,
+      sellerUserId,
+      sellerGrossCents,
+      platformFeeBps: 0,
+      platformFeeCents: 0,
+      sellerNetCents: 0,
+      transactionId: sellerTransactionId(orderId, productId),
+      payoutId: sellerPayoutId(orderId, productId),
+      status: 'SKIPPED_ZERO',
+      transferId: null,
+      error: 'HC_ONLY_CONNECT_FORBIDDEN',
+    };
+  }
 
   const transactionId = sellerTransactionId(orderId, productId);
   const payoutId = sellerPayoutId(orderId, productId);

@@ -1474,6 +1474,12 @@ model Order {
   paymentEscrow          PaymentEscrow[]
   shippingLabels         ShippingLabel[]
   communityOrdersLinked  CommunityOrder[]
+  hcSettlementExposures  MarketplaceHcSettlementExposure[]
+  paymentMethod          OrderPaymentMethod               @default(EUR_STRIPE)
+  hcReservationId        String?
+  hcCapturedHc           Int?
+  hcPaymentPhase         HcPaymentPhase?
+  buyerCentralUserId     String?
 }
 
 model StockReservation {
@@ -2488,6 +2494,57 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+}
+
+enum OrderPaymentMethod {
+  EUR_STRIPE
+  HC_ONLY
+  MIXED_HC_EUR
+}
+
+enum HcPaymentPhase {
+  HC_RESERVED
+  ORDER_ACCEPTED
+  HC_CAPTURED
+  SETTLEMENT_EARNED
+  RELEASED
+  FAILED
+}
+
+enum MarketplaceHcSettlementStatus {
+  PENDING
+  EARNED
+  VOID
+  REVERSED
+}
+
+enum MarketplaceHcSettlementSource {
+  HOMECHEFF_TREASURY
+  ORGANIZATION_PROGRAM
+}
+
+model MarketplaceHcSettlementExposure {
+  id                         String                        @id @default(uuid())
+  orderId                    String
+  order                      Order                         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sellerUserId               String
+  buyerCentralUserId         String
+  hcCaptured                 Int
+  hcFaceValueCents           Int
+  grossOrderCents            Int
+  sellerTier                 String                        @default("individual")
+  theoreticalPlatformFeeCents Int
+  platformFeePolicy          String                        @default("THEORETICAL_POLICY_PENDING")
+  sellerGrossEntitlementCents Int
+  sellerNetExposureCents     Int
+  settlementSource           MarketplaceHcSettlementSource @default(HOMECHEFF_TREASURY)
+  status                     MarketplaceHcSettlementStatus @default(PENDING)
+  createdAt                  DateTime                      @default(now())
+  updatedAt                  DateTime                      @updatedAt
+
+  @@unique([orderId])
+  @@index([sellerUserId])
+  @@index([status])
 }
 
 enum ConversationContextType {

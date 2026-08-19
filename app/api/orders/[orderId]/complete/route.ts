@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { sendReviewRequestEmail } from '@/lib/email';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { getPublicAppUrl } from '@/lib/public-app-url';
+import { fulfillHcOnlyOrderCapture } from '@/lib/hc/marketplace-hc-order-service';
+import { isHcOnlyOrder } from '@/lib/hc/marketplace-hc-settlement-exposure';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,6 +73,16 @@ export async function POST(
 
     if (!isBuyer && !isSeller) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    if (isHcOnlyOrder(order.paymentMethod)) {
+      const capture = await fulfillHcOnlyOrderCapture(orderId);
+      if (!capture.ok) {
+        return NextResponse.json(
+          { error: 'HC capture failed', code: capture.code, message: (capture as { message?: string }).message },
+          { status: 422 },
+        );
+      }
     }
 
     // Update order status to DELIVERED
