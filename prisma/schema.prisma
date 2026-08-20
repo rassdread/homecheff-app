@@ -2516,8 +2516,23 @@ enum HcPaymentPhase {
 enum MarketplaceHcSettlementStatus {
   PENDING
   EARNED
+  PAYOUT_PENDING
+  PAID
+  PAYOUT_FAILED_RETRYABLE
+  PAYOUT_BLOCKED
   VOID
   REVERSED
+}
+
+enum MarketplaceHcSellerPayoutAttemptStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum MarketplaceHcSellerPayoutProvider {
+  STRIPE_CONNECT
+  MANUAL
 }
 
 enum MarketplaceHcSettlementSource {
@@ -2545,12 +2560,42 @@ model MarketplaceHcSettlementExposure {
   programId                  String?
   calculationVersion         String?
   effectiveSellerFeeBps      Int?
+  /** Immutable payable basis; defaults to sellerNetExposureCents when null. */
+  payableAmountCents         Int?
+  payoutProvider             MarketplaceHcSellerPayoutProvider?
+  payoutReference            String?
+  payoutIdempotencyKey       String?                       @unique
+  payoutAttemptedAt          DateTime?
+  paidAt                     DateTime?
+  lastPayoutErrorCode        String?
+  payoutCalculationVersion   String?
+  payoutAttempts             MarketplaceHcSellerPayoutAttempt[]
   createdAt                  DateTime                      @default(now())
   updatedAt                  DateTime                      @updatedAt
 
   @@unique([orderId])
   @@index([sellerUserId])
   @@index([status])
+}
+
+model MarketplaceHcSellerPayoutAttempt {
+  id                   String                              @id @default(uuid())
+  exposureId           String
+  exposure             MarketplaceHcSettlementExposure       @relation(fields: [exposureId], references: [id], onDelete: Cascade)
+  attemptNumber        Int
+  amountCents          Int
+  status               MarketplaceHcSellerPayoutAttemptStatus @default(PENDING)
+  idempotencyKey       String                              @unique
+  provider             MarketplaceHcSellerPayoutProvider   @default(STRIPE_CONNECT)
+  providerTransferRef  String?
+  destinationAccountId String?
+  errorCode            String?
+  metadata             Json?
+  createdAt            DateTime                            @default(now())
+  completedAt          DateTime?
+
+  @@index([exposureId])
+  @@unique([exposureId, attemptNumber])
 }
 
 enum ConversationContextType {

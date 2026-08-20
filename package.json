@@ -25,6 +25,7 @@
     "lint": "eslint",
     "test:px4-studio-context": "npx tsx --test lib/studio/px4-source-context.test.ts",
     "test:marketplace-hc-fee-snapshot": "npx tsx --test lib/hc/marketplace-hc-fee-snapshot.test.ts",
+    "test:hc-seller-payout-engine": "npx tsx --test lib/hc/seller-payout/seller-payout-engine.test.ts",
     "test:px4a-item-handoff": "npx tsx --test lib/studio/px4a-item-handoff.test.ts lib/studio/px4a-item-form-draft.test.ts lib/studio/px4a-export-attach.test.ts",
     "smoke-check": "node scripts/smoke-check.mjs",
     "validate:legal-0-integrity": "npx tsx scripts/validate-legal-0-integrity.ts",
