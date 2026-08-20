@@ -1,0 +1,11 @@
+{
+  "asOf": "2026-08-20T01:22:05.101Z",
+  "method": "prisma db execute additive SQL + prisma migrate resolve --applied (not migrate deploy)",
+  "checksum": "28db9102efc874c37c218e9d8591293332bfe3ceeeb0c120e4b22dd40dc7cf0c",
+  "forensic": {
+    "additiveOnly": true
+  },
+  "executeStdout": "Script executed successfully.\n\n",
+    "resolveStdout": "Prisma schema loaded from prisma/schema.prisma\nDatasource marked as applied: 20260820140000_order_hc_fee_snapshot\n",
+  "ok": true
+}

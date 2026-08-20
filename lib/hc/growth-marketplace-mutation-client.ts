@@ -27,6 +27,16 @@ function internalSecret(): string | null {
 }
 
 async function postGrowth<T>(path: string, body: unknown): Promise<T | null> {
+  const res = await postGrowthRaw<T>(path, body);
+  if (!res) return null;
+  if (!res.ok) return null;
+  return res.data;
+}
+
+async function postGrowthRaw<T>(
+  path: string,
+  body: unknown,
+): Promise<{ ok: boolean; status: number; data: T } | null> {
   const base = growthBaseUrl();
   const secret = internalSecret();
   if (!base || !secret) return null;
@@ -40,8 +50,13 @@ async function postGrowth<T>(path: string, body: unknown): Promise<T | null> {
     body: JSON.stringify(body),
     cache: 'no-store',
   });
-  if (!res.ok) return null;
-  return (await res.json()) as T;
+  let data: T;
+  try {
+    data = (await res.json()) as T;
+  } catch {
+    return null;
+  }
+  return { ok: res.ok, status: res.status, data };
 }
 
 export async function growthReserveMarketplaceHc(input: {
@@ -78,6 +93,59 @@ export async function growthReleaseMarketplaceHc(input: {
   reason: GrowthReleaseReason;
 }): Promise<{ ok: true; duplicate: boolean; releasedHc: number } | { ok: false; code: string; message: string } | null> {
   return postGrowth('/api/internal/marketplace/hc/release', input);
+}
+
+export type GrowthFeeSnapshotResponse = {
+  ok: boolean;
+  code?: string;
+  message?: string;
+  engineLive?: boolean;
+  path?: 'SNAPSHOT_PRESENT' | 'LEGACY_NO_SNAPSHOT';
+  duplicate?: boolean;
+  fee?: {
+    baseSellerFeeBps: number;
+    effectiveSellerFeeBps: number;
+    feeSourceType: string;
+    programId: string | null;
+    calculationVersion: string;
+    reason: string;
+  };
+  snapshot?: {
+    orderId: string;
+    sellerCentralUserId: string;
+    orderTotalCents: number;
+    baseSellerFeeBps: number;
+    effectiveSellerFeeBps: number;
+    platformFeeCents: number;
+    sellerNetExposureCents: number;
+    feeSourceType: string;
+    programId: string | null;
+    programName: string | null;
+    programSlug: string | null;
+    calculationVersion: string;
+    paymentMethod: string;
+  } | null;
+};
+
+export async function growthResolveMarketplaceFeeSnapshot(input: {
+  orderId: string;
+  sellerCentralUserId: string;
+  orderTotalCents: number;
+  paymentMethod: 'HC_ONLY' | 'EUR_STRIPE' | 'MIXED_HC_EUR' | 'MEAL_CREDIT';
+  categoryKey: string;
+  geographyKey: string;
+  persist: boolean;
+}): Promise<GrowthFeeSnapshotResponse | { ok: false; code: 'GROWTH_UNAVAILABLE' } | null> {
+  const res = await postGrowthRaw<GrowthFeeSnapshotResponse>('/api/internal/marketplace/hc/fee-snapshot', {
+    action: 'resolve',
+    ...input,
+  });
+  if (!res) return { ok: false, code: 'GROWTH_UNAVAILABLE' };
+  return res.data;
+}
+
+export async function growthRollbackMarketplaceFeeSnapshot(orderId: string): Promise<void> {
+  await postGrowthRaw('/api/internal/marketplace/hc/fee-snapshot', { action: 'rollback', orderId });
 }
 
 export { fetchGrowthMarketplaceHcQuote } from '@/lib/hc/growth-marketplace-quote-client';

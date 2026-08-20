@@ -1480,6 +1480,8 @@ model Order {
   hcCapturedHc           Int?
   hcPaymentPhase         HcPaymentPhase?
   buyerCentralUserId     String?
+  /// Immutable Growth MarketplaceOrderFeeSnapshot copy. Null = LEGACY_NO_SNAPSHOT.
+  hcFeeSnapshot          Json?
 }
 
 model StockReservation {
@@ -2539,6 +2541,10 @@ model MarketplaceHcSettlementExposure {
   sellerNetExposureCents     Int
   settlementSource           MarketplaceHcSettlementSource @default(HOMECHEFF_TREASURY)
   status                     MarketplaceHcSettlementStatus @default(PENDING)
+  feeSourceType              String?
+  programId                  String?
+  calculationVersion         String?
+  effectiveSellerFeeBps      Int?
   createdAt                  DateTime                      @default(now())
   updatedAt                  DateTime                      @updatedAt
 

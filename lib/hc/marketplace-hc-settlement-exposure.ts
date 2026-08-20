@@ -1,7 +1,13 @@
 import { prisma } from '@/lib/prisma';
 import { resolvePlatformFeeBps } from '@/lib/payments/seller-settlement';
+import {
+  exposureFromLegacyBps,
+  exposureFromSnapshot,
+  parseStoredHcFeeSnapshot,
+  type MarketplaceOrderFeeSnapshotDto,
+} from '@/lib/hc/marketplace-order-fee-snapshot';
 
-const HC_FACE_CENTS_PER_HC = 1;
+export { parseStoredHcFeeSnapshot };
 
 export type SettlementExposureInput = {
   orderId: string;
@@ -9,24 +15,23 @@ export type SettlementExposureInput = {
   buyerCentralUserId: string;
   hcCaptured: number;
   grossOrderCents: number;
+  feeSnapshot?: MarketplaceOrderFeeSnapshotDto | null;
 };
 
 export async function computeTheoreticalSettlementExposure(input: SettlementExposureInput) {
+  if (input.feeSnapshot) {
+    return exposureFromSnapshot({
+      hcCaptured: input.hcCaptured,
+      grossOrderCents: input.grossOrderCents,
+      snapshot: input.feeSnapshot,
+    });
+  }
   const platformFeeBps = await resolvePlatformFeeBps(input.sellerUserId);
-  const theoreticalPlatformFeeCents = Math.round((input.grossOrderCents * platformFeeBps) / 10_000);
-  const sellerGrossEntitlementCents = Math.max(0, input.grossOrderCents - theoreticalPlatformFeeCents);
-  const hcFaceValueCents = input.hcCaptured * HC_FACE_CENTS_PER_HC;
-  const sellerNetExposureCents = Math.max(0, sellerGrossEntitlementCents);
-
-  return {
-    hcFaceValueCents,
-    theoreticalPlatformFeeCents,
-    sellerGrossEntitlementCents,
-    sellerNetExposureCents,
+  return exposureFromLegacyBps({
+    hcCaptured: input.hcCaptured,
+    grossOrderCents: input.grossOrderCents,
     platformFeeBps,
-    settlementSource: 'HOMECHEFF_TREASURY' as const,
-    platformFeePolicy: 'THEORETICAL_POLICY_PENDING',
-  };
+  });
 }
 
 export async function createSettlementExposurePending(input: SettlementExposureInput) {
@@ -47,6 +52,10 @@ export async function createSettlementExposurePending(input: SettlementExposureI
       sellerNetExposureCents: calc.sellerNetExposureCents,
       settlementSource: calc.settlementSource,
       status: 'PENDING',
+      feeSourceType: calc.feeSourceType,
+      programId: calc.programId,
+      calculationVersion: calc.calculationVersion,
+      effectiveSellerFeeBps: calc.platformFeeBps,
     },
     update: {},
   });

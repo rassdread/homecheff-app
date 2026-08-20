@@ -4,12 +4,15 @@ import {
   growthCaptureMarketplaceHc,
   growthReleaseMarketplaceHc,
   growthReserveMarketplaceHc,
+  growthResolveMarketplaceFeeSnapshot,
+  growthRollbackMarketplaceFeeSnapshot,
   type TrustedOrderPayload,
 } from '@/lib/hc/growth-marketplace-mutation-client';
 import { assertMarketplaceHcOnlyCheckoutAllowed } from '@/lib/hc/marketplace-hc-pilot-gate';
 import {
   createSettlementExposurePending,
   markSettlementExposureEarned,
+  parseStoredHcFeeSnapshot,
   voidSettlementExposure,
 } from '@/lib/hc/marketplace-hc-settlement-exposure';
 
@@ -142,6 +145,38 @@ export async function createHcOnlyOrderWithReserve(ctx: ResolvedHcCheckoutContex
     return { ok: false as const, code: reserve.code, message: reserve.message };
   }
 
+  const fee = await growthResolveMarketplaceFeeSnapshot({
+    orderId: ctx.trustedOrder.orderId,
+    sellerCentralUserId: ctx.trustedOrder.sellerCentralUserId,
+    orderTotalCents: ctx.orderTotalCents,
+    paymentMethod: 'HC_ONLY',
+    categoryKey: ctx.trustedOrder.categoryKey,
+    geographyKey: ctx.trustedOrder.geographyKey,
+    persist: true,
+  });
+
+  if (fee && fee.ok === false && fee.code !== 'GROWTH_UNAVAILABLE') {
+    await growthReleaseMarketplaceHc({
+      centralUserId: ctx.centralUserId,
+      orderId: ctx.trustedOrder.orderId,
+      reservationId: reserve.reservationId,
+      reason: 'ORDER_CREATE_FAILED',
+    });
+    return { ok: false as const, code: fee.code ?? 'FEE_RESOLUTION_FAILED', message: fee.message ?? 'Fee resolution failed.' };
+  }
+
+  if (fee?.engineLive && (!fee.ok || !fee.snapshot)) {
+    await growthReleaseMarketplaceHc({
+      centralUserId: ctx.centralUserId,
+      orderId: ctx.trustedOrder.orderId,
+      reservationId: reserve.reservationId,
+      reason: 'ORDER_CREATE_FAILED',
+    });
+    return { ok: false as const, code: 'FEE_RESOLUTION_FAILED', message: 'Seller-program fee engine live but snapshot missing.' };
+  }
+
+  const hcFeeSnapshot = fee?.ok && fee.engineLive && fee.snapshot ? fee.snapshot : undefined;
+
   try {
     const order = await prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
@@ -160,6 +195,7 @@ export async function createHcOnlyOrderWithReserve(ctx: ResolvedHcCheckoutContex
           hcPaymentPhase: 'HC_RESERVED',
           buyerCentralUserId: ctx.centralUserId,
           platformFeeCollected: false,
+          hcFeeSnapshot,
         },
       });
       await tx.orderItem.create({
@@ -182,6 +218,7 @@ export async function createHcOnlyOrderWithReserve(ctx: ResolvedHcCheckoutContex
       remainingEurCents: 0,
     };
   } catch (e) {
+    await growthRollbackMarketplaceFeeSnapshot(ctx.trustedOrder.orderId);
     await growthReleaseMarketplaceHc({
       centralUserId: ctx.centralUserId,
       orderId: ctx.trustedOrder.orderId,
@@ -283,6 +320,7 @@ export async function fulfillHcOnlyOrderCapture(orderId: string) {
     buyerCentralUserId: order.buyerCentralUserId,
     hcCaptured: capture.capturedHc,
     grossOrderCents: order.totalAmount,
+    feeSnapshot: parseStoredHcFeeSnapshot(order.hcFeeSnapshot),
   });
   await markSettlementExposureEarned(orderId);
 

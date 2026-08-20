@@ -8,6 +8,7 @@ import {
   createHcOnlyOrderWithReserve,
   resolveHcOnlyCheckoutContext,
 } from '@/lib/hc/marketplace-hc-order-service';
+import { stripSpoofedFeeFields } from '@/lib/hc/marketplace-order-fee-snapshot';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     const checkoutBlock = assertAccountRequirementsOr403(buyer, 'postItem');
     if (checkoutBlock) return checkoutBlock;
 
-    const body = await req.json();
+    const body = stripSpoofedFeeFields((await req.json()) as Record<string, unknown>);
     const items = body?.items as Array<{ productId: string; quantity: number }> | undefined;
     if (!items?.length) {
       return NextResponse.json({ ok: false, code: 'NO_ITEMS' }, { status: 400, headers: NO_STORE });
