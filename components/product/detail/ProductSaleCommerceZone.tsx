@@ -214,9 +214,9 @@ export default function ProductSaleCommerceZone({
       </div>
 
       <div data-detail-section="person_row">
-        <h1 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
+        <h2 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
           {product.title}
-        </h1>
+        </h2>
       </div>
 
       <div>

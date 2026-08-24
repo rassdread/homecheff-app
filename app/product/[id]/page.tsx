@@ -58,5 +58,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   // Inactive public products: still show controlled unavailable via client if needed;
   // feed only surfaces active. Keep payload for owners/deep links.
-  return <ListingDetailPage initialData={initialData} />;
+  return (
+    <>
+      <h1 className="sr-only">{product?.title ?? ''}</h1>
+      <ListingDetailPage initialData={initialData} />
+    </>
+  );
 }

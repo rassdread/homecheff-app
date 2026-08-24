@@ -209,6 +209,8 @@ export default async function ProductLayout({
         description: product.description || '',
         imageUrl,
         price,
+        priceModel: product.priceModel,
+        priceCents: product.priceCents,
         productUrl,
         sellerName: sellerName || PUBLIC_DISPLAY_FALLBACK,
         sellerUsername: username,

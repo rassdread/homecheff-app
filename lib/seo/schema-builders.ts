@@ -321,6 +321,8 @@ export type ListingSchemaInput = {
   description: string;
   imageUrl: string;
   price: string;
+  priceModel?: string | null;
+  priceCents?: number | null;
   productUrl: string;
   sellerName: string;
   sellerUsername?: string | null;
@@ -336,6 +338,15 @@ export type ListingSchemaInput = {
     buyerName?: string | null;
   }>;
 };
+
+function listingOfferHasPublicPrice(input: ListingSchemaInput): boolean {
+  const model = String(input.priceModel ?? 'FIXED').trim().toUpperCase();
+  if (model === 'ON_REQUEST' || model === 'VOLUNTARY') return false;
+  const cents = input.priceCents;
+  if (cents == null || cents <= 0) return false;
+  const parsed = Number.parseFloat(input.price);
+  return Number.isFinite(parsed) && parsed > 0;
+}
 
 export function buildListingJsonLd(
   input: ListingSchemaInput,
@@ -367,12 +378,14 @@ export function buildListingJsonLd(
 
   const offer: Record<string, unknown> = {
     '@type': 'Offer',
-    price: input.price,
-    priceCurrency: 'EUR',
     availability,
     url: input.productUrl,
     seller: sellerPerson,
   };
+  if (listingOfferHasPublicPrice(input)) {
+    offer.price = input.price;
+    offer.priceCurrency = 'EUR';
+  }
 
   if (isService) {
     return {
@@ -385,7 +398,7 @@ export function buildListingJsonLd(
       areaServed: input.city
         ? { '@type': 'Place', name: input.city }
         : undefined,
-      offers: offer,
+      ...(listingOfferHasPublicPrice(input) ? { offers: offer } : {}),
       ...(input.averageRating &&
         input.reviewCount > 0 && {
           aggregateRating: {
@@ -405,7 +418,7 @@ export function buildListingJsonLd(
     image: input.imageUrl,
     brand: { '@type': 'Brand', name: input.sellerName },
     seller: sellerPerson,
-    offers: offer,
+    ...(listingOfferHasPublicPrice(input) ? { offers: offer } : {}),
     ...(input.averageRating &&
       input.reviewCount > 0 && {
         aggregateRating: {

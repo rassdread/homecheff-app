@@ -57,7 +57,10 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [...PRIVATE_DISALLOW],
       })),
     ],
-    sitemap: 'https://homecheff.eu/sitemap.xml',
+    sitemap: [
+      'https://homecheff.eu/sitemap.xml',
+      'https://homecheff.eu/sitemap-products.xml',
+    ],
     host: 'https://homecheff.eu',
   };
 }

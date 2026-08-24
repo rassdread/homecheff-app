@@ -1,9 +1,10 @@
-import { buildSitemapXmlDocument } from "@/lib/seo/sitemapXml";
+import { buildSitemapXmlDocumentAsync } from "@/lib/seo/sitemapXml";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export async function GET() {
-  const xml = buildSitemapXmlDocument(new Date());
+  const xml = await buildSitemapXmlDocumentAsync(new Date());
   return new Response(xml, {
     status: 200,
     headers: {
