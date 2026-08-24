@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import Logo from '@/components/Logo';
-import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp, ShieldAlert, Users, Scroll, Library, BarChart3, Scale } from 'lucide-react';
+import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp, ShieldAlert, Users, Scroll, Library, BarChart3, Scale, Compass, Palette, Rocket } from 'lucide-react';
 import { COMMUNITY_GUIDELINES_URL, SAFETY_STANDARDS_URL } from '@/lib/legal/policy-urls';
 import { isCompactMobileFooterPath } from '@/lib/layout/compactFooterRoutes';
 import { formatLegalOperatorRegistryLine } from '@/lib/seo/legal-operator-display';
@@ -24,7 +24,11 @@ export default function Footer() {
   }
 
   const links = [
+    { href: '/ecosystem', label: t('siteFooter.ecosystem'), icon: Compass },
+    { href: '/studio', label: t('siteFooter.studio'), icon: Palette },
+    { href: '/growth', label: t('siteFooter.growth'), icon: Rocket },
     { href: '/affiliate', label: t('siteFooter.affiliateProgram'), icon: TrendingUp },
+    { href: '/over-ons', label: t('siteFooter.overOns'), icon: Info },
     { href: '/docs', label: t('siteFooter.openDocs'), icon: Library },
     { href: '/evidence', label: t('siteFooter.evidence'), icon: BarChart3 },
     { href: '/seo-hub', label: t('siteFooter.seoHub'), icon: BookOpen },
@@ -33,7 +37,6 @@ export default function Footer() {
     { href: COMMUNITY_GUIDELINES_URL, label: t('siteFooter.communityGuidelines'), icon: Users },
     { href: SAFETY_STANDARDS_URL, label: t('siteFooter.safety'), icon: ShieldAlert },
     { href: '/contact', label: t('siteFooter.contact'), icon: Mail },
-    { href: '/over-ons', label: t('siteFooter.overOns'), icon: Info },
     { href: '/constitution', label: t('siteFooter.constitution'), icon: Scale },
     { href: '/manifest', label: t('siteFooter.manifest'), icon: Scroll },
     { href: '/faq', label: t('siteFooter.faq'), icon: HelpCircle },

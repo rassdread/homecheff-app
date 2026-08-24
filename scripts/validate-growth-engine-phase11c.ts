@@ -87,7 +87,7 @@ assert(exists('lib/seo/homecheffSeoPages.data.ts'), 'SEO landing data');
 assert(exists('app/seo-hub/page.tsx'), 'SEO hub');
 assert(read('lib/seo/localCities.ts').includes("slug: 'vlaardingen'"), 'pilot city Vlaardingen in SEO');
 const sitemap = read('lib/seo/sitemapXml.ts');
-assert(!sitemap.includes('"/growth"'), 'sitemap: no broken /growth');
+assert(sitemap.includes('"/growth"'), 'sitemap: parent-domain /growth landing (SEO 1)');
 assert(sitemap.includes('"/affiliate"'), 'sitemap: affiliate');
 assert(exists('app/welkom/[code]/page.tsx'), 'referral welkom route');
 assert(exists('components/affiliate/AffiliateQuickShareModal.tsx'), 'affiliate QR share');

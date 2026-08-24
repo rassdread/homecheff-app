@@ -60,24 +60,31 @@ test('stable entity IDs', () => {
 
 test('root JSON-LD graph is consistent and parseable', () => {
   const graph = buildRootEntityGraphJsonLd('https://homecheff.eu', 'nl');
-  assert.equal(graph.length, 4);
+  assert.equal(graph.length, 8);
   const ids = graph.map((n) => n['@id']);
   assert.deepEqual(ids, [
     'https://homecheff.eu/#organization',
     'https://homecheff.eu/#legal-operator',
     'https://homecheff.eu/#website',
     'https://homecheff.eu/#platform',
+    'https://homecheff.eu/#marketplace',
+    'https://studio.homecheff.eu/#app',
+    'https://growth.homecheff.eu/#app',
+    'https://homecheff.eu/#affiliate',
   ]);
   for (const node of graph) {
     JSON.parse(JSON.stringify(node));
   }
   assert.ok(VERIFIED_SAME_AS.includes('https://homecheff.eu'));
-  assert.ok(entityGraphBrief().includes('verticals:'));
+  assert.ok(entityGraphBrief().includes('marketplace:'));
+  assert.ok(entityGraphBrief().includes('studio:'));
+  assert.ok(entityGraphBrief().includes('growth:'));
 });
 
 test('robots disallows private chrome and allows AI agents', () => {
   const r = robots();
-  assert.equal(r.sitemap, 'https://homecheff.eu/sitemap.xml');
+  const sitemaps = Array.isArray(r.sitemap) ? r.sitemap : [r.sitemap];
+  assert.ok(sitemaps.includes('https://homecheff.eu/sitemap.xml'));
   assert.equal(r.host, 'https://homecheff.eu');
   const rules = Array.isArray(r.rules) ? r.rules : [r.rules];
   const star = rules.find((x) => x?.userAgent === '*');

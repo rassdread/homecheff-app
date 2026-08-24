@@ -87,6 +87,17 @@ export default function AffiliateGrowthLanding({
         />
 
         {/* Hero — scan in seconds */}
+        <section className="mb-4 rounded-2xl border border-emerald-100/80 bg-emerald-50/50 px-4 py-4 sm:px-5">
+          <h2 className="text-sm font-bold text-emerald-950">{t('affiliate.growth.ecosystemBandTitle')}</h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{t('affiliate.growth.ecosystemBandBody')}</p>
+          <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-emerald-900" aria-label={t('affiliate.growth.ecosystemBandTitle')}>
+            <Link href="/" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkMarketplace')}</Link>
+            <Link href="/studio" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkStudio')}</Link>
+            <Link href="/growth" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkGrowth')}</Link>
+            <Link href="/ecosystem" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkEcosystem')}</Link>
+          </nav>
+        </section>
+
         <section className="relative overflow-hidden rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/80 px-4 py-7 shadow-sm sm:px-7 sm:py-8">
           <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-200/25 blur-2xl" aria-hidden />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-800/90">

@@ -79,6 +79,22 @@ ${ENTITY_STANCE.en.map((x) => `- ${x}`).join('\n')}
 
 People nearby cook, grow, make, repair, design, teach, help, trade, serve and share — with the person behind the offer visible. Unique craftsmanship and specialised services may naturally reach beyond the neighbourhood while preserving local-first.
 
+## Ecosystem (parent brand + layers)
+
+HomeCheff is the parent ecosystem brand. Philosophy: “Everyone gets a seat at the table.” / “Iedereen eet mee.”
+
+Participation loop: CREATE → SELL → GROW → PROMOTE → EARN → REPEAT.
+
+- Marketplace (SELL / discover): https://homecheff.eu/ — self-made products, personal services, creative work (not ordinary second-hand resale). Marketplace verticals include HomeCheff (food), HomeGarden, and HomeDesigner within the same brand.
+- Studio (CREATE): https://studio.homecheff.eu/ — parent-brand explanation: https://homecheff.eu/studio
+- Growth (GROW): https://growth.homecheff.eu/ — parent-brand explanation: https://homecheff.eu/growth
+- Affiliate / Partner (PROMOTE): https://homecheff.eu/affiliate — ecosystem-wide where the partner programme supports it; exact commissions only in applicable terms; no guaranteed income
+- Ecosystem overview: https://homecheff.eu/ecosystem
+
+Legal operator: Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). HomeCheff is the brand — not “HomeCheff B.V.”
+
+Stable schema @ids: https://homecheff.eu/#organization ; https://homecheff.eu/#website ; https://homecheff.eu/#platform ; https://studio.homecheff.eu/#app ; https://growth.homecheff.eu/#app ; https://homecheff.eu/#affiliate
+
 ## What HomeCheff is NOT
 
 ${ENTITY_IS_NOT.en.map((x) => `- ${x}`).join('\n')}
@@ -341,6 +357,25 @@ identity: ${CANONICAL_ENTITY_DESCRIPTION.en}
 entity_id: https://homecheff.eu/#organization
 website_id: https://homecheff.eu/#website
 legal_operator_id: https://homecheff.eu/#legal-operator
+platform_id: https://homecheff.eu/#platform
+marketplace_id: https://homecheff.eu/#marketplace
+studio_app_id: https://studio.homecheff.eu/#app
+growth_app_id: https://growth.homecheff.eu/#app
+affiliate_id: https://homecheff.eu/#affiliate
+
+ecosystem:
+  slogan_nl: Iedereen eet mee.
+  slogan_en: Everyone gets a seat at the table.
+  loop: CREATE → SELL → GROW → PROMOTE → EARN → REPEAT
+  overview: https://homecheff.eu/ecosystem
+  marketplace: https://homecheff.eu/
+  studio_app: https://studio.homecheff.eu/
+  studio_parent_landing: https://homecheff.eu/studio
+  growth_app: https://growth.homecheff.eu/
+  growth_parent_landing: https://homecheff.eu/growth
+  affiliate: https://homecheff.eu/affiliate
+  legal_operator: Arrias Beheer B.V.
+  note: Affiliate is ecosystem-wide where supported; no guaranteed income; no invented commissions.
 
 brand:
   spelling: HomeCheff

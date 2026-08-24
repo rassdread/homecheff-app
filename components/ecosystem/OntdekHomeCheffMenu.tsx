@@ -8,6 +8,7 @@ import {
   ECOSYSTEM_PANEL_HEADING,
   ECOSYSTEM_PANEL_SUPPORT,
   ECOSYSTEM_PRODUCTS,
+  ecosystemProductHref,
   type EcosystemNavSurface,
   type EcosystemProductId,
 } from "@/lib/ecosystem-navigation/contract";
@@ -169,7 +170,7 @@ export function OntdekHomeCheffMenu({
             return (
               <li key={product.id}>
                 <a
-                  href={product.href}
+                  href={ecosystemProductHref(product, surface)}
                   className="block rounded-lg px-3 py-2.5 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                   onClick={() => {
                     trackEcosystemProductClick({

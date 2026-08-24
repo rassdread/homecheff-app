@@ -1,5 +1,6 @@
 import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
 import { getPlatformDefinition, type PlatformLang } from './platform-definition';
+import { ECOSYSTEM_ENTITY_IDS, ECOSYSTEM_PUBLIC_URLS } from './ecosystem-participation';
 import {
   HOMECHEFF_BRAND_NAME,
   LEGAL_OPERATOR,
@@ -182,7 +183,94 @@ export function buildPlatformJsonLd(
   };
 }
 
-/** Root entity graph — Organization + legal operator + WebSite + platform. */
+/** Marketplace commerce surface — same brand, stable #marketplace @id. */
+export function buildMarketplaceJsonLd(
+  domain: string,
+  lang: PlatformLang,
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': ECOSYSTEM_ENTITY_IDS.marketplace,
+    name: 'HomeCheff Marketplace',
+    url: domain,
+    description:
+      lang === 'en'
+        ? 'Commerce and discovery layer for self-made products, personal services and creative work.'
+        : 'Commerce- en ontdekkingslaag voor zelfgemaakte producten, persoonlijke diensten en creatief werk.',
+    isPartOf: { '@id': websiteEntityId(domain) },
+    publisher: organizationPublisherRef(domain),
+    provider: organizationPublisherRef(domain),
+  };
+}
+
+/** Studio CREATE layer — canonical @id on studio subdomain. */
+export function buildStudioAppJsonLd(
+  domain: string,
+  lang: PlatformLang,
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    '@id': ECOSYSTEM_ENTITY_IDS.studioApp,
+    name: 'HomeCheff Studio',
+    applicationCategory: 'MultimediaApplication',
+    operatingSystem: 'Web',
+    url: ECOSYSTEM_PUBLIC_URLS.studioApp,
+    description:
+      lang === 'en'
+        ? 'CREATE layer of HomeCheff — promotional images, video and content for products, services and businesses.'
+        : 'CREATE-laag van HomeCheff — promotiebeelden, video en content voor producten, diensten en bedrijven.',
+    isPartOf: organizationPublisherRef(domain),
+    provider: organizationPublisherRef(domain),
+    publisher: organizationPublisherRef(domain),
+  };
+}
+
+/** Growth GROW layer — canonical @id on growth subdomain. */
+export function buildGrowthAppJsonLd(
+  domain: string,
+  lang: PlatformLang,
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    '@id': ECOSYSTEM_ENTITY_IDS.growthApp,
+    name: 'HomeCheff Growth',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    url: ECOSYSTEM_PUBLIC_URLS.growthApp,
+    description:
+      lang === 'en'
+        ? 'GROW layer of HomeCheff — discover and organize commercial opportunities and leads.'
+        : 'GROW-laag van HomeCheff — ontdek en organiseer commerciële kansen en leads.',
+    isPartOf: organizationPublisherRef(domain),
+    provider: organizationPublisherRef(domain),
+    publisher: organizationPublisherRef(domain),
+  };
+}
+
+/** Affiliate / partner participation — horizontal ecosystem layer. */
+export function buildAffiliateServiceJsonLd(
+  domain: string,
+  lang: PlatformLang,
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': ECOSYSTEM_ENTITY_IDS.affiliate,
+    name: 'HomeCheff Affiliate & Partner',
+    url: `${domain}/affiliate`,
+    description:
+      lang === 'en'
+        ? 'Cross-ecosystem promotion and referral participation where the partner programme supports it. Exact terms live in the applicable agreement — no guaranteed income.'
+        : 'Ecosysteem-brede promotie- en referraldeelname waar het partnerprogramma dat ondersteunt. Exacte voorwaarden staan in de toepasselijke overeenkomst — geen gegarandeerd inkomen.',
+    provider: organizationPublisherRef(domain),
+    areaServed: { '@type': 'Country', name: lang === 'en' ? 'Netherlands' : 'Nederland' },
+  };
+}
+
+/** Root entity graph — Organization + legal operator + WebSite + platform + ecosystem layers. */
 export function buildRootEntityGraphJsonLd(
   domain: string,
   lang: PlatformLang,
@@ -192,6 +280,10 @@ export function buildRootEntityGraphJsonLd(
     buildLegalOperatorJsonLd(domain),
     buildWebsiteJsonLd(domain, lang),
     buildPlatformJsonLd(domain, lang),
+    buildMarketplaceJsonLd(domain, lang),
+    buildStudioAppJsonLd(domain, lang),
+    buildGrowthAppJsonLd(domain, lang),
+    buildAffiliateServiceJsonLd(domain, lang),
   ];
 }
 

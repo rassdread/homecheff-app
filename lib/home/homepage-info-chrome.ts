@@ -44,6 +44,7 @@ export const HOMEPAGE_INFO_MORE_GROUPS: readonly HomepageInfoGroup[] = [
     titleKey: 'homepageInfo.groupAbout',
     links: [
       { id: 'over-ons', href: '/over-ons', labelKey: 'siteFooter.overOns' },
+      { id: 'ecosystem', href: '/ecosystem', labelKey: 'siteFooter.ecosystem' },
       { id: 'manifest', href: '/manifest', labelKey: 'siteFooter.manifest' },
       { id: 'faq', href: '/faq', labelKey: 'siteFooter.faq' },
       {
@@ -71,6 +72,8 @@ export const HOMEPAGE_INFO_MORE_GROUPS: readonly HomepageInfoGroup[] = [
     id: 'participate',
     titleKey: 'homepageInfo.groupParticipate',
     links: [
+      { id: 'studio', href: '/studio', labelKey: 'siteFooter.studio' },
+      { id: 'growth', href: '/growth', labelKey: 'siteFooter.growth' },
       {
         id: 'affiliate',
         href: '/affiliate',
@@ -102,6 +105,9 @@ export const HOMEPAGE_INFO_MORE_GROUPS: readonly HomepageInfoGroup[] = [
 
 const FOOTER_INVENTORY_HREFS = [
   '/affiliate',
+  '/ecosystem',
+  '/studio',
+  '/growth',
   '/docs',
   '/evidence',
   '/seo-hub',

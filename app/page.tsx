@@ -18,6 +18,8 @@ import {
 import { resolveIpApproxLocationForBrowse } from '@/lib/geo/ip-approx-location';
 import { countryOptionLabel } from '@/lib/geo/structured-location';
 import type { ServerIpApproxSeed } from '@/lib/geo/seeded-feed-location';
+import HomepageEcosystemSignal from '@/components/seo/HomepageEcosystemSignal';
+import { getCurrentLanguage } from '@/lib/seo/metadata';
 
 export const revalidate = 60;
 
@@ -132,6 +134,9 @@ export default async function HomePage({
     console.error('[HomePage] IP approx seed failed:', e);
   }
 
+  const lang = await getCurrentLanguage();
+  const signalLang = lang === 'en' ? 'en' : 'nl';
+
   return (
     <>
       {/* Overlap first /api/feed with critical JS download (IP/place seed only). */}
@@ -144,6 +149,7 @@ export default async function HomePage({
           }),
         }}
       />
+      <HomepageEcosystemSignal lang={signalLang} />
       <HomePageClient
         ssrAuthHint={ssrAuthHint}
         initialFeedChip={initialFeedChip}

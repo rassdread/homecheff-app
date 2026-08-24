@@ -6624,7 +6624,10 @@
     "affiliateProgram": "Affiliateprogramma",
     "feedback": "Feedback",
     "companyLine": "Arrias Beheer B.V. · KvK 80532829 · Vlaardingen · Contact via contactformulier",
-    "contactViaForm": "Contact via contactformulier"
+    "contactViaForm": "Contact via contactformulier",
+    "ecosystem": "Ecosysteem",
+    "studio": "Studio",
+    "growth": "Growth"
   },
   "homepageInfo": {
     "navAria": "Over HomeCheff",
@@ -7553,7 +7556,7 @@
     "subAffiliateNotAllowed": "Partners in een netwerk kunnen geen hoofd-partner worden",
     "subAffiliateNotAllowedDesc": "Je bent al gekoppeld als partner in een netwerk. Gebruik je partnerdashboard voor links, prestaties en uitbetalingen.",
     "growth": {
-      "heroEyebrow": "HomeCheff Growth",
+      "heroEyebrow": "HomeCheff-ecosysteem",
       "heroTitle": "Verdien mee met makers in jouw netwerk",
       "heroSubtitle": "Deel je link met creators, agencies en communities. Verdien op transacties en op zakelijke abonnementen via het standaardmodel (tot 12 maanden per actief abonnement).",
       "heroTrust": "",
@@ -7647,7 +7650,13 @@
       "faq11A": "HomeCheff als platform voor lokaal, thuisgemaakt en community-handel. Geen misleidende inkomensclaims, geen spam, en respecteer reclame- en platformregels.",
       "stickyCta": "Naar aanmelden",
       "alreadyPartnerTitle": "Je bent al affiliate-partner",
-      "alreadyPartnerBody": "Ga naar je dashboard voor links, promocodes, communitygroei en uitbetalingen."
+      "alreadyPartnerBody": "Ga naar je dashboard voor links, promocodes, communitygroei en uitbetalingen.",
+      "ecosystemBandTitle": "Affiliate over het hele ecosysteem",
+      "ecosystemBandBody": "Promotie en referral horen bij HomeCheff breed: Marketplace, Growth en Studio kunnen meedoen waar het actuele partnerprogramma dat toestaat. Exacte percentages en vensters staan in je overeenkomst — geen gegarandeerd inkomen.",
+      "ecosystemLinkMarketplace": "Marketplace",
+      "ecosystemLinkStudio": "Studio",
+      "ecosystemLinkGrowth": "Growth",
+      "ecosystemLinkEcosystem": "Bekijk het ecosysteem"
     }
   },
   "review": {

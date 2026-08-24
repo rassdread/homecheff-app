@@ -6090,7 +6090,10 @@
     "affiliateProgram": "Affiliate programme",
     "feedback": "Feedback",
     "companyLine": "Arrias Beheer B.V. · Chamber of Commerce 80532829 · Vlaardingen · Contact via contact form",
-    "contactViaForm": "Contact via contact form"
+    "contactViaForm": "Contact via contact form",
+    "ecosystem": "Ecosystem",
+    "studio": "Studio",
+    "growth": "Growth"
   },
   "homepageInfo": {
     "navAria": "About HomeCheff",
@@ -7553,7 +7556,7 @@
       "readyToStartDesc": "Become an affiliate and build recurring commission with your community over time, within your agreement."
     },
     "growth": {
-      "heroEyebrow": "HomeCheff Growth",
+      "heroEyebrow": "HomeCheff ecosystem",
       "heroTitle": "Earn with makers in your network",
       "heroSubtitle": "Share your link with creators, agencies, and communities. Earn on transactions and business subscriptions in the standard model (up to 12 months per active subscription).",
       "heroTrust": "",
@@ -7647,7 +7650,13 @@
       "faq11A": "HomeCheff as a platform for local, homemade, and community commerce. No misleading income claims, no spam, and respect advertising and platform rules.",
       "stickyCta": "Go to signup",
       "alreadyPartnerTitle": "You’re already an affiliate partner",
-      "alreadyPartnerBody": "Open your dashboard for links, promo codes, community growth, and payouts."
+      "alreadyPartnerBody": "Open your dashboard for links, promo codes, community growth, and payouts.",
+      "ecosystemBandTitle": "Affiliate across the ecosystem",
+      "ecosystemBandBody": "Promotion and referral belong to HomeCheff broadly: Marketplace, Growth and Studio can participate where the current partner programme allows. Exact percentages and windows live in your agreement — no guaranteed income.",
+      "ecosystemLinkMarketplace": "Marketplace",
+      "ecosystemLinkStudio": "Studio",
+      "ecosystemLinkGrowth": "Growth",
+      "ecosystemLinkEcosystem": "See the ecosystem"
     }
   },
   "review": {

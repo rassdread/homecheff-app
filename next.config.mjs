@@ -116,14 +116,12 @@ const nextConfig = {
     },
   },
   
-  // Redirects: typo-URL + apex /growth (SEO) → subsite op .homecheff.eu
+  // Redirects: typo affiliate URL. SEO 1 — apex /growth is a public parent landing (not a redirect).
   async redirects() {
     return [
       { source: '/aviliate', destination: '/affiliate', permanent: true },
       { source: '/aviliate/', destination: '/affiliate/', permanent: true },
       { source: '/aviliate/:path*', destination: '/affiliate/:path*', permanent: true },
-      { source: '/growth', destination: 'https://growth.homecheff.eu/', permanent: true },
-      { source: '/growth/', destination: 'https://growth.homecheff.eu/', permanent: true },
     ];
   },
 

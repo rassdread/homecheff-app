@@ -135,15 +135,22 @@ export const ORGANIZATION_KNOWS_ABOUT: Record<'nl' | 'en', string[]> = {
  * Official domains + verified public registry references.
  * Social profiles remain pending until consistently branded URLs are confirmed.
  */
+/**
+ * SEO 1 sameAs inventory (verified official only).
+ * - Apex + NL domain: brand properties
+ * - KvK registry search: legal operator evidence (Arrias Beheer B.V.)
+ * - LinkedIn company: official HomeCheff company page (also referenced by Studio schema)
+ * Do NOT add personal founder profiles or unverified directories.
+ */
 export const VERIFIED_SAME_AS = [
   'https://homecheff.eu',
   'https://homecheff.nl',
   'https://www.kvk.nl/zoeken/?q=80532829',
+  'https://www.linkedin.com/company/homecheff',
 ] as const;
 
 /** Documented for audits — not included in JSON-LD until verified. */
 export const PENDING_SAME_AS_VERIFICATION = [
-  'Official LinkedIn company page URL',
   'Official Instagram profile URL',
   'Official Facebook Page URL',
   'Official YouTube channel URL (if published)',
@@ -159,7 +166,8 @@ export const ORGANIZATION_OMITTED_FIELDS = {
   streetAddress: 'Only city (Vlaardingen) is published — no full street address.',
   founderBiography:
     'JSON-LD Person remains name/role/url only. Public knowledge at /sergio-arrias (no invented credentials). About avoids hero narrative.',
-  socialProfiles: 'No verified official sameAs URLs in codebase.',
+  socialProfiles:
+    'Only LinkedIn company page is verified in sameAs; other social URLs remain pending.',
   impactMetrics: 'No measured waste/loneliness metrics published.',
 } as const;
 

@@ -15,55 +15,38 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const keywordsEn = [
     'HomeCheff affiliate',
+    'HomeCheff partner',
+    'ecosystem affiliate',
+    'Marketplace Growth Studio',
     'affiliate programme',
-    'recurring commission',
-    'recurring income potential',
     'creator partnerships',
-    'long-term partnerships',
-    'creator economy',
-    'community commerce',
-    'recurring income',
-    'online income building',
-    'affiliate community',
-    'local makers affiliate',
+    'referral programme',
     'Stripe Connect payouts',
     'promo codes',
-    '12-12 programme',
-    'TikTok affiliate',
-    'Instagram referral',
   ];
 
   const keywordsNl = [
     'HomeCheff affiliate',
+    'HomeCheff partner',
+    'ecosysteem affiliate',
+    'Marketplace Growth Studio',
     'affiliate programma',
-    'terugkerende commissie',
-    'terugkerende inkomsten',
-    'recurring inkomsten',
     'creator partnerships',
-    'langdurige samenwerkingen',
-    'creator economy',
-    'community commerce',
-    'online inkomsten opbouwen',
-    'affiliate community',
-    'referral inkomsten',
-    'lokale creators',
+    'referral programma',
     'Stripe Connect uitbetaling',
     'promocodes',
-    '12-12 programma',
-    'TikTok promotie',
-    'Instagram referral',
   ];
 
   if (lang === 'en') {
     return {
-      title: 'Affiliate programme for creators & communities | HomeCheff',
+      title: 'Affiliate & partners across HomeCheff | Marketplace, Growth, Studio',
       description:
-        'Partner with HomeCheff: the first twelve months per active referred subscription are defined in the standard commission model; weekly Stripe payouts and tools for long-term creator and community partnerships.',
+        'Promote HomeCheff across the ecosystem where the partner programme supports it — Marketplace, Growth and Studio. Exact commissions live in your agreement; weekly Stripe payouts where applicable. No guaranteed income.',
       keywords: keywordsEn,
       openGraph: {
-        title: 'HomeCheff affiliate — creators & community growth',
+        title: 'HomeCheff affiliate — ecosystem-wide partners',
         description:
-          'Transparent affiliate terms: standard recurring commission window per active business, with room for partnership evolution over time — plus tools for creators, agencies, and communities.',
+          'Affiliate and referral participation across Marketplace, Growth and Studio where supported. Exact percentages live in the applicable agreement — no universal promise.',
         type: 'website',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
@@ -72,8 +55,9 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       twitter: {
         card: 'summary_large_image',
-        title: 'HomeCheff affiliate programme',
-        description: 'Recurring commission, long-term creator partnerships, Stripe payouts, and growth tools for communities.',
+        title: 'HomeCheff affiliate & partners',
+        description:
+          'Ecosystem-wide promotion and referral where supported. Terms in your agreement — no guaranteed income.',
       },
       alternates: {
         canonical: `${currentDomain}${path}`,
@@ -84,14 +68,14 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: 'Affiliateprogramma voor creators & communities | HomeCheff',
+    title: 'Affiliate & partners over HomeCheff | Marketplace, Growth, Studio',
     description:
-      'Partner met HomeCheff: de eerste twaalf maanden per actief aangebracht abonnement vallen binnen het standaard commissiemodel; wekelijkse Stripe-uitbetalingen en tools voor langdurige creator- en community-samenwerkingen.',
+      'Promoot HomeCheff over het ecosysteem waar het partnerprogramma dat toestaat — Marketplace, Growth en Studio. Exacte commissies staan in je overeenkomst; wekelijkse Stripe-uitbetalingen waar van toepassing. Geen gegarandeerd inkomen.',
     keywords: keywordsNl,
     openGraph: {
-      title: 'HomeCheff affiliate — growth voor creators & community',
+      title: 'HomeCheff affiliate — ecosysteem-brede partners',
       description:
-        'Heldere affiliate-voorwaarden: standaard terugkerend commissievenster per actief bedrijf, met ruimte voor evolutie van partnerships — plus tools voor creators, agencies en communities.',
+        'Affiliate- en referraldeelname over Marketplace, Growth en Studio waar ondersteund. Exacte percentages staan in de toepasselijke overeenkomst — geen universele belofte.',
       type: 'website',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
@@ -100,8 +84,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'HomeCheff affiliateprogramma',
-      description: 'Terugkerende commissie, langdurige creator partnerships, Stripe-uitbetalingen en schaalbare community tools.',
+      title: 'HomeCheff affiliate & partners',
+      description:
+        'Ecosysteem-brede promotie en referral waar ondersteund. Voorwaarden in je overeenkomst — geen gegarandeerd inkomen.',
     },
     alternates: {
       canonical: `${currentDomain}${path}`,
