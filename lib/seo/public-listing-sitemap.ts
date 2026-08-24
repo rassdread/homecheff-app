@@ -20,9 +20,11 @@ export function publicListingSitemapWhere() {
   return {
     isActive: true,
     ...productIntegrityPublicWhere(),
+    // Seller user not suspended/deleted (User has no isBlocked field).
     seller: {
       User: {
-        isBlocked: false,
+        suspendedAt: null,
+        accountDeletedAt: null,
       },
     },
   } as const;

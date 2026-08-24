@@ -44,6 +44,8 @@ describe('SEO 0 marketplace foundation', () => {
     const helper = read('lib/seo/public-listing-sitemap.ts');
     assert.match(helper, /productIntegrityPublicWhere/);
     assert.match(helper, /isActive:\s*true/);
+    assert.match(helper, /suspendedAt:\s*null/);
+    assert.match(helper, /accountDeletedAt:\s*null/);
   });
 
   it('LEGAL-0 known segments allow sitemap-products.xml through middleware', () => {
