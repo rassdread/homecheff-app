@@ -46,6 +46,12 @@ describe('SEO 0 marketplace foundation', () => {
     assert.match(helper, /isActive:\s*true/);
   });
 
+  it('LEGAL-0 known segments allow sitemap-products.xml through middleware', () => {
+    const known = read('lib/seo/known-root-path-segments.ts');
+    assert.match(known, /'sitemap-products\.xml'/);
+    assert.match(known, /'sitemap\.xml'/);
+  });
+
   it('listing schema omits misleading Offer price for on-request models', () => {
     const schema = read('lib/seo/schema-builders.ts');
     assert.match(schema, /listingOfferHasPublicPrice/);

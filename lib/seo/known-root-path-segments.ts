@@ -112,6 +112,7 @@ export const APP_FIRST_SEGMENTS = [
   'sergio-arrias',
   'settings',
   'sitemap.xml',
+  'sitemap-products.xml',
   'sms',
   'social-login-success',
   'statistics',
