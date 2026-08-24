@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import { notFound } from 'next/navigation';
 import {
   getCurrentDomain,
@@ -258,14 +257,14 @@ export default async function ProductLayout({
   return (
     <>
       {structuredData && (
-        <Script
+        <script
           id="product-structured-data"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       )}
       {breadcrumbData && (
-        <Script
+        <script
           id="product-breadcrumb-data"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
