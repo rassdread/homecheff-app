@@ -36,6 +36,12 @@ function resolveRequestHost(request: NextRequest): string {
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
+  if (pathname === '/my-homecheff') {
+    const target = request.nextUrl.clone();
+    target.pathname = '/mijn-homecheff';
+    return NextResponse.redirect(target, 308);
+  }
+
   // Phase 13T — block API mutations for suspended authenticated users (SSOT in user-suspend-middleware.ts)
   if (shouldBlockSuspendedMutation(pathname, request.method)) {
     // SP.2D-C7 — load jose/next-auth/jwt only when this path actually needs it.
