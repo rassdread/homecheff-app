@@ -3,11 +3,14 @@
  * Static navigation targets only; reuses existing routes and i18n keys.
  */
 
+import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
+
 /** Mijn omgeving — personal workspace links (logged-in). */
 export const HOME_DESKTOP_ENVIRONMENT_LINKS = [
+  { id: 'hub', href: MY_HOMECHEFF_HUB_PATH, labelKey: 'myHomeCheffHub.nav.hub' },
   { id: 'offers', href: '/profile?tab=aanbod', labelKey: 'home.desktop.myOffers' },
   { id: 'deals', href: '/profile/deals', labelKey: 'agreements.myAgreements' },
-  { id: 'orders', href: '/verkoper/orders', labelKey: 'roleQuickLinks.orders' },
+  { id: 'orders', href: '/orders', labelKey: 'myHomeCheffHub.nav.orders' },
   { id: 'messages', href: '/messages', labelKey: 'navbar.messages' },
   { id: 'favorites', href: '/favorites', labelKey: 'navbar.favorites' },
   { id: 'profile', href: '/profile?tab=overview', labelKey: 'navbar.myProfile' },

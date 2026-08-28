@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone, Download, Plus, Award, CalendarClock, Bell } from 'lucide-react';
+import { Home, User, LogOut, Menu, X, HelpCircle, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, Info, Smartphone, Download, Plus, Award, CalendarClock, Bell } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -23,13 +23,9 @@ import { devBadgeLog } from '@/lib/devBadgeLog';
 import { cn } from '@/lib/utils';
 import { navDebug } from '@/lib/nav-debug';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
-import { resolvePrimaryOperationsHref } from '@/lib/settings/settings-hub';
 import {
   ADMIN_WORKSPACE_HREF,
-  countEarningRoles,
-  primaryDashboardContextFromUser,
   userHasAdminWorkspace,
-  userHasEarningsHub,
 } from '@/lib/navigation/primary-dashboard';
 import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
 import { OntdekHomeCheffMenu } from '@/components/ecosystem/OntdekHomeCheffMenu';
@@ -38,23 +34,14 @@ import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
+import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
+import MyHomeCheffNavLinks from '@/components/my-homecheff/MyHomeCheffNavLinks';
 import {
   NAVBAR_CLOSE_MENU_EVENT,
   NAVBAR_TOGGLE_MENU_EVENT,
   publishNavbarMobileMenuOpen,
 } from '@/lib/nav/navbar-command-bus';
 import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
-
-function resolveNavDashboardHref(user: Record<string, unknown> | null | undefined): string | null {
-  if (!user) return null;
-  const href = resolvePrimaryOperationsHref({
-    role: user.role as string | undefined,
-    sellerRoles: (user.sellerRoles as string[] | undefined) ?? [],
-    hasDeliveryProfile: Boolean(user.hasDeliveryProfile),
-    hasAffiliate: Boolean(user.hasAffiliate),
-  });
-  return href === '/profile' ? null : href;
-}
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -220,13 +207,7 @@ export default function NavBar() {
   const navMenuUser = user
     ? ({ ...(user as Record<string, unknown>), ...(bootstrapProfile ?? {}) } as Record<string, unknown>)
     : null;
-  const dashboardHref = resolveNavDashboardHref(navMenuUser);
   const showAdminLink = userHasAdminWorkspace(navMenuUser);
-  const earningsHubCtx = primaryDashboardContextFromUser(navMenuUser);
-  const showCombinedEarningsLink =
-    earningsHubCtx != null &&
-    userHasEarningsHub(earningsHubCtx) &&
-    countEarningRoles(earningsHubCtx) >= 2;
 
   // Bereken dropdown-positie binnen viewport (niet buiten beeld)
   const updateDropdownPosition = () => {
@@ -495,15 +476,17 @@ export default function NavBar() {
               </Link>
             ) : null}
             <Link
-              href={user ? '/profile' : '/login'}
+              href={user ? MY_HOMECHEFF_HUB_PATH : '/login'}
               prefetch={false}
               className={desktopNavGhostClass}
               onClick={() =>
-                navDebug('navbar:desktop', { href: user ? '/profile' : '/login' })
+                navDebug('navbar:desktop', {
+                  href: user ? MY_HOMECHEFF_HUB_PATH : '/login',
+                })
               }
             >
               <User className={desktopNavIconClass} aria-hidden />
-              <span className="whitespace-nowrap">{t('bottomNav.profile')}</span>
+              <span className="whitespace-nowrap">{t('myHomeCheffHub.nav.hubShort')}</span>
             </Link>
 
             {/* lg+ desktop: replaces bottom nav tabs (tablet keeps bottom nav until lg). */}
@@ -693,7 +676,15 @@ export default function NavBar() {
                         maxHeight: typeof window !== 'undefined' ? `calc(100vh - ${dropdownPosition.top}px - 24px)` : 'none'
                       }}
                     >
-                      {/* Profile Link - Always goes to normal profile page */}
+                      <MyHomeCheffNavLinks
+                        user={navMenuUser}
+                        rowClassName="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onNavigate={() => setIsProfileDropdownOpen(false)}
+                      />
+
+                      <div className="border-t border-gray-100 my-2" />
+
+                      {/* Profile Link */}
                       {user ? (
                         <Link 
                           href="/profile" 
@@ -742,17 +733,6 @@ export default function NavBar() {
                         <span>{t('navbar.agreements')}</span>
                       </Link>
 
-                      {/* Bestellingen — buyer orders (UX-FIN-2.3) */}
-                      <Link
-                        href="/orders"
-                        prefetch={false}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <Package className="w-4 h-4" />
-                        <span>{t('navbar.orders')}</span>
-                      </Link>
-
                       {/* Favorieten (UX-FIN-2.2) */}
                       <Link
                         href="/favorites"
@@ -774,30 +754,6 @@ export default function NavBar() {
                         <span>{t('bottomNav.reputationTab')}</span>
                       </Link>
 
-                      {dashboardHref ? (
-                        <Link
-                          href={dashboardHref}
-                          prefetch={false}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-emerald-700 hover:bg-emerald-50 transition-colors"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          <LayoutGrid className="w-4 h-4" />
-                          <span>{t('navbar.dashboard') || 'Dashboard'}</span>
-                        </Link>
-                      ) : null}
-
-                      {showCombinedEarningsLink ? (
-                        <Link
-                          href="/verdiensten"
-                          prefetch={false}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          <TrendingUp className="w-4 h-4" />
-                          <span>{t('navbar.combinedEarnings')}</span>
-                        </Link>
-                      ) : null}
-
                       {showAdminLink ? (
                         <Link
                           href={ADMIN_WORKSPACE_HREF}
@@ -809,15 +765,6 @@ export default function NavBar() {
                           <span>{t('navbar.admin')}</span>
                         </Link>
                       ) : null}
-
-                      <Link
-                        href="/settings"
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span>{t('navigation.settings') || 'Instellingen'}</span>
-                      </Link>
 
                       <NavbarLegalContactLinks
                         variant="dropdown"
@@ -1065,7 +1012,19 @@ export default function NavBar() {
                     </span>
                   </div>
                   
-                  {/* Profile Link - Always goes to normal profile page */}
+                  <MyHomeCheffNavLinks
+                    user={navMenuUser}
+                    rowClassName={mobileNavRowClass}
+                    onNavigate={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { section: 'my-homecheff' });
+                    }}
+                    priorityOnly
+                  />
+
+                  <div className="border-t border-gray-200 my-2" />
+
+                  {/* Profile Link */}
                   {user ? (
                     <Link
                       href="/profile"
@@ -1125,20 +1084,6 @@ export default function NavBar() {
                     <span>{t('navbar.agreements')}</span>
                   </Link>
 
-                  {/* Bestellingen — buyer orders (UX-FIN-2.3) */}
-                  <Link
-                    href="/orders"
-                    prefetch={false}
-                    className={mobileNavRowClass}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/orders' });
-                    }}
-                  >
-                    <Package className="w-4 h-4 shrink-0" />
-                    <span>{t('navbar.orders')}</span>
-                  </Link>
-
                   {/* Favorieten (UX-FIN-2.2) */}
                   <Link
                     href="/favorites"
@@ -1167,36 +1112,6 @@ export default function NavBar() {
                     <span>{t('navbar.notifications')}</span>
                   </Link>
 
-                  {dashboardHref ? (
-                    <Link
-                      href={dashboardHref}
-                      prefetch={false}
-                      className={cn(mobileNavRowClass, 'text-emerald-700 hover:bg-emerald-50')}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: dashboardHref });
-                      }}
-                    >
-                      <LayoutGrid className="w-4 h-4 shrink-0" />
-                      <span>{t('navbar.dashboard') || 'Dashboard'}</span>
-                    </Link>
-                  ) : null}
-
-                  {showCombinedEarningsLink ? (
-                    <Link
-                      href="/verdiensten"
-                      prefetch={false}
-                      className={mobileNavRowClass}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: '/verdiensten' });
-                      }}
-                    >
-                      <TrendingUp className="w-4 h-4 shrink-0" />
-                      <span>{t('navbar.combinedEarnings')}</span>
-                    </Link>
-                  ) : null}
-
                   {showAdminLink ? (
                     <Link
                       href={ADMIN_WORKSPACE_HREF}
@@ -1211,19 +1126,6 @@ export default function NavBar() {
                       <span>{t('navbar.admin')}</span>
                     </Link>
                   ) : null}
-
-                  <Link
-                    href="/settings"
-                    prefetch={false}
-                    className={mobileNavRowClass}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/settings' });
-                    }}
-                  >
-                    <Settings className="w-4 h-4 shrink-0" />
-                    <span>{t('navigation.settings') || 'Instellingen'}</span>
-                  </Link>
 
                   <div className="px-1 py-1">
                     <OntdekHomeCheffMenu

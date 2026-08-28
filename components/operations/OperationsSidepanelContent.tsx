@@ -14,6 +14,7 @@ import OperationsOpportunityZone from '@/components/operations/widgets/Operation
 import RoleQuickLinksSection from '@/components/navigation/RoleQuickLinksSection';
 import { useOperationsSidepanel } from '@/components/operations/OperationsSidepanelProvider';
 import { useTranslation } from '@/hooks/useTranslation';
+import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
 import { cn } from '@/lib/utils';
 
 export type SidepanelLayout = 'desktop' | 'drawer' | 'sheet';
@@ -37,9 +38,9 @@ export default function OperationsSidepanelContent({
   const { ctx, activeSection, sectionExtras } = useOperationsSidepanel();
 
   const profileLabel = tOr(
-    'operations.sidepanel.profileLink',
-    'View profile',
-    'Bekijk profiel',
+    'myHomeCheffHub.backLink',
+    'My HomeCheff',
+    'Mijn HomeCheff',
   );
 
   const tasks = (
@@ -74,7 +75,7 @@ export default function OperationsSidepanelContent({
     showProfileLink && layout === 'desktop' ? (
       <div className="pt-1">
         <Link
-          href="/profile"
+          href={MY_HOMECHEFF_HUB_PATH}
           prefetch
           className="inline-flex min-h-[44px] items-center gap-1.5 text-xs font-medium text-gray-500 transition hover:text-emerald-700"
         >

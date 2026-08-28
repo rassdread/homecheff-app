@@ -72,7 +72,38 @@ assert(
 );
 assert(PROFILE_DEALS_NAV.enabled, 'PROFILE_DEALS_NAV is enabled');
 
-// --- Target pages exist (no new feature routes created) --------------------
+// --- Mijn HomeCheff hub ----------------------------------------------------
+console.log('\nMijn HomeCheff hub (navigation repair)');
+const navbar = read('components/NavBar.tsx');
+const en = loadI18n('en');
+const nl = loadI18n('nl');
+assert(exists('app/mijn-homecheff/page.tsx'), '/mijn-homecheff page exists');
+assert(exists('app/my-homecheff/page.tsx'), '/my-homecheff alias exists');
+const hubLib = read('lib/navigation/my-homecheff-hub.ts');
+assert(hubLib.includes("MY_HOMECHEFF_HUB_PATH = '/mijn-homecheff'"), 'hub path constant');
+const hubClient = read('components/my-homecheff/MyHomeCheffHubClient.tsx');
+assert(hubClient.includes('listMyHomeCheffCards'), 'hub client uses card list');
+assert(navbar.includes('MY_HOMECHEFF_HUB_PATH'), 'NavBar links to Mijn HomeCheff hub');
+assert(navbar.includes('MyHomeCheffNavLinks'), 'NavBar uses MyHomeCheffNavLinks');
+const bottomNav = read('components/navigation/BottomNavigation.tsx');
+assert(bottomNav.includes('MY_HOMECHEFF_HUB_PATH'), 'bottom nav profile tab links to hub');
+const sidebarIa = read('lib/home/home-desktop-sidebar-ia.ts');
+assert(sidebarIa.includes("href: '/orders'"), 'desktop sidebar buyer orders link fixed');
+assert(sidebarIa.includes('MY_HOMECHEFF_HUB_PATH'), 'desktop sidebar includes hub link');
+
+const NAV_HUB_KEYS = [
+  'myHomeCheffHub.nav.hub',
+  'myHomeCheffHub.nav.orders',
+  'myHomeCheffHub.cards.orders.title',
+  'myHomeCheffHub.cards.affiliate.primary',
+] as const;
+for (const key of NAV_HUB_KEYS) {
+  const enVal = getNested(en, key);
+  const nlVal = getNested(nl, key);
+  assert(typeof enVal === 'string' && enVal.length > 0, `en has ${key}`);
+  assert(typeof nlVal === 'string' && nlVal.length > 0, `nl has ${key}`);
+}
+
 console.log('\nTarget pages exist (pre-existing routes, not new features)');
 assert(exists('app/profile/deals/page.tsx'), '/profile/deals page exists');
 assert(exists('app/orders/page.tsx'), '/orders page exists');
@@ -86,11 +117,9 @@ assert(
 
 // --- NavBar wiring ---------------------------------------------------------
 console.log('\nNavBar (desktop dropdown + mobile menu)');
-const navbar = read('components/NavBar.tsx');
 assert(navbar.includes('DEALS_PROFILE_PATH'), 'NavBar imports/uses DEALS_PROFILE_PATH (no hardcode)');
 assert(navbar.includes("t('navbar.agreements')"), 'NavBar shows Mijn Afspraken (navbar.agreements)');
-assert(navbar.includes("href=\"/orders\""), 'NavBar links to /orders');
-assert(navbar.includes("t('navbar.orders')"), 'NavBar shows Bestellingen (navbar.orders)');
+assert(navbar.includes("t('myHomeCheffHub.nav.orders')") || navbar.includes('MyHomeCheffNavLinks'), 'NavBar exposes buyer orders via hub nav');
 assert(navbar.includes("href=\"/favorites\""), 'NavBar links to /favorites');
 assert(navbar.includes("t('navbar.favorites')"), 'NavBar shows Favorieten (navbar.favorites)');
 assert(navbar.includes("href=\"/notifications\""), 'NavBar links to /notifications (mobile)');
@@ -101,7 +130,7 @@ const mobileMenuIdx = navbar.indexOf('navbar-mobile-menu');
 assert(mobileMenuIdx > -1, 'NavBar has a mobile menu container');
 const mobileMenu = navbar.slice(mobileMenuIdx);
 assert(mobileMenu.includes('DEALS_PROFILE_PATH'), 'mobile menu links Mijn Afspraken');
-assert(mobileMenu.includes("href=\"/orders\""), 'mobile menu links Bestellingen');
+assert(mobileMenu.includes('MyHomeCheffNavLinks'), 'mobile menu includes Mijn HomeCheff nav block');
 assert(mobileMenu.includes("href=\"/favorites\""), 'mobile menu links Favorieten');
 assert(mobileMenu.includes("href=\"/notifications\""), 'mobile menu links Meldingen');
 
@@ -125,11 +154,11 @@ console.log('\nBuyer-only navigation coverage');
 const authBlockIdx = navbar.indexOf('{user && (');
 assert(authBlockIdx > -1, 'NavBar has an authenticated-user block');
 assert(
-  navbar.includes("href=\"/orders\"") &&
+  navbar.includes('MyHomeCheffNavLinks') &&
     navbar.includes('DEALS_PROFILE_PATH') &&
     navbar.includes("href=\"/favorites\"") &&
     navbar.includes("href=\"/notifications\""),
-  'buyer transactional pages (agreements/orders/favorites/notifications) are wired without a seller role',
+  'buyer transactional pages reachable via hub nav + agreements/favorites/notifications',
 );
 
 // --- Stale validator fixed -------------------------------------------------
@@ -161,8 +190,6 @@ assert(routeDoc.includes('DEALS_PROFILE_PATH'), 'doc reminds to use DEALS_PROFIL
 
 // --- i18n parity -----------------------------------------------------------
 console.log('\ni18n parity (nl / en)');
-const en = loadI18n('en');
-const nl = loadI18n('nl');
 const NAV_KEYS = [
   'navbar.agreements',
   'navbar.orders',

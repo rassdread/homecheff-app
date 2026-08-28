@@ -11,6 +11,8 @@ import OperationsOverviewDrawer from '@/components/operations/OperationsOverview
 import { OperationsSidepanelProvider } from '@/components/operations/OperationsSidepanelProvider';
 import { useOperationsContext } from '@/components/operations/useOperationsContext';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
+import MyHomeCheffBackLink from '@/components/my-homecheff/MyHomeCheffBackLink';
+import AffiliateAreaNav from '@/components/my-homecheff/AffiliateAreaNav';
 import { cn } from '@/lib/utils';
 
 export type OperationsShellProps = {
@@ -106,6 +108,7 @@ export default function OperationsShell({
             <div className="px-4 pt-3 sm:px-6 lg:px-8">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <MyHomeCheffBackLink compact className="mr-1 hidden sm:inline-flex" />
                   <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
                     {tOr('operations.workspaceLabel', 'Operations', 'Operations')}
                   </span>
@@ -138,6 +141,7 @@ export default function OperationsShell({
                   <OperationsSectionNav />
                 </div>
               ) : null}
+              <AffiliateAreaNav />
             </div>
           </header>
 

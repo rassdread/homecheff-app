@@ -2745,6 +2745,83 @@
     "legalAndContact": "Legal & contact",
     "legalNavAria": "Legal information and contact"
   },
+  "myHomeCheffHub": {
+    "title": "My HomeCheff",
+    "eyebrow": "Personal overview",
+    "greeting": "Hi {{name}} — what would you like to do today?",
+    "backLink": "My HomeCheff",
+    "nav": {
+      "hub": "My HomeCheff",
+      "hubShort": "My HC",
+      "orders": "My orders",
+      "seller": "Selling",
+      "affiliate": "Affiliate",
+      "delivery": "Delivery",
+      "earnings": "Earnings",
+      "settings": "Settings"
+    },
+    "affiliateNav": {
+      "label": "Affiliate navigation",
+      "dashboard": "Dashboard",
+      "promoCodes": "Promo codes",
+      "earnings": "Earnings"
+    },
+    "cards": {
+      "orders": {
+        "title": "My orders",
+        "description": "Active purchases, status and order history.",
+        "empty": "You don't have any orders yet.",
+        "primary": "View orders"
+      },
+      "seller": {
+        "title": "Selling",
+        "description": "Your listings, seller orders and seller tools.",
+        "onboardingDescription": "You're not selling on HomeCheff yet.",
+        "empty": "No seller activity yet.",
+        "primary": "View orders",
+        "secondary": "Create new listing",
+        "onboardingPrimary": "Create your first listing"
+      },
+      "affiliate": {
+        "title": "Affiliate",
+        "description": "Referrals, conversions, commissions and your link.",
+        "onboardingDescription": "Earn by sharing HomeCheff.",
+        "empty": "No affiliate orders yet.",
+        "primary": "View affiliate dashboard",
+        "secondary": "Promo codes",
+        "onboardingPrimary": "Become an affiliate",
+        "shareLink": "Share my link"
+      },
+      "delivery": {
+        "title": "Delivery",
+        "description": "Available jobs and your delivery activity.",
+        "empty": "No delivery jobs yet.",
+        "primary": "View delivery dashboard"
+      },
+      "earnings": {
+        "title": "Earnings",
+        "description": "Overview of your HomeCheff income.",
+        "primary": "View earnings",
+        "secondary": "Request payout"
+      },
+      "account": {
+        "title": "Account & settings",
+        "description": "Profile, payments, privacy and preferences.",
+        "primary": "Settings",
+        "secondary": "My profile"
+      }
+    },
+    "metrics": {
+      "orderCount": "{{count}} order(s)",
+      "sellerOrders": "{{count}} recent order(s)",
+      "sellerRevenue": "{{amount}} revenue (7 days)",
+      "affiliateEarned": "{{amount}} available",
+      "affiliateReferrals": "{{count}} referral(s)",
+      "deliveryJobs": "{{count}} active job(s)",
+      "deliveryEarnings": "{{amount}} earned today",
+      "totalEarnings": "{{amount}} total earned"
+    }
+  },
   "earningsPage": {
     "title": "My Earnings",
     "subtitle": "Overview of all earnings from different roles",

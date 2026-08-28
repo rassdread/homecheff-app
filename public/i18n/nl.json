@@ -1584,6 +1584,83 @@
     "legalAndContact": "Juridisch & contact",
     "legalNavAria": "Juridische informatie en contact"
   },
+  "myHomeCheffHub": {
+    "title": "Mijn HomeCheff",
+    "eyebrow": "Persoonlijk overzicht",
+    "greeting": "Hoi {{name}} — wat wil je vandaag doen?",
+    "backLink": "Mijn HomeCheff",
+    "nav": {
+      "hub": "Mijn HomeCheff",
+      "hubShort": "Mijn HC",
+      "orders": "Mijn bestellingen",
+      "seller": "Verkopen",
+      "affiliate": "Affiliate",
+      "delivery": "Bezorging",
+      "earnings": "Verdiensten",
+      "settings": "Instellingen"
+    },
+    "affiliateNav": {
+      "label": "Affiliate navigatie",
+      "dashboard": "Dashboard",
+      "promoCodes": "Promocodes",
+      "earnings": "Verdiensten"
+    },
+    "cards": {
+      "orders": {
+        "title": "Mijn bestellingen",
+        "description": "Actieve aankopen, status en bestelgeschiedenis.",
+        "empty": "Je hebt nog geen bestellingen.",
+        "primary": "Bekijk bestellingen"
+      },
+      "seller": {
+        "title": "Verkopen",
+        "description": "Je aanbod, verkopersbestellingen en verkopersgereedschap.",
+        "onboardingDescription": "Je verkoopt nog niets op HomeCheff.",
+        "empty": "Je hebt nog geen verkopersactiviteit.",
+        "primary": "Bekijk bestellingen",
+        "secondary": "Nieuw aanbod plaatsen",
+        "onboardingPrimary": "Plaats je eerste aanbod"
+      },
+      "affiliate": {
+        "title": "Affiliate",
+        "description": "Referrals, conversies, commissies en je link.",
+        "onboardingDescription": "Verdien mee door HomeCheff te delen.",
+        "empty": "Je hebt nog geen affiliate-bestellingen.",
+        "primary": "Bekijk affiliate dashboard",
+        "secondary": "Promocodes",
+        "onboardingPrimary": "Word affiliate",
+        "shareLink": "Deel mijn link"
+      },
+      "delivery": {
+        "title": "Bezorging",
+        "description": "Beschikbare opdrachten en je bezorgactiviteit.",
+        "empty": "Je hebt nog geen bezorgopdrachten.",
+        "primary": "Bekijk bezorgdashboard"
+      },
+      "earnings": {
+        "title": "Verdiensten",
+        "description": "Overzicht van je HomeCheff-inkomsten.",
+        "primary": "Bekijk verdiensten",
+        "secondary": "Uitbetaling aanvragen"
+      },
+      "account": {
+        "title": "Account & instellingen",
+        "description": "Profiel, betalingen, privacy en voorkeuren.",
+        "primary": "Instellingen",
+        "secondary": "Mijn profiel"
+      }
+    },
+    "metrics": {
+      "orderCount": "{{count}} bestelling(en)",
+      "sellerOrders": "{{count}} recente bestelling(en)",
+      "sellerRevenue": "{{amount}} omzet (7 dagen)",
+      "affiliateEarned": "{{amount}} beschikbaar",
+      "affiliateReferrals": "{{count}} referral(s)",
+      "deliveryJobs": "{{count}} actieve opdracht(en)",
+      "deliveryEarnings": "{{amount}} vandaag verdiend",
+      "totalEarnings": "{{amount}} totaal verdiend"
+    }
+  },
   "admin": {
     "commandCenter": "Command Center",
     "fcc": {

@@ -47,6 +47,7 @@ import {
 } from '@/lib/navigation/primary-dashboard';
 import { useCommsUnread } from '@/hooks/useCommsUnread';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
+import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -367,6 +368,8 @@ export default function BottomNavigation() {
 
   const isFeedDiscoverActive = pathname === '/';
   const isHcpRouteActive = pathname === '/mijn-hcp';
+  const isMyHomeCheffActive =
+    pathname === MY_HOMECHEFF_HUB_PATH || pathname === '/my-homecheff';
 
   const navUser = useMemo(
     () =>
@@ -545,7 +548,7 @@ export default function BottomNavigation() {
     if (!session?.user || !pathname) return;
 
     const runPrefetch = () => {
-      const routesToPrefetch = ['/messages', '/profile', '/mijn-hcp', '/'];
+      const routesToPrefetch = ['/messages', MY_HOMECHEFF_HUB_PATH, '/profile', '/mijn-hcp', '/'];
       routesToPrefetch.forEach((route) => {
         if (pathname === route || pathname.startsWith(route)) return;
         router.prefetch(route);
@@ -592,13 +595,13 @@ export default function BottomNavigation() {
 
   const handleProfileClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
-      const p = sanitizePostAuthRelativeUrl('/profile') || '/profile';
+      const p = sanitizePostAuthRelativeUrl(MY_HOMECHEFF_HUB_PATH) || MY_HOMECHEFF_HUB_PATH;
       openGuestBottomNavPanel('profile', p, () => {
         savePendingIntent({ type: 'complete_profile', returnPath: p });
       });
       return;
     }
-    router.push('/profile');
+    router.push(MY_HOMECHEFF_HUB_PATH);
   };
 
   // Quick Add Handlers
@@ -1918,23 +1921,27 @@ export default function BottomNavigation() {
           <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
             {profileTabUseLink ? (
               <Link
-                href="/profile"
+                href={MY_HOMECHEFF_HUB_PATH}
                 prefetch={false}
-                className={navTabClasses(isActive('/profile'), isNativeShell)}
+                className={navTabClasses(isMyHomeCheffActive, isNativeShell)}
                 onClick={() =>
-                  navDebug('bottom-nav:tap', { tab: 'profile', href: '/profile', path: pathname })
+                  navDebug('bottom-nav:tap', {
+                    tab: 'my-homecheff',
+                    href: MY_HOMECHEFF_HUB_PATH,
+                    path: pathname,
+                  })
                 }
               >
                 <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">👤</div>
                 <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                  {session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}
+                  {session?.user ? t('myHomeCheffHub.nav.hubShort') : t('bottomNav.profile')}
                 </span>
               </Link>
             ) : (
               <button
                 type="button"
                 onClick={handleProfileClick}
-                className={navTabClasses(isActive('/profile'), isNativeShell)}
+                className={navTabClasses(isMyHomeCheffActive, isNativeShell)}
               >
                 <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">👤</div>
                 <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
