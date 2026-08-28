@@ -82,6 +82,8 @@ export const APP_FIRST_SEGMENTS = [
   'manifest',
   'messages',
   'mijn-hcp',
+  'mijn-homecheff',
+  'my-homecheff',
   'notifications',
   'onboarding',
   'ontmoet-de-maker',
