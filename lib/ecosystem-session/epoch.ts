@@ -3,9 +3,10 @@
  * Domain=.homecheff.eu so Growth/Studio receive it on every request.
  * Not an auth token — opaque UUID rotated on login / logout / account switch.
  * HttpOnly: products compare server-side; clients detect via session APIs.
+ *
+ * Edge-safe: no node:crypto (middleware may import this module).
  */
 
-import { randomUUID } from "node:crypto";
 import { getNextAuthSharedCookieDomain } from "@/lib/auth-cookie-domain";
 
 export const HC_ECO_EPOCH_COOKIE = "hc_eco_epoch";
@@ -14,7 +15,11 @@ export const HC_ECO_EPOCH_COOKIE = "hc_eco_epoch";
 export const HC_ECO_EPOCH_LOGGED_OUT = "0";
 
 export function newEcosystemEpoch(): string {
-  return randomUUID();
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  // Extremely narrow fallback (should not hit on Vercel/Edge/Node 20+)
+  return `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, "0").slice(-12)}`;
 }
 
 export function ecosystemEpochCookieOptions(maxAgeSec: number): {

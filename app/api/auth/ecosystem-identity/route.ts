@@ -3,8 +3,8 @@
  * Used by products and Marketplace to ensure hc_eco_epoch exists when logged in.
  */
 
+import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { createHash } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { getCorsHeaders } from "@/lib/apiCors";
 import {
