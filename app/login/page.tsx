@@ -430,8 +430,15 @@ function LoginForm() {
             ? intentUrl
             : intentUrl + (intentUrl.includes('?') ? '&' : '?') + 'welcome=true';
       } else if (callbackUrl && callbackUrl !== '/' && isSsoProductReturnPath(callbackUrl)) {
-        // Product SSO return: one hard navigation, no welcome= noise on authorize URL.
-        window.location.replace(sanitizeSsoReturnUrl(callbackUrl));
+        // Let the authenticated useEffect hard-navigate to /auth/sso/start once.
+        // Navigating here AND in useEffect double-issues authorize codes.
+        if (typeof updateSession === "function") {
+          try {
+            await updateSession({});
+          } catch {
+            /* ignore */
+          }
+        }
         return;
       } else {
         finalRedirectUrl =
@@ -443,7 +450,13 @@ function LoginForm() {
       }
 
       if (isSsoProductReturnPath(finalRedirectUrl)) {
-        window.location.replace(sanitizeSsoReturnUrl(finalRedirectUrl));
+        if (typeof updateSession === "function") {
+          try {
+            await updateSession({});
+          } catch {
+            /* ignore */
+          }
+        }
         return;
       }
       
