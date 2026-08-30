@@ -15,6 +15,8 @@ export const HOME_CHEFF_PRODUCTION_ORIGINS = [
   'https://www.homecheff.nl',
   'https://www.homecheff.eu',
   'https://growth.homecheff.eu',
+  'https://studio.homecheff.eu',
+  'https://motion.homecheff.eu',
 ] as const;
 
 export type AuthDeploymentEnvironment = 'development' | 'preview' | 'production';

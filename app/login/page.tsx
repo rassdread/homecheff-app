@@ -74,11 +74,14 @@ function LoginForm() {
   /** SP.2B.3 — when arriving from SSO switch / interactive IdP login */
   const ssoInteraction = searchParams?.get('ssoInteraction');
   const oauthPrompt = searchParams?.get('prompt');
+  const ssoIntent = searchParams?.get('intent');
+  const autoGoogle = searchParams?.get('autoGoogle') === '1' || ssoIntent === 'google';
   const preferGoogleAccountPicker =
     oauthPrompt === 'select_account' ||
     ssoInteraction === 'select_account' ||
     ssoInteraction === 'login' ||
-    ssoInteraction === 'claim';
+    ssoInteraction === 'claim' ||
+    autoGoogle;
 
   // Native app: standaard aan laten staan (geen “onthoud mij”-UI); sessie voelt persistent.
   useEffect(() => {
@@ -133,6 +136,15 @@ function LoginForm() {
       }),
     );
   }, [googleAuthChecked, googleLoginMode]);
+
+  // One-choice IdP: product clicked Google → start Google without second method screen.
+  useEffect(() => {
+    if (!autoGoogle || !googleAuthChecked || !googleAuthEnabled) return;
+    if (sessionStatus === "authenticated" || sessionStatus === "loading") return;
+    if (state.isLoading) return;
+    void handleSocialLogin("google");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot auto Google for SSO intent
+  }, [autoGoogle, googleAuthChecked, googleAuthEnabled, sessionStatus]);
 
   // Android WebView / bfcache: OAuth kan terugkeren met oude "bezig met inloggen"-state in geheugen.
   useEffect(() => {

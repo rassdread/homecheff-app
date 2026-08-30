@@ -14,6 +14,8 @@ export type SsoStartParams = {
   codeChallengeMethod: string;
   interaction: SsoInteraction;
   loginHint: string | null;
+  /** Provider intent from product (google | password | login). */
+  intent: "google" | "password" | "login" | null;
 };
 
 export function readSsoStartParams(url: URL): SsoStartParams {
@@ -25,6 +27,11 @@ export function readSsoStartParams(url: URL): SsoStartParams {
   const interaction = parseSsoInteraction(url.searchParams.get("interaction"));
   const loginHintRaw = url.searchParams.get("login_hint") ?? url.searchParams.get("email");
   const loginHint = normalizeLoginHint(loginHintRaw);
+  const intentRaw = (url.searchParams.get("intent") ?? "").trim().toLowerCase();
+  const intent =
+    intentRaw === "google" || intentRaw === "password" || intentRaw === "login"
+      ? intentRaw
+      : null;
 
   if (!product || !redirectUri || !state || !codeChallenge || codeChallengeMethod !== "S256") {
     throw new SsoError("INVALID_REQUEST", "Invalid request");
@@ -41,6 +48,7 @@ export function readSsoStartParams(url: URL): SsoStartParams {
     codeChallengeMethod,
     interaction,
     loginHint,
+    intent,
   };
 }
 
@@ -54,6 +62,7 @@ export function ssoStartRelativePath(params: SsoStartParams): string {
     interaction: params.interaction,
   });
   if (params.loginHint) q.set("login_hint", params.loginHint);
+  if (params.intent) q.set("intent", params.intent);
   return `/auth/sso/start?${q.toString()}`;
 }
 
@@ -67,6 +76,7 @@ export function ssoContinueRelativePath(params: SsoStartParams): string {
     interaction: params.interaction,
   });
   if (params.loginHint) q.set("login_hint", params.loginHint);
+  if (params.intent) q.set("intent", params.intent);
   return `/auth/sso/continue?${q.toString()}`;
 }
 

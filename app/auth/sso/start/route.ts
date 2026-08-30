@@ -90,6 +90,11 @@ export async function GET(req: Request) {
     const prompt = googlePromptForInteraction(params.interaction);
     if (prompt) login.searchParams.set("prompt", prompt);
     if (params.loginHint) login.searchParams.set("email", params.loginHint);
+    if (params.intent) login.searchParams.set("intent", params.intent);
+    // One provider choice: Growth/Studio Google CTA → auto-start Google on IdP.
+    if (params.intent === "google") {
+      login.searchParams.set("autoGoogle", "1");
+    }
     return withTiming(NextResponse.redirect(login.toString(), 302), timer);
   }
 
