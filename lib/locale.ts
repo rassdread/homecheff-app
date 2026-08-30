@@ -2,15 +2,24 @@
  * Utility functions for handling locale (language) routing.
  * Om een nieuwe taal toe te voegen: voeg toe aan SUPPORTED_LOCALES, maak een nieuwe JSON in public/i18n (bijv. de.json)
  * en zorg dat middleware/useTranslation de nieuwe code ondersteunt.
+ *
+ * IP default language: see lib/ecosystem-locale.ts (NL/BE/SR → nl, else en).
  */
-export type Language = 'nl' | 'en';
+import {
+  languageFromCountryCode,
+  parseEcosystemLanguage,
+  resolveEcosystemLanguage,
+  type EcosystemLanguage,
+} from '@/lib/ecosystem-locale';
+
+export type Language = EcosystemLanguage;
 
 /** Ondersteunde talen. Uitbreiden = nieuwe entry + i18n JSON + taal-selector. */
 export const SUPPORTED_LOCALES: readonly Language[] = ['nl', 'en'];
 
 /**
  * Parse Accept-Language → preferred supported language.
- * nl* → nl, en* → en. Unknown / empty → null (caller chooses fallback).
+ * Kept for soft hints; IP country is the anonymous default (see resolveColdStartLanguage).
  */
 export function preferLanguageFromAcceptLanguage(
   header: string | null | undefined,
@@ -40,37 +49,75 @@ export function preferLanguageFromAcceptLanguage(
 }
 
 export type ColdStartLanguageInput = {
-  /** Explicit cookie / stored choice */
+  /** Explicit preference (switcher) — wins over everything except caller-supplied account */
+  explicitLanguage?: string | null;
+  /** True when hc_locale_pref=1 */
+  hasExplicitPreference?: boolean;
+  /** Account preferredLanguage (middleware usually null) */
+  accountLanguage?: string | null;
+  /** Cookie / stored choice (hc_locale or homecheff-language) */
   cookieLanguage?: string | null;
   /** Pathname for /en routes */
   pathname?: string | null;
   /** Host header */
   host?: string | null;
-  /** Accept-Language header */
+  /** Accept-Language — soft hint only when no cookie/IP country */
   acceptLanguage?: string | null;
+  /** ISO country from x-vercel-ip-country / cf-ipcountry */
+  countryCode?: string | null;
 };
 
 /**
- * Cold-start language for first-time visitors (no stored preference).
- * Priority: cookie → /en path → Accept-Language → .nl host → NL fallback.
- * .eu must NOT force English — Dutch product market + NL browser → NL UI.
+ * Cold-start / request language.
+ * Priority: explicit → account → cookie → /en path → IP country (NL/BE/SR→nl) → en
+ * Accept-Language is only used when country is unknown and no cookie exists (soft hint),
+ * then still falls through to IP/en — we do NOT prefer Accept-Language over IP when country is known.
  */
 export function resolveColdStartLanguage(input: ColdStartLanguageInput): Language {
-  const cookie = input.cookieLanguage;
-  if (cookie === 'nl' || cookie === 'en') return cookie;
-
   const pathname = input.pathname || '';
-  if (pathname.startsWith('/en/') || pathname === '/en') return 'en';
-
-  const fromHeader = preferLanguageFromAcceptLanguage(input.acceptLanguage);
-  if (fromHeader) return fromHeader;
+  const pathLanguage =
+    pathname.startsWith('/en/') || pathname === '/en' ? 'en' : null;
 
   const host = (input.host || '').toLowerCase();
-  if (host.includes('homecheff.nl')) return 'nl';
+  // Legacy .nl host → treat as NL market when nothing else is set
+  const hostCountryHint = host.includes('homecheff.nl') ? 'NL' : null;
 
-  // .eu / preview / unknown without Accept-Language → NL (primary market)
-  return 'nl';
+  const explicit =
+    input.hasExplicitPreference || input.explicitLanguage
+      ? parseEcosystemLanguage(input.explicitLanguage ?? input.cookieLanguage)
+      : null;
+
+  const resolved = resolveEcosystemLanguage({
+    explicitLanguage: explicit,
+    accountLanguage: input.accountLanguage,
+    cookieLanguage: input.cookieLanguage,
+    pathLanguage,
+    countryCode: input.countryCode ?? hostCountryHint,
+  });
+
+  // Soft Accept-Language only when country unknown and resolver returned en from empty country
+  if (
+    !input.cookieLanguage &&
+    !explicit &&
+    !input.accountLanguage &&
+    !pathLanguage &&
+    !normalizeOrNull(input.countryCode) &&
+    !hostCountryHint
+  ) {
+    const fromHeader = preferLanguageFromAcceptLanguage(input.acceptLanguage);
+    if (fromHeader) return fromHeader;
+  }
+
+  return resolved;
 }
+
+function normalizeOrNull(c: string | null | undefined): string | null {
+  if (!c) return null;
+  const t = c.trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(t) ? t : null;
+}
+
+export { languageFromCountryCode };
 
 /**
  * Get the current language from the pathname
@@ -84,18 +131,13 @@ export function getLanguageFromPath(pathname: string): Language {
 
 /**
  * Add locale prefix to a path
- * @param path - The path to add locale to (e.g., '/faq')
- * @param language - The target language
- * @returns The path with locale prefix (e.g., '/en/faq' for English)
  */
 export function addLocalePrefix(path: string, language: Language): string {
   if (language === 'nl') {
-    // Remove /en/ prefix if present
     return path.replace(/^\/en/, '') || '/';
   } else {
-    // Add /en/ prefix
     if (path.startsWith('/en/')) {
-      return path; // Already has prefix
+      return path;
     }
     if (path === '/') {
       return '/';
@@ -106,31 +148,7 @@ export function addLocalePrefix(path: string, language: Language): string {
 
 /**
  * Remove locale prefix from a path
- * @param path - The path with locale prefix (e.g., '/en/faq')
- * @returns The path without locale prefix (e.g., '/faq')
  */
 export function removeLocalePrefix(path: string): string {
   return path.replace(/^\/en/, '') || '/';
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

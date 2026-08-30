@@ -9,6 +9,15 @@ import {
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 import { isKnownHomecheffRootPath, isPublicStaticAssetPath } from '@/lib/seo/known-root-path-segments';
 import { resolveColdStartLanguage } from '@/lib/locale';
+import {
+  countryFromRequestHeaders,
+  ECOSYSTEM_LOCALE_COOKIE,
+  ECOSYSTEM_LOCALE_PREF_COOKIE,
+  MARKETPLACE_LEGACY_LOCALE_COOKIE,
+  ecosystemLocaleCookieAttributes,
+  parseEcosystemLanguage,
+} from '@/lib/ecosystem-locale';
+import { getAuthSessionCookieDomain } from '@/lib/auth-origin';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -94,12 +103,28 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = `https://${EU_HOST}${pathname}${search}`;
     const redirectResponse = NextResponse.redirect(redirectUrl, 307);
     if (isNlDomain) {
-      // Bezoeker van .nl landt op .eu in het Nederlands.
-      redirectResponse.cookies.set('homecheff-language', 'nl', {
+      // Bezoeker van .nl landt op .eu in het Nederlands (explicit market preference).
+      const domain = getAuthSessionCookieDomain();
+      for (const c of ecosystemLocaleCookieAttributes({
+        language: 'nl',
+        explicit: true,
+        domain,
+        secure: true,
+      })) {
+        redirectResponse.cookies.set(c.name, c.value, {
+          path: c.path,
+          sameSite: c.sameSite,
+          maxAge: c.maxAge,
+          secure: c.secure,
+          ...(c.domain ? { domain: c.domain } : {}),
+        });
+      }
+      redirectResponse.cookies.set(MARKETPLACE_LEGACY_LOCALE_COOKIE, 'nl', {
         path: '/',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 365,
         secure: true,
+        ...(domain ? { domain } : {}),
       });
     }
     // Behoud affiliate-referralcookie over host-canonicalisatie (anders mis je attributie).
@@ -157,18 +182,56 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Taal: cookie > /en path > Accept-Language > NL fallback.
-  // .eu forceert GEEN Engels meer — NL-browser op .eu krijgt NL first impression.
+  // Taal: explicit/cookie → /en path → IP country (NL/BE/SR→nl) → en
   const host = request.headers.get('host') || '';
-  const langCookie = request.cookies.get('homecheff-language')?.value;
+  const legacyCookie = request.cookies.get(MARKETPLACE_LEGACY_LOCALE_COOKIE)?.value;
+  const ecoCookie = request.cookies.get(ECOSYSTEM_LOCALE_COOKIE)?.value;
+  const prefFlag = request.cookies.get(ECOSYSTEM_LOCALE_PREF_COOKIE)?.value;
+  const cookieLanguage = parseEcosystemLanguage(ecoCookie) ?? parseEcosystemLanguage(legacyCookie);
+  const hasExplicitPreference = prefFlag === '1';
+  const countryCode = countryFromRequestHeaders((n) => request.headers.get(n));
   const lang = resolveColdStartLanguage({
-    cookieLanguage: langCookie,
+    cookieLanguage,
+    hasExplicitPreference,
+    explicitLanguage: hasExplicitPreference ? cookieLanguage : null,
     pathname,
     host,
     acceptLanguage: request.headers.get('accept-language'),
+    countryCode,
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('X-HomeCheff-Language', lang);
+
+  const needsLocaleSeed =
+    !cookieLanguage &&
+    !hasExplicitPreference &&
+    !pathname.startsWith('/api/') &&
+    !pathname.startsWith('/_next/');
+  const localeDomain = getAuthSessionCookieDomain();
+  const applyLocaleSeed = (res: NextResponse) => {
+    if (!needsLocaleSeed) return;
+    for (const c of ecosystemLocaleCookieAttributes({
+      language: lang,
+      explicit: false,
+      domain: localeDomain,
+      secure: true,
+    })) {
+      res.cookies.set(c.name, c.value, {
+        path: c.path,
+        sameSite: c.sameSite,
+        maxAge: c.maxAge,
+        secure: c.secure,
+        ...(c.domain ? { domain: c.domain } : {}),
+      });
+    }
+    res.cookies.set(MARKETPLACE_LEGACY_LOCALE_COOKIE, lang, {
+      path: '/',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 400,
+      secure: true,
+      ...(localeDomain ? { domain: localeDomain } : {}),
+    });
+  };
 
   // Check for referral parameter on any page
   const refCode = searchParams.get('ref');
@@ -206,6 +269,7 @@ export async function middleware(request: NextRequest) {
       request: { headers: requestHeaders },
     });
     notFoundResponse.headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
+    applyLocaleSeed(notFoundResponse);
     return notFoundResponse;
   }
 
@@ -240,6 +304,7 @@ export async function middleware(request: NextRequest) {
               request: { headers: requestHeaders },
             });
             notFoundResponse.headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
+            applyLocaleSeed(notFoundResponse);
             return notFoundResponse;
           }
         }
@@ -252,6 +317,7 @@ export async function middleware(request: NextRequest) {
   const res = NextResponse.next({
     request: { headers: requestHeaders },
   });
+  applyLocaleSeed(res);
   // Security headers alleen op pagina's, nooit op /api (video-proxy mag geen CSP krijgen, anders laadt video niet in Edge)
   // Ook niet op favicon/PNG icons/manifest: CSP op image-responses breekt tab-favicon in Safari.
   if (!pathname.startsWith('/api/') && !isPublicIconOrManifestPath(pathname)) {

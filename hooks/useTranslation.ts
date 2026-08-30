@@ -1,9 +1,17 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { addLocalePrefix, preferLanguageFromAcceptLanguage, resolveColdStartLanguage } from '@/lib/locale';
+import { addLocalePrefix, resolveColdStartLanguage } from '@/lib/locale';
 import { useSession } from 'next-auth/react';
 import { interpolateTranslation } from '@/lib/i18n/interpolate';
+import {
+  ECOSYSTEM_LOCALE_COOKIE,
+  ECOSYSTEM_LOCALE_PREF_COOKIE,
+  MARKETPLACE_LEGACY_LOCALE_COOKIE,
+  formatEcosystemLocaleDocumentCookies,
+  parseEcosystemLanguage,
+  shouldUseSharedHomecheffLocaleDomain,
+} from '@/lib/ecosystem-locale';
 
 export type Language = 'nl' | 'en';
 
@@ -74,25 +82,73 @@ const safeLocalStorage = {
   }
 };
 
-// Browser-compatible cookie helpers
+// Browser-compatible cookie helpers — language preference only (never auth cookies).
 const safeCookie = {
   get: (name: string): string | null => {
     if (typeof document === 'undefined') return null;
     try {
       const value = document.cookie
         .split('; ')
-        .find(row => row.startsWith(`${name}=`))
+        .find((row) => row.startsWith(`${name}=`))
         ?.split('=')[1];
-      return value || null;
+      return value ? decodeURIComponent(value) : null;
     } catch (e) {
       console.warn(`[i18n] Cookie get failed for ${name}:`, e);
       return null;
     }
   },
-  set: (name: string, value: string, maxAge: number = 60 * 60 * 24 * 365): boolean => {
+  /** Read shared ecosystem locale or legacy Marketplace cookie. */
+  getLanguage: (): Language | null => {
+    return (
+      parseEcosystemLanguage(safeCookie.get(ECOSYSTEM_LOCALE_COOKIE)) ??
+      parseEcosystemLanguage(safeCookie.get(MARKETPLACE_LEGACY_LOCALE_COOKIE))
+    );
+  },
+  hasExplicitPreference: (): boolean =>
+    safeCookie.get(ECOSYSTEM_LOCALE_PREF_COOKIE) === '1',
+  setLanguage: (
+    value: Language,
+    opts?: { explicit?: boolean; maxAge?: number },
+  ): boolean => {
     if (typeof document === 'undefined') return false;
     try {
-      // Use both max-age and expires for maximum browser compatibility
+      const maxAge = opts?.maxAge ?? 60 * 60 * 24 * 400;
+      const explicit = opts?.explicit ?? true;
+      const host =
+        typeof window !== 'undefined' ? window.location.hostname : '';
+      const domain = shouldUseSharedHomecheffLocaleDomain(host)
+        ? '.homecheff.eu'
+        : undefined;
+      const secure =
+        typeof window !== 'undefined'
+          ? window.location.protocol === 'https:'
+          : true;
+      for (const line of formatEcosystemLocaleDocumentCookies({
+        language: value,
+        explicit,
+        domain,
+        maxAgeSec: maxAge,
+        secure,
+      })) {
+        document.cookie = line;
+      }
+      // Legacy Marketplace cookie (same domain when shared)
+      const expires = new Date(Date.now() + maxAge * 1000).toUTCString();
+      const domainPart = domain ? `; Domain=${domain}` : '';
+      const securePart = secure ? '; Secure' : '';
+      document.cookie = `${MARKETPLACE_LEGACY_LOCALE_COOKIE}=${value}; Path=/; Max-Age=${maxAge}; Expires=${expires}; SameSite=Lax${securePart}${domainPart}`;
+      return true;
+    } catch (e) {
+      console.warn(`[i18n] Cookie set failed:`, e);
+      return false;
+    }
+  },
+  set: (name: string, value: string, maxAge: number = 60 * 60 * 24 * 365): boolean => {
+    if (name === MARKETPLACE_LEGACY_LOCALE_COOKIE || name === 'homecheff-language') {
+      return safeCookie.setLanguage(value as Language, { explicit: true, maxAge });
+    }
+    if (typeof document === 'undefined') return false;
+    try {
       const expires = new Date(Date.now() + maxAge * 1000).toUTCString();
       document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; expires=${expires}; SameSite=Lax`;
       return true;
@@ -100,7 +156,7 @@ const safeCookie = {
       console.warn(`[i18n] Cookie set failed for ${name}:`, e);
       return false;
     }
-  }
+  },
 };
 
 // Initial React language must not read document/window: server and first client render use the same value (hydration-safe).
@@ -187,47 +243,47 @@ export function useTranslation() {
       return;
     }
     
-    // Prioriteit: localStorage/cookie (net gekozen) > API (DB) > URL > domain > default
-    // Zo blijft een net gekozen taal (Engels) staan na reload i.p.v. terug te vallen op DB.
+    // Priority: explicit (pref cookie / switcher localStorage) → account → cookie → cold-start (IP via middleware cookie / en)
     const pathname = window.location.pathname;
     const isEnglishRoute = pathname.startsWith('/en/') || pathname === '/en';
     const savedInStorage = safeLocalStorage.getItem('homecheff-language') as Language | null;
     const hasStorage = savedInStorage === 'nl' || savedInStorage === 'en';
+    const hasExplicitPref = safeCookie.hasExplicitPreference() || hasStorage;
+    const cookieLanguage = safeCookie.getLanguage();
 
-    let detectedLanguage: Language = 'nl'; // default
+    let detectedLanguage: Language = 'en';
 
-    // Altijd eerst localStorage/cookie: zo werkt de language switcher direct na reload
-    if (hasStorage) {
-      detectedLanguage = savedInStorage;
-      safeCookie.set('homecheff-language', savedInStorage);
-    } else if (sessionStatus === 'authenticated' && session?.user && userPreferenceLoaded && userLanguagePreference) {
+    if (hasExplicitPref && (hasStorage || cookieLanguage)) {
+      detectedLanguage = (hasStorage ? savedInStorage : cookieLanguage) as Language;
+      safeCookie.setLanguage(detectedLanguage, { explicit: true });
+    } else if (
+      sessionStatus === 'authenticated' &&
+      session?.user &&
+      userPreferenceLoaded &&
+      userLanguagePreference
+    ) {
       detectedLanguage = userLanguagePreference;
       safeLocalStorage.setItem('homecheff-language', userLanguagePreference);
-      safeCookie.set('homecheff-language', userLanguagePreference);
+      safeCookie.setLanguage(userLanguagePreference, { explicit: true });
+    } else if (cookieLanguage) {
+      detectedLanguage = cookieLanguage;
+      // Keep cookie; do not promote IP seed to localStorage (so account can still win)
     } else if (isEnglishRoute) {
       detectedLanguage = 'en';
-      safeLocalStorage.setItem('homecheff-language', 'en');
-      safeCookie.set('homecheff-language', 'en');
     } else {
-      // Cold start: Accept-Language — never force EN solely because host is .eu
-      const cookieLanguage = safeCookie.get('homecheff-language') as Language | null;
-      const navLangs =
-        typeof navigator !== 'undefined' && navigator.languages?.length
-          ? navigator.languages.join(',')
-          : typeof navigator !== 'undefined'
-            ? navigator.language
-            : null;
-      const fromNav = preferLanguageFromAcceptLanguage(navLangs);
-      detectedLanguage =
-        fromNav ||
-        resolveColdStartLanguage({
-          cookieLanguage,
-          pathname,
-          host: window.location.hostname,
-          acceptLanguage: navLangs,
-        });
-      safeLocalStorage.setItem('homecheff-language', detectedLanguage);
-      safeCookie.set('homecheff-language', detectedLanguage);
+      detectedLanguage = resolveColdStartLanguage({
+        cookieLanguage,
+        pathname,
+        host: window.location.hostname,
+        acceptLanguage:
+          typeof navigator !== 'undefined' && navigator.languages?.length
+            ? navigator.languages.join(',')
+            : typeof navigator !== 'undefined'
+              ? navigator.language
+              : null,
+      });
+      // Seed cookie only (middleware usually already did); not localStorage
+      safeCookie.setLanguage(detectedLanguage, { explicit: false });
     }
 
     // Only re-initialize if language actually changed or if this is the first initialization
@@ -249,15 +305,17 @@ export function useTranslation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStatus, session, userPreferenceLoaded, userLanguagePreference]); // Re-run when session or user preference changes
   
-  // Sync from API only als localStorage geen andere keuze heeft (anders overschrijven we net gekozen taal)
+  // Sync from API when no conflicting explicit switcher preference is stored
   useEffect(() => {
     if (!userPreferenceLoaded || !userLanguagePreference) return;
 
-    const fromStorage = safeLocalStorage.getItem('homecheff-language') as Language | null;
-    const storageHasValue = fromStorage === 'nl' || fromStorage === 'en';
+    if (safeCookie.hasExplicitPreference()) {
+      const fromStorage = safeLocalStorage.getItem('homecheff-language') as Language | null;
+      if (fromStorage === 'nl' || fromStorage === 'en') {
+        if (fromStorage !== userLanguagePreference) return;
+      }
+    }
 
-    // Als gebruiker net heeft gewisseld staat de keuze in localStorage; niet overschrijven met API
-    if (storageHasValue && fromStorage !== userLanguagePreference) return;
     if (language === userLanguagePreference) return;
 
     console.log(`[i18n] Syncing language to user preference: ${userLanguagePreference}`);
@@ -265,7 +323,7 @@ export function useTranslation() {
     lastDetectedLanguage.current = userLanguagePreference;
     loadTranslations(userLanguagePreference);
     safeLocalStorage.setItem('homecheff-language', userLanguagePreference);
-    safeCookie.set('homecheff-language', userLanguagePreference);
+    safeCookie.setLanguage(userLanguagePreference, { explicit: true });
   }, [userLanguagePreference, userPreferenceLoaded, language]);
 
   const loadTranslations = async (lang: Language) => {
@@ -457,7 +515,9 @@ export function useTranslation() {
         }
       } else if (lang !== 'nl') {
         // English failed on initial load - only fallback to Dutch if user didn't explicitly choose English
-        const stored = safeLocalStorage.getItem('homecheff-language') || safeCookie.get('homecheff-language');
+        const stored =
+          safeLocalStorage.getItem('homecheff-language') ||
+          safeCookie.getLanguage();
         const userChoseEn = stored === 'en';
         if (userChoseEn) {
           console.log(`[i18n] Keeping English (user choice) despite load error`);
@@ -471,7 +531,7 @@ export function useTranslation() {
           setLanguage('nl');
           lastDetectedLanguage.current = 'nl';
           safeLocalStorage.setItem('homecheff-language', 'nl');
-          safeCookie.set('homecheff-language', 'nl');
+          safeCookie.setLanguage('nl', { explicit: true });
           return;
         } catch (fallbackError) {
           console.error('[i18n] CRITICAL: Fallback to Dutch also failed!', fallbackError);
@@ -553,9 +613,8 @@ export function useTranslation() {
       // This must happen before any navigation or state updates
       safeLocalStorage.setItem('homecheff-language', newLanguage);
       
-      // Update cookie immediately to ensure middleware sees the correct value.
-      // Only sets homecheff-language; we never touch NextAuth/session cookies (Safari login safe).
-      safeCookie.set('homecheff-language', newLanguage);
+      // Shared ecosystem language cookies (never touch NextAuth/session cookies).
+      safeCookie.setLanguage(newLanguage, { explicit: true });
       
       // Save to database if user is logged in
       if (sessionStatus === 'authenticated' && session?.user) {
