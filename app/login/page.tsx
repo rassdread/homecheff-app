@@ -27,6 +27,40 @@ import { useGoogleLoginUiResolved } from "@/lib/native/useGoogleLoginUiResolved"
 import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInButton";
 import { logGoogleLoginDiag } from "@/lib/auth/google-login-diagnostics";
 
+/**
+ * SSO product return (`/auth/sso/start|continue`) must be navigated exactly once.
+ * Credentials login uses redirect:false + manual redirect, while the authenticated
+ * useEffect also replaces to callbackUrl — that double-hit issues two authorize
+ * codes; the second Growth/Studio callback then fails with SSO_STATE_REJECTED.
+ */
+function navigateToAuthCallbackOnce(rawUrl: string): void {
+  if (typeof window === "undefined") return;
+  let target = rawUrl;
+  try {
+    const u = new URL(rawUrl, window.location.origin);
+    // Never append marketing welcome flags onto SSO authorize URLs.
+    u.searchParams.delete("welcome");
+    u.searchParams.delete("_refresh");
+    target = `${u.pathname}${u.search}${u.hash}`;
+    const state = u.searchParams.get("state") || "nostate";
+    const key = `hc_sso_nav_${state}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+  } catch {
+    /* proceed */
+  }
+  window.location.replace(target);
+}
+
+function isSsoProductReturnPath(url: string): boolean {
+  return (
+    url.startsWith("/auth/sso/start") ||
+    url.startsWith("/auth/sso/continue") ||
+    url.includes("/auth/sso/start?") ||
+    url.includes("/auth/sso/continue?")
+  );
+}
+
 type LoginState = {
   emailOrUsername: string;
   password: string;
@@ -204,6 +238,10 @@ function LoginForm() {
     // Never replace back onto /login (would spin).
     if (target === '/login' || target.startsWith('/login?')) {
       router.replace('/');
+      return;
+    }
+    if (isSsoProductReturnPath(target)) {
+      navigateToAuthCallbackOnce(target);
       return;
     }
     router.replace(target);
@@ -392,9 +430,15 @@ function LoginForm() {
         : null;
       let finalRedirectUrl: string;
       if (intentUrl) {
-        finalRedirectUrl = intentUrl.includes('welcome=')
+        finalRedirectUrl = isSsoProductReturnPath(intentUrl)
           ? intentUrl
-          : intentUrl + (intentUrl.includes('?') ? '&' : '?') + 'welcome=true';
+          : intentUrl.includes('welcome=')
+            ? intentUrl
+            : intentUrl + (intentUrl.includes('?') ? '&' : '?') + 'welcome=true';
+      } else if (callbackUrl && callbackUrl !== '/' && isSsoProductReturnPath(callbackUrl)) {
+        // Product SSO return: one hard navigation, no welcome= noise on authorize URL.
+        navigateToAuthCallbackOnce(callbackUrl);
+        return;
       } else {
         finalRedirectUrl =
           callbackUrl && callbackUrl !== '/'
@@ -402,6 +446,11 @@ function LoginForm() {
               (callbackUrl.includes('?') ? '&' : '?') +
               'welcome=true'
             : '/?welcome=true';
+      }
+
+      if (isSsoProductReturnPath(finalRedirectUrl)) {
+        navigateToAuthCallbackOnce(finalRedirectUrl);
+        return;
       }
       
       // Capacitor / Android WebView: client-side navigatie houdt sessie in dezelfde WebView i.p.v. riskante volledige document-navigatie.
