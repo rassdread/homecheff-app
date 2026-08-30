@@ -43,6 +43,15 @@ export async function GET(req: Request) {
   );
 
   try {
+    const { resolveAuthorizeEcoEpoch } = await import(
+      "@/lib/identity/sso/authorize-epoch"
+    );
+    const { appendSetEcosystemEpochCookie } = await import(
+      "@/lib/ecosystem-session/epoch"
+    );
+    const { ecoEpoch, shouldSetCookie } = resolveAuthorizeEcoEpoch(
+      req.headers.get("cookie"),
+    );
     const issued = await issueSsoAuthorizationCode({
       centralUserId,
       product: params.product,
@@ -50,6 +59,7 @@ export async function GET(req: Request) {
       state: params.state,
       codeChallenge: params.codeChallenge,
       codeChallengeMethod: params.codeChallengeMethod,
+      ecoEpoch,
       ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown",
       correlationId: req.headers.get("x-request-id") ?? undefined,
     });
@@ -58,7 +68,11 @@ export async function GET(req: Request) {
     dest.searchParams.set("code", issued.authorizationCode);
     dest.searchParams.set("state", issued.state);
     logSsoEvent("sso_success", { product: params.product, phase: "confirm_redirect" });
-    return NextResponse.redirect(dest.toString(), 302);
+    const res = NextResponse.redirect(dest.toString(), 302);
+    if (shouldSetCookie) {
+      appendSetEcosystemEpochCookie(res.headers, ecoEpoch);
+    }
+    return res;
   } catch (err) {
     const code = err instanceof SsoError ? err.code : "INTERNAL_ERROR";
     const status = err instanceof SsoError ? err.httpStatus : 500;

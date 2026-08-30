@@ -116,6 +116,15 @@ export async function GET(req: Request) {
   try {
     // SP.2D-C7 — load Prisma/authorize only when issuing a code (not on login_required / continue).
     const { issueSsoAuthorizationCode } = await import("@/lib/identity/sso/authorize");
+    const { resolveAuthorizeEcoEpoch } = await import("@/lib/identity/sso/authorize-epoch");
+    const { appendSetEcosystemEpochCookie } = await import(
+      "@/lib/ecosystem-session/epoch"
+    );
+    // Must reuse browser hc_eco_epoch — minting a new one here causes product
+    // session/cookie epoch mismatch → Growth/Studio redirect loops.
+    const { ecoEpoch, shouldSetCookie } = resolveAuthorizeEcoEpoch(
+      req.headers.get("cookie"),
+    );
     const issued = await issueSsoAuthorizationCode({
       centralUserId,
       product: params.product,
@@ -123,6 +132,7 @@ export async function GET(req: Request) {
       state: params.state,
       codeChallenge: params.codeChallenge,
       codeChallengeMethod: params.codeChallengeMethod,
+      ecoEpoch,
       ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown",
       correlationId: req.headers.get("x-request-id") ?? undefined,
     });
@@ -137,7 +147,11 @@ export async function GET(req: Request) {
     dest.searchParams.set("code", issued.authorizationCode);
     dest.searchParams.set("state", issued.state);
     logSsoEvent("sso_success", { product: params.product, phase: "authorize_redirect" });
-    return withTiming(NextResponse.redirect(dest.toString(), 302), timer);
+    const res = withTiming(NextResponse.redirect(dest.toString(), 302), timer);
+    if (shouldSetCookie) {
+      appendSetEcosystemEpochCookie(res.headers, ecoEpoch);
+    }
+    return res;
   } catch (err) {
     const code = err instanceof SsoError ? err.code : "INTERNAL_ERROR";
     const status = err instanceof SsoError ? err.httpStatus : 500;
