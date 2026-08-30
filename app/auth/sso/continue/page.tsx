@@ -96,13 +96,14 @@ export default async function SsoContinuePage({
     <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-amber-50">
       <div className="mx-auto max-w-lg px-4 py-16">
         <p className="text-sm font-semibold tracking-wide text-emerald-800">HomeCheff</p>
+        <p className="mt-1 text-xs tracking-wide text-emerald-800/80">Everybody Eats.</p>
         <h1 className="mt-2 text-2xl font-semibold text-zinc-900">
-          {isClaim ? "Confirm HomeCheff account" : "Continue to sign in?"}
+          {isClaim ? "Bevestig HomeCheff-account" : "Doorgaan met dit HomeCheff-account?"}
         </h1>
         <p className="mt-2 text-sm text-zinc-600">
           {isClaim
-            ? `You're about to link ${productLabel(params.product)} to this HomeCheff account. Confirm it's the one you intend to use.`
-            : `You're signed in on HomeCheff. Choose whether to continue as this account for ${productLabel(params.product)}, or use another account.`}
+            ? `Je koppelt ${productLabel(params.product)} aan dit HomeCheff-account. Bevestig dat dit klopt.`
+            : `Je bent al ingelogd bij HomeCheff. Open ${productLabel(params.product)} als dit account, of kies een ander account.`}
         </p>
 
         <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
