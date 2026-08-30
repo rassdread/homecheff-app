@@ -28,28 +28,20 @@ import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInBu
 import { logGoogleLoginDiag } from "@/lib/auth/google-login-diagnostics";
 
 /**
- * SSO product return (`/auth/sso/start|continue`) must be navigated exactly once.
- * Credentials login uses redirect:false + manual redirect, while the authenticated
- * useEffect also replaces to callbackUrl — that double-hit issues two authorize
- * codes; the second Growth/Studio callback then fails with SSO_STATE_REJECTED.
+ * SSO product return (`/auth/sso/start|continue`) must not get marketing
+ * `welcome=` query noise, and must not be double-navigated by the authenticated
+ * useEffect racing credentials `handleLogin` (that caused SSO_STATE_REJECTED /
+ * stuck login after sessionStorage once-nav blocked the real redirect).
  */
-function navigateToAuthCallbackOnce(rawUrl: string): void {
-  if (typeof window === "undefined") return;
-  let target = rawUrl;
+function sanitizeSsoReturnUrl(rawUrl: string): string {
   try {
-    const u = new URL(rawUrl, window.location.origin);
-    // Never append marketing welcome flags onto SSO authorize URLs.
+    const u = new URL(rawUrl, "https://homecheff.eu");
     u.searchParams.delete("welcome");
     u.searchParams.delete("_refresh");
-    target = `${u.pathname}${u.search}${u.hash}`;
-    const state = u.searchParams.get("state") || "nostate";
-    const key = `hc_sso_nav_${state}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
+    return `${u.pathname}${u.search}${u.hash}`;
   } catch {
-    /* proceed */
+    return rawUrl;
   }
-  window.location.replace(target);
 }
 
 function isSsoProductReturnPath(url: string): boolean {
@@ -240,8 +232,9 @@ function LoginForm() {
       router.replace('/');
       return;
     }
+    // Credentials login owns SSO return navigation (redirect:false + hard replace).
+    // Letting this effect also navigate races cookies and double-issues authorize codes.
     if (isSsoProductReturnPath(target)) {
-      navigateToAuthCallbackOnce(target);
       return;
     }
     router.replace(target);
@@ -437,7 +430,7 @@ function LoginForm() {
             : intentUrl + (intentUrl.includes('?') ? '&' : '?') + 'welcome=true';
       } else if (callbackUrl && callbackUrl !== '/' && isSsoProductReturnPath(callbackUrl)) {
         // Product SSO return: one hard navigation, no welcome= noise on authorize URL.
-        navigateToAuthCallbackOnce(callbackUrl);
+        window.location.replace(sanitizeSsoReturnUrl(callbackUrl));
         return;
       } else {
         finalRedirectUrl =
@@ -449,7 +442,7 @@ function LoginForm() {
       }
 
       if (isSsoProductReturnPath(finalRedirectUrl)) {
-        navigateToAuthCallbackOnce(finalRedirectUrl);
+        window.location.replace(sanitizeSsoReturnUrl(finalRedirectUrl));
         return;
       }
       
