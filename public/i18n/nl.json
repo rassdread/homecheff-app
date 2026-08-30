@@ -216,6 +216,32 @@
     "sell_email": "Om te verkopen moet je e-mailadres geverifieerd zijn. Geen mail ontvangen? Probeer het later opnieuw of neem contact op.",
     "sell_profile": "Vul eerst de ontbrekende gegevens aan om te kunnen verkopen."
   },
+  "accountRequirementsUx": {
+    "emailVerified": {
+      "title": "Je e-mailadres is nog niet geverifieerd.",
+      "body": "Bevestig je e-mailadres om aanbod te kunnen plaatsen.",
+      "cta": "E-mail verifiëren"
+    },
+    "username": {
+      "title": "Je profiel is nog niet compleet.",
+      "body": "Kies een definitieve gebruikersnaam om verder te gaan.",
+      "cta": "Profiel aanvullen"
+    },
+    "termsAccepted": {
+      "title": "Je moet de voorwaarden nog accepteren.",
+      "body": "Accepteer de algemene voorwaarden in je profiel om aanbod te plaatsen.",
+      "cta": "Voorwaarden accepteren"
+    },
+    "stripeOnboarding": {
+      "title": "Je betaalaccount is nog niet helemaal ingesteld.",
+      "body": "Om betalingen via HomeCheff te kunnen ontvangen, moet je eerst je betaalgegevens afronden.",
+      "cta": "Betaalaccount afronden",
+      "busy": "Bezig…"
+    },
+    "adjustPayment": {
+      "cta": "Betaalmethode aanpassen"
+    }
+  },
   "sellerActivation": {
     "title": "Optioneel: voeg je locatie toe",
     "body": "Je mag eerst verkennen en aanbod plaatsen. Stad en land (en postcode in NL) helpen kopers in de buurt — pas aan wanneer het jou uitkomt.",
@@ -9047,9 +9073,9 @@
       "directContact": "Direct / contant met aanbieder regelen",
       "barter": "Ruilen toegestaan",
       "acceptedValues": "Geaccepteerde waarden toegestaan",
-      "needsConnect": "Veilig afrekenen via HomeCheff is beschikbaar zodra je uitbetalingsprofiel klaar is. Rond Stripe Connect af om betalingen via HomeCheff te ontvangen.",
-      "connectReady": "Je uitbetalingsprofiel is klaar. Kopers kunnen veilig via HomeCheff afrekenen.",
-      "setupConnectCta": "Uitbetalingsprofiel instellen",
+      "needsConnect": "Veilig afrekenen via HomeCheff is beschikbaar zodra je betaalaccount klaar is. Rond je betaalgegevens af om betalingen via HomeCheff te ontvangen.",
+      "connectReady": "Je betaalaccount is klaar. Kopers kunnen veilig via HomeCheff afrekenen.",
+      "setupConnectCta": "Betaalaccount afronden",
       "connectError": "Er ging iets mis. Probeer het opnieuw."
     },
     "canonical": {
@@ -9087,8 +9113,8 @@
       "errorGeneric": "Kon voorstel niet opslaan. Probeer het opnieuw."
     },
     "stripeRecommendation": {
-      "message": "Koppel Stripe om veilig via HomeCheff betalingen te ontvangen.",
-      "connectCta": "Stripe koppelen"
+      "message": "Rond je betaalaccount af om veilig via HomeCheff betalingen te ontvangen. Je aanbod is geplaatst; HomeCheff-betaling wordt zichtbaar zodra je account klaar is.",
+      "connectCta": "Betaalaccount afronden"
     },
     "fulfillment": {
       "heading": "Hoe wordt dit geleverd?",

@@ -18,6 +18,7 @@ import type { InspirationCategory } from '@/lib/inspiratie/instruction-content';
 import { validateProductLocationForPublish } from '@/lib/geo/product-location-requirements';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
+import { sanitizeApiErrorForDisplay } from '@/lib/client/map-api-error-for-user';
 
 type Uploaded = { 
   url: string; 
@@ -539,8 +540,10 @@ export default function CompactDesignerForm({
           return;
         }
         setMessage(
-          [data.error, data.details].filter(Boolean).join(' ').trim() ||
-            t('productForm.errorOccurred')
+          sanitizeApiErrorForDisplay(
+            data.error,
+            t('productForm.errorOccurred'),
+          ),
         );
       }
     } catch (error) {

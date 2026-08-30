@@ -66,3 +66,4 @@ STRIPE_KEYS.txt
 
 # Local Play upload copies (scripts/release-android.mjs --play)
 /release-artifacts/
+.env*

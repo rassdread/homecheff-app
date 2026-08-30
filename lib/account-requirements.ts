@@ -59,10 +59,11 @@ const MISSING_TERMS: MissingRequirement = {
   actionHref: '/profile',
 };
 
+/** UI opens seller-specific Connect Account Link; href is a safe fallback only. */
 const MISSING_STRIPE: MissingRequirement = {
   key: 'stripeOnboarding',
-  label: 'Stel je betalingen in',
-  actionHref: '/verkoper/dashboard',
+  label: 'Rond je betaalaccount af',
+  actionHref: '/seller/stripe/refresh',
 };
 
 /** Lege of tijdelijke patronen (temp_…, user_123) tellen niet als definitieve username. */

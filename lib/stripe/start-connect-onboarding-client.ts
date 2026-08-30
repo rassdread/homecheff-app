@@ -1,12 +1,28 @@
 /**
  * Client-side Stripe Connect onboarding — zelfde flow als StripeConnectPaymentsBanner.
+ * Generates a seller-specific Stripe Account Link via POST /api/stripe/connect/onboard.
  */
-export async function startStripeConnectOnboarding(): Promise<{
+
+import { rememberStripeConnectReturnPath } from '@/lib/stripe/stripe-connect-return-path';
+
+export async function startStripeConnectOnboarding(options?: {
+  /** HomeCheff path to resume after Stripe (e.g. /sell/new) — draft must already be persisted. */
+  returnPath?: string;
+}): Promise<{
   ok: boolean;
   error?: string;
   redirected?: boolean;
 }> {
   try {
+    if (options?.returnPath) {
+      rememberStripeConnectReturnPath(options.returnPath);
+    } else if (typeof window !== 'undefined') {
+      const path = `${window.location.pathname}${window.location.search}`;
+      if (path.startsWith('/sell')) {
+        rememberStripeConnectReturnPath(path);
+      }
+    }
+
     const res = await fetch('/api/stripe/connect/onboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -19,7 +35,8 @@ export async function startStripeConnectOnboarding(): Promise<{
       return {
         ok: false,
         error:
-          typeof data.error === 'string'
+          typeof data.error === 'string' &&
+          !/^[A-Z][A-Z0-9_]{2,}$/.test(data.error.trim())
             ? data.error
             : 'Er ging iets mis. Probeer het opnieuw.',
       };

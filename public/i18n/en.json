@@ -216,6 +216,32 @@
     "sell_email": "To sell, your email must be verified. If email is not arriving, try again later or contact support.",
     "sell_profile": "Complete the missing account details before you can sell."
   },
+  "accountRequirementsUx": {
+    "emailVerified": {
+      "title": "Your email address is not verified yet.",
+      "body": "Confirm your email address before you can post a listing.",
+      "cta": "Verify email"
+    },
+    "username": {
+      "title": "Your profile is not complete yet.",
+      "body": "Choose a permanent username to continue.",
+      "cta": "Complete profile"
+    },
+    "termsAccepted": {
+      "title": "You still need to accept the terms.",
+      "body": "Accept the terms of use in your profile to post a listing.",
+      "cta": "Accept terms"
+    },
+    "stripeOnboarding": {
+      "title": "Your payment account is not fully set up yet.",
+      "body": "To receive payments via HomeCheff, finish setting up your payment details first.",
+      "cta": "Complete payment account",
+      "busy": "Working…"
+    },
+    "adjustPayment": {
+      "cta": "Adjust payment method"
+    }
+  },
   "sellerActivation": {
     "title": "Optional: add your location",
     "body": "You can explore and list first. City and country (and postcode in NL) help nearby buyers — update when it suits you.",
@@ -9047,9 +9073,9 @@
       "directContact": "Arrange directly / cash with the provider",
       "barter": "Barter allowed",
       "acceptedValues": "Accepted values allowed",
-      "needsConnect": "Secure checkout via HomeCheff is available once your payout profile is ready. Complete Stripe Connect to receive payments via HomeCheff.",
-      "connectReady": "Your payout profile is ready. Buyers can check out securely via HomeCheff.",
-      "setupConnectCta": "Set up payout profile",
+      "needsConnect": "Secure checkout via HomeCheff is available once your payment account is ready. Finish your payment details to receive payments via HomeCheff.",
+      "connectReady": "Your payment account is ready. Buyers can check out securely via HomeCheff.",
+      "setupConnectCta": "Complete payment account",
       "connectError": "Something went wrong. Please try again."
     },
     "canonical": {
@@ -9087,8 +9113,8 @@
       "errorGeneric": "Could not save proposal. Please try again."
     },
     "stripeRecommendation": {
-      "message": "Connect Stripe to receive secure HomeCheff payments.",
-      "connectCta": "Connect Stripe"
+      "message": "Complete your payment account to receive secure HomeCheff payments. Your listing is live; HomeCheff checkout becomes available once your account is ready.",
+      "connectCta": "Complete payment account"
     },
     "fulfillment": {
       "heading": "How is this delivered?",

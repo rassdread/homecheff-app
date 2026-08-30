@@ -52,7 +52,13 @@ import {
   type BarterOpennessValue,
 } from '@/lib/marketplace/resolve-barter-openness-for-save';
 import type { MarketplaceCategory, PriceModel } from '@prisma/client';
-import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
+import {
+  parseAccountRequirementsFromApiBody,
+  tryShowAccountRequirementsFromApiBody,
+} from '@/lib/client/consume-account-requirements-response';
+import { resolveListingSaveErrorMessage } from '@/lib/client/map-api-error-for-user';
+import type { MissingRequirement } from '@/lib/account-requirements';
+import AccountRequirementsInlineAlert from '@/components/account/AccountRequirementsInlineAlert';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -169,6 +175,10 @@ export default function MarketplaceOfferForm({
   } | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [accountRequirementsMissing, setAccountRequirementsMissing] = useState<
+    MissingRequirement[] | null
+  >(null);
+  const paymentMethodsRef = React.useRef<HTMLDivElement | null>(null);
   const [commerceDeclarationKnown, setCommerceDeclarationKnown] = useState<
     string | null
   >(null);
@@ -563,6 +573,7 @@ export default function MarketplaceOfferForm({
   const validateAndSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
+    setAccountRequirementsMissing(null);
 
     if (!acceptHomeCheffPayment && !acceptDirectContact) {
       setMessage(t(MARKETPLACE_ERROR_KEYS.paymentMethodRequired));
@@ -765,19 +776,20 @@ export default function MarketplaceOfferForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        if (tryShowAccountRequirementsFromApiBody(data)) return;
-        const errKey =
-          typeof data.errorKey === 'string' ? data.errorKey : null;
-        const detailsKey =
-          typeof data.detailsKey === 'string' ? data.detailsKey : null;
+        const requirements = parseAccountRequirementsFromApiBody(res.status, data);
+        if (requirements) {
+          setAccountRequirementsMissing(requirements.missing);
+          tryShowAccountRequirementsFromApiBody(res.status, data);
+          return;
+        }
         setMessage(
-          detailsKey
-            ? t(detailsKey)
-            : errKey
-              ? t(errKey)
-              : typeof data.error === 'string'
-                ? data.error
-                : t(MARKETPLACE_ERROR_KEYS.saveFailed),
+          resolveListingSaveErrorMessage({
+            error: data.error,
+            errorKey: data.errorKey,
+            detailsKey: data.detailsKey,
+            translate: t,
+            fallbackKey: MARKETPLACE_ERROR_KEYS.saveFailed,
+          }),
         );
         return;
       }
@@ -993,14 +1005,16 @@ export default function MarketplaceOfferForm({
         </div>
       ) : null}
 
-      <PaymentMethodCheckboxes
-        acceptHomeCheffPayment={acceptHomeCheffPayment}
-        acceptDirectContact={acceptDirectContact}
-        onChange={({ acceptHomeCheffPayment: hc, acceptDirectContact: dc }) => {
-          setAcceptHomeCheffPayment(hc);
-          setAcceptDirectContact(dc);
-        }}
-      />
+      <div ref={paymentMethodsRef}>
+        <PaymentMethodCheckboxes
+          acceptHomeCheffPayment={acceptHomeCheffPayment}
+          acceptDirectContact={acceptDirectContact}
+          onChange={({ acceptHomeCheffPayment: hc, acceptDirectContact: dc }) => {
+            setAcceptHomeCheffPayment(hc);
+            setAcceptDirectContact(dc);
+          }}
+        />
+      </div>
 
       <SettlementConnectGuidance active={acceptHomeCheffPayment} />
 
@@ -1257,18 +1271,31 @@ export default function MarketplaceOfferForm({
         {t('marketplace.form.publishLive')}
       </label>
 
+      {accountRequirementsMissing?.length ? (
+        <AccountRequirementsInlineAlert
+          missing={accountRequirementsMissing}
+          showAdjustPayment={acceptHomeCheffPayment}
+          onAdjustPayment={() => {
+            paymentMethodsRef.current?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            });
+          }}
+        />
+      ) : null}
+
       {message ? (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-red-600 break-words" role="alert">
           {message}
         </p>
       ) : null}
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {onCancel ? (
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-xl border border-gray-300 py-3 text-sm font-medium"
+            className="flex-1 min-h-[48px] rounded-xl border border-gray-300 py-3 text-sm font-medium"
           >
             {t('marketplace.form.cancel')}
           </button>
@@ -1276,7 +1303,7 @@ export default function MarketplaceOfferForm({
         <button
           type="submit"
           disabled={busy}
-          className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="flex-1 min-h-[48px] rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
         >
           {busy ? (
             <Loader2 className="mx-auto h-5 w-5 animate-spin" />

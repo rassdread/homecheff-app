@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ShieldAlert, ExternalLink } from 'lucide-react';
 import { SettlementLucideIcon } from '@/components/marketplace/SettlementLucideIcon';
+import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -53,16 +54,16 @@ export default function SettlementConnectGuidance({
     setCtaLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/stripe/connect/onboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const result = await startStripeConnectOnboarding({
+        returnPath:
+          typeof window !== 'undefined'
+            ? `${window.location.pathname}${window.location.search}`
+            : '/sell/new',
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.onboardingUrl) {
-        window.location.href = data.onboardingUrl as string;
-        return;
+      if (!result.ok) {
+        setError(result.error ?? t('marketplace.settlement.connectError'));
+        await refresh();
       }
-      await refresh();
     } catch {
       setError(t('marketplace.settlement.connectError'));
     } finally {

@@ -4,13 +4,17 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { consumeStripeConnectReturnPath } from '@/lib/stripe/stripe-connect-return-path';
 
 export default function StripeConnectSuccess() {
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const [returnPath, setReturnPath] = useState('/sell/new');
 
   useEffect(() => {
+    setReturnPath(consumeStripeConnectReturnPath('/sell/new'));
+
     // Check if onboarding was completed
     const checkStatus = async () => {
       try {
@@ -19,12 +23,12 @@ export default function StripeConnectSuccess() {
 
         if (data.isCompleted) {
           setStatus('success');
-          setMessage('Stripe Connect is succesvol geconfigureerd! Je kunt nu betalingen ontvangen.');
+          setMessage('Je betaalaccount is klaar. Je kunt verder met je aanbod — je concept is bewaard.');
         } else {
           setStatus('error');
-          setMessage('Stripe Connect setup is niet voltooid. Probeer het opnieuw.');
+          setMessage('Je betaalaccount is nog niet helemaal ingesteld. Probeer het opnieuw.');
         }
-      } catch (error) {
+      } catch {
         setStatus('error');
         setMessage('Er is een fout opgetreden bij het controleren van je status.');
       }
@@ -64,10 +68,12 @@ export default function StripeConnectSuccess() {
         </p>
 
         <Button
-          onClick={() => router.push('/verkoper/dashboard')}
-          className="w-full inline-flex items-center justify-center"
+          onClick={() => router.push(returnPath)}
+          className="w-full inline-flex items-center justify-center min-h-[48px]"
         >
-          Ga naar Dashboard
+          {returnPath.startsWith('/sell')
+            ? 'Terug naar je aanbod'
+            : 'Verder op HomeCheff'}
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
       </div>

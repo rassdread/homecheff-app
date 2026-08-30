@@ -13,6 +13,8 @@ import {
 import {
   HC_EMAIL_VERIFICATION_REQUIRED_EVENT,
 } from '@/lib/onboarding/email-verification-prompt-events';
+import { userCopyKeysForMissingRequirement } from '@/lib/client/map-api-error-for-user';
+import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 
 export default function AccountRequirementsGateHost() {
   const { t } = useTranslation();
@@ -21,12 +23,15 @@ export default function AccountRequirementsGateHost() {
   const [open, setOpen] = useState(false);
   const [missing, setMissing] = useState<OpenAccountRequirementsGateDetail['missing']>([]);
   const [hintKey, setHintKey] = useState<string | null>(null);
+  const [stripeBusy, setStripeBusy] = useState(false);
+  const [stripeError, setStripeError] = useState<string | null>(null);
 
   const onOpen = useCallback((e: Event) => {
     const ce = e as CustomEvent<OpenAccountRequirementsGateDetail>;
     const next = ce.detail?.missing;
     setMissing(Array.isArray(next) ? next : []);
     setHintKey(typeof ce.detail?.hintKey === 'string' ? ce.detail.hintKey : null);
+    setStripeError(null);
     setOpen(true);
   }, []);
 
@@ -40,6 +45,16 @@ export default function AccountRequirementsGateHost() {
   if (!open) return null;
 
   const showUsernameHint = missing.some((m) => m.key === 'username');
+
+  const runStripeOnboard = async () => {
+    setStripeBusy(true);
+    setStripeError(null);
+    const result = await startStripeConnectOnboarding();
+    if (!result.ok) {
+      setStripeError(result.error ?? t('marketplace.settlement.connectError'));
+    }
+    setStripeBusy(false);
+  };
 
   return (
     <div
@@ -67,7 +82,7 @@ export default function AccountRequirementsGateHost() {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="shrink-0 rounded-full p-2 text-slate-600 hover:bg-slate-100"
+            className="shrink-0 rounded-full p-2 text-slate-600 hover:bg-slate-100 min-h-[44px] min-w-[44px] inline-flex items-center justify-center"
             aria-label={t('accountRequirementsGate.close')}
           >
             <X className="w-5 h-5" />
@@ -87,51 +102,75 @@ export default function AccountRequirementsGateHost() {
           </p>
         ) : null}
         <ul className="px-5 py-4 space-y-3">
-          {missing.map((item) => (
-            <li
-              key={item.key}
-              className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-3"
-            >
-              <span className="text-sm font-semibold text-slate-900">{item.label}</span>
-              {item.key === 'emailVerified' && session?.user?.email ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpen(false);
-                    window.dispatchEvent(
-                      new CustomEvent(HC_EMAIL_VERIFICATION_REQUIRED_EVENT, {
-                        detail: {
-                          email: String(session.user.email),
-                          reason: 'generic',
-                        },
-                      }),
-                    );
-                  }}
-                  className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
-                >
-                  {t('emailVerification.verifyNow')}
-                </button>
-              ) : (
-                <Link
-                  href={item.actionHref}
-                  onClick={() => setOpen(false)}
-                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
-                >
-                  {t('accountRequirementsGate.cta')}
-                </Link>
-              )}
-              {item.key === 'emailVerified' ? (
-                <Link
-                  href="/verify-email"
-                  onClick={() => setOpen(false)}
-                  className="block text-center text-xs text-slate-500 underline hover:text-slate-700"
-                >
-                  {t('emailVerification.openVerifyPage')}
-                </Link>
-              ) : null}
-            </li>
-          ))}
+          {missing.map((item) => {
+            const copy = userCopyKeysForMissingRequirement(item.key);
+            return (
+              <li
+                key={item.key}
+                className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-3"
+              >
+                <span className="text-sm font-semibold text-slate-900">
+                  {t(copy.titleKey as never)}
+                </span>
+                <span className="text-sm leading-relaxed text-slate-600">
+                  {t(copy.bodyKey as never)}
+                </span>
+                {copy.actionKind === 'emailVerify' && session?.user?.email ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      window.dispatchEvent(
+                        new CustomEvent(HC_EMAIL_VERIFICATION_REQUIRED_EVENT, {
+                          detail: {
+                            email: String(session.user.email),
+                            reason: 'generic',
+                          },
+                        }),
+                      );
+                    }}
+                    className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
+                  >
+                    {t(copy.ctaKey as never)}
+                  </button>
+                ) : copy.actionKind === 'stripeOnboard' ? (
+                  <button
+                    type="button"
+                    disabled={stripeBusy}
+                    onClick={() => void runStripeOnboard()}
+                    className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700 disabled:opacity-60"
+                  >
+                    {stripeBusy
+                      ? t('accountRequirementsUx.stripeOnboarding.busy')
+                      : t(copy.ctaKey as never)}
+                  </button>
+                ) : (
+                  <Link
+                    href={copy.actionHref ?? item.actionHref}
+                    onClick={() => setOpen(false)}
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
+                  >
+                    {t(copy.ctaKey as never)}
+                  </Link>
+                )}
+                {item.key === 'emailVerified' ? (
+                  <Link
+                    href="/verify-email"
+                    onClick={() => setOpen(false)}
+                    className="block text-center text-xs text-slate-500 underline hover:text-slate-700 min-h-[44px] leading-[44px]"
+                  >
+                    {t('emailVerification.openVerifyPage')}
+                  </Link>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
+        {stripeError ? (
+          <p className="px-5 pb-2 text-sm text-red-700" role="alert">
+            {stripeError}
+          </p>
+        ) : null}
         <div className="px-5 pb-5">
           <button
             type="button"
