@@ -11,9 +11,8 @@ export default function HomepageEcosystemSignal({
   lang?: 'nl' | 'en';
 }) {
   const isEn = lang === 'en';
-  const title = isEn
-    ? 'Everyone gets a seat at the table.'
-    : 'Iedereen eet mee.';
+  const title = 'Everybody Eats.';
+  const titleSupport = isEn ? null : 'Iedereen eet mee.';
   const body = isEn
     ? 'HomeCheff is the marketplace — and part of a wider ecosystem to create, sell, promote and grow.'
     : 'HomeCheff is de marktplaats — en onderdeel van een breder ecosysteem om te maken, verkopen, promoten en groeien.';
@@ -39,6 +38,9 @@ export default function HomepageEcosystemSignal({
             className="text-sm font-semibold tracking-tight text-emerald-950"
           >
             HomeCheff — {title}
+            {titleSupport ? (
+              <span className="font-normal text-emerald-800/80"> · {titleSupport}</span>
+            ) : null}
           </p>
           <p className="mt-0.5 text-xs leading-snug text-slate-600 sm:text-[13px]">
             {body}{' '}

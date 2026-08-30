@@ -81,7 +81,7 @@ People nearby cook, grow, make, repair, design, teach, help, trade, serve and sh
 
 ## Ecosystem (parent brand + layers)
 
-HomeCheff is the parent ecosystem brand. Philosophy: “Everyone gets a seat at the table.” / “Iedereen eet mee.”
+HomeCheff is the parent ecosystem brand. Philosophy: “Everybody Eats.” (NL supporting: “Iedereen eet mee.”)
 
 Participation loop: CREATE → SELL → GROW → PROMOTE → EARN → REPEAT.
 
@@ -364,8 +364,8 @@ growth_app_id: https://growth.homecheff.eu/#app
 affiliate_id: https://homecheff.eu/#affiliate
 
 ecosystem:
-  slogan_nl: Iedereen eet mee.
-  slogan_en: Everyone gets a seat at the table.
+  slogan_nl: Everybody Eats. (Iedereen eet mee.)
+  slogan_en: Everybody Eats.
   loop: CREATE → SELL → GROW → PROMOTE → EARN → REPEAT
   overview: https://homecheff.eu/ecosystem
   marketplace: https://homecheff.eu/

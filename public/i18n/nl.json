@@ -2529,8 +2529,8 @@
     "saveError": "Fout bij opslaan"
   },
   "login": {
-    "title": "Welkom terug",
-    "subtitle": "Log in om toegang te krijgen tot je account",
+    "title": "Inloggen",
+    "subtitle": "Eén account voor alle HomeCheff-onderdelen.",
     "noAccount": "Nog geen account?",
     "register": "Registreren",
     "email": "Email adres",
@@ -2568,7 +2568,9 @@
       "locationClickError": "Fout bij klikken op locatie",
       "unknownError": "Onbekende fout",
       "photoTooLarge": "Foto is te groot om op te slaan. Probeer een kleinere foto of comprimeer deze eerst."
-    }
+    },
+    "brandSlogan": "Everybody Eats.",
+    "oneAccountLine": "Eén HomeCheff-account voor Marketplace, Studio, Growth en Affiliate."
   },
   "passwordReset": {
     "forgotTitle": "Wachtwoord vergeten",

@@ -66,7 +66,7 @@ describe('SEO 1 ecosystem entity + landings', () => {
     assert.match(read('app/page.tsx'), /HomepageEcosystemSignal/);
     assert.match(
       read('components/seo/HomepageEcosystemSignal.tsx'),
-      /Iedereen eet mee|Everyone gets a seat/,
+      /Everybody Eats/,
     );
   });
 

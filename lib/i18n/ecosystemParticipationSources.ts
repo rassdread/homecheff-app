@@ -11,20 +11,20 @@ type PageCopy = Record<string, Bi>;
 
 export const ecosystemParticipationPage: PageCopy = {
   metaTitle: {
-    nl: 'HomeCheff-ecosysteem | Iedereen eet mee',
-    en: 'HomeCheff ecosystem | Everyone gets a seat at the table',
+    nl: 'HomeCheff-ecosysteem | Everybody Eats.',
+    en: 'HomeCheff ecosystem | Everybody Eats.',
   },
   metaDescription: {
-    nl: 'HomeCheff is één ecosysteem: maak met Studio, verkoop via de Marketplace, groei met Growth, promoot via partners — en doe mee op jouw manier. Iedereen eet mee.',
-    en: 'HomeCheff is one ecosystem: create with Studio, sell on the Marketplace, grow with Growth, promote through partners — participate your way. Everyone gets a seat at the table.',
+    nl: 'HomeCheff is één ecosysteem: maak met Studio, verkoop via de Marketplace, groei met Growth, promoot via partners — en doe mee op jouw manier. Everybody Eats. (Iedereen eet mee.)',
+    en: 'HomeCheff is one ecosystem: create with Studio, sell on the Marketplace, grow with Growth, promote through partners — participate your way. Everybody Eats.',
   },
   heroKicker: { nl: 'HomeCheff', en: 'HomeCheff' },
   heroTitle: {
-    nl: 'Iedereen eet mee.',
-    en: 'Everyone gets a seat at the table.',
+    nl: 'Everybody Eats.',
+    en: 'Everybody Eats.',
   },
   heroBody: {
-    nl: 'Verschillende mensen creëren waarde op verschillende manieren. HomeCheff verbindt maken, verkopen, content, klanten vinden en promoten in één ecosysteem — zonder dat iedereen hetzelfde hoeft te doen.',
+    nl: 'Verschillende mensen creëren waarde op verschillende manieren. HomeCheff verbindt maken, verkopen, content, klanten vinden en promoten in één ecosysteem — zonder dat iedereen hetzelfde hoeft te doen. Iedereen eet mee.',
     en: 'Different people create value in different ways. HomeCheff connects creating, selling, content, finding customers and promoting in one ecosystem — without requiring everyone to do the same thing.',
   },
   ideaTitle: { nl: 'Het idee', en: 'The idea' },

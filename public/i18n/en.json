@@ -432,8 +432,8 @@
     "loginWithUsername": "Login with username"
   },
   "login": {
-    "title": "Welcome back",
-    "subtitle": "Log in to access your account",
+    "title": "Log in",
+    "subtitle": "One account for every HomeCheff product.",
     "noAccount": "Don't have an account?",
     "register": "Sign up",
     "email": "Email address",
@@ -471,7 +471,9 @@
       "locationClickError": "Error clicking on location",
       "unknownError": "Unknown error",
       "photoTooLarge": "Photo is too large to save. Try a smaller photo or compress it first."
-    }
+    },
+    "brandSlogan": "Everybody Eats.",
+    "oneAccountLine": "One HomeCheff account for Marketplace, Studio, Growth and Affiliate."
   },
   "passwordReset": {
     "forgotTitle": "Forgot password",

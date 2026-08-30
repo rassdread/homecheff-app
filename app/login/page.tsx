@@ -534,10 +534,15 @@ function LoginForm() {
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">{t('login.title')}</h1>
+            <p className="text-sm font-semibold tracking-wide text-emerald-800">HomeCheff</p>
+            <p className="mt-1 text-xs font-medium tracking-wide text-emerald-700">
+              {t('login.brandSlogan')}
+            </p>
+            <h1 className="mt-3 text-3xl font-bold text-gray-900">{t('login.title')}</h1>
             <p className="mt-2 text-sm text-gray-600">
               {t('login.subtitle')}
             </p>
+            <p className="mt-1 text-xs text-gray-500">{t('login.oneAccountLine')}</p>
             <div className="mt-4 flex items-center justify-center space-x-4">
               <span className="text-sm text-gray-500">{t('login.noAccount')}</span>
               <Link 
