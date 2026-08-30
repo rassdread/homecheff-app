@@ -1587,7 +1587,32 @@
   "myHomeCheffHub": {
     "title": "Mijn HomeCheff",
     "eyebrow": "Persoonlijk overzicht",
-    "greeting": "Hoi {{name}} — wat wil je vandaag doen?",
+    "greeting": "Welkom, {{name}}",
+    "modulesTitle": "Jouw HomeCheff-onderdelen",
+    "modulesSupport": "Eén account — open het onderdeel waar je nu mee wilt werken.",
+    "activityTitle": "Marketplace-activiteit",
+    "modules": {
+      "marketplace": {
+        "title": "Marketplace",
+        "body": "Koop, verkoop en beheer je aanbod.",
+        "cta": "Open Marketplace"
+      },
+      "growth": {
+        "title": "Growth",
+        "body": "Vind en ontwikkel nieuwe klanten.",
+        "cta": "Open Growth"
+      },
+      "studio": {
+        "title": "Studio",
+        "body": "Maak content voor wat je maakt en verkoopt.",
+        "cta": "Open Studio"
+      },
+      "affiliate": {
+        "title": "Affiliate",
+        "body": "Deel HomeCheff en volg in aanmerking komende verdiensten.",
+        "cta": "Open Affiliate"
+      }
+    },
     "backLink": "Mijn HomeCheff",
     "nav": {
       "hub": "Mijn HomeCheff",

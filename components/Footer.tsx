@@ -92,7 +92,8 @@ export default function Footer() {
         </nav>
       </div>
       <div className="mt-6 pt-6 border-t border-gray-100">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs font-medium text-emerald-900">HomeCheff — Everybody Eats.</p>
+        <p className="mt-1 text-xs text-gray-500">
           {formatLegalOperatorRegistryLine()}
           {' · '}
           {t('siteFooter.contactViaForm')}

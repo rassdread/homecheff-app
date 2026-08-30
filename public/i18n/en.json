@@ -2750,7 +2750,32 @@
   "myHomeCheffHub": {
     "title": "My HomeCheff",
     "eyebrow": "Personal overview",
-    "greeting": "Hi {{name}} — what would you like to do today?",
+    "greeting": "Welcome, {{name}}",
+    "modulesTitle": "Your HomeCheff modules",
+    "modulesSupport": "One account — open the module you want to use now.",
+    "activityTitle": "Marketplace activity",
+    "modules": {
+      "marketplace": {
+        "title": "Marketplace",
+        "body": "Buy, sell and manage your listings.",
+        "cta": "Open Marketplace"
+      },
+      "growth": {
+        "title": "Growth",
+        "body": "Find and develop new customers.",
+        "cta": "Open Growth"
+      },
+      "studio": {
+        "title": "Studio",
+        "body": "Create content for what you make and sell.",
+        "cta": "Open Studio"
+      },
+      "affiliate": {
+        "title": "Affiliate",
+        "body": "Share HomeCheff and track eligible earnings.",
+        "cta": "Open Affiliate"
+      }
+    },
     "backLink": "My HomeCheff",
     "nav": {
       "hub": "My HomeCheff",

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import SafeImage from '@/components/ui/SafeImage';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
+import type { EcosystemProductId } from '@/lib/ecosystem-navigation/contract';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
 import { Home, User, LogOut, Menu, X, HelpCircle, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, Info, Smartphone, Download, Plus, Award, CalendarClock, Bell } from 'lucide-react';
@@ -47,6 +48,10 @@ export default function NavBar() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const ecosystemCurrentProduct: EcosystemProductId =
+    pathname?.startsWith('/affiliate') || pathname?.startsWith('/verdiensten')
+      ? 'affiliate'
+      : 'homecheff';
   const { t } = useTranslation();
   const appUpdateStatus = useAppUpdateStatus();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
@@ -586,7 +591,7 @@ export default function NavBar() {
             {/* Ecosystem discovery — desktop top chrome (guest + auth). Not buried in profile. */}
             <div className="hidden lg:block shrink-0">
               <OntdekHomeCheffMenu
-                currentProduct="homecheff"
+                currentProduct={ecosystemCurrentProduct}
                 authenticated={status === 'authenticated'}
                 surface="header"
                 variant="compact"
@@ -1129,7 +1134,7 @@ export default function NavBar() {
 
                   <div className="px-1 py-1">
                     <OntdekHomeCheffMenu
-                      currentProduct="homecheff"
+                      currentProduct={ecosystemCurrentProduct}
                       authenticated={status === 'authenticated'}
                       surface="mobile_menu"
                       variant="inline"
@@ -1158,7 +1163,7 @@ export default function NavBar() {
                   <div className="my-2 border-t border-gray-200" />
                   <div className="px-1 py-1">
                     <OntdekHomeCheffMenu
-                      currentProduct="homecheff"
+                      currentProduct={ecosystemCurrentProduct}
                       authenticated={false}
                       surface="mobile_menu"
                       variant="inline"
