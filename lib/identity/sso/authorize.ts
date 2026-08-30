@@ -12,12 +12,13 @@ import { writeSsoAudit } from "./audit";
 import { assertRedirectAllowed, getSsoClient } from "./client-registry";
 import {
   codeExpiresAt,
-  generateAuthorizationCode,
+  generateAuthorizationCodeWithEpoch,
   hashAuthorizationCode,
 } from "./code";
 import { SSO_CODE_TTL_SECONDS, SsoError } from "./constants";
 import { logSsoEvent, ssoMetrics } from "./metrics";
 import { assertAuthorizeRateLimit } from "./rate-limit";
+import { newEcosystemEpoch } from "@/lib/ecosystem-session/epoch";
 
 export type AuthorizeInput = {
   centralUserId: string;
@@ -26,6 +27,8 @@ export type AuthorizeInput = {
   state: string;
   codeChallenge: string;
   codeChallengeMethod: string;
+  /** Opaque ecosystem identity epoch (U5). Minted if omitted. */
+  ecoEpoch?: string | null;
   ip?: string;
   correlationId?: string;
 };
@@ -77,7 +80,11 @@ export async function issueSsoAuthorizationCode(
     const userMs = Math.round(performance.now() - tUser0);
 
     const tCode0 = performance.now();
-    const rawCode = generateAuthorizationCode();
+    const ecoEpoch =
+      input.ecoEpoch && input.ecoEpoch !== "0"
+        ? input.ecoEpoch
+        : newEcosystemEpoch();
+    const rawCode = generateAuthorizationCodeWithEpoch(ecoEpoch);
     const codeHash = hashAuthorizationCode(rawCode);
     const expiresAt = codeExpiresAt();
     const codeMs = Math.round(performance.now() - tCode0);

@@ -80,7 +80,11 @@ export function assertAccountActiveForSso(user: {
   }
 }
 
-export function toMinimalClaims(user: CentralUserForSso, product: SsoProduct) {
+export function toMinimalClaims(
+  user: CentralUserForSso,
+  product: SsoProduct,
+  options?: { ecoEpoch?: string | null },
+) {
   return {
     iss: "https://homecheff.eu" as const,
     aud: product,
@@ -91,5 +95,6 @@ export function toMinimalClaims(user: CentralUserForSso, product: SsoProduct) {
     image: user.image ?? user.profileImage ?? null,
     accountStatus: resolveAccountStatus(user),
     issuedAt: new Date().toISOString(),
+    ...(options?.ecoEpoch ? { ecoEpoch: options.ecoEpoch } : {}),
   };
 }

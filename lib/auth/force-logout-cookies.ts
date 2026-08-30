@@ -6,6 +6,7 @@
 import type { NextRequest } from "next/server";
 import { getCorsHeaders } from "@/lib/apiCors";
 import { getNextAuthSharedCookieDomain } from "@/lib/auth-cookie-domain";
+import { appendClearEcosystemEpochCookie } from "@/lib/ecosystem-session/epoch";
 
 const NEXT_AUTH_BASE_NAMES = [
   "next-auth.session-token",
@@ -82,6 +83,9 @@ export function buildForceLogoutClearHeaders(
 
   headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   headers.set("Pragma", "no-cache");
+
+  // U5/U6 — rotate ecosystem identity epoch so product sessions fail closed.
+  appendClearEcosystemEpochCookie(headers);
 
   return headers;
 }

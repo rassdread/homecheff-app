@@ -13,6 +13,13 @@ import {
   requireSsoEnabled,
   ssoErrorResponse,
 } from "@/lib/identity/sso/http";
+import {
+  HC_ECO_EPOCH_COOKIE,
+  HC_ECO_EPOCH_LOGGED_OUT,
+  appendSetEcosystemEpochCookie,
+  newEcosystemEpoch,
+  readEcosystemEpochFromCookieHeader,
+} from "@/lib/ecosystem-session/epoch";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +53,14 @@ export async function POST(req: Request) {
       throw new SsoError("INVALID_REQUEST");
     }
 
+    const existingEpoch = readEcosystemEpochFromCookieHeader(
+      req.headers.get("cookie"),
+    );
+    const ecoEpoch =
+      existingEpoch && existingEpoch !== HC_ECO_EPOCH_LOGGED_OUT
+        ? existingEpoch
+        : newEcosystemEpoch();
+
     const result = await issueSsoAuthorizationCode({
       centralUserId,
       product,
@@ -53,16 +68,24 @@ export async function POST(req: Request) {
       state,
       codeChallenge,
       codeChallengeMethod,
+      ecoEpoch,
       ip: clientIp(req),
       correlationId: correlationId(req),
     });
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       authorizationCode: result.authorizationCode,
       expiresIn: result.expiresIn,
       redirectUri: result.redirectUri,
       state: result.state,
     });
+    // Ensure parent-domain epoch cookie is present for product hosts.
+    if (!existingEpoch || existingEpoch === HC_ECO_EPOCH_LOGGED_OUT) {
+      appendSetEcosystemEpochCookie(res.headers, ecoEpoch);
+    } else if (!req.headers.get("cookie")?.includes(`${HC_ECO_EPOCH_COOKIE}=`)) {
+      appendSetEcosystemEpochCookie(res.headers, ecoEpoch);
+    }
+    return res;
   } catch (err) {
     return ssoErrorResponse(err);
   }

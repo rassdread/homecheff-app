@@ -20,6 +20,28 @@ export function generateAuthorizationCode(): string {
   return base64UrlEncode(randomBytes(CODE_BYTES));
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * U5 — prefix opaque ecoEpoch onto the authorization code so exchange can
+ * return it without a schema migration. Format: `<uuid>.<high-entropy>`.
+ */
+export function generateAuthorizationCodeWithEpoch(ecoEpoch: string): string {
+  if (!UUID_RE.test(ecoEpoch)) {
+    throw new SsoError("INVALID_REQUEST", "Invalid ecoEpoch");
+  }
+  return `${ecoEpoch}.${generateAuthorizationCode()}`;
+}
+
+/** Extract ecoEpoch from a U5-prefixed code; null for legacy codes. */
+export function parseEcoEpochFromAuthorizationCode(rawCode: string): string | null {
+  const i = rawCode.indexOf(".");
+  if (i !== 36) return null;
+  const epoch = rawCode.slice(0, i);
+  return UUID_RE.test(epoch) ? epoch : null;
+}
+
 function pepper(): string {
   return process.env.SSO_CODE_PEPPER?.trim() ?? "";
 }

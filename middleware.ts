@@ -258,6 +258,27 @@ export async function middleware(request: NextRequest) {
     const security = getSecurityHeaders();
     Object.entries(security).forEach(([key, value]) => res.headers.set(key, value));
   }
+
+  // U5 — ensure parent-domain ecosystem epoch when IdP session exists.
+  try {
+    const hasSession = Boolean(
+      request.cookies.get(NEXTAUTH_SESSION_COOKIE_NAME)?.value ||
+        request.cookies.get(`__Secure-${NEXTAUTH_SESSION_COOKIE_NAME}`)?.value,
+    );
+    const {
+      HC_ECO_EPOCH_COOKIE,
+      HC_ECO_EPOCH_LOGGED_OUT,
+      appendSetEcosystemEpochCookie,
+      newEcosystemEpoch,
+    } = await import('@/lib/ecosystem-session/epoch');
+    const epoch = request.cookies.get(HC_ECO_EPOCH_COOKIE)?.value;
+    if (hasSession && (!epoch || epoch === HC_ECO_EPOCH_LOGGED_OUT)) {
+      appendSetEcosystemEpochCookie(res.headers, newEcosystemEpoch());
+    }
+  } catch {
+    /* best-effort */
+  }
+
   return res;
 }
 

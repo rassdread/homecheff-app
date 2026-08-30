@@ -15,7 +15,11 @@ import {
   authenticateSsoClient,
   type SsoClientConfig,
 } from "./client-registry";
-import { hashAuthorizationCode, requirePkceS256 } from "./code";
+import {
+  hashAuthorizationCode,
+  parseEcoEpochFromAuthorizationCode,
+  requirePkceS256,
+} from "./code";
 import { SsoError } from "./constants";
 import { logSsoEvent, ssoMetrics } from "./metrics";
 import {
@@ -148,7 +152,8 @@ export async function exchangeSsoAuthorizationCode(input: ExchangeInput) {
       throw new SsoError("INVALID_CODE");
     }
 
-    const claims = toMinimalClaims(user, client.product);
+    const ecoEpoch = parseEcoEpochFromAuthorizationCode(input.code);
+    const claims = toMinimalClaims(user, client.product, { ecoEpoch });
 
     await writeSsoAudit({
       action: "SSO_EXCHANGE_SUCCESS",

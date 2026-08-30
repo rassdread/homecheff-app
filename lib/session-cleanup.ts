@@ -547,14 +547,24 @@ export async function performLogout(target: string = '/'): Promise<void> {
 
   // 1) Server-side cookie-purge (HttpOnly cookies kun je alleen server-side wissen).
   try {
-    await fetch('/api/auth/force-logout', {
+    await fetch('/api/auth/ecosystem-logout', {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
     });
   } catch {
-    /* netwerkfout: doorgaan, signOut hieronder probeert het ook */
+    /* netwerkfout: force-logout fallback */
+    try {
+      await fetch('/api/auth/force-logout', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch {
+      /* continue */
+    }
   }
 
   // 2) Best-effort NextAuth signOut zonder redirect (synchroniseert client-side session-state).
