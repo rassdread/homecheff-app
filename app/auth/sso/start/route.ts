@@ -99,13 +99,26 @@ export async function GET(req: Request) {
   }
 
   if (requiresInteractiveConfirmation(params.interaction)) {
+    // Provider intent already chosen on the product (Google / email-password).
+    // After IdP auth succeeds, do NOT show a second "Continue as…" step —
+    // that broke ONE_LOGIN (Growth → IdP login → continue → Growth).
+    const providerIntentFulfilled =
+      params.intent === "password" || params.intent === "google";
+    if (!providerIntentFulfilled) {
+      logSsoEvent("interactive_login", {
+        product: params.product,
+        interaction: params.interaction,
+        phase: "continue_required",
+      });
+      const continueUrl = new URL(ssoContinueRelativePath(params), originFrom(req));
+      return withTiming(NextResponse.redirect(continueUrl.toString(), 302), timer);
+    }
     logSsoEvent("interactive_login", {
       product: params.product,
       interaction: params.interaction,
-      phase: "continue_required",
+      phase: "intent_auto_continue",
+      intent: params.intent,
     });
-    const continueUrl = new URL(ssoContinueRelativePath(params), originFrom(req));
-    return withTiming(NextResponse.redirect(continueUrl.toString(), 302), timer);
   }
 
   logSsoEvent("silent_sso", {
