@@ -536,6 +536,15 @@ export async function performLogout(target: string = '/'): Promise<void> {
     /* never block logout on cleanup errors */
   }
 
+  try {
+    const { postMarketplaceAuthChannel } = await import(
+      '@/lib/auth/session-identity-channel'
+    );
+    postMarketplaceAuthChannel({ type: 'logout' });
+  } catch {
+    /* ignore */
+  }
+
   // 1) Server-side cookie-purge (HttpOnly cookies kun je alleen server-side wissen).
   try {
     await fetch('/api/auth/force-logout', {
