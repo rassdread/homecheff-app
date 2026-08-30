@@ -232,9 +232,10 @@ function LoginForm() {
       router.replace('/');
       return;
     }
-    // Credentials login owns SSO return navigation (redirect:false + hard replace).
-    // Letting this effect also navigate races cookies and double-issues authorize codes.
+    // SSO product return: hard navigation once session is visible to the client.
+    // Credentials handleLogin must NOT also navigate here (double authorize).
     if (isSsoProductReturnPath(target)) {
+      window.location.replace(sanitizeSsoReturnUrl(target));
       return;
     }
     router.replace(target);
