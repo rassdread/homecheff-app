@@ -9,12 +9,14 @@ export const dynamic = "force-dynamic";
 
 function authorize(req: NextRequest): boolean {
   const secret = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "")?.trim();
-  const expected =
-    process.env.GROWTH_SSO_CLIENT_SECRET?.trim() ||
-    process.env.INTERNAL_API_SECRET?.trim() ||
-    process.env.NEXTAUTH_SECRET?.trim();
-  if (!expected || !secret) return false;
-  return secret === expected;
+  const expected = [
+    process.env.GROWTH_SSO_CLIENT_SECRET?.trim(),
+    process.env.STUDIO_SSO_CLIENT_SECRET?.trim(),
+    process.env.INTERNAL_API_SECRET?.trim(),
+    process.env.NEXTAUTH_SECRET?.trim(),
+  ].filter(Boolean);
+  if (!secret || expected.length === 0) return false;
+  return expected.includes(secret);
 }
 
 /**
@@ -30,7 +32,6 @@ export async function POST(req: NextRequest) {
     sourceProduct?: string;
     sourceUserId?: string;
     email?: string;
-    passwordHashBcrypt?: string | null;
     passwordPlaintext?: string | null;
     displayName?: string | null;
     returnProduct?: string;
@@ -56,7 +57,6 @@ export async function POST(req: NextRequest) {
     sourceProduct,
     sourceUserId: String(body.sourceUserId),
     email: String(body.email),
-    passwordHashBcrypt: body.passwordHashBcrypt ?? null,
     passwordPlaintext: body.passwordPlaintext ?? null,
     displayName: body.displayName ?? null,
     returnProduct,

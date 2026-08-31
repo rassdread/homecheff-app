@@ -1,10 +1,9 @@
 /**
  * Legacy product → canonical HomeCheff User promotion (JIT).
- * Server-only. Never trust client-supplied centralUserId mappings alone —
- * email uniqueness + credential proof (Growth) must hold.
  */
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { encode } from "next-auth/jwt";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie-name";
 import { getNextAuthSharedCookieDomain } from "@/lib/auth-cookie-domain";
@@ -13,6 +12,10 @@ import {
   ecosystemEpochCookieOptions,
   newEcosystemEpoch,
 } from "@/lib/ecosystem-session/epoch";
+import {
+  normalizeMigrateEmail,
+  resolveCentralFromSiblingLinks,
+} from "@/lib/identity/legacy-migrate-core";
 
 export type LegacySourceProduct = "growth" | "studio";
 
@@ -20,9 +23,7 @@ export type LegacyMigrateRequest = {
   sourceProduct: LegacySourceProduct;
   sourceUserId: string;
   email: string;
-  /** bcrypt hash from Growth (already verified). Prefer over plaintext. */
-  passwordHashBcrypt?: string | null;
-  /** plaintext only when Studio scrypt verified and hash cannot be reused */
+  /** Verified plaintext — preferred for new canonical bcrypt (never stored in audit). */
   passwordPlaintext?: string | null;
   displayName?: string | null;
 };
@@ -33,8 +34,9 @@ export type LegacyMigrateResult =
       outcome:
         | "CREATED_CANONICAL"
         | "LINKED_EXISTING"
+        | "LINKED_VIA_SIBLING"
         | "ALREADY_LINKED"
-        | "HASH_COPIED_TO_EXISTING";
+        | "PASSWORD_SET_ON_EXISTING";
       centralUserId: string;
       redeemTicket: string;
     }
@@ -45,13 +47,10 @@ export type LegacyMigrateResult =
         | "EMAIL_CONFLICT"
         | "MISSING_CREDENTIAL"
         | "INVALID_EMAIL"
-        | "CONFIG";
+        | "CONFIG"
+        | "ALREADY_LINKED_CONFLICT";
       message: string;
     };
-
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
 
 function ticketSecret(): string {
   return (
@@ -59,10 +58,6 @@ function ticketSecret(): string {
     process.env.NEXTAUTH_SECRET?.trim() ||
     ""
   );
-}
-
-function isBcryptHash(h: string): boolean {
-  return /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(h);
 }
 
 export function issueLegacyMigrateTicket(input: {
@@ -80,7 +75,7 @@ export function issueLegacyMigrateTicket(input: {
     centralUserId: input.centralUserId,
     sourceProduct: input.sourceProduct,
     sourceUserId: input.sourceUserId,
-    email: normalizeEmail(input.email),
+    email: normalizeMigrateEmail(input.email),
     returnProduct: input.returnProduct,
     returnTo: input.returnTo.startsWith("/") ? input.returnTo : "/growth",
     exp: Date.now() + 120_000,
@@ -121,7 +116,7 @@ export function verifyLegacyMigrateTicket(ticket: string): RedeemedTicket | null
       centralUserId: payload.centralUserId,
       sourceProduct: payload.sourceProduct,
       sourceUserId: payload.sourceUserId,
-      email: normalizeEmail(payload.email),
+      email: normalizeMigrateEmail(payload.email),
       returnProduct: payload.returnProduct,
       returnTo: payload.returnTo,
       nonce: payload.nonce,
@@ -136,160 +131,286 @@ async function hashPlaintext(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
 }
 
-/**
- * Create or link canonical HomeCheff User for a proven legacy product identity.
- * Does not set product.centralUserId (caller DB). Does issue redeem ticket.
- */
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002"
+  );
+}
+
 export async function migrateLegacyProductIdentity(
   input: LegacyMigrateRequest & {
     returnProduct: LegacySourceProduct;
     returnTo: string;
   },
 ): Promise<LegacyMigrateResult> {
-  const email = normalizeEmail(input.email);
+  const email = normalizeMigrateEmail(input.email);
   if (!email.includes("@")) {
     return { ok: false, code: "INVALID_EMAIL", message: "invalid_email" };
   }
 
-  const bcryptHash =
-    input.passwordHashBcrypt && isBcryptHash(input.passwordHashBcrypt)
-      ? input.passwordHashBcrypt
-      : null;
   const plaintext =
     typeof input.passwordPlaintext === "string" && input.passwordPlaintext.length > 0
       ? input.passwordPlaintext
       : null;
 
-  if (!bcryptHash && !plaintext) {
+  if (!plaintext) {
     return {
       ok: false,
       code: "MISSING_CREDENTIAL",
-      message: "need_bcrypt_or_plaintext",
+      message: "verified_plaintext_required",
     };
   }
 
-  const matches = await prisma.user.findMany({
-    where: { email: { equals: email, mode: "insensitive" } },
-    select: {
-      id: true,
-      email: true,
-      passwordHash: true,
-      emailVerified: true,
-    },
-    take: 3,
-  });
-
-  if (matches.length > 1) {
-    await prisma.ssoAuditEvent.create({
-      data: {
-        action: "MIGRATION_SKIPPED_AMBIGUOUS",
-        product: input.sourceProduct,
-        metadata: { emailDomain: email.split("@")[1] ?? null },
-      },
-    });
-    return { ok: false, code: "AMBIGUOUS", message: "multiple_canonical_same_email" };
-  }
-
-  let centralUserId: string;
-  let outcome:
-    | "CREATED_CANONICAL"
-    | "LINKED_EXISTING"
-    | "ALREADY_LINKED"
-    | "HASH_COPIED_TO_EXISTING";
-
-  if (matches.length === 1) {
-    const existing = matches[0]!;
-    centralUserId = existing.id;
-    if (!existing.passwordHash && (bcryptHash || plaintext)) {
-      const hash = bcryptHash ?? (await hashPlaintext(plaintext!));
-      await prisma.user.update({
-        where: { id: existing.id },
-        data: { passwordHash: hash },
-      });
-      outcome = "HASH_COPIED_TO_EXISTING";
-    } else {
-      outcome = "LINKED_EXISTING";
-    }
-  } else {
-    const hash = bcryptHash ?? (await hashPlaintext(plaintext!));
-    const name =
-      (input.displayName && input.displayName.trim().slice(0, 120)) ||
-      email.split("@")[0] ||
-      "HomeCheff";
-    const created = await prisma.user.create({
-      data: {
-        email,
-        passwordHash: hash,
-        name,
-        // Proven by legacy credential; leave emailVerified null until stronger signal
-        emailVerified: null,
-      },
-      select: { id: true },
-    });
-    centralUserId = created.id;
-    outcome = "CREATED_CANONICAL";
-    await prisma.ssoAuditEvent.create({
-      data: {
-        action: "PRODUCT_IDENTITY_PROMOTED",
-        product: input.sourceProduct,
-        centralUserId,
-        metadata: {
-          sourceUserIdPrefix: input.sourceUserId.slice(0, 8),
-          passwordMigration: bcryptHash ? "reuse_bcrypt_hash" : "rehash_from_verified_plaintext",
-          migrationVersion: 1,
-        },
-      },
-    });
-  }
-
-  await prisma.authIdentityLink.upsert({
+  // Idempotent: this product row already linked
+  const existingLink = await prisma.authIdentityLink.findUnique({
     where: {
       sourceSystem_sourceUserId: {
         sourceSystem: input.sourceProduct,
         sourceUserId: input.sourceUserId,
       },
     },
-    create: {
-      centralUserId,
-      sourceSystem: input.sourceProduct,
-      sourceUserId: input.sourceUserId,
-      sourceEmailNormalized: email,
-      status: "linked",
-    },
-    update: {
-      centralUserId,
-      sourceEmailNormalized: email,
-      status: "linked",
-      conflictCode: null,
-    },
+    select: { centralUserId: true, status: true },
   });
+  if (existingLink?.status === "linked") {
+    const redeemTicket = issueLegacyMigrateTicket({
+      centralUserId: existingLink.centralUserId,
+      sourceProduct: input.sourceProduct,
+      sourceUserId: input.sourceUserId,
+      email,
+      returnProduct: input.returnProduct,
+      returnTo: input.returnTo,
+    });
+    await prisma.ssoAuditEvent.create({
+      data: {
+        action: "MIGRATION_ALREADY_COMPLETE",
+        product: input.sourceProduct,
+        centralUserId: existingLink.centralUserId,
+        metadata: { sourceUserIdPrefix: input.sourceUserId.slice(0, 8) },
+      },
+    });
+    return {
+      ok: true,
+      outcome: "ALREADY_LINKED",
+      centralUserId: existingLink.centralUserId,
+      redeemTicket,
+    };
+  }
 
-  await prisma.ssoAuditEvent.create({
-    data: {
-      action:
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const hcMatches = await tx.user.findMany({
+        where: { email: { equals: email, mode: "insensitive" } },
+        select: { id: true, email: true, passwordHash: true },
+        take: 3,
+      });
+
+      if (hcMatches.length > 1) {
+        throw new Error("AMBIGUOUS:multiple_canonical");
+      }
+
+      const siblingLinks = await tx.authIdentityLink.findMany({
+        where: { sourceEmailNormalized: email, status: "linked" },
+        select: { centralUserId: true, sourceSystem: true },
+      });
+      const siblingCentral = resolveCentralFromSiblingLinks(siblingLinks);
+
+      let centralUserId: string;
+      let outcome:
+        | "CREATED_CANONICAL"
+        | "LINKED_EXISTING"
+        | "LINKED_VIA_SIBLING"
+        | "PASSWORD_SET_ON_EXISTING";
+
+      if (hcMatches.length === 1) {
+        centralUserId = hcMatches[0]!.id;
+        outcome = "LINKED_EXISTING";
+        if (!hcMatches[0]!.passwordHash) {
+          const hash = await hashPlaintext(plaintext);
+          await tx.user.update({
+            where: { id: centralUserId },
+            data: { passwordHash: hash },
+          });
+          outcome = "PASSWORD_SET_ON_EXISTING";
+        }
+      } else if (siblingCentral && "centralUserId" in siblingCentral) {
+        centralUserId = siblingCentral.centralUserId;
+        outcome = "LINKED_VIA_SIBLING";
+        const hc = await tx.user.findUnique({
+          where: { id: centralUserId },
+          select: { passwordHash: true },
+        });
+        if (!hc?.passwordHash) {
+          const hash = await hashPlaintext(plaintext);
+          await tx.user.update({
+            where: { id: centralUserId },
+            data: { passwordHash: hash },
+          });
+          outcome = "PASSWORD_SET_ON_EXISTING";
+        }
+      } else if (siblingCentral && "ambiguous" in siblingCentral) {
+        throw new Error("AMBIGUOUS:sibling_links");
+      } else {
+        const hash = await hashPlaintext(plaintext);
+        const name =
+          (input.displayName && input.displayName.trim().slice(0, 120)) ||
+          email.split("@")[0] ||
+          "HomeCheff";
+        const created = await tx.user.create({
+          data: {
+            email,
+            passwordHash: hash,
+            name,
+            emailVerified: null,
+          },
+          select: { id: true },
+        });
+        centralUserId = created.id;
+        outcome = "CREATED_CANONICAL";
+      }
+
+      await tx.authIdentityLink.upsert({
+        where: {
+          sourceSystem_sourceUserId: {
+            sourceSystem: input.sourceProduct,
+            sourceUserId: input.sourceUserId,
+          },
+        },
+        create: {
+          centralUserId,
+          sourceSystem: input.sourceProduct,
+          sourceUserId: input.sourceUserId,
+          sourceEmailNormalized: email,
+          status: "linked",
+        },
+        update: {
+          centralUserId,
+          sourceEmailNormalized: email,
+          status: "linked",
+          conflictCode: null,
+        },
+      });
+
+      const auditAction =
         outcome === "CREATED_CANONICAL"
           ? "PRODUCT_IDENTITY_PROMOTED"
-          : "PRODUCT_IDENTITY_LINKED",
-      product: input.sourceProduct,
-      centralUserId,
-      metadata: {
-        outcome,
-        sourceUserIdPrefix: input.sourceUserId.slice(0, 8),
-        migrationVersion: 1,
+          : outcome === "LINKED_VIA_SIBLING"
+            ? "CROSS_PRODUCT_IDENTITY_LINKED"
+            : "PRODUCT_IDENTITY_LINKED";
+
+      await tx.ssoAuditEvent.create({
+        data: {
+          action: auditAction,
+          product: input.sourceProduct,
+          centralUserId,
+          metadata: {
+            outcome,
+            sourceUserIdPrefix: input.sourceUserId.slice(0, 8),
+            passwordMigration: "rehash_from_verified_plaintext",
+            migrationVersion: 2,
+          },
+        },
+      });
+
+      if (outcome === "CREATED_CANONICAL") {
+        await tx.ssoAuditEvent.create({
+          data: {
+            action: "LEGACY_AUTH_RETIRED",
+            product: input.sourceProduct,
+            centralUserId,
+            metadata: {
+              note: "canonical_credential_authoritative",
+              migrationVersion: 2,
+            },
+          },
+        });
+      }
+
+      return { centralUserId, outcome };
+    });
+
+    const redeemTicket = issueLegacyMigrateTicket({
+      centralUserId: result.centralUserId,
+      sourceProduct: input.sourceProduct,
+      sourceUserId: input.sourceUserId,
+      email,
+      returnProduct: input.returnProduct,
+      returnTo: input.returnTo,
+    });
+
+    return {
+      ok: true,
+      outcome: result.outcome,
+      centralUserId: result.centralUserId,
+      redeemTicket,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("AMBIGUOUS")) {
+      await prisma.ssoAuditEvent.create({
+        data: {
+          action: "MIGRATION_SKIPPED_AMBIGUOUS",
+          product: input.sourceProduct,
+          metadata: { reason: msg.slice(0, 120) },
+        },
+      });
+      return { ok: false, code: "AMBIGUOUS", message: msg };
+    }
+    if (isUniqueViolation(err)) {
+      const raced = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
+        select: { id: true, passwordHash: true },
+      });
+      if (!raced) {
+        return {
+          ok: false,
+          code: "EMAIL_CONFLICT",
+          message: "concurrent_create_collision",
+        };
+      }
+      await prisma.authIdentityLink.upsert({
+        where: {
+          sourceSystem_sourceUserId: {
+            sourceSystem: input.sourceProduct,
+            sourceUserId: input.sourceUserId,
+          },
+        },
+        create: {
+          centralUserId: raced.id,
+          sourceSystem: input.sourceProduct,
+          sourceUserId: input.sourceUserId,
+          sourceEmailNormalized: email,
+          status: "linked",
+        },
+        update: {
+          centralUserId: raced.id,
+          sourceEmailNormalized: email,
+          status: "linked",
+        },
+      });
+      const redeemTicket = issueLegacyMigrateTicket({
+        centralUserId: raced.id,
+        sourceProduct: input.sourceProduct,
+        sourceUserId: input.sourceUserId,
+        email,
+        returnProduct: input.returnProduct,
+        returnTo: input.returnTo,
+      });
+      return {
+        ok: true,
+        outcome: "LINKED_EXISTING",
+        centralUserId: raced.id,
+        redeemTicket,
+      };
+    }
+    await prisma.ssoAuditEvent.create({
+      data: {
+        action: "MIGRATION_FAILED",
+        product: input.sourceProduct,
+        metadata: { reason: msg.slice(0, 120) },
       },
-    },
-  });
-
-  const redeemTicket = issueLegacyMigrateTicket({
-    centralUserId,
-    sourceProduct: input.sourceProduct,
-    sourceUserId: input.sourceUserId,
-    email,
-    returnProduct: input.returnProduct,
-    returnTo: input.returnTo,
-  });
-
-  return { ok: true, outcome, centralUserId, redeemTicket };
+    });
+    throw err;
+  }
 }
 
 const SESSION_MAX_AGE_SEC = 30 * 24 * 60 * 60;
@@ -364,8 +485,60 @@ export async function markTicketRedeemed(nonce: string, centralUserId: string): 
       action: "LEGACY_MIGRATE_TICKET_REDEEMED",
       centralUserId,
       codeId: nonce,
-      metadata: { migrationVersion: 1 },
+      metadata: { migrationVersion: 2 },
     },
   });
   return true;
+}
+
+/** SAFE_AUTO_LINK: link product row to existing canonical (no password proof). */
+export async function safeAutoLinkProductIdentity(input: {
+  sourceProduct: LegacySourceProduct;
+  sourceUserId: string;
+  email: string;
+  centralUserId: string;
+}): Promise<{ ok: true } | { ok: false; code: string }> {
+  const email = normalizeMigrateEmail(input.email);
+  const hc = await prisma.user.findUnique({
+    where: { id: input.centralUserId },
+    select: { id: true, email: true },
+  });
+  if (!hc || normalizeMigrateEmail(hc.email) !== email) {
+    return { ok: false, code: "EMAIL_CONFLICT" };
+  }
+
+  await prisma.authIdentityLink.upsert({
+    where: {
+      sourceSystem_sourceUserId: {
+        sourceSystem: input.sourceProduct,
+        sourceUserId: input.sourceUserId,
+      },
+    },
+    create: {
+      centralUserId: input.centralUserId,
+      sourceSystem: input.sourceProduct,
+      sourceUserId: input.sourceUserId,
+      sourceEmailNormalized: email,
+      status: "linked",
+    },
+    update: {
+      centralUserId: input.centralUserId,
+      sourceEmailNormalized: email,
+      status: "linked",
+    },
+  });
+
+  await prisma.ssoAuditEvent.create({
+    data: {
+      action: "PRODUCT_IDENTITY_LINKED",
+      product: input.sourceProduct,
+      centralUserId: input.centralUserId,
+      metadata: {
+        linkMethod: "safe_auto_link_batch",
+        sourceUserIdPrefix: input.sourceUserId.slice(0, 8),
+      },
+    },
+  });
+
+  return { ok: true };
 }
