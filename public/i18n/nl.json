@@ -8193,6 +8193,9 @@
       "actionLabel": "Meer info"
     }
   },
+  "homeCompactHeader": {
+    "supportLine": "Zoek, bied aan of ontdek wat mensen dichtbij koken, groeien, maken en aanbieden."
+  },
   "homePhase1": {
     "heroTitleBefore": "Ontdek wat mensen ",
     "heroTitleHighlight": "bij jou in de buurt",

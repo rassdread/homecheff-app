@@ -269,7 +269,7 @@ export default function HomePageClient({
         <div className={pageShellClass}>
           {/* Legacy OFF path keeps marketing hero. AW ON uses WorkspaceOrientationStrip inside the grid. */}
           {!layoutVisible ? (
-            <div className="max-w-3xl xl:max-w-none mx-auto mb-1 sm:mb-2 xl:mb-3">
+            <div className="max-w-3xl xl:max-w-none mx-auto mb-1">
               <HomeHeroSection />
             </div>
           ) : null}

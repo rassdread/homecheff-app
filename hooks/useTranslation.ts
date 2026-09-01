@@ -354,8 +354,8 @@ export function useTranslation() {
     const cacheVersionKey = `i18n-${lang}-version`;
     // Bump bij elke wijziging in public/i18n/{nl,en}.json zodat browsers met stale
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
-    // 2.40 — marketplace responsive nav xl split + drawer IA labels
-    const CACHE_VERSION = '2.40';
+    // 2.41 — single compact marketplace header + homeCompactHeader keys
+    const CACHE_VERSION = '2.41';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state

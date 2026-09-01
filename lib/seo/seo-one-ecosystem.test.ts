@@ -62,12 +62,11 @@ describe('SEO 1 ecosystem entity + landings', () => {
     assert.ok(ENTITY_KNOWLEDGE_SURFACES.includes('/affiliate'));
   });
 
-  it('homepage SSR exposes ecosystem participation signal', () => {
-    assert.match(read('app/page.tsx'), /HomepageEcosystemSignal/);
-    assert.match(
-      read('components/seo/HomepageEcosystemSignal.tsx'),
-      /Everybody Eats/,
-    );
+  it('homepage exposes ecosystem participation signal', () => {
+    const hero = read('components/home/HomeHeroSection.tsx');
+    assert.match(hero, /data-hc-ecosystem-participation-signal/);
+    assert.match(hero, /HomepageEcosystemNavLinks/);
+    assert.match(read('components/seo/HomepageEcosystemSignal.tsx'), /Everybody Eats/);
   });
 
   it('AI briefs describe the ecosystem layers', () => {

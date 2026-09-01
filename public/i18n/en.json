@@ -8193,6 +8193,9 @@
       "actionLabel": "More info"
     }
   },
+  "homeCompactHeader": {
+    "supportLine": "Search, offer or discover what people nearby cook, grow, make and sell."
+  },
   "homePhase1": {
     "heroTitleBefore": "Discover what people ",
     "heroTitleHighlight": "nearby",

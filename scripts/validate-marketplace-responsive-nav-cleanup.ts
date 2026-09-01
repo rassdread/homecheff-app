@@ -26,7 +26,7 @@ assert(bottomVis.includes('max-xl:block xl:hidden'), 'bottom nav until xl');
 assert(bottomInset.includes('max-xl:'), 'bottom inset aligned to xl');
 
 assert(ecoLinks.includes('min-w-0 flex-1 truncate'), 'ecosystem rows always show label text');
-assert(hero.includes('xl:hidden'), 'compact hero below xl');
+assert(hero.includes('data-hc-ecosystem-participation-signal'), 'merged SEO signal in hero');
 
 console.log('  ✅ xl breakpoint split (header + bottom nav)');
 console.log('  ✅ drawer label + IA guards');
