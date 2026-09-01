@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2026-09-01T19:58:06.878Z",
+  "mode": "apply",
+  "totalProductsScanned": 8,
+  "confirmedCount": 1,
+  "confirmedIds": [
+    "e3e5322e-fae3-4185-b047-c10205646df3"
+  ],
+  "inventory": [
+    {
+      "id": "e3e5322e-fae3-4185-b047-c10205646df3",
+      "title": "HomeCheff Design HC Pilot — €4.50",
+      "sellerId": "85019ddc-11ef-4efc-b92a-292019a8ce28",
+      "classification": "CONFIRMED_HC_PILOT_TEST_DATA",
+      "reason": "Explicit HC Pilot listing title",
+      "isActive": true
+    }
+  ],
+  "preservedUncertain": [
+    {
+      "id": "3b85deeb-5801-417a-a087-5b6027130ae0",
+      "title": "Kᴇᴋsɪ",
+      "classification": "UNCERTAIN",
+      "reason": "Used in HC pilot scripts but owned by real seller Lioness — not auto-deleted"
+    }
+  ]
+}

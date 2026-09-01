@@ -30,6 +30,7 @@ import {
 } from '@/lib/navigation/primary-dashboard';
 import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
 import { OntdekHomeCheffMenu } from '@/components/ecosystem/OntdekHomeCheffMenu';
+import { EcosystemAccountNavLinks } from '@/components/ecosystem/EcosystemAccountNavLinks';
 import { useCommsUnread } from '@/hooks/useCommsUnread';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
@@ -72,10 +73,12 @@ export default function NavBar() {
   /** WX 1C.1 — when bottom nav collapses, Create must remain in command chrome. */
   const showLandscapeCreate =
     landscapeWork.bottomNavCollapsed && !suppressNavbarChrome;
+  /** Portrait/tablet: bottom tabs cover primary destinations — avoid duplicating them in the drawer. */
+  const bottomNavReachable = !landscapeWork.bottomNavCollapsed;
   const [sellerOrdersUnread, setSellerOrdersUnread] = useState(0);
   const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
   const hasFetchedProfileRef = useRef(false);
-  const DROPDOWN_WIDTH = 224;
+  const DROPDOWN_WIDTH = 280;
   const DROPDOWN_MARGIN = 16;
   const [dropdownPosition, setDropdownPosition] = useState({ top: 56, right: 16, openAbove: false });
   const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
@@ -100,7 +103,7 @@ export default function NavBar() {
     };
   }, []);
 
-  /** WX 1B.4: Escape closes below-lg hamburger (landscape path preservation). */
+  /** WX 1B.4: Escape closes below-xl hamburger (landscape path preservation). */
   useEffect(() => {
     if (!isMobileMenuOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -457,7 +460,7 @@ export default function NavBar() {
           {/* Desktop Navigation — WX 1A.1: shrink-0 cluster; never flex-shrink/clip labels */}
           <nav
             data-wx-desktop-nav=""
-            className="hidden lg:flex items-center gap-0.5 xl:gap-1 shrink-0 overflow-visible"
+            className="hidden xl:flex items-center gap-0.5 xl:gap-1 shrink-0 overflow-visible"
           >
             <Link
               href="/"
@@ -494,8 +497,8 @@ export default function NavBar() {
               <span className="whitespace-nowrap">{t('myHomeCheffHub.nav.hubShort')}</span>
             </Link>
 
-            {/* lg+ desktop: replaces bottom nav tabs (tablet keeps bottom nav until lg). */}
-            <div className="hidden lg:flex items-center gap-0.5 shrink-0">
+            {/* xl+ desktop: replaces bottom nav tabs (tablet keeps bottom nav until xl). */}
+            <div className="hidden xl:flex items-center gap-0.5 shrink-0">
               <Link
                 href={user ? '/messages' : '/login'}
                 prefetch={false}
@@ -553,14 +556,14 @@ export default function NavBar() {
 
           {/* Rechtercluster: language + auth altijd buiten de nav-flex; hamburger < lg */}
           <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0 pl-1">
-            {/* WX 1C.1 P0 — Landscape Create invariant (lg+ already has desktop primary). */}
+            {/* WX 1C.1 P0 — Landscape Create invariant (xl+ already has desktop primary). */}
             {showLandscapeCreate ? (
               <button
                 type="button"
                 data-wx-primary-action=""
                 data-wx-landscape-create=""
                 className={cn(
-                  'lg:hidden inline-flex shrink-0 items-center justify-center gap-1',
+                  'xl:hidden inline-flex shrink-0 items-center justify-center gap-1',
                   shortLandscapeChrome
                     ? 'rounded-lg px-2 py-1.5 min-h-[36px] text-xs'
                     : 'rounded-xl px-2.5 py-2 min-h-[40px] text-[13px]',
@@ -585,11 +588,11 @@ export default function NavBar() {
                 </span>
               </button>
             ) : null}
-            <div className="hidden lg:block shrink-0">
+            <div className="hidden xl:block shrink-0">
               <LanguageSwitcher />
             </div>
             {/* Ecosystem discovery — desktop top chrome (guest + auth). Not buried in profile. */}
-            <div className="hidden lg:block shrink-0">
+            <div className="hidden xl:block shrink-0">
               <OntdekHomeCheffMenu
                 currentProduct={ecosystemCurrentProduct}
                 authenticated={status === 'authenticated'}
@@ -599,7 +602,7 @@ export default function NavBar() {
             </div>
             {status === 'loading' && !user ? (
               <div
-                className="hidden lg:flex shrink-0 items-center gap-2"
+                className="hidden xl:flex shrink-0 items-center gap-2"
                 aria-busy="true"
                 aria-label="Sessie laden"
               >
@@ -628,7 +631,7 @@ export default function NavBar() {
             )}
 
             {user && (
-              <div className="hidden lg:flex items-center flex-shrink-0 min-w-0 gap-1">
+              <div className="hidden xl:flex items-center flex-shrink-0 min-w-0 gap-1">
                 <CartIcon />
                 <div className="relative z-[110] shrink-0">
                   <NotificationBell />
@@ -681,9 +684,17 @@ export default function NavBar() {
                         maxHeight: typeof window !== 'undefined' ? `calc(100vh - ${dropdownPosition.top}px - 24px)` : 'none'
                       }}
                     >
+                      <EcosystemAccountNavLinks
+                        currentProduct={ecosystemCurrentProduct}
+                        authenticated
+                        surface="account_menu"
+                        rowClassName="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onNavigate={() => setIsProfileDropdownOpen(false)}
+                      />
                       <MyHomeCheffNavLinks
                         user={navMenuUser}
                         rowClassName="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        excludeIds={['hub', 'affiliate']}
                         onNavigate={() => setIsProfileDropdownOpen(false)}
                       />
 
@@ -798,7 +809,7 @@ export default function NavBar() {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors touch-manipulation shrink-0"
+              className="xl:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors touch-manipulation shrink-0"
               aria-expanded={isMobileMenuOpen}
               aria-controls="navbar-mobile-menu"
               aria-label={isMobileMenuOpen ? t('buttons.close') : 'Menu'}
@@ -813,7 +824,7 @@ export default function NavBar() {
         </div>
       </div>
 
-        {/* Compact / mobile navigation (< lg). Short landscape portals to body so the
+        {/* Compact / mobile navigation (< xl). Short landscape portals to body so the
             panel is not clipped by the height-0 suppressed header / feed stacking. */}
         {isMobileMenuOpen &&
           (() => {
@@ -822,15 +833,17 @@ export default function NavBar() {
             id="navbar-mobile-menu"
             data-wx-landscape-menu={suppressNavbarChrome ? '1' : '0'}
             className={cn(
-              'lg:hidden border-t border-gray-200 py-4 bg-white dark:bg-gray-900',
+              'xl:hidden border-t border-gray-200 py-4 bg-white dark:bg-gray-900',
               suppressNavbarChrome &&
                 'hc-wx-landscape-menu-panel fixed top-0 z-[99990] max-h-[85dvh] overflow-y-auto shadow-lg border-b pointer-events-auto',
               suppressNavbarChrome &&
                 'pt-[max(3.75rem,calc(3.25rem+env(safe-area-inset-top,0px)))]',
               !suppressNavbarChrome && 'max-w-7xl mx-auto px-3 sm:px-5',
+              bottomNavReachable &&
+                'pb-[max(1rem,calc(env(safe-area-inset-bottom,0px)+5.5rem))]',
             )}
           >
-            <nav className="flex flex-col space-y-2">
+            <nav className="flex flex-col space-y-2" aria-label={t('navbar.mobileMenuAria')}>
               <Link
                 href="/"
                 prefetch={false}
@@ -840,44 +853,48 @@ export default function NavBar() {
                   navDebug('navbar:mobile', { href: '/' });
                 }}
               >
-                <Home className="w-4 h-4 shrink-0" />
+                <Home className="w-4 h-4 shrink-0" aria-hidden />
                 <span>{t('navbar.home')}</span>
               </Link>
 
-              {/* WX 1B.4 — Landscape Work Posture: bottom-nav destinations remain reachable via hamburger. */}
-              <button
-                type="button"
-                data-wx-mobile-create=""
-                data-wx-primary-action-mobile=""
-                className={cn(
-                  mobileNavRowClass,
-                  'bg-primary-brand font-semibold text-white hover:bg-primary-700 hover:text-white',
-                )}
-                onClick={handleMobileCreate}
-              >
-                <Plus className="w-4 h-4 shrink-0" aria-hidden />
-                <span>{t('homePhase1.ctaShare')}</span>
-              </button>
+              {/* Primary create — hidden when bottom nav (+) is visible */}
+              {!bottomNavReachable ? (
+                <button
+                  type="button"
+                  data-wx-mobile-create=""
+                  data-wx-primary-action-mobile=""
+                  className={cn(
+                    mobileNavRowClass,
+                    'bg-primary-brand font-semibold text-white hover:bg-primary-700 hover:text-white',
+                  )}
+                  onClick={handleMobileCreate}
+                >
+                  <Plus className="w-4 h-4 shrink-0" aria-hidden />
+                  <span>{t('homePhase1.ctaShare')}</span>
+                </button>
+              ) : null}
 
-              <Link
-                href={user ? '/mijn-hcp' : '/login'}
-                prefetch={false}
-                data-wx-mobile-mijn-hcp=""
-                className={cn(
-                  mobileNavRowClass,
-                  pathname === '/mijn-hcp' && 'bg-primary-50 text-primary-brand',
-                )}
-                onClick={() => {
-                  closeMobileMenu();
-                  navDebug('navbar:mobile', {
-                    href: user ? '/mijn-hcp' : '/login',
-                    destination: 'mijn-hcp',
-                  });
-                }}
-              >
-                <Award className="w-4 h-4 shrink-0" aria-hidden />
-                <span>{t('bottomNav.reputationTab')}</span>
-              </Link>
+              {!bottomNavReachable ? (
+                <Link
+                  href={user ? '/mijn-hcp' : '/login'}
+                  prefetch={false}
+                  data-wx-mobile-mijn-hcp=""
+                  className={cn(
+                    mobileNavRowClass,
+                    pathname === '/mijn-hcp' && 'bg-primary-50 text-primary-brand',
+                  )}
+                  onClick={() => {
+                    closeMobileMenu();
+                    navDebug('navbar:mobile', {
+                      href: user ? '/mijn-hcp' : '/login',
+                      destination: 'mijn-hcp',
+                    });
+                  }}
+                >
+                  <Award className="w-4 h-4 shrink-0" aria-hidden />
+                  <span>{t('bottomNav.reputationTab')}</span>
+                </Link>
+              ) : null}
 
               {appUpdateStatus.showPlayMigrationStrip ? (
                 <button
@@ -927,22 +944,24 @@ export default function NavBar() {
                   navDebug('navbar:mobile', { href: '/app' });
                 }}
               >
-                <Smartphone className="w-4 h-4 shrink-0" />
+                <Smartphone className="w-4 h-4 shrink-0" aria-hidden />
                 <span>{t('navbar.androidBeta')}</span>
               </Link>
 
-              <Link
-                href={user ? '/profile' : '/login'}
-                prefetch={false}
-                className={mobileNavRowClass}
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  navDebug('navbar:mobile', { href: user ? '/profile' : '/login' });
-                }}
-              >
-                <User className="w-4 h-4 shrink-0" />
-                <span>{t('bottomNav.profile')}</span>
-              </Link>
+              {!bottomNavReachable ? (
+                <Link
+                  href={user ? '/profile' : '/login'}
+                  prefetch={false}
+                  className={mobileNavRowClass}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    navDebug('navbar:mobile', { href: user ? '/profile' : '/login' });
+                  }}
+                >
+                  <User className="w-4 h-4 shrink-0" aria-hidden />
+                  <span>{t('bottomNav.profile')}</span>
+                </Link>
+              ) : null}
 
               <div className="px-3 py-2">
                 <LanguageSwitcher />
@@ -1016,64 +1035,66 @@ export default function NavBar() {
                       {userProfile ? getDisplayName(userProfile) : getDisplayName(user)}
                     </span>
                   </div>
-                  
+
+                  <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                    {t('navbar.accountSectionLabel')}
+                  </p>
+
+                  <EcosystemAccountNavLinks
+                    currentProduct={ecosystemCurrentProduct}
+                    authenticated
+                    surface="mobile_menu"
+                    rowClassName={mobileNavRowClass}
+                    onNavigate={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { section: 'ecosystem' });
+                    }}
+                  />
+
                   <MyHomeCheffNavLinks
                     user={navMenuUser}
                     rowClassName={mobileNavRowClass}
+                    excludeIds={['hub', 'affiliate']}
                     onNavigate={() => {
                       setIsMobileMenuOpen(false);
                       navDebug('navbar:mobile', { section: 'my-homecheff' });
                     }}
-                    priorityOnly
                   />
 
                   <div className="border-t border-gray-200 my-2" />
 
-                  {/* Profile Link */}
-                  {user ? (
-                    <Link
-                      href="/profile"
-                      prefetch={false}
-                      className={mobileNavRowClass}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: '/profile' });
-                      }}
-                    >
-                      <User className="w-4 h-4 shrink-0" />
-                      <span>{t('navbar.myProfile')}</span>
-                    </Link>
-                  ) : (
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start flex items-center space-x-2"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        router.push('/login');
-                      }}
-                    >
-                      <User className="w-4 h-4" />
-                      <span>{t('navbar.myProfile')}</span>
-                    </Button>
-                  )}
-                  
                   <Link
-                    href="/messages"
+                    href="/profile"
                     prefetch={false}
-                    className={cn(mobileNavRowClass, 'relative')}
+                    className={mobileNavRowClass}
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/messages' });
+                      navDebug('navbar:mobile', { href: '/profile' });
                     }}
                   >
-                    <MessageCircle className="w-4 h-4 shrink-0" />
-                    <span>{t('navbar.messages')}</span>
-                    {unreadCount > 0 && (
-                      <span className="ml-auto flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
+                    <User className="w-4 h-4 shrink-0" aria-hidden />
+                    <span>{t('navbar.myProfile')}</span>
                   </Link>
+
+                  {!bottomNavReachable ? (
+                    <Link
+                      href="/messages"
+                      prefetch={false}
+                      className={cn(mobileNavRowClass, 'relative')}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        navDebug('navbar:mobile', { href: '/messages' });
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 shrink-0" aria-hidden />
+                      <span>{t('navbar.messages')}</span>
+                      {unreadCount > 0 && (
+                        <span className="ml-auto flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  ) : null}
 
                   {/* Mijn Afspraken — unified operations hub (UX-FIN-2.1) */}
                   <Link
@@ -1132,18 +1153,9 @@ export default function NavBar() {
                     </Link>
                   ) : null}
 
-                  <div className="px-1 py-1">
-                    <OntdekHomeCheffMenu
-                      currentProduct={ecosystemCurrentProduct}
-                      authenticated={status === 'authenticated'}
-                      surface="mobile_menu"
-                      variant="inline"
-                    />
-                  </div>
-
                   <div className="border-t border-gray-200 my-2"></div>
                   
-                  <Button 
+                  <Button
                     variant="ghost" 
                     onClick={async () => {
                       setIsMobileMenuOpen(false);

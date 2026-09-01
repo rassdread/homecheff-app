@@ -10,7 +10,8 @@
 /** Wrapper around the fixed tab bar (not modals/inputs). */
 export function bottomNavBarWrapperClass(isNativeShell: boolean): string {
   if (isNativeShell) return 'block';
-  return 'max-lg:block lg:hidden';
+  /** Align with NavBar xl split — compact tabs until desktop nav has room. */
+  return 'max-xl:block xl:hidden';
 }
 
 /**
@@ -32,5 +33,5 @@ export function bottomNavFlowSpacerClass(
 ): string {
   if (suppressed) return 'h-0';
   if (isNativeShell) return 'h-[5.75rem] md:h-[7.25rem]';
-  return 'max-lg:h-20 max-lg:md:h-[5.75rem] lg:h-0';
+  return 'max-xl:h-20 max-xl:md:h-[5.75rem] xl:h-0';
 }

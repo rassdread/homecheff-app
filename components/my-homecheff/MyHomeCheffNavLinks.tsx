@@ -28,12 +28,36 @@ const NAV_ICONS: Record<string, typeof Package> = {
   settings: Settings,
 };
 
+const NAV_LABEL_FALLBACKS: Record<string, { nl: string; en: string }> = {
+  'myHomeCheffHub.nav.hub': { nl: 'Mijn HomeCheff', en: 'My HomeCheff' },
+  'myHomeCheffHub.nav.orders': { nl: 'Mijn bestellingen', en: 'My orders' },
+  'myHomeCheffHub.nav.seller': { nl: 'Verkopen', en: 'Selling' },
+  'myHomeCheffHub.nav.affiliate': { nl: 'Affiliate', en: 'Affiliate' },
+  'myHomeCheffHub.nav.delivery': { nl: 'Bezorging', en: 'Delivery' },
+  'myHomeCheffHub.nav.earnings': { nl: 'Verdiensten', en: 'Earnings' },
+  'myHomeCheffHub.nav.settings': { nl: 'Instellingen', en: 'Settings' },
+};
+
+function resolveNavLabel(
+  t: (key: string) => string,
+  labelKey: string,
+  language: string,
+): string {
+  const translated = t(labelKey);
+  if (translated.trim()) return translated;
+  const fb = NAV_LABEL_FALLBACKS[labelKey];
+  if (!fb) return labelKey;
+  return language === 'en' ? fb.en : fb.nl;
+}
+
 type Props = {
   user: Record<string, unknown> | null;
   rowClassName: string;
   onNavigate?: () => void;
   /** Show only hub-priority items (mobile compact block) */
   priorityOnly?: boolean;
+  /** Hide items already shown in ecosystem account block */
+  excludeIds?: string[];
 };
 
 export default function MyHomeCheffNavLinks({
@@ -41,12 +65,15 @@ export default function MyHomeCheffNavLinks({
   rowClassName,
   onNavigate,
   priorityOnly = false,
+  excludeIds = [],
 }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const ctx = settingsHubContextFromSessionUser(user);
   if (!ctx) return null;
 
+  const exclude = new Set(excludeIds);
   const items = listMyHomeCheffNavItems(ctx).filter((item) => {
+    if (exclude.has(item.id)) return false;
     if (!priorityOnly) return true;
     return ['hub', 'orders', 'seller', 'affiliate', 'delivery', 'earnings', 'settings'].includes(
       item.id,
@@ -58,6 +85,7 @@ export default function MyHomeCheffNavLinks({
       {items.map((item) => {
         const Icon = NAV_ICONS[item.id] ?? LayoutGrid;
         const isHub = item.href === MY_HOMECHEFF_HUB_PATH;
+        const label = resolveNavLabel(t, item.labelKey, language);
         return (
           <Link
             key={item.id}
@@ -72,7 +100,7 @@ export default function MyHomeCheffNavLinks({
             onClick={onNavigate}
           >
             <Icon className="w-4 h-4 shrink-0" aria-hidden />
-            <span>{t(item.labelKey)}</span>
+            <span className="min-w-0 flex-1 truncate">{label}</span>
           </Link>
         );
       })}

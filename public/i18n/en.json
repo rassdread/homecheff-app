@@ -2771,7 +2771,9 @@
     "verdienenGuestBody": "You can only post something when you are logged in.",
     "androidBeta": "Help test",
     "legalAndContact": "Legal & contact",
-    "legalNavAria": "Legal information and contact"
+    "legalNavAria": "Legal information and contact",
+    "mobileMenuAria": "Main menu",
+    "accountSectionLabel": "Account & ecosystem"
   },
   "myHomeCheffHub": {
     "title": "My HomeCheff",

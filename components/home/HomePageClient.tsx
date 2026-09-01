@@ -177,16 +177,16 @@ export default function HomePageClient({
 
   /** WX 1A — keep mobile chrome compact; ecosystem strip is secondary (not above-fold mandatory). */
   const mobileChrome = (
-    <div className="min-w-0 lg:hidden">
+    <div className="min-w-0 xl:hidden">
       {session?.user ? (
-        <div className="mb-2">
+        <div className="mb-1.5">
           <UserActionCenter variant="mobileCompact" />
         </div>
       ) : null}
       {!layoutVisible ? (
         <HomeMobileEcosystemStrip
           isLoggedIn={Boolean(session?.user)}
-          className="mb-3"
+          className="mb-1.5"
         />
       ) : null}
     </div>
@@ -260,7 +260,7 @@ export default function HomePageClient({
 
   const pageShellClass = layoutVisible
     ? "hc-home-page-shell hc-aw-full-bleed hc-wx-shell w-full max-w-none mx-auto px-0 sm:px-2 lg:px-3 py-0 sm:py-2 bg-gray-100/70"
-    : "hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-3 sm:py-5";
+    : "hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-2 sm:py-3";
 
   return (
     <>
@@ -269,7 +269,7 @@ export default function HomePageClient({
         <div className={pageShellClass}>
           {/* Legacy OFF path keeps marketing hero. AW ON uses WorkspaceOrientationStrip inside the grid. */}
           {!layoutVisible ? (
-            <div className="max-w-3xl lg:max-w-none mx-auto mb-2 sm:mb-4 lg:mb-4">
+            <div className="max-w-3xl xl:max-w-none mx-auto mb-1 sm:mb-2 xl:mb-3">
               <HomeHeroSection />
             </div>
           ) : null}

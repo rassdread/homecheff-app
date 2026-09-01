@@ -34,7 +34,7 @@ function ok(label: string) {
   console.log(`  ✓ ${label}`);
 }
 
-console.log("\n[nav-preservation-1b4] landscape below-lg destinations");
+console.log("\n[nav-preservation-1b4] landscape below-xl destinations");
 
 {
   const nav = readFileSync(join(root, "components/NavBar.tsx"), "utf8");
@@ -47,10 +47,10 @@ console.log("\n[nav-preservation-1b4] landscape below-lg destinations");
   assert.match(nav, /bottomNav\.reputationTab/);
   // Escape closes hamburger
   assert.match(nav, /Escape/);
-  // Desktop Create remains lg-scoped (primary action inside hidden lg:flex cluster)
+  // Desktop Create remains xl-scoped (primary action inside hidden xl:flex cluster)
   assert.match(nav, /data-wx-primary-action=/);
-  assert.match(nav, /hidden lg:flex/);
-  ok("NavBar exposes Create + /mijn-hcp in below-lg hamburger; Escape + desktop Create retained");
+  assert.match(nav, /hidden xl:flex/);
+  ok("NavBar exposes Create + /mijn-hcp in below-xl hamburger; Escape + desktop Create retained");
 }
 
 {

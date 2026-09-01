@@ -9,13 +9,13 @@ export default function NavBarShell() {
     >
       <div className="mx-auto flex h-14 max-w-[100vw] items-center justify-between gap-2 px-3 sm:h-16 sm:px-4">
         <div className="h-8 w-28 shrink-0 animate-pulse rounded-lg bg-gray-200" />
-        <div className="hidden flex-1 items-center justify-center gap-2 lg:flex">
+        <div className="hidden flex-1 items-center justify-center gap-2 xl:flex">
           <div className="h-8 w-20 animate-pulse rounded-full bg-gray-100" />
           <div className="h-8 w-20 animate-pulse rounded-full bg-gray-100" />
           <div className="h-8 w-20 animate-pulse rounded-full bg-gray-100" />
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <div className="hidden h-8 w-8 animate-pulse rounded-full bg-gray-100 lg:block" />
+          <div className="hidden h-8 w-8 animate-pulse rounded-full bg-gray-100 xl:block" />
           <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
         </div>
       </div>

@@ -2,17 +2,17 @@
 
 import { useLayoutEffect, useState } from "react";
 
-const MQ = "(max-width: 1023px)";
+const MQ = "(max-width: 1279px)";
 
 export type NarrowViewportState = {
-  /** True when viewport is below lg (< 1024px). */
+  /** True when viewport is below xl (< 1280px) — matches NavBar + bottom nav split. */
   narrow: boolean;
   /** True once viewport is known (Phase 3F.5: true from first render). */
   resolved: boolean;
 };
 
 /**
- * True op viewports onder lg (mobiel + tablet). Aligns with homepage `lg:hidden` shell.
+ * True op viewports onder xl (mobiel + tablet + narrow desktop). Aligns with homepage compact shell.
  */
 export function useNarrowViewport(): boolean {
   const { narrow } = useNarrowViewportResolved();

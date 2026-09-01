@@ -94,21 +94,21 @@ export default function HomeHeroSection() {
   return (
     <>
       {/* Mobile / tablet: Model B compact strip — feed-first; landscape ultra-thin */}
-      <section className="lg:hidden relative overflow-hidden rounded-xl hc-hero-dorpsplein mb-1.5 shadow-md min-h-[5.5rem] max-h-[8.5rem] max-[900px]:landscape:min-h-0 max-[900px]:landscape:max-h-[3.25rem] max-[900px]:landscape:mb-1">
+      <section className="xl:hidden relative overflow-hidden rounded-xl hc-hero-dorpsplein mb-1 shadow-md min-h-[4.25rem] max-h-[7rem] max-[900px]:landscape:min-h-0 max-[900px]:landscape:max-h-[3.25rem] max-[900px]:landscape:mb-1">
         <div
           className="absolute inset-0 bg-gradient-to-br from-primary-brand via-[#007a5c] to-secondary-brand"
           aria-hidden
         />
-        <div className="relative z-[1] flex h-full min-h-[5.5rem] max-[900px]:landscape:min-h-0 items-center justify-between gap-2 px-3 py-2 sm:px-4 max-[900px]:landscape:py-1 max-[900px]:landscape:px-2">
+        <div className="relative z-[1] flex h-full min-h-[4.25rem] max-[900px]:landscape:min-h-0 items-center justify-between gap-2 px-3 py-1.5 sm:px-4 max-[900px]:landscape:py-1 max-[900px]:landscape:px-2">
           <div className="min-w-0 flex-1">
             <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white/95 mb-0.5 max-[900px]:landscape:hidden">
               <span className="hc-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-amber-300" aria-hidden />
               {t('homePhase1.orientationIdentity')}
             </p>
-            <h1 className="text-sm sm:text-base font-extrabold text-white leading-snug line-clamp-2 tracking-tight max-[900px]:landscape:text-xs max-[900px]:landscape:line-clamp-1">
+            <h1 className="text-sm sm:text-base font-extrabold text-white leading-snug line-clamp-1 tracking-tight max-[900px]:landscape:text-xs max-[900px]:landscape:line-clamp-1">
               {t('homePhase1.orientationTitle')}
             </h1>
-            <p className="hidden min-[400px]:block text-[11px] text-white/90 line-clamp-1 mt-0.5 font-medium max-[900px]:landscape:hidden">
+            <p className="hidden sm:block text-[11px] text-white/90 line-clamp-1 mt-0.5 font-medium max-[900px]:landscape:hidden">
               {t('homePhase1.orientationExplainCompactPrimary')}
             </p>
           </div>
@@ -129,7 +129,7 @@ export default function HomeHeroSection() {
       </section>
 
       {/* Desktop: full hero — unchanged */}
-      <section className="hidden lg:block relative overflow-visible rounded-2xl sm:rounded-3xl hc-hero-dorpsplein mb-3 sm:mb-4 lg:mb-3 shadow-xl">
+      <section className="hidden xl:block relative overflow-visible rounded-2xl sm:rounded-3xl hc-hero-dorpsplein mb-2 sm:mb-3 shadow-xl">
         <div
           className="absolute inset-0 bg-gradient-to-br from-primary-brand via-[#007a5c] to-secondary-brand"
           aria-hidden

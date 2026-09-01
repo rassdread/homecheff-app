@@ -31,7 +31,7 @@ export default function HomepageEcosystemSignal({
       aria-labelledby="homepage-ecosystem-signal-title"
       data-hc-ecosystem-participation-signal="1"
     >
-      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-2.5 xl:py-3">
         <div className="min-w-0">
           <p
             id="homepage-ecosystem-signal-title"
@@ -42,7 +42,7 @@ export default function HomepageEcosystemSignal({
               <span className="font-normal text-emerald-800/80"> · {titleSupport}</span>
             ) : null}
           </p>
-          <p className="mt-0.5 text-xs leading-snug text-slate-600 sm:text-[13px]">
+          <p className="mt-0.5 hidden sm:block text-xs leading-snug text-slate-600 sm:text-[13px]">
             {body}{' '}
             <span className="font-medium text-slate-700">{ECOSYSTEM_LOOP}</span>
           </p>
