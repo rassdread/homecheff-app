@@ -37,6 +37,12 @@ import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
 import { requiresInventoryForCheckout } from '@/lib/proposals/proposal-stock-policy';
 import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
+import {
+  buildAuthoritativeLineItems,
+  evaluateCheckoutFloor,
+  sumProductsTotalCents,
+  CHECKOUT_MINIMUM_NOT_MET,
+} from '@/lib/marketplace/checkout-floor';
 
 const prisma = new PrismaClient();
 
@@ -420,10 +426,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Calculate product subtotal
-    const productsTotalCents = items.reduce((sum: number, item: any) => {
-      return sum + (item.priceCents * item.quantity);
-    }, 0);
+    const communityOrderValidated = Boolean(
+      communityOrderId && typeof communityOrderId === 'string',
+    );
+    const authoritativeLineItems = buildAuthoritativeLineItems(
+      items,
+      products.map((p) => ({ id: p.id, priceCents: p.priceCents })),
+      { communityOrderValidated },
+    );
+    const productsTotalCents = sumProductsTotalCents(authoritativeLineItems);
 
     // Calculate delivery fee if delivery is selected
     let deliveryFeeCents = 0;
@@ -757,6 +768,24 @@ export async function POST(req: NextRequest) {
     const smsNotificationCostCents = enableSmsNotification ? smsCostPerSellerCents * uniqueSellerIds.size : 0;
     
     const subtotalCents = productsTotalCents + deliveryFeeCents + smsNotificationCostCents;
+
+    const checkoutFloor = evaluateCheckoutFloor({
+      lineItems: authoritativeLineItems,
+      deliveryFeeCents,
+      smsNotificationCostCents,
+    });
+    if (!checkoutFloor.eligible) {
+      return NextResponse.json(
+        {
+          code: CHECKOUT_MINIMUM_NOT_MET,
+          errorKey: checkoutFloor.errorKey,
+          minimumCents: checkoutFloor.minimumCents,
+          eligibleBaseCents: checkoutFloor.eligibleBaseCents,
+        },
+        { status: 400 },
+      );
+    }
+
     const { buyerTotalCents, stripeFeeCents } = calculateStripeFeeForBuyer(subtotalCents);
 
     // Create Stripe checkout session
@@ -770,7 +799,8 @@ export async function POST(req: NextRequest) {
     
     // Create line items for each product
     const lineItems = items.map((item: any) => {
-      const product = products.find(p => p.id === item.productId);
+      const authLine = authoritativeLineItems.find((l) => l.productId === item.productId);
+      const unitAmount = authLine?.unitPriceCents ?? item.priceCents;
       return {
         price_data: {
           currency: 'eur',
@@ -778,7 +808,7 @@ export async function POST(req: NextRequest) {
             name: item.title,
             description: `Quantity: ${item.quantity} - Sold by ${item.sellerName}`,
           },
-          unit_amount: item.priceCents,
+          unit_amount: unitAmount,
         },
         quantity: item.quantity,
       };
@@ -867,7 +897,9 @@ export async function POST(req: NextRequest) {
     // Note: Connect checkout with application_fee is handled via webhook for better control
     const compactItemStrings = items.map((item: any) => {
       const sellerId = item.sellerId || '';
-      return `${item.productId}|${item.quantity}|${item.priceCents}|${sellerId}`;
+      const authLine = authoritativeLineItems.find((l) => l.productId === item.productId);
+      const unitAmount = authLine?.unitPriceCents ?? item.priceCents;
+      return `${item.productId}|${item.quantity}|${unitAmount}|${sellerId}`;
     });
 
     const metadataItemChunks: Record<string, string> = {};
@@ -908,6 +940,7 @@ export async function POST(req: NextRequest) {
       stripeFeeCents: stripeFeeCents.toString(),
       amountPaidCents: buyerTotalCents.toString(),
       subtotalCents: subtotalCents.toString(),
+      checkoutEligibleBaseCents: checkoutFloor.eligibleBaseCents.toString(),
       enableSmsNotification: enableSmsNotification ? 'true' : 'false',
       smsNotificationCostCents: smsNotificationCostCents.toString(),
     };

@@ -5803,7 +5803,8 @@
     "errors": {
       "contactOnly": "Dit aanbod bestel je via direct contact met de maker, niet via de winkelwagen.",
       "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen.",
-      "barterOnly": "Dit aanbod is alleen te ruil — gebruik chat en stuur een voorstel in plaats van afrekenen."
+      "barterOnly": "Dit aanbod is alleen te ruil — gebruik chat en stuur een voorstel in plaats van afrekenen.",
+      "minimumNotMet": "Online betalen via HomeCheff is beschikbaar vanaf €10. Spreek voor kleinere bedragen rechtstreeks een betaalwijze af met de aanbieder."
     },
     "checkoutTitle": "Afrekenen",
     "completeOrder": "Rond je bestelling af",

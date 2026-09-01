@@ -4403,7 +4403,8 @@
     "errors": {
       "contactOnly": "This listing is ordered by contacting the maker directly, not through the cart.",
       "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff.",
-      "barterOnly": "This listing is barter only — use chat and send a proposal instead of checkout."
+      "barterOnly": "This listing is barter only — use chat and send a proposal instead of checkout.",
+      "minimumNotMet": "Online payment via HomeCheff is available from €10. For smaller amounts, arrange payment directly with the provider."
     },
     "checkoutTitle": "Checkout",
     "completeOrder": "Complete your order",
