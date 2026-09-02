@@ -35,7 +35,6 @@ function classifyProduct(row: {
 }): InventoryRow | null {
   const title = (row.title || '').trim();
   const desc = (row.description || '').trim();
-  const t = title.toLowerCase();
   const d = desc.toLowerCase();
 
   if (title.startsWith('MediaCert')) {
@@ -60,6 +59,17 @@ function classifyProduct(row: {
     };
   }
 
+  if (/homecheff design hc mixed pilot/i.test(title)) {
+    return {
+      id: row.id,
+      title,
+      sellerId: row.sellerId,
+      classification: 'CONFIRMED_HC_PILOT_TEST_DATA',
+      reason: 'HC Mixed Pilot certification listing title',
+      isActive: row.isActive,
+    };
+  }
+
   if (
     d.includes('hc_only seller-payout certification') ||
     d.includes('controlled product owner design test offer') ||
@@ -78,6 +88,27 @@ function classifyProduct(row: {
   return null;
 }
 
+function classifyDish(row: {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+}): InventoryRow | null {
+  const productRow = classifyProduct({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    sellerId: null,
+    isActive: row.status === 'PUBLISHED',
+  });
+  if (!productRow) return null;
+  return {
+    ...productRow,
+    isActive: row.status === 'PUBLISHED',
+    reason: `${productRow.reason} (published dish mirror)`,
+  };
+}
+
 async function main() {
   const products = await prisma.product.findMany({
     select: {
@@ -90,10 +121,25 @@ async function main() {
     orderBy: { createdAt: 'desc' },
   });
 
+  const dishes = await prisma.dish.findMany({
+    where: { status: 'PUBLISHED' },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      status: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
   const inventory: InventoryRow[] = [];
   for (const p of products) {
     const row = classifyProduct(p);
     if (row) inventory.push(row);
+  }
+  for (const d of dishes) {
+    const row = classifyDish(d);
+    if (row && !inventory.some((r) => r.id === row.id)) inventory.push(row);
   }
 
   const confirmed = inventory.filter((r) => r.classification === 'CONFIRMED_HC_PILOT_TEST_DATA');
@@ -101,6 +147,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     mode: APPLY ? 'apply' : 'dry-run',
     totalProductsScanned: products.length,
+    totalPublishedDishesScanned: dishes.length,
     confirmedCount: confirmed.length,
     confirmedIds: confirmed.map((r) => r.id),
     inventory,
@@ -119,7 +166,7 @@ async function main() {
   const outPath = join(outDir, APPLY ? 'apply-report.json' : 'inventory.json');
   writeFileSync(outPath, JSON.stringify(report, null, 2));
 
-  console.log(`Scanned ${products.length} products`);
+  console.log(`Scanned ${products.length} products, ${dishes.length} published dishes`);
   console.log(`CONFIRMED_HC_PILOT_TEST_DATA: ${confirmed.length}`);
   for (const row of confirmed) {
     console.log(`  [${row.classification}] ${row.id} | ${row.title} | ${row.reason}`);
@@ -138,11 +185,24 @@ async function main() {
   }
 
   const ids = confirmed.map((r) => r.id);
+  const now = new Date();
   const result = await prisma.product.updateMany({
     where: { id: { in: ids } },
-    data: { isActive: false },
+    data: {
+      isActive: false,
+      integrityStatus: 'REMOVED',
+      integrityHiddenAt: now,
+      integrityHiddenReason: 'HC pilot certification test data — removed from public discovery',
+    },
   });
-  console.log(`Deactivated ${result.count} confirmed HC Pilot test listings.`);
+  const dishResult = await prisma.dish.updateMany({
+    where: { id: { in: ids }, status: 'PUBLISHED' },
+    data: { status: 'PRIVATE' },
+  });
+  console.log(
+    `Deactivated ${result.count} confirmed HC Pilot test products (isActive=false + integrityStatus=REMOVED).`,
+  );
+  console.log(`Unpublished ${dishResult.count} linked published dish mirror(s) (status=PRIVATE).`);
 
   await prisma.$disconnect();
 }

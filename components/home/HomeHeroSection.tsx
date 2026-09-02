@@ -1,21 +1,13 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Compass, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
-import type { GuestSalesPanelId } from '@/lib/guest/guest-explanation-panels';
-import { scrollToHomeFeed } from '@/lib/guest/guest-explanation-panels';
 import HomepageEcosystemNavLinks from '@/components/home/HomepageEcosystemNavLinks';
-
-const GuestSalesInfoPanel = dynamic(
-  () => import('@/components/home/GuestSalesInfoPanel'),
-  { ssr: false },
-);
 
 const ctaPrimaryClass = cn(
   'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2',
@@ -24,15 +16,8 @@ const ctaPrimaryClass = cn(
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
 );
 
-const ctaSecondaryClass = cn(
-  'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 py-2',
-  'text-sm font-semibold bg-white/15 text-white border border-white/45 backdrop-blur-sm whitespace-nowrap',
-  'hover:bg-white/25 touch-manipulation transition-colors',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
-);
-
 /**
- * Single compact Marketplace header — identity, ecosystem nav, one-line context, clear CTAs.
+ * Single compact Marketplace header — identity, ecosystem nav, one-line context, clear CTA.
  * Replaces stacked HomepageEcosystemSignal + large dorpsplein hero.
  */
 export default function HomeHeroSection() {
@@ -40,15 +25,10 @@ export default function HomeHeroSection() {
   const { data: session, status } = useSession();
   const { openCreateFlow } = useCreateFlow();
   const { handleGuestCreateClick, guestBottomNavPanelEl } = useGuestBottomNavPanel();
-  const [guestSalesPanel, setGuestSalesPanel] = useState<GuestSalesPanelId | null>(null);
 
   const isGuest = status !== 'loading' && !session?.user;
   const isEn = language === 'en';
   const seoEverybodyEats = isEn ? 'Everybody Eats.' : 'Everybody Eats. Iedereen eet mee.';
-
-  const scrollToFeed = useCallback(() => {
-    scrollToHomeFeed();
-  }, []);
 
   const handleShareClick = useCallback(() => {
     if (isGuest) {
@@ -57,14 +37,6 @@ export default function HomeHeroSection() {
     }
     openCreateFlow();
   }, [isGuest, handleGuestCreateClick, openCreateFlow]);
-
-  const handleDiscoverClick = useCallback(() => {
-    if (isGuest) {
-      setGuestSalesPanel('discover');
-      return;
-    }
-    scrollToFeed();
-  }, [isGuest, scrollToFeed]);
 
   return (
     <>
@@ -100,17 +72,8 @@ export default function HomeHeroSection() {
             </p>
           </div>
 
-          {/* Row 3 — labeled CTAs (no icon-only controls) */}
+          {/* Row 3 — primary CTA */}
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={handleDiscoverClick}
-              className={ctaSecondaryClass}
-              aria-label={t('homePhase1.ctaDiscover')}
-            >
-              <Compass className="h-4 w-4 shrink-0" aria-hidden />
-              <span>{t('homePhase1.ctaDiscover')}</span>
-            </button>
             <button
               type="button"
               data-wx-primary-action=""
@@ -129,9 +92,6 @@ export default function HomeHeroSection() {
       </section>
 
       {guestBottomNavPanelEl}
-      {isGuest ? (
-        <GuestSalesInfoPanel panel={guestSalesPanel} onClose={() => setGuestSalesPanel(null)} />
-      ) : null}
     </>
   );
 }

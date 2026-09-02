@@ -7,19 +7,18 @@
  * Landscape chrome stays compact (WX 1B.4).
  * Short landscape single bar (WX 1B.4.1): logo + context + create + menu.
  *
- * Model B: identity + complete title + one body + Discover / Sell CTAs.
+ * Model B: identity + complete title + one body + primary Sell/Offer CTA.
  * Keyword strip and “with or without money” are not primary fold chrome.
  */
 
 import { useCallback, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Compass, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useSession } from 'next-auth/react';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
-import { scrollToHomeFeed } from '@/lib/guest/guest-explanation-panels';
 import type { GuestSalesPanelId } from '@/lib/guest/guest-explanation-panels';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import LandscapeWorkBarCommands from '@/components/adaptive-workspace/LandscapeWorkBarCommands';
@@ -35,16 +34,9 @@ type Props = {
 };
 
 const ctaPrimaryClass = cn(
-  'inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl px-3.5 py-1.5',
-  'text-sm font-bold bg-white text-primary-brand shadow-md',
+  'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-1.5',
+  'text-sm font-bold bg-white text-primary-brand shadow-md whitespace-nowrap',
   'hover:bg-primary-50 touch-manipulation transition-colors',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
-);
-
-const ctaSecondaryClass = cn(
-  'inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl px-3.5 py-1.5',
-  'text-sm font-semibold bg-white/15 text-white border border-white/50 backdrop-blur-md',
-  'hover:bg-white/25 touch-manipulation transition-colors',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
 );
 
@@ -67,7 +59,6 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
 
   const whereLabel = t('homePhase1.orientationTitle');
   const identityLabel = t('homePhase1.orientationIdentity');
-  const actionsPrimary = t('homePhase1.orientationActionPrimary');
   const actionsSecondary = t('homePhase1.orientationActionSecondary');
 
   const primaryBody =
@@ -87,12 +78,8 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
     level === 'rich' ? t('homePhase1.orientationValueExchangeHint') : null;
 
   const bannerAria = workToolbar
-    ? `${identityLabel}. ${whereLabel}. ${primaryBody}. ${actionsPrimary}`
+    ? `${identityLabel}. ${whereLabel}. ${primaryBody}. ${actionsSecondary}`
     : identityLabel;
-
-  const onDiscover = useCallback(() => {
-    scrollToHomeFeed();
-  }, []);
 
   const onShare = useCallback(() => {
     if (isGuest) {
@@ -137,7 +124,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
       >
         {workToolbar ? (
           <p className="sr-only" data-wx-orientation-meaning="">
-            {identityLabel}. {whereLabel}. {primaryBody}. {actionsPrimary}
+            {identityLabel}. {whereLabel}. {primaryBody}. {actionsSecondary}
           </p>
         ) : null}
 
@@ -224,13 +211,15 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                 data-wx-orientation-cta=""
                 className="flex flex-wrap items-center gap-2 pt-0.5"
               >
-                <button type="button" onClick={onDiscover} className={ctaPrimaryClass}>
-                  <Compass className="h-4 w-4 shrink-0" aria-hidden />
-                  {actionsPrimary}
-                </button>
-                <button type="button" onClick={onShare} className={ctaSecondaryClass}>
+                <button
+                  type="button"
+                  data-wx-primary-action=""
+                  onClick={onShare}
+                  className={ctaPrimaryClass}
+                  aria-label={t('homePhase1.ctaShare')}
+                >
                   <Plus className="h-4 w-4 shrink-0" aria-hidden />
-                  {actionsSecondary}
+                  <span>{t('homePhase1.ctaShare')}</span>
                 </button>
               </div>
             ) : explain.showActions && (workToolbar || explain.singleLine) ? (
@@ -239,7 +228,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                 data-wx-orientation-actions=""
                 className="shrink-0 max-w-[48%] text-right text-[clamp(0.6rem,1.6vw,0.7rem)] leading-tight text-emerald-50/95"
               >
-                <span className="font-medium text-white/95">{actionsPrimary}</span>
+                <span className="font-medium text-white/95">{actionsSecondary}</span>
               </div>
             ) : null}
           </div>

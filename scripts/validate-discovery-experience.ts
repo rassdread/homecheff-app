@@ -40,6 +40,7 @@ function readJson(rel: string): any {
 console.log('=== UX-FIN Phase 5 — Discovery experience guard ===\n');
 
 const hero = read('components/home/HomeHeroSection.tsx');
+const orientation = read('components/adaptive-workspace/WorkspaceOrientationStrip.tsx');
 const homeClient = read('components/home/HomePageClient.tsx');
 const sidebar = read('components/home/HomeDesktopSidebar.tsx');
 const geoFeed = read('components/feed/GeoFeed.tsx');
@@ -54,8 +55,12 @@ assert(
   'hero renders title + subtitle',
 );
 assert(
-  hero.includes('ctaDiscover') && hero.includes('ctaShare'),
-  'hero shows both discover (buy) and share (sell) CTAs',
+  hero.includes('ctaShare') && !hero.includes('ctaDiscover'),
+  'legacy hero shows share CTA; discover hero button removed',
+);
+assert(
+  orientation.includes('homePhase1.ctaShare') && !orientation.includes('Compass'),
+  'AW orientation strip shows share CTA; discover compass button removed',
 );
 assert(
   hero.includes('heroOrbitHomeCheff') &&

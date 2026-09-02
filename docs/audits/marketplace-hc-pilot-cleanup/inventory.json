@@ -1,12 +1,21 @@
 {
-  "generatedAt": "2026-09-01T19:57:58.875Z",
+  "generatedAt": "2026-09-02T11:30:55.506Z",
   "mode": "dry-run",
-  "totalProductsScanned": 8,
-  "confirmedCount": 1,
+  "totalProductsScanned": 9,
+  "confirmedCount": 2,
   "confirmedIds": [
+    "ac43fac5-4b5b-4523-a7f4-7c8290cbcc64",
     "e3e5322e-fae3-4185-b047-c10205646df3"
   ],
   "inventory": [
+    {
+      "id": "ac43fac5-4b5b-4523-a7f4-7c8290cbcc64",
+      "title": "HomeCheff Design HC Mixed Pilot — €10",
+      "sellerId": "85019ddc-11ef-4efc-b92a-292019a8ce28",
+      "classification": "CONFIRMED_HC_PILOT_TEST_DATA",
+      "reason": "HC Mixed Pilot certification listing title",
+      "isActive": true
+    },
     {
       "id": "e3e5322e-fae3-4185-b047-c10205646df3",
       "title": "HomeCheff Design HC Pilot — €4.50",
