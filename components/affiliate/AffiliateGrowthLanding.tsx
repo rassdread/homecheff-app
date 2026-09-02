@@ -90,10 +90,19 @@ export default function AffiliateGrowthLanding({
         <section className="mb-4 rounded-2xl border border-emerald-100/80 bg-emerald-50/50 px-4 py-4 sm:px-5">
           <h2 className="text-sm font-bold text-emerald-950">{t('affiliate.growth.ecosystemBandTitle')}</h2>
           <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{t('affiliate.growth.ecosystemBandBody')}</p>
+          <p className="mt-2 text-sm leading-relaxed text-slate-700">
+            Breng een gebruiker aan en ontvang 12 maanden lang 50% van de in aanmerking komende
+            HomeCheff-platformfee die die gebruiker genereert — niet 50% van seller proceeds, order-GMV
+            of HC.
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+            Voorbeeld: order €20, platformfee 9% = €1,80 → affiliate-aandeel €0,90. Geen commissie over
+            btw, seller principal of HC zelf.
+          </p>
           <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-emerald-900" aria-label={t('affiliate.growth.ecosystemBandTitle')}>
             <Link href="/" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkMarketplace')}</Link>
-            <Link href="/studio" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkStudio')}</Link>
-            <Link href="/growth" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkGrowth')}</Link>
+            <a href="https://studio.homecheff.eu/affiliate" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkStudio')}</a>
+            <a href="https://growth.homecheff.eu/affiliate" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkGrowth')}</a>
             <Link href="/ecosystem" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkEcosystem')}</Link>
           </nav>
         </section>

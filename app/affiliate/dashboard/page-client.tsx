@@ -25,6 +25,7 @@ import OperationsShell from '@/components/operations/OperationsShell';
 import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
 import { AFFILIATE_ATTRIBUTION_CONTRACT } from '@/lib/affiliate-attribution-contract';
+import { HomecheffEcosystemAffiliatePanel } from '@/components/affiliate/HomecheffEcosystemAffiliatePanel';
 import { 
   SUB_AFFILIATE_USER_COMMISSION_PCT, 
   SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
@@ -497,6 +498,8 @@ export default function AffiliateDashboardClient() {
             </div>
           </div>
         )}
+
+        <HomecheffEcosystemAffiliatePanel />
 
         {/* Tabs */}
         <div className="mb-6">

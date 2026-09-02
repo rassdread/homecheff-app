@@ -196,12 +196,14 @@ export async function processCommissionForInvoice(
 }
 
 /**
- * Process commission for a paid order (transaction)
- * 
- * Commission rules:
- * - 25% van HomeCheff fee als koper is aangebracht
- * - 25% van HomeCheff fee als verkoper is aangebracht
- * - 50% van HomeCheff fee als beide (koper EN verkoper) zijn aangebracht
+ * Process commission for a paid marketplace order.
+ *
+ * Affiliate pool = 50% of actual HomeCheff platform fee, distributed:
+ * - buyer only → full pool to buyer affiliate
+ * - seller only → full pool to seller affiliate
+ * - both same affiliate → full pool once
+ * - both different → 25% + 25% of fee
+ * Sub-affiliates: 80% of that line to sub, 20% to parent (within the line).
  */
 export async function processCommissionForOrder(
   orderId: string,
@@ -212,18 +214,20 @@ export async function processCommissionForOrder(
 ): Promise<void> {
   try {
     const now = new Date();
-    
-    // Check idempotency - prevent duplicate ledger entries
-    const existingLedger = await prisma.commissionLedger.findUnique({
-      where: { eventId: orderId },
-    });
 
-    if (existingLedger) {
+    const existingAny = await prisma.commissionLedger.findFirst({
+      where: {
+        OR: [
+          { eventId: orderId },
+          { eventId: { startsWith: `${orderId}:` } },
+        ],
+      },
+    });
+    if (existingAny) {
       console.log(`Commission already processed for order ${orderId}`);
       return;
     }
 
-    // Check if buyer was attributed to an affiliate
     const buyerAttribution = await prisma.attribution.findFirst({
       where: {
         userId: buyerId,
@@ -231,12 +235,9 @@ export async function processCommissionForOrder(
         startsAt: { lte: now },
         endsAt: { gte: now },
       },
-      include: {
-        affiliate: true,
-      },
+      include: { affiliate: true },
     });
 
-    // Check if seller was attributed to an affiliate
     const sellerAttribution = await prisma.attribution.findFirst({
       where: {
         userId: sellerId,
@@ -244,96 +245,48 @@ export async function processCommissionForOrder(
         startsAt: { lte: now },
         endsAt: { gte: now },
       },
-      include: {
-        affiliate: true,
-      },
+      include: { affiliate: true },
     });
 
-    const buyerAttributed = !!buyerAttribution;
-    const sellerAttributed = !!sellerAttribution;
+    const { allocateMarketplaceAffiliatePool } = await import('./marketplace-affiliate-pool');
+    const allocation = allocateMarketplaceAffiliatePool({
+      platformFeeCents: homecheffFeeCents,
+      buyerAffiliateId: buyerAttribution?.affiliateId ?? null,
+      sellerAffiliateId: sellerAttribution?.affiliateId ?? null,
+    });
 
-    if (!buyerAttributed && !sellerAttributed) {
+    if (allocation.lines.length === 0) {
       console.log(`No attribution found for order ${orderId} (buyer: ${buyerId}, seller: ${sellerId})`);
       return;
     }
 
-    // Determine which affiliate gets the commission
-    // If both are attributed, use the buyer's affiliate (or seller's if buyer has none)
-    const directAffiliate = buyerAttribution?.affiliate || sellerAttribution?.affiliate;
-    const directAffiliateId = buyerAttribution?.affiliateId || sellerAttribution?.affiliateId;
-    
-    if (!directAffiliateId || !directAffiliate) {
-      console.warn(`No affiliate ID found for order ${orderId}`);
-      return;
-    }
+    const availableAt = new Date(now.getTime() + LEDGER_PENDING_DAYS * 24 * 60 * 60 * 1000);
+    let totalCommissionCents = 0;
 
-    // Check if this is a sub-affiliate (has parent)
-    const isSubAffiliate = !!directAffiliate.parentAffiliateId;
+    for (const line of allocation.lines) {
+      const affiliate =
+        line.affiliateId === buyerAttribution?.affiliateId
+          ? buyerAttribution?.affiliate
+          : line.affiliateId === sellerAttribution?.affiliateId
+            ? sellerAttribution?.affiliate
+            : await prisma.affiliate.findUnique({ where: { id: line.affiliateId } });
+      if (!affiliate) continue;
 
-    // Get custom commission percentages if set (for sub-affiliates)
-    const customUserCommissionPct = directAffiliate.customUserCommissionPct;
-    const customParentUserCommissionPct = directAffiliate.customParentUserCommissionPct;
+      const isSub = !!affiliate.parentAffiliateId;
+      let directCents = line.commissionCents;
+      let parentCents = 0;
+      if (isSub && affiliate.parentAffiliateId) {
+        parentCents = Math.floor(line.commissionCents * 0.2);
+        directCents = line.commissionCents - parentCents;
+      }
 
-    // Calculate commission for direct affiliate (sub gets 20% or custom, direct gets 25%)
-    const directCommissionCents = calculateUserTransactionCommission(
-      homecheffFeeCents,
-      buyerAttributed,
-      sellerAttributed,
-      isSubAffiliate,
-      customUserCommissionPct
-    );
-
-    // Create ledger entry for direct affiliate
-    const availableAt = new Date(
-      now.getTime() + LEDGER_PENDING_DAYS * 24 * 60 * 60 * 1000
-    );
-
-    if (directCommissionCents > 0) {
-      await prisma.commissionLedger.create({
-        data: {
-          eventId: orderId,
-          eventType: CommissionLedgerEventType.ORDER_PAID,
-          affiliateId: directAffiliateId,
-          amountCents: directCommissionCents,
-          currency: 'eur',
-          status: CommissionLedgerStatus.PENDING,
-          availableAt,
-          meta: {
-            orderId,
-            buyerId,
-            sellerId,
-            homecheffFeeCents,
-            buyerAttributed,
-            sellerAttributed,
-            commissionPct: buyerAttributed && sellerAttributed 
-              ? (isSubAffiliate ? 0.40 : 0.50) 
-              : (isSubAffiliate ? 0.20 : 0.25),
-            isSubAffiliate,
-            tier: isSubAffiliate ? 'SUB' : 'DIRECT',
-            ...metadata,
-          },
-        },
-      });
-    }
-
-    // If this is a sub-affiliate, also create commission for parent affiliate
-    // Parent gets 5% per side (koper or verkoper), 10% if both (or custom percentages)
-    let parentCommissionCents = 0;
-    if (isSubAffiliate && directAffiliate.parentAffiliateId) {
-      parentCommissionCents = calculateParentAffiliateUserTransactionCommission(
-        homecheffFeeCents,
-        buyerAttributed,
-        sellerAttributed,
-        customParentUserCommissionPct
-      );
-
-      if (parentCommissionCents > 0) {
+      if (directCents > 0) {
         await prisma.commissionLedger.create({
           data: {
-            eventId: `${orderId}_parent`,
+            eventId: `${orderId}:${line.affiliateId}:${line.side}`,
             eventType: CommissionLedgerEventType.ORDER_PAID,
-            affiliateId: directAffiliate.parentAffiliateId,
-            amountCents: parentCommissionCents,
+            affiliateId: line.affiliateId,
+            amountCents: directCents,
             currency: 'eur',
             status: CommissionLedgerStatus.PENDING,
             availableAt,
@@ -342,23 +295,55 @@ export async function processCommissionForOrder(
               buyerId,
               sellerId,
               homecheffFeeCents,
-              buyerAttributed,
-              sellerAttributed,
-              parentCommissionCents,
-              subAffiliateId: directAffiliateId,
-              commissionPct: buyerAttributed && sellerAttributed ? 0.10 : 0.05,
-              tier: 'PARENT',
+              poolCase: allocation.case,
+              poolCents: allocation.poolCents,
+              side: line.side,
+              isSubAffiliate: isSub,
+              tier: isSub ? 'SUB' : 'DIRECT',
+              marketplacePoolMaxPercent: 50,
               ...metadata,
             },
           },
         });
+        totalCommissionCents += directCents;
+      }
+
+      if (parentCents > 0 && affiliate.parentAffiliateId) {
+        await prisma.commissionLedger.create({
+          data: {
+            eventId: `${orderId}:${affiliate.parentAffiliateId}:PARENT:${line.side}`,
+            eventType: CommissionLedgerEventType.ORDER_PAID,
+            affiliateId: affiliate.parentAffiliateId,
+            amountCents: parentCents,
+            currency: 'eur',
+            status: CommissionLedgerStatus.PENDING,
+            availableAt,
+            meta: {
+              orderId,
+              buyerId,
+              sellerId,
+              homecheffFeeCents,
+              poolCase: allocation.case,
+              side: line.side,
+              tier: 'PARENT',
+              subAffiliateId: line.affiliateId,
+              marketplacePoolMaxPercent: 50,
+              ...metadata,
+            },
+          },
+        });
+        totalCommissionCents += parentCents;
       }
     }
 
-    const totalCommissionCents = directCommissionCents + parentCommissionCents;
+    if (totalCommissionCents > allocation.poolCents) {
+      console.error(
+        `Affiliate pool overrun for order ${orderId}: ${totalCommissionCents} > ${allocation.poolCents}`,
+      );
+    }
 
     console.log(
-      `✅ Commission processed for order ${orderId}: ${totalCommissionCents} cents total (direct: ${directCommissionCents}, buyer: ${buyerAttributed}, seller: ${sellerAttributed}, isSub: ${isSubAffiliate})`
+      `✅ Commission processed for order ${orderId}: ${totalCommissionCents} cents (case=${allocation.case}, pool=${allocation.poolCents})`,
     );
   } catch (error) {
     console.error('Error processing commission for order:', error);
@@ -449,8 +434,9 @@ export async function processCommissionReversal(
       eventIdOr.push({ eventId: `${invoiceId}_l2` }); // legacy parent key
     }
     if (orderId) {
-      // Direct + parent rows: `${orderId}_${productId}` and `${orderId}_${productId}_parent`
+      // Direct + parent rows: legacy `${orderId}_...` and pool `${orderId}:...`
       eventIdOr.push({ eventId: { startsWith: `${orderId}_` } });
+      eventIdOr.push({ eventId: { startsWith: `${orderId}:` } });
     }
 
     const byEventId = await prisma.commissionLedger.findMany({
