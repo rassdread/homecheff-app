@@ -122,6 +122,8 @@ const nextConfig = {
       { source: '/aviliate', destination: '/affiliate', permanent: true },
       { source: '/aviliate/', destination: '/affiliate/', permanent: true },
       { source: '/aviliate/:path*', destination: '/affiliate/:path*', permanent: true },
+      // Bare /auth is not a product page — send visitors to login (SSO stays under /auth/sso/*).
+      { source: '/auth', destination: '/login', permanent: false },
     ];
   },
 

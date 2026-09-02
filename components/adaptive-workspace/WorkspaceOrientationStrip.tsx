@@ -202,6 +202,30 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                   {valueExchangeHint}
                 </p>
               ) : null}
+
+              {!workToolbar && !explain.singleLine ? (
+                <div
+                  data-wx-orientation-trust=""
+                  className="mt-1.5 flex flex-wrap gap-1.5"
+                  aria-label={t('homePhase1.orientationLocalLaunchNote')}
+                >
+                  <span className="rounded-md bg-white/15 px-2 py-0.5 text-[10px] font-medium text-emerald-50 sm:text-[11px]">
+                    {t('homePhase1.orientationLocalLaunchNote')}
+                  </span>
+                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
+                    {t('homePhase1.orientationTrustCategories')}
+                  </span>
+                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
+                    {t('homePhase1.orientationTrustSecurePay')}
+                  </span>
+                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
+                    {t('homePhase1.orientationTrustPickup')}
+                  </span>
+                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
+                    {t('homePhase1.orientationTrustRealPeople')}
+                  </span>
+                </div>
+              ) : null}
             </div>
 
             {!workToolbar && !explain.singleLine ? (
@@ -211,11 +235,26 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                 data-wx-orientation-cta=""
                 className="flex flex-wrap items-center gap-2 pt-0.5"
               >
+                <a
+                  href="#homecheff-feed"
+                  data-wx-primary-action=""
+                  data-wx-buyer-cta=""
+                  className={ctaPrimaryClass}
+                  aria-label={t('homePhase1.ctaDiscover')}
+                >
+                  <span>{t('homePhase1.ctaDiscover')}</span>
+                </a>
                 <button
                   type="button"
-                  data-wx-primary-action=""
+                  data-wx-secondary-action=""
+                  data-wx-seller-cta=""
                   onClick={onShare}
-                  className={ctaPrimaryClass}
+                  className={cn(
+                    'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 py-1.5',
+                    'text-sm font-semibold border border-white/55 bg-white/10 text-white whitespace-nowrap',
+                    'hover:bg-white/20 touch-manipulation transition-colors',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
+                  )}
                   aria-label={t('homePhase1.ctaShare')}
                 >
                   <Plus className="h-4 w-4 shrink-0" aria-hidden />
