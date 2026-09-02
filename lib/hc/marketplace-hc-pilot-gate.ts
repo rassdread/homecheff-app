@@ -28,6 +28,11 @@ export function isMarketplaceHcOnlyEnabled(): boolean {
   return envBool('HC_MARKETPLACE_HC_ONLY_ENABLED', false);
 }
 
+export function isMarketplaceHcMixedEnabled(): boolean {
+  if (!isMarketplaceCheckoutEnabled()) return false;
+  return envBool('HC_MARKETPLACE_MIXED_PAYMENT_ENABLED', false);
+}
+
 export function parseMarketplacePilotBuyerAllowlist(): string[] {
   const source = process.env.HC_MARKETPLACE_PILOT_CENTRAL_USER_IDS ?? '';
   return [...new Set(source.split(/[\s,]+/).map((s) => s.trim().toLowerCase()).filter(Boolean))];
@@ -38,10 +43,7 @@ export function parseMarketplacePilotListingAllowlist(): string[] {
   return [...new Set(source.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean))];
 }
 
-export function assertMarketplaceHcOnlyCheckoutAllowed(input: {
-  centralUserId: string;
-  listingId: string;
-}): void {
+function assertMarketplaceHcCoreFlags(): void {
   if (!envBool('HC_CREDITS_ENABLED', false)) {
     throw new MarketplaceHcPilotDeniedError('HC_CREDITS_ENABLED is OFF.');
   }
@@ -51,15 +53,41 @@ export function assertMarketplaceHcOnlyCheckoutAllowed(input: {
   if (!isMarketplaceCheckoutEnabled()) {
     throw new MarketplaceHcPilotDeniedError('HC_MARKETPLACE_CHECKOUT_ENABLED is OFF.');
   }
+}
+
+function assertMarketplaceHcPilotAllowlists(input: {
+  centralUserId: string;
+  listingId: string;
+}): void {
+  const buyers = parseMarketplacePilotBuyerAllowlist();
+  const listings = parseMarketplacePilotListingAllowlist();
+  // Empty allowlist = open to all authenticated linked users when flags ON (Model A activation).
+  if (buyers.length > 0 && !buyers.includes(input.centralUserId.trim().toLowerCase())) {
+    throw new MarketplaceHcPilotDeniedError('Buyer not on marketplace HC pilot allowlist.');
+  }
+  if (listings.length > 0 && !listings.includes(input.listingId.trim())) {
+    throw new MarketplaceHcPilotDeniedError('Listing not on marketplace HC pilot allowlist.');
+  }
+}
+
+export function assertMarketplaceHcOnlyCheckoutAllowed(input: {
+  centralUserId: string;
+  listingId: string;
+}): void {
+  assertMarketplaceHcCoreFlags();
   if (!isMarketplaceHcOnlyEnabled()) {
     throw new MarketplaceHcPilotDeniedError('HC_MARKETPLACE_HC_ONLY_ENABLED is OFF.');
   }
-  const buyers = parseMarketplacePilotBuyerAllowlist();
-  const listings = parseMarketplacePilotListingAllowlist();
-  if (!buyers.includes(input.centralUserId.trim().toLowerCase())) {
-    throw new MarketplaceHcPilotDeniedError('Buyer not on marketplace HC pilot allowlist.');
+  assertMarketplaceHcPilotAllowlists(input);
+}
+
+export function assertMarketplaceHcMixedCheckoutAllowed(input: {
+  centralUserId: string;
+  listingId: string;
+}): void {
+  assertMarketplaceHcCoreFlags();
+  if (!isMarketplaceHcMixedEnabled()) {
+    throw new MarketplaceHcPilotDeniedError('HC_MARKETPLACE_MIXED_PAYMENT_ENABLED is OFF.');
   }
-  if (!listings.includes(input.listingId.trim())) {
-    throw new MarketplaceHcPilotDeniedError('Listing not on marketplace HC pilot allowlist.');
-  }
+  assertMarketplaceHcPilotAllowlists(input);
 }

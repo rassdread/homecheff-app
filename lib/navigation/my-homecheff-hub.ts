@@ -140,7 +140,7 @@ export function listMyHomeCheffCards(ctx: SettingsHubContext): MyHomeCheffCardDe
     descriptionKey: 'myHomeCheffHub.cards.account.description',
     primaryHref: '/settings',
     primaryLabelKey: 'myHomeCheffHub.cards.account.primary',
-    secondaryHref: '/profile',
+    secondaryHref: '/mijn-homecheff/hc',
     secondaryLabelKey: 'myHomeCheffHub.cards.account.secondary',
   });
 

@@ -29,7 +29,7 @@ export type GrowthMarketplaceHcQuote = {
   marketplaceHcEnabled: boolean;
   mixedPaymentEnabled: boolean;
   restrictedCreditEnabled: boolean;
-  hcPaymentActionable: false;
+  hcPaymentActionable: boolean;
   reason: string;
   reasonCode: string;
   userMessageNl: string;

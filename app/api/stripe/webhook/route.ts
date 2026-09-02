@@ -29,6 +29,10 @@ import {
   resolveChargeIdForCheckoutSession,
   isEligibleSourceCharge,
 } from "@/lib/payments/seller-settlement";
+import {
+  finalizeMixedHcAfterStripePaid,
+  releaseMixedHcReservation,
+} from "@/lib/hc/marketplace-hc-mixed-service";
 
 async function readBuffer(stream: ReadableStream<Uint8Array>) {
   const reader = stream.getReader();
@@ -629,6 +633,25 @@ export async function POST(req: NextRequest) {
       // Could trigger automated payouts or notifications here if needed
     }
     // Handle payment events
+    else if (event.type === "checkout.session.expired") {
+      const expired = event.data.object as Stripe.Checkout.Session;
+      if (expired.metadata?.paymentMode === "MIXED_HC_EUR" && expired.metadata?.orderId) {
+        try {
+          await releaseMixedHcReservation(expired.metadata.orderId, "BUYER_CANCELLED");
+          console.log(
+            JSON.stringify({
+              event: "mixed_hc_reservation_released_on_session_expired",
+              orderId: expired.metadata.orderId,
+              sessionId: expired.id,
+            }),
+          );
+        } catch (releaseErr) {
+          console.error("[webhook] mixed HC release on expire failed", releaseErr);
+          return new NextResponse("Mixed HC release failed — retry", { status: 500 });
+        }
+      }
+      return new NextResponse("ok", { status: 200 });
+    }
     else if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       
@@ -640,6 +663,39 @@ export async function POST(req: NextRequest) {
       // Skip subscription payments (handled above)
       if (session.mode === "subscription") {
         console.log(`⏭️ Skipping subscription payment for session ${session.id}`);
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      // Model A mixed HC + Stripe: order already created at reserve time.
+      if (session.metadata?.paymentMode === "MIXED_HC_EUR" && session.metadata?.orderId) {
+        const mixedOrderId = session.metadata.orderId;
+        if (session.payment_status !== "paid") {
+          console.log(`⏭️ Mixed HC session ${session.id} not paid (${session.payment_status})`);
+          return new NextResponse("ok", { status: 200 });
+        }
+        const finalized = await finalizeMixedHcAfterStripePaid(mixedOrderId);
+        if (!finalized.ok) {
+          console.error(
+            JSON.stringify({
+              event: "mixed_hc_finalize_failed",
+              orderId: mixedOrderId,
+              sessionId: session.id,
+              code: finalized.code,
+              message: "message" in finalized ? finalized.message : undefined,
+            }),
+          );
+          return new NextResponse("Mixed HC finalize failed — retry", { status: 500 });
+        }
+        console.log(
+          JSON.stringify({
+            event: "mixed_hc_finalize_ok",
+            orderId: mixedOrderId,
+            sessionId: session.id,
+            duplicate: finalized.duplicate,
+            capturedHc: finalized.capturedHc,
+          }),
+        );
+        // Seller EUR settlement for MIXED/HC uses treasury exposure path (not charge transfer).
         return new NextResponse("ok", { status: 200 });
       }
 
@@ -656,6 +712,15 @@ export async function POST(req: NextRequest) {
       });
 
       if (existingOrder) {
+        if (existingOrder.paymentMethod === 'MIXED_HC_EUR' || existingOrder.paymentMethod === 'HC_ONLY') {
+          if (existingOrder.paymentMethod === 'MIXED_HC_EUR') {
+            const finalized = await finalizeMixedHcAfterStripePaid(existingOrder.id);
+            if (!finalized.ok) {
+              return new NextResponse('Mixed HC finalize failed — retry', { status: 500 });
+            }
+          }
+          return new NextResponse("ok", { status: 200 });
+        }
         // Phase 3.1 P0 repair: if paid Order exists without DeliveryOrder, create from locked metadata.
         const meta = session.metadata || {};
         const mode = meta.deliveryMode;

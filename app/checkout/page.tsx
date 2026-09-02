@@ -27,6 +27,7 @@ import {
   outboundLocalProviderMode,
 } from '@/lib/delivery/delivery-fulfillment-vocabulary';
 import ConsumerCommerceDisclosure from '@/components/legal/ConsumerCommerceDisclosure';
+import { HcCheckoutPanel } from '@/components/checkout/HcCheckoutPanel';
 import {
   mergeConsumerCommerceContexts,
   type ConsumerCommerceContext,
@@ -96,6 +97,8 @@ export default function CheckoutPage() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const dealCommunityOrderId = searchParams.get('communityOrderId');
+  const hcCancelledOrderId = searchParams.get('orderId');
+  const hcCancelFlag = searchParams.get('hc');
   const { items: cartItems, clearCart } = useCart();
   const { data: session, status } = useSession();
   const cartIdentifier = getActiveCartIdentifier();
@@ -103,6 +106,17 @@ export default function CheckoutPage() {
   const [dealLoading, setDealLoading] = useState(Boolean(dealCommunityOrderId));
   const [dealErrorKey, setDealErrorKey] = useState<string | null>(null);
   const [dealItem, setDealItem] = useState<CartItem | null>(null);
+  /** Explicit HC consent — default 0 (do not auto-consume). */
+  const [selectedHc, setSelectedHc] = useState(0);
+
+  useEffect(() => {
+    if (hcCancelFlag !== 'cancelled' || !hcCancelledOrderId) return;
+    void fetch('/api/checkout/hc-release', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: hcCancelledOrderId }),
+    }).catch(() => {});
+  }, [hcCancelFlag, hcCancelledOrderId]);
 
   const checkoutDraftDefaults = useMemo<CheckoutDraft>(() => ({
     selectedDelivery: '',
@@ -778,15 +792,61 @@ export default function CheckoutPage() {
       if (checkoutDraft.postalCode) addressParts.push(checkoutDraft.postalCode);
       if (checkoutDraft.city) addressParts.push(checkoutDraft.city);
       const fullAddress = addressParts.join(', ');
+
+      const deliveryModeOutbound = isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)
+        ? outboundLocalProviderMode()
+        : checkoutDraft.selectedDelivery.toUpperCase();
+
+      // Model A: explicit HC selection — server re-validates eligibility/rate.
+      if (selectedHc > 0) {
+        const remainingAfterHc = Math.max(0, subtotalCents - selectedHc);
+        if (remainingAfterHc === 0) {
+          const hcOnlyRes = await fetch('/api/checkout/hc-only', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: checkoutItems.map((i) => ({ productId: i.productId, quantity: i.quantity })) }),
+          });
+          const hcOnlyData = await hcOnlyRes.json();
+          if (!hcOnlyRes.ok || !hcOnlyData.ok) {
+            throw new Error(hcOnlyData.message || hcOnlyData.code || 'HC-betaling mislukt');
+          }
+          resetCheckoutDraft();
+          if (!isDealCheckout) clearCart();
+          setIsRedirecting(true);
+          didRedirect = true;
+          window.location.href = `/orders/${hcOnlyData.orderId}?hc=full&success=1`;
+          return;
+        }
+
+        const mixedRes = await fetch('/api/checkout/hc-mixed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: checkoutItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+            requestedHc: selectedHc,
+            deliveryFeeCents,
+            smsNotificationCostCents,
+            deliveryMode: deliveryModeOutbound,
+          }),
+        });
+        const mixedData = await mixedRes.json();
+        if (!mixedRes.ok || !mixedData.ok || !mixedData.checkoutUrl) {
+          throw new Error(mixedData.message || mixedData.code || 'Gemengde HC-betaling mislukt');
+        }
+        resetCheckoutDraft();
+        if (!isDealCheckout) clearCart();
+        setIsRedirecting(true);
+        didRedirect = true;
+        window.location.href = mixedData.checkoutUrl;
+        return;
+      }
       
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: checkoutItems,
-          deliveryMode: isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)
-            ? outboundLocalProviderMode()
-            : checkoutDraft.selectedDelivery.toUpperCase(),
+          deliveryMode: deliveryModeOutbound,
           address: fullAddress,
           street: checkoutDraft.street,
           houseNumber: checkoutDraft.houseNumber,
@@ -1440,6 +1500,20 @@ export default function CheckoutPage() {
                     ))}
                   </div>
 
+                  <div className="mt-4 mb-2">
+                    <HcCheckoutPanel
+                      enabled={status === 'authenticated' && checkoutItems.length > 0}
+                      items={checkoutItems.map((i) => ({
+                        productId: i.productId,
+                        quantity: i.quantity,
+                      }))}
+                      deliveryFeeCents={deliveryFeeCents}
+                      smsNotificationCostCents={smsNotificationCostCents}
+                      selectedHc={selectedHc}
+                      onSelectedHcChange={setSelectedHc}
+                    />
+                  </div>
+
                   {/* Totals */}
                   <div className="space-y-2 border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-sm">
@@ -1503,12 +1577,19 @@ export default function CheckoutPage() {
                       isProcessing ||
                       !checkoutDraft.selectedDelivery ||
                       isLocalProviderUnavailable ||
-                      buyerTotalCents <= 0
+                      (buyerTotalCents <= 0 && selectedHc <= 0)
                     }
                     className="w-full mt-6 py-4 text-lg"
                   >
                     {isProcessing ? (
                       t('checkout.processing')
+                    ) : selectedHc > 0 && selectedHc >= subtotalCents ? (
+                      <>Betaal volledig met HC</>
+                    ) : selectedHc > 0 ? (
+                      <>
+                        <CreditCard className="w-5 h-5 mr-2" />
+                        Betaal met HC + iDEAL/kaart
+                      </>
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5 mr-2" />
