@@ -92,8 +92,8 @@ export default function AffiliateGrowthLanding({
           <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{t('affiliate.growth.ecosystemBandBody')}</p>
           <p className="mt-2 text-sm leading-relaxed text-slate-700">
             Breng een gebruiker aan en ontvang 12 maanden lang 50% van de in aanmerking komende
-            HomeCheff-platformfee die die gebruiker genereert — niet 50% van seller proceeds, order-GMV
-            of HC.
+            HomeCheff-platformfee die die gebruiker genereert — niet 50% van het verkopersdeel, het
+            hele orderbedrag of HomeCheff Credits (HC).
           </p>
           <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
             Voorbeeld: order €20, platformfee 9% = €1,80 → affiliate-aandeel €0,90. Geen commissie over

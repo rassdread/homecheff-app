@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 const faqsNl = [
   {
     q: 'Waarover wordt affiliatecommissie berekend?',
-    a: 'Over de HomeCheff-platformfee van de order — nooit over het hele orderbedrag, seller proceeds of HC.',
+    a: 'Over de HomeCheff-platformfee van de order — nooit over het hele orderbedrag, het verkopersdeel of HomeCheff Credits (HC).',
   },
   {
     q: 'Krijg ik commissie over het hele orderbedrag?',
@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: 'HomeCheff Marketplace Affiliate | 50% platform fee pool · 12 months',
       description:
-        'Refer a HomeCheff user and earn for 12 months from the eligible HomeCheff platform fee pool — never from GMV, seller proceeds or HC.',
+        'Refer a HomeCheff user and earn for 12 months from the eligible HomeCheff platform fee pool — never from full order value, seller payout, or HomeCheff Credits (HC).',
       keywords: [
         'HomeCheff affiliate',
         'HomeCheff commissie',
@@ -64,7 +64,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'HomeCheff Affiliate | 50% platformfee-pool · 12 maanden',
     description:
-      'Breng een gebruiker aan en ontvang 12 maanden een aandeel uit de HomeCheff-platformopbrengst via die gebruiker. Nooit over GMV, seller proceeds of HC.',
+      'Breng een gebruiker aan en ontvang 12 maanden een aandeel uit de HomeCheff-platformopbrengst via die gebruiker. Nooit over het hele orderbedrag, het verkopersdeel of HomeCheff Credits (HC).',
     keywords: [
       'HomeCheff affiliate',
       'HomeCheff commissie',
@@ -138,15 +138,15 @@ export default async function AffiliatePage() {
             Verdien mee met HomeCheff
           </h1>
           <p className="mt-4 text-center text-base leading-relaxed text-slate-700">
-            HomeCheff Marketplace is het lokale foodplatform van HomeCheff. Breng een gebruiker aan
-            en ontvang 12 maanden lang een aandeel uit de HomeCheff-platformopbrengst die via die
-            gebruiker wordt gegenereerd.
+            HomeCheff Marketplace is de lokale buurtmarkt van HomeCheff — voor eten, oogst, creaties
+            en diensten dichtbij. Breng een gebruiker aan en ontvang 12 maanden lang een aandeel uit
+            de HomeCheff-platformopbrengst die via die gebruiker wordt gegenereerd.
           </p>
           <div className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-700 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">De affiliatepool</h2>
             <p>
-              De pool is gebaseerd op de HomeCheff-platformfee — nooit op seller proceeds, volledige
-              orderwaarde of HC.
+              De pool is gebaseerd op de HomeCheff-platformfee — nooit op het verkopersdeel, de
+              volledige orderwaarde of HomeCheff Credits (HC).
             </p>
             <p>
               Voorbeeld: order €20, platformfee €1,80 → maximale affiliatepool €0,90 (50%). Als één
