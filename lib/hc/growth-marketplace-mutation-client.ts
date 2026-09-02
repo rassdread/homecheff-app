@@ -29,7 +29,7 @@ function internalSecret(): string | null {
 async function postGrowth<T>(path: string, body: unknown): Promise<T | null> {
   const res = await postGrowthRaw<T>(path, body);
   if (!res) return null;
-  if (!res.ok) return null;
+  // Return JSON body for both 2xx and structured 4xx so callers can read { ok:false, code }.
   return res.data;
 }
 
