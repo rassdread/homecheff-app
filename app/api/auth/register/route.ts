@@ -10,6 +10,8 @@ import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created
 import { stripe, PLAN_TO_PRICE, normalizeSubscriptionName } from "@/lib/stripe";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
+import { parseMarketplaceUtmFromCookieHeader } from "@/lib/acquisition/utm-persistence";
+import { upsertMarketplaceAcquisitionFirstTouch } from "@/lib/acquisition/marketplace-acquisition";
 import { randomBytes } from "crypto";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
 import { buildRegistrationFullName } from "@/lib/person-name";
@@ -415,6 +417,11 @@ export async function POST(req: NextRequest) {
       const cookieHeader = req.headers.get('cookie');
       await processAttributionOnSignup(user.id, cookieHeader, isBusiness || false);
       await maybeClaimBetaTesterFromSignupCookies(user.id, cookieHeader);
+      // First-party acquisition UTMs (separate from hc_ref affiliate)
+      await upsertMarketplaceAcquisitionFirstTouch(
+        user.id,
+        parseMarketplaceUtmFromCookieHeader(cookieHeader),
+      );
     } catch (attributionError) {
       console.error('Failed to process attribution:', attributionError);
       // Don't fail registration if attribution fails

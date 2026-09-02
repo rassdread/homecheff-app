@@ -38,6 +38,8 @@ import {
   shouldRevalidateAfterProductMutation,
 } from '@/lib/feed/revalidate-public-feed';
 import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
+import { maybeActivateSellerFromPublishedListing } from '@/lib/acquisition/marketplace-acquisition';
+import { productToListingQualityInput } from '@/lib/acquisition/product-quality-input';
 import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
 import { buildAllergenConfirmationUpdate } from '@/lib/legal/food-allergen-context';
 import {
@@ -428,7 +430,7 @@ export async function PATCH(
       include: {
         seller: {
           include: {
-            User: { select: { id: true } }
+            User: { select: { id: true, city: true } }
           }
         }
       }
@@ -846,6 +848,24 @@ export async function PATCH(
               updatedProduct.id,
               updatedProduct.Image?.length ?? 0,
             ).catch((e) => console.warn('[gamification] product PATCH', e));
+          }
+          if (sellerUid && updatedProduct.isActive) {
+            const seller = (product as {
+              seller?: {
+                displayName?: string | null;
+                bio?: string | null;
+                lat?: number | null;
+                lng?: number | null;
+                User?: { city?: string | null };
+              };
+            }).seller;
+            void maybeActivateSellerFromPublishedListing(
+              sellerUid,
+              productToListingQualityInput({
+                ...updatedProduct,
+                seller,
+              }),
+            ).catch((e) => console.warn('[acquisition] seller activation PATCH', e));
           }
           const sellerProfileId = (product as { sellerId?: string }).sellerId;
           const patchPickupLat = updateData.pickupLat as number | null | undefined;

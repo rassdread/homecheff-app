@@ -105,6 +105,12 @@ model User {
   suspendedAt                            DateTime?
   suspendedById                          String?
   suspendReason                          String?
+  /// First-party acquisition UTMs (hc_marketplace_utm_v1) — separate from affiliate hc_ref
+  acquisitionFirstTouch                  Json?
+  acquisitionActivatedAt                 DateTime?
+  acquisitionActivationKind              String?
+  /// First quality published listing (MARKETPLACE_SELLER_ACTIVATED)
+  sellerActivatedAt                      DateTime?
   Account                                Account[]
   AdminAction                            AdminAction[]
   adminPermissions                       AdminPermissions?
@@ -173,6 +179,8 @@ model User {
   @@index([createdAt])
   @@index([city])
   @@index([country])
+  @@index([acquisitionActivatedAt])
+  @@index([sellerActivatedAt])
 }
 
 /// Phase I.1 — product-local identity ↔ central User (no cross-DB FK; HC User remains canonical)

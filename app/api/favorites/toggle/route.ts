@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { tryAwardItemLikedOrSavedHcp } from '@/lib/gamification/interaction-hcp';
+import { recordMarketplaceBuyerActivation } from '@/lib/acquisition/marketplace-acquisition';
 
 export async function POST(req: NextRequest) {
   try {
@@ -81,6 +82,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (productId) {
+      void recordMarketplaceBuyerActivation(userId).catch((e) =>
+        console.warn('[acquisition] buyer activation favorite', e),
+      );
       void tryAwardItemLikedOrSavedHcp(userId, 'PRODUCT', productId, ownerUserId).catch(
         (e) => console.warn('[gamification] ITEM_LIKED_OR_SAVED', e),
       );

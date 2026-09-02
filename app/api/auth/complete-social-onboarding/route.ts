@@ -6,6 +6,8 @@ import bcrypt from 'bcryptjs';
 import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
 import { maybeClaimBetaTesterFromSignupCookies } from '@/lib/beta-tester-rewards';
+import { parseMarketplaceUtmFromCookieHeader } from '@/lib/acquisition/utm-persistence';
+import { upsertMarketplaceAcquisitionFirstTouch } from '@/lib/acquisition/marketplace-acquisition';
 import { UserRole } from '@prisma/client';
 import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
 import { registrationUsernamePasswordConflictMessage } from '@/lib/auth/registrationUsernameGuards';
@@ -119,6 +121,10 @@ export async function POST(request: NextRequest) {
         const cookieHeader = request.headers.get('cookie');
         await processAttributionOnSignup(existingUser.id, cookieHeader, false);
         await maybeClaimBetaTesterFromSignupCookies(existingUser.id, cookieHeader);
+        await upsertMarketplaceAcquisitionFirstTouch(
+          existingUser.id,
+          parseMarketplaceUtmFromCookieHeader(cookieHeader),
+        );
       } catch (e) {
         console.error('Affiliate attribution after minimal social onboarding:', e);
       }
@@ -254,6 +260,10 @@ export async function POST(request: NextRequest) {
       const cookieHeader = request.headers.get('cookie');
       await processAttributionOnSignup(existingUser.id, cookieHeader, false);
       await maybeClaimBetaTesterFromSignupCookies(existingUser.id, cookieHeader);
+      await upsertMarketplaceAcquisitionFirstTouch(
+        existingUser.id,
+        parseMarketplaceUtmFromCookieHeader(cookieHeader),
+      );
     } catch (e) {
       console.error('Affiliate attribution after social onboarding:', e);
     }

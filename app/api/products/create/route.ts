@@ -39,6 +39,8 @@ import {
   contributionRequiredForPublish,
   parseContributionPayloadFromBody,
 } from '@/lib/trust/seller-contribution';
+import { maybeActivateSellerFromPublishedListing } from '@/lib/acquisition/marketplace-acquisition';
+import { productToListingQualityInput } from '@/lib/acquisition/product-quality-input';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -879,6 +881,22 @@ export async function POST(req: Request) {
     void awardProductLifecycleHcp(user.id, result.id, result.Image?.length ?? 0).catch((e) =>
       console.warn('[gamification] product lifecycle', e),
     );
+
+    if (result.isActive) {
+      void maybeActivateSellerFromPublishedListing(
+        user.id,
+        productToListingQualityInput({
+          ...result,
+          seller: {
+            displayName: user.SellerProfile?.displayName ?? user.name,
+            bio: user.SellerProfile?.bio ?? user.bio,
+            lat: user.SellerProfile?.lat ?? user.lat,
+            lng: user.SellerProfile?.lng ?? user.lng,
+            User: { city: user.city },
+          },
+        }),
+      ).catch((e) => console.warn('[acquisition] seller activation', e));
+    }
 
     if (shouldRevalidateAfterProductMutation(null, result)) {
       revalidatePublicFeedCache('product:create');

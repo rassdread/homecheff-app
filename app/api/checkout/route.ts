@@ -43,6 +43,8 @@ import {
   sumProductsTotalCents,
   CHECKOUT_MINIMUM_NOT_MET,
 } from '@/lib/marketplace/checkout-floor';
+import { readMarketplaceUtmFromCookies } from '@/lib/acquisition/read-marketplace-utm-cookie';
+import { marketplaceUtmToStripeMetadata } from '@/lib/acquisition/utm-persistence';
 
 const prisma = new PrismaClient();
 
@@ -974,6 +976,10 @@ export async function POST(req: NextRequest) {
     ) {
       metadataBase.deliveryProfileId = selectedProviderId;
     }
+
+    // First-party acquisition UTMs (hc_marketplace_utm_v1) — separate from affiliate hc_ref
+    const acquisitionUtm = await readMarketplaceUtmFromCookies();
+    Object.assign(metadataBase, marketplaceUtmToStripeMetadata(acquisitionUtm));
 
     // Default payment methods - only include methods that are commonly available
     // Note: Sofort was discontinued on March 31, 2025 and integrated into Klarna Pay Now

@@ -27,6 +27,10 @@ const PerformanceMonitor = dynamic(() => import('@/components/PerformanceMonitor
 const ConsentAwareAnalytics = dynamic(() => import('@/components/ConsentAwareAnalytics'), {
   ssr: false,
 });
+const MarketplaceUtmCapture = dynamic(
+  () => import('@/components/acquisition/MarketplaceUtmCapture'),
+  { ssr: false },
+);
 const Preloader = dynamic(() => import('@/components/Preloader'), {
   ssr: false,
 });
@@ -235,6 +239,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SkipLink />
           <PerformanceMonitor />
           <ConsentAwareAnalytics />
+          <MarketplaceUtmCapture />
           <Preloader />
           <ToastNotification />
           <UserValidation />

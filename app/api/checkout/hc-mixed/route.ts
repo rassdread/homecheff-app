@@ -12,6 +12,8 @@ import {
   releaseMixedHcReservation,
 } from '@/lib/hc/marketplace-hc-mixed-service';
 import { stripSpoofedFeeFields } from '@/lib/hc/marketplace-order-fee-snapshot';
+import { readMarketplaceUtmFromCookies } from '@/lib/acquisition/read-marketplace-utm-cookie';
+import { marketplaceUtmToStripeMetadata } from '@/lib/acquisition/utm-persistence';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,6 +121,7 @@ export async function POST(req: NextRequest) {
           remainingEurCents: String(created.remainingEurCents),
           economicPolicyVersion: created.economicPolicyVersion,
           orderCreated: 'true',
+          ...marketplaceUtmToStripeMetadata(await readMarketplaceUtmFromCookies()),
         },
         expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
       });

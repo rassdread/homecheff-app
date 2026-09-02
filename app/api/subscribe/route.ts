@@ -19,6 +19,8 @@ import {
   releasePromoRedemption,
   reservePromoRedemption,
 } from "@/lib/promo-codes/redeem-promo";
+import { readMarketplaceUtmFromCookies } from "@/lib/acquisition/read-marketplace-utm-cookie";
+import { marketplaceUtmToStripeMetadata } from "@/lib/acquisition/utm-persistence";
 
 function getBaseUrl(req: NextRequest) {
   const envUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.BASE_URL;
@@ -528,6 +530,10 @@ export async function POST(req: NextRequest) {
     if (durationCyclesForLifecycle != null) {
       sessionMetadata.discount_duration_cycles = String(durationCyclesForLifecycle);
     }
+
+    // First-party acquisition UTMs — keep separate from affiliate attribution_id / hc_ref
+    const acquisitionUtm = await readMarketplaceUtmFromCookies();
+    Object.assign(sessionMetadata, marketplaceUtmToStripeMetadata(acquisitionUtm));
 
     const subscriptionData: Record<string, unknown> = {
       metadata: {

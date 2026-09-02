@@ -10,6 +10,7 @@ import { calculateDistance } from "@/lib/geocoding";
 import { createShippingLabel, EctaroShipLabelRequest } from "@/lib/ectaroship";
 import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
 import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
+import { recordMarketplaceBuyerActivation } from "@/lib/acquisition/marketplace-acquisition";
 import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
 import {
   parseProviderQuoteMetadata,
@@ -1103,6 +1104,12 @@ export async function POST(req: NextRequest) {
 
         const createdOrder = order.order;
         const createdOrderItems = order.orderItems;
+
+        if (buyerId && createdOrderItems.length > 0) {
+          void recordMarketplaceBuyerActivation(buyerId).catch((e) =>
+            console.warn("[acquisition] buyer activation order", e),
+          );
+        }
 
         const linkedCommunityOrderId = metadata.communityOrderId?.trim();
         if (linkedCommunityOrderId) {

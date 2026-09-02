@@ -10,6 +10,8 @@ import {
 } from "@/lib/verification";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
+import { parseMarketplaceUtmFromCookieHeader } from "@/lib/acquisition/utm-persistence";
+import { upsertMarketplaceAcquisitionFirstTouch } from "@/lib/acquisition/marketplace-acquisition";
 import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
 import { buildRegistrationFullName } from "@/lib/person-name";
@@ -272,6 +274,10 @@ export async function POST(req: NextRequest) {
       const cookieHeader = req.headers.get('cookie');
       await processAttributionOnSignup(user.id, cookieHeader, isBusiness || false);
       await maybeClaimBetaTesterFromSignupCookies(user.id, cookieHeader);
+      await upsertMarketplaceAcquisitionFirstTouch(
+        user.id,
+        parseMarketplaceUtmFromCookieHeader(cookieHeader),
+      );
     } catch (attributionError) {
       console.error('Failed to process attribution:', attributionError);
       // Don't fail registration if attribution fails
