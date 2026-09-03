@@ -2776,41 +2776,41 @@
     "accountSectionLabel": "Account & ecosystem"
   },
   "myHomeCheffHub": {
-    "title": "My HomeCheff",
-    "eyebrow": "Personal overview",
+    "title": "Dashboard",
+    "eyebrow": "Work & activity",
     "greeting": "Welcome, {{name}}",
-    "modulesTitle": "Your HomeCheff modules",
-    "modulesSupport": "One account — open the module you want to use now.",
-    "activityTitle": "Marketplace activity",
+    "modulesTitle": "More from HomeCheff",
+    "modulesSupport": "Other HomeCheff products — choose where you want to go.",
+    "activityTitle": "Your work",
     "modules": {
       "marketplace": {
         "title": "Marketplace",
-        "body": "Buy, sell and manage your listings.",
+        "body": "Buy, sell and share locally.",
         "cta": "Open Marketplace"
       },
       "growth": {
         "title": "Growth",
-        "body": "Find and develop new customers.",
+        "body": "Find and work business leads.",
         "cta": "Open Growth"
       },
       "studio": {
         "title": "Studio",
-        "body": "Create content for what you make and sell.",
+        "body": "Create content and media.",
         "cta": "Open Studio"
       },
       "affiliate": {
-        "title": "Affiliate",
-        "body": "Share HomeCheff and track eligible earnings.",
+        "title": "Affiliate & network",
+        "body": "One introduction. View your code, network and commissions.",
         "cta": "Open Affiliate"
       }
     },
-    "backLink": "My HomeCheff",
+    "backLink": "Dashboard",
     "nav": {
-      "hub": "My HomeCheff",
-      "hubShort": "My HC",
+      "hub": "Dashboard",
+      "hubShort": "Dashboard",
       "orders": "My orders",
       "seller": "Selling",
-      "affiliate": "Affiliate",
+      "affiliate": "Affiliate & network",
       "delivery": "Delivery",
       "earnings": "Earnings",
       "settings": "Settings"
@@ -2838,11 +2838,11 @@
         "onboardingPrimary": "Create your first listing"
       },
       "affiliate": {
-        "title": "Affiliate",
-        "description": "Referrals, conversions, commissions and your link.",
-        "onboardingDescription": "Earn by sharing HomeCheff.",
-        "empty": "No affiliate orders yet.",
-        "primary": "View affiliate dashboard",
+        "title": "Affiliate & network",
+        "description": "Your code, network and commissions — one introduction across HomeCheff.",
+        "onboardingDescription": "Invite someone once. If they later generate eligible HomeCheff platform revenue, your network may share in it (not guaranteed).",
+        "empty": "No network activity yet. Share your code to get started.",
+        "primary": "Open Affiliate & network",
         "secondary": "Promo codes",
         "onboardingPrimary": "Become an affiliate",
         "shareLink": "Share my link"
@@ -7341,6 +7341,14 @@
       "welcomeTitle": "Welcome to HomeCheff!",
       "welcomeMessage": "Invite friends and earn together",
       "welcomeDesc": "Your account is active. Start sharing your referral link!",
+      "surpriseIncome": {
+        "title": "One introduction. More possibilities.",
+        "body": "Inviting someone once is enough. If they later become active in another HomeCheff way, that can again generate affiliate income within your valid network — only on eligible HomeCheff platform revenue, never guaranteed.",
+        "example1": "You invite someone to the Marketplace. Later they start delivering. If HomeCheff earns a platform fee there, your network can share in it.",
+        "example2": "Someone starts as a seller and later takes Studio. The original valid referral does not need to be recreated.",
+        "example3": "A contact starts small and later uses Growth. One introduction can create activity at different moments.",
+        "disclaimer": "Results vary. Commission only on eligible HomeCheff platform revenue, subject to attribution and program rules."
+      },
       "overview": "Overview",
       "attributionPolicyTitle": "How attribution works",
       "attributionPolicyFirstTouch": "First-touch: the first valid affiliate link you share sets a {days}-day cookie. Later affiliate links do not replace it until the cookie expires.",

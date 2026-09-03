@@ -20,16 +20,13 @@ const AFFILIATE_TABS: Tab[] = [
     id: 'dashboard',
     href: OPERATIONS_ROUTES.affiliate.home,
     labelKey: 'myHomeCheffHub.affiliateNav.dashboard',
-    match: (path) =>
-      path.startsWith('/affiliate/dashboard') || path.startsWith('/aviliate/dashboard'),
+    match: (path) => path.startsWith('/affiliate/dashboard'),
   },
   {
     id: 'promo',
     href: OPERATIONS_ROUTES.affiliate.promoCodes,
     labelKey: 'myHomeCheffHub.affiliateNav.promoCodes',
-    match: (path) =>
-      path.startsWith('/affiliate/promo-codes') ||
-      path.startsWith('/aviliate/promo-codes'),
+    match: (path) => path.startsWith('/affiliate/promo-codes'),
   },
   {
     id: 'earnings',

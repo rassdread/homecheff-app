@@ -15,7 +15,6 @@ import NotificationBell from '@/components/notifications/NotificationBell';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
 import { validateAndCleanSession, setupSessionIsolation, performLogout } from '@/lib/session-cleanup';
-import { getDisplayName } from '@/lib/displayName';
 import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
@@ -30,14 +29,13 @@ import {
 } from '@/lib/navigation/primary-dashboard';
 import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
 import { OntdekHomeCheffMenu } from '@/components/ecosystem/OntdekHomeCheffMenu';
-import { EcosystemAccountNavLinks } from '@/components/ecosystem/EcosystemAccountNavLinks';
 import { useCommsUnread } from '@/hooks/useCommsUnread';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
 import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
-import MyHomeCheffNavLinks from '@/components/my-homecheff/MyHomeCheffNavLinks';
+import SimplifiedAccountMenu from '@/components/navigation/SimplifiedAccountMenu';
 import {
   NAVBAR_CLOSE_MENU_EVENT,
   NAVBAR_TOGGLE_MENU_EVENT,
@@ -657,9 +655,8 @@ export default function NavBar() {
                         <User className="w-4 h-4 text-primary-brand" />
                       </div>
                     )}
-                    <span className="hidden xl:inline text-sm font-medium text-gray-700 truncate max-w-32">
-                      {userProfile ? getDisplayName(userProfile) : getDisplayName(user)}
-                    </span>
+                    {/* Avatar-only in header chrome — never clip a half-visible username.
+                        Full name is shown inside the account menu. */}
                     <ChevronDown 
                       className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
                         isProfileDropdownOpen ? 'rotate-180' : ''
@@ -671,7 +668,7 @@ export default function NavBar() {
                   {portalContainer && isProfileDropdownOpen && createPortal(
                     <div 
                       ref={dropdownMenuRef}
-                      className={`pointer-events-auto fixed w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 overflow-y-auto z-[99999] ${
+                      className={`pointer-events-auto fixed w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 overflow-y-auto z-[99999] ${
                         dropdownPosition.openAbove 
                           ? 'animate-in slide-in-from-bottom-2 duration-200' 
                           : 'animate-in slide-in-from-top-2 duration-200'
@@ -684,121 +681,19 @@ export default function NavBar() {
                         maxHeight: typeof window !== 'undefined' ? `calc(100vh - ${dropdownPosition.top}px - 24px)` : 'none'
                       }}
                     >
-                      <EcosystemAccountNavLinks
+                      <SimplifiedAccountMenu
                         currentProduct={ecosystemCurrentProduct}
-                        authenticated
-                        surface="account_menu"
+                        displayUser={userProfile ?? user}
+                        unreadCount={unreadCount}
+                        showAdminLink={showAdminLink}
+                        adminHref={ADMIN_WORKSPACE_HREF}
                         rowClassName="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         onNavigate={() => setIsProfileDropdownOpen(false)}
-                      />
-                      <MyHomeCheffNavLinks
-                        user={navMenuUser}
-                        rowClassName="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        excludeIds={['hub', 'affiliate']}
-                        onNavigate={() => setIsProfileDropdownOpen(false)}
-                      />
-
-                      <div className="border-t border-gray-100 my-2" />
-
-                      {/* Profile Link */}
-                      {user ? (
-                        <Link 
-                          href="/profile" 
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          <User className="w-4 h-4" />
-                          <span>{t('navbar.myProfile')}</span>
-                        </Link>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setIsProfileDropdownOpen(false);
-                            router.push('/login');
-                          }}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
-                        >
-                          <User className="w-4 h-4" />
-                          <span>{t('navbar.myProfile')}</span>
-                        </button>
-                      )}
-                      
-                      {/* Berichten - Altijd zichtbaar, nu via profiel */}
-                      <Link 
-                        href="/messages" 
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors relative"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>{t('navbar.messages')}</span>
-                        {unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </span>
-                        )}
-                      </Link>
-
-                      {/* Mijn Afspraken — unified operations hub (UX-FIN-2.1) */}
-                      <Link
-                        href={DEALS_PROFILE_PATH}
-                        prefetch={false}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <CalendarClock className="w-4 h-4" />
-                        <span>{t('navbar.agreements')}</span>
-                      </Link>
-
-                      {/* Favorieten (UX-FIN-2.2) */}
-                      <Link
-                        href="/favorites"
-                        prefetch={false}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <Heart className="w-4 h-4" />
-                        <span>{t('navbar.favorites')}</span>
-                      </Link>
-
-                      <Link
-                        href="/mijn-hcp"
-                        prefetch={false}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <Award className="w-4 h-4" />
-                        <span>{t('bottomNav.reputationTab')}</span>
-                      </Link>
-
-                      {showAdminLink ? (
-                        <Link
-                          href={ADMIN_WORKSPACE_HREF}
-                          prefetch={false}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-violet-700 hover:bg-violet-50 transition-colors"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          <Shield className="w-4 h-4" />
-                          <span>{t('navbar.admin')}</span>
-                        </Link>
-                      ) : null}
-
-                      <NavbarLegalContactLinks
-                        variant="dropdown"
-                        onNavigate={() => setIsProfileDropdownOpen(false)}
-                      />
-
-                      <div className="border-t border-gray-100 my-2"></div>
-                      
-                      <button
-                        onClick={async () => {
+                        onLogout={async () => {
                           setIsProfileDropdownOpen(false);
                           await handleLogout();
                         }}
-                        className="flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>{t('navbar.logout')}</span>
-                      </button>
+                      />
                     </div>,
                     portalContainer
                   )}
@@ -1017,114 +912,24 @@ export default function NavBar() {
                     )}
                   </Link>
 
-                  <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
-                    {(userProfile?.profileImage || userProfile?.image || user?.image) ? (
-                      <SafeImage
-                        src={userProfile?.profileImage || userProfile?.image || user?.image || ''}
-                        alt={t("navbar.profileImage")}
-                        width={32}
-                        height={32}
-                        className="rounded-full border-2 border-primary-200"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                        <User className="w-4 h-4 text-primary-brand" />
-                      </div>
-                    )}
-                    <span className="text-sm font-medium text-gray-700 truncate max-w-32">
-                      {userProfile ? getDisplayName(userProfile) : getDisplayName(user)}
-                    </span>
-                  </div>
-
-                  <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                    {t('navbar.accountSectionLabel')}
-                  </p>
-
-                  <EcosystemAccountNavLinks
+                  <SimplifiedAccountMenu
                     currentProduct={ecosystemCurrentProduct}
-                    authenticated
-                    surface="mobile_menu"
+                    displayUser={userProfile ?? user}
+                    unreadCount={unreadCount}
+                    showAdminLink={showAdminLink}
+                    adminHref={ADMIN_WORKSPACE_HREF}
                     rowClassName={mobileNavRowClass}
+                    hideMessages={bottomNavReachable}
                     onNavigate={() => {
                       setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { section: 'ecosystem' });
+                      navDebug('navbar:mobile', { section: 'account-menu' });
+                    }}
+                    onLogout={async () => {
+                      setIsMobileMenuOpen(false);
+                      await handleLogout();
                     }}
                   />
 
-                  <MyHomeCheffNavLinks
-                    user={navMenuUser}
-                    rowClassName={mobileNavRowClass}
-                    excludeIds={['hub', 'affiliate']}
-                    onNavigate={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { section: 'my-homecheff' });
-                    }}
-                  />
-
-                  <div className="border-t border-gray-200 my-2" />
-
-                  <Link
-                    href="/profile"
-                    prefetch={false}
-                    className={mobileNavRowClass}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/profile' });
-                    }}
-                  >
-                    <User className="w-4 h-4 shrink-0" aria-hidden />
-                    <span>{t('navbar.myProfile')}</span>
-                  </Link>
-
-                  {!bottomNavReachable ? (
-                    <Link
-                      href="/messages"
-                      prefetch={false}
-                      className={cn(mobileNavRowClass, 'relative')}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: '/messages' });
-                      }}
-                    >
-                      <MessageCircle className="w-4 h-4 shrink-0" aria-hidden />
-                      <span>{t('navbar.messages')}</span>
-                      {unreadCount > 0 && (
-                        <span className="ml-auto flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
-                    </Link>
-                  ) : null}
-
-                  {/* Mijn Afspraken — unified operations hub (UX-FIN-2.1) */}
-                  <Link
-                    href={DEALS_PROFILE_PATH}
-                    prefetch={false}
-                    className={mobileNavRowClass}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: DEALS_PROFILE_PATH });
-                    }}
-                  >
-                    <CalendarClock className="w-4 h-4 shrink-0" />
-                    <span>{t('navbar.agreements')}</span>
-                  </Link>
-
-                  {/* Favorieten (UX-FIN-2.2) */}
-                  <Link
-                    href="/favorites"
-                    prefetch={false}
-                    className={mobileNavRowClass}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/favorites' });
-                    }}
-                  >
-                    <Heart className="w-4 h-4 shrink-0" />
-                    <span>{t('navbar.favorites')}</span>
-                  </Link>
-
-                  {/* Meldingen — mobile access (desktop uses NotificationBell) (UX-FIN-2.4) */}
                   <Link
                     href="/notifications"
                     prefetch={false}
@@ -1137,35 +942,6 @@ export default function NavBar() {
                     <Bell className="w-4 h-4 shrink-0" />
                     <span>{t('navbar.notifications')}</span>
                   </Link>
-
-                  {showAdminLink ? (
-                    <Link
-                      href={ADMIN_WORKSPACE_HREF}
-                      prefetch={false}
-                      className={cn(mobileNavRowClass, 'text-violet-700 hover:bg-violet-50')}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: ADMIN_WORKSPACE_HREF });
-                      }}
-                    >
-                      <Shield className="w-4 h-4 shrink-0" />
-                      <span>{t('navbar.admin')}</span>
-                    </Link>
-                  ) : null}
-
-                  <div className="border-t border-gray-200 my-2"></div>
-                  
-                  <Button
-                    variant="ghost" 
-                    onClick={async () => {
-                      setIsMobileMenuOpen(false);
-                      await handleLogout();
-                    }}
-                    className="w-full min-h-[44px] justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    {t('navbar.logout')}
-                  </Button>
                 </>
               )}
 

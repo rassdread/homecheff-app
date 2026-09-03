@@ -499,6 +499,29 @@ export default function AffiliateDashboardClient() {
           </div>
         )}
 
+        <section
+          className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 sm:p-5"
+          aria-labelledby="affiliate-surprise-income-heading"
+        >
+          <h3
+            id="affiliate-surprise-income-heading"
+            className="text-base font-semibold text-emerald-950"
+          >
+            {t('affiliate.dashboard.surpriseIncome.title')}
+          </h3>
+          <p className="mt-2 text-sm text-emerald-900/90">
+            {t('affiliate.dashboard.surpriseIncome.body')}
+          </p>
+          <ul className="mt-3 space-y-2 text-sm text-emerald-900/80 list-disc pl-5">
+            <li>{t('affiliate.dashboard.surpriseIncome.example1')}</li>
+            <li>{t('affiliate.dashboard.surpriseIncome.example2')}</li>
+            <li>{t('affiliate.dashboard.surpriseIncome.example3')}</li>
+          </ul>
+          <p className="mt-3 text-xs text-emerald-800/70">
+            {t('affiliate.dashboard.surpriseIncome.disclaimer')}
+          </p>
+        </section>
+
         <HomecheffEcosystemAffiliatePanel />
 
         {/* Tabs */}

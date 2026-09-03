@@ -84,7 +84,11 @@ assert(hubLib.includes("MY_HOMECHEFF_HUB_PATH = '/mijn-homecheff'"), 'hub path c
 const hubClient = read('components/my-homecheff/MyHomeCheffHubClient.tsx');
 assert(hubClient.includes('listMyHomeCheffCards'), 'hub client uses card list');
 assert(navbar.includes('MY_HOMECHEFF_HUB_PATH'), 'NavBar links to Mijn HomeCheff hub');
-assert(navbar.includes('MyHomeCheffNavLinks'), 'NavBar uses MyHomeCheffNavLinks');
+assert(navbar.includes('SimplifiedAccountMenu'), 'NavBar uses SimplifiedAccountMenu');
+const accountMenu = read('components/navigation/SimplifiedAccountMenu.tsx');
+assert(accountMenu.includes('DEALS_PROFILE_PATH'), 'account menu links Mijn Afspraken');
+assert(accountMenu.includes("href=\"/favorites\""), 'account menu links Favorieten');
+assert(accountMenu.includes('MY_HOMECHEFF_HUB_PATH'), 'account menu links Dashboard hub');
 const bottomNav = read('components/navigation/BottomNavigation.tsx');
 assert(bottomNav.includes('MY_HOMECHEFF_HUB_PATH'), 'bottom nav profile tab links to hub');
 const sidebarIa = read('lib/home/home-desktop-sidebar-ia.ts');
@@ -117,11 +121,23 @@ assert(
 
 // --- NavBar wiring ---------------------------------------------------------
 console.log('\nNavBar (desktop dropdown + mobile menu)');
-assert(navbar.includes('DEALS_PROFILE_PATH'), 'NavBar imports/uses DEALS_PROFILE_PATH (no hardcode)');
-assert(navbar.includes("t('navbar.agreements')"), 'NavBar shows Mijn Afspraken (navbar.agreements)');
-assert(navbar.includes("t('myHomeCheffHub.nav.orders')") || navbar.includes('MyHomeCheffNavLinks'), 'NavBar exposes buyer orders via hub nav');
-assert(navbar.includes("href=\"/favorites\""), 'NavBar links to /favorites');
-assert(navbar.includes("t('navbar.favorites')"), 'NavBar shows Favorieten (navbar.favorites)');
+assert(navbar.includes('SimplifiedAccountMenu'), 'NavBar mounts SimplifiedAccountMenu');
+assert(accountMenu.includes('DEALS_PROFILE_PATH'), 'account menu uses DEALS_PROFILE_PATH (no hardcode)');
+assert(
+  accountMenu.includes("t('navbar.agreements')") || accountMenu.includes('Mijn afspraken'),
+  'account menu shows Mijn Afspraken',
+);
+assert(
+  accountMenu.includes('listMyHomeCheffCards') ||
+    hubLib.includes("href: '/orders'") ||
+    accountMenu.includes('Dashboard'),
+  'buyer orders reachable via Dashboard hub cards',
+);
+assert(accountMenu.includes("href=\"/favorites\""), 'account menu links to /favorites');
+assert(
+  accountMenu.includes("t('navbar.favorites')") || accountMenu.includes('Favorieten'),
+  'account menu shows Favorieten',
+);
 assert(navbar.includes("href=\"/notifications\""), 'NavBar links to /notifications (mobile)');
 assert(navbar.includes("t('navbar.notifications')"), 'NavBar shows Meldingen (navbar.notifications)');
 
@@ -129,9 +145,9 @@ assert(navbar.includes("t('navbar.notifications')"), 'NavBar shows Meldingen (na
 const mobileMenuIdx = navbar.indexOf('navbar-mobile-menu');
 assert(mobileMenuIdx > -1, 'NavBar has a mobile menu container');
 const mobileMenu = navbar.slice(mobileMenuIdx);
-assert(mobileMenu.includes('DEALS_PROFILE_PATH'), 'mobile menu links Mijn Afspraken');
-assert(mobileMenu.includes('MyHomeCheffNavLinks'), 'mobile menu includes Mijn HomeCheff nav block');
-assert(mobileMenu.includes("href=\"/favorites\""), 'mobile menu links Favorieten');
+assert(mobileMenu.includes('SimplifiedAccountMenu'), 'mobile menu includes SimplifiedAccountMenu');
+assert(accountMenu.includes('DEALS_PROFILE_PATH'), 'mobile account menu links Mijn Afspraken');
+assert(accountMenu.includes("href=\"/favorites\""), 'mobile account menu links Favorieten');
 assert(mobileMenu.includes("href=\"/notifications\""), 'mobile menu links Meldingen');
 
 // --- Profile sidepanel + role quick links ----------------------------------
@@ -154,11 +170,11 @@ console.log('\nBuyer-only navigation coverage');
 const authBlockIdx = navbar.indexOf('{user && (');
 assert(authBlockIdx > -1, 'NavBar has an authenticated-user block');
 assert(
-  navbar.includes('MyHomeCheffNavLinks') &&
-    navbar.includes('DEALS_PROFILE_PATH') &&
-    navbar.includes("href=\"/favorites\"") &&
+  navbar.includes('SimplifiedAccountMenu') &&
+    accountMenu.includes('DEALS_PROFILE_PATH') &&
+    accountMenu.includes("href=\"/favorites\"") &&
     navbar.includes("href=\"/notifications\""),
-  'buyer transactional pages reachable via hub nav + agreements/favorites/notifications',
+  'buyer transactional pages reachable via SimplifiedAccountMenu + notifications',
 );
 
 // --- Stale validator fixed -------------------------------------------------

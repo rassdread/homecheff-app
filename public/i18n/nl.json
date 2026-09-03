@@ -1613,41 +1613,41 @@
     "accountSectionLabel": "Account & ecosysteem"
   },
   "myHomeCheffHub": {
-    "title": "Mijn HomeCheff",
-    "eyebrow": "Persoonlijk overzicht",
+    "title": "Dashboard",
+    "eyebrow": "Werk & activiteit",
     "greeting": "Welkom, {{name}}",
-    "modulesTitle": "Jouw HomeCheff-onderdelen",
-    "modulesSupport": "Eén account — open het onderdeel waar je nu mee wilt werken.",
-    "activityTitle": "Marketplace-activiteit",
+    "modulesTitle": "Meer van HomeCheff",
+    "modulesSupport": "Andere HomeCheff-producten — kies waar je naartoe wilt.",
+    "activityTitle": "Jouw werk",
     "modules": {
       "marketplace": {
         "title": "Marketplace",
-        "body": "Koop, verkoop en beheer je aanbod.",
+        "body": "Kopen, verkopen en delen in je buurt.",
         "cta": "Open Marketplace"
       },
       "growth": {
         "title": "Growth",
-        "body": "Vind en ontwikkel nieuwe klanten.",
+        "body": "Vind en werk met zakelijke leads.",
         "cta": "Open Growth"
       },
       "studio": {
         "title": "Studio",
-        "body": "Maak content voor wat je maakt en verkoopt.",
+        "body": "Maak content en media.",
         "cta": "Open Studio"
       },
       "affiliate": {
-        "title": "Affiliate",
-        "body": "Deel HomeCheff en volg in aanmerking komende verdiensten.",
+        "title": "Affiliate & netwerk",
+        "body": "Eén introductie. Bekijk je code, netwerk en commissies.",
         "cta": "Open Affiliate"
       }
     },
-    "backLink": "Mijn HomeCheff",
+    "backLink": "Dashboard",
     "nav": {
-      "hub": "Mijn HomeCheff",
-      "hubShort": "Mijn HomeCheff",
+      "hub": "Dashboard",
+      "hubShort": "Dashboard",
       "orders": "Mijn bestellingen",
       "seller": "Verkopen",
-      "affiliate": "Affiliate",
+      "affiliate": "Affiliate & netwerk",
       "delivery": "Bezorging",
       "earnings": "Verdiensten",
       "settings": "Instellingen"
@@ -1675,11 +1675,11 @@
         "onboardingPrimary": "Plaats je eerste aanbod"
       },
       "affiliate": {
-        "title": "Affiliate",
-        "description": "Referrals, conversies, commissies en je link.",
-        "onboardingDescription": "Verdien mee door HomeCheff te delen.",
-        "empty": "Je hebt nog geen affiliate-bestellingen.",
-        "primary": "Bekijk affiliate dashboard",
+        "title": "Affiliate & netwerk",
+        "description": "Je code, netwerk en commissies — één introductie voor heel HomeCheff.",
+        "onboardingDescription": "Nodig iemand uit. Als diegene later ergens in HomeCheff eligible platformomzet maakt, kan jouw netwerk meedelen (geen garantie).",
+        "empty": "Nog geen netwerkactiviteit. Deel je code om te starten.",
+        "primary": "Open Affiliate & netwerk",
         "secondary": "Promocodes",
         "onboardingPrimary": "Word affiliate",
         "shareLink": "Deel mijn link"
@@ -7336,6 +7336,14 @@
       "welcomeTitle": "Welkom bij HomeCheff!",
       "welcomeMessage": "Nodig vrienden uit en verdien samen",
       "welcomeDesc": "Je account is actief. Deel je partnerlink om nieuwe aanmeldingen te genereren.",
+      "surpriseIncome": {
+        "title": "Eén introductie. Meer mogelijkheden.",
+        "body": "Eén keer iemand uitnodigen is genoeg. Als diegene later op een andere manier actief wordt binnen HomeCheff, kan dat binnen je geldige netwerk opnieuw affiliate-inkomsten opleveren — alleen over eligible HomeCheff-platformomzet, nooit gegarandeerd.",
+        "example1": "Je nodigt iemand uit voor de Marketplace. Later gaat diegene bezorgen. Als HomeCheff daar een platformfee op verdient, kan jouw netwerk meedelen.",
+        "example2": "Iemand start als verkoper en neemt later Studio. De oorspronkelijke geldige referral hoeft niet opnieuw te worden aangemaakt.",
+        "example3": "Een contact begint klein en gebruikt later Growth. Eén introductie kan op verschillende momenten activiteit opleveren.",
+        "disclaimer": "Resultaten verschillen. Commissie alleen op eligible HomeCheff-platformomzet, volgens attributie- en programmaregels."
+      },
       "overview": "Overview",
       "attributionPolicyTitle": "Hoe attributie werkt",
       "attributionPolicyFirstTouch": "First-touch: de eerste geldige partnerlink die je deelt zet een cookie van {days} dagen. Latere partnerlinks vervangen die niet tot de cookie verloopt.",

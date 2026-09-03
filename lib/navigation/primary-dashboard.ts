@@ -1,10 +1,15 @@
 import {
-  resolvePrimaryDashboardHref,
   resolvePrimaryOperationsHref,
   userHasEarningRole,
   userIsPlatformAdmin,
   type SettingsHubContext,
 } from '@/lib/settings/settings-hub';
+import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
+import {
+  isOperationsEntryPath,
+  resolveOperationsEntryFromUser,
+  type OperationsSection,
+} from '@/lib/operations/operations-entry';
 
 export const ADMIN_WORKSPACE_HREF = '/admin';
 
@@ -13,11 +18,6 @@ export {
   userHasEarningRole,
   userIsPlatformAdmin,
 };
-import {
-  isOperationsEntryPath,
-  resolveOperationsEntryFromUser,
-  type OperationsSection,
-} from '@/lib/operations/operations-entry';
 
 export type { OperationsSection };
 export {
@@ -43,11 +43,15 @@ export function primaryDashboardContextFromUser(
   };
 }
 
-/** Primary operations dashboard for the current user (fallback `/profile`). */
+/**
+ * Canonical Dashboard landing = Mijn HomeCheff hub.
+ * Role-specific ops live as hub modules (not competing top-level menu items).
+ */
 export function resolvePrimaryDashboardHrefFromUser(
   user: Record<string, unknown> | null | undefined
 ): string {
-  return resolveOperationsEntryFromUser(user).href;
+  void user;
+  return MY_HOMECHEFF_HUB_PATH;
 }
 
 /** True when user has at least one earning role (seller, delivery, affiliate). */
@@ -73,11 +77,11 @@ export function countEarningRoles(ctx: SettingsHubContext): number {
   return count;
 }
 
-/** Whether bottom nav / dropdown should show an operations dashboard tab. */
+/** Bottom-nav Dashboard — all authenticated users. */
 export function userHasOperationsDashboard(
   user: Record<string, unknown> | null | undefined
 ): boolean {
-  return resolveOperationsEntryFromUser(user).hasOperationsAccess;
+  return Boolean(user);
 }
 
 /** Active state for the primary dashboard bottom-nav tab. */
@@ -85,5 +89,13 @@ export function isPrimaryDashboardPath(
   pathname: string | null | undefined,
   primaryHref: string
 ): boolean {
+  const path = pathname || '';
+  if (
+    path === MY_HOMECHEFF_HUB_PATH ||
+    path === '/my-homecheff' ||
+    path.startsWith('/mijn-homecheff/')
+  ) {
+    return true;
+  }
   return isOperationsEntryPath(pathname, primaryHref);
 }

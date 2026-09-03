@@ -573,7 +573,7 @@ export default function BottomNavigation() {
 
   const handleDashboardClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
-      const p = sanitizePostAuthRelativeUrl('/operations/vandaag') || '/operations/vandaag';
+      const p = sanitizePostAuthRelativeUrl(MY_HOMECHEFF_HUB_PATH) || MY_HOMECHEFF_HUB_PATH;
       openGuestBottomNavPanel('earn', p, () => {
         savePendingIntent({ type: 'complete_profile', returnPath: p });
       });
