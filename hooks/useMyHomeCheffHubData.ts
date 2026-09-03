@@ -75,8 +75,9 @@ export function useMyHomeCheffHubData(
               if (!res.ok) return;
               const json = await res.json();
               const totals = json.totals;
+              // /api/earnings/combined returns cents already (export divides by 100).
               if (totals && typeof totals.totalEarnings === 'number') {
-                next.totalEarningsCents = Math.round(totals.totalEarnings * 100);
+                next.totalEarningsCents = Math.round(totals.totalEarnings);
               }
             })
             .catch(() => undefined),

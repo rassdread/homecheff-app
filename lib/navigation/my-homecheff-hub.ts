@@ -14,6 +14,7 @@ export const MY_HOMECHEFF_HUB_PATH_EN = '/my-homecheff';
 
 export type MyHomeCheffCardId =
   | 'orders'
+  | 'hc'
   | 'seller'
   | 'affiliate'
   | 'delivery'
@@ -60,6 +61,16 @@ export function listMyHomeCheffCards(ctx: SettingsHubContext): MyHomeCheffCardDe
     emptyKey: 'myHomeCheffHub.cards.orders.empty',
     primaryHref: '/orders',
     primaryLabelKey: 'myHomeCheffHub.cards.orders.primary',
+  });
+
+  cards.push({
+    id: 'hc',
+    mode: 'active',
+    titleKey: 'myHomeCheffHub.cards.hc.title',
+    descriptionKey: 'myHomeCheffHub.cards.hc.description',
+    emptyKey: 'myHomeCheffHub.cards.hc.empty',
+    primaryHref: '/mijn-homecheff/hc',
+    primaryLabelKey: 'myHomeCheffHub.cards.hc.primary',
   });
 
   if (isSeller(ctx)) {
@@ -140,7 +151,7 @@ export function listMyHomeCheffCards(ctx: SettingsHubContext): MyHomeCheffCardDe
     descriptionKey: 'myHomeCheffHub.cards.account.description',
     primaryHref: '/settings',
     primaryLabelKey: 'myHomeCheffHub.cards.account.primary',
-    secondaryHref: '/mijn-homecheff/hc',
+    secondaryHref: '/profile',
     secondaryLabelKey: 'myHomeCheffHub.cards.account.secondary',
   });
 

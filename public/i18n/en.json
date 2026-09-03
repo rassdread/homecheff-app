@@ -2864,6 +2864,12 @@
         "description": "Profile, payments, privacy and preferences.",
         "primary": "Settings",
         "secondary": "My profile"
+      },
+      "hc": {
+        "title": "HC balance",
+        "description": "Your HomeCheff Credits — balance, history and where you can use HC.",
+        "empty": "No HC activity yet.",
+        "primary": "View HC balance"
       }
     },
     "metrics": {

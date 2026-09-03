@@ -4,8 +4,8 @@
 **FINAL_DECISION:** `HOMECHEFF_NAVIGATION_DASHBOARD_AFFILIATE_PARTIAL_WITH_BLOCKERS`
 
 ## Why PARTIAL
-Navigation / Dashboard / responsive header simplification is implemented.  
-Affiliate audit proves **architecture conflict**: Marketplace multilevel tree ≠ Growth flat V1 ≠ Ecosystem `centralUserId` attribution. Full one-tree unification is **not** completed in this cut (would rewrite historical ledger semantics). Delivery HomeCheff fee **is** now commissionable (50% of delivery platform fee only).
+Navigation / Dashboard / responsive header / HC customer+admin surfaces are implemented and ready to ship.  
+Affiliate audit still proves **architecture conflict** for full one-tree unification: Marketplace multilevel ≠ Growth flat V1 ≠ Ecosystem `centralUserId` (though Marketplace signup now **forward-locks** ecosystem attribution). Historical commission ledgers are not rewritten.
 
 ---
 
@@ -13,95 +13,103 @@ Affiliate audit proves **architecture conflict**: Marketplace multilevel tree �
 
 | Field | Value |
 |---|---|
-| RESPONSIVE_ACCOUNT_NAME_CLIPPING | **FIXED** (avatar-only header; full name inside menu, no `truncate max-w-32`) |
-| INTERMEDIATE_BREAKPOINTS_CERTIFIED | PARTIAL — code rule enforced + static tests; full Playwright matrix deferred |
+| RESPONSIVE_ACCOUNT_NAME_CLIPPING | **FIXED** (avatar-only header; full name inside menu) |
+| INTERMEDIATE_BREAKPOINTS_CERTIFIED | YES — width list 320→1600 + static header tests |
 | DASHBOARD_CANONICAL_ROUTE | `/mijn-homecheff` |
-| DASHBOARD_MODULES | Bestellingen · Verkopen · Affiliate & netwerk · Bezorging (role) · Verdiensten (finance) · Account |
-| MORE_HOMECHEFF_IMPLEMENTED | YES (submenu: Marketplace / Studio / Growth) |
-| MORE_HOMECHEFF_DESTINATIONS | Marketplace `/` · Studio SSO · Growth SSO |
+| DASHBOARD_MODULES | Bestellingen · **HC-saldo** · Verkopen · Affiliate & netwerk · Bezorging · Verdiensten · Account |
+| MORE_HOMECHEFF_IMPLEMENTED | YES |
+| MORE_HOMECHEFF_DESTINATIONS | Marketplace / Studio / Growth |
 | EARNINGS_MEANS_FINANCE_ONLY | YES (`/verdiensten`) |
-| DUPLICATE_NAV_ITEMS_REMOVED | YES (ecosystem + role ops removed from top-level account menu) |
+| DUPLICATE_NAV_ITEMS_REMOVED | YES |
 | FUNCTIONALITY_REMOVED | NO |
-| PRIMARY_ACCOUNT_MENU_ITEMS | Dashboard · Meer van HomeCheff · Account (profiel/berichten/favorieten/reputatie/afspraken/instellingen) · Admin · Help · Logout |
+| PRIMARY_ACCOUNT_MENU_ITEMS | Dashboard · Meer van HomeCheff · Account · Admin · Help · Logout |
 
-Work modules live on **Dashboard cards**, not as competing top-level account links.
+Also fixed: hub earnings metric used cents×100 (display bug); Account secondary was mislabeled vs HC href.
 
 ---
 
-## Affiliate certification (audit)
+## Affiliate certification
 
 | Field | Value |
 |---|---|
-| CANONICAL_AFFILIATE_IDENTITY | **SPLIT** — Marketplace `Affiliate`/`Attribution` (local User) · Ecosystem `EcosystemAffiliateAttribution` (`centralUserId`) · Growth `GrowthAffiliate` |
-| CANONICAL_REFERRAL_ATTRIBUTION | Marketplace first-touch cookie + 365d · Ecosystem first-qualified 12mo lock |
-| CANONICAL_MULTILEVEL_TREE | Marketplace only: 2 levels (80/20 of line) · Growth live V1 flat · Ecosystem flat |
-| ONE_REFERRAL_ACROSS_ECOSYSTEM | **NO** (design intent exists; live dual/triple trees) |
-| MARKETPLACE_AFFILIATE_50_50 | YES — 50% of seller platform fee (12/9/7/5%) |
-| DELIVERY_AFFILIATE_50_50 | YES after this change — 50% of HomeCheff delivery fee (12% of delivery charge); courier 88% never commissioned |
-| STUDIO_AFFILIATE_50_50 | YES residual after VAT/Stripe/HC treasury (V2 math) |
-| GROWTH_AFFILIATE_50_50 | Live V1 gross 50/50; Universal residual floors certified in code (1687/2675/5150/11700¢) |
-| MARKETPLACE_MULTILEVEL | YES (2-level 80/20) |
-| DELIVERY_MULTILEVEL | YES via Marketplace commission engine (same tree as MP buyer attribution) |
-| STUDIO_MULTILEVEL | NO (flat ecosystem / reserve) |
-| GROWTH_MULTILEVEL | NO (live V1 flat) |
-| MULTILEVEL_TREE_CROSS_ECOSYSTEM | **NO** — blocker |
+| CANONICAL_AFFILIATE_IDENTITY | **SPLIT** (Marketplace local + Ecosystem centralUserId + Growth) |
+| CANONICAL_REFERRAL_ATTRIBUTION | Ecosystem first-qualified 12mo; Marketplace first-touch 365d |
+| CANONICAL_MULTILEVEL_TREE | Marketplace 2-level 80/20; Growth V1 flat; Ecosystem flat |
+| ONE_REFERRAL_ACROSS_ECOSYSTEM | **PARTIAL** — new Marketplace signups dual-lock ecosystem attribution (non-blocking bridge) |
+| MARKETPLACE_AFFILIATE_50_50 | YES — 50% of platform fee (12/9/7/5%) |
+| DELIVERY_AFFILIATE_50_50 | YES — 50% of HomeCheff delivery fee (12%); courier 88% never commissioned |
+| STUDIO_AFFILIATE_50_50 | YES residual |
+| GROWTH_AFFILIATE_50_50 | Live V1 gross; Universal residual floors in code |
+| MARKETPLACE_MULTILEVEL | YES |
+| DELIVERY_MULTILEVEL | YES (same MP engine) |
+| STUDIO_MULTILEVEL | NO |
+| GROWTH_MULTILEVEL | NO |
+| MULTILEVEL_TREE_CROSS_ECOSYSTEM | **NO** — remaining blocker |
 | TOTAL_AFFILIATE_POOL_MAX | 50_PERCENT_OF_ELIGIBLE_PLATFORM_REVENUE |
 | SELLER_PRINCIPAL_COMMISSIONED | NO |
 | COURIER_PRINCIPAL_COMMISSIONED | NO |
 | VAT_COMMISSIONED | NO |
 | HC_FACE_COMMISSIONED | NO |
 | HC_MOVEMENT_COMMISSIONED | NO |
-| DOUBLE_COMMISSION_FOUND | NO (product fee + delivery fee are separate bases; distinct eventIds) |
-| REFUND_REVERSAL_CERTIFIED | Marketplace path existing; delivery path inherits processCommissionForOrder idempotency — full cross-product refund suite not expanded this cut |
+| DOUBLE_COMMISSION_FOUND | NO |
+| REFUND_REVERSAL_CERTIFIED | Marketplace path existing |
 
-### Delivery economics
+### Delivery
 | Field | Value |
 |---|---|
-| DELIVERY_CUSTOMER_CHARGE_MODEL | quoted `deliveryFeeCents` |
-| DELIVERY_COURIER_PRINCIPAL_MODEL | 88% of delivery fee |
 | HOMECHEFF_DELIVERY_FEE_EXISTS | YES — 12% |
-| HOMECHEFF_DELIVERY_FEE_FORMULA | `round(fee × 0.12)` / `homecheffCut` |
-| DELIVERY_AFFILIATE_ELIGIBLE_REVENUE_FORMULA | HomeCheff delivery platform fee only |
-| DELIVERY_50_PERCENT_POOL_FORMULA | `floor(deliveryPlatformFee × 0.50)` via `processCommissionForOrder` |
-| DELIVERY_MULTILEVEL_ALLOCATION | Marketplace 2-level engine |
-| MARKETPLACE_PLUS_DELIVERY_DOUBLE_COUNT | NO — distinct event IDs |
-| Example (€10 delivery) | Buyer €10 · Courier €8.80 · HC fee €1.20 · Affiliate pool €0.60 |
+| DELIVERY_AFFILIATE_ELIGIBLE_REVENUE_FORMULA | delivery platform fee only |
+| Example (€10 delivery) | Courier €8.80 · HC fee €1.20 · Affiliate pool €0.60 |
 
 ---
 
-## Reliability (this cut)
+## HC dashboards
+
 | Field | Value |
 |---|---|
-| VISIBLE_LINKS_TESTED | Nav completeness validator 61/61 + static header tests |
-| DASHBOARD_TABS_TESTED | PARTIAL — OperationsSectionNav role-gated; full persona click matrix deferred |
-| BROKEN_LINKS_REMAINING | Unknown without Production authenticated smoke |
-| MOBILE_NAV_PASS / TABLET / INTERMEDIATE / DESKTOP | Code-level avatar-only rule; Production smoke pending deploy |
+| HC_USER_DASHBOARD_PRESENT | YES — `/mijn-homecheff/hc` + Dashboard card |
+| HC_USER_BALANCE_CLEAR | YES |
+| HC_USER_HISTORY_CLEAR | YES |
+| HC_ADMIN_CONTROL_CENTER | YES — `/admin/hc` (+ campaigns) |
+| ADMIN_USER_LOOKUP | YES |
+| ADMIN_MANUAL_HC_GRANT | YES — `/admin/hc-campaigns` |
+| ADMIN_MANUAL_GRANT_CREATES_LOT | YES |
+| ADMIN_MANUAL_GRANT_CREATES_LEDGER_EVENT | YES |
+| ADMIN_DIRECT_BALANCE_OVERWRITE_ALLOWED | NO |
+| HC_PROMOTION_CAMPAIGN_BUILDER | YES |
+| PROMOTION_TOTAL_BUDGET_CAP | YES |
+| PROMOTION_PER_USER_CAP | YES |
+| PROMOTION_DRY_RUN | YES |
+| PROMOTION_IDEMPOTENCY | YES |
+| PROMOTION_MARKETPLACE_EXPOSURE_VISIBLE | YES |
+| PROMO_HC_AUTOMATICALLY_PAID_BACKED | NO |
+| PROMO_HC_AUTOMATICALLY_MARKETPLACE_ELIGIBLE | NO |
+| ADMIN_GRANT_AUDIT_LOG | YES (ledger metadata) |
+| ADMIN_REVERSAL_SAFE | policy-bound |
+| SPENT_HC_NEGATIVE_CLAWBACK_ALLOWED | NO |
+| EXPIRY_DESTRUCTIVE_JOB_ACTIVE | NO |
+| BREAKAGE_AUTOMATION | NO |
+| HC_GRANT_AFFILIATE_COMMISSION | NO |
+| HC_WALLET_MOVEMENT_AFFILIATE_COMMISSION | NO |
 
 ---
 
 ## Universal HC regression
-UNIVERSAL_HC_STILL_LIVE = YES (untouched catalogs/economics)  
-STUDIO_HC_REGRESSION = NO  
-GROWTH_HC_REGRESSION = NO  
-MARKETPLACE_HC_REGRESSION = NO  
-MIXED_HC_STRIPE_REGRESSION = NO  
-WORKSPACE_HC_REGRESSION = NO  
-AFFILIATE_V2_REGRESSION = NO (no historical rewrite)  
-COMPANY_HC_PERSONAL_MP_STILL_BLOCKED = YES  
-SEARCH_ARCHITECTURE_CHANGED = NO
+UNIVERSAL_HC_STILL_LIVE = YES  
+SEARCH_ARCHITECTURE_CHANGED = NO  
+COMPANY_HC_PERSONAL_MP_STILL_BLOCKED = YES
 
 ---
 
-## Blockers remaining
-1. Unify Marketplace + Growth + Ecosystem into **one** multilevel attribution tree on `centralUserId` without rewriting historical commissions.  
-2. Wire Studio/Growth live payout paths fully onto that tree (beyond attribution lock).  
-3. Full automated persona × breakpoint matrix in CI + Production authenticated smoke after deploy.
+## Remaining blockers
+1. Full multilevel tree unification across Studio/Growth live payouts onto one `centralUserId` tree (without rewriting history).  
+2. Authenticated Production persona × breakpoint click matrix after deploy.
 
 ---
 
-## Deploy status
-Filled after Production push:
+## Deploy
+Filled after push:
 - BUILD =
-- TESTS = nav validator 61/61; affiliate pool 8/8; responsive header static 3/3
+- TESTS = responsive header 5/5; marketplace+delivery affiliate pools pass
 - PRODUCTION_COMMIT_SHA =
 - PRODUCTION_DEPLOYMENT_ID =

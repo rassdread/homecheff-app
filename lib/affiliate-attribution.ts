@@ -12,6 +12,7 @@ import {
   REFERRAL_COOKIE_NAME,
 } from './affiliate-attribution-contract';
 import { AttributionType, AttributionSource } from '@prisma/client';
+import { bridgeMarketplaceAttributionToEcosystem } from '@/lib/affiliates/ecosystem-attribution-bridge';
 
 export { REFERRAL_COOKIE_NAME, AFFILIATE_ATTRIBUTION_CONTRACT };
 
@@ -247,6 +248,15 @@ export async function processAttributionOnSignup(
       ? AttributionSource.ANDROID_BETA_DOWNLOAD
       : AttributionSource.REF_LINK;
     await createAttribution(userId, affiliateId, type, source);
+
+    // Forward-looking: also lock Growth ecosystem attribution (non-blocking).
+    void bridgeMarketplaceAttributionToEcosystem({
+      referredUserId: userId,
+      affiliateUserId: affiliate.userId,
+      sourceCampaign: source,
+    }).then((r) => {
+      if (!r.ok) console.warn('[attribution] ecosystem bridge', r.code);
+    });
   } catch (error) {
     console.error('Error processing attribution on signup:', error);
   }

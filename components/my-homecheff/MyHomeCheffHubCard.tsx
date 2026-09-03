@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Settings,
   ChevronRight,
+  Coins,
 } from 'lucide-react';
 import type { MyHomeCheffCardDef } from '@/lib/navigation/my-homecheff-hub';
 import type { MyHomeCheffHubMetrics } from '@/hooks/useMyHomeCheffHubData';
@@ -17,6 +18,7 @@ import { cn } from '@/lib/utils';
 
 const CARD_ICONS = {
   orders: Package,
+  hc: Coins,
   seller: Store,
   affiliate: Users,
   delivery: Truck,
