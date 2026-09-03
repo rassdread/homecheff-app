@@ -77,6 +77,15 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // Prospective: sync parent edge to canonical centralUserId tree (non-blocking).
+      void import('@/lib/affiliates/ecosystem-attribution-bridge').then(({ bridgeMarketplaceParentEdgeToEcosystem }) =>
+        bridgeMarketplaceParentEdgeToEcosystem({
+          childUserId: targetUser.id,
+          parentUserId: parentUser.id,
+          context: 'marketplace_create_sub_existing_user',
+        }),
+      );
+
       return NextResponse.json({
         subAffiliate: {
           id: subAffiliate.id,

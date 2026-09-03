@@ -278,6 +278,24 @@ export async function processCommissionForOrder(
       if (isSub && affiliate.parentAffiliateId) {
         parentCents = Math.floor(line.commissionCents * 0.2);
         directCents = line.commissionCents - parentCents;
+        // Keep canonical tree in sync with local parent (prospective, non-blocking).
+        void prisma.affiliate
+          .findUnique({
+            where: { id: affiliate.parentAffiliateId },
+            select: { userId: true },
+          })
+          .then((parentAff) => {
+            if (!parentAff) return;
+            return import('@/lib/affiliates/ecosystem-attribution-bridge').then(
+              ({ bridgeMarketplaceParentEdgeToEcosystem }) =>
+                bridgeMarketplaceParentEdgeToEcosystem({
+                  childUserId: affiliate.userId,
+                  parentUserId: parentAff.userId,
+                  context: `marketplace_commission:${orderId}`,
+                }),
+            );
+          })
+          .catch(() => undefined);
       }
 
       if (directCents > 0) {

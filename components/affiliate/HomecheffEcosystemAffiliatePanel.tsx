@@ -43,9 +43,15 @@ export function HomecheffEcosystemAffiliatePanel() {
 
   return (
     <section className="mt-6 rounded-xl border border-emerald-100 bg-white p-4 shadow-sm">
-      <h2 className="text-sm font-semibold text-slate-900">Je HomeCheff-referrals en inkomsten</h2>
+      <h2 className="text-sm font-semibold text-slate-900">Affiliate & netwerk</h2>
       <p className="mt-1 text-xs text-slate-600">
-        Inclusief inkomsten die dezelfde aangebrachte leden op Growth of Studio genereren.
+        Eén keer iemand uitnodigen is genoeg. Als iemand uit jouw geldige netwerk later op een
+        andere manier actief wordt binnen HomeCheff, kan daar opnieuw affiliate-inkomsten uit
+        ontstaan — alleen op eligible HomeCheff-platformomzet, geen garantie.
+      </p>
+      <p className="mt-2 text-[11px] text-slate-500">
+        Eén netwerk voor Marketplace, Bezorging, Studio en Growth. Resultaten verschillen per
+        activiteit en attributionregels.
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
