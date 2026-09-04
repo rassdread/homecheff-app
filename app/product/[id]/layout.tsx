@@ -14,6 +14,7 @@ import { buildListingJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import { getCachedListingProductCore } from '@/lib/marketplace/detail/get-cached-listing-product-core';
 import { rethrowIfNotFound } from '@/lib/seo/rethrow-if-not-found';
+import { isListingPubliclyDiscoverable } from '@/lib/marketplace/product-visibility';
 
 const BREADCRUMB_HOME_NL = 'Home';
 const BREADCRUMB_HOME_EN = 'Home';
@@ -43,6 +44,14 @@ export async function generateMetadata(
   }
 
   if (!product) notFound();
+
+  // Launch hygiene: never index / title-leak inactive or REMOVED listings.
+  if (!isListingPubliclyDiscoverable(product)) {
+    return {
+      title: 'HomeCheff',
+      robots: { index: false, follow: false, noarchive: true },
+    };
+  }
 
   try {
 

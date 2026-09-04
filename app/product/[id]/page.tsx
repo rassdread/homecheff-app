@@ -7,7 +7,11 @@ import {
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
 import { buildListingDetailPath } from '@/lib/seo/listing-routes';
-import { isRequestListing } from '@/lib/marketplace/product-visibility';
+import {
+  isListingPubliclyDiscoverable,
+  isRequestListing,
+} from '@/lib/marketplace/product-visibility';
+import { auth } from '@/lib/auth';
 
 type PageProps = {
   params: Promise<{ id: string }> | { id: string };
@@ -30,6 +34,19 @@ export default async function ProductDetailPage({ params }: PageProps) {
   if (!initialData) notFound();
 
   const product = initialData.product;
+  if (!isListingPubliclyDiscoverable(product as any)) {
+    const session = await auth();
+    const viewerId = session?.user?.id ?? null;
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    const sellerUserId =
+      (product as { seller?: { User?: { id?: string } } })?.seller?.User?.id ??
+      (product as { sellerId?: string })?.sellerId ??
+      null;
+    const isOwner = Boolean(viewerId && sellerUserId && viewerId === sellerUserId);
+    const isStaff = role === 'ADMIN' || role === 'SUPERADMIN';
+    if (!isOwner && !isStaff) notFound();
+  }
+
   if (product?.isActive && isRequestListing(product as any)) {
     redirect(
       buildListingDetailPath(
@@ -56,8 +73,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
     );
   }
 
-  // Inactive public products: still show controlled unavailable via client if needed;
-  // feed only surfaces active. Keep payload for owners/deep links.
   return (
     <>
       <h1 className="sr-only">{product?.title ?? ''}</h1>
