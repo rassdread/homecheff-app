@@ -8,6 +8,8 @@
  * 4. Uncomment email sending code in notification-service.ts
  */
 
+import { getPublicAppUrl } from "@/lib/public-app-url";
+
 interface ShiftReminderData {
   recipientEmail: string;
   recipientName: string;
@@ -211,7 +213,7 @@ export function renderShiftReminderEmail(data: ShiftReminderData): string {
       </div>
       
       <div style="text-align: center;">
-        <a href="${process.env.NEXT_PUBLIC_URL}/bezorger?action=go-online" class="button">
+        <a href="${getPublicAppUrl()}/bezorger?action=go-online" class="button">
           ${isUrgent ? '🟢 GA NU ONLINE' : '🚴 Naar Dashboard'}
         </a>
       </div>
@@ -240,8 +242,8 @@ export function renderShiftReminderEmail(data: ShiftReminderData): string {
         Lokale bezorgingen, door de buurt voor de buurt
       </p>
       <p style="margin-top: 15px;">
-        <a href="${process.env.NEXT_PUBLIC_URL}/bezorger" style="color: #10b981; text-decoration: none;">Dashboard</a> • 
-        <a href="${process.env.NEXT_PUBLIC_URL}/delivery/settings" style="color: #10b981; text-decoration: none;">Instellingen</a>
+        <a href="${getPublicAppUrl()}/bezorger" style="color: #10b981; text-decoration: none;">Dashboard</a> • 
+        <a href="${getPublicAppUrl()}/delivery/settings" style="color: #10b981; text-decoration: none;">Instellingen</a>
       </p>
     </div>
   </div>
