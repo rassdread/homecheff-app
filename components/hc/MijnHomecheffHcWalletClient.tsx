@@ -193,9 +193,20 @@ export function MijnHomecheffHcWalletClient() {
             ) : null}
             {marketplaceNotEligible > 0 && marketplacePending === 0 ? (
               <p className="text-stone-600">
-                {promotional > 0
-                  ? `${Math.min(promotional, marketplaceNotEligible).toLocaleString('nl-NL')} HC komt uit een actie of toekenning die alleen binnen HomeCheff-diensten (Studio/Growth) gebruikt kan worden — niet automatisch voor Marketplace-aankopen.`
-                  : 'Niet al je HC is geschikt voor Marketplace-aankopen.'}
+                {(() => {
+                  const paid = data?.paidBackedHc ?? 0;
+                  const promo = promotional;
+                  if (paid > 0 && promo > 0) {
+                    return `${paid.toLocaleString('nl-NL')} HC abonnementstegoed en ${promo.toLocaleString('nl-NL')} HC actietegoed zijn beschikbaar in Studio/Growth, maar niet vrijgegeven voor Marketplace-aankopen.`;
+                  }
+                  if (paid > 0) {
+                    return `${paid.toLocaleString('nl-NL')} HC abonnementstegoed is beschikbaar in Studio/Growth, maar dit tegoed is niet vrijgegeven voor Marketplace-aankopen.`;
+                  }
+                  if (promo > 0) {
+                    return `${promo.toLocaleString('nl-NL')} HC komt uit een actie of toekenning die alleen binnen HomeCheff-diensten (Studio/Growth) gebruikt kan worden — niet automatisch voor Marketplace-aankopen.`;
+                  }
+                  return 'Niet al je HC is geschikt voor Marketplace-aankopen.';
+                })()}
               </p>
             ) : null}
           </div>
@@ -224,10 +235,15 @@ export function MijnHomecheffHcWalletClient() {
               <li>
                 Growth — ✓ {growthEligible.toLocaleString('nl-NL')} HC beschikbaar
               </li>
-              {promotional > 0 ? (
+              {promotional > 0 || (data?.paidBackedHc ?? 0) > 0 ? (
                 <li>
-                  Promotietegoed — {promotional.toLocaleString('nl-NL')} HC vooral voor
-                  HomeCheff-diensten (niet automatisch Marketplace)
+                  {(data?.paidBackedHc ?? 0) > 0
+                    ? `Abonnementstegoed — ${(data?.paidBackedHc ?? 0).toLocaleString('nl-NL')} HC voor HomeCheff-diensten (niet automatisch Marketplace)`
+                    : null}
+                  {(data?.paidBackedHc ?? 0) > 0 && promotional > 0 ? <br /> : null}
+                  {promotional > 0
+                    ? `Promotietegoed — ${promotional.toLocaleString('nl-NL')} HC voor HomeCheff-diensten (niet automatisch Marketplace)`
+                    : null}
                 </li>
               ) : null}
               {marketplacePending > 0 && marketplacePendingUnlockAt ? (
