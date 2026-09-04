@@ -1,0 +1,262 @@
+{
+  "at": "2026-09-04T21:08:37.253Z",
+  "HOMECHEFF": "https://homecheff.eu",
+  "TAG": "propcert_mtng4sg3",
+  "TESTED_COMMIT_LOCAL": "59846667",
+  "PHYSICAL_DEVICE_AVAILABLE": false,
+  "steps": [
+    {
+      "name": "fixtures_created",
+      "ok": true,
+      "detail": {
+        "buyerId": "38056339",
+        "sellerId": "2b8f3338",
+        "productId": "60aab09b"
+      }
+    },
+    {
+      "name": "buyer_session",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "start_conversation",
+      "ok": true,
+      "detail": {
+        "conversationId": "8957db36-9bdd-4768-a3a6-6015032e746b"
+      }
+    },
+    {
+      "name": "double_submit_same_key",
+      "ok": true,
+      "detail": {
+        "idA": "e6bef8ee-c1dc-4632-ac72-0278d4872d31",
+        "idB": "e6bef8ee-c1dc-4632-ac72-0278d4872d31",
+        "statusA": 201,
+        "statusB": 200,
+        "replay": true
+      }
+    },
+    {
+      "name": "exactly_one_after_double",
+      "ok": true,
+      "detail": {
+        "propCount": 1
+      }
+    },
+    {
+      "name": "seller_sees_pending",
+      "ok": true
+    },
+    {
+      "name": "buyer_cannot_accept_own",
+      "ok": true,
+      "detail": {
+        "status": 403,
+        "error": "Cannot accept your own proposal"
+      }
+    },
+    {
+      "name": "seller_accept",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "proposalStatus": "ACCEPTED",
+        "communityOrderId": "47ae1280-e9f5-4480-bad6-84ded82bfd78",
+        "nextAction": "COMMUNITY_ORDER_CREATED",
+        "error": {
+          "id": "c288500b-b17a-4578-8568-d3f1d9d2ece5",
+          "conversationId": "8957db36-9bdd-4768-a3a6-6015032e746b",
+          "senderId": "2b8f3338-7ab4-4567-a5aa-8725a4ac4983",
+          "text": "proposal.system.communityOrderCreated",
+          "createdAt": "2026-09-04T21:08:40.045Z",
+          "readAt": null,
+          "attachmentName": null,
+          "attachmentType": null,
+          "attachmentUrl": null,
+          "deletedAt": null,
+          "editedAt": null,
+          "messageType": "PROPOSAL_SYSTEM",
+          "orderNumber": null,
+          "encryptedText": null,
+          "encryptionKey": null,
+          "isEncrypted": false,
+          "deliveredAt": null,
+          "proposalId": null,
+          "User": {
+            "id": "2b8f3338-7ab4-4567-a5aa-8725a4ac4983",
+            "name": "PropCert Seller",
+            "username": "pcsell_propcert_mtng4sg3",
+            "profileImage": null,
+            "displayFullName": true,
+            "displayNameOption": "full"
+          }
+        }
+      }
+    },
+    {
+      "name": "seller_reject",
+      "ok": true,
+      "detail": {
+        "rejectStatus": "REJECTED",
+        "status": 200
+      }
+    },
+    {
+      "name": "rejected_not_acceptable",
+      "ok": true,
+      "detail": {
+        "status": 409
+      }
+    },
+    {
+      "name": "counterproposal",
+      "ok": true,
+      "detail": {
+        "status": 201,
+        "childId": "eaedbf3b-c230-4407-b111-b524506124c9",
+        "childStatus": "PENDING",
+        "childAmount": 1300,
+        "parentStatus": "COUNTERED",
+        "childTitle": "PropCert Listing propcert_mtng4sg3"
+      }
+    },
+    {
+      "name": "buyer_withdraw",
+      "ok": true,
+      "detail": {
+        "sellerCancel": 403,
+        "afterWithdraw": "CANCELLED"
+      }
+    },
+    {
+      "name": "snapshot_integrity",
+      "ok": true,
+      "detail": {
+        "summaryTitle": "PropCert Listing propcert_mtng4sg3",
+        "summaryPrice": 1500,
+        "amountStill": 1400,
+        "proposalTitle": "PropCert Listing propcert_mtng4sg3"
+      }
+    },
+    {
+      "name": "barter_create",
+      "ok": true,
+      "detail": {
+        "status": 201,
+        "mode": "VALUE_ONLY"
+      }
+    },
+    {
+      "name": "homecheff_payment_path",
+      "ok": true,
+      "detail": {
+        "status": 400,
+        "error": "proposal.productBinding.paymentsRequired"
+      }
+    },
+    {
+      "name": "stale_state_response",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "msg": "ACCEPTED"
+      }
+    },
+    {
+      "name": "ui_mobile_sheet",
+      "ok": true,
+      "detail": {
+        "sheetOpen": 2,
+        "titleInputCount": 0,
+        "messageLabel": 9,
+        "submitVisible": true,
+        "listingLocked": true,
+        "url": "https://homecheff.eu/messages?conversation=8957db36-9bdd-4768-a3a6-6015032e746b"
+      }
+    },
+    {
+      "name": "ui_view_item_href",
+      "ok": true,
+      "detail": {
+        "href": "/product/60aab09b-0554-45c2-8cdc-e048e6c02149"
+      }
+    },
+    {
+      "name": "ui_chat_proposal_card",
+      "ok": true,
+      "detail": {
+        "voorstelHeading": 39,
+        "aboutListing": 9
+      }
+    },
+    {
+      "name": "ui_mobile_landscape_emulation",
+      "ok": true,
+      "detail": {
+        "note": "Playwright landscape viewport only — not physical device"
+      }
+    },
+    {
+      "name": "desktop_smoke",
+      "ok": true,
+      "detail": {
+        "deskSubmit": true,
+        "deskLocked": true,
+        "url": "https://homecheff.eu/messages?conversation=8957db36-9bdd-4768-a3a6-6015032e746b"
+      }
+    },
+    {
+      "name": "enter_did_not_submit",
+      "ok": true,
+      "detail": {
+        "countBefore": 8,
+        "countAfter": 8
+      }
+    },
+    {
+      "name": "cleanup",
+      "ok": true,
+      "detail": {
+        "productId": "60aab09b"
+      }
+    }
+  ],
+  "gates": {
+    "DOUBLE_SUBMIT": "PASS",
+    "SELLER_VIEW": "PASS",
+    "SELLER_ACCEPT": "PASS",
+    "DIRECT_CASH_PATH": "PASS",
+    "PERSISTENCE_CHECK": "PASS",
+    "SELLER_REJECT": "PASS",
+    "COUNTERPROPOSAL": "PASS",
+    "BUYER_WITHDRAW": "PASS",
+    "AUTHORIZATION": "PASS",
+    "SNAPSHOT_INTEGRITY": "PASS",
+    "BARTER_PATH": "PASS",
+    "PAYMENT_PATH": "PASS",
+    "STALE_STATE": "PASS",
+    "BUYER_CREATE": "PASS",
+    "EXPLICIT_SUBMIT_ONLY": "PASS",
+    "CHAT_PROPOSAL_CARD": "PASS",
+    "VIEW_PROPOSAL": "PASS",
+    "VIEW_ITEM": "PASS",
+    "MOBILE_KEYBOARD": "NOT_TESTABLE",
+    "STICKY_SUBMIT": "PASS",
+    "APP_PWA": "NOT_TESTABLE",
+    "MOBILE_PORTRAIT": "NOT_TESTABLE",
+    "MOBILE_LANDSCAPE": "NOT_TESTABLE",
+    "DESKTOP_SMOKE": "PASS",
+    "LIVE_E2E_BUYER_TO_SELLER": "PASS",
+    "TEST_DATA_CLEANUP": "PASS"
+  },
+  "failedStepCount": 0,
+  "REMAINING_BLOCKERS": [
+    "Physical/app mobile portrait not proven (no device attached; Playwright emulation only)",
+    "Physical mobile landscape not proven",
+    "Installed/PWA path not tested"
+  ],
+  "FINAL_VERDICT": "HOMECHEFF_PROPOSAL_FLOW_NOT_PRODUCTION_READY"
+}

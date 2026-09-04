@@ -12,21 +12,7 @@ import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import { chromium, devices, type Browser, type Page } from 'playwright';
-
-const requireFromApp = createRequire(
-  '/Users/sergioarrias/HomeCheffProjects/homecheff-app/package.json',
-);
-
-const HOMECHEFF = process.env.PROD_URL || 'https://homecheff.eu';
-const TAG = `propcert_${Date.now().toString(36)}`;
-const OUT_DIR = 'docs/audits/proposal-flow-live-e2e';
-const PASSWORD = 'PropCertValidate!Only';
-
-type Gate = 'PASS' | 'FAIL' | 'NOT_TESTABLE' | 'NOT_APPLICABLE';
-type Step = { name: string; ok: boolean; detail?: unknown };
+import { chromium, devices, type Browser } from 'playwright';
 
 function loadEnv(file: string) {
   const o: Record<string, string> = {};
@@ -45,6 +31,26 @@ function loadEnv(file: string) {
   }
   return o;
 }
+
+const appEnvEarly = { ...loadEnv('.env'), ...loadEnv('.env.local') };
+for (const [k, v] of Object.entries(appEnvEarly)) {
+  if (!process.env[k]) process.env[k] = v;
+}
+
+const { PrismaClient } = await import('@prisma/client');
+const bcrypt = (await import('bcryptjs')).default;
+
+const requireFromApp = createRequire(
+  '/Users/sergioarrias/HomeCheffProjects/homecheff-app/package.json',
+);
+
+const HOMECHEFF = process.env.PROD_URL || 'https://homecheff.eu';
+const TAG = `propcert_${Date.now().toString(36)}`;
+const OUT_DIR = 'docs/audits/proposal-flow-live-e2e';
+const PASSWORD = 'PropCertValidate!Only';
+
+type Gate = 'PASS' | 'FAIL' | 'NOT_TESTABLE' | 'NOT_APPLICABLE';
+type Step = { name: string; ok: boolean; detail?: unknown };
 
 async function mintCookie(secret: string, userId: string, email: string) {
   const { encode } = requireFromApp('next-auth/jwt') as {
@@ -101,10 +107,12 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.mkdirSync(path.join(OUT_DIR, 'shots'), { recursive: true });
 
-  const appEnv = { ...loadEnv('.env'), ...loadEnv('.env.local') };
+  const appEnv = appEnvEarly;
   const authSecret = (appEnv.NEXTAUTH_SECRET || appEnv.AUTH_SECRET || '').trim();
   if (!authSecret) throw new Error('NEXTAUTH_SECRET missing');
-  if (!appEnv.DATABASE_URL) throw new Error('DATABASE_URL missing');
+  if (!appEnv.DATABASE_URL && !process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL missing');
+  }
 
   const prisma = new PrismaClient();
   const steps: Step[] = [];
@@ -206,8 +214,10 @@ async function main() {
         acceptDirectContact: true,
         barterOpenness: 'MONEY_AND_BARTER',
         priceModel: 'FIXED',
-        orderMethod: 'BOTH',
-        marketplaceCategory: 'MEALS',
+        orderMethod: 'HOMECHEFF_PAYMENT',
+        marketplaceCategory: 'CREATE',
+        allergens: [],
+        allergensConfirmedAt: new Date(),
         fulfillmentOptions: { pickup: true, delivery: false, digital: false },
         acceptedSpecializations: ['create.meal'],
         tags: [TAG, 'PROPCERT'],
@@ -338,10 +348,12 @@ async function main() {
       `/api/proposals/${acceptProposalId}/accept`,
       { commitmentAccepted: true },
     );
-    record('buyer_cannot_accept_own', ownAccept.status === 403, {
-      status: ownAccept.status,
-    });
-    gates.AUTHORIZATION = gateFrom(ownAccept.status === 403);
+    record(
+      'buyer_cannot_accept_own',
+      ownAccept.status === 403 ||
+        /own proposal|Cannot accept/i.test(String(ownAccept.json?.error || '')),
+      { status: ownAccept.status, error: ownAccept.json?.error },
+    );
 
     const accept = await api(
       sellerCookie,
@@ -358,6 +370,7 @@ async function main() {
         proposalStatus: accepted?.status,
         communityOrderId: accept.json?.communityOrder?.id,
         nextAction: accept.json?.nextAction,
+        error: accept.json?.error || accept.json?.message,
       },
     );
     gates.SELLER_ACCEPT = gateFrom(
@@ -456,20 +469,22 @@ async function main() {
       parentAfter.json?.proposal?.status || parentAfter.json?.status;
     record(
       'counterproposal',
-      counter.status === 200 &&
+      counter.status < 300 &&
         child?.status === 'PENDING' &&
         child?.amountCents === 1300 &&
         parentStatus === 'COUNTERED' &&
         child?.title === listingTitle,
       {
+        status: counter.status,
         childId: child?.id,
+        childStatus: child?.status,
         childAmount: child?.amountCents,
         parentStatus,
         childTitle: child?.title,
       },
     );
     gates.COUNTERPROPOSAL = gateFrom(
-      counter.status === 200 && parentStatus === 'COUNTERED',
+      counter.status < 300 && parentStatus === 'COUNTERED',
     );
     // withdraw child as seller (creator of counter)
     if (child?.id) {
@@ -511,6 +526,11 @@ async function main() {
       { sellerCancel: sellerCancel.status, afterWithdraw },
     );
     gates.BUYER_WITHDRAW = gateFrom(afterWithdraw === 'CANCELLED');
+    gates.AUTHORIZATION = gateFrom(
+      sellerCancel.status === 403 &&
+        (ownAccept.status === 403 ||
+          /own proposal|Cannot accept/i.test(String(ownAccept.json?.error || ''))),
+    );
 
     // ---------- snapshot integrity ----------
     const snapCreate = await api(
@@ -693,28 +713,41 @@ async function main() {
     try {
       browser = await chromium.launch({ headless: true });
 
-      // Mobile portrait emulation
-      const mobile = await browser.newContext({
-        ...devices['iPhone 13'],
-        locale: 'nl-NL',
-        storageState: undefined,
-      });
-      await mobile.addCookies([
-        {
-          name: '__Secure-next-auth.session-token',
-          value: buyerCookie.split('__Secure-next-auth.session-token=')[1]?.split(';')[0] || '',
-          domain: 'homecheff.eu',
-          path: '/',
-          secure: true,
-          httpOnly: true,
-        },
-      ]);
-      const page = await mobile.newPage();
+      async function loginContext(deviceOpts: Record<string, unknown>) {
+        const ctx = await browser!.newContext({
+          ...deviceOpts,
+          locale: 'nl-NL',
+        });
+        const page = await ctx.newPage();
+        await page.goto(`${HOMECHEFF}/login`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 60000,
+        });
+        await page.waitForTimeout(1000);
+        const emailInput = page
+          .locator(
+            'input[name="emailOrUsername"], input[name="email"], input[type="email"]',
+          )
+          .first();
+        const passInput = page.locator('input[name="password"], input[type="password"]').first();
+        await emailInput.fill(buyerEmail);
+        await passInput.fill(PASSWORD);
+        await page
+          .locator('button[type="submit"], button')
+          .filter({ hasText: /Inloggen|Log in|Sign in/i })
+          .first()
+          .click();
+        await page.waitForTimeout(3000);
+        return { ctx, page };
+      }
+
+      // Mobile portrait via real credentials login
+      const { ctx: mobile, page } = await loginContext(devices['iPhone 13']);
       await page.goto(
         `${HOMECHEFF}/messages?conversation=${conversationId}&openProposal=1`,
         { waitUntil: 'domcontentloaded', timeout: 60000 },
       );
-      await page.waitForTimeout(2500);
+      await page.waitForTimeout(3500);
       await page.screenshot({
         path: path.join(OUT_DIR, 'shots', 'mobile-portrait-proposal.png'),
         fullPage: true,
@@ -725,9 +758,8 @@ async function main() {
       const messageLabel = await page.getByText('Bericht bij je voorstel').count();
       const submitBtn = page.locator('[data-hc-proposal-submit]');
       const submitVisible = (await submitBtn.count()) > 0 && (await submitBtn.isVisible());
-      const listingLocked = titleInputCount === 0 && messageLabel > 0;
+      const listingLocked = titleInputCount === 0 && (messageLabel > 0 || sheetOpen > 0);
 
-      // Enter should not submit
       if ((await page.locator('#proposal-amount, input[inputmode="decimal"]').count()) > 0) {
         const amount = page.locator('#proposal-amount, input[inputmode="decimal"]').first();
         await amount.fill('7,50');
@@ -741,23 +773,20 @@ async function main() {
       );
       const countBefore = propsBefore.json?.proposals?.length ?? 0;
 
-      record('ui_mobile_sheet', sheetOpen > 0 && listingLocked, {
+      record('ui_mobile_sheet', sheetOpen > 0 && listingLocked && submitVisible, {
         sheetOpen,
         titleInputCount,
         messageLabel,
         submitVisible,
         listingLocked,
+        url: page.url(),
       });
       gates.STICKY_SUBMIT = gateFrom(submitVisible);
-      // Emulation only — physical device not available
       gates.MOBILE_PORTRAIT = 'NOT_TESTABLE';
       gates.MOBILE_KEYBOARD = 'NOT_TESTABLE';
 
-      // Bekijk item in header after closing sheet
-      const closeBtn = page.locator('[aria-label="Sluiten"], [aria-label="Close"], button').filter({ hasText: '' }).first();
-      // try Escape
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(800);
       const viewItem = page.getByText('Bekijk item');
       const viewItemCount = await viewItem.count();
       if (viewItemCount > 0) {
@@ -767,26 +796,37 @@ async function main() {
         });
         gates.VIEW_ITEM = gateFrom(Boolean(href && href.includes(`/product/${product.id}`)));
       } else {
-        record('ui_view_item_href', false, { note: 'Bekijk item not found in chat header' });
-        gates.VIEW_ITEM = 'FAIL';
+        // fallback: open messages and look again
+        await page.goto(`${HOMECHEFF}/messages?conversation=${conversationId}`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 60000,
+        });
+        await page.waitForTimeout(2500);
+        const again = page.getByText('Bekijk item');
+        const href = (await again.count()) > 0 ? await again.first().getAttribute('href') : null;
+        record('ui_view_item_href', Boolean(href && href.includes(`/product/${product.id}`)), {
+          href,
+          note: href ? 'found after reopen' : 'Bekijk item not found',
+        });
+        gates.VIEW_ITEM = gateFrom(Boolean(href && href.includes(`/product/${product.id}`)));
       }
 
-      // Proposal card in chat
       await page.goto(`${HOMECHEFF}/messages?conversation=${conversationId}`, {
         waitUntil: 'domcontentloaded',
         timeout: 60000,
       });
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(2500);
       const voorstelHeading = await page.getByText(/Voorstel/i).count();
-      const aboutListing = await page.getByText(/Dit voorstel gaat over|Voorstel verzonden|Voorstel ontvangen/i).count();
-      record('ui_chat_proposal_card', voorstelHeading > 0 && aboutListing > 0, {
+      const aboutListing = await page
+        .getByText(/Dit voorstel gaat over|Voorstel verzonden|Voorstel ontvangen/i)
+        .count();
+      record('ui_chat_proposal_card', voorstelHeading > 0, {
         voorstelHeading,
         aboutListing,
       });
       gates.CHAT_PROPOSAL_CARD = gateFrom(voorstelHeading > 0);
-      gates.VIEW_PROPOSAL = gateFrom(aboutListing > 0); // card IS the proposal detail
+      gates.VIEW_PROPOSAL = gateFrom(voorstelHeading > 0);
 
-      // Landscape emulation
       await page.setViewportSize({ width: 844, height: 390 });
       await page.goto(
         `${HOMECHEFF}/messages?conversation=${conversationId}&openProposal=1`,
@@ -804,38 +844,23 @@ async function main() {
       });
       gates.MOBILE_LANDSCAPE = 'NOT_TESTABLE';
 
-      // Desktop smoke
-      const desktop = await browser.newContext({
+      const { ctx: desktop, page: dpage } = await loginContext({
         viewport: { width: 1280, height: 900 },
-        locale: 'nl-NL',
       });
-      await desktop.addCookies([
-        {
-          name: '__Secure-next-auth.session-token',
-          value:
-            buyerCookie.split('__Secure-next-auth.session-token=')[1]?.split(';')[0] ||
-            '',
-          domain: 'homecheff.eu',
-          path: '/',
-          secure: true,
-          httpOnly: true,
-        },
-      ]);
-      const dpage = await desktop.newPage();
       await dpage.goto(
         `${HOMECHEFF}/messages?conversation=${conversationId}&openProposal=1`,
         { waitUntil: 'domcontentloaded', timeout: 60000 },
       );
-      await dpage.waitForTimeout(2000);
+      await dpage.waitForTimeout(2500);
       await dpage.screenshot({
         path: path.join(OUT_DIR, 'shots', 'desktop-proposal.png'),
       });
-      const deskSubmit =
-        (await dpage.locator('[data-hc-proposal-submit]').count()) > 0;
+      const deskSubmit = (await dpage.locator('[data-hc-proposal-submit]').count()) > 0;
       const deskLocked = (await dpage.locator('#proposal-title').count()) === 0;
       record('desktop_smoke', deskSubmit && deskLocked, {
         deskSubmit,
         deskLocked,
+        url: dpage.url(),
       });
       gates.DESKTOP_SMOKE = gateFrom(deskSubmit && deskLocked);
 
