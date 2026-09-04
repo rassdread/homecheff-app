@@ -25,6 +25,8 @@ const HOMECHEFF = 'https://homecheff.eu';
 const STEVE_PM = 'pm_1U6zsz2KvmKfeN9tGPpvgjAh';
 const STEVE_CUS = 'cus_V78qSSEuVqMfnQ';
 const PICKUP = { lat: 51.912, lng: 4.341 };
+/** Buyer drop-off ~2km away so freeRadius=0 does not zero the quote. */
+const DROPOFF = { lat: 51.928, lng: 4.355 };
 const ARTIFACT_DIR =
   '/Users/sergioarrias/HomeCheffProjects/homecheff-leads/docs/audits/evidence-delivery-controlled-e2e';
 
@@ -248,6 +250,15 @@ async function main() {
         title: 'CERT Delivery E2E — Design pilot €4.50 (private)',
         pickupLat: PICKUP.lat,
         pickupLng: PICKUP.lng,
+        delivery: 'DELIVERY',
+        fulfillmentOptions: {
+          pickup: true,
+          digital: false,
+          delivery: true,
+          shipping: false,
+          onSiteClient: false,
+          onSiteProvider: false,
+        },
       },
     });
 
@@ -270,26 +281,37 @@ async function main() {
   if (phase === 'stripe_checkout' || phase === 'all') {
     // Match visibility check
     const match = await api(
-      `/api/delivery/match-deliverers?productId=${LISTING}&buyerLat=${PICKUP.lat}&buyerLng=${PICKUP.lng}`,
+      `/api/delivery/match-deliverers?productId=${LISTING}&buyerLat=${DROPOFF.lat}&buyerLng=${DROPOFF.lng}`,
       { cookie: steveCookie },
     );
     const matchJson = match.json as {
+      matchedDeliverers?: Array<{ id: string; quotedFeeCents?: number }>;
       deliverers?: Array<{ id: string }>;
       providers?: Array<{ id: string }>;
     };
-    const list = matchJson.deliverers || matchJson.providers || [];
+    const list =
+      matchJson.matchedDeliverers ||
+      matchJson.deliverers ||
+      matchJson.providers ||
+      [];
     report.matchStatus = match.status;
     report.matchContainsSergio = list.some((d) => d.id === profile.id);
     report.matchCountForSteve = list.length;
+    report.matchQuoteCents = list.find((d) => d.id === profile.id)?.quotedFeeCents ?? null;
 
     const strangerMatch = await api(
-      `/api/delivery/match-deliverers?productId=${LISTING}&buyerLat=${PICKUP.lat}&buyerLng=${PICKUP.lng}`,
+      `/api/delivery/match-deliverers?productId=${LISTING}&buyerLat=${DROPOFF.lat}&buyerLng=${DROPOFF.lng}`,
     );
     const strangerJson = strangerMatch.json as {
+      matchedDeliverers?: Array<{ id: string }>;
       deliverers?: Array<{ id: string }>;
       providers?: Array<{ id: string }>;
     };
-    const strangerList = strangerJson.deliverers || strangerJson.providers || [];
+    const strangerList =
+      strangerJson.matchedDeliverers ||
+      strangerJson.deliverers ||
+      strangerJson.providers ||
+      [];
     report.CERT_PROVIDER_PUBLIC_TO_NORMAL_USERS = strangerList.some(
       (d) => d.id === profile.id,
     )
@@ -306,14 +328,16 @@ async function main() {
       body: {
         deliveryProfileId: profile.id,
         productId: LISTING,
-        buyerLat: PICKUP.lat,
-        buyerLng: PICKUP.lng,
+        buyerLat: DROPOFF.lat,
+        buyerLng: DROPOFF.lng,
       },
     });
     report.booking = { status: booking.status, json: booking.json };
     const bookingId =
       (booking.json as { id?: string; bookingRequestId?: string })?.id ||
       (booking.json as { bookingRequestId?: string })?.bookingRequestId;
+    const quotedFromBooking =
+      (booking.json as { quotedFeeCents?: number })?.quotedFeeCents ?? 750;
 
     // Auto-confirm may already accept; otherwise accept as provider
     if (bookingId && profile.acceptanceMode !== 'AUTO_CONFIRM') {
@@ -328,19 +352,44 @@ async function main() {
       };
     }
 
+    const listing = await prisma.product.findUniqueOrThrow({
+      where: { id: LISTING },
+      select: {
+        id: true,
+        title: true,
+        priceCents: true,
+        sellerId: true,
+        seller: { select: { userId: true, displayName: true, User: { select: { name: true } } } },
+      },
+    });
+
     const checkout = await api('/api/checkout', {
       method: 'POST',
       cookie: steveCookie,
       body: {
-        items: [{ productId: LISTING, quantity: 1 }],
+        items: [
+          {
+            productId: LISTING,
+            quantity: 1,
+            title: listing.title,
+            priceCents: listing.priceCents,
+            sellerId: listing.seller?.userId || SERGIO,
+            sellerName:
+              listing.seller?.displayName ||
+              listing.seller?.User?.name ||
+              'Sergio',
+          },
+        ],
         deliveryMode: 'LOCAL_PROVIDER',
         selectedDeliveryProfileId: profile.id,
         deliveryProfileId: profile.id,
         bookingRequestId: bookingId,
-        clientQuotedFeeCents: 750,
-        quotedFeeCents: 750,
-        buyerLat: PICKUP.lat,
-        buyerLng: PICKUP.lng,
+        clientQuotedFeeCents: quotedFromBooking,
+        quotedFeeCents: quotedFromBooking,
+        buyerLat: DROPOFF.lat,
+        buyerLng: DROPOFF.lng,
+        coordinates: { lat: DROPOFF.lat, lng: DROPOFF.lng },
+        address: 'Certstraat 1, 3131AA Vlaardingen',
         shippingAddress: {
           name: 'Steve Cert',
           line1: 'Certstraat 1',

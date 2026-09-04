@@ -1085,7 +1085,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Check delivery availability if delivery is requested
-    if ((deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY' || deliveryMode === 'LOCAL_PROVIDER') && coordinates) {
+    // Named-provider + confirmed booking already validated the selected provider;
+    // do not require public pool availability (blocks private cert / single-provider flows).
+    const skipPoolAvailabilityCheck = Boolean(
+      selectedProviderId && bookingRequestId && providerQuoteSnapshot,
+    );
+    if (
+      !skipPoolAvailabilityCheck &&
+      (deliveryMode === 'DELIVERY' ||
+        deliveryMode === 'TEEN_DELIVERY' ||
+        deliveryMode === 'LOCAL_PROVIDER') &&
+      coordinates
+    ) {
       try {
         // Check if delivery is available in the area
         // Note: maxRadius parameter is not used - each deliverer has their own maxDistance
