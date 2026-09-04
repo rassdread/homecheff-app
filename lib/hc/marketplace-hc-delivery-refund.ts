@@ -175,8 +175,8 @@ export async function reverseHcMarketplaceDeliveryOnFullRefund(args: {
       id: true,
       status: true,
       quotedFeeCents: true,
-      delivererId: true,
       notes: true,
+      deliveryProfile: { select: { userId: true } },
     },
   });
 
@@ -202,6 +202,8 @@ export async function reverseHcMarketplaceDeliveryOnFullRefund(args: {
       select: { id: true },
     })) != null;
 
+  const providerUserId = delivery.deliveryProfile?.userId ?? null;
+
   if (!hadPayout) {
     if (delivery.status !== 'DELIVERED' && delivery.status !== 'CANCELLED') {
       await prisma.deliveryOrder.update({
@@ -215,11 +217,11 @@ export async function reverseHcMarketplaceDeliveryOnFullRefund(args: {
       // DELIVERED but payout not created yet — block future ensureDeliveryPayout via marker.
       providerMode = 'CANCELLED_UNEARNED';
     }
-  } else if (delivery.delivererId) {
+  } else if (providerUserId) {
     const rev = await reverseProviderPayout({
       deliveryOrderId: delivery.id,
       orderId: args.orderId,
-      providerUserId: delivery.delivererId,
+      providerUserId,
       principalCents: economics.providerPrincipalCents,
       stripe: args.stripe ?? null,
     });

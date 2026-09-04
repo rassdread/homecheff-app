@@ -41,6 +41,8 @@ export type MixedHcCheckoutInput = {
   deliveryFeeCents: number;
   smsNotificationCostCents?: number;
   deliveryMode: string;
+  deliveryAddress?: string | null;
+  deliveryProfileId?: string | null;
 };
 
 export async function resolveMixedHcCheckoutContext(input: MixedHcCheckoutInput) {
@@ -153,6 +155,8 @@ export async function resolveMixedHcCheckoutContext(input: MixedHcCheckoutInput)
     sellerUserId,
     deliveryMode: orderDeliveryMode,
     localDeliveryMode: deliveryMode,
+    deliveryAddress: input.deliveryAddress ?? null,
+    deliveryProfileId: input.deliveryProfileId ?? null,
   };
 }
 
@@ -250,6 +254,8 @@ export async function createMixedHcOrderWithReserve(ctx: MixedHcResolved) {
         buyerUserId: ctx.buyerUserId,
         deliveryFeeCents: ctx.deliveryFeeCents,
         deliveryMode: ctx.localDeliveryMode,
+        deliveryAddress: ctx.deliveryAddress,
+        deliveryProfileId: ctx.deliveryProfileId,
         quotedFeeCents: ctx.deliveryFeeCents,
       });
     }

@@ -70,6 +70,18 @@ export async function POST(req: NextRequest) {
       deliveryModeRaw === 'TEEN_DELIVERY'
         ? deliveryModeRaw
         : 'PICKUP';
+    const deliveryAddress =
+      typeof body?.address === 'string'
+        ? body.address
+        : typeof body?.deliveryAddress === 'string'
+          ? body.deliveryAddress
+          : null;
+    const deliveryProfileId =
+      typeof body?.selectedDeliveryProfileId === 'string'
+        ? body.selectedDeliveryProfileId
+        : typeof body?.deliveryProfileId === 'string'
+          ? body.deliveryProfileId
+          : null;
 
     if (!items?.length) {
       return NextResponse.json({ ok: false, code: 'NO_ITEMS' }, { status: 400, headers: NO_STORE });
@@ -82,6 +94,8 @@ export async function POST(req: NextRequest) {
       deliveryFeeCents,
       smsNotificationCostCents,
       deliveryMode,
+      deliveryAddress,
+      deliveryProfileId,
     });
     if ('error' in ctx) {
       return NextResponse.json({ ok: false, code: ctx.code, message: ctx.error }, { status: 422, headers: NO_STORE });

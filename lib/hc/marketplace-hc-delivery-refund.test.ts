@@ -88,4 +88,15 @@ describe('HC delivery refund economics', () => {
     assert.equal(feeOutstanding, 0);
     assert.equal(affiliateOutstanding, 0);
   });
+
+  it('provider lookup uses DeliveryProfile.userId — not phantom delivererId', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(
+      new URL('./marketplace-hc-delivery-refund.ts', import.meta.url),
+      'utf8',
+    );
+    assert.equal(src.includes('delivererId'), false);
+    assert.equal(src.includes('deliveryProfile: { select: { userId: true } }'), true);
+    assert.equal(src.includes('delivery.deliveryProfile?.userId'), true);
+  });
 });
