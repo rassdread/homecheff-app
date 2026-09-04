@@ -921,6 +921,7 @@ export default function NavBar() {
                     adminHref={ADMIN_WORKSPACE_HREF}
                     rowClassName={mobileNavRowClass}
                     hideMessages={bottomNavReachable}
+                    includeLegalLinks={false}
                     onNavigate={() => {
                       setIsMobileMenuOpen(false);
                       navDebug('navbar:mobile', { section: 'account-menu' });
@@ -976,6 +977,7 @@ export default function NavBar() {
                 </>
               ) : null}
 
+              {/* Canonical Over HomeCheff / legal — once per mobile menu (not also inside account). */}
               <NavbarLegalContactLinks
                 variant="mobile"
                 mobileNavRowClass={mobileNavRowClass}

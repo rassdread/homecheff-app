@@ -42,6 +42,11 @@ type Props = {
   onLogout: () => void | Promise<void>;
   /** When true, hide Berichten (already on bottom nav) */
   hideMessages?: boolean;
+  /**
+   * Desktop profile dropdown keeps legal/info inline.
+   * Mobile hamburger mounts a single canonical NavbarLegalContactLinks below — set false there.
+   */
+  includeLegalLinks?: boolean;
 };
 
 /**
@@ -59,6 +64,7 @@ export default function SimplifiedAccountMenu({
   onNavigate,
   onLogout,
   hideMessages = false,
+  includeLegalLinks = true,
 }: Props) {
   const { t, language } = useTranslation();
   const isNl = language === 'nl';
@@ -246,9 +252,11 @@ export default function SimplifiedAccountMenu({
 
       <div className="border-t border-gray-100 my-1" />
 
-      <NavbarLegalContactLinks variant="dropdown" onNavigate={onNavigate} />
+      {includeLegalLinks ? (
+        <NavbarLegalContactLinks variant="dropdown" onNavigate={onNavigate} />
+      ) : null}
 
-      <div className="border-t border-gray-100 my-1" />
+      {includeLegalLinks ? <div className="border-t border-gray-100 my-1" /> : null}
 
       <button
         type="button"
