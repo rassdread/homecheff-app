@@ -154,6 +154,24 @@ export async function GET(
     const sellerUserId =
       product.seller?.User?.id ?? (product as { User?: { id?: string } }).User?.id;
 
+    // Launch hygiene: inactive / REMOVED listings are not publicly fetchable.
+    {
+      const session = await auth();
+      const viewerId = session?.user?.id ?? null;
+      const role = (session?.user as { role?: string } | undefined)?.role;
+      const isOwner = Boolean(viewerId && sellerUserId && viewerId === sellerUserId);
+      const isStaff = role === 'ADMIN' || role === 'SUPERADMIN';
+      const integrity = String(
+        (product as { integrityStatus?: string | null }).integrityStatus ?? 'ACTIVE',
+      ).toUpperCase();
+      const publiclyListed =
+        Boolean((product as { isActive?: boolean }).isActive) &&
+        (integrity === 'ACTIVE' || integrity === 'REVIEW_REQUIRED');
+      if (!publiclyListed && !isOwner && !isStaff) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      }
+    }
+
     // Parallelize public secondary data — do NOT block on Stripe network refresh.
     const [
       [viewCount, orderCount, favoriteCount, reviewAgg],
