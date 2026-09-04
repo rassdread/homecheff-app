@@ -1711,7 +1711,7 @@
     },
     "metrics": {
       "orderCount": "{{count}} bestelling(en)",
-      "sellerOrders": "{{count}} recente bestelling(en)",
+      "sellerOrders": "{{count}} bestellingen (7 dagen)",
       "sellerRevenue": "{{amount}} omzet (7 dagen)",
       "affiliateEarned": "{{amount}} beschikbaar",
       "affiliateReferrals": "{{count}} referral(s)",

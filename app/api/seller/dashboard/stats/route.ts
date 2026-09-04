@@ -166,6 +166,8 @@ async function getStatsForPeriod(
           createdAt: { gte: startDate, lte: endDate },
           stripeSessionId: { startsWith: STRIPE_SESSION_ID_PREFIX },
           NOT: { orderNumber: { startsWith: 'SUB-' } },
+          // Commercial dashboard metrics: never treat cancelled / refunded as omzet.
+          status: { notIn: ['CANCELLED', 'REFUNDED'] },
           items: {
             some: {
               Product: { sellerId },

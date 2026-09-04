@@ -58,8 +58,26 @@ describe('my-homecheff-hub-copy', () => {
 
   it('i18n CACHE_VERSION bumped past stale hub-less caches', () => {
     const src = readFileSync(join(root, 'hooks/useTranslation.ts'), 'utf8');
-    assert.match(src, /CACHE_VERSION = '2\.50'/);
+    assert.match(src, /CACHE_VERSION = '2\.51'/);
     assert.match(src, /myHomeCheffHub\?\.cards\?\.orders\?\.title/);
     assert.match(src, /myHomeCheffHub\?\.cards\?\.hc\?\.title/);
+  });
+
+  it('hub card formats seller revenue as cents (never euros-as-cents)', () => {
+    const card = readFileSync(
+      join(root, 'components/my-homecheff/MyHomeCheffHubCard.tsx'),
+      'utf8',
+    );
+    assert.match(card, /formatEuro\(metrics\.sellerRevenue7d\)/);
+    assert.doesNotMatch(card, /formatEuroFromUnits\(metrics\.sellerRevenue7d\)/);
+    assert.doesNotMatch(card, /formatEuroMajor\(metrics\.sellerRevenue7d\)/);
+  });
+
+  it('seller stats route excludes cancelled/refunded/failed from commercial metrics', () => {
+    const stats = readFileSync(
+      join(root, 'app/api/seller/dashboard/stats/route.ts'),
+      'utf8',
+    );
+    assert.match(stats, /status:\s*\{\s*notIn:\s*\['CANCELLED',\s*'REFUNDED'\]/);
   });
 });

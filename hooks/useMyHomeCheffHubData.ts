@@ -75,7 +75,7 @@ export function useMyHomeCheffHubData(
               if (!res.ok) return;
               const json = await res.json();
               const totals = json.totals;
-              // /api/earnings/combined returns cents already (export divides by 100).
+              // /api/earnings/combined totals are integer minor units (cents).
               if (totals && typeof totals.totalEarnings === 'number') {
                 next.totalEarningsCents = Math.round(totals.totalEarnings);
               }
@@ -113,24 +113,22 @@ export function useMyHomeCheffHubData(
     return () => window.removeEventListener('focus', loadIfStale);
   }, [enabled, loadIfStale]);
 
-  const sellerNewOrders = roleData.seller?.recentOrders?.filter(
-    (o) => o.status === 'PENDING' || o.status === 'PAID' || o.status === 'CONFIRMED',
-  ).length;
+  const sellerOrders7d = roleData.seller?.orders7d ?? null;
 
   return {
     loading: roleData.loading || loadingExtra,
     metrics: {
       ...metrics,
-      sellerNewOrders:
-        sellerNewOrders != null && sellerNewOrders > 0
-          ? sellerNewOrders
-          : roleData.seller?.orders7d ?? metrics.sellerNewOrders,
+      // Honest 7d commercial order count from /api/seller/dashboard/stats (not "new" pending).
+      sellerNewOrders: sellerOrders7d != null && sellerOrders7d > 0 ? sellerOrders7d : null,
+      // Cents (minor units) from seller dashboard stats totalRevenue.
       sellerRevenue7d: roleData.seller?.revenue7d ?? metrics.sellerRevenue7d,
       affiliateEarnedCents: roleData.partner?.availableCents ?? metrics.affiliateEarnedCents,
       affiliateReferrals: roleData.partner?.totalReferrals ?? metrics.affiliateReferrals,
       deliveryActiveJobs:
         (roleData.delivery?.stats?.availableOrders ?? 0) +
         (roleData.delivery?.stats?.pendingDeliveries ?? 0),
+      // EUR major units from delivery dashboard (already /100 at API).
       deliveryEarningsToday: roleData.delivery?.stats?.todayEarnings ?? metrics.deliveryEarningsToday,
       affiliateConversions: roleData.partner?.totalReferrals ?? metrics.affiliateConversions,
     },

@@ -2874,7 +2874,7 @@
     },
     "metrics": {
       "orderCount": "{{count}} order(s)",
-      "sellerOrders": "{{count}} recent order(s)",
+      "sellerOrders": "{{count}} orders (7 days)",
       "sellerRevenue": "{{amount}} revenue (7 days)",
       "affiliateEarned": "{{amount}} available",
       "affiliateReferrals": "{{count}} referral(s)",

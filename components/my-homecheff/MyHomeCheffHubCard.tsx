@@ -36,12 +36,19 @@ type Props = {
 
 function formatEuro(cents: number | null | undefined): string | null {
   if (cents == null || !Number.isFinite(cents)) return null;
-  return `€${(cents / 100).toFixed(2)}`;
+  return new Intl.NumberFormat('nl-NL', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(cents / 100);
 }
 
-function formatEuroFromUnits(amount: number | null | undefined): string | null {
-  if (amount == null || !Number.isFinite(amount)) return null;
-  return `€${amount.toFixed(2)}`;
+/** Delivery dashboard todayEarnings is already EUR major units (not cents). */
+function formatEuroMajor(amount: number | null | undefined): string | null {
+  if (amount == null || !Number.isFinite(amount) || amount <= 0) return null;
+  return new Intl.NumberFormat('nl-NL', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(amount);
 }
 
 export default function MyHomeCheffHubCard({
@@ -170,14 +177,15 @@ export default function MyHomeCheffHubCard({
       statLines.push(
         line.trim() ||
           (hubLang === 'en'
-            ? `${metrics.sellerNewOrders} new orders`
-            : `${metrics.sellerNewOrders} nieuwe bestellingen`),
+            ? `${metrics.sellerNewOrders} orders (7 days)`
+            : `${metrics.sellerNewOrders} bestellingen (7 dagen)`),
       );
     }
-    const rev = formatEuroFromUnits(metrics.sellerRevenue7d);
+    // sellerRevenue7d is minor units (cents) from /api/seller/dashboard/stats
+    const rev = formatEuro(metrics.sellerRevenue7d);
     if (rev) {
       const line = t('myHomeCheffHub.metrics.sellerRevenue', { amount: rev });
-      statLines.push(line.trim() || `${rev} (7d)`);
+      statLines.push(line.trim() || `${rev} omzet (7 dagen)`);
     }
   }
   if (card.id === 'affiliate') {
@@ -208,7 +216,7 @@ export default function MyHomeCheffHubCard({
             : `${metrics.deliveryActiveJobs} actieve opdrachten`),
       );
     }
-    const today = formatEuroFromUnits(metrics.deliveryEarningsToday);
+    const today = formatEuroMajor(metrics.deliveryEarningsToday);
     if (today) {
       const line = t('myHomeCheffHub.metrics.deliveryEarnings', { amount: today });
       statLines.push(line.trim() || today);
