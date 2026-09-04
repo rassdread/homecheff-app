@@ -234,6 +234,7 @@ async function resolveProposalFields(
     listingTitle: productCtx?.title ?? null,
     listingImageUrl: productCtx?.imageUrl ?? null,
     listingPriceCents: productCtx?.priceCents ?? null,
+    clientIdempotencyKey: input.clientIdempotencyKey ?? null,
     barterOfferImageUrls,
   });
 
@@ -324,6 +325,7 @@ export class ProposalService {
   ): Promise<ProposalActionResult> {
     await assertParticipant(conversationId, userId);
 
+    const idempotencyKey = input.clientIdempotencyKey?.trim() || null;
     const title = input.title?.trim() || '';
     const boundProductId = await resolveConversationProductId(
       conversationId,
@@ -337,36 +339,77 @@ export class ProposalService {
 
     const { sellerId, buyerId } = await resolveSellerBuyer(conversationId, userId, input);
 
-    const fields = await resolveProposalFields(input, title, boundProductId);
+    const fields = await resolveProposalFields(
+      { ...input, clientIdempotencyKey: idempotencyKey },
+      title,
+      boundProductId,
+    );
     if (!fields.resolvedTitle) {
       throw new ProposalServiceError('Title is required', 400);
     }
 
-    const proposal = await prisma.proposal.create({
-      data: {
-        conversationId,
-        createdById: userId,
-        sellerId,
-        buyerId,
-        productId: fields.boundProductId,
-        listingId: input.listingId ?? null,
-        title: fields.resolvedTitle,
-        description: input.description?.trim() || null,
-        quantity: input.quantity ?? null,
-        amountCents: input.amountCents ?? null,
-        currency: input.currency?.trim() || 'EUR',
-        requestedDate: parseOptionalDate(input.requestedDate),
-        requestedTimeWindow: input.requestedTimeWindow?.trim() || null,
-        fulfillmentType: input.fulfillmentType ?? null,
-        category: input.category ?? 'PRODUCT',
-        settlementMode: fields.settlementMode,
-        acceptedValueTaxonomyIds: fields.acceptedValueTaxonomyIds,
-        requestedValueTaxonomyIds: fields.requestedValueTaxonomyIds,
-        proposalSummary: fields.proposalSummary as object,
-        expiresAt: parseOptionalDate(input.expiresAt),
-        status: 'PENDING',
-      },
+    const created = await prisma.$transaction(async (tx) => {
+      if (idempotencyKey) {
+        const lockKey = `proposal:${userId}:${idempotencyKey}`;
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+
+        const recent = await tx.proposal.findMany({
+          where: {
+            conversationId,
+            createdById: userId,
+            createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 40,
+        });
+        const existing = recent.find((row) => {
+          const summary = row.proposalSummary as {
+            clientIdempotencyKey?: string;
+          } | null;
+          return summary?.clientIdempotencyKey === idempotencyKey;
+        });
+        if (existing) {
+          return { proposal: existing, replay: true as const };
+        }
+      }
+
+      const proposal = await tx.proposal.create({
+        data: {
+          conversationId,
+          createdById: userId,
+          sellerId,
+          buyerId,
+          productId: fields.boundProductId,
+          listingId: input.listingId ?? null,
+          title: fields.resolvedTitle,
+          description: input.description?.trim() || null,
+          quantity: input.quantity ?? null,
+          amountCents: input.amountCents ?? null,
+          currency: input.currency?.trim() || 'EUR',
+          requestedDate: parseOptionalDate(input.requestedDate),
+          requestedTimeWindow: input.requestedTimeWindow?.trim() || null,
+          fulfillmentType: input.fulfillmentType ?? null,
+          category: input.category ?? 'PRODUCT',
+          settlementMode: fields.settlementMode,
+          acceptedValueTaxonomyIds: fields.acceptedValueTaxonomyIds,
+          requestedValueTaxonomyIds: fields.requestedValueTaxonomyIds,
+          proposalSummary: fields.proposalSummary as object,
+          expiresAt: parseOptionalDate(input.expiresAt),
+          status: 'PENDING',
+        },
+      });
+      return { proposal, replay: false as const };
     });
+
+    if (created.replay) {
+      return {
+        proposal: serializeProposal(created.proposal),
+        message: null,
+        idempotentReplay: true,
+      };
+    }
+
+    const proposal = created.proposal;
 
     const message = await createProposalMessage(
       conversationId,

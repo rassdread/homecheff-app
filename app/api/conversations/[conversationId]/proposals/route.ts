@@ -51,13 +51,19 @@ export async function POST(
     if ('error' in authResult) return authResult.error;
 
     const body = (await req.json()) as CreateProposalInput;
+    const headerKey = req.headers.get('idempotency-key')?.trim() || null;
+    if (headerKey && !body.clientIdempotencyKey) {
+      body.clientIdempotencyKey = headerKey;
+    }
     const result = await ProposalService.createProposal(
       authResult.userId,
       params.conversationId,
       body,
     );
 
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(result, {
+      status: result.idempotentReplay ? 200 : 201,
+    });
   } catch (error) {
     return handleProposalServiceError(error);
   }

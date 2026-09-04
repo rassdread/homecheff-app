@@ -90,6 +90,8 @@ export type CreateProposalInput = {
   paymentPath?: ProposalPaymentPath;
   /** Optional https barter counter-value photos (max 2). */
   barterOfferImageUrls?: string[];
+  /** Client Idempotency-Key for duplicate POST protection. */
+  clientIdempotencyKey?: string | null;
 };
 
 export type CounterProposalInput = Omit<
@@ -102,11 +104,12 @@ export type CounterProposalInput = Omit<
 
 export type ProposalActionResult = {
   proposal: ProposalDTO;
-  message?: Record<string, unknown>;
+  message?: Record<string, unknown> | null;
   agreement?: AgreementDTO;
   communityOrder?: CommunityOrderDTO;
   nextAction?: ProposalNextAction;
   checkoutUrl?: string | null;
+  idempotentReplay?: boolean;
   deliveryRequest?: DeliveryRequestDTO | null;
 };
 

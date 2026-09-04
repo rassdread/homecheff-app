@@ -21,6 +21,8 @@ export type ProposalSummarySnapshot = {
   listingTitle?: string | null;
   listingImageUrl?: string | null;
   listingPriceCents?: number | null;
+  /** Client Idempotency-Key snapshotted for duplicate-submit protection. */
+  clientIdempotencyKey?: string | null;
   /** Optional barter counter-value photo URLs (max 2); snapshotted into Agreement. */
   barterOfferImageUrls?: string[];
 };
@@ -93,6 +95,7 @@ export function buildProposalSummary(input: {
   listingTitle?: string | null;
   listingImageUrl?: string | null;
   listingPriceCents?: number | null;
+  clientIdempotencyKey?: string | null;
   barterOfferImageUrls?: string[];
 }): ProposalSummarySnapshot {
   const barterOfferImageUrls = input.barterOfferImageUrls ?? [];
@@ -114,6 +117,9 @@ export function buildProposalSummary(input: {
       typeof input.listingPriceCents === 'number'
         ? input.listingPriceCents
         : null,
+    ...(input.clientIdempotencyKey
+      ? { clientIdempotencyKey: input.clientIdempotencyKey }
+      : {}),
     ...(barterOfferImageUrls.length > 0 ? { barterOfferImageUrls } : {}),
   };
 }
