@@ -63,6 +63,7 @@ export async function growthReserveMarketplaceHc(input: {
   centralUserId: string;
   trustedOrder: TrustedOrderPayload;
   amountHc: number;
+  billingMode?: 'HC_ONLY' | 'MIXED_HC_EUR';
 }): Promise<
   | { ok: true; reservationId: string; duplicate: boolean; amountHc: number }
   | { ok: false; code: string; message: string }
@@ -93,6 +94,19 @@ export async function growthReleaseMarketplaceHc(input: {
   reason: GrowthReleaseReason;
 }): Promise<{ ok: true; duplicate: boolean; releasedHc: number } | { ok: false; code: string; message: string } | null> {
   return postGrowth('/api/internal/marketplace/hc/release', input);
+}
+
+export async function growthRefundMarketplaceHc(input: {
+  centralUserId: string;
+  orderId: string;
+  reservationId: string;
+  refundId: string;
+}): Promise<
+  | { ok: true; duplicate: boolean; restoredHc: number; ledgerEntryId?: string }
+  | { ok: false; code: string; message?: string }
+  | null
+> {
+  return postGrowth('/api/internal/marketplace/hc/refund', input);
 }
 
 export type GrowthFeeSnapshotResponse = {

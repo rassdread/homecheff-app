@@ -8,6 +8,7 @@ import {
   resolveLockedDeliveryGrossCents,
   splitDeliveryCommission,
 } from '@/lib/delivery/quote-snapshot';
+import { readHcDeliveryRefundMarker } from '@/lib/hc/marketplace-hc-delivery-refund-pure';
 
 export type DeliveryPayoutInput = {
   deliveryOrderId: string;
@@ -63,8 +64,24 @@ export async function ensureDeliveryPayout(
     select: {
       quotedFeeCents: true,
       deliveryFee: true,
+      status: true,
+      notes: true,
     },
   });
+
+  // Block automatic payout after HC/full refund reversal marker or cancel.
+  if (deliveryOrder) {
+    const refundMarker = readHcDeliveryRefundMarker(deliveryOrder.notes);
+    if (deliveryOrder.status === 'CANCELLED' || refundMarker) {
+      return {
+        created: false,
+        payoutId: `payout_delivery_${deliveryOrderId}`,
+        amountCents: 0,
+        blocked: true,
+        blockCode: 'HC_DELIVERY_REFUNDED',
+      };
+    }
+  }
 
   let grossFeeCents: number;
   let amountSource: DeliveryPayoutResult['amountSource'];
