@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
+import Stripe from 'stripe';
 import {
   DELIVERY_DELIVERER_PERCENT,
   DELIVERY_PLATFORM_FEE_PERCENT,
@@ -9,6 +10,7 @@ import {
   splitDeliveryCommission,
 } from '@/lib/delivery/quote-snapshot';
 import { readHcDeliveryRefundMarker } from '@/lib/hc/marketplace-hc-delivery-refund-pure';
+import { resolveChargeIdForCheckoutSession } from '@/lib/payments/seller-settlement';
 
 export type DeliveryPayoutInput = {
   deliveryOrderId: string;
@@ -27,12 +29,30 @@ export type DeliveryPayoutResult = {
   amountSource?: 'quotedFeeCents' | 'deliveryFee_legacy' | 'input_override';
   blocked?: boolean;
   blockCode?: string;
+  transferId?: string | null;
+  transferStatus?:
+    | 'SUCCEEDED'
+    | 'ALREADY_DONE'
+    | 'LEDGER_ONLY_NO_CONNECT'
+    | 'FAILED'
+    | 'SKIPPED';
+  connectedAccountId?: string | null;
 };
 
+function getStripe(): Stripe | null {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return null;
+  return new Stripe(key, { apiVersion: '2025-08-27.basil' });
+}
+
 /**
- * Idempotent delivery payout: Transaction (txn_delivery_*) → Payout → earnings update.
+ * Idempotent delivery payout: Transaction → Payout → earnings → Stripe Connect transfer.
  * Phase 2.2: gross locked fee from quotedFeeCents (preferred) or legacy deliveryFee.
  * Never re-reads current DeliveryProfile pricing rates.
+ *
+ * Connect transfer (when destination ready):
+ * - Stripe-paid orders: prefer source_transaction from Checkout charge
+ * - HC-only / no charge: platform-balance treasury transfer (same pattern as HC seller payout)
  */
 export async function ensureDeliveryPayout(
   prisma: PrismaClient,
@@ -42,7 +62,16 @@ export async function ensureDeliveryPayout(
 
   const profile = await prisma.deliveryProfile.findUnique({
     where: { userId: delivererUserId },
-    include: { user: { select: { dateOfBirth: true, id: true } } },
+    include: {
+      user: {
+        select: {
+          dateOfBirth: true,
+          id: true,
+          stripeConnectAccountId: true,
+          stripeConnectOnboardingCompleted: true,
+        },
+      },
+    },
   });
 
   const payoutGate = assertCommercialCourierCanReceivePayout({
@@ -69,7 +98,6 @@ export async function ensureDeliveryPayout(
     },
   });
 
-  // Block automatic payout after HC/full refund reversal marker or cancel.
   if (deliveryOrder) {
     const refundMarker = readHcDeliveryRefundMarker(deliveryOrder.notes);
     if (deliveryOrder.status === 'CANCELLED' || refundMarker) {
@@ -115,74 +143,206 @@ export async function ensureDeliveryPayout(
         { id: { startsWith: `payout_delivery_${deliveryOrderId}_` } },
         { transactionId: stableTxnId },
         { transactionId: { startsWith: `txn_delivery_${deliveryOrderId}_` } },
-        // Legacy broken path (orderId used as transactionId)
         { transactionId: orderId, toUserId: delivererUserId },
       ],
     },
-    select: { id: true, amountCents: true },
+    select: {
+      id: true,
+      amountCents: true,
+      providerRef: true,
+      destinationConnectAccountId: true,
+    },
   });
 
-  if (existingPayout) {
+  let payoutId = existingPayout?.id ?? stablePayoutId;
+  let created = false;
+
+  if (!existingPayout) {
+    await prisma.$transaction(async (tx) => {
+      let transaction = await tx.transaction.findUnique({
+        where: { id: stableTxnId },
+      });
+
+      if (!transaction) {
+        const legacyTxn = await tx.transaction.findFirst({
+          where: { id: { startsWith: `txn_delivery_${deliveryOrderId}_` } },
+        });
+        transaction =
+          legacyTxn ??
+          (await tx.transaction.create({
+            data: {
+              id: stableTxnId,
+              buyerId: buyerUserId,
+              sellerId: delivererUserId,
+              amountCents: split.grossFeeCents,
+              platformFeeBps: DELIVERY_PLATFORM_FEE_PERCENT * 100,
+              status: 'CAPTURED',
+              provider: 'STRIPE',
+              providerRef: orderId,
+              updatedAt: new Date(),
+            },
+          }));
+      }
+
+      await tx.payout.create({
+        data: {
+          id: stablePayoutId,
+          transactionId: transaction.id,
+          toUserId: delivererUserId,
+          amountCents: deliveryPersonCut,
+          providerRef: null,
+        },
+      });
+
+      await tx.deliveryProfile.updateMany({
+        where: { userId: delivererUserId },
+        data: {
+          totalEarnings: { increment: deliveryPersonCut },
+        },
+      });
+    });
+    created = true;
+    payoutId = stablePayoutId;
+  } else if (
+    existingPayout.providerRef &&
+    existingPayout.providerRef.startsWith('tr_')
+  ) {
     return {
       created: false,
       payoutId: existingPayout.id,
       amountCents: existingPayout.amountCents,
       grossFeeCents,
       amountSource,
+      transferId: existingPayout.providerRef,
+      transferStatus: 'ALREADY_DONE',
+      connectedAccountId: existingPayout.destinationConnectAccountId,
     };
   }
 
-  await prisma.$transaction(async (tx) => {
-    let transaction = await tx.transaction.findUnique({
-      where: { id: stableTxnId },
-    });
+  const destination = profile?.user?.stripeConnectAccountId ?? null;
+  if (!destination || deliveryPersonCut <= 0) {
+    return {
+      created,
+      payoutId,
+      amountCents: deliveryPersonCut,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      transferId: null,
+      transferStatus: 'LEDGER_ONLY_NO_CONNECT',
+      connectedAccountId: destination,
+    };
+  }
 
-    if (!transaction) {
-      const legacyTxn = await tx.transaction.findFirst({
-        where: { id: { startsWith: `txn_delivery_${deliveryOrderId}_` } },
-      });
-      transaction =
-        legacyTxn ??
-        (await tx.transaction.create({
-          data: {
-            id: stableTxnId,
-            buyerId: buyerUserId,
-            sellerId: delivererUserId,
-            amountCents: split.grossFeeCents,
-            platformFeeBps: DELIVERY_PLATFORM_FEE_PERCENT * 100,
-            status: 'CAPTURED',
-            provider: 'STRIPE',
-            providerRef: orderId,
-            updatedAt: new Date(),
-          },
-        }));
-    }
+  const stripe = getStripe();
+  if (!stripe) {
+    return {
+      created,
+      payoutId,
+      amountCents: deliveryPersonCut,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      transferId: null,
+      transferStatus: 'FAILED',
+      connectedAccountId: destination,
+      blockCode: 'STRIPE_NOT_CONFIGURED',
+    };
+  }
 
-    await tx.payout.create({
-      data: {
-        id: stablePayoutId,
-        transactionId: transaction.id,
-        toUserId: delivererUserId,
-        amountCents: deliveryPersonCut,
-        providerRef: null,
-      },
-    });
-
-    await tx.deliveryProfile.updateMany({
-      where: { userId: delivererUserId },
-      data: {
-        totalEarnings: { increment: deliveryPersonCut },
-      },
-    });
+  let sourceTransactionChargeId: string | null = null;
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      stripeSessionId: true,
+      paymentMethod: true,
+    },
   });
 
-  return {
-    created: true,
-    payoutId: stablePayoutId,
-    amountCents: deliveryPersonCut,
-    grossFeeCents: split.grossFeeCents,
-    amountSource,
-  };
+  if (order?.stripeSessionId && order.paymentMethod !== 'HC_ONLY') {
+    try {
+      const resolved = await resolveChargeIdForCheckoutSession(
+        stripe,
+        order.stripeSessionId,
+      );
+      sourceTransactionChargeId = resolved.chargeId;
+    } catch {
+      sourceTransactionChargeId = null;
+    }
+  }
+
+  try {
+    const transferParams: Stripe.TransferCreateParams = {
+      amount: deliveryPersonCut,
+      currency: 'eur',
+      destination,
+      transfer_group: `order_${orderId}`,
+      metadata: {
+        orderId,
+        deliveryOrderId,
+        purpose: 'delivery_provider_principal',
+        providerUserId: delivererUserId,
+        sourceTransactionChargeId: sourceTransactionChargeId || '',
+        paymentMethod: order?.paymentMethod || '',
+      },
+    };
+    if (sourceTransactionChargeId) {
+      transferParams.source_transaction = sourceTransactionChargeId;
+    }
+
+    const transfer = await stripe.transfers.create(transferParams, {
+      idempotencyKey: `delivery_xfer_${deliveryOrderId}_v1`,
+    });
+
+    await prisma.payout.update({
+      where: { id: payoutId },
+      data: {
+        providerRef: transfer.id,
+        destinationConnectAccountId: destination,
+      },
+    });
+
+    return {
+      created,
+      payoutId,
+      amountCents: deliveryPersonCut,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      transferId: transfer.id,
+      transferStatus: 'SUCCEEDED',
+      connectedAccountId: destination,
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (
+      message.includes('idempoten') ||
+      message.toLowerCase().includes('already')
+    ) {
+      return {
+        created,
+        payoutId,
+        amountCents: deliveryPersonCut,
+        grossFeeCents: split.grossFeeCents,
+        amountSource,
+        transferId: null,
+        transferStatus: 'ALREADY_DONE',
+        connectedAccountId: destination,
+      };
+    }
+    console.error(
+      `[delivery-payout] Connect transfer failed deliveryOrder=${deliveryOrderId}:`,
+      message,
+    );
+    return {
+      created,
+      payoutId,
+      amountCents: deliveryPersonCut,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      transferId: null,
+      transferStatus: 'FAILED',
+      connectedAccountId: destination,
+      blockCode: 'CONNECT_TRANSFER_FAILED',
+    };
+  }
 }
 
 /** @deprecated Prefer splitDeliveryCommission from quote-snapshot */

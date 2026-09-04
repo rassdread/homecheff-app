@@ -24,6 +24,7 @@ import {
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
 import { isCommerciallyMatchableDeliverer } from '@/lib/delivery/delivery-eligibility';
+import { isProviderVisibleToBuyer } from '@/lib/delivery/delivery-cert-scope';
 import {
   buildProviderQuoteSnapshot,
   providerQuoteToStripeMetadata,
@@ -635,6 +636,21 @@ export async function POST(req: NextRequest) {
               {
                 error: 'Bezorgaanbieder is niet beschikbaar voor deze bestelling.',
                 code: 'DELIVERY_PROVIDER_INELIGIBLE',
+              },
+              { status: 422 }
+            );
+          }
+
+          if (
+            !isProviderVisibleToBuyer({
+              providerUserId: profile.user?.id ?? '',
+              buyerUserId: session?.user?.id ?? null,
+            })
+          ) {
+            return NextResponse.json(
+              {
+                error: 'Bezorgaanbieder is niet beschikbaar voor deze bestelling.',
+                code: 'DELIVERY_PROVIDER_CERT_SCOPE',
               },
               { status: 422 }
             );

@@ -13,11 +13,15 @@ import {
 } from "@/lib/delivery/provider-acceptance";
 import { getDeliveryAlignmentFlags } from "@/lib/delivery/delivery-alignment-flags";
 import { normalizeCountryCode } from "@/lib/gamification/country-code";
+import { auth } from "@/lib/auth";
+import { isProviderVisibleToBuyer } from "@/lib/delivery/delivery-cert-scope";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await auth();
+    const buyerUserId = session?.user?.id ?? null;
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
     const buyerLat = parseFloat(searchParams.get('buyerLat') || '0');
@@ -129,6 +133,14 @@ export async function GET(req: NextRequest) {
     });
 
     const ageEligibleProfiles = deliveryProfiles.filter((delivery) => {
+      if (
+        !isProviderVisibleToBuyer({
+          providerUserId: delivery.user?.id ?? '',
+          buyerUserId,
+        })
+      ) {
+        return false;
+      }
       const ok = isCommerciallyMatchableDeliverer({
         isActive: delivery.isActive,
         isVerified: delivery.isVerified,

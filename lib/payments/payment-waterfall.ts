@@ -20,7 +20,7 @@
  *
  * COURIER_ENTITLEMENT =
  *   deliveryGross − round(deliveryGross × 12%)   // or splitDeliveryCommission
- *   Currently ledger-only (no Stripe Transfer in ensureDeliveryPayout)
+ *   Ledger + Stripe Connect transfer via ensureDeliveryPayout when Connect ready
  *
  * STRIPE_PROCESSING_FEE =
  *   actual BalanceTransaction fee on Charge (once per payment)

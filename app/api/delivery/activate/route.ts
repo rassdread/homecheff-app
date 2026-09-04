@@ -90,6 +90,8 @@ export async function POST(req: NextRequest) {
     where: { id: profile.id },
     data: {
       isActive: wantActive,
+      // Self-service commercial activation implies verified for matching (no admin queue).
+      ...(wantActive ? { isVerified: true } : {}),
       isOnline: wantActive ? wantOnline || profile.isOnline : false,
     },
     select: {
