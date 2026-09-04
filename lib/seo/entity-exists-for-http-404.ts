@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
+import { isListingPubliclyDiscoverable } from '@/lib/marketplace/product-visibility';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -25,17 +26,26 @@ export async function entityExistsForHttp404(pathname: string): Promise<boolean 
     if (!raw) return false;
     const id = resolveProductIdFromParam(raw);
     if (!id) return false;
+
+    // Owner edit routes stay addressable; API/auth enforce access.
+    const isEditRoute = parts[2] === 'edit';
+
     const product = await prisma.product.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, isActive: true, integrityStatus: true },
     });
-    if (product) return true;
+    if (product) {
+      if (isEditRoute) return true;
+      return isListingPubliclyDiscoverable(product);
+    }
     if (first === 'listing') {
       const legacy = await prisma.listing.findUnique({
         where: { id },
-        select: { id: true },
+        select: { id: true, status: true },
       });
-      return Boolean(legacy);
+      if (!legacy) return false;
+      if (isEditRoute) return true;
+      return legacy.status === 'ACTIVE';
     }
     return false;
   }
