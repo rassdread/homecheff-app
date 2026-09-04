@@ -422,7 +422,7 @@ export default function NavBar() {
       data-wx-short-landscape={shortLandscapeChrome ? '1' : '0'}
       data-wx-navbar-suppressed={suppressNavbarChrome ? '1' : '0'}
       className={cn(
-        'w-full max-w-[100vw] overflow-x-clip lg:overflow-x-visible border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800',
+        'w-full max-w-[100vw] overflow-x-clip border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800',
         nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : '',
         suppressNavbarChrome &&
           'h-0 min-h-0 overflow-visible border-0 p-0 shadow-none bg-transparent backdrop-blur-none',
