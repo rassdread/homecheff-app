@@ -13,12 +13,16 @@ import {
   settingsHubContextFromSessionUser,
 } from '@/lib/navigation/my-homecheff-hub';
 import { useTranslation } from '@/hooks/useTranslation';
+import { hubCopy, type HubLang } from '@/lib/navigation/my-homecheff-hub-copy';
 import { getDisplayName } from '@/lib/displayName';
 
 export default function MyHomeCheffHubClient() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, tOr, language } = useTranslation();
+  const hubLang: HubLang = language === 'en' ? 'en' : 'nl';
+  const copy = hubCopy(hubLang);
+  const copyEn = hubCopy('en');
   const { profile, ensureProfile } = useUserBootstrap();
 
   useEffect(() => {
@@ -57,18 +61,25 @@ export default function MyHomeCheffHubClient() {
     <div className="mx-auto w-full max-w-3xl px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:py-8 lg:max-w-4xl lg:pb-8">
       <header className="mb-6 sm:mb-8">
         <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-          {t('myHomeCheffHub.eyebrow')}
+          {tOr('myHomeCheffHub.eyebrow', copyEn.eyebrow, copy.eyebrow)}
         </p>
         <h1 className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl">
-          {t('myHomeCheffHub.title')}
+          {tOr('myHomeCheffHub.title', copyEn.title, copy.title)}
         </h1>
         <p className="mt-2 text-sm text-gray-600 sm:text-base">
-          {t('myHomeCheffHub.greeting', { name: displayName })}
+          {(() => {
+            const g = t('myHomeCheffHub.greeting', { name: displayName });
+            if (g.trim()) return g;
+            return (hubLang === 'en' ? copyEn.greeting : copy.greeting).replace(
+              '{{name}}',
+              displayName,
+            );
+          })()}
         </p>
       </header>
 
       <h2 className="mb-3 text-sm font-semibold text-slate-800">
-        {t('myHomeCheffHub.activityTitle')}
+        {tOr('myHomeCheffHub.activityTitle', copyEn.activityTitle, copy.activityTitle)}
       </h2>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 sm:gap-5">
@@ -91,32 +102,70 @@ export default function MyHomeCheffHubClient() {
           id="mijn-hc-modules-heading"
           className="text-sm font-semibold text-emerald-950"
         >
-          {t('myHomeCheffHub.modulesTitle')}
+          {tOr('myHomeCheffHub.modulesTitle', copyEn.modulesTitle, copy.modulesTitle)}
         </h2>
-        <p className="mt-1 text-xs text-slate-600">{t('myHomeCheffHub.modulesSupport')}</p>
+        <p className="mt-1 text-xs text-slate-600">
+          {tOr('myHomeCheffHub.modulesSupport', copyEn.modulesSupport, copy.modulesSupport)}
+        </p>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {(
             [
               {
-                id: 'marketplace',
+                id: 'marketplace' as const,
                 href: '/',
-                title: t('myHomeCheffHub.modules.marketplace.title'),
-                body: t('myHomeCheffHub.modules.marketplace.body'),
-                cta: t('myHomeCheffHub.modules.marketplace.cta'),
+                title: tOr(
+                  'myHomeCheffHub.modules.marketplace.title',
+                  copyEn.modules.marketplace.title,
+                  copy.modules.marketplace.title,
+                ),
+                body: tOr(
+                  'myHomeCheffHub.modules.marketplace.body',
+                  copyEn.modules.marketplace.body,
+                  copy.modules.marketplace.body,
+                ),
+                cta: tOr(
+                  'myHomeCheffHub.modules.marketplace.cta',
+                  copyEn.modules.marketplace.cta,
+                  copy.modules.marketplace.cta,
+                ),
               },
               {
-                id: 'growth',
+                id: 'growth' as const,
                 href: 'https://growth.homecheff.eu/auth/sso/silent?mode=ecosystem&returnTo=%2F',
-                title: t('myHomeCheffHub.modules.growth.title'),
-                body: t('myHomeCheffHub.modules.growth.body'),
-                cta: t('myHomeCheffHub.modules.growth.cta'),
+                title: tOr(
+                  'myHomeCheffHub.modules.growth.title',
+                  copyEn.modules.growth.title,
+                  copy.modules.growth.title,
+                ),
+                body: tOr(
+                  'myHomeCheffHub.modules.growth.body',
+                  copyEn.modules.growth.body,
+                  copy.modules.growth.body,
+                ),
+                cta: tOr(
+                  'myHomeCheffHub.modules.growth.cta',
+                  copyEn.modules.growth.cta,
+                  copy.modules.growth.cta,
+                ),
               },
               {
-                id: 'studio',
+                id: 'studio' as const,
                 href: 'https://studio.homecheff.eu/auth/sso/silent?mode=ecosystem&returnTo=%2F',
-                title: t('myHomeCheffHub.modules.studio.title'),
-                body: t('myHomeCheffHub.modules.studio.body'),
-                cta: t('myHomeCheffHub.modules.studio.cta'),
+                title: tOr(
+                  'myHomeCheffHub.modules.studio.title',
+                  copyEn.modules.studio.title,
+                  copy.modules.studio.title,
+                ),
+                body: tOr(
+                  'myHomeCheffHub.modules.studio.body',
+                  copyEn.modules.studio.body,
+                  copy.modules.studio.body,
+                ),
+                cta: tOr(
+                  'myHomeCheffHub.modules.studio.cta',
+                  copyEn.modules.studio.cta,
+                  copy.modules.studio.cta,
+                ),
               },
             ] as const
           ).map((mod) => (
@@ -140,7 +189,7 @@ export default function MyHomeCheffHubClient() {
           prefetch={false}
           className="inline-flex min-h-[44px] items-center gap-1 font-medium text-gray-600 hover:text-emerald-700"
         >
-          {t('navbar.messages')}
+          {tOr('navbar.messages', 'Messages', 'Berichten')}
           <ExternalLink className="h-3.5 w-3.5" aria-hidden />
         </Link>
         <Link
@@ -148,7 +197,7 @@ export default function MyHomeCheffHubClient() {
           prefetch={false}
           className="inline-flex min-h-[44px] items-center gap-1 font-medium text-gray-600 hover:text-emerald-700"
         >
-          {t('navbar.favorites')}
+          {tOr('navbar.favorites', 'Favorites', 'Favorieten')}
           <ExternalLink className="h-3.5 w-3.5" aria-hidden />
         </Link>
         <Link
@@ -156,7 +205,7 @@ export default function MyHomeCheffHubClient() {
           prefetch={false}
           className="inline-flex min-h-[44px] items-center gap-1 font-medium text-gray-600 hover:text-emerald-700"
         >
-          {t('navbar.agreements')}
+          {tOr('navbar.agreements', 'Agreements', 'Afspraken')}
           <ExternalLink className="h-3.5 w-3.5" aria-hidden />
         </Link>
         <Link
@@ -164,7 +213,7 @@ export default function MyHomeCheffHubClient() {
           prefetch={false}
           className="inline-flex min-h-[44px] items-center gap-1 font-medium text-gray-600 hover:text-emerald-700"
         >
-          {t('bottomNav.reputationTab')}
+          {tOr('bottomNav.reputationTab', 'Reputation', 'Reputatie')}
           <ExternalLink className="h-3.5 w-3.5" aria-hidden />
         </Link>
       </footer>

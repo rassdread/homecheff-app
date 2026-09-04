@@ -354,8 +354,8 @@ export function useTranslation() {
     const cacheVersionKey = `i18n-${lang}-version`;
     // Bump bij elke wijziging in public/i18n/{nl,en}.json zodat browsers met stale
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
-    // 2.41 — single compact marketplace header + homeCompactHeader keys
-    const CACHE_VERSION = '2.41';
+    // 2.50 — Dashboard hub (myHomeCheffHub) must invalidate stale caches without those keys
+    const CACHE_VERSION = '2.50';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state
@@ -369,48 +369,59 @@ export function useTranslation() {
       try {
         const cachedTranslations = JSON.parse(cachedData);
         if (cachedTranslations && typeof cachedTranslations === 'object' && Object.keys(cachedTranslations).length > 0) {
-          if (
-            typeof process !== 'undefined' &&
-            process.env.NODE_ENV !== 'production' &&
-            process.env.NEXT_PUBLIC_DEBUG_I18N === 'true'
-          ) {
-            // eslint-disable-next-line no-console
-            console.debug(`[i18n] Using cached translations for ${lang} (instant load)`);
-          }
-          translations = cachedTranslations;
-          loadedTranslationLangs.add(lang);
-          setIsReady(true);
-          setIsLoading(false);
-          notifyListeners(); // Notify immediately so UI can render
-          
-          // Single shared background refresh — no ?t= cache-bust (allows HTTP cache)
-          if (!inflightTranslationLoads.has(lang)) {
-            const bg = fetch(`/api/i18n/${lang}`, {
-              cache: 'force-cache',
-              credentials: 'same-origin',
-            })
-              .then(async (response) => {
-                if (!response.ok) return translations;
-                const newTranslations = await response.json();
-                if (newTranslations && typeof newTranslations === 'object' && Object.keys(newTranslations).length > 0) {
-                  safeLocalStorage.setItem(cacheKey, JSON.stringify(newTranslations));
-                  safeLocalStorage.setItem(cacheTimeKey, String(Date.now()));
-                  safeLocalStorage.setItem(cacheVersionKey, CACHE_VERSION);
-                  if (JSON.stringify(translations) !== JSON.stringify(newTranslations)) {
-                    translations = newTranslations;
-                    notifyListeners();
-                  }
-                }
-                return translations;
+          // Stale-cache guard: dashboard hub keys must exist or we force a network refresh.
+          const hubOk = Boolean(
+            cachedTranslations?.myHomeCheffHub?.cards?.orders?.title &&
+              cachedTranslations?.myHomeCheffHub?.cards?.hc?.title,
+          );
+          if (!hubOk) {
+            safeLocalStorage.removeItem(cacheKey);
+            safeLocalStorage.removeItem(cacheTimeKey);
+            safeLocalStorage.removeItem(cacheVersionKey);
+          } else {
+            if (
+              typeof process !== 'undefined' &&
+              process.env.NODE_ENV !== 'production' &&
+              process.env.NEXT_PUBLIC_DEBUG_I18N === 'true'
+            ) {
+              // eslint-disable-next-line no-console
+              console.debug(`[i18n] Using cached translations for ${lang} (instant load)`);
+            }
+            translations = cachedTranslations;
+            loadedTranslationLangs.add(lang);
+            setIsReady(true);
+            setIsLoading(false);
+            notifyListeners(); // Notify immediately so UI can render
+
+            // Single shared background refresh — no ?t= cache-bust (allows HTTP cache)
+            if (!inflightTranslationLoads.has(lang)) {
+              const bg = fetch(`/api/i18n/${lang}`, {
+                cache: 'force-cache',
+                credentials: 'same-origin',
               })
-              .catch(() => translations)
-              .finally(() => {
-                inflightTranslationLoads.delete(lang);
-              });
-            inflightTranslationLoads.set(lang, bg);
+                .then(async (response) => {
+                  if (!response.ok) return translations;
+                  const newTranslations = await response.json();
+                  if (newTranslations && typeof newTranslations === 'object' && Object.keys(newTranslations).length > 0) {
+                    safeLocalStorage.setItem(cacheKey, JSON.stringify(newTranslations));
+                    safeLocalStorage.setItem(cacheTimeKey, String(Date.now()));
+                    safeLocalStorage.setItem(cacheVersionKey, CACHE_VERSION);
+                    if (JSON.stringify(translations) !== JSON.stringify(newTranslations)) {
+                      translations = newTranslations;
+                      notifyListeners();
+                    }
+                  }
+                  return translations;
+                })
+                .catch(() => translations)
+                .finally(() => {
+                  inflightTranslationLoads.delete(lang);
+                });
+              inflightTranslationLoads.set(lang, bg);
+            }
+
+            return; // Exit early - cache was used, no need to fetch
           }
-          
-          return; // Exit early - cache was used, no need to fetch
         }
       } catch (e) {
         // Invalid cache, clear it and continue to fetch
