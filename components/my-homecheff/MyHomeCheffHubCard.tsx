@@ -171,6 +171,21 @@ export default function MyHomeCheffHubCard({
           : `${metrics.buyerOrderCount} bestellingen`),
     );
   }
+  if (card.id === 'hc' && metrics.hcAvailable != null) {
+    const avail = metrics.hcAvailable.toLocaleString(hubLang === 'en' ? 'en-GB' : 'nl-NL');
+    const mp =
+      metrics.hcMarketplaceEligible != null
+        ? metrics.hcMarketplaceEligible.toLocaleString(hubLang === 'en' ? 'en-GB' : 'nl-NL')
+        : null;
+    statLines.push(hubLang === 'en' ? `${avail} HC available` : `${avail} HC beschikbaar`);
+    if (mp != null && metrics.hcMarketplaceEligible !== metrics.hcAvailable) {
+      statLines.push(
+        hubLang === 'en'
+          ? `${mp} HC usable on Marketplace`
+          : `${mp} HC te gebruiken op Marketplace`,
+      );
+    }
+  }
   if (card.id === 'seller') {
     if (metrics.sellerNewOrders != null && metrics.sellerNewOrders > 0) {
       const line = t('myHomeCheffHub.metrics.sellerOrders', { count: metrics.sellerNewOrders });
@@ -235,7 +250,8 @@ export default function MyHomeCheffHubCard({
     Boolean(emptyLabel) &&
     statLines.length === 0 &&
     !loading &&
-    card.id !== 'account';
+    card.id !== 'account' &&
+    card.id !== 'hc';
 
   const secondaryHref =
     card.id === 'affiliate' && referralLink && card.secondaryHref

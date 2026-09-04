@@ -41,7 +41,11 @@ export async function GET() {
     };
 
     if (user.stripeConnectAccountId) {
-      stripeSnapshot = await refreshSellerStripeSnapshotIfStale(user.id, stripeSnapshot);
+      try {
+        stripeSnapshot = await refreshSellerStripeSnapshotIfStale(user.id, stripeSnapshot);
+      } catch (stripeErr) {
+        console.warn('[seller/action-center] stripe snapshot refresh failed; using stale', stripeErr);
+      }
     }
 
     const sellerProfileId = user.SellerProfile?.id;
@@ -104,18 +108,27 @@ export async function GET() {
       prisma,
       user.id,
       sellerProfileId,
-    );
-
-    const items = buildSellerActionItems({
-      user,
-      stripeSnapshot,
-      blockedProductsCount,
-      pendingOrdersCount,
-      unreadMessagesCount,
-      sellerUnreadOrdersCount,
-      includeOrange: true,
-      entityHints,
+    ).catch((err) => {
+      console.warn('[seller/action-center] entity hints failed', err);
+      return {} as Awaited<ReturnType<typeof fetchActionCenterEntityHints>>;
     });
+
+    let items;
+    try {
+      items = buildSellerActionItems({
+        user,
+        stripeSnapshot,
+        blockedProductsCount,
+        pendingOrdersCount,
+        unreadMessagesCount,
+        sellerUnreadOrdersCount,
+        includeOrange: true,
+        entityHints,
+      });
+    } catch (buildErr) {
+      console.error('[seller/action-center] buildSellerActionItems failed', buildErr);
+      items = [];
+    }
 
     return NextResponse.json({
       items,
@@ -126,8 +139,15 @@ export async function GET() {
   } catch (error) {
     console.error('[seller/action-center]', error);
     return NextResponse.json(
-      { error: 'Failed to load action center' },
-      { status: 500 },
+      {
+        items: [],
+        totalCount: 0,
+        healthy: true,
+        degraded: true,
+        hasSellerProfile: false,
+        error: 'Failed to load action center',
+      },
+      { status: 200 },
     );
   }
 }

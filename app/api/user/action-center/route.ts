@@ -95,7 +95,11 @@ export async function GET() {
     };
 
     if (user.stripeConnectAccountId) {
-      stripeSnapshot = await refreshSellerStripeSnapshotIfStale(user.id, stripeSnapshot);
+      try {
+        stripeSnapshot = await refreshSellerStripeSnapshotIfStale(user.id, stripeSnapshot);
+      } catch (stripeErr) {
+        console.warn('[user/action-center] stripe snapshot refresh failed; using stale', stripeErr);
+      }
     }
 
     const sellerProfileId = user.SellerProfile?.id;
@@ -184,9 +188,14 @@ export async function GET() {
       prisma,
       user.id,
       sellerProfileId,
-    );
+    ).catch((err) => {
+      console.warn('[user/action-center] entity hints failed', err);
+      return {} as Awaited<ReturnType<typeof fetchActionCenterEntityHints>>;
+    });
 
-    const items = buildUserActionItems({
+    let items;
+    try {
+      items = buildUserActionItems({
       user,
       roles: {
         hasSellerProfile,
@@ -214,6 +223,10 @@ export async function GET() {
       ),
       entityHints,
     });
+    } catch (buildErr) {
+      console.error('[user/action-center] buildUserActionItems failed', buildErr);
+      items = [];
+    }
 
     return NextResponse.json({
       items,
@@ -227,9 +240,21 @@ export async function GET() {
     });
   } catch (error) {
     console.error('[user/action-center]', error);
+    // Prefer empty actionable center over hard-failing the authenticated shell.
     return NextResponse.json(
-      { error: 'Failed to load action center' },
-      { status: 500 },
+      {
+        items: [],
+        totalCount: 0,
+        healthy: true,
+        degraded: true,
+        error: 'Failed to load action center',
+        roles: {
+          hasSellerProfile: false,
+          hasDeliveryProfile: false,
+          hasAffiliate: false,
+        },
+      },
+      { status: 200 },
     );
   }
 }

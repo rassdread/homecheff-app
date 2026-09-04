@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * HomeCheff-native proxy to Growth ecosystem affiliate dashboard (central ledger).
+ * Never hard-fail the Marketplace shell — return a degraded payload when Growth is unavailable.
  */
 export async function GET(req: Request) {
   const session = await auth();
@@ -28,6 +29,7 @@ export async function GET(req: Request) {
     "https://growth.homecheff.eu"
   ).replace(/\/$/, "");
   const secret =
+    process.env.HC_ECOSYSTEM_INTERNAL_SECRET?.trim() ||
     process.env.STUDIO_HC_INTERNAL_SECRET?.trim() ||
     process.env.HC_INTERNAL_PROBE_SECRET?.trim() ||
     process.env.GROWTH_INTERNAL_SECRET?.trim() ||
@@ -36,14 +38,57 @@ export async function GET(req: Request) {
   const source = url.searchParams.get("source") ?? "marketplace";
   const growthUrl = `${origin}/api/ecosystem/affiliate/dashboard?source=${encodeURIComponent(source)}`;
 
-  const res = await fetch(growthUrl, {
-    headers: {
-      "x-studio-hc-internal-secret": secret,
-      "x-studio-central-user-id": centralUserId,
-      "x-ecosystem-affiliate-central-user-id": centralUserId,
-    },
-    cache: "no-store",
-  });
-  const json = await res.json().catch(() => ({ ok: false, code: "GROWTH_DASHBOARD_FAILED" }));
-  return NextResponse.json(json, { status: res.status });
+  if (!secret) {
+    return NextResponse.json(
+      {
+        ok: false,
+        degraded: true,
+        code: "GROWTH_SECRET_MISSING",
+        message: "Affiliate-overzicht tijdelijk niet beschikbaar.",
+      },
+      { status: 200 },
+    );
+  }
+
+  try {
+    const res = await fetch(growthUrl, {
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        "x-studio-hc-internal-secret": secret,
+        "x-hc-ecosystem-internal-secret": secret,
+        "x-studio-central-user-id": centralUserId,
+        "x-ecosystem-affiliate-central-user-id": centralUserId,
+        "x-central-user-id": centralUserId,
+      },
+      cache: "no-store",
+    });
+    const json = await res.json().catch(() => ({
+      ok: false,
+      code: "GROWTH_DASHBOARD_FAILED",
+    }));
+    if (!res.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          degraded: true,
+          code: (json as { code?: string })?.code ?? "GROWTH_DASHBOARD_FAILED",
+          message: "Affiliate-overzicht tijdelijk niet beschikbaar.",
+          upstreamStatus: res.status,
+        },
+        { status: 200 },
+      );
+    }
+    return NextResponse.json(json, { status: 200 });
+  } catch (err) {
+    console.warn("[affiliate/ecosystem-dashboard] growth fetch failed", err);
+    return NextResponse.json(
+      {
+        ok: false,
+        degraded: true,
+        code: "GROWTH_DASHBOARD_UNAVAILABLE",
+        message: "Affiliate-overzicht tijdelijk niet beschikbaar.",
+      },
+      { status: 200 },
+    );
+  }
 }

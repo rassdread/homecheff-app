@@ -98,17 +98,6 @@ export default function SellerOrdersPageClient() {
     })();
   }, []);
 
-  useEffect(() => {
-    const hid = searchParams.get('highlight');
-    if (!hid || isLoading || filteredOrders.length === 0) return;
-    requestAnimationFrame(() => {
-      document.getElementById(`seller-order-${hid}`)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    });
-  }, [searchParams, filteredOrders, isLoading]);
-
   const loadOrders = async (opts?: { background?: boolean }) => {
     const background = opts?.background ?? false;
     try {
@@ -158,6 +147,17 @@ export default function SellerOrdersPageClient() {
 
     return filtered;
   }, [orders, statusFilter, searchQuery]);
+
+  useEffect(() => {
+    const hid = searchParams.get('highlight');
+    if (!hid || isLoading || filteredOrders.length === 0) return;
+    requestAnimationFrame(() => {
+      document.getElementById(`seller-order-${hid}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+  }, [searchParams, filteredOrders, isLoading]);
 
   const getStatusIcon = (status: string) => {
     const statusLower = status.toLowerCase();

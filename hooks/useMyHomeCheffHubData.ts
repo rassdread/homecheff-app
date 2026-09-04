@@ -14,6 +14,9 @@ export type MyHomeCheffHubMetrics = {
   deliveryActiveJobs: number | null;
   deliveryEarningsToday: number | null;
   totalEarningsCents: number | null;
+  /** Available HC from central wallet (authoritative). */
+  hcAvailable: number | null;
+  hcMarketplaceEligible: number | null;
 };
 
 const EMPTY_METRICS: MyHomeCheffHubMetrics = {
@@ -26,6 +29,8 @@ const EMPTY_METRICS: MyHomeCheffHubMetrics = {
   deliveryActiveJobs: null,
   deliveryEarningsToday: null,
   totalEarningsCents: null,
+  hcAvailable: null,
+  hcMarketplaceEligible: null,
 };
 
 const FOCUS_REFETCH_MS = 30_000;
@@ -56,6 +61,23 @@ export function useMyHomeCheffHubData(
             const json = await res.json();
             next.buyerOrderCount =
               typeof json.meta?.total === 'number' ? json.meta.total : null;
+          })
+          .catch(() => undefined),
+      );
+
+      requests.push(
+        fetch('/api/me/hc-wallet')
+          .then(async (res) => {
+            if (!res.ok) return;
+            const json = await res.json();
+            if (typeof json.availableHc === 'number') {
+              next.hcAvailable = json.availableHc;
+            }
+            if (typeof json.marketplaceEligibleHc === 'number') {
+              next.hcMarketplaceEligible = json.marketplaceEligibleHc;
+            } else if (typeof json.sellerPrincipalEligibleHc === 'number') {
+              next.hcMarketplaceEligible = json.sellerPrincipalEligibleHc;
+            }
           })
           .catch(() => undefined),
       );
