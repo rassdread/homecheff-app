@@ -13,6 +13,9 @@ import {
   calculateParentAffiliateBusinessCommission,
   applyDiscountToL1,
   LEDGER_PENDING_DAYS,
+  SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
+  PARENT_AFFILIATE_BUSINESS_COMMISSION_PCT,
+  AFFILIATE_BUSINESS_COMMISSION_PCT,
 } from './affiliate-config';
 import { CommissionLedgerEventType, CommissionLedgerStatus } from '@prisma/client';
 
@@ -198,12 +201,11 @@ export async function processCommissionForInvoice(
 /**
  * Process commission for a paid marketplace order.
  *
- * Affiliate pool = 50% of actual HomeCheff platform fee, distributed:
- * - buyer only → full pool to buyer affiliate
- * - seller only → full pool to seller affiliate
- * - both same affiliate → full pool once
- * - both different → 25% + 25% of fee
- * Sub-affiliates: 80% of that line to sub, 20% to parent (within the line).
+ * Affiliate pool = 50% of actual HomeCheff platform fee, distributed per pool cases.
+ * MAIN10_SUB40 (original HomeCheff business model): when the attributed affiliate is a partner/sub,
+ * partner receives 80% of that line and main 20% of that line.
+ * For a full 50% pool line that equals partner 40% + main 10% of the platform fee.
+ * Direct (no parent): full line (= up to 50% of fee).
  */
 export async function processCommissionForOrder(
   orderId: string,
@@ -276,8 +278,15 @@ export async function processCommissionForOrder(
       let directCents = line.commissionCents;
       let parentCents = 0;
       if (isSub && affiliate.parentAffiliateId) {
-        parentCents = Math.floor(line.commissionCents * 0.2);
+        // MAIN10_SUB40 on the affiliate line: partner 80% / main 20% of line
+        // (full-pool line ⇒ 40%/10% of platform fee — original HomeCheff business split).
+        const partnerShareOfLine =
+          SUB_AFFILIATE_BUSINESS_COMMISSION_PCT / AFFILIATE_BUSINESS_COMMISSION_PCT; // 0.8
+        const mainShareOfLine =
+          PARENT_AFFILIATE_BUSINESS_COMMISSION_PCT / AFFILIATE_BUSINESS_COMMISSION_PCT; // 0.2
+        parentCents = Math.floor(line.commissionCents * mainShareOfLine);
         directCents = line.commissionCents - parentCents;
+        void partnerShareOfLine;
         // Keep canonical tree in sync with local parent (prospective, non-blocking).
         void prisma.affiliate
           .findUnique({

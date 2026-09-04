@@ -42,6 +42,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // TWO_LEVEL_MAIN_PARTNER: only a main (no parent) may recruit partners.
+    if (parentUser.affiliate.parentAffiliateId) {
+      return NextResponse.json(
+        {
+          error:
+            "Als partner kun je geen verdere partners aanmaken. Alleen een hoofd-affiliate kan partners toevoegen.",
+          code: "PARENT_IS_PARTNER",
+        },
+        { status: 422 }
+      );
+    }
+
     // Check if target user exists
     const targetUser = await prisma.user.findUnique({
       where: { email },
