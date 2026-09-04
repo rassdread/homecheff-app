@@ -117,6 +117,14 @@ describe('authenticated persona × breakpoint matrix (TEST_ENV_CERTIFIED)', () =
     assert.equal(src.includes('/verkopen'), false);
   });
 
+  it('mobile hamburger mounts Over HomeCheff legal once (not nested in account)', () => {
+    const nav = readFileSync(join(root, 'components/NavBar.tsx'), 'utf8');
+    const account = readFileSync(join(root, 'components/navigation/SimplifiedAccountMenu.tsx'), 'utf8');
+    assert.match(nav, /includeLegalLinks=\{false\}/);
+    assert.equal((nav.match(/<NavbarLegalContactLinks/g) || []).length, 1);
+    assert.match(account, /includeLegalLinks\?: boolean/);
+  });
+
   it('NavBar avatar-only at all audited widths (no half-visible name)', () => {
     const src = readFileSync(join(root, 'components/NavBar.tsx'), 'utf8');
     assert.match(src, /Avatar-only in header chrome/);
