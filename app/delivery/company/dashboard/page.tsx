@@ -155,6 +155,28 @@ export default function DeliveryCompanyDashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const res = await fetch('/api/delivery/activate', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ active: true, isOnline: true }),
+                });
+                const data = await res.json();
+                if (!data.ok) setError(data.message || data.code || 'Activeren mislukt');
+                else setError(null);
+              } finally {
+                setBusy(false);
+              }
+            }}
+            className="rounded-xl bg-emerald-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          >
+            Activeer voor klanten
+          </button>
           <Link
             href="/delivery/settings"
             className="rounded-xl border border-gray-300 px-3 py-2 text-sm font-medium"

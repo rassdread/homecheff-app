@@ -29,10 +29,10 @@ export const OPERATIONS_ROUTES = {
     analytics: '/verkoper/analytics',
   },
   delivery: {
-    home: '/delivery/dashboard',
+    home: '/delivery',
     settings: '/delivery/settings',
     profileEditor: '/delivery/instellingen',
-    signup: '/delivery/signup',
+    signup: '/delivery/start',
   },
   affiliate: {
     home: '/affiliate/dashboard',

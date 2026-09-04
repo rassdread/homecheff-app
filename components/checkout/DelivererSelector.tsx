@@ -314,7 +314,11 @@ export default function DelivererSelector({
                       </div>
                       <div className="flex items-center space-x-1">
                         <Star className="w-3 h-3 text-yellow-500" />
-                        <span>{(deliverer.rating || 0).toFixed(1)}</span>
+                        <span>
+                          {deliverer.completedDeliveries > 0 && deliverer.rating > 0
+                            ? deliverer.rating.toFixed(1)
+                            : '—'}
+                        </span>
                       </div>
                       {typeof deliverer.estimatedArrivalMinutes === 'number' && (
                         <div className="flex items-center space-x-1">

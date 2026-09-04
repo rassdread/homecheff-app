@@ -208,11 +208,11 @@ test('flag parsing deterministic fail-closed defaults', () => {
   const flags = readDeliveryAlignmentFlags({});
   assert.equal(flags.commercialAgeGate18Enabled, true);
   assert.equal(flags.namedProviderCopyEnabled, true);
-  assert.equal(flags.providerPricingEnabled, false);
-  assert.equal(flags.namedProviderSelectionEnabled, false);
-  assert.equal(flags.businessProfilesEnabled, false);
+  assert.equal(flags.providerPricingEnabled, true);
+  assert.equal(flags.namedProviderSelectionEnabled, true);
+  assert.equal(flags.businessProfilesEnabled, true);
   assert.equal(flags.firstAcceptPoolConfiguredDefault, false);
-  assert.equal(flags.firstAcceptPoolRuntimeEnabled, true); // unset → preserve checkout
+  assert.equal(flags.firstAcceptPoolRuntimeEnabled, false); // unset → named selection SSOT
 
   const disabled = readDeliveryAlignmentFlags({
     DELIVERY_COMMERCIAL_AGE_GATE_18_ENABLED: 'false',

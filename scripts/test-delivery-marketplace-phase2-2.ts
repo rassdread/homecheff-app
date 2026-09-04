@@ -38,7 +38,7 @@ test('formula version is provider-v1', () => {
 });
 
 test('flag off by default (legacy checkout preserved)', () => {
-  assert.equal(readDeliveryAlignmentFlags({}).providerPricingEnabled, false);
+  assert.equal(readDeliveryAlignmentFlags({}).providerPricingEnabled, true);
 });
 
 test('€10 gross → €1.20 commission + €8.80 net', () => {

@@ -11,6 +11,7 @@ import {
   shouldReopenDeliveryAfterCancel,
 } from '@/lib/delivery/delivery-status';
 import { getPublicAppUrl } from '@/lib/public-app-url';
+import { resolveDeliveryOrderAccess } from '@/lib/delivery/delivery-order-access';
 
 export async function POST(
   req: NextRequest,
@@ -19,6 +20,11 @@ export async function POST(
   try {
     const session = await auth();
     if (!session?.user) {
+      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+    }
+
+    const actorUserId = (session.user as { id?: string }).id;
+    if (!actorUserId) {
       return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
     }
 
@@ -33,21 +39,21 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // Get user's delivery profile
-    const profile = await prisma.deliveryProfile.findUnique({
-      where: { userId: (session.user as any).id }
+    const access = await resolveDeliveryOrderAccess({
+      actorUserId,
+      deliveryOrderId: orderId,
     });
-
-    if (!profile) {
-      return NextResponse.json({ 
-        error: 'Geen bezorger profiel gevonden' 
-      }, { status: 404 });
+    if (!access.ok) {
+      return NextResponse.json(
+        { error: access.error, code: access.code },
+        { status: access.status },
+      );
     }
 
     const existingOrder = await prisma.deliveryOrder.findFirst({
       where: {
         id: orderId,
-        deliveryProfileId: profile.id,
+        deliveryProfileId: access.commercialProfileId,
       },
       include: {
         order: {
@@ -76,6 +82,11 @@ export async function POST(
         { status: 404 }
       );
     }
+
+    const profile = {
+      id: access.commercialProfileId,
+      userId: access.settlementUserId,
+    };
 
     const transition = assertDeliveryStatusTransition(
       existingOrder.status,
@@ -198,12 +209,12 @@ export async function POST(
       // Don't fail the request if notifications fail
     }
 
-    // If delivered, trigger payout to delivery person
+    // If delivered, trigger payout to commercial provider (company owner or individual)
     if (status === 'DELIVERED') {
       await ensureDeliveryPayout(prisma, {
         deliveryOrderId: updatedOrder.id,
         orderId: updatedOrder.orderId,
-        delivererUserId: profile.userId,
+        delivererUserId: access.settlementUserId,
         buyerUserId: updatedOrder.order.User.id,
       });
       

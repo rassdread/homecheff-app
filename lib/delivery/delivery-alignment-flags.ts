@@ -3,10 +3,9 @@
  *
  * Phase 1–2 strategy:
  * - Age gate + named-provider copy flags are ACTIVE (default true).
- * - DELIVERY_PROVIDER_PRICING_ENABLED default false — platform constants remain
- *   until explicitly enabled; when true, LOCAL_PROVIDER quotes read DeliveryProfile only.
- * - Named selection / business profiles default false (later phases).
- * - FIRST_ACCEPT_POOL: unset env → runtime true (preserve checkout). Launch intent false.
+ * - DELIVERY_PROVIDER_PRICING_ENABLED default true — LOCAL_PROVIDER quotes use DeliveryProfile.
+ * - Named selection / business profiles default true (individual + company product).
+ * - FIRST_ACCEPT_POOL: unset env → runtime false (named selection is SSOT).
  */
 
 export type DeliveryAlignmentFlags = {
@@ -38,8 +37,8 @@ function parseStrictBoolean(
   if (normalized === 'false' || normalized === '0' || normalized === 'no') {
     return false;
   }
-  // Fail closed: unknown strings → default (never truthy from "yesplease")
-  return defaultValue;
+  // Fail closed on unknown strings: never enable a commercial flag from garbage.
+  return false;
 }
 
 export type FlagEnvSource = Record<string, string | undefined>;
@@ -59,22 +58,22 @@ export function readDeliveryAlignmentFlags(
       true
     ),
     firstAcceptPoolConfiguredDefault: false,
-    // Unset → keep legacy pool running; explicit false disables (later phases).
+    // Unset → named-selection product: pool off unless explicitly enabled.
     firstAcceptPoolRuntimeEnabled:
       poolEnv === undefined || poolEnv === ''
-        ? true
-        : parseStrictBoolean(poolEnv, true),
+        ? false
+        : parseStrictBoolean(poolEnv, false),
     providerPricingEnabled: parseStrictBoolean(
       env.DELIVERY_PROVIDER_PRICING_ENABLED,
-      false
+      true
     ),
     namedProviderSelectionEnabled: parseStrictBoolean(
       env.DELIVERY_NAMED_PROVIDER_SELECTION_ENABLED,
-      false
+      true
     ),
     businessProfilesEnabled: parseStrictBoolean(
       env.DELIVERY_BUSINESS_PROFILES_ENABLED,
-      false
+      true
     ),
   };
 }

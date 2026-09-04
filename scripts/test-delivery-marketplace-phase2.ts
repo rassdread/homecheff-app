@@ -32,9 +32,9 @@ const completePricing = {
   nationalCoverage: false,
 };
 
-test('feature flag DELIVERY_PROVIDER_PRICING_ENABLED defaults false', () => {
+test('feature flag DELIVERY_PROVIDER_PRICING_ENABLED defaults true', () => {
   const flags = readDeliveryAlignmentFlags({});
-  assert.equal(flags.providerPricingEnabled, false);
+  assert.equal(flags.providerPricingEnabled, true);
 });
 
 test('feature flag can be enabled explicitly', () => {

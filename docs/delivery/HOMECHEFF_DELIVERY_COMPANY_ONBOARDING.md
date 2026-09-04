@@ -1,18 +1,10 @@
 # Company delivery onboarding
 
-Entry: `/delivery/start` → **Ik heb een bezorgbedrijf** → `/delivery/company/signup`
+1. `/delivery/start` → **Ik heb een bezorgbedrijf**
+2. `/delivery/company/signup` → creates `DELIVERY_BUSINESS` + OWNER membership
+3. Settings: company name, logo, pricing, service area
+4. Invite drivers: company dashboard → email invite → `/delivery/invite/[token]`
+5. Activate: **Activeer voor klanten**
+6. Hub: `/delivery` → company dashboard
 
-Creates:
-
-1. `DeliveryProfile` (`providerType=DELIVERY_BUSINESS`, company display fields)
-2. `DeliveryCompanyMember` role `OWNER` for the creating user
-
-Then:
-
-- `/delivery/company/dashboard` — jobs, invite drivers, assign
-- `/delivery/settings` — company price & area (company-owned)
-- Invite: POST `/api/delivery/company/drivers` → accept `/delivery/invite/[token]`
-
-Driver join: **invite-only** (no open self-join without token).
-
-Status for company profile: start `isActive=false` until configured; activate when ready.
+Drivers use the same HomeCheff identity; no separate credentials.

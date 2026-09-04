@@ -72,7 +72,7 @@ const ORDERS_HREF = '/orders';
 const PROFILE_HREF = '/profile';
 const NOTIFICATIONS_HREF = '/notifications';
 const HCP_HREF = '/mijn-hcp';
-const DELIVERY_HREF = '/delivery/dashboard';
+const DELIVERY_HREF = '/delivery';
 const AFFILIATE_HREF = '/affiliate/dashboard';
 
 const AFFILIATE_MIN_PAYOUT_CENTS = 1000;

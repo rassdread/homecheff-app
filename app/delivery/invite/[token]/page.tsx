@@ -30,7 +30,7 @@ export default function DeliveryInviteAcceptPage() {
         return;
       }
       setDone(true);
-      router.push('/delivery/dashboard');
+      router.push('/delivery');
     } catch {
       setError('Er ging iets mis');
     } finally {

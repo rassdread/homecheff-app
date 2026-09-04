@@ -66,8 +66,8 @@ test('AUTO_CONFIRM fails when pricingEnabled without fee fields', () => {
   assert.equal(r.ok, false);
 });
 
-test('named selection flag defaults false', () => {
-  assert.equal(readDeliveryAlignmentFlags({}).namedProviderSelectionEnabled, false);
+test('named selection flag defaults true', () => {
+  assert.equal(readDeliveryAlignmentFlags({}).namedProviderSelectionEnabled, true);
 });
 
 test('booking TTL is 5 minutes', () => {

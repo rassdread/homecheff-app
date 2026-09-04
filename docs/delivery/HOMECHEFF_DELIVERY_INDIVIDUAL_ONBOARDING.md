@@ -1,13 +1,9 @@
-# Individual delivery onboarding
+# Individual courier onboarding
 
-Entry: `/delivery/start` → **Ik bezorg zelf** → `/delivery/signup`
+1. `/delivery/start` → **Ik bezorg zelf**
+2. `/delivery/signup` → profile (age 18+, area, transport)
+3. `/delivery/settings` → pricing (`pricingEnabled`) + service area + availability
+4. `POST /api/delivery/activate` `{ active: true }` when gate passes
+5. Dashboard: `/delivery` → `/delivery/dashboard`
 
-Captures: age (18+ commercial), transport, availability, area, address, terms.
-
-Creates `DeliveryProfile` with `providerType=INDEPENDENT`.
-
-Dashboard: `/delivery/dashboard`  
-Settings: `/delivery/settings` (pricing, area, availability)  
-Hub: Dashboard → Bezorging
-
-No developer intervention required after signup + verify + pricing + go online.
+No developer SQL required. Settlement via profile owner + Stripe Connect onboarding in Verdiensten.
