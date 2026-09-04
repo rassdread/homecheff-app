@@ -196,14 +196,20 @@ export function MijnHomecheffHcWalletClient() {
                 {(() => {
                   const paid = data?.paidBackedHc ?? 0;
                   const promo = promotional;
-                  if (paid > 0 && promo > 0) {
-                    return `${paid.toLocaleString('nl-NL')} HC abonnementstegoed en ${promo.toLocaleString('nl-NL')} HC actietegoed zijn beschikbaar in Studio/Growth, maar niet vrijgegeven voor Marketplace-aankopen.`;
+                  if (marketplaceEligible > 0 && promo > 0 && marketplaceNotEligible === promo) {
+                    return `${marketplaceEligible.toLocaleString('nl-NL')} HC komt uit een betaald abonnement of HC-pakket en is binnen het HomeCheff-ecosysteem te gebruiken, inclusief Marketplace. ${promo.toLocaleString('nl-NL')} HC is promotietegoed met beperkte inzetbaarheid.`;
                   }
-                  if (paid > 0) {
-                    return `${paid.toLocaleString('nl-NL')} HC abonnementstegoed is beschikbaar in Studio/Growth, maar dit tegoed is niet vrijgegeven voor Marketplace-aankopen.`;
+                  if (marketplaceEligible > 0 && paid > 0 && promo === 0) {
+                    return `${marketplaceEligible.toLocaleString('nl-NL')} HC komt uit een betaald abonnement of HC-pakket en is binnen het HomeCheff-ecosysteem te gebruiken, inclusief Marketplace.`;
+                  }
+                  if (paid > 0 && promo > 0 && marketplaceEligible === 0) {
+                    return `${paid.toLocaleString('nl-NL')} HC abonnementstegoed en ${promo.toLocaleString('nl-NL')} HC actietegoed zijn beschikbaar in Studio/Growth. Marketplace-vrijgave volgt de herkomstregels van elk tegoed.`;
+                  }
+                  if (paid > 0 && marketplaceEligible === 0) {
+                    return `${paid.toLocaleString('nl-NL')} HC abonnementstegoed is beschikbaar in Studio/Growth. Marketplace-vrijgave volgt de betaal- en herkomstregels.`;
                   }
                   if (promo > 0) {
-                    return `${promo.toLocaleString('nl-NL')} HC komt uit een actie of toekenning die alleen binnen HomeCheff-diensten (Studio/Growth) gebruikt kan worden — niet automatisch voor Marketplace-aankopen.`;
+                    return `${promo.toLocaleString('nl-NL')} HC is promotietegoed met beperkte inzetbaarheid — niet automatisch voor Marketplace-aankopen.`;
                   }
                   return 'Niet al je HC is geschikt voor Marketplace-aankopen.';
                 })()}
