@@ -106,4 +106,20 @@ HC_*_REGRESSION = NO (no HC economics changes)
 ---
 
 ## Deploy
-Filled after push.
+
+| Field | Value |
+|---|---|
+| MARKETPLACE_BUILD | PASS |
+| GROWTH_BUILD | PASS |
+| STUDIO_BUILD_IF_TOUCHED | N/A |
+| TEST_TOTAL | 43 (Growth multilevel+V2 19 + MP nav/persona/pools 24) |
+| TEST_PASS | 43 |
+| TEST_FAIL | 0 |
+| MARKETPLACE_PRODUCTION_SHA | `ee7d08a5fe32d412936cd6921222e47ab1c2efae` |
+| MARKETPLACE_DEPLOYMENT_ID | `dpl_3bknsoZ4ciaDS7MkHGktBGGbFPE4` |
+| GROWTH_PRODUCTION_SHA | `70ea362fd8f3dea18097c01128b80f1f0e9227ed` |
+| GROWTH_DEPLOYMENT_ID | `dpl_D9RjfCmSDaXQ4VbLjaU9ugj2v5i6` |
+| PRODUCTION_AFFILIATE_SMOKE | LIVE_UNEXERCISED (tree empty; prospective path deployed) |
+| PRODUCTION_NAVIGATION_SMOKE | PASS (prior + avatar-only) |
+| PRODUCTION_RESPONSIVE_SMOKE | PASS (TEST_ENV matrix + avatar-only) |
+
