@@ -1,19 +1,19 @@
 # Delivery affiliate certification
 
-Eligible base = **HomeCheff delivery platform fee only** (12% of customer delivery charge).
+## Rules (unchanged)
 
-```
-affiliatePool = floor(H × 50%)
-DIRECT → up to 50% of H
-PARTNER/SUB → 40% of H + MAIN 10% of H   (MAIN10_SUB40)
-```
+- Affiliate base = HomeCheff **delivery platform fee only** (12% of customer delivery gross)
+- Courier / company **principal never commissioned**
+- DIRECT 50% / PARTNER 40% / MAIN 10% of eligible platform fee
+- One delivery economic event → max one affiliate allocation
+- Company referral is company-level; drivers under the company do not create a second delivery fee commission
+- Driver + company double attribution for the same fee = **NO**
 
-Rules:
+## Formula example (deterministic)
 
-- `COURIER_PRINCIPAL_COMMISSIONED = NO`
-- `COMPANY_PROVIDER_PRINCIPAL_COMMISSIONED = NO`
-- One delivery fee → **one** affiliate event (`orderId_delivery_{deliveryOrderId}`)
-- Company referral attaches to company/provider identity — **not** per driver
-- Driver referral must not double-claim the same fee
+Customer delivery = €7,50 (750 cents)  
+HomeCheff fee = 12% = 90 cents  
+Provider net = 88% = 660 cents  
 
-Partner 30% subscription discount does **not** apply to delivery.
+If DIRECT affiliate on platform fee: 50% × 90 = 45 cents  
+Courier/company principal commissioned = NO

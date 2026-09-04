@@ -1,17 +1,28 @@
 # First real provider runbook
 
-Do **not** create fake Public providers to certify.
+**Do not create fake public providers to certify this.**
 
-When first legitimate individual or company signs up:
+## Individual
 
-1. Onboarding complete (`/delivery/start` path)
-2. Pricing configured + area + availability
-3. Payout/Connect onboarding (`/verdiensten`)
-4. `isVerified` / `isActive` / online as per eligibility gates
-5. Controlled real Marketplace order with delivery
-6. Individual: accept → pickup → deliver → payout
-7. Company: assign driver → driver completes → company settlement
-8. Confirm affiliate event once (if attributable)
-9. Confirm zero double settlement / double assign
+1. Signup via `/delivery/start` → Ik bezorg zelf  
+2. Complete area + pricing in settings  
+3. Activate via dashboard / `POST /api/delivery/activate`  
+4. Complete Stripe Connect in Verdiensten when prompted  
+5. Place a real Marketplace order selecting this provider  
+6. Accept → pickup → deliver  
+7. Reconcile: customer price, 12% fee, 88% payout ledger, affiliate on fee only  
 
-Checklist artifacts: order id, deliveryOrder id, payout id, affiliate event id.
+## Company
+
+1. `/delivery/start` → Ik heb een bezorgbedrijf  
+2. Set company pricing + area; invite ≥1 driver  
+3. Driver accepts invite → `/delivery/driver`  
+4. Activate company  
+5. Buyer selects **company** (not employee)  
+6. Dispatcher assigns driver (reassign optional; price unchanged)  
+7. Driver completes; settlement to company owner only  
+8. Affiliate: single fee event; no driver+company double count  
+
+Until a legitimate provider completes this live:
+
+`FIRST_REAL_*_E2E_CERTIFIED = NO`
