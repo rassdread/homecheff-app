@@ -53,4 +53,14 @@
 Partners cannot create further partners (`PARENT_IS_PARTNER` / create-sub guard).
 
 ## Deploy
-Filled after push.
+
+| Field | Value |
+|---|---|
+| BUILD | PASS (Growth + Marketplace) |
+| TESTS | MAIN10_SUB40 8/8 Growth + 3/3 Marketplace |
+| GROWTH_PRODUCTION_SHA | `65701b9` |
+| GROWTH_DEPLOYMENT_ID | `dpl_3NsDfcEt9n7hhN5TdwDauWffDj3H` |
+| MARKETPLACE_PRODUCTION_SHA | `86bb24ee` |
+| MARKETPLACE_DEPLOYMENT_ID | `dpl_FPHCKATr9LcT75eDWkzcZvbW1Rkw` |
+| PRODUCTION_SMOKE | LIVE_UNEXERCISED (prospective allocation; no new money) |
+
