@@ -56,7 +56,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, code: 'NO_ITEMS' }, { status: 400, headers: NO_STORE });
     }
 
-    const ctx = await resolveHcOnlyCheckoutContext({ buyerUserId: buyer.id, items });
+    const deliveryFeeCents = Math.max(0, Math.round(Number(body?.deliveryFeeCents ?? 0)));
+    const smsNotificationCostCents = Math.max(0, Math.round(Number(body?.smsNotificationCostCents ?? 0)));
+    const deliveryMode = String(body?.deliveryMode ?? 'PICKUP');
+    const deliveryAddress =
+      typeof body?.address === 'string' ? body.address : typeof body?.deliveryAddress === 'string' ? body.deliveryAddress : null;
+    const deliveryProfileId =
+      typeof body?.selectedDeliveryProfileId === 'string'
+        ? body.selectedDeliveryProfileId
+        : typeof body?.deliveryProfileId === 'string'
+          ? body.deliveryProfileId
+          : null;
+
+    const ctx = await resolveHcOnlyCheckoutContext({
+      buyerUserId: buyer.id,
+      items,
+      deliveryFeeCents,
+      smsNotificationCostCents,
+      deliveryMode,
+      deliveryAddress,
+      deliveryProfileId,
+    });
     if ('error' in ctx) {
       return NextResponse.json({ ok: false, code: ctx.code, message: ctx.error }, { status: 403, headers: NO_STORE });
     }

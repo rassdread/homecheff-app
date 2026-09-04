@@ -52,15 +52,27 @@ export type ResolvedHcCheckoutContext = {
   productId: string;
   quantity: number;
   orderTotalCents: number;
+  productsTotalCents: number;
+  deliveryFeeCents: number;
   requiredHc: number;
   trustedOrder: TrustedOrderPayload;
   sellerUserId: string;
-  deliveryMode: 'PICKUP';
+  /** Prisma Order.deliveryMode enum value */
+  deliveryMode: 'PICKUP' | 'DELIVERY' | 'SHIPPING';
+  /** Mode used for DeliveryOrder / match (LOCAL_PROVIDER allowed) */
+  localDeliveryMode: string;
+  deliveryAddress: string | null;
+  deliveryProfileId: string | null;
 };
 
 export async function resolveHcOnlyCheckoutContext(input: {
   buyerUserId: string;
   items: Array<{ productId: string; quantity: number }>;
+  deliveryFeeCents?: number;
+  smsNotificationCostCents?: number;
+  deliveryMode?: string;
+  deliveryAddress?: string | null;
+  deliveryProfileId?: string | null;
 }): Promise<ResolvedHcCheckoutContext | { error: string; code: string }> {
   if (input.items.length !== 1) {
     return { error: 'HC_ONLY pilot supports single-item checkout.', code: 'HC_ONLY_SINGLE_ITEM' };
@@ -86,7 +98,10 @@ export async function resolveHcOnlyCheckoutContext(input: {
   if (!product?.isActive) return { error: 'Product not found or inactive.', code: 'PRODUCT_INACTIVE' };
 
   const quantity = Math.max(1, Math.floor(item.quantity));
-  const orderTotalCents = product.priceCents * quantity;
+  const productsTotalCents = product.priceCents * quantity;
+  const deliveryFeeCents = Math.max(0, Math.floor(input.deliveryFeeCents ?? 0));
+  const smsCents = Math.max(0, Math.floor(input.smsNotificationCostCents ?? 0));
+  const orderTotalCents = productsTotalCents + deliveryFeeCents + smsCents;
   const requiredHc = Math.floor(orderTotalCents / HC_FACE_CENTS_PER_HC);
   const centralUserId = await resolveCentralUserId(input.buyerUserId);
   if (!centralUserId) return { error: 'Identity not linked.', code: 'IDENTITY_UNLINKED' };
@@ -101,6 +116,26 @@ export async function resolveHcOnlyCheckoutContext(input: {
     const msg = e instanceof Error ? e.message : String(e);
     return { error: msg, code: 'HC_PILOT_DENIED' };
   }
+
+  const { normalizeHcDeliveryMode, isLocalDeliveryMode } = await import(
+    '@/lib/hc/marketplace-hc-delivery-economics'
+  );
+  let deliveryMode = normalizeHcDeliveryMode(input.deliveryMode);
+  if (deliveryFeeCents > 0 && !isLocalDeliveryMode(deliveryMode) && deliveryMode !== 'SHIPPING') {
+    deliveryMode = 'LOCAL_PROVIDER';
+  }
+  if (deliveryFeeCents <= 0) {
+    deliveryMode = 'PICKUP';
+  }
+  // Order.deliveryMode enum is PICKUP|DELIVERY|SHIPPING|BOTH — map local provider → DELIVERY.
+  const orderDeliveryMode: 'PICKUP' | 'DELIVERY' | 'SHIPPING' =
+    deliveryMode === 'LOCAL_PROVIDER' || deliveryMode === 'TEEN_DELIVERY'
+      ? 'DELIVERY'
+      : deliveryMode === 'SHIPPING'
+        ? 'SHIPPING'
+        : deliveryMode === 'PICKUP'
+          ? 'PICKUP'
+          : 'DELIVERY';
 
   const orderId = crypto.randomUUID();
   const trustedOrder: TrustedOrderPayload = {
@@ -124,10 +159,16 @@ export async function resolveHcOnlyCheckoutContext(input: {
     productId: product.id,
     quantity,
     orderTotalCents,
+    productsTotalCents,
+    deliveryFeeCents,
     requiredHc,
     trustedOrder,
     sellerUserId,
-    deliveryMode: 'PICKUP',
+    deliveryMode: orderDeliveryMode,
+    deliveryAddress: input.deliveryAddress ?? null,
+    deliveryProfileId: input.deliveryProfileId ?? null,
+    /** Canonical mode for DeliveryOrder attachment (may be LOCAL_PROVIDER). */
+    localDeliveryMode: deliveryMode,
   };
 }
 
@@ -148,7 +189,8 @@ export async function createHcOnlyOrderWithReserve(ctx: ResolvedHcCheckoutContex
   const fee = await growthResolveMarketplaceFeeSnapshot({
     orderId: ctx.trustedOrder.orderId,
     sellerCentralUserId: ctx.trustedOrder.sellerCentralUserId,
-    orderTotalCents: ctx.orderTotalCents,
+    // Seller GMV excludes HomeCheff courier delivery (settled 12/88 separately).
+    orderTotalCents: ctx.productsTotalCents,
     paymentMethod: 'HC_ONLY',
     categoryKey: ctx.trustedOrder.categoryKey,
     geographyKey: ctx.trustedOrder.geographyKey,
@@ -187,7 +229,8 @@ export async function createHcOnlyOrderWithReserve(ctx: ResolvedHcCheckoutContex
           status: 'PENDING',
           paymentMethod: 'HC_ONLY',
           totalAmount: ctx.orderTotalCents,
-          deliveryMode: 'PICKUP',
+          deliveryMode: ctx.deliveryMode,
+          deliveryAddress: ctx.deliveryAddress,
           stripeSessionId: null,
           paymentHeld: false,
           payoutTrigger: null,
@@ -196,6 +239,13 @@ export async function createHcOnlyOrderWithReserve(ctx: ResolvedHcCheckoutContex
           buyerCentralUserId: ctx.centralUserId,
           platformFeeCollected: false,
           hcFeeSnapshot,
+          notes: JSON.stringify({
+            hcDeliveryPolicy: 'hc_full_delivery_v1',
+            productsTotalCents: ctx.productsTotalCents,
+            deliveryFeeCents: ctx.deliveryFeeCents,
+            deliveryProfileId: ctx.deliveryProfileId,
+            localDeliveryMode: ctx.localDeliveryMode,
+          }),
         },
       });
       await tx.orderItem.create({
@@ -203,11 +253,24 @@ export async function createHcOnlyOrderWithReserve(ctx: ResolvedHcCheckoutContex
           orderId: newOrder.id,
           productId: ctx.productId,
           quantity: ctx.quantity,
-          priceCents: Math.floor(ctx.orderTotalCents / ctx.quantity),
+          priceCents: Math.floor(ctx.productsTotalCents / ctx.quantity),
         },
       });
       return newOrder;
     });
+
+    if (ctx.deliveryFeeCents > 0) {
+      const { attachHcPaidDeliveryEconomics } = await import('@/lib/hc/marketplace-hc-delivery');
+      await attachHcPaidDeliveryEconomics({
+        orderId: order.id,
+        buyerUserId: ctx.buyerUserId,
+        deliveryFeeCents: ctx.deliveryFeeCents,
+        deliveryMode: ctx.localDeliveryMode,
+        deliveryAddress: ctx.deliveryAddress,
+        deliveryProfileId: ctx.deliveryProfileId,
+        quotedFeeCents: ctx.deliveryFeeCents,
+      });
+    }
 
     return {
       ok: true as const,
@@ -319,10 +382,14 @@ export async function fulfillHcOnlyOrderCapture(orderId: string) {
     sellerUserId,
     buyerCentralUserId: order.buyerCentralUserId,
     hcCaptured: capture.capturedHc,
-    grossOrderCents: order.totalAmount,
+    // Seller exposure is product GMV only; delivery is separate 12/88.
+    grossOrderCents: parseStoredHcFeeSnapshot(order.hcFeeSnapshot)?.orderTotalCents ?? order.totalAmount,
     feeSnapshot: parseStoredHcFeeSnapshot(order.hcFeeSnapshot),
   });
   await markSettlementExposureEarned(orderId);
+
+  // Delivery affiliate accrues at order create for HC_ONLY (payment-method neutral).
+  // Provider EUR principal settles on DELIVERED via ensureDeliveryPayout.
 
   await prisma.order.update({
     where: { id: orderId },

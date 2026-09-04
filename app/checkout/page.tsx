@@ -804,7 +804,14 @@ export default function CheckoutPage() {
           const hcOnlyRes = await fetch('/api/checkout/hc-only', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items: checkoutItems.map((i) => ({ productId: i.productId, quantity: i.quantity })) }),
+            body: JSON.stringify({
+              items: checkoutItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+              deliveryFeeCents,
+              smsNotificationCostCents,
+              deliveryMode: deliveryModeOutbound,
+              address: fullAddress,
+              selectedDeliveryProfileId: selectedDeliverer?.id || undefined,
+            }),
           });
           const hcOnlyData = await hcOnlyRes.json();
           if (!hcOnlyRes.ok || !hcOnlyData.ok) {

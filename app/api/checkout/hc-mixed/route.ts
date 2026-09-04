@@ -63,7 +63,11 @@ export async function POST(req: NextRequest) {
     const smsNotificationCostCents = Math.max(0, Math.round(Number(body?.smsNotificationCostCents ?? 0)));
     const deliveryModeRaw = String(body?.deliveryMode ?? 'PICKUP').toUpperCase();
     const deliveryMode =
-      deliveryModeRaw === 'DELIVERY' || deliveryModeRaw === 'SHIPPING' || deliveryModeRaw === 'PICKUP'
+      deliveryModeRaw === 'DELIVERY' ||
+      deliveryModeRaw === 'SHIPPING' ||
+      deliveryModeRaw === 'PICKUP' ||
+      deliveryModeRaw === 'LOCAL_PROVIDER' ||
+      deliveryModeRaw === 'TEEN_DELIVERY'
         ? deliveryModeRaw
         : 'PICKUP';
 
@@ -119,6 +123,8 @@ export async function POST(req: NextRequest) {
           requestedHc: String(created.requestedHc),
           orderTotalCents: String(created.orderTotalCents),
           remainingEurCents: String(created.remainingEurCents),
+          deliveryFeeCents: String(ctx.deliveryFeeCents),
+          deliveryMode: ctx.localDeliveryMode,
           economicPolicyVersion: created.economicPolicyVersion,
           orderCreated: 'true',
           ...marketplaceUtmToStripeMetadata(await readMarketplaceUtmFromCookies()),

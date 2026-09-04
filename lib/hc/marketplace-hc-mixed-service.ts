@@ -26,6 +26,10 @@ import {
   resolveCentralUserId,
 } from '@/lib/hc/marketplace-hc-order-service';
 import { evaluateCheckoutFloor } from '@/lib/marketplace/checkout-floor';
+import {
+  isLocalDeliveryMode,
+  normalizeHcDeliveryMode,
+} from '@/lib/hc/marketplace-hc-delivery-economics';
 
 const HC_FACE_CENTS_PER_HC = 1;
 export const HC_ECONOMIC_POLICY_VERSION = 'model_a_v1';
@@ -107,6 +111,19 @@ export async function resolveMixedHcCheckoutContext(input: MixedHcCheckoutInput)
   }
 
   const orderId = crypto.randomUUID();
+  let deliveryMode = normalizeHcDeliveryMode(input.deliveryMode);
+  if (deliveryFeeCents > 0 && !isLocalDeliveryMode(deliveryMode) && deliveryMode !== 'SHIPPING') {
+    deliveryMode = 'LOCAL_PROVIDER';
+  }
+  const orderDeliveryMode: 'PICKUP' | 'DELIVERY' | 'SHIPPING' =
+    deliveryMode === 'LOCAL_PROVIDER' || deliveryMode === 'TEEN_DELIVERY'
+      ? 'DELIVERY'
+      : deliveryMode === 'SHIPPING'
+        ? 'SHIPPING'
+        : deliveryMode === 'PICKUP'
+          ? 'PICKUP'
+          : 'DELIVERY';
+
   const trustedOrder: TrustedOrderPayload = {
     orderId,
     listingId: product.id,
@@ -134,7 +151,8 @@ export async function resolveMixedHcCheckoutContext(input: MixedHcCheckoutInput)
     remainingEurCents,
     trustedOrder,
     sellerUserId,
-    deliveryMode: input.deliveryMode,
+    deliveryMode: orderDeliveryMode,
+    localDeliveryMode: deliveryMode,
   };
 }
 
@@ -148,6 +166,7 @@ export async function createMixedHcOrderWithReserve(ctx: MixedHcResolved) {
     centralUserId: ctx.centralUserId,
     trustedOrder: ctx.trustedOrder,
     amountHc: ctx.requestedHc,
+    billingMode: 'MIXED_HC_EUR',
   });
 
   if (!reserve) {
@@ -160,7 +179,8 @@ export async function createMixedHcOrderWithReserve(ctx: MixedHcResolved) {
   const fee = await growthResolveMarketplaceFeeSnapshot({
     orderId: ctx.trustedOrder.orderId,
     sellerCentralUserId: ctx.trustedOrder.sellerCentralUserId,
-    orderTotalCents: ctx.orderTotalCents,
+    // Seller GMV excludes courier delivery gross.
+    orderTotalCents: ctx.productsTotalCents,
     paymentMethod: 'MIXED_HC_EUR',
     categoryKey: ctx.trustedOrder.categoryKey,
     geographyKey: ctx.trustedOrder.geographyKey,
@@ -189,7 +209,7 @@ export async function createMixedHcOrderWithReserve(ctx: MixedHcResolved) {
           status: 'PENDING',
           paymentMethod: 'MIXED_HC_EUR',
           totalAmount: ctx.orderTotalCents,
-          deliveryMode: ctx.deliveryMode as 'PICKUP' | 'DELIVERY' | 'SHIPPING',
+          deliveryMode: ctx.deliveryMode,
           stripeSessionId: null,
           paymentHeld: true,
           payoutTrigger: null,
@@ -200,11 +220,15 @@ export async function createMixedHcOrderWithReserve(ctx: MixedHcResolved) {
           hcFeeSnapshot,
           notes: JSON.stringify({
             economicPolicyVersion: HC_ECONOMIC_POLICY_VERSION,
+            hcDeliveryPolicy: 'hc_full_delivery_v1',
             hcSelected: ctx.requestedHc,
             hcRedemptionCents: ctx.requestedHc * HC_FACE_CENTS_PER_HC,
             buyerStripeEurCents: ctx.remainingEurCents,
             treasuryFundedEurCents: ctx.requestedHc * HC_FACE_CENTS_PER_HC,
             paymentMode: 'MIXED',
+            productsTotalCents: ctx.productsTotalCents,
+            deliveryFeeCents: ctx.deliveryFeeCents,
+            localDeliveryMode: ctx.localDeliveryMode,
           }),
         },
       });
@@ -218,6 +242,17 @@ export async function createMixedHcOrderWithReserve(ctx: MixedHcResolved) {
       });
       return newOrder;
     });
+
+    if (ctx.deliveryFeeCents > 0) {
+      const { attachHcPaidDeliveryEconomics } = await import('@/lib/hc/marketplace-hc-delivery');
+      await attachHcPaidDeliveryEconomics({
+        orderId: order.id,
+        buyerUserId: ctx.buyerUserId,
+        deliveryFeeCents: ctx.deliveryFeeCents,
+        deliveryMode: ctx.localDeliveryMode,
+        quotedFeeCents: ctx.deliveryFeeCents,
+      });
+    }
 
     return {
       ok: true as const,
@@ -287,7 +322,7 @@ export async function finalizeMixedHcAfterStripePaid(orderId: string) {
     sellerUserId,
     buyerCentralUserId: order.buyerCentralUserId,
     hcCaptured: capture.capturedHc,
-    grossOrderCents: order.totalAmount,
+    grossOrderCents: parseStoredHcFeeSnapshot(order.hcFeeSnapshot)?.orderTotalCents ?? order.totalAmount,
     feeSnapshot: parseStoredHcFeeSnapshot(order.hcFeeSnapshot),
   });
   await markSettlementExposureEarned(orderId);
