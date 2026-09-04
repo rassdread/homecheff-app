@@ -553,7 +553,7 @@ export default function NavBar() {
           </nav>
 
           {/* Rechtercluster: language + auth altijd buiten de nav-flex; hamburger < lg */}
-          <div className="ml-auto flex items-center gap-1 sm:gap-1.5 shrink-0 pl-1">
+          <div className="ml-auto flex max-w-[min(100%,32rem)] items-center justify-end gap-1 sm:gap-1.5 shrink-0 pl-1 min-w-0 overflow-x-clip">
             {/* WX 1C.1 P0 — Landscape Create invariant (xl+ already has desktop primary). */}
             {showLandscapeCreate ? (
               <button
@@ -586,11 +586,12 @@ export default function NavBar() {
                 </span>
               </button>
             ) : null}
-            <div className="hidden xl:block shrink-0">
+            {/* 2xl+: language + Ontdek — keep xl–2xl header from overflowing (~1366/1440). */}
+            <div className="hidden 2xl:block shrink-0">
               <LanguageSwitcher />
             </div>
             {/* Ecosystem discovery — desktop top chrome (guest + auth). Not buried in profile. */}
-            <div className="hidden xl:block shrink-0">
+            <div className="hidden 2xl:block shrink-0">
               <OntdekHomeCheffMenu
                 currentProduct={ecosystemCurrentProduct}
                 authenticated={status === 'authenticated'}
