@@ -1687,8 +1687,10 @@
       "delivery": {
         "title": "Bezorging",
         "description": "Beschikbare opdrachten en je bezorgactiviteit.",
+        "onboardingDescription": "Bezorg zelf of met je bezorgbedrijf via HomeCheff.",
         "empty": "Je hebt nog geen bezorgopdrachten.",
-        "primary": "Bekijk bezorgdashboard"
+        "primary": "Bekijk bezorgdashboard",
+        "onboardingPrimary": "Word bezorgpartner"
       },
       "earnings": {
         "title": "Verdiensten",

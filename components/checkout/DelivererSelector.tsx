@@ -20,8 +20,12 @@ export interface Deliverer {
   id: string;
   userId: string;
   name: string;
+  displayName?: string;
   place: string;
   profileImage?: string;
+  companyLogoUrl?: string | null;
+  providerType?: string;
+  providerKind?: 'INDIVIDUAL' | 'COMPANY';
   vehicleType: string;
   deliveryRadius: number;
   distanceToSeller: number;
@@ -183,13 +187,24 @@ export default function DelivererSelector({
 
   if (deliverers.length === 0) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-        <div className="flex items-center">
-          <AlertCircle className="w-5 h-5 text-yellow-500 mr-2" />
-          <span className="text-yellow-700">
-            {t('delivererSelector.noDeliverersAvailableNearby')}
-          </span>
+      <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div className="space-y-1 text-sm text-amber-950">
+            <p className="font-medium">
+              Er is op dit moment nog geen HomeCheff-bezorgpartner beschikbaar in jouw buurt.
+            </p>
+            <p className="text-amber-900/90">
+              Kies afhalen of een andere leveroptie als die beschikbaar is, of probeer later opnieuw.
+            </p>
+          </div>
         </div>
+        <a
+          href="/delivery/start"
+          className="inline-flex text-sm font-medium text-emerald-800 underline"
+        >
+          Wil je bezorgen via HomeCheff?
+        </a>
       </div>
     );
   }
@@ -247,7 +262,18 @@ export default function DelivererSelector({
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start space-x-3 min-w-0">
                   <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden shrink-0">
-                    {deliverer.profileImage ? (
+                    {deliverer.providerKind === 'COMPANY' ||
+                    deliverer.providerType === 'DELIVERY_BUSINESS' ? (
+                      deliverer.companyLogoUrl ? (
+                        <img
+                          src={deliverer.companyLogoUrl}
+                          alt={deliverer.displayName || deliverer.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Truck className="h-5 w-5 text-sky-700" />
+                      )
+                    ) : deliverer.profileImage ? (
                       <img
                         src={deliverer.profileImage}
                         alt={deliverer.name}
@@ -255,14 +281,22 @@ export default function DelivererSelector({
                       />
                     ) : (
                       <span className="text-gray-500 font-medium text-lg">
-                        {(deliverer.name || '?').charAt(0).toUpperCase()}
+                        {(deliverer.displayName || deliverer.name || '?').charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="font-medium text-gray-900">{deliverer.name}</h4>
+                      <h4 className="font-medium text-gray-900">
+                        {deliverer.displayName || deliverer.name}
+                      </h4>
+                      {(deliverer.providerKind === 'COMPANY' ||
+                        deliverer.providerType === 'DELIVERY_BUSINESS') && (
+                        <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">
+                          Bezorgdienst
+                        </span>
+                      )}
                       {selectedDelivererId === deliverer.id && (
                         <CheckCircle className="w-5 h-5 text-green-500" />
                       )}

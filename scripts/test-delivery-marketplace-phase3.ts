@@ -160,12 +160,16 @@ test('schema has acceptanceMode and booking request model', () => {
   assert.ok(schema.includes('providerType'));
 });
 
-test('no company-driver hierarchy / dispatch engine', () => {
-  const accept = read('lib/delivery/provider-acceptance.ts');
-  assert.ok(!accept.includes('assignDriver'));
-  assert.ok(!accept.includes('dispatchEngine'));
-  const booking = read('lib/delivery/booking-request-service.ts');
-  assert.ok(!booking.includes('reassign'));
+test('company membership + dispatch exist (manual MVP)', () => {
+  const auth = read('lib/delivery/company-auth.ts');
+  assert.ok(auth.includes('assertCompanyDispatcher'));
+  const dispatch = read('lib/delivery/company-dispatch.ts');
+  assert.ok(dispatch.includes('assignDriverToDeliveryOrder'));
+  assert.ok(dispatch.includes('priceChanged: false'));
+  const schema = read('prisma/schema.prisma');
+  assert.ok(schema.includes('DeliveryCompanyMember'));
+  assert.ok(schema.includes('DeliveryCompanyInvite'));
+  assert.ok(schema.includes('assignedDriverUserId'));
 });
 
 test('match-deliverers exposes confirmation mode contract', () => {

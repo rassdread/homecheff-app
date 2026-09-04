@@ -104,6 +104,8 @@ export async function GET(req: NextRequest) {
         nationalCoverage: true,
         acceptanceMode: true,
         providerType: true,
+        companyDisplayName: true,
+        companyLogoUrl: true,
         temporaryOffline: true,
         workStartTime: true,
         workEndTime: true,
@@ -392,6 +394,16 @@ export async function GET(req: NextRequest) {
           calculatedDeliveryPrice,
           acceptanceMode: delivery.acceptanceMode || 'MANUAL_CONFIRM',
           providerType: delivery.providerType || 'INDEPENDENT',
+          companyDisplayName: (delivery as any).companyDisplayName || null,
+          companyLogoUrl: (delivery as any).companyLogoUrl || null,
+          displayName:
+            String(delivery.providerType || '').toUpperCase() === 'DELIVERY_BUSINESS'
+              ? (delivery as any).companyDisplayName || delivery.user.name || 'Bezorgdienst'
+              : delivery.user.name,
+          providerKind:
+            String(delivery.providerType || '').toUpperCase() === 'DELIVERY_BUSINESS'
+              ? 'COMPANY'
+              : 'INDIVIDUAL',
           confirmationMode:
             delivery.acceptanceMode === ACCEPTANCE_MODE_AUTO
               ? 'AUTO_CONFIRM'

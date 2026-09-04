@@ -127,7 +127,7 @@ export default function WerkenBijPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {/* Bezorging Tile */}
           <button
-            onClick={() => router.push('/delivery/signup')}
+            onClick={() => router.push('/delivery/start')}
             className="bg-white rounded-2xl shadow-sm p-8 hover:shadow-lg transition-all duration-200 text-left group border-2 border-transparent hover:border-primary-200"
           >
             <div className="flex items-start gap-4">

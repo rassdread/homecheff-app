@@ -48,8 +48,10 @@ const NL = {
     delivery: {
       title: 'Bezorging',
       description: 'Beschikbare opdrachten en je bezorgactiviteit.',
+      onboardingDescription: 'Bezorg zelf of met je bezorgbedrijf via HomeCheff.',
       empty: 'Je hebt nog geen bezorgopdrachten.',
       primary: 'Bekijk bezorgdashboard',
+      onboardingPrimary: 'Word bezorgpartner',
     },
     earnings: {
       title: 'Verdiensten',
@@ -126,8 +128,10 @@ const EN = {
     delivery: {
       title: 'Delivery',
       description: 'Available jobs and your delivery activity.',
+      onboardingDescription: 'Deliver yourself or with your delivery company via HomeCheff.',
       empty: 'No delivery jobs yet.',
       primary: 'View delivery dashboard',
+      onboardingPrimary: 'Become a delivery partner',
     },
     earnings: {
       title: 'Earnings',

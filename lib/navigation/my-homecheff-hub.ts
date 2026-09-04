@@ -129,6 +129,15 @@ export function listMyHomeCheffCards(ctx: SettingsHubContext): MyHomeCheffCardDe
       primaryHref: OPERATIONS_ROUTES.delivery.home,
       primaryLabelKey: 'myHomeCheffHub.cards.delivery.primary',
     });
+  } else {
+    cards.push({
+      id: 'delivery',
+      mode: 'onboarding',
+      titleKey: 'myHomeCheffHub.cards.delivery.title',
+      descriptionKey: 'myHomeCheffHub.cards.delivery.onboardingDescription',
+      primaryHref: '/delivery/start',
+      primaryLabelKey: 'myHomeCheffHub.cards.delivery.onboardingPrimary',
+    });
   }
 
   if (userHasEarningRole(ctx)) {

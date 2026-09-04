@@ -131,6 +131,12 @@ model User {
   DeliveryProfile                        DeliveryProfile?
   deliveryBookingRequestsAsBuyer         DeliveryBookingRequest[]  @relation("DeliveryBookingRequestBuyer")
   deliveryReviewsAsReviewer              DeliveryReview[]          @relation("DeliveryReviewReviewer")
+  deliveryCompanyMemberships             DeliveryCompanyMember[]   @relation("DeliveryCompanyMemberUser")
+  deliveryCompanyInvitesSent             DeliveryCompanyInvite[]   @relation("DeliveryCompanyInviteInviter")
+  deliveryOrdersAsAssignedDriver         DeliveryOrder[]           @relation("DeliveryOrderAssignedDriver")
+  deliveryDriverAssignmentEventsAsActor  DeliveryDriverAssignmentEvent[] @relation("DeliveryDriverAssignmentActor")
+  deliveryDriverAssignmentEventsAsFrom   DeliveryDriverAssignmentEvent[] @relation("DeliveryDriverAssignmentFrom")
+  deliveryDriverAssignmentEventsAsTo     DeliveryDriverAssignmentEvent[] @relation("DeliveryDriverAssignmentTo")
   DeviceToken                            DeviceToken[]
   Dish                                   Dish[]
   dynamicSeller                          DynamicSeller?
@@ -1771,8 +1777,12 @@ model DeliveryProfile {
   nationalCoverage     Boolean                       @default(false)
   /// Phase 3: provider-controlled booking rules (marketplace; not platform dispatch).
   acceptanceMode                 String   @default("MANUAL_CONFIRM") // AUTO_CONFIRM | MANUAL_CONFIRM
-  /// INDEPENDENT | DELIVERY_BUSINESS (PakjeBezorgen-ready; same architecture)
+  /// INDEPENDENT | DELIVERY_BUSINESS — commercial provider identity for matching/settlement
   providerType                   String   @default("INDEPENDENT")
+  /// Company display fields (used when providerType = DELIVERY_BUSINESS)
+  companyDisplayName             String?
+  companyLogoUrl                 String?
+  companyDescription             String?
   workStartTime                  String?  // HH:mm
   workEndTime                    String?  // HH:mm
   breakWindows                   Json?    // [{ start: "HH:mm", end: "HH:mm" }]
@@ -1788,12 +1798,74 @@ model DeliveryProfile {
   deliveryOrders       DeliveryOrder[]
   bookingRequests      DeliveryBookingRequest[]
   calendarEntries      DeliveryCalendarEntry[]
+  companyMembers       DeliveryCompanyMember[]
+  companyInvites       DeliveryCompanyInvite[]
+  driverAssignmentEvents DeliveryDriverAssignmentEvent[]
   user                 User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews              DeliveryReview[]
   shiftNotifications   ShiftNotification[]
   vehiclePhotos        VehiclePhoto[]
 
   @@map("DeliveryProfile")
+}
+
+/// Membership of a user under a DELIVERY_BUSINESS DeliveryProfile (company provider).
+model DeliveryCompanyMember {
+  id               String                      @id @default(cuid())
+  companyProfileId String
+  userId           String
+  role             DeliveryCompanyMemberRole
+  status           DeliveryCompanyMemberStatus @default(ACTIVE)
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
+  disabledAt       DateTime?
+  companyProfile   DeliveryProfile             @relation(fields: [companyProfileId], references: [id], onDelete: Cascade)
+  user             User                        @relation("DeliveryCompanyMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyProfileId, userId])
+  @@index([userId])
+  @@index([companyProfileId, status])
+  @@map("DeliveryCompanyMember")
+}
+
+model DeliveryCompanyInvite {
+  id               String                       @id @default(cuid())
+  companyProfileId String
+  email            String
+  role             DeliveryCompanyMemberRole    @default(DRIVER)
+  status           DeliveryCompanyInviteStatus  @default(PENDING)
+  tokenHash        String                       @unique
+  invitedByUserId  String
+  expiresAt        DateTime
+  acceptedAt       DateTime?
+  acceptedUserId   String?
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+  companyProfile   DeliveryProfile              @relation(fields: [companyProfileId], references: [id], onDelete: Cascade)
+  invitedBy        User                         @relation("DeliveryCompanyInviteInviter", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+
+  @@index([companyProfileId, status])
+  @@index([email])
+  @@map("DeliveryCompanyInvite")
+}
+
+model DeliveryDriverAssignmentEvent {
+  id               String          @id @default(cuid())
+  deliveryOrderId  String
+  companyProfileId String
+  fromDriverUserId String?
+  toDriverUserId   String?
+  actorUserId      String
+  reason           String?
+  createdAt        DateTime        @default(now())
+  companyProfile   DeliveryProfile @relation(fields: [companyProfileId], references: [id], onDelete: Cascade)
+  actor            User            @relation("DeliveryDriverAssignmentActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  fromDriver       User?           @relation("DeliveryDriverAssignmentFrom", fields: [fromDriverUserId], references: [id], onDelete: SetNull)
+  toDriver         User?           @relation("DeliveryDriverAssignmentTo", fields: [toDriverUserId], references: [id], onDelete: SetNull)
+
+  @@index([deliveryOrderId])
+  @@index([companyProfileId])
+  @@map("DeliveryDriverAssignmentEvent")
 }
 
 /// Phase 3: targeted pre-checkout booking request (manual accept or auto-confirmed).
@@ -2058,10 +2130,16 @@ model DeliveryOrder {
   minimumFeeCentsSnapshot        Int?
   freeDeliveryRadiusKmSnapshot   Float?
   quoteLockedAt                  DateTime?
+  /// Company dispatch: operational driver under DELIVERY_BUSINESS provider (does not change price/settlement owner).
+  assignedDriverUserId           String?
+  assignedAt                     DateTime?
+  assignedByUserId               String?
   deliveryProfile      DeliveryProfile? @relation(fields: [deliveryProfileId], references: [id])
+  assignedDriver       User?            @relation("DeliveryOrderAssignedDriver", fields: [assignedDriverUserId], references: [id], onDelete: SetNull)
   order                Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product              Product?         @relation(fields: [productId], references: [id])
 
+  @@index([assignedDriverUserId])
   @@map("DeliveryOrder")
 }
 
@@ -2754,6 +2832,25 @@ enum CourierAssignmentStatus {
   ACCEPTED
   COMPLETED
   CANCELLED
+}
+
+enum DeliveryCompanyMemberRole {
+  OWNER
+  DISPATCHER
+  DRIVER
+}
+
+enum DeliveryCompanyMemberStatus {
+  ACTIVE
+  DISABLED
+  REMOVED
+}
+
+enum DeliveryCompanyInviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
 }
 
 enum MessageType {
