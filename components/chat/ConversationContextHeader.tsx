@@ -72,7 +72,7 @@ export default function ConversationContextHeader({ header, className }: Props) 
               href={product.href}
               className="rounded-lg bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200 hover:bg-emerald-50"
             >
-              {tOr('chat.context.viewOffer', 'View offer', 'Bekijk aanbod')}
+              {tOr('chat.context.viewItem', 'View item', 'Bekijk item')}
             </Link>
             {product.canCheckout ? (
               <Link

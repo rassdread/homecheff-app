@@ -44,7 +44,7 @@ export default function ProposalProductSummary({ product }: Props) {
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 space-y-2">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-indigo-800">
-        {t("proposal.productBinding.summaryHeading")}
+        {t("proposal.productBinding.proposalForHeading")}
       </p>
       <div className="flex gap-3">
         {product.imageUrl ? (
@@ -60,13 +60,16 @@ export default function ProposalProductSummary({ product }: Props) {
           <div className="h-14 w-14 rounded-lg bg-indigo-100 shrink-0" />
         )}
         <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-indigo-900 line-clamp-2">
+            {product.title}
+          </p>
+          <p className="text-sm font-medium text-indigo-800">{priceLabel}</p>
           <Link
             href={product.href}
-            className="text-sm font-semibold text-indigo-900 hover:underline line-clamp-2"
+            className="mt-0.5 inline-block text-[11px] font-medium text-indigo-700 hover:underline"
           >
-            {product.title}
+            {t("proposal.actions.viewItem")}
           </Link>
-          <p className="text-sm font-medium text-indigo-800">{priceLabel}</p>
         </div>
       </div>
       {product.availableStock != null ? (

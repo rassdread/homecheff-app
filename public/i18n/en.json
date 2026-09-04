@@ -646,7 +646,8 @@
     "isTyping": "Is typeing...",
     "context": {
       "aboutOffer": "What is this conversation about?",
-      "viewOffer": "View offer",
+      "viewOffer": "View item",
+      "viewItem": "View item",
       "checkout": "Checkout",
       "aboutOrder": "Order conversation",
       "order": "Order",
@@ -9630,6 +9631,7 @@
       "highlightValue": "Trade",
       "receivedHeading": "Proposal received",
       "sentHeading": "Proposal sent",
+      "aboutListing": "This proposal is about",
       "awaitingCounterpart": "Waiting for the other party to respond. You cannot accept your own proposal.",
       "buyerOffers": "Buyer offers",
       "youOffer": "You offer",
@@ -9661,9 +9663,15 @@
       "voluntary": "Voluntary contribution"
     },
     "create": {
-      "title": "Create proposal",
+      "title": "Make a proposal",
       "settlementHint": "Choose how value is agreed — no payment processing in this screen.",
-      "prefilledAccepted": "Prefilled from the listing."
+      "prefilledAccepted": "Prefilled from the listing.",
+      "discardConfirm": "Your proposal has not been sent yet. Close without sending?",
+      "reviewHint": "Review your proposal above. It is only sent when you tap “Send proposal”."
+    },
+    "fields": {
+      "messageLabel": "Message with your proposal",
+      "messagePlaceholder": "Optional — for example why or when"
     },
     "system": {
       "accepted": "Proposal accepted.",
@@ -9689,7 +9697,8 @@
       "homecheffRecommended": "Recommended"
     },
     "productBinding": {
-      "summaryHeading": "Linked listing",
+      "summaryHeading": "Linked item",
+      "proposalForHeading": "I'm making a proposal for",
       "paymentHeading": "How will you pay?",
       "paymentHomecheff": "Pay via HomeCheff",
       "paymentDirect": "Direct contact / arrangement",
@@ -9749,16 +9758,18 @@
       }
     },
     "actions": {
-      "accept": "Accept",
-      "reject": "Decline",
-      "counter": "Counter offer",
+      "accept": "Accept proposal",
+      "reject": "Decline proposal",
+      "counter": "Counter-proposal",
       "cancel": "Withdraw proposal",
-      "sendCounter": "Send counter offer",
+      "sendCounter": "Send counter-proposal",
       "send": "Send proposal",
-      "sendQuote": "Send quote"
+      "sendQuote": "Send quote",
+      "viewProposal": "View proposal",
+      "viewItem": "View item"
     },
     "cancelConfirm": "Do you want to withdraw this proposal?",
-    "offerHeading": "What are you offering?",
+    "offerHeading": "What are you proposing?",
     "preference": {
       "money": "The provider prefers payment in money. You can still make a different proposal.",
       "moneyAndBarter": "The provider is open to money and trade. You can still make a different proposal.",

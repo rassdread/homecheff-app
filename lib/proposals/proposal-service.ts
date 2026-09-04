@@ -140,6 +140,10 @@ async function resolveProposalFields(
     ? await loadProductProposalContext(boundProductId)
     : null;
 
+  // Product-bound proposals always use the listing title — buyers must not
+  // rewrite listing identity when making an offer.
+  const resolvedTitle = productCtx?.title?.trim() || title;
+
   const acceptedValueTaxonomyIds = normalizeProposalTaxonomyIds(
     input.acceptedValueTaxonomyIds ??
       (productCtx?.acceptedSpecializations?.length
@@ -221,12 +225,15 @@ async function resolveProposalFields(
     currency: input.currency,
     acceptedValueTaxonomyIds,
     requestedValueTaxonomyIds,
-    title,
+    title: resolvedTitle,
     quantity: input.quantity,
     fulfillmentType: input.fulfillmentType ?? null,
     paymentPath,
     priceModel: productCtx?.priceModel ?? null,
     productId: boundProductId,
+    listingTitle: productCtx?.title ?? null,
+    listingImageUrl: productCtx?.imageUrl ?? null,
+    listingPriceCents: productCtx?.priceCents ?? null,
     barterOfferImageUrls,
   });
 
@@ -236,6 +243,7 @@ async function resolveProposalFields(
     requestedValueTaxonomyIds,
     proposalSummary,
     boundProductId,
+    resolvedTitle,
   };
 }
 
@@ -316,19 +324,23 @@ export class ProposalService {
   ): Promise<ProposalActionResult> {
     await assertParticipant(conversationId, userId);
 
-    const title = input.title?.trim();
-    if (!title) {
-      throw new ProposalServiceError('Title is required', 400);
-    }
-
-    const { sellerId, buyerId } = await resolveSellerBuyer(conversationId, userId, input);
-
+    const title = input.title?.trim() || '';
     const boundProductId = await resolveConversationProductId(
       conversationId,
       input.productId,
     );
 
+    // Title may be omitted for product-bound proposals — server snaps listing title.
+    if (!title && !boundProductId) {
+      throw new ProposalServiceError('Title is required', 400);
+    }
+
+    const { sellerId, buyerId } = await resolveSellerBuyer(conversationId, userId, input);
+
     const fields = await resolveProposalFields(input, title, boundProductId);
+    if (!fields.resolvedTitle) {
+      throw new ProposalServiceError('Title is required', 400);
+    }
 
     const proposal = await prisma.proposal.create({
       data: {
@@ -338,7 +350,7 @@ export class ProposalService {
         buyerId,
         productId: fields.boundProductId,
         listingId: input.listingId ?? null,
-        title,
+        title: fields.resolvedTitle,
         description: input.description?.trim() || null,
         quantity: input.quantity ?? null,
         amountCents: input.amountCents ?? null,
@@ -653,7 +665,11 @@ export class ProposalService {
     }
 
     const title = input.title?.trim() || parent.title;
-    if (!title) {
+    const boundProductId =
+      parent.productId ??
+      (await resolveConversationProductId(parent.conversationId, input.productId));
+
+    if (!title && !boundProductId) {
       throw new ProposalServiceError('Title is required', 400);
     }
 
@@ -699,8 +715,14 @@ export class ProposalService {
           parent.proposalSummary as AgreementSummarySnapshot | null,
         ),
     };
-    const boundProductId = input.productId ?? parent.productId;
-    const fields = await resolveProposalFields(counterInput, title, boundProductId);
+    const fields = await resolveProposalFields(
+      counterInput,
+      title || '',
+      boundProductId,
+    );
+    if (!fields.resolvedTitle) {
+      throw new ProposalServiceError('Title is required', 400);
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const parentUpdate = await tx.proposal.updateMany({
@@ -719,7 +741,7 @@ export class ProposalService {
           buyerId,
           productId: fields.boundProductId,
           listingId: input.listingId ?? parent.listingId,
-          title,
+          title: fields.resolvedTitle,
           description:
             input.description !== undefined
               ? input.description?.trim() || null

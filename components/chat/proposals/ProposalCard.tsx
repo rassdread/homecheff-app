@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Loader2, ClipboardList } from "lucide-react";
+import Link from "next/link";
+import { Loader2, ClipboardList, ExternalLink } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
 import { getMarketplacePriceDisplay } from "@/lib/marketplace/price-display";
@@ -410,8 +411,16 @@ export default function ProposalCard({
         ? "proposal.status.awaitingResponse"
         : PROPOSAL_I18N.status[proposal.status];
 
+  const listingTitle =
+    (typeof proposal.proposalSummary?.listingTitle === "string" &&
+      proposal.proposalSummary.listingTitle) ||
+    proposal.title;
+  const productHref = proposal.productId
+    ? `/product/${proposal.productId}`
+    : null;
+
   return (
-    <div className="flex justify-center px-1">
+    <div className="flex justify-center px-1" id={`proposal-${proposal.id}`}>
       <div className="w-full max-w-md rounded-xl border border-indigo-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center gap-2 border-b border-indigo-100 bg-indigo-50 px-3 py-2">
           <ClipboardList className="h-4 w-4 text-indigo-600 shrink-0" aria-hidden />
@@ -430,11 +439,29 @@ export default function ProposalCard({
         </div>
 
         <div className="px-3 py-3 space-y-2">
-          <p className="text-sm font-semibold text-gray-900">{proposal.title}</p>
+          <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500">
+            {t("proposal.card.aboutListing")}
+          </p>
+          <p className="text-sm font-semibold text-gray-900">{listingTitle}</p>
           {proposal.description ? (
-            <p className="text-xs text-gray-600 whitespace-pre-wrap">
-              {proposal.description}
-            </p>
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-medium text-gray-600">
+                {t("proposal.fields.messageLabel")}
+              </p>
+              <p className="text-xs text-gray-600 whitespace-pre-wrap">
+                {proposal.description}
+              </p>
+            </div>
+          ) : null}
+
+          {productHref ? (
+            <Link
+              href={productHref}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 hover:underline"
+            >
+              <ExternalLink className="h-3 w-3" aria-hidden />
+              {t("proposal.actions.viewItem")}
+            </Link>
           ) : null}
 
           <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-2 space-y-1.5">
@@ -531,7 +558,9 @@ export default function ProposalCard({
             </div>
           ) : null}
 
-          {proposal.title ? (
+          {proposal.title &&
+          proposal.proposalSummary?.listingTitle &&
+          proposal.title !== proposal.proposalSummary.listingTitle ? (
             <div className="space-y-0.5">
               <p className="text-[10px] font-medium text-gray-600">
                 {t(targetLabelKey)}

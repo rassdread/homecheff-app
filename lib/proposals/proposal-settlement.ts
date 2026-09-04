@@ -17,6 +17,10 @@ export type ProposalSummarySnapshot = {
   paymentPath?: import('./proposal-product-binding').ProposalPaymentPath;
   priceModel?: string | null;
   productId?: string | null;
+  /** Listing identity frozen at proposal time (survives later listing edits). */
+  listingTitle?: string | null;
+  listingImageUrl?: string | null;
+  listingPriceCents?: number | null;
   /** Optional barter counter-value photo URLs (max 2); snapshotted into Agreement. */
   barterOfferImageUrls?: string[];
 };
@@ -86,6 +90,9 @@ export function buildProposalSummary(input: {
   paymentPath?: import('./proposal-product-binding').ProposalPaymentPath;
   priceModel?: string | null;
   productId?: string | null;
+  listingTitle?: string | null;
+  listingImageUrl?: string | null;
+  listingPriceCents?: number | null;
   barterOfferImageUrls?: string[];
 }): ProposalSummarySnapshot {
   const barterOfferImageUrls = input.barterOfferImageUrls ?? [];
@@ -101,6 +108,12 @@ export function buildProposalSummary(input: {
     paymentPath: input.paymentPath ?? 'NONE',
     priceModel: input.priceModel ?? null,
     productId: input.productId ?? null,
+    listingTitle: input.listingTitle ?? null,
+    listingImageUrl: input.listingImageUrl ?? null,
+    listingPriceCents:
+      typeof input.listingPriceCents === 'number'
+        ? input.listingPriceCents
+        : null,
     ...(barterOfferImageUrls.length > 0 ? { barterOfferImageUrls } : {}),
   };
 }

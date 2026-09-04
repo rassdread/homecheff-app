@@ -274,8 +274,11 @@ export default function CounterProposalForm({
 
   const handleSubmit = async () => {
     setError(null);
+    const formForSubmit =
+      product != null ? { ...form, title: product.title } : form;
+
     const readiness = validateProposalReadiness({
-      form,
+      form: formForSubmit,
       product: readinessProduct,
       isAuthenticated: true,
       requirePaymentPathForMoney: Boolean(product),
@@ -289,7 +292,7 @@ export default function CounterProposalForm({
       return;
     }
 
-    const payload = formValuesToApiPayload(form, {
+    const payload = formValuesToApiPayload(formForSubmit, {
       productId: proposal.productId,
       showPaymentPath,
     });
@@ -336,13 +339,14 @@ export default function CounterProposalForm({
         onChange={setForm}
         allowedSettlementModes={allowedSettlementModes}
         product={product}
+        lockListingTitle={Boolean(product)}
         idPrefix="counter-proposal"
         valuePickerHeadingKey={valuePickerHeadingKey}
       />
 
       <ProposalSummaryPreview
         form={form}
-        offerLabel={form.title}
+        offerLabel={product?.title ?? form.title}
         showPaymentPath={showPaymentPath}
       />
 

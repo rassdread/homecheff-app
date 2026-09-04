@@ -462,9 +462,29 @@ assert(typeof trackProposalFlowEvent === 'function', 'trackProposalFlowEvent exp
 
 const createSheet = readRepoFile('components/chat/proposals/CreateProposalSheet.tsx');
 const proposalCard = readRepoFile('components/chat/proposals/ProposalCard.tsx');
+const fieldsSection = readRepoFile('components/chat/proposals/ProposalFieldsSection.tsx');
+const contextHeader = readRepoFile('components/chat/ConversationContextHeader.tsx');
 assert(createSheet.includes('trackProposalFlowEvent'), 'CreateProposalSheet tracks analytics');
 assert(createSheet.includes('ProposalSummaryPreview'), 'CreateProposalSheet shows summary');
+assert(createSheet.includes('safe-area-inset-bottom'), 'CreateProposalSheet sticky CTA has safe-area');
+assert(createSheet.includes('data-hc-proposal-submit'), 'CreateProposalSheet has explicit submit CTA');
+assert(createSheet.includes('discardConfirm'), 'CreateProposalSheet confirms discard without send');
+assert(createSheet.includes('preventImplicitEnterSubmit'), 'CreateProposalSheet blocks Enter auto-submit');
+assert(createSheet.includes('Idempotency-Key'), 'CreateProposalSheet sends Idempotency-Key');
+assert(createSheet.includes('lockListingTitle'), 'CreateProposalSheet locks listing title');
+assert(fieldsSection.includes('lockListingTitle'), 'ProposalFieldsSection supports locked title');
+assert(fieldsSection.includes('proposal.fields.messageLabel'), 'message field separate from listing title');
 assert(proposalCard.includes('trackProposalFlowEvent'), 'ProposalCard tracks accept/reject');
+assert(proposalCard.includes('proposal.actions.viewItem'), 'ProposalCard has Bekijk item CTA');
+assert(proposalCard.includes('id={`proposal-${proposal.id}`}'), 'ProposalCard has focusable proposal id');
+assert(
+  contextHeader.includes('chat.context.viewItem') || contextHeader.includes('Bekijk item'),
+  'Conversation header uses Bekijk item (not Bekijk aanbod for listing)',
+);
+assert(
+  !contextHeader.includes("'Bekijk aanbod'"),
+  'Conversation header no longer labels listing CTA as Bekijk aanbod',
+);
 
 console.log('\ni18n parity');
 const nl = JSON.parse(
@@ -484,6 +504,15 @@ const i18nPaths = [
   ['proposal', 'errors', 'listingInactive'],
   ['proposal', 'errors', 'settlementNotAllowed'],
   ['proposal', 'errors', 'checkoutNotAvailable'],
+  ['proposal', 'create', 'discardConfirm'],
+  ['proposal', 'create', 'reviewHint'],
+  ['proposal', 'fields', 'messageLabel'],
+  ['proposal', 'actions', 'viewItem'],
+  ['proposal', 'actions', 'viewProposal'],
+  ['proposal', 'actions', 'send'],
+  ['proposal', 'productBinding', 'proposalForHeading'],
+  ['proposal', 'card', 'aboutListing'],
+  ['chat', 'context', 'viewItem'],
 ];
 
 for (const locale of ['nl', 'en'] as const) {

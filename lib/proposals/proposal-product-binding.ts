@@ -43,6 +43,7 @@ export type ProductProposalContext = {
   id: string;
   title: string;
   priceCents: number;
+  imageUrl: string | null;
   priceModel: string;
   marketplaceCategory: string | null;
   stock: number;
@@ -112,6 +113,11 @@ export async function loadProductProposalContext(
       barterOpenness: true,
       delivery: true,
       fulfillmentOptions: true,
+      Image: {
+        orderBy: { sortOrder: 'asc' },
+        take: 1,
+        select: { fileUrl: true },
+      },
       seller: {
         select: {
           User: {
@@ -167,6 +173,7 @@ export async function loadProductProposalContext(
     id: product.id,
     title: product.title,
     priceCents: product.priceCents,
+    imageUrl: product.Image[0]?.fileUrl ?? null,
     priceModel: product.priceModel,
     marketplaceCategory: product.marketplaceCategory,
     stock: product.stock,

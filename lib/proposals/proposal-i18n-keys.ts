@@ -70,6 +70,8 @@ export const PROPOSAL_I18N = {
     sendCounter: 'proposal.actions.sendCounter',
     send: 'proposal.actions.send',
     sendQuote: 'proposal.actions.sendQuote',
+    viewProposal: 'proposal.actions.viewProposal',
+    viewItem: 'proposal.actions.viewItem',
   },
   cancelConfirm: 'proposal.cancelConfirm',
 } as const;

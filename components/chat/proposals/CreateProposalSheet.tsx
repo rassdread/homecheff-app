@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Loader2, ClipboardList } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { allowedBuyerProposalSettlementModes } from "@/lib/marketplace/commerce/barter-commerce-alignment";
 import {
-  PROPOSAL_I18N,
   PROPOSAL_POLISH_I18N,
 } from "@/lib/proposals/proposal-i18n-keys";
 import { resolveProposalSendLabelKey } from "@/lib/proposals/proposal-send-label";
@@ -40,6 +39,13 @@ type Props = {
   contextHeader?: ResolvedConversationHeader | null;
 };
 
+function isFormDirty(
+  current: ProposalFormValues,
+  initial: ProposalFormValues,
+): boolean {
+  return JSON.stringify(current) !== JSON.stringify(initial);
+}
+
 export default function CreateProposalSheet({
   open,
   onClose,
@@ -51,6 +57,8 @@ export default function CreateProposalSheet({
   const { status: sessionStatus } = useSession();
   const product =
     contextHeader?.kind === "PRODUCT" ? contextHeader.product : null;
+  const submitLockRef = useRef(false);
+  const initialFormRef = useRef<ProposalFormValues | null>(null);
 
   const [form, setForm] = useState<ProposalFormValues>(() =>
     resolveProposalPrefill({ source: "listing", contextHeader }).form,
@@ -64,6 +72,7 @@ export default function CreateProposalSheet({
   useEffect(() => {
     if (!open) return;
 
+    submitLockRef.current = false;
     const stored = consumeProposalPrefill();
     const result = resolveProposalPrefill({
       source: stored?.source ?? "listing",
@@ -80,9 +89,12 @@ export default function CreateProposalSheet({
       if (!allowed.includes(result.form.settlementMode)) {
         result.form.settlementMode = allowed[0] ?? "MONEY";
       }
+      // Listing identity is immutable for product-bound proposals.
+      result.form.title = product.title;
     }
 
     setForm(result.form);
+    initialFormRef.current = result.form;
     setPrefillMeta(result.meta);
     setError(null);
 
@@ -165,14 +177,32 @@ export default function CreateProposalSheet({
   const submitBlockedReason =
     !busy && !liveReadiness.ok ? liveReadiness.errorKey : null;
 
+  const handleCloseRequest = () => {
+    if (busy) return;
+    const initial = initialFormRef.current;
+    if (initial && isFormDirty(form, initial)) {
+      if (
+        typeof window !== "undefined" &&
+        !window.confirm(t("proposal.create.discardConfirm"))
+      ) {
+        return;
+      }
+    }
+    onClose();
+  };
+
   if (!open) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitLockRef.current || busy) return;
     setError(null);
 
+    const formForSubmit =
+      product != null ? { ...form, title: product.title } : form;
+
     const readiness = validateProposalReadiness({
-      form,
+      form: formForSubmit,
       product: readinessProduct,
       isAuthenticated: sessionStatus === "authenticated",
       requirePaymentPathForMoney: Boolean(product),
@@ -182,18 +212,27 @@ export default function CreateProposalSheet({
       return;
     }
 
-    const payload = formValuesToApiPayload(form, {
+    const payload = formValuesToApiPayload(formForSubmit, {
       productId: product?.id ?? null,
       showPaymentPath,
     });
 
+    submitLockRef.current = true;
     setBusy(true);
     try {
+      const idempotencyKey =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `proposal-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
       const res = await fetch(
         `/api/conversations/${conversationId}/proposals`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": idempotencyKey,
+          },
           body: JSON.stringify(payload),
         },
       );
@@ -206,6 +245,7 @@ export default function CreateProposalSheet({
               ? data.errorKey
               : null;
         setError(errKey ? t(errKey) : data.error || t("common.error"));
+        submitLockRef.current = false;
         return;
       }
 
@@ -238,9 +278,24 @@ export default function CreateProposalSheet({
       onClose();
     } catch {
       setError(t("common.error"));
+      submitLockRef.current = false;
     } finally {
       setBusy(false);
     }
+  };
+
+  const preventImplicitEnterSubmit = (
+    e: React.KeyboardEvent<HTMLFormElement>,
+  ) => {
+    if (e.key !== "Enter") return;
+    const target = e.target as HTMLElement | null;
+    const tag = target?.tagName?.toLowerCase();
+    if (tag === "textarea") return;
+    if (tag === "button" && (target as HTMLButtonElement).type === "submit") {
+      return;
+    }
+    // Enter in inputs must not silently send the proposal.
+    e.preventDefault();
   };
 
   return (
@@ -249,21 +304,24 @@ export default function CreateProposalSheet({
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-proposal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleCloseRequest();
+      }}
     >
-      <div className="w-full max-w-md rounded-t-2xl lg:rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <ClipboardList className="h-5 w-5 text-indigo-600" aria-hidden />
+      <div className="flex w-full max-w-md flex-col rounded-t-2xl lg:rounded-2xl bg-white shadow-xl max-h-[min(90dvh,90vh)] overflow-hidden">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <ClipboardList className="h-5 w-5 text-indigo-600 shrink-0" aria-hidden />
             <h2
               id="create-proposal-title"
-              className="text-base font-semibold text-gray-900"
+              className="text-base font-semibold text-gray-900 truncate"
             >
               {t("proposal.create.title")}
             </h2>
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCloseRequest}
             className="rounded-full p-2 hover:bg-gray-100"
             aria-label={t("common.close")}
           >
@@ -271,77 +329,102 @@ export default function CreateProposalSheet({
           </button>
         </div>
 
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3 px-4 py-4">
-          {product ? <ProposalProductSummary product={product} /> : null}
+        <form
+          onSubmit={(e) => void handleSubmit(e)}
+          onKeyDown={preventImplicitEnterSubmit}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4">
+            {product ? <ProposalProductSummary product={product} /> : null}
 
-          {prefillMeta.exchangeSuggestionUsed ? (
-            <p className="text-[11px] text-teal-800 bg-teal-50 border border-teal-100 rounded-lg px-2.5 py-2">
-              {t(PROPOSAL_POLISH_I18N.prefill.fromExchange)}
-              {prefillMeta.taxonomyOverlapCount > 0
-                ? ` · ${t(PROPOSAL_POLISH_I18N.prefill.overlapApplied, {
-                    count: String(prefillMeta.taxonomyOverlapCount),
-                  })}`
-                : ""}
-            </p>
-          ) : null}
+            {prefillMeta.exchangeSuggestionUsed ? (
+              <p className="text-[11px] text-teal-800 bg-teal-50 border border-teal-100 rounded-lg px-2.5 py-2">
+                {t(PROPOSAL_POLISH_I18N.prefill.fromExchange)}
+                {prefillMeta.taxonomyOverlapCount > 0
+                  ? ` · ${t(PROPOSAL_POLISH_I18N.prefill.overlapApplied, {
+                      count: String(prefillMeta.taxonomyOverlapCount),
+                    })}`
+                  : ""}
+              </p>
+            ) : null}
 
-          <ProposalFieldsSection
-            form={form}
-            onChange={setForm}
-            allowedSettlementModes={allowedSettlementModes}
-            product={
-              product
-                ? {
-                    id: product.id,
-                    title: product.title,
-                    priceCents: product.priceCents,
-                    availableStock: product.availableStock,
-                    acceptHomeCheffPayment: product.acceptHomeCheffPayment,
-                    acceptDirectContact: product.acceptDirectContact,
-                    canHomeCheffCheckout: product.canHomeCheffCheckout,
-                    sellerStripeReady: product.sellerStripeReady,
-                    homeCheffCheckoutBlockedReason:
-                      product.homeCheffCheckoutBlockedReason,
-                    fulfillmentOptions: product.fulfillmentOptions,
-                    delivery: product.delivery,
-                    barterOpenness: product.barterOpenness,
-                    priceModel: product.priceModel,
-                    marketplaceCategory: product.marketplaceCategory,
-                  }
-                : null
-            }
-          />
+            <ProposalFieldsSection
+              form={form}
+              onChange={setForm}
+              allowedSettlementModes={allowedSettlementModes}
+              lockListingTitle={Boolean(product)}
+              product={
+                product
+                  ? {
+                      id: product.id,
+                      title: product.title,
+                      priceCents: product.priceCents,
+                      availableStock: product.availableStock,
+                      acceptHomeCheffPayment: product.acceptHomeCheffPayment,
+                      acceptDirectContact: product.acceptDirectContact,
+                      canHomeCheffCheckout: product.canHomeCheffCheckout,
+                      sellerStripeReady: product.sellerStripeReady,
+                      homeCheffCheckoutBlockedReason:
+                        product.homeCheffCheckoutBlockedReason,
+                      fulfillmentOptions: product.fulfillmentOptions,
+                      delivery: product.delivery,
+                      barterOpenness: product.barterOpenness,
+                      priceModel: product.priceModel,
+                      marketplaceCategory: product.marketplaceCategory,
+                    }
+                  : null
+              }
+            />
 
-          <ProposalSummaryPreview
-            form={form}
-            offerLabel={product?.title ?? form.title}
-            showPaymentPath={showPaymentPath}
-          />
+            <ProposalSummaryPreview
+              form={form}
+              offerLabel={product?.title ?? form.title}
+              showPaymentPath={showPaymentPath}
+            />
 
-          {error ? (
-            <p className="text-sm text-red-600" role="alert">
-              {error}
-            </p>
-          ) : submitBlockedReason ? (
-            <p className="text-sm text-amber-800" role="status">
-              {t(submitBlockedReason)}
-            </p>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={busy || !liveReadiness.ok}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {busy ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                …
-              </>
+            {error ? (
+              <p className="text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            ) : submitBlockedReason ? (
+              <p className="text-sm text-amber-800" role="status">
+                {t(submitBlockedReason)}
+              </p>
             ) : (
-              t(sendLabelKey)
+              <p className="text-[11px] text-gray-500" role="status">
+                {t("proposal.create.reviewHint")}
+              </p>
             )}
-          </button>
+          </div>
+
+          <div
+            className="shrink-0 border-t border-gray-200 bg-white px-4 pt-3"
+            style={{
+              paddingBottom:
+                "max(0.75rem, env(safe-area-inset-bottom, 0px))",
+            }}
+          >
+            <button
+              type="submit"
+              disabled={busy || !liveReadiness.ok}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+              data-hc-proposal-submit=""
+            >
+              {busy ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  …
+                </>
+              ) : (
+                t(sendLabelKey)
+              )}
+            </button>
+            {!liveReadiness.ok && submitBlockedReason ? (
+              <p className="mt-1.5 text-center text-[11px] text-amber-800">
+                {t(submitBlockedReason)}
+              </p>
+            ) : null}
+          </div>
         </form>
       </div>
     </div>

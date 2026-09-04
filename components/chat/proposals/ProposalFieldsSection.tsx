@@ -47,6 +47,11 @@ type Props = {
   idPrefix?: string;
   /** Actor-aware barter picker heading (buyer offers vs seller asks). */
   valuePickerHeadingKey?: string;
+  /**
+   * When true (default if product is set), hide the editable title field —
+   * listing identity comes from the product summary, not a free-text title.
+   */
+  lockListingTitle?: boolean;
 };
 
 const PAYMENT_PATHS: ProposalPaymentPath[] = [
@@ -62,8 +67,10 @@ export default function ProposalFieldsSection({
   product,
   idPrefix = 'proposal',
   valuePickerHeadingKey = 'marketplace.acceptedValues.offeredInReturnHeading',
+  lockListingTitle,
 }: Props) {
   const { t } = useTranslation();
+  const titleLocked = lockListingTitle ?? Boolean(product);
 
   const set =
     (key: keyof ProposalFormValues) =>
@@ -216,28 +223,30 @@ export default function ProposalFieldsSection({
         </div>
       </div>
 
-      <div>
-        <label
-          htmlFor={`${idPrefix}-title`}
-          className="mb-1 block text-xs font-medium text-gray-700"
-        >
-          {t('marketplace.form.titleLabel')}
-        </label>
-        <input
-          id={`${idPrefix}-title`}
-          required
-          value={form.title}
-          onChange={set('title')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-        />
-      </div>
+      {!titleLocked ? (
+        <div>
+          <label
+            htmlFor={`${idPrefix}-title`}
+            className="mb-1 block text-xs font-medium text-gray-700"
+          >
+            {t('marketplace.form.titleLabel')}
+          </label>
+          <input
+            id={`${idPrefix}-title`}
+            required
+            value={form.title}
+            onChange={set('title')}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+        </div>
+      ) : null}
 
       <div>
         <label
           htmlFor={`${idPrefix}-description`}
           className="mb-1 block text-xs font-medium text-gray-700"
         >
-          {t('marketplace.form.descriptionLabel')}
+          {t('proposal.fields.messageLabel')}
         </label>
         <textarea
           id={`${idPrefix}-description`}
@@ -245,6 +254,7 @@ export default function ProposalFieldsSection({
           onChange={set('description')}
           rows={2}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm resize-none"
+          placeholder={t('proposal.fields.messagePlaceholder')}
         />
       </div>
 

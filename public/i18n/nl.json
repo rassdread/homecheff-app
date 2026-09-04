@@ -6153,7 +6153,8 @@
     "isTyping": "aan het typen...",
     "context": {
       "aboutOffer": "Waar gaat dit gesprek over?",
-      "viewOffer": "Bekijk aanbod",
+      "viewOffer": "Bekijk item",
+      "viewItem": "Bekijk item",
       "checkout": "Afrekenen",
       "aboutOrder": "Ordergesprek",
       "order": "Bestelling",
@@ -9630,6 +9631,7 @@
       "highlightValue": "Ruil",
       "receivedHeading": "Voorstel ontvangen",
       "sentHeading": "Voorstel verzonden",
+      "aboutListing": "Dit voorstel gaat over",
       "awaitingCounterpart": "Wacht op reactie van de andere partij. Je kunt je eigen voorstel niet accepteren.",
       "buyerOffers": "Koper biedt aan",
       "youOffer": "Jij biedt aan",
@@ -9661,9 +9663,15 @@
       "voluntary": "Vrijwillige bijdrage"
     },
     "create": {
-      "title": "Voorstel maken",
+      "title": "Voorstel doen",
       "settlementHint": "Kies hoe waarde wordt afgesproken — geen betaling via dit scherm.",
-      "prefilledAccepted": "Vooraf ingevuld vanuit het aanbod."
+      "prefilledAccepted": "Vooraf ingevuld vanuit het aanbod.",
+      "discardConfirm": "Je voorstel is nog niet verstuurd. Wil je sluiten zonder te versturen?",
+      "reviewHint": "Controleer je voorstel hierboven. Alleen met ‘Voorstel versturen’ wordt het verzonden."
+    },
+    "fields": {
+      "messageLabel": "Bericht bij je voorstel",
+      "messagePlaceholder": "Optioneel — bijvoorbeeld waarom of wanneer"
     },
     "system": {
       "accepted": "Voorstel geaccepteerd.",
@@ -9689,7 +9697,8 @@
       "homecheffRecommended": "Aanbevolen"
     },
     "productBinding": {
-      "summaryHeading": "Gekoppeld aanbod",
+      "summaryHeading": "Gekoppeld item",
+      "proposalForHeading": "Ik doe een voorstel voor",
       "paymentHeading": "Hoe betaal je?",
       "paymentHomecheff": "Via HomeCheff betalen",
       "paymentDirect": "Direct contact / regeling",
@@ -9749,16 +9758,18 @@
       }
     },
     "actions": {
-      "accept": "Accepteren",
-      "reject": "Weigeren",
-      "counter": "Tegenbod doen",
+      "accept": "Voorstel accepteren",
+      "reject": "Voorstel afwijzen",
+      "counter": "Tegenvoorstel",
       "cancel": "Voorstel intrekken",
-      "sendCounter": "Verstuur tegenvoorstel",
-      "send": "Voorstel sturen",
-      "sendQuote": "Offerte sturen"
+      "sendCounter": "Tegenvoorstel versturen",
+      "send": "Voorstel versturen",
+      "sendQuote": "Offerte versturen",
+      "viewProposal": "Bekijk voorstel",
+      "viewItem": "Bekijk item"
     },
     "cancelConfirm": "Wil je dit voorstel intrekken?",
-    "offerHeading": "Wat bied je aan?",
+    "offerHeading": "Wat stel je voor?",
     "preference": {
       "money": "De aanbieder geeft voorkeur aan betaling in geld. Je kunt ook een ander voorstel doen.",
       "moneyAndBarter": "De aanbieder staat open voor geld en ruil. Je kunt ook een ander voorstel doen.",
