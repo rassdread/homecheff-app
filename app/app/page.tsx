@@ -6,9 +6,9 @@ import { getGooglePlayOpenTestingUrl } from '@/lib/app-distribution';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Help HomeCheff testen — Google Play Open Testing',
+  title: 'HomeCheff-app — Google Play',
   description:
-    'Installeer HomeCheff via Google Play Open Testing. Test de app, verdien HCP en help lokale makers in jouw buurt.',
+    'Installeer HomeCheff via Google Play. Ontdek nieuwe functies, verdien HCP en support lokale makers in jouw buurt.',
 };
 
 export default async function BetaAppDownloadPage({
