@@ -22,6 +22,12 @@ import { resolveProposalPrefill } from "@/lib/proposals/proposal-prefill";
 import { consumeProposalPrefill } from "@/lib/proposals/proposal-prefill-storage";
 import type { ProposalFormValues } from "@/lib/proposals/proposal-form-types";
 import {
+  clearProposalDraft,
+  isMeaningfulProposalDraft,
+  loadProposalDraft,
+  saveProposalDraft,
+} from "@/lib/proposals/proposal-draft-storage";
+import {
   formValuesToApiPayload,
   validateProposalReadiness,
 } from "@/lib/proposals/proposal-readiness";
@@ -35,6 +41,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
+  /** Fired when a buyer-private concept draft is saved or cleared. */
+  onDraftChanged?: () => void;
   conversationId: string;
   contextHeader?: ResolvedConversationHeader | null;
 };
@@ -50,6 +58,7 @@ export default function CreateProposalSheet({
   open,
   onClose,
   onCreated,
+  onDraftChanged,
   conversationId,
   contextHeader,
 }: Props) {
@@ -68,12 +77,15 @@ export default function CreateProposalSheet({
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
 
   useEffect(() => {
     if (!open) return;
 
     submitLockRef.current = false;
     const stored = consumeProposalPrefill();
+    const existingDraft = loadProposalDraft(conversationId);
     const result = resolveProposalPrefill({
       source: stored?.source ?? "listing",
       contextHeader,
@@ -81,6 +93,19 @@ export default function CreateProposalSheet({
       parentProposal: stored?.parentProposal,
       reverseDiscoveryOfferIds: stored?.reverseDiscoveryOfferIds,
     });
+
+    // Prefer explicit exchange/session prefill; otherwise restore buyer concept draft.
+    const useDraft =
+      !stored &&
+      existingDraft &&
+      (!product || !existingDraft.productId || existingDraft.productId === product.id);
+
+    if (useDraft && existingDraft) {
+      result.form = { ...result.form, ...existingDraft.form };
+      setEditingDraft(true);
+    } else {
+      setEditingDraft(false);
+    }
 
     if (product) {
       const allowed = allowedBuyerProposalSettlementModes(
@@ -130,7 +155,30 @@ export default function CreateProposalSheet({
           : "create_proposal_sheet_open",
       });
     }
-  }, [open, contextHeader, product]);
+  }, [open, contextHeader, product, conversationId]);
+
+  // Keep sticky CTA above the mobile keyboard (Safari / PWA / Chrome).
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const sync = () => {
+      const inset = Math.max(
+        0,
+        Math.round(window.innerHeight - vv.height - vv.offsetTop),
+      );
+      setKeyboardInset(inset);
+    };
+
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+    };
+  }, [open]);
 
   const allowedSettlementModes = useMemo(() => {
     return allowedBuyerProposalSettlementModes(product?.barterOpenness);
@@ -177,17 +225,28 @@ export default function CreateProposalSheet({
   const submitBlockedReason =
     !busy && !liveReadiness.ok ? liveReadiness.errorKey : null;
 
+  const persistDraftIfNeeded = (): boolean => {
+    const initial = initialFormRef.current;
+    if (
+      !isMeaningfulProposalDraft(form, initial) &&
+      !(initial && isFormDirty(form, initial))
+    ) {
+      // Empty close: keep existing draft only if still meaningful; else clear nothing new.
+      return false;
+    }
+    saveProposalDraft({
+      conversationId,
+      form: product ? { ...form, title: product.title } : form,
+      productId: product?.id ?? null,
+    });
+    onDraftChanged?.();
+    return true;
+  };
+
   const handleCloseRequest = () => {
     if (busy) return;
-    const initial = initialFormRef.current;
-    if (initial && isFormDirty(form, initial)) {
-      if (
-        typeof window !== "undefined" &&
-        !window.confirm(t("proposal.create.discardConfirm"))
-      ) {
-        return;
-      }
-    }
+    // Closing never sends. Persist buyer-private CONCEPT when there is work to keep.
+    persistDraftIfNeeded();
     onClose();
   };
 
@@ -274,6 +333,9 @@ export default function CreateProposalSheet({
         });
       }
 
+      clearProposalDraft(conversationId);
+      setEditingDraft(false);
+      onDraftChanged?.();
       onCreated();
       onClose();
     } catch {
@@ -298,26 +360,47 @@ export default function CreateProposalSheet({
     e.preventDefault();
   };
 
+  const footerPad = `max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.25rem))`;
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end lg:items-center justify-center bg-black/40 p-0 lg:p-4"
+      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 p-0 lg:items-center lg:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-proposal-title"
+      data-hc-proposal-sheet=""
+      style={{
+        // Lift above soft keyboard without covering the sticky CTA.
+        paddingBottom: keyboardInset > 0 ? keyboardInset : undefined,
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) handleCloseRequest();
       }}
     >
-      <div className="flex w-full max-w-md flex-col rounded-t-2xl lg:rounded-2xl bg-white shadow-xl max-h-[min(90dvh,90vh)] overflow-hidden">
+      <div
+        className="flex w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl max-h-[min(92dvh,100svh)] lg:rounded-2xl lg:max-h-[min(90dvh,90vh)]"
+        data-hc-proposal-sheet-panel=""
+      >
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <ClipboardList className="h-5 w-5 text-indigo-600 shrink-0" aria-hidden />
-            <h2
-              id="create-proposal-title"
-              className="text-base font-semibold text-gray-900 truncate"
-            >
-              {t("proposal.create.title")}
-            </h2>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <ClipboardList className="h-5 w-5 shrink-0 text-indigo-600" aria-hidden />
+              <h2
+                id="create-proposal-title"
+                className="truncate text-base font-semibold text-gray-900"
+              >
+                {t("proposal.create.title")}
+              </h2>
+            </div>
+            {editingDraft || isMeaningfulProposalDraft(form, initialFormRef.current) ? (
+              <p className="pl-7 text-[11px] font-medium text-amber-800">
+                {t("proposal.create.conceptBadge")}
+              </p>
+            ) : (
+              <p className="pl-7 text-[11px] text-gray-500">
+                {t("proposal.create.reviewHint")}
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -338,7 +421,7 @@ export default function CreateProposalSheet({
             {product ? <ProposalProductSummary product={product} /> : null}
 
             {prefillMeta.exchangeSuggestionUsed ? (
-              <p className="text-[11px] text-teal-800 bg-teal-50 border border-teal-100 rounded-lg px-2.5 py-2">
+              <p className="rounded-lg border border-teal-100 bg-teal-50 px-2.5 py-2 text-[11px] text-teal-800">
                 {t(PROPOSAL_POLISH_I18N.prefill.fromExchange)}
                 {prefillMeta.taxonomyOverlapCount > 0
                   ? ` · ${t(PROPOSAL_POLISH_I18N.prefill.overlapApplied, {
@@ -386,29 +469,20 @@ export default function CreateProposalSheet({
               <p className="text-sm text-red-600" role="alert">
                 {error}
               </p>
-            ) : submitBlockedReason ? (
-              <p className="text-sm text-amber-800" role="status">
-                {t(submitBlockedReason)}
-              </p>
-            ) : (
-              <p className="text-[11px] text-gray-500" role="status">
-                {t("proposal.create.reviewHint")}
-              </p>
-            )}
+            ) : null}
           </div>
 
           <div
-            className="shrink-0 border-t border-gray-200 bg-white px-4 pt-3"
-            style={{
-              paddingBottom:
-                "max(0.75rem, env(safe-area-inset-bottom, 0px))",
-            }}
+            className="shrink-0 border-t border-gray-200 bg-white px-4 pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)]"
+            data-hc-proposal-sticky-cta=""
+            style={{ paddingBottom: footerPad }}
           >
             <button
               type="submit"
               disabled={busy || !liveReadiness.ok}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               data-hc-proposal-submit=""
+              aria-disabled={busy || !liveReadiness.ok}
             >
               {busy ? (
                 <>
@@ -420,10 +494,18 @@ export default function CreateProposalSheet({
               )}
             </button>
             {!liveReadiness.ok && submitBlockedReason ? (
-              <p className="mt-1.5 text-center text-[11px] text-amber-800">
+              <p
+                className="mt-1.5 text-center text-[12px] font-medium text-amber-900"
+                role="status"
+                data-hc-proposal-submit-blocked-reason=""
+              >
                 {t(submitBlockedReason)}
               </p>
-            ) : null}
+            ) : (
+              <p className="mt-1.5 text-center text-[11px] text-gray-500" role="status">
+                {t("proposal.create.explicitSendOnly")}
+              </p>
+            )}
           </div>
         </form>
       </div>

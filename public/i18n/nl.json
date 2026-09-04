@@ -9630,7 +9630,7 @@
       "highlightPayment": "Betaling",
       "highlightValue": "Ruil",
       "receivedHeading": "Voorstel ontvangen",
-      "sentHeading": "Voorstel verzonden",
+      "sentHeading": "Voorstel verstuurd",
       "aboutListing": "Dit voorstel gaat over",
       "awaitingCounterpart": "Wacht op reactie van de andere partij. Je kunt je eigen voorstel niet accepteren.",
       "buyerOffers": "Koper biedt aan",
@@ -9642,17 +9642,21 @@
       "inExchangeFor": "In ruil voor",
       "acceptedAlternatives": "Ook open voor",
       "buyerConsiderationPhotos": "Wat de koper aanbiedt",
-      "yourConsiderationPhotos": "Foto’s van wat jij aanbiedt"
+      "yourConsiderationPhotos": "Foto’s van wat jij aanbiedt",
+      "notSentYet": "Nog niet verstuurd",
+      "draftPrivateHint": "Alleen jij ziet dit concept. De verkoper ontvangt het pas na ‘Voorstel versturen’."
     },
     "status": {
       "pending": "Wacht op reactie",
-      "accepted": "Afspraak vastgelegd",
+      "accepted": "Geaccepteerd",
       "rejected": "Afgewezen",
       "countered": "Tegenvoorstel",
       "expired": "Verlopen",
-      "cancelled": "Geannuleerd",
+      "cancelled": "Ingetrokken",
       "received": "Voorstel ontvangen",
-      "awaitingResponse": "Wacht op reactie"
+      "awaitingResponse": "Wacht op reactie",
+      "concept": "Concept",
+      "sent": "Verstuurd"
     },
     "settlement": {
       "heading": "Waarde",
@@ -9666,8 +9670,10 @@
       "title": "Voorstel doen",
       "settlementHint": "Kies hoe waarde wordt afgesproken — geen betaling via dit scherm.",
       "prefilledAccepted": "Vooraf ingevuld vanuit het aanbod.",
-      "discardConfirm": "Je voorstel is nog niet verstuurd. Wil je sluiten zonder te versturen?",
-      "reviewHint": "Controleer je voorstel hierboven. Alleen met ‘Voorstel versturen’ wordt het verzonden."
+      "discardConfirm": "Je voorstel is nog niet verstuurd. Sluiten bewaart het als concept (alleen voor jou).",
+      "reviewHint": "Controleer je voorstel hierboven. Alleen met ‘Voorstel versturen’ wordt het verzonden.",
+      "conceptBadge": "Concept — nog niet verstuurd",
+      "explicitSendOnly": "Alleen met deze knop wordt je voorstel echt verstuurd."
     },
     "fields": {
       "messageLabel": "Bericht bij je voorstel",
@@ -9680,7 +9686,7 @@
       "communityOrderCreated": "Afspraak vastgelegd — jullie kunnen de details verder afspreken."
     },
     "errors": {
-      "moneyAmountRequired": "Voer een bedrag in voor een geldvoorstel.",
+      "moneyAmountRequired": "Vul eerst een bedrag in.",
       "valueRequired": "Selecteer minstens één waarde.",
       "quantityRequired": "Voer een geldig aantal in.",
       "authRequired": "Log in om een voorstel te versturen.",
@@ -9710,11 +9716,11 @@
       "fulfillmentOffered": "Fulfillment",
       "fulfillmentDigital": "Digitaal",
       "paymentsRequired": "Verkoper moet betalingen nog instellen voor HomeCheff-checkout.",
-      "amountRequiredForCheckout": "Vul eerst een bedrag in om via HomeCheff af te rekenen.",
+      "amountRequiredForCheckout": "Vul eerst een bedrag in.",
       "checkoutNotAllowed": "HomeCheff-checkout niet toegestaan voor dit aanbod.",
       "checkoutNotApplicable": "Checkout niet van toepassing.",
       "directContactNotAllowed": "Direct contact niet toegestaan voor dit aanbod.",
-      "paymentPathRequired": "Kies een betaalwijze.",
+      "paymentPathRequired": "Kies eerst een betaalmethode.",
       "fulfillmentNotOffered": "Deze fulfillment-optie wordt niet aangeboden.",
       "stockUnavailableOnAccept": "Voorraad niet meer beschikbaar bij accepteren.",
       "stockNegotiable": "Beschikbaarheid wordt bij afspraak bevestigd — je kunt wel een voorstel sturen."
@@ -9766,7 +9772,8 @@
       "send": "Voorstel versturen",
       "sendQuote": "Offerte versturen",
       "viewProposal": "Bekijk voorstel",
-      "viewItem": "Bekijk item"
+      "viewItem": "Bekijk item",
+      "editDraft": "Voorstel bewerken"
     },
     "cancelConfirm": "Wil je dit voorstel intrekken?",
     "offerHeading": "Wat stel je voor?",

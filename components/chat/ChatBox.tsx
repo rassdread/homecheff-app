@@ -39,12 +39,17 @@ import ConversationContextHeader from './ConversationContextHeader';
 import type { ResolvedConversationHeader } from '@/lib/communication/resolveConversationHeader';
 import ChatThreadMessageRow from './ChatThreadMessageRow';
 import CreateProposalSheet from './proposals/CreateProposalSheet';
+import ProposalDraftCard from './proposals/ProposalDraftCard';
 import ReportContentButton from '@/components/reporting/ReportContentButton';
 import type { ChatThreadMessage } from './chatThreadTypes';
 import type {
   CommunityOrderDTO,
   ProposalDTO,
 } from '@/lib/proposals/proposal-types';
+import {
+  loadProposalDraft,
+  type ProposalBuyerDraft,
+} from '@/lib/proposals/proposal-draft-storage';
 
 export interface ChatBoxProps {
   conversationId: string;
@@ -110,7 +115,21 @@ export default function ChatBox({
     Record<string, import('@/lib/delivery/delivery-marketplace-types').DeliveryRequestDTO>
   >({});
   const [showCreateProposal, setShowCreateProposal] = useState(false);
+  const [buyerProposalDraft, setBuyerProposalDraft] =
+    useState<ProposalBuyerDraft | null>(null);
   const proposalAutoOpenedRef = useRef(false);
+
+  const refreshBuyerProposalDraft = useCallback(() => {
+    if (!conversationId) {
+      setBuyerProposalDraft(null);
+      return;
+    }
+    setBuyerProposalDraft(loadProposalDraft(conversationId));
+  }, [conversationId]);
+
+  useEffect(() => {
+    refreshBuyerProposalDraft();
+  }, [refreshBuyerProposalDraft, showCreateProposal]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
@@ -1266,7 +1285,7 @@ export default function ChatBox({
               <Loader2 className="w-6 h-6 text-gray-300 animate-spin" />
             </div>
           </div>
-        ) : messages.length === 0 ? (
+        ) : messages.length === 0 && !buyerProposalDraft ? (
           <div className="flex h-full flex-col items-center justify-center text-gray-500">
             <div className="mb-4 text-5xl">💬</div>
             <p>{t('messages.noMessages')}</p>
@@ -1296,6 +1315,23 @@ export default function ChatBox({
                 onProposalUpdated={handleProposalUpdated}
               />
             ))}
+            {/* Buyer-private CONCEPT — never delivered to seller until explicit send */}
+            {buyerProposalDraft ? (
+              <ProposalDraftCard
+                draft={buyerProposalDraft}
+                listingTitle={
+                  contextHeader?.kind === 'PRODUCT'
+                    ? contextHeader.product.title
+                    : buyerProposalDraft.form.title
+                }
+                productId={
+                  contextHeader?.kind === 'PRODUCT'
+                    ? contextHeader.product.id
+                    : buyerProposalDraft.productId
+                }
+                onEdit={() => setShowCreateProposal(true)}
+              />
+            ) : null}
             <div ref={messagesEndRef} className="h-px shrink-0" aria-hidden />
           </div>
         )}
@@ -1362,7 +1398,9 @@ export default function ChatBox({
         onClose={() => setShowCreateProposal(false)}
         conversationId={conversationId}
         contextHeader={contextHeader}
+        onDraftChanged={refreshBuyerProposalDraft}
         onCreated={() => {
+          refreshBuyerProposalDraft();
           void loadProposals();
           void handleManualReload();
         }}

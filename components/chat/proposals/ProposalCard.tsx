@@ -408,7 +408,7 @@ export default function ProposalCard({
     proposal.status === "PENDING" && canAct
       ? "proposal.status.received"
       : proposal.status === "PENDING" && isCreator
-        ? "proposal.status.awaitingResponse"
+        ? "proposal.status.sent"
         : PROPOSAL_I18N.status[proposal.status];
 
   const listingTitle =
@@ -455,14 +455,32 @@ export default function ProposalCard({
           ) : null}
 
           {productHref ? (
-            <Link
-              href={productHref}
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`#proposal-${proposal.id}`}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 hover:underline"
+                data-hc-view-proposal=""
+              >
+                {t("proposal.actions.viewProposal")}
+              </a>
+              <Link
+                href={productHref}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-700 hover:underline"
+                data-hc-view-item=""
+              >
+                <ExternalLink className="h-3 w-3" aria-hidden />
+                {t("proposal.actions.viewItem")}
+              </Link>
+            </div>
+          ) : (
+            <a
+              href={`#proposal-${proposal.id}`}
               className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 hover:underline"
+              data-hc-view-proposal=""
             >
-              <ExternalLink className="h-3 w-3" aria-hidden />
-              {t("proposal.actions.viewItem")}
-            </Link>
-          ) : null}
+              {t("proposal.actions.viewProposal")}
+            </a>
+          )}
 
           <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-2 space-y-1.5">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
@@ -584,7 +602,7 @@ export default function ProposalCard({
 
           {proposal.status === "PENDING" && isCreator && !showCounter ? (
             <p className="text-[11px] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-2.5 py-2">
-              {t("proposal.card.awaitingCounterpart")}
+              {t("proposal.status.sent")} — {t("proposal.status.awaitingResponse")}
             </p>
           ) : null}
 

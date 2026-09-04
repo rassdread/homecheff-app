@@ -9642,17 +9642,21 @@
       "inExchangeFor": "In exchange for",
       "acceptedAlternatives": "Also open to",
       "buyerConsiderationPhotos": "What the buyer offers",
-      "yourConsiderationPhotos": "Photos of what you offer"
+      "yourConsiderationPhotos": "Photos of what you offer",
+      "notSentYet": "Not sent yet",
+      "draftPrivateHint": "Only you can see this draft. The seller receives it only after you tap Send proposal."
     },
     "status": {
       "pending": "Awaiting response",
-      "accepted": "Deal confirmed",
-      "rejected": "Declined",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
       "countered": "Counter offer",
       "expired": "Expired",
-      "cancelled": "Cancelled",
+      "cancelled": "Withdrawn",
       "received": "Proposal received",
-      "awaitingResponse": "Waiting for response"
+      "awaitingResponse": "Awaiting response",
+      "concept": "Draft",
+      "sent": "Sent"
     },
     "settlement": {
       "heading": "Value",
@@ -9666,8 +9670,10 @@
       "title": "Make a proposal",
       "settlementHint": "Choose how value is agreed — no payment processing in this screen.",
       "prefilledAccepted": "Prefilled from the listing.",
-      "discardConfirm": "Your proposal has not been sent yet. Close without sending?",
-      "reviewHint": "Review your proposal above. It is only sent when you tap “Send proposal”."
+      "discardConfirm": "Your proposal is not sent yet. Closing saves it as a private draft.",
+      "reviewHint": "Review your proposal above. It is only sent when you tap “Send proposal”.",
+      "conceptBadge": "Draft — not sent yet",
+      "explicitSendOnly": "Your proposal is only sent when you tap this button."
     },
     "fields": {
       "messageLabel": "Message with your proposal",
@@ -9680,7 +9686,7 @@
       "communityOrderCreated": "Deal confirmed — arrange the details together."
     },
     "errors": {
-      "moneyAmountRequired": "Enter an amount for a money proposal.",
+      "moneyAmountRequired": "Enter an amount first.",
       "valueRequired": "Select at least one value.",
       "quantityRequired": "Enter a valid quantity.",
       "authRequired": "Sign in to send a proposal.",
@@ -9710,11 +9716,11 @@
       "fulfillmentOffered": "Fulfillment",
       "fulfillmentDigital": "Digital",
       "paymentsRequired": "Seller must set up payments before HomeCheff checkout.",
-      "amountRequiredForCheckout": "Enter an amount first to pay via HomeCheff.",
+      "amountRequiredForCheckout": "Enter an amount first.",
       "checkoutNotAllowed": "HomeCheff checkout not allowed for this listing.",
       "checkoutNotApplicable": "Checkout not applicable.",
       "directContactNotAllowed": "Direct contact not allowed for this listing.",
-      "paymentPathRequired": "Choose a payment path.",
+      "paymentPathRequired": "Choose a payment method first.",
       "fulfillmentNotOffered": "This fulfillment option is not offered.",
       "stockUnavailableOnAccept": "Stock no longer available on accept.",
       "stockNegotiable": "Availability is confirmed when you agree — you can still send a proposal."
@@ -9766,7 +9772,8 @@
       "send": "Send proposal",
       "sendQuote": "Send quote",
       "viewProposal": "View proposal",
-      "viewItem": "View item"
+      "viewItem": "View item",
+      "editDraft": "Edit proposal"
     },
     "cancelConfirm": "Do you want to withdraw this proposal?",
     "offerHeading": "What are you proposing?",

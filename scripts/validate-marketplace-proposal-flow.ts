@@ -468,7 +468,9 @@ assert(createSheet.includes('trackProposalFlowEvent'), 'CreateProposalSheet trac
 assert(createSheet.includes('ProposalSummaryPreview'), 'CreateProposalSheet shows summary');
 assert(createSheet.includes('safe-area-inset-bottom'), 'CreateProposalSheet sticky CTA has safe-area');
 assert(createSheet.includes('data-hc-proposal-submit'), 'CreateProposalSheet has explicit submit CTA');
-assert(createSheet.includes('discardConfirm'), 'CreateProposalSheet confirms discard without send');
+assert(createSheet.includes('saveProposalDraft'), 'CreateProposalSheet persists private CONCEPT draft on close');
+assert(createSheet.includes('clearProposalDraft'), 'CreateProposalSheet clears draft only after explicit send');
+assert(createSheet.includes('z-[80]'), 'CreateProposalSheet above bottom nav');
 assert(createSheet.includes('preventImplicitEnterSubmit'), 'CreateProposalSheet blocks Enter auto-submit');
 assert(createSheet.includes('Idempotency-Key'), 'CreateProposalSheet sends Idempotency-Key');
 assert(createSheet.includes('lockListingTitle'), 'CreateProposalSheet locks listing title');
@@ -476,6 +478,7 @@ assert(fieldsSection.includes('lockListingTitle'), 'ProposalFieldsSection suppor
 assert(fieldsSection.includes('proposal.fields.messageLabel'), 'message field separate from listing title');
 assert(proposalCard.includes('trackProposalFlowEvent'), 'ProposalCard tracks accept/reject');
 assert(proposalCard.includes('proposal.actions.viewItem'), 'ProposalCard has Bekijk item CTA');
+assert(proposalCard.includes('proposal.actions.viewProposal'), 'ProposalCard has Bekijk voorstel CTA');
 assert(proposalCard.includes('id={`proposal-${proposal.id}`}'), 'ProposalCard has focusable proposal id');
 assert(
   contextHeader.includes('chat.context.viewItem') || contextHeader.includes('Bekijk item'),
@@ -506,10 +509,16 @@ const i18nPaths = [
   ['proposal', 'errors', 'checkoutNotAvailable'],
   ['proposal', 'create', 'discardConfirm'],
   ['proposal', 'create', 'reviewHint'],
+  ['proposal', 'create', 'conceptBadge'],
+  ['proposal', 'create', 'explicitSendOnly'],
   ['proposal', 'fields', 'messageLabel'],
   ['proposal', 'actions', 'viewItem'],
   ['proposal', 'actions', 'viewProposal'],
+  ['proposal', 'actions', 'editDraft'],
   ['proposal', 'actions', 'send'],
+  ['proposal', 'status', 'concept'],
+  ['proposal', 'status', 'sent'],
+  ['proposal', 'card', 'notSentYet'],
   ['proposal', 'productBinding', 'proposalForHeading'],
   ['proposal', 'card', 'aboutListing'],
   ['chat', 'context', 'viewItem'],
