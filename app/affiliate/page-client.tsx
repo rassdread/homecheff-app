@@ -129,19 +129,63 @@ export default function AffiliatePageClient() {
     );
   }
 
+  // Onboarding choice: person vs company (self-service B2B path).
   return (
-    <AffiliateGrowthLanding
-      session={session}
-      isMainAffiliate={isMainAffiliate}
-      userData={userData}
-      acceptPrivacyPolicy={acceptPrivacyPolicy}
-      setAcceptPrivacyPolicy={setAcceptPrivacyPolicy}
-      acceptTerms={acceptTerms}
-      setAcceptTerms={setAcceptTerms}
-      acceptAffiliateAgreement={acceptAffiliateAgreement}
-      setAcceptAffiliateAgreement={setAcceptAffiliateAgreement}
-      handleSignup={handleSignup}
-      isSigningUp={isSigningUp}
-    />
+    <div>
+      <section className="border-b border-neutral-200 bg-white px-4 py-8">
+        <div className="mx-auto max-w-4xl space-y-4">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Hoe wil je HomeCheff promoten?
+          </h2>
+          <p className="text-neutral-600 max-w-2xl">
+            Kies persoonlijk affiliate of werk met je bedrijf, team en campagnes. Economische
+            referrals van marketeers horen bij het bedrijf.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-neutral-200 p-5">
+              <h3 className="font-medium text-lg">Als persoon</h3>
+              <p className="mt-2 text-sm text-neutral-600">
+                Eigen referral-link, verdiensten op jouw affiliate-account.
+              </p>
+            </div>
+            <Link
+              href="/affiliate/company"
+              className="rounded-xl border border-neutral-900 bg-neutral-900 p-5 text-white transition hover:bg-neutral-800"
+            >
+              <h3 className="font-medium text-lg">Met mijn bedrijf</h3>
+              <p className="mt-2 text-sm text-neutral-200">
+                Bedrijfsprofiel, marketeers, campagnes, QR/links en bedrijfsverdiensten.
+              </p>
+            </Link>
+          </div>
+          {isMainAffiliate && (
+            <p className="text-sm">
+              Je hebt al een persoonlijk affiliate-account.{' '}
+              <Link href="/affiliate/dashboard" className="underline">
+                Ga naar dashboard
+              </Link>{' '}
+              of{' '}
+              <Link href="/affiliate/company" className="underline">
+                beheer je bedrijf
+              </Link>
+              .
+            </p>
+          )}
+        </div>
+      </section>
+      <AffiliateGrowthLanding
+        session={session}
+        isMainAffiliate={isMainAffiliate}
+        userData={userData}
+        acceptPrivacyPolicy={acceptPrivacyPolicy}
+        setAcceptPrivacyPolicy={setAcceptPrivacyPolicy}
+        acceptTerms={acceptTerms}
+        setAcceptTerms={setAcceptTerms}
+        acceptAffiliateAgreement={acceptAffiliateAgreement}
+        setAcceptAffiliateAgreement={setAcceptAffiliateAgreement}
+        handleSignup={handleSignup}
+        isSigningUp={isSigningUp}
+      />
+    </div>
   );
 }
