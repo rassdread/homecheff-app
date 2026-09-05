@@ -17,4 +17,5 @@ export {
   TileTrustCue,
   TilePriceLine,
   TileFavoriteAction,
+  TileShareAction,
 } from './primitives';

@@ -36,6 +36,7 @@ export default function MarketplaceTileSidebar({
           imageUrl={model.coverImage}
           mediaRatio="4:3"
           showFavorite={false}
+          showShare={false}
           className="rounded-lg overflow-hidden"
         />
       </div>

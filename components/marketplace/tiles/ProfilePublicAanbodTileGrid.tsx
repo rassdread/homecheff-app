@@ -30,6 +30,8 @@ export default function ProfilePublicAanbodTileGrid({
   className = 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3',
 }: ProfilePublicAanbodTileGridProps) {
   const { t } = useTranslation();
+  const baseUrl =
+    typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
 
   return (
     <div className={className}>
@@ -40,7 +42,13 @@ export default function ProfilePublicAanbodTileGrid({
           mode: 'sale',
         });
         return (
-          <MarketplaceTileMini key={item.id} model={model} t={t} />
+          <MarketplaceTileMini
+            key={item.id}
+            model={model}
+            t={t}
+            baseUrl={baseUrl}
+            shareSurface="profile"
+          />
         );
       })}
     </div>

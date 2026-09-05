@@ -103,7 +103,15 @@ export default function MarketplaceTileRouter({
     });
 
   if (variant === 'mini') {
-    return <MarketplaceTileMini model={model} t={t} locale={locale} />;
+    return (
+      <MarketplaceTileMini
+        model={model}
+        t={t}
+        locale={locale}
+        baseUrl={baseUrl}
+        shareSurface="profile"
+      />
+    );
   }
 
   if (variant === 'sidebar') {
@@ -118,6 +126,7 @@ export default function MarketplaceTileRouter({
         baseUrl={baseUrl}
         locale={locale}
         imageLoading={imageLoading}
+        shareSurface="feed"
       />
     );
   }
@@ -132,6 +141,8 @@ export default function MarketplaceTileRouter({
       mediaRatio={effectiveMediaRatio}
       locale={locale}
       imageLoading={imageLoading}
+      baseUrl={baseUrl}
+      shareSurface="feed"
     />
   );
 }

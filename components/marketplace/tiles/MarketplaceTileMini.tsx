@@ -20,15 +20,19 @@ export type MarketplaceTileMiniProps = {
   model: MarketplaceTileModel;
   t: TranslateFn;
   locale?: string;
+  baseUrl?: string;
+  shareSurface?: 'feed' | 'search' | 'profile' | 'category' | 'tile';
 };
 
 /**
- * Profile grids, favorites, collections — max 1 badge, favorite only.
+ * Profile grids, favorites, collections — max 1 badge, favorite + share.
  */
 export default function MarketplaceTileMini({
   model,
   t,
   locale = 'nl-NL',
+  baseUrl,
+  shareSurface = 'profile',
 }: MarketplaceTileMiniProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'mini', locale);
   const trustCue = buildTileTrustCue(model, t, 1);
@@ -47,6 +51,11 @@ export default function MarketplaceTileMini({
         favoriteId={model.id}
         favoriteTitle={title}
         mode={model.mode}
+        showShare
+        shareTitle={title}
+        shareDescription={model.description}
+        shareBaseUrl={baseUrl}
+        shareSurface={shareSurface}
       />
       <div className="flex shrink-0 flex-col gap-1 p-2.5">
         <TilePersonRow model={model} t={t} />

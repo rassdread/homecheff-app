@@ -4,9 +4,11 @@
   },
   "share": {
     "button": "Deel",
+    "shareItem": "Deel dit item",
     "via": "Deel via",
     "copyLink": "Link kopiëren",
-    "copied": "Gekopieerd!",
+    "copied": "Link gekopieerd",
+    "copyFailed": "Link kopiëren mislukt. Probeer het opnieuw.",
     "affiliateHint": "Je persoonlijke deel-link wordt automatisch meegestuurd",
     "preparingLink": "Je deel-link wordt voorbereid…",
     "whatsapp": "WhatsApp",

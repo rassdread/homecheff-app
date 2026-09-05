@@ -4,9 +4,11 @@
   },
   "share": {
     "button": "Share",
+    "shareItem": "Share this item",
     "via": "Share via",
     "copyLink": "Copy link",
-    "copied": "Copied!",
+    "copied": "Link copied",
+    "copyFailed": "Could not copy the link. Please try again.",
     "affiliateHint": "Your personal share link is included automatically",
     "preparingLink": "Preparing your share link…",
     "whatsapp": "WhatsApp",

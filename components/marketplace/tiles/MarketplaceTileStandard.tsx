@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import ShareButton from '@/components/ui/ShareButton';
 import {
   buildTileBadges,
   buildTileSettlementRow,
@@ -25,6 +24,7 @@ export type MarketplaceTileStandardProps = {
   locale?: string;
   enablePreview?: boolean;
   imageLoading?: 'lazy' | 'eager';
+  shareSurface?: 'feed' | 'search' | 'profile' | 'category' | 'tile';
 };
 
 export default function MarketplaceTileStandard({
@@ -34,6 +34,7 @@ export default function MarketplaceTileStandard({
   locale = 'nl-NL',
   enablePreview = true,
   imageLoading = 'lazy',
+  shareSurface = 'feed',
 }: MarketplaceTileStandardProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'standard', locale);
   const trustCue = buildTileTrustCue(model, t, 3);
@@ -60,24 +61,21 @@ export default function MarketplaceTileStandard({
         favoriteId={model.id}
         favoriteTitle={title}
         mode={model.mode}
+        showShare
+        shareTitle={title}
+        shareDescription={model.description}
+        shareBaseUrl={baseUrl}
+        shareSurface={shareSurface}
         showPreviewInfo={enablePreview}
         imageLoading={imageLoading}
       />
       <div className="flex shrink-0 flex-col gap-1.5 p-3 sm:p-3.5">
         <TilePersonRow model={model} t={t} />
-        <div className="flex items-start justify-between gap-2">
-          <Link href={model.href} prefetch className="min-w-0 flex-1">
-            <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-gray-900 sm:text-base">
-              {title}
-            </h3>
-          </Link>
-          <ShareButton
-            url={`${baseUrl}${model.href}`}
-            title={title}
-            description={model.description ?? ''}
-            className="shrink-0 p-1 text-gray-400 hover:text-secondary-brand"
-          />
-        </div>
+        <Link href={model.href} prefetch className="min-w-0">
+          <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-gray-900 sm:text-base">
+            {title}
+          </h3>
+        </Link>
         <TileValueExchangeBlock
           model={model}
           t={t}

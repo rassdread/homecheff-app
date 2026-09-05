@@ -115,7 +115,11 @@ export default function ShareButton({ url, title, description, className }: Shar
   return (
     <div className="relative">
       <button
-        onClick={() => setShowShareMenu(!showShareMenu)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowShareMenu(!showShareMenu);
+        }}
         type="button"
         aria-label={t('share.via')}
         className={`

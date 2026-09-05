@@ -25,6 +25,8 @@ export type MarketplaceTileCompactProps = {
   locale?: string;
   enablePreview?: boolean;
   imageLoading?: 'lazy' | 'eager';
+  baseUrl?: string;
+  shareSurface?: 'feed' | 'search' | 'profile' | 'category' | 'tile';
 };
 
 export default function MarketplaceTileCompact({
@@ -34,6 +36,8 @@ export default function MarketplaceTileCompact({
   locale = 'nl-NL',
   enablePreview = true,
   imageLoading = 'lazy',
+  baseUrl,
+  shareSurface = 'feed',
 }: MarketplaceTileCompactProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'compact', locale);
   const trustCue = buildTileTrustCue(model, t, 2);
@@ -60,6 +64,11 @@ export default function MarketplaceTileCompact({
         favoriteId={model.id}
         favoriteTitle={title}
         mode={model.mode}
+        showShare
+        shareTitle={title}
+        shareDescription={model.description}
+        shareBaseUrl={baseUrl}
+        shareSurface={shareSurface}
         showPreviewInfo={enablePreview}
         imageLoading={imageLoading}
       />
