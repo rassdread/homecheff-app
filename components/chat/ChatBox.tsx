@@ -1337,14 +1337,17 @@ export default function ChatBox({
         )}
       </div>
 
-      {/* Input */}
+      {/* Input — document flow (not fixed). Vertical budget comes from
+          .hc-messages-root clearing --hc-bottom-nav-offset; do not add
+          safe-area here (bottom nav already owns that inset). */}
       <form
         onSubmit={handleSend}
         className={`hc-native-chat-composer shrink-0 border-t border-gray-200/90 bg-white/95 px-3 backdrop-blur-md sm:px-4 ${
           nativeMounted
             ? 'hc-native-chat-composer-native pt-1.5 sm:pt-2'
-            : 'py-2.5 supports-[padding:max(0px,1px)]:pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] sm:py-3'
+            : 'py-2.5 sm:py-3'
         }`}
+        data-hc-chat-composer=""
       >
         <div className="flex gap-2 items-end">
           <button

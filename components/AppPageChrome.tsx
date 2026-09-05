@@ -11,6 +11,9 @@ import { cn } from '@/lib/utils';
  * zodat knoppen en footers links blijven scrollen i.p.v. onder de balk te verdwijnen.
  *
  * WX 1B.4: Landscape Work Posture collapses the bottom button menu — drop reserved pad.
+ *
+ * Bottom pad uses --hc-bottom-nav-offset (globals.css SSOT) so /messages height and
+ * other routes share the same clearance math.
  */
 export default function AppPageChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -30,8 +33,7 @@ export default function AppPageChrome({ children }: { children: ReactNode }) {
       data-messages-route={messagesOwnInset ? 'true' : 'false'}
       className={cn(
         'min-w-0 w-full max-w-full',
-        applyNavBottomPad &&
-          'max-lg:pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] max-lg:sm:pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))]'
+        applyNavBottomPad && 'max-lg:pb-[var(--hc-bottom-nav-offset)]'
       )}
     >
       {children}
