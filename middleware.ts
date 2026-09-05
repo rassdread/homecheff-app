@@ -233,7 +233,55 @@ export async function middleware(request: NextRequest) {
     });
   };
 
-  // Check for referral parameter on any page
+  // Company tracking (?aff_track= from Growth /a/[slug]) — Marketplace-domain first-touch.
+  // Must run before personal ?ref= so org.slug is not treated as an individual referral code.
+  const affTrackSlug = (searchParams.get('aff_track') || searchParams.get('hc_aff_track') || '')
+    .trim()
+    .toLowerCase();
+  if (affTrackSlug) {
+    const isExcludedPath =
+      pathname.startsWith('/_next/') ||
+      pathname.startsWith('/api/') ||
+      pathname.startsWith('/welkom/') ||
+      pathname.startsWith('/uitnodiging/');
+    if (!isExcludedPath) {
+      const cleanUrl = new URL(request.url);
+      cleanUrl.searchParams.delete('aff_track');
+      cleanUrl.searchParams.delete('hc_aff_track');
+      // Company path owns this click; drop companion ?ref=org.slug from /a/[slug].
+      cleanUrl.searchParams.delete('ref');
+      const redirectResponse = NextResponse.redirect(
+        new URL(cleanUrl.pathname + cleanUrl.search, request.url),
+      );
+      const hasCompanyTrack =
+        Boolean(request.cookies.get('hc_aff_track')?.value) ||
+        Boolean(request.cookies.get('hc_aff_track_slug')?.value);
+      if (!hasCompanyTrack) {
+        const maxAge = 30 * 24 * 60 * 60;
+        const payload = Buffer.from(JSON.stringify({ slug: affTrackSlug }), 'utf8').toString(
+          'base64url',
+        );
+        redirectResponse.cookies.set('hc_aff_track', payload, {
+          httpOnly: false,
+          sameSite: 'lax',
+          secure: true,
+          path: '/',
+          maxAge,
+        });
+        redirectResponse.cookies.set('hc_aff_track_slug', affTrackSlug, {
+          httpOnly: false,
+          sameSite: 'lax',
+          secure: true,
+          path: '/',
+          maxAge,
+        });
+      }
+      applyLocaleSeed(redirectResponse);
+      return redirectResponse;
+    }
+  }
+
+  // Personal referral (?ref=) on any page
   const refCode = searchParams.get('ref');
   if (refCode) {
     const isExcludedPath =

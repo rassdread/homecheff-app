@@ -6,6 +6,7 @@ import NavBarShell from '@/components/navigation/NavBarShell';
 import { headers, cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import { canonicalLogoUrl, FAVICON_ASSET_Q } from '@/lib/brand/canonical-logo';
 import { MAIN_DOMAIN, getMetadataBaseFromHeaders, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 import { getPlatformDefinition, PLATFORM_KEYWORDS } from '@/lib/seo/platform-definition';
@@ -29,6 +30,13 @@ const ConsentAwareAnalytics = dynamic(() => import('@/components/ConsentAwareAna
 });
 const MarketplaceUtmCapture = dynamic(
   () => import('@/components/acquisition/MarketplaceUtmCapture'),
+  { ssr: false },
+);
+const CompanyAffiliateTrackBinder = dynamic(
+  () =>
+    import('@/components/affiliates/CompanyAffiliateTrackBinder').then((m) => ({
+      default: m.CompanyAffiliateTrackBinder,
+    })),
   { ssr: false },
 );
 const Preloader = dynamic(() => import('@/components/Preloader'), {
@@ -240,6 +248,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <PerformanceMonitor />
           <ConsentAwareAnalytics />
           <MarketplaceUtmCapture />
+          <Suspense fallback={null}>
+            <CompanyAffiliateTrackBinder />
+          </Suspense>
           <Preloader />
           <ToastNotification />
           <UserValidation />

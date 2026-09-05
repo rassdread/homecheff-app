@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
 type Membership = {
@@ -16,8 +17,14 @@ type Membership = {
   };
 };
 
+type PayoutInfo = {
+  connectAccountLinked?: boolean;
+  connectOnboardingCompleted?: boolean;
+};
+
 export default function AffiliateCompanyPageClient() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
@@ -26,6 +33,7 @@ export default function AffiliateCompanyPageClient() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [lastInviteToken, setLastInviteToken] = useState<string | null>(null);
   const [campaignName, setCampaignName] = useState('');
 
   async function refreshList() {
@@ -58,8 +66,66 @@ export default function AffiliateCompanyPageClient() {
   }, [status]);
 
   useEffect(() => {
+    const fromQuery = searchParams.get('organizationId')?.trim();
+    if (fromQuery) setSelectedId(fromQuery);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const inviteToken = searchParams.get('invite')?.trim();
+    if (!inviteToken || status !== 'authenticated') return;
+    void (async () => {
+      setBusy(true);
+      try {
+        const res = await fetch('/api/affiliate/organization', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'ACCEPT_INVITE', inviteToken }),
+        });
+        const json = await res.json();
+        if (json.ok) {
+          setMessage('Uitnodiging geaccepteerd — welkom in het team.');
+          await refreshList();
+          if (json.organizationId) setSelectedId(String(json.organizationId));
+        } else {
+          setMessage(json.code || 'Uitnodiging kon niet worden geaccepteerd');
+        }
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }, [searchParams, status]);
+
+  useEffect(() => {
     if (selectedId) void refreshDetail(selectedId);
   }, [selectedId]);
+
+  useEffect(() => {
+    const connect = searchParams.get('connect');
+    if (!connect || !selectedId || status !== 'authenticated') return;
+    if (connect !== 'return' && connect !== 'refresh') return;
+    void (async () => {
+      setBusy(true);
+      try {
+        const res = await fetch('/api/affiliate/organization', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            action: 'REFRESH_CONNECT_STATUS',
+            organizationId: selectedId,
+          }),
+        });
+        const json = await res.json();
+        setMessage(
+          json.completed
+            ? 'Uitbetaling (Stripe Connect) is gereed.'
+            : 'Connect-status bijgewerkt. Voltooi onboarding als die nog open staat.',
+        );
+        await refreshDetail(selectedId);
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }, [searchParams, selectedId, status]);
 
   async function createCompany() {
     setBusy(true);
@@ -91,6 +157,7 @@ export default function AffiliateCompanyPageClient() {
   async function inviteMarketer() {
     if (!selectedId || !inviteEmail) return;
     setBusy(true);
+    setLastInviteToken(null);
     try {
       const res = await fetch('/api/affiliate/organization', {
         method: 'POST',
@@ -103,11 +170,50 @@ export default function AffiliateCompanyPageClient() {
         }),
       });
       const json = await res.json();
-      setMessage(json.ok ? 'Uitnodiging aangemaakt' : json.code || 'Uitnodigen mislukt');
       if (json.ok) {
+        setMessage(`Uitnodiging aangemaakt voor ${inviteEmail}`);
+        setLastInviteToken(json.invite?.inviteToken || null);
         setInviteEmail('');
         await refreshDetail(selectedId);
+      } else {
+        setMessage(json.code || 'Uitnodigen mislukt');
       }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function startPayoutOnboarding() {
+    if (!selectedId) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
+      const res = await fetch('/api/affiliate/organization', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          action: 'START_PAYOUT_ONBOARDING',
+          organizationId: selectedId,
+          refreshUrl: `${origin}/affiliate/company?organizationId=${encodeURIComponent(selectedId)}&connect=refresh`,
+          returnUrl: `${origin}/affiliate/company?organizationId=${encodeURIComponent(selectedId)}&connect=return`,
+        }),
+      });
+      const json = await res.json();
+      if (!json.ok) {
+        setMessage(json.message || json.code || 'Connect starten mislukt');
+        return;
+      }
+      if (json.alreadyComplete) {
+        setMessage('Uitbetaling was al ingesteld.');
+        await refreshDetail(selectedId);
+        return;
+      }
+      if (json.url) {
+        window.location.href = json.url as string;
+        return;
+      }
+      setMessage('Geen Connect-URL ontvangen');
     } finally {
       setBusy(false);
     }
@@ -158,7 +264,7 @@ export default function AffiliateCompanyPageClient() {
 
   if (status === 'unauthenticated') {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
+      <main className="mx-auto w-full max-w-3xl px-4 py-10">
         <p>Log in om je affiliatebedrijf te beheren.</p>
         <Link href="/login" className="text-orange-700 underline">
           Inloggen
@@ -169,37 +275,44 @@ export default function AffiliateCompanyPageClient() {
 
   const org = (detail as { organization?: Record<string, unknown> } | null)?.organization;
   const role = (detail as { role?: string } | null)?.role;
+  const payout = (org?.payout as PayoutInfo | undefined) ?? {};
   const assets = (org?.trackingAssets as Array<Record<string, unknown>> | undefined) ?? [];
   const campaigns = (org?.campaigns as Array<Record<string, unknown>> | undefined) ?? [];
   const members = (org?.members as Array<Record<string, unknown>> | undefined) ?? [];
+  const invites = (org?.invites as Array<Record<string, unknown>> | undefined) ?? [];
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 space-y-8">
-      <header className="space-y-2">
+    <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8 space-y-6 sm:space-y-8 min-w-0">
+      <header className="space-y-2 min-w-0">
         <p className="text-sm text-neutral-500">
           <Link href="/affiliate" className="underline">
             Affiliate
           </Link>{' '}
           / Bedrijf
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight">Affiliatebedrijf</h1>
-        <p className="text-neutral-600 max-w-2xl">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight break-words">
+          Affiliatebedrijf
+        </h1>
+        <p className="text-neutral-600 max-w-2xl text-sm sm:text-base">
           Beheer campagnes, marketeers en verdiensten. Referrals horen economisch bij het bedrijf —
           niet bij de individuele marketeer.
         </p>
       </header>
 
       {message && (
-        <p className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm">
+        <p
+          role="status"
+          className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm break-words"
+        >
           {message}
         </p>
       )}
 
       <section className="space-y-3 border-t border-neutral-200 pt-6">
-        <h2 className="text-xl font-medium">Nieuw bedrijf</h2>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <h2 className="text-lg sm:text-xl font-medium">Nieuw bedrijf</h2>
+        <div className="flex flex-col gap-2 sm:flex-row min-w-0">
           <input
-            className="flex-1 rounded border border-neutral-300 px-3 py-2"
+            className="min-w-0 flex-1 rounded border border-neutral-300 px-3 py-2 text-base"
             placeholder="Bedrijfsnaam"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
@@ -208,7 +321,7 @@ export default function AffiliateCompanyPageClient() {
             type="button"
             disabled={busy || companyName.trim().length < 2}
             onClick={() => void createCompany()}
-            className="rounded bg-neutral-900 px-4 py-2 text-white disabled:opacity-50"
+            className="rounded bg-neutral-900 px-4 py-2.5 text-white disabled:opacity-50 shrink-0"
           >
             Bedrijf aanmaken
           </button>
@@ -217,9 +330,9 @@ export default function AffiliateCompanyPageClient() {
 
       {memberships.length > 0 && (
         <section className="space-y-3 border-t border-neutral-200 pt-6">
-          <h2 className="text-xl font-medium">Jouw bedrijven</h2>
+          <h2 className="text-lg sm:text-xl font-medium">Jouw bedrijven</h2>
           <select
-            className="w-full max-w-md rounded border border-neutral-300 px-3 py-2"
+            className="w-full max-w-md rounded border border-neutral-300 px-3 py-2.5 text-base"
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
           >
@@ -234,7 +347,7 @@ export default function AffiliateCompanyPageClient() {
 
       {org && (
         <>
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 border-t border-neutral-200 pt-6">
+          <section className="grid gap-3 grid-cols-2 lg:grid-cols-4 border-t border-neutral-200 pt-6">
             <Stat
               label="Referrals"
               value={String((analytics as { attributedUsers?: number } | null)?.attributedUsers ?? 0)}
@@ -266,12 +379,40 @@ export default function AffiliateCompanyPageClient() {
             />
           </section>
 
+          {role === 'OWNER' && (
+            <section className="space-y-3 border-t border-neutral-200 pt-6">
+              <h2 className="text-lg sm:text-xl font-medium">Uitbetaling</h2>
+              <p className="text-sm text-neutral-600">
+                Commissies lopen altijd op. Cashout vereist Stripe Connect op de bedrijkszitting —
+                alleen de eigenaar kan dit instellen.
+              </p>
+              <p className="text-sm">
+                Status:{' '}
+                {payout.connectOnboardingCompleted
+                  ? 'Gereed voor uitbetaling'
+                  : payout.connectAccountLinked
+                    ? 'Onboarding gestart — nog niet voltooid'
+                    : 'Nog niet ingesteld'}
+              </p>
+              {!payout.connectOnboardingCompleted && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void startPayoutOnboarding()}
+                  className="rounded bg-neutral-900 px-4 py-2.5 text-white disabled:opacity-50"
+                >
+                  Uitbetaling instellen
+                </button>
+              )}
+            </section>
+          )}
+
           {(role === 'OWNER' || role === 'ADMIN') && (
             <section className="space-y-3 border-t border-neutral-200 pt-6">
-              <h2 className="text-xl font-medium">Marketeer uitnodigen</h2>
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <h2 className="text-lg sm:text-xl font-medium">Marketeer uitnodigen</h2>
+              <div className="flex flex-col gap-2 sm:flex-row min-w-0">
                 <input
-                  className="flex-1 rounded border border-neutral-300 px-3 py-2"
+                  className="min-w-0 flex-1 rounded border border-neutral-300 px-3 py-2 text-base"
                   placeholder="email@marketeer.nl"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
@@ -280,19 +421,37 @@ export default function AffiliateCompanyPageClient() {
                   type="button"
                   disabled={busy}
                   onClick={() => void inviteMarketer()}
-                  className="rounded border border-neutral-900 px-4 py-2"
+                  className="rounded border border-neutral-900 px-4 py-2.5 shrink-0"
                 >
                   Uitnodigen
                 </button>
               </div>
+              {lastInviteToken && (
+                <p className="text-xs sm:text-sm break-all rounded border border-amber-200 bg-amber-50 px-3 py-2">
+                  Deelbare accept-link (kopieer naar marketeer):{' '}
+                  <span className="font-mono">
+                    {typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu'}
+                    /affiliate/company?invite={lastInviteToken}
+                  </span>
+                </p>
+              )}
+              {invites.length > 0 && (
+                <ul className="text-sm space-y-1 text-neutral-600">
+                  {invites.map((inv) => (
+                    <li key={String(inv.id)} className="break-all">
+                      Openstaand: {String(inv.email)} ({String(inv.role)})
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           )}
 
           <section className="space-y-3 border-t border-neutral-200 pt-6">
-            <h2 className="text-xl font-medium">Campagne + trackinglink</h2>
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <h2 className="text-lg sm:text-xl font-medium">Campagne + trackinglink</h2>
+            <div className="flex flex-col gap-2 sm:flex-row min-w-0">
               <input
-                className="flex-1 rounded border border-neutral-300 px-3 py-2"
+                className="min-w-0 flex-1 rounded border border-neutral-300 px-3 py-2 text-base"
                 placeholder="Campagnenaam"
                 value={campaignName}
                 onChange={(e) => setCampaignName(e.target.value)}
@@ -301,7 +460,7 @@ export default function AffiliateCompanyPageClient() {
                 type="button"
                 disabled={busy}
                 onClick={() => void createCampaignAndLink()}
-                className="rounded bg-orange-600 px-4 py-2 text-white disabled:opacity-50"
+                className="rounded bg-orange-600 px-4 py-2.5 text-white disabled:opacity-50 shrink-0"
               >
                 Aanmaken
               </button>
@@ -323,10 +482,10 @@ export default function AffiliateCompanyPageClient() {
           </section>
 
           <section className="space-y-2 border-t border-neutral-200 pt-6">
-            <h2 className="text-xl font-medium">Team</h2>
+            <h2 className="text-lg sm:text-xl font-medium">Team</h2>
             <ul className="text-sm space-y-1">
               {members.map((m) => (
-                <li key={String(m.id)}>
+                <li key={String(m.id)} className="break-all">
                   {String(m.userId)} — {String(m.role)}
                 </li>
               ))}
@@ -342,9 +501,11 @@ export default function AffiliateCompanyPageClient() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-neutral-200 px-4 py-3">
-      <p className="text-xs uppercase tracking-wide text-neutral-500">{label}</p>
-      <p className="text-2xl font-semibold tabular-nums">{value}</p>
+    <div className="min-w-0 rounded-lg border border-neutral-200 px-3 py-3 sm:px-4">
+      <p className="text-[10px] sm:text-xs uppercase tracking-wide text-neutral-500 leading-tight">
+        {label}
+      </p>
+      <p className="text-xl sm:text-2xl font-semibold tabular-nums truncate">{value}</p>
     </div>
   );
 }

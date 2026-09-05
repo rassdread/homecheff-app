@@ -152,6 +152,9 @@ export function setReferralCookie(code: string): boolean {
   return true;
 }
 
+/** @deprecated alias — prefer setReferralCookie */
+export const setReferralCookieClient = setReferralCookie;
+
 /**
  * @deprecated Niet gebruiken voor chat of gebruikersberichten — alleen voor expliciete
  * marketing-/deel-UI waar de gebruiker verwacht dat een link wordt toegevoegd.
@@ -181,6 +184,9 @@ export function getReferralCodeFromCookie(): string | null {
   return cookies[REFERRAL_COOKIE_NAME] || null;
 }
 
+/** @deprecated alias */
+export const getReferralCookieClient = getReferralCodeFromCookie;
+
 /**
  * Resolve attribution id for BusinessSubscription / Stripe checkout metadata.
  * Uses existing signup attribution (ref link or promo) within revenue window.
@@ -202,7 +208,10 @@ export async function resolveSubscriptionAttributionId(userId: string): Promise<
 }
 
 /**
- * Process attribution on user signup
+ * Process attribution on user signup.
+ * Personal hc_ref → Marketplace Attribution (+ ecosystem bridge).
+ * Company aff_track → ecosystem lock to COMPANY economic owner (no fake MP Attribution).
+ * Company bind always runs; ecosystem first-touch wins.
  */
 export async function processAttributionOnSignup(
   userId: string,
@@ -219,45 +228,50 @@ export async function processAttributionOnSignup(
       },
       select: { id: true },
     });
-    if (already) {
-      return;
+
+    if (!already) {
+      const affiliateCode = getAffiliateIdFromCookie(cookieHeader);
+      if (affiliateCode) {
+        const affiliateId = await getAffiliateIdFromCode(affiliateCode);
+        if (affiliateId) {
+          const affiliate = await prisma.affiliate.findUnique({
+            where: { id: affiliateId },
+            select: { userId: true },
+          });
+
+          if (affiliate && affiliate.userId === userId) {
+            console.warn('Self-referral detected, skipping attribution');
+          } else if (affiliate) {
+            const type = isBusiness ? AttributionType.BUSINESS_SIGNUP : AttributionType.USER_SIGNUP;
+            const source = hasAndroidBetaDownloadCookie(cookieHeader)
+              ? AttributionSource.ANDROID_BETA_DOWNLOAD
+              : AttributionSource.REF_LINK;
+            await createAttribution(userId, affiliateId, type, source);
+
+            void bridgeMarketplaceAttributionToEcosystem({
+              referredUserId: userId,
+              affiliateUserId: affiliate.userId,
+              sourceCampaign: source,
+            }).then((r) => {
+              if (!r.ok) console.warn('[attribution] ecosystem bridge', r.code);
+            });
+          }
+        }
+      }
     }
-
-    const affiliateCode = getAffiliateIdFromCookie(cookieHeader);
-    if (!affiliateCode) {
-      return;
-    }
-
-    const affiliateId = await getAffiliateIdFromCode(affiliateCode);
-    if (!affiliateId) {
-      return;
-    }
-
-    const affiliate = await prisma.affiliate.findUnique({
-      where: { id: affiliateId },
-      select: { userId: true },
-    });
-
-    if (affiliate && affiliate.userId === userId) {
-      console.warn('Self-referral detected, skipping attribution');
-      return;
-    }
-
-    const type = isBusiness ? AttributionType.BUSINESS_SIGNUP : AttributionType.USER_SIGNUP;
-    const source = hasAndroidBetaDownloadCookie(cookieHeader)
-      ? AttributionSource.ANDROID_BETA_DOWNLOAD
-      : AttributionSource.REF_LINK;
-    await createAttribution(userId, affiliateId, type, source);
-
-    // Forward-looking: also lock Growth ecosystem attribution (non-blocking).
-    void bridgeMarketplaceAttributionToEcosystem({
-      referredUserId: userId,
-      affiliateUserId: affiliate.userId,
-      sourceCampaign: source,
-    }).then((r) => {
-      if (!r.ok) console.warn('[attribution] ecosystem bridge', r.code);
-    });
   } catch (error) {
     console.error('Error processing attribution on signup:', error);
+  }
+
+  try {
+    const { processCompanyTrackingOnSignup } = await import(
+      '@/lib/affiliates/company-tracking-bind'
+    );
+    const r = await processCompanyTrackingOnSignup(userId, cookieHeader);
+    if (!r.ok && r.code && r.code !== 'NO_TRACK' && r.code !== 'TRACK_NOT_FOUND') {
+      console.warn('[attribution] company track bind', r.code);
+    }
+  } catch (e) {
+    console.warn('[attribution] company track bind error', e);
   }
 }
