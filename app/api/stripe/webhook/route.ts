@@ -2014,20 +2014,19 @@ export async function POST(req: NextRequest) {
             });
 
             // Affiliate: 50% of HomeCheff delivery PLATFORM fee only — never courier principal.
+            // Prefer canonical ecosystem attribution (Studio/Growth/MP origin) via shared Delivery accrue.
             if (deliveryPlatformFee > 0 && buyerId) {
               try {
-                const { processCommissionForOrder } = await import("@/lib/affiliate-commission");
-                await processCommissionForOrder(
-                  `${createdOrder.id}_delivery_${deliveryOrder.id}`,
-                  deliveryPlatformFee,
-                  buyerId,
-                  deliveryOrder.deliveryProfile.user.id,
-                  {
-                    revenueType: "DELIVERY_PLATFORM_FEE",
-                    courierPrincipalCents: String(delivererPayoutCents),
-                    deliveryFeeCents: String(deliveryFeeCents),
-                  },
+                const { accrueHcDeliveryPlatformFeeAffiliate } = await import(
+                  "@/lib/hc/marketplace-hc-delivery"
                 );
+                await accrueHcDeliveryPlatformFeeAffiliate({
+                  orderId: createdOrder.id,
+                  deliveryOrderId: deliveryOrder.id,
+                  deliveryFeeCents: deliveryFeeCents,
+                  buyerUserId: buyerId,
+                  providerUserId: deliveryOrder.deliveryProfile.user.id,
+                });
               } catch (deliveryAffErr) {
                 console.error("[webhook] delivery affiliate commission failed", deliveryAffErr);
               }

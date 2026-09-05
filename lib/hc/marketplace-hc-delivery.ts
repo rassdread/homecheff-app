@@ -77,17 +77,132 @@ export async function accrueHcDeliveryPlatformFeeAffiliate(input: {
   deliveryFeeCents: number;
   buyerUserId: string;
   providerUserId: string;
-}): Promise<{ ok: true; affiliateBaseCents: number; skipped?: boolean }> {
+}): Promise<{
+  ok: true;
+  affiliateBaseCents: number;
+  skipped?: boolean;
+  resolverSource?: 'ECOSYSTEM' | 'MARKETPLACE_ATTRIBUTION' | 'NONE';
+  affiliateEventId?: string;
+}> {
   const fee = Math.max(0, Math.floor(input.deliveryFeeCents));
   const platformFee = deliveryPlatformFeeCents(fee);
   if (platformFee <= 0) {
-    return { ok: true, affiliateBaseCents: 0, skipped: true };
+    return { ok: true, affiliateBaseCents: 0, skipped: true, resolverSource: 'NONE' };
   }
 
   const split = splitDeliveryCommission(fee);
+  const sourceTransactionId = `${input.orderId}_delivery_${input.deliveryOrderId}`;
+
+  // 1) Canonical ecosystem attribution on BUYER (one HomeCheff referral → eligible Delivery fee).
+  const {
+    resolveActiveEcosystemAttribution,
+    recordDeliveryPlatformFeeEcosystemCommission,
+  } = await import('@/lib/affiliates/ecosystem-attribution-bridge');
+  const { resolveDeliveryFeeAffiliateSides } = await import(
+    '@/lib/affiliates/cross-ecosystem-attribution-precedence'
+  );
+
+  const [buyerEco, providerEco] = await Promise.all([
+    resolveActiveEcosystemAttribution({ referredUserId: input.buyerUserId }),
+    resolveActiveEcosystemAttribution({ referredUserId: input.providerUserId }),
+  ]);
+
+  // Legacy Marketplace Attribution (fallback only) — read without accruing yet.
+  const { prisma: db } = await import('@/lib/prisma');
+  const now = new Date();
+  const [buyerLocal, providerLocal] = await Promise.all([
+    db.attribution.findFirst({
+      where: {
+        userId: input.buyerUserId,
+        type: 'USER_SIGNUP',
+        startsAt: { lte: now },
+        endsAt: { gte: now },
+      },
+      select: { affiliateId: true },
+    }),
+    db.attribution.findFirst({
+      where: {
+        userId: input.providerUserId,
+        type: 'USER_SIGNUP',
+        startsAt: { lte: now },
+        endsAt: { gte: now },
+      },
+      select: { affiliateId: true },
+    }),
+  ]);
+
+  const sides = resolveDeliveryFeeAffiliateSides({
+    buyer: {
+      side: 'BUYER',
+      ecosystemAffiliateCentralUserId: buyerEco.found
+        ? buyerEco.attribution?.affiliateCentralUserId ?? null
+        : null,
+      ecosystemAttributionId: buyerEco.found ? buyerEco.attribution?.id ?? null : null,
+      referralOriginPlatform: buyerEco.found
+        ? buyerEco.attribution?.sourcePlatform ?? null
+        : null,
+      marketplaceAffiliateId: buyerLocal?.affiliateId ?? null,
+    },
+    provider: {
+      side: 'SELLER',
+      ecosystemAffiliateCentralUserId: providerEco.found
+        ? providerEco.attribution?.affiliateCentralUserId ?? null
+        : null,
+      ecosystemAttributionId: providerEco.found ? providerEco.attribution?.id ?? null : null,
+      referralOriginPlatform: providerEco.found
+        ? providerEco.attribution?.sourcePlatform ?? null
+        : null,
+      marketplaceAffiliateId: providerLocal?.affiliateId ?? null,
+    },
+  });
+
+  if (sides.buyerSource === 'ECOSYSTEM' && sides.buyerAffiliateKey) {
+    const eco = await recordDeliveryPlatformFeeEcosystemCommission({
+      referredUserId: input.buyerUserId,
+      sourceTransactionId,
+      deliveryPlatformFeeCents: platformFee,
+      deliveryFeeGrossCents: fee,
+      orderId: input.orderId,
+      deliveryOrderId: input.deliveryOrderId,
+      providerUserId: input.providerUserId,
+    });
+    if (eco.ok) {
+      return {
+        ok: true,
+        affiliateBaseCents: platformFee,
+        resolverSource: 'ECOSYSTEM',
+        affiliateEventId: eco.eventId,
+      };
+    }
+    console.warn(
+      `[delivery-affiliate] ecosystem accrue failed (${eco.code}); falling back to Marketplace Attribution`,
+    );
+  }
+
+  if (sides.providerSource === 'ECOSYSTEM' && sides.providerAffiliateKey && !sides.buyerAffiliateKey) {
+    const eco = await recordDeliveryPlatformFeeEcosystemCommission({
+      referredUserId: input.providerUserId,
+      sourceTransactionId,
+      deliveryPlatformFeeCents: platformFee,
+      deliveryFeeGrossCents: fee,
+      orderId: input.orderId,
+      deliveryOrderId: input.deliveryOrderId,
+      providerUserId: input.providerUserId,
+    });
+    if (eco.ok) {
+      return {
+        ok: true,
+        affiliateBaseCents: platformFee,
+        resolverSource: 'ECOSYSTEM',
+        affiliateEventId: eco.eventId,
+      };
+    }
+  }
+
+  // 2) Legacy Marketplace Attribution path (historical MP-only relationships).
   const { processCommissionForOrder } = await import('@/lib/affiliate-commission');
   await processCommissionForOrder(
-    `${input.orderId}_delivery_${input.deliveryOrderId}`,
+    sourceTransactionId,
     platformFee,
     input.buyerUserId,
     input.providerUserId,
@@ -97,10 +212,16 @@ export async function accrueHcDeliveryPlatformFeeAffiliate(input: {
       deliveryFeeCents: String(fee),
       paymentMethodNeutral: 'true',
       hcDeliveryPolicy: HC_DELIVERY_POLICY_VERSION,
+      attributionResolver: 'MARKETPLACE_ATTRIBUTION_FALLBACK',
     },
   );
 
-  return { ok: true, affiliateBaseCents: platformFee };
+  const hadLegacy = Boolean(sides.buyerAffiliateKey || sides.providerAffiliateKey);
+  return {
+    ok: true,
+    affiliateBaseCents: platformFee,
+    resolverSource: hadLegacy ? 'MARKETPLACE_ATTRIBUTION' : 'NONE',
+  };
 }
 
 export async function attachHcPaidDeliveryEconomics(input: {

@@ -233,6 +233,22 @@ export async function reverseHcMarketplaceDeliveryOnFullRefund(args: {
   let affiliateReversed = false;
   let affiliateAlreadyDone = false;
   try {
+    // Reverse canonical ecosystem Delivery fee accrual by original snapshot (if present).
+    const sourceTransactionId = `${args.orderId}_delivery_${delivery.id}`;
+    const { reverseDeliveryPlatformFeeEcosystemCommission } = await import(
+      '@/lib/affiliates/ecosystem-attribution-bridge'
+    );
+    const ecoRev = await reverseDeliveryPlatformFeeEcosystemCommission({
+      sourceTransactionId,
+      reversalEventId: `hc_full_refund_${args.orderId}`,
+      reason: 'HC_DELIVERY_REFUND',
+    });
+    if (ecoRev.ok && ecoRev.code !== 'ORIGINAL_NOT_FOUND') {
+      affiliateReversed = true;
+      affiliateAlreadyDone = Boolean(ecoRev.duplicate);
+    }
+
+    // Also reverse legacy Marketplace CommissionLedger rows (original snapshot).
     const aff = await processCommissionReversal({
       reversalEventId: `hc_full_refund_${args.orderId}`,
       eventType: 'REFUND',
@@ -240,8 +256,8 @@ export async function reverseHcMarketplaceDeliveryOnFullRefund(args: {
       refundedAmountCents: Math.max(1, economics.deliveryGrossCents),
       chargeAmountCents: null,
     });
-    affiliateReversed = aff.reversedCount > 0;
-    affiliateAlreadyDone = aff.reversedCount === 0;
+    if (aff.reversedCount > 0) affiliateReversed = true;
+    if (!affiliateReversed) affiliateAlreadyDone = aff.reversedCount === 0;
   } catch (e) {
     const marker: HcDeliveryRefundMarker = {
       status: 'FAILED',

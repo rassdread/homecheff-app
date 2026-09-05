@@ -230,31 +230,112 @@ export async function processCommissionForOrder(
       return;
     }
 
-    const buyerAttribution = await prisma.attribution.findFirst({
-      where: {
-        userId: buyerId,
-        type: 'USER_SIGNUP',
-        startsAt: { lte: now },
-        endsAt: { gte: now },
-      },
-      include: { affiliate: true },
+    // Cross-ecosystem: prefer EcosystemAffiliateAttribution; fall back to Marketplace Attribution.
+    // Never invent a Marketplace Attribution row merely to satisfy Delivery/MP accrual.
+    const { resolveActiveEcosystemAttribution } = await import(
+      '@/lib/affiliates/ecosystem-attribution-bridge'
+    );
+    const { resolveSideAffiliatePrecedence } = await import(
+      '@/lib/affiliates/cross-ecosystem-attribution-precedence'
+    );
+
+    const [buyerEco, sellerEco, buyerAttribution, sellerAttribution] = await Promise.all([
+      resolveActiveEcosystemAttribution({ referredUserId: buyerId, at: now }),
+      resolveActiveEcosystemAttribution({ referredUserId: sellerId, at: now }),
+      prisma.attribution.findFirst({
+        where: {
+          userId: buyerId,
+          type: 'USER_SIGNUP',
+          startsAt: { lte: now },
+          endsAt: { gte: now },
+        },
+        include: { affiliate: true },
+      }),
+      prisma.attribution.findFirst({
+        where: {
+          userId: sellerId,
+          type: 'USER_SIGNUP',
+          startsAt: { lte: now },
+          endsAt: { gte: now },
+        },
+        include: { affiliate: true },
+      }),
+    ]);
+
+    const buyerResolved = resolveSideAffiliatePrecedence({
+      side: 'BUYER',
+      ecosystemAffiliateCentralUserId: buyerEco.found
+        ? buyerEco.attribution?.affiliateCentralUserId ?? null
+        : null,
+      ecosystemAttributionId: buyerEco.found ? buyerEco.attribution?.id ?? null : null,
+      referralOriginPlatform: buyerEco.found
+        ? buyerEco.attribution?.sourcePlatform ?? null
+        : null,
+      marketplaceAffiliateId: buyerAttribution?.affiliateId ?? null,
+    });
+    const sellerResolved = resolveSideAffiliatePrecedence({
+      side: 'SELLER',
+      ecosystemAffiliateCentralUserId: sellerEco.found
+        ? sellerEco.attribution?.affiliateCentralUserId ?? null
+        : null,
+      ecosystemAttributionId: sellerEco.found ? sellerEco.attribution?.id ?? null : null,
+      referralOriginPlatform: sellerEco.found
+        ? sellerEco.attribution?.sourcePlatform ?? null
+        : null,
+      marketplaceAffiliateId: sellerAttribution?.affiliateId ?? null,
     });
 
-    const sellerAttribution = await prisma.attribution.findFirst({
-      where: {
-        userId: sellerId,
-        type: 'USER_SIGNUP',
-        startsAt: { lte: now },
-        endsAt: { gte: now },
-      },
-      include: { affiliate: true },
-    });
+    async function ensureAffiliateSeat(userId: string) {
+      const existing = await prisma.affiliate.findUnique({ where: { userId } });
+      if (existing) return existing;
+      return prisma.affiliate.create({
+        data: { userId, status: 'ACTIVE' },
+      });
+    }
+
+    let buyerAffiliateId: string | null = null;
+    let sellerAffiliateId: string | null = null;
+    let buyerAffiliate = buyerAttribution?.affiliate ?? null;
+    let sellerAffiliate = sellerAttribution?.affiliate ?? null;
+
+    if (buyerResolved.source === 'ECOSYSTEM' && buyerResolved.affiliateKey) {
+      buyerAffiliate = await ensureAffiliateSeat(buyerResolved.affiliateKey);
+      buyerAffiliateId = buyerAffiliate.id;
+      // Sync MAIN parent from ecosystem Edge when local parent missing (prospective).
+      if (!buyerAffiliate.parentAffiliateId && buyerEco.affiliateParentCentralUserId) {
+        const parentSeat = await ensureAffiliateSeat(buyerEco.affiliateParentCentralUserId);
+        if (parentSeat.id !== buyerAffiliate.id) {
+          buyerAffiliate = await prisma.affiliate.update({
+            where: { id: buyerAffiliate.id },
+            data: { parentAffiliateId: parentSeat.id },
+          });
+        }
+      }
+    } else if (buyerResolved.source === 'MARKETPLACE_ATTRIBUTION') {
+      buyerAffiliateId = buyerResolved.affiliateKey;
+    }
+
+    if (sellerResolved.source === 'ECOSYSTEM' && sellerResolved.affiliateKey) {
+      sellerAffiliate = await ensureAffiliateSeat(sellerResolved.affiliateKey);
+      sellerAffiliateId = sellerAffiliate.id;
+      if (!sellerAffiliate.parentAffiliateId && sellerEco.affiliateParentCentralUserId) {
+        const parentSeat = await ensureAffiliateSeat(sellerEco.affiliateParentCentralUserId);
+        if (parentSeat.id !== sellerAffiliate.id) {
+          sellerAffiliate = await prisma.affiliate.update({
+            where: { id: sellerAffiliate.id },
+            data: { parentAffiliateId: parentSeat.id },
+          });
+        }
+      }
+    } else if (sellerResolved.source === 'MARKETPLACE_ATTRIBUTION') {
+      sellerAffiliateId = sellerResolved.affiliateKey;
+    }
 
     const { allocateMarketplaceAffiliatePool } = await import('./marketplace-affiliate-pool');
     const allocation = allocateMarketplaceAffiliatePool({
       platformFeeCents: homecheffFeeCents,
-      buyerAffiliateId: buyerAttribution?.affiliateId ?? null,
-      sellerAffiliateId: sellerAttribution?.affiliateId ?? null,
+      buyerAffiliateId,
+      sellerAffiliateId,
     });
 
     if (allocation.lines.length === 0) {
@@ -262,15 +343,27 @@ export async function processCommissionForOrder(
       return;
     }
 
+    const resolverMeta = {
+      buyerAttributionSource: buyerResolved.source,
+      sellerAttributionSource: sellerResolved.source,
+      buyerEcosystemAttributionId: buyerResolved.ecosystemAttributionId ?? '',
+      sellerEcosystemAttributionId: sellerResolved.ecosystemAttributionId ?? '',
+      buyerReferralOrigin: buyerResolved.referralOriginPlatform ?? '',
+      sellerReferralOrigin: sellerResolved.referralOriginPlatform ?? '',
+      crossEcosystemResolver: 'ECOSYSTEM_THEN_MARKETPLACE_V1',
+    };
+
     const availableAt = new Date(now.getTime() + LEDGER_PENDING_DAYS * 24 * 60 * 60 * 1000);
     let totalCommissionCents = 0;
 
     for (const line of allocation.lines) {
       const affiliate =
-        line.affiliateId === buyerAttribution?.affiliateId
-          ? buyerAttribution?.affiliate
-          : line.affiliateId === sellerAttribution?.affiliateId
-            ? sellerAttribution?.affiliate
+        line.affiliateId === buyerAffiliateId
+          ? buyerAffiliate ??
+            (await prisma.affiliate.findUnique({ where: { id: line.affiliateId } }))
+          : line.affiliateId === sellerAffiliateId
+            ? sellerAffiliate ??
+              (await prisma.affiliate.findUnique({ where: { id: line.affiliateId } }))
             : await prisma.affiliate.findUnique({ where: { id: line.affiliateId } });
       if (!affiliate) continue;
 
@@ -328,6 +421,7 @@ export async function processCommissionForOrder(
               isSubAffiliate: isSub,
               tier: isSub ? 'SUB' : 'DIRECT',
               marketplacePoolMaxPercent: 50,
+              ...resolverMeta,
               ...metadata,
             },
           },
@@ -355,6 +449,7 @@ export async function processCommissionForOrder(
               tier: 'PARENT',
               subAffiliateId: line.affiliateId,
               marketplacePoolMaxPercent: 50,
+              ...resolverMeta,
               ...metadata,
             },
           },
