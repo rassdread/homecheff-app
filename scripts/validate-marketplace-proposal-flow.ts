@@ -470,7 +470,9 @@ assert(createSheet.includes('safe-area-inset-bottom'), 'CreateProposalSheet stic
 assert(createSheet.includes('data-hc-proposal-submit'), 'CreateProposalSheet has explicit submit CTA');
 assert(createSheet.includes('saveProposalDraft'), 'CreateProposalSheet persists private CONCEPT draft on close');
 assert(createSheet.includes('clearProposalDraft'), 'CreateProposalSheet clears draft only after explicit send');
-assert(createSheet.includes('z-[80]'), 'CreateProposalSheet above bottom nav');
+assert(createSheet.includes('z-[200]'), 'CreateProposalSheet above bottom nav');
+assert(createSheet.includes('createPortal'), 'CreateProposalSheet portals to body');
+assert(createSheet.includes('data-hc-proposal-sheet-portal'), 'CreateProposalSheet portal marker');
 assert(createSheet.includes('preventImplicitEnterSubmit'), 'CreateProposalSheet blocks Enter auto-submit');
 assert(createSheet.includes('Idempotency-Key'), 'CreateProposalSheet sends Idempotency-Key');
 assert(createSheet.includes('lockListingTitle'), 'CreateProposalSheet locks listing title');

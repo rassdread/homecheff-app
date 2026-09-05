@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2, ClipboardList } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -157,7 +158,8 @@ export default function CreateProposalSheet({
     }
   }, [open, contextHeader, product, conversationId]);
 
-  // Keep sticky CTA above the mobile keyboard (Safari / PWA / Chrome).
+  // Keep sticky CTA above the soft keyboard only — ignore URL-bar / chrome jitter
+  // (false positives in portrait Safari can collapse the sheet off-screen).
   useEffect(() => {
     if (!open || typeof window === "undefined") return;
     const vv = window.visualViewport;
@@ -168,7 +170,8 @@ export default function CreateProposalSheet({
         0,
         Math.round(window.innerHeight - vv.height - vv.offsetTop),
       );
-      setKeyboardInset(inset);
+      // Soft keyboard typically > ~120px; browser chrome is smaller.
+      setKeyboardInset(inset >= 120 ? inset : 0);
     };
 
     sync();
@@ -177,6 +180,20 @@ export default function CreateProposalSheet({
     return () => {
       vv.removeEventListener("resize", sync);
       vv.removeEventListener("scroll", sync);
+      setKeyboardInset(0);
+    };
+  }, [open]);
+
+  // Prevent background chat scroll while the sheet is open (body-level portal).
+  useEffect(() => {
+    if (!open || typeof document === "undefined") return;
+    const prevHtml = document.documentElement.style.overflow;
+    const prevBody = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = prevHtml;
+      document.body.style.overflow = prevBody;
     };
   }, [open]);
 
@@ -362,13 +379,18 @@ export default function CreateProposalSheet({
 
   const footerPad = `max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.25rem))`;
 
-  return (
+  // Portal to document.body — ChatShell / .hc-messages-root use overflow:hidden and
+  // clip position:fixed descendants on iOS Safari in portrait (bottom sheet vanishes).
+  if (typeof document === "undefined") return null;
+
+  const sheet = (
     <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 p-0 lg:items-center lg:p-4"
+      className="fixed inset-0 z-[200] flex items-stretch justify-center bg-black/50 p-0 lg:items-center lg:bg-black/40 lg:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-proposal-title"
       data-hc-proposal-sheet=""
+      data-hc-proposal-sheet-portal="1"
       style={{
         // Lift above soft keyboard without covering the sticky CTA.
         paddingBottom: keyboardInset > 0 ? keyboardInset : undefined,
@@ -378,10 +400,23 @@ export default function CreateProposalSheet({
       }}
     >
       <div
-        className="flex w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl max-h-[min(92dvh,100svh)] lg:rounded-2xl lg:max-h-[min(90dvh,90vh)]"
+        className={[
+          "flex w-full flex-col overflow-hidden bg-white shadow-xl",
+          // Narrow phones: near/full-screen sheet (portrait-safe). No max-height trap.
+          "h-[100dvh] max-h-[100dvh] rounded-none",
+          "supports-[height:100svh]:h-[100svh] supports-[height:100svh]:max-h-[100svh]",
+          // Tablet/desktop: centered modal card.
+          "lg:h-auto lg:max-h-[min(90dvh,90vh)] lg:max-w-md lg:rounded-2xl",
+        ].join(" ")}
         data-hc-proposal-sheet-panel=""
+        data-hc-proposal-fullscreen-mobile="1"
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
+        <div
+          className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3"
+          style={{
+            paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))",
+          }}
+        >
           <div className="flex min-w-0 flex-col gap-0.5">
             <div className="flex items-center gap-2 min-w-0">
               <ClipboardList className="h-5 w-5 shrink-0 text-indigo-600" aria-hidden />
@@ -407,6 +442,7 @@ export default function CreateProposalSheet({
             onClick={handleCloseRequest}
             className="rounded-full p-2 hover:bg-gray-100"
             aria-label={t("common.close")}
+            data-hc-proposal-sheet-close=""
           >
             <X className="h-5 w-5 text-gray-500" />
           </button>
@@ -511,4 +547,6 @@ export default function CreateProposalSheet({
       </div>
     </div>
   );
+
+  return createPortal(sheet, document.body);
 }

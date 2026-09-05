@@ -27,10 +27,11 @@ assert.match(sheet, /lockListingTitle/, 'listing title locked in sheet');
 assert.match(sheet, /Idempotency-Key/, 'client idempotency header');
 assert.match(sheet, /data-hc-proposal-submit/, 'explicit submit CTA marker');
 assert.match(sheet, /data-hc-proposal-sticky-cta/, 'sticky CTA region');
-assert.match(sheet, /z-\[80\]/, 'sheet above bottom nav z-65');
+assert.match(sheet, /createPortal/, 'sheet portals out of chat overflow clip');
+assert.match(sheet, /z-\[200\]/, 'sheet above bottom nav z-65');
 assert.match(sheet, /visualViewport/, 'keyboard-aware sticky CTA');
 assert.match(sheet, /data-hc-proposal-submit-blocked-reason/, 'disabled reason visible');
-assert.match(sheet, /92dvh|90dvh/, 'dvh-aware sheet height');
+assert.match(sheet, /100dvh|100svh/, 'dvh-aware fullscreen mobile sheet');
 
 const draftCard = read('components/chat/proposals/ProposalDraftCard.tsx');
 assert.match(draftCard, /data-hc-proposal-draft-card/, 'concept card marker');
