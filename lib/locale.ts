@@ -3,7 +3,7 @@
  * Om een nieuwe taal toe te voegen: voeg toe aan SUPPORTED_LOCALES, maak een nieuwe JSON in public/i18n (bijv. de.json)
  * en zorg dat middleware/useTranslation de nieuwe code ondersteunt.
  *
- * IP default language: see lib/ecosystem-locale.ts (NL/BE/SR → nl, else en).
+ * IP default language: see lib/ecosystem-locale.ts (NL/BE → nl, else en; SR → en).
  */
 import {
   languageFromCountryCode,

@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { buildHomecheffPackingSlipHtml } from '@/lib/shipping/packing-slip';
+import {
+  resolveEcosystemLanguage,
+  ECOSYSTEM_LOCALE_COOKIE,
+  ECOSYSTEM_LOCALE_PREF_COOKIE,
+  MARKETPLACE_LEGACY_LOCALE_COOKIE,
+} from '@/lib/ecosystem-locale';
 
 export const dynamic = 'force-dynamic';
 
 /** Seller/admin printable HomeCheff packing slip (does not alter carrier label). */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> },
 ) {
   const session = await auth();
@@ -18,7 +24,7 @@ export async function GET(
   const { orderId } = await params;
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: true },
+    select: { id: true, role: true, preferredLanguage: true },
   });
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -48,6 +54,17 @@ export async function GET(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  const pref = req.cookies.get(ECOSYSTEM_LOCALE_PREF_COOKIE)?.value === '1';
+  const cookieLang =
+    req.cookies.get(ECOSYSTEM_LOCALE_COOKIE)?.value ||
+    req.cookies.get(MARKETPLACE_LEGACY_LOCALE_COOKIE)?.value;
+  const locale = resolveEcosystemLanguage({
+    explicitLanguage: pref ? cookieLang : null,
+    accountLanguage: user.preferredLanguage,
+    cookieLanguage: cookieLang,
+    countryCode: req.headers.get('x-vercel-ip-country'),
+  });
+
   const html = buildHomecheffPackingSlipHtml({
     orderNumber: order.orderNumber || order.id.slice(0, 8),
     sellerName: order.items[0]?.Product?.seller?.User?.name || 'Verkoper',
@@ -57,6 +74,7 @@ export async function GET(
       quantity: i.quantity,
     })),
     trackingCode: order.shippingTrackingNumber || undefined,
+    locale,
   });
 
   return new NextResponse(html, {

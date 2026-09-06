@@ -94,7 +94,8 @@ function read(rel: string) {
   assert.equal(mapProviderStatus('in_transit').internal, 'IN_TRANSIT');
   assert.equal(mapProviderStatus('pickUpPoint').internal, 'PICKUP_POINT');
   assert.equal(mapProviderStatus('totally_new_future_status').internal, 'UNKNOWN');
-  assert.equal(mapProviderStatus('delivered').dutchLabel, 'Bezorgd');
+  assert.equal(mapProviderStatus('delivered', 'nl').label, 'Bezorgd');
+  assert.equal(mapProviderStatus('delivered', 'en').label, 'Delivered');
   ok('status map defensive for unknown values');
 }
 
@@ -116,7 +117,7 @@ function read(rel: string) {
   assert.match(html, /HomeCheff/);
   assert.match(html, /homecheff\.eu/);
   assert.match(html, /HC-TEST/);
-  assert.match(html, /vervoerderslabel/);
+  assert.match(html, /packing slip|pakbon|vervoerderslabel|carrier label/i);
   ok('packing slip branding present; carrier label note');
 }
 

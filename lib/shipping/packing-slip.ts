@@ -1,6 +1,10 @@
 /**
  * HomeCheff packing slip — brand visibility without modifying carrier barcode/label.
+ * Locale follows site-wide EcosystemLanguage (nl/en).
  */
+
+import type { EcosystemLanguage } from '@/lib/ecosystem-locale';
+import { getShippingUiCopy } from '@/lib/shipping/i18n';
 
 export type PackingSlipInput = {
   orderNumber: string;
@@ -8,9 +12,17 @@ export type PackingSlipInput = {
   buyerName: string;
   items: Array<{ title: string; quantity: number }>;
   trackingCode?: string;
+  locale?: EcosystemLanguage;
 };
 
 export function buildHomecheffPackingSlipHtml(input: PackingSlipInput): string {
+  const locale = input.locale === 'en' ? 'en' : 'nl';
+  const copy = getShippingUiCopy(locale);
+  const sellerLabel = locale === 'en' ? 'Seller' : 'Verkoper';
+  const buyerLabel = locale === 'en' ? 'Buyer' : 'Koper';
+  const orderLabel = locale === 'en' ? 'Order' : 'Bestelling';
+  const trackingLabel = 'Tracking';
+
   const items = input.items
     .map(
       (i) =>
@@ -19,10 +31,10 @@ export function buildHomecheffPackingSlipHtml(input: PackingSlipInput): string {
     .join('');
 
   return `<!DOCTYPE html>
-<html lang="nl">
+<html lang="${locale}">
 <head>
 <meta charset="utf-8"/>
-<title>HomeCheff pakbon ${escapeHtml(input.orderNumber)}</title>
+<title>HomeCheff ${escapeHtml(orderLabel)} ${escapeHtml(input.orderNumber)}</title>
 <style>
   @page { size: A4; margin: 16mm; }
   body { font-family: Georgia, "Times New Roman", serif; color: #1a1a1a; }
@@ -38,22 +50,22 @@ export function buildHomecheffPackingSlipHtml(input: PackingSlipInput): string {
     <td>
       <h1 class="brand">HomeCheff</h1>
       <div class="url">homecheff.eu</div>
-      <p>Bestelling <strong>${escapeHtml(input.orderNumber)}</strong></p>
+      <p>${escapeHtml(orderLabel)} <strong>${escapeHtml(input.orderNumber)}</strong></p>
     </td>
     <td align="right">
       <div class="qr">QR →<br/>homecheff.eu</div>
     </td>
   </tr></table>
-  <p><strong>Verkoper:</strong> ${escapeHtml(input.sellerName)}<br/>
-  <strong>Koper:</strong> ${escapeHtml(input.buyerName)}</p>
+  <p><strong>${sellerLabel}:</strong> ${escapeHtml(input.sellerName)}<br/>
+  <strong>${buyerLabel}:</strong> ${escapeHtml(input.buyerName)}</p>
   <table width="100%" cellspacing="0">${items}</table>
   ${
     input.trackingCode
-      ? `<p><strong>Tracking:</strong> ${escapeHtml(input.trackingCode)}</p>`
+      ? `<p><strong>${trackingLabel}:</strong> ${escapeHtml(input.trackingCode)}</p>`
       : ''
   }
-  <p class="note">Bedankt dat je lokaal koopt.<br/>Ontdek wat er bij jou in de buurt wordt gemaakt — homecheff.eu</p>
-  <p class="carrier-note">Dit is een HomeCheff-pakbon. De officiële vervoerderslabel (barcode) blijft ongewijzigd en apart.</p>
+  <p class="note">${escapeHtml(copy.packingThanks)}<br/>${escapeHtml(copy.packingDiscover)} — homecheff.eu</p>
+  <p class="carrier-note">${escapeHtml(copy.packingCarrierNote)}</p>
 </body>
 </html>`;
 }

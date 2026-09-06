@@ -63,7 +63,6 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     baseUrl: ECTAROSHIP_PARTNER_BASE_URL,
-    authHeader: 'Api-Key',
     keyPresent: true,
     maskedFp: masked,
     historicalLeak: false,

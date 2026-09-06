@@ -1,0 +1,553 @@
+{
+  "NL_NL_BASE": {
+    "http": 200,
+    "body": {
+      "baseUrl": "https://partnerapi.ectaro.com",
+      "authHeader": "Api-Key",
+      "keyPresent": true,
+      "maskedFp": "de138e…bbf0",
+      "historicalLeak": false,
+      "browserExposed": false,
+      "pingOk": true,
+      "pingStatus": 200,
+      "productsOk": true,
+      "productsCount": 23,
+      "sample": [
+        {
+          "carrier": "DPD",
+          "name": "Home",
+          "shippingMethodId": "195",
+          "productId": "B2C",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Home Small Parcel",
+          "shippingMethodId": "222",
+          "productId": "B2C_SMALL",
+          "priceCents": 598,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business",
+          "shippingMethodId": "249",
+          "productId": "B2B",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business Small Parcel",
+          "shippingMethodId": "276",
+          "productId": "B2B_SMALL",
+          "priceCents": 598,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "Fedex",
+          "name": "Domestic Parcel",
+          "shippingMethodId": "2345",
+          "productId": "FEDEX_PRIORITY",
+          "priceCents": 850,
+          "currency": "EUR"
+        }
+      ],
+      "error": null,
+      "route": "NL→NL",
+      "parcel": {
+        "weightGrams": 850,
+        "lengthCm": 30,
+        "widthCm": 20,
+        "heightCm": 10
+      }
+    },
+    "probe": {
+      "name": "NL_NL_BASE",
+      "originCountry": "NL",
+      "destinationCountry": "NL",
+      "weightGrams": 850,
+      "lengthCm": 30,
+      "widthCm": 20,
+      "heightCm": 10
+    }
+  },
+  "BRIEVENBUS": {
+    "http": 200,
+    "body": {
+      "baseUrl": "https://partnerapi.ectaro.com",
+      "authHeader": "Api-Key",
+      "keyPresent": true,
+      "maskedFp": "de138e…bbf0",
+      "historicalLeak": false,
+      "browserExposed": false,
+      "pingOk": true,
+      "pingStatus": 200,
+      "productsOk": true,
+      "productsCount": 23,
+      "sample": [
+        {
+          "carrier": "DPD",
+          "name": "Home",
+          "shippingMethodId": "195",
+          "productId": "B2C",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Home Small Parcel",
+          "shippingMethodId": "222",
+          "productId": "B2C_SMALL",
+          "priceCents": 598,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business",
+          "shippingMethodId": "249",
+          "productId": "B2B",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business Small Parcel",
+          "shippingMethodId": "276",
+          "productId": "B2B_SMALL",
+          "priceCents": 598,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "Fedex",
+          "name": "Domestic Parcel",
+          "shippingMethodId": "2345",
+          "productId": "FEDEX_PRIORITY",
+          "priceCents": 850,
+          "currency": "EUR"
+        }
+      ],
+      "error": null,
+      "route": "NL→NL",
+      "parcel": {
+        "weightGrams": 500,
+        "lengthCm": 26,
+        "widthCm": 36,
+        "heightCm": 3
+      }
+    },
+    "probe": {
+      "name": "BRIEVENBUS",
+      "originCountry": "NL",
+      "destinationCountry": "NL",
+      "weightGrams": 500,
+      "lengthCm": 26,
+      "widthCm": 36,
+      "heightCm": 3
+    }
+  },
+  "SMALL": {
+    "http": 200,
+    "body": {
+      "baseUrl": "https://partnerapi.ectaro.com",
+      "authHeader": "Api-Key",
+      "keyPresent": true,
+      "maskedFp": "de138e…bbf0",
+      "historicalLeak": false,
+      "browserExposed": false,
+      "pingOk": true,
+      "pingStatus": 200,
+      "productsOk": true,
+      "productsCount": 23,
+      "sample": [
+        {
+          "carrier": "DPD",
+          "name": "Home",
+          "shippingMethodId": "195",
+          "productId": "B2C",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Home Small Parcel",
+          "shippingMethodId": "222",
+          "productId": "B2C_SMALL",
+          "priceCents": 598,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business",
+          "shippingMethodId": "249",
+          "productId": "B2B",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business Small Parcel",
+          "shippingMethodId": "276",
+          "productId": "B2B_SMALL",
+          "priceCents": 598,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "Fedex",
+          "name": "Domestic Parcel",
+          "shippingMethodId": "2345",
+          "productId": "FEDEX_PRIORITY",
+          "priceCents": 850,
+          "currency": "EUR"
+        }
+      ],
+      "error": null,
+      "route": "NL→NL",
+      "parcel": {
+        "weightGrams": 850,
+        "lengthCm": 30,
+        "widthCm": 20,
+        "heightCm": 10
+      }
+    },
+    "probe": {
+      "name": "SMALL",
+      "originCountry": "NL",
+      "destinationCountry": "NL",
+      "weightGrams": 850,
+      "lengthCm": 30,
+      "widthCm": 20,
+      "heightCm": 10
+    }
+  },
+  "MEDIUM": {
+    "http": 200,
+    "body": {
+      "baseUrl": "https://partnerapi.ectaro.com",
+      "authHeader": "Api-Key",
+      "keyPresent": true,
+      "maskedFp": "de138e…bbf0",
+      "historicalLeak": false,
+      "browserExposed": false,
+      "pingOk": true,
+      "pingStatus": 200,
+      "productsOk": true,
+      "productsCount": 22,
+      "sample": [
+        {
+          "carrier": "DPD",
+          "name": "Home",
+          "shippingMethodId": "195",
+          "productId": "B2C",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Home Small Parcel",
+          "shippingMethodId": "222",
+          "productId": "B2C_SMALL",
+          "priceCents": 1393,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business",
+          "shippingMethodId": "249",
+          "productId": "B2B",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business Small Parcel",
+          "shippingMethodId": "276",
+          "productId": "B2B_SMALL",
+          "priceCents": 1393,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "Fedex",
+          "name": "Domestic Parcel",
+          "shippingMethodId": "2346",
+          "productId": "FEDEX_PRIORITY",
+          "priceCents": 850,
+          "currency": "EUR"
+        }
+      ],
+      "error": null,
+      "route": "NL→NL",
+      "parcel": {
+        "weightGrams": 2000,
+        "lengthCm": 40,
+        "widthCm": 30,
+        "heightCm": 20
+      }
+    },
+    "probe": {
+      "name": "MEDIUM",
+      "originCountry": "NL",
+      "destinationCountry": "NL",
+      "weightGrams": 2000,
+      "lengthCm": 40,
+      "widthCm": 30,
+      "heightCm": 20
+    }
+  },
+  "LARGE": {
+    "http": 200,
+    "body": {
+      "baseUrl": "https://partnerapi.ectaro.com",
+      "authHeader": "Api-Key",
+      "keyPresent": true,
+      "maskedFp": "de138e…bbf0",
+      "historicalLeak": false,
+      "browserExposed": false,
+      "pingOk": true,
+      "pingStatus": 200,
+      "productsOk": true,
+      "productsCount": 17,
+      "sample": [
+        {
+          "carrier": "DPD",
+          "name": "Home",
+          "shippingMethodId": "195",
+          "productId": "B2C",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business",
+          "shippingMethodId": "249",
+          "productId": "B2B",
+          "priceCents": 689,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "Fedex",
+          "name": "Domestic Parcel",
+          "shippingMethodId": "2349",
+          "productId": "FEDEX_PRIORITY",
+          "priceCents": 850,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "Fedex",
+          "name": "Domestic Parcel (Wet Battery)",
+          "shippingMethodId": "4021",
+          "productId": "FEDEX_PRIORITY_WETBATTERY",
+          "priceCents": 1118,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DHL",
+          "name": "FOR YOU L",
+          "shippingMethodId": "5879",
+          "productId": "LARGE_PACKAGE",
+          "priceCents": 1109,
+          "currency": "EUR"
+        }
+      ],
+      "error": null,
+      "route": "NL→NL",
+      "parcel": {
+        "weightGrams": 5000,
+        "lengthCm": 50,
+        "widthCm": 40,
+        "heightCm": 25
+      }
+    },
+    "probe": {
+      "name": "LARGE",
+      "originCountry": "NL",
+      "destinationCountry": "NL",
+      "weightGrams": 5000,
+      "lengthCm": 50,
+      "widthCm": 40,
+      "heightCm": 25
+    }
+  },
+  "NL_BE": {
+    "http": 200,
+    "body": {
+      "baseUrl": "https://partnerapi.ectaro.com",
+      "authHeader": "Api-Key",
+      "keyPresent": true,
+      "maskedFp": "de138e…bbf0",
+      "historicalLeak": false,
+      "browserExposed": false,
+      "pingOk": true,
+      "pingStatus": 200,
+      "productsOk": true,
+      "productsCount": 17,
+      "sample": [
+        {
+          "carrier": "DPD",
+          "name": "Home",
+          "shippingMethodId": "177",
+          "productId": "B2C",
+          "priceCents": 773,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Home Small Parcel",
+          "shippingMethodId": "204",
+          "productId": "B2C_SMALL",
+          "priceCents": 711,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business",
+          "shippingMethodId": "231",
+          "productId": "B2B",
+          "priceCents": 911,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business Small Parcel",
+          "shippingMethodId": "258",
+          "productId": "B2B_SMALL",
+          "priceCents": 711,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "Fedex",
+          "name": "International Parcel",
+          "shippingMethodId": "2421",
+          "productId": "FEDEX_REGIONAL_ECONOMY",
+          "priceCents": 840,
+          "currency": "EUR"
+        }
+      ],
+      "error": null,
+      "route": "NL→BE",
+      "parcel": {
+        "weightGrams": 850,
+        "lengthCm": 30,
+        "widthCm": 20,
+        "heightCm": 10
+      }
+    },
+    "probe": {
+      "name": "NL_BE",
+      "originCountry": "NL",
+      "destinationCountry": "BE",
+      "weightGrams": 850,
+      "lengthCm": 30,
+      "widthCm": 20,
+      "heightCm": 10
+    }
+  },
+  "NL_DE": {
+    "http": 200,
+    "body": {
+      "baseUrl": "https://partnerapi.ectaro.com",
+      "authHeader": "Api-Key",
+      "keyPresent": true,
+      "maskedFp": "de138e…bbf0",
+      "historicalLeak": false,
+      "browserExposed": false,
+      "pingOk": true,
+      "pingStatus": 200,
+      "productsOk": true,
+      "productsCount": 10,
+      "sample": [
+        {
+          "carrier": "DPD",
+          "name": "Home",
+          "shippingMethodId": "186",
+          "productId": "B2C",
+          "priceCents": 823,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Home Small Parcel",
+          "shippingMethodId": "213",
+          "productId": "B2C_SMALL",
+          "priceCents": 745,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business",
+          "shippingMethodId": "240",
+          "productId": "B2B",
+          "priceCents": 1073,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "DPD",
+          "name": "Business Small Parcel",
+          "shippingMethodId": "267",
+          "productId": "B2B_SMALL",
+          "priceCents": 745,
+          "currency": "EUR"
+        },
+        {
+          "carrier": "Fedex",
+          "name": "International Parcel",
+          "shippingMethodId": "2763",
+          "productId": "FEDEX_REGIONAL_ECONOMY",
+          "priceCents": 985,
+          "currency": "EUR"
+        }
+      ],
+      "error": null,
+      "route": "NL→DE",
+      "parcel": {
+        "weightGrams": 850,
+        "lengthCm": 30,
+        "widthCm": 20,
+        "heightCm": 10
+      }
+    },
+    "probe": {
+      "name": "NL_DE",
+      "originCountry": "NL",
+      "destinationCountry": "DE",
+      "weightGrams": 850,
+      "lengthCm": 30,
+      "widthCm": 20,
+      "heightCm": 10
+    }
+  },
+  "TR_NL": {
+    "http": 200,
+    "body": {
+      "baseUrl": "https://partnerapi.ectaro.com",
+      "authHeader": "Api-Key",
+      "keyPresent": true,
+      "maskedFp": "de138e…bbf0",
+      "historicalLeak": false,
+      "browserExposed": false,
+      "pingOk": true,
+      "pingStatus": 200,
+      "productsOk": true,
+      "productsCount": 0,
+      "sample": [],
+      "error": null,
+      "route": "TR→NL",
+      "parcel": {
+        "weightGrams": 850,
+        "lengthCm": 30,
+        "widthCm": 20,
+        "heightCm": 10
+      }
+    },
+    "probe": {
+      "name": "TR_NL",
+      "originCountry": "TR",
+      "destinationCountry": "NL",
+      "weightGrams": 850,
+      "lengthCm": 30,
+      "widthCm": 20,
+      "heightCm": 10
+    }
+  }
+}

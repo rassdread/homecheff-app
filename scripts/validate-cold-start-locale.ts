@@ -22,7 +22,8 @@ assert(preferLanguageFromAcceptLanguage('de-DE,de;q=0.9') === null, 'de → null
 
 assert(languageFromCountryCode('NL') === 'nl', 'NL → nl');
 assert(languageFromCountryCode('BE') === 'nl', 'BE → nl');
-assert(languageFromCountryCode('SR') === 'nl', 'SR → nl');
+assert(languageFromCountryCode('SR') === 'en', 'SR → en');
+assert(languageFromCountryCode('SU') === 'en', 'SU → en');
 assert(languageFromCountryCode('DE') === 'en', 'DE → en');
 assert(languageFromCountryCode('FR') === 'en', 'FR → en');
 assert(languageFromCountryCode('GB') === 'en', 'GB → en');
@@ -49,8 +50,8 @@ assert(
   resolveColdStartLanguage({
     host: 'homecheff.eu',
     countryCode: 'SR',
-  }) === 'nl',
-  'SR IP → nl',
+  }) === 'en',
+  'SR IP → en',
 );
 assert(
   resolveColdStartLanguage({

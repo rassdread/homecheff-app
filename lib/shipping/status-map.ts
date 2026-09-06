@@ -1,7 +1,11 @@
 /**
- * Map EctaroShip provider statuses → HomeCheff internal + Dutch UI.
+ * Map EctaroShip provider statuses → HomeCheff internal + locale-aware UI.
  * Unknown future values → UNKNOWN (never reject sync).
+ * Carrier brand names are never translated.
  */
+
+import type { EcosystemLanguage } from '@/lib/ecosystem-locale';
+import { shippingStatusLabel } from '@/lib/shipping/i18n';
 
 export const KNOWN_PROVIDER_STATUSES = [
   'pending',
@@ -39,6 +43,7 @@ const MAP: Record<string, InternalShipmentStatus> = {
   printed: 'PRINTED',
   scanned: 'SCANNED',
   in_transit: 'IN_TRANSIT',
+  intransit: 'IN_TRANSIT',
   pickuppoint: 'PICKUP_POINT',
   delivered: 'DELIVERED',
   actionrequired: 'ACTION_REQUIRED',
@@ -49,45 +54,31 @@ const MAP: Record<string, InternalShipmentStatus> = {
   easyship: 'UNKNOWN',
 };
 
-export function mapProviderStatus(raw: string | null | undefined): {
+export function mapProviderStatus(
+  raw: string | null | undefined,
+  locale: EcosystemLanguage = 'nl',
+): {
   internal: InternalShipmentStatus;
   raw: string;
+  label: string;
+  /** @deprecated use label */
   dutchLabel: string;
 } {
   const rawStatus = String(raw ?? '').trim() || 'UNKNOWN';
   const key = rawStatus.replace(/[\s_-]/g, '').toLowerCase();
-  // normalize pickUpPoint → pickuppoint
   const internal = MAP[key] ?? MAP[rawStatus.toLowerCase()] ?? 'UNKNOWN';
+  const label = shippingStatusLabel(internal, locale);
   return {
     internal,
     raw: rawStatus,
-    dutchLabel: dutchLabelFor(internal),
+    label,
+    dutchLabel: label,
   };
 }
 
-export function dutchLabelFor(internal: InternalShipmentStatus): string {
-  switch (internal) {
-    case 'PENDING':
-      return 'Label wordt aangemaakt';
-    case 'CREATED':
-      return 'Klaar voor verzending';
-    case 'PRINTED':
-      return 'Label geprint';
-    case 'SCANNED':
-      return 'Pakket ontvangen door vervoerder';
-    case 'IN_TRANSIT':
-      return 'Onderweg';
-    case 'PICKUP_POINT':
-      return 'Afhaalpunt';
-    case 'DELIVERED':
-      return 'Bezorgd';
-    case 'ACTION_REQUIRED':
-      return 'Actie nodig';
-    case 'CANCELED':
-      return 'Geannuleerd';
-    case 'ERROR':
-      return 'Probleem met verzending';
-    default:
-      return 'Status bijwerken…';
-  }
+export function dutchLabelFor(
+  internal: InternalShipmentStatus,
+  locale: EcosystemLanguage = 'nl',
+): string {
+  return shippingStatusLabel(internal, locale);
 }

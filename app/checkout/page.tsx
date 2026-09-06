@@ -94,7 +94,7 @@ type CheckoutDraft = {
 };
 
 export default function CheckoutPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const searchParams = useSearchParams();
   const dealCommunityOrderId = searchParams.get('communityOrderId');
   const hcCancelledOrderId = searchParams.get('orderId');
@@ -221,7 +221,17 @@ export default function CheckoutPage() {
     distance: number;
     isInternational: boolean;
     breakdown: any;
+    shippingMethodId?: string;
+    products?: Array<{
+      shippingMethodId: string;
+      carrier: string;
+      name: string;
+      priceCents: number;
+      currency: string;
+      productId?: string;
+    }>;
   } | null>(null);
+  const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string | null>(null);
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
   const [namedProviderSelectionEnabled, setNamedProviderSelectionEnabled] = useState(false);
   const [selectedDeliverer, setSelectedDeliverer] = useState<Deliverer | null>(null);
@@ -481,6 +491,7 @@ export default function CheckoutPage() {
             street: checkoutDraft.street,
             houseNumber: checkoutDraft.houseNumber,
             city: checkoutDraft.city,
+            shippingMethodId: selectedShippingMethodId || undefined,
             destination: {
               postalCode: checkoutDraft.postalCode,
               country: checkoutDraft.country || 'NL',
@@ -506,7 +517,10 @@ export default function CheckoutPage() {
             },
             shippingMethodId: data.shippingMethodId,
             products: data.products,
-          } as any);
+          });
+          if (data.shippingMethodId && !selectedShippingMethodId) {
+            setSelectedShippingMethodId(data.shippingMethodId);
+          }
         } else {
           console.error('Failed to calculate shipping price');
           setActualDeliveryFee(null);
@@ -543,7 +557,18 @@ export default function CheckoutPage() {
     } finally {
       setIsCalculatingFee(false);
     }
-  }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.country, checkoutDraft.postalCode, checkoutItems, selectedDeliverer?.id]);
+  }, [
+    checkoutDraft.coordinates,
+    checkoutDraft.selectedDelivery,
+    checkoutDraft.country,
+    checkoutDraft.postalCode,
+    checkoutDraft.city,
+    checkoutDraft.street,
+    checkoutDraft.houseNumber,
+    checkoutItems,
+    selectedDeliverer?.id,
+    selectedShippingMethodId,
+  ]);
 
   // Recalculate fee when coordinates, delivery mode, or address changes.
   // Debounced (UX-FIN-4C.10) so typing a postal code no longer fires a shipping
@@ -892,8 +917,9 @@ export default function CheckoutPage() {
                 clientQuotedFeeCents:
                   actualDeliveryFee?.deliveryFeeCents ?? undefined,
                 shippingMethodId:
-                  (actualDeliveryFee as { shippingMethodId?: string } | null)
-                    ?.shippingMethodId ?? undefined,
+                  selectedShippingMethodId ||
+                  actualDeliveryFee?.shippingMethodId ||
+                  undefined,
               }
             : {}),
         }),
@@ -1223,6 +1249,50 @@ export default function CheckoutPage() {
                                 {actualDeliveryFee.isInternational ? t('checkout.international') : t('checkout.national')}
                               </p>
                             )}
+                            {isShipping &&
+                              actualDeliveryFee?.products &&
+                              actualDeliveryFee.products.length > 1 &&
+                              checkoutDraft.selectedDelivery === 'shipping' && (
+                              <div className="mt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+                                <p className="text-xs font-medium text-gray-700">
+                                  {language === 'en' ? 'Choose a shipping method' : 'Kies een verzendmethode'}
+                                </p>
+                                {actualDeliveryFee.products.slice(0, 8).map((p) => {
+                                  const selected =
+                                    (selectedShippingMethodId || actualDeliveryFee.shippingMethodId) ===
+                                    p.shippingMethodId;
+                                  return (
+                                    <button
+                                      key={p.shippingMethodId}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedShippingMethodId(p.shippingMethodId);
+                                        setActualDeliveryFee((prev) =>
+                                          prev
+                                            ? {
+                                                ...prev,
+                                                deliveryFeeCents: p.priceCents,
+                                                shippingMethodId: p.shippingMethodId,
+                                              }
+                                            : prev,
+                                        );
+                                      }}
+                                      className={`w-full text-left rounded-lg border px-3 py-2 text-sm ${
+                                        selected
+                                          ? 'border-orange-500 bg-orange-50'
+                                          : 'border-gray-200 bg-white'
+                                      }`}
+                                    >
+                                      <span className="font-medium">{p.carrier}</span>
+                                      <span className="text-gray-600"> · {p.name}</span>
+                                      <span className="float-right font-semibold">
+                                        €{(p.priceCents / 100).toFixed(2)}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                             {isTeenDelivery && (
                               <div
                                 className={`mt-3 text-sm ${
@@ -1546,7 +1616,9 @@ export default function CheckoutPage() {
                     <div className="flex justify-between text-sm">
                       <span>
                         {checkoutDraft.selectedDelivery === 'shipping'
-                          ? 'Verzending'
+                          ? language === 'en'
+                            ? 'Shipping'
+                            : 'Verzending'
                           : t('checkout.deliveryFee')}
                         {actualDeliveryFee &&
                           checkoutDraft.addressValidated &&
