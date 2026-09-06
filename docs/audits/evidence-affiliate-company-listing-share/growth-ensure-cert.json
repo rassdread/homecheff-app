@@ -1,0 +1,42 @@
+{
+  "at": "2026-09-06T08:39:08.824Z",
+  "GROWTH_PRODUCTION_SHA": "180beb236f98c4a10718bc675454462cda6537ca",
+  "organizationId": "cmtnpffci00005u2jh773sl49",
+  "organizationName": "HomeCheff Cert Growth Agency",
+  "economicCentralUserId": "6c004e0d-1dad-40ae-a842-45020d9eafef",
+  "ensure1": {
+    "created": true,
+    "trackingUrl": "https://growth.homecheff.eu/a/homecheff-cert-g-521b7b",
+    "marketerUserId": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+    "economicCentralUserId": "6c004e0d-1dad-40ae-a842-45020d9eafef"
+  },
+  "ensure2": {
+    "created": false,
+    "sameAsset": true
+  },
+  "idorBlocked": true,
+  "trackOpen": {
+    "status": 302,
+    "location": "https://homecheff.eu/product/pastas-rotterdam-hcid-6903370f-ad45-49d6-b6c1-3d7332a100d9?ref=homecheff-cert-growth-agency&aff_track=homecheff-cert-g-521b7b&utm_medium=SHARE&utm_source=homecheff_affilia",
+    "hasAffTrackCookie": true,
+    "locationHasAffTrack": true,
+    "locationHasPersonalRefCode": false
+  },
+  "e2e": {
+    "ran": true,
+    "referredUserId": "f804ff90-d79f-45a8-8adc-d0d4469a934d",
+    "lockOk": true,
+    "created": true,
+    "economicOwner": "6c004e0d-1dad-40ae-a842-45020d9eafef",
+    "acquisitionActor": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+    "listingOwner": "72582f0c-87e0-4154-bbb9-92dc4a0bc10f",
+    "listingOwnerIsReferrer": false,
+    "overwriteBlocked": true,
+    "attributionId": "cmtpk8nvx0002n52juy7w1uj7"
+  },
+  "OTHER_SELLER_COMPANY_SHARE": "PASS",
+  "DUPLICATE_ASSET_CREATION_ON_EVERY_SHARE": false,
+  "COMPANY_SHARE_USES_AFF_TRACK": true,
+  "COMPANY_SHARE_USES_PERSONAL_REF": false,
+  "FINAL_DECISION": "HOMECHEFF_AFFILIATE_PERSONAL_AND_COMPANY_SHARE_ATTRIBUTION_PRODUCTION_CERTIFIED"
+}

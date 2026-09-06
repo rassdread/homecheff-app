@@ -1,0 +1,36 @@
+{
+  "at": "2026-09-06T08:37:41.632Z",
+  "MARKETPLACE_PRODUCTION_SHA": "cdff3f21389cbe30ff86a1ed359be577e49e9d6d",
+  "MARKETPLACE_DEPLOYMENT_ID": "dpl_HnKDPiwigoQf74qJWhBCGU3W8u1c",
+  "GROWTH_PRODUCTION_SHA": "180beb236f98c4a10718bc675454462cda6537ca",
+  "GROWTH_DEPLOYMENT_ID": "dpl_BHF2BynY7QaZBwFteY8rcEpCnaMr",
+  "SHARE_CONTEXT_RESOLVER": "resolveShareMode + useMarketplaceShareContext",
+  "PERSONAL_SHARE_MECHANISM": "appendPersonalRef / ?ref=",
+  "COMPANY_SHARE_MECHANISM": "ENSURE_LISTING_SHARE_ASSET → growth /a/[slug]",
+  "COMPANY_SHARE_ASSET_STRATEGY": "idempotent org+actor+destinationPath+channel=SHARE",
+  "DUPLICATE_ASSET_CREATION_ON_EVERY_SHARE": false,
+  "DUAL_ATTRIBUTION_IN_SHARE_URL": false,
+  "OTHER_LISTING_ID": "6903370f-ad45-49d6-b6c1-3d7332a100d9",
+  "OTHER_LISTING_OWNER": "Farieda Kartoikromo",
+  "SHARED_LISTING_OWNER_USER_ID": "72582f0c-87e0-4154-bbb9-92dc4a0bc10f",
+  "PERSONAL_AFFILIATE_OTHER_LISTING": "PASS",
+  "PERSONAL_REF_CODE_PRESERVED": true,
+  "PERSONAL_SHARED_URL": "https://homecheff.eu/product/pastas-rotterdam-hcid-6903370f-ad45-49d6-b6c1-3d7332a100d9?ref=REF7647BF21907E",
+  "COMPANY": {
+    "ok": false,
+    "organizationId": null,
+    "organizationName": null,
+    "createdFirst": false,
+    "reuseSecond": false,
+    "isCompanyTrackingUrl": false,
+    "hasPersonalRefOnShareUrl": false,
+    "trackOpen": {
+      "skipped": true
+    },
+    "idorBlocked": true,
+    "e2e": {
+      "ran": false
+    }
+  },
+  "FINAL_DECISION": "HOMECHEFF_AFFILIATE_COMPANY_SHARE_ATTRIBUTION_PARTIAL_WITH_BLOCKERS"
+}
