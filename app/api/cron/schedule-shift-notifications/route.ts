@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { authorizeCronRequest } from '@/lib/email/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
 // This cron runs every hour to schedule shift notifications for the next 48 hours
 export async function GET(req: NextRequest) {
+  if (!authorizeCronRequest(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const now = new Date();
     const endTime = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours from now

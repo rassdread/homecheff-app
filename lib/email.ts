@@ -19,16 +19,27 @@ import {
   buildVerificationPlainText,
   getVerificationEmailSubject,
 } from '@/lib/verification-email-content';
+import {
+  hashIdempotencyPayload,
+  sendTransactionalEmail,
+} from '@/lib/email/idempotent-send';
+import { EMAIL_PRIORITY } from '@/lib/email/priority';
+import { resolveResendApiKeyForSend } from '@/lib/email/env-policy';
 
-function requireResend(): Resend {
-  const key = process.env.RESEND_API_KEY;
+function requireResendKey(): string {
+  const key = resolveResendApiKeyForSend() || process.env.RESEND_API_KEY?.trim();
   if (!key) {
     console.error('[email] RESEND_API_KEY ontbreekt');
     logEmailVerificationDiag('config_missing_api_key', {});
     logEmailDeliveryDiag('email_config_missing', { route: 'requireResend' });
     throw new Error('RESEND_API_KEY_NOT_CONFIGURED');
   }
-  return new Resend(key);
+  return key;
+}
+
+/** Legacy helper for scripts; prefer sendTransactionalEmail in app code. */
+export function requireResend(): Resend {
+  return new Resend(requireResendKey());
 }
 
 export interface EmailVerificationData {
@@ -52,16 +63,6 @@ export async function sendVerificationEmail({
   logEmailVerificationDiag('email_verification_send_started', {
     hasCode: Boolean(verificationCode),
   });
-  logEmailDeliveryDiag(
-    'email_send_attempt',
-    {
-      route,
-      senderPreview,
-      resendApiKeyPresent: Boolean(process.env.RESEND_API_KEY?.trim()),
-      fromEmailValid: validateFromHeader(getRawFromEnv()),
-    },
-    10_000,
-  );
   try {
     const rawFrom = getRawFromEnv();
     if (!validateFromHeader(rawFrom)) {
@@ -94,85 +95,56 @@ export async function sendVerificationEmail({
       verificationCode,
     });
 
-    const { data, error } = await requireResend().emails.send({
-      from: getTransactionalFrom(),
+    const idempotencyKey = `email-verification:${hashIdempotencyPayload([
+      email.toLowerCase(),
+      verificationToken,
+    ])}`;
+
+    const result = await sendTransactionalEmail({
       to: [email],
       subject: getVerificationEmailSubject(lang),
       text: textBody,
       html: htmlBody,
+      eventType: 'email_verification',
+      priority: EMAIL_PRIORITY.P0,
+      route,
+      idempotencyKey,
+      intentionalResend: true, // new token = new key; flag preserves intentional resends
+      businessEventId: email.toLowerCase().slice(0, 64),
     });
 
-    if (error) {
-      logEmailSendFailure('verification_api', error, { recipientEmail: email });
-      const cat = classifyResendClientError(error);
+    if (result.status === 'suppressed') {
+      logEmailVerificationDiag('email_verification_send_failed', {
+        stage: 'suppressed',
+        reason: result.reason,
+      });
+      throw new EmailSendFailure(
+        'EMAIL_SUPPRESSED',
+        'config_missing_api_key',
+        'EMAIL_UNAVAILABLE',
+      );
+    }
+    if (result.status === 'failed') {
+      const cat = classifyResendClientError({ message: result.errorMessage });
       logEmailVerificationDiag('email_verification_send_failed', {
         stage: 'resend_api_error',
         category: cat,
-        reason: summarizeEmailError(error, 120),
-      });
-      if (cat === 'provider_rate_limited') {
-        logEmailDeliveryDiag('email_provider_rate_limit', { route });
-        throw new EmailSendFailure(
-          'RESEND_RATE_LIMITED',
-          'provider_rate_limited',
-          'EMAIL_UNAVAILABLE',
-        );
-      }
-      if (cat === 'provider_timeout') {
-        logEmailDeliveryDiag('email_provider_timeout', { route });
-        throw new EmailSendFailure(
-          'RESEND_TIMEOUT',
-          'provider_timeout',
-          'EMAIL_UNAVAILABLE',
-        );
-      }
-      if (cat === 'provider_rejected_sender') {
-        logEmailDeliveryDiag('email_provider_rejected', {
-          route,
-          senderPreview: maskSenderPreview(getRawFromEnv()),
-        });
-        throw new EmailSendFailure(
-          'RESEND_SEND_REJECTED',
-          'provider_rejected_sender',
-          'EMAIL_UNAVAILABLE',
-        );
-      }
-      logEmailDeliveryDiag('email_provider_unknown', {
-        route,
-        reason: summarizeEmailError(error, 80),
+        reason: result.errorMessage.slice(0, 120),
       });
       throw new EmailSendFailure(
         'RESEND_SEND_FAILED',
-        'provider_unknown',
+        cat === 'provider_rate_limited' ? 'provider_rate_limited' : 'provider_unknown',
         'EMAIL_UNAVAILABLE',
       );
     }
 
-    const resendId =
-      data && typeof data === 'object' && 'id' in data && typeof (data as { id: unknown }).id === 'string'
-        ? String((data as { id: string }).id)
-        : undefined;
-    logEmailDeliveryDiag('email_send_success', {
-      route,
-      senderPreview,
-      resendIdSuffix: resendId ? resendId.slice(-12) : undefined,
-    });
     logEmailVerificationDiag('email_verification_send_success', {});
-    return { success: true, data };
+    return { success: true, data: { id: result.messageId } };
   } catch (error) {
     if (!(error instanceof EmailSendFailure)) {
       logEmailSendFailure('verification', error, { recipientEmail: email });
     }
     if (error instanceof EmailSendFailure) {
-      if (
-        error.category === 'config_missing_api_key' ||
-        error.category === 'config_invalid_from'
-      ) {
-        logEmailDeliveryDiag('email_config_missing', {
-          route,
-          category: error.category,
-        });
-      }
       throw error;
     }
     logEmailVerificationDiag('email_verification_send_failed', {
@@ -180,14 +152,12 @@ export async function sendVerificationEmail({
       reason: summarizeEmailError(error, 120),
     });
     if (error instanceof Error && error.message.includes('RESEND_API_KEY_NOT_CONFIGURED')) {
-      logEmailDeliveryDiag('email_config_missing', { route, stage: 'requireResend' });
       throw new EmailSendFailure(
         error.message,
         'config_missing_api_key',
         'EMAIL_NOT_CONFIGURED',
       );
     }
-    logEmailVerificationDiag('provider_unknown', {});
     throw new EmailSendFailure(
       'Email service unavailable',
       'provider_unknown',
@@ -211,9 +181,7 @@ export async function sendReviewRequestEmail(data: {
   try {
     const { renderReviewRequestEmail, getReviewRequestSubject } = await import('./email-templates/review-request');
     const reviewUrl = `${getPublicAppUrl()}/review/${encodeURIComponent(data.reviewToken)}`;
-
-    const { data: emailData, error } = await requireResend().emails.send({
-      from: getTransactionalFrom(),
+    const result = await sendTransactionalEmail({
       to: [data.email],
       subject: getReviewRequestSubject(data.buyerName, data.productTitle),
       html: renderReviewRequestEmail({
@@ -225,15 +193,17 @@ export async function sendReviewRequestEmail(data: {
         reviewToken: data.reviewToken,
         reviewUrl: reviewUrl,
         sellerName: data.sellerName
-      })
+      }),
+      eventType: 'review_request',
+      priority: EMAIL_PRIORITY.P2,
+      route: 'sendReviewRequestEmail',
+      idempotencyKey: `review-request:${hashIdempotencyPayload([data.orderNumber, data.email.toLowerCase()])}`,
+      businessEventId: data.orderNumber,
     });
-
-    if (error) {
-      logEmailSendFailure('review_request_api', error, { recipientEmail: data.email });
+    if (result.status === 'failed') {
       throw new Error('Failed to send review request email');
     }
-
-    return { success: true, data: emailData };
+    return { success: true, data: { id: result.messageId }, suppressed: result.suppressed };
   } catch (error) {
     logEmailSendFailure('review_request', error, { recipientEmail: data.email });
     throw new Error('Email service unavailable');
@@ -255,8 +225,15 @@ export async function sendPasswordResetEmail({
   name,
   resetUrl,
 }: PasswordResetEmailData) {
-  const { data, error } = await requireResend().emails.send({
-    from: getTransactionalFrom(),
+  // Extract token fragment for idempotency of THIS request only (new request = new token = new key)
+  let tokenPart = resetUrl;
+  try {
+    const u = new URL(resetUrl);
+    tokenPart = u.searchParams.get('token') || resetUrl;
+  } catch {
+    /* keep full url hash input */
+  }
+  const result = await sendTransactionalEmail({
     to: [email],
     subject: "Nieuw wachtwoord instellen - HomeCheff",
     html: `
@@ -296,13 +273,22 @@ export async function sendPasswordResetEmail({
       </body>
       </html>
     `,
+    eventType: 'password_reset',
+    priority: EMAIL_PRIORITY.P0,
+    route: 'sendPasswordResetEmail',
+    idempotencyKey: `password-reset:${hashIdempotencyPayload([email.toLowerCase(), tokenPart])}`,
+    intentionalResend: true,
+    businessEventId: email.toLowerCase().slice(0, 64),
   });
 
-  if (error) {
-    logEmailSendFailure("password_reset", error, { recipientEmail: email });
+  if (result.status === 'failed') {
+    logEmailSendFailure("password_reset", new Error(result.errorMessage), { recipientEmail: email });
     throw new Error("Failed to send password reset email");
   }
-  return { success: true as const, data };
+  if (result.status === 'suppressed') {
+    throw new Error("Failed to send password reset email");
+  }
+  return { success: true as const, data: { id: result.messageId } };
 }
 
 function escapeHtml(s: string) {
@@ -317,11 +303,18 @@ function escapeAttr(s: string) {
   return escapeHtml(s).replace(/'/g, "&#39;");
 }
 
-export async function sendWelcomeEmail({ email, name }: { email: string; name: string }) {
+export async function sendWelcomeEmail({
+  email,
+  name,
+  userId,
+}: {
+  email: string;
+  name: string;
+  userId?: string;
+}) {
   try {
     const homeUrl = getPublicAppUrl();
-    const { data, error } = await requireResend().emails.send({
-      from: getTransactionalFrom(),
+    const result = await sendTransactionalEmail({
       to: [email],
       subject: 'Welkom bij HomeCheff! Je account is geactiveerd 🎉',
       html: `
@@ -340,83 +333,45 @@ export async function sendWelcomeEmail({ email, name }: { email: string; name: s
             .content h2 { color: #1f2937; margin: 0 0 20px 0; font-size: 24px; font-weight: 600; }
             .content p { color: #6b7280; margin: 0 0 20px 0; font-size: 16px; }
             .button { display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 20px 0; }
-            .button:hover { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
             .footer { background: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb; }
             .footer p { color: #6b7280; font-size: 14px; margin: 0; }
-            .logo { width: 60px; height: 60px; background: white; border-radius: 12px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #10b981; }
             .success { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0; }
             .success p { color: #166534; margin: 0; font-weight: 500; }
-            .features { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
-            .feature { text-align: center; padding: 20px; background: #f9fafb; border-radius: 8px; }
-            .feature-icon { font-size: 32px; margin-bottom: 10px; }
-            .feature h3 { color: #1f2937; margin: 0 0 10px 0; font-size: 16px; font-weight: 600; }
-            .feature p { color: #6b7280; margin: 0; font-size: 14px; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">H</div>
               <h1>Welkom bij HomeCheff! 🎉</h1>
             </div>
-            
             <div class="content">
-              <h2>Hallo ${name}! Je account is geactiveerd</h2>
-              
+              <h2>Hallo ${escapeHtml(name)}! Je account is geactiveerd</h2>
               <div class="success">
                 <p>✅ Je e-mailadres is succesvol geverifieerd en je account is nu volledig actief!</p>
               </div>
-              
-              <p>Je kunt nu volledig gebruikmaken van alle functies van HomeCheff. Hier zijn enkele dingen die je kunt doen:</p>
-              
-              <div class="features">
-                <div class="feature">
-                  <div class="feature-icon">🛍️</div>
-                  <h3>Ontdek Producten</h3>
-                  <p>Vind verse producten en unieke creaties van lokale makers</p>
-                </div>
-                <div class="feature">
-                  <div class="feature-icon">👥</div>
-                  <h3>Maak Contact</h3>
-                  <p>Chat met verkopers en stel vragen over producten</p>
-                </div>
-                <div class="feature">
-                  <div class="feature-icon">⭐</div>
-                  <h3>Bewaar Favorieten</h3>
-                  <p>Bewaar je favoriete producten en makers</p>
-                </div>
-                <div class="feature">
-                  <div class="feature-icon">📍</div>
-                  <h3>Lokale Community</h3>
-                  <p>Ontdek wat er in jouw buurt gebeurt</p>
-                </div>
-              </div>
-              
+              <p>Je kunt nu volledig gebruikmaken van alle functies van HomeCheff.</p>
               <div style="text-align: center;">
                 <a href="${homeUrl}" class="button">Start Verkennen</a>
               </div>
-              
-              <p>Heb je vragen? Neem gerust contact met ons op via <a href="mailto:support@homecheff.eu" style="color: #006D52;">support@homecheff.eu</a></p>
+              <p>Heb je vragen? Neem contact op via <a href="mailto:support@homecheff.eu" style="color: #006D52;">support@homecheff.eu</a></p>
             </div>
-            
             <div class="footer">
               <p>Veel plezier op HomeCheff!<br>Het HomeCheff Team</p>
-              <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
-                HomeCheff B.V. | <a href="mailto:support@homecheff.eu" style="color: #006D52;">support@homecheff.eu</a>
-              </p>
             </div>
           </div>
         </body>
         </html>
       `,
+      eventType: 'welcome',
+      priority: EMAIL_PRIORITY.P2,
+      route: 'sendWelcomeEmail',
+      idempotencyKey: `welcome:${hashIdempotencyPayload([userId || email.toLowerCase()])}`,
+      businessEventId: userId || email.toLowerCase().slice(0, 64),
     });
-
-    if (error) {
-      logEmailSendFailure('welcome_api', error, { recipientEmail: email });
+    if (result.status === 'failed') {
       throw new Error('Failed to send welcome email');
     }
-
-    return { success: true, data };
+    return { success: true, data: { id: result.messageId }, suppressed: result.suppressed };
   } catch (error) {
     logEmailSendFailure('welcome', error, { recipientEmail: email });
     throw new Error('Email service unavailable');

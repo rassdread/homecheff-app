@@ -46,7 +46,7 @@
 
 ### Email Service
 ```typescript
-// Resend API key: re_CUpW6TtM_HcN73wZUPqXvR9h6cQ9fy4vD
+// Resend API key: re_xxx
 // Domein: homecheff.nl
 // Templates: Professionele HTML emails
 ```

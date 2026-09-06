@@ -2,16 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { processDuePushOutbox } from '@/lib/notifications/push-outbox-delivery';
+import { authorizeCronRequest } from '@/lib/email/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
-// This cron runs every minute to send pending notifications
-export async function GET(req: NextRequest) {
+async function handleCron(req: NextRequest) {
+  if (!authorizeCronRequest(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const now = new Date();
     const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
 
-    // Get all pending notifications that should be sent now or soon (using raw SQL)
     const notifications = await prisma.$queryRaw<any[]>`
       SELECT 
         sn.*,
@@ -74,7 +77,7 @@ export async function GET(req: NextRequest) {
 
         sentCount++;
       } catch (error) {
-        console.error(`❌ Failed to send notification ${notification.id}:`, error);
+        console.error(`[cron/send-notifications] failed id=${notification.id}`);
 
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         await prisma.$executeRaw`
@@ -109,7 +112,7 @@ export async function GET(req: NextRequest) {
       outbox,
     });
   } catch (error) {
-    console.error('❌ Error sending notifications:', error);
+    console.error('[cron/send-notifications] error');
     return NextResponse.json(
       {
         error: 'Failed to send notifications',
@@ -118,4 +121,13 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function GET(req: NextRequest) {
+  return handleCron(req);
+}
+
+/** Reject alternate methods — no unauthenticated bypass. */
+export async function POST(req: NextRequest) {
+  return handleCron(req);
 }

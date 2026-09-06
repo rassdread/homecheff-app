@@ -17,6 +17,11 @@ import { getPublicAppUrl } from '@/lib/public-app-url';
 import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
 import { getTransactionalFrom } from '@/lib/email-from';
 import { logEmailSendFailure } from '@/lib/email-log';
+import {
+  hashIdempotencyPayload,
+  sendTransactionalEmail,
+} from '@/lib/email/idempotent-send';
+import { EMAIL_PRIORITY, type EmailPriority } from '@/lib/email/priority';
 import { parseInternalPathFromUnknownInput } from '@/lib/native/safeRoute';
 import {
   isValidFcmTokenShape,
@@ -99,6 +104,9 @@ export interface NotificationOptions {
   message: NotificationMessage;
   channels?: Array<'push' | 'email' | 'sms'>;
   saveToDatabase?: boolean;
+  /** Stable key for Resend idempotency (Stripe retries / duplicate calls). */
+  emailIdempotencyKey?: string;
+  emailPriority?: EmailPriority;
 }
 
 /**
@@ -109,7 +117,14 @@ export class NotificationService {
    * Send notification via all configured channels
    */
   static async send(options: NotificationOptions): Promise<void> {
-    const { userId, message, channels = ['push', 'email'], saveToDatabase = true } = options;
+    const {
+      userId,
+      message,
+      channels = ['push', 'email'],
+      saveToDatabase = true,
+      emailIdempotencyKey,
+      emailPriority,
+    } = options;
 
     // Get user's push tokens and preferences
     const user = await prisma.user.findUnique({
@@ -279,7 +294,7 @@ export class NotificationService {
     
     if (channels.includes('email') && emailEnabled) {
       try {
-        await this.sendEmailNotification(user.email, message);
+        await this.sendEmailNotification(user.email, message, userId, emailIdempotencyKey, emailPriority);
         results.push({ channel: 'email', success: true });
       } catch (error) {
         console.error('Email notification failed:', error);
@@ -445,21 +460,16 @@ export class NotificationService {
   }
 
   /**
-   * Send email notification
+   * Send email notification (idempotent per business event when key provided).
    */
-  private static async sendEmailNotification(email: string, message: NotificationMessage): Promise<void> {
+  private static async sendEmailNotification(
+    email: string,
+    message: NotificationMessage,
+    userId?: string,
+    emailIdempotencyKey?: string,
+    emailPriority?: EmailPriority,
+  ): Promise<void> {
     try {
-      if (!process.env.RESEND_API_KEY?.trim()) {
-        logEmailSendFailure(
-          'notification_email_skipped',
-          new Error('RESEND_API_KEY_NOT_CONFIGURED'),
-          { recipientEmail: email }
-        );
-        return;
-      }
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      
       // Convert newlines to <br> tags for HTML display
       const bodyHtml = message.body.replace(/\n/g, '<br>');
       
@@ -489,7 +499,6 @@ export class NotificationService {
         }
       }
       
-      // Simple HTML email template
       const htmlEmail = `
         <!DOCTYPE html>
         <html>
@@ -541,16 +550,41 @@ export class NotificationService {
         </body>
         </html>
       `;
-      
-      const { error } = await resend.emails.send({
-        from: getTransactionalFrom(),
+
+      const dataType = String(message.data?.type || 'GENERIC');
+      const orderish =
+        String(
+          message.data?.orderId ||
+            message.data?.deliveryOrderId ||
+            message.data?.orderNumber ||
+            ''
+        );
+      const derivedKey =
+        emailIdempotencyKey ||
+        `notification:${hashIdempotencyPayload([dataType, orderish, userId || email])}`;
+
+      const priority: EmailPriority =
+        emailPriority ||
+        (dataType.includes('PAID') ||
+        dataType.includes('PAYMENT') ||
+        dataType === 'ORDER_PLACED' ||
+        dataType === 'NEW_ORDER'
+          ? EMAIL_PRIORITY.P0
+          : dataType.includes('MESSAGE') || dataType.includes('SHIFT')
+            ? EMAIL_PRIORITY.P2
+            : EMAIL_PRIORITY.P1);
+
+      await sendTransactionalEmail({
         to: email,
+        from: getTransactionalFrom(),
         subject: message.title,
-        html: htmlEmail
+        html: htmlEmail,
+        eventType: `notification_${dataType}`.slice(0, 50),
+        priority,
+        route: 'NotificationService.sendEmailNotification',
+        idempotencyKey: derivedKey,
+        businessEventId: orderish || userId || undefined,
       });
-      if (error) {
-        logEmailSendFailure('notification_email_api', error, { recipientEmail: email });
-      }
     } catch (error) {
       logEmailSendFailure('notification_email', error, { recipientEmail: email });
       // Don't throw - email is optional
@@ -1432,7 +1466,9 @@ export class NotificationService {
       userId: buyerId,
       message,
       channels: ['push', 'email'],
-      saveToDatabase: true
+      saveToDatabase: true,
+      emailIdempotencyKey: `order-placed:${orderId}:${buyerId}`,
+      emailPriority: EMAIL_PRIORITY.P0,
     });
   }
 
@@ -1479,13 +1515,17 @@ export class NotificationService {
         userId: buyerId,
         message: buyerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-paid:${orderId}:${buyerId}`,
+        emailPriority: EMAIL_PRIORITY.P0,
       }),
       this.send({
         userId: sellerId,
         message: sellerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `payment-received:${orderId}:${sellerId}`,
+        emailPriority: EMAIL_PRIORITY.P0,
       })
     ]);
   }
@@ -1527,7 +1567,9 @@ export class NotificationService {
       userId: sellerId,
       message,
       channels,
-      saveToDatabase: true
+      saveToDatabase: true,
+      emailIdempotencyKey: `new-order:${orderId}:${sellerId}`,
+      emailPriority: EMAIL_PRIORITY.P0,
     });
   }
 
@@ -1565,7 +1607,9 @@ export class NotificationService {
       userId: sellerId,
       message,
       channels,
-      saveToDatabase: true
+      saveToDatabase: true,
+      emailIdempotencyKey: `shipping-label:${orderId}:${sellerId}`,
+      emailPriority: EMAIL_PRIORITY.P1,
     });
   }
 
@@ -1605,13 +1649,17 @@ export class NotificationService {
         userId: buyerId,
         message: buyerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-ready-pickup:${orderId}:${buyerId}`,
+        emailPriority: EMAIL_PRIORITY.P1,
       }),
       this.send({
         userId: sellerId,
         message: sellerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-ready-pickup:${orderId}:${sellerId}`,
+        emailPriority: EMAIL_PRIORITY.P1,
       })
     ]);
   }
@@ -1652,13 +1700,17 @@ export class NotificationService {
         userId: buyerId,
         message: buyerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-ready-delivery:${orderId}:${buyerId}`,
+        emailPriority: EMAIL_PRIORITY.P1,
       }),
       this.send({
         userId: sellerId,
         message: sellerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-ready-delivery:${orderId}:${sellerId}`,
+        emailPriority: EMAIL_PRIORITY.P1,
       })
     ]);
   }
@@ -1697,13 +1749,17 @@ export class NotificationService {
         userId: buyerId,
         message: buyerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-delivered:${orderId}:${buyerId}`,
+        emailPriority: EMAIL_PRIORITY.P1,
       }),
       this.send({
         userId: sellerId,
         message: sellerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-delivered:${orderId}:${sellerId}`,
+        emailPriority: EMAIL_PRIORITY.P1,
       })
     ]);
   }
@@ -1770,13 +1826,17 @@ export class NotificationService {
         userId: buyerId,
         message: buyerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-cancelled:${orderId}:${buyerId}`,
+        emailPriority: EMAIL_PRIORITY.P1,
       }),
       this.send({
         userId: sellerId,
         message: sellerMessage,
         channels: ['push', 'email'],
-        saveToDatabase: true
+        saveToDatabase: true,
+        emailIdempotencyKey: `order-cancelled:${orderId}:${sellerId}`,
+        emailPriority: EMAIL_PRIORITY.P1,
       })
     ]);
   }
@@ -1813,7 +1873,9 @@ export class NotificationService {
       userId: delivererId,
       message,
       channels: ['push', 'email'],
-      saveToDatabase: true
+      saveToDatabase: true,
+      emailIdempotencyKey: `delivery-available:${deliveryOrderId}:${delivererId}`,
+      emailPriority: EMAIL_PRIORITY.P1,
     });
   }
 

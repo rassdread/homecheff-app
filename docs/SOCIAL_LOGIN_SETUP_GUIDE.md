@@ -23,7 +23,7 @@ FACEBOOK_CLIENT_ID=your-facebook-client-id
 FACEBOOK_CLIENT_SECRET=your-facebook-client-secret
 
 # Email Service
-RESEND_API_KEY=re_CUpW6TtM_HcN73wZUPqXvR9h6cQ9fy4vD
+RESEND_API_KEY=re_xxx
 
 # Database
 DATABASE_URL=your-database-url
@@ -75,12 +75,12 @@ In je Vercel dashboard:
 
 | Name | Value | Environment |
 |------|-------|-------------|
-| `NEXTAUTH_URL` | `https://homecheff.nl` | Production, Preview |
-| `NEXTAUTH_SECRET` | `[jouw-secret-key]` | Production, Preview |
-| `GOOGLE_CLIENT_ID` | `[jouw-google-client-id]` | Production, Preview |
-| `GOOGLE_CLIENT_SECRET` | `[jouw-google-client-secret]` | Production, Preview |
-| `FACEBOOK_CLIENT_ID` | `[jouw-facebook-client-id]` | Production, Preview |
-| `FACEBOOK_CLIENT_SECRET` | `[jouw-facebook-client-secret]` | Production, Preview |
+| `NEXTAUTH_URL` | `https://homecheff.nl` | Production (use separate Preview key) |
+| `NEXTAUTH_SECRET` | `[jouw-secret-key]` | Production (use separate Preview key) |
+| `GOOGLE_CLIENT_ID` | `[jouw-google-client-id]` | Production (use separate Preview key) |
+| `GOOGLE_CLIENT_SECRET` | `[jouw-google-client-secret]` | Production (use separate Preview key) |
+| `FACEBOOK_CLIENT_ID` | `[jouw-facebook-client-id]` | Production (use separate Preview key) |
+| `FACEBOOK_CLIENT_SECRET` | `[jouw-facebook-client-secret]` | Production (use separate Preview key) |
 
 ## 🔍 Test Status
 

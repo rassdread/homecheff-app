@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Send, Users, Mail, Bell, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -13,11 +13,17 @@ export default function NotificationCenter() {
   const [targetType, setTargetType] = useState('all');
   const [sendNotification, setSendNotification] = useState(true);
   const [sendEmail, setSendEmail] = useState(false);
+  const [confirmEmailBlast, setConfirmEmailBlast] = useState(false);
+  const [emailPreviewCount, setEmailPreviewCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const submitLockRef = useRef(false);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (submitLockRef.current || isLoading) return;
+
     if (!message.trim()) {
       alert(t('errors.enterMessage'));
       return;
@@ -34,47 +40,142 @@ export default function NotificationCenter() {
     }
 
     setIsLoading(true);
+    submitLockRef.current = true;
+    let confirmedBlast = confirmEmailBlast;
 
     try {
+      if (sendEmail) {
+        const previewRes = await fetch('/api/admin/notifications/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: message.trim(),
+            subject: subject.trim(),
+            title: pushTitle.trim() || undefined,
+            route: linkPreset,
+            targetType,
+            sendNotification: false,
+            sendEmail: true,
+            dryRun: true,
+          }),
+        });
+        const preview = await previewRes.json().catch(() => ({}));
+        const count =
+          typeof preview.emailRecipientCount === 'number'
+            ? preview.emailRecipientCount
+            : null;
+        setEmailPreviewCount(count);
+
+        const needsConfirm =
+          targetType === 'all' ||
+          preview.requiresConfirm === true ||
+          (typeof count === 'number' && count > 50);
+
+        if (needsConfirm) {
+          const ok = window.confirm(
+            `Waarschuwing: deze actie stuurt ongeveer ${count ?? '?'} e-mails.\n\n` +
+              `Dit verbruikt transactionele e-mailcapaciteit (P2) en kan P0/P1 berichten verdringen.\n\n` +
+              `Typische marketing/bulk hoort op een aparte stream. Doorgaan?`
+          );
+          if (!ok) return;
+          confirmedBlast = true;
+          setConfirmEmailBlast(true);
+        } else {
+          confirmedBlast = confirmEmailBlast;
+        }
+      }
+
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current =
+          typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `admin-blast-${Date.now()}`;
+      }
+
       const response = await fetch('/api/admin/notifications/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKeyRef.current,
+        },
         body: JSON.stringify({
           message: message.trim(),
           subject: subject.trim(),
+          title: pushTitle.trim() || undefined,
+          route: linkPreset,
           targetType,
           sendNotification,
           sendEmail,
+          confirmEmailBlast: sendEmail ? confirmedBlast : false,
+          idempotencyKey: idempotencyKeyRef.current,
         }),
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (response.ok) {
-        const data = await response.json();
         alert(data.message || t('errors.messageSentSuccess'));
         setMessage('');
         setPushTitle('');
         setSubject('');
+        setConfirmEmailBlast(false);
+        setEmailPreviewCount(null);
+        idempotencyKeyRef.current = null;
+      } else if (data.code === 'CONFIRM_REQUIRED') {
+        const ok = window.confirm(
+          `${data.error || 'Bevestiging vereist'}\n\nGeschatte e-mails: ${data.emailRecipientCount ?? '?'}`
+        );
+        if (ok) {
+          setConfirmEmailBlast(true);
+          const retry = await fetch('/api/admin/notifications/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Idempotency-Key': idempotencyKeyRef.current!,
+            },
+            body: JSON.stringify({
+              message: message.trim(),
+              subject: subject.trim(),
+              title: pushTitle.trim() || undefined,
+              route: linkPreset,
+              targetType,
+              sendNotification,
+              sendEmail,
+              confirmEmailBlast: true,
+              idempotencyKey: idempotencyKeyRef.current,
+            }),
+          });
+          const retryData = await retry.json().catch(() => ({}));
+          if (retry.ok) {
+            alert(retryData.message || t('errors.messageSentSuccess'));
+            setMessage('');
+            setPushTitle('');
+            setSubject('');
+            setConfirmEmailBlast(false);
+            idempotencyKeyRef.current = null;
+          } else {
+            alert(retryData.error || t('errors.sendMessageError2'));
+          }
+        }
       } else {
-        const error = await response.json();
-        alert(error.error || t('errors.sendMessageError2'));
+        alert(data.error || t('errors.sendMessageError2'));
       }
     } catch (error) {
       console.error('Error sending message:', error);
       alert(t('errors.sendMessageError2'));
     } finally {
       setIsLoading(false);
+      submitLockRef.current = false;
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900">{t('admin.notificationCenter.title')}</h2>
         <p className="text-gray-600">{t('admin.notificationCenter.subtitle')}</p>
       </div>
 
-      {/* Send Message Form */}
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <form onSubmit={handleSendMessage} className="space-y-6">
           <div>
@@ -83,7 +184,11 @@ export default function NotificationCenter() {
             </label>
             <select
               value={targetType}
-              onChange={(e) => setTargetType(e.target.value)}
+              onChange={(e) => {
+                setTargetType(e.target.value);
+                setConfirmEmailBlast(false);
+                setEmailPreviewCount(null);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="all">{t('admin.notificationCenter.allUsers')}</option>
@@ -112,7 +217,10 @@ export default function NotificationCenter() {
                 <input
                   type="checkbox"
                   checked={sendEmail}
-                  onChange={(e) => setSendEmail(e.target.checked)}
+                  onChange={(e) => {
+                    setSendEmail(e.target.checked);
+                    setConfirmEmailBlast(false);
+                  }}
                   className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                 />
                 <Mail className="w-4 h-4 ml-2 mr-2 text-gray-600" />
@@ -120,6 +228,30 @@ export default function NotificationCenter() {
               </label>
             </div>
           </div>
+
+          {sendEmail && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+              <p className="font-medium">E-mailcapaciteit</p>
+              <p className="mt-1">
+                Admin-e-mail deelt de transactionele Resend-quota met betalingen en auth (P0/P1).
+                Grote doelgroepen vereisen expliciete bevestiging. Max per actie: 500 (configureerbaar).
+                {emailPreviewCount != null ? ` Geschatte ontvangers: ${emailPreviewCount}.` : ''}
+              </p>
+              {(targetType === 'all' || (emailPreviewCount ?? 0) > 50) && (
+                <label className="mt-3 flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={confirmEmailBlast}
+                    onChange={(e) => setConfirmEmailBlast(e.target.checked)}
+                    className="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>
+                    Ik bevestig dat ik bewust e-mail naar deze doelgroep stuur en de capaciteitsimpact accepteer.
+                  </span>
+                </label>
+              )}
+            </div>
+          )}
 
           {sendNotification && (
             <div className="space-y-4">
@@ -230,7 +362,6 @@ export default function NotificationCenter() {
         </form>
       </div>
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-sm border p-6">
           <div className="flex items-center">
@@ -269,7 +400,6 @@ export default function NotificationCenter() {
         </div>
       </div>
 
-      {/* Info Box */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <div className="flex">
           <AlertCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5" />
@@ -284,5 +414,3 @@ export default function NotificationCenter() {
     </div>
   );
 }
-
-

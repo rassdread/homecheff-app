@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Resend } from 'resend';
-import { getTransactionalFrom } from '@/lib/email-from';
-import { logEmailSendFailure } from '@/lib/email-log';
 import { sanitizeAdminBroadcastRoute } from '@/lib/admin/sanitize-admin-broadcast-route';
 import { sendAdminBroadcastFcm } from '@/lib/admin/admin-broadcast-fcm';
+import {
+  claimAdminBroadcastIdempotencyKey,
+  evaluateAdminEmailBlast,
+} from '@/lib/email/admin-blast-guard';
+import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
+import { EMAIL_PRIORITY } from '@/lib/email/priority';
+import { getTransactionalFrom } from '@/lib/email-from';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,10 +39,15 @@ export async function POST(req: NextRequest) {
     const targetType = typeof body?.targetType === 'string' ? body.targetType.trim() : '';
     const sendNotification = Boolean(body?.sendNotification);
     const sendEmail = Boolean(body?.sendEmail);
+    const confirmEmailBlast = Boolean(body?.confirmEmailBlast);
+    const dryRun = Boolean(body?.dryRun);
     const subject =
       typeof body?.subject === 'string' ? body.subject.trim() : '';
     const titleRaw = typeof body?.title === 'string' ? body.title.trim() : '';
     const routeRaw = body?.route;
+    const idempotencyKey =
+      req.headers.get('idempotency-key')?.trim() ||
+      (typeof body?.idempotencyKey === 'string' ? body.idempotencyKey.trim() : '');
 
     if (!message || !targetType) {
       return NextResponse.json(
@@ -100,6 +109,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const withEmailPreview = targetUsers.filter((u) => u.email);
+    const blastGate = evaluateAdminEmailBlast({
+      sendEmail,
+      emailRecipientCount: withEmailPreview.length,
+      targetType,
+      confirmEmailBlast,
+      idempotencyKey,
+    });
+
+    if (dryRun) {
+      return NextResponse.json({
+        dryRun: true,
+        targetCount: targetUsers.length,
+        emailRecipientCount: withEmailPreview.length,
+        requiresConfirm: blastGate.ok ? blastGate.requiresConfirm : true,
+        softMax: 'softMax' in blastGate ? blastGate.softMax : 50,
+        hardMax: 'hardMax' in blastGate ? blastGate.hardMax : 500,
+        gate: blastGate.ok ? 'ok' : blastGate.code,
+        message: blastGate.ok
+          ? `Preview: ${withEmailPreview.length} e-mails zouden worden verstuurd.`
+          : blastGate.error,
+      });
+    }
+
+    if (!blastGate.ok) {
+      return NextResponse.json(
+        {
+          error: blastGate.error,
+          code: blastGate.code,
+          emailRecipientCount: blastGate.emailRecipientCount,
+          softMax: blastGate.softMax,
+          hardMax: blastGate.hardMax,
+          requiresConfirm: true,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (idempotencyKey && !claimAdminBroadcastIdempotencyKey(idempotencyKey)) {
+      return NextResponse.json(
+        {
+          error: 'Deze broadcast is al uitgevoerd (idempotency). Geen dubbele e-mails verstuurd.',
+          code: 'IDEMPOTENT_REPLAY',
+        },
+        { status: 200 }
+      );
+    }
+
     const broadcastId = randomUUID();
     const safeRoute = sanitizeAdminBroadcastRoute(routeRaw);
     const pushTitle =
@@ -150,39 +207,24 @@ export async function POST(req: NextRequest) {
 
     let emailsSent = 0;
     if (sendEmail) {
-      if (!process.env.RESEND_API_KEY?.trim()) {
-        return NextResponse.json(
-          { error: 'RESEND_API_KEY is not configured; cannot send email.' },
-          { status: 503 }
-        );
-      }
-      const resend = new Resend(process.env.RESEND_API_KEY);
       const withEmail = targetUsers.filter((u) => u.email);
 
       for (let i = 0; i < withEmail.length; i += EMAIL_BATCH_SIZE) {
         const batch = withEmail.slice(i, i + EMAIL_BATCH_SIZE);
         const outcomes = await Promise.all(
           batch.map(async (user) => {
-            try {
-              const { error } = await resend.emails.send({
-                from: getTransactionalFrom(),
-                to: [user.email!],
-                subject: emailSubject,
-                html: emailHtml(emailSubject, user.name, message),
-              });
-              if (error) {
-                logEmailSendFailure('admin_broadcast_email', error, {
-                  recipientEmail: user.email!,
-                });
-                return false;
-              }
-              return true;
-            } catch (e) {
-              logEmailSendFailure('admin_broadcast_email', e, {
-                recipientEmail: user.email!,
-              });
-              return false;
-            }
+            const result = await sendTransactionalEmail({
+              from: getTransactionalFrom(),
+              to: [user.email!],
+              subject: emailSubject,
+              html: emailHtml(emailSubject, user.name, message),
+              eventType: 'admin_broadcast',
+              priority: EMAIL_PRIORITY.P2,
+              route: 'admin/notifications/send',
+              idempotencyKey: `admin-broadcast:${broadcastId}:${user.id}`,
+              businessEventId: broadcastId,
+            });
+            return result.status === 'sent';
           })
         );
         emailsSent += outcomes.filter(Boolean).length;
@@ -190,6 +232,18 @@ export async function POST(req: NextRequest) {
           await new Promise((r) => setTimeout(r, EMAIL_BATCH_PAUSE_MS));
         }
       }
+
+      console.info(
+        '[admin_email_blast]',
+        JSON.stringify({
+          broadcastId,
+          targetType,
+          emailRecipientCount: withEmail.length,
+          emailsSent,
+          adminEmail: session.user.email,
+          ts: Date.now(),
+        })
+      );
     }
 
     const parts: string[] = [];
