@@ -338,7 +338,13 @@ export async function getAuthoritativeCarrierShippingQuote(input: {
   }
 
   // Exclude free/zero placeholder products (e.g. Generic "Address Label" at €0)
-  const billableProducts = providerResult.products.filter((p) => p.priceCents > 0);
+  let billableProducts = providerResult.products.filter((p) => p.priceCents > 0);
+  // Mailbox products are incompatible with thicker parcels (HomeCheff MIDDEL+).
+  if (aggregated.parcel.heightCm > 3.5) {
+    billableProducts = billableProducts.filter(
+      (p) => !/brievenbus|mailbox|briefpost/i.test(`${p.name} ${p.carrier}`),
+    );
+  }
   if (billableProducts.length === 0) {
     return {
       ok: false,
