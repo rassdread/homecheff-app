@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(req: NextRequest) {
   const guard = await requireAdminPermission('canViewPaymentInfo');
-  if (guard instanceof NextResponse) return guard;
+  if (!guard.ok) return guard.response;
 
   const body = await req.json().catch(() => ({}));
   const originCountry = String(body.originCountry || 'NL').toUpperCase();

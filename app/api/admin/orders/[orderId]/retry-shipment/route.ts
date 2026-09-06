@@ -14,7 +14,7 @@ export async function POST(
   { params }: { params: Promise<{ orderId: string }> },
 ) {
   const guard = await requireAdminPermission('canViewPaymentInfo');
-  if (guard instanceof NextResponse) return guard;
+  if (!guard.ok) return guard.response;
 
   const { orderId } = await params;
   const order = await prisma.order.findUnique({
