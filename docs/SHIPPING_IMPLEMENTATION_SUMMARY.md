@@ -210,9 +210,10 @@ model ShippingLabel {
 ### Environment Variables
 ```env
 # EctaroShip Shipping API Configuration
-ECTAROSHIP_API_KEY=fb7a7181b42d5318464fda8179ad0e2c97550ed7c7920039b92ab14847096f2e
+ECTAROSHIP_API_KEY=your_ectaroship_api_key_here
 ECTAROSHIP_API_BASE_URL=https://api.ectaroship.nl
 # ECTAROSHIP_API_SECRET= (optioneel)
+
 # ECTAROSHIP_WEBHOOK_SECRET= (optioneel - voor webhook verificatie)
 ```
 

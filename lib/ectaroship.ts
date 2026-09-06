@@ -1,6 +1,8 @@
 // EctaroShip API Integration
 // Shipping label generation and tracking
 
+import { verifyEctaroShipWebhookSignature } from '@/lib/ectaroship-webhook-auth';
+
 const ECTAROSHIP_API_KEY = process.env.ECTAROSHIP_API_KEY;
 // EctaroShip API base URL - adjust if different
 // Common patterns: https://api.ectaroship.nl, https://api.ectaro.com, https://ectaroship.nl/api
@@ -229,30 +231,14 @@ export async function getTrackingStatus(
 }
 
 /**
- * Verify webhook signature (if EctaroShip uses webhook secrets)
+ * Verify webhook signature (if EctaroShip uses webhook secrets).
+ * Fail-closed: missing secret or invalid signature → false.
  */
 export function verifyWebhookSignature(
   payload: string,
   signature: string,
   secret?: string
 ): boolean {
-  if (!secret || !process.env.ECTAROSHIP_WEBHOOK_SECRET) {
-    // If no secret configured, accept webhook (less secure but works)
-    return true;
-  }
-
-  // Implement webhook signature verification based on EctaroShip's method
-  // This is a placeholder - adjust based on EctaroShip's actual implementation
-  try {
-    const crypto = require('crypto');
-    const expectedSignature = crypto
-      .createHmac('sha256', secret || process.env.ECTAROSHIP_WEBHOOK_SECRET)
-      .update(payload)
-      .digest('hex');
-    
-    return signature === expectedSignature;
-  } catch {
-    return false;
-  }
+  return verifyEctaroShipWebhookSignature(payload, signature, secret).ok;
 }
 

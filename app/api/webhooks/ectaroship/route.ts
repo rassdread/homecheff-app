@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyWebhookSignature } from '@/lib/ectaroship';
+import { verifyEctaroShipWebhookSignature } from '@/lib/ectaroship-webhook-auth';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 
@@ -7,25 +7,31 @@ export const dynamic = 'force-dynamic';
 
 /**
  * EctaroShip webhook handler
- * Receives tracking updates and triggers payouts
+ * Receives tracking updates and triggers payouts — signature fail-closed.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text();
-    const signature = req.headers.get('x-ectaroship-signature') || 
-                     req.headers.get('x-signature') || 
-                     '';
+    const signature =
+      req.headers.get('x-ectaroship-signature') ||
+      req.headers.get('x-signature') ||
+      '';
 
-    // Verify webhook signature (if configured)
-    const isValid = verifyWebhookSignature(body, signature);
-    if (!isValid && process.env.ECTAROSHIP_WEBHOOK_SECRET) {
-      console.warn('⚠️ EctaroShip webhook signature verification failed');
-      // Continue anyway if no secret is configured
+    const verified = verifyEctaroShipWebhookSignature(body, signature);
+    if (!verified.ok) {
+      console.warn('[ectaroship-webhook] rejected', verified.reason);
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: verified.reason === 'missing_secret' ? 503 : 401 }
+      );
     }
 
-    const event = JSON.parse(body);
-
-    console.log('📦 EctaroShip webhook received:', event.type || event.event);
+    let event: any;
+    try {
+      event = JSON.parse(body);
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
 
     // Handle different event types
     switch (event.type || event.event) {
@@ -34,23 +40,22 @@ export async function POST(req: NextRequest) {
       case 'shipment.shipped':
         await handleShipmentStatusUpdate(event);
         break;
-      
+
       case 'label.created':
         await handleLabelCreated(event);
         break;
-      
+
       default:
-        console.log('Unhandled EctaroShip event:', event.type || event.event);
+        break;
     }
 
     return NextResponse.json({ received: true });
-
   } catch (error: any) {
-    console.error('EctaroShip webhook error:', error);
-    return NextResponse.json(
-      { error: 'Webhook processing failed', details: error.message },
-      { status: 500 }
+    console.error(
+      'EctaroShip webhook error:',
+      error instanceof Error ? error.message.slice(0, 200) : 'error'
     );
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
 
