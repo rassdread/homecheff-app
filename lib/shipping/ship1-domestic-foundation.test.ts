@@ -32,23 +32,23 @@ function read(rel: string) {
   assert.equal(validateParcel({ weightKg: 0, lengthCm: 10, widthCm: 10, heightCm: 10 }).ok, false);
   assert.equal(validateParcel({ weightKg: -1, lengthCm: 10, widthCm: 10, heightCm: 10 }).ok, false);
   assert.equal(validateParcel({ weightKg: 1, lengthCm: 0, widthCm: 10, heightCm: 10 }).ok, false);
-  const good = validateParcel({ weightKg: 1.25, lengthCm: 30, widthCm: 20, heightCm: 10 });
+  const good = validateParcel({ weightGrams: 1250, lengthCm: 30, widthCm: 20, heightCm: 10 });
   assert.equal(good.ok, true);
   if (good.ok) {
-    assert.equal(good.parcel.weightKg, 1.25);
+    assert.equal(good.parcel.weightGrams, 1250);
   }
   ok('parcel validation rejects zero/negative; accepts valid');
 }
 
 {
-  const a = validateParcel({ weightKg: 1, lengthCm: 30, widthCm: 20, heightCm: 10 });
-  const b = validateParcel({ weightKg: 0.5, lengthCm: 25, widthCm: 15, heightCm: 8 });
+  const a = validateParcel({ weightGrams: 1000, lengthCm: 30, widthCm: 20, heightCm: 10 });
+  const b = validateParcel({ weightGrams: 500, lengthCm: 25, widthCm: 15, heightCm: 8 });
   assert.equal(a.ok && b.ok, true);
   if (a.ok && b.ok) {
     const agg = aggregateParcels([a.parcel, b.parcel], [2, 1]);
     assert.equal(agg.ok, true);
     if (agg.ok) {
-      assert.equal(agg.parcel.weightKg, 2.5);
+      assert.equal(agg.parcel.weightGrams, 2500);
       assert.equal(agg.parcel.lengthCm, 30);
       assert.equal(agg.parcel.heightCm, 28);
     }
@@ -180,18 +180,14 @@ function read(rel: string) {
 {
   const payload = JSON.stringify({ type: 'shipment.delivered' });
   assert.equal(
-    verifyEctaroShipWebhookSignature(payload, null, undefined).ok,
+    verifyEctaroShipWebhookSignature(payload, 'deadbeef', '').ok,
     false,
-  );
-  assert.equal(
-    verifyEctaroShipWebhookSignature(payload, 'deadbeef', '').reason,
-    'missing_secret',
   );
   const secret = 'ship1-test-secret';
   const sig = createHmac('sha256', secret).update(payload, 'utf8').digest('hex');
   assert.equal(verifyEctaroShipWebhookSignature(payload, sig, secret).ok, true);
   const route = read('app/api/webhooks/ectaroship/route.ts');
-  assert.match(route, /verifyEctaroShipWebhookSignature|missing_secret|503/);
+  assert.match(route, /410|ECTAROSHIP_WEBHOOK_UNSUPPORTED/);
   ok('webhook fail-closed remains intact');
 }
 

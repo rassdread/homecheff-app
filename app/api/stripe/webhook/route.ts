@@ -990,6 +990,18 @@ export async function POST(req: NextRequest) {
               notes: notes,
               // Shipping fields (if shipping mode)
               shippingCostCents: (deliveryMode === 'SHIPPING' && deliveryFeeCents) ? deliveryFeeCents : null,
+              shippingQuotedCents: metadata.shippingQuotedCents
+                ? parseInt(metadata.shippingQuotedCents, 10)
+                : deliveryFeeCents || null,
+              shippingBuyerChargedCents:
+                deliveryMode === 'SHIPPING' && deliveryFeeCents
+                  ? deliveryFeeCents
+                  : null,
+              shippingCurrency: metadata.shippingCurrency || 'EUR',
+              shippingMethodId: metadata.shippingMethodId || null,
+              shippingProductId: metadata.shippingProductId || null,
+              shippingCarrier: metadata.shippingCarrier || null,
+              shippingMethod: metadata.shippingMethod || null,
               shippingAddressSnapshot: metadata.shippingAddressSnapshot
                 ? (() => {
                     try {

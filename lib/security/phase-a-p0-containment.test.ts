@@ -64,11 +64,12 @@ function read(rel: string) {
   ok('sha256= prefixed signature accepted');
 
   const route = read('app/api/webhooks/ectaroship/route.ts');
-  assert.match(route, /verifyEctaroShipWebhookSignature/);
-  assert.match(route, /401/);
-  assert.match(route, /503/);
+  // Partner API has no webhooks — endpoint permanently disabled (410), never fail-open
+  assert.match(route, /410/);
+  assert.match(route, /ECTAROSHIP_WEBHOOK_UNSUPPORTED/);
   assert.doesNotMatch(route, /Continue anyway/);
-  ok('webhook route fail-closed before side effects');
+  assert.doesNotMatch(route, /prisma\./);
+  ok('webhook route disabled (410) — no Provider webhook side effects');
 }
 
 // --- MP-002 video-proxy SSRF ---

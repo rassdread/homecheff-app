@@ -17,6 +17,7 @@ export const SHIPPING_SETTLEMENT_EXAMPLE = {
   itemCents: 2500,
   buyerShippingChargeCents: 895,
   currency: 'EUR',
+  markupPercent: 0,
   productProceedsToSeller: 'itemCents minus platform fee (existing Connect settlement)',
   shippingComponentDestination: 'platform',
   platformFee: 'on product gross only',

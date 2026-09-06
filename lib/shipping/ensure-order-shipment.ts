@@ -1,13 +1,12 @@
 /**
- * Post-payment EctaroShip shipment creation — idempotent, fail-soft on provider outage.
- *
- * State machine (shippingStatus):
- *   QUOTE → CHECKOUT_CREATED → PAYMENT_SUCCEEDED →
- *   SHIPMENT_PENDING | SHIPMENT_CREATING → SHIPMENT_CREATED / label_created → …
- *   SHIPMENT_FAILED_RETRYABLE | SHIPMENT_BLOCKED_NO_CHARGE
+ * Post-payment Partner API label creation — idempotent under Stripe retries.
  */
 
-import { createShippingLabel, type EctaroShipLabelRequest } from '@/lib/ectaroship';
+import {
+  createPartnerLabel,
+  isAllowedEctaroDocumentUrl,
+  type PartnerAddress,
+} from '@/lib/ectaroship/partner-client';
 import { prisma } from '@/lib/prisma';
 import {
   parseShippingAddressSnapshot,
@@ -15,6 +14,8 @@ import {
 } from '@/lib/shipping/address-snapshot';
 import type { ShippingQuoteSnapshot } from '@/lib/shipping/quote-service';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { logShippingEvent } from '@/lib/shipping/observability';
+import { assertShippingChargeBeforeBillableLabel } from '@/lib/shipping/invariants';
 
 export { assertShippingChargeBeforeBillableLabel } from '@/lib/shipping/invariants';
 
@@ -32,6 +33,9 @@ export type EnsureShipmentResult =
 const TERMINAL_OK = new Set([
   'label_created',
   'SHIPMENT_CREATED',
+  'created',
+  'printed',
+  'scanned',
   'shipped',
   'in_transit',
   'out_for_delivery',
@@ -41,14 +45,32 @@ const TERMINAL_OK = new Set([
 function parseQuoteSnapshot(raw: unknown): ShippingQuoteSnapshot | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
-  if (typeof o.priceCents !== 'number' || typeof o.weightKg !== 'number') return null;
+  if (typeof o.priceCents !== 'number') return null;
   return o as unknown as ShippingQuoteSnapshot;
 }
 
-/**
- * Create at most one billable EctaroShip label per order after payment.
- * Safe under Stripe webhook retries and concurrent workers.
- */
+function splitStreet(addressLine: string): { street: string; houseNumber: string } {
+  const m = addressLine.trim().match(/^(.+?)\s+(\d+[a-zA-Z0-9\-\/]*)$/);
+  if (m) return { street: m[1]!.trim(), houseNumber: m[2]! };
+  return { street: addressLine.trim(), houseNumber: '1' };
+}
+
+function toPartnerAddress(snap: ShippingAddressSnapshot): PartnerAddress {
+  const street = snap.street || splitStreet(snap.addressLine).street;
+  const houseNumber =
+    snap.houseNumber || splitStreet(snap.addressLine).houseNumber;
+  return {
+    fullname: snap.name,
+    country: snap.country,
+    city: snap.city,
+    postalCode: snap.postalCode,
+    street,
+    houseNumber,
+    email: snap.email,
+    phone: snap.phone,
+  };
+}
+
 export async function ensurePaidOrderShipment(
   orderId: string,
 ): Promise<EnsureShipmentResult> {
@@ -111,8 +133,11 @@ export async function ensurePaidOrderShipment(
     };
   }
 
-  const collected = order.shippingCostCents ?? 0;
-  if (!Number.isInteger(collected) || collected <= 0) {
+  const collected =
+    (order as { shippingBuyerChargedCents?: number | null }).shippingBuyerChargedCents ??
+    order.shippingCostCents ??
+    0;
+  if (!assertShippingChargeBeforeBillableLabel(collected)) {
     await prisma.order.update({
       where: { id: orderId },
       data: { shippingStatus: 'SHIPMENT_BLOCKED_NO_CHARGE' },
@@ -128,7 +153,6 @@ export async function ensurePaidOrderShipment(
     return { status: 'pending_provider_config' };
   }
 
-  // Atomic claim — concurrent Stripe retries lose here
   const claimed = await prisma.order.updateMany({
     where: {
       id: orderId,
@@ -151,11 +175,13 @@ export async function ensurePaidOrderShipment(
     return { status: 'concurrent_in_progress' };
   }
 
+  logShippingEvent('SHIPMENT_CREATE_STARTED', { orderId });
+
   try {
     const quote = parseQuoteSnapshot(order.shippingQuoteSnapshot);
     const destSnap =
       parseShippingAddressSnapshot(order.shippingAddressSnapshot) ||
-      fallbackDestinationFromOrder(order);
+      parseShippingAddressSnapshot(null);
     const originSnap =
       parseShippingAddressSnapshot(order.shippingOriginSnapshot) ||
       fallbackOriginFromItems(order);
@@ -171,98 +197,148 @@ export async function ensurePaidOrderShipment(
       };
     }
 
-    const weight = quote?.weightKg;
-    const dims = quote
-      ? {
-          length: quote.lengthCm,
-          width: quote.widthCm,
-          height: quote.heightCm,
-        }
-      : null;
+    const methodId =
+      (order as { shippingMethodId?: string | null }).shippingMethodId ||
+      quote?.shippingMethodId;
+    const weightGrams =
+      quote?.weightGrams ??
+      (quote && typeof (quote as unknown as { weightKg?: number }).weightKg === 'number'
+        ? Math.round((quote as unknown as { weightKg: number }).weightKg * 1000)
+        : null);
 
-    if (!weight || !dims) {
+    if (!methodId || !weightGrams) {
       await prisma.order.update({
         where: { id: orderId },
         data: { shippingStatus: 'SHIPMENT_FAILED_RETRYABLE' },
       });
       return {
         status: 'failed_retryable',
-        error: 'Missing authoritative parcel quote snapshot',
+        error: 'Missing shippingMethodId or weightGrams on quote snapshot',
       };
     }
 
-    const labelRequest: EctaroShipLabelRequest = {
-      orderId,
-      recipient: {
-        name: destSnap.name,
-        address: destSnap.addressLine,
-        postalCode: destSnap.postalCode,
-        city: destSnap.city,
-        country: destSnap.country,
-        email: destSnap.email,
-        phone: destSnap.phone,
-      },
-      sender: {
-        name: originSnap.name,
-        address: originSnap.addressLine,
-        postalCode: originSnap.postalCode,
-        city: originSnap.city,
-        country: originSnap.country,
-        email: originSnap.email,
-        phone: originSnap.phone,
-      },
-      weight,
-      dimensions: dims,
-      carrier: quote?.carrier,
-      description: `Order ${order.orderNumber || orderId}`,
-    };
+    const marketplaceOrderId =
+      order.orderNumber || `HC-${orderId.replace(/-/g, '').slice(0, 10).toUpperCase()}`;
 
-    const labelResult = await createShippingLabel(labelRequest);
+    const labelResult = await createPartnerLabel({
+      shippingMethodId: methodId,
+      productId:
+        (order as { shippingProductId?: string | null }).shippingProductId ||
+        quote?.productId,
+      carrier: quote?.carrier || order.shippingCarrier || undefined,
+      weightGrams,
+      marketplaceOrderId,
+      note: `HomeCheff ${marketplaceOrderId}`,
+      address: toPartnerAddress(destSnap),
+      fromAddress: toPartnerAddress(originSnap),
+      orderItems: order.items.map((item) => ({
+        title: item.Product?.title || 'Item',
+        quantity: item.quantity,
+        unitPrice: item.priceCents / 100,
+        currency: 'EUR',
+      })),
+    });
 
-    if ('error' in labelResult) {
+    if (!labelResult.ok) {
       await prisma.order.update({
         where: { id: orderId },
         data: { shippingStatus: 'SHIPMENT_FAILED_RETRYABLE' },
       });
+      logShippingEvent('SHIPMENT_CREATE_FAILED', {
+        orderId,
+        code: labelResult.code,
+        status: labelResult.status,
+      });
       return { status: 'failed_retryable', error: labelResult.error };
     }
 
-    // Persist label — unique-ish by checking again before create
     const race = await prisma.shippingLabel.findFirst({ where: { orderId } });
     if (race) {
       return { status: 'already_created', labelId: race.ectaroShipLabelId };
     }
 
+    const label = labelResult.label;
+    const pdfUrl =
+      typeof label.labelsExport === 'string' &&
+      isAllowedEctaroDocumentUrl(label.labelsExport)
+        ? label.labelsExport
+        : typeof label.labelsExport === 'object' &&
+            label.labelsExport &&
+            typeof (label.labelsExport as { url?: string }).url === 'string' &&
+            isAllowedEctaroDocumentUrl((label.labelsExport as { url: string }).url)
+          ? (label.labelsExport as { url: string }).url
+          : '';
+
+    const actualCents =
+      label.totalPrice != null && Number.isFinite(label.totalPrice)
+        ? Math.round(label.totalPrice * 100)
+        : collected;
+
     try {
       await prisma.shippingLabel.create({
         data: {
           orderId,
-          ectaroShipLabelId: labelResult.labelId,
-          pdfUrl: labelResult.pdfUrl,
-          trackingNumber: labelResult.trackingNumber,
-          carrier: labelResult.carrier,
+          ectaroShipLabelId: label.providerOrderId,
+          pdfUrl: pdfUrl || 'pending',
+          trackingNumber: label.trackingCode,
+          carrier: label.carrier || quote?.carrier || 'Carrier',
           status: 'generated',
-          priceCents: Math.round(labelResult.price * 100),
+          priceCents: actualCents,
         },
       });
-    } catch (e: unknown) {
-      // Concurrent create — treat as success if row exists
+    } catch {
       const existing = await prisma.shippingLabel.findFirst({ where: { orderId } });
       if (existing) {
         return { status: 'already_created', labelId: existing.ectaroShipLabelId };
       }
-      throw e;
+      throw new Error('Failed to persist ShippingLabel');
     }
+
+    const margin = collected - actualCents;
+    if (margin < 0) {
+      logShippingEvent('SHIPPING_NEGATIVE_MARGIN', {
+        orderId,
+        charged: collected,
+        actual: actualCents,
+        delta: margin,
+      });
+    }
+    logShippingEvent('SHIPPING_COST_RECONCILED', {
+      orderId,
+      quoted: quote?.priceCents ?? null,
+      charged: collected,
+      actual: actualCents,
+      delta: margin,
+    });
 
     await prisma.order.update({
       where: { id: orderId },
       data: {
-        shippingLabelId: labelResult.labelId,
-        shippingTrackingNumber: labelResult.trackingNumber,
-        shippingCarrier: labelResult.carrier,
+        shippingLabelId: label.providerOrderId,
+        shippingTrackingNumber: label.trackingCode,
+        shippingCarrier: label.carrier || quote?.carrier || undefined,
         shippingStatus: 'label_created',
-        shippingLabelCostCents: Math.round(labelResult.price * 100),
+        shippingLabelCostCents: actualCents,
+        shippingMethod: quote?.method || undefined,
+        shippingTrackingUrl:
+          label.trackingUrl && isAllowedEctaroDocumentUrl(label.trackingUrl)
+            ? label.trackingUrl
+            : undefined,
+        shippingProviderOrderId: label.providerOrderId,
+        shippingActualCostCents: actualCents,
+        shippingBuyerChargedCents: collected,
+        shippingQuotedCents: quote?.priceCents ?? collected,
+        shippingCurrency: label.currency || quote?.currency || 'EUR',
+        shippingMethodId: methodId,
+        shippingProductId: quote?.productId || undefined,
+        shippingProviderStatus: 'created',
+        shippingProviderStatusRaw: 'created',
       },
+    });
+
+    logShippingEvent('SHIPMENT_CREATE_SUCCEEDED', {
+      orderId,
+      tracking: label.trackingCode ? 'yes' : 'no',
     });
 
     const sellerId = order.items[0]?.Product?.seller?.User?.id;
@@ -272,7 +348,7 @@ export async function ensurePaidOrderShipment(
           sellerId,
           orderId,
           order.orderNumber || orderId,
-          labelResult.trackingNumber,
+          label.trackingCode,
         );
       } catch (notifError) {
         console.error('[ensurePaidOrderShipment] notification failed', notifError);
@@ -281,26 +357,20 @@ export async function ensurePaidOrderShipment(
 
     return {
       status: 'created',
-      labelId: labelResult.labelId,
-      trackingNumber: labelResult.trackingNumber,
+      labelId: label.providerOrderId,
+      trackingNumber: label.trackingCode,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'unknown';
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { shippingStatus: 'SHIPMENT_FAILED_RETRYABLE' },
-    }).catch(() => undefined);
+    await prisma.order
+      .update({
+        where: { id: orderId },
+        data: { shippingStatus: 'SHIPMENT_FAILED_RETRYABLE' },
+      })
+      .catch(() => undefined);
+    logShippingEvent('SHIPMENT_CREATE_FAILED', { orderId, error: message });
     return { status: 'failed_retryable', error: message };
   }
-}
-
-function fallbackDestinationFromOrder(order: {
-  deliveryAddress: string | null;
-  shippingAddressSnapshot: unknown;
-  User: { name: string | null; email: string | null; phoneNumber: string | null } | null;
-}): ShippingAddressSnapshot | null {
-  // Prefer snapshot; free-text deliveryAddress alone is insufficient for labels
-  return parseShippingAddressSnapshot(order.shippingAddressSnapshot);
 }
 
 function fallbackOriginFromItems(order: {

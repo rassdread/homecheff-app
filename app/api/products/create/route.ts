@@ -127,6 +127,8 @@ export async function POST(req: Request) {
       lengthCm,
       widthCm,
       heightCm,
+      weightGrams,
+      parcelPreset,
       shippingDomestic,
       shippingInternational,
       orderMethod: orderMethodRaw,
@@ -432,14 +434,18 @@ export async function POST(req: Request) {
 
     let parcelFields: {
       weightKg: number | null;
+      weightGrams: number | null;
       lengthCm: number | null;
       widthCm: number | null;
       heightCm: number | null;
+      parcelPreset: string | null;
     } = {
       weightKg: null,
+      weightGrams: null,
       lengthCm: null,
       widthCm: null,
       heightCm: null,
+      parcelPreset: null,
     };
 
     const shippingSelected =
@@ -448,7 +454,14 @@ export async function POST(req: Request) {
       String(delivery).toUpperCase() === 'BOTH';
 
     if (shippingSelected) {
-      const parcel = validateParcel({ weightKg, lengthCm, widthCm, heightCm });
+      const parcel = validateParcel({
+        weightGrams,
+        weightKg,
+        lengthCm,
+        widthCm,
+        heightCm,
+        parcelPreset,
+      });
       if (!parcel.ok) {
         return NextResponse.json(
           { error: parcel.error, code: parcel.code },
@@ -456,10 +469,15 @@ export async function POST(req: Request) {
         );
       }
       parcelFields = {
-        weightKg: parcel.parcel.weightKg,
+        weightGrams: parcel.parcel.weightGrams,
+        weightKg: parcel.parcel.weightGrams / 1000,
         lengthCm: parcel.parcel.lengthCm,
         widthCm: parcel.parcel.widthCm,
         heightCm: parcel.parcel.heightCm,
+        parcelPreset:
+          typeof parcelPreset === 'string' && parcelPreset.trim()
+            ? parcelPreset.trim()
+            : 'CUSTOM',
       };
       fulfillmentForStore.shippingDomestic = shippingDomestic !== false;
       fulfillmentForStore.shippingInternational =
@@ -526,9 +544,11 @@ export async function POST(req: Request) {
         useProfileLocation:
           useProfileLocationRaw !== false && useProfileLocationRaw !== 'false',
         weightKg: parcelFields.weightKg,
+        weightGrams: parcelFields.weightGrams,
         lengthCm: parcelFields.lengthCm,
         widthCm: parcelFields.widthCm,
         heightCm: parcelFields.heightCm,
+        parcelPreset: parcelFields.parcelPreset,
         allergens: allergenUpdate?.allergens ?? [],
         allergensConfirmedAt: allergenUpdate?.allergensConfirmedAt ?? null,
         sellerContributionTypes: contribution.sellerContributionTypes,

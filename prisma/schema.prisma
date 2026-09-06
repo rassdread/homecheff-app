@@ -585,6 +585,10 @@ model Product {
   widthCm                 Float?
   heightCm                Float?
   weightKg                Float?
+  /// Authoritative parcel weight for carrier quotes (Partner API uses grams).
+  weightGrams             Int?
+  /// UX preset id: BRIEVENBUS | KLEIN | MIDDEL | GROOT | CUSTOM
+  parcelPreset            String?
   /// LEGAL-2: EU-14 allergen ids. Meaningful only when allergensConfirmedAt is set.
   /// Confirmed + empty = seller confirmed none of the 14 apply. Null confirmedAt = UNKNOWN.
   allergens               String[]             @default([])
@@ -1178,6 +1182,14 @@ model ShippingLabel {
   @@index([trackingNumber])
 }
 
+/// Incremental Partner API label sync cursor (GET /shipping/labels).
+model ShippingSyncState {
+  id                   String    @id @default("default")
+  lastSuccessfulSyncAt DateTime?
+  updatedSinceCursor   String?
+  updatedAt            DateTime  @updatedAt
+}
+
 model Payout {
   id                          String      @id
   transactionId               String
@@ -1466,19 +1478,30 @@ model Order {
   platformFeeCollected   Boolean          @default(false)
   stripeSessionId        String?
   // Shipping fields (EctaroShip)
-  shippingCostCents      Int? // What customer paid for shipping (BUYER_SHIPPING_CHARGE)
-  shippingLabelCostCents Int? // What EctaroShip charges for label (ECTAROSHIP_ACTUAL_COST)
-  shippingLabelId        String? // EctaroShip label ID
+  shippingCostCents      Int? // BUYER_SHIPPING_CHARGE (legacy alias)
+  shippingLabelCostCents Int? // ECTAROSHIP_ACTUAL_COST (legacy alias)
+  shippingLabelId        String? // EctaroShip provider order/label ID
   shippingTrackingNumber String? // Tracking number
   shippingCarrier        String? // PostNL, DHL, DPD, etc.
-  shippingMethod         String? // Standard, Express, etc.
-  shippingStatus         String? // label_created, shipped, in_transit, delivered, etc.
+  shippingMethod         String? // Human product name
+  shippingStatus         String? // Internal + provider-derived status
   /// Immutable checkout destination used for label creation (not live profile).
   shippingAddressSnapshot Json?
   /// Immutable seller origin used for label creation.
   shippingOriginSnapshot  Json?
   /// Server-authoritative quote metadata (cents, carrier, parcel, quotedAt).
   shippingQuoteSnapshot   Json?
+  shippingQuotedCents           Int?
+  shippingBuyerChargedCents     Int?
+  shippingActualCostCents       Int?
+  shippingCurrency              String?
+  shippingMethodId              String?
+  shippingProductId             String?
+  shippingProviderOrderId       String?
+  shippingTrackingUrl           String?
+  shippingProviderStatus        String?
+  shippingProviderStatusRaw     String?
+  shippingLastSyncedAt          DateTime?
   shippedAt              DateTime? // When package was shipped
   deliveredAt            DateTime? // When package was delivered
   // Escrow fields

@@ -5,7 +5,7 @@ import { getAuthoritativeCarrierShippingQuote } from '@/lib/shipping/quote-servi
 export const dynamic = 'force-dynamic';
 
 /**
- * Display quote for HomeCheff shipping (EctaroShip).
+ * Display quote options for HomeCheff shipping (Partner API products).
  * UI display only — checkout re-quotes server-authoritatively.
  */
 export async function POST(req: NextRequest) {
@@ -16,11 +16,22 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, destination, street, houseNumber, city, name } = body;
+    const {
+      items,
+      destination,
+      street,
+      houseNumber,
+      city,
+      name,
+      shippingMethodId,
+    } = body;
 
     if (!destination?.postalCode || !destination?.country) {
       return NextResponse.json(
-        { error: 'Destination must include postalCode and country', code: 'SHIPPING_ADDRESS_INCOMPLETE' },
+        {
+          error: 'Destination must include postalCode and country',
+          code: 'SHIPPING_ADDRESS_INCOMPLETE',
+        },
         { status: 400 },
       );
     }
@@ -53,6 +64,7 @@ export async function POST(req: NextRequest) {
       },
       buyerName: session.user.name || undefined,
       buyerEmail: session.user.email || undefined,
+      shippingMethodId: shippingMethodId || null,
     });
 
     if (!result.ok) {
@@ -67,11 +79,23 @@ export async function POST(req: NextRequest) {
       priceCents: result.priceCents,
       carrier: result.quote.carrier,
       method: result.quote.method,
-      estimatedDays: result.quote.estimatedDays,
+      shippingMethodId: result.quote.shippingMethodId,
+      productId: result.quote.productId,
       currency: result.quote.currency,
       isInternational: false,
       lane: result.quote.lane,
       quotedAt: result.quote.quotedAt,
+      markupPercent: result.quote.markupPercent,
+      products: result.products.map((p) => ({
+        shippingMethodId: p.shippingMethodId,
+        carrier: p.carrier,
+        name: p.name,
+        priceCents: p.priceCents,
+        currency: p.currency,
+        productId: p.productId,
+        hasReturn: p.hasReturn,
+        labelType: p.labelType,
+      })),
       origin: {
         postalCode: result.quote.originPostalCode,
         country: result.quote.originCountry,
@@ -80,7 +104,7 @@ export async function POST(req: NextRequest) {
         postalCode: result.quote.destinationPostalCode,
         country: result.quote.destinationCountry,
       },
-      // Never accept this as financial authority — checkout re-quotes.
+      message: 'Verzendkosten worden berekend voor jouw adres.',
       authoritative: false,
       displayOnly: true,
     });

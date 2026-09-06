@@ -776,10 +776,14 @@ export async function PATCH(
 
           if (shippingSelected) {
             const parcel = validateParcel({
+              weightGrams:
+                body.weightGrams ?? (product as { weightGrams?: number | null }).weightGrams,
               weightKg: body.weightKg ?? (product as { weightKg?: number | null }).weightKg,
               lengthCm: body.lengthCm ?? (product as { lengthCm?: number | null }).lengthCm,
               widthCm: body.widthCm ?? (product as { widthCm?: number | null }).widthCm,
               heightCm: body.heightCm ?? (product as { heightCm?: number | null }).heightCm,
+              parcelPreset:
+                body.parcelPreset ?? (product as { parcelPreset?: string | null }).parcelPreset,
             });
             if (!parcel.ok) {
               return NextResponse.json(
@@ -787,10 +791,15 @@ export async function PATCH(
                 { status: 400 },
               );
             }
-            updateData.weightKg = parcel.parcel.weightKg;
+            updateData.weightGrams = parcel.parcel.weightGrams;
+            updateData.weightKg = parcel.parcel.weightGrams / 1000;
             updateData.lengthCm = parcel.parcel.lengthCm;
             updateData.widthCm = parcel.parcel.widthCm;
             updateData.heightCm = parcel.parcel.heightCm;
+            updateData.parcelPreset =
+              typeof body.parcelPreset === 'string' && body.parcelPreset.trim()
+                ? body.parcelPreset.trim()
+                : (product as { parcelPreset?: string | null }).parcelPreset || 'CUSTOM';
             const baseFo =
               (foPatch.fulfillmentOptions as Record<string, boolean> | undefined) ??
               ({ ...mergedFo } as Record<string, boolean>);

@@ -497,14 +497,16 @@ export default function CheckoutPage() {
           setActualDeliveryFee({
             deliveryFeeCents: data.priceCents,
             distance: 0,
-            isInternational: checkoutDraft.country !== 'NL',
+            isInternational: false,
             breakdown: {
               baseFee: 0,
               distanceFee: data.priceCents,
               totalDeliveryFee: data.priceCents,
-              distance: 0
-            }
-          });
+              distance: 0,
+            },
+            shippingMethodId: data.shippingMethodId,
+            products: data.products,
+          } as any);
         } else {
           console.error('Failed to calculate shipping price');
           setActualDeliveryFee(null);
@@ -889,6 +891,9 @@ export default function CheckoutPage() {
             ? {
                 clientQuotedFeeCents:
                   actualDeliveryFee?.deliveryFeeCents ?? undefined,
+                shippingMethodId:
+                  (actualDeliveryFee as { shippingMethodId?: string } | null)
+                    ?.shippingMethodId ?? undefined,
               }
             : {}),
         }),

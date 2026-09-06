@@ -19,6 +19,8 @@ import { validateProductLocationForPublish } from '@/lib/geo/product-location-re
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 import { sanitizeApiErrorForDisplay } from '@/lib/client/map-api-error-for-user';
+import { PackageSelector } from '@/components/shipping/PackageSelector';
+import type { ParcelPresetId } from '@/lib/shipping/package-presets';
 
 type Uploaded = { 
   url: string; 
@@ -121,7 +123,10 @@ export default function CompactChefForm({
   const [sellerCanDeliver, setSellerCanDeliver] = React.useState(false);
   const [deliveryRadiusKm, setDeliveryRadiusKm] = React.useState<string>('');
   // Parcel data for HomeCheff shipping (Binnen Nederland)
-  const [weightKg, setWeightKg] = React.useState('');
+  const [parcelPreset, setParcelPreset] = React.useState<
+    '' | 'BRIEVENBUS' | 'KLEIN' | 'MIDDEL' | 'GROOT' | 'CUSTOM'
+  >('');
+  const [weightGrams, setWeightGrams] = React.useState('');
   const [lengthCm, setLengthCm] = React.useState('');
   const [widthCm, setWidthCm] = React.useState('');
   const [heightCm, setHeightCm] = React.useState('');
@@ -204,10 +209,17 @@ export default function CompactChefForm({
       if (existingProduct.deliveryRadiusKm !== undefined && existingProduct.deliveryRadiusKm !== null) {
         setDeliveryRadiusKm(existingProduct.deliveryRadiusKm.toString());
       }
-      if (existingProduct.weightKg != null) setWeightKg(String(existingProduct.weightKg));
+      if (existingProduct.weightGrams != null) {
+        setWeightGrams(String(existingProduct.weightGrams));
+      } else if (existingProduct.weightKg != null) {
+        setWeightGrams(String(Math.round(Number(existingProduct.weightKg) * 1000)));
+      }
       if (existingProduct.lengthCm != null) setLengthCm(String(existingProduct.lengthCm));
       if (existingProduct.widthCm != null) setWidthCm(String(existingProduct.widthCm));
       if (existingProduct.heightCm != null) setHeightCm(String(existingProduct.heightCm));
+      if (existingProduct.parcelPreset) {
+        setParcelPreset(existingProduct.parcelPreset as typeof parcelPreset);
+      }
       const fo = existingProduct.fulfillmentOptions as Record<string, unknown> | null;
       if (fo && fo.shippingDomestic === false) setDomesticShippingEnabled(false);
       
@@ -490,25 +502,27 @@ export default function CompactChefForm({
 
     if (hasDeliveryOption('SHIPPING')) {
       if (!domesticShippingEnabled) {
-        setMessage('Schakel «Binnen Nederland» in of schakel verzenden uit.');
+        setMessage('Schakel «Verzenden binnen Nederland» in of schakel verzenden uit.');
         return;
       }
-      const w = Number(weightKg.replace(',', '.'));
-      const l = Number(lengthCm.replace(',', '.'));
-      const wi = Number(widthCm.replace(',', '.'));
-      const h = Number(heightCm.replace(',', '.'));
-      if (!(w > 0 && l > 0 && wi > 0 && h > 0)) {
-        setMessage('Vul geldig gewicht en afmetingen in voor verzenden.');
+      const g = Number(String(weightGrams).replace(',', '.'));
+      const l = Number(String(lengthCm).replace(',', '.'));
+      const wi = Number(String(widthCm).replace(',', '.'));
+      const h = Number(String(heightCm).replace(',', '.'));
+      if (!(g > 0 && l > 0 && wi > 0 && h > 0)) {
+        setMessage('Kies een pakketformaat en vul het gewicht in gram in.');
         return;
       }
     }
 
     const parcelPayload = hasDeliveryOption('SHIPPING')
       ? {
-          weightKg: Number(weightKg.replace(',', '.')),
-          lengthCm: Number(lengthCm.replace(',', '.')),
-          widthCm: Number(widthCm.replace(',', '.')),
-          heightCm: Number(heightCm.replace(',', '.')),
+          weightGrams: Math.round(Number(String(weightGrams).replace(',', '.'))),
+          weightKg: Math.round(Number(String(weightGrams).replace(',', '.'))) / 1000,
+          lengthCm: Number(String(lengthCm).replace(',', '.')),
+          widthCm: Number(String(widthCm).replace(',', '.')),
+          heightCm: Number(String(heightCm).replace(',', '.')),
+          parcelPreset: parcelPreset || 'CUSTOM',
           shippingDomestic: domesticShippingEnabled,
           shippingInternational: false,
         }
@@ -1139,82 +1153,23 @@ export default function CompactChefForm({
           </div>
         )}
 
-        {/* Shipping Info - Alleen tonen wanneer SHIPPING gekozen is */}
+        {/* Shipping — visual package selector */}
         {hasDeliveryOption('SHIPPING') && (
-          <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200 space-y-3">
-            <label className="block text-sm font-semibold text-gray-900">
-              Verzenden — Binnen Nederland
-            </label>
-            <p className="text-xs text-gray-600">
-              Vul het pakketgewicht en de afmetingen in. Kopers zien een verzendprijs
-              op basis van deze gegevens. Internationaal verzenden volgt later.
-            </p>
-            <label className="flex items-center gap-2 text-sm text-gray-800">
-              <input
-                type="checkbox"
-                checked={domesticShippingEnabled}
-                onChange={(e) => setDomesticShippingEnabled(e.target.checked)}
-                className="w-4 h-4 text-orange-500 focus:ring-orange-500 rounded"
-              />
-              Binnen Nederland inschakelen
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Gewicht (kg)</label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={weightKg}
-                  onChange={(e) => setWeightKg(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="1.0"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Lengte (cm)</label>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.1"
-                  value={lengthCm}
-                  onChange={(e) => setLengthCm(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="30"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Breedte (cm)</label>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.1"
-                  value={widthCm}
-                  onChange={(e) => setWidthCm(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="20"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Hoogte (cm)</label>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.1"
-                  value={heightCm}
-                  onChange={(e) => setHeightCm(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="10"
-                  required
-                />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500">
-              Verzendadres = je geconfigureerde verkopersadres (geen hardcoded afmetingen).
-            </p>
+          <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
+            <PackageSelector
+              presetId={(parcelPreset || '') as ParcelPresetId | ''}
+              onPresetChange={(id) => setParcelPreset(id)}
+              weightGrams={weightGrams}
+              onWeightGramsChange={setWeightGrams}
+              lengthCm={lengthCm}
+              widthCm={widthCm}
+              heightCm={heightCm}
+              onLengthChange={setLengthCm}
+              onWidthChange={setWidthCm}
+              onHeightChange={setHeightCm}
+              domesticEnabled={domesticShippingEnabled}
+              onDomesticChange={setDomesticShippingEnabled}
+            />
           </div>
         )}
 

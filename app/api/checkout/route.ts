@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
       houseNumber,
       postalCode,
       city,
+      shippingMethodId,
     } = body;
 
     const selectedProviderId =
@@ -826,6 +827,8 @@ export async function POST(req: NextRequest) {
         destination: destValidation.address,
         buyerName: session?.user?.name || undefined,
         buyerEmail: session?.user?.email || undefined,
+        shippingMethodId:
+          typeof shippingMethodId === 'string' ? shippingMethodId : null,
       });
 
       if (!shippingQuote.ok) {
@@ -861,14 +864,20 @@ export async function POST(req: NextRequest) {
         pricingSource: 'ECTAROSHIP',
         carrier: shippingQuote.quote.carrier,
         method: shippingQuote.quote.method,
+        shippingMethodId: shippingQuote.quote.shippingMethodId,
         quotedFeeCents: shippingQuote.priceCents,
+        markupPercent: shippingQuote.quote.markupPercent,
       };
       carrierShippingQuoteMeta = {
         shippingProvider: 'ECTAROSHIP',
         shippingCostCents: String(shippingQuote.priceCents),
+        shippingQuotedCents: String(shippingQuote.priceCents),
+        shippingBuyerChargedCents: String(shippingQuote.priceCents),
         shippingCurrency: shippingQuote.quote.currency,
         shippingCarrier: shippingQuote.quote.carrier,
         shippingMethod: shippingQuote.quote.method,
+        shippingMethodId: shippingQuote.quote.shippingMethodId,
+        shippingProductId: shippingQuote.quote.productId || '',
         shippingQuotedAt: shippingQuote.quote.quotedAt,
         shippingQuoteSnapshot: JSON.stringify(shippingQuote.quote),
         shippingAddressSnapshot: JSON.stringify(shippingQuote.destination),
