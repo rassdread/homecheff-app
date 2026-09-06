@@ -48,6 +48,10 @@ import {
 } from '@/lib/trust/seller-contribution';
 import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-dish';
 import { listingProductCacheTag } from '@/lib/marketplace/detail/get-cached-listing-product-core';
+import { validateParcel } from '@/lib/shipping/parcel';
+import { INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED } from '@/lib/shipping/carrier-flags';
+import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
+import { normalizeDeliveryModeInput } from '@/lib/productDeliveryMode';
 
 export const dynamic = 'force-dynamic';
 
@@ -752,6 +756,60 @@ export async function PATCH(
                 .marketplaceCategory,
             }),
           };
+
+          const deliveryForParcel = normalizeDeliveryModeInput(
+            body.deliveryMode ?? body.delivery ?? (product as { delivery?: string }).delivery,
+          );
+          const foPatch = buildMarketplaceV2PatchFields(body, {
+            priceCents: (product as { priceCents: number }).priceCents,
+            marketplaceCategory: (product as { marketplaceCategory?: MarketplaceCategory | null })
+              .marketplaceCategory,
+          });
+          const mergedFo = parseFulfillmentOptions(
+            foPatch.fulfillmentOptions ??
+              (product as { fulfillmentOptions?: unknown }).fulfillmentOptions,
+          );
+          const shippingSelected =
+            mergedFo.shipping ||
+            String(deliveryForParcel).toUpperCase() === 'SHIPPING' ||
+            String(deliveryForParcel).toUpperCase() === 'BOTH';
+
+          if (shippingSelected) {
+            const parcel = validateParcel({
+              weightKg: body.weightKg ?? (product as { weightKg?: number | null }).weightKg,
+              lengthCm: body.lengthCm ?? (product as { lengthCm?: number | null }).lengthCm,
+              widthCm: body.widthCm ?? (product as { widthCm?: number | null }).widthCm,
+              heightCm: body.heightCm ?? (product as { heightCm?: number | null }).heightCm,
+            });
+            if (!parcel.ok) {
+              return NextResponse.json(
+                { error: parcel.error, code: parcel.code },
+                { status: 400 },
+              );
+            }
+            updateData.weightKg = parcel.parcel.weightKg;
+            updateData.lengthCm = parcel.parcel.lengthCm;
+            updateData.widthCm = parcel.parcel.widthCm;
+            updateData.heightCm = parcel.parcel.heightCm;
+            const baseFo =
+              (foPatch.fulfillmentOptions as Record<string, boolean> | undefined) ??
+              ({ ...mergedFo } as Record<string, boolean>);
+            baseFo.shippingDomestic = body.shippingDomestic !== false;
+            baseFo.shippingInternational =
+              body.shippingInternational === true &&
+              INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED;
+            if (!baseFo.shippingDomestic) {
+              return NextResponse.json(
+                {
+                  error:
+                    'Binnenlandse verzending moet ingeschakeld zijn (internationaal volgt later).',
+                  code: 'DOMESTIC_SHIPPING_REQUIRED',
+                },
+                { status: 400 },
+              );
+            }
+            updateData.fulfillmentOptions = baseFo;
+          }
 
           const allergenPatch = (body as { __allergenPatch?: {
             allergens: string[];

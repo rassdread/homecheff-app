@@ -462,8 +462,8 @@ export default function CheckoutPage() {
       return;
     }
     
-    // For shipping: need address info
-    if (isShipping && (!checkoutDraft.postalCode || !checkoutDraft.country)) {
+    // For shipping: need full destination for quote
+    if (isShipping && (!checkoutDraft.postalCode || !checkoutDraft.country || !checkoutDraft.city || !checkoutDraft.street)) {
       setActualDeliveryFee(null);
       return;
     }
@@ -477,14 +477,19 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: checkoutItems, // API will get seller address from products
+            items: checkoutItems,
+            street: checkoutDraft.street,
+            houseNumber: checkoutDraft.houseNumber,
+            city: checkoutDraft.city,
             destination: {
               postalCode: checkoutDraft.postalCode,
-              country: checkoutDraft.country || 'NL'
-            }
-            // weight and dimensions will be calculated from products
-            // origin will be fetched from seller address
-          })
+              country: checkoutDraft.country || 'NL',
+              city: checkoutDraft.city,
+              address: [checkoutDraft.street, checkoutDraft.houseNumber]
+                .filter(Boolean)
+                .join(' '),
+            },
+          }),
         });
 
         if (response.ok) {
@@ -878,6 +883,12 @@ export default function CheckoutPage() {
                   actualDeliveryFee?.deliveryFeeCents ??
                   selectedDeliverer.quotedFeeCents ??
                   undefined,
+              }
+            : {}),
+          ...(checkoutDraft.selectedDelivery === 'shipping'
+            ? {
+                clientQuotedFeeCents:
+                  actualDeliveryFee?.deliveryFeeCents ?? undefined,
               }
             : {}),
         }),
@@ -1529,8 +1540,12 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>
-                        {t('checkout.deliveryFee')}
-                        {actualDeliveryFee && checkoutDraft.addressValidated && (
+                        {checkoutDraft.selectedDelivery === 'shipping'
+                          ? 'Verzending'
+                          : t('checkout.deliveryFee')}
+                        {actualDeliveryFee &&
+                          checkoutDraft.addressValidated &&
+                          checkoutDraft.selectedDelivery !== 'shipping' && (
                           <span className="text-xs text-gray-500 ml-2">
                             ({actualDeliveryFee.distance.toFixed(1)} km
                             {actualDeliveryFee.isInternational && ` • ${t('checkout.international')}`})

@@ -7,8 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { normalizeSubscriptionName, PLAN_TO_PRICE } from "@/lib/stripe";
 import { NotificationService } from "@/lib/notifications/notification-service";
 import { calculateDistance } from "@/lib/geocoding";
-import { createShippingLabel, EctaroShipLabelRequest } from "@/lib/ectaroship";
 import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
+import { ensurePaidOrderShipment } from "@/lib/shipping/ensure-order-shipment";
 import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
 import { recordMarketplaceBuyerActivation } from "@/lib/acquisition/marketplace-acquisition";
 import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
@@ -990,6 +990,39 @@ export async function POST(req: NextRequest) {
               notes: notes,
               // Shipping fields (if shipping mode)
               shippingCostCents: (deliveryMode === 'SHIPPING' && deliveryFeeCents) ? deliveryFeeCents : null,
+              shippingAddressSnapshot: metadata.shippingAddressSnapshot
+                ? (() => {
+                    try {
+                      return JSON.parse(metadata.shippingAddressSnapshot);
+                    } catch {
+                      return undefined;
+                    }
+                  })()
+                : undefined,
+              shippingOriginSnapshot: metadata.shippingOriginSnapshot
+                ? (() => {
+                    try {
+                      return JSON.parse(metadata.shippingOriginSnapshot);
+                    } catch {
+                      return undefined;
+                    }
+                  })()
+                : undefined,
+              shippingQuoteSnapshot: metadata.shippingQuoteSnapshot
+                ? (() => {
+                    try {
+                      return JSON.parse(metadata.shippingQuoteSnapshot);
+                    } catch {
+                      return undefined;
+                    }
+                  })()
+                : undefined,
+              shippingStatus:
+                deliveryMode === 'SHIPPING' && deliveryFeeCents > 0
+                  ? 'PAYMENT_SUCCEEDED'
+                  : deliveryMode === 'SHIPPING'
+                    ? 'SHIPMENT_BLOCKED_NO_CHARGE'
+                    : null,
               paymentHeld: deliveryMode === 'SHIPPING', // Hold payment for shipping orders
               payoutTrigger: deliveryMode === 'SHIPPING' ? 'DELIVERED' : null, // Wait for delivery
             },
@@ -1801,161 +1834,24 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        // 📦 AUTOMATICALLY CREATE SHIPPING LABEL FOR SHIPPING ORDERS
-        // Check if order is shipping and no label exists yet
+        // 📦 Create shipping label ONLY after payment — idempotent under Stripe retries
         if (deliveryMode === 'SHIPPING' || (mappedDeliveryMode as string) === 'SHIPPING') {
           try {
-            // Check if label already exists
-            const existingLabel = await prisma.shippingLabel.findFirst({
-              where: { orderId: createdOrder.id }
-            });
-
-            if (!existingLabel) {
-              // Fetch order with all necessary data for label creation
-              const orderForLabel = await prisma.order.findUnique({
-                where: { id: createdOrder.id },
-                include: {
-                  items: {
-                    include: {
-                      Product: {
-                        include: {
-                          seller: {
-                            include: {
-                              User: {
-                                select: {
-                                  id: true,
-                                  name: true,
-                                  email: true,
-                                  address: true,
-                                  postalCode: true,
-                                  city: true,
-                                  country: true,
-                                  phoneNumber: true
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  User: {
-                    select: {
-                      id: true,
-                      name: true,
-                      email: true,
-                      address: true,
-                      postalCode: true,
-                      city: true,
-                      country: true,
-                      phoneNumber: true
-                    }
-                  }
-                }
-              });
-
-              if (orderForLabel && orderForLabel.items.length > 0) {
-                const firstProduct = orderForLabel.items[0]?.Product;
-                const sellerUser = firstProduct?.seller?.User;
-                const buyerUser = orderForLabel.User;
-
-                // Only create label if both seller and buyer have complete addresses
-                if (sellerUser && buyerUser && 
-                    sellerUser.postalCode && sellerUser.country &&
-                    buyerUser.postalCode && buyerUser.country) {
-                  
-                  // Calculate weight and dimensions from products
-                  const totalItems = orderForLabel.items.reduce((sum, item) => sum + item.quantity, 0);
-                  const calculatedWeight = totalItems * 1.0; // 1kg per item
-                  const calculatedDimensions = {
-                    length: Math.max(30, Math.ceil(Math.sqrt(totalItems)) * 10),
-                    width: 20,
-                    height: Math.max(10, totalItems * 5),
-                  };
-
-                  // Create label request
-                  const labelRequest: EctaroShipLabelRequest = {
-                    orderId: createdOrder.id,
-                    recipient: {
-                      name: buyerUser.name || 'Buyer',
-                      address: buyerUser.address || orderForLabel.deliveryAddress || '',
-                      postalCode: buyerUser.postalCode,
-                      city: buyerUser.city || '',
-                      country: buyerUser.country,
-                      email: buyerUser.email || undefined,
-                      phone: buyerUser.phoneNumber || undefined,
-                    },
-                    sender: {
-                      name: sellerUser.name || 'Seller',
-                      address: sellerUser.address || '',
-                      postalCode: sellerUser.postalCode,
-                      city: sellerUser.city || '',
-                      country: sellerUser.country,
-                      email: sellerUser.email || undefined,
-                      phone: sellerUser.phoneNumber || undefined,
-                    },
-                    weight: calculatedWeight,
-                    dimensions: calculatedDimensions,
-                    description: `Order ${orderForLabel.orderNumber || createdOrder.id}`,
-                  };
-
-                  // Create label via EctaroShip
-                  const labelResult = await createShippingLabel(labelRequest);
-
-                  if ('error' in labelResult) {
-                    console.warn(`⚠️ Failed to auto-create shipping label for order ${createdOrder.id}: ${labelResult.error}`);
-                  } else {
-                    // Save label to database
-                    await prisma.shippingLabel.create({
-                      data: {
-                        orderId: createdOrder.id,
-                        ectaroShipLabelId: labelResult.labelId,
-                        pdfUrl: labelResult.pdfUrl,
-                        trackingNumber: labelResult.trackingNumber,
-                        carrier: labelResult.carrier,
-                        status: 'generated',
-                        priceCents: Math.round(labelResult.price * 100),
-                      }
-                    });
-
-                    // Update order with shipping info
-                    await prisma.order.update({
-                      where: { id: createdOrder.id },
-                      data: {
-                        shippingLabelId: labelResult.labelId,
-                        shippingTrackingNumber: labelResult.trackingNumber,
-                        shippingCarrier: labelResult.carrier,
-                        shippingStatus: 'label_created',
-                        shippingLabelCostCents: Math.round(labelResult.price * 100),
-                      }
-                    });
-
-                    console.log(`✅ Shipping label automatically created for order ${createdOrder.id}: ${labelResult.labelId}`);
-                    
-                    // Notify seller that shipping label is ready
-                    try {
-                      await NotificationService.sendShippingLabelReadyNotification(
-                        sellerUser.id,
-                        createdOrder.id,
-                        orderForLabel.orderNumber || createdOrder.id,
-                        labelResult.trackingNumber
-                      );
-                      console.log(`📧 Shipping label ready notification sent to seller ${sellerUser.id}`);
-                    } catch (notifError) {
-                      console.error(`❌ Error sending shipping label notification:`, notifError);
-                      // Don't fail the whole process if notification fails
-                    }
-                  }
-                } else {
-                  console.warn(`⚠️ Cannot auto-create shipping label for order ${createdOrder.id}: missing address information (seller: ${!!sellerUser?.postalCode}, buyer: ${!!buyerUser?.postalCode})`);
-                }
-              }
-            } else {
-              console.log(`ℹ️ Shipping label already exists for order ${createdOrder.id}`);
-            }
+            const shipmentResult = await ensurePaidOrderShipment(createdOrder.id);
+            console.log(
+              JSON.stringify({
+                event: 'carrier_shipment_ensure',
+                orderId: createdOrder.id,
+                result: shipmentResult.status,
+              }),
+            );
+            // Provider timeout / pending config → order remains PAID with SHIPMENT_PENDING / FAILED_RETRYABLE
+            // Do NOT fail the Stripe webhook (no auto-refund for transient provider issues).
           } catch (labelError: any) {
-            console.error(`❌ Error auto-creating shipping label for order ${createdOrder.id}:`, labelError.message);
-            // Don't fail the whole process if label creation fails
+            console.error(
+              `❌ Error ensuring shipping label for order ${createdOrder.id}:`,
+              labelError.message,
+            );
           }
         }
 

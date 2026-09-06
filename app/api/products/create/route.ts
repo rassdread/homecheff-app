@@ -28,6 +28,8 @@ import {
 } from '@/lib/marketplace/parse-v2-payload';
 import { MARKETPLACE_ERROR_KEYS } from '@/lib/marketplace/i18n-keys';
 import { fulfillmentIsDigitalOnly } from '@/lib/marketplace/listing-taxonomy';
+import { validateParcel } from '@/lib/shipping/parcel';
+import { INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED } from '@/lib/shipping/carrier-flags';
 import {
   revalidatePublicFeedCache,
   shouldRevalidateAfterProductMutation,
@@ -121,6 +123,12 @@ export async function POST(req: Request) {
       notes,
       materials = [],
       dimensions,
+      weightKg,
+      lengthCm,
+      widthCm,
+      heightCm,
+      shippingDomestic,
+      shippingInternational,
       orderMethod: orderMethodRaw,
       listingIntent: listingIntentRaw,
       marketplaceCategory: marketplaceCategoryRaw,
@@ -418,6 +426,55 @@ export async function POST(req: Request) {
       typeof deliveryMode === 'string' ? deliveryMode : v2Resolved.deliveryMode
     );
 
+    const fulfillmentForStore = {
+      ...v2Resolved.fulfillmentOptions,
+    } as Record<string, boolean>;
+
+    let parcelFields: {
+      weightKg: number | null;
+      lengthCm: number | null;
+      widthCm: number | null;
+      heightCm: number | null;
+    } = {
+      weightKg: null,
+      lengthCm: null,
+      widthCm: null,
+      heightCm: null,
+    };
+
+    const shippingSelected =
+      fulfillmentForStore.shipping === true ||
+      String(delivery).toUpperCase() === 'SHIPPING' ||
+      String(delivery).toUpperCase() === 'BOTH';
+
+    if (shippingSelected) {
+      const parcel = validateParcel({ weightKg, lengthCm, widthCm, heightCm });
+      if (!parcel.ok) {
+        return NextResponse.json(
+          { error: parcel.error, code: parcel.code },
+          { status: 400 },
+        );
+      }
+      parcelFields = {
+        weightKg: parcel.parcel.weightKg,
+        lengthCm: parcel.parcel.lengthCm,
+        widthCm: parcel.parcel.widthCm,
+        heightCm: parcel.parcel.heightCm,
+      };
+      fulfillmentForStore.shippingDomestic = shippingDomestic !== false;
+      fulfillmentForStore.shippingInternational =
+        shippingInternational === true && INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED;
+      if (!fulfillmentForStore.shippingDomestic) {
+        return NextResponse.json(
+          {
+            error: 'Binnenlandse verzending moet ingeschakeld zijn (internationaal volgt later).',
+            code: 'DOMESTIC_SHIPPING_REQUIRED',
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     // Create Product (not Listing)
     const productId = randomUUID();
     console.log('[Products Create API] Creating product with:', {
@@ -463,11 +520,15 @@ export async function POST(req: Request) {
         priceModel: v2Resolved.priceModel,
         acceptHomeCheffPayment: v2Resolved.acceptHomeCheffPayment,
         acceptDirectContact: v2Resolved.acceptDirectContact,
-        fulfillmentOptions: v2Resolved.fulfillmentOptions as object,
+        fulfillmentOptions: fulfillmentForStore as object,
         barterOpenness: v2Resolved.barterOpenness,
         placeName: placeNameStr || null,
         useProfileLocation:
           useProfileLocationRaw !== false && useProfileLocationRaw !== 'false',
+        weightKg: parcelFields.weightKg,
+        lengthCm: parcelFields.lengthCm,
+        widthCm: parcelFields.widthCm,
+        heightCm: parcelFields.heightCm,
         allergens: allergenUpdate?.allergens ?? [],
         allergensConfirmedAt: allergenUpdate?.allergensConfirmedAt ?? null,
         sellerContributionTypes: contribution.sellerContributionTypes,

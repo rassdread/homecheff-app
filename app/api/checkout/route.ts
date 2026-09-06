@@ -46,6 +46,11 @@ import {
 } from '@/lib/marketplace/checkout-floor';
 import { readMarketplaceUtmFromCookies } from '@/lib/acquisition/read-marketplace-utm-cookie';
 import { marketplaceUtmToStripeMetadata } from '@/lib/acquisition/utm-persistence';
+import {
+  assertClientShippingQuoteMatches,
+  getAuthoritativeCarrierShippingQuote,
+} from '@/lib/shipping/quote-service';
+import { validateShippingAddressSnapshot } from '@/lib/shipping/address-snapshot';
 
 const prisma = new PrismaClient();
 
@@ -69,6 +74,10 @@ export async function POST(req: NextRequest) {
       clientQuotedFeeCents,
       quotedFeeCents: clientQuotedFeeCentsAlias,
       bookingRequestId,
+      street,
+      houseNumber,
+      postalCode,
+      city,
     } = body;
 
     const selectedProviderId =
@@ -444,7 +453,12 @@ export async function POST(req: NextRequest) {
     let deliveryFeeBreakdown: any = null;
     let providerQuoteSnapshot: ImmutableProviderQuoteSnapshot | null = null;
     let namedSelectionMeta: Record<string, string> | null = null;
+    let carrierShippingQuoteMeta: Record<string, string> | null = null;
     const fulfillmentNorm = normalizeFulfillmentInput(deliveryMode);
+    const isParcelShippingMode =
+      fulfillmentNorm.canonical === 'PARCEL_SHIPPING' ||
+      deliveryMode === 'SHIPPING' ||
+      deliveryMode === 'PARCEL_SHIPPING';
     const flags = getDeliveryAlignmentFlags();
     const isLocalProviderMode =
       fulfillmentNorm.canonical === 'LOCAL_PROVIDER' ||
@@ -780,6 +794,89 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ── HomeCheff parcel shipping (EctaroShip) — server-authoritative quote ──
+    if (isParcelShippingMode) {
+      const destValidation = validateShippingAddressSnapshot({
+        name: session?.user?.name || 'Ontvanger',
+        addressLine: address || [street, houseNumber].filter(Boolean).join(' '),
+        street: typeof street === 'string' ? street : undefined,
+        houseNumber: typeof houseNumber === 'string' ? houseNumber : undefined,
+        postalCode:
+          typeof postalCode === 'string'
+            ? postalCode
+            : typeof body.postalCode === 'string'
+              ? body.postalCode
+              : '',
+        city: typeof city === 'string' ? city : '',
+        country: typeof country === 'string' ? country : 'NL',
+        email: session?.user?.email || undefined,
+      });
+      if (!destValidation.ok) {
+        return NextResponse.json(
+          { error: destValidation.error, code: destValidation.code },
+          { status: 400 },
+        );
+      }
+
+      const shippingQuote = await getAuthoritativeCarrierShippingQuote({
+        items: items.map((item: { productId: string; quantity?: number }) => ({
+          productId: item.productId,
+          quantity: item.quantity || 1,
+        })),
+        destination: destValidation.address,
+        buyerName: session?.user?.name || undefined,
+        buyerEmail: session?.user?.email || undefined,
+      });
+
+      if (!shippingQuote.ok) {
+        return NextResponse.json(
+          { error: shippingQuote.error, code: shippingQuote.code },
+          { status: shippingQuote.status },
+        );
+      }
+
+      const tamper = assertClientShippingQuoteMatches(
+        clientQuoteCents,
+        shippingQuote.priceCents,
+      );
+      if (!tamper.ok) {
+        return NextResponse.json(
+          {
+            error: tamper.error,
+            code: tamper.code,
+            quotedFeeCents: tamper.quotedFeeCents,
+          },
+          { status: 409 },
+        );
+      }
+
+      deliveryFeeCents = shippingQuote.priceCents;
+      deliveryFeeBreakdown = {
+        baseFee: shippingQuote.priceCents,
+        distanceFee: 0,
+        totalDeliveryFee: shippingQuote.priceCents,
+        deliveryPersonCut: 0,
+        homecheffCut: shippingQuote.priceCents,
+        isInternational: false,
+        pricingSource: 'ECTAROSHIP',
+        carrier: shippingQuote.quote.carrier,
+        method: shippingQuote.quote.method,
+        quotedFeeCents: shippingQuote.priceCents,
+      };
+      carrierShippingQuoteMeta = {
+        shippingProvider: 'ECTAROSHIP',
+        shippingCostCents: String(shippingQuote.priceCents),
+        shippingCurrency: shippingQuote.quote.currency,
+        shippingCarrier: shippingQuote.quote.carrier,
+        shippingMethod: shippingQuote.quote.method,
+        shippingQuotedAt: shippingQuote.quote.quotedAt,
+        shippingQuoteSnapshot: JSON.stringify(shippingQuote.quote),
+        shippingAddressSnapshot: JSON.stringify(shippingQuote.destination),
+        shippingOriginSnapshot: JSON.stringify(shippingQuote.origin),
+        fulfillmentMethod: 'PARCEL_SHIPPING',
+      };
+    }
+
     // Calculate SMS notification cost
     const smsCostPerSellerCents = 6;
     const uniqueSellerIds = new Set(items.map((item: any) => item.sellerId).filter(Boolean));
@@ -832,17 +929,21 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    // Add delivery fee as separate line item
+    // Add delivery / shipping fee as separate line item
     if (deliveryFeeCents > 0) {
       const deliveryLineName = providerQuoteSnapshot
         ? `Bezorgkosten — ${providerQuoteSnapshot.providerDisplayNameSnapshot}`
-        : 'Bezorgkosten';
+        : isParcelShippingMode
+          ? 'Verzendkosten'
+          : 'Bezorgkosten';
       lineItems.push({
         price_data: {
           currency: 'eur',
           product_data: {
             name: deliveryLineName,
-            description: `Bezorging naar ${address || 'jouw adres'}${deliveryFeeBreakdown ? ` (Basis: €${(deliveryFeeBreakdown.baseFee/100).toFixed(2)}, Afstand: €${(deliveryFeeBreakdown.distanceFee/100).toFixed(2)})` : ''}`,
+            description: isParcelShippingMode
+              ? `Verzending naar ${address || 'jouw adres'}`
+              : `Bezorging naar ${address || 'jouw adres'}${deliveryFeeBreakdown ? ` (Basis: €${(deliveryFeeBreakdown.baseFee/100).toFixed(2)}, Afstand: €${(deliveryFeeBreakdown.distanceFee/100).toFixed(2)})` : ''}`,
           },
           unit_amount: deliveryFeeCents,
         },
@@ -983,6 +1084,9 @@ export async function POST(req: NextRequest) {
     }
     if (namedSelectionMeta) {
       Object.assign(metadataBase, namedSelectionMeta);
+    }
+    if (carrierShippingQuoteMeta) {
+      Object.assign(metadataBase, carrierShippingQuoteMeta);
     }
     if (
       flags.namedProviderSelectionEnabled &&

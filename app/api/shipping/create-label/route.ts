@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createShippingLabel, EctaroShipLabelRequest } from '@/lib/ectaroship';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { ensurePaidOrderShipment } from '@/lib/shipping/ensure-order-shipment';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Create shipping label using EctaroShip API
- * Called after order is confirmed
+ * Seller/admin recovery: create label only via post-payment idempotent path.
+ * Uses checkout address/quote snapshots — never live profile or hardcoded dims.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -16,25 +16,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const {
-      orderId,
-      recipient,      // Optional - will get from order if not provided
-      sender,         // Optional - will get from seller if not provided
-      weight,         // Optional - will use default if not provided
-      dimensions,     // Optional - will use default if not provided
-      carrier,
-      description
-    } = await req.json();
-
-    // Validate required fields
-    if (!orderId) {
+    const { orderId } = await req.json();
+    if (!orderId || typeof orderId !== 'string') {
       return NextResponse.json(
         { error: 'Missing required field: orderId' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Get order to verify ownership and get seller/buyer addresses
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -44,206 +33,87 @@ export async function POST(req: NextRequest) {
               include: {
                 seller: {
                   include: {
-                    User: {
-                      select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        address: true,
-                        postalCode: true,
-                        city: true,
-                        country: true,
-                        phoneNumber: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+                    User: { select: { id: true } },
+                  },
+                },
+              },
+            },
+          },
         },
-        User: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            address: true,
-            postalCode: true,
-            city: true,
-            country: true,
-            phoneNumber: true
-          }
-        }
-      }
+      },
     });
 
     if (!order) {
-      return NextResponse.json(
-        { error: 'Order not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Check if user is seller or admin
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true, role: true }
+      select: { id: true, role: true },
     });
-
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const isSeller = order.items.some(item => 
-      item.Product.seller.User.id === user.id
+    const isSeller = order.items.some(
+      (item) => item.Product?.seller?.User?.id === user.id,
     );
     const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
-
     if (!isSeller && !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized - only seller or admin can create labels' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
-    // Get seller info from first product (if sender not provided)
-    const firstProduct = order.items[0]?.Product;
-    const sellerUser = firstProduct?.seller?.User;
-    
-    // Use provided sender or get from seller
-    const senderInfo = sender || (sellerUser ? {
-      name: sellerUser.name || 'Seller',
-      address: sellerUser.address || '',
-      postalCode: sellerUser.postalCode || '1012AB',
-      city: sellerUser.city || '',
-      country: sellerUser.country || 'NL',
-      email: sellerUser.email || '',
-      phone: sellerUser.phoneNumber || undefined,
-    } : null);
-
-    if (!senderInfo || !senderInfo.postalCode || !senderInfo.country) {
+    if (String(order.deliveryMode) !== 'SHIPPING') {
       return NextResponse.json(
-        { error: 'Sender information incomplete. Please provide sender address or ensure seller has complete address in profile.' },
-        { status: 400 }
+        { error: 'Order is not a shipping order', code: 'NOT_SHIPPING' },
+        { status: 422 },
       );
     }
 
-    // Get recipient from order if not provided
-    const buyerUser = order.User;
-    const recipientInfo = recipient || (buyerUser ? {
-      name: buyerUser.name || 'Buyer',
-      address: buyerUser.address || order.deliveryAddress || '',
-      postalCode: buyerUser.postalCode || '',
-      city: buyerUser.city || '',
-      country: buyerUser.country || 'NL',
-      email: buyerUser.email || '',
-      phone: buyerUser.phoneNumber || undefined,
-    } : null);
-
-    if (!recipientInfo || !recipientInfo.postalCode || !recipientInfo.country) {
+    if (!(order.shippingCostCents && order.shippingCostCents > 0)) {
       return NextResponse.json(
-        { error: 'Recipient information incomplete. Please provide recipient address or ensure buyer has complete address in profile.' },
-        { status: 400 }
+        {
+          error: 'Cannot create label: shipping was not collected on this order',
+          code: 'SHIPMENT_BLOCKED_NO_CHARGE',
+        },
+        { status: 422 },
       );
     }
 
-    // Calculate weight and dimensions from products if not provided
-    let calculatedWeight = weight;
-    let calculatedDimensions = dimensions;
+    const result = await ensurePaidOrderShipment(orderId);
 
-    if (!calculatedWeight || !calculatedDimensions) {
-      // Default: 1kg per product, 30x20x10cm per product
-      // TODO: Add weight/dimensions to Product model
-      const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
-      calculatedWeight = totalItems * 1.0; // 1kg per item
-      calculatedDimensions = {
-        length: Math.max(30, Math.ceil(Math.sqrt(totalItems)) * 10), // Scale up for multiple items
-        width: 20,
-        height: Math.max(10, totalItems * 5), // Stack items
-      };
-    }
-
-    // Create label request
-    const labelRequest: EctaroShipLabelRequest = {
-      orderId,
-      recipient: {
-        name: recipientInfo.name,
-        address: recipientInfo.address,
-        postalCode: recipientInfo.postalCode,
-        city: recipientInfo.city,
-        country: recipientInfo.country,
-        email: recipientInfo.email,
-        phone: recipientInfo.phone,
-      },
-      sender: {
-        name: senderInfo.name,
-        address: senderInfo.address,
-        postalCode: senderInfo.postalCode,
-        city: senderInfo.city,
-        country: senderInfo.country,
-        email: senderInfo.email,
-        phone: senderInfo.phone,
-      },
-      weight: calculatedWeight,
-      dimensions: {
-        length: calculatedDimensions.length,
-        width: calculatedDimensions.width,
-        height: calculatedDimensions.height,
-      },
-      carrier: carrier || undefined,
-      description: description || `Order ${order.orderNumber || orderId}`,
-    };
-
-    // Create label via EctaroShip
-    const result = await createShippingLabel(labelRequest);
-
-    if ('error' in result) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      );
-    }
-
-    // Save label to database
-    const shippingLabel = await prisma.shippingLabel.create({
-      data: {
-        orderId: order.id,
+    if (result.status === 'created' || result.status === 'already_created') {
+      const label = await prisma.shippingLabel.findFirst({
+        where: { orderId },
+      });
+      return NextResponse.json({
+        status: result.status,
+        labelId: label?.id,
         ectaroShipLabelId: result.labelId,
-        pdfUrl: result.pdfUrl,
-        trackingNumber: result.trackingNumber,
-        carrier: result.carrier,
-        status: 'generated',
-        priceCents: Math.round(result.price * 100),
-      }
-    });
+        pdfUrl: label?.pdfUrl,
+        trackingNumber: label?.trackingNumber,
+        carrier: label?.carrier,
+        priceCents: label?.priceCents,
+      });
+    }
 
-    // Update order with shipping info
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        shippingLabelId: result.labelId, // EctaroShip label ID (stored in Order.shippingLabelId)
-        shippingTrackingNumber: result.trackingNumber,
-        shippingCarrier: result.carrier,
-        shippingStatus: 'label_created',
-        shippingLabelCostCents: Math.round(result.price * 100),
-      }
-    });
+    const status =
+      result.status === 'pending_provider_config'
+        ? 503
+        : result.status === 'failed_retryable' || result.status === 'address_incomplete'
+          ? 502
+          : 422;
 
-    return NextResponse.json({
-      labelId: shippingLabel.id,
-      ectaroShipLabelId: result.labelId,
-      pdfUrl: result.pdfUrl,
-      trackingNumber: result.trackingNumber,
-      carrier: result.carrier,
-      price: result.price,
-      priceCents: Math.round(result.price * 100),
-    });
-
-  } catch (error: any) {
+    return NextResponse.json({ result }, { status });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'unknown';
     console.error('Error creating shipping label:', error);
     return NextResponse.json(
-      { error: 'Failed to create shipping label', details: error.message },
-      { status: 500 }
+      { error: 'Failed to create shipping label', details: message },
+      { status: 500 },
     );
   }
 }
