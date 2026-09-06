@@ -222,6 +222,7 @@ export default function CheckoutPage() {
     isInternational: boolean;
     breakdown: any;
     shippingMethodId?: string;
+    selectionRequired?: boolean;
     products?: Array<{
       shippingMethodId: string;
       carrier: string;
@@ -505,6 +506,23 @@ export default function CheckoutPage() {
 
         if (response.ok) {
           const data = await response.json();
+          if (data.selectionRequired && Array.isArray(data.products)) {
+            setActualDeliveryFee({
+              deliveryFeeCents: 0,
+              distance: 0,
+              isInternational: false,
+              breakdown: {
+                baseFee: 0,
+                distanceFee: 0,
+                totalDeliveryFee: 0,
+                distance: 0,
+              },
+              shippingMethodId: undefined,
+              products: data.products,
+              selectionRequired: true,
+            });
+            return;
+          }
           setActualDeliveryFee({
             deliveryFeeCents: data.priceCents,
             distance: 0,
@@ -517,13 +535,37 @@ export default function CheckoutPage() {
             },
             shippingMethodId: data.shippingMethodId,
             products: data.products,
+            selectionRequired: false,
           });
-          if (data.shippingMethodId && !selectedShippingMethodId) {
+          // Auto-select only when exactly one live method is returned
+          if (
+            !selectedShippingMethodId &&
+            Array.isArray(data.products) &&
+            data.products.length === 1 &&
+            data.shippingMethodId
+          ) {
             setSelectedShippingMethodId(data.shippingMethodId);
           }
         } else {
-          console.error('Failed to calculate shipping price');
-          setActualDeliveryFee(null);
+          const data = await response.json().catch(() => null);
+          if (data?.code === 'SHIPPING_METHOD_REQUIRED' && Array.isArray(data.products)) {
+            setActualDeliveryFee({
+              deliveryFeeCents: 0,
+              distance: 0,
+              isInternational: false,
+              breakdown: {
+                baseFee: 0,
+                distanceFee: 0,
+                totalDeliveryFee: 0,
+                distance: 0,
+              },
+              products: data.products,
+              selectionRequired: true,
+            });
+          } else {
+            console.error('Failed to calculate shipping price');
+            setActualDeliveryFee(null);
+          }
         }
       } else {
         // Calculate delivery fee (existing logic)
@@ -802,6 +844,29 @@ export default function CheckoutPage() {
       }
     }
 
+    if (checkoutDraft.selectedDelivery === 'shipping') {
+      const productCount = actualDeliveryFee?.products?.length ?? 0;
+      if (productCount > 1 && !selectedShippingMethodId) {
+        setCheckoutError(
+          language === 'en'
+            ? 'Choose a shipping method to continue.'
+            : 'Kies een verzendmethode om door te gaan.',
+        );
+        return;
+      }
+      if (
+        !selectedShippingMethodId &&
+        !actualDeliveryFee?.shippingMethodId
+      ) {
+        setCheckoutError(
+          language === 'en'
+            ? 'Shipping quote is incomplete. Choose a method or refresh the address.'
+            : 'Verzendprijs is onvolledig. Kies een methode of vernieuw het adres.',
+        );
+        return;
+      }
+    }
+
     const primaryItem = checkoutItems[0];
     if (primaryItem?.productId) {
       trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.checkoutStarted, {
@@ -918,7 +983,9 @@ export default function CheckoutPage() {
                   actualDeliveryFee?.deliveryFeeCents ?? undefined,
                 shippingMethodId:
                   selectedShippingMethodId ||
-                  actualDeliveryFee?.shippingMethodId ||
+                  (actualDeliveryFee?.products?.length === 1
+                    ? actualDeliveryFee?.shippingMethodId
+                    : undefined) ||
                   undefined,
               }
             : {}),
@@ -1174,7 +1241,16 @@ export default function CheckoutPage() {
                     
                     // Determine price to display
                     let displayPrice = option.price;
-                    if (showCalculatedFee && actualDeliveryFee) {
+                    if (
+                      showCalculatedFee &&
+                      actualDeliveryFee &&
+                      !(
+                        isShipping &&
+                        (actualDeliveryFee.selectionRequired ||
+                          (!actualDeliveryFee.shippingMethodId &&
+                            (actualDeliveryFee.products?.length ?? 0) > 1))
+                      )
+                    ) {
                       displayPrice = actualDeliveryFee.deliveryFeeCents / 100;
                     }
                     
@@ -1251,16 +1327,25 @@ export default function CheckoutPage() {
                             )}
                             {isShipping &&
                               actualDeliveryFee?.products &&
-                              actualDeliveryFee.products.length > 1 &&
+                              actualDeliveryFee.products.length > 0 &&
                               checkoutDraft.selectedDelivery === 'shipping' && (
                               <div className="mt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
                                 <p className="text-xs font-medium text-gray-700">
-                                  {language === 'en' ? 'Choose a shipping method' : 'Kies een verzendmethode'}
+                                  {actualDeliveryFee.products.length > 1
+                                    ? language === 'en'
+                                      ? 'Choose a shipping method'
+                                      : 'Kies een verzendmethode'
+                                    : language === 'en'
+                                      ? 'Shipping method'
+                                      : 'Verzendmethode'}
                                 </p>
                                 {actualDeliveryFee.products.slice(0, 8).map((p) => {
                                   const selected =
-                                    (selectedShippingMethodId || actualDeliveryFee.shippingMethodId) ===
-                                    p.shippingMethodId;
+                                    selectedShippingMethodId === p.shippingMethodId ||
+                                    (actualDeliveryFee.products!.length === 1 &&
+                                      (selectedShippingMethodId ||
+                                        actualDeliveryFee.shippingMethodId) ===
+                                        p.shippingMethodId);
                                   return (
                                     <button
                                       key={p.shippingMethodId}
@@ -1273,6 +1358,12 @@ export default function CheckoutPage() {
                                                 ...prev,
                                                 deliveryFeeCents: p.priceCents,
                                                 shippingMethodId: p.shippingMethodId,
+                                                selectionRequired: false,
+                                                breakdown: {
+                                                  ...prev.breakdown,
+                                                  distanceFee: p.priceCents,
+                                                  totalDeliveryFee: p.priceCents,
+                                                },
                                               }
                                             : prev,
                                         );

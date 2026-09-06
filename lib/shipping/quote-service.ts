@@ -61,7 +61,7 @@ export type AuthoritativeQuoteResult =
   | {
       ok: true;
       products: ShippingProduct[];
-      /** Selected / default cheapest product */
+      /** Explicitly selected product, or sole available product */
       selected: ShippingProduct;
       priceCents: number;
       quote: ShippingQuoteSnapshot;
@@ -69,7 +69,14 @@ export type AuthoritativeQuoteResult =
       destination: ShippingAddressSnapshot;
       sellerUserId: string;
     }
-  | { ok: false; status: number; code: string; error: string };
+  | {
+      ok: false;
+      status: number;
+      code: string;
+      error: string;
+      /** Present when buyer must pick among multiple live methods */
+      products?: ShippingProduct[];
+    };
 
 function uniqueSellerIds(
   products: Array<{ seller?: { User?: { id?: string } | null } | null }>,
@@ -87,16 +94,29 @@ function applyMarkup(priceCents: number): number {
   return Math.round(priceCents * (1 + HOMECHEFF_SHIPPING_MARKUP_PERCENT / 100));
 }
 
+/**
+ * Buyer method selection rules:
+ * - preferredMethodId present → that exact method (or unavailable)
+ * - exactly one product → auto-select
+ * - multiple products, no preference → no silent cheapest pick
+ */
 function pickProduct(
   products: ShippingProduct[],
   preferredMethodId?: string | null,
-): ShippingProduct | null {
-  if (!products.length) return null;
+):
+  | { kind: 'selected'; product: ShippingProduct }
+  | { kind: 'selection_required' }
+  | { kind: 'unavailable' }
+  | { kind: 'empty' } {
+  if (!products.length) return { kind: 'empty' };
   if (preferredMethodId) {
     const match = products.find((p) => p.shippingMethodId === preferredMethodId);
-    if (match) return match;
+    return match ? { kind: 'selected', product: match } : { kind: 'unavailable' };
   }
-  return [...products].sort((a, b) => a.priceCents - b.priceCents)[0] ?? null;
+  if (products.length === 1) {
+    return { kind: 'selected', product: products[0]! };
+  }
+  return { kind: 'selection_required' };
 }
 
 export async function getAuthoritativeCarrierShippingQuote(input: {
@@ -317,20 +337,29 @@ export async function getAuthoritativeCarrierShippingQuote(input: {
     };
   }
 
-  const selected = pickProduct(providerResult.products, input.shippingMethodId);
-  if (!selected) {
+  const picked = pickProduct(providerResult.products, input.shippingMethodId);
+  if (picked.kind === 'empty') {
     return {
       ok: false,
       status: 422,
-      code: 'SHIPPING_METHOD_UNAVAILABLE',
-      error: 'Gekozen verzendmethode is niet meer beschikbaar. Kies opnieuw.',
+      code: 'SHIPPING_NO_PRODUCTS',
+      error: 'Geen verzendmethoden beschikbaar voor dit adres en pakket.',
     };
   }
-
-  if (
-    input.shippingMethodId &&
-    !providerResult.products.some((p) => p.shippingMethodId === input.shippingMethodId)
-  ) {
+  if (picked.kind === 'selection_required') {
+    logShippingEvent('SHIPPING_QUOTE_SUCCEEDED', {
+      selectionRequired: true,
+      productCount: providerResult.products.length,
+    });
+    return {
+      ok: false,
+      status: 409,
+      code: 'SHIPPING_METHOD_REQUIRED',
+      error: 'Kies een verzendmethode om door te gaan.',
+      products: providerResult.products,
+    };
+  }
+  if (picked.kind === 'unavailable') {
     logShippingEvent('SHIPPING_PRICE_CHANGED', {
       reason: 'method_disappeared',
       methodId: input.shippingMethodId,
@@ -340,9 +369,11 @@ export async function getAuthoritativeCarrierShippingQuote(input: {
       status: 409,
       code: 'SHIPPING_METHOD_UNAVAILABLE',
       error: 'Gekozen verzendmethode is niet meer beschikbaar. Kies opnieuw.',
+      products: providerResult.products,
     };
   }
 
+  const selected = picked.product;
   const priceCents = applyMarkup(selected.priceCents);
   if (!Number.isInteger(priceCents) || priceCents <= 0) {
     return {

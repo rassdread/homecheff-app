@@ -543,7 +543,27 @@ export default function SellerOrdersPageClient() {
                               </Button>
                             </>
                           )}
+                          <Button
+                            onClick={() =>
+                              window.open(
+                                `/api/shipping/packing-slip/${order.id}`,
+                                '_blank',
+                              )
+                            }
+                            variant="outline"
+                            className="px-4 py-2 border-orange-600 text-orange-700 hover:bg-orange-50 flex items-center gap-2"
+                          >
+                            <Printer className="w-4 h-4" />
+                            {language === 'en'
+                              ? 'Print shipping documents'
+                              : 'Verzenddocumenten afdrukken'}
+                          </Button>
                         </div>
+                        <p className="text-xs text-blue-600">
+                          {language === 'en'
+                            ? 'Carrier label stays separate and unmodified. Packing slip is HomeCheff-branded.'
+                            : 'Vervoerderslabel blijft apart en ongewijzigd. Pakbon is HomeCheff-branding.'}
+                        </p>
                       </div>
                     ) : (
                       <div className="text-sm text-blue-700">

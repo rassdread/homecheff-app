@@ -828,12 +828,25 @@ export async function POST(req: NextRequest) {
         buyerName: session?.user?.name || undefined,
         buyerEmail: session?.user?.email || undefined,
         shippingMethodId:
-          typeof shippingMethodId === 'string' ? shippingMethodId : null,
+          typeof shippingMethodId === 'string' && shippingMethodId.trim()
+            ? shippingMethodId.trim()
+            : null,
       });
 
       if (!shippingQuote.ok) {
         return NextResponse.json(
-          { error: shippingQuote.error, code: shippingQuote.code },
+          {
+            error: shippingQuote.error,
+            code: shippingQuote.code,
+            products: shippingQuote.products?.map((p) => ({
+              shippingMethodId: p.shippingMethodId,
+              carrier: p.carrier,
+              name: p.name,
+              priceCents: p.priceCents,
+              currency: p.currency,
+              productId: p.productId,
+            })),
+          },
           { status: shippingQuote.status },
         );
       }

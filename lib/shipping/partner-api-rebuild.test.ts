@@ -139,6 +139,21 @@ function read(rel: string) {
 }
 
 {
+  const quote = read('lib/shipping/quote-service.ts');
+  assert.match(quote, /selection_required|SHIPPING_METHOD_REQUIRED/);
+  assert.match(quote, /products\.length === 1/);
+  assert.doesNotMatch(quote, /sort\(\(a, b\) => a\.priceCents - b\.priceCents\)/);
+  ok('no silent cheapest replacement when multiple methods');
+}
+
+{
+  const checkoutUi = read('app/checkout/page.tsx');
+  assert.match(checkoutUi, /Choose a shipping method|Kies een verzendmethode/);
+  assert.match(checkoutUi, /selectionRequired|SHIPPING_METHOD_REQUIRED|products\.length === 1/);
+  ok('buyer explicit method selection UI guarded');
+}
+
+{
   assert.equal(
     existsSync(resolve(process.cwd(), 'components/shipping/PackageSelector.tsx')),
     true,

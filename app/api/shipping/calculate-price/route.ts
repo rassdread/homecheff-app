@@ -68,8 +68,50 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result.ok) {
+      if (
+        result.code === 'SHIPPING_METHOD_REQUIRED' &&
+        Array.isArray(result.products) &&
+        result.products.length > 0
+      ) {
+        return NextResponse.json({
+          price: null,
+          priceCents: null,
+          shippingMethodId: null,
+          productId: null,
+          selectionRequired: true,
+          currency: result.products[0]?.currency || 'EUR',
+          isInternational: false,
+          products: result.products.map((p) => ({
+            shippingMethodId: p.shippingMethodId,
+            carrier: p.carrier,
+            name: p.name,
+            priceCents: p.priceCents,
+            currency: p.currency,
+            productId: p.productId,
+            hasReturn: p.hasReturn,
+            labelType: p.labelType,
+          })),
+          message: result.error,
+          code: result.code,
+          authoritative: false,
+          displayOnly: true,
+        });
+      }
       return NextResponse.json(
-        { error: result.error, code: result.code },
+        {
+          error: result.error,
+          code: result.code,
+          products: result.products?.map((p) => ({
+            shippingMethodId: p.shippingMethodId,
+            carrier: p.carrier,
+            name: p.name,
+            priceCents: p.priceCents,
+            currency: p.currency,
+            productId: p.productId,
+            hasReturn: p.hasReturn,
+            labelType: p.labelType,
+          })),
+        },
         { status: result.status },
       );
     }
@@ -86,6 +128,7 @@ export async function POST(req: NextRequest) {
       lane: result.quote.lane,
       quotedAt: result.quote.quotedAt,
       markupPercent: result.quote.markupPercent,
+      selectionRequired: false,
       products: result.products.map((p) => ({
         shippingMethodId: p.shippingMethodId,
         carrier: p.carrier,
