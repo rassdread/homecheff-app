@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { PROVIDER_TYPE_DELIVERY_BUSINESS } from '@/lib/delivery/provider-identity';
+import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
+import { trackOpportunityEventServer } from '@/lib/analytics/opportunity-analytics-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +97,24 @@ export async function POST(req: NextRequest) {
     });
 
     return created;
+  });
+
+  // Ensure company owner signup path still binds referral if cookies present and no lock yet.
+  await processAttributionOnSignup(
+    session.user!.id!,
+    req.headers.get('cookie'),
+    true,
+  );
+
+  void trackOpportunityEventServer({
+    eventType: 'DELIVERY_PROVIDER_PROFILE_CREATED',
+    userId: session.user!.id!,
+    entityId: profile.id,
+    metadata: {
+      opportunityId: 'delivery_company',
+      providerType: PROVIDER_TYPE_DELIVERY_BUSINESS,
+      surface: 'delivery_company_create',
+    },
   });
 
   return NextResponse.json({

@@ -30,6 +30,7 @@ import DisputeResolution from './DisputeResolution';
 import PlatformSettings from './PlatformSettings';
 import AuditLog from './AuditLog';
 import AffiliateManagement from './AffiliateManagement';
+import OpportunityFunnelAdmin from './OpportunityFunnelAdmin';
 import AdminPromotionsPanel from './AdminPromotionsPanel';
 import FinancialAlerts from './FinancialAlerts';
 import MigrateOrdersButton from './MigrateOrdersButton';
@@ -244,11 +245,11 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
   
   const allowedTabs = useMemo(() => {
     let tabs = isSuperAdmin
-      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'promotions']
+      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'opportunity-funnel', 'promotions']
       : isAdmin && adminRoles.length > 0
         ? getUserAllowedTabs(adminRoles)
         : isAdmin
-          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates', 'promotions']
+          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates', 'opportunity-funnel', 'promotions']
           : [];
 
     if (permissions && !isSuperAdmin) {
@@ -575,6 +576,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         {activeTab === 'notifications' && <NotificationCenter />}
         {activeTab === 'admin-management' && <AdminManagement />}
         {activeTab === 'affiliates' && <AffiliateManagement />}
+        {activeTab === 'opportunity-funnel' && <OpportunityFunnelAdmin />}
         {activeTab === 'promotions' && <AdminPromotionsPanel />}
     </>
   );

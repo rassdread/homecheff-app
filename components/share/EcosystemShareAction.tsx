@@ -10,6 +10,10 @@ import {
   toAbsolutePublicUrl,
 } from '@/lib/share/listing-share';
 import { absoluteOpportunityUrl } from '@/lib/share/ecosystem-opportunities';
+import {
+  newShareSessionId,
+  trackOpportunityClient,
+} from '@/lib/analytics/opportunity-analytics-client';
 
 type EcosystemShareActionProps = {
   destinationHref: string;
@@ -59,23 +63,12 @@ export default function EcosystemShareAction({
 
   const track = useCallback(
     (event: string, extra?: Record<string, unknown>) => {
-      if (typeof window === 'undefined') return;
-      const w = window as Window & {
-        gtag?: (...args: unknown[]) => void;
-        dataLayer?: Record<string, unknown>[];
-      };
-      const payload = {
+      trackOpportunityClient(event, {
         surface,
         product,
         opportunityId,
         ...extra,
-      };
-      try {
-        if (typeof w.gtag === 'function') w.gtag('event', event, payload);
-        if (Array.isArray(w.dataLayer)) w.dataLayer.push({ event, ...payload });
-      } catch {
-        /* ignore */
-      }
+      });
     },
     [opportunityId, product, surface],
   );
@@ -86,7 +79,21 @@ export default function EcosystemShareAction({
 
   const finishShare = useCallback(
     async (url: string, kind: 'plain' | 'personal' | 'company') => {
-      track('opportunity_share_intent', { shareKind: kind });
+      const shareSessionId = newShareSessionId();
+      track('opportunity_share_intent', { shareKind: kind, shareSessionId });
+      if (kind === 'company') {
+        track('opportunity_share_link_created', {
+          shareKind: kind,
+          shareSessionId,
+          shareUrlHost: (() => {
+            try {
+              return new URL(url).host;
+            } catch {
+              return null;
+            }
+          })(),
+        });
+      }
       const result = await shareListingOrCopy({
         url,
         title,
@@ -98,7 +105,7 @@ export default function EcosystemShareAction({
           : result.ok
             ? 'opportunity_share_native_opened'
             : 'opportunity_share_intent',
-        { shareMethod: result.method, ok: result.ok, shareKind: kind },
+        { shareMethod: result.method, ok: result.ok, shareKind: kind, shareSessionId },
       );
       if (result.ok && result.method === 'clipboard') {
         setCopied(true);

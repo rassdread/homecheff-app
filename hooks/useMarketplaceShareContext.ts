@@ -21,6 +21,28 @@ import {
   type AffiliateShareMode,
 } from '@/lib/share/share-context-preference';
 
+/** Cross-origin Studio/Growth personal shares must use centralUserId (not MP REF codes). */
+function personalRefTokenForUrl(
+  absoluteUrl: string,
+  marketplaceReferralCode: string | null | undefined,
+  centralUserId: string | null | undefined,
+): string | null {
+  try {
+    const host = new URL(absoluteUrl).hostname.toLowerCase();
+    if (
+      host === 'studio.homecheff.eu' ||
+      host.endsWith('.studio.homecheff.eu') ||
+      host === 'growth.homecheff.eu' ||
+      host.endsWith('.growth.homecheff.eu')
+    ) {
+      return (centralUserId || marketplaceReferralCode || '').trim() || null;
+    }
+  } catch {
+    /* relative */
+  }
+  return (marketplaceReferralCode || '').trim() || null;
+}
+
 type MembershipRow = {
   role: string;
   status?: string;
@@ -164,10 +186,13 @@ export function useMarketplaceShareContext() {
       forceOrganizationId?: string;
     }): Promise<{ url: string; kind: 'plain' | 'personal' | 'company'; fromCache: boolean }> => {
       const listing = input.listingAbsoluteUrl;
+      const centralUserId =
+        (session?.user as { id?: string } | undefined)?.id?.trim() || null;
+      const personalToken = personalRefTokenForUrl(listing, referralCode, centralUserId);
       let effective = mode;
 
       if (input.forceMode === 'personal') {
-        effective = referralCode ? { kind: 'personal' } : { kind: 'plain' };
+        effective = personalToken ? { kind: 'personal' } : { kind: 'plain' };
       } else if (input.forceMode === 'company') {
         const orgId =
           input.forceOrganizationId ||
@@ -180,9 +205,9 @@ export function useMarketplaceShareContext() {
           return { url: listing, kind: 'plain', fromCache: true };
         }
         // Ambiguous without force — fall back personal if available else plain
-        if (referralCode) {
+        if (personalToken) {
           return {
-            url: appendPersonalRef(listing, referralCode),
+            url: appendPersonalRef(listing, personalToken),
             kind: 'personal',
             fromCache: true,
           };
@@ -192,8 +217,8 @@ export function useMarketplaceShareContext() {
 
       if (effective.kind === 'personal') {
         return {
-          url: appendPersonalRef(listing, referralCode),
-          kind: 'personal',
+          url: appendPersonalRef(listing, personalToken),
+          kind: personalToken ? 'personal' : 'plain',
           fromCache: true,
         };
       }
@@ -202,8 +227,8 @@ export function useMarketplaceShareContext() {
       if (!path) {
         // Safety: never invent company track for non-listing
         return {
-          url: referralCode ? appendPersonalRef(listing, referralCode) : listing,
-          kind: referralCode ? 'personal' : 'plain',
+          url: personalToken ? appendPersonalRef(listing, personalToken) : listing,
+          kind: personalToken ? 'personal' : 'plain',
           fromCache: true,
         };
       }
@@ -223,15 +248,15 @@ export function useMarketplaceShareContext() {
       if (!trackingUrl) {
         // Fail closed to personal/plain — never dual-attribute
         return {
-          url: referralCode ? appendPersonalRef(listing, referralCode) : listing,
-          kind: referralCode ? 'personal' : 'plain',
+          url: personalToken ? appendPersonalRef(listing, personalToken) : listing,
+          kind: personalToken ? 'personal' : 'plain',
           fromCache: false,
         };
       }
 
       return { url: trackingUrl, kind: 'company', fromCache: false };
     },
-    [memberships, mode, referralCode],
+    [memberships, mode, referralCode, session?.user],
   );
 
   const loading =

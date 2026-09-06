@@ -20,6 +20,7 @@ import {
   OPPORTUNITY_DESTINATIONS,
   type OpportunityId,
 } from '@/lib/share/ecosystem-opportunities';
+import { trackOpportunityClient } from '@/lib/analytics/opportunity-analytics-client';
 
 type CardDef = {
   id: OpportunityId;
@@ -145,17 +146,7 @@ const ORIENT = [
 ];
 
 function trackHub(event: string, extra?: Record<string, unknown>) {
-  if (typeof window === 'undefined') return;
-  const w = window as Window & {
-    gtag?: (...args: unknown[]) => void;
-    dataLayer?: Record<string, unknown>[];
-  };
-  try {
-    if (typeof w.gtag === 'function') w.gtag('event', event, extra || {});
-    if (Array.isArray(w.dataLayer)) w.dataLayer.push({ event, ...(extra || {}) });
-  } catch {
-    /* ignore */
-  }
+  trackOpportunityClient(event, { surface: 'verdien_hub', ...(extra || {}) });
 }
 
 export default function VerdienHubPage() {

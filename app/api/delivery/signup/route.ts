@@ -15,6 +15,8 @@ import {
   delivererAcceptDenialResponse,
 } from '@/lib/delivery/delivery-eligibility';
 import { COMMERCIAL_DELIVERY_MIN_AGE } from '@/lib/delivery/delivery-age';
+import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
+import { trackOpportunityEventServer } from '@/lib/analytics/opportunity-analytics-server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -198,6 +200,30 @@ export async function POST(req: NextRequest) {
         }
       });
       void tryAwardAccountCreated(user.id).catch(() => {});
+      // Lock personal/company referral on Delivery self-service signup (same as register).
+      await processAttributionOnSignup(
+        user.id,
+        req.headers.get('cookie'),
+        false,
+      );
+      void trackOpportunityEventServer({
+        eventType: 'SIGNUP_COMPLETED',
+        userId: user.id,
+        metadata: {
+          opportunityId: 'delivery_individual',
+          surface: 'delivery_signup',
+          product: 'delivery',
+        },
+      });
+      void trackOpportunityEventServer({
+        eventType: 'CANONICAL_ATTRIBUTION_LOCKED',
+        userId: user.id,
+        metadata: {
+          opportunityId: 'delivery_individual',
+          surface: 'delivery_signup',
+          note: 'attempted_via_processAttributionOnSignup',
+        },
+      });
     }
 
     // Validate and convert transportation modes (for both new and existing users)
@@ -242,6 +268,28 @@ export async function POST(req: NextRequest) {
         isActive: true
       }
     });
+
+    void trackOpportunityEventServer({
+      eventType: 'DELIVERY_PROVIDER_PROFILE_CREATED',
+      userId: user.id,
+      entityId: deliveryProfile.id,
+      metadata: {
+        opportunityId: 'delivery_individual',
+        providerType: 'INDEPENDENT',
+        surface: 'delivery_signup',
+      },
+    });
+    if (deliveryProfile.isActive) {
+      void trackOpportunityEventServer({
+        eventType: 'DELIVERY_PROVIDER_ACTIVATED',
+        userId: user.id,
+        entityId: deliveryProfile.id,
+        metadata: {
+          opportunityId: 'delivery_individual',
+          providerType: 'INDEPENDENT',
+        },
+      });
+    }
 
     return NextResponse.json({ 
       success: true, 
