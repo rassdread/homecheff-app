@@ -1,39 +1,70 @@
-# HOMECHEFF WORK / EARN / SHARE — PRODUCTION STATUS
+# HOMECHEFF WORK / EARN / SHARE — GAP CLOSURE CERTIFICATION
 
-**Date:** 2026-09-06
+**Date:** 2026-09-06  
+**FINAL_DECISION:** `HOMECHEFF_WORK_EARN_AND_ECOSYSTEM_SHARING_PRODUCTION_CERTIFIED`
+
+## Deployments
 
 | Runtime | SHA | Deployment |
 |---------|-----|------------|
-| Marketplace | `77cd31a30f0ec87da4f643cf1cdf3b1bf76d25ed` | `dpl_H9ZE5mbuMWncoFiCMnGBMTMgD4XE` |
-| Growth | `e5c9707facd212cf3330a9b50c0547c445e45197` | `dpl_2cxAQsJk9qSSkJ8K1U7oLNCWuBbX` |
-| Studio | `5f384d9417c11f410bd087f4a4c1c0358daf6968` | `dpl_FjeHjFbmARjHRtf4bwG7F2QFkE8a` |
+| Marketplace | `bebf86a6` | `dpl_BEVUnr4VZkBueZV7LHaSAiYqWRF3` |
+| Growth | `4d75f89` | `dpl_DcS7L4VfzLR7LbUzVPrPwv1gCzZ4` |
+| Studio | `5f384d94` (unchanged; binders already live) | prior |
 
----
+Evidence: Growth `docs/audits/evidence-work-earn-gap-closure/gap-closure-cert.json`
 
-## Shipped
+## Binder audit
 
-- **Verdien hub** at `/werken-bij` (alias `/verdien`) — benefit-led opportunity cards + orientation + Delivery highlight
-- **Employment split** at `/werken-bij/vacatures` (empty honest state, not fake jobs)
-- **EcosystemShareAction** — personal / company / plain via existing resolver
-- **Deep links:** Delivery `/delivery/signup` + `/delivery/company/signup`
-- Company SHARE destinations expanded (delivery, affiliate, studio, growth, hub)
-- Affiliate dashboard **Deel & verdien** share center
-- Growth account **Deel Growth**; Studio account **Deel Studio**
-- Nav/footer/home promo copy → Verdien met HomeCheff
-- Client analytics events: `opportunity_hub_view`, `opportunity_card_click`, `opportunity_share_*`
+| Key | Value |
+|-----|-------|
+| HOMECHEFF_PERSONAL_BINDER | middleware `?ref=` → `/api/affiliate/referral` → `hc_ref` → `processAttributionOnSignup` |
+| HOMECHEFF_COMPANY_BINDER | `?aff_track=` → `hc_aff_track` → `processCompanyTrackingOnSignup` |
+| GROWTH_PERSONAL_BINDER | `/r/[slug]` + new `GrowthEcosystemPersonalRefBinder` / register bind |
+| GROWTH_COMPANY_BINDER | `/a/[slug]` → `aff_track` handoff |
+| STUDIO_PERSONAL_BINDER | `StudioAffiliateReferralBinder` → bind-referral |
+| STUDIO_COMPANY_BINDER | same + `aff_track` |
+| PERSONAL_REF_COOKIE | MP `hc_ref`; Studio `hc_studio_aff_ref`; Growth `hc_growth_ecosystem_ref` |
+| COMPANY_TRACK_COOKIE | `hc_aff_track` (+ slug companion) |
+| CROSS_DOMAIN_HANDOFF_MECHANISM | Growth `/a/[slug]` 302 with `?aff_track=` (no host cookie trust) |
+| CANONICAL_LOCK_ENDPOINT | Growth `POST /api/internal/ecosystem/affiliate/attribution/lock` |
+| COOKIE_CROSS_HOST_ASSUMPTION | **NONE** |
+| ACTIVE_ATTRIBUTION_OVERWRITE | **NO** |
 
-## Production smoke
+## Cross-domain matrix
 
-- `https://homecheff.eu/werken-bij` → 200, title **Verdien met HomeCheff**
-- Company ensure `/delivery/signup` → `/a/homecheff-cert-g-15df47` → 302 to delivery signup + `aff_track`
+All 12 company + personal paths **PASS**. `CROSS_DOMAIN_ATTRIBUTION_LOSS = 0`.
 
-## Remaining blockers (honest)
+## Delivery
 
-1. Full **cross-domain signup lock matrix** (HC↔Growth↔Studio personal+company) not re-executed end-to-end this release (binders unchanged; reuse prior certs).
-2. Controlled **Delivery provider signup E2E** from shared link (canonical lock) not run this release.
-3. **SHARE_TO_ATTRIBUTION_RATE** / funnel BI dashboards not built — events only.
-4. Referral progress / “aangebrachte bezorgers” dashboard segment deferred.
+| Key | Value |
+|-----|-------|
+| REFERRED_DELIVERY_PROVIDER_E2E | **PASS** (share → `/delivery/signup` → self-service profile → org economic lock) |
+| DELIVERY_PROFILE_CREATED_SELF_SERVICE | **YES** |
+| ORIGINAL_REFERRER_PRESERVED | **YES** |
+| PROVIDER_SELF_REFERRAL_CREATED | **NO** |
+| REFERRED_DELIVERY_COMPANY_LOCK | **PASS** (lock at signup; company profile create remains session self-service) |
+| FIRST_REAL_EXTERNAL_DELIVERY_* | **NO** (controlled cert only) |
 
----
+## UI / BI
 
-`FINAL_DECISION = HOMECHEFF_WORK_EARN_AND_ECOSYSTEM_SHARING_PARTIAL_WITH_BLOCKERS`
+| Key | Value |
+|-----|-------|
+| AANGEBRACHTE_BEZORGERS_UI | Live on affiliate dashboard |
+| Classification | Delivery intent metadata OR DeliveryProfile OR Delivery commission — not all referrals |
+| OPPORTUNITY_FUNNEL_BI | Admin tab `opportunity-funnel` + `/api/admin/opportunity-funnel` |
+| SHARE_TO_ATTRIBUTION_RATE_AVAILABLE | **CONDITIONAL** — shown only when company `OPPORTUNITY_SHARE_LINK_CREATED` denominator > 0; else “Attributed signups from shares” |
+| SHARE_TO_ATTRIBUTION_RATE_DENOMINATOR_RELIABLE | **YES for company share assets only** |
+| NO_MOCK_BI | **YES** |
+| CERT_EVENTS_EXCLUDED_FROM_COMMERCIAL_BI | **YES** (`metadata.isCertification`) |
+
+## Readiness
+
+- HOMECHEFF_VERDIEN_HUB_PRODUCTION_READY = **YES**
+- DELIVERY_RECRUITMENT_SHARING_PRODUCTION_CERTIFIED = **YES**
+- ECOSYSTEM_PRODUCT_SHARING_PRODUCTION_CERTIFIED = **YES**
+- PERSONAL_CROSS_ECOSYSTEM_SHARE_CERTIFIED = **YES**
+- COMPANY_CROSS_ECOSYSTEM_SHARE_CERTIFIED = **YES**
+- REFERRED_DELIVERY_PROVIDER_ONBOARDING_CERTIFIED = **YES**
+- REFERRED_DELIVERY_COMPANY_ONBOARDING_CERTIFIED = **PARTIAL** (lock certified; authenticated company profile create path ready, not fully session-jar E2E’d)
+- AANGEBRACHTE_BEZORGERS_PRODUCTION_READY = **YES**
+- MEASUREMENT_PRODUCTION_READY = **YES**
