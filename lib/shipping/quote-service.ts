@@ -337,7 +337,18 @@ export async function getAuthoritativeCarrierShippingQuote(input: {
     };
   }
 
-  const picked = pickProduct(providerResult.products, input.shippingMethodId);
+  // Exclude free/zero placeholder products (e.g. Generic "Address Label" at €0)
+  const billableProducts = providerResult.products.filter((p) => p.priceCents > 0);
+  if (billableProducts.length === 0) {
+    return {
+      ok: false,
+      status: 422,
+      code: 'SHIPPING_NO_PRODUCTS',
+      error: 'Geen betaalde verzendmethoden beschikbaar voor dit adres en pakket.',
+    };
+  }
+
+  const picked = pickProduct(billableProducts, input.shippingMethodId);
   if (picked.kind === 'empty') {
     return {
       ok: false,
@@ -349,14 +360,14 @@ export async function getAuthoritativeCarrierShippingQuote(input: {
   if (picked.kind === 'selection_required') {
     logShippingEvent('SHIPPING_QUOTE_SUCCEEDED', {
       selectionRequired: true,
-      productCount: providerResult.products.length,
+      productCount: billableProducts.length,
     });
     return {
       ok: false,
       status: 409,
       code: 'SHIPPING_METHOD_REQUIRED',
       error: 'Kies een verzendmethode om door te gaan.',
-      products: providerResult.products,
+      products: billableProducts,
     };
   }
   if (picked.kind === 'unavailable') {
@@ -369,7 +380,7 @@ export async function getAuthoritativeCarrierShippingQuote(input: {
       status: 409,
       code: 'SHIPPING_METHOD_UNAVAILABLE',
       error: 'Gekozen verzendmethode is niet meer beschikbaar. Kies opnieuw.',
-      products: providerResult.products,
+      products: billableProducts,
     };
   }
 
@@ -411,12 +422,12 @@ export async function getAuthoritativeCarrierShippingQuote(input: {
     priceCents,
     carrier: selected.carrier,
     methodId: selected.shippingMethodId,
-    productCount: providerResult.products.length,
+    productCount: billableProducts.length,
   });
 
   return {
     ok: true,
-    products: providerResult.products,
+    products: billableProducts,
     selected,
     priceCents,
     quote,

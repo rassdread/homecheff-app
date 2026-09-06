@@ -142,8 +142,9 @@ function read(rel: string) {
   const quote = read('lib/shipping/quote-service.ts');
   assert.match(quote, /selection_required|SHIPPING_METHOD_REQUIRED/);
   assert.match(quote, /products\.length === 1/);
+  assert.match(quote, /priceCents > 0/);
   assert.doesNotMatch(quote, /sort\(\(a, b\) => a\.priceCents - b\.priceCents\)/);
-  ok('no silent cheapest replacement when multiple methods');
+  ok('no silent cheapest replacement; zero-price products filtered');
 }
 
 {
