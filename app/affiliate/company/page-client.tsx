@@ -97,6 +97,14 @@ export default function AffiliateCompanyPageClient() {
 
   useEffect(() => {
     if (selectedId) void refreshDetail(selectedId);
+    if (selectedId && typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem('hc_aff_share_mode', 'company');
+        window.localStorage.setItem('hc_aff_share_org_id', selectedId);
+      } catch {
+        /* ignore */
+      }
+    }
   }, [selectedId]);
 
   useEffect(() => {
@@ -334,7 +342,16 @@ export default function AffiliateCompanyPageClient() {
           <select
             className="w-full max-w-md rounded border border-neutral-300 px-3 py-2.5 text-base"
             value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
+            onChange={(e) => {
+              const id = e.target.value;
+              setSelectedId(id);
+              try {
+                window.localStorage.setItem('hc_aff_share_mode', 'company');
+                window.localStorage.setItem('hc_aff_share_org_id', id);
+              } catch {
+                /* ignore */
+              }
+            }}
           >
             {memberships.map((m) => (
               <option key={m.organization.id} value={m.organization.id}>

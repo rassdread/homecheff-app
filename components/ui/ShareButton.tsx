@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Share2, Facebook, Twitter, Instagram, Copy, Check, Mail, MessageCircle, Linkedin, MessageSquare } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useAffiliateLink } from '@/hooks/useAffiliateLink';
+import { useMarketplaceShareContext } from '@/hooks/useMarketplaceShareContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import Spinner from '@/components/ui/Spinner';
 
@@ -36,19 +36,54 @@ interface ShareButtonProps {
   title: string;
   description?: string;
   className?: string;
+  surface?: 'detail' | 'feed' | 'search' | 'profile' | 'category' | 'tile';
 }
 
-export default function ShareButton({ url, title, description, className }: ShareButtonProps) {
+export default function ShareButton({
+  url,
+  title,
+  description,
+  className,
+  surface = 'detail',
+}: ShareButtonProps) {
   const { t } = useTranslation();
   const { data: session } = useSession();
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { addAffiliateToUrl, isAffiliate, loading: referralLoading } = useAffiliateLink();
+  const [shareUrl, setShareUrl] = useState(url);
+  const [shareKind, setShareKind] = useState<'plain' | 'personal' | 'company'>('plain');
+  const [resolving, setResolving] = useState(false);
 
-  // Bij ingelogde gebruiker eerst referral-code ophalen: anders zou een affiliate in de eerste
-  // milliseconden een link zonder ?ref= kunnen kopiëren (item-URL blijft van de maker; ref = deler).
-  const shareReady = !session?.user?.email || !referralLoading;
-  const shareUrl = shareReady ? addAffiliateToUrl(url) : url;
+  const {
+    mode,
+    memberships,
+    loading: contextLoading,
+    needsContextChoice,
+    isAffiliate,
+    setSharePreference,
+    resolveShareUrl,
+  } = useMarketplaceShareContext();
+
+  const shareReady =
+    (!session?.user?.email || !contextLoading) &&
+    !resolving &&
+    !needsContextChoice &&
+    Boolean(shareUrl);
+
+  useEffect(() => {
+    if (!showShareMenu) return;
+    let cancelled = false;
+    setResolving(true);
+    void resolveShareUrl({ listingAbsoluteUrl: url, surface }).then((r) => {
+      if (cancelled) return;
+      setShareUrl(r.url);
+      setShareKind(r.kind);
+      setResolving(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [resolveShareUrl, showShareMenu, surface, url]);
 
   const handleCopyLink = async () => {
     if (!shareReady) return;
@@ -104,13 +139,80 @@ export default function ShareButton({ url, title, description, className }: Shar
         break;
       case 'instagram':
       case 'tiktok':
-        // Geen directe share-URL; link kopiëren zodat gebruiker in de app kan plakken
-        handleCopyLink();
+        void handleCopyLink();
         return;
       default:
         return;
     }
   };
+
+  const companyLabel =
+    memberships.find((m) =>
+      mode.kind === 'company' ? m.organizationId === mode.organizationId : true,
+    )?.displayName ||
+    memberships[0]?.companyName ||
+    '';
+
+  const contextChooser = needsContextChoice ? (
+    <div className="mb-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-medium text-slate-700">{t('share.chooseContext')}</p>
+      <button
+        type="button"
+        className="w-full rounded-lg bg-white px-3 py-2 text-left text-sm font-medium text-emerald-900 ring-1 ring-emerald-200 hover:bg-emerald-50"
+        onClick={() => {
+          setSharePreference('personal');
+          setResolving(true);
+          void resolveShareUrl({
+            listingAbsoluteUrl: url,
+            surface,
+            forceMode: 'personal',
+          }).then((r) => {
+            setShareUrl(r.url);
+            setShareKind(r.kind);
+            setResolving(false);
+          });
+        }}
+      >
+        {t('share.shareAsYourself')}
+      </button>
+      {memberships.map((m) => (
+        <button
+          key={m.organizationId}
+          type="button"
+          className="w-full rounded-lg bg-white px-3 py-2 text-left text-sm font-medium text-slate-900 ring-1 ring-slate-200 hover:bg-slate-100"
+          onClick={() => {
+            setSharePreference('company', m.organizationId);
+            setResolving(true);
+            void resolveShareUrl({
+              listingAbsoluteUrl: url,
+              surface,
+              forceMode: 'company',
+              forceOrganizationId: m.organizationId,
+            }).then((r) => {
+              setShareUrl(r.url);
+              setShareKind(r.kind);
+              setResolving(false);
+            });
+          }}
+        >
+          {t('share.shareOnBehalfOf', { company: m.displayName || m.companyName })}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
+  const hint =
+    shareKind === 'company' ? (
+      <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+        <p className="text-xs text-slate-800 font-medium">
+          {t('share.companyHint', { company: companyLabel })}
+        </p>
+      </div>
+    ) : isAffiliate && shareReady ? (
+      <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+        <p className="text-xs text-emerald-800 font-medium">💡 {t('share.affiliateHint')}</p>
+      </div>
+    ) : null;
 
   return (
     <div className="relative">
@@ -135,7 +237,6 @@ export default function ShareButton({ url, title, description, className }: Shar
 
       {showShareMenu && (
         <>
-          {/* Mobile: Full screen modal */}
           <div className="fixed inset-0 z-50 md:hidden flex items-end justify-center">
             <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowShareMenu(false)} />
             <div className="relative bg-white rounded-t-3xl shadow-2xl w-full max-h-[85vh] overflow-y-auto animate-slide-up">
@@ -151,20 +252,17 @@ export default function ShareButton({ url, title, description, className }: Shar
                 </button>
               </div>
               <div className="p-4 pb-8">
-                {session?.user?.email && !shareReady && (
+                {session?.user?.email && (!shareReady || resolving) && !needsContextChoice && (
                   <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                     <Spinner size="sm" className="shrink-0" />
-                    {t('share.preparingLink')}
+                    {mode.kind === 'company'
+                      ? t('share.preparingCompanyLink')
+                      : t('share.preparingLink')}
                   </div>
                 )}
-                {/* Affiliate hint */}
-                {isAffiliate && shareReady && (
-                  <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                    <p className="text-xs text-emerald-800 font-medium">💡 {t('share.affiliateHint')}</p>
-                  </div>
-                )}
+                {contextChooser}
+                {hint}
 
-                {/* Link kopiëren */}
                 <button
                   onClick={handleCopyLink}
                   type="button"
@@ -185,87 +283,45 @@ export default function ShareButton({ url, title, description, className }: Shar
                 </button>
 
                 <div className="border-t border-gray-100 my-4" />
-
-                {/* Social media opties - Mobile grid */}
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{t('share.socialsHeading')}</p>
                 <div className={`grid grid-cols-3 gap-3 ${!shareReady ? 'pointer-events-none opacity-50' : ''}`}>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('whatsapp'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors border border-transparent hover:border-green-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('whatsapp'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors border border-transparent hover:border-green-200">
                     <MessageCircle className="w-7 h-7 text-green-600" aria-hidden />
                     <span className="text-xs font-medium">{t('share.whatsapp')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('instagram'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 rounded-xl transition-colors border border-transparent hover:border-pink-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('instagram'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 rounded-xl transition-colors border border-transparent hover:border-pink-200">
                     <Instagram className="w-7 h-7 text-pink-600" aria-hidden />
                     <span className="text-xs font-medium">{t('share.instagram')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('tiktok'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-colors border border-transparent hover:border-gray-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('tiktok'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-colors border border-transparent hover:border-gray-200">
                     <TikTokIcon className="w-7 h-7 text-gray-900" />
                     <span className="text-xs font-medium">{t('share.tiktok')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('facebook'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors border border-transparent hover:border-blue-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('facebook'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors border border-transparent hover:border-blue-200">
                     <Facebook className="w-7 h-7 text-[#1877F2]" aria-hidden />
                     <span className="text-xs font-medium">{t('share.facebook')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('linkedin'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-blue-50 hover:text-[#0A66C2] rounded-xl transition-colors border border-transparent hover:border-blue-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('linkedin'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-blue-50 hover:text-[#0A66C2] rounded-xl transition-colors border border-transparent hover:border-blue-200">
                     <Linkedin className="w-7 h-7 text-[#0A66C2]" aria-hidden />
                     <span className="text-xs font-medium">{t('share.linkedin')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('email'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors border border-transparent hover:border-blue-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('email'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors border border-transparent hover:border-blue-200">
                     <Mail className="w-7 h-7 text-blue-600" aria-hidden />
                     <span className="text-xs font-medium">{t('share.email')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('twitter'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-colors border border-transparent hover:border-gray-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('twitter'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-colors border border-transparent hover:border-gray-200">
                     <Twitter className="w-7 h-7 text-gray-800" aria-hidden />
                     <span className="text-xs font-medium">{t('share.twitter')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('telegram'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-sky-50 hover:text-[#0088cc] rounded-xl transition-colors border border-transparent hover:border-sky-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('telegram'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-sky-50 hover:text-[#0088cc] rounded-xl transition-colors border border-transparent hover:border-sky-200">
                     <MessageSquare className="w-7 h-7 text-[#0088cc]" aria-hidden />
                     <span className="text-xs font-medium">{t('share.telegram')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('pinterest'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-red-50 hover:text-[#BD081C] rounded-xl transition-colors border border-transparent hover:border-red-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('pinterest'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-red-50 hover:text-[#BD081C] rounded-xl transition-colors border border-transparent hover:border-red-200">
                     <PinterestIcon className="w-7 h-7" />
                     <span className="text-xs font-medium">{t('share.pinterest')}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSocialShare('reddit'); setShowShareMenu(false); }}
-                    className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-orange-50 hover:text-[#FF4500] rounded-xl transition-colors border border-transparent hover:border-orange-200"
-                  >
+                  <button type="button" onClick={() => { handleSocialShare('reddit'); setShowShareMenu(false); }} className="flex flex-col items-center space-y-2 px-4 py-4 text-sm text-gray-700 hover:bg-orange-50 hover:text-[#FF4500] rounded-xl transition-colors border border-transparent hover:border-orange-200">
                     <RedditIcon className="w-7 h-7" />
                     <span className="text-xs font-medium">{t('share.reddit')}</span>
                   </button>
@@ -274,23 +330,21 @@ export default function ShareButton({ url, title, description, className }: Shar
             </div>
           </div>
 
-          {/* Desktop: Dropdown menu */}
           <div className="hidden md:block absolute right-0 top-full mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
             <div className="p-3">
               <div className="text-sm font-semibold text-gray-800 mb-2 px-2">{t('share.via')}</div>
 
-              {session?.user?.email && !shareReady && (
+              {session?.user?.email && (!shareReady || resolving) && !needsContextChoice && (
                 <div className="mb-2 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs font-medium text-amber-900">
                   <Spinner size="xs" className="shrink-0" />
-                  {t('share.preparingLink')}
+                  {mode.kind === 'company'
+                    ? t('share.preparingCompanyLink')
+                    : t('share.preparingLink')}
                 </div>
               )}
 
-              {isAffiliate && shareReady && (
-                <div className="mb-3 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <p className="text-xs text-emerald-800 font-medium">💡 {t('share.affiliateHint')}</p>
-                </div>
-              )}
+              {contextChooser}
+              {hint}
 
               <button
                 type="button"
@@ -361,7 +415,6 @@ export default function ShareButton({ url, title, description, className }: Shar
         </>
       )}
 
-      {/* Overlay to close menu when clicking outside - Desktop only (mobile has its own overlay) */}
       {showShareMenu && (
         <div
           className="hidden md:block fixed inset-0 z-40"
