@@ -2774,7 +2774,7 @@
     "logout": "Logout",
     "cart": "Shopping Cart",
     "profileImage": "Profile Picture",
-    "werkenBij": "Careers",
+    "werkenBij": "Earn with HomeCheff",
     "secondaryLinksLabel": "More",
     "verdienenGuestTitle": "Log in to post something",
     "verdienenGuestBody": "You can only post something when you are logged in.",
@@ -5329,8 +5329,8 @@
     "privateDraftHint": "This item is private — only you can see it until you publish."
   },
   "werkenBij": {
-    "title": "Work at HomeCheff",
-    "subtitle": "Earn extra money by delivering local products or become an affiliate. Flexible work, good earnings and help the local economy.",
+    "title": "Earn with HomeCheff",
+    "subtitle": "Choose how you want to take part: sell what you make, deliver nearby, promote HomeCheff, or help build the platform.",
     "delivery": "Delivery",
     "deliveryDesc": "Earn extra money by delivering local products in your neighborhood",
     "affiliate": "Affiliate 12-12",
@@ -6243,7 +6243,8 @@
     "contactViaForm": "Contact via contact form",
     "ecosystem": "Ecosystem",
     "studio": "Studio",
-    "growth": "Growth"
+    "growth": "Growth",
+    "earnWithHomecheff": "Earn with HomeCheff"
   },
   "homepageInfo": {
     "navAria": "About HomeCheff",
@@ -8212,10 +8213,10 @@
       "actionLabel": "Learn more"
     },
     "werkenBij": {
-      "title": "Work at HomeCheff",
-      "eyebrow": "Local opportunities",
-      "description": "Help local makers with delivery, promotion and community.",
-      "actionLabel": "More info"
+      "title": "Earn with HomeCheff",
+      "eyebrow": "Participate & earn",
+      "description": "Choose how you want to take part: sell what you make, deliver nearby, promote HomeCheff, or help build the platform.",
+      "actionLabel": "See your options"
     }
   },
   "homeCompactHeader": {
@@ -10454,5 +10455,139 @@
       "settingsLink": "Change later in settings"
     }
   },
-  "taxOurObligationText": "HomeCheff may be legally required to collect and report data when applicable rules (such as DAC7) so require. This does not automatically determine your tax liability."
+  "taxOurObligationText": "HomeCheff may be legally required to collect and report data when applicable rules (such as DAC7) so require. This does not automatically determine your tax liability.",
+  "verdienHub": {
+    "eyebrow": "Participate & earn",
+    "title": "Earn with HomeCheff",
+    "subtitle": "Choose how you want to take part: sell what you make, deliver nearby, promote HomeCheff, or help build the platform.",
+    "ctaPrimary": "See your options",
+    "ctaShareHub": "Share all options",
+    "shareTitle": "Earn with HomeCheff",
+    "shareText": "Discover how to participate and earn in the HomeCheff ecosystem.",
+    "noIncomePromise": "No guaranteed income — earnings depend on activity and eligible platform revenue.",
+    "orientTitle": "I want to…",
+    "cardsHeading": "Opportunities",
+    "orient": {
+      "sell": "sell something",
+      "deliver": "deliver",
+      "deliveryCompany": "register my delivery company",
+      "affiliate": "refer people",
+      "marketing": "do acquisition with my company",
+      "studio": "create content",
+      "growth": "find business leads",
+      "jobs": "work at HomeCheff itself"
+    },
+    "cards": {
+      "seller": {
+        "title": "Sell & offer",
+        "proposition": "Earn with what you make or do.",
+        "forWhom": "For makers, cooks, helpers and providers.",
+        "howStart": "Start with your first Marketplace listing.",
+        "cta": "Start offering",
+        "share": "Share this opportunity"
+      },
+      "delivery": {
+        "title": "Deliver",
+        "proposition": "Deliver flexibly in your area.",
+        "forWhom": "Independent delivery providers aged 18+.",
+        "howStart": "Sign up and set your own availability.",
+        "cta": "Start as a courier",
+        "share": "Invite a courier"
+      },
+      "deliveryCompany": {
+        "title": "Delivery company",
+        "proposition": "Let your delivery company receive jobs via HomeCheff.",
+        "forWhom": "Local delivery companies with their own drivers.",
+        "howStart": "Register your company and manage your team.",
+        "cta": "Register your company",
+        "share": "Share with a delivery company"
+      },
+      "affiliate": {
+        "title": "Affiliate",
+        "proposition": "Bring people to HomeCheff and share in eligible platform revenue.",
+        "forWhom": "Anyone who wants to share HomeCheff in their network.",
+        "howStart": "Become an affiliate and share your link or opportunities.",
+        "cta": "Become an affiliate",
+        "share": "Share HomeCheff"
+      },
+      "affiliateCompany": {
+        "title": "Marketing partner",
+        "proposition": "Use HomeCheff as an acquisition partner for your marketing or sales company.",
+        "forWhom": "Marketing agencies and acquisition teams.",
+        "howStart": "Start an Affiliate Company and invite marketers.",
+        "cta": "Start with your company",
+        "share": "Share with a marketing company"
+      },
+      "studio": {
+        "title": "Studio",
+        "proposition": "Create content with HomeCheff Studio.",
+        "forWhom": "Creators and makers who want to publish media.",
+        "howStart": "Open Studio and create an account.",
+        "cta": "Discover Studio",
+        "share": "Share Studio"
+      },
+      "growth": {
+        "title": "Growth",
+        "proposition": "Find business opportunities with HomeCheff Growth.",
+        "forWhom": "Professionals and companies looking for leads.",
+        "howStart": "Open Growth and see how it works.",
+        "cta": "Discover Growth",
+        "share": "Share Growth"
+      },
+      "jobs": {
+        "title": "Work at HomeCheff",
+        "proposition": "Real roles and internships at HomeCheff itself.",
+        "forWhom": "Applicants for internal HomeCheff roles.",
+        "howStart": "View open vacancies — no fake jobs.",
+        "cta": "View vacancies",
+        "share": "Share vacancies"
+      }
+    },
+    "shareCopy": {
+      "seller": "Want to earn with what you make? See how offering on HomeCheff works.",
+      "delivery_individual": "Want to deliver flexibly nearby? See how delivery via HomeCheff works.",
+      "delivery_company": "Have a delivery company? See how you can receive local jobs via HomeCheff.",
+      "affiliate": "Know HomeCheff already? Discover how to participate and earn in the ecosystem.",
+      "affiliate_company": "Use HomeCheff as an acquisition partner for your marketing or sales company.",
+      "studio": "Check out HomeCheff Studio for creating content.",
+      "growth": "Check out HomeCheff Growth for business lead generation.",
+      "jobs": "See real vacancies at HomeCheff.",
+      "hub": "Discover all ways to participate and earn with HomeCheff."
+    },
+    "deliveryHighlight": {
+      "title": "Deliver with HomeCheff",
+      "body": "As an independent provider or through your delivery company. HomeCheff facilitates matching and settlement; you set availability and (within the rules) your offer.",
+      "point1": "Individual: own signup and availability",
+      "point2": "Company: team, assignment and company payout",
+      "point3": "Invite someone — with affiliate context, attribution travels with the share"
+    },
+    "employment": {
+      "title": "Work at HomeCheff (internal)",
+      "body": "This is only for real HomeCheff employment or internships — not for independent couriers, sellers or affiliates.",
+      "cta": "Go to vacancies",
+      "nav": "Vacancies",
+      "pageTitle": "Work at HomeCheff",
+      "pageIntro": "Only real internal HomeCheff openings appear here.",
+      "emptyTitle": "We currently have no open positions.",
+      "emptyBody": "When there is a real vacancy, it will appear here. Meanwhile you can participate by selling, delivering or affiliating.",
+      "distinction": "Couriers, sellers and affiliates are not HomeCheff employees.",
+      "backToHub": "Back to Earn with HomeCheff"
+    },
+    "shareCenter": {
+      "title": "Share & earn",
+      "body": "Share specific opportunities. Your personal or company affiliate context travels automatically — no guaranteed income."
+    }
+  },
+  "deliveryStart": {
+    "title": "How do you want to deliver?",
+    "subtitle": "Choose what fits. HomeCheff is not an employer — you or your company deliver as an independent partner.",
+    "individualTitle": "I deliver myself",
+    "individualBody": "Personal delivery profile: availability, area, rates and jobs.",
+    "companyTitle": "I have a delivery company",
+    "companyBody": "Company profile with drivers, planning, company rates and earnings.",
+    "driverTitle": "I work for a delivery company",
+    "driverBody": "Received an invite? Accept it to start as a driver.",
+    "alreadyPartner": "Already a delivery partner?",
+    "goDashboard": "Go to your delivery dashboard"
+  }
 }

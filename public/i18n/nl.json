@@ -1607,7 +1607,7 @@
     "logout": "Uitloggen",
     "cart": "Winkelwagen",
     "profileImage": "Profielfoto",
-    "werkenBij": "Werken bij",
+    "werkenBij": "Verdien met HomeCheff",
     "secondaryLinksLabel": "Meer",
     "affiliateDashboard": "Affiliate Dashboard",
     "dashboard": "Dashboard",
@@ -4618,8 +4618,8 @@
     "privateDraftHint": "Dit item is privé — alleen jij ziet het tot je publiceert."
   },
   "werkenBij": {
-    "title": "Werken bij HomeCheff",
-    "subtitle": "Verdien extra geld door lokale producten te bezorgen of word affiliate. Flexibel werken, goede verdiensten en help de lokale economie.",
+    "title": "Verdien met HomeCheff",
+    "subtitle": "Kies hoe jij wilt meedoen: verkoop wat je maakt, bezorg in je buurt, promoot HomeCheff of bouw mee aan het platform.",
     "delivery": "Bezorging",
     "deliveryDesc": "Verdien extra geld door lokale producten te bezorgen in jouw buurt",
     "affiliate": "Affiliate 12-12",
@@ -6777,7 +6777,8 @@
     "contactViaForm": "Contact via contactformulier",
     "ecosystem": "Ecosysteem",
     "studio": "Studio",
-    "growth": "Growth"
+    "growth": "Growth",
+    "earnWithHomecheff": "Verdien met HomeCheff"
   },
   "homepageInfo": {
     "navAria": "Over HomeCheff",
@@ -8212,10 +8213,10 @@
       "actionLabel": "Bekijk"
     },
     "werkenBij": {
-      "title": "Werken bij HomeCheff",
-      "eyebrow": "Lokale kansen",
-      "description": "Help lokale makers met bezorgen, promotie en community.",
-      "actionLabel": "Meer info"
+      "title": "Verdien met HomeCheff",
+      "eyebrow": "Meedoen & verdienen",
+      "description": "Kies hoe jij wilt meedoen: verkoop wat je maakt, bezorg in je buurt, promoot HomeCheff of bouw mee aan het platform.",
+      "actionLabel": "Bekijk je mogelijkheden"
     }
   },
   "homeCompactHeader": {
@@ -10454,5 +10455,139 @@
       "settingsLink": "Later wijzigen in instellingen"
     }
   },
-  "taxOurObligationText": "HomeCheff kan wettelijk verplicht zijn gegevens te verzamelen en te rapporteren wanneer de toepasselijke regels (zoals DAC7) dat vereisen. Dit is geen automatische vaststelling van jouw belastingplicht."
+  "taxOurObligationText": "HomeCheff kan wettelijk verplicht zijn gegevens te verzamelen en te rapporteren wanneer de toepasselijke regels (zoals DAC7) dat vereisen. Dit is geen automatische vaststelling van jouw belastingplicht.",
+  "verdienHub": {
+    "eyebrow": "Meedoen & verdienen",
+    "title": "Verdien met HomeCheff",
+    "subtitle": "Kies hoe jij wilt meedoen: verkoop wat je maakt, bezorg in je buurt, promoot HomeCheff of bouw mee aan het platform.",
+    "ctaPrimary": "Bekijk je mogelijkheden",
+    "ctaShareHub": "Deel alle mogelijkheden",
+    "shareTitle": "Verdien met HomeCheff",
+    "shareText": "Ontdek hoe je kunt meedoen en verdienen binnen het HomeCheff-ecosysteem.",
+    "noIncomePromise": "Geen gegarandeerd inkomen — verdiensten hangen af van activiteit en eligible platformomzet.",
+    "orientTitle": "Ik wil…",
+    "cardsHeading": "Mogelijkheden",
+    "orient": {
+      "sell": "iets verkopen",
+      "deliver": "bezorgen",
+      "deliveryCompany": "mijn bezorgbedrijf aanmelden",
+      "affiliate": "mensen aanbrengen",
+      "marketing": "acquisitie met mijn bedrijf",
+      "studio": "content maken",
+      "growth": "zakelijke leads vinden",
+      "jobs": "bij HomeCheff zelf werken"
+    },
+    "cards": {
+      "seller": {
+        "title": "Verkopen & aanbieden",
+        "proposition": "Verdien met wat jij maakt of doet.",
+        "forWhom": "Voor makers, koks, hulpverleners en aanbieders.",
+        "howStart": "Start met je eerste aanbod op de Marketplace.",
+        "cta": "Start met aanbieden",
+        "share": "Deel deze mogelijkheid"
+      },
+      "delivery": {
+        "title": "Bezorgen",
+        "proposition": "Bezorg flexibel in jouw omgeving.",
+        "forWhom": "Zelfstandige bezorgaanbieders vanaf 18 jaar.",
+        "howStart": "Meld je aan en bepaal zelf je beschikbaarheid.",
+        "cta": "Start als bezorger",
+        "share": "Nodig een bezorger uit"
+      },
+      "deliveryCompany": {
+        "title": "Bezorgbedrijf",
+        "proposition": "Laat je bezorgbedrijf opdrachten ontvangen via HomeCheff.",
+        "forWhom": "Lokale bezorgbedrijven met eigen chauffeurs.",
+        "howStart": "Meld je bedrijf aan en beheer je team.",
+        "cta": "Meld je bedrijf aan",
+        "share": "Deel met een bezorgbedrijf"
+      },
+      "affiliate": {
+        "title": "Affiliate",
+        "proposition": "Breng mensen naar HomeCheff en verdien mee aan eligible platformomzet.",
+        "forWhom": "Voor wie HomeCheff wil delen in hun netwerk.",
+        "howStart": "Word affiliate en deel je link of kansen.",
+        "cta": "Word affiliate",
+        "share": "Deel HomeCheff"
+      },
+      "affiliateCompany": {
+        "title": "Marketingpartner",
+        "proposition": "Gebruik HomeCheff als acquisitiepartner voor jouw marketing- of salesbedrijf.",
+        "forWhom": "Marketingbureaus en acquisitieteams.",
+        "howStart": "Start een Affiliate Company en nodig marketeers uit.",
+        "cta": "Start met je bedrijf",
+        "share": "Deel met een marketingbedrijf"
+      },
+      "studio": {
+        "title": "Studio",
+        "proposition": "Maak content met HomeCheff Studio.",
+        "forWhom": "Creators en makers die media willen publiceren.",
+        "howStart": "Open Studio en maak een account.",
+        "cta": "Ontdek Studio",
+        "share": "Deel Studio"
+      },
+      "growth": {
+        "title": "Growth",
+        "proposition": "Vind zakelijke kansen met HomeCheff Growth.",
+        "forWhom": "Professionals en bedrijven die leads zoeken.",
+        "howStart": "Open Growth en bekijk hoe het werkt.",
+        "cta": "Ontdek Growth",
+        "share": "Deel Growth"
+      },
+      "jobs": {
+        "title": "Werken bij HomeCheff",
+        "proposition": "Echte functies en stages bij HomeCheff zelf.",
+        "forWhom": "Sollicitanten voor interne HomeCheff-rollen.",
+        "howStart": "Bekijk openstaande vacatures — geen nepvacatures.",
+        "cta": "Bekijk vacatures",
+        "share": "Deel vacatures"
+      }
+    },
+    "shareCopy": {
+      "seller": "Wil je verdienen met wat je maakt? Bekijk hoe aanbieden op HomeCheff werkt.",
+      "delivery_individual": "Wil je flexibel bezorgen in je buurt? Bekijk hoe bezorgen via HomeCheff werkt.",
+      "delivery_company": "Heb je een bezorgbedrijf? Bekijk hoe je via HomeCheff lokale opdrachten kunt ontvangen.",
+      "affiliate": "Ken je HomeCheff al? Ontdek hoe je kunt meedoen en verdienen binnen het ecosysteem.",
+      "affiliate_company": "Gebruik HomeCheff als acquisitiepartner voor jouw marketing- of salesbedrijf.",
+      "studio": "Bekijk HomeCheff Studio voor het maken van content.",
+      "growth": "Bekijk HomeCheff Growth voor zakelijke leadgeneratie.",
+      "jobs": "Bekijk echte vacatures bij HomeCheff.",
+      "hub": "Ontdek alle manieren om mee te doen en te verdienen met HomeCheff."
+    },
+    "deliveryHighlight": {
+      "title": "Bezorgen via HomeCheff",
+      "body": "Als zelfstandige of via je bezorgbedrijf. HomeCheff faciliteert matching en settlement; jij bepaalt beschikbaarheid en (binnen de regels) je aanbod.",
+      "point1": "Individueel: eigen aanmelding en beschikbaarheid",
+      "point2": "Bedrijf: team, toewijzing en bedrijfsuitbetaling",
+      "point3": "Nodig iemand uit — bij affiliate-context reist attributie mee"
+    },
+    "employment": {
+      "title": "Werken bij HomeCheff (intern)",
+      "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages — niet voor zelfstandige bezorgers, verkopers of affiliates.",
+      "cta": "Naar vacatures",
+      "nav": "Vacatures",
+      "pageTitle": "Werken bij HomeCheff",
+      "pageIntro": "Hier staan alleen echte interne openingen bij HomeCheff.",
+      "emptyTitle": "Op dit moment hebben we geen openstaande functies.",
+      "emptyBody": "Zodra er een echte vacature is, verschijnt die hier. Ondertussen kun je meedoen via verkopen, bezorgen of affiliate.",
+      "distinction": "Bezorger, verkoper of affiliate zijn geen HomeCheff-werknemers.",
+      "backToHub": "Terug naar Verdien met HomeCheff"
+    },
+    "shareCenter": {
+      "title": "Deel & verdien",
+      "body": "Deel specifieke kansen. Jouw affiliate- of bedrijfscontext reist automatisch mee — geen gegarandeerd inkomen."
+    }
+  },
+  "deliveryStart": {
+    "title": "Hoe wil je bezorgen?",
+    "subtitle": "Kies wat bij jou past. HomeCheff is geen werkgever — jij of jouw bedrijf levert als zelfstandige bezorgpartner.",
+    "individualTitle": "Ik bezorg zelf",
+    "individualBody": "Persoonlijk bezorgprofiel: beschikbaarheid, werkgebied, tarieven en opdrachten.",
+    "companyTitle": "Ik heb een bezorgbedrijf",
+    "companyBody": "Bedrijfsprofiel met chauffeurs, planning, bedrijfstarief en verdiensten.",
+    "driverTitle": "Ik werk voor een bezorgbedrijf",
+    "driverBody": "Heb je een uitnodiging ontvangen? Accepteer die om als chauffeur te starten.",
+    "alreadyPartner": "Al bezorgpartner?",
+    "goDashboard": "Ga naar je bezorgdashboard"
+  }
 }

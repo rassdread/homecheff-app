@@ -108,9 +108,32 @@ export function shareUrlIsCompanyTracking(url: string): boolean {
 export function listingPathFromAbsolute(url: string): string | null {
   try {
     const u = new URL(url, "https://homecheff.eu");
+    const host = u.hostname.toLowerCase();
+    if (host === "studio.homecheff.eu" || host === "growth.homecheff.eu") {
+      u.search = "";
+      u.hash = "";
+      return u.toString().replace(/\/$/, "") || u.origin;
+    }
     const path = u.pathname.replace(/\/+$/, "") || "/";
-    if (!/^\/(product|request)\//i.test(path)) return null;
-    return path;
+    if (/^\/(product|request)\//i.test(path)) return path;
+    const exact = new Set([
+      "/werken-bij",
+      "/verdien",
+      "/delivery",
+      "/delivery/start",
+      "/delivery/signup",
+      "/delivery/company/signup",
+      "/affiliate",
+      "/affiliate/company",
+      "/onboarding/seller",
+      "/sell",
+      "/sell/new",
+      "/growth",
+      "/studio",
+      "/werken-bij/vacatures",
+    ]);
+    if (exact.has(path)) return path;
+    return null;
   } catch {
     return null;
   }

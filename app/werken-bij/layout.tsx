@@ -7,23 +7,25 @@ export async function generateMetadata(): Promise<Metadata> {
   const languageHeader = headersList.get('X-HomeCheff-Language');
   const cookieStore = await cookies();
   const languageCookie = cookieStore.get('homecheff-language');
-  
+
   let lang: 'nl' | 'en' = 'nl';
   if (languageHeader === 'nl' || languageHeader === 'en') {
     lang = languageHeader;
   } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
     lang = languageCookie.value as 'nl' | 'en';
   }
-  
+
   const currentDomain = MAIN_DOMAIN;
-  
+
   if (lang === 'en') {
     return {
-      title: 'Work at HomeCheff - Become a Delivery Driver',
-      description: 'Become a delivery driver at HomeCheff and earn flexibly. Deliver homemade products in your neighborhood and set your own working hours.',
+      title: 'Earn with HomeCheff — Sell, deliver, promote or join',
+      description:
+        'See how you can participate in HomeCheff: sell what you make, deliver locally, become an affiliate or Affiliate Company, discover Studio and Growth, or view real HomeCheff jobs.',
       openGraph: {
-        title: 'Work at HomeCheff - Become a Delivery Driver',
-        description: 'Become a delivery driver at HomeCheff and earn flexibly. Deliver homemade products in your neighborhood.',
+        title: 'Earn with HomeCheff',
+        description:
+          'Sell, deliver, promote HomeCheff, or explore Studio and Growth. Share opportunities with attribution when you are an affiliate.',
         type: 'website',
         url: `${currentDomain}/werken-bij`,
       },
@@ -31,19 +33,18 @@ export async function generateMetadata(): Promise<Metadata> {
         canonical: `${currentDomain}/werken-bij`,
         languages: seoHreflangLanguagesOnEu('/werken-bij'),
       },
-      robots: {
-        index: true,
-        follow: true,
-      },
+      robots: { index: true, follow: true },
     };
   }
-  
+
   return {
-    title: 'Werken bij HomeCheff - Word Bezorger',
-    description: 'Word bezorger bij HomeCheff en verdien flexibel bij. Bezorg thuisgemaakte producten in jouw buurt en bepaal zelf je werktijden.',
+    title: 'Verdien met HomeCheff — Verkoop, bezorg, promoot of werk mee',
+    description:
+      'Ontdek hoe je meedoet met HomeCheff: verkoop wat je maakt, bezorg lokaal, word affiliate of Affiliate Company, ontdek Studio en Growth, of bekijk echte vacatures bij HomeCheff.',
     openGraph: {
-      title: 'Werken bij HomeCheff - Word Bezorger',
-      description: 'Word bezorger bij HomeCheff en verdien flexibel bij. Bezorg thuisgemaakte producten in jouw buurt.',
+      title: 'Verdien met HomeCheff',
+      description:
+        'Verkoop, bezorg, promoot HomeCheff of ontdek Studio en Growth. Deel kansen met affiliate-attributie wanneer je affiliate bent.',
       type: 'website',
       url: `${currentDomain}/werken-bij`,
     },
@@ -51,10 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: `${currentDomain}/werken-bij`,
       languages: seoHreflangLanguagesOnEu('/werken-bij'),
     },
-    robots: {
-      index: true,
-      follow: true,
-    },
+    robots: { index: true, follow: true },
   };
 }
 
@@ -65,4 +63,3 @@ export default function WerkenBijLayout({
 }) {
   return children;
 }
-

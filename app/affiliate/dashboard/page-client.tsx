@@ -26,6 +26,7 @@ import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
 import { AFFILIATE_ATTRIBUTION_CONTRACT } from '@/lib/affiliate-attribution-contract';
 import { HomecheffEcosystemAffiliatePanel } from '@/components/affiliate/HomecheffEcosystemAffiliatePanel';
+import AffiliateShareCenter from '@/components/affiliate/AffiliateShareCenter';
 import { 
   SUB_AFFILIATE_USER_COMMISSION_PCT, 
   SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
@@ -523,6 +524,9 @@ export default function AffiliateDashboardClient() {
         </section>
 
         <HomecheffEcosystemAffiliatePanel />
+        <div className="mt-6">
+          <AffiliateShareCenter />
+        </div>
 
         {/* Tabs */}
         <div className="mb-6">

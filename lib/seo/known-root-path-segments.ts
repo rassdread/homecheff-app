@@ -141,6 +141,7 @@ export const APP_FIRST_SEGMENTS = [
   'wat-we-niet-zijn',
   'welkom',
   'werken-bij',
+  'verdien',
   'zelfgemaakt-eten-verkopen',
 ] as const;
 
