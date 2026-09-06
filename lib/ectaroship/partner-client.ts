@@ -76,12 +76,17 @@ function asError(
     code:
       status === 401
         ? 'ECTAROSHIP_UNAUTHORIZED'
-        : status === 400
-          ? 'ECTAROSHIP_BAD_REQUEST'
-          : status === 429
-            ? 'ECTAROSHIP_RATE_LIMITED'
-            : 'ECTAROSHIP_HTTP_ERROR',
-    error: msg,
+        : status === 402
+          ? 'ECTAROSHIP_ACCOUNT_PAYMENT_REQUIRED'
+          : status === 400
+            ? 'ECTAROSHIP_BAD_REQUEST'
+            : status === 429
+              ? 'ECTAROSHIP_RATE_LIMITED'
+              : 'ECTAROSHIP_HTTP_ERROR',
+    error:
+      status === 402
+        ? 'EctaroShip account requires payment/balance before labels can be created.'
+        : msg,
     retryAfterMs,
   };
 }
