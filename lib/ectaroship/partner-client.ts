@@ -64,12 +64,39 @@ function asError(
   fallback: string,
 ): PartnerApiError {
   const obj = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
+  const result =
+    obj.result && typeof obj.result === 'object'
+      ? (obj.result as Record<string, unknown>)
+      : null;
+  const detailBits: string[] = [];
+  for (const src of [obj, result]) {
+    if (!src) continue;
+    for (const key of ['message', 'error', 'code', 'errorCode', 'error_code']) {
+      const v = src[key];
+      if (typeof v === 'string' && v.trim() && !detailBits.includes(v.trim())) {
+        detailBits.push(v.trim().slice(0, 200));
+      }
+    }
+    const errs = src.errors ?? src.validationErrors ?? src.details;
+    if (Array.isArray(errs)) {
+      for (const e of errs.slice(0, 5)) {
+        if (typeof e === 'string') detailBits.push(e.slice(0, 120));
+        else if (e && typeof e === 'object') {
+          const eo = e as Record<string, unknown>;
+          const part = [eo.field, eo.path, eo.message, eo.error]
+            .filter((x) => typeof x === 'string')
+            .join(': ');
+          if (part) detailBits.push(part.slice(0, 160));
+        }
+      }
+    }
+  }
   const msg =
+    detailBits.join(' | ') ||
     (typeof obj.message === 'string' && obj.message) ||
     (typeof obj.error === 'string' && obj.error) ||
     fallback;
-  const retryAfterMs =
-    status === 429 ? 6_000 : undefined;
+  const retryAfterMs = status === 429 ? 6_000 : undefined;
   return {
     ok: false,
     status,
@@ -86,7 +113,7 @@ function asError(
     error:
       status === 402
         ? 'EctaroShip account requires payment/balance before labels can be created.'
-        : msg,
+        : msg.slice(0, 500),
     retryAfterMs,
   };
 }
