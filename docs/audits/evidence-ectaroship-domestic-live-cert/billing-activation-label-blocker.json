@@ -1,0 +1,23 @@
+{
+  "ts": "2026-09-07T11:43:32.623994Z",
+  "order": "HC-2026-0029",
+  "previous_402_resolved": true,
+  "label_create_http": 400,
+  "label_error": "Invalid address!!!",
+  "errorCode": "address",
+  "fromAddressId": null,
+  "provider_label_count": 0,
+  "historical_labels_since_2020": 0,
+  "real_provider_label": false,
+  "stripe_payment": "succeeded_not_refunded",
+  "deployment": "dpl_8NU4FkjVMgEN4pKNHE2RqAD2M4Up",
+  "blocker": "ECTAROSHIP_LABEL_ADDRESS_REJECTED_AFTER_BILLING_ACTIVATION",
+  "notes": [
+    "Quotes still PASS",
+    "402 Payment Required no longer occurs",
+    "STRICT and non-STRICT both return Invalid address for BAG-valid NL destinations",
+    "Partner list labels returns 0 rows",
+    "Response fromAddressId is always null",
+    "Canonical address fields confirmed: fullname+countryCode required (tested)"
+  ]
+}

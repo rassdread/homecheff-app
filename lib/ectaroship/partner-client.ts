@@ -264,31 +264,29 @@ export type PartnerAddress = {
   phone?: string;
 };
 
+/**
+ * Partner STRICT address payload — only documented fields.
+ * Extra aliases (country/zipCode/straat/…) have caused opaque
+ * "Invalid address!!! | address" rejections under X-Api-Behavior: STRICT.
+ */
 function serializePartnerAddress(addr: PartnerAddress): Record<string, unknown> {
   const countryCode = addr.countryCode.toUpperCase();
-  let postalCode = addr.postalCode.replace(/\s+/g, '').toUpperCase();
-  if (countryCode === 'NL' && /^\d{4}[A-Z]{2}$/.test(postalCode)) {
-    postalCode = `${postalCode.slice(0, 4)} ${postalCode.slice(4)}`;
-  }
-  const hnRaw = String(addr.houseNumber).trim();
-  const hnNum = Number(hnRaw.replace(/[^\d].*$/, ''));
+  // Partner/PostNL examples use compact NL postcodes (1234AB), not spaced.
+  const postalCode = addr.postalCode.replace(/\s+/g, '').toUpperCase();
+  const houseNumber = String(addr.houseNumber).trim();
   const out: Record<string, unknown> = {
     countryCode,
-    country: countryCode,
-    city: addr.city,
+    city: addr.city.trim(),
     postalCode,
-    zipCode: postalCode,
-    street: addr.street,
-    houseNumber: Number.isFinite(hnNum) && hnNum > 0 ? hnNum : hnRaw,
+    street: addr.street.trim(),
+    houseNumber,
   };
-  if (addr.fullname) {
-    out.fullname = addr.fullname;
-    out.name = addr.fullname;
-  }
-  if (addr.companyName) out.companyName = addr.companyName;
-  if (addr.address2) out.address2 = addr.address2;
-  if (addr.email) out.email = addr.email;
-  if (addr.phone) out.phone = addr.phone;
+  const fullname = addr.fullname?.trim();
+  if (fullname) out.fullname = fullname;
+  if (addr.companyName?.trim()) out.companyName = addr.companyName.trim();
+  if (addr.address2?.trim()) out.address2 = addr.address2.trim();
+  if (addr.email?.trim()) out.email = addr.email.trim();
+  if (addr.phone?.trim()) out.phone = addr.phone.trim();
   return out;
 }
 

@@ -61,6 +61,21 @@ export async function POST(req: NextRequest) {
     heightCm,
   });
 
+  const postnl = products.ok
+    ? products.products
+        .filter((p) => /postnl/i.test(p.carrier) || /postnl/i.test(p.name))
+        .slice(0, 12)
+        .map((p) => ({
+          carrier: p.carrier,
+          name: p.name,
+          shippingMethodId: p.shippingMethodId,
+          productId: p.productId,
+          priceCents: p.priceCents,
+          currency: p.currency,
+          rawKeys: Object.keys(p.raw).slice(0, 30),
+        }))
+    : [];
+
   return NextResponse.json({
     baseUrl: ECTAROSHIP_PARTNER_BASE_URL,
     keyPresent: true,
@@ -71,6 +86,7 @@ export async function POST(req: NextRequest) {
     pingStatus: ping.ok ? ping.status : ping.status,
     productsOk: products.ok,
     productsCount: products.ok ? products.products.length : 0,
+    postnl,
     sample: products.ok
       ? products.products.slice(0, 5).map((p) => ({
           carrier: p.carrier,

@@ -1,0 +1,50 @@
+{
+  "startedAt": "2026-09-06T22:48:12.638Z",
+  "HOMECHEFF": "https://homecheff.eu",
+  "STRIPE_MODE": "LIVE",
+  "sellerOriginMasked": {
+    "postalCode": "31***",
+    "city": "Vlaardingen",
+    "country": "NL",
+    "streetPresent": true
+  },
+  "destinationMasked": {
+    "postalCode": "31***",
+    "city": "Vlaardingen",
+    "country": "NL",
+    "streetPresent": true
+  },
+  "TEST_LISTING_ID": "440d2228-eefe-4a55-9fed-117e81830514",
+  "PRODUCT_AMOUNT_CENTS": 250,
+  "quoteWithoutMethod": {
+    "status": 200,
+    "selectionRequired": true,
+    "productCount": 21,
+    "shippingMethodId": null
+  },
+  "SELECTED_METHOD": {
+    "shippingMethodId": "15367",
+    "productId": "1-48H",
+    "carrier": "PostNL",
+    "name": "Brievenbus 48h",
+    "priceCents": 339
+  },
+  "BUYER_EXPLICIT_METHOD_SELECTION": "YES",
+  "SILENT_CHEAPEST_REPLACEMENT": "NO",
+  "DISPLAYED_QUOTE_CENTS": 339,
+  "quoteSelected": {
+    "status": 200,
+    "shippingMethodId": "15367",
+    "productId": "1-48H",
+    "priceCents": 339
+  },
+  "checkout": {
+    "status": 400,
+    "code": "CHECKOUT_MINIMUM_NOT_MET",
+    "hasSession": false
+  },
+  "OPEN_BLOCKERS": [
+    "CHECKOUT_FAILED",
+    "CHECKOUT_MINIMUM_NOT_MET"
+  ]
+}

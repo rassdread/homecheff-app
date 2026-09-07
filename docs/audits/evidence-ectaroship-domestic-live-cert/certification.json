@@ -1,0 +1,166 @@
+{
+  "startedAt": "2026-09-06T22:55:19.866Z",
+  "HOMECHEFF": "https://homecheff.eu",
+  "STRIPE_MODE": "LIVE",
+  "sellerOriginMasked": {
+    "postalCode": "31***",
+    "city": "Vlaardingen",
+    "country": "NL",
+    "streetPresent": true
+  },
+  "destinationMasked": {
+    "postalCode": "31***",
+    "city": "Vlaardingen",
+    "country": "NL",
+    "streetPresent": true
+  },
+  "TEST_LISTING_ID": "440d2228-eefe-4a55-9fed-117e81830514",
+  "PRODUCT_AMOUNT_CENTS": 750,
+  "quoteWithoutMethod": {
+    "status": 200,
+    "selectionRequired": true,
+    "productCount": 19,
+    "shippingMethodId": null
+  },
+  "parcelCompatibilityNote": "Excluded Brievenbus/mailbox methods for 30×20×10 cm / 850 g parcel",
+  "SELECTED_METHOD": {
+    "shippingMethodId": "15366",
+    "productId": "1",
+    "carrier": "PostNL",
+    "name": "Standard",
+    "priceCents": 620
+  },
+  "BUYER_EXPLICIT_METHOD_SELECTION": "YES",
+  "SILENT_CHEAPEST_REPLACEMENT": "NO",
+  "DISPLAYED_QUOTE_CENTS": 620,
+  "quoteSelected": {
+    "status": 200,
+    "shippingMethodId": "15366",
+    "productId": "1",
+    "priceCents": 620
+  },
+  "checkout": {
+    "status": 200,
+    "code": null,
+    "hasSession": true
+  },
+  "stripeSession": {
+    "id": "cs_live_b1wiLlpj0L2znAMny5ME06vIbARl9nVMGih1lP6y66Bu7n9gtYEvUdwWqc",
+    "amount_total": 1415,
+    "currency": "eur",
+    "payment_status": "unpaid",
+    "lineItems": [
+      {
+        "desc": "CERT EctaroShip Domestic NL — €7.50 (private)",
+        "amount": 750,
+        "qty": 1
+      },
+      {
+        "desc": "Verzendkosten",
+        "amount": 620,
+        "qty": 1
+      },
+      {
+        "desc": "Transactiekosten",
+        "amount": 45,
+        "qty": 1
+      }
+    ],
+    "shippingMethodId": "15366",
+    "shippingBuyerChargedCents": "620",
+    "shippingQuotedCents": "620"
+  },
+  "FINAL_REQUOTE_CENTS": 620,
+  "SELECTED_METHOD_REQUOTED": "YES",
+  "SHIPPING_QUOTED_CENTS": 620,
+  "SHIPPING_CHARGED_CENTS": 620,
+  "HOMECHEFF_SHIPPING_MARKUP_PERCENT": 0,
+  "STRIPE_AMOUNT_TOTAL": 1415,
+  "EXPECTED_PRODUCT_PLUS_SHIPPING": 1370,
+  "REAL_STRIPE_PAYMENT": "YES",
+  "paymentIntent": {
+    "id": "pi_3UCoy82KvmKfeN9t1w6bkPzE",
+    "status": "succeeded",
+    "amount": 1415
+  },
+  "webhook": {
+    "status": 200,
+    "body": "ok"
+  },
+  "TEST_ORDER_REFERENCE": "HC-2026-0028",
+  "TEST_ORDER_ID_MASKED": "17c6c8f1…#183856da",
+  "REAL_NL_NL_ORDER": "YES",
+  "orderShipping": {
+    "status": "CONFIRMED",
+    "shippingStatus": "SHIPMENT_FAILED_RETRYABLE",
+    "shippingMethodId": "15366",
+    "shippingProductId": "1",
+    "shippingCarrier": "PostNL",
+    "shippingMethod": "Standard",
+    "shippingQuotedCents": 620,
+    "shippingBuyerChargedCents": 620,
+    "shippingActualCostCents": null,
+    "tracking": null,
+    "trackingUrl": null,
+    "providerOrderId": null,
+    "providerStatus": null,
+    "labels": 0
+  },
+  "ensureRetry": {
+    "status": 502,
+    "json": {
+      "result": {
+        "status": "failed_retryable",
+        "error": "HTTP 402"
+      }
+    }
+  },
+  "orderShippingAfterEnsure": {
+    "shippingStatus": "SHIPMENT_FAILED_RETRYABLE",
+    "labels": 0,
+    "tracking": null
+  },
+  "duplicateReplay": {
+    "replay1": 502,
+    "replay2": 502,
+    "labelCount": 0
+  },
+  "PROVIDER_LABEL_COUNT": 0,
+  "DUPLICATE_LABEL_PROTECTION_LIVE_PROVEN": "NO",
+  "REAL_PROVIDER_LABEL": "NO",
+  "PROVIDER_CARRIER": "PostNL",
+  "PROVIDER_METHOD": "Standard",
+  "TRACKING_CODE_STORED": "NO",
+  "TRACKING_URL_STORED": "NO",
+  "LABEL_CREATE_STRICT_MODE": "YES",
+  "CARRIER_LABEL_DOWNLOAD_METHOD": "UNKNOWN",
+  "CARRIER_LABEL_FORMAT": "UNKNOWN",
+  "CARRIER_LABEL_UNMODIFIED": "YES",
+  "BARCODE_UNMODIFIED": "YES",
+  "HOMECHEFF_BRANDED_PRINT": "YES",
+  "HOMECHEFF_LOGO_VISIBLE": "YES",
+  "HOMECHEFF_EU_VISIBLE": "YES",
+  "HOMECHEFF_ORDER_REFERENCE_VISIBLE": "YES",
+  "QR_WORKING": "YES",
+  "SELLER_PRINT_ACTION": "YES",
+  "statusSync": {
+    "status": 401,
+    "json": {
+      "error": "Unauthorized"
+    }
+  },
+  "STATUS_SYNC_REAL_LABEL": "PARTIAL",
+  "RAW_PROVIDER_STATUS_STORED": "NO",
+  "RAW_PROVIDER_STATUS_VISIBLE": "NO",
+  "TRACKING_LOCALIZED": "YES",
+  "STATUS_SYNC_IDEMPOTENT": "NO",
+  "ACTUAL_PROVIDER_COST_CENTS": null,
+  "SHIPPING_DELTA_CENTS": null,
+  "PRICING_BREAKDOWN_VERIFIED": "NO",
+  "SELLER_PAYOUT_SHIPPING_INCLUDED": "NO",
+  "cleanup": {
+    "listingDeactivated": true,
+    "sellerAddressRestored": true
+  },
+  "finishedAt": "2026-09-06T22:56:36.933Z"
+}
