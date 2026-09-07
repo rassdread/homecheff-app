@@ -253,7 +253,8 @@ export async function getShippingProducts(
 export type PartnerAddress = {
   fullname?: string;
   companyName?: string;
-  country: string;
+  /** ISO-3166 alpha-2 — Partner API field name is countryCode */
+  countryCode: string;
   city: string;
   postalCode: string;
   street: string;
@@ -262,6 +263,22 @@ export type PartnerAddress = {
   email?: string;
   phone?: string;
 };
+
+function serializePartnerAddress(addr: PartnerAddress): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    countryCode: addr.countryCode.toUpperCase(),
+    city: addr.city,
+    postalCode: addr.postalCode,
+    street: addr.street,
+    houseNumber: addr.houseNumber,
+  };
+  if (addr.fullname) out.fullname = addr.fullname;
+  if (addr.companyName) out.companyName = addr.companyName;
+  if (addr.address2) out.address2 = addr.address2;
+  if (addr.email) out.email = addr.email;
+  if (addr.phone) out.phone = addr.phone;
+  return out;
+}
 
 export type CreateLabelParams = {
   shippingMethodId: string;
@@ -396,8 +413,8 @@ export async function createPartnerLabel(
     labelQuantity: params.labelQuantity ?? 1,
     weight: Math.round(params.weightGrams),
     marketplaceOrderId: params.marketplaceOrderId,
-    address: params.address,
-    fromAddress: params.fromAddress,
+    address: serializePartnerAddress(params.address),
+    fromAddress: serializePartnerAddress(params.fromAddress),
     isReturn: params.isReturn === true,
   };
   if (params.productId) payload.productId = params.productId;

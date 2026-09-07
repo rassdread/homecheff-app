@@ -61,7 +61,7 @@ function toPartnerAddress(snap: ShippingAddressSnapshot): PartnerAddress {
     snap.houseNumber || splitStreet(snap.addressLine).houseNumber;
   return {
     fullname: snap.name,
-    country: snap.country,
+    countryCode: snap.country,
     city: snap.city,
     postalCode: snap.postalCode,
     street,

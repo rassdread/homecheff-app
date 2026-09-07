@@ -128,7 +128,9 @@ function read(rel: string) {
   assert.match(ensure, /X-Api-Behavior|STRICT|result\.success|ECTAROSHIP_LABEL_MALFORMED|createPartnerLabel/);
   const partner = read('lib/ectaroship/partner-client.ts');
   assert.match(partner, /pickLabelSuccess|successFlag|ECTAROSHIP_LABEL_MALFORMED/);
-  ok('label STRICT response validation + idempotent claim');
+  assert.match(partner, /countryCode/);
+  assert.match(partner, /serializePartnerAddress|countryCode/);
+  ok('label address uses countryCode for Partner API');
 }
 
 {
