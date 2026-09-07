@@ -55,12 +55,16 @@ function splitStreet(addressLine: string): { street: string; houseNumber: string
   return { street: addressLine.trim(), houseNumber: '1' };
 }
 
-function toPartnerAddress(snap: ShippingAddressSnapshot): PartnerAddress {
+function toPartnerAddress(
+  snap: ShippingAddressSnapshot,
+  opts?: { companyName?: string | null },
+): PartnerAddress {
   const street = snap.street || splitStreet(snap.addressLine).street;
   const houseNumber =
     snap.houseNumber || splitStreet(snap.addressLine).houseNumber;
   return {
     fullname: snap.name,
+    companyName: opts?.companyName?.trim() || undefined,
     countryCode: snap.country,
     city: snap.city,
     postalCode: snap.postalCode,
@@ -83,7 +87,8 @@ export async function ensurePaidOrderShipment(
           Product: {
             include: {
               seller: {
-                include: {
+                select: {
+                  companyName: true,
                   User: {
                     select: {
                       id: true,
@@ -220,6 +225,35 @@ export async function ensurePaidOrderShipment(
     const marketplaceOrderId =
       order.orderNumber || `HC-${orderId.replace(/-/g, '').slice(0, 10).toUpperCase()}`;
 
+    // Minimal STRICT payload: documented address/fromAddress fields only.
+    // Omit optional note/orderItems until address acceptance is proven — avoids
+    // optional-field noise around generic "Invalid address!!!" failures.
+    const sellerProfile = order.items[0]?.Product?.seller;
+    const sellerCompany =
+      sellerProfile?.companyName?.trim() ||
+      (order.shippingOriginSnapshot as { company?: string; companyName?: string } | null)
+        ?.companyName ||
+      (order.shippingOriginSnapshot as { company?: string; companyName?: string } | null)
+        ?.company ||
+      undefined;
+
+    const destAddress = toPartnerAddress(destSnap);
+    // Prefer live order buyer contact when snapshot omitted them
+    if (!destAddress.email && order.User?.email) destAddress.email = order.User.email;
+    if (!destAddress.phone && order.User?.phoneNumber) {
+      destAddress.phone = order.User.phoneNumber;
+    }
+
+    const fromAddress = toPartnerAddress(originSnap, {
+      companyName: sellerCompany,
+    });
+    if (!fromAddress.email && sellerProfile?.User?.email) {
+      fromAddress.email = sellerProfile.User.email;
+    }
+    if (!fromAddress.phone && sellerProfile?.User?.phoneNumber) {
+      fromAddress.phone = sellerProfile.User.phoneNumber;
+    }
+
     const labelResult = await createPartnerLabel({
       shippingMethodId: methodId,
       productId:
@@ -228,15 +262,8 @@ export async function ensurePaidOrderShipment(
       carrier: quote?.carrier || order.shippingCarrier || undefined,
       weightGrams,
       marketplaceOrderId,
-      note: `HomeCheff ${marketplaceOrderId}`,
-      address: toPartnerAddress(destSnap),
-      fromAddress: toPartnerAddress(originSnap),
-      orderItems: order.items.map((item) => ({
-        title: item.Product?.title || 'Item',
-        quantity: item.quantity,
-        unitPrice: item.priceCents / 100,
-        currency: 'EUR',
-      })),
+      address: destAddress,
+      fromAddress,
     });
 
     if (!labelResult.ok) {

@@ -252,39 +252,51 @@ export async function getShippingProducts(
 
 export type PartnerAddress = {
   fullname?: string;
+  /** Maps to Partner OpenAPI field `company` */
   companyName?: string;
   /** ISO-3166 alpha-2 — Partner API field name is countryCode */
   countryCode: string;
   city: string;
   postalCode: string;
+  /** Street name only (no house number). Serialized as Partner field `address`. */
   street: string;
+  /** House number. Serialized as Partner field `houseNo`. */
   houseNumber: string;
   address2?: string;
+  province?: string;
   email?: string;
   phone?: string;
 };
 
 /**
- * Partner STRICT address payload — only documented fields.
- * Extra aliases (country/zipCode/straat/…) have caused opaque
- * "Invalid address!!! | address" rejections under X-Api-Behavior: STRICT.
+ * Official Partner OpenAPI address object (STRICT).
+ * Documented keys only — do not send street/houseNumber/name/zip aliases.
+ *
+ * address  = street name (without house number)
+ * houseNo  = house number
+ * company  = company name (optional)
  */
-function serializePartnerAddress(addr: PartnerAddress): Record<string, unknown> {
+export function serializePartnerAddress(
+  addr: PartnerAddress,
+): Record<string, unknown> {
   const countryCode = addr.countryCode.toUpperCase();
-  // Partner/PostNL examples use compact NL postcodes (1234AB), not spaced.
+  // Compact NL postcode (3137GE). Spaced form is a diagnostic variant only.
   const postalCode = addr.postalCode.replace(/\s+/g, '').toUpperCase();
-  const houseNumber = String(addr.houseNumber).trim();
+  const houseNo = String(addr.houseNumber).trim();
+  const streetName = addr.street.trim();
   const out: Record<string, unknown> = {
     countryCode,
     city: addr.city.trim(),
     postalCode,
-    street: addr.street.trim(),
-    houseNumber,
+    address: streetName,
+    houseNo,
   };
   const fullname = addr.fullname?.trim();
   if (fullname) out.fullname = fullname;
-  if (addr.companyName?.trim()) out.companyName = addr.companyName.trim();
+  const company = addr.companyName?.trim();
+  if (company) out.company = company;
   if (addr.address2?.trim()) out.address2 = addr.address2.trim();
+  if (addr.province?.trim()) out.province = addr.province.trim();
   if (addr.email?.trim()) out.email = addr.email.trim();
   if (addr.phone?.trim()) out.phone = addr.phone.trim();
   return out;
@@ -614,18 +626,30 @@ export async function listShippingLabels(params?: {
           : typeof totalPriceRaw === 'string'
             ? Number(totalPriceRaw)
             : undefined;
+      const trackingCode = String(
+        r.trackingCode ??
+          r.trackCode ??
+          r.tracking_code ??
+          r.trackingNumber ??
+          r.tracking_number ??
+          '',
+      ).trim();
+      const providerOrderId = String(
+        r.orderId ??
+          r.order_id ??
+          r.id ??
+          r.reference ??
+          r.marketplaceOrderId ??
+          '',
+      ).trim();
       return {
-        providerOrderId: r.orderId
-          ? String(r.orderId)
-          : r.id
-            ? String(r.id)
+        providerOrderId: providerOrderId || undefined,
+        trackingCode: trackingCode || undefined,
+        trackingUrl: r.trackingUrl
+          ? String(r.trackingUrl)
+          : r.tracking_url
+            ? String(r.tracking_url)
             : undefined,
-        trackingCode: r.trackingCode
-          ? String(r.trackingCode)
-          : r.trackingNumber
-            ? String(r.trackingNumber)
-            : undefined,
-        trackingUrl: r.trackingUrl ? String(r.trackingUrl) : undefined,
         statusRaw,
         totalPrice: Number.isFinite(totalPrice) ? totalPrice : undefined,
         currency: r.currency ? String(r.currency) : 'EUR',

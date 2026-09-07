@@ -129,8 +129,10 @@ function read(rel: string) {
   const partner = read('lib/ectaroship/partner-client.ts');
   assert.match(partner, /pickLabelSuccess|successFlag|ECTAROSHIP_LABEL_MALFORMED/);
   assert.match(partner, /countryCode/);
-  assert.match(partner, /serializePartnerAddress|countryCode/);
-  ok('label address uses countryCode for Partner API');
+  assert.match(partner, /serializePartnerAddress/);
+  assert.match(partner, /houseNo/);
+  assert.match(partner, /out\.address\s*=\s*streetName|address:\s*streetName/);
+  ok('label address uses OpenAPI address/houseNo/countryCode');
 }
 
 {

@@ -151,6 +151,41 @@ export async function POST(req: NextRequest) {
     const hnNum = Number(hnStr.replace(/[^\d].*$/, ''));
     let addrObj: Record<string, unknown>;
     switch (schema) {
+      case 'openapi':
+        // Exact official Partner OpenAPI address object (no street/houseNumber aliases).
+        addrObj = {
+          fullname: address.fullname,
+          address: address.street,
+          houseNo: hnStr,
+          city: address.city,
+          postalCode: pc,
+          countryCode: address.countryCode,
+          phone: dest.phone || undefined,
+          email: dest.email || undefined,
+        };
+        // drop undefined
+        for (const k of Object.keys(addrObj)) {
+          if (addrObj[k] === undefined) delete addrObj[k];
+        }
+        break;
+      case 'openapi_spaced_pc':
+        addrObj = {
+          fullname: address.fullname,
+          address: address.street,
+          houseNo: hnStr,
+          city: address.city,
+          postalCode:
+            address.countryCode === 'NL' && /^\d{4}[A-Z]{2}$/.test(pc)
+              ? `${pc.slice(0, 4)} ${pc.slice(4)}`
+              : pc,
+          countryCode: address.countryCode,
+          phone: dest.phone || undefined,
+          email: dest.email || undefined,
+        };
+        for (const k of Object.keys(addrObj)) {
+          if (addrObj[k] === undefined) delete addrObj[k];
+        }
+        break;
       case 'hn_number':
         addrObj = {
           fullname: address.fullname,
@@ -287,16 +322,42 @@ export async function POST(req: NextRequest) {
       note: `HomeCheff probe schema=${schema}`,
     };
     if (mode === 'explicit_from' && from) {
-      payload.fromAddress = {
-        fullname: from.fullname,
-        countryCode: from.countryCode,
-        city: from.city,
-        postalCode: String(from.postalCode).replace(/\s+/g, '').toUpperCase(),
-        street: from.street,
-        houseNumber: String(from.houseNumber),
-        phone: from.phone,
-        email: from.email,
-      };
+      const fromPc = String(from.postalCode).replace(/\s+/g, '').toUpperCase();
+      // Match OpenAPI wire format for sender when using raw schema probes.
+      if (schema === 'openapi' || schema === 'openapi_spaced_pc') {
+        payload.fromAddress = {
+          fullname: from.fullname,
+          company: body.from?.company || undefined,
+          address: from.street,
+          houseNo: String(from.houseNumber),
+          city: from.city,
+          postalCode:
+            schema === 'openapi_spaced_pc' &&
+            from.countryCode === 'NL' &&
+            /^\d{4}[A-Z]{2}$/.test(fromPc)
+              ? `${fromPc.slice(0, 4)} ${fromPc.slice(4)}`
+              : fromPc,
+          countryCode: from.countryCode,
+          phone: from.phone,
+          email: from.email,
+        };
+        for (const k of Object.keys(payload.fromAddress as object)) {
+          if ((payload.fromAddress as Record<string, unknown>)[k] === undefined) {
+            delete (payload.fromAddress as Record<string, unknown>)[k];
+          }
+        }
+      } else {
+        payload.fromAddress = {
+          fullname: from.fullname,
+          countryCode: from.countryCode,
+          city: from.city,
+          postalCode: fromPc,
+          street: from.street,
+          houseNumber: String(from.houseNumber),
+          phone: from.phone,
+          email: from.email,
+        };
+      }
     }
     if (body.fromAddressId) payload.fromAddressId = body.fromAddressId;
     if (body.lengthCm) payload.length = Number(body.lengthCm);
