@@ -1,0 +1,44 @@
+{
+  "FINAL_DECISION": "HOMECHEFF_ECTAROSHIP_PRODUCTION_READY_DOMESTIC_INTERNATIONAL_PENDING",
+  "ROOT_CAUSE": "PARTNER_ADDRESS_WIRE_FORMAT_USED_street_houseNumber_INSTEAD_OF_OpenAPI_address_houseNo",
+  "TEST_ORDER_REFERENCE": "HC-2026-0029",
+  "REAL_PROVIDER_LABEL": true,
+  "TRACKING": "3SHOHR821775561",
+  "ACTUAL_PROVIDER_COST_CENTS": 620,
+  "SHIPPING_CHARGED_CENTS": 620,
+  "SHIPPING_DELTA_CENTS": 0,
+  "RAW_PROVIDER_STATUS": "printed",
+  "MAPPED_HOMECHEFF_STATUS": "PRINTED",
+  "DB_LABEL_COUNT": 1,
+  "REPLAY_STATUS": "already_created",
+  "PACKING_SLIP": {
+    "http": 200,
+    "logo": true,
+    "eu": true,
+    "orderRef": true
+  },
+  "COMMIT_SHA": "f48a3beb366d767fa591becbe4f3e66c9b3b34d9",
+  "DEPLOYMENT_ID": "dpl_C1kXmfdadKn25aJMzVBLebK5rm4c",
+  "NOTE_DIAGNOSTIC_LABELS": "Two diagnostic Partner labels were purchased during openapi schema isolation before order retry; order itself has exactly one DB label and replay creates none.",
+  "SANITIZED_DESTINATION_SHAPE": {
+    "fullname": "[present]",
+    "address": "[street name]",
+    "houseNo": "[number]",
+    "postalCode": "3137GE",
+    "city": "[city]",
+    "countryCode": "NL",
+    "phone": "[present]",
+    "email": "[present]"
+  },
+  "SANITIZED_FROM_SHAPE": {
+    "fullname": "[present]",
+    "company": "[present]",
+    "address": "[street name]",
+    "houseNo": "[number]",
+    "postalCode": "3137GE",
+    "city": "[city]",
+    "countryCode": "NL",
+    "phone": "[present]",
+    "email": "[present]"
+  }
+}
