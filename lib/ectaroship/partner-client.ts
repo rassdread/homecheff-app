@@ -265,14 +265,26 @@ export type PartnerAddress = {
 };
 
 function serializePartnerAddress(addr: PartnerAddress): Record<string, unknown> {
+  const countryCode = addr.countryCode.toUpperCase();
+  let postalCode = addr.postalCode.replace(/\s+/g, '').toUpperCase();
+  if (countryCode === 'NL' && /^\d{4}[A-Z]{2}$/.test(postalCode)) {
+    postalCode = `${postalCode.slice(0, 4)} ${postalCode.slice(4)}`;
+  }
+  const hnRaw = String(addr.houseNumber).trim();
+  const hnNum = Number(hnRaw.replace(/[^\d].*$/, ''));
   const out: Record<string, unknown> = {
-    countryCode: addr.countryCode.toUpperCase(),
+    countryCode,
+    country: countryCode,
     city: addr.city,
-    postalCode: addr.postalCode,
+    postalCode,
+    zipCode: postalCode,
     street: addr.street,
-    houseNumber: addr.houseNumber,
+    houseNumber: Number.isFinite(hnNum) && hnNum > 0 ? hnNum : hnRaw,
   };
-  if (addr.fullname) out.fullname = addr.fullname;
+  if (addr.fullname) {
+    out.fullname = addr.fullname;
+    out.name = addr.fullname;
+  }
   if (addr.companyName) out.companyName = addr.companyName;
   if (addr.address2) out.address2 = addr.address2;
   if (addr.email) out.email = addr.email;
@@ -289,7 +301,9 @@ export type CreateLabelParams = {
   marketplaceOrderId: string;
   note?: string;
   address: PartnerAddress;
-  fromAddress: PartnerAddress;
+  fromAddress?: PartnerAddress;
+  /** Use account-configured shipFrom when Partner dashboard shipFrom is set */
+  fromAddressId?: string | number;
   orderItems?: Array<{
     title: string;
     quantity: number;
@@ -414,9 +428,14 @@ export async function createPartnerLabel(
     weight: Math.round(params.weightGrams),
     marketplaceOrderId: params.marketplaceOrderId,
     address: serializePartnerAddress(params.address),
-    fromAddress: serializePartnerAddress(params.fromAddress),
     isReturn: params.isReturn === true,
   };
+  // Prefer account-configured shipFrom when requested; otherwise send explicit fromAddress.
+  if (params.fromAddressId) {
+    payload.fromAddressId = params.fromAddressId;
+  } else if (params.fromAddress) {
+    payload.fromAddress = serializePartnerAddress(params.fromAddress);
+  }
   if (params.productId) payload.productId = params.productId;
   if (params.carrier) payload.carrier = params.carrier;
   if (params.note) payload.note = params.note;
