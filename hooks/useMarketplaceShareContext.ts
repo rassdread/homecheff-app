@@ -166,6 +166,24 @@ export function useMarketplaceShareContext() {
     hasPersonalAffiliate: Boolean(referralCode),
   });
 
+  /** Prefetch company tracking URLs for common Verdien destinations so Delen stays one-tap. */
+  useEffect(() => {
+    if (mode.kind !== 'company') return;
+    const orgId = mode.organizationId;
+    const paths = [
+      '/werken-bij',
+      '/delivery/signup',
+      '/delivery/company/signup',
+      '/affiliate',
+      '/affiliate/company',
+      '/onboarding/seller',
+      '/werken-bij/vacatures',
+    ];
+    for (const destinationPath of paths) {
+      void ensureCompanyShareUrl({ organizationId: orgId, destinationPath });
+    }
+  }, [mode]);
+
   const setSharePreference = useCallback(
     (next: AffiliateShareMode, organizationId?: string | null) => {
       writeShareContextPreference({

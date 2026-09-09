@@ -24,7 +24,7 @@ export default function Footer() {
   }
 
   const links = [
-    { href: '/werken-bij', label: t('siteFooter.earnWithHomecheff'), icon: TrendingUp },
+    { href: '/werken-bij', label: t('siteFooter.earnWithHomecheff') || 'Verdien met HomeCheff', icon: TrendingUp },
     { href: '/ecosystem', label: t('siteFooter.ecosystem'), icon: Compass },
     { href: '/studio', label: t('siteFooter.studio'), icon: Palette },
     { href: '/growth', label: t('siteFooter.growth'), icon: Rocket },

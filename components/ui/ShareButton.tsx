@@ -6,6 +6,11 @@ import { useSession } from 'next-auth/react';
 import { useMarketplaceShareContext } from '@/hooks/useMarketplaceShareContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import Spinner from '@/components/ui/Spinner';
+import {
+  canUseWebShare,
+  shareListingOrCopy,
+} from '@/lib/share/listing-share';
+import AffiliatePromoteChooser from '@/components/share/AffiliatePromoteChooser';
 
 function PinterestIcon({ className }: { className?: string }) {
   return (
@@ -154,51 +159,38 @@ export default function ShareButton({
     '';
 
   const contextChooser = needsContextChoice ? (
-    <div className="mb-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-      <p className="text-xs font-medium text-slate-700">{t('share.chooseContext')}</p>
-      <button
-        type="button"
-        className="w-full rounded-lg bg-white px-3 py-2 text-left text-sm font-medium text-emerald-900 ring-1 ring-emerald-200 hover:bg-emerald-50"
-        onClick={() => {
-          setSharePreference('personal');
-          setResolving(true);
-          void resolveShareUrl({
-            listingAbsoluteUrl: url,
-            surface,
-            forceMode: 'personal',
-          }).then((r) => {
-            setShareUrl(r.url);
-            setShareKind(r.kind);
-            setResolving(false);
-          });
-        }}
-      >
-        {t('share.shareAsYourself')}
-      </button>
-      {memberships.map((m) => (
-        <button
-          key={m.organizationId}
-          type="button"
-          className="w-full rounded-lg bg-white px-3 py-2 text-left text-sm font-medium text-slate-900 ring-1 ring-slate-200 hover:bg-slate-100"
-          onClick={() => {
-            setSharePreference('company', m.organizationId);
-            setResolving(true);
-            void resolveShareUrl({
-              listingAbsoluteUrl: url,
-              surface,
-              forceMode: 'company',
-              forceOrganizationId: m.organizationId,
-            }).then((r) => {
-              setShareUrl(r.url);
-              setShareKind(r.kind);
-              setResolving(false);
-            });
-          }}
-        >
-          {t('share.shareOnBehalfOf', { company: m.displayName || m.companyName })}
-        </button>
-      ))}
-    </div>
+    <AffiliatePromoteChooser
+      className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-3"
+      memberships={memberships}
+      busy={resolving}
+      onChoosePersonal={() => {
+        setSharePreference('personal');
+        setResolving(true);
+        void resolveShareUrl({
+          listingAbsoluteUrl: url,
+          surface,
+          forceMode: 'personal',
+        }).then((r) => {
+          setShareUrl(r.url);
+          setShareKind(r.kind);
+          setResolving(false);
+        });
+      }}
+      onChooseCompany={(organizationId) => {
+        setSharePreference('company', organizationId);
+        setResolving(true);
+        void resolveShareUrl({
+          listingAbsoluteUrl: url,
+          surface,
+          forceMode: 'company',
+          forceOrganizationId: organizationId,
+        }).then((r) => {
+          setShareUrl(r.url);
+          setShareKind(r.kind);
+          setResolving(false);
+        });
+      }}
+    />
   ) : null;
 
   const hint =
@@ -220,6 +212,27 @@ export default function ShareButton({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          // USER_INTENT_FIRST on mobile: one Delen → resolve → native share when possible.
+          if (
+            !needsContextChoice &&
+            canUseWebShare() &&
+            typeof window !== 'undefined' &&
+            window.matchMedia('(max-width: 767px)').matches
+          ) {
+            setResolving(true);
+            void resolveShareUrl({ listingAbsoluteUrl: url, surface })
+              .then(async (r) => {
+                setShareUrl(r.url);
+                setShareKind(r.kind);
+                await shareListingOrCopy({
+                  url: r.url,
+                  title,
+                  text: description || title,
+                });
+              })
+              .finally(() => setResolving(false));
+            return;
+          }
           setShowShareMenu(!showShareMenu);
         }}
         type="button"
@@ -256,7 +269,7 @@ export default function ShareButton({
                   <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                     <Spinner size="sm" className="shrink-0" />
                     {mode.kind === 'company'
-                      ? t('share.preparingCompanyLink')
+                      ? t('share.preparingLink')
                       : t('share.preparingLink')}
                   </div>
                 )}
@@ -338,8 +351,8 @@ export default function ShareButton({
                 <div className="mb-2 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs font-medium text-amber-900">
                   <Spinner size="xs" className="shrink-0" />
                   {mode.kind === 'company'
-                    ? t('share.preparingCompanyLink')
-                    : t('share.preparingLink')}
+                    ? t('share.preparingLink')
+                      : t('share.preparingLink')}
                 </div>
               )}
 
