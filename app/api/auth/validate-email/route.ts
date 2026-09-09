@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
+import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
+import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,25 +17,35 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // E-mail validatie regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (!emailRegex.test(email)) {
+    const normalized = tryNormalizeEmail(email);
+    if (!normalized) {
       return NextResponse.json({ 
         valid: false, 
         error: "Voer een geldig e-mailadres in" 
       }, { status: 400 });
     }
 
-    // Controleer of e-mail al bestaat
-    const existingUser = await prisma.user.findUnique({ 
-      where: { email: email.toLowerCase() } 
+    const existingUser = await findUserByCanonicalEmail(prisma, normalized, {
+      select: {
+        id: true,
+        DeliveryProfile: { select: { id: true } },
+      },
     });
 
     if (existingUser) {
+      if (!existingUser.DeliveryProfile) {
+        return NextResponse.json({
+          valid: false,
+          incompleteDeliveryOnboarding: true,
+          error:
+            "Je account bestaat al, maar je bezorgerprofiel is nog niet afgerond. Log in en rond je aanmelding af.",
+          resumeHint: "login_and_resume",
+        }, { status: 409 });
+      }
+
       return NextResponse.json({ 
         valid: false, 
-        error: "Dit e-mailadres is al in gebruik. Kies een ander e-mailadres." 
+        error: "Dit e-mailadres is al in gebruik. Log in of gebruik wachtwoord vergeten." 
       }, { status: 400 });
     }
 

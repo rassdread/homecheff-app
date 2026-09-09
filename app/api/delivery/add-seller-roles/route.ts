@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         privacyPolicy: agreements.privacyPolicy,
         terms: agreements.terms,
         taxResponsibility: agreements.taxResponsibility,
-        parentalConsent: agreements.parentalConsent
+        // parentalConsent intentionally ignored — cannot bypass age gates
       });
 
       if (!validation.valid) {

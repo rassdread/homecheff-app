@@ -54,7 +54,6 @@ export default function AddSellerRolesSettings({ currentRoles, age, onSave }: Ad
     terms: false,
     taxResponsibility: false,
     marketing: false,
-    parentalConsent: false
   });
   const [loading, setLoading] = useState(false);
   const [ageErrors, setAgeErrors] = useState<Record<string, string>>({});
@@ -66,13 +65,13 @@ export default function AddSellerRolesSettings({ currentRoles, age, onSave }: Ad
   const requiresPrivacy = newRoles.some(r => ROLE_REQUIREMENTS[r]?.agreements.privacyPolicy);
   const requiresTerms = newRoles.some(r => ROLE_REQUIREMENTS[r]?.agreements.terms);
   const requiresTax = newRoles.some(r => ROLE_REQUIREMENTS[r]?.agreements.taxResponsibility);
-  const requiresParental = age < 18;
+  // Parental consent must NEVER unlock commercial delivery / age gates (Phase 2).
+  // Soft awareness for minors lives elsewhere — not as a seller-role unlock checkbox.
   
   const allAgreed = 
     (!requiresPrivacy || agreements.privacyPolicy) &&
     (!requiresTerms || agreements.terms) &&
-    (!requiresTax || agreements.taxResponsibility) &&
-    (!requiresParental || agreements.parentalConsent);
+    (!requiresTax || agreements.taxResponsibility);
 
   const toggleRole = (roleId: string) => {
     if (currentRoles.includes(roleId)) {
@@ -110,8 +109,7 @@ export default function AddSellerRolesSettings({ currentRoles, age, onSave }: Ad
   const handleSave = async () => {
     if ((requiresPrivacy && !agreements.privacyPolicy) ||
         (requiresTerms && !agreements.terms) ||
-        (requiresTax && !agreements.taxResponsibility) ||
-        (requiresParental && !agreements.parentalConsent)) {
+        (requiresTax && !agreements.taxResponsibility)) {
       alert(t('errors.acceptAllTermsRequired'));
       return;
     }
@@ -246,35 +244,6 @@ export default function AddSellerRolesSettings({ currentRoles, age, onSave }: Ad
               )}
             </label>}
 
-            {/* Parental Consent (if under 18) */}
-            {requiresParental && <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              agreements.parentalConsent 
-                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300' 
-                : 'bg-white border-orange-200 hover:border-orange-300'
-            }`}>
-              <input
-                type="checkbox"
-                checked={agreements.parentalConsent}
-                onChange={(e) => setAgreements(prev => ({ ...prev, parentalConsent: e.target.checked }))}
-                className="w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-500 mt-0.5"
-              />
-              <div className="flex-1">
-                <p className="font-semibold text-gray-900">
-                  Toestemming Ouders/Verzorgers <span className="text-red-500">*</span>
-                </p>
-                <p className="text-sm text-gray-600">
-                  Mijn ouders/verzorgers geven toestemming voor mijn deelname als verkoper op HomeCheff. 
-                  Zij begrijpen en accepteren de voorwaarden en verantwoordelijkheden.
-                </p>
-                <p className="text-xs text-orange-600 mt-2 font-medium">
-                  🔞 Je bent jonger dan 18, daarom is ouderlijke toestemming verplicht
-                </p>
-              </div>
-              {agreements.parentalConsent && (
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-              )}
-            </label>}
-
             {/* Marketing (Optional) */}
             <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
               agreements.marketing 
@@ -342,7 +311,6 @@ export default function AddSellerRolesSettings({ currentRoles, age, onSave }: Ad
                   terms: false,
                   taxResponsibility: false,
                   marketing: false,
-                  parentalConsent: false
                 });
               }}
               className="flex-1"

@@ -35,7 +35,13 @@ interface DeliverySignupData {
   
   // Legal agreements
   acceptDeliveryAgreement: boolean;
-  parentalConsent: boolean;
+
+  // Business (optional — used by /delivery/company/signup)
+  providerType: 'INDEPENDENT' | 'DELIVERY_BUSINESS';
+  companyName: string;
+  kvkNumber: string;
+  vatNumber: string;
+  contactPhone: string;
 }
 
 interface ValidationState {
@@ -52,6 +58,9 @@ export default function DeliverySignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [resumeLoginHint, setResumeLoginHint] = useState(false);
+  const [submitLock, setSubmitLock] = useState(false);
   const [emailValidation, setEmailValidation] = useState<ValidationState>({
     isValid: null,
     message: "",
@@ -89,7 +98,12 @@ export default function DeliverySignupPage() {
     
     // Legal agreements
     acceptDeliveryAgreement: false,
-    parentalConsent: false
+
+    providerType: 'INDEPENDENT',
+    companyName: '',
+    kvkNumber: '',
+    vatNumber: '',
+    contactPhone: '',
   });
 
   const transportationOptions = [
@@ -181,9 +195,15 @@ export default function DeliverySignupPage() {
 
       const data = await response.json();
 
+      const incomplete = Boolean(data.incompleteDeliveryOnboarding);
+      setResumeLoginHint(incomplete || data.resumeHint === 'login_and_resume');
       setEmailValidation({
-        isValid: data.valid,
-        message: data.valid ? data.message : data.error,
+        isValid: data.valid === true,
+        message: data.valid
+          ? data.message
+          : (typeof data.error === 'string' && data.error !== 'ALREADY_REGISTERED'
+              ? data.error
+              : (data.message || 'Dit e-mailadres is al in gebruik. Log in om verder te gaan.')),
         isChecking: false,
       });
     } catch (error) {
@@ -195,13 +215,40 @@ export default function DeliverySignupPage() {
     }
   };
 
+  const buildHomeAddress = () => {
+    if (!formData.addressData.address) return null;
+    if (
+      formData.addressData.country === 'NL' &&
+      formData.addressData.postalCode &&
+      formData.addressData.houseNumber
+    ) {
+      return `${formData.addressData.address || ''} ${formData.addressData.houseNumber}, ${formData.addressData.postalCode} ${formData.addressData.city || ''}`.trim();
+    }
+    return [
+      formData.addressData.address,
+      formData.addressData.houseNumber,
+      formData.addressData.postalCode,
+      formData.addressData.city,
+    ]
+      .filter(Boolean)
+      .join(', ');
+  };
 
   const handleSubmit = async () => {
+    if (submitLock || isLoading) return;
+    if (formData.age < 18) {
+      setSubmitError(
+        'Commerciële bezorging via HomeCheff is beschikbaar vanaf 18 jaar.'
+      );
+      return;
+    }
+    setSubmitLock(true);
     setIsLoading(true);
+    setSubmitError(null);
+    setResumeLoginHint(false);
     try {
-      // For existing users, only create delivery profile (no account creation)
-      const requestBody = isExistingUser ? {
-        // Only send delivery profile data for existing users
+      const homeAddress = buildHomeAddress();
+      const sharedProfile = {
         age: formData.age,
         transportation: formData.transportation,
         maxDistance: formData.maxDistance,
@@ -212,81 +259,84 @@ export default function DeliverySignupPage() {
         preferredRadius: formData.preferredRadius,
         homeLat: formData.addressData.lat ?? null,
         homeLng: formData.addressData.lng ?? null,
-        homeAddress: formData.addressData.address 
-          ? (formData.addressData.country === 'NL' && formData.addressData.postalCode && formData.addressData.houseNumber
-              ? `${formData.addressData.address || ''} ${formData.addressData.houseNumber}, ${formData.addressData.postalCode} ${formData.addressData.city || ''}`.trim()
-              : [formData.addressData.address, formData.addressData.houseNumber, formData.addressData.postalCode, formData.addressData.city].filter(Boolean).join(', '))
-          : null,
+        homeAddress,
         acceptDeliveryAgreement: formData.acceptDeliveryAgreement,
-        parentalConsent: formData.parentalConsent
-      } : {
-        // Full registration for new users
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        username: formData.username,
-        age: formData.age,
-        transportation: formData.transportation,
-        maxDistance: formData.maxDistance,
-        availableDays: formData.availableDays,
-        availableTimeSlots: formData.availableTimeSlots,
-        bio: formData.bio,
-        deliveryMode: formData.deliveryMode,
-        preferredRadius: formData.preferredRadius,
-        homeLat: formData.addressData.lat ?? null,
-        homeLng: formData.addressData.lng ?? null,
-        homeAddress: formData.addressData.address 
-          ? (formData.addressData.country === 'NL' && formData.addressData.postalCode && formData.addressData.houseNumber
-              ? `${formData.addressData.address || ''} ${formData.addressData.houseNumber}, ${formData.addressData.postalCode} ${formData.addressData.city || ''}`.trim()
-              : [formData.addressData.address, formData.addressData.houseNumber, formData.addressData.postalCode, formData.addressData.city].filter(Boolean).join(', '))
-          : null,
-        acceptDeliveryAgreement: formData.acceptDeliveryAgreement,
-        parentalConsent: formData.parentalConsent
+        providerType: formData.providerType,
+        companyName: formData.companyName || undefined,
+        kvkNumber: formData.kvkNumber || undefined,
+        vatNumber: formData.vatNumber || undefined,
+        contactPhone: formData.contactPhone || undefined,
       };
+
+      const requestBody = isExistingUser
+        ? sharedProfile
+        : {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            username: formData.username,
+            ...sharedProfile,
+          };
 
       const response = await fetch('/api/delivery/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       });
 
+      const result = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Registration API error:', errorData);
-        throw new Error(errorData.error || t('deliverySignup.validation.accountCreationFailed'));
+        const friendly =
+          (typeof result?.error === 'string' &&
+            result.error !== 'ALREADY_REGISTERED' &&
+            result.error !== 'INTERNAL_SERVER_ERROR' &&
+            result.error) ||
+          (typeof result?.message === 'string' && result.message) ||
+          'Controleer de gemarkeerde gegevens en probeer opnieuw.';
+        setSubmitError(friendly);
+        setResumeLoginHint(
+          result?.resumeHint === 'login_and_resume' ||
+            result?.code === 'RESUME_REQUIRED' ||
+            result?.incompleteDeliveryOnboarding === true
+        );
+        return;
       }
 
-      // For existing users, just redirect (already logged in)
       if (isExistingUser) {
         router.push('/delivery/dashboard?welcome=true&newSignup=true');
         return;
       }
 
-      // Auto-login after successful registration for new users
       try {
         const loginResponse = await signIn('credentials', {
           email: formData.email,
           password: formData.password,
-          redirect: false
+          redirect: false,
         });
 
         if (loginResponse?.ok) {
-          // Successfully logged in, redirect to delivery dashboard
           router.push('/delivery/dashboard?welcome=true&newSignup=true');
         } else {
-          // Login failed, but registration was successful
-          router.push(`/login?message=${encodeURIComponent(t('deliverySignup.registrationSuccess'))}`);
+          router.push(
+            `/login?message=${encodeURIComponent(
+              t('deliverySignup.registrationSuccess')
+            )}&callbackUrl=${encodeURIComponent('/delivery/dashboard')}`
+          );
         }
-      } catch (loginError) {
-        // Registration was successful, but login failed
-        router.push('/login?message=Registratie succesvol! Log nu in met je nieuwe account.');
+      } catch {
+        router.push(
+          '/login?message=Registratie%20succesvol!%20Log%20nu%20in%20met%20je%20nieuwe%20account.&callbackUrl=%2Fdelivery%2Fdashboard'
+        );
       }
-
-    } catch (error: any) {
-      console.error('Error:', error);
-      alert(`Er is een fout opgetreden: ${error.message || error}`);
+    } catch (error: unknown) {
+      console.error('Delivery signup submit error:', error);
+      setSubmitError(
+        'Er ging iets mis bij het afronden van je bezorgeraanmelding. Je gegevens zijn bewaard. Probeer het opnieuw.'
+      );
     } finally {
       setIsLoading(false);
+      setSubmitLock(false);
     }
   };
 
@@ -325,13 +375,10 @@ export default function DeliverySignupPage() {
             },
             // Bio if available
             bio: user.bio || prev.bio,
-            // Skip account creation step if already logged in
           }));
           
-          // Skip to delivery profile step (step 2)
-          if (currentStep === 1) {
-            setCurrentStep(2);
-          }
+          // Skip account steps (1 name/email, 2 password/username) → start at age
+          setCurrentStep((step) => (step < 3 ? 3 : step));
         }
       } catch (error) {
         console.error('Error loading user data:', error);
@@ -341,7 +388,7 @@ export default function DeliverySignupPage() {
     if (status === 'authenticated') {
       loadExistingUserData();
     }
-  }, [session?.user?.email, status, currentStep]);
+  }, [session?.user?.email, status]);
 
   // Debounced email validatie (alleen als nieuwe gebruiker)
   useEffect(() => {
@@ -363,35 +410,57 @@ export default function DeliverySignupPage() {
     return () => clearTimeout(timeoutId);
   }, [formData.email, isExistingUser]);
 
+  const firstStep = isExistingUser ? 3 : 1;
+
   const nextStep = () => {
     if (currentStep < 9) setCurrentStep(currentStep + 1);
   };
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    if (currentStep > firstStep) setCurrentStep(currentStep - 1);
   };
 
   const isStepValid = () => {
     switch (currentStep) {
-      case 1: return formData.name.trim() && formData.email.trim() && formData.email.includes('@') && emailValidation.isValid === true;
-      case 2: return formData.password.length >= 6 && formData.username.trim().length >= 3;
-      case 3: return formData.age >= 18;
-      case 4: return formData.transportation.length > 0;
-      case 5: return formData.availableDays.length > 0;
-      case 6: return formData.availableTimeSlots.length > 0;
-      case 7: return formData.maxDistance > 0 && formData.deliveryMode;
-      case 8: return true; // Bio is optional
-      case 9: {
-        
-        // If user is 18 or older, only delivery agreement is needed
-        if (formData.age >= 18) {
-          return formData.acceptDeliveryAgreement;
-        }
-        
-        // Commercial delivery is 18+; parental consent is not an exception path
-        return formData.acceptDeliveryAgreement;
+      case 1:
+        return Boolean(
+          formData.name.trim() &&
+            formData.email.trim() &&
+            formData.email.includes('@') &&
+            emailValidation.isValid === true
+        );
+      case 2:
+        if (isExistingUser) return true;
+        return (
+          formData.password.length >= 6 &&
+          /^[a-zA-Z0-9_]{3,20}$/.test(formData.username.trim())
+        );
+      case 3:
+        return formData.age >= 18;
+      case 4:
+        return formData.transportation.length > 0;
+      case 5:
+        return formData.availableDays.length > 0;
+      case 6:
+        return formData.availableTimeSlots.length > 0;
+      case 7: {
+        const hasAddress = Boolean(
+          formData.addressData.address?.trim() &&
+            formData.addressData.city?.trim() &&
+            (formData.addressData.country !== 'NL' ||
+              (formData.addressData.postalCode?.trim() &&
+                formData.addressData.houseNumber?.trim()))
+        );
+        return formData.preferredRadius > 0 && formData.deliveryMode && hasAddress;
       }
-      default: return false;
+      case 8:
+        return true; // Bio is optional
+      case 9: {
+        // Commercial delivery is 18+ only; parental consent is not an exception path.
+        return formData.acceptDeliveryAgreement && formData.age >= 18;
+      }
+      default:
+        return false;
     }
   };
 
@@ -402,22 +471,13 @@ export default function DeliverySignupPage() {
   const getValidationDetails = () => {
     if (currentStep !== 8) return '';
     
-    const is18OrOlder = formData.age >= 18;
     const hasAgreement = formData.acceptDeliveryAgreement;
-    const hasParentalConsent = formData.parentalConsent;
-    
-    if (is18OrOlder) {
-      return hasAgreement ? '✅ Geldig (18+ met overeenkomst)' : '❌ Mis: Overeenkomst niet geaccepteerd';
-    } else {
-      if (hasAgreement && hasParentalConsent) {
-        return '✅ Geldig (onder 18 met overeenkomst en toestemming)';
-      } else if (!hasAgreement) {
-        return '❌ Mis: Overeenkomst niet geaccepteerd';
-      } else if (!hasParentalConsent) {
-        return `❌ ${t('deliverySignup.importantInfo')}: ${t('deliverySignup.parentalConsentStatus')} ${t('deliverySignup.notGiven')}`;
-      }
+    if (formData.age < 18) {
+      return `❌ ${t('deliverySignup.ageRequired')}`;
     }
-    return '❌ Onbekende fout';
+    return hasAgreement
+      ? '✅ Geldig (18+ met overeenkomst)'
+      : '❌ Mis: Overeenkomst niet geaccepteerd';
   };
 
   // Show loading while session is loading
@@ -552,6 +612,16 @@ export default function DeliverySignupPage() {
                           : 'text-gray-500'
                       }`}>
                         {emailValidation.message}
+                        {resumeLoginHint && (
+                          <div className="mt-2">
+                            <a
+                              href={`/login?callbackUrl=${encodeURIComponent('/delivery/signup')}`}
+                              className="font-semibold underline"
+                            >
+                              Log in en rond je bezorgerprofiel af
+                            </a>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -920,27 +990,6 @@ export default function DeliverySignupPage() {
                         </label>
                       </div>
                     </div>
-
-                    {/* Parental Consent (only for under 18) */}
-                    {formData.age < 18 && (
-                      <div className="flex items-start space-x-3">
-                        <input
-                          type="checkbox"
-                          id="parentalConsent"
-                          checked={formData.parentalConsent}
-                        onChange={(e) => {
-                          setFormData(prev => ({
-                            ...prev, 
-                            parentalConsent: e.target.checked
-                          }));
-                        }}
-                          className="mt-1 w-5 h-5 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
-                        />
-                        <label htmlFor="parentalConsent" className="text-sm text-gray-700 cursor-pointer">
-                          <span className="font-semibold">{t('deliverySignup.parentalConsent')}</span> {t('deliverySignup.parentalConsentText')}
-                        </label>
-                      </div>
-                    )}
                   </div>
 
                   {/* Status info */}
@@ -949,7 +998,6 @@ export default function DeliverySignupPage() {
                     <div className="text-sm text-green-800 space-y-1">
                       <p><strong>{t('deliverySignup.age')}</strong> {formData.age} {t('deliverySignup.yearsOld')}</p>
                       <p><strong>{t('deliverySignup.deliveryAgreementStatus')}</strong> {formData.acceptDeliveryAgreement ? t('deliverySignup.accepted') : t('deliverySignup.notAccepted')}</p>
-                      {formData.age < 18 && <p><strong>{t('deliverySignup.parentalConsentStatus')}</strong> {formData.parentalConsent ? t('deliverySignup.given') : t('deliverySignup.notGiven')}</p>}
                       <p><strong>{t('deliverySignup.stepValid')}</strong> {isStepValid() ? t('deliverySignup.yesContinue') : t('deliverySignup.noAccept')}</p>
                     </div>
                   </div>
@@ -970,11 +1018,30 @@ export default function DeliverySignupPage() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
+            {submitError && (
+              <div
+                className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+                role="alert"
+              >
+                <p>{submitError}</p>
+                {resumeLoginHint && (
+                  <p className="mt-2">
+                    <a
+                      href={`/login?callbackUrl=${encodeURIComponent('/delivery/signup')}`}
+                      className="font-semibold text-primary-brand underline"
+                    >
+                      Log in om je bezorgeraanmelding af te ronden
+                    </a>
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-between mt-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <Button
                 variant="outline"
                 onClick={prevStep}
-                disabled={currentStep === 1}
+                disabled={currentStep === firstStep}
               >
                 {t('deliverySignup.previous')}
               </Button>
@@ -991,7 +1058,7 @@ export default function DeliverySignupPage() {
               ) : (
                 <Button
                   onClick={handleSubmit}
-                  disabled={isLoading || !isStepValid()}
+                  disabled={isLoading || submitLock || !isStepValid()}
                   className="flex items-center gap-2"
                 >
                   {isLoading ? t('deliverySignup.loading') : 
