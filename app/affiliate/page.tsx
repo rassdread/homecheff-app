@@ -5,6 +5,8 @@ import {
   getCurrentLanguage,
   seoHreflangLanguagesOnEu,
 } from '@/lib/seo/metadata';
+import { opportunityOgImageUrl } from '@/lib/share/homecheff-share-payload';
+import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from '@/lib/share/og-opportunity';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,13 +47,28 @@ export async function generateMetadata(): Promise<Metadata> {
         'HomeCheff referral',
       ],
       openGraph: {
-        title: 'Earn with HomeCheff Marketplace',
+        title: 'Promote HomeCheff. Earn with it.',
         description:
-          '12 months · share of HomeCheff platform fee revenue. Not GMV, not HC. Growth and Studio can also count.',
+          '12 months · share of HomeCheff platform fee revenue. Not GMV, not HC. Growth and Studio can also count. No guaranteed income.',
         type: 'website',
         locale: 'en_US',
         url: `${currentDomain}${path}`,
         siteName: 'HomeCheff',
+        images: [
+          {
+            url: opportunityOgImageUrl('affiliate', currentDomain),
+            width: OG_IMAGE_WIDTH,
+            height: OG_IMAGE_HEIGHT,
+            alt: 'HomeCheff affiliate',
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Promote HomeCheff. Earn with it.',
+        description:
+          'Share HomeCheff in your network. No guaranteed income — eligible platform revenue only.',
+        images: [opportunityOgImageUrl('affiliate', currentDomain)],
       },
       alternates: {
         canonical: `${currentDomain}${path}`,
@@ -73,13 +90,28 @@ export async function generateMetadata(): Promise<Metadata> {
       'HomeCheff referral',
     ],
     openGraph: {
-      title: 'Verdien mee met HomeCheff',
+      title: 'Promoot HomeCheff. Verdien mee.',
       description:
-        '12 maanden · aandeel uit de HomeCheff-platformfee. Niet over GMV of HC. Growth en Studio kunnen ook meetellen.',
+        '12 maanden · aandeel uit de HomeCheff-platformfee. Niet over GMV of HC. Geen gegarandeerd inkomen.',
       type: 'website',
       locale: 'nl_NL',
       url: `${currentDomain}${path}`,
       siteName: 'HomeCheff',
+      images: [
+        {
+          url: opportunityOgImageUrl('affiliate', currentDomain),
+          width: OG_IMAGE_WIDTH,
+          height: OG_IMAGE_HEIGHT,
+          alt: 'HomeCheff affiliate',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Promoot HomeCheff. Verdien mee.',
+      description:
+        'Deel HomeCheff in je netwerk. Geen gegarandeerd inkomen — wel eligible platformomzet.',
+      images: [opportunityOgImageUrl('affiliate', currentDomain)],
     },
     alternates: {
       canonical: `${currentDomain}${path}`,

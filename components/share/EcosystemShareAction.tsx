@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Share2, Check } from 'lucide-react';
 import { useMarketplaceShareContext } from '@/hooks/useMarketplaceShareContext';
@@ -10,7 +10,15 @@ import {
   shouldPreferNativeShare,
   toAbsolutePublicUrl,
 } from '@/lib/share/listing-share';
-import { absoluteOpportunityUrl } from '@/lib/share/ecosystem-opportunities';
+import {
+  absoluteOpportunityUrl,
+  type OpportunityId,
+} from '@/lib/share/ecosystem-opportunities';
+import {
+  buildHomecheffSharePayload,
+  formatShareForChannel,
+  type HomecheffSharePayload,
+} from '@/lib/share/homecheff-share-payload';
 import {
   newShareSessionId,
   trackOpportunityClient,
@@ -31,8 +39,25 @@ type EcosystemShareActionProps = {
   label?: string;
 };
 
+const OPPORTUNITY_IDS = new Set<OpportunityId>([
+  'hub',
+  'seller',
+  'delivery_individual',
+  'delivery_company',
+  'affiliate',
+  'affiliate_company',
+  'studio',
+  'growth',
+  'jobs',
+]);
+
+function asOpportunityId(id?: string): OpportunityId | null {
+  if (!id) return null;
+  return OPPORTUNITY_IDS.has(id as OpportunityId) ? (id as OpportunityId) : null;
+}
+
 /**
- * Opportunity share — USER_INTENT_FIRST + ACTIONABLE_AND_VISIBLE.
+ * Opportunity share — USER_INTENT_FIRST + ACTIONABLE_AND_VISIBLE + social payload.
  * Resolve attribution → optional human dual chooser → native (mobile) or visible destinations.
  */
 export default function EcosystemShareAction({
@@ -47,8 +72,11 @@ export default function EcosystemShareAction({
   labelKey = 'share.shareItem',
   label,
 }: EcosystemShareActionProps) {
-  const { t, isReady } = useTranslation();
-  const resolvedLabel = label || (isReady ? t(labelKey) : labelKey === 'share.shareItem' ? 'Delen' : label) || 'Delen';
+  const { t, isReady, language } = useTranslation();
+  const resolvedLabel =
+    label ||
+    (isReady ? t(labelKey) : labelKey === 'share.shareItem' ? 'Delen' : label) ||
+    'Delen';
   const {
     needsContextChoice,
     memberships,
@@ -62,7 +90,11 @@ export default function EcosystemShareAction({
   const [chooserOpen, setChooserOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
+  const [sheetPayload, setSheetPayload] = useState<HomecheffSharePayload | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const oppId = asOpportunityId(opportunityId);
+  const shareLang = language === 'en' ? 'en' : 'nl';
 
   const track = useCallback(
     (event: string, extra?: Record<string, unknown>) => {
@@ -78,10 +110,26 @@ export default function EcosystemShareAction({
 
   const absolute = toAbsolutePublicUrl(absoluteOpportunityUrl(destinationHref));
 
-  const openSheetWithUrl = useCallback((url: string) => {
-    setSheetUrl(url);
-    setSheetOpen(true);
-  }, []);
+  const buildPayload = useCallback(
+    (attributedUrl: string): HomecheffSharePayload | null => {
+      if (!oppId) return null;
+      return buildHomecheffSharePayload({
+        opportunityId: oppId,
+        attributedUrl,
+        lang: shareLang,
+      });
+    },
+    [oppId, shareLang],
+  );
+
+  const openSheetWithUrl = useCallback(
+    (url: string) => {
+      setSheetUrl(url);
+      setSheetPayload(buildPayload(url));
+      setSheetOpen(true);
+    },
+    [buildPayload],
+  );
 
   const finishShare = useCallback(
     async (url: string, kind: 'plain' | 'personal' | 'company') => {
@@ -94,12 +142,16 @@ export default function EcosystemShareAction({
         });
       }
 
-      // Mobile-prefer native; otherwise always show visible destinations.
+      const payload = buildPayload(url);
+      const nativeText = payload
+        ? formatShareForChannel(payload, 'native').text
+        : text || title;
+
       if (shouldPreferNativeShare()) {
         const result = await shareListingOrCopy({
           url,
-          title,
-          text: text || title,
+          title: payload?.title || title,
+          text: nativeText,
         });
         track(
           result.method === 'clipboard'
@@ -132,7 +184,7 @@ export default function EcosystemShareAction({
       });
       return { ok: true as const, method: 'clipboard' as const };
     },
-    [openSheetWithUrl, text, title, track],
+    [buildPayload, openSheetWithUrl, text, title, track],
   );
 
   const resolveAndShare = useCallback(
@@ -149,7 +201,6 @@ export default function EcosystemShareAction({
         });
         await finishShare(resolved.url, resolved.kind);
       } catch {
-        // Still give the user a visible way to share the base destination.
         openSheetWithUrl(absolute);
       }
     },
@@ -173,6 +224,35 @@ export default function EcosystemShareAction({
       }
     },
     [busy, loading, needsContextChoice, resolveAndShare],
+  );
+
+  const sheetCopy = useMemo(
+    () => ({
+      title: isReady ? t('share.via') || 'Delen' : 'Delen',
+      preparing: isReady
+        ? t('share.preparingLink') || 'Deellink voorbereiden…'
+        : 'Deellink voorbereiden…',
+      whatsapp: isReady ? t('share.whatsapp') || 'WhatsApp' : 'WhatsApp',
+      linkedin: isReady ? t('share.linkedin') || 'LinkedIn' : 'LinkedIn',
+      facebook: isReady ? t('share.facebook') || 'Facebook' : 'Facebook',
+      instagram: isReady ? t('share.instagram') || 'Instagram' : 'Instagram',
+      tiktok: isReady ? t('share.tiktok') || 'TikTok' : 'TikTok',
+      x: isReady ? t('share.x') || 'X' : 'X',
+      email: isReady ? t('share.email') || 'E-mail' : 'E-mail',
+      copyLink: isReady ? t('share.copyLink') || 'Link kopiëren' : 'Link kopiëren',
+      copied: isReady ? t('share.copied') || 'Link gekopieerd' : 'Link gekopieerd',
+      moreOptions: isReady ? t('share.moreOptions') || 'Meer opties' : 'Meer opties',
+      close: isReady ? t('common.close') || 'Sluiten' : 'Sluiten',
+      error:
+        'Delen lukt nu niet automatisch. Kopieer de link en probeer het opnieuw.',
+      instagramHint:
+        'Tekst is gekopieerd. Deel de afbeelding via Instagram en plak de tekst bij je bericht.',
+      tiktokHint:
+        'Tekst is gekopieerd. Open TikTok, plak de tekst bij je bericht en voeg desgewenst de afbeelding toe.',
+      textCopiedHint: 'Tekst gekopieerd',
+      openImage: 'Open deelafbeelding',
+    }),
+    [isReady, t],
   );
 
   const btnClass =
@@ -232,7 +312,9 @@ export default function EcosystemShareAction({
         type="button"
         onClick={onShare}
         disabled={busy || loading}
-        aria-label={copied ? (isReady ? t('share.copied') : 'Link gekopieerd') : resolvedLabel}
+        aria-label={
+          copied ? (isReady ? t('share.copied') : 'Link gekopieerd') : resolvedLabel
+        }
         className={`${btnClass} disabled:opacity-60`}
       >
         {busy || loading ? (
@@ -263,8 +345,13 @@ export default function EcosystemShareAction({
           window.setTimeout(() => triggerRef.current?.focus(), 0);
         }}
         url={sheetUrl}
-        shareTitle={title}
-        shareText={text}
+        payload={sheetPayload}
+        shareTitle={sheetPayload?.title || title}
+        shareText={
+          sheetPayload
+            ? formatShareForChannel(sheetPayload, 'whatsapp').text
+            : text
+        }
         preparing={sheetOpen && !sheetUrl}
         onCopied={() => {
           setCopied(true);
@@ -274,18 +361,10 @@ export default function EcosystemShareAction({
         onNativeShare={() => {
           track('opportunity_share_native_opened', { shareMethod: 'panel_more' });
         }}
-        copy={{
-          title: isReady ? t('share.via') || 'Delen' : 'Delen',
-          preparing: isReady ? t('share.preparingLink') || 'Deellink voorbereiden…' : 'Deellink voorbereiden…',
-          whatsapp: isReady ? t('share.whatsapp') || 'WhatsApp' : 'WhatsApp',
-          email: isReady ? t('share.email') || 'E-mail' : 'E-mail',
-          copyLink: isReady ? t('share.copyLink') || 'Link kopiëren' : 'Link kopiëren',
-          copied: isReady ? t('share.copied') || 'Link gekopieerd' : 'Link gekopieerd',
-          moreOptions: isReady ? t('share.moreOptions') || 'Meer opties' : 'Meer opties',
-          close: isReady ? t('common.close') || 'Sluiten' : 'Sluiten',
-          error:
-            'Delen lukt nu niet automatisch. Kopieer de link en probeer het opnieuw.',
+        onDestination={(destination) => {
+          track('opportunity_share_destination', { destination });
         }}
+        copy={sheetCopy}
       />
     </div>
   );

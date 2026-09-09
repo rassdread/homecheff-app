@@ -30,7 +30,8 @@
     "socialsHeading": "Socials",
     "shareForMyself": "Voor mezelf",
     "shareForCompany": "Voor mijn bedrijf: {company}",
-    "moreOptions": "Meer opties"
+    "moreOptions": "Meer opties",
+    "x": "X"
   },
   "appUpdateGate": {
     "optionalTitle": "Nieuwe HomeCheff beta beschikbaar",

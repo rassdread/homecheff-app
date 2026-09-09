@@ -18,13 +18,15 @@ function read(rel: string): string {
 }
 
 describe('visible share panel contract', () => {
-  it('HomecheffVisibleShareSheet exposes WhatsApp, email, copy', () => {
+  it('HomecheffVisibleShareSheet exposes WhatsApp, email, copy + socials', () => {
     const src = read('components/share/HomecheffVisibleShareSheet.tsx');
     assert.match(src, /WhatsApp/);
     assert.match(src, /E-mail|email/i);
     assert.match(src, /Link kopiëren|copyLink/);
-    assert.match(src, /buildWhatsAppShareUrl/);
-    assert.match(src, /buildMailtoShareUrl/);
+    assert.match(src, /LinkedIn/);
+    assert.match(src, /Instagram/);
+    assert.match(src, /TikTok/);
+    assert.match(src, /buildWhatsAppShareUrlFromPayload|buildWhatsAppShareUrl/);
     // Copied confirmation must not reset when parent re-creates onClose.
     assert.match(src, /setCopied\(false\)/);
     assert.match(src, /}, \[open\]\);/);
@@ -36,6 +38,7 @@ describe('visible share panel contract', () => {
     assert.match(src, /HomecheffVisibleShareSheet/);
     assert.match(src, /shouldPreferNativeShare/);
     assert.match(src, /openSheetWithUrl/);
+    assert.match(src, /buildHomecheffSharePayload/);
     assert.doesNotMatch(src, /preparedUrl|preparingCompanyLink|Nu delen/);
   });
 

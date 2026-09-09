@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
+import { buildOpportunityOpenGraphMetadata } from '@/lib/share/og-opportunity';
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -15,42 +16,22 @@ export async function generateMetadata(): Promise<Metadata> {
     lang = languageCookie.value as 'nl' | 'en';
   }
 
-  const currentDomain = MAIN_DOMAIN;
-
-  if (lang === 'en') {
-    return {
-      title: 'Earn with HomeCheff — Sell, deliver, promote or join',
-      description:
-        'See how you can participate in HomeCheff: sell what you make, deliver locally, become an affiliate or Affiliate Company, discover Studio and Growth, or view real HomeCheff jobs.',
-      openGraph: {
-        title: 'Earn with HomeCheff',
-        description:
-          'Sell, deliver, promote HomeCheff, or explore Studio and Growth. Share opportunities with attribution when you are an affiliate.',
-        type: 'website',
-        url: `${currentDomain}/werken-bij`,
-      },
-      alternates: {
-        canonical: `${currentDomain}/werken-bij`,
-        languages: seoHreflangLanguagesOnEu('/werken-bij'),
-      },
-      robots: { index: true, follow: true },
-    };
-  }
+  const og = buildOpportunityOpenGraphMetadata('hub', lang, MAIN_DOMAIN);
+  const path = '/werken-bij';
 
   return {
-    title: 'Verdien met HomeCheff — Verkoop, bezorg, promoot of werk mee',
+    ...og,
+    title:
+      lang === 'en'
+        ? 'Earn with HomeCheff — Sell, deliver, promote or join'
+        : 'Verdien met HomeCheff — Verkoop, bezorg, promoot of werk mee',
     description:
-      'Ontdek hoe je meedoet met HomeCheff: verkoop wat je maakt, bezorg lokaal, word affiliate of Affiliate Company, ontdek Studio en Growth, of bekijk echte vacatures bij HomeCheff.',
-    openGraph: {
-      title: 'Verdien met HomeCheff',
-      description:
-        'Verkoop, bezorg, promoot HomeCheff of ontdek Studio en Growth. Deel kansen met affiliate-attributie wanneer je affiliate bent.',
-      type: 'website',
-      url: `${currentDomain}/werken-bij`,
-    },
+      lang === 'en'
+        ? 'See how you can participate in HomeCheff: sell what you make, deliver locally, become an affiliate or Affiliate Company, discover Studio and Growth, or view real HomeCheff jobs.'
+        : 'Ontdek hoe je meedoet met HomeCheff: verkoop wat je maakt, bezorg lokaal, word affiliate of Affiliate Company, ontdek Studio en Growth, of bekijk echte vacatures bij HomeCheff.',
     alternates: {
-      canonical: `${currentDomain}/werken-bij`,
-      languages: seoHreflangLanguagesOnEu('/werken-bij'),
+      canonical: `${MAIN_DOMAIN}${path}`,
+      languages: seoHreflangLanguagesOnEu(path),
     },
     robots: { index: true, follow: true },
   };

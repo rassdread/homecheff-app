@@ -14,7 +14,7 @@ export const verdienHubNl = {
   "ctaPrimary": "Bekijk je mogelijkheden",
   "ctaShareHub": "Deel alle mogelijkheden",
   "shareTitle": "Verdien met HomeCheff",
-  "shareText": "Ontdek hoe je kunt meedoen en verdienen binnen het HomeCheff-ecosysteem.",
+  "shareText": "Er zijn verschillende manieren om mee te doen én te verdienen met HomeCheff. Verkoop wat je maakt, bezorg in je buurt, promoot het platform of werk mee aan HomeCheff. Bekijk wat bij jou past.",
   "noIncomePromise": "Geen gegarandeerd inkomen — verdiensten hangen af van activiteit en eligible platformomzet.",
   "orientTitle": "Ik wil…",
   "cardsHeading": "Mogelijkheden",
@@ -95,15 +95,15 @@ export const verdienHubNl = {
     }
   },
   "shareCopy": {
-    "seller": "Wil je verdienen met wat je maakt? Bekijk hoe aanbieden op HomeCheff werkt.",
-    "delivery_individual": "Wil je flexibel bezorgen in je buurt? Bekijk hoe bezorgen via HomeCheff werkt.",
-    "delivery_company": "Heb je een bezorgbedrijf? Bekijk hoe je via HomeCheff lokale opdrachten kunt ontvangen.",
-    "affiliate": "Ken je HomeCheff al? Ontdek hoe je kunt meedoen en verdienen binnen het ecosysteem.",
-    "affiliate_company": "Gebruik HomeCheff als acquisitiepartner voor jouw marketing- of salesbedrijf.",
-    "studio": "Bekijk HomeCheff Studio voor het maken van content.",
-    "growth": "Bekijk HomeCheff Growth voor zakelijke leadgeneratie.",
-    "jobs": "Bekijk echte vacatures bij HomeCheff.",
-    "hub": "Ontdek alle manieren om mee te doen en te verdienen met HomeCheff."
+    "seller": "Maak of doe jij iets waar anderen iets aan hebben? Via HomeCheff kun je lokaal jouw producten of diensten aanbieden. Bekijk hoe je kunt beginnen.",
+    "delivery_individual": "Wil je flexibel bezorgen in je eigen omgeving? Bekijk hoe je als zelfstandig bezorger kunt meedoen via HomeCheff. Voor bezorgers geldt een leeftijdsgrens van 18+.",
+    "delivery_company": "Heb je een lokaal bezorgbedrijf? Via HomeCheff kun je bezorgopdrachten ontvangen en je eigen chauffeurs inzetten.",
+    "affiliate": "Ken jij mensen die bij HomeCheff passen? Deel HomeCheff en verdien mee wanneer jouw netwerk actief wordt binnen het ecosysteem. Geen gegarandeerd inkomen.",
+    "affiliate_company": "Werk je in sales, marketing of acquisitie? Ontdek hoe je als zakelijke partner kunt meebouwen aan de groei van HomeCheff.",
+    "studio": "Maak content voor je product, bedrijf of idee met HomeCheff Studio. Ontdek de creatieve mogelijkheden van het HomeCheff-ecosysteem.",
+    "growth": "Op zoek naar zakelijke kansen? HomeCheff Growth helpt professionals en bedrijven met leadgeneratie — een eigen product naast de Marketplace.",
+    "jobs": "Wil je niet alleen HomeCheff gebruiken, maar eraan meebouwen? Bekijk de mogelijkheden om met HomeCheff samen te werken.",
+    "hub": "Er zijn verschillende manieren om mee te doen én te verdienen met HomeCheff. Verkoop wat je maakt, bezorg in je buurt, promoot het platform of werk mee aan HomeCheff."
   },
   "deliveryHighlight": {
     "title": "Bezorgen via HomeCheff",
@@ -137,7 +137,7 @@ export const verdienHubEn = {
   "ctaPrimary": "See your options",
   "ctaShareHub": "Share all options",
   "shareTitle": "Earn with HomeCheff",
-  "shareText": "Discover how to participate and earn in the HomeCheff ecosystem.",
+  "shareText": "There are several ways to take part and earn with HomeCheff. Sell what you make, deliver nearby, promote the platform, or help build HomeCheff. See what fits you.",
   "noIncomePromise": "No guaranteed income — earnings depend on activity and eligible platform revenue.",
   "orientTitle": "I want to…",
   "cardsHeading": "Opportunities",
@@ -218,15 +218,15 @@ export const verdienHubEn = {
     }
   },
   "shareCopy": {
-    "seller": "Want to earn with what you make? See how offering on HomeCheff works.",
-    "delivery_individual": "Want to deliver flexibly nearby? See how delivery via HomeCheff works.",
-    "delivery_company": "Have a delivery company? See how you can receive local jobs via HomeCheff.",
-    "affiliate": "Know HomeCheff already? Discover how to participate and earn in the ecosystem.",
-    "affiliate_company": "Use HomeCheff as an acquisition partner for your marketing or sales company.",
-    "studio": "Check out HomeCheff Studio for creating content.",
-    "growth": "Check out HomeCheff Growth for business lead generation.",
-    "jobs": "See real vacancies at HomeCheff.",
-    "hub": "Discover all ways to participate and earn with HomeCheff."
+    "seller": "Do you make or do something others value? Offer your products or services locally via HomeCheff. See how to start.",
+    "delivery_individual": "Want flexible deliveries in your area? See how to join as an independent courier via HomeCheff. Couriers must be 18+.",
+    "delivery_company": "Run a local delivery company? Receive jobs via HomeCheff and use your own drivers.",
+    "affiliate": "Know people who fit HomeCheff? Share HomeCheff and earn when your network becomes active in the ecosystem. No guaranteed income.",
+    "affiliate_company": "Work in sales, marketing, or acquisition? Discover how to grow HomeCheff as a business partner.",
+    "studio": "Create content for your product, business, or idea with HomeCheff Studio. Explore creative tools in the HomeCheff ecosystem.",
+    "growth": "Looking for business opportunities? HomeCheff Growth helps professionals and companies with lead generation — a distinct product alongside Marketplace.",
+    "jobs": "Want to help build HomeCheff, not only use it? See how you can work with HomeCheff.",
+    "hub": "There are several ways to take part and earn with HomeCheff. Sell what you make, deliver nearby, promote the platform, or help build HomeCheff."
   },
   "deliveryHighlight": {
     "title": "Deliver with HomeCheff",
