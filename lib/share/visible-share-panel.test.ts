@@ -25,6 +25,9 @@ describe('visible share panel contract', () => {
     assert.match(src, /Link kopiëren|copyLink/);
     assert.match(src, /buildWhatsAppShareUrl/);
     assert.match(src, /buildMailtoShareUrl/);
+    // Copied confirmation must not reset when parent re-creates onClose.
+    assert.match(src, /setCopied\(false\)/);
+    assert.match(src, /}, \[open\]\);/);
     assert.doesNotMatch(src, /Delen als personal|Delen als company|binder|referral type/i);
   });
 

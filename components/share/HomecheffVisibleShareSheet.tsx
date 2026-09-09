@@ -70,13 +70,19 @@ export default function HomecheffVisibleShareSheet({
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset confirmation only when the sheet opens — not when parent re-creates onClose.
   useEffect(() => {
     if (!open) return;
     setCopied(false);
     setError(null);
+    const t = window.setTimeout(() => closeRef.current?.focus(), 0);
+    return () => window.clearTimeout(t);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const t = window.setTimeout(() => closeRef.current?.focus(), 0);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -84,7 +90,6 @@ export default function HomecheffVisibleShareSheet({
     return () => {
       document.body.style.overflow = prev;
       document.removeEventListener('keydown', onKey);
-      window.clearTimeout(t);
     };
   }, [open, onClose]);
 
