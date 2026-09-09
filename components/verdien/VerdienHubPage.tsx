@@ -170,11 +170,20 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
               href="#mogelijkheden"
-              className="inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+              className="inline-flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
               onClick={() => trackHub('opportunity_card_click', { id: 'hero_primary' })}
             >
               {copy.ctaPrimary}
             </a>
+            <Link
+              href="/werken-bij/hoe-werkt-het"
+              className="inline-flex min-h-[44px] items-center rounded-xl border border-emerald-300 bg-white px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+              onClick={() =>
+                trackHub('opportunity_card_click', { id: 'hero_how_it_works' })
+              }
+            >
+              {copy.ctaHowItWorks}
+            </Link>
             <EcosystemShareAction
               destinationHref={hubDest.href}
               title={copy.shareTitle}

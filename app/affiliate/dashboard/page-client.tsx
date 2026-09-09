@@ -451,7 +451,7 @@ export default function AffiliateDashboardClient() {
         <span>{t('navbar.combinedEarnings')}</span>
       </Link>
       <Link
-        href="/werken-bij"
+        href="/werken-bij/hoe-werkt-het"
         className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-emerald-200 text-emerald-800 rounded-lg hover:bg-emerald-50 transition-colors text-sm whitespace-nowrap"
       >
         <span>
@@ -520,29 +520,6 @@ export default function AffiliateDashboardClient() {
             </div>
           </div>
         )}
-
-        <section
-          className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 sm:p-5"
-          aria-labelledby="affiliate-surprise-income-heading"
-        >
-          <h3
-            id="affiliate-surprise-income-heading"
-            className="text-base font-semibold text-emerald-950"
-          >
-            {t('affiliate.dashboard.surpriseIncome.title')}
-          </h3>
-          <p className="mt-2 text-sm text-emerald-900/90">
-            {t('affiliate.dashboard.surpriseIncome.body')}
-          </p>
-          <ul className="mt-3 space-y-2 text-sm text-emerald-900/80 list-disc pl-5">
-            <li>{t('affiliate.dashboard.surpriseIncome.example1')}</li>
-            <li>{t('affiliate.dashboard.surpriseIncome.example2')}</li>
-            <li>{t('affiliate.dashboard.surpriseIncome.example3')}</li>
-          </ul>
-          <p className="mt-3 text-xs text-emerald-800/70">
-            {t('affiliate.dashboard.surpriseIncome.disclaimer')}
-          </p>
-        </section>
 
         <HomecheffEcosystemAffiliatePanel />
         <div className="mt-6">

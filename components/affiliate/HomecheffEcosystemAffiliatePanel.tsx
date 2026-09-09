@@ -217,7 +217,7 @@ export function HomecheffEcosystemAffiliatePanel() {
       ) : null}
       <p className="mt-3 text-xs">
         <Link
-          href="/affiliate"
+          href="/werken-bij/hoe-werkt-het"
           className="font-medium text-emerald-800 underline-offset-2 hover:underline"
         >
           {tOr(

@@ -131,6 +131,7 @@ export function listingPathFromAbsolute(url: string): string | null {
       "/growth",
       "/studio",
       "/werken-bij/vacatures",
+      "/werken-bij/hoe-werkt-het",
     ]);
     if (exact.has(path)) return path;
     return null;

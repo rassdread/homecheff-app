@@ -103,6 +103,13 @@ describe('affiliate dashboard layout contracts', () => {
     assert.match(src, /error/);
     assert.match(src, /Probeer opnieuw|Try again/);
     assert.doesNotMatch(src, /Ecosysteem-inkomsten laden…<\/section>/);
+    assert.match(src, /href="\/werken-bij\/hoe-werkt-het"/);
+  });
+
+  it('dashboard How it works CTA uses dedicated explainer route', () => {
+    const dash = read('app/affiliate/dashboard/page-client.tsx');
+    assert.match(dash, /href="\/werken-bij\/hoe-werkt-het"/);
+    assert.doesNotMatch(dash, /surpriseIncome/);
   });
 
   it('unified share layer preserved via EcosystemShareAction', () => {
