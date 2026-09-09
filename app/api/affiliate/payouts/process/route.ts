@@ -62,6 +62,8 @@ export async function POST(req: NextRequest) {
               select: {
                 id: true,
                 email: true,
+                stripeConnectAccountId: true,
+                stripeConnectOnboardingCompleted: true,
               },
             },
           },
@@ -117,8 +119,21 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // Check if affiliate has Stripe Connect account
-        if (!group.affiliate.stripeConnectAccountId) {
+        const { resolveAffiliateConnectDestination } = await import(
+          '@/lib/stripe/affiliate-connect-mirror'
+        );
+        const destination = resolveAffiliateConnectDestination({
+          userStripeConnectAccountId:
+            group.affiliate.user?.stripeConnectAccountId,
+          userStripeConnectOnboardingCompleted:
+            group.affiliate.user?.stripeConnectOnboardingCompleted,
+          affiliateStripeConnectAccountId: group.affiliate.stripeConnectAccountId,
+          affiliateStripeConnectOnboardingCompleted:
+            group.affiliate.stripeConnectOnboardingCompleted,
+        });
+
+        // Check if affiliate has Stripe Connect account (User canonical)
+        if (!destination.accountId) {
           results.skipped++;
           results.errors.push(
             `Affiliate ${affiliateId} has no Stripe Connect account`
@@ -127,7 +142,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Check if affiliate onboarding is complete
-        if (!group.affiliate.stripeConnectOnboardingCompleted) {
+        if (!destination.onboardingCompleted) {
           results.skipped++;
           results.errors.push(
             `Affiliate ${affiliateId} has incomplete Stripe Connect onboarding`
@@ -155,7 +170,7 @@ export async function POST(req: NextRequest) {
           const transfer = await stripe.transfers.create({
             amount: group.totalCents,
             currency: 'eur',
-            destination: group.affiliate.stripeConnectAccountId,
+            destination: destination.accountId,
             metadata: {
               type: 'affiliate_commission',
               affiliateId,

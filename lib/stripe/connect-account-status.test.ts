@@ -96,4 +96,42 @@ describe('deriveConnectAccountStatusFromStripe', () => {
     assert.equal(s.uiStatus, 'INCOMPLETE');
     assert.equal(connectCtaModelForStatus(s.uiStatus).ctaLabelNl, 'Betaalaccount afronden');
   });
+
+  it('RESTRICTED when disabled_reason and not payment ready', () => {
+    const s = deriveConnectAccountStatusFromStripe(
+      fakeAccount({
+        details_submitted: false,
+        requirements: {
+          currently_due: [],
+          past_due: [],
+          pending_verification: [],
+          eventually_due: [],
+          disabled_reason: 'requirements.past_due',
+        },
+      })
+    );
+    assert.equal(s.uiStatus, 'RESTRICTED');
+    assert.equal(shouldEmitStripeOnboardAction(s.uiStatus), true);
+  });
+
+  it('CTA matrix labels for all statuses', () => {
+    assert.equal(connectCtaModelForStatus('NOT_STARTED').ctaLabelNl, 'Betaalaccount instellen');
+    assert.equal(connectCtaModelForStatus('INCOMPLETE').ctaLabelNl, 'Betaalaccount afronden');
+    assert.equal(connectCtaModelForStatus('PENDING_VERIFICATION').showOnboardingCta, false);
+    assert.equal(
+      connectCtaModelForStatus('ACTION_REQUIRED').ctaLabelNl,
+      'Actie nodig voor je betaalaccount',
+    );
+    assert.equal(connectCtaModelForStatus('PAYMENT_READY').showOnboardingCta, false);
+    assert.equal(connectCtaModelForStatus('PAYMENT_READY').titleNl, 'Betaalaccount actief');
+  });
+});
+
+describe('success copy contract', () => {
+  it('PAYMENT_READY success model is explicit about payment account', () => {
+    const m = connectCtaModelForStatus('PAYMENT_READY');
+    assert.match(m.titleNl, /actief|klaar/i);
+    assert.match(m.bodyNl, /betalingen/i);
+    assert.equal(m.showOnboardingCta, false);
+  });
 });

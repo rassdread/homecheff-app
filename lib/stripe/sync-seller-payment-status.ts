@@ -51,6 +51,16 @@ export async function loadConnectAccountStatusForUser(params: {
       });
     }
 
+    // Keep legacy Affiliate mirror in sync (one Connect account per user).
+    try {
+      const { syncAffiliateConnectMirrorFromUser } = await import(
+        '@/lib/stripe/affiliate-connect-mirror'
+      );
+      await syncAffiliateConnectMirrorFromUser(params.userId);
+    } catch (mirrorErr) {
+      console.warn('[stripe] affiliate connect mirror sync failed', mirrorErr);
+    }
+
     return snapshot;
   } catch (error) {
     console.warn('[stripe] loadConnectAccountStatusForUser failed', {

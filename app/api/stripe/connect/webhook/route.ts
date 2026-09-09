@@ -80,6 +80,15 @@ async function handleAccountUpdated(account: any) {
       }
     });
 
+    try {
+      const { syncAffiliateConnectMirrorFromUser } = await import(
+        '@/lib/stripe/affiliate-connect-mirror'
+      );
+      await syncAffiliateConnectMirrorFromUser(user.id);
+    } catch (mirrorErr) {
+      console.warn('[stripe-connect-webhook] affiliate mirror sync failed', mirrorErr);
+    }
+
   } catch (error) {
     console.error('Error handling account.updated:', error);
   }
@@ -113,6 +122,15 @@ async function handleCapabilityUpdated(capability: any) {
         stripeConnectOnboardingCompleted: isCompleted 
       }
     });
+
+    try {
+      const { syncAffiliateConnectMirrorFromUser } = await import(
+        '@/lib/stripe/affiliate-connect-mirror'
+      );
+      await syncAffiliateConnectMirrorFromUser(user.id);
+    } catch (mirrorErr) {
+      console.warn('[stripe-connect-webhook] affiliate mirror sync failed', mirrorErr);
+    }
 
   } catch (error) {
     console.error('Error handling capability.updated:', error);

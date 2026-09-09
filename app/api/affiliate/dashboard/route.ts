@@ -192,8 +192,14 @@ export async function GET(req: NextRequest) {
       affiliate: {
         id: affiliate.id,
         status: affiliate.status,
-        stripeConnectAccountId: affiliate.stripeConnectAccountId,
-        stripeConnectOnboardingCompleted: affiliate.stripeConnectOnboardingCompleted,
+        // User is canonical Connect owner; Affiliate fields are legacy mirror.
+        stripeConnectAccountId:
+          user.stripeConnectAccountId || affiliate.stripeConnectAccountId,
+        stripeConnectOnboardingCompleted: Boolean(
+          user.stripeConnectAccountId
+            ? user.stripeConnectOnboardingCompleted
+            : affiliate.stripeConnectOnboardingCompleted,
+        ),
         createdAt: affiliate.createdAt,
         isSubAffiliate: !!affiliate.parentAffiliateId,
       },

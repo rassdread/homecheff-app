@@ -162,6 +162,14 @@ export async function POST(req: NextRequest) {
             data: { stripeConnectAccountId: accountId }
           });
           console.log('✅ User updated with account ID');
+          try {
+            const { syncAffiliateConnectMirrorFromUser } = await import(
+              '@/lib/stripe/affiliate-connect-mirror'
+            );
+            await syncAffiliateConnectMirrorFromUser(user.id);
+          } catch (mirrorErr) {
+            console.warn('[stripe-onboard] affiliate mirror sync failed', mirrorErr);
+          }
         } catch (error: any) {
           console.error('❌ Error creating Connect account:', error);
           console.error('❌ Error details:', {
