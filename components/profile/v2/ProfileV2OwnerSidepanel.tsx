@@ -418,7 +418,47 @@ function NextStepBlock() {
     openStripeSetup,
     stripeLoading,
   } = useSidepanelContext();
-  const { nextStep, publicProfileHref } = derived;
+  const { nextStep: serverNextStep, publicProfileHref } = derived;
+  const [nextStep, setNextStep] = useState(serverNextStep);
+
+  useEffect(() => {
+    setNextStep(serverNextStep);
+  }, [serverNextStep]);
+
+  useEffect(() => {
+    if (serverNextStep.id !== 'stripe') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/stripe/connect/onboard?ts=${Date.now()}`, {
+          cache: 'no-store',
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const ui = data.uiStatus as string | undefined;
+        if (
+          ui === 'PAYMENT_READY' ||
+          ui === 'PENDING_VERIFICATION' ||
+          data.isCompleted ||
+          data.paymentReady
+        ) {
+          // Suppress stale Stripe onboarding CTA — show public-profile next step instead
+          setNextStep({
+            id: 'viewPublicProfile',
+            titleKey: 'profileV2.sidepanel.nextStep.viewPublic.title',
+            descriptionKey: 'profileV2.sidepanel.nextStep.viewPublic.description',
+            ctaKey: 'profileV2.sidepanel.nextStep.viewPublic.cta',
+            tab: 'community',
+          });
+        }
+      } catch {
+        /* keep server next step */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [serverNextStep.id]);
 
   const handleClick = () => {
     switch (nextStep.id) {

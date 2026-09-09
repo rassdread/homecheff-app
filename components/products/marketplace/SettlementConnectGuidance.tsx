@@ -1,46 +1,48 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ShieldAlert, ExternalLink } from 'lucide-react';
+import { ShieldAlert, ExternalLink, Clock } from 'lucide-react';
 import { SettlementLucideIcon } from '@/components/marketplace/SettlementLucideIcon';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
 
 /**
- * Phase 7C.4 — friendly Stripe Connect guidance shown where the seller chooses
- * HomeCheff Checkout.
- *
- * - Connect ready   → reassuring green status (marketplace.settlement.connectReady)
- * - Connect missing → non-blocking guidance + CTA to the EXISTING onboarding
- *                     route (marketplace.settlement.needsConnect + setupConnectCta)
- *
- * Never blocks publishing; only explains that HomeCheff Checkout becomes
- * publicly available once the payout profile is finished.
+ * Phase 7C.4 — friendly Stripe Connect guidance where seller chooses
+ * HomeCheff Checkout. Uses shared Connect uiStatus (never accountId alone).
  */
 export default function SettlementConnectGuidance({
   active,
 }: {
-  /** Seller currently has HomeCheff Checkout selected. */
   active: boolean;
 }) {
   const { t } = useTranslation();
-  const [status, setStatus] = useState<{ isCompleted: boolean } | null>(null);
+  const [uiStatus, setUiStatus] = useState<HomecheffConnectUiStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [ctaLoading, setCtaLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch('/api/stripe/connect/onboard');
+      const res = await fetch(`/api/stripe/connect/onboard?ts=${Date.now()}`, {
+        cache: 'no-store',
+      });
       if (!res.ok) {
-        setStatus(null);
+        setUiStatus(null);
         return;
       }
       const data = await res.json();
-      setStatus({ isCompleted: Boolean(data.isCompleted) });
+      const status = (data.uiStatus as HomecheffConnectUiStatus) || (
+        data.isCompleted || data.paymentReady
+          ? 'PAYMENT_READY'
+          : data.hasAccount
+            ? 'INCOMPLETE'
+            : 'NOT_STARTED'
+      );
+      setUiStatus(status);
     } catch {
-      setStatus(null);
+      setUiStatus(null);
     } finally {
       setLoading(false);
     }
@@ -71,9 +73,9 @@ export default function SettlementConnectGuidance({
     }
   };
 
-  if (!active || loading || !status) return null;
+  if (!active || loading || !uiStatus) return null;
 
-  if (status.isCompleted) {
+  if (uiStatus === 'PAYMENT_READY') {
     return (
       <div
         className="mt-3 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3"
@@ -86,6 +88,29 @@ export default function SettlementConnectGuidance({
       </div>
     );
   }
+
+  if (uiStatus === 'PENDING_VERIFICATION') {
+    return (
+      <div
+        className="mt-3 flex items-start gap-2.5 rounded-xl border border-sky-200 bg-sky-50 p-3"
+        role="status"
+      >
+        <Clock className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden />
+        <p className="text-xs leading-relaxed text-sky-950">
+          Je gegevens zijn ontvangen. Stripe controleert je betaalaccount — je hoeft
+          niets opnieuw in te vullen. HomeCheff Checkout wordt beschikbaar zodra
+          verificatie klaar is.
+        </p>
+      </div>
+    );
+  }
+
+  const ctaLabel =
+    uiStatus === 'ACTION_REQUIRED' || uiStatus === 'RESTRICTED'
+      ? 'Actie nodig voor je betaalaccount'
+      : uiStatus === 'INCOMPLETE'
+        ? 'Betaalaccount afronden'
+        : t('marketplace.settlement.setupConnectCta');
 
   return (
     <div
@@ -106,7 +131,7 @@ export default function SettlementConnectGuidance({
           className="w-full whitespace-normal px-4 py-2 sm:w-auto"
         >
           <ExternalLink className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-          <span>{t('marketplace.settlement.setupConnectCta')}</span>
+          <span>{ctaLabel}</span>
         </Button>
       </div>
       {error ? (

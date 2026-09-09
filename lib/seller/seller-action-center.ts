@@ -4,6 +4,10 @@ import {
   type AccountRequirementsUserInput,
 } from '@/lib/account-requirements';
 import {
+  connectCtaModelForStatus,
+  shouldEmitStripeOnboardAction,
+} from '@/lib/stripe/connect-account-status';
+import {
   resolveSellerPaymentStatus,
   type SellerStripeSnapshot,
 } from '@/lib/stripe/seller-payment-status';
@@ -43,36 +47,46 @@ function buildStripeActions(
   snapshot: SellerStripeSnapshot,
 ): SellerActionItem[] {
   const resolution = resolveSellerPaymentStatus(snapshot);
+  const ui = resolution.connectUiStatus;
 
-  if (resolution.status === 'NOT_CONNECTED') {
-    return [
-      {
-        id: 'stripe-not-connected',
-        severity: 'red',
-        title: 'Je kunt nog geen betalingen ontvangen.',
-        description: 'Koppel Stripe om producten via HomeCheff te verkopen.',
-        actionLabel: 'Stripe koppelen',
-        actionHref: STRIPE_SETTINGS_HREF,
-        actionKind: 'stripe-onboard',
-      },
-    ];
+  if (!shouldEmitStripeOnboardAction(ui)) {
+    // PENDING_VERIFICATION → informational (non-onboarding) item
+    if (ui === 'PENDING_VERIFICATION') {
+      const model = connectCtaModelForStatus(ui);
+      return [
+        {
+          id: 'stripe-pending-verification',
+          severity: 'orange',
+          title: model.titleNl,
+          description: model.bodyNl,
+          actionLabel: 'Bekijk status',
+          actionHref: STRIPE_SETTINGS_HREF,
+          actionKind: 'link',
+        },
+      ];
+    }
+    return [];
   }
 
-  if (!resolution.paymentsReady) {
-    return [
-      {
-        id: 'stripe-onboarding-incomplete',
-        severity: 'red',
-        title: 'Je betaalinstellingen zijn nog niet afgerond.',
-        description: 'Rond Stripe af om betalingen te ontvangen.',
-        actionLabel: 'Nu afronden',
-        actionHref: STRIPE_SETTINGS_HREF,
-        actionKind: 'stripe-onboard',
-      },
-    ];
-  }
+  const model = connectCtaModelForStatus(ui);
+  const id =
+    ui === 'NOT_STARTED'
+      ? 'stripe-not-connected'
+      : ui === 'ACTION_REQUIRED' || ui === 'RESTRICTED'
+        ? 'stripe-action-required'
+        : 'stripe-onboarding-incomplete';
 
-  return [];
+  return [
+    {
+      id,
+      severity: 'red',
+      title: model.titleNl,
+      description: model.bodyNl,
+      actionLabel: model.ctaLabelNl || 'Betaalaccount openen',
+      actionHref: STRIPE_SETTINGS_HREF,
+      actionKind: 'stripe-onboard',
+    },
+  ];
 }
 
 function buildBlockedProductsAction(

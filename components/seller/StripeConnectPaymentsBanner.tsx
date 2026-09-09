@@ -1,36 +1,40 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
-
-interface StripeConnectStatus {
-  hasAccount: boolean;
-  isCompleted: boolean;
-}
+import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
+import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
+import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
 
 export default function StripeConnectPaymentsBanner() {
   const { t, tOr } = useTranslation();
-  const [status, setStatus] = useState<StripeConnectStatus | null>(null);
+  const [uiStatus, setUiStatus] = useState<HomecheffConnectUiStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [ctaLoading, setCtaLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch('/api/stripe/connect/onboard');
+      const res = await fetch(`/api/stripe/connect/onboard?ts=${Date.now()}`, {
+        cache: 'no-store',
+      });
       if (!res.ok) {
-        setStatus(null);
+        setUiStatus(null);
         return;
       }
       const data = await res.json();
-      setStatus({
-        hasAccount: Boolean(data.hasAccount),
-        isCompleted: Boolean(data.isCompleted),
-      });
+      setUiStatus(
+        (data.uiStatus as HomecheffConnectUiStatus) ||
+          (data.isCompleted || data.paymentReady
+            ? 'PAYMENT_READY'
+            : data.hasAccount
+              ? 'INCOMPLETE'
+              : 'NOT_STARTED')
+      );
     } catch {
-      setStatus(null);
+      setUiStatus(null);
     } finally {
       setLoading(false);
     }
@@ -44,28 +48,22 @@ export default function StripeConnectPaymentsBanner() {
     setCtaLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/stripe/connect/onboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
+      const result = await startStripeConnectOnboarding();
+      if (!result.ok) {
         setError(
-          typeof data.error === 'string'
-            ? data.error
-            : tOr(
-                'seller.stripeConnectPaymentsBanner.error',
-                'Something went wrong. Please try again.',
-                'Er ging iets mis. Probeer het opnieuw.'
-              )
+          result.error ||
+            tOr(
+              'seller.stripeConnectPaymentsBanner.error',
+              'Something went wrong. Please try again.',
+              'Er ging iets mis. Probeer het opnieuw.'
+            )
         );
+        await refresh();
         return;
       }
-      if (data.onboardingUrl) {
-        window.location.href = data.onboardingUrl as string;
-        return;
+      if (!result.redirected) {
+        await refresh();
       }
-      await refresh();
     } catch {
       setError(
         tOr(
@@ -79,19 +77,43 @@ export default function StripeConnectPaymentsBanner() {
     }
   };
 
-  if (loading || !status || status.isCompleted) {
+  if (loading || !uiStatus || uiStatus === 'PAYMENT_READY') {
     return null;
   }
 
+  if (uiStatus === 'PENDING_VERIFICATION') {
+    const model = connectCtaModelForStatus('PENDING_VERIFICATION');
+    return (
+      <div
+        className="mb-4 w-full min-w-0 rounded-xl border border-sky-200 bg-sky-50 p-4 sm:p-5"
+        role="status"
+      >
+        <div className="flex min-w-0 gap-3">
+          <Clock className="mt-0.5 h-5 w-5 shrink-0 text-sky-700" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-sky-950">{model.titleNl}</p>
+            <p className="mt-1 break-words text-xs leading-relaxed text-sky-900/80">
+              {model.bodyNl}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const model = connectCtaModelForStatus(uiStatus);
   const message =
+    model.bodyNl ||
     t('seller.stripeConnectPaymentsBanner.message') ||
     'Je producten kunnen zichtbaar zijn, maar klanten kunnen pas afrekenen zodra je betalingen hebt ingesteld.';
   const cta =
+    model.ctaLabelNl ||
     t('seller.stripeConnectPaymentsBanner.cta') ||
     'Betalingen instellen';
-  const hint =
-    t('seller.stripeConnectPaymentsBanner.hint') ||
-    'Wil je dat mensen via HomeCheff kunnen betalen? Stel dan veilig je betalingen in.';
+
+  if (!model.showOnboardingCta) {
+    return null;
+  }
 
   return (
     <div
@@ -105,11 +127,11 @@ export default function StripeConnectPaymentsBanner() {
             aria-hidden
           />
           <div className="min-w-0 flex-1">
-            <p className="break-words text-sm leading-relaxed text-amber-950">
-              {message}
+            <p className="break-words text-sm font-medium leading-relaxed text-amber-950">
+              {model.titleNl}
             </p>
-            <p className="mt-1.5 break-words text-xs leading-relaxed text-amber-900/80">
-              {hint}
+            <p className="mt-1 break-words text-xs leading-relaxed text-amber-900/80">
+              {message}
             </p>
           </div>
         </div>

@@ -106,6 +106,7 @@ export default function DeliveryDashboard() {
   const [stripeConnectStatus, setStripeConnectStatus] = useState<{
     accountId?: string | null;
     onboardingCompleted?: boolean;
+    uiStatus?: string | null;
   } | null>(null);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
@@ -283,12 +284,15 @@ export default function DeliveryDashboard() {
 
   const fetchStripeConnectStatus = async () => {
     try {
-      const response = await fetch('/api/profile/me');
+      const response = await fetch(`/api/stripe/connect/onboard?ts=${Date.now()}`, {
+        cache: 'no-store',
+      });
       if (response.ok) {
         const data = await response.json();
         setStripeConnectStatus({
-          accountId: data.user?.stripeConnectAccountId,
-          onboardingCompleted: data.user?.stripeConnectOnboardingCompleted
+          accountId: data.accountId,
+          onboardingCompleted: Boolean(data.isCompleted || data.paymentReady),
+          uiStatus: data.uiStatus || null,
         });
       }
     } catch (error) {
@@ -1424,7 +1428,8 @@ export default function DeliveryDashboard() {
                 <span>{t('delivery.paymentStatus')}</span>
               </h3>
               
-              {stripeConnectStatus?.onboardingCompleted ? (
+              {stripeConnectStatus?.onboardingCompleted ||
+              stripeConnectStatus?.uiStatus === 'PAYMENT_READY' ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center mb-2">
                     <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2 flex-shrink-0" />
@@ -1432,6 +1437,16 @@ export default function DeliveryDashboard() {
                   </div>
                   <p className="text-green-700 text-xs sm:text-sm">
                     {t('delivery.stripeConnectActiveDesc')}
+                  </p>
+                </div>
+              ) : stripeConnectStatus?.uiStatus === 'PENDING_VERIFICATION' ? (
+                <div className="bg-sky-50 border border-sky-200 rounded-lg p-3 sm:p-4">
+                  <div className="flex items-center mb-2">
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-sky-600 mr-2 flex-shrink-0" />
+                    <span className="font-medium text-sky-800 text-sm sm:text-base">Verificatie loopt</span>
+                  </div>
+                  <p className="text-sky-700 text-xs sm:text-sm">
+                    Je gegevens zijn ontvangen. Stripe controleert je betaalaccount. Je hoeft nu niets opnieuw in te vullen.
                   </p>
                 </div>
               ) : (
@@ -1449,7 +1464,16 @@ export default function DeliveryDashboard() {
                     className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm"
                   >
                     <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>{stripeLoading ? t('common.loading') : t('delivery.setupNow')}</span>
+                    <span>
+                      {stripeLoading
+                        ? t('common.loading')
+                        : stripeConnectStatus?.uiStatus === 'ACTION_REQUIRED' ||
+                            stripeConnectStatus?.uiStatus === 'RESTRICTED'
+                          ? 'Actie nodig voor je betaalaccount'
+                          : stripeConnectStatus?.uiStatus === 'INCOMPLETE'
+                            ? 'Betaalaccount afronden'
+                            : t('delivery.setupNow')}
+                    </span>
                     <ExternalLink className="w-3 h-3" />
                   </button>
                 </div>

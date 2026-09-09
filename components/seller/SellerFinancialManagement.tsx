@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
+import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 
 interface Transaction {
   id: string;
@@ -89,15 +90,23 @@ interface StripeStatus {
   connected: boolean;
   accountId: string | null;
   details: {
-    email: string;
-    country: string;
-    type: string;
-    businessType: string | null;
-    payoutsEnabled: boolean;
-    chargesEnabled: boolean;
-    detailsSubmitted: boolean;
+    email?: string | null;
+    country?: string | null;
+    type?: string | null;
+    businessType?: string | null;
+    payoutsEnabled?: boolean;
+    chargesEnabled?: boolean;
+    detailsSubmitted?: boolean;
   } | null;
   payoutsEnabled: boolean;
+  uiStatus?: string;
+  paymentReady?: boolean;
+  cta?: {
+    titleNl?: string;
+    bodyNl?: string;
+    ctaLabelNl?: string | null;
+    showOnboardingCta?: boolean;
+  };
 }
 
 export default function SellerFinancialManagement() {
@@ -1111,6 +1120,29 @@ function StripeTab({
   loading: boolean;
   onRefresh: () => void;
 }) {
+  const [ctaLoading, setCtaLoading] = useState(false);
+  const uiStatus = stripeStatus?.uiStatus;
+  const paymentReady =
+    stripeStatus?.paymentReady === true ||
+    stripeStatus?.connected === true ||
+    uiStatus === 'PAYMENT_READY';
+  const pending = uiStatus === 'PENDING_VERIFICATION';
+  const showOnboardCta =
+    !paymentReady &&
+    !pending &&
+    (stripeStatus?.cta?.showOnboardingCta !== false);
+
+  const openOnboarding = async () => {
+    setCtaLoading(true);
+    try {
+      await startStripeConnectOnboarding({
+        returnPath: '/verkoper/dashboard?tab=financien',
+      });
+    } finally {
+      setCtaLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-12">
@@ -1136,23 +1168,26 @@ function StripeTab({
         </button>
       </div>
 
-      {stripeStatus.connected ? (
+      {paymentReady ? (
         <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-green-500 rounded-full">
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✅ {t('seller.stripeConnected')}</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Betaalaccount actief</h3>
               <p className="text-gray-700 mb-4">
-                {t('seller.stripeConnectedDesc')}
+                Je kunt betalingen via HomeCheff ontvangen.
               </p>
               {stripeStatus.details && (
                 <div className="space-y-2 text-sm">
                   <p><span className="font-medium">{t('seller.accountId')}:</span> {stripeStatus.accountId}</p>
-                  <p><span className="font-medium">{t('seller.email')}:</span> {stripeStatus.details.email}</p>
-                  <p><span className="font-medium">{t('seller.country')}:</span> {stripeStatus.details.country}</p>
-                  <p><span className="font-medium">{t('seller.type')}:</span> {stripeStatus.details.type}</p>
+                  {stripeStatus.details.email != null && (
+                    <p><span className="font-medium">{t('seller.email')}:</span> {stripeStatus.details.email}</p>
+                  )}
+                  {stripeStatus.details.country != null && (
+                    <p><span className="font-medium">{t('seller.country')}:</span> {stripeStatus.details.country}</p>
+                  )}
                   <p>
                     <span className="font-medium">{t('seller.payoutsEnabled')}</span>{' '}
                     {stripeStatus.details.payoutsEnabled ? (
@@ -1163,14 +1198,23 @@ function StripeTab({
                   </p>
                 </div>
               )}
-              <div className="mt-4 flex gap-3">
-                <Link href="/seller/stripe/refresh">
-                  <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-                    <Eye className="w-4 h-4 inline mr-2" />
-                    {t('seller.viewInStripeDashboard')}
-                  </button>
-                </Link>
-              </div>
+            </div>
+          </div>
+        </div>
+      ) : pending ? (
+        <div className="bg-sky-50 border-2 border-sky-200 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-sky-500 rounded-full">
+              <Clock className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {stripeStatus.cta?.titleNl || 'Verificatie loopt'}
+              </h3>
+              <p className="text-gray-700">
+                {stripeStatus.cta?.bodyNl ||
+                  'Je gegevens zijn ontvangen. Stripe controleert je betaalaccount. Je hoeft nu niets opnieuw in te vullen.'}
+              </p>
             </div>
           </div>
         </div>
@@ -1181,16 +1225,25 @@ function StripeTab({
               <AlertCircle className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">{t('seller.stripeNotConnectedTitle')}</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {stripeStatus.cta?.titleNl || t('seller.stripeNotConnectedTitle')}
+              </h3>
               <p className="text-gray-700 mb-4">
-                {t('seller.stripeNotConnectedDesc')}
+                {stripeStatus.cta?.bodyNl || t('seller.stripeNotConnectedDesc')}
               </p>
-              <Link href="/seller/stripe/onboard">
-                <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
+              {showOnboardCta && (
+                <button
+                  type="button"
+                  onClick={() => void openOnboarding()}
+                  disabled={ctaLoading}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                >
                   <CreditCard className="w-4 h-4 inline mr-2" />
-                  {t('seller.connectStripeAccount')}
+                  {ctaLoading
+                    ? t('common.loading')
+                    : stripeStatus.cta?.ctaLabelNl || t('seller.connectStripeAccount')}
                 </button>
-              </Link>
+              )}
             </div>
           </div>
         </div>

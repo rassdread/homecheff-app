@@ -1,4 +1,12 @@
-/** Stripe-verkopersstatus voor productdetail en checkout-gating (geen gevoelige Stripe-data). */
+/**
+ * Stripe seller payment status for product detail / checkout gating.
+ * CTA surfaces should prefer connectUiStatus from live Connect derivation.
+ */
+
+import {
+  deriveConnectAccountStatusFromDb,
+  type HomecheffConnectUiStatus,
+} from '@/lib/stripe/connect-account-status';
 
 export type SellerPaymentStatus =
   | 'NOT_CONNECTED'
@@ -18,6 +26,11 @@ export type SellerStripeSnapshot = {
   stripeConnectOnboardingCompleted?: boolean | null;
   chargesEnabled?: boolean | null;
   payoutsEnabled?: boolean | null;
+  detailsSubmitted?: boolean | null;
+  currentlyDueCount?: number | null;
+  pastDueCount?: number | null;
+  pendingVerificationCount?: number | null;
+  connectUiStatus?: HomecheffConnectUiStatus | null;
 };
 
 export type PublicPaymentStatus = {
@@ -32,21 +45,82 @@ export type SellerPaymentResolution = {
   status: SellerPaymentStatus;
   reason: CheckoutBlockedReason | null;
   paymentsReady: boolean;
+  connectUiStatus: HomecheffConnectUiStatus;
 };
+
+export function resolveConnectUiStatus(
+  seller: SellerStripeSnapshot | null | undefined,
+): HomecheffConnectUiStatus {
+  if (seller?.connectUiStatus) {
+    return seller.connectUiStatus;
+  }
+
+  const hasAccount = Boolean(seller?.stripeConnectAccountId);
+  if (!hasAccount) return 'NOT_STARTED';
+
+  const currentlyDue = seller?.currentlyDueCount ?? 0;
+  const pastDue = seller?.pastDueCount ?? 0;
+  const pendingVerification = seller?.pendingVerificationCount ?? 0;
+  const detailsSubmitted = seller?.detailsSubmitted;
+  const chargesEnabled = seller?.chargesEnabled;
+  const payoutsEnabled = seller?.payoutsEnabled;
+
+  // Live capability flags always win over stale DB completed.
+  if (chargesEnabled === true && payoutsEnabled === true) {
+    return 'PAYMENT_READY';
+  }
+
+  if (currentlyDue > 0 || pastDue > 0) {
+    return 'ACTION_REQUIRED';
+  }
+
+  if (
+    detailsSubmitted === true &&
+    currentlyDue === 0 &&
+    pastDue === 0 &&
+    (pendingVerification > 0 || chargesEnabled === false || payoutsEnabled === false)
+  ) {
+    return 'PENDING_VERIFICATION';
+  }
+
+  if (chargesEnabled === false || payoutsEnabled === false) {
+    return detailsSubmitted === true ? 'PENDING_VERIFICATION' : 'INCOMPLETE';
+  }
+
+  if (seller?.stripeConnectOnboardingCompleted && chargesEnabled == null && payoutsEnabled == null) {
+    return 'PAYMENT_READY';
+  }
+
+  return deriveConnectAccountStatusFromDb({
+    stripeConnectAccountId: seller?.stripeConnectAccountId,
+    stripeConnectOnboardingCompleted: false,
+  }).uiStatus;
+}
 
 export function resolveSellerPaymentStatus(
   seller: SellerStripeSnapshot | null | undefined,
 ): SellerPaymentResolution {
+  const connectUiStatus = resolveConnectUiStatus(seller);
   const hasAccount = Boolean(seller?.stripeConnectAccountId);
   const onboardingCompleted = Boolean(seller?.stripeConnectOnboardingCompleted);
   const chargesEnabled = seller?.chargesEnabled;
   const payoutsEnabled = seller?.payoutsEnabled;
+
+  if (connectUiStatus === 'PAYMENT_READY') {
+    return {
+      status: 'PAYMENTS_READY',
+      reason: null,
+      paymentsReady: true,
+      connectUiStatus: 'PAYMENT_READY',
+    };
+  }
 
   if (!hasAccount) {
     return {
       status: 'NOT_CONNECTED',
       reason: 'STRIPE_NOT_CONNECTED',
       paymentsReady: false,
+      connectUiStatus: 'NOT_STARTED',
     };
   }
 
@@ -55,6 +129,7 @@ export function resolveSellerPaymentStatus(
       status: 'CONNECTED_INCOMPLETE',
       reason: 'STRIPE_CHARGES_DISABLED',
       paymentsReady: false,
+      connectUiStatus,
     };
   }
 
@@ -63,29 +138,17 @@ export function resolveSellerPaymentStatus(
       status: 'CONNECTED_INCOMPLETE',
       reason: 'STRIPE_PAYOUTS_DISABLED',
       paymentsReady: false,
+      connectUiStatus,
     };
   }
 
-  if (onboardingCompleted) {
-    return {
-      status: 'PAYMENTS_READY',
-      reason: null,
-      paymentsReady: true,
-    };
-  }
-
-  if (hasAccount && !onboardingCompleted) {
-    return {
-      status: 'CONNECTED_INCOMPLETE',
-      reason: 'STRIPE_ONBOARDING_INCOMPLETE',
-      paymentsReady: false,
-    };
-  }
-
+  // Do not upgrade to PAYMENTS_READY from DB onboardingCompleted alone —
+  // connectUiStatus / live capability flags are the source of truth above.
   return {
-    status: 'UNKNOWN',
-    reason: 'PAYMENTS_NOT_READY',
+    status: 'CONNECTED_INCOMPLETE',
+    reason: 'STRIPE_ONBOARDING_INCOMPLETE',
     paymentsReady: false,
+    connectUiStatus,
   };
 }
 

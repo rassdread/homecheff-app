@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createConnectAccount, stripe, matchesCurrentMode, isTestMode } from '@/lib/stripe';
+import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
+import { loadConnectAccountStatusForUser } from '@/lib/stripe/sync-seller-payment-status';
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,13 +12,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user from database
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { 
+      select: {
+        id: true,
         stripeConnectAccountId: true,
-        stripeConnectOnboardingCompleted: true
-      }
+        stripeConnectOnboardingCompleted: true,
+      },
     });
 
     if (!user) {
@@ -25,59 +27,50 @@ export async function GET(req: NextRequest) {
 
     // Check if account ID matches current mode (test/live)
     if (user.stripeConnectAccountId && !matchesCurrentMode(user.stripeConnectAccountId)) {
-      // Account is from different mode, clear it
       await prisma.user.update({
         where: { email: session.user.email },
         data: {
           stripeConnectAccountId: null,
-          stripeConnectOnboardingCompleted: false
-        }
+          stripeConnectOnboardingCompleted: false,
+        },
       });
+      const cta = connectCtaModelForStatus('NOT_STARTED');
       return NextResponse.json({
         hasAccount: false,
         isCompleted: false,
-        accountId: null
+        accountId: null,
+        uiStatus: 'NOT_STARTED',
+        paymentReady: false,
+        detailsSubmitted: false,
+        chargesEnabled: false,
+        payoutsEnabled: false,
+        cta,
       });
     }
 
-    // Check if account exists in Stripe and get real status
-    let isCompleted = false;
-    if (user.stripeConnectAccountId && stripe) {
-      try {
-        const account = await stripe.accounts.retrieve(user.stripeConnectAccountId);
-        isCompleted = account.charges_enabled && account.payouts_enabled;
-        
-        // Update database with real status
-        await prisma.user.update({
-          where: { email: session.user.email },
-          data: { stripeConnectOnboardingCompleted: isCompleted }
-        });
-      } catch (err: any) {
-        console.error('Error checking Stripe account:', err);
-        // If account doesn't exist (e.g., test account in live mode or vice versa),
-        // clear the account ID and mark as not completed
-        if (err.code === 'resource_missing' || err.statusCode === 404) {
-          await prisma.user.update({
-            where: { email: session.user.email },
-            data: { 
-              stripeConnectAccountId: null,
-              stripeConnectOnboardingCompleted: false
-            }
-          });
-          isCompleted = false;
-        } else {
-          // Use database value if API call fails for other reasons
-          isCompleted = !!user.stripeConnectOnboardingCompleted;
-        }
-      }
-    }
-
-    return NextResponse.json({
-      hasAccount: !!user.stripeConnectAccountId,
-      isCompleted,
-      accountId: user.stripeConnectAccountId
+    const live = await loadConnectAccountStatusForUser({
+      userId: user.id,
+      stripeConnectAccountId: user.stripeConnectAccountId,
+      stripeConnectOnboardingCompleted: user.stripeConnectOnboardingCompleted,
+      forceLive: true,
     });
 
+    const cta = connectCtaModelForStatus(live.uiStatus);
+
+    return NextResponse.json({
+      hasAccount: live.hasAccount,
+      isCompleted: live.paymentReady,
+      accountId: live.accountId,
+      uiStatus: live.uiStatus,
+      paymentReady: live.paymentReady,
+      detailsSubmitted: live.detailsSubmitted,
+      chargesEnabled: live.chargesEnabled,
+      payoutsEnabled: live.payoutsEnabled,
+      currentlyDueCount: live.currentlyDueCount,
+      pastDueCount: live.pastDueCount,
+      pendingVerificationCount: live.pendingVerificationCount,
+      cta,
+    });
   } catch (error) {
     console.error('Stripe Connect status check error:', error);
     return NextResponse.json(
@@ -111,12 +104,24 @@ export async function POST(req: NextRequest) {
     }
 
     // If user already has a completed Stripe Connect account, return success
+    // after live verification (never trust stale DB completed alone).
     if (user.stripeConnectOnboardingCompleted && user.stripeConnectAccountId) {
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Stripe Connect already set up',
-        accountId: user.stripeConnectAccountId
+      const live = await loadConnectAccountStatusForUser({
+        userId: user.id,
+        stripeConnectAccountId: user.stripeConnectAccountId,
+        stripeConnectOnboardingCompleted: user.stripeConnectOnboardingCompleted,
+        forceLive: true,
       });
+      if (live.paymentReady) {
+        return NextResponse.json({
+          success: true,
+          message: 'Stripe Connect already set up',
+          accountId: user.stripeConnectAccountId,
+          uiStatus: live.uiStatus,
+          paymentReady: true,
+        });
+      }
+      // Fall through to create a new account link for ACTION_REQUIRED / incomplete
     }
 
     // Create or get existing Stripe Connect account

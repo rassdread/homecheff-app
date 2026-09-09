@@ -92,6 +92,7 @@ export default function DeliveryProfileSettings() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [connectUiStatus, setConnectUiStatus] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -128,6 +129,25 @@ export default function DeliveryProfileSettings() {
           bio: settingsData.profile.bio || '',
           place: settingsData.user.place || ''
         });
+      }
+
+      try {
+        const stripeRes = await fetch(`/api/stripe/connect/onboard?ts=${Date.now()}`, {
+          cache: 'no-store',
+        });
+        if (stripeRes.ok) {
+          const stripeData = await stripeRes.json();
+          setConnectUiStatus(stripeData.uiStatus || null);
+          if (stripeData.paymentReady || stripeData.isCompleted) {
+            setUser((prev) =>
+              prev
+                ? { ...prev, stripeConnectOnboardingCompleted: true }
+                : prev
+            );
+          }
+        }
+      } catch {
+        /* keep settings user flags */
       }
 
       // Fetch earnings
@@ -496,11 +516,12 @@ export default function DeliveryProfileSettings() {
               Betalingsinstellingen
             </h3>
 
-            {user?.stripeConnectOnboardingCompleted ? (
+            {user?.stripeConnectOnboardingCompleted ||
+            connectUiStatus === 'PAYMENT_READY' ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-center mb-3">
                   <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                  <h4 className="font-semibold text-green-800">Stripe Connect Ingesteld</h4>
+                  <h4 className="font-semibold text-green-800">Betaalaccount actief</h4>
                 </div>
                 <p className="text-green-700 text-sm mb-3">
                   Je kunt nu betalingen ontvangen voor je bezorgingen. Uitbetalingen gebeuren automatisch naar je opgegeven bankrekening.
@@ -511,29 +532,42 @@ export default function DeliveryProfileSettings() {
                   <p>• Je ontvangt 88% van de bezorgkosten</p>
                 </div>
               </div>
+            ) : connectUiStatus === 'PENDING_VERIFICATION' ? (
+              <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <AlertCircle className="h-5 w-5 text-sky-600 mr-2" />
+                  <h4 className="font-semibold text-sky-800">Verificatie loopt</h4>
+                </div>
+                <p className="text-sky-700 text-sm">
+                  Je gegevens zijn ontvangen. Stripe controleert je betaalaccount. Je hoeft nu niets opnieuw in te vullen.
+                </p>
+              </div>
             ) : (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <div className="flex items-center mb-3">
                   <AlertCircle className="h-5 w-5 text-amber-600 mr-2" />
-                  <h4 className="font-semibold text-amber-800">Stripe Connect Vereist</h4>
+                  <h4 className="font-semibold text-amber-800">
+                    {connectUiStatus === 'ACTION_REQUIRED'
+                      ? 'Actie nodig voor je betaalaccount'
+                      : 'Betaalaccount instellen'}
+                  </h4>
                 </div>
                 <p className="text-amber-700 text-sm mb-4">
-                  Om betalingen te kunnen ontvangen voor je bezorgingen, moet je eerst je Stripe Connect account opzetten. 
-                  Dit is een eenmalige setup die 5 minuten duurt.
+                  Om betalingen te kunnen ontvangen voor je bezorgingen, moet je eerst je betaalaccount opzetten of afronden.
                 </p>
-                <div className="text-xs text-amber-600 mb-4 space-y-1">
-                  <p>• Veilige betalingsverwerking via Stripe</p>
-                  <p>• Automatische uitbetalingen naar je bankrekening</p>
-                  <p>• Je ontvangt 88% van de bezorgkosten</p>
-                  <p>• Geen maandelijkse kosten</p>
-                </div>
                 <button
                   onClick={handleStripeOnboard}
                   disabled={stripeLoading}
                   className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <CreditCard className="w-4 h-4" />
-                  {stripeLoading ? t('common.loading') : t('common.stripeConnectSetup')}
+                  {stripeLoading
+                    ? t('common.loading')
+                    : connectUiStatus === 'ACTION_REQUIRED'
+                      ? 'Actie nodig voor je betaalaccount'
+                      : connectUiStatus === 'INCOMPLETE'
+                        ? 'Betaalaccount afronden'
+                        : t('common.stripeConnectSetup')}
                   <ExternalLink className="w-4 h-4" />
                 </button>
               </div>

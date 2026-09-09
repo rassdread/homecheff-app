@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isTestMode, isStripeTestId } from '@/lib/stripe';
-import Stripe from 'stripe';
+import { matchesCurrentMode } from '@/lib/stripe';
+import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
+import { loadConnectAccountStatusForUser } from '@/lib/stripe/sync-seller-payment-status';
 
 export const dynamic = 'force-dynamic';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-08-27.basil' });
-
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user) {
@@ -25,8 +24,8 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         stripeConnectAccountId: true,
-        stripeConnectOnboardingCompleted: true
-      }
+        stripeConnectOnboardingCompleted: true,
+      },
     });
 
     if (!user) {
@@ -34,72 +33,61 @@ export async function GET(req: NextRequest) {
     }
 
     if (!user.stripeConnectAccountId) {
+      const cta = connectCtaModelForStatus('NOT_STARTED');
       return NextResponse.json({
         connected: false,
         accountId: null,
         details: null,
-        payoutsEnabled: false
+        payoutsEnabled: false,
+        uiStatus: 'NOT_STARTED',
+        paymentReady: false,
+        cta,
       });
     }
 
-    // Check if account ID matches current mode (test/live)
-    const accountIsTest = isStripeTestId(user.stripeConnectAccountId);
-    if (accountIsTest !== isTestMode) {
-      // Account is from different mode, clear it
+    if (!matchesCurrentMode(user.stripeConnectAccountId)) {
       await prisma.user.update({
         where: { email: userEmail },
         data: {
           stripeConnectAccountId: null,
-          stripeConnectOnboardingCompleted: false
-        }
-      });
-      return NextResponse.json({
-        connected: false,
-        accountId: null,
-        details: null,
-        payoutsEnabled: false,
-        error: 'Account from different Stripe mode. Please reconnect.'
-      });
-    }
-
-    try {
-      // Get account details from Stripe
-      const account = await stripe.accounts.retrieve(user.stripeConnectAccountId);
-
-      return NextResponse.json({
-        connected: user.stripeConnectOnboardingCompleted,
-        accountId: user.stripeConnectAccountId,
-        details: {
-          email: account.email,
-          country: account.country,
-          type: account.type,
-          businessType: account.business_type,
-          payoutsEnabled: account.payouts_enabled,
-          chargesEnabled: account.charges_enabled,
-          detailsSubmitted: account.details_submitted
+          stripeConnectOnboardingCompleted: false,
         },
-        payoutsEnabled: account.payouts_enabled || false
       });
-    } catch (stripeError: any) {
-      console.error('Stripe account retrieval error:', stripeError);
-      // If account doesn't exist, clear it from database
-      if (stripeError.code === 'resource_missing' || stripeError.statusCode === 404) {
-        await prisma.user.update({
-          where: { email: userEmail },
-          data: {
-            stripeConnectAccountId: null,
-            stripeConnectOnboardingCompleted: false
-          }
-        });
-      }
+      const cta = connectCtaModelForStatus('NOT_STARTED');
       return NextResponse.json({
         connected: false,
         accountId: null,
         details: null,
         payoutsEnabled: false,
-        error: stripeError.message || 'Account not found in Stripe'
+        uiStatus: 'NOT_STARTED',
+        paymentReady: false,
+        cta,
+        error: 'Account from different Stripe mode. Please reconnect.',
       });
     }
+
+    const live = await loadConnectAccountStatusForUser({
+      userId: user.id,
+      stripeConnectAccountId: user.stripeConnectAccountId,
+      stripeConnectOnboardingCompleted: user.stripeConnectOnboardingCompleted,
+      forceLive: true,
+    });
+
+    const cta = connectCtaModelForStatus(live.uiStatus);
+
+    return NextResponse.json({
+      connected: live.paymentReady,
+      accountId: live.accountId,
+      details: {
+        payoutsEnabled: live.payoutsEnabled,
+        chargesEnabled: live.chargesEnabled,
+        detailsSubmitted: live.detailsSubmitted,
+      },
+      payoutsEnabled: live.payoutsEnabled,
+      uiStatus: live.uiStatus,
+      paymentReady: live.paymentReady,
+      cta,
+    });
   } catch (error) {
     console.error('Error fetching Stripe status:', error);
     return NextResponse.json(
@@ -108,7 +96,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-
-
-
-
