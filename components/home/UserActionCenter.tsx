@@ -86,11 +86,6 @@ export function ActionCenterRow({
 }) {
   const styles = severityStyles[item.severity] ?? severityStyles.gray;
   const [stripeLoading, setStripeLoading] = useState(false);
-  const ctaClass = cn(
-    'inline-flex shrink-0 items-center justify-center rounded-lg font-semibold transition-colors',
-    compact ? 'px-2 py-1 text-[10px]' : 'px-3 py-2 text-xs sm:ml-3',
-    styles.cta,
-  );
 
   const handleStripeOnboard = async () => {
     setStripeLoading(true);
@@ -101,16 +96,24 @@ export function ActionCenterRow({
     }
   };
 
+  // Always stack CTA below text — side-by-side rows break in the Operations
+  // sidepanel (~280–360px) and cause word-per-line wrapping + button overlap.
+  const stackedCtaClass = cn(
+    'inline-flex w-full items-center justify-center rounded-lg font-semibold transition-colors',
+    compact ? 'min-h-[36px] px-2 py-1.5 text-[11px]' : 'min-h-[40px] px-3 py-2 text-xs',
+    styles.cta,
+  );
+
   return (
     <div
       className={cn(
         'rounded-xl border flex flex-col gap-2',
-        compact ? 'px-2.5 py-2' : 'px-4 py-3',
-        compact ? '' : 'sm:flex-row sm:items-center sm:justify-between',
+        compact ? 'px-2.5 py-2' : 'px-3 py-3',
         styles.card,
       )}
+      data-action-center-row
     >
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 w-full">
         <div className="flex items-start gap-2">
           <span
             className={cn(
@@ -120,10 +123,10 @@ export function ActionCenterRow({
             )}
             aria-hidden
           />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p
               className={cn(
-                'font-semibold leading-snug',
+                'font-semibold leading-snug break-words',
                 compact ? 'text-xs' : 'text-sm',
                 styles.title,
               )}
@@ -133,7 +136,7 @@ export function ActionCenterRow({
             {showDescription ? (
               <p
                 className={cn(
-                  'mt-0.5 leading-relaxed',
+                  'mt-0.5 leading-relaxed break-words',
                   compact ? 'text-[11px]' : 'text-xs',
                   styles.desc,
                 )}
@@ -149,12 +152,12 @@ export function ActionCenterRow({
           type="button"
           onClick={() => void handleStripeOnboard()}
           disabled={stripeLoading}
-          className={cn(ctaClass, stripeLoading && 'opacity-70')}
+          className={cn(stackedCtaClass, stripeLoading && 'opacity-70')}
         >
           {stripeLoading ? '…' : item.actionLabel}
         </button>
       ) : (
-        <Link href={item.actionHref} prefetch className={ctaClass}>
+        <Link href={item.actionHref} prefetch className={stackedCtaClass}>
           {item.actionLabel}
         </Link>
       )}

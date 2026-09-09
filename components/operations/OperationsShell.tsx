@@ -128,7 +128,7 @@ export default function OperationsShell({
                   <button
                     type="button"
                     onClick={() => openOverview('drawer')}
-                    className="hidden min-h-[36px] items-center gap-1.5 rounded-xl border border-emerald-200/70 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-50 sm:inline-flex lg:hidden"
+                    className="hidden min-h-[36px] items-center gap-1.5 rounded-xl border border-emerald-200/70 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-50 sm:inline-flex xl:hidden"
                   >
                     <LayoutPanelLeft className="h-3.5 w-3.5" aria-hidden />
                     {overviewLabel}
@@ -149,21 +149,23 @@ export default function OperationsShell({
             <div className="min-w-0 flex-1">
               {showPageHeader ? (
                 <div className="border-b border-gray-200/60 bg-white/70 px-4 py-4 sm:px-6 lg:px-8">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0 flex-1">
+                  {/* Always stack title above actions — prevents one-word-per-line when
+                      shrink-0 action chips squeeze the title column on narrow desktops. */}
+                  <div className="flex flex-col gap-3">
+                    <div className="min-w-0 w-full max-w-3xl">
                       {pageTitle ? (
                         <h1 className="hc-section-title text-xl font-bold text-gray-900 sm:text-2xl">
                           {pageTitle}
                         </h1>
                       ) : null}
                       {pageSubtitle ? (
-                        <p className="mt-1 text-sm text-gray-600 sm:text-base">
+                        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
                           {pageSubtitle}
                         </p>
                       ) : null}
                     </div>
                     {(quickActions || headerEnd) && (
-                      <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+                      <div className="flex w-full flex-wrap items-center gap-2">
                         {quickActions}
                         {headerEnd}
                       </div>
@@ -190,7 +192,10 @@ export default function OperationsShell({
             </div>
 
             {resolvedRightSlot ? (
-              <aside className="hidden w-[min(360px,100%)] shrink-0 border-l border-gray-200/80 lg:block">
+              <aside
+                className="hidden w-[min(320px,28vw)] min-w-[280px] max-w-[360px] shrink-0 border-l border-gray-200/80 xl:block"
+                data-operations-sidepanel-rail
+              >
                 {resolvedRightSlot}
               </aside>
             ) : null}

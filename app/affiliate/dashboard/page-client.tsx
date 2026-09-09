@@ -101,7 +101,7 @@ interface DashboardData {
 export default function AffiliateDashboardClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useTranslation();
+  const { t, tOr } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -445,27 +445,47 @@ export default function AffiliateDashboardClient() {
     <>
       <Link
         href="/verdiensten?uitbetaling=1"
-        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors text-sm sm:text-base whitespace-nowrap"
+        className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors text-sm whitespace-nowrap"
       >
-        <Wallet className="w-4 h-4" />
-        <span className="hidden sm:inline">{t('navbar.combinedEarnings')}</span>
-        <span className="sm:hidden">{t('operations.tabs.finance')}</span>
+        <Wallet className="w-4 h-4 shrink-0" aria-hidden />
+        <span>{t('navbar.combinedEarnings')}</span>
+      </Link>
+      <Link
+        href="/werken-bij"
+        className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-emerald-200 text-emerald-800 rounded-lg hover:bg-emerald-50 transition-colors text-sm whitespace-nowrap"
+      >
+        <span>
+          {tOr(
+            'affiliateDashboard.howItWorksCta',
+            'How it works',
+            'Hoe werkt het?',
+          )}
+        </span>
       </Link>
       <Link
         href="/affiliate/promo-codes"
-        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base whitespace-nowrap"
+        className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm whitespace-nowrap"
+        aria-label={tOr(
+          'affiliateDashboard.promoCodes',
+          'Promo codes',
+          'Promocodes',
+        )}
       >
-        <Gift className="w-4 h-4" />
-        <span className="hidden sm:inline">{t('affiliate.dashboard.promoCodes')}</span>
-        <span className="sm:hidden">{t('affiliate.dashboard.promoCodes')}</span>
+        <Gift className="w-4 h-4 shrink-0" aria-hidden />
+        <span>
+          {tOr(
+            'affiliateDashboard.promoCodes',
+            'Promo codes',
+            'Promocodes',
+          )}
+        </span>
       </Link>
       {!data.affiliate.stripeConnectOnboardingCompleted && (
         <Link
           href="/affiliate/stripe-connect"
-          className="px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm sm:text-base whitespace-nowrap"
+          className="inline-flex items-center px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm whitespace-nowrap"
         >
-          <span className="hidden sm:inline">{t('affiliate.dashboard.stripeConnectSetup')}</span>
-          <span className="sm:hidden">{t('affiliate.dashboard.stripeConnectSetup')}</span>
+          {t('affiliate.dashboard.stripeConnectSetup')}
         </Link>
       )}
     </>

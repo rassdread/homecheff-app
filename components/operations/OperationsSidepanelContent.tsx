@@ -106,10 +106,20 @@ export default function OperationsSidepanelContent({
       </>
     );
   } else {
+    // Desktop rail: finances first, then attention/tasks (affiliate dashboard priority).
     blocks = (
       <>
-        {tasks}
         {finance}
+        <div className="space-y-2" data-operations-attention>
+          <p className="px-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            {tOr(
+              'affiliateDashboard.alsoNeedsAttention',
+              'Also needs attention',
+              'Ook aandacht nodig',
+            )}
+          </p>
+          {tasks}
+        </div>
         {status}
         {actions}
         {opportunity}

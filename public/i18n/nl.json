@@ -7299,7 +7299,7 @@
     "welcomeBackDesc": "Je hebt al een account met andere rollen. Je affiliate account wordt toegevoegd aan je bestaande account.",
     "dashboard": {
       "title": "Affiliate Dashboard",
-      "manageAccount": "Beheer je affiliate account",
+      "manageAccount": "Beheer je affiliate-account, deel HomeCheff en volg je verdiensten.",
       "promoCodes": {
         "title": "Promo Codes",
         "manage": "Beheer je promo codes",
@@ -10593,5 +10593,68 @@
     "driverBody": "Heb je een uitnodiging ontvangen? Accepteer die om als chauffeur te starten.",
     "alreadyPartner": "Al bezorgpartner?",
     "goDashboard": "Ga naar je bezorgdashboard"
+  },
+  "affiliateDashboard": {
+    "share": {
+      "title": "Deel & verdien",
+      "subtitle": "Kies wat je wilt promoten. HomeCheff maakt automatisch de juiste affiliate-link voor je.",
+      "hub": {
+        "title": "Alle mogelijkheden",
+        "description": "Deel het overzicht van alle manieren om mee te doen met HomeCheff."
+      },
+      "seller": {
+        "title": "Verkopers & makers aanmelden",
+        "description": "Breng makers naar HomeCheff en verdien volgens het geldende affiliateprogramma."
+      },
+      "delivery": {
+        "title": "Bezorgers aanmelden",
+        "description": "Nodig zelfstandige bezorgers uit om lokaal opdrachten te ontvangen."
+      },
+      "deliveryCompany": {
+        "title": "Bezorgbedrijven aanmelden",
+        "description": "Introduceer lokale bezorgbedrijven met eigen chauffeurs."
+      },
+      "affiliate": {
+        "title": "Affiliates aanmelden",
+        "description": "Nodig anderen uit om HomeCheff te promoten in hun netwerk."
+      },
+      "affiliateCompany": {
+        "title": "Zakelijke affiliatepartners",
+        "description": "Deel de zakelijke partnerroute voor marketing- en acquisitieteams."
+      },
+      "studio": {
+        "title": "HomeCheff Studio",
+        "description": "Promoot Studio bij makers, bedrijven en creators."
+      },
+      "growth": {
+        "title": "HomeCheff Growth",
+        "description": "Promoot Growth bij bedrijven die zakelijke leads zoeken."
+      }
+    },
+    "earnings": {
+      "available": "Beschikbaar",
+      "pending": "In behandeling",
+      "total": "Totaal verdiend",
+      "paid": "Uitbetaald"
+    },
+    "ecosystem": {
+      "title": "Affiliate-verdiensten",
+      "loading": "Ecosysteem-inkomsten laden…",
+      "error": "Je verdiensten konden niet worden geladen. Probeer opnieuw.",
+      "retry": "Opnieuw proberen",
+      "empty": "Nog geen affiliate-activiteit. Deel HomeCheff om te beginnen.",
+      "emptyCta": "Bekijk wat je kunt promoten",
+      "blurb": "Eén netwerk: hoofd-affiliate (10%) en partner (40%) van eligible HomeCheff-platformomzet — samen max 50%. Geen garantie op inkomsten.",
+      "howItWorks": "Hoe werkt affiliate verdienen op HomeCheff?",
+      "product": {
+        "marketplace": "Marketplace",
+        "growth": "Growth",
+        "studio": "Studio",
+        "delivery": "Bezorgen"
+      }
+    },
+    "alsoNeedsAttention": "Ook aandacht nodig",
+    "howItWorksCta": "Hoe werkt het?",
+    "promoCodes": "Promocodes"
   }
 }

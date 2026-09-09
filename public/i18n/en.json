@@ -7304,7 +7304,7 @@
     "welcomeBackDesc": "You already have an account with other roles. Your affiliate account will be added to your existing account.",
     "dashboard": {
       "title": "Affiliate Dashboard",
-      "manageAccount": "Manage your affiliate account",
+      "manageAccount": "Manage your affiliate account, share HomeCheff, and track your earnings.",
       "promoCodes": {
         "title": "Promo Codes",
         "manage": "Manage your promo codes",
@@ -10593,5 +10593,68 @@
     "driverBody": "Received an invite? Accept it to start as a driver.",
     "alreadyPartner": "Already a delivery partner?",
     "goDashboard": "Go to your delivery dashboard"
+  },
+  "affiliateDashboard": {
+    "share": {
+      "title": "Share & earn",
+      "subtitle": "Choose what to promote. HomeCheff creates the right affiliate link for you.",
+      "hub": {
+        "title": "All opportunities",
+        "description": "Share the overview of every way to take part in HomeCheff."
+      },
+      "seller": {
+        "title": "Refer sellers & makers",
+        "description": "Introduce makers to HomeCheff and earn under the applicable affiliate programme."
+      },
+      "delivery": {
+        "title": "Refer couriers",
+        "description": "Invite independent couriers to receive local delivery jobs."
+      },
+      "deliveryCompany": {
+        "title": "Refer delivery companies",
+        "description": "Introduce local delivery companies with their own drivers."
+      },
+      "affiliate": {
+        "title": "Refer affiliates",
+        "description": "Invite others to promote HomeCheff in their network."
+      },
+      "affiliateCompany": {
+        "title": "Business affiliate partners",
+        "description": "Share the business partner route for marketing and acquisition teams."
+      },
+      "studio": {
+        "title": "HomeCheff Studio",
+        "description": "Promote Studio to makers, businesses, and creators."
+      },
+      "growth": {
+        "title": "HomeCheff Growth",
+        "description": "Promote Growth to businesses looking for B2B leads."
+      }
+    },
+    "earnings": {
+      "available": "Available",
+      "pending": "Pending",
+      "total": "Total earned",
+      "paid": "Paid out"
+    },
+    "ecosystem": {
+      "title": "Affiliate earnings",
+      "loading": "Loading ecosystem earnings…",
+      "error": "Your earnings could not be loaded. Please try again.",
+      "retry": "Try again",
+      "empty": "No affiliate activity yet. Share HomeCheff to get started.",
+      "emptyCta": "See what you can promote",
+      "blurb": "One network: main affiliate (10%) and partner (40%) of eligible HomeCheff platform revenue — together max 50%. No guaranteed income.",
+      "howItWorks": "How does affiliate earning work on HomeCheff?",
+      "product": {
+        "marketplace": "Marketplace",
+        "growth": "Growth",
+        "studio": "Studio",
+        "delivery": "Delivery"
+      }
+    },
+    "alsoNeedsAttention": "Also needs attention",
+    "howItWorksCta": "How it works",
+    "promoCodes": "Promo codes"
   }
 }
