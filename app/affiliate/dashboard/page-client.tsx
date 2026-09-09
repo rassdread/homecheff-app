@@ -482,7 +482,7 @@ export default function AffiliateDashboardClient() {
       </Link>
       {!data.affiliate.stripeConnectOnboardingCompleted && (
         <Link
-          href="/affiliate/stripe-connect"
+          href="/settings?tab=payments"
           className="inline-flex items-center px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm whitespace-nowrap"
         >
           {t('affiliate.dashboard.stripeConnectSetup')}
