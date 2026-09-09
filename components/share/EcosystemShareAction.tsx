@@ -1,17 +1,22 @@
 'use client';
 
-import { useCallback, useState, type MouseEvent } from 'react';
+import { useCallback, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Share2, Check } from 'lucide-react';
 import { useMarketplaceShareContext } from '@/hooks/useMarketplaceShareContext';
 import { useTranslation } from '@/hooks/useTranslation';
-import { shareListingOrCopy, toAbsolutePublicUrl } from '@/lib/share/listing-share';
+import {
+  shareListingOrCopy,
+  shouldPreferNativeShare,
+  toAbsolutePublicUrl,
+} from '@/lib/share/listing-share';
 import { absoluteOpportunityUrl } from '@/lib/share/ecosystem-opportunities';
 import {
   newShareSessionId,
   trackOpportunityClient,
 } from '@/lib/analytics/opportunity-analytics-client';
 import AffiliatePromoteChooser from '@/components/share/AffiliatePromoteChooser';
+import HomecheffVisibleShareSheet from '@/components/share/HomecheffVisibleShareSheet';
 
 type EcosystemShareActionProps = {
   destinationHref: string;
@@ -21,17 +26,14 @@ type EcosystemShareActionProps = {
   product?: string;
   opportunityId?: string;
   className?: string;
-  /** Compact icon button vs text button */
   variant?: 'icon' | 'button' | 'text';
   labelKey?: string;
-  /** Prefer over labelKey when server/static copy is available (avoids empty i18n flash). */
   label?: string;
 };
 
 /**
- * Opportunity share — USER_INTENT_FIRST.
- * One primary Delen action; auto-resolve personal/company attribution;
- * native share when available. Dual-context chooser only when both apply.
+ * Opportunity share — USER_INTENT_FIRST + ACTIONABLE_AND_VISIBLE.
+ * Resolve attribution → optional human dual chooser → native (mobile) or visible destinations.
  */
 export default function EcosystemShareAction({
   destinationHref,
@@ -45,8 +47,8 @@ export default function EcosystemShareAction({
   labelKey = 'share.shareItem',
   label,
 }: EcosystemShareActionProps) {
-  const { t } = useTranslation();
-  const resolvedLabel = label || t(labelKey);
+  const { t, isReady } = useTranslation();
+  const resolvedLabel = label || (isReady ? t(labelKey) : labelKey === 'share.shareItem' ? 'Delen' : label) || 'Delen';
   const {
     needsContextChoice,
     memberships,
@@ -58,6 +60,9 @@ export default function EcosystemShareAction({
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [chooserOpen, setChooserOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetUrl, setSheetUrl] = useState<string | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const track = useCallback(
     (event: string, extra?: Record<string, unknown>) => {
@@ -73,6 +78,11 @@ export default function EcosystemShareAction({
 
   const absolute = toAbsolutePublicUrl(absoluteOpportunityUrl(destinationHref));
 
+  const openSheetWithUrl = useCallback((url: string) => {
+    setSheetUrl(url);
+    setSheetOpen(true);
+  }, []);
+
   const finishShare = useCallback(
     async (url: string, kind: 'plain' | 'personal' | 'company') => {
       const shareSessionId = newShareSessionId();
@@ -81,40 +91,48 @@ export default function EcosystemShareAction({
         track('opportunity_share_link_created', {
           shareKind: kind,
           shareSessionId,
-          shareUrlHost: (() => {
-            try {
-              return new URL(url).host;
-            } catch {
-              return null;
-            }
-          })(),
         });
       }
-      const result = await shareListingOrCopy({
-        url,
-        title,
-        text: text || title,
-      });
-      track(
-        result.method === 'clipboard'
-          ? 'opportunity_share_link_copied'
-          : result.ok
-            ? 'opportunity_share_native_opened'
-            : 'opportunity_share_intent',
-        {
-          shareMethod: result.method,
-          ok: result.ok,
-          shareKind: kind,
-          shareSessionId,
-        },
-      );
-      if (result.ok && result.method === 'clipboard') {
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 2000);
+
+      // Mobile-prefer native; otherwise always show visible destinations.
+      if (shouldPreferNativeShare()) {
+        const result = await shareListingOrCopy({
+          url,
+          title,
+          text: text || title,
+        });
+        track(
+          result.method === 'clipboard'
+            ? 'opportunity_share_link_copied'
+            : result.ok
+              ? 'opportunity_share_native_opened'
+              : 'opportunity_share_intent',
+          {
+            shareMethod: result.method,
+            ok: result.ok,
+            shareKind: kind,
+            shareSessionId,
+          },
+        );
+        if (result.method === 'needs_visible_panel' || result.method === 'failed') {
+          openSheetWithUrl(url);
+          return result;
+        }
+        if (result.ok && result.method === 'clipboard') {
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 2000);
+        }
+        return result;
       }
-      return result;
+
+      openSheetWithUrl(url);
+      track('opportunity_share_panel_opened', {
+        shareKind: kind,
+        shareSessionId,
+      });
+      return { ok: true as const, method: 'clipboard' as const };
     },
-    [text, title, track],
+    [openSheetWithUrl, text, title, track],
   );
 
   const resolveAndShare = useCallback(
@@ -122,15 +140,20 @@ export default function EcosystemShareAction({
       mode: 'personal' | 'company';
       organizationId?: string;
     }) => {
-      const resolved = await resolveShareUrl({
-        listingAbsoluteUrl: absolute,
-        surface,
-        forceMode: force?.mode,
-        forceOrganizationId: force?.organizationId,
-      });
-      await finishShare(resolved.url, resolved.kind);
+      try {
+        const resolved = await resolveShareUrl({
+          listingAbsoluteUrl: absolute,
+          surface,
+          forceMode: force?.mode,
+          forceOrganizationId: force?.organizationId,
+        });
+        await finishShare(resolved.url, resolved.kind);
+      } catch {
+        // Still give the user a visible way to share the base destination.
+        openSheetWithUrl(absolute);
+      }
     },
-    [absolute, finishShare, resolveShareUrl, surface],
+    [absolute, finishShare, openSheetWithUrl, resolveShareUrl, surface],
   );
 
   const onShare = useCallback(
@@ -162,17 +185,17 @@ export default function EcosystemShareAction({
   const chooserPortal =
     chooserOpen && typeof document !== 'undefined'
       ? createPortal(
-          <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center p-4">
+          <div className="fixed inset-0 z-[85] flex items-end justify-center sm:items-center p-4">
             <button
               type="button"
               className="absolute inset-0 bg-black/45"
-              aria-label={t('common.close')}
+              aria-label={isReady ? t('common.close') : 'Sluiten'}
               onClick={() => setChooserOpen(false)}
             />
             <div
               role="dialog"
               aria-modal="true"
-              aria-label={t('share.chooseContext')}
+              aria-label="Voor wie promoot je?"
               className="relative z-10 w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl"
             >
               <AffiliatePromoteChooser
@@ -180,20 +203,20 @@ export default function EcosystemShareAction({
                 busy={busy}
                 onChoosePersonal={() => {
                   setSharePreference('personal');
+                  setChooserOpen(false);
                   setBusy(true);
-                  void resolveAndShare({ mode: 'personal' })
-                    .then(() => setChooserOpen(false))
-                    .finally(() => setBusy(false));
+                  void resolveAndShare({ mode: 'personal' }).finally(() =>
+                    setBusy(false),
+                  );
                 }}
                 onChooseCompany={(organizationId) => {
                   setSharePreference('company', organizationId);
+                  setChooserOpen(false);
                   setBusy(true);
                   void resolveAndShare({
                     mode: 'company',
                     organizationId,
-                  })
-                    .then(() => setChooserOpen(false))
-                    .finally(() => setBusy(false));
+                  }).finally(() => setBusy(false));
                 }}
               />
             </div>
@@ -205,22 +228,65 @@ export default function EcosystemShareAction({
   return (
     <div className="relative inline-flex">
       <button
+        ref={triggerRef}
         type="button"
         onClick={onShare}
         disabled={busy || loading}
-        aria-label={copied ? t('share.copied') : resolvedLabel}
+        aria-label={copied ? (isReady ? t('share.copied') : 'Link gekopieerd') : resolvedLabel}
         className={`${btnClass} disabled:opacity-60`}
       >
-        {copied ? (
+        {busy || loading ? (
+          <span
+            className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+            aria-hidden
+          />
+        ) : copied ? (
           <Check className="h-4 w-4 text-emerald-600" aria-hidden />
         ) : (
           <Share2 className="h-4 w-4" aria-hidden />
         )}
         {variant !== 'icon' ? (
-          <span>{copied ? t('share.copied') : resolvedLabel}</span>
+          <span>
+            {copied
+              ? isReady
+                ? t('share.copied')
+                : 'Link gekopieerd'
+              : resolvedLabel}
+          </span>
         ) : null}
       </button>
       {chooserPortal}
+      <HomecheffVisibleShareSheet
+        open={sheetOpen}
+        onClose={() => {
+          setSheetOpen(false);
+          window.setTimeout(() => triggerRef.current?.focus(), 0);
+        }}
+        url={sheetUrl}
+        shareTitle={title}
+        shareText={text}
+        preparing={sheetOpen && !sheetUrl}
+        onCopied={() => {
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 2000);
+          track('opportunity_share_link_copied', { shareMethod: 'panel_copy' });
+        }}
+        onNativeShare={() => {
+          track('opportunity_share_native_opened', { shareMethod: 'panel_more' });
+        }}
+        copy={{
+          title: isReady ? t('share.via') || 'Delen' : 'Delen',
+          preparing: isReady ? t('share.preparingLink') || 'Deellink voorbereiden…' : 'Deellink voorbereiden…',
+          whatsapp: isReady ? t('share.whatsapp') || 'WhatsApp' : 'WhatsApp',
+          email: isReady ? t('share.email') || 'E-mail' : 'E-mail',
+          copyLink: isReady ? t('share.copyLink') || 'Link kopiëren' : 'Link kopiëren',
+          copied: isReady ? t('share.copied') || 'Link gekopieerd' : 'Link gekopieerd',
+          moreOptions: isReady ? t('share.moreOptions') || 'Meer opties' : 'Meer opties',
+          close: isReady ? t('common.close') || 'Sluiten' : 'Sluiten',
+          error:
+            'Delen lukt nu niet automatisch. Kopieer de link en probeer het opnieuw.',
+        }}
+      />
     </div>
   );
 }

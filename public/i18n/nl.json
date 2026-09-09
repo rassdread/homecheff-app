@@ -29,7 +29,8 @@
     "reddit": "Reddit",
     "socialsHeading": "Socials",
     "shareForMyself": "Voor mezelf",
-    "shareForCompany": "Voor mijn bedrijf: {company}"
+    "shareForCompany": "Voor mijn bedrijf: {company}",
+    "moreOptions": "Meer opties"
   },
   "appUpdateGate": {
     "optionalTitle": "Nieuwe HomeCheff beta beschikbaar",
