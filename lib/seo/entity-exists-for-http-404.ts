@@ -98,6 +98,8 @@ export async function entityExistsForHttp404(pathname: string): Promise<boolean 
   if (first === 'seller') {
     const id = firstSegmentAfter(pathname, 'seller');
     if (!id || id === 'undefined' || id === 'null') return false;
+    // Static App Router surfaces under /seller/* (not sellerProfile ids)
+    if (id === 'stripe' || id === 'orders') return true;
     const seller = await prisma.sellerProfile.findUnique({
       where: { id },
       select: { id: true },

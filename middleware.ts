@@ -333,6 +333,13 @@ export async function middleware(request: NextRequest) {
       'profile',
     ]);
     if (first && entityPrefixes.has(first) && pathname.split('/').filter(Boolean).length >= 2) {
+      // Static /seller/* app routes must never go through sellerProfile entity lookup
+      if (
+        pathname === '/seller/orders' ||
+        pathname.startsWith('/seller/stripe/')
+      ) {
+        // fall through to App Router
+      } else {
       try {
         const checkUrl = new URL('/api/internal/entity-exists', request.url);
         checkUrl.searchParams.set('pathname', pathname);
@@ -358,6 +365,7 @@ export async function middleware(request: NextRequest) {
         }
       } catch {
         // Fall through to App Router notFound() if the lookup fails.
+      }
       }
     }
   }
