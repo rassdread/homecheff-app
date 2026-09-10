@@ -114,11 +114,11 @@ export const PUBLIC_MAIN_ENROLLMENT_PRESENTATION_DEFAULT: MainAffiliateEnrollmen
 /**
  * Public claim gate for Growth HC cross-platform marketing.
  * Only advertise Studio/Marketplace when Production cross-platform is independently verified PASS.
- * Current Production env values for UNIVERSAL_HC_GROWTH_TO_* could not be read as true via CLI pull
- * (encrypted/empty), so public copy stays Growth-scoped unless updated after verification.
+ * Verified 2026-09-10: Production flags activated + Growth wallet API recognizes
+ * Growth-paid MARKETPLACE_ELIGIBLE lots for Studio + Marketplace eligibility.
  */
 export const PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM: 'GROWTH_ONLY' | 'ECOSYSTEM' =
-  'GROWTH_ONLY';
+  'ECOSYSTEM';
 
 export function marketplaceExamplePoolCents(
   saleEur = 100,

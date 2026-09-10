@@ -53,12 +53,12 @@ export type EarnPlanEconomicsCard = {
 const growthHcScopeNl =
   PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM === 'GROWTH_ONLY'
     ? 'Je abonnement bevat HC voor gebruik binnen Growth.'
-    : 'Inbegrepen HC kan volgens de actieve productregels in het HomeCheff-ecosysteem worden gebruikt.';
+    : 'Je abonnement bevat HC die je kunt gebruiken binnen Growth, HomeCheff Studio en op HomeCheff. HC is ecosysteemtegoed voor ondersteunde functies en aankopen en is niet uitbetaalbaar als koperssaldo.';
 
 const growthHcScopeEn =
   PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM === 'GROWTH_ONLY'
     ? 'Your subscription includes HC for use within Growth.'
-    : 'Included HC may be used across the HomeCheff ecosystem under the active product rules.';
+    : 'Your subscription includes HC you can use within Growth, HomeCheff Studio and on HomeCheff. HC is ecosystem credit for supported features and purchases and is not withdrawable as buyer cash.';
 
 const mpEx = marketplaceExamplePoolCents(100, PUBLIC_DEFAULT_INDIVIDUAL_FEE_PERCENT);
 const delEx = deliveryExamplePoolCents(20);
@@ -215,7 +215,7 @@ export const earnHowItWorksNl = {
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
     basisTitle: 'Waarover wordt Growth-commissie berekend?',
     basisBody:
-      `In Growth V2 wordt eerst de volledige HC-face-waarde gereserveerd (1 HC = €0,01) van de abonnementsprijs exclusief btw. Over het restant — de deelbare marge — ontvang je ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliatecommissie. De volledige abonnementsprijs is dus niet de commissiegrondslag. Inbegrepen HC en maandelijkse leadquota zijn aparte rechten: HC is geen leadquota. ${growthHcScopeNl}`,
+      `Growth-abonnementen bevatten HC die binnen het HomeCheff-ecosysteem gebruikt kunnen worden. Daarom reserveren we eerst de volledige waarde van de inbegrepen HC (1 HC = €0,01) van de abonnementsprijs exclusief btw. Van het resterende abonnementsbedrag — de deelbare marge — ontvang je ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliatecommissie. De volledige abonnementsprijs is dus niet de commissiegrondslag. Inbegrepen HC en maandelijkse leadquota zijn aparte rechten: HC is geen leadquota. ${growthHcScopeNl}`,
     notOfVat:
       'Commissie wordt niet berekend over btw. Credit packs vallen niet onder affiliate-commissie.',
     flowPrice: 'Abonnementsprijs ex. btw',
@@ -443,7 +443,7 @@ export const earnHowItWorksEn = {
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
     basisTitle: 'What is Growth commission calculated on?',
     basisBody:
-      `Under Growth V2, the full HC face value is reserved first (1 HC = €0.01) from the subscription price excluding VAT. You then receive ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate commission on the remainder — the distributable margin. The full subscription price is therefore not the commission base. Included HC and monthly lead quota are separate entitlements: HC is not lead quota. ${growthHcScopeEn}`,
+      `Growth subscriptions include HC that can be used across the HomeCheff ecosystem. That is why we reserve the full face value of included HC first (1 HC = €0.01) from the subscription price excluding VAT. Of the remaining subscription amount — the distributable margin — you receive ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate commission. The full subscription price is therefore not the commission base. Included HC and monthly lead quota are separate entitlements: HC is not lead quota. ${growthHcScopeEn}`,
     notOfVat:
       'Commission is not calculated on VAT. Credit packs are not commissionable.',
     flowPrice: 'Subscription price ex VAT',
