@@ -12,6 +12,7 @@ import {
   PUBLIC_DELIVERY_PLATFORM_FEE_PERCENT,
   PUBLIC_GROWTH_COMMISSION_MONTHS,
   PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT,
+  PUBLIC_GROWTH_PLAN_ECONOMICS,
   PUBLIC_GROWTH_PLANS,
   PUBLIC_LEDGER_PENDING_DAYS,
   PUBLIC_MAIN_PERCENT_OF_ELIGIBLE,
@@ -20,9 +21,12 @@ import {
   PUBLIC_MARKETPLACE_SELLER_FEES,
   PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL,
   PUBLIC_STUDIO_COMMISSION_MONTHS,
+  PUBLIC_STUDIO_PLAN_ECONOMICS,
   PUBLIC_STUDIO_PLANS,
   PUBLIC_SUB_PERCENT_OF_ELIGIBLE,
+  allocateStudioPlanEconomics,
   deliveryExamplePoolCents,
+  formatPublicEurNl,
   growthDirectExampleEur,
   marketplaceExamplePoolCents,
 } from '@/lib/earn/public-economics';
@@ -125,14 +129,20 @@ describe('how-it-works dedicated page', () => {
     }
     assert.match(earnHowItWorksNl.marketplaceAffiliate.basis, /platformfee/i);
     assert.match(earnHowItWorksEn.marketplaceAffiliate.basis, /platform fee/i);
-    assert.match(earnHowItWorksNl.studio.reward, /platformopbrengst/i);
-    assert.match(earnHowItWorksEn.studio.reward, /platform revenue/i);
-    assert.match(earnHowItWorksNl.growth.rewardDirect, /ex\. btw|exclusief btw/i);
-    assert.match(earnHowItWorksEn.growth.rewardDirect, /excluding VAT|ex VAT/i);
+    assert.match(earnHowItWorksNl.studio.reward, /commissiemarge|platformopbrengst/i);
+    assert.match(earnHowItWorksEn.studio.reward, /commissionable margin|platform revenue/i);
+    assert.match(earnHowItWorksNl.growth.rewardDirect, /commissiemarge|ex\. btw|exclusief btw/i);
+    assert.match(earnHowItWorksEn.growth.rewardDirect, /commissionable margin|excluding VAT|ex VAT/i);
     assert.match(earnHowItWorksNl.growth.packs, /niet onder affiliate/i);
     assert.match(earnHowItWorksEn.growth.packs, /not commissionable/i);
     assert.match(earnHowItWorksNl.mainSub.availability, /campagne|uitnodiging|regio/i);
     assert.match(earnHowItWorksEn.mainSub.availability, /campaign|invitation|region/i);
+    assert.equal(earnHowItWorksNl.growth.planCards.length, 4);
+    assert.equal(earnHowItWorksNl.studio.planCards.length, 3);
+    assert.match(earnHowItWorksNl.growth.planCards[0].commission, /19,50/);
+    assert.match(earnHowItWorksNl.studio.planCards[0].commission, /1,70/);
+    assert.match(earnHowItWorksNl.studio.basisBody, /niet over de volledige abonnementsprijs/i);
+    assert.match(earnHowItWorksEn.studio.basisBody, /not on the full subscription list price/i);
   });
 });
 
@@ -182,6 +192,27 @@ describe('economics SoT drift protection', () => {
     assert.equal(growthDirectExampleEur(79).affiliateEur, 39.5);
   });
 
+  it('Growth plan economics match V1 payout (50% of ex-VAT) at cent level', () => {
+    const expected = [
+      { key: 'starter', price: 39, commission: 19.5 },
+      { key: 'pro', price: 79, commission: 39.5 },
+      { key: 'business', price: 199, commission: 99.5 },
+      { key: 'enterprise', price: 399, commission: 199.5 },
+    ];
+    assert.equal(PUBLIC_GROWTH_PLAN_ECONOMICS.length, expected.length);
+    for (const row of expected) {
+      const eco = PUBLIC_GROWTH_PLAN_ECONOMICS.find((p) => p.key === row.key)!;
+      assert.equal(eco.priceEurExVat, row.price);
+      assert.equal(eco.commissionableBaseEur, row.price);
+      assert.equal(eco.directVariableCostEur, 0);
+      assert.equal(eco.affiliateCommissionEur, row.commission);
+      assert.equal(
+        eco.affiliateCommissionEur,
+        growthDirectExampleEur(row.price).affiliateEur,
+      );
+    }
+  });
+
   it('Studio live prices and HC grants match Stage 1 SoT', () => {
     assert.deepEqual(
       PUBLIC_STUDIO_PLANS.map((p) => p.monthlyEur),
@@ -193,6 +224,41 @@ describe('economics SoT drift protection', () => {
     );
     assert.equal(PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL, 50);
     assert.equal(PUBLIC_STUDIO_COMMISSION_MONTHS, 12);
+  });
+
+  it('Studio residuals match live Growth-repo Model A formula at cent level', () => {
+    const expected = [
+      { key: 'creator' as const, margin: 3.39, aff: 1.7 },
+      { key: 'pro' as const, margin: 6.21, aff: 3.11 },
+      { key: 'studio' as const, margin: 16.43, aff: 8.22 },
+    ];
+    for (const row of expected) {
+      const eco = PUBLIC_STUDIO_PLAN_ECONOMICS.find((p) => p.key === row.key)!;
+      assert.equal(eco.distributableMarginEur, row.margin);
+      assert.equal(eco.affiliateCommissionEur, row.aff);
+      const rebuilt = allocateStudioPlanEconomics({
+        key: row.key,
+        grossPriceEur: eco.priceEurGrossInclVat,
+        hcGranted: eco.includedHc,
+      });
+      assert.equal(rebuilt.affiliateCommissionEur, eco.affiliateCommissionEur);
+      assert.ok(eco.affiliateCommissionEur < eco.priceEurGrossInclVat * 0.5);
+    }
+    assert.match(formatPublicEurNl(1.7), /1,70/);
+  });
+
+  it('Display copy commissions equal economics SoT (NL)', () => {
+    const nl = earnHowItWorksNl;
+    for (const eco of PUBLIC_GROWTH_PLAN_ECONOMICS) {
+      const card = nl.growth.planCards.find((c) => c.key === eco.key)!;
+      assert.match(card.commission, new RegExp(formatPublicEurNl(eco.affiliateCommissionEur)));
+      assert.match(card.availableMargin, new RegExp(formatPublicEurNl(eco.commissionableBaseEur)));
+    }
+    for (const eco of PUBLIC_STUDIO_PLAN_ECONOMICS) {
+      const card = nl.studio.planCards.find((c) => c.key === eco.key)!;
+      assert.match(card.commission, new RegExp(formatPublicEurNl(eco.affiliateCommissionEur)));
+      assert.match(card.availableMargin, new RegExp(formatPublicEurNl(eco.distributableMarginEur)));
+    }
   });
 
   it('Delivery example and windows match certified values', () => {

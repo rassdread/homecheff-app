@@ -11,6 +11,7 @@ import {
   PUBLIC_DIRECT_PERCENT_OF_ELIGIBLE,
   PUBLIC_GROWTH_COMMISSION_MONTHS,
   PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT,
+  PUBLIC_GROWTH_PLAN_ECONOMICS,
   PUBLIC_GROWTH_PLANS,
   PUBLIC_LEDGER_PENDING_DAYS,
   PUBLIC_MAIN_PERCENT_OF_ELIGIBLE,
@@ -19,23 +20,89 @@ import {
   PUBLIC_MARKETPLACE_SELLER_FEES,
   PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL,
   PUBLIC_STUDIO_COMMISSION_MONTHS,
+  PUBLIC_STUDIO_PLAN_ECONOMICS,
   PUBLIC_STUDIO_PLANS,
   PUBLIC_SUB_PERCENT_OF_ELIGIBLE,
   deliveryExamplePoolCents,
-  growthDirectExampleEur,
+  formatPublicEurEn,
+  formatPublicEurNl,
+  formatPublicPercentEn,
+  formatPublicPercentNl,
   marketplaceExamplePoolCents,
 } from '@/lib/earn/public-economics';
 
 export type EarnHowItWorksLang = 'nl' | 'en';
 
+export type EarnPlanEconomicsCard = {
+  key: string;
+  name: string;
+  price: string;
+  includedCredits: string | null;
+  availableMargin: string;
+  availableMarginPct: string;
+  affiliateShare: string;
+  commission: string;
+  recurring: string;
+};
+
 const mpEx = marketplaceExamplePoolCents(100, PUBLIC_DEFAULT_INDIVIDUAL_FEE_PERCENT);
-const growthStarter = growthDirectExampleEur(
-  PUBLIC_GROWTH_PLANS.find((p) => p.key === 'starter')!.monthlyEurExVat,
-);
-const growthPro = growthDirectExampleEur(
-  PUBLIC_GROWTH_PLANS.find((p) => p.key === 'pro')!.monthlyEurExVat,
-);
 const delEx = deliveryExamplePoolCents(20);
+
+function growthPlanCardsNl(): EarnPlanEconomicsCard[] {
+  return PUBLIC_GROWTH_PLAN_ECONOMICS.map((p) => ({
+    key: p.key,
+    name: `Growth ${p.label}`,
+    price: `€${formatPublicEurNl(p.priceEurExVat)} / maand ex. btw`,
+    includedCredits: null,
+    availableMargin: `€${formatPublicEurNl(p.commissionableBaseEur)}`,
+    availableMarginPct: `${formatPublicPercentNl(p.commissionableBasePercentOfPrice)}% van de abonnementsprijs ex. btw`,
+    affiliateShare: `${formatPublicPercentNl(p.affiliatePercentOfBase)}% van de commissiemarge`,
+    commission: `€${formatPublicEurNl(p.affiliateCommissionEur)} per volledig betaalde maandfactuur`,
+    recurring: `Zolang de klant een betaald abonnement houdt binnen het venster van ${p.commissionMonths} maanden, ontvang je dit bedrag per qualifying factuur.`,
+  }));
+}
+
+function growthPlanCardsEn(): EarnPlanEconomicsCard[] {
+  return PUBLIC_GROWTH_PLAN_ECONOMICS.map((p) => ({
+    key: p.key,
+    name: `Growth ${p.label}`,
+    price: `€${formatPublicEurEn(p.priceEurExVat)} / month ex VAT`,
+    includedCredits: null,
+    availableMargin: `€${formatPublicEurEn(p.commissionableBaseEur)}`,
+    availableMarginPct: `${formatPublicPercentEn(p.commissionableBasePercentOfPrice)}% of the subscription price ex VAT`,
+    affiliateShare: `${formatPublicPercentEn(p.affiliatePercentOfBase)}% of the commissionable margin`,
+    commission: `€${formatPublicEurEn(p.affiliateCommissionEur)} per fully paid monthly invoice`,
+    recurring: `For as long as the customer keeps a paid subscription within the ${p.commissionMonths}-month window, you receive this amount on each qualifying invoice.`,
+  }));
+}
+
+function studioPlanCardsNl(): EarnPlanEconomicsCard[] {
+  return PUBLIC_STUDIO_PLAN_ECONOMICS.map((p) => ({
+    key: p.key,
+    name: p.label,
+    price: `€${formatPublicEurNl(p.priceEurGrossInclVat)} / maand`,
+    includedCredits: `${p.includedHc.toLocaleString('nl-NL')} HC inbegrepen`,
+    availableMargin: `€${formatPublicEurNl(p.distributableMarginEur)}`,
+    availableMarginPct: `${formatPublicPercentNl(p.distributableMarginPercentOfGross)}% van de catalogusprijs`,
+    affiliateShare: `${formatPublicPercentNl(p.affiliatePercentOfResidual)}% van de beschikbare commissiemarge`,
+    commission: `€${formatPublicEurNl(p.affiliateCommissionEur)} per volledig betaalde abonnementsperiode`,
+    recurring: `Zolang de klant een betaald abonnement houdt binnen het venster van ${p.commissionMonths} maanden, ontvang je dit bedrag per qualifying periode.`,
+  }));
+}
+
+function studioPlanCardsEn(): EarnPlanEconomicsCard[] {
+  return PUBLIC_STUDIO_PLAN_ECONOMICS.map((p) => ({
+    key: p.key,
+    name: p.label,
+    price: `€${formatPublicEurEn(p.priceEurGrossInclVat)} / month`,
+    includedCredits: `${p.includedHc.toLocaleString('en-GB')} HC included`,
+    availableMargin: `€${formatPublicEurEn(p.distributableMarginEur)}`,
+    availableMarginPct: `${formatPublicPercentEn(p.distributableMarginPercentOfGross)}% of the catalogue price`,
+    affiliateShare: `${formatPublicPercentEn(p.affiliatePercentOfResidual)}% of the available commissionable margin`,
+    commission: `€${formatPublicEurEn(p.affiliateCommissionEur)} per fully paid subscription period`,
+    recurring: `For as long as the customer keeps a paid subscription within the ${p.commissionMonths}-month window, you receive this amount on each qualifying period.`,
+  }));
+}
 
 const fees = PUBLIC_MARKETPLACE_SELLER_FEES;
 
@@ -118,38 +185,63 @@ export const earnHowItWorksNl = {
   },
   growth: {
     title: 'Growth',
-    intro: 'HomeCheff Growth — maandelijkse abonnementen exclusief btw (huidige officiële plannen).',
+    intro:
+      'HomeCheff Growth — maandelijkse abonnementen exclusief btw (huidige officiële plannen).',
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
-    starter: `Starter: €${PUBLIC_GROWTH_PLANS[1].monthlyEurExVat} / maand ex. btw`,
-    pro: `Pro: €${PUBLIC_GROWTH_PLANS[2].monthlyEurExVat} / maand ex. btw`,
-    business: `Business: €${PUBLIC_GROWTH_PLANS[3].monthlyEurExVat} / maand ex. btw`,
-    enterprise: `Enterprise: €${PUBLIC_GROWTH_PLANS[4].monthlyEurExVat} / maand ex. btw`,
-    rewardDirect: `Directe affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% van eligible betaalde Growth-abonnementsomzet exclusief btw`,
-    rewardMainSub: `MAIN/SUB waar van toepassing: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}%`,
+    basisTitle: 'Waarover wordt Growth-commissie berekend?',
+    basisBody:
+      'De affiliatecommissie wordt berekend over de beschikbare commissiemarge. In het huidige Growth V1-model is die commissiemarge gelijk aan de betaalde abonnementsomzet exclusief btw (100% van de factuurregel ex. btw). Er wordt in V1 geen aparte HC-/productkost van die grondslag afgetrokken.',
+    notOfVat:
+      'Commissie wordt niet berekend over btw. Credit packs vallen niet onder affiliate-commissie.',
+    flowPrice: 'Abonnementsprijs ex. btw',
+    flowMargin: 'Beschikbare commissiemarge (= 100% van die prijs in V1)',
+    flowShare: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliateaandeel`,
+    rewardDirect: `Directe affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% van de beschikbare commissiemarge (eligible betaalde Growth-abonnementsomzet ex. btw)`,
+    rewardMainSub: `MAIN/SUB waar van toepassing: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}% van dezelfde commissiemarge`,
     duration: `Looptijd: tot ${PUBLIC_GROWTH_COMMISSION_MONTHS} maanden volgens het geldende commissievenster`,
     packs:
       'Credit packs vallen in het huidige V1-model niet onder affiliate-commissie.',
-    exampleStarter: `Starter €${growthStarter.monthlyEurExVat} ex. btw → ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% = €${growthStarter.affiliateEur.toFixed(2)} per qualifying betaalde factuur binnen de actieve periode`,
-    examplePro: `Pro €${growthPro.monthlyEurExVat} ex. btw → ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% = €${growthPro.affiliateEur.toFixed(2)}`,
+    planCards: growthPlanCardsNl(),
+    cardLabels: {
+      price: 'Abonnement',
+      credits: 'Credits',
+      margin: 'Beschikbaar voor verdeling',
+      marginPct: 'Aandeel van abonnementsprijs',
+      affiliatePct: 'Jouw affiliate-aandeel',
+      commission: 'Jouw commissie',
+      recurring: 'Recurring',
+    },
+    paidOnlyNote:
+      'Je ontvangt dit bedrag alleen voor een volledig betaalde abonnementsperiode met geldige attributie. Refunds, chargebacks of beëindiging kunnen de vergoeding blokkeren of terugdraaien.',
     payoutNote:
       'Growth-uitbetaling volgt de Growth-ledger: positief beschikbaar saldo kan uitbetaalbaar zijn volgens de Growth-regels (niet automatisch dezelfde Marketplace-drempel).',
   },
   studio: {
     title: 'Studio',
     intro: 'HomeCheff Studio — huidige maandelijkse plannen.',
-    creator: `Creator: €${PUBLIC_STUDIO_PLANS[0].monthlyEur} / maand · ${PUBLIC_STUDIO_PLANS[0].monthlyHc.toLocaleString('nl-NL')} HC`,
-    pro: `Pro: €${PUBLIC_STUDIO_PLANS[1].monthlyEur} / maand · ${PUBLIC_STUDIO_PLANS[1].monthlyHc.toLocaleString('nl-NL')} HC`,
-    studio: `Studio: €${PUBLIC_STUDIO_PLANS[2].monthlyEur} / maand · ${PUBLIC_STUDIO_PLANS[2].monthlyHc.toLocaleString('nl-NL')} HC`,
-    annual: `Jaarlijks: €${PUBLIC_STUDIO_PLANS[0].yearlyEur} · €${PUBLIC_STUDIO_PLANS[1].yearlyEur} · €${PUBLIC_STUDIO_PLANS[2].yearlyEur}`,
-    reward: `Voor Studio ontvang je ${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% van de daarvoor in aanmerking komende HomeCheff-platformopbrengst.`,
-    residualExplain:
-      'Bij Studio wordt de affiliatevergoeding niet simpelweg over de abonnementsprijs berekend. Eerst wordt bepaald welk deel volgens het Studio-model als in aanmerking komende platformopbrengst geldt (onder meer na relevante btw-behandeling, betaalkosten en HC/platformallocatie). Daarvan wordt de affiliatevergoeding berekend.',
+    basisTitle: 'Waarover wordt Studio-commissie berekend?',
+    basisBody:
+      'De affiliatecommissie wordt berekend over de beschikbare commissiemarge, niet over de volledige abonnementsprijs. Die marge is de eligible residuale platformopbrengst: netto ontvangst exclusief btw, minus geschatte betaalkosten, minus de Model A HC-treasurydekking voor inbegrepen credits.',
     notSticker:
       '“50%” betekent dus niet automatisch de helft van de catalogusprijs (bijvoorbeeld niet automatisch €7,50 op Creator).',
+    annual: `Jaarlijks (catalogus): €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[0].yearlyEur)} · €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[1].yearlyEur)} · €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[2].yearlyEur)} — commissie volgt de betaalde factuurperiode binnen het venster.`,
+    reward: `Voor Studio ontvang je ${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% van de beschikbare commissiemarge (eligible residuale platformopbrengst).`,
     duration: `Looptijd: tot ${PUBLIC_STUDIO_COMMISSION_MONTHS} maanden`,
-    flowPayment: 'Studio-betaling',
-    flowResidual: 'In aanmerking komende platformopbrengst',
+    flowPayment: 'Studio-betaling (catalogusprijs)',
+    flowResidual: 'Beschikbare commissiemarge (residual)',
     flowShare: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% affiliateaandeel`,
+    planCards: studioPlanCardsNl(),
+    cardLabels: {
+      price: 'Abonnement',
+      credits: 'Inbegrepen HC',
+      margin: 'Beschikbare marge',
+      marginPct: 'Marge t.o.v. catalogusprijs',
+      affiliatePct: 'Jouw affiliate-aandeel',
+      commission: 'Jouw commissie',
+      recurring: 'Recurring',
+    },
+    paidOnlyNote:
+      'Je ontvangt dit bedrag alleen voor een volledig betaalde abonnementsperiode met geldige attributie. Ongebruikte credits veranderen de vaste illustratieve marge niet; extra packs kunnen apart eligible zijn volgens Studio-regels.',
   },
   personalCompany: {
     title: 'Persoonlijk of via je bedrijf',
@@ -160,7 +252,7 @@ export const earnHowItWorksNl = {
     companyBody:
       'De eligible attributie hoort bij de bedrijfsrelatie. Rapportage en uitbetaling lopen via de eligible bedrijfsdeelnemer.',
     sameRates:
-      'De percentages kunnen hetzelfde zijn; de eigenaar van attributie, rapportage en uitbetaling verschilt.',
+      'Persoonlijk en bedrijf gebruiken dezelfde percentage-regels (direct 50% van de productgrondslag; MAIN/SUB 10%/40% waar van toepassing). Alleen eigenaarschap van attributie, rapportage en uitbetaling verschilt.',
   },
   windows: {
     title: 'Koppelperiode versus verdienperiode',
@@ -207,15 +299,15 @@ export const earnHowItWorksNl = {
       {
         platform: 'Growth',
         promote: 'Betaald abonnement',
-        basis: 'Abonnementsomzet ex. btw',
-        reward: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}%`,
+        basis: 'Commissiemarge = abonnementsomzet ex. btw (V1)',
+        reward: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% van die marge`,
         duration: `${PUBLIC_GROWTH_COMMISSION_MONTHS} maanden`,
       },
       {
         platform: 'Studio',
         promote: 'Abonnement / eligible pack',
-        basis: 'Eligible residuale platformopbrengst',
-        reward: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}%`,
+        basis: 'Commissiemarge = eligible residuale platformopbrengst',
+        reward: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% van die marge`,
         duration: `${PUBLIC_STUDIO_COMMISSION_MONTHS} maanden`,
       },
     ],
@@ -316,38 +408,63 @@ export const earnHowItWorksEn = {
   },
   growth: {
     title: 'Growth',
-    intro: 'HomeCheff Growth — monthly subscriptions excluding VAT (current official plans).',
+    intro:
+      'HomeCheff Growth — monthly subscriptions excluding VAT (current official plans).',
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
-    starter: `Starter: €${PUBLIC_GROWTH_PLANS[1].monthlyEurExVat} / month ex VAT`,
-    pro: `Pro: €${PUBLIC_GROWTH_PLANS[2].monthlyEurExVat} / month ex VAT`,
-    business: `Business: €${PUBLIC_GROWTH_PLANS[3].monthlyEurExVat} / month ex VAT`,
-    enterprise: `Enterprise: €${PUBLIC_GROWTH_PLANS[4].monthlyEurExVat} / month ex VAT`,
-    rewardDirect: `Direct affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% of eligible paid Growth subscription revenue excluding VAT`,
-    rewardMainSub: `MAIN/SUB where applicable: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}%`,
+    basisTitle: 'What is Growth commission calculated on?',
+    basisBody:
+      'Affiliate commission is calculated on the available commissionable margin. Under the current Growth V1 model that margin equals paid subscription revenue excluding VAT (100% of the invoice line ex VAT). V1 does not deduct a separate HC/product cost from that base.',
+    notOfVat:
+      'Commission is not calculated on VAT. Credit packs are not commissionable.',
+    flowPrice: 'Subscription price ex VAT',
+    flowMargin: 'Available commissionable margin (= 100% of that price in V1)',
+    flowShare: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate share`,
+    rewardDirect: `Direct affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% of the available commissionable margin (eligible paid Growth subscription revenue ex VAT)`,
+    rewardMainSub: `MAIN/SUB where applicable: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}% of the same commissionable margin`,
     duration: `Duration: up to ${PUBLIC_GROWTH_COMMISSION_MONTHS} months under the certified commission window`,
     packs:
       'Credit packs are not commissionable under the current V1 affiliate model.',
-    exampleStarter: `Starter €${growthStarter.monthlyEurExVat} ex VAT → ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% = €${growthStarter.affiliateEur.toFixed(2)} per qualifying paid invoice in the active period`,
-    examplePro: `Pro €${growthPro.monthlyEurExVat} ex VAT → ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% = €${growthPro.affiliateEur.toFixed(2)}`,
+    planCards: growthPlanCardsEn(),
+    cardLabels: {
+      price: 'Subscription',
+      credits: 'Credits',
+      margin: 'Available to distribute',
+      marginPct: 'Share of subscription price',
+      affiliatePct: 'Your affiliate share',
+      commission: 'Your commission',
+      recurring: 'Recurring',
+    },
+    paidOnlyNote:
+      'You receive this amount only for a fully paid subscription period with valid attribution. Refunds, chargebacks or cancellation can block or reverse the reward.',
     payoutNote:
       'Growth payout follows the Growth ledger: positive available balance may be payable under Growth rules (not automatically the same Marketplace threshold).',
   },
   studio: {
     title: 'Studio',
     intro: 'HomeCheff Studio — current monthly plans.',
-    creator: `Creator: €${PUBLIC_STUDIO_PLANS[0].monthlyEur} / month · ${PUBLIC_STUDIO_PLANS[0].monthlyHc.toLocaleString('en-GB')} HC`,
-    pro: `Pro: €${PUBLIC_STUDIO_PLANS[1].monthlyEur} / month · ${PUBLIC_STUDIO_PLANS[1].monthlyHc.toLocaleString('en-GB')} HC`,
-    studio: `Studio: €${PUBLIC_STUDIO_PLANS[2].monthlyEur} / month · ${PUBLIC_STUDIO_PLANS[2].monthlyHc.toLocaleString('en-GB')} HC`,
-    annual: `Annual: €${PUBLIC_STUDIO_PLANS[0].yearlyEur} · €${PUBLIC_STUDIO_PLANS[1].yearlyEur} · €${PUBLIC_STUDIO_PLANS[2].yearlyEur}`,
-    reward: `For Studio you receive ${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% of the eligible HomeCheff platform revenue.`,
-    residualExplain:
-      'Studio affiliate reward is not simply calculated on the subscription list price. First the eligible residual platform revenue is determined under the Studio model (including relevant VAT treatment, payment costs and HC/platform allocation). The affiliate share is calculated on that residual.',
+    basisTitle: 'What is Studio commission calculated on?',
+    basisBody:
+      'Affiliate commission is calculated on the available commissionable margin, not on the full subscription list price. That margin is the eligible residual platform revenue: net receipt excluding VAT, minus estimated payment costs, minus Model A HC treasury coverage for included credits.',
     notSticker:
       '“50%” therefore does not automatically mean half the catalogue price (e.g. not automatically €7.50 on Creator).',
+    annual: `Annual (catalogue): €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[0].yearlyEur)} · €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[1].yearlyEur)} · €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[2].yearlyEur)} — commission follows the paid invoice period within the window.`,
+    reward: `For Studio you receive ${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% of the available commissionable margin (eligible residual platform revenue).`,
     duration: `Duration: up to ${PUBLIC_STUDIO_COMMISSION_MONTHS} months`,
-    flowPayment: 'Studio payment',
-    flowResidual: 'Eligible platform revenue',
+    flowPayment: 'Studio payment (catalogue price)',
+    flowResidual: 'Available commissionable margin (residual)',
     flowShare: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% affiliate share`,
+    planCards: studioPlanCardsEn(),
+    cardLabels: {
+      price: 'Subscription',
+      credits: 'Included HC',
+      margin: 'Available margin',
+      marginPct: 'Margin vs catalogue price',
+      affiliatePct: 'Your affiliate share',
+      commission: 'Your commission',
+      recurring: 'Recurring',
+    },
+    paidOnlyNote:
+      'You receive this amount only for a fully paid subscription period with valid attribution. Unused credits do not change the fixed illustrative margin; extra packs may be separately eligible under Studio rules.',
   },
   personalCompany: {
     title: 'Personal or via your company',
@@ -358,7 +475,7 @@ export const earnHowItWorksEn = {
     companyBody:
       'Eligible attribution belongs to the company relationship. Reporting and payout go to the eligible company participant.',
     sameRates:
-      'Rates can be the same; the owner of attribution, reporting and payout differs.',
+      'Personal and company use the same percentage rules (direct 50% of the product basis; MAIN/SUB 10%/40% where applicable). Only ownership of attribution, reporting and payout differs.',
   },
   windows: {
     title: 'Attribution window vs earning window',
@@ -405,15 +522,15 @@ export const earnHowItWorksEn = {
       {
         platform: 'Growth',
         promote: 'Paid subscription',
-        basis: 'Subscription revenue ex VAT',
-        reward: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}%`,
+        basis: 'Commissionable margin = subscription revenue ex VAT (V1)',
+        reward: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% of that margin`,
         duration: `${PUBLIC_GROWTH_COMMISSION_MONTHS} months`,
       },
       {
         platform: 'Studio',
         promote: 'Subscription / eligible pack',
-        basis: 'Eligible residual platform revenue',
-        reward: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}%`,
+        basis: 'Commissionable margin = eligible residual platform revenue',
+        reward: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% of that margin`,
         duration: `${PUBLIC_STUDIO_COMMISSION_MONTHS} months`,
       },
     ],

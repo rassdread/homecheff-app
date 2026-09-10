@@ -41,6 +41,59 @@ function FlowSteps({
   );
 }
 
+function PlanEconomicsCards({
+  cards,
+  labels,
+}: {
+  cards: EarnHowItWorksCopy['growth']['planCards'];
+  labels: EarnHowItWorksCopy['growth']['cardLabels'];
+}) {
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {cards.map((card) => (
+        <li
+          key={card.key}
+          className="rounded-xl border border-teal-100 bg-teal-50/60 p-4"
+        >
+          <h3 className="text-base font-semibold text-slate-900">{card.name}</h3>
+          <dl className="mt-3 space-y-2 text-sm">
+            <div className="flex flex-col gap-0.5">
+              <dt className="font-medium text-slate-600">{labels.price}</dt>
+              <dd className="text-slate-900">{card.price}</dd>
+            </div>
+            {card.includedCredits ? (
+              <div className="flex flex-col gap-0.5">
+                <dt className="font-medium text-slate-600">{labels.credits}</dt>
+                <dd className="text-slate-900">{card.includedCredits}</dd>
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-0.5">
+              <dt className="font-medium text-slate-600">{labels.margin}</dt>
+              <dd className="font-semibold text-slate-900">{card.availableMargin}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <dt className="font-medium text-slate-600">{labels.marginPct}</dt>
+              <dd className="text-slate-900">{card.availableMarginPct}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <dt className="font-medium text-slate-600">{labels.affiliatePct}</dt>
+              <dd className="text-slate-900">{card.affiliateShare}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5 border-t border-teal-200/80 pt-2">
+              <dt className="font-medium text-slate-600">{labels.commission}</dt>
+              <dd className="text-base font-bold text-emerald-800">{card.commission}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <dt className="font-medium text-slate-600">{labels.recurring}</dt>
+              <dd className="text-xs leading-snug text-slate-600">{card.recurring}</dd>
+            </div>
+          </dl>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Section({
   id,
   title,
@@ -188,38 +241,40 @@ export default function EarnHowItWorksPage({ copy: serverCopy, initialLang }: Pr
 
           <Section id="growth" title={copy.growth.title}>
             <p>{copy.growth.intro}</p>
-            <ul className="list-disc space-y-1 pl-5">
-              <li>{copy.growth.free}</li>
-              <li>{copy.growth.starter}</li>
-              <li>{copy.growth.pro}</li>
-              <li>{copy.growth.business}</li>
-              <li>{copy.growth.enterprise}</li>
-            </ul>
+            <p className="text-slate-500">{copy.growth.free}</p>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+              <h3 className="font-semibold text-slate-900">{copy.growth.basisTitle}</h3>
+              <p className="mt-2">{copy.growth.basisBody}</p>
+              <p className="mt-2">{copy.growth.notOfVat}</p>
+            </div>
+            <FlowSteps
+              steps={[
+                copy.growth.flowPrice,
+                copy.growth.flowMargin,
+                copy.growth.flowShare,
+              ]}
+            />
+            <PlanEconomicsCards
+              cards={copy.growth.planCards}
+              labels={copy.growth.cardLabels}
+            />
             <p className="font-medium">{copy.growth.rewardDirect}</p>
             <p>{copy.growth.rewardMainSub}</p>
             <p>{copy.growth.duration}</p>
             <p>{copy.growth.packs}</p>
-            <div className="rounded-xl border border-teal-100 bg-teal-50/70 p-4">
-              <ul className="list-disc space-y-1 pl-5">
-                <li>{copy.growth.exampleStarter}</li>
-                <li>{copy.growth.examplePro}</li>
-              </ul>
-            </div>
+            <p className="rounded-xl border border-amber-100 bg-amber-50/80 p-3 text-amber-950">
+              {copy.growth.paidOnlyNote}
+            </p>
             <p className="text-slate-500">{copy.growth.payoutNote}</p>
           </Section>
 
           <Section id="studio" title={copy.studio.title}>
             <p>{copy.studio.intro}</p>
-            <ul className="list-disc space-y-1 pl-5">
-              <li>{copy.studio.creator}</li>
-              <li>{copy.studio.pro}</li>
-              <li>{copy.studio.studio}</li>
-              <li>{copy.studio.annual}</li>
-            </ul>
-            <p className="font-medium">{copy.studio.reward}</p>
-            <p>{copy.studio.residualExplain}</p>
-            <p>{copy.studio.notSticker}</p>
-            <p>{copy.studio.duration}</p>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+              <h3 className="font-semibold text-slate-900">{copy.studio.basisTitle}</h3>
+              <p className="mt-2">{copy.studio.basisBody}</p>
+              <p className="mt-2">{copy.studio.notSticker}</p>
+            </div>
             <FlowSteps
               steps={[
                 copy.studio.flowPayment,
@@ -227,6 +282,16 @@ export default function EarnHowItWorksPage({ copy: serverCopy, initialLang }: Pr
                 copy.studio.flowShare,
               ]}
             />
+            <PlanEconomicsCards
+              cards={copy.studio.planCards}
+              labels={copy.studio.cardLabels}
+            />
+            <p>{copy.studio.annual}</p>
+            <p className="font-medium">{copy.studio.reward}</p>
+            <p>{copy.studio.duration}</p>
+            <p className="rounded-xl border border-amber-100 bg-amber-50/80 p-3 text-amber-950">
+              {copy.studio.paidOnlyNote}
+            </p>
           </Section>
 
           <Section id="personal-company" title={copy.personalCompany.title}>
