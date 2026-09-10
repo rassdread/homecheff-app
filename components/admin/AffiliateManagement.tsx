@@ -45,6 +45,7 @@ interface Affiliate {
   id: string;
   userId: string;
   status: string;
+  affiliateRole?: 'MAIN' | 'SUB';
   parentAffiliateId: string | null;
   parentAffiliate: {
     id: string;
@@ -62,7 +63,11 @@ interface Affiliate {
     email: string;
     username: string | null;
     createdAt: string;
+    role?: string;
   };
+  ownership?: 'PERSONAL' | 'COMPANY';
+  payoutEligible?: boolean;
+  managementOnlyHint?: boolean;
   stats: {
     referralLinks: number;
     promoCodes: number;
@@ -77,6 +82,10 @@ interface Affiliate {
   } | null;
   stripeConnectAccountId: string | null;
   stripeConnectOnboardingCompleted: boolean;
+  canonicalStripeConnectAccountIdMasked?: string | null;
+  stripeConnectUiStatus?: string;
+  stripePaymentReady?: boolean;
+  stripeSource?: string;
   createdAt: string;
 }
 
@@ -204,6 +213,12 @@ export default function AffiliateManagement() {
   } | null>(null);
   const [updatingCode, setUpdatingCode] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [hierarchyModal, setHierarchyModal] = useState<{
+    affiliate: Affiliate;
+    action: 'PROMOTE_TO_MAIN' | 'DEMOTE_TO_SUB' | 'REPARENT' | 'DETACH';
+    newParentAffiliateId: string;
+  } | null>(null);
+  const [updatingHierarchy, setUpdatingHierarchy] = useState(false);
   
   // Attributions tab state
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -504,6 +519,44 @@ export default function AffiliateManagement() {
     }
   };
 
+  const submitHierarchyChange = async () => {
+    if (!hierarchyModal) return;
+    const { affiliate, action, newParentAffiliateId } = hierarchyModal;
+    const needsParent = action === 'DEMOTE_TO_SUB' || action === 'REPARENT';
+    if (needsParent && !newParentAffiliateId) {
+      alert('Kies een MAIN-affiliate als nieuwe parent.');
+      return;
+    }
+    setUpdatingHierarchy(true);
+    try {
+      const res = await fetch(`/api/admin/affiliates/${affiliate.id}/hierarchy`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          newParentAffiliateId: needsParent ? newParentAffiliateId : null,
+          confirm: true,
+          reason: `admin_ui_${action}`,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload.error || payload.code || 'Hiërarchiewijziging mislukt');
+      }
+      setHierarchyModal(null);
+      await fetchData();
+      alert(
+        payload.message ||
+          'Hiërarchie bijgewerkt. Geldt voor toekomstige commissies. Bestaande commissies blijven ongewijzigd.',
+      );
+    } catch (error: any) {
+      console.error('Error updating affiliate hierarchy:', error);
+      alert(error.message || 'Fout bij hiërarchiewijziging');
+    } finally {
+      setUpdatingHierarchy(false);
+    }
+  };
+
   // Search users function
   const searchUsers = async (query: string) => {
     if (!query || query.length < 2) {
@@ -712,6 +765,91 @@ export default function AffiliateManagement() {
 
   return (
     <div className="space-y-6">
+      {hierarchyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl border space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Affiliate-hiërarchie wijzigen</h3>
+            <p className="text-sm text-gray-700">
+              <span className="font-medium">{hierarchyModal.affiliate.user.name}</span>
+              {' · '}
+              {hierarchyModal.affiliate.user.email}
+            </p>
+            <div className="rounded-lg bg-gray-50 border p-3 text-sm space-y-1">
+              <p>
+                Huidig:{' '}
+                <strong>
+                  {hierarchyModal.affiliate.parentAffiliateId
+                    ? `SUB van ${hierarchyModal.affiliate.parentAffiliate?.name || 'MAIN'}`
+                    : 'Independent MAIN'}
+                </strong>
+              </p>
+              <p>
+                Nieuw:{' '}
+                <strong>
+                  {hierarchyModal.action === 'PROMOTE_TO_MAIN' ||
+                  hierarchyModal.action === 'DETACH'
+                    ? 'Independent MAIN'
+                    : hierarchyModal.action === 'REPARENT'
+                      ? 'SUB van gekozen MAIN'
+                      : 'SUB van gekozen MAIN'}
+                </strong>
+              </p>
+              <p className="text-xs text-gray-600 pt-1">
+                Deze wijziging geldt voor toekomstige commissies. Bestaande commissies blijven
+                ongewijzigd. Stripe Connect blijft op dezelfde User-account (geen tweede Connect).
+              </p>
+            </div>
+            {(hierarchyModal.action === 'DEMOTE_TO_SUB' ||
+              hierarchyModal.action === 'REPARENT') && (
+              <label className="block text-sm">
+                <span className="font-medium text-gray-800">Nieuwe MAIN-parent</span>
+                <select
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
+                  value={hierarchyModal.newParentAffiliateId}
+                  onChange={(e) =>
+                    setHierarchyModal({
+                      ...hierarchyModal,
+                      newParentAffiliateId: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">— kies MAIN —</option>
+                  {data.affiliates
+                    .filter(
+                      (a) =>
+                        !a.parentAffiliateId &&
+                        a.id !== hierarchyModal.affiliate.id &&
+                        a.status === 'ACTIVE',
+                    )
+                    .map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.user.name} ({a.user.email})
+                      </option>
+                    ))}
+                </select>
+              </label>
+            )}
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                className="px-3 py-2 text-sm rounded-lg border"
+                disabled={updatingHierarchy}
+                onClick={() => setHierarchyModal(null)}
+              >
+                Annuleren
+              </button>
+              <button
+                type="button"
+                className="px-3 py-2 text-sm rounded-lg bg-emerald-600 text-white disabled:opacity-50"
+                disabled={updatingHierarchy}
+                onClick={submitHierarchyChange}
+              >
+                {updatingHierarchy ? 'Bezig…' : 'Bevestigen'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-900 flex flex-wrap items-center justify-between gap-2">
         <span>Android beta: downloadpagina en referralbron ANDROID_BETA_DOWNLOAD.</span>
         <Link href="/admin/beta" className="font-medium text-emerald-800 underline hover:no-underline shrink-0">
@@ -1085,7 +1223,41 @@ export default function AffiliateManagement() {
                         {formatDate(affiliate.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-2 min-w-[220px]">
+                          <div className="text-xs text-gray-600 space-y-0.5">
+                            <p>
+                              Rol:{' '}
+                              <span className="font-medium">
+                                {affiliate.affiliateRole ||
+                                  (affiliate.parentAffiliateId ? 'SUB' : 'MAIN')}
+                              </span>
+                              {affiliate.ownership ? ` · ${affiliate.ownership}` : ''}
+                            </p>
+                            <p>
+                              Stripe:{' '}
+                              <span className="font-medium">
+                                {affiliate.stripeConnectUiStatus ||
+                                  (affiliate.stripeConnectOnboardingCompleted
+                                    ? 'PAYMENT_READY'
+                                    : affiliate.canonicalStripeConnectAccountIdMasked ||
+                                        affiliate.stripeConnectAccountId
+                                      ? 'INCOMPLETE'
+                                      : 'NOT_STARTED')}
+                              </span>
+                            </p>
+                            {(affiliate.canonicalStripeConnectAccountIdMasked ||
+                              affiliate.stripeConnectAccountId) && (
+                              <p className="font-mono text-[11px] text-gray-500">
+                                {affiliate.canonicalStripeConnectAccountIdMasked ||
+                                  `${String(affiliate.stripeConnectAccountId).slice(0, 7)}…`}
+                              </p>
+                            )}
+                            {affiliate.user.role === 'ADMIN' ||
+                            affiliate.user.role === 'SUPERADMIN' ? (
+                              <p className="text-amber-700">Admin · beheer ≠ uitbetaling</p>
+                            ) : null}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
                           {affiliate.status === 'ACTIVE' ? (
                             <button
                               onClick={() => updateAffiliateStatus(affiliate.id, 'SUSPENDED')}
@@ -1107,6 +1279,51 @@ export default function AffiliateManagement() {
                               {updatingStatus === affiliate.id ? '...' : 'Activeer'}
                             </button>
                           )}
+                          {affiliate.parentAffiliateId ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setHierarchyModal({
+                                    affiliate,
+                                    action: 'PROMOTE_TO_MAIN',
+                                    newParentAffiliateId: '',
+                                  })
+                                }
+                                className="px-3 py-1.5 text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100"
+                              >
+                                → MAIN
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setHierarchyModal({
+                                    affiliate,
+                                    action: 'REPARENT',
+                                    newParentAffiliateId: '',
+                                  })
+                                }
+                                className="px-3 py-1.5 text-xs font-medium text-blue-800 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100"
+                              >
+                                Andere MAIN
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setHierarchyModal({
+                                  affiliate,
+                                  action: 'DEMOTE_TO_SUB',
+                                  newParentAffiliateId: '',
+                                })
+                              }
+                              className="px-3 py-1.5 text-xs font-medium text-purple-800 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100"
+                            >
+                              → SUB
+                            </button>
+                          )}
+                          </div>
                         </div>
                       </td>
                     </tr>

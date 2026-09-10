@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { CommissionLedgerStatus, AffiliatePayoutStatus } from '@prisma/client';
+import { resolveAffiliateConnectDestination } from '@/lib/stripe/affiliate-connect-mirror';
+import { deriveConnectAccountStatusFromDb } from '@/lib/stripe/connect-account-status';
 
 export const dynamic = 'force-dynamic';
+
+function maskConnectId(id: string | null | undefined): string | null {
+  if (!id) return null;
+  if (id.length <= 12) return `${id.slice(0, 4)}…`;
+  return `${id.slice(0, 7)}…${id.slice(-4)}`;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,6 +39,9 @@ export async function GET(req: NextRequest) {
             email: true,
             username: true,
             createdAt: true,
+            role: true,
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true,
           },
         },
         parentAffiliate: {
@@ -307,10 +318,27 @@ export async function GET(req: NextRequest) {
       .slice(0, 10);
 
     return NextResponse.json({
-      affiliates: affiliates.map((aff) => ({
+      affiliates: affiliates.map((aff) => {
+        const connect = resolveAffiliateConnectDestination({
+          userStripeConnectAccountId: aff.user.stripeConnectAccountId,
+          userStripeConnectOnboardingCompleted:
+            aff.user.stripeConnectOnboardingCompleted,
+          affiliateStripeConnectAccountId: aff.stripeConnectAccountId,
+          affiliateStripeConnectOnboardingCompleted:
+            aff.stripeConnectOnboardingCompleted,
+        });
+        const connectUi = deriveConnectAccountStatusFromDb({
+          stripeConnectAccountId: connect.accountId,
+          stripeConnectOnboardingCompleted: connect.onboardingCompleted,
+        });
+        const isMain = !aff.parentAffiliateId;
+        const userIsAdmin =
+          aff.user.role === 'ADMIN' || aff.user.role === 'SUPERADMIN';
+        return {
         id: aff.id,
         userId: aff.userId,
         status: aff.status,
+        affiliateRole: isMain ? 'MAIN' : 'SUB',
         parentAffiliateId: aff.parentAffiliateId,
         parentAffiliate: aff.parentAffiliate
           ? {
@@ -330,7 +358,11 @@ export async function GET(req: NextRequest) {
           email: aff.user.email,
           username: aff.user.username,
           createdAt: aff.user.createdAt,
+          role: aff.user.role,
         },
+        ownership: 'PERSONAL' as const,
+        managementOnlyHint: userIsAdmin,
+        payoutEligible: aff.status === 'ACTIVE',
         stats: {
           referralLinks: aff._count.referralLinks,
           promoCodes: aff._count.promoCodes,
@@ -345,8 +377,13 @@ export async function GET(req: NextRequest) {
         } : null,
         stripeConnectAccountId: aff.stripeConnectAccountId,
         stripeConnectOnboardingCompleted: aff.stripeConnectOnboardingCompleted,
+        canonicalStripeConnectAccountIdMasked: maskConnectId(connect.accountId),
+        stripeConnectUiStatus: connectUi.uiStatus,
+        stripePaymentReady: connectUi.paymentReady,
+        stripeSource: connect.source,
         createdAt: aff.createdAt,
-      })),
+      };
+      }),
       statistics: {
         totalAffiliates: affiliates.length,
         activeAffiliates: affiliates.filter((a) => a.status === 'ACTIVE').length,

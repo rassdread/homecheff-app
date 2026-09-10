@@ -279,3 +279,42 @@ export async function bridgeMarketplaceParentEdgeToEcosystem(input: {
     return { ok: false, code: 'BRIDGE_ERROR' };
   }
 }
+
+/** Admin hierarchy change → Growth ecosystem edge (reparent or detach). */
+export async function bridgeAdminHierarchyEdgeToEcosystem(input: {
+  action: 'REPARENT' | 'DETACH';
+  childUserId: string;
+  newParentUserId?: string | null;
+  reason?: string;
+}): Promise<{ ok: boolean; code?: string }> {
+  try {
+    const creds = await growthInternalBase();
+    if (!creds) return { ok: false, code: 'NO_SECRET' };
+
+    const childCentral = input.childUserId.trim();
+    if (!childCentral) return { ok: false, code: 'IDENTITY_MISSING' };
+
+    const res = await fetch(
+      `${creds.base}/api/internal/ecosystem/affiliate/edge/admin-mutate`,
+      {
+        method: 'POST',
+        headers: internalHeaders(creds.secret),
+        body: JSON.stringify({
+          action: input.action,
+          childCentralUserId: childCentral,
+          newParentCentralUserId: input.newParentUserId?.trim() || null,
+          sourceReferralContext: 'marketplace_admin_hierarchy',
+          reason: input.reason ?? 'marketplace_admin_hierarchy',
+        }),
+      },
+    );
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      return { ok: false, code: String((body as { code?: string }).code || res.status) };
+    }
+    return { ok: true };
+  } catch (e) {
+    console.error('[ecosystem-admin-edge-bridge]', e);
+    return { ok: false, code: 'BRIDGE_ERROR' };
+  }
+}
