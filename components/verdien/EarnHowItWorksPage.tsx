@@ -67,6 +67,18 @@ function PlanEconomicsCards({
                 <dd className="text-slate-900">{card.includedCredits}</dd>
               </div>
             ) : null}
+            {card.leadQuota ? (
+              <div className="flex flex-col gap-0.5">
+                <dt className="font-medium text-slate-600">{labels.leadQuota}</dt>
+                <dd className="text-slate-900">{card.leadQuota}</dd>
+              </div>
+            ) : null}
+            {card.hcReserve ? (
+              <div className="flex flex-col gap-0.5">
+                <dt className="font-medium text-slate-600">{labels.hcReserve}</dt>
+                <dd className="text-slate-900">{card.hcReserve}</dd>
+              </div>
+            ) : null}
             <div className="flex flex-col gap-0.5">
               <dt className="font-medium text-slate-600">{labels.margin}</dt>
               <dd className="font-semibold text-slate-900">{card.availableMargin}</dd>
@@ -250,6 +262,7 @@ export default function EarnHowItWorksPage({ copy: serverCopy, initialLang }: Pr
             <FlowSteps
               steps={[
                 copy.growth.flowPrice,
+                copy.growth.flowHcReserve,
                 copy.growth.flowMargin,
                 copy.growth.flowShare,
               ]}

@@ -10,8 +10,10 @@ import {
   PUBLIC_ATTRIBUTION_COOKIE_DAYS,
   PUBLIC_DEFAULT_INDIVIDUAL_FEE_PERCENT,
   PUBLIC_DELIVERY_PLATFORM_FEE_PERCENT,
+  PUBLIC_GROWTH_CALCULATION_VERSION,
   PUBLIC_GROWTH_COMMISSION_MONTHS,
   PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT,
+  PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM,
   PUBLIC_GROWTH_PLAN_ECONOMICS,
   PUBLIC_GROWTH_PLANS,
   PUBLIC_LEDGER_PENDING_DAYS,
@@ -27,7 +29,7 @@ import {
   allocateStudioPlanEconomics,
   deliveryExamplePoolCents,
   formatPublicEurNl,
-  growthDirectExampleEur,
+  growthV2AffiliateCommissionCents,
   marketplaceExamplePoolCents,
 } from '@/lib/earn/public-economics';
 import {
@@ -126,23 +128,44 @@ describe('how-it-works dedicated page', () => {
       assert.doesNotMatch(blob, /cross-border commission|cross.border uplift/i);
       assert.match(blob, /12/);
       assert.match(blob, /platform/i);
+      // No stale Growth V1 public commission amounts.
+      assert.doesNotMatch(blob, /19,50|19\.50/);
+      assert.doesNotMatch(blob, /39,50|39\.50/);
+      assert.doesNotMatch(blob, /99,50|99\.50/);
+      assert.doesNotMatch(blob, /199,50|199\.50/);
     }
     assert.match(earnHowItWorksNl.marketplaceAffiliate.basis, /platformfee/i);
     assert.match(earnHowItWorksEn.marketplaceAffiliate.basis, /platform fee/i);
     assert.match(earnHowItWorksNl.studio.reward, /commissiemarge|platformopbrengst/i);
     assert.match(earnHowItWorksEn.studio.reward, /commissionable margin|platform revenue/i);
-    assert.match(earnHowItWorksNl.growth.rewardDirect, /commissiemarge|ex\. btw|exclusief btw/i);
-    assert.match(earnHowItWorksEn.growth.rewardDirect, /commissionable margin|excluding VAT|ex VAT/i);
+    assert.match(earnHowItWorksNl.growth.rewardDirect, /deelbare marge|HC-face|ex\. btw/i);
+    assert.match(earnHowItWorksEn.growth.rewardDirect, /distributable margin|HC face|ex VAT/i);
     assert.match(earnHowItWorksNl.growth.packs, /niet onder affiliate/i);
     assert.match(earnHowItWorksEn.growth.packs, /not commissionable/i);
+    assert.match(earnHowItWorksNl.growth.basisBody, /Growth V2|HC-face|deelbare marge/i);
+    assert.match(earnHowItWorksEn.growth.basisBody, /Growth V2|HC face|distributable margin/i);
+    assert.match(earnHowItWorksNl.growth.basisBody, /binnen Growth/i);
+    assert.match(earnHowItWorksEn.growth.basisBody, /within Growth/i);
+    assert.equal(PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM, 'GROWTH_ONLY');
+    assert.doesNotMatch(earnHowItWorksNl.growth.basisBody, /Studio|Marketplace/i);
+    assert.doesNotMatch(earnHowItWorksEn.growth.basisBody, /Studio|Marketplace/i);
     assert.match(earnHowItWorksNl.mainSub.availability, /campagne|uitnodiging|regio/i);
     assert.match(earnHowItWorksEn.mainSub.availability, /campaign|invitation|region/i);
     assert.equal(earnHowItWorksNl.growth.planCards.length, 4);
     assert.equal(earnHowItWorksNl.studio.planCards.length, 3);
-    assert.match(earnHowItWorksNl.growth.planCards[0].commission, /19,50/);
+    assert.match(earnHowItWorksNl.growth.planCards[0].commission, /15,75/);
+    assert.match(earnHowItWorksNl.growth.planCards[1].commission, /25,50/);
+    assert.match(earnHowItWorksNl.growth.planCards[2].commission, /49,50/);
+    assert.match(earnHowItWorksNl.growth.planCards[3].commission, /109,50/);
+    assert.match(earnHowItWorksNl.growth.planCards[0].includedCredits!, /750/);
+    assert.match(earnHowItWorksNl.growth.planCards[0].leadQuota!, /175/);
     assert.match(earnHowItWorksNl.studio.planCards[0].commission, /1,70/);
     assert.match(earnHowItWorksNl.studio.basisBody, /niet over de volledige abonnementsprijs/i);
     assert.match(earnHowItWorksEn.studio.basisBody, /not on the full subscription list price/i);
+    assert.match(
+      earnHowItWorksNl.growth.planCards[0].recurring,
+      /kwalificerende betaalde abonnementsperiode, maximaal 12 maanden/,
+    );
   });
 });
 
@@ -181,35 +204,67 @@ describe('economics SoT drift protection', () => {
     assert.equal(ex.poolEur, 6);
   });
 
-  it('Growth prices and duration match Stage 1 SoT', () => {
+  it('Growth prices, HC, lead quotas and duration match V2 Balanced SoT', () => {
     assert.deepEqual(
       PUBLIC_GROWTH_PLANS.map((p) => p.monthlyEurExVat),
       [0, 39, 79, 199, 399],
     );
+    assert.deepEqual(
+      PUBLIC_GROWTH_PLANS.map((p) => p.monthlyHc),
+      [0, 750, 2800, 10000, 18000],
+    );
+    assert.deepEqual(
+      PUBLIC_GROWTH_PLANS.map((p) => p.monthlyLeadQuota),
+      [0, 175, 850, 3200, 5500],
+    );
     assert.equal(PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT, 50);
     assert.equal(PUBLIC_GROWTH_COMMISSION_MONTHS, 12);
-    assert.equal(growthDirectExampleEur(39).affiliateEur, 19.5);
-    assert.equal(growthDirectExampleEur(79).affiliateEur, 39.5);
+    assert.equal(PUBLIC_GROWTH_CALCULATION_VERSION, 'GROWTH_AFFILIATE_V2_RESIDUAL_HC');
+    // Lead quota is NOT HC/3 (starter 175 ≠ 250).
+    const starter = PUBLIC_GROWTH_PLANS.find((p) => p.key === 'starter')!;
+    assert.equal(starter.monthlyLeadQuota, 175);
+    assert.equal(starter.monthlyHc, 750);
+    assert.notEqual(starter.monthlyLeadQuota, Math.floor(starter.monthlyHc / 3));
   });
 
-  it('Growth plan economics match V1 payout (50% of ex-VAT) at cent level', () => {
+  it('growthV2AffiliateCommissionCents matches cent-exact V2 table', () => {
     const expected = [
-      { key: 'starter', price: 39, commission: 19.5 },
-      { key: 'pro', price: 79, commission: 39.5 },
-      { key: 'business', price: 199, commission: 99.5 },
-      { key: 'enterprise', price: 399, commission: 199.5 },
+      { net: 3900, hc: 750, commissionCents: 1575 },
+      { net: 7900, hc: 2800, commissionCents: 2550 },
+      { net: 19900, hc: 10000, commissionCents: 4950 },
+      { net: 39900, hc: 18000, commissionCents: 10950 },
+    ];
+    for (const row of expected) {
+      const snap = growthV2AffiliateCommissionCents(row.net, row.hc);
+      assert.equal(snap.affiliateCommissionCents, row.commissionCents);
+      assert.equal(snap.hcReserveCents, row.hc);
+      assert.equal(snap.commissionableCents, row.net - row.hc);
+    }
+  });
+
+  it('Growth plan economics match V2 residual-HC payout at cent level', () => {
+    const expected = [
+      { key: 'starter', price: 39, hc: 750, leads: 175, commission: 15.75 },
+      { key: 'pro', price: 79, hc: 2800, leads: 850, commission: 25.5 },
+      { key: 'business', price: 199, hc: 10000, leads: 3200, commission: 49.5 },
+      { key: 'enterprise', price: 399, hc: 18000, leads: 5500, commission: 109.5 },
     ];
     assert.equal(PUBLIC_GROWTH_PLAN_ECONOMICS.length, expected.length);
     for (const row of expected) {
       const eco = PUBLIC_GROWTH_PLAN_ECONOMICS.find((p) => p.key === row.key)!;
       assert.equal(eco.priceEurExVat, row.price);
-      assert.equal(eco.commissionableBaseEur, row.price);
-      assert.equal(eco.directVariableCostEur, 0);
+      assert.equal(eco.includedHc, row.hc);
+      assert.equal(eco.monthlyLeadQuota, row.leads);
+      assert.equal(eco.hcReserveEur, row.hc / 100);
+      assert.equal(eco.commissionableBaseEur, (row.price * 100 - row.hc) / 100);
+      assert.equal(eco.directVariableCostEur, eco.hcReserveEur);
       assert.equal(eco.affiliateCommissionEur, row.commission);
-      assert.equal(
-        eco.affiliateCommissionEur,
-        growthDirectExampleEur(row.price).affiliateEur,
+      assert.equal(eco.calculationVersion, 'GROWTH_AFFILIATE_V2_RESIDUAL_HC');
+      const snap = growthV2AffiliateCommissionCents(
+        Math.round(row.price * 100),
+        row.hc,
       );
+      assert.equal(eco.affiliateCommissionEur, snap.affiliateCommissionCents / 100);
     }
   });
 
@@ -245,6 +300,7 @@ describe('economics SoT drift protection', () => {
       assert.ok(eco.affiliateCommissionEur < eco.priceEurGrossInclVat * 0.5);
     }
     assert.match(formatPublicEurNl(1.7), /1,70/);
+    assert.match(formatPublicEurNl(3.39), /3,39/);
   });
 
   it('Display copy commissions equal economics SoT (NL)', () => {
@@ -253,6 +309,9 @@ describe('economics SoT drift protection', () => {
       const card = nl.growth.planCards.find((c) => c.key === eco.key)!;
       assert.match(card.commission, new RegExp(formatPublicEurNl(eco.affiliateCommissionEur)));
       assert.match(card.availableMargin, new RegExp(formatPublicEurNl(eco.commissionableBaseEur)));
+      assert.match(card.hcReserve!, new RegExp(formatPublicEurNl(eco.hcReserveEur)));
+      assert.match(card.leadQuota!, new RegExp(eco.monthlyLeadQuota.toLocaleString('nl-NL')));
+      assert.match(card.includedCredits!, new RegExp(eco.includedHc.toLocaleString('nl-NL')));
     }
     for (const eco of PUBLIC_STUDIO_PLAN_ECONOMICS) {
       const card = nl.studio.planCards.find((c) => c.key === eco.key)!;

@@ -316,9 +316,10 @@ export default function AffiliatePageClient() {
                 <h3 className="text-xl font-bold mb-2 text-center">{t('affiliate.businesses')}</h3>
                 <p className="text-sm opacity-90 mb-3 text-center">{t('affiliate.businessesDesc')}</p>
                 <div className="space-y-1 text-sm text-center">
-                  <p className="font-bold">Basic: €19.50/maand</p>
-                  <p className="font-bold">Pro: €49.50/maand</p>
-                  <p className="font-bold">Premium: €99.50/maand</p>
+                  <p className="font-bold">Starter: €15,75/maand</p>
+                  <p className="font-bold">Pro: €25,50/maand</p>
+                  <p className="font-bold">Business: €49,50/maand</p>
+                  <p className="font-bold">Enterprise: €109,50/maand</p>
                 </div>
                 <p className="text-xs opacity-75 mt-2 text-center">{t('affiliate.subscriptionCommission')}</p>
                 <p className="text-xs opacity-75 mt-1 text-center">{t('affiliate.transactionCommission')}</p>
@@ -352,9 +353,10 @@ export default function AffiliatePageClient() {
                   <div className="bg-white/20 rounded-lg p-4 mt-4">
                     <p className="font-semibold mb-2 text-xs">Voorbeelden:</p>
                     <div className="space-y-1 text-xs">
-                      <p><strong>Basic (€39/maand):</strong> Jij €19.50, HomeCheff €19.50</p>
-                      <p><strong>Pro (€99/maand):</strong> Jij €49.50, HomeCheff €49.50</p>
-                      <p><strong>Premium (€199/maand):</strong> Jij €99.50, HomeCheff €99.50</p>
+                      <p><strong>Starter (€39/maand):</strong> Jij €15,75 (50% van deelbare marge na HC-reserve)</p>
+                      <p><strong>Pro (€79/maand):</strong> Jij €25,50</p>
+                      <p><strong>Business (€199/maand):</strong> Jij €49,50</p>
+                      <p><strong>Enterprise (€399/maand):</strong> Jij €109,50</p>
                     </div>
                   </div>
                 </div>

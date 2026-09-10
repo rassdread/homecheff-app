@@ -11,6 +11,7 @@ import {
   PUBLIC_DIRECT_PERCENT_OF_ELIGIBLE,
   PUBLIC_GROWTH_COMMISSION_MONTHS,
   PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT,
+  PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM,
   PUBLIC_GROWTH_PLAN_ECONOMICS,
   PUBLIC_GROWTH_PLANS,
   PUBLIC_LEDGER_PENDING_DAYS,
@@ -38,12 +39,26 @@ export type EarnPlanEconomicsCard = {
   name: string;
   price: string;
   includedCredits: string | null;
+  /** Separate from included HC — monthly lead quota is not HC/3. */
+  leadQuota?: string | null;
+  /** HC face reserve (€0.01 × included HC) deducted before affiliate share. */
+  hcReserve?: string | null;
   availableMargin: string;
   availableMarginPct: string;
   affiliateShare: string;
   commission: string;
   recurring: string;
 };
+
+const growthHcScopeNl =
+  PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM === 'GROWTH_ONLY'
+    ? 'Je abonnement bevat HC voor gebruik binnen Growth.'
+    : 'Inbegrepen HC kan volgens de actieve productregels in het HomeCheff-ecosysteem worden gebruikt.';
+
+const growthHcScopeEn =
+  PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM === 'GROWTH_ONLY'
+    ? 'Your subscription includes HC for use within Growth.'
+    : 'Included HC may be used across the HomeCheff ecosystem under the active product rules.';
 
 const mpEx = marketplaceExamplePoolCents(100, PUBLIC_DEFAULT_INDIVIDUAL_FEE_PERCENT);
 const delEx = deliveryExamplePoolCents(20);
@@ -53,12 +68,15 @@ function growthPlanCardsNl(): EarnPlanEconomicsCard[] {
     key: p.key,
     name: `Growth ${p.label}`,
     price: `€${formatPublicEurNl(p.priceEurExVat)} / maand ex. btw`,
-    includedCredits: null,
+    includedCredits: `${p.includedHc.toLocaleString('nl-NL')} HC inbegrepen`,
+    leadQuota: `${p.monthlyLeadQuota.toLocaleString('nl-NL')} leads / maand (apart van HC)`,
+    hcReserve: `€${formatPublicEurNl(p.hcReserveEur)} HC-reserve (face value)`,
     availableMargin: `€${formatPublicEurNl(p.commissionableBaseEur)}`,
-    availableMarginPct: `${formatPublicPercentNl(p.commissionableBasePercentOfPrice)}% van de abonnementsprijs ex. btw`,
-    affiliateShare: `${formatPublicPercentNl(p.affiliatePercentOfBase)}% van de commissiemarge`,
-    commission: `€${formatPublicEurNl(p.affiliateCommissionEur)} per volledig betaalde maandfactuur`,
-    recurring: `Zolang de klant een betaald abonnement houdt binnen het venster van ${p.commissionMonths} maanden, ontvang je dit bedrag per qualifying factuur.`,
+    availableMarginPct: `${formatPublicPercentNl(p.commissionableBasePercentOfPrice)}% van de abonnementsprijs ex. btw (na HC-reserve)`,
+    affiliateShare: `${formatPublicPercentNl(p.affiliatePercentOfBase)}% van de deelbare marge`,
+    commission: `€${formatPublicEurNl(p.affiliateCommissionEur)}`,
+    recurring:
+      'Je ontvangt deze commissie per kwalificerende betaalde abonnementsperiode, maximaal 12 maanden.',
   }));
 }
 
@@ -67,12 +85,15 @@ function growthPlanCardsEn(): EarnPlanEconomicsCard[] {
     key: p.key,
     name: `Growth ${p.label}`,
     price: `€${formatPublicEurEn(p.priceEurExVat)} / month ex VAT`,
-    includedCredits: null,
+    includedCredits: `${p.includedHc.toLocaleString('en-GB')} HC included`,
+    leadQuota: `${p.monthlyLeadQuota.toLocaleString('en-GB')} leads / month (separate from HC)`,
+    hcReserve: `€${formatPublicEurEn(p.hcReserveEur)} HC reserve (face value)`,
     availableMargin: `€${formatPublicEurEn(p.commissionableBaseEur)}`,
-    availableMarginPct: `${formatPublicPercentEn(p.commissionableBasePercentOfPrice)}% of the subscription price ex VAT`,
-    affiliateShare: `${formatPublicPercentEn(p.affiliatePercentOfBase)}% of the commissionable margin`,
-    commission: `€${formatPublicEurEn(p.affiliateCommissionEur)} per fully paid monthly invoice`,
-    recurring: `For as long as the customer keeps a paid subscription within the ${p.commissionMonths}-month window, you receive this amount on each qualifying invoice.`,
+    availableMarginPct: `${formatPublicPercentEn(p.commissionableBasePercentOfPrice)}% of the subscription price ex VAT (after HC reserve)`,
+    affiliateShare: `${formatPublicPercentEn(p.affiliatePercentOfBase)}% of the distributable margin`,
+    commission: `€${formatPublicEurEn(p.affiliateCommissionEur)}`,
+    recurring:
+      'You receive this commission for each qualifying paid subscription period, for a maximum of 12 months.',
   }));
 }
 
@@ -82,6 +103,8 @@ function studioPlanCardsNl(): EarnPlanEconomicsCard[] {
     name: p.label,
     price: `€${formatPublicEurNl(p.priceEurGrossInclVat)} / maand`,
     includedCredits: `${p.includedHc.toLocaleString('nl-NL')} HC inbegrepen`,
+    leadQuota: null,
+    hcReserve: null,
     availableMargin: `€${formatPublicEurNl(p.distributableMarginEur)}`,
     availableMarginPct: `${formatPublicPercentNl(p.distributableMarginPercentOfGross)}% van de catalogusprijs`,
     affiliateShare: `${formatPublicPercentNl(p.affiliatePercentOfResidual)}% van de beschikbare commissiemarge`,
@@ -96,6 +119,8 @@ function studioPlanCardsEn(): EarnPlanEconomicsCard[] {
     name: p.label,
     price: `€${formatPublicEurEn(p.priceEurGrossInclVat)} / month`,
     includedCredits: `${p.includedHc.toLocaleString('en-GB')} HC included`,
+    leadQuota: null,
+    hcReserve: null,
     availableMargin: `€${formatPublicEurEn(p.distributableMarginEur)}`,
     availableMarginPct: `${formatPublicPercentEn(p.distributableMarginPercentOfGross)}% of the catalogue price`,
     affiliateShare: `${formatPublicPercentEn(p.affiliatePercentOfResidual)}% of the available commissionable margin`,
@@ -190,22 +215,25 @@ export const earnHowItWorksNl = {
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
     basisTitle: 'Waarover wordt Growth-commissie berekend?',
     basisBody:
-      'De affiliatecommissie wordt berekend over de beschikbare commissiemarge. In het huidige Growth V1-model is die commissiemarge gelijk aan de betaalde abonnementsomzet exclusief btw (100% van de factuurregel ex. btw). Er wordt in V1 geen aparte HC-/productkost van die grondslag afgetrokken.',
+      `In Growth V2 wordt eerst de volledige HC-face-waarde gereserveerd (1 HC = €0,01) van de abonnementsprijs exclusief btw. Over het restant — de deelbare marge — ontvang je ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliatecommissie. De volledige abonnementsprijs is dus niet de commissiegrondslag. Inbegrepen HC en maandelijkse leadquota zijn aparte rechten: HC is geen leadquota. ${growthHcScopeNl}`,
     notOfVat:
       'Commissie wordt niet berekend over btw. Credit packs vallen niet onder affiliate-commissie.',
     flowPrice: 'Abonnementsprijs ex. btw',
-    flowMargin: 'Beschikbare commissiemarge (= 100% van die prijs in V1)',
+    flowHcReserve: 'HC-reserve (face value)',
+    flowMargin: 'Deelbare marge (restant na HC-reserve)',
     flowShare: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliateaandeel`,
-    rewardDirect: `Directe affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% van de beschikbare commissiemarge (eligible betaalde Growth-abonnementsomzet ex. btw)`,
-    rewardMainSub: `MAIN/SUB waar van toepassing: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}% van dezelfde commissiemarge`,
+    rewardDirect: `Directe affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% van de deelbare marge (na aftrek van de HC-face-reserve van de eligible Growth-abonnementsomzet ex. btw)`,
+    rewardMainSub: `MAIN/SUB waar van toepassing: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}% van dezelfde deelbare marge`,
     duration: `Looptijd: tot ${PUBLIC_GROWTH_COMMISSION_MONTHS} maanden volgens het geldende commissievenster`,
     packs:
-      'Credit packs vallen in het huidige V1-model niet onder affiliate-commissie.',
+      'Credit packs vallen niet onder affiliate-commissie.',
     planCards: growthPlanCardsNl(),
     cardLabels: {
       price: 'Abonnement',
-      credits: 'Credits',
-      margin: 'Beschikbaar voor verdeling',
+      credits: 'Inbegrepen HC',
+      leadQuota: 'Leadquota',
+      hcReserve: 'HC-reserve',
+      margin: 'Deelbare marge',
       marginPct: 'Aandeel van abonnementsprijs',
       affiliatePct: 'Jouw affiliate-aandeel',
       commission: 'Jouw commissie',
@@ -234,6 +262,8 @@ export const earnHowItWorksNl = {
     cardLabels: {
       price: 'Abonnement',
       credits: 'Inbegrepen HC',
+      leadQuota: 'Leadquota',
+      hcReserve: 'HC-reserve',
       margin: 'Beschikbare marge',
       marginPct: 'Marge t.o.v. catalogusprijs',
       affiliatePct: 'Jouw affiliate-aandeel',
@@ -299,7 +329,7 @@ export const earnHowItWorksNl = {
       {
         platform: 'Growth',
         promote: 'Betaald abonnement',
-        basis: 'Commissiemarge = abonnementsomzet ex. btw (V1)',
+        basis: 'Deelbare marge = restant na HC-face-reserve van abonnementsomzet ex. btw',
         reward: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% van die marge`,
         duration: `${PUBLIC_GROWTH_COMMISSION_MONTHS} maanden`,
       },
@@ -413,22 +443,25 @@ export const earnHowItWorksEn = {
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
     basisTitle: 'What is Growth commission calculated on?',
     basisBody:
-      'Affiliate commission is calculated on the available commissionable margin. Under the current Growth V1 model that margin equals paid subscription revenue excluding VAT (100% of the invoice line ex VAT). V1 does not deduct a separate HC/product cost from that base.',
+      `Under Growth V2, the full HC face value is reserved first (1 HC = €0.01) from the subscription price excluding VAT. You then receive ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate commission on the remainder — the distributable margin. The full subscription price is therefore not the commission base. Included HC and monthly lead quota are separate entitlements: HC is not lead quota. ${growthHcScopeEn}`,
     notOfVat:
       'Commission is not calculated on VAT. Credit packs are not commissionable.',
     flowPrice: 'Subscription price ex VAT',
-    flowMargin: 'Available commissionable margin (= 100% of that price in V1)',
+    flowHcReserve: 'HC reserve (face value)',
+    flowMargin: 'Distributable margin (remainder after HC reserve)',
     flowShare: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate share`,
-    rewardDirect: `Direct affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% of the available commissionable margin (eligible paid Growth subscription revenue ex VAT)`,
-    rewardMainSub: `MAIN/SUB where applicable: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}% of the same commissionable margin`,
+    rewardDirect: `Direct affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% of the distributable margin (after deducting the HC face reserve from eligible Growth subscription revenue ex VAT)`,
+    rewardMainSub: `MAIN/SUB where applicable: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}% of the same distributable margin`,
     duration: `Duration: up to ${PUBLIC_GROWTH_COMMISSION_MONTHS} months under the certified commission window`,
     packs:
-      'Credit packs are not commissionable under the current V1 affiliate model.',
+      'Credit packs are not commissionable.',
     planCards: growthPlanCardsEn(),
     cardLabels: {
       price: 'Subscription',
-      credits: 'Credits',
-      margin: 'Available to distribute',
+      credits: 'Included HC',
+      leadQuota: 'Lead quota',
+      hcReserve: 'HC reserve',
+      margin: 'Distributable margin',
       marginPct: 'Share of subscription price',
       affiliatePct: 'Your affiliate share',
       commission: 'Your commission',
@@ -457,6 +490,8 @@ export const earnHowItWorksEn = {
     cardLabels: {
       price: 'Subscription',
       credits: 'Included HC',
+      leadQuota: 'Lead quota',
+      hcReserve: 'HC reserve',
       margin: 'Available margin',
       marginPct: 'Margin vs catalogue price',
       affiliatePct: 'Your affiliate share',
@@ -522,7 +557,7 @@ export const earnHowItWorksEn = {
       {
         platform: 'Growth',
         promote: 'Paid subscription',
-        basis: 'Commissionable margin = subscription revenue ex VAT (V1)',
+        basis: 'Distributable margin = residual after HC face reserve from subscription revenue ex VAT',
         reward: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% of that margin`,
         duration: `${PUBLIC_GROWTH_COMMISSION_MONTHS} months`,
       },

@@ -2,7 +2,7 @@
  * Public-facing HomeCheff earning economics — Stage 1 SoT locked values.
  *
  * Marketplace numbers import production calculation constants where possible.
- * Growth/Studio prices are audited against those products' production catalogs (Stage 1).
+ * Growth/Studio prices are audited against those products' production catalogs.
  *
  * DO NOT invent rates. DO NOT publish stale 25%-per-side order allocator values.
  */
@@ -62,17 +62,23 @@ export const PUBLIC_MARKETPLACE_MIN_PAYOUT_EUR = MIN_PAYOUT_AMOUNT_CENTS / 100;
 
 export const PUBLIC_DELIVERY_PLATFORM_FEE_PERCENT = 12;
 
-/** Growth monthly prices ex-VAT — Stage 1 (homecheff-leads PLAN_CARD_COPY). */
+/** Growth monthly prices ex-VAT — homecheff-leads PLAN_CARD_COPY. */
 export const PUBLIC_GROWTH_PLANS = [
-  { key: 'free', monthlyEurExVat: 0 },
-  { key: 'starter', monthlyEurExVat: 39 },
-  { key: 'pro', monthlyEurExVat: 79 },
-  { key: 'business', monthlyEurExVat: 199 },
-  { key: 'enterprise', monthlyEurExVat: 399 },
+  { key: 'free', monthlyEurExVat: 0, monthlyHc: 0, monthlyLeadQuota: 0 },
+  { key: 'starter', monthlyEurExVat: 39, monthlyHc: 750, monthlyLeadQuota: 175 },
+  { key: 'pro', monthlyEurExVat: 79, monthlyHc: 2800, monthlyLeadQuota: 850 },
+  { key: 'business', monthlyEurExVat: 199, monthlyHc: 10000, monthlyLeadQuota: 3200 },
+  { key: 'enterprise', monthlyEurExVat: 399, monthlyHc: 18000, monthlyLeadQuota: 5500 },
 ] as const;
+
+/** 1 HC = €0.01 face — Growth V2 affiliate reserve. */
+export const PUBLIC_GROWTH_HC_FACE_EUR = 0.01;
 
 export const PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT = 50;
 export const PUBLIC_GROWTH_COMMISSION_MONTHS = 12;
+export const PUBLIC_GROWTH_CALCULATION_VERSION =
+  'GROWTH_AFFILIATE_V2_RESIDUAL_HC' as const;
+export const PUBLIC_GROWTH_ROLLOVER_MULTIPLIER = 3 as const;
 
 /** Studio — live studio.homecheff.eu/api/billing/catalog CURRENT_NL_B2C. */
 export const PUBLIC_STUDIO_PLANS = [
@@ -105,6 +111,15 @@ export type MainAffiliateEnrollmentMode =
 export const PUBLIC_MAIN_ENROLLMENT_PRESENTATION_DEFAULT: MainAffiliateEnrollmentMode =
   'CAMPAIGN_ONLY';
 
+/**
+ * Public claim gate for Growth HC cross-platform marketing.
+ * Only advertise Studio/Marketplace when Production cross-platform is independently verified PASS.
+ * Current Production env values for UNIVERSAL_HC_GROWTH_TO_* could not be read as true via CLI pull
+ * (encrypted/empty), so public copy stays Growth-scoped unless updated after verification.
+ */
+export const PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM: 'GROWTH_ONLY' | 'ECOSYSTEM' =
+  'GROWTH_ONLY';
+
 export function marketplaceExamplePoolCents(
   saleEur = 100,
   feePercent = PUBLIC_DEFAULT_INDIVIDUAL_FEE_PERCENT,
@@ -127,6 +142,7 @@ function round2Public(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/** @deprecated V1 gross example — prefer growthV2AffiliateCommissionCents / plan economics. */
 export function growthDirectExampleEur(monthlyEurExVat: number) {
   return {
     monthlyEurExVat,
@@ -166,25 +182,28 @@ export function formatPublicPercentEn(pct: number): string {
 }
 
 /**
- * Growth LIVE V1 economics (homecheff-leads process-growth-affiliate-commission):
- * commissionable base = paid subscription line ex-VAT (full net revenue).
- * Direct variable product cost is NOT deducted in V1.
- * Affiliate = 50% of that base; MAIN/SUB = 10%/40% of same base where applicable.
+ * Growth LIVE V2 residual-HC economics (homecheff-leads):
+ * COMMISSIONABLE = max(0, NET_EX_VAT − INCLUDED_HC × €0.01)
+ * Affiliate = 50% of that residual; MAIN/SUB = 10%/40% of same residual.
+ * Lead quotas remain separate (175/850/3200/5500) and are NOT HC/3.
  */
 export type GrowthPlanEconomics = {
   key: (typeof PUBLIC_GROWTH_PLANS)[number]['key'];
   label: string;
   priceEurExVat: number;
-  /** Under live V1: equals price (full ex-VAT subscription is commissionable). */
+  includedHc: number;
+  monthlyLeadQuota: number;
+  hcReserveEur: number;
+  /** Residual after full HC face reserve. */
   commissionableBaseEur: number;
-  /** Share of price that is commissionable under V1 (100%). */
   commissionableBasePercentOfPrice: number;
-  /** Direct/product cost deducted from commission base in V1. */
+  /** HC face reserved from commission base. */
   directVariableCostEur: number;
   affiliatePercentOfBase: number;
   affiliateCommissionEur: number;
   recurring: true;
   commissionMonths: number;
+  calculationVersion: typeof PUBLIC_GROWTH_CALCULATION_VERSION;
 };
 
 const GROWTH_PLAN_LABELS: Record<
@@ -197,23 +216,50 @@ const GROWTH_PLAN_LABELS: Record<
   enterprise: 'Enterprise',
 };
 
+/** Cent-exact V2 residual: floor((netCents − hcFaceCents) × 5000 / 10000). */
+export function growthV2AffiliateCommissionCents(
+  netExVatCents: number,
+  includedHc: number,
+): {
+  netExVatCents: number;
+  hcReserveCents: number;
+  commissionableCents: number;
+  affiliateCommissionCents: number;
+} {
+  const net = Math.max(0, Math.floor(netExVatCents));
+  const hcReserveCents = Math.max(0, Math.floor(includedHc));
+  const commissionableCents = Math.max(0, net - hcReserveCents);
+  const affiliateCommissionCents = Math.floor((commissionableCents * 5000) / 10_000);
+  return { netExVatCents: net, hcReserveCents, commissionableCents, affiliateCommissionCents };
+}
+
 export function buildGrowthPlanEconomics(): GrowthPlanEconomics[] {
   return PUBLIC_GROWTH_PLANS.filter((p) => p.key !== 'free').map((p) => {
     const priceEurExVat = p.monthlyEurExVat;
-    const affiliateCommissionEur = round2Public(
-      (priceEurExVat * PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT) / 100,
-    );
+    const netCents = Math.round(priceEurExVat * 100);
+    const snap = growthV2AffiliateCommissionCents(netCents, p.monthlyHc);
+    const hcReserveEur = snap.hcReserveCents / 100;
+    const commissionableBaseEur = snap.commissionableCents / 100;
+    const affiliateCommissionEur = snap.affiliateCommissionCents / 100;
+    const commissionableBasePercentOfPrice =
+      priceEurExVat > 0
+        ? round2Public((commissionableBaseEur / priceEurExVat) * 100)
+        : 0;
     return {
       key: p.key,
       label: GROWTH_PLAN_LABELS[p.key as keyof typeof GROWTH_PLAN_LABELS],
       priceEurExVat,
-      commissionableBaseEur: priceEurExVat,
-      commissionableBasePercentOfPrice: 100,
-      directVariableCostEur: 0,
+      includedHc: p.monthlyHc,
+      monthlyLeadQuota: p.monthlyLeadQuota,
+      hcReserveEur,
+      commissionableBaseEur,
+      commissionableBasePercentOfPrice,
+      directVariableCostEur: hcReserveEur,
       affiliatePercentOfBase: PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT,
       affiliateCommissionEur,
       recurring: true as const,
       commissionMonths: PUBLIC_GROWTH_COMMISSION_MONTHS,
+      calculationVersion: PUBLIC_GROWTH_CALCULATION_VERSION,
     };
   });
 }
@@ -329,7 +375,7 @@ export const PUBLIC_STUDIO_PLAN_ECONOMICS = buildStudioPlanEconomics();
 
 export const PUBLIC_COMMISSION_BASE = {
   growth:
-    'GROWTH_V1_PAID_SUBSCRIPTION_LINE_EX_VAT_FULL_NET — no HC/product cost deduction in live V1',
+    'GROWTH_V2_RESIDUAL_HC = max(0, NET_EX_VAT − INCLUDED_HC×€0.01); affiliate 50% of residual',
   studio:
     'STUDIO_ELIGIBLE_RESIDUAL = net_ex_VAT − Stripe_estimate − Model_A_HC_treasury_coverage',
 } as const;
