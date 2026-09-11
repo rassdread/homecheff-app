@@ -45,10 +45,15 @@ export default function StripeConnectSetup() {
         );
         setDualTrackEnabled(data.dualTrackEnabled !== false);
         setRecoveryEligible(Boolean(data.recoveryEligible));
+        const migrationClass = data.migrationClass as string | undefined;
         setShowTrackPicker(
-          Boolean(data.needsTrackSelection) ||
-            Boolean(data.recoveryEligible) ||
-            (!data.hasAccount && data.dualTrackEnabled !== false),
+          Boolean(
+            data.dualTrackEnabled !== false &&
+              (data.needsTrackSelection ||
+                data.recoveryEligible ||
+                migrationClass === 'USER_CONFIRMATION_REQUIRED' ||
+                migrationClass === 'NEW_ACCOUNT_CHOICE'),
+          ),
         );
       }
     } catch (err) {

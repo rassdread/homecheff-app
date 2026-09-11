@@ -90,7 +90,12 @@ export function ActionCenterRow({
   const handleStripeOnboard = async () => {
     setStripeLoading(true);
     try {
-      await startStripeConnectOnboarding();
+      const result = await startStripeConnectOnboarding({
+        returnPath: '/settings?tab=payments',
+      });
+      if (result.needsTrackSelection && typeof window !== 'undefined') {
+        window.location.href = '/settings?tab=payments';
+      }
     } finally {
       setStripeLoading(false);
     }

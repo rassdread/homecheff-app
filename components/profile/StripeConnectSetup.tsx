@@ -43,11 +43,13 @@ export default function StripeConnectSetup({
       );
       setUiStatus(status);
       setRecoveryEligible(Boolean(data.recoveryEligible));
-      setShowTrackPicker(
+      const migrationClass = data.migrationClass as string | undefined;
+      const needsConfirmation =
         Boolean(data.needsTrackSelection) ||
-          Boolean(data.recoveryEligible) ||
-          (!data.hasAccount && data.dualTrackEnabled !== false),
-      );
+        Boolean(data.recoveryEligible) ||
+        migrationClass === 'USER_CONFIRMATION_REQUIRED' ||
+        migrationClass === 'NEW_ACCOUNT_CHOICE';
+      setShowTrackPicker(needsConfirmation && data.dualTrackEnabled !== false);
       if (status === 'PAYMENT_READY') {
         onUpdate();
       }
@@ -141,7 +143,10 @@ export default function StripeConnectSetup({
           loading={loading}
           error={error}
           onSelect={async (track) => {
-            await handleOnboard(track, recoveryEligible && track === 'PARTICULAR');
+            await handleOnboard(
+              track,
+              recoveryEligible && track === 'PARTICULAR',
+            );
           }}
         />
       </div>
@@ -153,12 +158,19 @@ export default function StripeConnectSetup({
   const title = isAction
     ? 'Actie nodig voor je betaalaccount'
     : uiStatus === 'INCOMPLETE'
-      ? 'Betaalaccount afronden'
+      ? recoveryEligible
+        ? 'Betaalprofiel opnieuw instellen'
+        : 'Betaalaccount afronden'
       : t('productOrder.payments.setupTitle');
-  const cta = isAction
-    ? 'Actie nodig voor je betaalaccount'
+  const body = isAction
+    ? 'Stripe heeft nog enkele persoonlijke gegevens of je bankrekening nodig.'
     : uiStatus === 'INCOMPLETE'
-      ? 'Betaalaccount afronden'
+      ? 'Je particuliere of zakelijke betaalprofiel is nog niet afgerond. Rond de verificatie af om betalingen te ontvangen.'
+      : t('productOrder.payments.setupIntro');
+  const cta = isAction
+    ? 'Verificatie afronden'
+    : uiStatus === 'INCOMPLETE'
+      ? 'Verificatie afronden'
       : t('productOrder.payments.setupCta');
 
   return (
@@ -170,12 +182,8 @@ export default function StripeConnectSetup({
         </div>
       </div>
 
-      <p className="text-xs text-gray-600 mb-2">
-        {isAction
-          ? 'Stripe heeft nog extra gegevens nodig.'
-          : t('productOrder.payments.setupIntro')}
-      </p>
-      {!isAction && (
+      <p className="text-xs text-gray-600 mb-2">{body}</p>
+      {!isAction && uiStatus !== 'INCOMPLETE' && (
         <p className="text-xs text-gray-500 mb-3">
           {t('productOrder.payments.setupContactHint')}
         </p>
@@ -189,7 +197,11 @@ export default function StripeConnectSetup({
 
       <Button
         onClick={() => {
-          setShowTrackPicker(true);
+          if (recoveryEligible) {
+            setShowTrackPicker(true);
+            return;
+          }
+          void handleOnboard();
         }}
         disabled={loading}
         className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-sm py-2 px-4"

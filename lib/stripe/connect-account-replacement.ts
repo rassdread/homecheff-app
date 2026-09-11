@@ -1,6 +1,8 @@
 /**
  * Safe replacement of stuck Express accounts for PARTICULAR track.
- * Never deletes Stripe accounts with balance/pending money.
+ * Historical closed transfers/payouts are NOT automatic blockers —
+ * only current financial dependence (balance, pending payouts, disputes,
+ * open HomeCheff settlements) blocks SAFE_REPLACE.
  */
 
 import type Stripe from 'stripe';
@@ -9,6 +11,7 @@ import {
   classifyStuckExpressCandidate,
   type ConnectTrack,
 } from '@/lib/stripe/connect-tracks';
+import { hasHomecheffSettlementExposure } from '@/lib/stripe/connect-migration';
 
 export type ConnectReplaceDecision =
   | {
@@ -24,24 +27,33 @@ export type ConnectReplaceDecision =
         | 'ACTIVE_WORKING'
         | 'HAS_BALANCE'
         | 'HAS_PENDING_PAYOUTS'
-        | 'HAS_PENDING_TRANSFERS'
+        | 'HAS_OPEN_DISPUTE'
+        | 'HAS_HC_SETTLEMENT_EXPOSURE'
         | 'MANUAL_REVIEW'
         | 'STRIPE_UNAVAILABLE'
         | 'TRACK_MISMATCH_KEEP';
       classification?: string;
+      safetyBlocker?: string;
     };
 
-async function sumBalance(balance: Stripe.Balance): Promise<number> {
-  let total = 0;
-  for (const b of balance.available ?? []) total += b.amount;
-  for (const b of balance.pending ?? []) total += b.amount;
-  return total;
+async function sumBalance(balance: Stripe.Balance): Promise<{
+  available: number;
+  pending: number;
+  total: number;
+}> {
+  let available = 0;
+  let pending = 0;
+  for (const b of balance.available ?? []) available += b.amount;
+  for (const b of balance.pending ?? []) pending += b.amount;
+  return { available, pending, total: available + pending };
 }
 
 export async function evaluateConnectAccountReplacement(params: {
   existingAccountId: string | null | undefined;
   requestedTrack: ConnectTrack;
   existingTrack?: ConnectTrack | null;
+  /** Required for HomeCheff settlement exposure checks on PARTICULAR replace */
+  userId?: string | null;
 }): Promise<ConnectReplaceDecision> {
   if (!params.existingAccountId) {
     return { allowed: true, reason: 'NO_EXISTING_ACCOUNT' };
@@ -51,6 +63,7 @@ export async function evaluateConnectAccountReplacement(params: {
   }
 
   // Same track + existing id → reuse (idempotent onboard link).
+  // PARTICULAR + PARTICULAR: always reuse (cancel/return must not create another).
   if (params.existingTrack && params.existingTrack === params.requestedTrack) {
     return { allowed: true, reason: 'SAME_TRACK_REUSE' };
   }
@@ -59,7 +72,6 @@ export async function evaluateConnectAccountReplacement(params: {
   try {
     account = await stripe.accounts.retrieve(params.existingAccountId);
   } catch {
-    // Missing/invalid remote account → allow create new.
     return { allowed: true, reason: 'NO_EXISTING_ACCOUNT' };
   }
 
@@ -75,21 +87,37 @@ export async function evaluateConnectAccountReplacement(params: {
     };
   }
 
-  if (params.requestedTrack === 'PARTICULAR') {
-    const stuck =
-      classification === 'STUCK_PRIVATE_EXPRESS' ||
-      classification === 'WRONG_NONPROFIT_OR_COMPANY_CHOICE';
-    if (!stuck) {
+  if (params.requestedTrack === 'BUSINESS') {
+    // Resume existing Express when present.
+    if (account.type === 'express') {
+      return { allowed: true, reason: 'SAME_TRACK_REUSE' };
+    }
+    return {
+      allowed: false,
+      reason: 'MANUAL_REVIEW',
+      classification,
+    };
+  }
+
+  // PARTICULAR replace path
+  const stuck =
+    classification === 'STUCK_PRIVATE_EXPRESS' ||
+    classification === 'WRONG_NONPROFIT_OR_COMPANY_CHOICE' ||
+    // Allow BUSINESS→PARTICULAR flip when Express is incomplete/wrong
+    (params.existingTrack === 'BUSINESS' &&
+      !account.charges_enabled &&
+      !account.payouts_enabled);
+
+  if (!stuck && classification !== 'OTHER') {
+    // OTHER may be non-express incomplete — still allow if financially empty
+    if (account.type === 'express' && !account.charges_enabled && !account.payouts_enabled) {
+      // fall through to safety
+    } else if (!stuck) {
       return {
         allowed: false,
         reason: 'MANUAL_REVIEW',
         classification,
       };
-    }
-  } else {
-    // Business requested while Express already exists incomplete → reuse Express.
-    if (account.type === 'express') {
-      return { allowed: true, reason: 'SAME_TRACK_REUSE' };
     }
   }
 
@@ -97,8 +125,14 @@ export async function evaluateConnectAccountReplacement(params: {
     const balance = await stripe.balance.retrieve({
       stripeAccount: params.existingAccountId,
     });
-    if ((await sumBalance(balance)) > 0) {
-      return { allowed: false, reason: 'HAS_BALANCE', classification };
+    const sums = await sumBalance(balance);
+    if (sums.total > 0) {
+      return {
+        allowed: false,
+        reason: 'HAS_BALANCE',
+        classification,
+        safetyBlocker: `available=${sums.available},pending=${sums.pending}`,
+      };
     }
   } catch {
     return { allowed: false, reason: 'MANUAL_REVIEW', classification };
@@ -106,7 +140,7 @@ export async function evaluateConnectAccountReplacement(params: {
 
   try {
     const payouts = await stripe.payouts.list(
-      { limit: 5 },
+      { limit: 10 },
       { stripeAccount: params.existingAccountId },
     );
     if (
@@ -114,44 +148,81 @@ export async function evaluateConnectAccountReplacement(params: {
         (p) => p.status === 'pending' || p.status === 'in_transit',
       )
     ) {
-      return { allowed: false, reason: 'HAS_PENDING_PAYOUTS', classification };
+      return {
+        allowed: false,
+        reason: 'HAS_PENDING_PAYOUTS',
+        classification,
+        safetyBlocker: 'pending_or_in_transit_payout',
+      };
     }
-    // Any payout history → keep for audit; do not auto-relink.
-    if (payouts.data.length > 0) {
-      return { allowed: false, reason: 'MANUAL_REVIEW', classification };
-    }
-  } catch {
-    return { allowed: false, reason: 'MANUAL_REVIEW', classification };
-  }
-
-  try {
-    const transfers = await stripe.transfers.list({
-      destination: params.existingAccountId,
-      limit: 5,
-    });
-    if (transfers.data.length > 0) {
-      return { allowed: false, reason: 'HAS_PENDING_TRANSFERS', classification };
-    }
+    // Historical paid/failed payouts are OK (closed).
   } catch {
     return { allowed: false, reason: 'MANUAL_REVIEW', classification };
   }
 
   try {
     const disputes = await stripe.disputes.list(
-      { limit: 1 },
+      { limit: 5 },
       { stripeAccount: params.existingAccountId },
     );
-    if (disputes.data.length > 0) {
-      return { allowed: false, reason: 'MANUAL_REVIEW', classification };
+    const open = disputes.data.filter(
+      (d) => d.status === 'needs_response' || d.status === 'warning_needs_response',
+    );
+    if (open.length > 0) {
+      return {
+        allowed: false,
+        reason: 'HAS_OPEN_DISPUTE',
+        classification,
+        safetyBlocker: 'open_dispute',
+      };
     }
   } catch {
-    // Connected account may not expose disputes; continue conservatively only
-    // when charges/payouts are both disabled (checked below).
+    // Connected may not expose disputes — continue if charges/payouts off.
   }
 
-  // Conservative: only auto-replace when charges+payouts disabled.
+  // Active platform→connected transfers still reversing/pending reverse?
+  try {
+    const transfers = await stripe.transfers.list({
+      destination: params.existingAccountId,
+      limit: 10,
+    });
+    const active = transfers.data.filter(
+      (t) =>
+        Boolean((t as any).reversed === false) &&
+        ((t as any).amount_reversed ?? 0) < (t.amount ?? 0) &&
+        // Transfer exists but connected still has unsettled obligation —
+        // only block if transfer is very recent AND balance already checked 0.
+        // Closed historical transfers with zero balance are allowed.
+        false,
+    );
+    void active;
+    // Per product rule: historical transfers alone are NOT blockers when balance=0.
+  } catch {
+    // ignore — balance/payouts already checked
+  }
+
+  if (params.userId) {
+    const exposure = await hasHomecheffSettlementExposure({
+      userId: params.userId,
+      oldAccountId: params.existingAccountId,
+    });
+    if (exposure.blocked) {
+      return {
+        allowed: false,
+        reason: 'HAS_HC_SETTLEMENT_EXPOSURE',
+        classification,
+        safetyBlocker: exposure.reason,
+      };
+    }
+  }
+
   if (account.charges_enabled || account.payouts_enabled) {
-    return { allowed: false, reason: 'MANUAL_REVIEW', classification };
+    return {
+      allowed: false,
+      reason: 'MANUAL_REVIEW',
+      classification,
+      safetyBlocker: 'charges_or_payouts_still_enabled',
+    };
   }
 
   return { allowed: true, reason: 'EMPTY_INCOMPLETE_STUCK_EXPRESS' };

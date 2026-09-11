@@ -98,6 +98,7 @@ export default function DeliveryProfileSettings() {
   const [connectUiStatus, setConnectUiStatus] = useState<string | null>(null);
   const [showStripeTrackPicker, setShowStripeTrackPicker] = useState(false);
   const [stripeTrackError, setStripeTrackError] = useState<string | null>(null);
+  const [stripeRecoveryEligible, setStripeRecoveryEligible] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -143,8 +144,12 @@ export default function DeliveryProfileSettings() {
         if (stripeRes.ok) {
           const stripeData = await stripeRes.json();
           setConnectUiStatus(stripeData.uiStatus || null);
+          setStripeRecoveryEligible(Boolean(stripeData.recoveryEligible));
           if (
             stripeData.needsTrackSelection ||
+            stripeData.recoveryEligible ||
+            stripeData.migrationClass === 'USER_CONFIRMATION_REQUIRED' ||
+            stripeData.migrationClass === 'NEW_ACCOUNT_CHOICE' ||
             (!stripeData.hasAccount && stripeData.dualTrackEnabled !== false)
           ) {
             setShowStripeTrackPicker(true);
@@ -241,6 +246,9 @@ export default function DeliveryProfileSettings() {
       const result = await startStripeConnectOnboarding({
         returnPath: '/delivery/settings',
         track,
+        forceReplace: Boolean(
+          stripeRecoveryEligible && track === 'PARTICULAR',
+        ),
       });
       if (result.needsTrackSelection) {
         setShowStripeTrackPicker(true);
@@ -565,6 +573,7 @@ export default function DeliveryProfileSettings() {
             ) : showStripeTrackPicker ? (
               <div className="border border-gray-200 rounded-lg p-4">
                 <ConnectTrackSelector
+                  recoveryMode={stripeRecoveryEligible}
                   loading={stripeLoading}
                   error={stripeTrackError}
                   onSelect={async (track) => {

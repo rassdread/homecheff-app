@@ -4,6 +4,8 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
+import { resolveConnectWebhookTarget } from '@/lib/stripe/connect-migration';
+import { parseConnectTrack } from '@/lib/stripe/connect-tracks';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,7 +32,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    // Handle the event
     switch (event.type) {
       case 'account.updated':
         await handleAccountUpdated(event.data.object);
@@ -46,7 +47,6 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
-
   } catch (error) {
     console.error('Stripe Connect webhook error:', error);
     return NextResponse.json(
@@ -56,55 +56,86 @@ export async function POST(req: NextRequest) {
   }
 }
 
+async function applyCurrentAccountReadiness(params: {
+  userId: string;
+  stripeConnectTrack: string | null;
+  account: {
+    charges_enabled?: boolean | null;
+    payouts_enabled?: boolean | null;
+    type?: string | null;
+    capabilities?: { transfers?: string | null } | null;
+    requirements?: { disabled_reason?: string | null } | null;
+    controller?: { stripe_dashboard?: { type?: string | null } } | null;
+  };
+}) {
+  const { isHomecheffPaymentReady } = await import(
+    '@/lib/stripe/connect-account-status'
+  );
+  const track = parseConnectTrack(params.stripeConnectTrack);
+  const isCompleted = isHomecheffPaymentReady({
+    chargesEnabled: params.account.charges_enabled,
+    payoutsEnabled: params.account.payouts_enabled,
+    transfersCapability: params.account.capabilities?.transfers ?? null,
+    disabledReason: params.account.requirements?.disabled_reason ?? null,
+    connectTrack: track,
+    accountType: params.account.type ?? null,
+    dashboardType: params.account.controller?.stripe_dashboard?.type ?? null,
+  });
+
+  await prisma.user.update({
+    where: { id: params.userId },
+    data: {
+      stripeConnectOnboardingCompleted: isCompleted,
+    },
+  });
+
+  try {
+    const { syncAffiliateConnectMirrorFromUser } = await import(
+      '@/lib/stripe/affiliate-connect-mirror'
+    );
+    await syncAffiliateConnectMirrorFromUser(params.userId);
+  } catch (mirrorErr) {
+    console.warn('[stripe-connect-webhook] affiliate mirror sync failed', mirrorErr);
+  }
+}
+
 async function handleAccountUpdated(account: any) {
   try {
-    const accountId = account.id;
+    const accountId = account.id as string;
+    const target = await resolveConnectWebhookTarget(accountId);
 
-    const user = await prisma.user.findFirst({
-      where: { stripeConnectAccountId: accountId },
-      select: {
-        id: true,
-        stripeConnectTrack: true,
-      },
-    });
-
-    if (!user) {
-      console.error('User not found for account:', accountId);
+    if (!target) {
+      console.warn('[stripe-connect-webhook] no user for account.updated', accountId);
       return;
     }
 
-    const { isHomecheffPaymentReady } = await import(
-      '@/lib/stripe/connect-account-status'
-    );
-    const isCompleted = isHomecheffPaymentReady({
-      chargesEnabled: account.charges_enabled,
-      payoutsEnabled: account.payouts_enabled,
-      transfersCapability: account.capabilities?.transfers ?? null,
-      disabledReason: account.requirements?.disabled_reason ?? null,
-      connectTrack:
-        user.stripeConnectTrack === 'PARTICULAR' ||
-        user.stripeConnectTrack === 'BUSINESS'
-          ? user.stripeConnectTrack
-          : null,
-      accountType: account.type ?? null,
-      dashboardType: account.controller?.stripe_dashboard?.type ?? null,
-    });
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        stripeConnectOnboardingCompleted: isCompleted,
-      },
-    });
-
-    try {
-      const { syncAffiliateConnectMirrorFromUser } = await import(
-        '@/lib/stripe/affiliate-connect-mirror'
-      );
-      await syncAffiliateConnectMirrorFromUser(user.id);
-    } catch (mirrorErr) {
-      console.warn('[stripe-connect-webhook] affiliate mirror sync failed', mirrorErr);
+    if (target.role === 'LEGACY_OLD') {
+      // Old Express after relink: audit-only. Never overwrite PARTICULAR readiness/track.
+      console.log('[stripe-connect-webhook] ignoring readiness sync for LEGACY_OLD', {
+        userId: target.userId,
+        old: target.oldStripeAccountId,
+        current: target.stripeConnectAccountId,
+      });
+      return;
     }
+
+    // Only sync when webhook account is the user's current linked account.
+    if (
+      target.stripeConnectAccountId &&
+      target.stripeConnectAccountId !== accountId
+    ) {
+      console.log(
+        '[stripe-connect-webhook] skip account.updated — not current account',
+        { accountId, current: target.stripeConnectAccountId },
+      );
+      return;
+    }
+
+    await applyCurrentAccountReadiness({
+      userId: target.userId,
+      stripeConnectTrack: target.stripeConnectTrack,
+      account,
+    });
   } catch (error) {
     console.error('Error handling account.updated:', error);
   }
@@ -112,58 +143,39 @@ async function handleAccountUpdated(account: any) {
 
 async function handleCapabilityUpdated(capability: any) {
   try {
-    const accountId = capability.account;
+    const accountId = capability.account as string;
+    const target = await resolveConnectWebhookTarget(accountId);
 
-    const user = await prisma.user.findFirst({
-      where: { stripeConnectAccountId: accountId },
-      select: {
-        id: true,
-        stripeConnectTrack: true,
-      },
-    });
-
-    if (!user) {
-      console.error('User not found for capability account:', accountId);
-      return;
-    }
-
-    if (!stripe) {
-      return;
-    }
-
-    const account = await stripe.accounts.retrieve(accountId);
-    const { isHomecheffPaymentReady } = await import(
-      '@/lib/stripe/connect-account-status'
-    );
-    const isCompleted = isHomecheffPaymentReady({
-      chargesEnabled: account.charges_enabled,
-      payoutsEnabled: account.payouts_enabled,
-      transfersCapability: account.capabilities?.transfers ?? null,
-      disabledReason: account.requirements?.disabled_reason ?? null,
-      connectTrack:
-        user.stripeConnectTrack === 'PARTICULAR' ||
-        user.stripeConnectTrack === 'BUSINESS'
-          ? user.stripeConnectTrack
-          : null,
-      accountType: account.type ?? null,
-      dashboardType: (account as any).controller?.stripe_dashboard?.type ?? null,
-    });
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        stripeConnectOnboardingCompleted: isCompleted,
-      },
-    });
-
-    try {
-      const { syncAffiliateConnectMirrorFromUser } = await import(
-        '@/lib/stripe/affiliate-connect-mirror'
+    if (!target) {
+      console.warn(
+        '[stripe-connect-webhook] no user for capability.updated',
+        accountId,
       );
-      await syncAffiliateConnectMirrorFromUser(user.id);
-    } catch (mirrorErr) {
-      console.warn('[stripe-connect-webhook] affiliate mirror sync failed', mirrorErr);
+      return;
     }
+
+    if (target.role === 'LEGACY_OLD') {
+      console.log(
+        '[stripe-connect-webhook] ignoring capability.updated for LEGACY_OLD',
+        accountId,
+      );
+      return;
+    }
+
+    if (
+      target.stripeConnectAccountId &&
+      target.stripeConnectAccountId !== accountId
+    ) {
+      return;
+    }
+
+    if (!stripe) return;
+    const account = await stripe.accounts.retrieve(accountId);
+    await applyCurrentAccountReadiness({
+      userId: target.userId,
+      stripeConnectTrack: target.stripeConnectTrack,
+      account: account as any,
+    });
   } catch (error) {
     console.error('Error handling capability.updated:', error);
   }
@@ -172,34 +184,42 @@ async function handleCapabilityUpdated(capability: any) {
 async function handleAccountDeauthorized(deauth: any) {
   try {
     const accountId = deauth.id || deauth.account;
-    
     console.log(`🔔 Account deauthorized: ${accountId}`);
-    
-    // Find user with this Stripe Connect account ID
-    const user = await prisma.user.findFirst({
-      where: { stripeConnectAccountId: accountId }
-    });
 
-    if (!user) {
+    const target = await resolveConnectWebhookTarget(accountId);
+    if (!target) {
       console.log(`User not found for deauthorized account: ${accountId}`);
       return;
     }
 
-    // Reset Stripe Connect onboarding status
+    // Never clear the user when an OLD migrated Express is deauthorized.
+    if (target.role === 'LEGACY_OLD') {
+      console.log(
+        '[stripe-connect-webhook] ignore deauth for LEGACY_OLD account',
+        accountId,
+      );
+      return;
+    }
+
+    if (
+      target.stripeConnectAccountId &&
+      target.stripeConnectAccountId !== accountId
+    ) {
+      return;
+    }
+
     await prisma.user.update({
-      where: { id: user.id },
-      data: { 
+      where: { id: target.userId },
+      data: {
         stripeConnectOnboardingCompleted: false,
         stripeConnectAccountId: null,
         stripeConnectTrack: null,
-      }
+      },
     });
 
-    console.log(`✅ Stripe Connect deauthorized for user ${user.id}, onboarding reset`);
-
-    // Optional: Notify user that their Stripe Connect account has been disconnected
-    // Could add notification here if needed
-
+    console.log(
+      `✅ Stripe Connect deauthorized for user ${target.userId}, onboarding reset`,
+    );
   } catch (error) {
     console.error('Error handling account.application.deauthorized:', error);
   }

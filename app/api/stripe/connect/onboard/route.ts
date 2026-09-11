@@ -11,27 +11,16 @@ import {
   type ConnectTrack,
 } from '@/lib/stripe/connect-tracks';
 import { evaluateConnectAccountReplacement } from '@/lib/stripe/connect-account-replacement';
+import {
+  classifyConnectMigration,
+  migrationIsRecoveryMode,
+  migrationNeedsUserConfirmation,
+  STRIPE_CONNECT_MIGRATE_AUDIT,
+  STRIPE_CONNECT_TRACK_CHOICE_AUDIT,
+  findMigrationByOldOrNewAccount,
+} from '@/lib/stripe/connect-migration';
 
-async function isRecoveryEligibleForUser(params: {
-  accountId: string | null | undefined;
-  track: ConnectTrack | null;
-  paymentReady: boolean;
-}): Promise<boolean> {
-  if (!isDualTrackConnectEnabled()) return false;
-  if (!params.accountId || params.paymentReady) return false;
-  // Already on PARTICULAR with an account → continue that onboarding, not recovery UI.
-  if (params.track === 'PARTICULAR') return false;
-  const decision = await evaluateConnectAccountReplacement({
-    existingAccountId: params.accountId,
-    requestedTrack: 'PARTICULAR',
-    existingTrack: params.track,
-  });
-  return (
-    decision.allowed && decision.reason === 'EMPTY_INCOMPLETE_STUCK_EXPRESS'
-  );
-}
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -75,6 +64,9 @@ export async function GET(req: NextRequest) {
         dualTrackEnabled: isDualTrackConnectEnabled(),
         needsTrackSelection: isDualTrackConnectEnabled(),
         recoveryEligible: false,
+        migrationClass: isDualTrackConnectEnabled()
+          ? 'NEW_ACCOUNT_CHOICE'
+          : 'KEEP_BUSINESS',
         cta,
       });
     }
@@ -87,13 +79,49 @@ export async function GET(req: NextRequest) {
       forceLive: true,
     });
 
-    const cta = connectCtaModelForStatus(live.uiStatus);
+    let stripeAccount: Parameters<typeof classifyConnectMigration>[0]['stripeAccount'] =
+      null;
+    if (stripe && user.stripeConnectAccountId) {
+      try {
+        const acct = await stripe.accounts.retrieve(user.stripeConnectAccountId);
+        stripeAccount = acct as any;
+      } catch {
+        stripeAccount = null;
+      }
+    }
+
+    const migrationClass = isDualTrackConnectEnabled()
+      ? classifyConnectMigration({
+          stripeConnectAccountId: user.stripeConnectAccountId,
+          stripeConnectTrack: user.stripeConnectTrack,
+          paymentReady: live.paymentReady,
+          stripeAccount,
+        })
+      : live.paymentReady
+        ? 'KEEP_BUSINESS'
+        : 'KEEP_BUSINESS';
+
     const track = parseConnectTrack(user.stripeConnectTrack);
-    const recoveryEligible = await isRecoveryEligibleForUser({
-      accountId: user.stripeConnectAccountId,
-      track,
-      paymentReady: live.paymentReady,
-    });
+    const recoveryEligible =
+      isDualTrackConnectEnabled() && migrationIsRecoveryMode(migrationClass);
+    const needsTrackSelection =
+      isDualTrackConnectEnabled() &&
+      migrationNeedsUserConfirmation(migrationClass) &&
+      !track;
+
+    // PARTICULAR incomplete: still show picker only when confirmation required;
+    // otherwise continue onboarding CTA.
+    const cta =
+      track === 'PARTICULAR' && !live.paymentReady && live.hasAccount
+        ? {
+            kind: 'complete' as const,
+            showOnboardingCta: true,
+            titleNl: 'Je particuliere betaalprofiel staat klaar om te worden geverifieerd.',
+            bodyNl:
+              'Stripe heeft nog enkele persoonlijke gegevens of je bankrekening nodig. Een KvK-inschrijving hoort niet bij deze route.',
+            ctaLabelNl: 'Verificatie afronden',
+          }
+        : connectCtaModelForStatus(live.uiStatus);
 
     return NextResponse.json({
       hasAccount: live.hasAccount,
@@ -109,11 +137,9 @@ export async function GET(req: NextRequest) {
       pendingVerificationCount: live.pendingVerificationCount,
       connectTrack: track,
       dualTrackEnabled: isDualTrackConnectEnabled(),
-      // New accounts OR stuck Express without explicit track → ask particulier/bedrijf.
-      needsTrackSelection:
-        isDualTrackConnectEnabled() &&
-        ((!live.hasAccount && !track) || (recoveryEligible && !track)),
+      needsTrackSelection: needsTrackSelection || recoveryEligible,
       recoveryEligible,
+      migrationClass,
       cta,
     });
   } catch (error) {
@@ -181,7 +207,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Dual-track: require explicit track for new accounts / recovery.
     let track: ConnectTrack | null = requestedTrack || existingTrack;
     if (dualTrack) {
       if (!track) {
@@ -216,15 +241,23 @@ export async function POST(req: NextRequest) {
       accountId = null;
     }
 
-    if (accountId && dualTrack) {
+    // PARTICULAR already linked → always reuse (cancel/return / double-click safe).
+    if (
+      accountId &&
+      track === 'PARTICULAR' &&
+      existingTrack === 'PARTICULAR'
+    ) {
+      // continue to Account Link
+    } else if (accountId && dualTrack) {
       const decision = await evaluateConnectAccountReplacement({
         existingAccountId: accountId,
         requestedTrack: track!,
         existingTrack,
+        userId: user.id,
       });
 
       if (decision.allowed && decision.reason === 'SAME_TRACK_REUSE') {
-        // keep accountId — continue onboarding link
+        // keep
       } else if (decision.reason === 'NO_EXISTING_ACCOUNT') {
         accountId = null;
       } else if (
@@ -232,8 +265,28 @@ export async function POST(req: NextRequest) {
         decision.reason === 'EMPTY_INCOMPLETE_STUCK_EXPRESS'
       ) {
         if (track === 'PARTICULAR' && forceReplace) {
-          replaceOldAccountId = accountId;
-          accountId = null; // create new PARTICULAR below (idempotent key)
+          // Recovery: if a previous migrate already created a new account for this old id
+          const prior = await findMigrationByOldOrNewAccount(accountId);
+          if (
+            prior &&
+            prior.userId === user.id &&
+            prior.newStripeAccountId &&
+            prior.oldStripeAccountId === accountId
+          ) {
+            accountId = prior.newStripeAccountId;
+            replaceOldAccountId = prior.oldStripeAccountId;
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                stripeConnectAccountId: accountId,
+                stripeConnectTrack: 'PARTICULAR',
+                stripeConnectOnboardingCompleted: false,
+              },
+            });
+          } else {
+            replaceOldAccountId = accountId;
+            accountId = null;
+          }
         } else if (track === 'PARTICULAR' && !forceReplace) {
           return NextResponse.json(
             {
@@ -248,24 +301,31 @@ export async function POST(req: NextRequest) {
             { status: 409 },
           );
         }
-        // BUSINESS on stuck Express → SAME_TRACK_REUSE handled above via evaluate
-      } else if (
-        !decision.allowed &&
-        requestedTrack &&
-        requestedTrack !== existingTrack
-      ) {
-        return NextResponse.json(
-          {
-            error: 'CONNECT_REPLACE_BLOCKED',
-            errorKey: 'stripe.connect.replaceBlocked',
-            reason: decision.reason,
-            classification:
-              'classification' in decision ? decision.classification : undefined,
-            message:
-              'Je bestaande Stripe-profiel kan niet automatisch worden vervangen. Neem contact op met support of rond het huidige profiel af.',
-          },
-          { status: 409 },
-        );
+      } else if (!decision.allowed) {
+        if (track === 'BUSINESS' && accountId) {
+          // keep Express
+        } else if (requestedTrack && requestedTrack !== existingTrack) {
+          return NextResponse.json(
+            {
+              error: 'CONNECT_REPLACE_BLOCKED',
+              errorKey: 'stripe.connect.replaceBlocked',
+              reason: decision.reason,
+              safetyBlocker: decision.safetyBlocker,
+              classification:
+                'classification' in decision
+                  ? decision.classification
+                  : undefined,
+              message:
+                decision.reason === 'HAS_BALANCE' ||
+                decision.reason === 'HAS_PENDING_PAYOUTS' ||
+                decision.reason === 'HAS_HC_SETTLEMENT_EXPOSURE' ||
+                decision.reason === 'HAS_OPEN_DISPUTE'
+                  ? 'Je huidige Stripe-profiel kan nu niet veilig worden vervangen. Neem contact op met support.'
+                  : 'Je bestaande Stripe-profiel kan niet automatisch worden vervangen. Neem contact op met support of rond het huidige profiel af.',
+            },
+            { status: 409 },
+          );
+        }
       }
     }
 
@@ -277,7 +337,7 @@ export async function POST(req: NextRequest) {
           replacing: replaceOldAccountId,
         });
         const idempotencyKey = replaceOldAccountId
-          ? `hc-particular-migrate-${user.id}-${replaceOldAccountId}`
+          ? `connect-replace-particular:${user.id}:${replaceOldAccountId}`
           : `hc-connect-create-${user.id}-${track}`;
         const connectAccount = await createConnectAccount(
           user.email!,
@@ -301,14 +361,29 @@ export async function POST(req: NextRequest) {
               data: {
                 id: randomUUID(),
                 userId: user.id,
-                action: 'STRIPE_CONNECT_PARTICULAR_MIGRATE',
+                action: STRIPE_CONNECT_MIGRATE_AUDIT,
                 meta: {
                   oldStripeAccountId: replaceOldAccountId,
                   newStripeAccountId: accountId,
-                  reason: 'EMPTY_INCOMPLETE_STUCK_EXPRESS',
+                  reason: 'USER_CONFIRMED_PARTICULAR_REPLACE',
                   trackBefore: existingTrack,
-                  trackAfter: track,
-                  actor: 'user_force_replace',
+                  trackAfter: 'PARTICULAR',
+                  actor: 'user',
+                  status: 'AWAITING_ONBOARDING',
+                  timestamp: new Date().toISOString(),
+                },
+              },
+            });
+          } else if (requestedTrack) {
+            await tx.auditLog.create({
+              data: {
+                id: randomUUID(),
+                userId: user.id,
+                action: STRIPE_CONNECT_TRACK_CHOICE_AUDIT,
+                meta: {
+                  track: requestedTrack,
+                  stripeAccountId: accountId,
+                  actor: 'user',
                   timestamp: new Date().toISOString(),
                 },
               },
@@ -341,7 +416,10 @@ export async function POST(req: NextRequest) {
         ) {
           errorMessage =
             'Stripe configuratie probleem. Neem contact op met de beheerder.';
-        } else if (error.message?.includes('rate_limit') || error.code === 'rate_limit') {
+        } else if (
+          error.message?.includes('rate_limit') ||
+          error.code === 'rate_limit'
+        ) {
           errorMessage = 'Te veel requests. Wacht even en probeer het opnieuw.';
         }
 
@@ -359,14 +437,46 @@ export async function POST(req: NextRequest) {
         }
       }
     } else if (track && track !== existingTrack) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { stripeConnectTrack: track },
+      await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+          where: { id: user.id },
+          data: { stripeConnectTrack: track },
+        });
+        await tx.auditLog.create({
+          data: {
+            id: randomUUID(),
+            userId: user.id,
+            action: STRIPE_CONNECT_TRACK_CHOICE_AUDIT,
+            meta: {
+              trackBefore: existingTrack,
+              trackAfter: track,
+              stripeAccountId: accountId,
+              actor: 'user',
+              reusedExistingAccount: true,
+              timestamp: new Date().toISOString(),
+            },
+          },
+        });
       });
     } else if (track && !existingTrack) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { stripeConnectTrack: track },
+      await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+          where: { id: user.id },
+          data: { stripeConnectTrack: track },
+        });
+        await tx.auditLog.create({
+          data: {
+            id: randomUUID(),
+            userId: user.id,
+            action: STRIPE_CONNECT_TRACK_CHOICE_AUDIT,
+            meta: {
+              track,
+              stripeAccountId: accountId,
+              actor: 'user',
+              timestamp: new Date().toISOString(),
+            },
+          },
+        });
       });
     }
 
