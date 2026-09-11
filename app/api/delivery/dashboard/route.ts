@@ -384,7 +384,7 @@ export async function GET(req: NextRequest) {
             customerName: order.User.name || order.User.username || 'Klant',
             customerAddress: order.deliveryAddress || 'Adres niet beschikbaar',
             deliveryAddress: order.deliveryAddress || 'Adres niet beschikbaar',
-            customerPhone: customerPhoneForPhase(currentOrder.User, 'assigned'),
+            customerPhone: customerPhoneForPhase(order.User, 'assigned'),
             notes: order.notes || '',
             createdAt: order.createdAt,
             product: {
@@ -693,7 +693,7 @@ export async function GET(req: NextRequest) {
           distance: currentDistance || 0,
           customerName: currentOrder.order.User.name || currentOrder.order.User.username || 'Klant',
           customerAddress: currentOrder.order.deliveryAddress || 'Adres niet beschikbaar',
-          customerPhone: customerPhoneForPhase(currentOrder.User, 'assigned'),
+          customerPhone: customerPhoneForPhase(currentOrder.order.User, 'assigned'),
           notes: currentOrder.notes || '',
           createdAt: currentOrder.createdAt,
           pickedUpAt: currentOrder.pickedUpAt,

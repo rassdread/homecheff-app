@@ -2,55 +2,59 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import DeliveryDashboard from '@/components/delivery/DeliveryDashboard';
+import { DELIVERY_START_HREF } from '@/lib/delivery/delivery-profile-completion';
 
+/**
+ * Canonical delivery dashboard entry: /delivery/dashboard
+ *
+ * Guards:
+ * - auth + email verified
+ * - DeliveryProfile must exist (else /delivery/start, sellers without courier → seller dash)
+ * - Incomplete / inactive / no-Stripe are soft UX states inside the client dashboard
+ */
 export default async function DeliveryDashboardPage() {
   const session = await auth();
-  
+
   if (!session?.user) {
-    redirect('/login');
+    redirect(`/login?callbackUrl=/delivery/dashboard`);
   }
 
-  const userId = (session.user as any).id;
-
-  // Check email verification - redirect if not verified
-  const emailCheckUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, email: true, emailVerified: true }
-  });
-
-  if (!emailCheckUser || !emailCheckUser.emailVerified) {
-    redirect(`/verify-email?email=${encodeURIComponent(session.user.email || '')}`);
+  const userId = (session.user as { id?: string }).id;
+  if (!userId) {
+    redirect(`/login?callbackUrl=/delivery/dashboard`);
   }
 
-  // Toegang: rol DELIVERY of iedereen met een actief bezorgerprofiel (incl. verkoper-bezorgers)
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, role: true },
+    select: {
+      id: true,
+      email: true,
+      emailVerified: true,
+      role: true,
+      sellerRoles: true,
+      DeliveryProfile: {
+        select: { id: true },
+      },
+    },
   });
 
-  if (user?.role !== 'DELIVERY') {
-    const deliveryProfile = await prisma.deliveryProfile.findUnique({
-      where: { userId: userId },
-      select: { id: true, isActive: true }
-    });
+  if (!user) {
+    redirect(`/login?callbackUrl=/delivery/dashboard`);
+  }
 
-    if (!deliveryProfile) {
-      // User is not a deliverer and has no delivery profile - redirect sellers to seller dashboard
-      const hasSellerRoles = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { sellerRoles: true, role: true }
-      });
-      
-      if (hasSellerRoles?.sellerRoles && hasSellerRoles.sellerRoles.length > 0 || hasSellerRoles?.role === 'SELLER') {
-        redirect('/verkoper/dashboard');
-      }
-      
-      redirect('/delivery/signup');
-    }
+  if (!user.emailVerified) {
+    redirect(
+      `/verify-email?email=${encodeURIComponent(user.email || session.user.email || '')}`,
+    );
+  }
 
-    if (!deliveryProfile.isActive) {
-      redirect('/delivery/signup?message=profile_inactive');
+  if (!user.DeliveryProfile) {
+    const isSeller =
+      (user.sellerRoles && user.sellerRoles.length > 0) || user.role === 'SELLER';
+    if (isSeller && user.role !== 'DELIVERY') {
+      redirect('/verkoper/dashboard');
     }
+    redirect(DELIVERY_START_HREF);
   }
 
   return <DeliveryDashboard />;

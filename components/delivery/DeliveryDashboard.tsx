@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import DeliveryNotificationListener from './DeliveryNotificationListener';
 import CommunityDeliveryPanel from './CommunityDeliveryPanel';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -115,6 +116,7 @@ export default function DeliveryDashboard() {
   const [activeTab, setActiveTab] = useState<'delivery' | 'orders'>('delivery');
   const [courierTab, setCourierTab] = useState<'platform' | 'community'>('platform');
   const [feedback, setFeedback] = useState<{ type: 'error' | 'warning'; message: string } | null>(null);
+  const [activationHint, setActivationHint] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDeliveryData();
@@ -122,6 +124,7 @@ export default function DeliveryDashboard() {
     if (!isSeller) {
       fetchOnlineStatus();
       fetchStripeConnectStatus();
+      fetchActivationStatus();
     }
     
     // Auto-refresh every 30 seconds when online
@@ -297,6 +300,25 @@ export default function DeliveryDashboard() {
       }
     } catch (error) {
       console.error('Error fetching Stripe Connect status:', error);
+    }
+  };
+
+  const fetchActivationStatus = async () => {
+    try {
+      const response = await fetch('/api/delivery/activate');
+      if (!response.ok) {
+        setActivationHint(null);
+        return;
+      }
+      const data = await response.json();
+      if (data?.canActivate === false && data?.activation?.message) {
+        setActivationHint(String(data.activation.message));
+      } else {
+        setActivationHint(null);
+      }
+    } catch {
+      // Soft: never crash dashboard on activation probe failure
+      setActivationHint(null);
     }
   };
 
@@ -630,6 +652,19 @@ export default function DeliveryDashboard() {
           >
             {t('common.close')}
           </button>
+        </div>
+      ) : null}
+
+      {!isSeller && activationHint ? (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p className="font-semibold">Rond je bezorgprofiel af</p>
+          <p className="mt-1 text-amber-900/90">{activationHint}</p>
+          <Link
+            href="/delivery/settings"
+            className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-amber-800 underline"
+          >
+            Naar bezorginstellingen
+          </Link>
         </div>
       ) : null}
 
