@@ -255,13 +255,6 @@ export async function completeFulfillmentLocation(
     confirmedDate: order.confirmedScheduleDate,
     confirmedTimeWindow: order.confirmedScheduleTimeWindow,
   });
-  if (existingState === 'COMPLETE') {
-    return {
-      communityOrder: serializeCommunityOrder(order),
-      state: 'COMPLETE',
-      idempotentReplay: true,
-    };
-  }
 
   let addressLine: string | null = null;
   if (input.useSavedProfileAddress) {
@@ -286,6 +279,20 @@ export async function completeFulfillmentLocation(
       'proposal.errors.locationAddressRequired',
     );
   }
+
+  const currentExact =
+    owner === 'SELLER'
+      ? order.pickupAddress?.trim() || null
+      : order.deliveryAddress?.trim() || null;
+
+  if (existingState === 'COMPLETE' && currentExact === addressLine) {
+    return {
+      communityOrder: serializeCommunityOrder(order),
+      state: 'COMPLETE',
+      idempotentReplay: true,
+    };
+  }
+  // COMPLETE + different addressLine → authorized owner correction (CASE 11).
 
   const agreedSchedule = resolveEffectiveSchedule({
     proposalDate: order.Proposal.requestedDate,
