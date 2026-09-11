@@ -117,8 +117,10 @@ export async function generateMetadata({
 
 export default async function PublicProfilePage({
   params,
+  searchParams,
 }: {
   params: { username: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   const rawSegment = typeof params.username === "string" ? params.username : "";
   const username = normalizeUsernameParam(params.username);
@@ -438,6 +440,7 @@ export default async function PublicProfilePage({
           ecosystemChipKeys={ecosystemChipKeys}
           publicContactChannels={publicContactChannels}
           publishedItems={publishedAanbodItems}
+          searchParams={searchParams}
         />
       </div>
     </>

@@ -14,6 +14,7 @@ interface PublicProfileClientProps {
   ecosystemChipKeys?: string[];
   publicContactChannels?: PublicContactChannel[];
   publishedItems?: unknown[];
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
 export default function PublicProfileClient({
@@ -24,6 +25,7 @@ export default function PublicProfileClient({
   ecosystemChipKeys = [],
   publicContactChannels = [{ id: 'chat', href: '' }],
   publishedItems,
+  searchParams,
 }: PublicProfileClientProps) {
   return (
     <ProfileV2Client
@@ -35,6 +37,7 @@ export default function PublicProfileClient({
       ecosystemChipKeys={ecosystemChipKeys}
       publicContactChannels={publicContactChannels}
       publishedItems={publishedItems}
+      searchParams={searchParams}
     />
   );
 }

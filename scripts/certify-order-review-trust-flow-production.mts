@@ -411,11 +411,20 @@ async function main() {
 
       const url = `${HOMECHEFF}/user/${username}?tab=vertrouwen`;
       const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 });
-      await page.waitForTimeout(3500);
+      await page.waitForTimeout(2000);
+      // Fallback: click Vertrouwen tab if URL param did not switch panel
+      const tab = page.getByRole('tab', { name: /vertrouwen/i }).or(
+        page.getByRole('button', { name: /vertrouwen/i }),
+      );
+      if (await tab.first().isVisible().catch(() => false)) {
+        await tab.first().click().catch(() => undefined);
+        await page.waitForTimeout(2000);
+      }
+      await page.waitForTimeout(2000);
       const body = await page.evaluate((needle) => {
         const text = document.body?.innerText || '';
         return {
-          path: location.pathname,
+          path: location.pathname + location.search,
           hasText: text.includes(needle),
           hasStars: /★|Beoordelingen|Vertrouwen/i.test(text),
           overflowX:
