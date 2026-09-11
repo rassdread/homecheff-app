@@ -1,0 +1,113 @@
+{
+  "base": "https://homecheff.eu",
+  "out": "docs/audits/all-dashboards-cert/run-1789163239326",
+  "checks": {
+    "PAGE_/mijn-homecheff": {
+      "status": 200,
+      "title": "HomeCheff — Digitale buurtmarkt · lokaal vakmanschap",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_mijn-homecheff.png"
+    },
+    "PAGE_/verkoper/dashboard": {
+      "status": 200,
+      "title": "Verkoper dashboard | HomeCheff | HomeCheff",
+      "orphanColon": 0,
+      "orphanCheck": 1,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_verkoper_dashboard.png"
+    },
+    "PAGE_/verkoper/orders": {
+      "status": 200,
+      "title": "Verkoper dashboard | HomeCheff | HomeCheff",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_verkoper_orders.png"
+    },
+    "PAGE_/verkoper/analytics": {
+      "status": 200,
+      "title": "Verkoper dashboard | HomeCheff | HomeCheff",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_verkoper_analytics.png"
+    },
+    "PAGE_/verkoper/revenue": {
+      "status": 200,
+      "title": "| HomeCheff",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_verkoper_revenue.png"
+    },
+    "PAGE_/orders": {
+      "status": 200,
+      "title": "HomeCheff — Digitale buurtmarkt · lokaal vakmanschap",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_orders.png"
+    },
+    "PAGE_/verdiensten": {
+      "status": 200,
+      "title": "Mijn Verdiensten | HomeCheff",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_verdiensten.png"
+    },
+    "PAGE_/operations/vandaag": {
+      "status": 200,
+      "title": "HomeCheff — Digitale buurtmarkt · lokaal vakmanschap",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_operations_vandaag.png"
+    },
+    "PAGE_/profile/deals": {
+      "status": 200,
+      "title": "Profiel | HomeCheff | HomeCheff",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_profile_deals.png"
+    },
+    "PAGE_/messages": {
+      "status": 200,
+      "title": "HomeCheff — Digitale buurtmarkt · lokaal vakmanschap",
+      "orphanColon": 0,
+      "orphanCheck": 0,
+      "blankish": false,
+      "shot": "docs/audits/all-dashboards-cert/run-1789163239326/seller_messages.png"
+    },
+    "CONVERSATIONS_COUNT": 0,
+    "CHAT_CONVERSATION_OPEN": "NOT_TESTABLE_NO_CONVERSATIONS",
+    "CHAT_SEND": "NOT_TESTABLE_NO_CONVERSATIONS",
+    "COURIER_REGISTER": {
+      "status": 400,
+      "ok": false
+    },
+    "DELIVERY_SETTINGS_CONTENT": "NOT_TESTABLE_REGISTER_FAILED"
+  },
+  "blockers": [
+    "Could not register disposable courier"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "failedNetwork": []
+}

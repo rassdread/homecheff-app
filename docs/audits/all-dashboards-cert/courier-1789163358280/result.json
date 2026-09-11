@@ -1,0 +1,20 @@
+{
+  "email": "cert.dash.1789163358280@homecheff.test",
+  "settingsActive": true,
+  "settingsHow": true,
+  "settingsWorkArea": true,
+  "settingsPrices": true,
+  "orphanColon": 0,
+  "orphanBullet": 9,
+  "dashScheduled": false,
+  "dashEmptyScheduled": false,
+  "api": {
+    "status": 200,
+    "upcoming": true,
+    "pending": true,
+    "isSeller": false,
+    "scheduled": 0,
+    "onlineMeasured": false
+  },
+  "out": "docs/audits/all-dashboards-cert/courier-1789163358280"
+}
