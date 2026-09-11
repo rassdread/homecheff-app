@@ -5,6 +5,8 @@ import { CreditCard, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
+import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
+import ConnectTrackSelector from '@/components/seller/ConnectTrackSelector';
 
 interface StripeConnectSetupProps {
   stripeConnectAccountId?: string | null;
@@ -23,6 +25,8 @@ export default function StripeConnectSetup({
     initialCompleted ? 'PAYMENT_READY' : null
   );
   const [statusLoading, setStatusLoading] = useState(true);
+  const [showTrackPicker, setShowTrackPicker] = useState(false);
+  const [recoveryEligible, setRecoveryEligible] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -38,6 +42,12 @@ export default function StripeConnectSetup({
         data.isCompleted || data.paymentReady ? 'PAYMENT_READY' : data.hasAccount ? 'INCOMPLETE' : 'NOT_STARTED'
       );
       setUiStatus(status);
+      setRecoveryEligible(Boolean(data.recoveryEligible));
+      setShowTrackPicker(
+        Boolean(data.needsTrackSelection) ||
+          Boolean(data.recoveryEligible) ||
+          (!data.hasAccount && data.dualTrackEnabled !== false),
+      );
       if (status === 'PAYMENT_READY') {
         onUpdate();
       }
@@ -52,13 +62,20 @@ export default function StripeConnectSetup({
     void refresh();
   }, [refresh]);
 
-  const handleOnboard = async () => {
+  const handleOnboard = async (track?: ConnectTrack, forceReplace?: boolean) => {
     setLoading(true);
     setError(null);
     try {
       const result = await startStripeConnectOnboarding({
         returnPath: '/settings?tab=payments',
+        track,
+        forceReplace,
       });
+      if (result.needsTrackSelection) {
+        setShowTrackPicker(true);
+        setError(result.error || 'Kies particulier of bedrijf om verder te gaan.');
+        return;
+      }
       if (!result.ok) {
         setError(result.error || t('productOrder.payments.setupError'));
         await refresh();
@@ -116,6 +133,21 @@ export default function StripeConnectSetup({
     );
   }
 
+  if (showTrackPicker) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <ConnectTrackSelector
+          recoveryMode={recoveryEligible}
+          loading={loading}
+          error={error}
+          onSelect={async (track) => {
+            await handleOnboard(track, recoveryEligible && track === 'PARTICULAR');
+          }}
+        />
+      </div>
+    );
+  }
+
   const isAction =
     uiStatus === 'ACTION_REQUIRED' || uiStatus === 'RESTRICTED';
   const title = isAction
@@ -156,7 +188,9 @@ export default function StripeConnectSetup({
       )}
 
       <Button
-        onClick={handleOnboard}
+        onClick={() => {
+          setShowTrackPicker(true);
+        }}
         disabled={loading}
         className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-sm py-2 px-4"
       >

@@ -1,0 +1,64 @@
+{
+  "key_kind": "restricted_test",
+  "api_version": "2025-08-27.basil",
+  "PARTICULAR_NO_KVK_TEST": "FAIL",
+  "accepted_controller_summaries": [],
+  "results": [
+    {
+      "label": "PROBE_FULL_CONTROLLER",
+      "ok": false,
+      "error_type": "StripeAuthenticationError",
+      "error_code": "api_key_expired",
+      "error_message": "Expired API Key provided: rkcs_test_51*******************************************************************************************jbE5"
+    },
+    {
+      "label": "PROBE_DASHBOARD_NONE_ONLY",
+      "ok": false,
+      "error_type": "StripeAuthenticationError",
+      "error_code": "api_key_expired",
+      "error_message": "Expired API Key provided: rkcs_tes***********************************************************************************************jbE5"
+    },
+    {
+      "label": "A_DASHBOARD_NONE_INDIVIDUAL_TRANSFERS",
+      "ok": false,
+      "error_type": "StripeAuthenticationError",
+      "error_code": "api_key_expired",
+      "error_message": "Expired API Key provided: rkcs_tes***********************************************************************************************jbE5"
+    },
+    {
+      "label": "B_RECIPIENT_DASHBOARD_NONE_INDIVIDUAL_TRANSFERS",
+      "ok": false,
+      "error_type": "StripeAuthenticationError",
+      "error_code": "api_key_expired",
+      "error_message": "Expired API Key provided: rkcs_tes***********************************************************************************************jbE5"
+    },
+    {
+      "label": "B2_RECIPIENT_WITH_TYPE_CUSTOM",
+      "ok": false,
+      "error_type": "StripeAuthenticationError",
+      "error_code": "api_key_expired",
+      "error_message": "Expired API Key provided: rkcs_tes***********************************************************************************************jbE5"
+    },
+    {
+      "label": "C_EXPRESS_CONTROL",
+      "ok": false,
+      "error_type": "StripeAuthenticationError",
+      "error_code": "api_key_expired",
+      "error_message": "Expired API Key provided: rkcs_tes***********************************************************************************************jbE5"
+    },
+    {
+      "label": "C2_EXPRESS_INDIVIDUAL_EXPLICIT",
+      "ok": false,
+      "error_type": "StripeAuthenticationError",
+      "error_code": "api_key_expired",
+      "error_message": "Expired API Key provided: rkcs_tes***********************************************************************************************jbE5"
+    },
+    {
+      "label": "A2_FULL_SA_IMPLICIT_DASHBOARD_NONE",
+      "ok": false,
+      "error_type": "StripeAuthenticationError",
+      "error_code": "api_key_expired",
+      "error_message": "Expired API Key provided: rkcs_tes***********************************************************************************************jbE5"
+    }
+  ]
+}

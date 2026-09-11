@@ -66,7 +66,10 @@ export function resolveConnectUiStatus(
   const payoutsEnabled = seller?.payoutsEnabled;
 
   // Live capability flags always win over stale DB completed.
-  if (chargesEnabled === true && payoutsEnabled === true) {
+  if (
+    (chargesEnabled === true && payoutsEnabled === true) ||
+    (payoutsEnabled === true && chargesEnabled === false && currentlyDue === 0 && pastDue === 0 && seller?.stripeConnectOnboardingCompleted)
+  ) {
     return 'PAYMENT_READY';
   }
 
@@ -124,10 +127,20 @@ export function resolveSellerPaymentStatus(
     };
   }
 
-  if (chargesEnabled === false) {
+  if (chargesEnabled === false && payoutsEnabled === false) {
     return {
       status: 'CONNECTED_INCOMPLETE',
-      reason: 'STRIPE_CHARGES_DISABLED',
+      reason: 'STRIPE_ONBOARDING_INCOMPLETE',
+      paymentsReady: false,
+      connectUiStatus,
+    };
+  }
+
+  // SCT / particular: charges_enabled may stay false while payouts work via transfers.
+  if (chargesEnabled === false && payoutsEnabled !== true) {
+    return {
+      status: 'CONNECTED_INCOMPLETE',
+      reason: 'STRIPE_PAYOUTS_DISABLED',
       paymentsReady: false,
       connectUiStatus,
     };

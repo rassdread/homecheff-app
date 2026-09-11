@@ -39,6 +39,8 @@ model User {
   sellerRoles                            String[]                  @default([])
   stripeConnectAccountId                 String?
   stripeConnectOnboardingCompleted       Boolean                   @default(false)
+  /// PARTICULAR = dashboard=none individual (no KvK via Stripe); BUSINESS = Express KYB
+  stripeConnectTrack                     String?
   taxResponsibilityAccepted              Boolean                   @default(false)
   taxResponsibilityAcceptedAt            DateTime?
   termsAccepted                          Boolean                   @default(false)

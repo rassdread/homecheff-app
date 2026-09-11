@@ -59,10 +59,13 @@ export async function POST(req: NextRequest) {
 async function handleAccountUpdated(account: any) {
   try {
     const accountId = account.id;
-    
-    // Find user with this Stripe Connect account ID
+
     const user = await prisma.user.findFirst({
-      where: { stripeConnectAccountId: accountId }
+      where: { stripeConnectAccountId: accountId },
+      select: {
+        id: true,
+        stripeConnectTrack: true,
+      },
     });
 
     if (!user) {
@@ -70,14 +73,28 @@ async function handleAccountUpdated(account: any) {
       return;
     }
 
-    // Check if account is ready to receive payments
-    const isCompleted = account.charges_enabled && account.payouts_enabled;
+    const { isHomecheffPaymentReady } = await import(
+      '@/lib/stripe/connect-account-status'
+    );
+    const isCompleted = isHomecheffPaymentReady({
+      chargesEnabled: account.charges_enabled,
+      payoutsEnabled: account.payouts_enabled,
+      transfersCapability: account.capabilities?.transfers ?? null,
+      disabledReason: account.requirements?.disabled_reason ?? null,
+      connectTrack:
+        user.stripeConnectTrack === 'PARTICULAR' ||
+        user.stripeConnectTrack === 'BUSINESS'
+          ? user.stripeConnectTrack
+          : null,
+      accountType: account.type ?? null,
+      dashboardType: account.controller?.stripe_dashboard?.type ?? null,
+    });
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { 
-        stripeConnectOnboardingCompleted: isCompleted 
-      }
+      data: {
+        stripeConnectOnboardingCompleted: isCompleted,
+      },
     });
 
     try {
@@ -88,7 +105,6 @@ async function handleAccountUpdated(account: any) {
     } catch (mirrorErr) {
       console.warn('[stripe-connect-webhook] affiliate mirror sync failed', mirrorErr);
     }
-
   } catch (error) {
     console.error('Error handling account.updated:', error);
   }
@@ -97,10 +113,13 @@ async function handleAccountUpdated(account: any) {
 async function handleCapabilityUpdated(capability: any) {
   try {
     const accountId = capability.account;
-    
-    // Find user with this Stripe Connect account ID
+
     const user = await prisma.user.findFirst({
-      where: { stripeConnectAccountId: accountId }
+      where: { stripeConnectAccountId: accountId },
+      select: {
+        id: true,
+        stripeConnectTrack: true,
+      },
     });
 
     if (!user) {
@@ -108,19 +127,33 @@ async function handleCapabilityUpdated(capability: any) {
       return;
     }
 
-    // Check if all required capabilities are active
     if (!stripe) {
-      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+      return;
     }
-    
+
     const account = await stripe.accounts.retrieve(accountId);
-    const isCompleted = account.charges_enabled && account.payouts_enabled;
+    const { isHomecheffPaymentReady } = await import(
+      '@/lib/stripe/connect-account-status'
+    );
+    const isCompleted = isHomecheffPaymentReady({
+      chargesEnabled: account.charges_enabled,
+      payoutsEnabled: account.payouts_enabled,
+      transfersCapability: account.capabilities?.transfers ?? null,
+      disabledReason: account.requirements?.disabled_reason ?? null,
+      connectTrack:
+        user.stripeConnectTrack === 'PARTICULAR' ||
+        user.stripeConnectTrack === 'BUSINESS'
+          ? user.stripeConnectTrack
+          : null,
+      accountType: account.type ?? null,
+      dashboardType: (account as any).controller?.stripe_dashboard?.type ?? null,
+    });
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { 
-        stripeConnectOnboardingCompleted: isCompleted 
-      }
+      data: {
+        stripeConnectOnboardingCompleted: isCompleted,
+      },
     });
 
     try {
@@ -131,7 +164,6 @@ async function handleCapabilityUpdated(capability: any) {
     } catch (mirrorErr) {
       console.warn('[stripe-connect-webhook] affiliate mirror sync failed', mirrorErr);
     }
-
   } catch (error) {
     console.error('Error handling capability.updated:', error);
   }
@@ -158,7 +190,8 @@ async function handleAccountDeauthorized(deauth: any) {
       where: { id: user.id },
       data: { 
         stripeConnectOnboardingCompleted: false,
-        stripeConnectAccountId: null // Clear the account ID since it's deauthorized
+        stripeConnectAccountId: null,
+        stripeConnectTrack: null,
       }
     });
 

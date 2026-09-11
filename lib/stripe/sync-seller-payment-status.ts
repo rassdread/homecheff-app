@@ -18,6 +18,7 @@ export async function loadConnectAccountStatusForUser(params: {
   userId: string;
   stripeConnectAccountId?: string | null;
   stripeConnectOnboardingCompleted?: boolean | null;
+  stripeConnectTrack?: string | null;
   /** Force live retrieve even if DB says completed */
   forceLive?: boolean;
 }): Promise<ConnectAccountStatusSnapshot> {
@@ -39,7 +40,14 @@ export async function loadConnectAccountStatusForUser(params: {
 
   try {
     const account = await stripe.accounts.retrieve(accountId);
-    const snapshot = deriveConnectAccountStatusFromStripe(account);
+    const track =
+      params.stripeConnectTrack === 'PARTICULAR' ||
+      params.stripeConnectTrack === 'BUSINESS'
+        ? params.stripeConnectTrack
+        : null;
+    const snapshot = deriveConnectAccountStatusFromStripe(account, {
+      connectTrack: track,
+    });
 
     if (
       snapshot.onboardingCompleted !==

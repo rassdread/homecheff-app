@@ -18,6 +18,9 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
+import ConnectTrackSelector from '@/components/seller/ConnectTrackSelector';
+import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
 
 interface DeliveryProfile {
   id: string;
@@ -93,6 +96,8 @@ export default function DeliveryProfileSettings() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [connectUiStatus, setConnectUiStatus] = useState<string | null>(null);
+  const [showStripeTrackPicker, setShowStripeTrackPicker] = useState(false);
+  const [stripeTrackError, setStripeTrackError] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -138,6 +143,12 @@ export default function DeliveryProfileSettings() {
         if (stripeRes.ok) {
           const stripeData = await stripeRes.json();
           setConnectUiStatus(stripeData.uiStatus || null);
+          if (
+            stripeData.needsTrackSelection ||
+            (!stripeData.hasAccount && stripeData.dualTrackEnabled !== false)
+          ) {
+            setShowStripeTrackPicker(true);
+          }
           if (stripeData.paymentReady || stripeData.isCompleted) {
             setUser((prev) =>
               prev
@@ -223,23 +234,32 @@ export default function DeliveryProfileSettings() {
     }).format(new Date(date));
   };
 
-  const handleStripeOnboard = async () => {
+  const handleStripeOnboard = async (track?: ConnectTrack) => {
     setStripeLoading(true);
+    setStripeTrackError(null);
     try {
-      const response = await fetch('/api/stripe/connect/onboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      const result = await startStripeConnectOnboarding({
+        returnPath: '/delivery/settings',
+        track,
       });
-
-      const data = await response.json();
-
-      if (data.success && data.onboardingUrl) {
-        window.location.href = data.onboardingUrl;
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Er is een fout opgetreden bij Stripe Connect' });
+      if (result.needsTrackSelection) {
+        setShowStripeTrackPicker(true);
+        setStripeTrackError(
+          result.error || 'Kies particulier of bedrijf om verder te gaan.',
+        );
+        return;
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Er is een fout opgetreden bij het opzetten van Stripe Connect' });
+      if (!result.ok) {
+        setMessage({
+          type: 'error',
+          text: result.error || 'Er is een fout opgetreden bij Stripe Connect',
+        });
+      }
+    } catch {
+      setMessage({
+        type: 'error',
+        text: 'Er is een fout opgetreden bij het opzetten van Stripe Connect',
+      });
     } finally {
       setStripeLoading(false);
     }
@@ -542,6 +562,16 @@ export default function DeliveryProfileSettings() {
                   Je gegevens zijn ontvangen. Stripe controleert je betaalaccount. Je hoeft nu niets opnieuw in te vullen.
                 </p>
               </div>
+            ) : showStripeTrackPicker ? (
+              <div className="border border-gray-200 rounded-lg p-4">
+                <ConnectTrackSelector
+                  loading={stripeLoading}
+                  error={stripeTrackError}
+                  onSelect={async (track) => {
+                    await handleStripeOnboard(track);
+                  }}
+                />
+              </div>
             ) : (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <div className="flex items-center mb-3">
@@ -554,9 +584,10 @@ export default function DeliveryProfileSettings() {
                 </div>
                 <p className="text-amber-700 text-sm mb-4">
                   Om betalingen te kunnen ontvangen voor je bezorgingen, moet je eerst je betaalaccount opzetten of afronden.
+                  Bezorginstellingen kun je hier los daarvan opslaan.
                 </p>
                 <button
-                  onClick={handleStripeOnboard}
+                  onClick={() => setShowStripeTrackPicker(true)}
                   disabled={stripeLoading}
                   className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >

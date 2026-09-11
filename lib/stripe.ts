@@ -145,18 +145,29 @@ export async function createPaymentIntent(
   });
 }
 
-// Maak Stripe Connect account voor verkoper
+// Maak Stripe Connect account voor verkoper (dual-track).
 export async function createConnectAccount(
   email: string,
   country: string = 'NL',
-  type: 'express' | 'standard' = 'express'
+  typeOrTrack: 'express' | 'standard' | 'PARTICULAR' | 'BUSINESS' = 'express',
 ) {
   if (!stripe) {
     throw new Error('Stripe not configured. Missing STRIPE_SECRET_KEY.');
   }
-  
+
   try {
-    // Always use real Stripe API (works in both test and live mode)
+    const { buildConnectAccountParamsForTrack, parseConnectTrack } = await import(
+      '@/lib/stripe/connect-tracks'
+    );
+    const track = parseConnectTrack(typeOrTrack);
+    if (track) {
+      return await stripe.accounts.create(
+        buildConnectAccountParamsForTrack(track, email, country),
+      );
+    }
+
+    // Legacy callers: express/standard
+    const type = typeOrTrack === 'standard' ? 'standard' : 'express';
     return await stripe.accounts.create({
       type,
       country,
@@ -168,13 +179,12 @@ export async function createConnectAccount(
     });
   } catch (error: any) {
     console.error('Error creating Stripe Connect account:', error);
-    // Preserve the original Stripe error so we can check for specific error codes
     const stripeError = error as any;
     stripeError.originalMessage = error.message;
     stripeError.originalCode = error.code;
     stripeError.originalType = error.type;
     stripeError.originalStatusCode = error.statusCode;
-    throw stripeError; // Throw the original error so we can access code, type, etc.
+    throw stripeError;
   }
 }
 

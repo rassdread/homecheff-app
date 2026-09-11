@@ -6,12 +6,18 @@ import { CheckCircle, AlertCircle, ExternalLink, CreditCard, Clock } from 'lucid
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
 import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
+import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
+import ConnectTrackSelector from '@/components/seller/ConnectTrackSelector';
 
 export default function StripeConnectSetup() {
   const [uiStatus, setUiStatus] = useState<HomecheffConnectUiStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTrackPicker, setShowTrackPicker] = useState(false);
+  const [connectTrack, setConnectTrack] = useState<ConnectTrack | null>(null);
+  const [recoveryEligible, setRecoveryEligible] = useState(false);
+  const [dualTrackEnabled, setDualTrackEnabled] = useState(true);
 
   useEffect(() => {
     void checkStatus();
@@ -32,6 +38,18 @@ export default function StripeConnectSetup() {
                 ? 'INCOMPLETE'
                 : 'NOT_STARTED')
         );
+        setConnectTrack(
+          data.connectTrack === 'PARTICULAR' || data.connectTrack === 'BUSINESS'
+            ? data.connectTrack
+            : null,
+        );
+        setDualTrackEnabled(data.dualTrackEnabled !== false);
+        setRecoveryEligible(Boolean(data.recoveryEligible));
+        setShowTrackPicker(
+          Boolean(data.needsTrackSelection) ||
+            Boolean(data.recoveryEligible) ||
+            (!data.hasAccount && data.dualTrackEnabled !== false),
+        );
       }
     } catch (err) {
       console.error('Error checking Stripe status:', err);
@@ -40,13 +58,20 @@ export default function StripeConnectSetup() {
     }
   };
 
-  const startOnboarding = async () => {
+  const startOnboarding = async (track?: ConnectTrack, forceReplace?: boolean) => {
     setIsLoading(true);
     setError(null);
     try {
       const result = await startStripeConnectOnboarding({
         returnPath: '/settings?tab=payments',
+        track: track || connectTrack || undefined,
+        forceReplace,
       });
+      if (result.needsTrackSelection) {
+        setShowTrackPicker(true);
+        setError(result.error || 'Kies particulier of bedrijf om verder te gaan.');
+        return;
+      }
       if (!result.ok) {
         setError(result.error || 'Er is een probleem opgetreden. Probeer het later opnieuw.');
         await checkStatus();
@@ -75,7 +100,14 @@ export default function StripeConnectSetup() {
           <CheckCircle className="h-6 w-6 text-green-600 mr-3" />
           <div>
             <h3 className="text-lg font-semibold text-green-800">Betaalaccount actief</h3>
-            <p className="text-green-600">Je kunt nu betalingen via HomeCheff ontvangen.</p>
+            <p className="text-green-600">
+              Je kunt nu betalingen via HomeCheff ontvangen
+              {connectTrack === 'PARTICULAR'
+                ? ' (particulier).'
+                : connectTrack === 'BUSINESS'
+                  ? ' (bedrijf).'
+                  : '.'}
+            </p>
           </div>
         </div>
       </div>
@@ -93,6 +125,22 @@ export default function StripeConnectSetup() {
             <p className="text-sky-700 mt-1">{model.bodyNl}</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (showTrackPicker && dualTrackEnabled) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <ConnectTrackSelector
+          recoveryMode={recoveryEligible}
+          loading={isLoading}
+          error={error}
+          onSelect={async (track) => {
+            setConnectTrack(track);
+            await startOnboarding(track, recoveryEligible && track === 'PARTICULAR');
+          }}
+        />
       </div>
     );
   }
@@ -122,7 +170,13 @@ export default function StripeConnectSetup() {
 
           {model.showOnboardingCta && (
             <Button
-              onClick={startOnboarding}
+              onClick={() => {
+                if (dualTrackEnabled && !connectTrack) {
+                  setShowTrackPicker(true);
+                  return;
+                }
+                void startOnboarding(connectTrack || undefined);
+              }}
               disabled={isLoading}
               className="inline-flex items-center"
             >
@@ -138,6 +192,16 @@ export default function StripeConnectSetup() {
                 </>
               )}
             </Button>
+          )}
+
+          {recoveryEligible && (
+            <button
+              type="button"
+              className="mt-3 block text-sm text-emerald-800 underline"
+              onClick={() => setShowTrackPicker(true)}
+            >
+              Particulier betaalprofiel opnieuw instellen
+            </button>
           )}
         </div>
       </div>

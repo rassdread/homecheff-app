@@ -3,11 +3,17 @@
  * Source of truth: live Stripe Connect account for the authenticated user's
  * stored stripeConnectAccountId — never client redirect flags alone.
  *
- * PAYMENT_READY rule (unchanged for soft gates / payouts):
- *   charges_enabled === true && payouts_enabled === true
+ * PAYMENT_READY:
+ * - Legacy Express: charges_enabled && payouts_enabled
+ * - Particular (dashboard=none / transfers-only): payouts_enabled && transfers=active
+ *   (charges_enabled may stay false under SCT)
  */
 
 import type Stripe from 'stripe';
+import {
+  isHomecheffPaymentReady as isReadyFromTrackFlags,
+  type ConnectTrack,
+} from '@/lib/stripe/connect-tracks';
 
 export type HomecheffConnectUiStatus =
   | 'NOT_STARTED'
@@ -70,8 +76,13 @@ const EMPTY: ConnectAccountStatusSnapshot = {
 export function isHomecheffPaymentReady(flags: {
   chargesEnabled?: boolean | null;
   payoutsEnabled?: boolean | null;
+  transfersCapability?: string | null;
+  disabledReason?: string | null;
+  connectTrack?: ConnectTrack | null;
+  accountType?: string | null;
+  dashboardType?: string | null;
 }): boolean {
-  return Boolean(flags.chargesEnabled) && Boolean(flags.payoutsEnabled);
+  return isReadyFromTrackFlags(flags);
 }
 
 /**
@@ -79,6 +90,7 @@ export function isHomecheffPaymentReady(flags: {
  */
 export function deriveConnectAccountStatusFromStripe(
   account: Stripe.Account | null | undefined,
+  options?: { connectTrack?: ConnectTrack | null },
 ): ConnectAccountStatusSnapshot {
   if (!account?.id) {
     return { ...EMPTY };
@@ -93,7 +105,19 @@ export function deriveConnectAccountStatusFromStripe(
   const detailsSubmitted = Boolean(account.details_submitted);
   const chargesEnabled = Boolean(account.charges_enabled);
   const payoutsEnabled = Boolean(account.payouts_enabled);
-  const paymentReady = isHomecheffPaymentReady({ chargesEnabled, payoutsEnabled });
+  const transfersCapability =
+    (account.capabilities?.transfers as string | undefined) ?? null;
+  const dashboardType =
+    (account as any).controller?.stripe_dashboard?.type ?? null;
+  const paymentReady = isHomecheffPaymentReady({
+    chargesEnabled,
+    payoutsEnabled,
+    transfersCapability,
+    disabledReason,
+    connectTrack: options?.connectTrack ?? null,
+    accountType: account.type ?? null,
+    dashboardType,
+  });
 
   let uiStatus: HomecheffConnectUiStatus;
 
