@@ -189,9 +189,10 @@ async function authContext(
         ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
         : undefined,
   });
+  // Production uses unprefixed next-auth.session-token (see session-cookie-name.ts).
   await ctx.addCookies([
     {
-      name: '__Secure-next-auth.session-token',
+      name: 'next-auth.session-token',
       value: raw,
       domain: 'homecheff.eu',
       path: '/',
@@ -200,7 +201,7 @@ async function authContext(
       sameSite: 'Lax',
     },
     {
-      name: 'next-auth.session-token',
+      name: '__Secure-next-auth.session-token',
       value: raw,
       domain: 'homecheff.eu',
       path: '/',
@@ -214,18 +215,27 @@ async function authContext(
 }
 
 function orphanColonHits(text: string): number {
-  // Standalone ":" lines / empty label patterns like ":\n" or "  :  "
-  const lines = text.split('\n');
-  return lines.filter((l) => /^\s*:?\s*$/.test(l) || /^\s*:\s*$/.test(l) || l.trim() === ':').length;
+  // Only count lines that are literally ":" (historical empty-label regression).
+  // Do NOT count blank lines — that produced massive false FAIL noise.
+  return text.split('\n').filter((l) => l.trim() === ':').length;
 }
 
 function emptyLocationCardBad(text: string): boolean {
   // Bad empty appointment cards historically rendered ":" or "::"
   if (text.includes('::')) return true;
   if (/\n\s*:\s*\n/.test(text)) return true;
-  if (/Locatie\s*:\s*$/m.test(text)) return true;
-  if (/Adres\s*:\s*$/m.test(text)) return true;
+  if (/^(?:Locatie|Adres|Afhaaladres|Afleveradres)\s*:\s*$/im.test(text)) return true;
   return false;
+}
+
+async function dismissNoise(page: Page) {
+  const cookie = page.getByRole('button', {
+    name: /Alleen noodzakelijk|Accepteer alle|Accept all|Necessary only/i,
+  });
+  if ((await cookie.count()) > 0) {
+    await cookie.first().click().catch(() => undefined);
+    await page.waitForTimeout(400);
+  }
 }
 
 try {
@@ -700,6 +710,7 @@ try {
         timeout: 60000,
       });
       await page.waitForTimeout(2500);
+      await dismissNoise(page);
       const listText = await page.locator('body').innerText();
       const inList =
         listText.includes(listingTitle) ||
@@ -719,6 +730,7 @@ try {
         { waitUntil: 'domcontentloaded', timeout: 60000 },
       );
       await page.waitForTimeout(2500);
+      await dismissNoise(page);
       let threadText = await page.locator('body').innerText();
       const directOpen =
         threadText.includes(`Buyer cert ping ${TAG}`) ||
@@ -804,28 +816,35 @@ try {
               r.request().method() === 'POST',
             { timeout: 20000 },
           ).catch(() => null),
-          sendBtn.click().catch(async () => {
-            await composer.press('Enter');
-          }),
+          // Prefer button click only — avoid Enter+click double submit.
+          (async () => {
+            if ((await sendBtn.count()) > 0) await sendBtn.click();
+            else await composer.press('Enter');
+          })(),
         ]);
         await page.waitForTimeout(1500);
-        const body = await page.locator('body').innerText();
-        const appeared = body.includes(unique);
+        const appeared = (await page.getByText(unique, { exact: true }).count()) > 0;
         await page.reload({ waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(2000);
-        const persisted = (await page.locator('body').innerText()).includes(unique);
-        const dup = (await page.locator('body').innerText()).split(unique).length - 1;
+        await dismissNoise(page);
+        // Exact matches can appear in thread + sidebar preview (=2). DB must be unique.
+        const exactUi = await page.getByText(unique, { exact: true }).count();
+        const persisted = exactUi >= 1;
+        const dbCount = await prisma.message.count({
+          where: { conversationId, text: unique },
+        });
         sendOk =
           (resp ? resp.status() < 400 : appeared) &&
           appeared &&
           persisted &&
-          dup === 1 &&
+          dbCount === 1 &&
           (await page.locator('[data-hc-chat-composer]').count()) > 0;
         record('CHAT_SEND_UI', sendOk, {
           status: resp?.status(),
           appeared,
           persisted,
-          dup,
+          exactUi,
+          dbCount,
         });
       } else {
         // API already proved send; UI composer missing is FAIL for chat send gate
@@ -876,17 +895,13 @@ try {
         { waitUntil: 'domcontentloaded', timeout: 60000 },
       );
       await page.waitForTimeout(2500);
+      await dismissNoise(page);
       const body = await page.locator('body').innerText();
-      proposalUiPass =
-        body.includes('€') ||
-        body.toLowerCase().includes('voorstel') ||
-        body.toLowerCase().includes('proposal') ||
-        body.includes('25') ||
-        body.includes('afspraak');
       agreementPass =
         body.toLowerCase().includes('afspraak') ||
         body.toLowerCase().includes('overeenkomst') ||
         body.toLowerCase().includes('deal') ||
+        body.toLowerCase().includes('geaccepteerd') ||
         (await page.locator('[data-hc-location-state]').count()) > 0 ||
         Boolean(orderA);
 
@@ -896,18 +911,26 @@ try {
         timeout: 60000,
       });
       await page.waitForTimeout(2500);
+      await dismissNoise(page);
       const dealsA = await page.locator('body').innerText();
       await page.screenshot({
         path: path.join(OUT, 'shots', 'deal-with-location.png'),
         fullPage: true,
       });
+      // Deals hub is the canonical proposal/agreement surface for UI proof.
+      proposalUiPass =
+        dealsA.toLowerCase().includes('afspraak') ||
+        dealsA.toLowerCase().includes('voorstel') ||
+        dealsA.includes('€') ||
+        dealsA.includes(listingTitle);
       appointmentWithLocPass =
         (dealsA.includes('Verkoperlaan') ||
           dealsA.includes('Vlaardingen') ||
           dealsA.includes('ListingPickup') ||
           dealsA.includes('14:00') ||
           dealsA.includes('2026')) &&
-        !emptyLocationCardBad(dealsA);
+        !emptyLocationCardBad(dealsA) &&
+        orphanColonHits(dealsA) === 0;
 
       // Without location
       await page.goto(`${HOMECHEFF}/profile/deals?highlight=${orderB}`, {
@@ -915,6 +938,7 @@ try {
         timeout: 60000,
       });
       await page.waitForTimeout(2500);
+      await dismissNoise(page);
       const dealsB = await page.locator('body').innerText();
       await page.screenshot({
         path: path.join(OUT, 'shots', 'deal-without-location.png'),
@@ -923,13 +947,13 @@ try {
       const orphanB = orphanColonHits(dealsB);
       appointmentEmptyPass =
         !emptyLocationCardBad(dealsB) &&
-        orphanB < 3 &&
-        (dealsB.toLowerCase().includes('nog niet') ||
+        orphanB === 0 &&
+        (dealsB.toLowerCase().includes('nog') ||
           dealsB.toLowerCase().includes('afronden') ||
+          dealsB.toLowerCase().includes('bevestigd') ||
           dealsB.toLowerCase().includes('locatie') ||
           dealsB.toLowerCase().includes('adres') ||
-          (await page.locator('[data-hc-location-state]').count()) > 0 ||
-          true); // absence of bad ":" card is the hard requirement
+          (await page.locator('[data-hc-location-state]').count()) > 0);
 
       // Completed
       await page.goto(`${HOMECHEFF}/profile/deals?highlight=${orderC}`, {
@@ -1058,30 +1082,40 @@ try {
         timeout: 60000,
       });
       await page.waitForTimeout(2500);
+      await dismissNoise(page);
       const dashText = await page.locator('body').innerText();
+      const onLoginWall = /Eén HomeCheff-account|Inloggen met Google/i.test(dashText);
       deliveryDashPass =
+        !onLoginWall &&
         (dash?.status() ?? 0) < 400 &&
         (dashText.toLowerCase().includes('gepland') ||
-          dashText.toLowerCase().includes('dashboard') ||
           dashText.toLowerCase().includes('beschikbaar') ||
-          dashText.toLowerCase().includes('bezorg'));
+          dashText.toLowerCase().includes('bezorg') ||
+          dashText.toLowerCase().includes('ritten'));
       deliveryJobsPass =
-        dashText.toLowerCase().includes('gepland') ||
-        dashText.toLowerCase().includes('boeking') ||
-        dashText.toLowerCase().includes('scheduled') ||
-        dashText.toLowerCase().includes('geen');
+        !onLoginWall &&
+        (dashText.toLowerCase().includes('gepland') ||
+          dashText.toLowerCase().includes('boeking') ||
+          dashText.toLowerCase().includes('scheduled') ||
+          dashText.toLowerCase().includes('geen geplande') ||
+          dashText.toLowerCase().includes('beschikbare'));
 
       const set = await page.goto(`${HOMECHEFF}/delivery/settings`, {
         waitUntil: 'domcontentloaded',
         timeout: 60000,
       });
       await page.waitForTimeout(2500);
+      await dismissNoise(page);
       const setText = await page.locator('body').innerText();
       const orphanSet = orphanColonHits(setText);
       deliverySettingsPass =
+        !/Eén HomeCheff-account|Inloggen met Google/i.test(setText) &&
         (set?.status() ?? 0) < 400 &&
-        orphanSet < 5 &&
-        setText.length > 80;
+        orphanSet === 0 &&
+        (/actief als bezorger|vervoermiddel|beschikbaarheid|opslaan instellingen/i.test(
+          setText,
+        ) ||
+          setText.toLowerCase().includes('bezorger'));
       await page.screenshot({
         path: path.join(OUT, 'shots', 'delivery-dashboard.png'),
         fullPage: true,

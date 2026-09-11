@@ -1,0 +1,218 @@
+{
+  "TAG": "appcert_mtxlynmg",
+  "HOMECHEFF": "https://homecheff.eu",
+  "OUT": "docs/audits/app-production-auth-e2e/appcert_mtxlynmg",
+  "created": {
+    "buyerId": "0d658161…#d2128c4d",
+    "sellerId": "301dde57…#34e5019b",
+    "courierId": "2f4dc711…#a53ec45b",
+    "affiliateId": "8ddac074…#72150ac5",
+    "productId": "2cd51b6a…#1903ceb8",
+    "conversationId": "2a5e11aa…#0028fe5e",
+    "proposalCount": 4,
+    "orderCount": 4
+  },
+  "CERT_FIXTURES_CREATED": true,
+  "CERT_FIXTURES_PRIVATE": true,
+  "CERT_FIXTURES_CLEANED": "SOFT_HIDE_KEEP_DEDICATED",
+  "CERT_FIXTURES_AFFECT_REAL_METRICS": "NO",
+  "gates": {
+    "APPOINTMENT_ADDRESS_RENDER_EXISTING": "NOT_TESTABLE_PRIVACY",
+    "CHAT_CONVERSATION_OPEN": "PASS",
+    "CHAT_SEND": "FAIL",
+    "PROPOSAL_FLOW": "FAIL",
+    "AGREEMENT_FLOW": "PASS",
+    "APPOINTMENT_FLOW": "PASS",
+    "APPOINTMENT_ADDRESS_RENDER_NEW": "PASS",
+    "EMPTY_APPOINTMENT_LOCATION_STATE": "FAIL",
+    "COMPLETED_DEAL_RENDER": "PASS",
+    "AFFILIATE_DASHBOARD": "PASS",
+    "AFFILIATE_CODES": "PASS",
+    "DELIVERY_DASHBOARD": "PASS",
+    "DELIVERY_SETTINGS": "FAIL",
+    "DELIVERY_BOOKING_JOBS": "PASS",
+    "MAIN_INTERACTION_MATRIX": "PASS",
+    "MOBILE_PORTRAIT": "PASS",
+    "MOBILE_LANDSCAPE": "PASS",
+    "DESKTOP": "PASS",
+    "NOTIFICATION_AUDIO": "PASS"
+  },
+  "steps": [
+    {
+      "name": "AFFILIATE_SIGNUP",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "hasId": true
+      }
+    },
+    {
+      "name": "FIXTURE_CONVERSATION",
+      "ok": true,
+      "detail": {
+        "conversationId": "2a5e11aa…#0028fe5e",
+        "status": 200
+      }
+    },
+    {
+      "name": "FIXTURE_MESSAGES",
+      "ok": true,
+      "detail": {
+        "buyer": 200,
+        "seller": 200
+      }
+    },
+    {
+      "name": "FIXTURE_APPOINTMENT_WITH_LOCATION",
+      "ok": true,
+      "detail": {
+        "orderId": "6741ff81…#54b0eda3",
+        "address": "Verkoperlaan 3, 3131 BB Vlaardingen, NL"
+      }
+    },
+    {
+      "name": "FIXTURE_APPOINTMENT_WITHOUT_LOCATION",
+      "ok": true,
+      "detail": {
+        "orderId": "08c05cca…#87694994",
+        "state": "LOCATION_PENDING"
+      }
+    },
+    {
+      "name": "FIXTURE_COMPLETED_DEAL",
+      "ok": true,
+      "detail": {
+        "orderId": "102a4c4d…#2b7fcf52"
+      }
+    },
+    {
+      "name": "NOTIFICATION_AUDIO_HTTP",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "CHAT_CONVERSATION_OPEN_UI",
+      "ok": true,
+      "detail": {
+        "inList": true,
+        "directOpen": true,
+        "afterRefresh": true,
+        "afterClick": true,
+        "failedNav": [
+          "list_card_fallback_direct"
+        ]
+      }
+    },
+    {
+      "name": "CHAT_SEND_UI",
+      "ok": false,
+      "detail": {
+        "status": 200,
+        "appeared": true,
+        "persisted": true,
+        "dup": 2
+      }
+    },
+    {
+      "name": "PROPOSAL_FLOW_UI",
+      "ok": false,
+      "detail": {}
+    },
+    {
+      "name": "AGREEMENT_FLOW_UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "APPOINTMENT_WITH_LOCATION_UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "EMPTY_APPOINTMENT_LOCATION_UI",
+      "ok": false,
+      "detail": {
+        "orphanColon": 65
+      }
+    },
+    {
+      "name": "COMPLETED_DEAL_UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "PROPOSAL_CREATE_ACCEPT_API",
+      "ok": true,
+      "detail": {
+        "create": 201,
+        "acceptOk": true,
+        "listStatus": 200
+      }
+    },
+    {
+      "name": "AFFILIATE_DASHBOARD_UI",
+      "ok": true,
+      "detail": {
+        "failed": []
+      }
+    },
+    {
+      "name": "AFFILIATE_CODES_UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "DELIVERY_DASHBOARD_UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "DELIVERY_SETTINGS_UI",
+      "ok": false,
+      "detail": {
+        "orphanSet": 48
+      }
+    },
+    {
+      "name": "DELIVERY_BOOKING_JOBS_UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "MAIN_INTERACTION_MATRIX_UI",
+      "ok": true,
+      "detail": {
+        "buyerFail": [],
+        "sellerFail": []
+      }
+    },
+    {
+      "name": "MOBILE_PORTRAIT_UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "MOBILE_LANDSCAPE_UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "DESKTOP_UI",
+      "ok": true,
+      "detail": {}
+    }
+  ],
+  "knownNetwork404": 0,
+  "consoleRelevant": 2,
+  "PRODUCTION_AUTHENTICATED_E2E": "FAIL",
+  "P0_REMAINING": 4,
+  "P0_LIST": [
+    "CHAT_SEND",
+    "PROPOSAL_FLOW",
+    "EMPTY_APPOINTMENT_LOCATION_STATE",
+    "DELIVERY_SETTINGS"
+  ],
+  "FINAL_DECISION": "HOMECHEFF_APP_AUTH_E2E_PARTIAL"
+}
