@@ -49,6 +49,27 @@ function buildStripeActions(
   const resolution = resolveSellerPaymentStatus(snapshot);
   const ui = resolution.connectUiStatus;
 
+  // Prefer live Account Link eligibility when present.
+  if (snapshot.canCreateOnboardingLink === false) {
+    if (ui === 'PENDING_VERIFICATION' || ui === 'RESTRICTED') {
+      const model = connectCtaModelForStatus(
+        ui === 'RESTRICTED' ? 'PENDING_VERIFICATION' : ui,
+      );
+      return [
+        {
+          id: 'stripe-pending-verification',
+          severity: 'orange',
+          title: model.titleNl,
+          description: model.bodyNl,
+          actionLabel: 'Bekijk status',
+          actionHref: STRIPE_SETTINGS_HREF,
+          actionKind: 'link',
+        },
+      ];
+    }
+    return [];
+  }
+
   if (!shouldEmitStripeOnboardAction(ui)) {
     // PENDING_VERIFICATION → informational (non-onboarding) item
     if (ui === 'PENDING_VERIFICATION') {

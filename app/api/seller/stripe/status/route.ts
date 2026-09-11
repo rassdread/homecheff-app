@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { matchesCurrentMode } from '@/lib/stripe';
-import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
+import {
+  connectCtaModelForStatus,
+  connectCtaModelForSnapshot,
+} from '@/lib/stripe/connect-account-status';
 import { loadConnectAccountStatusForUser } from '@/lib/stripe/sync-seller-payment-status';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +28,7 @@ export async function GET(_req: NextRequest) {
         id: true,
         stripeConnectAccountId: true,
         stripeConnectOnboardingCompleted: true,
+        stripeConnectTrack: true,
       },
     });
 
@@ -41,6 +45,7 @@ export async function GET(_req: NextRequest) {
         payoutsEnabled: false,
         uiStatus: 'NOT_STARTED',
         paymentReady: false,
+        canCreateOnboardingLink: true,
         cta,
       });
     }
@@ -51,6 +56,7 @@ export async function GET(_req: NextRequest) {
         data: {
           stripeConnectAccountId: null,
           stripeConnectOnboardingCompleted: false,
+          stripeConnectTrack: null,
         },
       });
       const cta = connectCtaModelForStatus('NOT_STARTED');
@@ -61,6 +67,7 @@ export async function GET(_req: NextRequest) {
         payoutsEnabled: false,
         uiStatus: 'NOT_STARTED',
         paymentReady: false,
+        canCreateOnboardingLink: true,
         cta,
         error: 'Account from different Stripe mode. Please reconnect.',
       });
@@ -70,10 +77,11 @@ export async function GET(_req: NextRequest) {
       userId: user.id,
       stripeConnectAccountId: user.stripeConnectAccountId,
       stripeConnectOnboardingCompleted: user.stripeConnectOnboardingCompleted,
+      stripeConnectTrack: user.stripeConnectTrack,
       forceLive: true,
     });
 
-    const cta = connectCtaModelForStatus(live.uiStatus);
+    const cta = connectCtaModelForSnapshot(live);
 
     return NextResponse.json({
       connected: live.paymentReady,
@@ -86,6 +94,10 @@ export async function GET(_req: NextRequest) {
       payoutsEnabled: live.payoutsEnabled,
       uiStatus: live.uiStatus,
       paymentReady: live.paymentReady,
+      payoutReady: live.payoutReady,
+      canCreateOnboardingLink: live.canCreateOnboardingLink,
+      missingCategories: live.missingCategories,
+      connectTrack: user.stripeConnectTrack,
       cta,
     });
   } catch (error) {

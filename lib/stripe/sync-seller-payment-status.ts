@@ -102,12 +102,15 @@ export async function refreshSellerStripeSnapshotIfStale(
     userId,
     stripeConnectAccountId: accountId,
     stripeConnectOnboardingCompleted: seller.stripeConnectOnboardingCompleted,
+    stripeConnectTrack: (seller as { stripeConnectTrack?: string | null })
+      .stripeConnectTrack,
     forceLive: true,
   });
 
   return {
     stripeConnectAccountId: accountId,
     stripeConnectOnboardingCompleted: live.onboardingCompleted,
+    stripeConnectTrack: seller.stripeConnectTrack ?? null,
     chargesEnabled: live.chargesEnabled,
     payoutsEnabled: live.payoutsEnabled,
     detailsSubmitted: live.detailsSubmitted,
@@ -115,6 +118,7 @@ export async function refreshSellerStripeSnapshotIfStale(
     pastDueCount: live.pastDueCount,
     pendingVerificationCount: live.pendingVerificationCount,
     connectUiStatus: live.uiStatus,
+    canCreateOnboardingLink: live.canCreateOnboardingLink,
   };
 }
 
@@ -125,6 +129,7 @@ export function snapshotFromStripeAccount(
   return {
     stripeConnectAccountId: live.accountId,
     stripeConnectOnboardingCompleted: live.onboardingCompleted,
+    stripeConnectTrack: live.connectTrack,
     chargesEnabled: live.chargesEnabled,
     payoutsEnabled: live.payoutsEnabled,
     detailsSubmitted: live.detailsSubmitted,
@@ -132,5 +137,6 @@ export function snapshotFromStripeAccount(
     pastDueCount: live.pastDueCount,
     pendingVerificationCount: live.pendingVerificationCount,
     connectUiStatus: live.uiStatus,
+    canCreateOnboardingLink: live.canCreateOnboardingLink,
   };
 }

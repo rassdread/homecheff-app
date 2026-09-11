@@ -24,6 +24,7 @@ export type CheckoutBlockedReason =
 export type SellerStripeSnapshot = {
   stripeConnectAccountId?: string | null;
   stripeConnectOnboardingCompleted?: boolean | null;
+  stripeConnectTrack?: string | null;
   chargesEnabled?: boolean | null;
   payoutsEnabled?: boolean | null;
   detailsSubmitted?: boolean | null;
@@ -31,6 +32,7 @@ export type SellerStripeSnapshot = {
   pastDueCount?: number | null;
   pendingVerificationCount?: number | null;
   connectUiStatus?: HomecheffConnectUiStatus | null;
+  canCreateOnboardingLink?: boolean | null;
 };
 
 export type PublicPaymentStatus = {

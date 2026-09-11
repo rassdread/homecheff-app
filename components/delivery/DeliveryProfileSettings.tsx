@@ -606,7 +606,7 @@ export default function DeliveryProfileSettings() {
                     : connectUiStatus === 'ACTION_REQUIRED'
                       ? 'Actie nodig voor je betaalaccount'
                       : connectUiStatus === 'INCOMPLETE'
-                        ? 'Betaalaccount afronden'
+                        ? 'Gegevens afronden'
                         : t('common.stripeConnectSetup')}
                   <ExternalLink className="w-4 h-4" />
                 </button>

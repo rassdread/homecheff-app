@@ -33,7 +33,7 @@ export default function ConnectTrackSelector({
     <div className="space-y-4">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">
-          Hoe gebruik je HomeCheff?
+          Je gebruikt HomeCheff als:
         </h3>
         <p className="mt-1 text-sm text-gray-600">
           {recoveryMode
@@ -59,15 +59,28 @@ export default function ConnectTrackSelector({
             <User className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
             <div>
               <p className="font-medium text-gray-900">Particulier</p>
-              <p className="mt-1 text-xs leading-relaxed text-gray-600">
-                Voor verkoop als particulier. Stripe controleert je identiteit
-                en bankrekening. Voor deze verificatieroute vraagt Stripe geen
-                KvK-inschrijving.
+              <p className="mt-1 text-xs font-medium text-emerald-800">
+                Verkoop je als particulier?
               </p>
+              <ul className="mt-2 space-y-1 text-xs leading-relaxed text-gray-600 list-disc pl-4">
+                <li>Stripe controleert je identiteit</li>
+                <li>Bankrekening nodig voor uitbetaling</li>
+                <li>Deze Stripe-verificatieroute vraagt geen KvK-gegevens</li>
+                <li>
+                  HomeCheff-profiel en listings kun je ook zonder betaalaccount
+                  gebruiken
+                </li>
+                <li>
+                  Betaling via HomeCheff wordt beschikbaar na verificatie
+                </li>
+              </ul>
             </div>
           </div>
           {pending === 'PARTICULAR' && (
-            <p className="mt-3 text-xs text-emerald-800">Bezig…</p>
+            <p className="mt-3 text-xs text-emerald-800">
+              Je gaat nu naar Stripe om je identiteit en uitbetalingsrekening te
+              verifiëren…
+            </p>
           )}
         </button>
 
@@ -81,14 +94,21 @@ export default function ConnectTrackSelector({
             <Building2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" />
             <div>
               <p className="font-medium text-gray-900">Bedrijf</p>
-              <p className="mt-1 text-xs leading-relaxed text-gray-600">
-                Voor verkoop vanuit een onderneming. Je bestaande zakelijke
-                Stripe-verificatie wordt gebruikt of hervat.
+              <p className="mt-1 text-xs font-medium text-blue-800">
+                Verkoop je vanuit een onderneming?
               </p>
+              <ul className="mt-2 space-y-1 text-xs leading-relaxed text-gray-600 list-disc pl-4">
+                <li>Zakelijke Stripe-verificatie</li>
+                <li>Bedrijfsgegevens kunnen nodig zijn</li>
+                <li>Stripe kan bedrijfsdocumenten opvragen</li>
+              </ul>
             </div>
           </div>
           {pending === 'BUSINESS' && (
-            <p className="mt-3 text-xs text-blue-800">Bezig…</p>
+            <p className="mt-3 text-xs text-blue-800">
+              Je gaat nu naar Stripe om je identiteit en uitbetalingsrekening te
+              verifiëren…
+            </p>
           )}
         </button>
       </div>

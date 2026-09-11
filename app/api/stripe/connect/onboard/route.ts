@@ -3,7 +3,10 @@ import { randomUUID } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createConnectAccount, stripe, matchesCurrentMode, isTestMode } from '@/lib/stripe';
-import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
+import {
+  connectCtaModelForSnapshot,
+  connectCtaModelForStatus,
+} from '@/lib/stripe/connect-account-status';
 import { loadConnectAccountStatusForUser } from '@/lib/stripe/sync-seller-payment-status';
 import {
   isDualTrackConnectEnabled,
@@ -19,6 +22,7 @@ import {
   STRIPE_CONNECT_TRACK_CHOICE_AUDIT,
   findMigrationByOldOrNewAccount,
 } from '@/lib/stripe/connect-migration';
+import { getCurrentStripeConnectAccount } from '@/lib/stripe/current-connect-account';
 
 export async function GET() {
   try {
@@ -109,19 +113,25 @@ export async function GET() {
       migrationNeedsUserConfirmation(migrationClass) &&
       !track;
 
-    // PARTICULAR incomplete: still show picker only when confirmation required;
-    // otherwise continue onboarding CTA.
-    const cta =
-      track === 'PARTICULAR' && !live.paymentReady && live.hasAccount
-        ? {
-            kind: 'complete' as const,
-            showOnboardingCta: true,
-            titleNl: 'Je particuliere betaalprofiel staat klaar om te worden geverifieerd.',
-            bodyNl:
-              'Stripe heeft nog enkele persoonlijke gegevens of je bankrekening nodig. Een KvK-inschrijving hoort niet bij deze route.',
-            ctaLabelNl: 'Verificatie afronden',
-          }
-        : connectCtaModelForStatus(live.uiStatus);
+    // Track-aware CTA from normalized snapshot — NEVER force onboard during
+    // PENDING_VERIFICATION (that caused the production confirmation loop).
+    let cta = connectCtaModelForSnapshot(live);
+    if (
+      track === 'PARTICULAR' &&
+      live.canCreateOnboardingLink &&
+      !live.paymentReady &&
+      live.hasAccount &&
+      (live.uiStatus === 'INCOMPLETE' || live.uiStatus === 'ACTION_REQUIRED')
+    ) {
+      cta = {
+        kind: 'complete',
+        showOnboardingCta: true,
+        titleNl: 'Betaalaccount nog niet compleet',
+        bodyNl:
+          'Stripe heeft nog enkele persoonlijke gegevens of je bankrekening nodig. Deze Stripe-verificatieroute vraagt geen KvK-gegevens.',
+        ctaLabelNl: 'Gegevens afronden',
+      };
+    }
 
     return NextResponse.json({
       hasAccount: live.hasAccount,
@@ -129,12 +139,17 @@ export async function GET() {
       accountId: live.accountId,
       uiStatus: live.uiStatus,
       paymentReady: live.paymentReady,
+      payoutReady: live.payoutReady,
       detailsSubmitted: live.detailsSubmitted,
       chargesEnabled: live.chargesEnabled,
       payoutsEnabled: live.payoutsEnabled,
+      transfersCapability: live.transfersCapability,
       currentlyDueCount: live.currentlyDueCount,
       pastDueCount: live.pastDueCount,
       pendingVerificationCount: live.pendingVerificationCount,
+      missingCategories: live.missingCategories,
+      canCreateOnboardingLink: live.canCreateOnboardingLink,
+      disabledReason: live.disabledReason,
       connectTrack: track,
       dualTrackEnabled: isDualTrackConnectEnabled(),
       needsTrackSelection: needsTrackSelection || recoveryEligible,
@@ -185,24 +200,47 @@ export async function POST(req: NextRequest) {
     const requestedTrack = parseConnectTrack(body.track);
     const existingTrack = parseConnectTrack(user.stripeConnectTrack);
     const forceReplace = body.forceReplace === true;
+    const current = await getCurrentStripeConnectAccount(user.id);
 
-    // Already payment-ready → never create another account.
-    if (user.stripeConnectOnboardingCompleted && user.stripeConnectAccountId) {
+    // Always fresh-retrieve CURRENT account before creating an Account Link.
+    // Do NOT trust stale DB stripeConnectOnboardingCompleted alone.
+    if (current.stripeConnectAccountId) {
       const live = await loadConnectAccountStatusForUser({
         userId: user.id,
-        stripeConnectAccountId: user.stripeConnectAccountId,
-        stripeConnectOnboardingCompleted: user.stripeConnectOnboardingCompleted,
-        stripeConnectTrack: user.stripeConnectTrack,
+        stripeConnectAccountId: current.stripeConnectAccountId,
+        stripeConnectOnboardingCompleted:
+          current.stripeConnectOnboardingCompleted,
+        stripeConnectTrack: current.stripeConnectTrack,
         forceLive: true,
       });
       if (live.paymentReady) {
         return NextResponse.json({
           success: true,
           message: 'Stripe Connect already set up',
-          accountId: user.stripeConnectAccountId,
+          accountId: current.stripeConnectAccountId,
           uiStatus: live.uiStatus,
           paymentReady: true,
-          connectTrack: existingTrack,
+          payoutReady: true,
+          canCreateOnboardingLink: false,
+          connectTrack: existingTrack || current.stripeConnectTrack,
+          cta: connectCtaModelForSnapshot(live),
+        });
+      }
+      // Pending verification / no actionable requirements → status only, no link.
+      if (!live.canCreateOnboardingLink) {
+        return NextResponse.json({
+          success: true,
+          message:
+            live.uiStatus === 'PENDING_VERIFICATION'
+              ? 'Stripe is verifying your details — no onboarding link needed'
+              : 'No actionable Stripe requirements — onboarding link not created',
+          accountId: current.stripeConnectAccountId,
+          uiStatus: live.uiStatus,
+          paymentReady: live.paymentReady,
+          payoutReady: live.payoutReady,
+          canCreateOnboardingLink: false,
+          connectTrack: existingTrack || current.stripeConnectTrack,
+          cta: connectCtaModelForSnapshot(live),
         });
       }
     }
@@ -529,6 +567,7 @@ export async function POST(req: NextRequest) {
       accountId,
       connectTrack: track,
       migratedFrom: replaceOldAccountId,
+      canCreateOnboardingLink: true,
     });
   } catch (error) {
     console.error('Stripe Connect onboarding error:', error);

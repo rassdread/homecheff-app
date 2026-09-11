@@ -1,10 +1,12 @@
 /**
  * Client-side Stripe Connect onboarding — zelfde flow als StripeConnectPaymentsBanner.
- * Generates a seller-specific Stripe Account Link via POST /api/stripe/connect/onboard.
+ * Generates a seller-specific Stripe Account Link via POST /api/stripe/connect/onboard
+ * only when the server says canCreateOnboardingLink.
  */
 
 import { rememberStripeConnectReturnPath } from '@/lib/stripe/stripe-connect-return-path';
 import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
+import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
 
 export async function startStripeConnectOnboarding(options?: {
   /** HomeCheff path to resume after Stripe (e.g. /sell/new) — draft must already be persisted. */
@@ -19,6 +21,9 @@ export async function startStripeConnectOnboarding(options?: {
   redirected?: boolean;
   needsTrackSelection?: boolean;
   replaceBlocked?: boolean;
+  /** Server refused Account Link because status is pending/ready. */
+  statusOnly?: boolean;
+  uiStatus?: HomecheffConnectUiStatus;
 }> {
   try {
     if (options?.returnPath) {
@@ -43,6 +48,9 @@ export async function startStripeConnectOnboarding(options?: {
       error?: string;
       message?: string;
       needsTrackSelection?: boolean;
+      canCreateOnboardingLink?: boolean;
+      uiStatus?: HomecheffConnectUiStatus;
+      paymentReady?: boolean;
     };
     if (!res.ok) {
       if (data.error === 'TRACK_REQUIRED' || data.needsTrackSelection) {
@@ -83,7 +91,26 @@ export async function startStripeConnectOnboarding(options?: {
       window.location.href = data.onboardingUrl;
       return { ok: true, redirected: true };
     }
-    return { ok: true };
+
+    // Ready / pending / no actionable requirements — go to status page, never loop.
+    const uiStatus = data.uiStatus;
+    if (
+      typeof window !== 'undefined' &&
+      (data.paymentReady ||
+        data.canCreateOnboardingLink === false ||
+        uiStatus === 'PENDING_VERIFICATION' ||
+        uiStatus === 'PAYMENT_READY')
+    ) {
+      window.location.href = '/seller/stripe/success';
+      return {
+        ok: true,
+        redirected: true,
+        statusOnly: true,
+        uiStatus,
+      };
+    }
+
+    return { ok: true, statusOnly: true, uiStatus };
   } catch {
     return { ok: false, error: 'Er ging iets mis. Probeer het opnieuw.' };
   }

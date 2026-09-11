@@ -109,7 +109,7 @@ export default function SettlementConnectGuidance({
     uiStatus === 'ACTION_REQUIRED' || uiStatus === 'RESTRICTED'
       ? 'Actie nodig voor je betaalaccount'
       : uiStatus === 'INCOMPLETE'
-        ? 'Betaalaccount afronden'
+        ? 'Gegevens afronden'
         : t('marketplace.settlement.setupConnectCta');
 
   return (

@@ -13,6 +13,7 @@ type ViewState = 'loading' | HomecheffConnectUiStatus | 'error';
 export default function StripeConnectSuccess() {
   const router = useRouter();
   const [status, setStatus] = useState<ViewState>('loading');
+  const [canCreateLink, setCanCreateLink] = useState(false);
   const [returnPath, setReturnPath] = useState('/mijn-homecheff');
   const [ctaLoading, setCtaLoading] = useState(false);
 
@@ -21,7 +22,6 @@ export default function StripeConnectSuccess() {
 
     const checkStatus = async () => {
       try {
-        // Cache-bust so we never show a stale onboard CTA after return
         const response = await fetch(`/api/stripe/connect/onboard?ts=${Date.now()}`, {
           cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache' },
@@ -35,8 +35,8 @@ export default function StripeConnectSuccess() {
           data.isCompleted || data.paymentReady ? 'PAYMENT_READY' : 'INCOMPLETE'
         );
         setStatus(ui);
+        setCanCreateLink(Boolean(data.canCreateOnboardingLink));
 
-        // Soft-refresh client routers so sidebar/action-center refetch
         try {
           router.refresh();
         } catch {
@@ -62,7 +62,12 @@ export default function StripeConnectSuccess() {
   const resumeOnboarding = async () => {
     setCtaLoading(true);
     try {
-      await startStripeConnectOnboarding({ returnPath: continueHref() });
+      const result = await startStripeConnectOnboarding({
+        returnPath: continueHref(),
+      });
+      if (result.statusOnly && !result.redirected) {
+        window.location.reload();
+      }
     } finally {
       setCtaLoading(false);
     }
@@ -82,10 +87,13 @@ export default function StripeConnectSuccess() {
   const ready = status === 'PAYMENT_READY';
   const pending = status === 'PENDING_VERIFICATION';
   const actionNeeded =
-    status === 'ACTION_REQUIRED' ||
-    status === 'RESTRICTED' ||
-    status === 'INCOMPLETE' ||
-    status === 'NOT_STARTED';
+    canCreateLink &&
+    (status === 'ACTION_REQUIRED' ||
+      status === 'INCOMPLETE' ||
+      status === 'NOT_STARTED' ||
+      status === 'RESTRICTED');
+  const restrictedWaiting =
+    status === 'RESTRICTED' && !canCreateLink && !ready && !pending;
 
   let icon = <AlertCircle className="h-16 w-16 text-amber-600 mx-auto mb-4" />;
   let title = 'Je betaalaccount';
@@ -95,39 +103,34 @@ export default function StripeConnectSuccess() {
 
   if (ready) {
     icon = <CheckCircle className="h-16 w-16 text-emerald-600 mx-auto mb-4" />;
-    title = 'Je betaalaccount is klaar';
+    title = 'Betaalaccount gereed';
     body =
-      'Welkom bij HomeCheff. Je Stripe-betaalaccount is succesvol gekoppeld aan je HomeCheff-account. Je kunt nu betalingen via HomeCheff ontvangen.';
+      'Welkom bij HomeCheff. Je Stripe-betaalaccount is succesvol gekoppeld. Je kunt nu betalingen via HomeCheff ontvangen.';
     primaryLabel = returnPath.startsWith('/sell')
       ? 'Ga verder met je aanbod'
       : 'Ga naar Mijn HomeCheff';
-  } else if (pending) {
+  } else if (pending || restrictedWaiting) {
     icon = <Clock className="h-16 w-16 text-sky-600 mx-auto mb-4" />;
-    title = 'Je gegevens zijn ontvangen';
+    title = 'Verificatie wordt gecontroleerd';
     body =
-      'Stripe controleert je betaalaccount. Je hoeft nu niets opnieuw in te vullen. Je kunt alvast verder in HomeCheff.';
+      'Je gegevens zijn ingestuurd. Stripe controleert ze. Je hoeft ze niet opnieuw in te vullen. Je kunt alvast verder in HomeCheff.';
     primaryLabel = 'Ga naar Mijn HomeCheff';
   } else if (actionNeeded) {
     icon = <AlertCircle className="h-16 w-16 text-amber-600 mx-auto mb-4" />;
-    title =
-      status === 'ACTION_REQUIRED' || status === 'RESTRICTED'
-        ? 'Actie nodig voor je betaalaccount'
-        : 'Rond je betaalaccount af';
+    title = 'Betaalaccount nog niet compleet';
     body =
       status === 'ACTION_REQUIRED' || status === 'RESTRICTED'
         ? 'Stripe heeft nog extra gegevens nodig. Open je betaalaccount om verder te gaan.'
         : 'Je betaalaccount is nog niet helemaal klaar. Rond de stappen af om betalingen te kunnen ontvangen.';
-    primaryLabel =
-      status === 'ACTION_REQUIRED' || status === 'RESTRICTED'
-        ? 'Actie nodig voor je betaalaccount'
-        : 'Betaalaccount afronden';
+    primaryLabel = 'Gegevens afronden';
     primaryAction = () => {
       void resumeOnboarding();
     };
   } else if (status === 'error') {
     icon = <AlertCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />;
     title = 'Statuscontrole mislukt';
-    body = 'Er ging iets mis bij het controleren van je betaalaccount. Probeer het opnieuw.';
+    body =
+      'Er ging iets mis bij het controleren van je betaalaccount. Probeer het opnieuw.';
     primaryLabel = 'Opnieuw controleren';
     primaryAction = () => window.location.reload();
   }
@@ -148,7 +151,7 @@ export default function StripeConnectSuccess() {
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
 
-        {(ready || pending) && (
+        {(ready || pending || restrictedWaiting) && (
           <button
             type="button"
             onClick={() => router.push('/settings?tab=payments')}

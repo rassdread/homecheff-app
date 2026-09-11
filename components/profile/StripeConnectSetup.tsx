@@ -5,6 +5,7 @@ import { CreditCard, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
+import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
 import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
 import ConnectTrackSelector from '@/components/seller/ConnectTrackSelector';
 
@@ -153,25 +154,13 @@ export default function StripeConnectSetup({
     );
   }
 
-  const isAction =
-    uiStatus === 'ACTION_REQUIRED' || uiStatus === 'RESTRICTED';
-  const title = isAction
-    ? 'Actie nodig voor je betaalaccount'
-    : uiStatus === 'INCOMPLETE'
-      ? recoveryEligible
-        ? 'Betaalprofiel opnieuw instellen'
-        : 'Betaalaccount afronden'
-      : t('productOrder.payments.setupTitle');
-  const body = isAction
-    ? 'Stripe heeft nog enkele persoonlijke gegevens of je bankrekening nodig.'
-    : uiStatus === 'INCOMPLETE'
-      ? 'Je particuliere of zakelijke betaalprofiel is nog niet afgerond. Rond de verificatie af om betalingen te ontvangen.'
-      : t('productOrder.payments.setupIntro');
-  const cta = isAction
-    ? 'Verificatie afronden'
-    : uiStatus === 'INCOMPLETE'
-      ? 'Verificatie afronden'
-      : t('productOrder.payments.setupCta');
+  const model = connectCtaModelForStatus(uiStatus || 'NOT_STARTED');
+  const title =
+    uiStatus === 'INCOMPLETE' && recoveryEligible
+      ? 'Betaalprofiel opnieuw instellen'
+      : model.titleNl;
+  const body = model.bodyNl;
+  const cta = model.ctaLabelNl || t('productOrder.payments.setupCta');
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -183,7 +172,9 @@ export default function StripeConnectSetup({
       </div>
 
       <p className="text-xs text-gray-600 mb-2">{body}</p>
-      {!isAction && uiStatus !== 'INCOMPLETE' && (
+      {uiStatus !== 'ACTION_REQUIRED' &&
+        uiStatus !== 'RESTRICTED' &&
+        uiStatus !== 'INCOMPLETE' && (
         <p className="text-xs text-gray-500 mb-3">
           {t('productOrder.payments.setupContactHint')}
         </p>
