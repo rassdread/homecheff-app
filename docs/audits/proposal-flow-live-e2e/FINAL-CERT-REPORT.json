@@ -1,0 +1,270 @@
+{
+  "at": "2026-09-11T18:30:27.850Z",
+  "TAG": "finalcert_mtxaj3my",
+  "HOMECHEFF": "https://homecheff.eu",
+  "COMMIT": null,
+  "steps": [
+    {
+      "name": "start_conversation",
+      "ok": true,
+      "detail": {
+        "conversationId": "c4bb98fe-3d19-49b7-a218-9ecfa39f6aa3"
+      }
+    },
+    {
+      "name": "ADDRESS_CASE_2_saved_pickup",
+      "ok": true,
+      "detail": {
+        "saved": "Verkoperlaan 3, 3131 BB Vlaardingen, NL",
+        "pickup": "Verkoperlaan 3, 3131 BB Vlaardingen, NL"
+      }
+    },
+    {
+      "name": "ADDRESS_CASE_5_service_at_buyer",
+      "ok": true,
+      "detail": {
+        "owner": "BUYER",
+        "buyerCan": true,
+        "sellerCan": false
+      }
+    },
+    {
+      "name": "ADDRESS_CASE_6_service_at_seller",
+      "ok": true,
+      "detail": {
+        "owner": "SELLER"
+      }
+    },
+    {
+      "name": "ADDRESS_CASE_7_online_no_address",
+      "ok": true,
+      "detail": {
+        "state": "LOCATION_NOT_REQUIRED",
+        "fulfillment": null
+      }
+    },
+    {
+      "name": "ADDRESS_CASE_11_address_change_sync",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "co": "Nieuwe Afhaalweg 99, 3131 ZZ Vlaardingen, NL",
+        "time": "15:00-16:00",
+        "replay": false
+      }
+    },
+    {
+      "name": "ADDRESS_CASE_12_public_privacy",
+      "ok": true,
+      "detail": {
+        "hasExactPickup": false,
+        "hasBuyerStreet": false
+      }
+    },
+    {
+      "name": "TIME_CASE_2_counter_time_accept",
+      "ok": true,
+      "detail": {
+        "parent": "COUNTERED",
+        "childTime": "20:00-21:00",
+        "acceptedTime": "20:00-21:00",
+        "snap": "20:00-21:00"
+      }
+    },
+    {
+      "name": "TIME_CASE_3_price_only_preserves_time",
+      "ok": true,
+      "detail": {
+        "amount": 2800,
+        "time": "10:00-12:00"
+      }
+    },
+    {
+      "name": "TIME_CASE_4_delivery_time_counter",
+      "ok": true,
+      "detail": {
+        "child": "14:00-16:00",
+        "snap": "14:00-16:00"
+      }
+    },
+    {
+      "name": "TIME_CASE_5_pickup_to_delivery",
+      "ok": true,
+      "detail": {
+        "childFul": "DELIVERY",
+        "mode": "DELIVERY",
+        "owner": "BUYER"
+      }
+    },
+    {
+      "name": "TIME_CASE_6_date_only_preserves_time",
+      "ok": true,
+      "detail": {
+        "date": "2026-09-23T00:00:00.000Z",
+        "time": "13:00-14:00"
+      }
+    },
+    {
+      "name": "TIME_CASE_7_time_only_preserves_date",
+      "ok": true,
+      "detail": {
+        "date": "2026-09-24T00:00:00.000Z",
+        "time": "16:00-17:00"
+      }
+    },
+    {
+      "name": "TIME_CASE_8_superseded_blocked",
+      "ok": true,
+      "detail": {
+        "status": 409
+      }
+    },
+    {
+      "name": "TIME_CASE_9_address_preserves_agreed_time",
+      "ok": true,
+      "detail": {
+        "time": "12:00-13:00",
+        "locked": true
+      }
+    },
+    {
+      "name": "TIME_CASE_10_timezone_consistency",
+      "ok": true,
+      "detail": {
+        "proposalDate": "2026-09-27T00:00:00.000Z",
+        "confirmed": "2026-09-27T12:00:00.000Z"
+      }
+    },
+    {
+      "name": "PROPOSAL_REGRESSION_create",
+      "ok": true,
+      "detail": {
+        "status": 201
+      }
+    },
+    {
+      "name": "COUNTER_REGRESSION",
+      "ok": true,
+      "detail": {
+        "parent": "COUNTERED",
+        "amount": 3900
+      }
+    },
+    {
+      "name": "ACCEPT_REGRESSION",
+      "ok": true,
+      "detail": {
+        "own": 403,
+        "accept": 200,
+        "replay": true,
+        "agreements": 1,
+        "orders": 1
+      }
+    },
+    {
+      "name": "AGREEMENT_REGRESSION",
+      "ok": true,
+      "detail": {
+        "snap": {
+          "title": "FinalCert finalcert_mtxaj3my",
+          "currency": "EUR",
+          "quantity": 1,
+          "productId": "ecb86d1e-4afc-419c-bc66-ad176963fd13",
+          "acceptedAt": "2026-09-11T18:29:54.827Z",
+          "priceModel": "FIXED",
+          "proposalId": "723e6e1a-6a0d-4fc1-a95c-865b3cbb8290",
+          "amountCents": 3900,
+          "description": "regression counter",
+          "paymentPath": "DIRECT_CONTACT",
+          "acceptedById": "418797e1-7ba0-4376-9be7-1f893cfd7e30",
+          "listingTitle": "FinalCert finalcert_mtxaj3my",
+          "requestedDate": "2026-09-28T00:00:00.000Z",
+          "settlementMode": "MONEY",
+          "fulfillmentType": "PICKUP",
+          "listingImageUrl": "https://homecheff.eu/icon-192.png",
+          "listingPriceCents": 2500,
+          "requestedTimeWindow": "17:00-18:00",
+          "commitmentAcceptedAt": "2026-09-11T18:29:54.827Z",
+          "commitmentAcceptedById": "418797e1-7ba0-4376-9be7-1f893cfd7e30",
+          "acceptedValueTaxonomyIds": [],
+          "requestedValueTaxonomyIds": []
+        }
+      }
+    },
+    {
+      "name": "DEALS_REGRESSION",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "hasTitle": true
+      }
+    },
+    {
+      "name": "NOTIFICATIONS_REGRESSION",
+      "ok": true,
+      "detail": {
+        "nReceived": "/messages?conversation=c4bb98fe-3d19-49b7-a218-9ecfa39f6aa3&proposal=723e6e1a-6a0d-4fc1-a95c-865b3cbb8290",
+        "nAccepted": "/profile/deals?highlight=774b7362-32ab-444b-9cb5-888bccc57aca"
+      }
+    },
+    {
+      "name": "MOBILE_PORTRAIT_ADDRESS",
+      "ok": true,
+      "detail": {
+        "submitVisible": true,
+        "stickyVisible": true,
+        "postStatus": 200,
+        "postState": "COMPLETE",
+        "state": "COMPLETE",
+        "address": "Verkoperlaan 3, 3131 BB Vlaardingen, NL",
+        "dealsHas": 35,
+        "completeUi": 4,
+        "scheduleLocked": true
+      }
+    },
+    {
+      "name": "MOBILE_LANDSCAPE_ADDRESS",
+      "ok": true,
+      "detail": {
+        "submitVisible": true,
+        "stickyVisible": true,
+        "postStatus": 200,
+        "postState": "COMPLETE",
+        "state": "COMPLETE",
+        "address": "Verkoperlaan 3, 3131 BB Vlaardingen, NL",
+        "dealsHas": 35,
+        "completeUi": 5,
+        "scheduleLocked": true
+      }
+    }
+  ],
+  "gates": {
+    "ADDRESS_CASE_2": "PASS",
+    "ADDRESS_CASE_5": "PASS",
+    "ADDRESS_CASE_6": "PASS",
+    "ADDRESS_CASE_7": "PASS",
+    "ADDRESS_CASE_11": "PASS",
+    "ADDRESS_CASE_12": "PASS",
+    "TIME_CASE_2": "PASS",
+    "TIME_CASE_3": "PASS",
+    "TIME_CASE_4": "PASS",
+    "TIME_CASE_5": "PASS",
+    "TIME_CASE_6": "PASS",
+    "TIME_CASE_7": "PASS",
+    "TIME_CASE_8": "PASS",
+    "TIME_CASE_9": "PASS",
+    "TIME_CASE_10": "PASS",
+    "PROPOSAL_REGRESSION": "PASS",
+    "COUNTER_REGRESSION": "PASS",
+    "ACCEPT_REGRESSION": "PASS",
+    "AGREEMENT_REGRESSION": "PASS",
+    "DEALS_REGRESSION": "PASS",
+    "MOBILE_PORTRAIT_ADDRESS": "PASS",
+    "MOBILE_LANDSCAPE_ADDRESS": "PASS",
+    "ADDRESS_CASE_MATRIX": "PASS",
+    "TIME_CASE_MATRIX": "PASS",
+    "PRODUCTION_AUTHENTICATED_E2E": "PASS"
+  },
+  "REMAINING_BLOCKERS": [],
+  "FINAL_DECISION": "HOMECHEFF_PROPOSAL_AGREEMENT_APPOINTMENTS_PRODUCTION_CERTIFIED"
+}
