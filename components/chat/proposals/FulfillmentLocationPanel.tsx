@@ -297,7 +297,10 @@ export default function FulfillmentLocationPanel({
             </p>
           ) : null}
 
-          <div className="flex gap-2">
+          <div
+            className="sticky bottom-0 z-10 -mx-2.5 -mb-2.5 mt-1 flex gap-2 border-t border-amber-100 bg-white/95 px-2.5 py-2 backdrop-blur-sm supports-[backdrop-filter]:bg-white/80"
+            data-hc-location-sticky-cta=""
+          >
             <button
               type="button"
               disabled={busy}

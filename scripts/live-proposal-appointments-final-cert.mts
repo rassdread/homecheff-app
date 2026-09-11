@@ -745,169 +745,203 @@ try {
   gate('DEALS_REGRESSION', steps.find((s) => s.name === 'DEALS_REGRESSION')!.ok);
 
   // ---------- Mobile portrait + landscape address completion ----------
+  // Dedicated conversation so chat/deals aren't polluted by prior matrix panels.
   fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true });
   let browser: Browser | null = null;
   try {
     browser = await chromium.launch({ headless: true });
 
-    async function login(deviceOpts: Record<string, unknown>) {
-      const ctx = await browser!.newContext({ ...deviceOpts, locale: 'nl-NL' });
-      const page = await ctx.newPage();
+    const mobileConv = await api(buyerCookie, 'POST', '/api/conversations/start', {
+      sellerId: seller.id,
+      productId: product.id,
+    });
+    const mobileConversationId =
+      (mobileConv.json?.conversation?.id || mobileConv.json?.id) as string;
+
+    async function createAcceptedPickupOrder(amountCents: number, day: string) {
+      const createdP = await createProposal(
+        buyerCookie,
+        mobileConversationId,
+        product.id,
+        listingTitle,
+        {
+          fulfillmentType: 'PICKUP',
+          amountCents,
+          requestedDate: day,
+          requestedTimeWindow: '14:00-16:00',
+        },
+      );
+      const accepted = await api(
+        sellerCookie,
+        'POST',
+        `/api/proposals/${createdP.json.proposal.id}/accept`,
+        { commitmentAccepted: true },
+      );
+      return accepted.json?.communityOrder?.id as string;
+    }
+
+    async function sellerLogin(page: import('playwright').Page) {
       await page.goto(`${HOMECHEFF}/login`, { waitUntil: 'domcontentloaded', timeout: 60000 });
       await page.waitForTimeout(800);
       await page
         .locator('input[name="emailOrUsername"], input[name="email"], input[type="email"]')
         .first()
-        .fill(buyer.email!);
-      // seller completes pickup — login as seller for address CTA
+        .fill(seller.email!);
       await page.locator('input[name="password"], input[type="password"]').first().fill(PASSWORD);
       await page
         .locator('button[type="submit"], button')
         .filter({ hasText: /Inloggen|Log in|Sign in/i })
         .first()
         .click();
-      await page.waitForTimeout(2500);
-      return { ctx, page };
+      await page.waitForURL(/\/(dashboard|profile|messages|home)?/i, { timeout: 45000 }).catch(() => {});
+      await page.waitForTimeout(1500);
     }
 
-    // Use seller session for pickup completion UI on t9Order-like fresh order
-    const mobileOrderCreate = await createProposal(
-      buyerCookie,
-      conversationId,
-      product.id,
-      listingTitle,
-      { fulfillmentType: 'PICKUP', amountCents: 4100 },
-    );
-    const mobileAccept = await api(
-      sellerCookie,
-      'POST',
-      `/api/proposals/${mobileOrderCreate.json.proposal.id}/accept`,
-      { commitmentAccepted: true },
-    );
-    const mobileOrderId = mobileAccept.json?.communityOrder?.id as string;
+    async function completeAddressOnDeals(
+      page: import('playwright').Page,
+      orderId: string,
+      shotPrefix: string,
+    ) {
+      await page.goto(`${HOMECHEFF}/profile/deals?highlight=${orderId}`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      await page.waitForTimeout(2500);
+      await page.screenshot({
+        path: path.join(OUT, 'shots', `${shotPrefix}-deals-before.png`),
+        fullPage: true,
+      });
 
-    // Portrait as seller
+      const panel = page
+        .locator(`[data-hc-fulfillment-location]`)
+        .filter({ has: page.locator('[data-hc-location-cta], [data-hc-location-submit]') })
+        .first();
+      await panel.waitFor({ state: 'visible', timeout: 20000 });
+      await panel.scrollIntoViewIfNeeded();
+
+      const cta = panel.locator('[data-hc-location-cta]');
+      if ((await cta.count()) > 0 && (await cta.isVisible())) {
+        await cta.click();
+        await page.waitForTimeout(600);
+      }
+
+      const form = panel;
+      const savedRadio = form.locator('input[type="radio"]').first();
+      if ((await savedRadio.count()) > 0) {
+        await savedRadio.check({ force: true });
+      }
+
+      // Schedule may be locked from proposal; if unlocked, fill controls.
+      const dateInput = form.locator('input[type="date"]');
+      if ((await dateInput.count()) > 0 && (await dateInput.isEnabled())) {
+        await dateInput.fill('2026-09-29');
+      }
+      const timeInput = form.locator('input[placeholder*="14:00"]');
+      if ((await timeInput.count()) > 0) {
+        await timeInput.focus();
+        await timeInput.fill('14:00-16:00');
+      }
+
+      const sticky = form.locator('[data-hc-location-sticky-cta]');
+      const submit = form.locator('[data-hc-location-submit]');
+      await submit.scrollIntoViewIfNeeded();
+      const stickyVisible =
+        (await sticky.count()) > 0 ? await sticky.first().isVisible() : false;
+      const submitVisible = (await submit.count()) > 0 && (await submit.first().isVisible());
+
+      const [response] = await Promise.all([
+        page.waitForResponse(
+          (r) =>
+            r.url().includes(`/api/community-orders/${orderId}/fulfillment-location`) &&
+            r.request().method() === 'POST',
+          { timeout: 20000 },
+        ),
+        submit.first().click(),
+      ]);
+      const postJson = await response.json().catch(() => ({}));
+      await page.waitForTimeout(1500);
+
+      await page.goto(`${HOMECHEFF}/profile/deals?highlight=${orderId}`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      await page.waitForTimeout(2000);
+      await page.screenshot({
+        path: path.join(OUT, 'shots', `${shotPrefix}-deals-after.png`),
+        fullPage: true,
+      });
+
+      // Also open chat deal context (terug naar afspraak / conversation)
+      await page.goto(`${HOMECHEFF}/messages?conversation=${mobileConversationId}`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      await page.waitForTimeout(2500);
+      await page.screenshot({
+        path: path.join(OUT, 'shots', `${shotPrefix}-chat-after.png`),
+        fullPage: true,
+      });
+
+      const after = await api(
+        sellerCookie,
+        'GET',
+        `/api/community-orders/${orderId}/fulfillment-location`,
+      );
+      const dealsHas = await page.getByText(listingTitle).count();
+      const completeUi = await page.locator('[data-hc-location-state="COMPLETE"]').count();
+      return {
+        submitVisible,
+        stickyVisible,
+        postStatus: response.status(),
+        postJson,
+        state: after.json?.state as string | undefined,
+        address: after.json?.exactAddress as string | undefined,
+        dealsHas,
+        completeUi,
+        scheduleLocked: after.json?.scheduleLockedFromProposal === true,
+      };
+    }
+
+    const portraitOrderId = await createAcceptedPickupOrder(4100, '2026-09-29');
+    const landscapeOrderId = await createAcceptedPickupOrder(4200, '2026-09-30');
+
     const sellerCtx = await browser.newContext({
       ...devices['iPhone 13'],
       locale: 'nl-NL',
     });
     const spage = await sellerCtx.newPage();
-    await spage.goto(`${HOMECHEFF}/login`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await spage.waitForTimeout(800);
-    await spage
-      .locator('input[name="emailOrUsername"], input[name="email"], input[type="email"]')
-      .first()
-      .fill(seller.email!);
-    await spage.locator('input[name="password"], input[type="password"]').first().fill(PASSWORD);
-    await spage
-      .locator('button[type="submit"], button')
-      .filter({ hasText: /Inloggen|Log in|Sign in/i })
-      .first()
-      .click();
-    await spage.waitForTimeout(2500);
+    await sellerLogin(spage);
 
-    await spage.goto(`${HOMECHEFF}/messages?conversation=${conversationId}`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    });
-    await spage.waitForTimeout(3000);
-    await spage.screenshot({
-      path: path.join(OUT, 'shots', 'mobile-portrait-address-chat.png'),
-      fullPage: true,
-    });
-
-    const locPanel = spage.locator('[data-hc-fulfillment-location]');
-    const locCta = spage.locator('[data-hc-location-cta]');
-    let portraitOk = false;
-    if ((await locCta.count()) > 0) {
-      await locCta.first().click();
-      await spage.waitForTimeout(800);
-      const submit = spage.locator('[data-hc-location-submit]');
-      const dateInput = spage.locator('input[type="date"]');
-      const timeInput = spage.locator('input[placeholder*="14:00"], input[placeholder*="16:00"]').first();
-      // Prefer saved address radio if present
-      const savedRadio = spage.getByText(/Dit adres gebruiken|Use this address/i);
-      if ((await savedRadio.count()) > 0) {
-        await savedRadio.first().click();
-      }
-      if ((await dateInput.count()) > 0) {
-        await dateInput.first().fill('2026-09-29');
-      }
-      if ((await timeInput.count()) > 0) {
-        await timeInput.fill('14:00-16:00');
-      } else {
-        const anyTime = spage.locator('input').filter({ hasNot: spage.locator('[type=date]') });
-        // fill last text-ish schedule field if unlocked
-      }
-      const submitVisible = (await submit.count()) > 0 && (await submit.first().isVisible());
-      if (submitVisible) {
-        await submit.first().click();
-        await spage.waitForTimeout(2000);
-      }
-      await spage.goto(`${HOMECHEFF}/profile/deals`, {
-        waitUntil: 'domcontentloaded',
-        timeout: 60000,
-      });
-      await spage.waitForTimeout(2000);
-      await spage.screenshot({
-        path: path.join(OUT, 'shots', 'mobile-portrait-address-deals.png'),
-        fullPage: true,
-      });
-      const dealsHas = await spage.getByText(listingTitle).count();
-      const after = await api(sellerCookie, 'GET', `/api/community-orders/${mobileOrderId}/fulfillment-location`);
-      portraitOk =
-        submitVisible &&
-        dealsHas > 0 &&
-        (after.json?.state === 'COMPLETE' || after.json?.exactAddress);
-      record('MOBILE_PORTRAIT_ADDRESS', portraitOk, {
-        submitVisible,
-        dealsHas,
-        state: after.json?.state,
-        address: after.json?.exactAddress,
-        panel: await locPanel.count(),
-      });
-    } else {
-      // Fallback: complete via API then verify UI shows completed state
-      await api(sellerCookie, 'POST', `/api/community-orders/${mobileOrderId}/fulfillment-location`, {
-        useSavedProfileAddress: true,
-        scheduleDate: '2026-09-29',
-        scheduleTimeWindow: '14:00-16:00',
-      });
-      await spage.reload({ waitUntil: 'domcontentloaded' });
-      await spage.waitForTimeout(2000);
-      const completed = await spage.locator('[data-hc-location-state="COMPLETE"]').count();
-      portraitOk = completed > 0 || (await locPanel.count()) > 0;
-      record('MOBILE_PORTRAIT_ADDRESS', portraitOk, {
-        note: 'CTA not found in chat viewport; verified panel/state after API complete',
-        completed,
-        panel: await locPanel.count(),
-      });
-    }
+    const portrait = await completeAddressOnDeals(
+      spage,
+      portraitOrderId,
+      'mobile-portrait-address',
+    );
+    const portraitOk =
+      portrait.submitVisible &&
+      portrait.stickyVisible &&
+      portrait.postStatus === 200 &&
+      portrait.state === 'COMPLETE' &&
+      Boolean(portrait.address) &&
+      portrait.dealsHas > 0;
+    record('MOBILE_PORTRAIT_ADDRESS', portraitOk, portrait);
     gate('MOBILE_PORTRAIT_ADDRESS', portraitOk);
 
-    // Landscape
+    // Landscape: same feature-set on a fresh pending order
     await spage.setViewportSize({ width: 844, height: 390 });
-    await spage.goto(`${HOMECHEFF}/messages?conversation=${conversationId}`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    });
-    await spage.waitForTimeout(2000);
-    await spage.screenshot({
-      path: path.join(OUT, 'shots', 'mobile-landscape-address-chat.png'),
-    });
-    const landscapePanel = await spage.locator('[data-hc-fulfillment-location]').count();
-    await spage.goto(`${HOMECHEFF}/profile/deals`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    });
-    await spage.waitForTimeout(1500);
-    const landscapeDeals = await spage.getByText(listingTitle).count();
-    const landscapeOk = landscapeDeals > 0 && (landscapePanel >= 0);
-    record('MOBILE_LANDSCAPE_ADDRESS', landscapeOk, {
-      landscapePanel,
-      landscapeDeals,
-      note: 'Same feature-set; deals visible in landscape',
-    });
+    const landscape = await completeAddressOnDeals(
+      spage,
+      landscapeOrderId,
+      'mobile-landscape-address',
+    );
+    const landscapeOk =
+      landscape.submitVisible &&
+      landscape.stickyVisible &&
+      landscape.postStatus === 200 &&
+      landscape.state === 'COMPLETE' &&
+      Boolean(landscape.address) &&
+      landscape.dealsHas > 0;
+    record('MOBILE_LANDSCAPE_ADDRESS', landscapeOk, landscape);
     gate('MOBILE_LANDSCAPE_ADDRESS', landscapeOk);
 
     await sellerCtx.close();
