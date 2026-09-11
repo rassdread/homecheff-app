@@ -9730,7 +9730,27 @@
     "fields": {
       "messageLabel": "Extra notes / message",
       "messagePlaceholder": "Optional — for example why, materials, or pickup at the door",
-      "locationMethodLabel": "Location / method"
+      "locationMethodLabel": "Location / method",
+      "pickupDateLabel": "Pickup date",
+      "pickupTimeLabel": "Pickup time",
+      "deliveryDateLabel": "Delivery date",
+      "deliveryTimeLabel": "Delivery time"
+    },
+    "location": {
+      "pendingHeading": "Appointment confirmed — finish the details",
+      "completeHeading": "Location completed",
+      "pickupAddress": "Pickup address",
+      "deliveryAddress": "Delivery address",
+      "tbd": "To be decided",
+      "addressPendingSelf": "Still to confirm",
+      "pickupPendingOther": "Pickup address still to be confirmed by {name}.",
+      "deliveryPendingOther": "Delivery address still to be confirmed.",
+      "confirmPickupCta": "Add pickup time and address",
+      "confirmDeliveryCta": "Confirm delivery time and address",
+      "useSaved": "Use this address",
+      "otherAddress": "Another address",
+      "scheduleLocked": "Date and time were already agreed and stay unchanged.",
+      "saveCta": "Confirm location"
     },
     "system": {
       "accepted": "Proposal accepted.",

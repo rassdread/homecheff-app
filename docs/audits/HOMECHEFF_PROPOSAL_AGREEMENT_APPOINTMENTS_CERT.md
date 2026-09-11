@@ -1,96 +1,44 @@
-# HomeCheff Proposal → Agreement → Afspraken — Production Certification
+# Proposal → Agreement → Afspraken + post-accept location
 
-**Date:** 2026-09-11  
-**PRODUCTION_COMMIT:** `eb5551b4808cb8bb71ff4f0b7faa5e0918914b0b`  
-**PRODUCTION_DEPLOYMENT:** `dpl_DurEFf92Wijjw2WkBmVtMSPZbrtW`  
-**PRODUCTION_URL:** https://homecheff.eu  
-**Live E2E:** `scripts/live-proposal-flow-e2e-cert.mts` (TAG `propcert_mtwzauae`, cleaned)
+**Status:** `HOMECHEFF_PROPOSAL_AGREEMENT_APPOINTMENTS_NOT_CERTIFIED`
 
----
-
-## FINAL_DECISION
-
-**HOMECHEFF_PROPOSAL_AGREEMENT_APPOINTMENTS_PRODUCTION_CERTIFIED**
+Previous proposal/agreement cert (`eb5551b4`) remains valid for negotiation/accept basics.
+This addendum adds post-accept **exact address + schedule completion** and **must pass** before re-certifying.
 
 ---
 
-## Architecture
-
-| Concept | SoT |
-|--------|-----|
-| Proposal | Prisma `Proposal` |
-| Status | `PENDING \| ACCEPTED \| REJECTED \| COUNTERED \| EXPIRED \| CANCELLED` |
-| Current proposal | Newest `PENDING` in `parentProposalId` chain; parents `COUNTERED` |
-| Agreement | `Agreement.agreementSummary` (immutable at accept) |
-| Afspraak | `Agreement` + `CommunityOrder` (`/profile/deals`) — no Appointment model |
-
----
-
-## BCPD
-
-| Field | Value |
-|------|-------|
-| COMMIT_SHA | `eb5551b4808cb8bb71ff4f0b7faa5e0918914b0b` |
-| REMOTE_MAIN_SHA | `eb5551b4808cb8bb71ff4f0b7faa5e0918914b0b` |
-| VERCEL_DEPLOYMENT_ID | `dpl_DurEFf92Wijjw2WkBmVtMSPZbrtW` |
-| PRODUCTION_URL | https://homecheff.eu |
-
----
-
-## Post-deploy smoke
-
-| Route | Result |
-|------|--------|
-| `/` | 200 |
-| `/messages` | 200 |
-| `/profile/deals` | 200 |
-| `/product/{id}` | 200 |
-| `/api/agreements` | 401 (auth required — expected) |
-| `/api/products` | 200 |
-
----
-
-## Authenticated live E2E gates
-
-All required gates **PASS** (see `docs/audits/proposal-flow-live-e2e/LIVE-E2E-REPORT.json`).
-
-Highlights:
-- FLOW A–H covered (create, counter, counter-chain, accept once + idempotent, chat confirmed, deals, notifications, payment OPEN ≠ paid)
-- Portrait / landscape phone-format (Playwright iPhone 13 + landscape viewport) PASS
-- Desktop PASS
-- Cert personas scrubbed after run
-
----
-
-## Data integrity (after E2E)
+## Architecture audit (reuse)
 
 ```
-PRODUCTION_PROPOSALS_AUDITED = 39
-ORPHAN_PROPOSALS = 0
-ACCEPTED_WITHOUT_AGREEMENT = 0
-ACCEPTED_WITHOUT_APPOINTMENT = 0
-DUPLICATE_APPOINTMENTS = 0
-SUPERSEDED_STILL_ACTIONABLE = 0
+LISTING_LOCATION_SOT = Product.pickupAddress / placeName / coords (+ useProfileLocation)
+BUYER_ADDRESS_SOT = User.address + postalCode + city/place
+SELLER_ADDRESS_SOT = User.address + postalCode + city/place (+ SellerProfile geo)
+DELIVERY_ADDRESS_SOT = CommunityOrder.deliveryAddress → sync DeliveryRequest.deliveryAddress
+PICKUP_ADDRESS_SOT = CommunityOrder.pickupAddress → sync DeliveryRequest.pickupAddress
+AGREEMENT_LOCATION_SOT = fulfillmentType + requestedDate/Time in agreementSummary (no street)
+DELIVERY_PROVIDER_ADDRESS_SOT = DeliveryProfile.homeAddress / current*
 ```
+
+No second address book. Profile `User` reused via “Dit adres gebruiken”.
 
 ---
 
-## Live UX scores
+## Implemented in this pass
 
-```
-CREATE_PROPOSAL_UX_SCORE = 9
-RECEIVED_PROPOSAL_UX_SCORE = 9
-COUNTERPROPOSAL_UX_SCORE = 9
-ACCEPT_UX_SCORE = 8
-APPOINTMENTS_LIST_UX_SCORE = 9
-APPOINTMENT_DETAIL_UX_SCORE = 8
-```
-
-Accept confirm step is live in production UI (`data-hc-accept-confirm`); API accept path + chat confirmed state verified end-to-end.
+1. `CommunityOrder` operational fields: pickup/delivery address, confirmed schedule, completed markers
+2. Derive states: `LOCATION_NOT_REQUIRED | LOCATION_AND_SCHEDULE_PENDING | LOCATION_PENDING | SCHEDULE_PENDING | COMPLETE`
+3. API `GET/POST /api/community-orders/[id]/fulfillment-location` (owner auth, idempotent)
+4. UI `FulfillmentLocationPanel` in DealCard + ProfileDealCard
+5. Proposal date/time remain optional; physical completion requires address + date + time
+6. Accepted proposal schedule is locked during address completion
+7. Fulfillment-aware date/time labels (afhaal/bezorg)
+8. Notification route for location confirmed → `/profile/deals?highlight=`
 
 ---
 
-## Notes
+## Still required for CERTIFIED
 
-- Mobile scores use **live phone-format Playwright** (iPhone 13 + landscape), not a tethered physical handset / installed PWA (`APP_PWA = NOT_APPLICABLE`).
-- Unrelated WIP (safety banner, bezorger docs, Connect extras) was **not** included in the production commit.
+- Deploy this patch (BCPD)
+- `scripts/live-fulfillment-location-e2e-cert.mts` green on production
+- Mobile portrait/landscape address completion smoke
+- Full TIME CASE / ADDRESS CASE matrix beyond the core API cases

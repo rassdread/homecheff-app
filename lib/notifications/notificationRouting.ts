@@ -75,7 +75,8 @@ export function resolveNotificationTargetUrl(
   if (
     typeUpper === 'PROPOSAL_ACCEPTED' ||
     typeUpper === 'PROPOSAL_MIXED_ACCEPTED' ||
-    typeUpper === 'COMMUNITY_ORDER_CREATED'
+    typeUpper === 'COMMUNITY_ORDER_CREATED' ||
+    typeUpper === 'FULFILLMENT_LOCATION_CONFIRMED'
   ) {
     if (communityOrderId) {
       return `/profile/deals?highlight=${encodeURIComponent(communityOrderId)}`;

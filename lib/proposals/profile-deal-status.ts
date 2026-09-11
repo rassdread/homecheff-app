@@ -319,8 +319,14 @@ export function resolveProfileDealPresentation(input: {
       input.communityOrder.deliveryRequested,
     dealUx,
     statusBlocks,
-    pickupLabel: input.deliveryRequest?.pickupAddress ?? null,
-    dropoffLabel: input.deliveryRequest?.deliveryAddress ?? null,
+    pickupLabel:
+      input.communityOrder.pickupAddress ??
+      input.deliveryRequest?.pickupAddress ??
+      null,
+    dropoffLabel:
+      input.communityOrder.deliveryAddress ??
+      input.deliveryRequest?.deliveryAddress ??
+      null,
     requestedWindowLabel: formatRequestedWindowLabel({
       proposal: input.proposal,
       deliveryRequest: input.deliveryRequest,

@@ -25,6 +25,7 @@ import { normalizeBarterOfferImageUrls } from '@/lib/proposals/barter-offer-imag
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
 import type { CommunityOrderDTO, ProposalDTO } from '@/lib/proposals/proposal-types';
+import FulfillmentLocationPanel from '@/components/chat/proposals/FulfillmentLocationPanel';
 
 type Props = {
   communityOrder: CommunityOrderDTO;
@@ -251,6 +252,14 @@ export default function DealCard({
           {t(deal.statusLabelKey)}
         </span>
       </div>
+
+      <FulfillmentLocationPanel
+        communityOrderId={order.id}
+        onCompleted={(next) => {
+          setOrder(next);
+          onCommunityOrderUpdated?.(next);
+        }}
+      />
 
       <div className="space-y-0.5">
         <p className="text-[10px] font-medium text-emerald-800">

@@ -9730,7 +9730,27 @@
     "fields": {
       "messageLabel": "Extra afspraak / bericht",
       "messagePlaceholder": "Optioneel — bijvoorbeeld waarom, materialen of ophalen bij de deur",
-      "locationMethodLabel": "Locatie / wijze"
+      "locationMethodLabel": "Locatie / wijze",
+      "pickupDateLabel": "Afhaaldatum",
+      "pickupTimeLabel": "Afhaaltijd",
+      "deliveryDateLabel": "Bezorgdatum",
+      "deliveryTimeLabel": "Bezorgtijd"
+    },
+    "location": {
+      "pendingHeading": "Afspraak bevestigd — gegevens nog afronden",
+      "completeHeading": "Locatie afgerond",
+      "pickupAddress": "Afhaaladres",
+      "deliveryAddress": "Afleveradres",
+      "tbd": "Nog te bepalen",
+      "addressPendingSelf": "Nog te bevestigen",
+      "pickupPendingOther": "Afhaaladres wordt nog door {name} bevestigd.",
+      "deliveryPendingOther": "Afleveradres wordt nog bevestigd.",
+      "confirmPickupCta": "Afhaalmoment en adres invullen",
+      "confirmDeliveryCta": "Bezorgmoment en adres bevestigen",
+      "useSaved": "Dit adres gebruiken",
+      "otherAddress": "Ander adres",
+      "scheduleLocked": "Datum en tijd zijn al afgesproken en blijven ongewijzigd.",
+      "saveCta": "Locatie bevestigen"
     },
     "system": {
       "accepted": "Voorstel geaccepteerd.",

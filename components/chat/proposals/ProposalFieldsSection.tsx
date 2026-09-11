@@ -25,6 +25,10 @@ import {
   proposalShowsQuantityField,
   resolveProposalListingShape,
 } from '@/lib/proposals/proposal-listing-shape';
+import {
+  fulfillmentDateLabelKey,
+  fulfillmentTimeLabelKey,
+} from '@/lib/proposals/fulfillment-location';
 
 export type ProposalFieldsProduct = {
   id: string;
@@ -376,7 +380,9 @@ export default function ProposalFieldsSection({
             htmlFor={`${idPrefix}-date`}
             className="mb-1 block text-xs font-medium text-gray-700"
           >
-            {t('marketplace.form.dateLabel', { defaultValue: 'Datum' })}
+            {t(fulfillmentDateLabelKey(form.fulfillmentType || null), {
+              defaultValue: 'Datum',
+            })}
           </label>
           <input
             id={`${idPrefix}-date`}
@@ -391,14 +397,16 @@ export default function ProposalFieldsSection({
             htmlFor={`${idPrefix}-time`}
             className="mb-1 block text-xs font-medium text-gray-700"
           >
-            {t('marketplace.form.timeLabel', { defaultValue: 'Tijd' })}
+            {t(fulfillmentTimeLabelKey(form.fulfillmentType || null), {
+              defaultValue: 'Tijd',
+            })}
           </label>
           <input
             id={`${idPrefix}-time`}
             value={form.requestedTimeWindow}
             onChange={set('requestedTimeWindow')}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            placeholder="18:00"
+            placeholder="14:00–16:00"
           />
         </div>
       </div>

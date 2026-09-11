@@ -24,6 +24,7 @@ import {
 } from '@/lib/proposals/proposal-barter-actor-labels';
 import type { ProfileDealDTO } from '@/lib/proposals/profile-deal-types';
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
+import FulfillmentLocationPanel from '@/components/chat/proposals/FulfillmentLocationPanel';
 
 type Props = {
   deal: ProfileDealDTO;
@@ -239,7 +240,8 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
       ) : null}
 
       {(() => {
-        const dateIso = deal.proposal.requestedDate;
+        const dateIso =
+          deal.proposal.requestedDate || deal.confirmedScheduleDate;
         let dateTxt: string | null = null;
         if (dateIso) {
           try {
@@ -252,14 +254,31 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
             dateTxt = null;
           }
         }
-        const timeTxt = deal.proposal.requestedTimeWindow;
+        const timeTxt =
+          deal.proposal.requestedTimeWindow ||
+          deal.confirmedScheduleTimeWindow;
         const ful =
           deal.proposal.fulfillmentType === 'DELIVERY'
             ? t('deal.fulfillment.delivery')
             : deal.proposal.fulfillmentType === 'PICKUP'
               ? t('deal.fulfillment.pickup')
               : null;
-        if (!dateTxt && !timeTxt && !ful && !deal.proposal.description) return null;
+        const addressLine =
+          deal.fulfillmentMode === 'DELIVERY' ||
+          deal.proposal.fulfillmentType === 'DELIVERY'
+            ? deal.deliveryAddress || deal.dropoffLabel
+            : deal.fulfillmentMode === 'PICKUP' ||
+                deal.proposal.fulfillmentType === 'PICKUP'
+              ? deal.pickupAddress || deal.pickupLabel
+              : null;
+        if (
+          !dateTxt &&
+          !timeTxt &&
+          !ful &&
+          !deal.proposal.description &&
+          !addressLine
+        )
+          return null;
         return (
           <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 space-y-1 text-xs text-gray-800">
             {dateTxt ? (
@@ -267,17 +286,42 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
                 <span className="text-gray-500">{t('proposal.card.labelDate')}: </span>
                 <span className="font-medium capitalize">{dateTxt}</span>
               </p>
+            ) : ful ? (
+              <p>
+                <span className="text-gray-500">{t('proposal.card.labelDate')}: </span>
+                <span className="font-medium">
+                  {t('proposal.location.tbd', { defaultValue: 'Nog te bepalen' })}
+                </span>
+              </p>
             ) : null}
             {timeTxt ? (
               <p>
                 <span className="text-gray-500">{t('proposal.card.labelTime')}: </span>
                 <span className="font-medium">{timeTxt}</span>
               </p>
+            ) : ful ? (
+              <p>
+                <span className="text-gray-500">{t('proposal.card.labelTime')}: </span>
+                <span className="font-medium">
+                  {t('proposal.location.tbd', { defaultValue: 'Nog te bepalen' })}
+                </span>
+              </p>
             ) : null}
             {ful ? (
               <p>
                 <span className="text-gray-500">{t('proposal.card.labelFulfillment')}: </span>
                 <span className="font-medium">{ful}</span>
+              </p>
+            ) : null}
+            {addressLine ? (
+              <p>
+                <span className="text-gray-500">
+                  {deal.proposal.fulfillmentType === 'DELIVERY'
+                    ? t('proposal.location.deliveryAddress')
+                    : t('proposal.location.pickupAddress')}
+                  :{' '}
+                </span>
+                <span className="font-medium whitespace-pre-wrap">{addressLine}</span>
               </p>
             ) : null}
             {deal.proposal.description ? (
@@ -291,6 +335,22 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
           </div>
         );
       })()}
+
+      <FulfillmentLocationPanel
+        communityOrderId={deal.id}
+        onCompleted={(next) => {
+          onUpdated({
+            ...deal,
+            pickupAddress: next.pickupAddress,
+            deliveryAddress: next.deliveryAddress,
+            confirmedScheduleDate: next.confirmedScheduleDate,
+            confirmedScheduleTimeWindow: next.confirmedScheduleTimeWindow,
+            locationCompletedAt: next.locationCompletedAt,
+            locationCompletedById: next.locationCompletedById,
+            updatedAt: next.updatedAt,
+          });
+        }}
+      />
 
       <div className="flex flex-wrap gap-1.5">
         {deal.statusBlocks.map((block) => (

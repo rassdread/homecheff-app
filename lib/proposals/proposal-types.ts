@@ -63,6 +63,12 @@ export type CommunityOrderDTO = {
   deliveryRequested: boolean;
   deliveryAssigned: boolean;
   checkoutOrderId: string | null;
+  pickupAddress: string | null;
+  deliveryAddress: string | null;
+  confirmedScheduleDate: string | null;
+  confirmedScheduleTimeWindow: string | null;
+  locationCompletedAt: string | null;
+  locationCompletedById: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
   createdAt: string;

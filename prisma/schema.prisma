@@ -1033,6 +1033,15 @@ model CommunityOrder {
   deliveryRequested Boolean                        @default(false)
   deliveryAssigned  Boolean                        @default(false)
   checkoutOrderId   String?
+  /// Post-accept operational pickup line (seller-confirmed). Not listing SoT.
+  pickupAddress     String?
+  /// Post-accept operational delivery/destination line (buyer-confirmed).
+  deliveryAddress   String?
+  /// Confirmed physical schedule when missing from proposal, or copy of agreed terms.
+  confirmedScheduleDate       DateTime?
+  confirmedScheduleTimeWindow String?
+  locationCompletedAt         DateTime?
+  locationCompletedById       String?
   completedAt       DateTime?
   cancelledAt       DateTime?
   createdAt         DateTime                       @default(now())
