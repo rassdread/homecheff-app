@@ -74,6 +74,7 @@ export default function SellerOrdersPageClient() {
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<SellerOrderTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -108,12 +109,25 @@ export default function SellerOrdersPageClient() {
       if (response.ok) {
         const data = await response.json();
         setOrders(data.orders || []);
+        setLoadError(null);
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Error loading orders:', response.status, errorData);
+        if (!background) {
+          setOrders([]);
+          setLoadError(
+            typeof errorData.error === 'string'
+              ? errorData.error
+              : t('seller.ordersLoadError') || 'Verkooporders konden niet worden geladen.'
+          );
+        }
       }
     } catch (error) {
       console.error('Error loading orders:', error);
+      if (!background) {
+        setOrders([]);
+        setLoadError(t('seller.ordersLoadError') || 'Verkooporders konden niet worden geladen.');
+      }
     } finally {
       if (!background) setIsLoading(false);
     }
@@ -377,6 +391,17 @@ export default function SellerOrdersPageClient() {
                 <div className="h-3 bg-neutral-200 rounded w-1/3"></div>
               </div>
             ))}
+          </div>
+        ) : loadError ? (
+          <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-red-200">
+            <Package className="w-16 h-16 text-red-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+              {t('seller.ordersLoadErrorTitle') || 'Kon orders niet laden'}
+            </h3>
+            <p className="text-neutral-600 mb-6">{loadError}</p>
+            <Button onClick={() => void loadOrders()} variant="default">
+              {t('common.retry') || 'Opnieuw proberen'}
+            </Button>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-neutral-200">

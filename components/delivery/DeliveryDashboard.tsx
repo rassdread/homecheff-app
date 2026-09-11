@@ -117,6 +117,7 @@ export default function DeliveryDashboard() {
   const [courierTab, setCourierTab] = useState<'platform' | 'community'>('platform');
   const [feedback, setFeedback] = useState<{ type: 'error' | 'warning'; message: string } | null>(null);
   const [activationHint, setActivationHint] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDeliveryData();
@@ -223,7 +224,8 @@ export default function DeliveryDashboard() {
         );
 
         // Auto-go online if within available times and currently offline
-        if (!currentIsOnline && profile?.availableDays && profile?.availableTimeSlots) {
+        const timeSlots = profile?.availableTimeSlots ?? profile?.availableTimes;
+        if (!currentIsOnline && profile?.availableDays && timeSlots) {
           const now = new Date();
           const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
           const currentHour = now.getHours();
@@ -233,9 +235,9 @@ export default function DeliveryDashboard() {
                                  profile.availableDays.includes(currentDay);
 
           // Check if current time is in available time slots
-          let isTimeAvailable = profile.availableTimeSlots.length === 0;
-          if (profile.availableTimeSlots.length > 0) {
-            isTimeAvailable = profile.availableTimeSlots.some((slot: string) => {
+          let isTimeAvailable = timeSlots.length === 0;
+          if (timeSlots.length > 0) {
+            isTimeAvailable = timeSlots.some((slot: string) => {
               if (slot.includes('-')) {
                 const parts = slot.split('-');
                 const startTime = parts[0].includes(':') 
@@ -330,9 +332,10 @@ export default function DeliveryDashboard() {
       }
       // Fetch delivery data from API
       const response = await fetch('/api/delivery/dashboard');
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       
       if (response.ok) {
+        setLoadError(null);
         // On a background refresh, bail out early if nothing changed — avoids a
         // full re-render of the dashboard + every order card each poll cycle.
         const signature = JSON.stringify({
@@ -350,16 +353,33 @@ export default function DeliveryDashboard() {
         }
         lastDeliveryPayloadRef.current = signature;
         setStats(data.stats);
-        setRecentOrders(data.recentOrders);
+        setRecentOrders(data.recentOrders || []);
         setCurrentOrder(data.currentOrder);
         setAvailableOrders(data.availableOrders || []);
         setIsOnline(data.isOnline || false);
         setIsSeller(data.isSeller || false);
         setShippingOrders(data.shippingOrders || []);
         setAllOrders(data.allOrders || []);
+      } else {
+        const message =
+          typeof data.error === 'string'
+            ? data.error
+            : t('delivery.errorLoadingDashboard') ||
+              'Bezorgdashboard kon niet worden geladen. Probeer opnieuw.';
+        setLoadError(message);
+        if (!isRefresh) {
+          setFeedback({ type: 'error', message });
+        }
       }
     } catch (error) {
       console.error('Error fetching delivery data:', error);
+      const message =
+        t('delivery.errorLoadingDashboard') ||
+        'Bezorgdashboard kon niet worden geladen. Probeer opnieuw.';
+      setLoadError(message);
+      if (!isRefresh) {
+        setFeedback({ type: 'error', message });
+      }
     } finally {
       if (!isRefresh && initialLoad) {
         setLoading(false);
@@ -651,6 +671,23 @@ export default function DeliveryDashboard() {
             className="shrink-0 font-semibold underline"
           >
             {t('common.close')}
+          </button>
+        </div>
+      ) : null}
+
+      {loadError && !feedback ? (
+        <div
+          role="alert"
+          className="mt-4 flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <span>{loadError}</span>
+          <button
+            type="button"
+            onClick={() => void fetchDeliveryData(false)}
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-red-600 px-3 py-2 font-semibold text-white hover:bg-red-700"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden />
+            {t('delivery.refresh') || 'Opnieuw laden'}
           </button>
         </div>
       ) : null}
@@ -1441,7 +1478,13 @@ export default function DeliveryDashboard() {
             <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">{t('delivery.recentOrders')}</h3>
               <div className="space-y-2 sm:space-y-3">
-                {recentOrders.slice(0, 5).map((order) => (
+                {recentOrders.length === 0 ? (
+                  <p className="text-sm text-gray-600">
+                    {t('delivery.noRecentOrders') ||
+                      'Je hebt nog geen recente bezorgingen.'}
+                  </p>
+                ) : (
+                  recentOrders.slice(0, 5).map((order) => (
                   <div key={order.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                     <div className="min-w-0 flex-1 pr-2">
                       <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{order.product.title}</p>
@@ -1452,7 +1495,8 @@ export default function DeliveryDashboard() {
                       <p className="text-xs text-gray-500">{getStatusLabel(order.status)}</p>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -1506,7 +1550,7 @@ export default function DeliveryDashboard() {
                             stripeConnectStatus?.uiStatus === 'RESTRICTED'
                           ? 'Actie nodig voor je betaalaccount'
                           : stripeConnectStatus?.uiStatus === 'INCOMPLETE'
-                            ? 'Betaalaccount afronden'
+                            ? 'Gegevens afronden'
                             : t('delivery.setupNow')}
                     </span>
                     <ExternalLink className="w-3 h-3" />

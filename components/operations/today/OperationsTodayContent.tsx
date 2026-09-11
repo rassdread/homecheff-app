@@ -41,6 +41,9 @@ export default function OperationsTodayContent() {
     delivery,
     seller,
     partner,
+    sellerLoadFailed,
+    partnerLoadFailed,
+    deliveryLoadFailed,
     loading: roleLoading,
   } = useOperationsTodayRoleData(ctx);
 
@@ -182,6 +185,7 @@ export default function OperationsTodayContent() {
               expanded={expandedRole.delivery}
               onToggle={() => toggleRole('delivery')}
               loading={roleLoading}
+              loadFailed={deliveryLoadFailed}
             />
           ) : null}
           {showSellerCard ? (
@@ -190,6 +194,7 @@ export default function OperationsTodayContent() {
               expanded={expandedRole.seller}
               onToggle={() => toggleRole('seller')}
               loading={roleLoading}
+              loadFailed={sellerLoadFailed}
             />
           ) : null}
           {showPartnerCard ? (
@@ -198,6 +203,7 @@ export default function OperationsTodayContent() {
               expanded={expandedRole.partner}
               onToggle={() => toggleRole('partner')}
               loading={roleLoading}
+              loadFailed={partnerLoadFailed}
             />
           ) : null}
         </section>

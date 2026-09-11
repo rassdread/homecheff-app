@@ -24,6 +24,7 @@ export default function PromoCodesClient() {
   const { t } = useTranslation();
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCode, setEditingCode] = useState<PromoCode | null>(null);
 
@@ -33,13 +34,25 @@ export default function PromoCodesClient() {
 
   const fetchPromoCodes = async () => {
     try {
+      setLoadError(null);
       const response = await fetch('/api/affiliate/promo-codes');
       if (response.ok) {
         const data = await response.json();
         setPromoCodes(data.promoCodes || []);
+      } else {
+        setPromoCodes([]);
+        setLoadError(
+          t('affiliate.dashboard.promoCodes.loadError') ||
+            'Promocodes konden niet worden geladen.'
+        );
       }
     } catch (error) {
       console.error('Error fetching promo codes:', error);
+      setPromoCodes([]);
+      setLoadError(
+        t('affiliate.dashboard.promoCodes.loadError') ||
+          'Promocodes konden niet worden geladen.'
+      );
     } finally {
       setLoading(false);
     }
@@ -125,7 +138,25 @@ export default function PromoCodesClient() {
       contentClassName="py-0"
     >
       <div className="py-8">
-        {promoCodes.length === 0 ? (
+        {loadError ? (
+          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-12 text-center">
+            <Gift className="w-12 h-12 text-red-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {t('affiliate.dashboard.promoCodes.loadErrorTitle') || 'Kon promocodes niet laden'}
+            </h3>
+            <p className="text-gray-600 mb-6">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setLoading(true);
+                void fetchPromoCodes();
+              }}
+              className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              {t('common.retry') || 'Opnieuw proberen'}
+            </button>
+          </div>
+        ) : promoCodes.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
             <Gift className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('affiliate.dashboard.promoCodes.noPromoCodes')}</h3>

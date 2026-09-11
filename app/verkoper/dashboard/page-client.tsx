@@ -108,6 +108,7 @@ export default function SellerDashboardClient() {
   const hasDeliveryProfile = !!(session?.user as any)?.hasDeliveryProfile;
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [statsLoadError, setStatsLoadError] = useState<string | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
@@ -209,6 +210,12 @@ export default function SellerDashboardClient() {
         const statsData = await statsResponse.json();
         nextStats = statsData;
         setStats(statsData);
+        setStatsLoadError(null);
+      } else {
+        setStatsLoadError(
+          t('seller.dashboardStatsLoadError') ||
+            'Dashboardstatistieken konden niet worden geladen.'
+        );
       }
 
       let nextRecent: RecentOrder[] = [];
@@ -235,6 +242,10 @@ export default function SellerDashboardClient() {
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      setStatsLoadError(
+        t('seller.dashboardStatsLoadError') ||
+          'Dashboardstatistieken konden niet worden geladen.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -650,6 +661,21 @@ export default function SellerDashboardClient() {
         })()}
 
         {/* Financial Overview - Prominent Section */}
+        {statsLoadError && !stats ? (
+          <div
+            role="alert"
+            className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800"
+          >
+            <p className="mb-3">{statsLoadError}</p>
+            <button
+              type="button"
+              onClick={() => void loadDashboardData()}
+              className="min-h-[44px] rounded-lg bg-red-600 px-3 py-2 font-semibold text-white hover:bg-red-700"
+            >
+              {t('common.retry') || 'Opnieuw proberen'}
+            </button>
+          </div>
+        ) : null}
         {stats && stats.netEarnings !== undefined && (
           <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl shadow-sm border border-emerald-200 p-4 sm:p-6 mb-6">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -849,7 +875,7 @@ export default function SellerDashboardClient() {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">{t('seller.topProducts')}</h3>
                 <button
-                  onClick={() => router.push('/verkoper')}
+                  onClick={() => router.push('/sell')}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
                   {t('seller.allProducts')}

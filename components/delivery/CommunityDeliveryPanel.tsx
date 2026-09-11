@@ -238,7 +238,17 @@ export default function CommunityDeliveryPanel({ isOnline }: Props) {
             {mine.map((item) => renderCard(item, 'mine'))}
           </div>
         </section>
-      ) : null}
+      ) : (
+        <section>
+          <h3 className="text-base font-bold text-gray-900 mb-3">
+            {t('delivery.community.myJobs')}
+          </h3>
+          <p className="text-sm text-gray-600">
+            {t('delivery.community.noActiveJobs') ||
+              'Je hebt momenteel geen actieve community-bezorging.'}
+          </p>
+        </section>
+      )}
 
       <section>
         <div className="flex items-center justify-between gap-2 mb-3">

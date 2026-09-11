@@ -91,7 +91,7 @@ export function useOperationsSidepanelData(enabled = true) {
         setEarningRoles(null);
       }
 
-      setError(!actionRes.ok);
+      setError(!actionRes.ok || !earningsRes.ok);
     } catch {
       setError(true);
       setActionCenter(null);

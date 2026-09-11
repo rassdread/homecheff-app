@@ -11,6 +11,7 @@ type Props = {
   expanded: boolean;
   onToggle: () => void;
   loading?: boolean;
+  loadFailed?: boolean;
 };
 
 export default function PartnerTodayCard({
@@ -18,6 +19,7 @@ export default function PartnerTodayCard({
   expanded,
   onToggle,
   loading = false,
+  loadFailed = false,
 }: Props) {
   const { t, language } = useTranslation();
 
@@ -38,6 +40,44 @@ export default function PartnerTodayCard({
       <article className="hc-dorpsplein-card animate-pulse p-4">
         <div className="h-4 w-24 rounded bg-gray-200" />
         <div className="mt-3 h-16 rounded-lg bg-gray-100" />
+      </article>
+    );
+  }
+
+  if (!data && loadFailed) {
+    return (
+      <article className="hc-dorpsplein-card overflow-hidden">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left touch-manipulation"
+          aria-expanded={expanded}
+        >
+          <div className="flex items-center gap-2">
+            <Link2 className="h-4 w-4 text-violet-700" aria-hidden />
+            <span className="font-semibold text-gray-900">{title}</span>
+          </div>
+          {expanded ? (
+            <ChevronUp className="h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          )}
+        </button>
+        {expanded ? (
+          <div className="border-t border-gray-100 px-4 pb-4 pt-3">
+            <p className="mb-3 text-sm text-red-700" role="alert">
+              {t('operations.today.partnerLoadError') ||
+                'Partnerdata kon niet worden geladen.'}
+            </p>
+            <Link
+              href={OPERATIONS_ROUTES.affiliate.home}
+              prefetch
+              className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
+            >
+              {cta}
+            </Link>
+          </div>
+        ) : null}
       </article>
     );
   }

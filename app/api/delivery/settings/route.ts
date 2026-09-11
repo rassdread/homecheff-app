@@ -84,7 +84,10 @@ export async function GET(req: NextRequest) {
         isOnline: deliveryProfile.isOnline || false,
         maxDistance: deliveryProfile.maxDistance,
         availableDays: deliveryProfile.availableDays,
+        // Keep both keys: dashboard auto-online reads availableTimeSlots;
+        // older clients still expect availableTimes.
         availableTimes: deliveryProfile.availableTimeSlots || [],
+        availableTimeSlots: deliveryProfile.availableTimeSlots || [],
         transportation: deliveryProfile.transportation || [],
         deliveryRegions: deliveryProfile.deliveryRegions,
         deliveryMode: deliveryProfile.deliveryMode || 'STATIC',

@@ -18,7 +18,7 @@ export default function OperationsFinanceHero({
   compact = false,
 }: Props) {
   const { tOr, language } = useTranslation();
-  const { totals, earnings, loading } = useOperationsSidepanel();
+  const { totals, earnings, loading, error } = useOperationsSidepanel();
 
   const formatCurrency = (cents: number) => {
     const locale = language === 'en' ? 'en-GB' : 'nl-NL';
@@ -48,6 +48,11 @@ export default function OperationsFinanceHero({
     'Request payout',
     'Uitbetaling aanvragen',
   );
+  const loadErrorLabel = tOr(
+    'operations.sidepanel.finance.loadError',
+    'Earnings could not be loaded',
+    'Inkomsten konden niet worden geladen',
+  );
 
   if (loading) {
     return (
@@ -61,6 +66,30 @@ export default function OperationsFinanceHero({
         <div className="mb-2 h-4 w-32 rounded bg-amber-100" />
         <div className="h-10 w-40 rounded bg-gray-100" />
         <div className="mt-4 h-11 rounded-xl bg-gray-100" />
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section
+        className={cn(
+          'hc-dorpsplein-card hc-dorpsplein-card-warm px-5 py-5 sm:px-6',
+          className,
+        )}
+        role="alert"
+      >
+        <div className="flex items-center gap-2 text-red-800">
+          <Wallet className="h-5 w-5" aria-hidden />
+          <p className="text-sm font-medium">{loadErrorLabel}</p>
+        </div>
+        <Link
+          href={OPERATIONS_ROUTES.finance.home}
+          prefetch
+          className="mt-3 inline-flex text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+        >
+          {tOr('operations.tabs.finance', 'Finance', 'Financiën')} →
+        </Link>
       </section>
     );
   }

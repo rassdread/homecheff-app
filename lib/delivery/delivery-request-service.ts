@@ -140,18 +140,24 @@ export class DeliveryRequestService {
       );
     }
 
-    const defaultPickup = formatAddress([
-      order.Seller.address,
-      order.Seller.postalCode,
-      order.Seller.city,
-      order.Seller.place,
-    ]);
-    const defaultDelivery = formatAddress([
-      order.Buyer.address,
-      order.Buyer.postalCode,
-      order.Buyer.city,
-      order.Buyer.place,
-    ]);
+    // CommunityOrder.pickupAddress/deliveryAddress is the post-accept SoT;
+    // fall back to party profile addresses only when order location is incomplete.
+    const defaultPickup =
+      order.pickupAddress?.trim() ||
+      formatAddress([
+        order.Seller.address,
+        order.Seller.postalCode,
+        order.Seller.city,
+        order.Seller.place,
+      ]);
+    const defaultDelivery =
+      order.deliveryAddress?.trim() ||
+      formatAddress([
+        order.Buyer.address,
+        order.Buyer.postalCode,
+        order.Buyer.city,
+        order.Buyer.place,
+      ]);
 
     const requestedDate = order.Proposal.requestedDate;
 
@@ -560,18 +566,22 @@ export class DeliveryRequestService {
       return { deliveryRequest: null, readyWithoutCreate: false };
     }
 
-    const defaultPickup = formatAddress([
-      order.Seller.address,
-      order.Seller.postalCode,
-      order.Seller.city,
-      order.Seller.place,
-    ]);
-    const defaultDelivery = formatAddress([
-      order.Buyer.address,
-      order.Buyer.postalCode,
-      order.Buyer.city,
-      order.Buyer.place,
-    ]);
+    const defaultPickup =
+      order.pickupAddress?.trim() ||
+      formatAddress([
+        order.Seller.address,
+        order.Seller.postalCode,
+        order.Seller.city,
+        order.Seller.place,
+      ]);
+    const defaultDelivery =
+      order.deliveryAddress?.trim() ||
+      formatAddress([
+        order.Buyer.address,
+        order.Buyer.postalCode,
+        order.Buyer.city,
+        order.Buyer.place,
+      ]);
 
     const hasAddresses = Boolean(defaultPickup && defaultDelivery);
     const hasSchedule = Boolean(

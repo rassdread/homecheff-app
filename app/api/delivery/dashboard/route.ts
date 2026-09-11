@@ -8,7 +8,7 @@ import { authOptions } from '@/lib/auth';
 import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { Stripe } from 'stripe';
-import { resolveDelivererPosition, resolveSellerCoords } from '@/lib/delivery/delivery-position';
+import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoords } from '@/lib/delivery/delivery-position';
 import {
   customerAddressForPhase,
   customerPhoneForPhase,
@@ -692,7 +692,11 @@ export async function GET(req: NextRequest) {
           estimatedTime: currentEstimatedMin,
           distance: currentDistance || 0,
           customerName: currentOrder.order.User.name || currentOrder.order.User.username || 'Klant',
-          customerAddress: currentOrder.order.deliveryAddress || 'Adres niet beschikbaar',
+          customerAddress: customerAddressForPhase(
+            currentOrder.order.User,
+            currentOrder.order.deliveryAddress || currentOrder.deliveryAddress,
+            'assigned'
+          ),
           customerPhone: customerPhoneForPhase(currentOrder.order.User, 'assigned'),
           notes: currentOrder.notes || '',
           createdAt: currentOrder.createdAt,
@@ -704,17 +708,14 @@ export async function GET(req: NextRequest) {
             image: currentOrder.order.items[0]?.Product?.Image?.[0]?.fileUrl || '',
             seller: {
               name: currentOrder.order.items[0]?.Product?.seller?.User?.name || 'Verkoper',
-              address: (() => {
-                const sellerUser = currentOrder.order.items[0]?.Product?.seller?.User;
-                if (!sellerUser) return 'Adres niet beschikbaar';
-                const addressParts = [
-                  sellerUser.address,
-                  sellerUser.postalCode,
-                  sellerUser.city || sellerUser.place
-                ].filter(Boolean);
-                return addressParts.length > 0 ? addressParts.join(', ') : 'Adres niet beschikbaar';
-              })(),
-              phone: currentOrder.order.items[0]?.Product?.seller?.User?.phoneNumber || null,
+              address: sellerAddressForPhase(
+                currentOrder.order.items[0]?.Product?.seller?.User,
+                'assigned'
+              ),
+              phone: sellerPhoneForPhase(
+                currentOrder.order.items[0]?.Product?.seller?.User,
+                'assigned'
+              ),
               lat: currentOrder.order.items[0]?.Product?.seller?.User?.lat || null,
               lng: currentOrder.order.items[0]?.Product?.seller?.User?.lng || null
             }
@@ -764,17 +765,14 @@ export async function GET(req: NextRequest) {
           image: order.order.items[0]?.Product?.Image?.[0]?.fileUrl || '',
           seller: {
             name: order.order.items[0]?.Product?.seller?.User?.name || 'Verkoper',
-            address: (() => {
-              const sellerUser = order.order.items[0]?.Product?.seller?.User;
-              if (!sellerUser) return 'Adres niet beschikbaar';
-              const addressParts = [
-                sellerUser.address,
-                sellerUser.postalCode,
-                sellerUser.city || sellerUser.place
-              ].filter(Boolean);
-              return addressParts.length > 0 ? addressParts.join(', ') : 'Adres niet beschikbaar';
-            })(),
-            phone: order.order.items[0]?.Product?.seller?.User?.phoneNumber || null,
+            address: sellerAddressForPhase(
+              order.order.items[0]?.Product?.seller?.User,
+              'assigned'
+            ),
+            phone: sellerPhoneForPhase(
+              order.order.items[0]?.Product?.seller?.User,
+              'assigned'
+            ),
             lat: order.order.items[0]?.Product?.seller?.User?.lat || null,
             lng: order.order.items[0]?.Product?.seller?.User?.lng || null
           }
@@ -867,31 +865,55 @@ export async function GET(req: NextRequest) {
       const ordersWithDistance = await Promise.all(
         availableDeliveryOrders
           .filter((deliveryOrder) => {
-            if (!deliveryProfile.isOnline || delivererLat == null || delivererLng == null || !deliveryOrder.order) return false;
+            if (!deliveryProfile.isOnline || !deliveryOrder.order) return false;
             const product = deliveryOrder.order.items[0]?.Product;
-            const sellerCoords = resolveSellerCoords(product?.seller);
+            const pickupCoords = resolveDeliveryPickupCoords(product);
             const buyerUser = deliveryOrder.order.User;
-            if (!sellerCoords || buyerUser?.lat == null || buyerUser?.lng == null) return false;
-            const dSeller = calculateDistance(delivererLat, delivererLng, sellerCoords.lat, sellerCoords.lng);
+            // Targeted jobs (assigned to this provider) stay visible even without geo.
+            const isTargeted = deliveryOrder.deliveryProfileId === deliveryProfile.id;
+            if (isTargeted && (!delivererLat || !delivererLng || !pickupCoords || buyerUser?.lat == null || buyerUser?.lng == null)) {
+              return true;
+            }
+            if (delivererLat == null || delivererLng == null || !pickupCoords || buyerUser?.lat == null || buyerUser?.lng == null) {
+              return false;
+            }
+            const dPickup = calculateDistance(delivererLat, delivererLng, pickupCoords.lat, pickupCoords.lng);
             const dBuyer = calculateDistance(delivererLat, delivererLng, buyerUser.lat, buyerUser.lng);
-            return dSeller <= deliveryProfile.maxDistance * 1.5 && dBuyer <= deliveryProfile.maxDistance * 1.5;
+            return dPickup <= deliveryProfile.maxDistance * 1.5 && dBuyer <= deliveryProfile.maxDistance * 1.5;
           })
           .slice(0, 20)
           .map(async (deliveryOrder) => {
             const product = deliveryOrder.order!.items[0]?.Product!;
-            const sellerCoords = resolveSellerCoords(product.seller)!;
-            const buyerLat = deliveryOrder.order!.User!.lat!;
-            const buyerLng = deliveryOrder.order!.User!.lng!;
+            const pickupCoords = resolveDeliveryPickupCoords(product);
+            const buyerLat = deliveryOrder.order!.User!.lat;
+            const buyerLng = deliveryOrder.order!.User!.lng;
+            const hasGeo =
+              delivererLat != null &&
+              delivererLng != null &&
+              pickupCoords != null &&
+              buyerLat != null &&
+              buyerLng != null;
+
+            if (!hasGeo) {
+              return {
+                deliveryOrder,
+                distanceToSeller: 0,
+                distanceToBuyer: 0,
+                totalDistance: 0,
+                estimatedMinutes: deliveryOrder.estimatedTime || 30,
+              };
+            }
+
             const origin = { lat: delivererLat!, lng: delivererLng! };
 
-            const [routeToSeller, routeToBuyer] = await Promise.all([
-              getRouteDistance(origin, sellerCoords, 'driving'),
-              getRouteDistance(origin, { lat: buyerLat, lng: buyerLng }, 'driving')
+            const [routeToPickup, routeToBuyer] = await Promise.all([
+              getRouteDistance(origin, pickupCoords!, 'driving'),
+              getRouteDistance(origin, { lat: buyerLat!, lng: buyerLng! }, 'driving')
             ]);
 
-            const distanceToSeller = 'distance' in routeToSeller ? routeToSeller.distance : calculateDistance(delivererLat!, delivererLng!, sellerCoords.lat, sellerCoords.lng);
-            const distanceToBuyer = 'distance' in routeToBuyer ? routeToBuyer.distance : calculateDistance(delivererLat!, delivererLng!, buyerLat, buyerLng);
-            const durationToSeller = 'duration' in routeToSeller ? routeToSeller.duration : Math.ceil((distanceToSeller / 50) * 60);
+            const distanceToSeller = 'distance' in routeToPickup ? routeToPickup.distance : calculateDistance(delivererLat!, delivererLng!, pickupCoords!.lat, pickupCoords!.lng);
+            const distanceToBuyer = 'distance' in routeToBuyer ? routeToBuyer.distance : calculateDistance(delivererLat!, delivererLng!, buyerLat!, buyerLng!);
+            const durationToSeller = 'duration' in routeToPickup ? routeToPickup.duration : Math.ceil((distanceToSeller / 50) * 60);
             const durationToBuyer = 'duration' in routeToBuyer ? routeToBuyer.duration : Math.ceil((distanceToBuyer / 50) * 60);
 
             return {
@@ -904,9 +926,11 @@ export async function GET(req: NextRequest) {
           })
       );
 
-      const filteredAvailableOrders = ordersWithDistance.filter(
-        (o) => o.distanceToSeller <= deliveryProfile.maxDistance && o.distanceToBuyer <= deliveryProfile.maxDistance
-      );
+      const filteredAvailableOrders = ordersWithDistance.filter((o) => {
+        const isTargeted = o.deliveryOrder.deliveryProfileId === deliveryProfile.id;
+        if (isTargeted && o.totalDistance === 0) return true;
+        return o.distanceToSeller <= deliveryProfile.maxDistance && o.distanceToBuyer <= deliveryProfile.maxDistance;
+      });
 
       // Transform available orders for frontend (echte route-afstand en geschatte tijd)
       transformedAvailableOrders = filteredAvailableOrders.map(({ deliveryOrder, totalDistance, estimatedMinutes }) => {
@@ -936,8 +960,8 @@ export async function GET(req: NextRequest) {
               name: sellerUser?.name || 'Verkoper',
               address: sellerAddressForPhase(sellerUser, 'available'),
               phone: sellerPhoneForPhase(sellerUser, 'available'),
-              lat: resolveSellerCoords(product?.seller)?.lat ?? null,
-              lng: resolveSellerCoords(product?.seller)?.lng ?? null
+              lat: resolveDeliveryPickupCoords(product)?.lat ?? resolveSellerCoords(product?.seller)?.lat ?? null,
+              lng: resolveDeliveryPickupCoords(product)?.lng ?? resolveSellerCoords(product?.seller)?.lng ?? null
             }
           }
         };
@@ -951,7 +975,7 @@ export async function GET(req: NextRequest) {
       weekEarnings: weekEarnings,
       totalDeliveries: deliveryProfile?.totalDeliveries || completedDeliveries,
       averageRating: deliveryProfile?.averageRating || 0,
-      onlineTime: 480,
+      onlineTime: 0,
       completedDeliveries,
       pendingDeliveries,
       totalEarnings: totalEarnings,

@@ -55,10 +55,11 @@ interface Order {
 }
 
 export default function OrdersPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { t, language } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   
   const pageHints = getHintsForPage('orders');
@@ -67,12 +68,15 @@ export default function OrdersPage() {
   useEffect(() => {
     if (session?.user) {
       fetchOrders();
+    } else if (status !== 'loading') {
+      setIsLoading(false);
     }
-  }, [session?.user, statusFilter]);
+  }, [session?.user, statusFilter, status]);
 
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
+      setLoadError(null);
       const response = await fetch(`/api/orders?status=${statusFilter}`, {
         cache: 'no-store',
       });
@@ -88,9 +92,17 @@ export default function OrdersPage() {
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.error('Orders: error fetching orders:', response.status, errorData);
+        setOrders([]);
+        setLoadError(
+          typeof errorData.error === 'string'
+            ? errorData.error
+            : t('orders.loadError') || 'Bestellingen konden niet worden geladen.'
+        );
       }
     } catch (error) {
       console.error('Orders: error fetching orders:', error);
+      setOrders([]);
+      setLoadError(t('orders.loadError') || 'Bestellingen konden niet worden geladen.');
     } finally {
       setIsLoading(false);
     }
@@ -133,6 +145,14 @@ export default function OrdersPage() {
         return status;
     }
   };
+
+  if (status === 'loading') {
+    return (
+      <main className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600" />
+      </main>
+    );
+  }
 
   if (!session) {
     return (
@@ -196,6 +216,21 @@ export default function OrdersPage() {
                 <div className="h-3 bg-neutral-200 rounded w-1/3"></div>
               </div>
             ))}
+          </div>
+        ) : loadError ? (
+          <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-red-200">
+            <Package className="w-16 h-16 text-red-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+              {t('orders.loadErrorTitle') || 'Kon bestellingen niet laden'}
+            </h3>
+            <p className="text-neutral-600 mb-6">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => void fetchOrders()}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold"
+            >
+              {t('common.retry') || 'Opnieuw proberen'}
+            </button>
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-16">

@@ -18,6 +18,7 @@ type Props = {
   expanded: boolean;
   onToggle: () => void;
   loading?: boolean;
+  loadFailed?: boolean;
   /** Compact Uber-style bar for above-the-fold */
   variant?: 'card' | 'active-bar';
 };
@@ -27,6 +28,7 @@ export default function DeliveryTodayCard({
   expanded,
   onToggle,
   loading = false,
+  loadFailed = false,
   variant = 'card',
 }: Props) {
   const { tOr, language } = useTranslation();
@@ -109,6 +111,47 @@ export default function DeliveryTodayCard({
       <article className="hc-dorpsplein-card animate-pulse p-4">
         <div className="h-4 w-28 rounded bg-gray-200" />
         <div className="mt-3 h-16 rounded-lg bg-gray-100" />
+      </article>
+    );
+  }
+
+  if (!data && loadFailed) {
+    return (
+      <article className="hc-dorpsplein-card overflow-hidden">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left touch-manipulation"
+          aria-expanded={expanded}
+        >
+          <div className="flex items-center gap-2">
+            <Truck className="h-4 w-4 text-blue-700" aria-hidden />
+            <span className="font-semibold text-gray-900">{title}</span>
+          </div>
+          {expanded ? (
+            <ChevronUp className="h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          )}
+        </button>
+        {expanded ? (
+          <div className="border-t border-gray-100 px-4 pb-4 pt-3">
+            <p className="mb-3 text-sm text-red-700" role="alert">
+              {tOr(
+                'operations.today.deliveryLoadError',
+                'Delivery data could not be loaded.',
+                'Bezorgdata kon niet worden geladen.',
+              )}
+            </p>
+            <Link
+              href={OPERATIONS_ROUTES.delivery.home}
+              prefetch
+              className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              {cta}
+            </Link>
+          </div>
+        ) : null}
       </article>
     );
   }

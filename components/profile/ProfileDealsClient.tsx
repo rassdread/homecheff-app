@@ -129,6 +129,7 @@ export default function ProfileDealsClient() {
   const {
     data: hub,
     loading,
+    error,
     refresh,
     mutate,
   } = useSessionSwr<AgreementsHubResponse>(cacheKey, async (signal) => {
@@ -263,6 +264,25 @@ export default function ProfileDealsClient() {
         </div>
       </header>
 
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800"
+        >
+          <p className="font-medium">
+            {t('community.agreements.loadError') ||
+              'Afspraken konden niet worden geladen.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="mt-3 inline-flex min-h-[44px] items-center rounded-lg bg-red-600 px-3 py-2 font-semibold text-white hover:bg-red-700"
+          >
+            {t('common.retry') || 'Opnieuw proberen'}
+          </button>
+        </div>
+      ) : null}
+
       {/* Cockpit strip — always shows next agreement + next action (CE-2B.4). */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3">
@@ -270,7 +290,9 @@ export default function ProfileDealsClient() {
             {t('marketplace.agreements.cockpit.nextAgreement')}
           </p>
           <p className="mt-0.5 truncate text-sm font-medium text-emerald-950">
-            {nextAgreementLabel}
+            {error
+              ? t('community.agreements.loadErrorShort') || 'Niet beschikbaar'
+              : nextAgreementLabel}
           </p>
         </div>
         <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3">
@@ -278,7 +300,9 @@ export default function ProfileDealsClient() {
             {t('marketplace.agreements.cockpit.nextAction')}
           </p>
           <p className="mt-0.5 truncate text-sm font-medium text-amber-950">
-            {nextActionLabel}
+            {error
+              ? t('community.agreements.loadErrorShort') || 'Niet beschikbaar'
+              : nextActionLabel}
           </p>
         </div>
       </div>

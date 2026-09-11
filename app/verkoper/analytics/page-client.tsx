@@ -53,6 +53,7 @@ export default function SellerAnalyticsPageClient() {
   const { t } = useTranslation();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [period, setPeriod] = useState('30d');
 
   useEffect(() => {
@@ -62,13 +63,25 @@ export default function SellerAnalyticsPageClient() {
   const loadAnalytics = async () => {
     try {
       setIsLoading(true);
+      setLoadError(null);
       const response = await fetch(`/api/seller/dashboard/stats?period=${period}`);
       if (response.ok) {
         const statsData = await response.json();
         setData(statsData);
+      } else {
+        setData(null);
+        setLoadError(
+          t('seller.analyticsLoadError') ||
+            'Analytics konden niet worden geladen. Probeer opnieuw.'
+        );
       }
     } catch (error) {
       console.error('Error loading analytics:', error);
+      setData(null);
+      setLoadError(
+        t('seller.analyticsLoadError') ||
+          'Analytics konden niet worden geladen. Probeer opnieuw.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -115,6 +128,18 @@ export default function SellerAnalyticsPageClient() {
       contentClassName="py-0"
     >
       <div className="pb-8">
+        {loadError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-8 text-center">
+            <p className="text-sm text-red-800 mb-4">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => void loadAnalytics()}
+              className="min-h-[44px] rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+            >
+              {t('common.retry') || 'Opnieuw proberen'}
+            </button>
+          </div>
+        ) : null}
         {data?.analyticsLevel === 'none' ? (
           <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-gray-800">
             {t('business.plan.analyticsUpgrade')}

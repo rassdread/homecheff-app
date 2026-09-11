@@ -101,6 +101,7 @@ interface StripeStatus {
   payoutsEnabled: boolean;
   uiStatus?: string;
   paymentReady?: boolean;
+  canCreateOnboardingLink?: boolean;
   cta?: {
     titleNl?: string;
     bodyNl?: string;
@@ -292,6 +293,7 @@ function SellerFinancialOverview() {
   const { t, language } = useTranslation();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [requestingPayout, setRequestingPayout] = useState(false);
   const [payoutError, setPayoutError] = useState<string | null>(null);
   const [payoutSuccess, setPayoutSuccess] = useState<string | null>(null);
@@ -302,14 +304,29 @@ function SellerFinancialOverview() {
 
   const loadData = () => {
     setLoading(true);
+    setLoadError(null);
     fetch('/api/seller/earnings')
-      .then(res => res.json())
-      .then(data => {
-        setData(data);
-        setLoading(false);
+      .then(async (res) => {
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setData(null);
+          setLoadError(
+            typeof payload.error === 'string'
+              ? payload.error
+              : t('seller.earningsLoadError') || 'Financiële data kon niet worden geladen.'
+          );
+          return;
+        }
+        setData(payload);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
+        setData(null);
+        setLoadError(
+          t('seller.earningsLoadError') || 'Financiële data kon niet worden geladen.'
+        );
+      })
+      .finally(() => {
         setLoading(false);
       });
   };
@@ -406,6 +423,23 @@ function SellerFinancialOverview() {
             <RefreshCw className="w-4 h-4 inline mr-2 animate-spin" /> {t('seller.processing')}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (loadError || !data) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-sm text-red-800 mb-4">
+          {loadError || t('seller.earningsLoadError') || 'Financiële data kon niet worden geladen.'}
+        </p>
+        <button
+          type="button"
+          onClick={loadData}
+          className="min-h-[44px] rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          {t('common.retry') || 'Opnieuw proberen'}
+        </button>
       </div>
     );
   }
@@ -1130,6 +1164,7 @@ function StripeTab({
   const showOnboardCta =
     !paymentReady &&
     !pending &&
+    stripeStatus?.canCreateOnboardingLink !== false &&
     (stripeStatus?.cta?.showOnboardingCta !== false);
 
   const openOnboarding = async () => {

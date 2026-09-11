@@ -28,6 +28,9 @@ type RoleData = {
   delivery: DeliveryDashboardSnapshot | null;
   seller: SellerTodaySnapshot | null;
   partner: PartnerTodaySnapshot | null;
+  sellerLoadFailed?: boolean;
+  partnerLoadFailed?: boolean;
+  deliveryLoadFailed?: boolean;
 };
 
 function hasSeller(ctx: SettingsHubContext | null): boolean {
@@ -72,12 +75,18 @@ export function useOperationsTodayRoleData(
       let delivery: DeliveryDashboardSnapshot | null = null;
       let seller: SellerTodaySnapshot | null = null;
       let partner: PartnerTodaySnapshot | null = null;
+      let sellerLoadFailed = false;
+      let partnerLoadFailed = false;
+      let deliveryLoadFailed = false;
 
       if (hasDelivery(ctx)) {
         requests.push(
           fetch('/api/delivery/dashboard')
             .then(async (res) => {
-              if (!res.ok) return;
+              if (!res.ok) {
+                deliveryLoadFailed = true;
+                return;
+              }
               const json = await res.json();
               delivery = {
                 isOnline: Boolean(json.isOnline),
@@ -89,7 +98,9 @@ export function useOperationsTodayRoleData(
                 },
               };
             })
-            .catch(() => undefined),
+            .catch(() => {
+              deliveryLoadFailed = true;
+            }),
         );
       }
 
@@ -100,19 +111,21 @@ export function useOperationsTodayRoleData(
             fetch('/api/seller/dashboard/stats?period=7d'),
           ])
             .then(async ([ordersRes, statsRes]) => {
-              const ordersJson = ordersRes.ok
-                ? await ordersRes.json()
-                : { orders: [] };
-              const statsJson = statsRes.ok
-                ? await statsRes.json()
-                : { totalRevenue: 0, totalOrders: 0 };
+              if (!ordersRes.ok || !statsRes.ok) {
+                sellerLoadFailed = true;
+                return;
+              }
+              const ordersJson = await ordersRes.json();
+              const statsJson = await statsRes.json();
               seller = {
                 recentOrders: (ordersJson.orders ?? []).slice(0, 3),
                 revenue7d: statsJson.totalRevenue ?? 0,
                 orders7d: statsJson.totalOrders ?? 0,
               };
             })
-            .catch(() => undefined),
+            .catch(() => {
+              sellerLoadFailed = true;
+            }),
         );
       }
 
@@ -120,7 +133,10 @@ export function useOperationsTodayRoleData(
         requests.push(
           fetch('/api/affiliate/dashboard')
             .then(async (res) => {
-              if (!res.ok) return;
+              if (!res.ok) {
+                partnerLoadFailed = true;
+                return;
+              }
               const json = await res.json();
               partner = {
                 referralLink: json.referralLink ?? null,
@@ -128,12 +144,21 @@ export function useOperationsTodayRoleData(
                 totalReferrals: json.stats?.totalReferrals ?? 0,
               };
             })
-            .catch(() => undefined),
+            .catch(() => {
+              partnerLoadFailed = true;
+            }),
         );
       }
 
       await Promise.all(requests);
-      setData({ delivery, seller, partner });
+      setData({
+        delivery,
+        seller,
+        partner,
+        sellerLoadFailed,
+        partnerLoadFailed,
+        deliveryLoadFailed,
+      });
     } finally {
       setLoading(false);
       lastFetchRef.current = Date.now();

@@ -17,6 +17,7 @@ type Props = {
   expanded: boolean;
   onToggle: () => void;
   loading?: boolean;
+  loadFailed?: boolean;
 };
 
 export default function SellerTodayCard({
@@ -24,6 +25,7 @@ export default function SellerTodayCard({
   expanded,
   onToggle,
   loading = false,
+  loadFailed = false,
 }: Props) {
   const { tOr, language } = useTranslation();
   const { actionCenter } = useOperationsSidepanel();
@@ -90,6 +92,15 @@ export default function SellerTodayCard({
         </button>
         {expanded ? (
           <div className="border-t border-gray-100 px-4 pb-4 pt-3">
+            {loadFailed ? (
+              <p className="mb-3 text-sm text-red-700" role="alert">
+                {tOr(
+                  'operations.today.sellerLoadError',
+                  'Seller data could not be loaded.',
+                  'Verkoopdata kon niet worden geladen.',
+                )}
+              </p>
+            ) : null}
             <Link
               href={OPERATIONS_ROUTES.seller.orders}
               prefetch
