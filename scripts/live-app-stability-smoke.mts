@@ -224,7 +224,7 @@ try {
       buyerCookie,
       'POST',
       `/api/conversations/${conversationId}/messages`,
-      { content: `stability ping ${TAG}` },
+      { text: `stability ping ${TAG}` },
     );
     gate('CHAT_SEND', msg.status === 200 || msg.status === 201);
 
@@ -401,18 +401,91 @@ try {
       timeout: 60000,
     });
     await spage.waitForTimeout(2000);
+    const landscapePanel = await spage
+      .locator(`[data-hc-community-order-id="${orderId}"]`)
+      .count();
+    const landscapeColon = await spage.evaluate(() => {
+      const nodes = Array.from(
+        document.querySelectorAll('[data-hc-fulfillment-location] p'),
+      );
+      return nodes.filter((n) => {
+        const t = (n.textContent || '').replace(/\s+/g, ' ').trim();
+        return t === ':' || t.startsWith(': ') || /^:\s*$/.test(t);
+      }).length;
+    });
     await spage.screenshot({
       path: path.join(OUT, 'mobile-landscape-deals.png'),
     });
 
     gate('MOBILE_PORTRAIT', chatOpen && completeUi && bareColonRows === 0);
-    gate('MOBILE_LANDSCAPE', (await locPanel.count()) >= 0 && uiErrors.length === 0);
+    gate(
+      'MOBILE_LANDSCAPE',
+      landscapePanel > 0 && landscapeColon === 0,
+    );
     gate(
       'PRODUCTION_AUTHENTICATED_E2E',
       gates.CHAT_SEND === 'PASS' &&
         gates.APPOINTMENT_ADDRESS_RENDER_NEW === 'PASS' &&
-        bareColonRows === 0,
+        bareColonRows === 0 &&
+        landscapeColon === 0,
     );
+
+    // Authenticated navigation smoke
+    const navRoutes = [
+      '/mijn-homecheff',
+      '/profile/deals',
+      '/messages',
+      '/verkoper/dashboard',
+      '/settings',
+      '/profile',
+      '/affiliate',
+      '/notifications',
+      '/sell/new',
+    ];
+    let navOk = true;
+    const navHits: Record<string, number> = {};
+    for (const route of navRoutes) {
+      const res = await spage.goto(`${HOMECHEFF}${route}`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      const status = res?.status() ?? 0;
+      navHits[route] = status;
+      if (!(status > 0 && status < 500)) navOk = false;
+      await spage.waitForTimeout(600);
+    }
+    gate('MY_HOMECHEFF', (navHits['/mijn-homecheff'] || 0) < 500);
+    gate('PROFILE_NAVIGATION', (navHits['/profile'] || 0) < 500);
+    gate('SELLER_DASHBOARD', (navHits['/verkoper/dashboard'] || 0) < 500);
+    gate('AFFILIATE_DASHBOARD', (navHits['/affiliate'] || 0) < 500);
+    gate('CREATE_LISTING', (navHits['/sell/new'] || 0) < 500);
+    gate('NOTIFICATION_NAVIGATION', (navHits['/notifications'] || 0) < 500);
+    gate('LISTING_NAVIGATION', navOk);
+
+    const desktop = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      locale: 'nl-NL',
+    });
+    await desktop.addCookies([
+      {
+        name: '__Secure-next-auth.session-token',
+        value: sellerToken,
+        domain: 'homecheff.eu',
+        path: '/',
+        secure: true,
+        httpOnly: true,
+        sameSite: 'Lax',
+      },
+    ]);
+    const dpage = await desktop.newPage();
+    await dpage.goto(`${HOMECHEFF}/messages?conversation=${conversationId}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    });
+    await dpage.waitForTimeout(2500);
+    await dpage.screenshot({ path: path.join(OUT, 'desktop-messages.png') });
+    gate('DESKTOP', (await dpage.locator('body').count()) === 1);
+    await desktop.close();
 
     // Cleanup
     await prisma.product
@@ -450,9 +523,7 @@ try {
   );
   console.log('\n=== STABILITY GATES ===');
   for (const [k, v] of Object.entries(gates)) console.log(`${k}=${v}`);
-  const hardFail = Object.entries(gates).some(
-    ([, v]) => v === 'FAIL',
-  );
+  const hardFail = Object.entries(gates).some(([, v]) => v === 'FAIL');
   process.exit(hardFail ? 1 : 0);
 } catch (e) {
   console.error(e);
