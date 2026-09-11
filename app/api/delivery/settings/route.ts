@@ -67,7 +67,14 @@ export async function GET(req: NextRequest) {
     });
 
     if (!deliveryProfile) {
-      return NextResponse.json({ error: 'No delivery profile found' }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: 'Geen bezorgprofiel gevonden. Rond eerst je bezorgprofiel af via de onboarding.',
+          code: 'DELIVERY_PROFILE_MISSING',
+          startHref: '/delivery/start',
+        },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({
@@ -189,7 +196,14 @@ export async function PUT(req: NextRequest) {
       });
 
       if (!existing) {
-        return NextResponse.json({ error: 'No delivery profile found' }, { status: 404 });
+        return NextResponse.json(
+          {
+            error: 'Geen bezorgprofiel gevonden. Rond eerst je bezorgprofiel af via de onboarding.',
+            code: 'DELIVERY_PROFILE_MISSING',
+            startHref: '/delivery/start',
+          },
+          { status: 404 },
+        );
       }
 
       const pricingCheck = validateProviderPricingForSave({

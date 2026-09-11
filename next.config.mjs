@@ -124,6 +124,9 @@ const nextConfig = {
       { source: '/aviliate/:path*', destination: '/affiliate/:path*', permanent: true },
       // Bare /auth is not a product page — send visitors to login (SSO stays under /auth/sso/*).
       { source: '/auth', destination: '/login', permanent: false },
+      // Legacy/dead CTA target from activity cards — canonical onboarding chooser.
+      { source: '/delivery/onboarding', destination: '/delivery/start', permanent: false },
+      { source: '/delivery/onboarding/', destination: '/delivery/start', permanent: false },
     ];
   },
 

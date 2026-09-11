@@ -114,6 +114,8 @@ export type ActivityCardTriggerId =
   | 'has_seller_role'
   | 'has_delivery_profile'
   | 'no_delivery_profile'
+  | 'delivery_profile_incomplete'
+  | 'delivery_profile_complete'
   | 'unread_messages'
   | 'no_unread_messages'
   | 'is_seller'

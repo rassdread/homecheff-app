@@ -92,6 +92,10 @@ assert(
   courier.some((c) => c.type === 'BECOME_COURIER'),
   'no delivery profile → BECOME_COURIER',
 );
+assert(
+  ACTIVITY_CARD_TYPE_REGISTRY.BECOME_COURIER.actionHref === '/delivery/start',
+  'BECOME_COURIER CTA → /delivery/start (not /delivery/onboarding)',
+);
 const guest = resolveActivityCardContracts({
   input: { ...baseInput, loggedIn: false },
 });

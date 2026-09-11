@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 import { refreshSellerStripeSnapshotIfStale } from '@/lib/stripe/sync-seller-payment-status';
 import { buildUserActionItems } from '@/lib/user/user-action-center';
+import { evaluateDeliveryProfileCompletion } from '@/lib/delivery/delivery-profile-completion';
 import type { PendingClientReward } from '@/lib/gamification/gamification-me-types';
 import {
   isSellerDashboardOrderBadgeNotification,
@@ -68,7 +69,25 @@ export async function GET() {
         hcpWelcomeSeenAt: true,
         Account: { select: { provider: true } },
         SellerProfile: { select: { id: true } },
-        DeliveryProfile: { select: { id: true, isVerified: true } },
+        DeliveryProfile: {
+          select: {
+            id: true,
+            isVerified: true,
+            providerType: true,
+            isActive: true,
+            isOnline: true,
+            homeLat: true,
+            homeLng: true,
+            maxDistance: true,
+            nationalCoverage: true,
+            pricingEnabled: true,
+            baseFeeCents: true,
+            pricePerKmCents: true,
+            minimumFeeCents: true,
+            freeDeliveryRadiusKm: true,
+            companyDisplayName: true,
+          },
+        },
         affiliate: {
           select: {
             id: true,
@@ -195,6 +214,33 @@ export async function GET() {
 
     let items;
     try {
+      const deliveryProfileForActions = user.DeliveryProfile
+        ? (() => {
+            const activation = evaluateDeliveryProfileCompletion({
+              providerType: user.DeliveryProfile.providerType,
+              isActive: user.DeliveryProfile.isActive,
+              isOnline: user.DeliveryProfile.isOnline,
+              homeLat: user.DeliveryProfile.homeLat,
+              homeLng: user.DeliveryProfile.homeLng,
+              maxDistance: user.DeliveryProfile.maxDistance,
+              nationalCoverage: user.DeliveryProfile.nationalCoverage,
+              pricingEnabled: user.DeliveryProfile.pricingEnabled,
+              baseFeeCents: user.DeliveryProfile.baseFeeCents,
+              pricePerKmCents: user.DeliveryProfile.pricePerKmCents,
+              minimumFeeCents: user.DeliveryProfile.minimumFeeCents,
+              freeDeliveryRadiusKm: user.DeliveryProfile.freeDeliveryRadiusKm,
+              companyDisplayName: user.DeliveryProfile.companyDisplayName,
+              isVerified: user.DeliveryProfile.isVerified,
+            });
+            return {
+              id: user.DeliveryProfile.id,
+              isVerified: user.DeliveryProfile.isVerified,
+              activationComplete: activation.isComplete,
+              activationMessage: activation.ok ? null : activation.message,
+            };
+          })()
+        : null;
+
       items = buildUserActionItems({
       user,
       roles: {
@@ -209,7 +255,7 @@ export async function GET() {
       buyerOrderUpdatesCount,
       sellerOrderNotificationsCount: sellerUnreadOrderCount,
       unreadNotifications,
-      deliveryProfile: user.DeliveryProfile,
+      deliveryProfile: deliveryProfileForActions,
       activeDeliveryCount,
       affiliate: user.affiliate
         ? {

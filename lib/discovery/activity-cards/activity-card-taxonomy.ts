@@ -213,7 +213,7 @@ export const ACTIVITY_CARD_REGISTRY: Record<
     descriptionKey: 'activityCards.offer_delivery.description',
     ctaKey: 'activityCards.offer_delivery.cta',
     ctaKind: 'navigate',
-    ctaHref: '/delivery/dashboard',
+    ctaHref: '/delivery/start',
     priority: 'normal',
     allowedSurfaces: ['desktop_sidebar', 'profile_owner'],
     requiredTriggers: ['logged_in', 'no_delivery_profile'],
@@ -225,10 +225,11 @@ export const ACTIVITY_CARD_REGISTRY: Record<
     descriptionKey: 'activityCards.complete_delivery_profile.description',
     ctaKey: 'activityCards.complete_delivery_profile.cta',
     ctaKind: 'navigate',
-    ctaHref: '/delivery/onboarding',
+    ctaHref: '/delivery/settings',
     priority: 'high',
     allowedSurfaces: ['profile_owner', 'desktop_sidebar'],
-    requiredTriggers: ['logged_in', 'has_delivery_profile'],
+    // Incomplete = has row but activation gate not yet satisfied (see delivery-profile-completion).
+    requiredTriggers: ['logged_in', 'has_delivery_profile', 'delivery_profile_incomplete'],
   },
   publish_inspiration: {
     id: 'publish_inspiration',

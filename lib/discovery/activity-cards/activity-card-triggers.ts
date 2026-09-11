@@ -246,6 +246,14 @@ export const TRIGGER_SIGNAL_SOURCES: Record<
     signal: '!deliveryProfile',
     source: 'DeliveryProfile',
   },
+  delivery_profile_incomplete: {
+    signal: 'deliveryProfile exists AND !evaluateDeliveryProfileCompletion(profile).isComplete',
+    source: 'DeliveryProfile + lib/delivery/delivery-profile-completion',
+  },
+  delivery_profile_complete: {
+    signal: 'deliveryProfile exists AND evaluateDeliveryProfileCompletion(profile).isComplete',
+    source: 'DeliveryProfile + lib/delivery/delivery-profile-completion',
+  },
   unread_messages: {
     signal: 'unreadMessagesCount > 0',
     source: 'Conversation unread',

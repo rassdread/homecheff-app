@@ -22,6 +22,7 @@ export default function DeliveryStartPage() {
             {t('deliveryStart.title')}
           </h1>
           <p className="text-sm text-gray-600 sm:text-base">{t('deliveryStart.subtitle')}</p>
+          <p className="text-xs text-gray-500 sm:text-sm">{t('deliveryStart.ageNote')}</p>
         </header>
 
         <div className="grid gap-4">

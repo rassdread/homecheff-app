@@ -5,6 +5,10 @@ import { evaluateProviderActivation } from '@/lib/delivery/provider-activation';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { canManageCompanySettings } from '@/lib/delivery/company-auth';
 import { isDeliveryBusinessProvider } from '@/lib/delivery/provider-identity';
+import {
+  assertCommercialCourierAgeForActivation,
+  delivererAcceptDenialResponse,
+} from '@/lib/delivery/delivery-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +28,9 @@ export async function POST(req: NextRequest) {
 
   const profile = await prisma.deliveryProfile.findUnique({
     where: { userId: session.user.id },
+    include: {
+      user: { select: { id: true, dateOfBirth: true } },
+    },
   });
 
   if (!profile) {
@@ -54,6 +61,17 @@ export async function POST(req: NextRequest) {
   }
 
   if (wantActive) {
+    const ageGate = assertCommercialCourierAgeForActivation({
+      dateOfBirth: profile.user?.dateOfBirth,
+      claimedAge: profile.age,
+      userId: profile.userId,
+    });
+    if (!ageGate.ok) {
+      return NextResponse.json(delivererAcceptDenialResponse(ageGate), {
+        status: ageGate.status,
+      });
+    }
+
     const flags = getDeliveryAlignmentFlags();
     const gate = evaluateProviderActivation(
       {

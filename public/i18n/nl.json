@@ -715,13 +715,23 @@
       "becomeCourier": {
         "title": "Word bezorger in de buurt",
         "description": "Help makers en kopers door lokaal te bezorgen wanneer het jou past.",
-        "action": "Bezorger worden"
+        "action": "Bezorgprofiel instellen"
       },
       "inviteFriend": {
         "title": "Nodig een buur uit",
         "description": "Groei de community door iemand uit te nodigen voor HomeCheff.",
         "action": "Uitnodigen"
       }
+    },
+    "offer_delivery": {
+      "title": "Word bezorger in de buurt",
+      "description": "Help makers en kopers door lokaal te bezorgen wanneer het jou past.",
+      "cta": "Bezorgprofiel instellen"
+    },
+    "complete_delivery_profile": {
+      "title": "Rond je bezorgprofiel af",
+      "description": "Vul werkgebied en tarieven in om bezorgopdrachten te ontvangen. Stripe is alleen nodig voor uitbetalingen.",
+      "cta": "Bezorgprofiel afronden"
     }
   },
   "activations": {
@@ -6156,7 +6166,9 @@
       "complete": "Markeer als afgerond",
       "goOnlineHint": "Ga online om community bezorgingen te claimen.",
       "youAreCourier": "Jij bezorgt deze afspraak"
-    }
+    },
+    "stripeConnectRequired": "Stripe nodig voor uitbetalingen",
+    "stripeConnectRequiredDesc": "Koppel Stripe om verdiensten uit te laten betalen. Je bezorgprofiel kun je alvast afronden zonder Stripe."
   },
   "chat": {
     "backToConversations": "Terug naar gesprekken",
@@ -10592,7 +10604,8 @@
     "driverTitle": "Ik werk voor een bezorgbedrijf",
     "driverBody": "Heb je een uitnodiging ontvangen? Accepteer die om als chauffeur te starten.",
     "alreadyPartner": "Al bezorgpartner?",
-    "goDashboard": "Ga naar je bezorgdashboard"
+    "goDashboard": "Ga naar je bezorgdashboard",
+    "ageNote": "Commerciële bezorging via HomeCheff is beschikbaar vanaf 18 jaar. Minderjarigen kunnen de marktplaats gewoon gebruiken."
   },
   "affiliateDashboard": {
     "share": {

@@ -57,6 +57,9 @@ export type UserActionCenterInput = {
   deliveryProfile?: {
     id: string;
     isVerified: boolean;
+    /** When false, profile exists but activation gate is incomplete. */
+    activationComplete?: boolean;
+    activationMessage?: string | null;
   } | null;
   activeDeliveryCount: number;
   affiliate?: {
@@ -73,6 +76,7 @@ const PROFILE_HREF = '/profile';
 const NOTIFICATIONS_HREF = '/notifications';
 const HCP_HREF = '/mijn-hcp';
 const DELIVERY_HREF = '/delivery';
+const DELIVERY_SETTINGS_HREF = '/delivery/settings';
 const AFFILIATE_HREF = '/affiliate/dashboard';
 
 const AFFILIATE_MIN_PAYOUT_CENTS = 1000;
@@ -219,15 +223,29 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
   if (!input.roles.hasDeliveryProfile || !input.deliveryProfile) return [];
 
   const items: UserActionItem[] = [];
+  const profile = input.deliveryProfile;
+  const activationComplete = profile.activationComplete !== false;
 
-  if (!input.deliveryProfile.isVerified) {
+  // Incomplete activation (area/pricing) — not Stripe. Canonical editor: /delivery/settings.
+  if (!activationComplete) {
+    items.push({
+      id: 'delivery-profile-incomplete',
+      severity: 'orange',
+      title: 'Je bezorgprofiel is nog niet compleet.',
+      description:
+        profile.activationMessage?.trim() ||
+        'Vul werkgebied en tarieven in om bezorgopdrachten te kunnen ontvangen.',
+      actionLabel: 'Bezorgprofiel afronden',
+      actionHref: DELIVERY_SETTINGS_HREF,
+    });
+  } else if (!profile.isVerified) {
     items.push({
       id: 'delivery-verification',
       severity: 'orange',
-      title: 'Je bezorgerprofiel is nog niet geverifieerd.',
-      description: 'Rond verificatie af om opdrachten te kunnen doen.',
-      actionLabel: 'Profiel openen',
-      actionHref: DELIVERY_HREF,
+      title: 'Je bezorgprofiel is nog niet geactiveerd.',
+      description: 'Activeer je profiel om opdrachten te kunnen doen.',
+      actionLabel: 'Bezorgprofiel openen',
+      actionHref: DELIVERY_SETTINGS_HREF,
     });
   }
 

@@ -236,8 +236,17 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
           router.push('/delivery/dashboard');
         }, 1500);
       } else {
-        const error = await response.json();
-        alert(`${t('delivery.error')}: ${error.error}`);
+        const error = await response.json().catch(() => ({}));
+        const message =
+          typeof error?.error === 'string'
+            ? error.error
+            : t('errors.saveError');
+        if (error?.code === 'DELIVERY_PROFILE_MISSING' || response.status === 404) {
+          alert(message);
+          router.push('/delivery/start');
+          return;
+        }
+        alert(`${t('delivery.error')}: ${message}`);
       }
     } catch (error) {
       console.error('Error saving settings:', error);

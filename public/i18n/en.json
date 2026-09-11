@@ -1780,7 +1780,9 @@
       "complete": "Mark as completed",
       "goOnlineHint": "Go online to claim community deliveries.",
       "youAreCourier": "You are delivering this deal"
-    }
+    },
+    "stripeConnectRequired": "Stripe needed for payouts",
+    "stripeConnectRequiredDesc": "Connect Stripe to receive payouts. You can finish your delivery profile without Stripe."
   },
   "products": {
     "pickup": "Pickup",
@@ -1925,13 +1927,23 @@
       "becomeCourier": {
         "title": "Become a local courier",
         "description": "Help makers and buyers by delivering locally when it suits you.",
-        "action": "Become courier"
+        "action": "Set up delivery profile"
       },
       "inviteFriend": {
         "title": "Invite a neighbor",
         "description": "Grow the community by inviting someone to HomeCheff.",
         "action": "Invite"
       }
+    },
+    "offer_delivery": {
+      "title": "Become a local courier",
+      "description": "Help makers and buyers by delivering locally when it suits you.",
+      "cta": "Set up delivery profile"
+    },
+    "complete_delivery_profile": {
+      "title": "Finish your delivery profile",
+      "description": "Add your service area and rates to receive delivery jobs. Stripe is only needed for payouts.",
+      "cta": "Complete delivery profile"
     }
   },
   "activations": {
@@ -10592,7 +10604,8 @@
     "driverTitle": "I work for a delivery company",
     "driverBody": "Received an invite? Accept it to start as a driver.",
     "alreadyPartner": "Already a delivery partner?",
-    "goDashboard": "Go to your delivery dashboard"
+    "goDashboard": "Go to your delivery dashboard",
+    "ageNote": "Commercial delivery on HomeCheff is available from age 18. Minors can still use the marketplace."
   },
   "affiliateDashboard": {
     "share": {

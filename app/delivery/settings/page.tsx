@@ -2,68 +2,44 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import DeliverySettings from '@/components/delivery/DeliverySettings';
+import {
+  DELIVERY_START_HREF,
+} from '@/lib/delivery/delivery-profile-completion';
 
 export default async function DeliverySettingsPage() {
   const session = await auth();
-  
+
   if (!session?.user) {
-    redirect('/login');
+    redirect('/login?callbackUrl=/delivery/settings');
   }
 
-  const userId = (session.user as any).id;
+  const userId = (session.user as { id?: string }).id;
+  if (!userId) {
+    redirect('/login?callbackUrl=/delivery/settings');
+  }
 
-  // Check if user has seller roles (sellers can access delivery settings without delivery profile)
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { 
-      id: true, 
-      sellerRoles: true, 
-      role: true,
-      name: true,
-      email: true
-    }
+  const deliveryProfile = await prisma.deliveryProfile.findUnique({
+    where: { userId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
   });
 
-  const hasSellerRoles = user?.sellerRoles && user.sellerRoles.length > 0;
-  const isSeller = user?.role === 'SELLER';
-
-  // Check if user has delivery profile (only if not a seller)
-  let deliveryProfile: any = null;
-  if (!hasSellerRoles && !isSeller) {
-    deliveryProfile = await prisma.deliveryProfile.findUnique({
-      where: { userId: userId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
-
-    if (!deliveryProfile) {
-      redirect('/delivery/signup');
-    }
-  } else {
-    // For sellers, create a minimal delivery profile object
-    deliveryProfile = {
-      id: '',
-      userId: userId,
-      preferredRadius: 5.0,
-      user: {
-        id: userId,
-        name: user?.name || null,
-        email: user?.email || null
-      }
-    } as any;
+  // No stub profiles: settings API requires a real DeliveryProfile row.
+  // Sellers without a courier profile start via the same onboarding chooser.
+  if (!deliveryProfile) {
+    redirect(DELIVERY_START_HREF);
   }
 
-  // Ensure preferredRadius is not null
   const deliveryProfileWithDefaults = {
     ...deliveryProfile,
-    preferredRadius: deliveryProfile.preferredRadius || 3.0
+    preferredRadius: deliveryProfile.preferredRadius || 3.0,
   };
 
   return <DeliverySettings deliveryProfile={deliveryProfileWithDefaults} />;

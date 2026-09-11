@@ -152,7 +152,7 @@ export const ACTIVITY_CARD_TYPE_REGISTRY: Record<
     descriptionKey: 'activityCards.types.becomeCourier.description',
     icon: 'Truck',
     actionLabelKey: 'activityCards.types.becomeCourier.action',
-    actionHref: '/delivery/onboarding',
+    actionHref: '/delivery/start',
     dismissible: true,
     cooldownDays: 14,
     ctaKind: 'navigate',
