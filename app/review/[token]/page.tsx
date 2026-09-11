@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
+import { Star, Send, Loader2, CheckCircle, AlertCircle, Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -16,6 +17,8 @@ interface ReviewData {
   buyerName: string;
 }
 
+const MAX_PHOTOS = 5;
+
 export default function ReviewPage({ params }: { params: { token: string } }) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -26,7 +29,10 @@ export default function ReviewPage({ params }: { params: { token: string } }) {
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadReviewData();
@@ -65,6 +71,37 @@ export default function ReviewPage({ params }: { params: { token: string } }) {
     }
   };
 
+  const handleUpload = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const remaining = MAX_PHOTOS - imageUrls.length;
+    if (remaining <= 0) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const next: string[] = [];
+      for (const file of Array.from(files).slice(0, remaining)) {
+        if (!file.type.startsWith('image/')) continue;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', 'review');
+        formData.append('uploadContext', 'product-review');
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || t('review.submitError'));
+        }
+        const data = await res.json();
+        if (data.url) next.push(String(data.url));
+      }
+      if (next.length) setImageUrls((prev) => [...prev, ...next].slice(0, MAX_PHOTOS));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('review.submitError'));
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -87,6 +124,7 @@ export default function ReviewPage({ params }: { params: { token: string } }) {
           rating,
           title: title.trim() || null,
           comment: comment.trim() || null,
+          images: imageUrls,
         }),
       });
 
@@ -244,6 +282,50 @@ export default function ReviewPage({ params }: { params: { token: string } }) {
                 <p className="text-xs text-gray-500 mt-1">{comment.length}/1000 {t('review.characters')}</p>
               </div>
 
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Foto&apos;s (optioneel)
+                </label>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  multiple
+                  className="sr-only"
+                  onChange={(e) => void handleUpload(e.target.files)}
+                />
+                <button
+                  type="button"
+                  disabled={uploading || imageUrls.length >= MAX_PHOTOS || isSubmitting}
+                  onClick={() => fileRef.current?.click()}
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-700"
+                >
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                  Foto&apos;s toevoegen
+                </button>
+                {imageUrls.length > 0 ? (
+                  <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+                    {imageUrls.map((url) => (
+                      <li key={url} className="relative aspect-square overflow-hidden rounded-lg border">
+                        <Image src={url} alt="Preview" fill className="object-cover" sizes="96px" />
+                        <button
+                          type="button"
+                          aria-label="Foto verwijderen"
+                          className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white"
+                          onClick={() => setImageUrls((prev) => prev.filter((u) => u !== url))}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-sm text-red-700">{error}</p>
@@ -254,7 +336,7 @@ export default function ReviewPage({ params }: { params: { token: string } }) {
               <div className="flex gap-4">
                 <Button
                   type="submit"
-                  disabled={isSubmitting || rating < 1}
+                  disabled={isSubmitting || uploading || rating < 1}
                   className="flex-1"
                 >
                   {isSubmitting ? (

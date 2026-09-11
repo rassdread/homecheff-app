@@ -11,6 +11,7 @@ interface ReviewItem {
   id: string;
   rating: number;
   comment: string;
+  images?: { id: string; url: string; sortOrder: number }[];
   reviewer: {
     id: string;
     name: string | null;
@@ -250,9 +251,29 @@ export default function ItemsWithReviews({ userId, productsOnly = true }: ItemsW
                           • {new Date(review.createdAt).toLocaleDateString('nl-NL')}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700 line-clamp-2">
-                        {review.comment}
-                      </p>
+                      {review.comment?.trim() ? (
+                        <p className="text-sm text-gray-700 line-clamp-2">
+                          {review.comment}
+                        </p>
+                      ) : null}
+                      {review.images && review.images.length > 0 ? (
+                        <div className="mt-2 flex gap-1.5 overflow-x-auto">
+                          {review.images.slice(0, 3).map((img) => (
+                            <div
+                              key={img.id}
+                              className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-gray-200"
+                            >
+                              <Image
+                                src={img.url}
+                                alt="Reviewfoto"
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                   {item.reviewCount > 2 && (

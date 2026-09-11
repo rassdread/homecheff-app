@@ -15,9 +15,10 @@ export type SellerOrderTabKey =
 
 /** NL-statusstring zoals in verkoper-lijst (compatibel met bestaande UI). */
 export function orderStatusToSellerLabel(status: OrderStatus): string {
+  // Keep labels aligned with buyer OrderStatusChip i18n (order-status-display).
   switch (status) {
     case 'DELIVERED':
-      return 'Voltooid';
+      return 'Bezorgd';
     case 'CONFIRMED':
       return 'Bevestigd';
     case 'PROCESSING':

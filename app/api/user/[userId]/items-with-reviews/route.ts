@@ -3,6 +3,11 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+const submittedProductReviewWhere = {
+  reviewSubmittedAt: { not: null },
+  rating: { gt: 0 },
+} as const;
+
 // GET - Haal items met reviews op voor openbaar profiel
 export async function GET(
   request: NextRequest,
@@ -36,10 +41,14 @@ export async function GET(
                 profileImage: true,
                 image: true
               }
-            }
+            },
+            images: {
+              orderBy: { sortOrder: 'asc' },
+              select: { id: true, url: true, sortOrder: true },
+            },
           },
           orderBy: { createdAt: 'desc' },
-          take: 5 // Laatste 5 reviews
+          take: 5
         },
         _count: {
           select: {
@@ -52,7 +61,7 @@ export async function GET(
       }
     }).catch(() => []);
 
-    // Get products with reviews
+    // Get products with submitted reviews only (exclude webhook placeholders)
     const productsWithReviews = await prisma.product.findMany({
       where: {
         seller: {
@@ -60,7 +69,7 @@ export async function GET(
         },
         isActive: true,
         reviews: {
-          some: {}
+          some: submittedProductReviewWhere,
         }
       },
       include: {
@@ -69,6 +78,7 @@ export async function GET(
           take: 1
         },
         reviews: {
+          where: submittedProductReviewWhere,
           include: {
             buyer: {
               select: {
@@ -78,14 +88,18 @@ export async function GET(
                 profileImage: true,
                 image: true
               }
-            }
+            },
+            images: {
+              orderBy: { sortOrder: 'asc' },
+              select: { id: true, url: true, sortOrder: true },
+            },
           },
-          orderBy: { createdAt: 'desc' },
-          take: 5 // Laatste 5 reviews
+          orderBy: { reviewSubmittedAt: 'desc' },
+          take: 5
         },
         _count: {
           select: {
-            reviews: true
+            reviews: { where: submittedProductReviewWhere },
           }
         }
       },
@@ -94,7 +108,6 @@ export async function GET(
       }
     }).catch(() => []);
 
-    // Transform data
     const items = [
       ...dishesWithReviews.map(dish => ({
         id: dish.id,
@@ -111,6 +124,7 @@ export async function GET(
           id: r.id,
           rating: r.rating,
           comment: r.comment || '',
+          images: r.images ?? [],
           reviewer: {
             id: r.reviewer.id,
             name: r.reviewer.name,
@@ -137,16 +151,17 @@ export async function GET(
           id: r.id,
           rating: r.rating,
           comment: r.comment || '',
+          images: r.images ?? [],
           reviewer: {
             id: r.buyer.id,
             name: r.buyer.name,
             username: r.buyer.username,
             image: r.buyer.profileImage || r.buyer.image
           },
-          createdAt: r.createdAt.toISOString()
+          createdAt: (r.reviewSubmittedAt ?? r.createdAt).toISOString()
         })),
         createdAt: product.createdAt.toISOString(),
-        updatedAt: product.createdAt.toISOString() // Product has no updatedAt, use createdAt
+        updatedAt: product.createdAt.toISOString()
       }))
     ].sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
 
@@ -156,34 +171,3 @@ export async function GET(
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

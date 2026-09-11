@@ -89,11 +89,35 @@ export async function PATCH(
       }
     }
 
+    if (status && status !== order.status) {
+      const { assertOrderStatusTransition } = await import(
+        '@/lib/orders/order-status-transitions'
+      );
+      const gate = assertOrderStatusTransition(order.status, status);
+      if (!gate.ok) {
+        return NextResponse.json(
+          { error: gate.message, code: gate.code },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Idempotent: same status is a no-op success
+    if (status && status === order.status) {
+      return NextResponse.json({
+        success: true,
+        order,
+        message: 'Order status unchanged',
+      });
+    }
+
     // Update order
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: {
         ...(status && { status }),
+        ...(status === 'SHIPPED' && !order.shippedAt ? { shippedAt: new Date() } : {}),
+        ...(status === 'DELIVERED' && !order.deliveredAt ? { deliveredAt: new Date() } : {}),
         ...(pickupAddress && { pickupAddress }),
         ...(deliveryAddress && { deliveryAddress }),
         ...(pickupDate && { pickupDate: new Date(pickupDate) }),

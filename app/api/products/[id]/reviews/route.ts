@@ -110,9 +110,8 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid rating' }, { status: 400 });
     }
 
-    if (!comment || comment.trim().length === 0) {
-      return NextResponse.json({ error: 'Comment is required' }, { status: 400 });
-    }
+    const commentText =
+      typeof comment === 'string' ? comment.trim() : '';
 
     // Validate images array
     let validImages: string[] = [];
@@ -145,7 +144,9 @@ export async function POST(
           
           return true;
         })
-        .map((url: string) => url.trim());
+        .map((url: string) => url.trim())
+        .filter((url: string) => !url.startsWith('data:'))
+        .slice(0, 5);
     }
 
     // Get user
@@ -245,7 +246,7 @@ export async function POST(
         data: {
           rating,
           title: title?.trim() || null,
-          comment: comment.trim(),
+          comment: commentText || null,
           reviewSubmittedAt: new Date(),
           isVerified: true, // Verified because user purchased the product
           reviewToken: null, // Invalidate token after submission
@@ -293,7 +294,7 @@ export async function POST(
           orderId: orderIdToUse,
           rating,
           title: title?.trim() || null,
-          comment: comment.trim(),
+          comment: commentText || null,
           reviewSubmittedAt: new Date(),
           isVerified,
           images: validImages.length > 0 ? {

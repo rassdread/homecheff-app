@@ -55,6 +55,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Update review
+    const imageUrls: string[] = Array.isArray(images)
+      ? images
+          .filter((url: unknown): url is string => typeof url === 'string' && url.trim().length > 0)
+          .map((url: string) => url.trim())
+          .filter((url: string) => !url.startsWith('data:'))
+          .slice(0, 5)
+      : [];
+
+    // Replace any prior images on placeholder rows
+    if (imageUrls.length > 0) {
+      await prisma.reviewImage.deleteMany({ where: { reviewId: review.id } });
+    }
+
     const updatedReview = await prisma.productReview.update({
       where: { id: review.id },
       data: {
@@ -63,11 +76,15 @@ export async function POST(req: NextRequest) {
         comment: comment || null,
         reviewSubmittedAt: new Date(),
         isVerified: true, // Verified because it came from a valid order
-        images: images && images.length > 0 ? {
-          create: images.map((url: string) => ({
-            fileUrl: url
-          }))
-        } : undefined
+        images:
+          imageUrls.length > 0
+            ? {
+                create: imageUrls.map((url: string, index: number) => ({
+                  url,
+                  sortOrder: index,
+                })),
+              }
+            : undefined,
       },
       include: {
         product: {
@@ -87,7 +104,8 @@ export async function POST(req: NextRequest) {
               }
             }
           }
-        }
+        },
+        images: { orderBy: { sortOrder: 'asc' } },
       }
     });
 

@@ -4,8 +4,13 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// GET - Haal items met reviews op voor profiel tab
-export async function GET(request: NextRequest) {
+const submittedProductReviewWhere = {
+  reviewSubmittedAt: { not: null },
+  rating: { gt: 0 },
+} as const;
+
+// GET - Haal items met reviews op voor profiel tab (owner)
+export async function GET(_request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -14,28 +19,21 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
     }
 
-    // Get dishes (inspiratie items) with reviews
     const dishesWithReviews = await prisma.dish.findMany({
       where: {
         userId: user.id,
         status: 'PUBLISHED',
-        reviews: {
-          some: {}
-        }
+        reviews: { some: {} },
       },
       include: {
-        photos: {
-          where: { isMain: true },
-          take: 1,
-          orderBy: { idx: 'asc' }
-        },
+        photos: { where: { isMain: true }, take: 1, orderBy: { idx: 'asc' } },
         reviews: {
           include: {
             reviewer: {
@@ -44,41 +42,32 @@ export async function GET(request: NextRequest) {
                 name: true,
                 username: true,
                 profileImage: true,
-                image: true
-              }
-            }
+                image: true,
+              },
+            },
+            images: {
+              orderBy: { sortOrder: 'asc' },
+              select: { id: true, url: true, sortOrder: true },
+            },
           },
           orderBy: { createdAt: 'desc' },
-          take: 5 // Laatste 5 reviews
+          take: 5,
         },
-        _count: {
-          select: {
-            reviews: true
-          }
-        }
+        _count: { select: { reviews: true } },
       },
-      orderBy: {
-        updatedAt: 'desc'
-      }
+      orderBy: { updatedAt: 'desc' },
     });
 
-    // Get products with reviews
     const productsWithReviews = await prisma.product.findMany({
       where: {
-        seller: {
-          userId: user.id
-        },
+        seller: { userId: user.id },
         isActive: true,
-        reviews: {
-          some: {}
-        }
+        reviews: { some: submittedProductReviewWhere },
       },
       include: {
-        Image: {
-          where: { sortOrder: 0 },
-          take: 1
-        },
+        Image: { where: { sortOrder: 0 }, take: 1 },
         reviews: {
+          where: submittedProductReviewWhere,
           include: {
             buyer: {
               select: {
@@ -86,27 +75,26 @@ export async function GET(request: NextRequest) {
                 name: true,
                 username: true,
                 profileImage: true,
-                image: true
-              }
-            }
+                image: true,
+              },
+            },
+            images: {
+              orderBy: { sortOrder: 'asc' },
+              select: { id: true, url: true, sortOrder: true },
+            },
           },
-          orderBy: { createdAt: 'desc' },
-          take: 5 // Laatste 5 reviews
+          orderBy: { reviewSubmittedAt: 'desc' },
+          take: 5,
         },
         _count: {
-          select: {
-            reviews: true
-          }
-        }
+          select: { reviews: { where: submittedProductReviewWhere } },
+        },
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
+      orderBy: { createdAt: 'desc' },
     });
 
-    // Transform data
     const items = [
-      ...dishesWithReviews.map(dish => ({
+      ...dishesWithReviews.map((dish) => ({
         id: dish.id,
         type: 'dish' as const,
         title: dish.title,
@@ -114,25 +102,31 @@ export async function GET(request: NextRequest) {
         category: dish.category,
         image: dish.photos[0]?.url || null,
         reviewCount: dish._count.reviews,
-        averageRating: dish.reviews.length > 0
-          ? Math.round((dish.reviews.reduce((sum, r) => sum + r.rating, 0) / dish.reviews.length) * 10) / 10
-          : 0,
-        recentReviews: dish.reviews.map(r => ({
+        averageRating:
+          dish.reviews.length > 0
+            ? Math.round(
+                (dish.reviews.reduce((sum, r) => sum + r.rating, 0) /
+                  dish.reviews.length) *
+                  10,
+              ) / 10
+            : 0,
+        recentReviews: dish.reviews.map((r) => ({
           id: r.id,
           rating: r.rating,
           comment: r.comment || '',
+          images: r.images ?? [],
           reviewer: {
             id: r.reviewer.id,
             name: r.reviewer.name,
             username: r.reviewer.username,
-            image: r.reviewer.profileImage || r.reviewer.image
+            image: r.reviewer.profileImage || r.reviewer.image,
           },
-          createdAt: r.createdAt.toISOString()
+          createdAt: r.createdAt.toISOString(),
         })),
         createdAt: dish.createdAt.toISOString(),
-        updatedAt: dish.updatedAt.toISOString()
+        updatedAt: dish.updatedAt.toISOString(),
       })),
-      ...productsWithReviews.map(product => ({
+      ...productsWithReviews.map((product) => ({
         id: product.id,
         type: 'product' as const,
         title: product.title,
@@ -140,25 +134,35 @@ export async function GET(request: NextRequest) {
         category: product.category,
         image: product.Image[0]?.fileUrl || null,
         reviewCount: product._count.reviews,
-        averageRating: product.reviews.length > 0
-          ? Math.round((product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length) * 10) / 10
-          : 0,
-        recentReviews: product.reviews.map(r => ({
+        averageRating:
+          product.reviews.length > 0
+            ? Math.round(
+                (product.reviews.reduce((sum, r) => sum + r.rating, 0) /
+                  product.reviews.length) *
+                  10,
+              ) / 10
+            : 0,
+        recentReviews: product.reviews.map((r) => ({
           id: r.id,
           rating: r.rating,
           comment: r.comment || '',
+          images: r.images ?? [],
           reviewer: {
             id: r.buyer.id,
             name: r.buyer.name,
             username: r.buyer.username,
-            image: r.buyer.profileImage || r.buyer.image
+            image: r.buyer.profileImage || r.buyer.image,
           },
-          createdAt: r.createdAt.toISOString()
+          createdAt: (r.reviewSubmittedAt ?? r.createdAt).toISOString(),
         })),
         createdAt: product.createdAt.toISOString(),
-        updatedAt: product.createdAt.toISOString() // Product has no updatedAt, use createdAt
-      }))
-    ].sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+        updatedAt: product.createdAt.toISOString(),
+      })),
+    ].sort(
+      (a, b) =>
+        new Date(b.updatedAt || b.createdAt).getTime() -
+        new Date(a.updatedAt || a.createdAt).getTime(),
+    );
 
     return NextResponse.json({ items });
   } catch (error) {
@@ -166,5 +170,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
-
-

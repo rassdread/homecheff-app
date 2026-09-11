@@ -75,6 +75,25 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    if (order.status === 'DELIVERED') {
+      return NextResponse.json({
+        success: true,
+        order,
+        message: 'Order already completed',
+      });
+    }
+
+    const { assertOrderStatusTransition } = await import(
+      '@/lib/orders/order-status-transitions'
+    );
+    const gate = assertOrderStatusTransition(order.status, 'DELIVERED');
+    if (!gate.ok) {
+      return NextResponse.json(
+        { error: gate.message, code: gate.code },
+        { status: 400 },
+      );
+    }
+
     if (isHcOnlyOrder(order.paymentMethod)) {
       const capture = await fulfillHcOnlyOrderCapture(orderId);
       if (!capture.ok) {
@@ -89,7 +108,8 @@ export async function POST(
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: {
-        status: 'DELIVERED'
+        status: 'DELIVERED',
+        ...(order.deliveredAt ? {} : { deliveredAt: new Date() }),
       },
       include: {
         items: {

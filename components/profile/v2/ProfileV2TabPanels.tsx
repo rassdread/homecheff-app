@@ -30,6 +30,7 @@ import {
 import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodActions';
 import { ExchangeSuggestionsMobileModule, ExchangeSuggestionsProfileModule } from '@/components/marketplace/exchange-suggestions';
 import ProfileTrustSummaryLoader from '@/components/profile/ProfileTrustSummaryLoader';
+import ProfileTrustReviewsList from '@/components/profile/ProfileTrustReviewsList';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PROFILE_V2_LIVE_AANBOD_FILTERS } from '@/lib/create/offering-vertical';
 import type {
@@ -424,6 +425,10 @@ export function ProfileV2VertrouwenPanel({ ctx }: PanelProps) {
       ) : null}
 
       <ProfileTrustSummaryLoader userId={ctx.user.id} />
+
+      <ProfileV2SectionCard className="border-emerald-100 bg-white">
+        <ProfileTrustReviewsList userId={ctx.user.id} variant="full" />
+      </ProfileV2SectionCard>
 
       <ProfileV2TrustPhotoSections ctx={ctx} />
     </div>

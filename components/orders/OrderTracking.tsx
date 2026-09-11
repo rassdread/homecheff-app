@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Package, Clock, CheckCircle, Truck, MapPin, MessageCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import OrderLifecycleTimeline from '@/components/orders/OrderLifecycleTimeline';
+import OrderStatusChip from '@/components/orders/OrderStatusChip';
 
 interface OrderTrackingProps {
   orderId: string;
@@ -137,7 +139,6 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
     );
   }
 
-  const statusInfo = getStatusInfo(order.status);
   const deliveryInfo = getDeliveryInfo();
 
   return (
@@ -158,29 +159,17 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
       <div className="p-6">
         {/* Status Timeline */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Status</h3>
-          
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gray-200"></div>
-            
-            <div className="relative flex items-start gap-4">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                order.status !== 'PENDING' ? 'bg-primary-brand border-primary-brand text-white' : 'bg-white border-gray-300 text-gray-400'
-              }`}>
-                {statusInfo.icon}
-              </div>
-              <div className="flex-1 pb-8">
-                <h4 className="font-semibold text-gray-900">{statusInfo.status}</h4>
-                <p className="text-sm text-gray-600 mt-1">{statusInfo.description}</p>
-                {statusInfo.timestamp && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    {new Date(statusInfo.timestamp).toLocaleString('nl-NL')}
-                  </p>
-                )}
-              </div>
-            </div>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-lg font-semibold text-gray-900">Status</h3>
+            <OrderStatusChip status={order.status} />
           </div>
+          <OrderLifecycleTimeline
+            status={order.status}
+            createdAt={order.createdAt}
+            shippedAt={order.shippedAt}
+            deliveredAt={order.deliveredAt}
+            deliveryMode={order.deliveryMode}
+          />
         </div>
 
         {/* Delivery Information */}
