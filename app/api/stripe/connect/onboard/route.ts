@@ -276,8 +276,23 @@ export async function POST(req: NextRequest) {
           cta: connectCtaModelForSnapshot(live),
         });
       }
+
+      // Config mismatch (e.g. PARTICULAR + non_profit) must NOT be treated as
+      // pending-verification status-only — recovery/replace must continue.
+      let shapeMismatch = false;
+      if (stripe && (existingTrack === 'PARTICULAR' || requestedTrack === 'PARTICULAR')) {
+        try {
+          const acct = await stripe.accounts.retrieve(current.stripeConnectAccountId);
+          const shape = validateConnectAccountShape(acct, 'PARTICULAR');
+          shapeMismatch = !shape.ok;
+        } catch {
+          shapeMismatch = false;
+        }
+      }
+
       // Pending verification / no actionable requirements → status only, no link.
-      if (!live.canCreateOnboardingLink) {
+      // Exception: configuration mismatch (+ optional forceReplace) → continue to recovery.
+      if (!live.canCreateOnboardingLink && !shapeMismatch) {
         return NextResponse.json({
           success: true,
           message:
