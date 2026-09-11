@@ -1,0 +1,73 @@
+{
+  "TAG": "loccert_mtx08ejb",
+  "HOMECHEFF": "https://homecheff.eu",
+  "steps": [
+    {
+      "name": "start_conversation",
+      "ok": true,
+      "detail": {
+        "conversationId": "ca7f77dc-c213-40f8-b295-e336c0ed8bac"
+      }
+    },
+    {
+      "name": "case_a_create_without_schedule",
+      "ok": true,
+      "detail": {
+        "status": 201
+      }
+    },
+    {
+      "name": "case_a_accept_without_address",
+      "ok": true,
+      "detail": {
+        "orderA": "f1fa14f5-3d61-42e2-8a7a-96c1d59d894f",
+        "status": 200
+      }
+    },
+    {
+      "name": "case_a_pending_roles",
+      "ok": true,
+      "detail": {
+        "seller": "LOCATION_AND_SCHEDULE_PENDING",
+        "buyerCan": false,
+        "sellerCan": true
+      }
+    },
+    {
+      "name": "case_unauthorized_403",
+      "ok": true,
+      "detail": {
+        "status": 403
+      }
+    },
+    {
+      "name": "case_a_complete_and_idempotent",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "state": "COMPLETE",
+        "replay": true,
+        "pickup": "Verkoperlaan 3, 3131 BB Vlaardingen, NL",
+        "schedule": "14:00-16:00"
+      }
+    },
+    {
+      "name": "case_d_schedule_locked_from_proposal",
+      "ok": true,
+      "detail": {
+        "locked": true,
+        "status": 200,
+        "time": "10:00-12:00",
+        "delivery": "Koperstraat 9, 3011 AA Rotterdam, NL",
+        "stateBefore": "LOCATION_PENDING",
+        "stateAfter": "COMPLETE"
+      }
+    },
+    {
+      "name": "case_g_agreement_exists_before_location",
+      "ok": true
+    }
+  ],
+  "FINAL_VERDICT": "HOMECHEFF_FULFILLMENT_LOCATION_E2E_PASS",
+  "failed": []
+}
