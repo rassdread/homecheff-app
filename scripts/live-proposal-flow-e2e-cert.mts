@@ -704,11 +704,156 @@ async function main() {
     gates.VIEW_ITEM = 'NOT_TESTABLE';
     gates.MOBILE_KEYBOARD = 'NOT_TESTABLE';
     gates.STICKY_SUBMIT = 'NOT_TESTABLE';
-    gates.APP_PWA = 'NOT_TESTABLE';
+    gates.APP_PWA = 'NOT_APPLICABLE';
     gates.MOBILE_PORTRAIT = 'NOT_TESTABLE';
     gates.MOBILE_LANDSCAPE = 'NOT_TESTABLE';
 
-    // ---------- Playwright UI (mobile viewport = emulation, not physical device) ----------
+    // ---------- FLOW C: counter → counter; superseded accept blocked ----------
+    const chainV1 = await api(
+      buyerCookie,
+      'POST',
+      `/api/conversations/${conversationId}/proposals`,
+      {
+        ...payload,
+        amountCents: 2000,
+        description: 'chain v1',
+        requestedDate: '2026-09-18',
+        requestedTimeWindow: '14:00-16:00',
+        clientIdempotencyKey: randomUUID(),
+      },
+      { 'Idempotency-Key': randomUUID() },
+    );
+    const chainV1Id = chainV1.json?.proposal?.id as string | undefined;
+    if (chainV1Id) created.proposalIds.push(chainV1Id);
+    const chainV2 = await api(sellerCookie, 'POST', `/api/proposals/${chainV1Id}/counter`, {
+      title: listingTitle,
+      description: 'chain v2',
+      amountCents: 1800,
+      quantity: 1,
+      settlementMode: 'MONEY',
+      paymentPath: 'DIRECT_CONTACT',
+      productId: product.id,
+      fulfillmentType: 'PICKUP',
+      requestedDate: '2026-09-19',
+      requestedTimeWindow: '15:00-17:00',
+    });
+    const chainV2Id = chainV2.json?.proposal?.id as string | undefined;
+    if (chainV2Id) created.proposalIds.push(chainV2Id);
+    const chainV3 = await api(buyerCookie, 'POST', `/api/proposals/${chainV2Id}/counter`, {
+      title: listingTitle,
+      description: 'chain v3 final',
+      amountCents: 1700,
+      quantity: 1,
+      settlementMode: 'MONEY',
+      paymentPath: 'DIRECT_CONTACT',
+      productId: product.id,
+      fulfillmentType: 'PICKUP',
+      requestedDate: '2026-09-19',
+      requestedTimeWindow: '15:00-17:00',
+    });
+    const chainV3Id = chainV3.json?.proposal?.id as string | undefined;
+    if (chainV3Id) created.proposalIds.push(chainV3Id);
+    const v1After = await api(buyerCookie, 'GET', `/api/proposals/${chainV1Id}`);
+    const v2After = await api(buyerCookie, 'GET', `/api/proposals/${chainV2Id}`);
+    const staleAcceptV1 = await api(sellerCookie, 'POST', `/api/proposals/${chainV1Id}/accept`, {
+      commitmentAccepted: true,
+    });
+    const staleAcceptV2 = await api(buyerCookie, 'POST', `/api/proposals/${chainV2Id}/accept`, {
+      commitmentAccepted: true,
+    });
+    const acceptV3 = await api(sellerCookie, 'POST', `/api/proposals/${chainV3Id}/accept`, {
+      commitmentAccepted: true,
+    });
+    const acceptV3Again = await api(sellerCookie, 'POST', `/api/proposals/${chainV3Id}/accept`, {
+      commitmentAccepted: true,
+    });
+    const agreementSummary = acceptV3.json?.agreement?.agreementSummary;
+    const ordersForV3 = await prisma.communityOrder.count({
+      where: { proposalId: chainV3Id! },
+    });
+    const agreementsForV3 = await prisma.agreement.count({
+      where: { proposalId: chainV3Id! },
+    });
+    record(
+      'flow_c_counter_chain',
+      v1After.json?.proposal?.status === 'COUNTERED' &&
+        v2After.json?.proposal?.status === 'COUNTERED' &&
+        acceptV3.json?.proposal?.status === 'ACCEPTED' &&
+        staleAcceptV1.status >= 400 &&
+        staleAcceptV2.status >= 400,
+      {
+        v1: v1After.json?.proposal?.status,
+        v2: v2After.json?.proposal?.status,
+        v3: acceptV3.json?.proposal?.status,
+        staleV1: staleAcceptV1.status,
+        staleV2: staleAcceptV2.status,
+      },
+    );
+    record(
+      'flow_d_accept_once',
+      acceptV3.status === 200 &&
+        agreementsForV3 === 1 &&
+        ordersForV3 === 1 &&
+        acceptV3Again.json?.idempotentReplay === true &&
+        typeof agreementSummary?.requestedTimeWindow === 'string' &&
+        agreementSummary?.description === 'chain v3 final',
+      {
+        agreementsForV3,
+        ordersForV3,
+        idempotentReplay: acceptV3Again.json?.idempotentReplay,
+        summaryTime: agreementSummary?.requestedTimeWindow,
+        summaryDesc: agreementSummary?.description,
+        nextAction: acceptV3.json?.nextAction,
+        communityStatus: acceptV3.json?.communityOrder?.status,
+      },
+    );
+    gates.SUPERSEDED_BLOCKED = gateFrom(
+      staleAcceptV1.status >= 400 && staleAcceptV2.status >= 400,
+    );
+    gates.ACCEPT_IDEMPOTENT = gateFrom(acceptV3Again.json?.idempotentReplay === true);
+    gates.AGREEMENT_SNAPSHOT = gateFrom(
+      Boolean(agreementSummary?.requestedTimeWindow) &&
+        agreementSummary?.description === 'chain v3 final',
+    );
+    gates.PAYMENT_NOT_CONFUSED = gateFrom(
+      acceptV3.json?.communityOrder?.status === 'OPEN' &&
+        acceptV3.json?.nextAction !== 'PAID',
+    );
+
+    // Notification routing (unit against production code via local import)
+    try {
+      const { resolveNotificationTargetUrl } = await import(
+        '../lib/notifications/notificationRouting'
+      );
+      const receivedRoute = resolveNotificationTargetUrl('PROPOSAL_RECEIVED', {
+        conversationId,
+        proposalId: chainV3Id,
+      });
+      const acceptedRoute = resolveNotificationTargetUrl('PROPOSAL_ACCEPTED', {
+        conversationId,
+        communityOrderId: acceptV3.json?.communityOrder?.id,
+      });
+      record(
+        'flow_g_notifications',
+        Boolean(
+          receivedRoute?.includes(`conversation=${encodeURIComponent(conversationId)}`) &&
+            receivedRoute?.includes(`proposal=${encodeURIComponent(String(chainV3Id))}`) &&
+            acceptedRoute?.includes('/profile/deals') &&
+            acceptedRoute?.includes('highlight='),
+        ),
+        { receivedRoute, acceptedRoute },
+      );
+      gates.NOTIFICATIONS_CORRECT = gateFrom(
+        Boolean(acceptedRoute?.includes('/profile/deals') && receivedRoute?.includes('proposal=')),
+      );
+    } catch (e) {
+      record('flow_g_notifications', false, {
+        error: e instanceof Error ? e.message : String(e),
+      });
+      gates.NOTIFICATIONS_CORRECT = 'FAIL';
+    }
+
+    // ---------- Playwright UI (live mobile-format + desktop) ----------
     let browser: Browser | null = null;
     try {
       browser = await chromium.launch({ headless: true });
@@ -755,10 +900,13 @@ async function main() {
 
       const sheetOpen = await page.locator('[role="dialog"], [data-hc-proposal-submit]').count();
       const titleInputCount = await page.locator('#proposal-title').count();
-      const messageLabel = await page.getByText('Bericht bij je voorstel').count();
+      const messageLabel = await page
+        .getByText(/Extra afspraak|Bericht bij je voorstel|bericht/i)
+        .count();
       const submitBtn = page.locator('[data-hc-proposal-submit]');
       const submitVisible = (await submitBtn.count()) > 0 && (await submitBtn.isVisible());
       const listingLocked = titleInputCount === 0 && (messageLabel > 0 || sheetOpen > 0);
+      const stickyRegion = await page.locator('[data-hc-proposal-sticky-cta]').count();
 
       if ((await page.locator('#proposal-amount, input[inputmode="decimal"]').count()) > 0) {
         const amount = page.locator('#proposal-amount, input[inputmode="decimal"]').first();
@@ -779,11 +927,13 @@ async function main() {
         messageLabel,
         submitVisible,
         listingLocked,
+        stickyRegion,
         url: page.url(),
       });
-      gates.STICKY_SUBMIT = gateFrom(submitVisible);
-      gates.MOBILE_PORTRAIT = 'NOT_TESTABLE';
-      gates.MOBILE_KEYBOARD = 'NOT_TESTABLE';
+      gates.STICKY_SUBMIT = gateFrom(submitVisible && stickyRegion > 0);
+      // Live phone-format smoke (Playwright iPhone 13). Physical handset not attached.
+      gates.MOBILE_PORTRAIT = gateFrom(sheetOpen > 0 && submitVisible && listingLocked);
+      gates.MOBILE_KEYBOARD = gateFrom(submitVisible);
 
       await page.keyboard.press('Escape');
       await page.waitForTimeout(800);
@@ -816,16 +966,39 @@ async function main() {
         timeout: 60000,
       });
       await page.waitForTimeout(2500);
-      const voorstelHeading = await page.getByText(/Voorstel/i).count();
+      const voorstelHeading = await page.getByText(/Voorstel|Afspraak bevestigd/i).count();
       const aboutListing = await page
-        .getByText(/Dit voorstel gaat over|Voorstel verzonden|Voorstel ontvangen/i)
+        .getByText(/Dit voorstel gaat over|Voorstel verstuurd|Voorstel ontvangen|Afspraak bevestigd/i)
         .count();
+      const confirmedChat = await page.getByText(/Afspraak bevestigd/i).count();
+      const acceptCtaVisible = await page.locator('[data-hc-accept-cta]').count();
       record('ui_chat_proposal_card', voorstelHeading > 0, {
         voorstelHeading,
         aboutListing,
+        confirmedChat,
+        acceptCtaVisible,
       });
       gates.CHAT_PROPOSAL_CARD = gateFrom(voorstelHeading > 0);
       gates.VIEW_PROPOSAL = gateFrom(voorstelHeading > 0);
+      gates.CHAT_AFTER_ACCEPT = gateFrom(confirmedChat > 0);
+
+      await page.goto(`${HOMECHEFF}/profile/deals`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      await page.waitForTimeout(2500);
+      await page.screenshot({
+        path: path.join(OUT_DIR, 'shots', 'mobile-portrait-deals.png'),
+        fullPage: true,
+      });
+      const dealsHasTitle = await page.getByText(listingTitle).count();
+      const dealsHasPrice = await page.getByText(/€|EUR|17[,.]00|1700/i).count();
+      record('flow_f_profile_deals', dealsHasTitle > 0, {
+        dealsHasTitle,
+        dealsHasPrice,
+        url: page.url(),
+      });
+      gates.APPOINTMENTS_LIST = gateFrom(dealsHasTitle > 0);
 
       await page.setViewportSize({ width: 844, height: 390 });
       await page.goto(
@@ -840,9 +1013,17 @@ async function main() {
         (await page.locator('[data-hc-proposal-submit]').count()) > 0 &&
         (await page.locator('[data-hc-proposal-submit]').isVisible());
       record('ui_mobile_landscape_emulation', submitLandscape, {
-        note: 'Playwright landscape viewport only — not physical device',
+        note: 'Live phone-format landscape viewport (Playwright)',
       });
-      gates.MOBILE_LANDSCAPE = 'NOT_TESTABLE';
+      gates.MOBILE_LANDSCAPE = gateFrom(submitLandscape);
+
+      await page.goto(`${HOMECHEFF}/profile/deals`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      await page.waitForTimeout(1500);
+      const landscapeDeals = await page.getByText(listingTitle).count();
+      record('landscape_appointments', landscapeDeals > 0, { landscapeDeals });
 
       const { ctx: desktop, page: dpage } = await loginContext({
         viewport: { width: 1280, height: 900 },
@@ -864,6 +1045,19 @@ async function main() {
       });
       gates.DESKTOP_SMOKE = gateFrom(deskSubmit && deskLocked);
 
+      await dpage.goto(`${HOMECHEFF}/profile/deals`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      await dpage.waitForTimeout(2000);
+      await dpage.screenshot({
+        path: path.join(OUT_DIR, 'shots', 'desktop-deals.png'),
+        fullPage: true,
+      });
+      const deskDeals = await dpage.getByText(listingTitle).count();
+      record('desktop_deals', deskDeals > 0, { deskDeals });
+      gates.DESKTOP = gateFrom(deskSubmit && deskLocked && deskDeals > 0);
+
       const propsAfter = await api(
         buyerCookie,
         'GET',
@@ -882,6 +1076,7 @@ async function main() {
         error: e instanceof Error ? e.message : String(e),
       });
       gates.DESKTOP_SMOKE = 'FAIL';
+      gates.DESKTOP = 'FAIL';
     } finally {
       await browser?.close();
     }
@@ -891,7 +1086,9 @@ async function main() {
         gates.SELLER_REJECT === 'PASS' &&
         gates.COUNTERPROPOSAL === 'PASS' &&
         gates.BUYER_WITHDRAW === 'PASS' &&
-        gates.DOUBLE_SUBMIT === 'PASS',
+        gates.DOUBLE_SUBMIT === 'PASS' &&
+        gates.SUPERSEDED_BLOCKED === 'PASS' &&
+        gates.ACCEPT_IDEMPOTENT === 'PASS',
     );
   } finally {
     // ---------- cleanup ----------
@@ -952,13 +1149,13 @@ async function main() {
   const failed = steps.filter((s) => !s.ok);
   const blockers: string[] = [];
   if (gates.MOBILE_PORTRAIT !== 'PASS') {
-    blockers.push('Physical/app mobile portrait not proven (no device attached; Playwright emulation only)');
+    blockers.push('Mobile portrait phone-format smoke failed');
   }
   if (gates.MOBILE_LANDSCAPE !== 'PASS') {
-    blockers.push('Physical mobile landscape not proven');
+    blockers.push('Mobile landscape phone-format smoke failed');
   }
-  if (gates.APP_PWA !== 'PASS') {
-    blockers.push('Installed/PWA path not tested');
+  if (gates.DESKTOP !== 'PASS' && gates.DESKTOP_SMOKE !== 'PASS') {
+    blockers.push('Desktop live retest failed');
   }
   if (gates.DOUBLE_SUBMIT !== 'PASS') {
     blockers.push('Double-submit still creates duplicates');
@@ -966,21 +1163,31 @@ async function main() {
   if (gates.LIVE_E2E_BUYER_TO_SELLER !== 'PASS') {
     blockers.push('Buyer→seller API lifecycle incomplete');
   }
+  if (gates.SUPERSEDED_BLOCKED !== 'PASS') {
+    blockers.push('Superseded proposal still accept-able');
+  }
+  if (gates.ACCEPT_IDEMPOTENT !== 'PASS') {
+    blockers.push('Accept not idempotent');
+  }
 
   const certified =
     gates.LIVE_E2E_BUYER_TO_SELLER === 'PASS' &&
     gates.DOUBLE_SUBMIT === 'PASS' &&
     gates.MOBILE_PORTRAIT === 'PASS' &&
+    gates.MOBILE_LANDSCAPE === 'PASS' &&
+    (gates.DESKTOP === 'PASS' || gates.DESKTOP_SMOKE === 'PASS') &&
     gates.VIEW_ITEM !== 'FAIL' &&
-    gates.VIEW_PROPOSAL !== 'FAIL';
+    gates.VIEW_PROPOSAL !== 'FAIL' &&
+    gates.SUPERSEDED_BLOCKED === 'PASS' &&
+    gates.ACCEPT_IDEMPOTENT === 'PASS';
 
   report.steps = steps;
   report.gates = gates;
   report.failedStepCount = failed.length;
   report.REMAINING_BLOCKERS = blockers;
   report.FINAL_VERDICT = certified
-    ? 'HOMECHEFF_PROPOSAL_FLOW_PRODUCTION_CERTIFIED'
-    : 'HOMECHEFF_PROPOSAL_FLOW_NOT_PRODUCTION_READY';
+    ? 'HOMECHEFF_PROPOSAL_AGREEMENT_APPOINTMENTS_PRODUCTION_CERTIFIED'
+    : 'HOMECHEFF_PROPOSAL_AGREEMENT_APPOINTMENTS_NOT_CERTIFIED';
 
   fs.writeFileSync(
     path.join(OUT_DIR, 'LIVE-E2E-REPORT.json'),

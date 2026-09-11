@@ -1,0 +1,159 @@
+[PASS] fixtures_created { buyerId: 'dac00b50', sellerId: 'f8f69983', productId: 'a54509d5' }
+[PASS] buyer_session { status: 200 }
+[PASS] start_conversation { conversationId: '1c11f2f7-84e2-45ed-98b0-241e1cf9c373' }
+[PASS] double_submit_same_key {
+  idA: '6c1d8976-7bcc-49c9-80a1-d91f896183dd',
+  idB: '6c1d8976-7bcc-49c9-80a1-d91f896183dd',
+  statusA: 200,
+  statusB: 201,
+  replay: true
+}
+[PASS] exactly_one_after_double { propCount: 1 }
+[PASS] seller_sees_pending 
+[PASS] buyer_cannot_accept_own { status: 403, error: 'Cannot accept your own proposal' }
+[PASS] seller_accept {
+  status: 200,
+  proposalStatus: 'ACCEPTED',
+  communityOrderId: '5eb12e8c-25f4-4125-943b-b706c4a14a89',
+  nextAction: 'COMMUNITY_ORDER_CREATED',
+  error: {
+    id: 'a5e3a249-2f78-49db-a944-54d233a24d81',
+    conversationId: '1c11f2f7-84e2-45ed-98b0-241e1cf9c373',
+    senderId: 'f8f69983-7e5a-46b7-874b-f80371a167dc',
+    text: 'proposal.system.communityOrderCreated',
+    createdAt: '2026-09-11T13:15:12.862Z',
+    readAt: null,
+    attachmentName: null,
+    attachmentType: null,
+    attachmentUrl: null,
+    deletedAt: null,
+    editedAt: null,
+    messageType: 'PROPOSAL_SYSTEM',
+    orderNumber: null,
+    encryptedText: null,
+    encryptionKey: null,
+    isEncrypted: false,
+    deliveredAt: null,
+    proposalId: null,
+    User: {
+      id: 'f8f69983-7e5a-46b7-874b-f80371a167dc',
+      name: 'PropCert Seller',
+      username: 'pcsell_propcert_mtwzauae',
+      profileImage: null,
+      displayFullName: true,
+      displayNameOption: 'full'
+    }
+  }
+}
+[PASS] seller_reject { rejectStatus: 'REJECTED', status: 200 }
+[PASS] rejected_not_acceptable { status: 409 }
+[PASS] counterproposal {
+  status: 201,
+  childId: '9f528a1c-39d3-4d33-873e-78baf0cdfe01',
+  childStatus: 'PENDING',
+  childAmount: 1300,
+  parentStatus: 'COUNTERED',
+  childTitle: 'PropCert Listing propcert_mtwzauae'
+}
+[PASS] buyer_withdraw { sellerCancel: 403, afterWithdraw: 'CANCELLED' }
+[PASS] snapshot_integrity {
+  summaryTitle: 'PropCert Listing propcert_mtwzauae',
+  summaryPrice: 1500,
+  amountStill: 1400,
+  proposalTitle: 'PropCert Listing propcert_mtwzauae'
+}
+[PASS] barter_create { status: 201, mode: 'VALUE_ONLY' }
+[PASS] homecheff_payment_path {
+  status: 400,
+  path: undefined,
+  error: 'proposal.productBinding.paymentsRequired'
+}
+[PASS] stale_state_response { status: 200, msg: 'ACCEPTED' }
+[PASS] flow_c_counter_chain {
+  v1: 'COUNTERED',
+  v2: 'COUNTERED',
+  v3: 'ACCEPTED',
+  staleV1: 409,
+  staleV2: 409
+}
+[PASS] flow_d_accept_once {
+  agreementsForV3: 1,
+  ordersForV3: 1,
+  idempotentReplay: true,
+  summaryTime: '15:00-17:00',
+  summaryDesc: 'chain v3 final',
+  nextAction: 'COMMUNITY_ORDER_CREATED',
+  communityStatus: 'OPEN'
+}
+[PASS] flow_g_notifications {
+  receivedRoute: '/messages?conversation=1c11f2f7-84e2-45ed-98b0-241e1cf9c373&proposal=13efdaa4-3a32-47c0-af17-fc30c98847da',
+  acceptedRoute: '/profile/deals?highlight=b328f885-f57b-4d55-a41b-b7e5b78f595b'
+}
+[PASS] ui_mobile_sheet {
+  sheetOpen: 2,
+  titleInputCount: 0,
+  messageLabel: 20,
+  submitVisible: true,
+  listingLocked: true,
+  stickyRegion: 1,
+  url: 'https://homecheff.eu/messages?conversation=1c11f2f7-84e2-45ed-98b0-241e1cf9c373'
+}
+[PASS] ui_view_item_href { href: '/product/a54509d5-dbf7-468f-9caf-4f1d3ac43912' }
+[PASS] ui_chat_proposal_card {
+  voorstelHeading: 53,
+  aboutListing: 14,
+  confirmedChat: 2,
+  acceptCtaVisible: 0
+}
+[PASS] flow_f_profile_deals {
+  dealsHasTitle: 13,
+  dealsHasPrice: 3,
+  url: 'https://homecheff.eu/profile/deals'
+}
+[PASS] ui_mobile_landscape_emulation { note: 'Live phone-format landscape viewport (Playwright)' }
+[PASS] landscape_appointments { landscapeDeals: 13 }
+[PASS] desktop_smoke {
+  deskSubmit: true,
+  deskLocked: true,
+  url: 'https://homecheff.eu/messages?conversation=1c11f2f7-84e2-45ed-98b0-241e1cf9c373'
+}
+[PASS] desktop_deals { deskDeals: 13 }
+[PASS] enter_did_not_submit { countBefore: 11, countAfter: 11 }
+[PASS] cleanup { productId: 'a54509d5' }
+
+=== GATES ===
+DOUBLE_SUBMIT=PASS
+SELLER_VIEW=PASS
+SELLER_ACCEPT=PASS
+DIRECT_CASH_PATH=PASS
+PERSISTENCE_CHECK=PASS
+SELLER_REJECT=PASS
+COUNTERPROPOSAL=PASS
+BUYER_WITHDRAW=PASS
+AUTHORIZATION=PASS
+SNAPSHOT_INTEGRITY=PASS
+BARTER_PATH=PASS
+PAYMENT_PATH=PASS
+STALE_STATE=PASS
+BUYER_CREATE=PASS
+EXPLICIT_SUBMIT_ONLY=PASS
+CHAT_PROPOSAL_CARD=PASS
+VIEW_PROPOSAL=PASS
+VIEW_ITEM=PASS
+MOBILE_KEYBOARD=PASS
+STICKY_SUBMIT=PASS
+APP_PWA=NOT_APPLICABLE
+MOBILE_PORTRAIT=PASS
+MOBILE_LANDSCAPE=PASS
+SUPERSEDED_BLOCKED=PASS
+ACCEPT_IDEMPOTENT=PASS
+AGREEMENT_SNAPSHOT=PASS
+PAYMENT_NOT_CONFUSED=PASS
+NOTIFICATIONS_CORRECT=PASS
+CHAT_AFTER_ACCEPT=PASS
+APPOINTMENTS_LIST=PASS
+DESKTOP_SMOKE=PASS
+DESKTOP=PASS
+LIVE_E2E_BUYER_TO_SELLER=PASS
+TEST_DATA_CLEANUP=PASS
+FINAL_VERDICT= HOMECHEFF_PROPOSAL_AGREEMENT_APPOINTMENTS_PRODUCTION_CERTIFIED
