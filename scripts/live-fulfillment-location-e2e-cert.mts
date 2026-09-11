@@ -86,48 +86,91 @@ try {
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
   const buyer = await prisma.user.create({
     data: {
+      id: randomUUID(),
       email: `${TAG}+buyer@homecheff-validation.test`,
       username: `lcbuy_${TAG}`.slice(0, 28),
       name: 'LocCert Buyer',
       passwordHash,
       emailVerified: new Date(),
+      privacyPolicyAccepted: true,
+      privacyPolicyAcceptedAt: new Date(),
       address: 'Koperstraat 9',
       postalCode: '3011 AA',
       city: 'Rotterdam',
       place: 'Rotterdam',
       country: 'NL',
+      lat: 51.922,
+      lng: 4.479,
+      buyerRoles: ['CONSUMER'],
     },
   });
   const seller = await prisma.user.create({
     data: {
+      id: randomUUID(),
       email: `${TAG}+seller@homecheff-validation.test`,
       username: `lcsell_${TAG}`.slice(0, 28),
       name: 'LocCert Seller',
       passwordHash,
       emailVerified: new Date(),
+      privacyPolicyAccepted: true,
+      privacyPolicyAcceptedAt: new Date(),
       address: 'Verkoperlaan 3',
       postalCode: '3131 BB',
       city: 'Vlaardingen',
       place: 'Vlaardingen',
       country: 'NL',
+      lat: 51.912,
+      lng: 4.343,
+      sellerRoles: ['CHEFF'],
     },
   });
   created.buyerId = buyer.id;
   created.sellerId = seller.id;
+  const sellerProfile = await prisma.sellerProfile.create({
+    data: {
+      id: randomUUID(),
+      userId: seller.id,
+      displayName: 'LocCert Seller',
+      lat: 51.912,
+      lng: 4.343,
+      commerceDeclaration: 'PRIVATE_OCCASIONAL',
+      commerceDeclaredAt: new Date(),
+    },
+  });
   const product = await prisma.product.create({
     data: {
+      id: randomUUID(),
       title: `LocCert ${TAG}`,
       description: 'location cert listing',
       priceCents: 2500,
-      sellerId: seller.id,
+      sellerId: sellerProfile.id,
+      category: 'CHEFF',
+      unit: 'PORTION',
+      delivery: 'PICKUP',
       isActive: true,
-      category: 'OVERIG',
+      stock: 10,
+      maxStock: 10,
       acceptHomeCheffPayment: false,
       acceptDirectContact: true,
-      fulfillmentOptions: { pickup: true, delivery: true },
+      barterOpenness: 'MONEY_AND_BARTER',
+      priceModel: 'FIXED',
+      orderMethod: 'HOMECHEFF_PAYMENT',
+      marketplaceCategory: 'CREATE',
+      allergens: [],
+      allergensConfirmedAt: new Date(),
+      fulfillmentOptions: { pickup: true, delivery: true, digital: false },
+      placeName: 'Vlaardingen',
     },
   });
   created.productId = product.id;
+  await prisma.image.create({
+    data: {
+      id: randomUUID(),
+      productId: product.id,
+      fileUrl: 'https://homecheff.eu/icon-192.png',
+      sortOrder: 0,
+    },
+  });
 
   const buyerCookie = await mintCookie(secret, buyer.id, buyer.email!);
   const sellerCookie = await mintCookie(secret, seller.id, seller.email!);
@@ -283,16 +326,21 @@ try {
       scheduleTimeWindow: '18:00-20:00',
     },
   );
-  record(
+    record(
     'case_d_schedule_locked_from_proposal',
     viewD.json?.scheduleLockedFromProposal === true &&
       completeD.status === 200 &&
       completeD.json?.communityOrder?.confirmedScheduleTimeWindow ===
-        '10:00-12:00',
+        '10:00-12:00' &&
+      Boolean(completeD.json?.communityOrder?.deliveryAddress),
     {
       locked: viewD.json?.scheduleLockedFromProposal,
+      status: completeD.status,
+      error: completeD.json?.error || completeD.json?.errorKey,
       time: completeD.json?.communityOrder?.confirmedScheduleTimeWindow,
       delivery: completeD.json?.communityOrder?.deliveryAddress,
+      stateBefore: viewD.json?.state,
+      stateAfter: completeD.json?.state,
     },
   );
 

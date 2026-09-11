@@ -120,12 +120,18 @@ export function deriveFulfillmentLocationState(input: {
   proposalTimeWindow?: string | null;
   confirmedDate?: string | Date | null;
   confirmedTimeWindow?: string | null;
+  locationCompletedAt?: string | Date | null;
 }): FulfillmentLocationState {
   if (!isPhysicalFulfillment(input.fulfillmentMode)) {
     return 'LOCATION_NOT_REQUIRED';
   }
 
-  const address = resolveOperationalAddress(input);
+  const address = resolveOperationalAddress({
+    fulfillmentMode: input.fulfillmentMode,
+    // Operational SoT is CommunityOrder; DeliveryRequest is a sync target, not completion alone.
+    pickupAddress: input.pickupAddress,
+    deliveryAddress: input.deliveryAddress,
+  });
   const schedule = resolveEffectiveSchedule(input);
   const hasAddress = Boolean(address && address.length >= 5);
   const hasSchedule = Boolean(schedule.date && schedule.timeWindow);

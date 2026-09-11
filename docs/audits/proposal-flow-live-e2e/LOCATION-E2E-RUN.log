@@ -1,0 +1,27 @@
+[PASS] start_conversation { conversationId: '8cb7806b-cdca-4269-bfc7-0810f7ae5e4b' }
+[PASS] case_a_create_without_schedule { status: 201 }
+[PASS] case_a_accept_without_address { orderA: 'ac8d44bf-50c5-49f7-993a-24741b972015', status: 200 }
+[PASS] case_a_pending_roles {
+  seller: 'LOCATION_AND_SCHEDULE_PENDING',
+  buyerCan: false,
+  sellerCan: true
+}
+[PASS] case_unauthorized_403 { status: 403 }
+[PASS] case_a_complete_and_idempotent {
+  status: 200,
+  state: 'COMPLETE',
+  replay: true,
+  pickup: 'Verkoperlaan 3, 3131 BB Vlaardingen, NL',
+  schedule: '14:00-16:00'
+}
+[FAIL] case_d_schedule_locked_from_proposal {
+  locked: true,
+  status: 200,
+  error: undefined,
+  time: null,
+  delivery: null,
+  stateBefore: 'COMPLETE',
+  stateAfter: 'COMPLETE'
+}
+[PASS] case_g_agreement_exists_before_location 
+FINAL_VERDICT= HOMECHEFF_FULFILLMENT_LOCATION_E2E_FAIL
