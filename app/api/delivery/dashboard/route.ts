@@ -970,16 +970,158 @@ export async function GET(req: NextRequest) {
 
     const availableOrdersCount = transformedAvailableOrders.length;
 
+    // Upcoming scheduled jobs (platform calendar + future ACCEPTED DeliveryOrders)
+    // and pending booking requests — same SoT, no duplicate dataset.
+    let upcomingJobs: Array<Record<string, unknown>> = [];
+    let pendingBookingRequests: Array<Record<string, unknown>> = [];
+
+    if (deliveryProfile) {
+      const now = new Date();
+      const currentOrderId = transformedCurrentOrder?.id ?? null;
+      const availableIds = new Set(
+        transformedAvailableOrders.map((o: { id: string }) => o.id),
+      );
+
+      const [calendarRows, pendingBookings, communityUpcoming] = await Promise.all([
+        prisma.deliveryCalendarEntry.findMany({
+          where: {
+            deliveryProfileId: deliveryProfile.id,
+            status: { in: ['CONFIRMED', 'PENDING'] },
+            OR: [
+              { pickupAt: { gte: now } },
+              { deliverAt: { gte: now } },
+            ],
+          },
+          orderBy: [{ pickupAt: 'asc' }, { deliverAt: 'asc' }],
+          take: 20,
+        }),
+        prisma.deliveryBookingRequest.findMany({
+          where: {
+            deliveryProfileId: deliveryProfile.id,
+            status: 'PENDING',
+            expiresAt: { gt: now },
+          },
+          include: {
+            buyer: {
+              select: { id: true, name: true, username: true },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+          take: 10,
+        }),
+        prisma.courierAssignment.findMany({
+          where: {
+            courierId: userId,
+            status: { in: ['PENDING', 'ACCEPTED'] },
+            DeliveryRequest: {
+              OR: [
+                { pickupDate: { gt: now } },
+                { deliveryDate: { gt: now } },
+              ],
+            },
+          },
+          include: {
+            DeliveryRequest: {
+              select: {
+                id: true,
+                communityOrderId: true,
+                pickupAddress: true,
+                deliveryAddress: true,
+                pickupDate: true,
+                pickupTimeWindow: true,
+                deliveryDate: true,
+                deliveryTimeWindow: true,
+                status: true,
+                CommunityOrder: {
+                  select: {
+                    id: true,
+                    conversationId: true,
+                    Proposal: { select: { title: true } },
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { assignedAt: 'asc' },
+          take: 20,
+        }),
+      ]);
+
+      upcomingJobs = [
+        ...calendarRows
+          .filter((row) => {
+            if (!row.deliveryOrderId) return true;
+            if (row.deliveryOrderId === currentOrderId) return false;
+            if (availableIds.has(row.deliveryOrderId)) return false;
+            return true;
+          })
+          .map((row) => ({
+            id: row.id,
+            source: 'calendar' as const,
+            deliveryOrderId: row.deliveryOrderId,
+            bookingRequestId: row.bookingRequestId,
+            title: row.title,
+            status: row.status,
+            pickupAt: row.pickupAt,
+            deliverAt: row.deliverAt,
+            earningsCents: row.earningsCents,
+            orderReference: row.orderReference,
+            href: row.deliveryOrderId
+              ? `/delivery/dashboard#order-${row.deliveryOrderId}`
+              : '/delivery/dashboard',
+          })),
+        ...communityUpcoming.map((assignment) => {
+          const dr = assignment.DeliveryRequest;
+          const title =
+            dr.CommunityOrder?.Proposal?.title ||
+            'Community bezorging';
+          return {
+            id: `community-${dr.id}`,
+            source: 'community' as const,
+            deliveryRequestId: dr.id,
+            communityOrderId: dr.communityOrderId,
+            title,
+            status: assignment.status,
+            pickupAt: dr.pickupDate,
+            deliverAt: dr.deliveryDate,
+            pickupTimeWindow: dr.pickupTimeWindow,
+            deliveryTimeWindow: dr.deliveryTimeWindow,
+            pickupAddress: dr.pickupAddress,
+            deliveryAddress: dr.deliveryAddress,
+            href: dr.CommunityOrder?.conversationId
+              ? `/messages?conversation=${dr.CommunityOrder.conversationId}`
+              : '/delivery/dashboard?tab=community',
+          };
+        }),
+      ].sort((a, b) => {
+        const ta = a.pickupAt ? new Date(a.pickupAt as Date).getTime() : Number.MAX_SAFE_INTEGER;
+        const tb = b.pickupAt ? new Date(b.pickupAt as Date).getTime() : Number.MAX_SAFE_INTEGER;
+        return ta - tb;
+      });
+
+      pendingBookingRequests = pendingBookings.map((b) => ({
+        id: b.id,
+        status: b.status,
+        expiresAt: b.expiresAt,
+        quotedFeeCents: b.quotedFeeCents,
+        routeDistanceKm: b.routeDistanceKm,
+        buyerName: b.buyer?.name || b.buyer?.username || 'Klant',
+        href: `/delivery/dashboard#booking-${b.id}`,
+      }));
+    }
+
     const stats = {
       todayEarnings: todayEarnings,
       weekEarnings: weekEarnings,
       totalDeliveries: deliveryProfile?.totalDeliveries || completedDeliveries,
       averageRating: deliveryProfile?.averageRating || 0,
       onlineTime: 0,
+      onlineTimeMeasured: false,
       completedDeliveries,
       pendingDeliveries,
       totalEarnings: totalEarnings,
       availableOrders: availableOrdersCount,
+      scheduledJobs: upcomingJobs.length,
       deliveryRadius: deliveryProfile?.maxDistance || 10,
       currentLocation: userLocation?.lat && userLocation?.lng ? {
         lat: userLocation.lat,
@@ -993,6 +1135,8 @@ export async function GET(req: NextRequest) {
       currentOrder: transformedCurrentOrder,
       recentOrders: transformedRecentOrders,
       availableOrders: transformedAvailableOrders,
+      upcomingJobs,
+      pendingBookingRequests,
       isSeller: isSeller && !deliveryProfile, // True if seller without delivery profile (only delivering own products)
       shippingOrders: [] // Will be populated for sellers
     });

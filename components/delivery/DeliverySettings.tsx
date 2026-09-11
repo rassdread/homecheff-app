@@ -139,10 +139,30 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   }, []);
 
   const transportationOptions = [
-    { id: 'BIKE', label: t('delivery.transportation.bike'), icon: <Bike className="w-5 h-5" />, maxRange: 10 },
-    { id: 'EBIKE', label: t('delivery.transportation.ebike'), icon: <Bike className="w-5 h-5" />, maxRange: 20 },
-    { id: 'SCOOTER', label: t('delivery.transportation.scooter'), icon: <Navigation className="w-5 h-5" />, maxRange: 30 },
-    { id: 'CAR', label: t('delivery.transportation.car'), icon: <Navigation className="w-5 h-5" />, maxRange: 50 }
+    {
+      id: 'BIKE',
+      label: t('delivery.transportation.bike', { defaultValue: 'Fiets' }),
+      icon: <Bike className="w-5 h-5" aria-hidden />,
+      maxRange: 10,
+    },
+    {
+      id: 'EBIKE',
+      label: t('delivery.transportation.ebike', { defaultValue: 'E-bike' }),
+      icon: <Bike className="w-5 h-5" aria-hidden />,
+      maxRange: 20,
+    },
+    {
+      id: 'SCOOTER',
+      label: t('delivery.transportation.scooter', { defaultValue: 'Scooter' }),
+      icon: <Navigation className="w-5 h-5" aria-hidden />,
+      maxRange: 30,
+    },
+    {
+      id: 'CAR',
+      label: t('delivery.transportation.car', { defaultValue: 'Auto' }),
+      icon: <Navigation className="w-5 h-5" aria-hidden />,
+      maxRange: 50,
+    },
   ];
 
   const dayOptions = [
@@ -289,14 +309,22 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
               <Shield className="w-6 h-6 text-primary-600" />
               <h2 className="text-xl font-semibold text-gray-900">Online Status</h2>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-700">{t('delivery.activeAsDeliverer')}</p>
-                <p className="text-sm text-gray-500">{t('delivery.receiveOrdersWhenOnline')}</p>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-gray-700 font-medium">
+                  {t('delivery.activeAsDeliverer', { defaultValue: 'Actief als bezorger' })}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {t('delivery.receiveOrdersWhenOnline', {
+                    defaultValue: 'Je ontvangt opdrachten wanneer je online bent.',
+                  })}
+                </p>
               </div>
               <button
+                type="button"
+                aria-label={t('delivery.activeAsDeliverer', { defaultValue: 'Actief als bezorger' })}
                 onClick={() => setFormData(prev => ({ ...prev, isActive: !prev.isActive }))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
                   formData.isActive ? 'bg-primary-600' : 'bg-gray-200'
                 }`}
               >
@@ -338,8 +366,24 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
             
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>{t('delivery.maxDistanceLabel')}:</strong> {getMaxDistanceForTransport()}km{' '}
-                ({formData.transportation.length > 1 ? t('delivery.maxDistanceBasedOnTransportPlural') : t('delivery.maxDistanceBasedOnTransport')})
+                {(() => {
+                  const label = t('delivery.maxDistanceLabel', {
+                    defaultValue: 'Maximale afstand',
+                  });
+                  return label ? (
+                    <>
+                      <strong>{label}:</strong>{' '}
+                    </>
+                  ) : null;
+                })()}
+                {getMaxDistanceForTransport()}km{' '}
+                ({formData.transportation.length > 1
+                  ? t('delivery.maxDistanceBasedOnTransportPlural', {
+                      defaultValue: 'op basis van je gekozen vervoersmiddelen',
+                    })
+                  : t('delivery.maxDistanceBasedOnTransport', {
+                      defaultValue: 'op basis van je gekozen vervoersmiddel',
+                    })})
               </p>
             </div>
           </div>
@@ -353,13 +397,42 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
 
             <div className="space-y-6">
               <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
-                <h4 className="font-semibold text-green-900 mb-2">✅ {t('delivery.safetyBenefits')}</h4>
-                <ul className="text-sm text-green-800 space-y-1">
-                  <li>• {t('delivery.safetyBenefit1')}</li>
-                  <li>• {t('delivery.safetyBenefit2')}</li>
-                  <li>• {t('delivery.safetyBenefit3')}</li>
-                  <li>• {t('delivery.safetyBenefit4')}</li>
-                </ul>
+                {(() => {
+                  const title = t('delivery.safetyBenefits', {
+                    defaultValue: 'Veiligheidsvoordelen',
+                  });
+                  const bullets = [
+                    t('delivery.safetyBenefit1', {
+                      defaultValue: 'Altijd dicht bij huis en bekende omgeving',
+                    }),
+                    t('delivery.safetyBenefit2', {
+                      defaultValue: 'Korte routes, minder risico',
+                    }),
+                    t('delivery.safetyBenefit3', {
+                      defaultValue: 'Jij bepaalt je werkgebied',
+                    }),
+                    t('delivery.safetyBenefit4', {
+                      defaultValue: 'Geen lange ritten buiten jouw straal',
+                    }),
+                  ].filter((b) => Boolean(b?.trim()));
+                  if (!title && bullets.length === 0) return null;
+                  return (
+                    <>
+                      {title ? (
+                        <h4 className="font-semibold text-green-900 mb-2">
+                          ✅ {title}
+                        </h4>
+                      ) : null}
+                      {bullets.length > 0 ? (
+                        <ul className="text-sm text-green-800 space-y-1">
+                          {bullets.map((b) => (
+                            <li key={b}>• {b}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </>
+                  );
+                })()}
               </div>
 
               <div className="space-y-4">
@@ -376,12 +449,17 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                     }`}
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <MapPin className="w-5 h-5" />
-                      <span className="text-sm font-medium">{t('delivery.fixedArea')}</span>
-                      <span className="text-xs text-gray-600">{t('delivery.aroundHouse')}</span>
+                      <MapPin className="w-5 h-5" aria-hidden />
+                      <span className="text-sm font-medium">
+                        {t('delivery.fixedArea', { defaultValue: 'Vast gebied' })}
+                      </span>
+                      <span className="text-xs text-gray-600">
+                        {t('delivery.aroundHouse', { defaultValue: 'Rondom huis' })}
+                      </span>
                     </div>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'DYNAMIC' }))}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       formData.deliveryMode === 'DYNAMIC'
@@ -390,27 +468,65 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                     }`}
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <Navigation className="w-5 h-5" />
-                      <span className="text-sm font-medium">{t('delivery.dynamicGps')}</span>
-                      <span className="text-xs text-gray-600">{t('delivery.liveLocationTracking')}</span>
+                      <Navigation className="w-5 h-5" aria-hidden />
+                      <span className="text-sm font-medium">
+                        {t('delivery.dynamicGps', { defaultValue: 'Dynamisch GPS' })}
+                      </span>
+                      <span className="text-xs text-gray-600">
+                        {t('delivery.liveLocationTracking', {
+                          defaultValue: 'Live GPS-tracking',
+                        })}
+                      </span>
                     </div>
                   </button>
                 </div>
                 
-                {/* Dynamic GPS Explanation */}
                 {formData.deliveryMode === 'DYNAMIC' && (
                   <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
                     <div className="flex items-start gap-3">
-                      <Navigation className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <Navigation className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden />
                       <div>
-                        <p className="text-sm font-medium text-blue-900 mb-2">🛰️ {t('delivery.dynamicGpsTitle')}</p>
-                        <ul className="text-xs text-blue-800 space-y-1">
-                          <li>✓ {t('delivery.dynamicGpsBullet1')}</li>
-                          <li>✓ {t('delivery.dynamicGpsBullet2')}</li>
-                          <li>✓ {t('delivery.dynamicGpsBullet3')}</li>
-                          <li>✓ {t('delivery.dynamicGpsBullet4')}</li>
-                          <li>⚡ {t('delivery.dynamicGpsBullet5')}</li>
-                        </ul>
+                        {(() => {
+                          const title = t('delivery.dynamicGpsTitle', {
+                            defaultValue: 'Dynamische GPS-modus',
+                          });
+                          const bullets = [
+                            t('delivery.dynamicGpsBullet1', {
+                              defaultValue: 'Je werkgebied volgt je live locatie',
+                            }),
+                            t('delivery.dynamicGpsBullet2', {
+                              defaultValue: 'Opdrachten binnen je straal',
+                            }),
+                            t('delivery.dynamicGpsBullet3', {
+                              defaultValue: 'Ideaal als je onderweg bent',
+                            }),
+                            t('delivery.dynamicGpsBullet4', {
+                              defaultValue: 'GPS moet aan staan tijdens ritten',
+                            }),
+                            t('delivery.dynamicGpsBullet5', {
+                              defaultValue: 'Batterijvriendelijk bij korte updates',
+                            }),
+                          ].filter((b) => Boolean(b?.trim()));
+                          if (!title && bullets.length === 0) return null;
+                          return (
+                            <>
+                              {title ? (
+                                <p className="text-sm font-medium text-blue-900 mb-2">
+                                  🛰️ {title}
+                                </p>
+                              ) : null}
+                              {bullets.length > 0 ? (
+                                <ul className="text-xs text-blue-800 space-y-1">
+                                  {bullets.map((b, i) => (
+                                    <li key={b}>
+                                      {i === bullets.length - 1 ? '⚡' : '✓'} {b}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -419,7 +535,9 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
 
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-gray-700">
-                  {t('delivery.deliveryRadiusLabel')}
+                  {t('delivery.deliveryRadiusLabel', {
+                    defaultValue: 'Bezorgstraal',
+                  })}
                 </label>
                 <div className="space-y-2">
                   <input
@@ -434,30 +552,69 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                       preferredRadius: Math.min(prev.preferredRadius, parseInt(e.target.value))
                     }))}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-brand"
+                    aria-label={t('delivery.deliveryRadiusLabel', {
+                      defaultValue: 'Bezorgstraal',
+                    })}
                   />
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>2 km</span>
                     <span className="font-bold text-lg text-primary-brand">{formData.maxDistance} km</span>
-                    <span>{getMaxDistanceForTransport()} {t('delivery.kmMax')}</span>
+                    <span>
+                      {getMaxDistanceForTransport()}{' '}
+                      {t('delivery.kmMax', { defaultValue: 'km max' })}
+                    </span>
                   </div>
                 </div>
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-gray-700 mb-2">
-                    <strong>{t('delivery.howItWorks')}:</strong>
-                  </p>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>✓ {t('delivery.howItWorksBullet1', { km: formData.maxDistance })}</li>
-                    <li>✓ {t('delivery.howItWorksBullet2', { km: formData.maxDistance })}</li>
-                    <li>✓ {t('delivery.howItWorksBullet3')}</li>
-                  </ul>
+                  {(() => {
+                    const title = t('delivery.howItWorks', {
+                      defaultValue: 'Hoe het werkt',
+                    });
+                    const bullets = [
+                      t('delivery.howItWorksBullet1', {
+                        km: formData.maxDistance,
+                        defaultValue: `Je moet binnen ${formData.maxDistance}km van de verkoper zijn (ophalen)`,
+                      }),
+                      t('delivery.howItWorksBullet2', {
+                        km: formData.maxDistance,
+                        defaultValue: `Je moet binnen ${formData.maxDistance}km van de koper zijn (afleveren)`,
+                      }),
+                      t('delivery.howItWorksBullet3', {
+                        defaultValue: 'Alleen opdrachten in jouw tijdvak verschijnen',
+                      }),
+                    ].filter((b) => Boolean(b?.trim()));
+                    if (!title && bullets.length === 0) return null;
+                    return (
+                      <>
+                        {title ? (
+                          <p className="text-sm text-gray-700 mb-2">
+                            <strong>{title}:</strong>
+                          </p>
+                        ) : null}
+                        {bullets.length > 0 ? (
+                          <ul className="text-xs text-gray-600 space-y-1">
+                            {bullets.map((b) => (
+                              <li key={b}>✓ {b}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </>
+                    );
+                  })()}
                 </div>
                 {formData.transportation.length > 0 && (
                   <div className="flex items-center gap-2 text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg">
-                    <span>🚴</span>
+                    <span aria-hidden>🚴</span>
                     <span>
                       {formData.transportation.length === 1
-                        ? t('delivery.withChosenTransport', { km: getMaxDistanceForTransport() })
-                        : t('delivery.withChosenTransportPlural', { km: getMaxDistanceForTransport() })}
+                        ? t('delivery.withChosenTransport', {
+                            km: getMaxDistanceForTransport(),
+                            defaultValue: `Met je gekozen vervoersmiddel kun je tot ${getMaxDistanceForTransport()}km bezorgen`,
+                          })
+                        : t('delivery.withChosenTransportPlural', {
+                            km: getMaxDistanceForTransport(),
+                            defaultValue: `Met je gekozen vervoersmiddelen kun je tot ${getMaxDistanceForTransport()}km bezorgen`,
+                          })}
                     </span>
                   </div>
                 )}

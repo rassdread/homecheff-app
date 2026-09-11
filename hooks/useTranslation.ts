@@ -354,8 +354,8 @@ export function useTranslation() {
     const cacheVersionKey = `i18n-${lang}-version`;
     // Bump bij elke wijziging in public/i18n/{nl,en}.json zodat browsers met stale
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
-    // 2.51 — Dashboard metric labels (7d omzet / order count) + cents display fix awareness
-    const CACHE_VERSION = '2.53';
+    // 2.54 — Restore delivery.* settings/dashboard strings wiped by marketplace foundation
+    const CACHE_VERSION = '2.54';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state

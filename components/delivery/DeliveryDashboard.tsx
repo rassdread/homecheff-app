@@ -46,11 +46,28 @@ interface DeliveryStats {
   totalEarnings: number;
   availableOrders: number;
   deliveryRadius: number;
+  onlineTimeMeasured?: boolean;
+  scheduledJobs?: number;
   currentLocation?: {
     lat: number;
     lng: number;
   };
 }
+
+type UpcomingDeliveryJob = {
+  id: string;
+  source: 'calendar' | 'community';
+  title: string;
+  status: string;
+  pickupAt?: string | Date | null;
+  deliverAt?: string | Date | null;
+  pickupTimeWindow?: string | null;
+  deliveryTimeWindow?: string | null;
+  pickupAddress?: string | null;
+  deliveryAddress?: string | null;
+  href?: string;
+  earningsCents?: number | null;
+};
 
 interface DeliveryOrder {
   id: string;
@@ -95,6 +112,17 @@ export default function DeliveryDashboard() {
   });
   const [recentOrders, setRecentOrders] = useState<DeliveryOrder[]>([]);
   const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
+  const [upcomingJobs, setUpcomingJobs] = useState<UpcomingDeliveryJob[]>([]);
+  const [pendingBookingRequests, setPendingBookingRequests] = useState<
+    Array<{
+      id: string;
+      status: string;
+      expiresAt?: string | Date;
+      quotedFeeCents?: number | null;
+      buyerName?: string;
+      href?: string;
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
   // Diff guard (UX-FIN-4C.9): skip all setState on a background poll when the
   // payload is byte-identical, so the dashboard/order cards don't re-render every
@@ -343,6 +371,8 @@ export default function DeliveryDashboard() {
           recentOrders: data.recentOrders,
           currentOrder: data.currentOrder,
           availableOrders: data.availableOrders || [],
+          upcomingJobs: data.upcomingJobs || [],
+          pendingBookingRequests: data.pendingBookingRequests || [],
           isOnline: data.isOnline || false,
           isSeller: data.isSeller || false,
           shippingOrders: data.shippingOrders || [],
@@ -356,6 +386,8 @@ export default function DeliveryDashboard() {
         setRecentOrders(data.recentOrders || []);
         setCurrentOrder(data.currentOrder);
         setAvailableOrders(data.availableOrders || []);
+        setUpcomingJobs(data.upcomingJobs || []);
+        setPendingBookingRequests(data.pendingBookingRequests || []);
         setIsOnline(data.isOnline || false);
         setIsSeller(data.isSeller || false);
         setShippingOrders(data.shippingOrders || []);
@@ -494,12 +526,36 @@ export default function DeliveryDashboard() {
   /** @deprecated Prefer formatCurrencyFromCents for deliveryFee / quotedFeeCents */
   const formatCurrency = (amount: number) => formatCurrencyFromCents(amount);
 
-  const formatTime = (minutes: number) => {
+  const formatTime = (minutes: number, measured = true) => {
+    if (!measured || !Number.isFinite(minutes) || minutes <= 0) {
+      return t('delivery.onlineTimeUnavailable', {
+        defaultValue: 'Nog niet gemeten',
+      });
+    }
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    const h = t('delivery.hoursUnit');
-    const m = t('delivery.minutesUnit');
+    const h = t('delivery.hoursUnit', { defaultValue: 'u' });
+    const m = t('delivery.minutesUnit', { defaultValue: 'm' });
     return hours > 0 ? `${hours}${h} ${mins}${m}` : `${mins}${m}`;
+  };
+
+  const formatScheduleInstant = (value?: string | Date | null, window?: string | null) => {
+    if (!value && !window) return null;
+    try {
+      const dateLabel = value
+        ? new Date(value).toLocaleString(language === 'en' ? 'en-GB' : 'nl-NL', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : null;
+      if (dateLabel && window) return `${dateLabel} · ${window}`;
+      return dateLabel || window || null;
+    } catch {
+      return window || null;
+    }
   };
 
   const getStatusLabel = (status: string) => {
@@ -888,6 +944,190 @@ export default function DeliveryDashboard() {
 
         {(isSeller || courierTab === 'platform') ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Pending booking requests */}
+          {!isSeller && pendingBookingRequests.length > 0 && (
+            <div className="lg:col-span-3 mb-2">
+              <div className="rounded-xl border-2 border-violet-200 bg-violet-50 p-4 sm:p-5">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3">
+                  {t('delivery.pendingBookingRequests', {
+                    defaultValue: 'Openstaande boekingsaanvragen',
+                  })}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {pendingBookingRequests.map((booking) => (
+                    <div
+                      key={booking.id}
+                      id={`booking-${booking.id}`}
+                      className="rounded-lg border border-violet-200 bg-white p-3"
+                    >
+                      <p className="font-medium text-sm text-gray-900 truncate">
+                        {booking.buyerName || 'Klant'}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {booking.quotedFeeCents != null
+                          ? formatCurrencyFromCents(booking.quotedFeeCents)
+                          : t('delivery.pending')}
+                        {booking.expiresAt
+                          ? ` · exp. ${new Date(booking.expiresAt).toLocaleString(
+                              language === 'en' ? 'en-GB' : 'nl-NL',
+                              { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' },
+                            )}`
+                          : ''}
+                      </p>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="button"
+                          className="flex-1 min-h-[44px] rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700"
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(
+                                `/api/delivery/booking-requests/${booking.id}/accept`,
+                                { method: 'POST' },
+                              );
+                              if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                setFeedback({
+                                  type: 'error',
+                                  message:
+                                    err.error ||
+                                    t('delivery.couldNotAcceptOrder', {
+                                      defaultValue: 'Kon aanvraag niet accepteren',
+                                    }),
+                                });
+                                return;
+                              }
+                              await fetchDeliveryData(true);
+                            } catch {
+                              setFeedback({
+                                type: 'error',
+                                message: t('delivery.couldNotAcceptOrder', {
+                                  defaultValue: 'Kon aanvraag niet accepteren',
+                                }),
+                              });
+                            }
+                          }}
+                        >
+                          {t('delivery.acceptOrder', { defaultValue: 'Accepteren' })}
+                        </button>
+                        <button
+                          type="button"
+                          className="flex-1 min-h-[44px] rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50"
+                          onClick={async () => {
+                            try {
+                              await fetch(
+                                `/api/delivery/booking-requests/${booking.id}/reject`,
+                                { method: 'POST' },
+                              );
+                              await fetchDeliveryData(true);
+                            } catch {
+                              /* soft */
+                            }
+                          }}
+                        >
+                          {t('common.cancel', { defaultValue: 'Afwijzen' })}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Scheduled / upcoming jobs */}
+          {!isSeller && (
+            <div className="lg:col-span-3 mb-2">
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 sm:p-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900">
+                      {t('delivery.scheduledJobs', {
+                        defaultValue: 'Geplande bezorgingen',
+                      })}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {t('delivery.scheduledJobsHint', {
+                        defaultValue: 'Toekomstige opdrachten met datum en tijdvak.',
+                      })}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-800">
+                    {upcomingJobs.length}
+                  </span>
+                </div>
+                {upcomingJobs.length === 0 ? (
+                  <p className="text-sm text-gray-600">
+                    {t('delivery.scheduledJobsEmpty', {
+                      defaultValue: 'Je hebt geen geplande bezorgingen.',
+                    })}
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {upcomingJobs.map((job) => {
+                      const when =
+                        formatScheduleInstant(job.pickupAt, job.pickupTimeWindow) ||
+                        formatScheduleInstant(job.deliverAt, job.deliveryTimeWindow);
+                      return (
+                        <div
+                          key={job.id}
+                          className="rounded-lg border border-indigo-100 bg-white p-3"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-medium text-sm text-gray-900 line-clamp-2">
+                              {job.title}
+                            </p>
+                            <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                              {job.source === 'community'
+                                ? t('delivery.community.tab', {
+                                    defaultValue: 'Community',
+                                  })
+                                : t('delivery.community.platformTab', {
+                                    defaultValue: 'Platform',
+                                  })}
+                            </span>
+                          </div>
+                          {when ? (
+                            <p className="mt-1 text-xs text-gray-600 flex items-center gap-1">
+                              <Clock className="w-3 h-3" aria-hidden />
+                              {when}
+                            </p>
+                          ) : null}
+                          {job.pickupAddress ? (
+                            <p className="mt-1 text-xs text-gray-600 flex items-start gap-1">
+                              <MapPin className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
+                              <span>
+                                {t('delivery.pickupAt', { defaultValue: 'Ophalen' })}:{' '}
+                                {job.pickupAddress}
+                              </span>
+                            </p>
+                          ) : null}
+                          {job.deliveryAddress ? (
+                            <p className="mt-1 text-xs text-gray-600 flex items-start gap-1">
+                              <Package className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
+                              <span>
+                                {t('delivery.deliverAt', { defaultValue: 'Bezorgen' })}:{' '}
+                                {job.deliveryAddress}
+                              </span>
+                            </p>
+                          ) : null}
+                          <p className="mt-1 text-xs text-gray-500">{getStatusLabel(job.status)}</p>
+                          {job.href ? (
+                            <Link
+                              href={job.href}
+                              className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-lg bg-indigo-600 px-3 text-sm font-semibold text-white hover:bg-indigo-700"
+                            >
+                              {t('delivery.openJob', { defaultValue: 'Open opdracht' })}
+                            </Link>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Available Orders Section - Only for ambassadors, not sellers */}
           {!isSeller && !currentOrder && availableOrders.length > 0 && isOnline && (
             <div className="lg:col-span-3 mb-4 sm:mb-6">
@@ -1457,7 +1697,12 @@ export default function DeliveryDashboard() {
               <div className="space-y-2 sm:space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm sm:text-base text-gray-600">{t('delivery.onlineTime')}</span>
-                  <span className="font-medium text-sm sm:text-base">{formatTime(stats.onlineTime)}</span>
+                  <span className="font-medium text-sm sm:text-base">
+                    {formatTime(
+                      stats.onlineTime,
+                      Boolean((stats as DeliveryStats).onlineTimeMeasured),
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm sm:text-base text-gray-600">{t('delivery.completed')}</span>
