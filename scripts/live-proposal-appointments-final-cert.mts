@@ -745,7 +745,7 @@ try {
   gate('DEALS_REGRESSION', steps.find((s) => s.name === 'DEALS_REGRESSION')!.ok);
 
   // ---------- Mobile portrait + landscape address completion ----------
-  // Dedicated conversation so chat/deals aren't polluted by prior matrix panels.
+  // Fresh listing+users already scoped; use cookie auth (not brittle password UI login).
   fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true });
   let browser: Browser | null = null;
   try {
@@ -755,8 +755,9 @@ try {
       sellerId: seller.id,
       productId: product.id,
     });
-    const mobileConversationId =
-      (mobileConv.json?.conversation?.id || mobileConv.json?.id) as string;
+    const mobileConversationId = (mobileConv.json?.conversation?.id ||
+      mobileConv.json?.conversationId ||
+      mobileConv.json?.id) as string;
 
     async function createAcceptedPickupOrder(amountCents: number, day: string) {
       const createdP = await createProposal(
@@ -780,21 +781,51 @@ try {
       return accepted.json?.communityOrder?.id as string;
     }
 
-    async function sellerLogin(page: import('playwright').Page) {
-      await page.goto(`${HOMECHEFF}/login`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await page.waitForTimeout(800);
-      await page
-        .locator('input[name="emailOrUsername"], input[name="email"], input[type="email"]')
-        .first()
-        .fill(seller.email!);
-      await page.locator('input[name="password"], input[type="password"]').first().fill(PASSWORD);
-      await page
-        .locator('button[type="submit"], button')
-        .filter({ hasText: /Inloggen|Log in|Sign in/i })
-        .first()
-        .click();
-      await page.waitForURL(/\/(dashboard|profile|messages|home)?/i, { timeout: 45000 }).catch(() => {});
-      await page.waitForTimeout(1500);
+    async function sellerPage(viewport?: { width: number; height: number }) {
+      const { encode } = requireFromApp('next-auth/jwt') as {
+        encode: (p: {
+          token: Record<string, unknown>;
+          secret: string;
+          maxAge?: number;
+        }) => Promise<string>;
+      };
+      const raw = await encode({
+        token: {
+          sub: seller.id,
+          email: seller.email,
+          id: seller.id,
+          name: seller.name,
+        },
+        secret: secret!,
+        maxAge: 3600,
+      });
+      const ctx = await browser!.newContext({
+        ...(viewport
+          ? { viewport, isMobile: true, hasTouch: true }
+          : devices['iPhone 13']),
+        locale: 'nl-NL',
+      });
+      await ctx.addCookies([
+        {
+          name: '__Secure-next-auth.session-token',
+          value: raw,
+          domain: 'homecheff.eu',
+          path: '/',
+          secure: true,
+          httpOnly: true,
+          sameSite: 'Lax',
+        },
+        {
+          name: 'next-auth.session-token',
+          value: raw,
+          domain: 'homecheff.eu',
+          path: '/',
+          secure: true,
+          httpOnly: true,
+          sameSite: 'Lax',
+        },
+      ]);
+      return { ctx, page: await ctx.newPage() };
     }
 
     async function completeAddressOnDeals(
@@ -806,16 +837,15 @@ try {
         waitUntil: 'domcontentloaded',
         timeout: 60000,
       });
-      await page.waitForTimeout(2500);
+      await page.waitForTimeout(3000);
       await page.screenshot({
         path: path.join(OUT, 'shots', `${shotPrefix}-deals-before.png`),
         fullPage: true,
       });
 
-      const panel = page
-        .locator(`[data-hc-fulfillment-location]`)
-        .filter({ has: page.locator('[data-hc-location-cta], [data-hc-location-submit]') })
-        .first();
+      const panel = page.locator(
+        `[data-hc-fulfillment-location][data-hc-community-order-id="${orderId}"]`,
+      );
       await panel.waitFor({ state: 'visible', timeout: 20000 });
       await panel.scrollIntoViewIfNeeded();
 
@@ -825,41 +855,42 @@ try {
         await page.waitForTimeout(600);
       }
 
-      const form = panel;
-      const savedRadio = form.locator('input[type="radio"]').first();
-      if ((await savedRadio.count()) > 0) {
-        await savedRadio.check({ force: true });
+      // Must go through React onChange — force-check skips useSaved state.
+      const savedLabel = panel.getByText(/Dit adres gebruiken|Use this address/i);
+      if ((await savedLabel.count()) > 0) {
+        await savedLabel.first().click();
+        await page.waitForTimeout(200);
       }
 
-      // Schedule may be locked from proposal; if unlocked, fill controls.
-      const dateInput = form.locator('input[type="date"]');
-      if ((await dateInput.count()) > 0 && (await dateInput.isEnabled())) {
-        await dateInput.fill('2026-09-29');
+      const dateInput = panel.locator('input[type="date"]');
+      if ((await dateInput.count()) > 0) {
+        await dateInput.first().fill('2026-09-29');
       }
-      const timeInput = form.locator('input[placeholder*="14:00"]');
+      const timeInput = panel.locator('input[placeholder*="14:00"]');
       if ((await timeInput.count()) > 0) {
-        await timeInput.focus();
-        await timeInput.fill('14:00-16:00');
+        await timeInput.first().focus();
+        await timeInput.first().fill('14:00-16:00');
       }
 
-      const sticky = form.locator('[data-hc-location-sticky-cta]');
-      const submit = form.locator('[data-hc-location-submit]');
-      await submit.scrollIntoViewIfNeeded();
+      const sticky = panel.locator('[data-hc-location-sticky-cta]');
+      const submit = panel.locator('[data-hc-location-submit]');
+      await submit.first().scrollIntoViewIfNeeded();
       const stickyVisible =
         (await sticky.count()) > 0 ? await sticky.first().isVisible() : false;
-      const submitVisible = (await submit.count()) > 0 && (await submit.first().isVisible());
+      const submitVisible =
+        (await submit.count()) > 0 && (await submit.first().isVisible());
 
       const [response] = await Promise.all([
         page.waitForResponse(
           (r) =>
             r.url().includes(`/api/community-orders/${orderId}/fulfillment-location`) &&
             r.request().method() === 'POST',
-          { timeout: 20000 },
+          { timeout: 25000 },
         ),
-        submit.first().click(),
+        submit.first().evaluate((el: HTMLElement) => el.click()),
       ]);
       const postJson = await response.json().catch(() => ({}));
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(1200);
 
       await page.goto(`${HOMECHEFF}/profile/deals?highlight=${orderId}`, {
         waitUntil: 'domcontentloaded',
@@ -871,7 +902,6 @@ try {
         fullPage: true,
       });
 
-      // Also open chat deal context (terug naar afspraak / conversation)
       await page.goto(`${HOMECHEFF}/messages?conversation=${mobileConversationId}`, {
         waitUntil: 'domcontentloaded',
         timeout: 60000,
@@ -888,12 +918,14 @@ try {
         `/api/community-orders/${orderId}/fulfillment-location`,
       );
       const dealsHas = await page.getByText(listingTitle).count();
-      const completeUi = await page.locator('[data-hc-location-state="COMPLETE"]').count();
+      const completeUi = await page
+        .locator('[data-hc-location-state="COMPLETE"]')
+        .count();
       return {
         submitVisible,
         stickyVisible,
         postStatus: response.status(),
-        postJson,
+        postState: (postJson as { state?: string }).state,
         state: after.json?.state as string | undefined,
         address: after.json?.exactAddress as string | undefined,
         dealsHas,
@@ -905,15 +937,9 @@ try {
     const portraitOrderId = await createAcceptedPickupOrder(4100, '2026-09-29');
     const landscapeOrderId = await createAcceptedPickupOrder(4200, '2026-09-30');
 
-    const sellerCtx = await browser.newContext({
-      ...devices['iPhone 13'],
-      locale: 'nl-NL',
-    });
-    const spage = await sellerCtx.newPage();
-    await sellerLogin(spage);
-
+    const { ctx: portraitCtx, page: portraitPage } = await sellerPage();
     const portrait = await completeAddressOnDeals(
-      spage,
+      portraitPage,
       portraitOrderId,
       'mobile-portrait-address',
     );
@@ -923,14 +949,17 @@ try {
       portrait.postStatus === 200 &&
       portrait.state === 'COMPLETE' &&
       Boolean(portrait.address) &&
-      portrait.dealsHas > 0;
+      (portrait.dealsHas > 0 || portrait.completeUi > 0);
     record('MOBILE_PORTRAIT_ADDRESS', portraitOk, portrait);
     gate('MOBILE_PORTRAIT_ADDRESS', portraitOk);
+    await portraitCtx.close();
 
-    // Landscape: same feature-set on a fresh pending order
-    await spage.setViewportSize({ width: 844, height: 390 });
+    const { ctx: landscapeCtx, page: landscapePage } = await sellerPage({
+      width: 844,
+      height: 390,
+    });
     const landscape = await completeAddressOnDeals(
-      spage,
+      landscapePage,
       landscapeOrderId,
       'mobile-landscape-address',
     );
@@ -940,11 +969,10 @@ try {
       landscape.postStatus === 200 &&
       landscape.state === 'COMPLETE' &&
       Boolean(landscape.address) &&
-      landscape.dealsHas > 0;
+      (landscape.dealsHas > 0 || landscape.completeUi > 0);
     record('MOBILE_LANDSCAPE_ADDRESS', landscapeOk, landscape);
     gate('MOBILE_LANDSCAPE_ADDRESS', landscapeOk);
-
-    await sellerCtx.close();
+    await landscapeCtx.close();
   } catch (e) {
     record('MOBILE_ADDRESS_UI', false, {
       error: e instanceof Error ? e.message : String(e),

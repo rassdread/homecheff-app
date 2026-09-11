@@ -212,7 +212,7 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
   const Wrapper = as === 'div' ? 'div' : 'li';
 
   return (
-    <Wrapper className="p-4 space-y-3">
+    <Wrapper className="p-4 space-y-3" data-hc-deal-id={deal.id}>
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-0.5">
           <p className="font-semibold text-gray-900">{deal.proposalTitle}</p>

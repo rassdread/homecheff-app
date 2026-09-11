@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { AlertCircle, CalendarClock, List } from 'lucide-react';
 import { CardListLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -112,6 +113,8 @@ const EMPTY_HUB: AgreementsHubResponse = {
 export default function ProfileDealsClient() {
   const { t } = useTranslation();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get('highlight');
   const [view, setView] = useState<HubView>('list');
   const [filter, setFilter] = useState<AgreementsHubFilter>('');
 
@@ -133,6 +136,21 @@ export default function ProfileDealsClient() {
     if (!res.ok) throw new Error(`agreements ${res.status}`);
     return (await res.json()) as AgreementsHubResponse;
   });
+
+  useEffect(() => {
+    if (!highlightId || loading || !hub) return;
+    const timer = window.setTimeout(() => {
+      const el =
+        document.querySelector(
+          `[data-hc-community-order-id="${CSS.escape(highlightId)}"]`,
+        ) ||
+        document.querySelector(
+          `[data-hc-deal-id="${CSS.escape(highlightId)}"]`,
+        );
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [highlightId, loading, hub]);
 
   const allItems = hub?.items ?? EMPTY_HUB.items;
   const counts = hub?.counts ?? EMPTY_COUNTS;

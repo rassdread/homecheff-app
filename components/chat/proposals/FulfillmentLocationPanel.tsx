@@ -161,6 +161,7 @@ export default function FulfillmentLocationPanel({
     <div
       className="rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 space-y-2"
       data-hc-fulfillment-location=""
+      data-hc-community-order-id={communityOrderId}
       data-hc-location-state={view.state}
     >
       <div className="flex items-start gap-2">
