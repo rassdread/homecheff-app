@@ -234,6 +234,9 @@ async function resolveProposalFields(
     listingTitle: productCtx?.title ?? null,
     listingImageUrl: productCtx?.imageUrl ?? null,
     listingPriceCents: productCtx?.priceCents ?? null,
+    requestedDate: input.requestedDate ?? null,
+    requestedTimeWindow: input.requestedTimeWindow?.trim() || null,
+    description: input.description?.trim() || null,
     clientIdempotencyKey: input.clientIdempotencyKey ?? null,
     barterOfferImageUrls,
   });
@@ -447,6 +450,40 @@ export class ProposalService {
 
     await assertParticipant(existing.conversationId, userId);
 
+    if (existing.status === 'ACCEPTED') {
+      const agreement = await prisma.agreement.findUnique({
+        where: { proposalId: proposalId },
+      });
+      const communityOrder = await prisma.communityOrder.findFirst({
+        where: { proposalId: proposalId },
+        orderBy: { createdAt: 'asc' },
+      });
+      if (agreement && communityOrder) {
+        const summaryBase =
+          existing.proposalSummary as AgreementSummarySnapshot | null;
+        const routing = resolveAcceptNextAction({
+          settlementMode: existing.settlementMode,
+          paymentPath: paymentPathFromSummary(summaryBase),
+          productId: existing.productId,
+          quantity: existing.quantity,
+          communityOrderId: communityOrder.id,
+          deliveryRequested: communityOrder.deliveryRequested,
+          deliveryRequestId: null,
+          deliveryRequestReady: false,
+        });
+        return {
+          proposal: serializeProposal(existing),
+          agreement: serializeAgreement(agreement),
+          communityOrder: serializeCommunityOrder(communityOrder),
+          message: null,
+          nextAction: routing.nextAction,
+          checkoutUrl: routing.checkoutUrl,
+          deliveryRequest: null,
+          idempotentReplay: true,
+        };
+      }
+    }
+
     if (existing.status !== 'PENDING') {
       throw new ProposalServiceError(`Proposal is ${existing.status}`, 409);
     }
@@ -486,6 +523,19 @@ export class ProposalService {
           paymentPath,
           priceModel: summaryBase?.priceModel ?? null,
           productId: proposal.productId,
+          listingTitle: summaryBase?.listingTitle ?? proposal.title,
+          listingImageUrl: summaryBase?.listingImageUrl ?? null,
+          listingPriceCents: summaryBase?.listingPriceCents ?? null,
+          requestedDate:
+            proposal.requestedDate?.toISOString() ??
+            summaryBase?.requestedDate ??
+            null,
+          requestedTimeWindow:
+            proposal.requestedTimeWindow ??
+            summaryBase?.requestedTimeWindow ??
+            null,
+          description:
+            proposal.description ?? summaryBase?.description ?? null,
           barterOfferImageUrls: normalizeBarterOfferImageUrls(
             summaryBase?.barterOfferImageUrls,
           ),

@@ -238,6 +238,60 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
         <p className="text-sm font-semibold text-gray-900">{priceLabel}</p>
       ) : null}
 
+      {(() => {
+        const dateIso = deal.proposal.requestedDate;
+        let dateTxt: string | null = null;
+        if (dateIso) {
+          try {
+            dateTxt = new Date(dateIso).toLocaleDateString('nl-NL', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            });
+          } catch {
+            dateTxt = null;
+          }
+        }
+        const timeTxt = deal.proposal.requestedTimeWindow;
+        const ful =
+          deal.proposal.fulfillmentType === 'DELIVERY'
+            ? t('deal.fulfillment.delivery')
+            : deal.proposal.fulfillmentType === 'PICKUP'
+              ? t('deal.fulfillment.pickup')
+              : null;
+        if (!dateTxt && !timeTxt && !ful && !deal.proposal.description) return null;
+        return (
+          <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 space-y-1 text-xs text-gray-800">
+            {dateTxt ? (
+              <p>
+                <span className="text-gray-500">{t('proposal.card.labelDate')}: </span>
+                <span className="font-medium capitalize">{dateTxt}</span>
+              </p>
+            ) : null}
+            {timeTxt ? (
+              <p>
+                <span className="text-gray-500">{t('proposal.card.labelTime')}: </span>
+                <span className="font-medium">{timeTxt}</span>
+              </p>
+            ) : null}
+            {ful ? (
+              <p>
+                <span className="text-gray-500">{t('proposal.card.labelFulfillment')}: </span>
+                <span className="font-medium">{ful}</span>
+              </p>
+            ) : null}
+            {deal.proposal.description ? (
+              <p>
+                <span className="text-gray-500">{t('proposal.card.labelNotes')}: </span>
+                <span className="font-medium whitespace-pre-wrap">
+                  {deal.proposal.description}
+                </span>
+              </p>
+            ) : null}
+          </div>
+        );
+      })()}
+
       <div className="flex flex-wrap gap-1.5">
         {deal.statusBlocks.map((block) => (
           <span

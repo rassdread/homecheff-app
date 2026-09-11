@@ -1302,6 +1302,15 @@ export default function ChatBox({
                 proposal={
                   msg.proposalId ? proposalsById[msg.proposalId] ?? null : null
                 }
+                parentProposal={
+                  msg.proposalId &&
+                  proposalsById[msg.proposalId]?.parentProposalId
+                    ? proposalsById[
+                        proposalsById[msg.proposalId]!.parentProposalId!
+                      ] ?? null
+                    : null
+                }
+                peerDisplayName={displayName}
                 communityOrder={
                   msg.proposalId
                     ? communityOrdersByProposalId[msg.proposalId] ?? null
@@ -1401,6 +1410,7 @@ export default function ChatBox({
         onClose={() => setShowCreateProposal(false)}
         conversationId={conversationId}
         contextHeader={contextHeader}
+        peerDisplayName={displayName}
         onDraftChanged={refreshBuyerProposalDraft}
         onCreated={() => {
           refreshBuyerProposalDraft();

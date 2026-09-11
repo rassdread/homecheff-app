@@ -114,8 +114,11 @@ type Props = {
   currentUserId: string;
   formatTime: (iso: string) => string;
   proposal?: ProposalDTO | null;
+  parentProposal?: ProposalDTO | null;
   communityOrder?: CommunityOrderDTO | null;
   deliveryRequest?: DeliveryRequestDTO | null;
+  /** Counterparty display name (for "Voorstel van/aan"). */
+  peerDisplayName?: string | null;
   onProposalUpdated?: (
     proposal: ProposalDTO,
     extra?: {
@@ -132,8 +135,10 @@ function ChatThreadMessageRow({
   currentUserId,
   formatTime,
   proposal,
+  parentProposal = null,
   communityOrder,
   deliveryRequest,
+  peerDisplayName = null,
   onProposalUpdated,
 }: Props) {
   const { t } = useTranslation();
@@ -141,6 +146,10 @@ function ChatThreadMessageRow({
   const isOwn = msg.senderId === currentUserId;
 
   if (mt === "PROPOSAL" && msg.proposalId && proposal) {
+    const authorName =
+      proposal.createdById === currentUserId
+        ? null
+        : peerDisplayName || null;
     return (
       <ProposalCard
         proposal={proposal}
@@ -149,6 +158,8 @@ function ChatThreadMessageRow({
         messageCreatedAt={msg.createdAt}
         communityOrder={communityOrder}
         deliveryRequest={deliveryRequest}
+        parentProposal={parentProposal}
+        authorName={authorName}
         onUpdated={onProposalUpdated}
       />
     );

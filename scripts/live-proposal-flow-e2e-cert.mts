@@ -41,7 +41,7 @@ const { PrismaClient } = await import('@prisma/client');
 const bcrypt = (await import('bcryptjs')).default;
 
 const requireFromApp = createRequire(
-  '/Users/sergioarrias/HomeCheffProjects/homecheff-app/package.json',
+  path.join(process.cwd(), 'package.json'),
 );
 
 const HOMECHEFF = process.env.PROD_URL || 'https://homecheff.eu';

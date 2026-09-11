@@ -9669,13 +9669,40 @@
       "buyerConsiderationPhotos": "Wat de koper aanbiedt",
       "yourConsiderationPhotos": "Foto’s van wat jij aanbiedt",
       "notSentYet": "Nog niet verstuurd",
-      "draftPrivateHint": "Alleen jij ziet dit concept. De verkoper ontvangt het pas na ‘Voorstel versturen’."
+      "draftPrivateHint": "Alleen jij ziet dit concept. De verkoper ontvangt het pas na ‘Voorstel versturen’.",
+      "fromName": "Voorstel van {name}",
+      "toName": "Voorstel aan {name}",
+      "termsHeading": "Afgesproken voorwaarden",
+      "labelPrice": "Prijs",
+      "labelQuantity": "Aantal",
+      "labelDate": "Datum",
+      "labelTime": "Tijd",
+      "labelFulfillment": "Wijze",
+      "labelNotes": "Extra afspraak",
+      "superseded": "Vervangen door een nieuwer voorstel — dit voorstel kun je niet meer accepteren.",
+      "changesHeading": "Gewijzigd t.o.v. vorig voorstel",
+      "confirmedHeading": "Afspraak bevestigd",
+      "viewAppointment": "Bekijk afspraak",
+      "acceptConfirmHeading": "Bevestig deze afspraak",
+      "acceptConfirmHint": "Na bevestiging ontstaat precies één afspraak met deze voorwaarden.",
+      "acceptConfirmCta": "Ja, afspraak bevestigen"
+    },
+    "diff": {
+      "amount": "Prijs",
+      "quantity": "Aantal",
+      "date": "Datum",
+      "time": "Tijd",
+      "fulfillment": "Wijze",
+      "message": "Bericht",
+      "settlement": "Type afspraak",
+      "arrow": "{from} → {to}",
+      "counterHint": "Je past het ontvangen voorstel aan. Alleen gewijzigde velden worden gemarkeerd."
     },
     "status": {
       "pending": "Wacht op reactie",
       "accepted": "Geaccepteerd",
       "rejected": "Afgewezen",
-      "countered": "Tegenvoorstel",
+      "countered": "Vervangen",
       "expired": "Verlopen",
       "cancelled": "Ingetrokken",
       "received": "Voorstel ontvangen",
@@ -9701,8 +9728,9 @@
       "explicitSendOnly": "Alleen met deze knop wordt je voorstel echt verstuurd."
     },
     "fields": {
-      "messageLabel": "Bericht bij je voorstel",
-      "messagePlaceholder": "Optioneel — bijvoorbeeld waarom of wanneer"
+      "messageLabel": "Extra afspraak / bericht",
+      "messagePlaceholder": "Optioneel — bijvoorbeeld waarom, materialen of ophalen bij de deur",
+      "locationMethodLabel": "Locatie / wijze"
     },
     "system": {
       "accepted": "Voorstel geaccepteerd.",

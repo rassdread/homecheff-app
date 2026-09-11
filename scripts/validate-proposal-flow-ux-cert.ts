@@ -48,17 +48,27 @@ assert.match(chatBox, /CreateProposalSheet/, 'production sheet host');
 const fields = read('components/chat/proposals/ProposalFieldsSection.tsx');
 assert.match(fields, /titleLocked/, 'title lock branch');
 assert.match(fields, /proposal\.fields\.messageLabel/, 'separate message field');
+assert.match(fields, /resolveProposalListingShape/, 'product vs service shape');
+assert.match(fields, /showQuantity/, 'quantity gated by listing shape');
+assert.match(fields, /showFulfillment/, 'fulfillment gated by listing shape');
 
 const card = read('components/chat/proposals/ProposalCard.tsx');
 assert.match(card, /proposal\.actions\.viewItem/, 'card Bekijk item');
 assert.match(card, /proposal\.actions\.viewProposal/, 'card Bekijk voorstel');
 assert.match(card, /proposal\.card\.aboutListing/, 'card clarifies listing identity');
 assert.match(card, /proposal\.status\.sent/, 'sent status for creator pending');
+assert.match(card, /proposal\.card\.superseded/, 'superseded banner');
+assert.match(card, /data-hc-accept-confirm/, 'accept confirmation summary');
+assert.match(card, /diffProposalTerms/, 'counter change highlights');
 assert.doesNotMatch(
   card,
   /Bekijk aanbod/,
   'proposal card must not use Bekijk aanbod for proposal CTA',
 );
+
+const counter = read('components/chat/proposals/CounterProposalForm.tsx');
+assert.match(counter, /diffFormAgainstProposal/, 'live counter diffs');
+assert.match(counter, /proposal\.diff\.counterHint/, 'counter prefills hint');
 
 const header = read('components/chat/ConversationContextHeader.tsx');
 assert.match(header, /chat\.context\.viewItem/, 'header Bekijk item');
@@ -73,8 +83,15 @@ assert.match(
 assert.match(service, /listingTitle: productCtx\?\.title/, 'snapshot listingTitle');
 assert.match(service, /listingImageUrl: productCtx\?\.imageUrl/, 'snapshot listingImageUrl');
 assert.match(service, /listingPriceCents: productCtx\?\.priceCents/, 'snapshot listingPriceCents');
+assert.match(service, /requestedDate:/, 'agreement snapshot includes date');
+assert.match(service, /idempotentReplay: true/, 'accept idempotent replay');
 assert.match(service, /fields\.resolvedTitle/, 'persists resolvedTitle');
 
+assert.match(
+  read('lib/notifications/notificationRouting.ts'),
+  /profile\/deals\?highlight=/,
+  'accepted proposal notifications route to Afspraken',
+);
 const snap = buildProposalSummary({
   settlementMode: 'MONEY',
   amountCents: 1250,
@@ -110,6 +127,8 @@ assert.equal(nl.proposal.actions.counter, 'Tegenvoorstel');
 assert.equal(nl.proposal.status.concept, 'Concept');
 assert.equal(nl.proposal.status.sent, 'Verstuurd');
 assert.equal(nl.proposal.card.notSentYet, 'Nog niet verstuurd');
+assert.equal(nl.proposal.card.acceptConfirmCta, 'Ja, afspraak bevestigen');
+assert.equal(nl.proposal.status.countered, 'Vervangen');
 assert.equal(nl.proposal.errors.moneyAmountRequired, 'Vul eerst een bedrag in.');
 assert.equal(
   nl.proposal.productBinding.paymentPathRequired,

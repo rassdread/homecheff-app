@@ -21,6 +21,10 @@ export type ProposalSummarySnapshot = {
   listingTitle?: string | null;
   listingImageUrl?: string | null;
   listingPriceCents?: number | null;
+  /** Agreed schedule / notes frozen at proposal (and again into Agreement). */
+  requestedDate?: string | null;
+  requestedTimeWindow?: string | null;
+  description?: string | null;
   /** Client Idempotency-Key snapshotted for duplicate-submit protection. */
   clientIdempotencyKey?: string | null;
   /** Optional barter counter-value photo URLs (max 2); snapshotted into Agreement. */
@@ -95,6 +99,9 @@ export function buildProposalSummary(input: {
   listingTitle?: string | null;
   listingImageUrl?: string | null;
   listingPriceCents?: number | null;
+  requestedDate?: string | null;
+  requestedTimeWindow?: string | null;
+  description?: string | null;
   clientIdempotencyKey?: string | null;
   barterOfferImageUrls?: string[];
 }): ProposalSummarySnapshot {
@@ -117,6 +124,9 @@ export function buildProposalSummary(input: {
       typeof input.listingPriceCents === 'number'
         ? input.listingPriceCents
         : null,
+    requestedDate: input.requestedDate ?? null,
+    requestedTimeWindow: input.requestedTimeWindow ?? null,
+    description: input.description ?? null,
     ...(input.clientIdempotencyKey
       ? { clientIdempotencyKey: input.clientIdempotencyKey }
       : {}),

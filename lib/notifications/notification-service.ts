@@ -1283,6 +1283,17 @@ export class NotificationService {
         ? `/deal-review/${proposal.communityOrderId}`
         : null;
 
+    const isAcceptedKind =
+      kind === 'PROPOSAL_ACCEPTED' ||
+      kind === 'PROPOSAL_MIXED_ACCEPTED' ||
+      kind === 'COMMUNITY_ORDER_CREATED';
+
+    const defaultRoute = isAcceptedKind
+      ? proposal.communityOrderId
+        ? `/profile/deals?highlight=${encodeURIComponent(proposal.communityOrderId)}`
+        : `/profile/deals`
+      : `/messages?conversation=${encodeURIComponent(proposal.conversationId)}&proposal=${encodeURIComponent(proposal.id)}`;
+
     const message: NotificationMessage = {
       title,
       body,
@@ -1290,9 +1301,8 @@ export class NotificationService {
         type: kind,
         proposalId: proposal.id,
         conversationId: proposal.conversationId,
-        actionUrl:
-          reviewDealUrl ?? `/messages/${proposal.conversationId}/`,
-        route: reviewDealUrl ?? `/messages/${proposal.conversationId}/`,
+        actionUrl: reviewDealUrl ?? defaultRoute,
+        route: reviewDealUrl ?? defaultRoute,
         proposalTitle: proposal.title,
         ...(proposal.titleKey ? { titleKey: proposal.titleKey } : {}),
         ...(proposal.bodyKey ? { bodyKey: proposal.bodyKey } : {}),

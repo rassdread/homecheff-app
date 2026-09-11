@@ -44,6 +44,9 @@ export function resolveNotificationTargetUrl(
   const conversationId =
     (typeof p.conversationId === 'string' && p.conversationId) ||
     (typeof data.conversationId === 'string' && data.conversationId);
+  const proposalId =
+    (typeof p.proposalId === 'string' && p.proposalId) ||
+    (typeof data.proposalId === 'string' && data.proposalId);
 
   const communityOrderId =
     (typeof p.communityOrderId === 'string' && p.communityOrderId) ||
@@ -70,13 +73,29 @@ export function resolveNotificationTargetUrl(
   }
 
   if (
+    typeUpper === 'PROPOSAL_ACCEPTED' ||
+    typeUpper === 'PROPOSAL_MIXED_ACCEPTED' ||
+    typeUpper === 'COMMUNITY_ORDER_CREATED'
+  ) {
+    if (communityOrderId) {
+      return `/profile/deals?highlight=${encodeURIComponent(communityOrderId)}`;
+    }
+    return conversationId
+      ? `/messages?conversation=${encodeURIComponent(conversationId)}`
+      : '/profile/deals';
+  }
+
+  if (
     typeUpper === 'MESSAGE_RECEIVED' ||
     typeUpper === 'NEW_CONVERSATION' ||
     typeUpper === 'PROPOSAL_RECEIVED' ||
-    typeUpper === 'PROPOSAL_ACCEPTED' ||
     typeUpper === 'PROPOSAL_REJECTED' ||
-    typeUpper === 'PROPOSAL_COUNTERED'
+    typeUpper === 'PROPOSAL_COUNTERED' ||
+    typeUpper === 'PROPOSAL_ALTERNATIVE_VALUE'
   ) {
+    if (conversationId && proposalId) {
+      return `/messages?conversation=${encodeURIComponent(conversationId)}&proposal=${encodeURIComponent(proposalId)}`;
+    }
     return conversationId
       ? `/messages?conversation=${encodeURIComponent(conversationId)}`
       : '/messages';

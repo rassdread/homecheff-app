@@ -20,6 +20,11 @@ import {
 } from '@/lib/proposals/proposal-homecheff-eligibility';
 import { sellerBarterPreferenceHintKey } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import { proposalNegotiationIgnoresStockAvailability } from '@/lib/proposals/proposal-stock-policy';
+import {
+  proposalShowsFulfillmentField,
+  proposalShowsQuantityField,
+  resolveProposalListingShape,
+} from '@/lib/proposals/proposal-listing-shape';
 
 export type ProposalFieldsProduct = {
   id: string;
@@ -92,6 +97,16 @@ export default function ProposalFieldsSection({
   const fulfillmentOptions = product?.fulfillmentOptions
     ? allowedFulfillmentTypes(product.fulfillmentOptions)
     : (['PICKUP', 'DELIVERY'] as const);
+
+  const listingShape = resolveProposalListingShape({
+    marketplaceCategory: product?.marketplaceCategory,
+    priceModel: product?.priceModel,
+  });
+  const showQuantity = proposalShowsQuantityField(listingShape);
+  const showFulfillment = proposalShowsFulfillmentField(
+    listingShape,
+    fulfillmentOptions.length,
+  );
 
   const availablePaymentPaths = PAYMENT_PATHS.filter((path) => {
     if (!product) return false;
@@ -258,24 +273,26 @@ export default function ProposalFieldsSection({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label
-            htmlFor={`${idPrefix}-quantity`}
-            className="mb-1 block text-xs font-medium text-gray-700"
-          >
-            {t('productOrder.quantityLabel')}
-          </label>
-          <input
-            id={`${idPrefix}-quantity`}
-            type="number"
-            min={1}
-            max={maxQuantity}
-            value={form.quantity}
-            onChange={set('quantity')}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          />
-        </div>
+      <div className={`grid gap-3 ${showMoneyField && showQuantity ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        {showQuantity ? (
+          <div>
+            <label
+              htmlFor={`${idPrefix}-quantity`}
+              className="mb-1 block text-xs font-medium text-gray-700"
+            >
+              {t('productOrder.quantityLabel')}
+            </label>
+            <input
+              id={`${idPrefix}-quantity`}
+              type="number"
+              min={1}
+              max={maxQuantity}
+              value={form.quantity}
+              onChange={set('quantity')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+        ) : null}
         {showMoneyField ? (
           <div>
             <label
@@ -386,30 +403,36 @@ export default function ProposalFieldsSection({
         </div>
       </div>
 
-      <div>
-        <label
-          htmlFor={`${idPrefix}-fulfillment`}
-          className="mb-1 block text-xs font-medium text-gray-700"
-        >
-          {t('marketplace.fulfillment.heading')}
-        </label>
-        <select
-          id={`${idPrefix}-fulfillment`}
-          value={form.fulfillmentType}
-          onChange={set('fulfillmentType')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
-        >
-          <option value="">—</option>
-          {fulfillmentOptions.includes('PICKUP') ? (
-            <option value="PICKUP">{t('marketplace.fulfillment.pickup')}</option>
-          ) : null}
-          {fulfillmentOptions.includes('DELIVERY') ? (
-            <option value="DELIVERY">
-              {t('marketplace.fulfillment.delivery')}
-            </option>
-          ) : null}
-        </select>
-      </div>
+      {showFulfillment ? (
+        <div>
+          <label
+            htmlFor={`${idPrefix}-fulfillment`}
+            className="mb-1 block text-xs font-medium text-gray-700"
+          >
+            {listingShape === 'SERVICE'
+              ? t('proposal.fields.locationMethodLabel', {
+                  defaultValue: 'Locatie / wijze',
+                })
+              : t('marketplace.fulfillment.heading')}
+          </label>
+          <select
+            id={`${idPrefix}-fulfillment`}
+            value={form.fulfillmentType}
+            onChange={set('fulfillmentType')}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
+          >
+            <option value="">—</option>
+            {fulfillmentOptions.includes('PICKUP') ? (
+              <option value="PICKUP">{t('marketplace.fulfillment.pickup')}</option>
+            ) : null}
+            {fulfillmentOptions.includes('DELIVERY') ? (
+              <option value="DELIVERY">
+                {t('marketplace.fulfillment.delivery')}
+              </option>
+            ) : null}
+          </select>
+        </div>
+      ) : null}
     </div>
   );
 }

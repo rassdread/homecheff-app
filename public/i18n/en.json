@@ -9669,13 +9669,40 @@
       "buyerConsiderationPhotos": "What the buyer offers",
       "yourConsiderationPhotos": "Photos of what you offer",
       "notSentYet": "Not sent yet",
-      "draftPrivateHint": "Only you can see this draft. The seller receives it only after you tap Send proposal."
+      "draftPrivateHint": "Only you can see this draft. The seller receives it only after you tap Send proposal.",
+      "fromName": "Proposal from {name}",
+      "toName": "Proposal to {name}",
+      "termsHeading": "Agreed terms",
+      "labelPrice": "Price",
+      "labelQuantity": "Quantity",
+      "labelDate": "Date",
+      "labelTime": "Time",
+      "labelFulfillment": "How",
+      "labelNotes": "Extra notes",
+      "superseded": "Replaced by a newer proposal — you can no longer accept this one.",
+      "changesHeading": "Changed from previous proposal",
+      "confirmedHeading": "Appointment confirmed",
+      "viewAppointment": "View appointment",
+      "acceptConfirmHeading": "Confirm this appointment",
+      "acceptConfirmHint": "After confirmation, exactly one appointment is created with these terms.",
+      "acceptConfirmCta": "Yes, confirm appointment"
+    },
+    "diff": {
+      "amount": "Price",
+      "quantity": "Quantity",
+      "date": "Date",
+      "time": "Time",
+      "fulfillment": "How",
+      "message": "Message",
+      "settlement": "Settlement type",
+      "arrow": "{from} → {to}",
+      "counterHint": "You are adjusting the received proposal. Only changed fields are highlighted."
     },
     "status": {
       "pending": "Awaiting response",
       "accepted": "Accepted",
       "rejected": "Rejected",
-      "countered": "Counter offer",
+      "countered": "Replaced",
       "expired": "Expired",
       "cancelled": "Withdrawn",
       "received": "Proposal received",
@@ -9701,8 +9728,9 @@
       "explicitSendOnly": "Your proposal is only sent when you tap this button."
     },
     "fields": {
-      "messageLabel": "Message with your proposal",
-      "messagePlaceholder": "Optional — for example why or when"
+      "messageLabel": "Extra notes / message",
+      "messagePlaceholder": "Optional — for example why, materials, or pickup at the door",
+      "locationMethodLabel": "Location / method"
     },
     "system": {
       "accepted": "Proposal accepted.",

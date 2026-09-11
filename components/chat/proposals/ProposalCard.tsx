@@ -34,6 +34,7 @@ import {
 import ConsumerCommerceDisclosure from "@/components/legal/ConsumerCommerceDisclosure";
 import type { ConsumerCommerceContext } from "@/lib/legal/consumer-commerce-context";
 import { consumerContextFromProductPayload } from "@/lib/legal/consumer-context-from-product";
+import { diffProposalTerms } from "@/lib/proposals/proposal-diff";
 
 type Props = {
   proposal: ProposalDTO;
@@ -42,6 +43,10 @@ type Props = {
   messageCreatedAt?: string;
   communityOrder?: CommunityOrderDTO | null;
   deliveryRequest?: DeliveryRequestDTO | null;
+  /** Parent proposal when this card is a counter — for change highlights. */
+  parentProposal?: ProposalDTO | null;
+  /** Display name of the proposal author (receiver view). */
+  authorName?: string | null;
   onUpdated?: (
     proposal: ProposalDTO,
     extra?: {
@@ -88,6 +93,8 @@ export default function ProposalCard({
   messageCreatedAt,
   communityOrder,
   deliveryRequest,
+  parentProposal = null,
+  authorName = null,
   onUpdated,
 }: Props) {
   const { t } = useTranslation();
@@ -95,6 +102,7 @@ export default function ProposalCard({
     null,
   );
   const [showCounter, setShowCounter] = useState(false);
+  const [confirmAccept, setConfirmAccept] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [commitmentAccepted, setCommitmentAccepted] = useState(false);
   const [consumerCommerce, setConsumerCommerce] =
@@ -371,6 +379,11 @@ export default function ProposalCard({
       setError(t("legal3.serviceStartAckRequired"));
       return;
     }
+    if (!confirmAccept) {
+      setConfirmAccept(true);
+      setError(null);
+      return;
+    }
     void runAction("accept", {
       commitmentAccepted: true,
       serviceStartDuringWithdrawalAck: serviceStartAck || undefined,
@@ -383,12 +396,6 @@ export default function ProposalCard({
   };
 
   const dateLabel = formatRequestedDate(proposal.requestedDate);
-  const fulfillmentLabel =
-    proposal.fulfillmentType === "DELIVERY"
-      ? t("deal.fulfillment.delivery")
-      : proposal.fulfillmentType === "PICKUP"
-        ? t("deal.fulfillment.pickup")
-        : null;
 
   const settlementLabel = t(
     PROPOSAL_I18N.settlement[proposal.settlementMode as SettlementMode],
@@ -415,9 +422,25 @@ export default function ProposalCard({
     (typeof proposal.proposalSummary?.listingTitle === "string" &&
       proposal.proposalSummary.listingTitle) ||
     proposal.title;
+  const listingImageUrl =
+    typeof proposal.proposalSummary?.listingImageUrl === "string"
+      ? proposal.proposalSummary.listingImageUrl
+      : null;
   const productHref = proposal.productId
     ? `/product/${proposal.productId}`
     : null;
+
+  const changeDiff =
+    parentProposal && proposal.parentProposalId === parentProposal.id
+      ? diffProposalTerms(parentProposal, proposal)
+      : [];
+
+  const fulfillmentDisplay =
+    proposal.fulfillmentType === "DELIVERY"
+      ? t("deal.fulfillment.delivery")
+      : proposal.fulfillmentType === "PICKUP"
+        ? t("deal.fulfillment.pickup")
+        : null;
 
   return (
     <div className="flex justify-center px-1" id={`proposal-${proposal.id}`}>
@@ -425,11 +448,13 @@ export default function ProposalCard({
         <div className="flex items-center gap-2 border-b border-indigo-100 bg-indigo-50 px-3 py-2">
           <ClipboardList className="h-4 w-4 text-indigo-600 shrink-0" aria-hidden />
           <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-900">
-            {proposal.status === "PENDING" && canAct
-              ? t("proposal.card.receivedHeading")
-              : proposal.status === "PENDING" && isCreator
-                ? t("proposal.card.sentHeading")
-                : t(PROPOSAL_I18N.cardHeading)}
+            {proposal.status === "ACCEPTED"
+              ? t("proposal.card.confirmedHeading")
+              : proposal.status === "PENDING" && canAct
+                ? t("proposal.card.receivedHeading")
+                : proposal.status === "PENDING" && isCreator
+                  ? t("proposal.card.sentHeading")
+                  : t(PROPOSAL_I18N.cardHeading)}
           </span>
           <span
             className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${statusBadgeClass(proposal.status)}`}
@@ -439,14 +464,103 @@ export default function ProposalCard({
         </div>
 
         <div className="px-3 py-3 space-y-2">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500">
-            {t("proposal.card.aboutListing")}
-          </p>
-          <p className="text-sm font-semibold text-gray-900">{listingTitle}</p>
+          {proposal.status === "COUNTERED" ? (
+            <p
+              className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-2 text-[11px] text-sky-900"
+              role="status"
+            >
+              {t("proposal.card.superseded")}
+            </p>
+          ) : null}
+
+          {canAct && authorName ? (
+            <p className="text-sm font-semibold text-gray-900">
+              {t("proposal.card.fromName", { name: authorName })}
+            </p>
+          ) : null}
+
+          <div className="flex gap-3">
+            {listingImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={listingImageUrl}
+                alt=""
+                className="h-16 w-16 shrink-0 rounded-lg object-cover border border-gray-200"
+              />
+            ) : null}
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500">
+                {t("proposal.card.aboutListing")}
+              </p>
+              <p className="text-sm font-semibold text-gray-900">{listingTitle}</p>
+            </div>
+          </div>
+
+          {changeDiff.length > 0 ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-2 space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                {t("proposal.card.changesHeading")}
+              </p>
+              {changeDiff.map((row) => (
+                <p key={row.field} className="text-xs text-amber-950">
+                  <span className="font-medium">{t(`proposal.diff.${row.field}`)}: </span>
+                  {t("proposal.diff.arrow", {
+                    from: row.fromLabel,
+                    to: row.toLabel,
+                  })}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-2.5 space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
+              {t("proposal.card.termsHeading")}
+            </p>
+            {(showMoney || showValue) && (
+              <div className="flex justify-between gap-2 text-xs">
+                <span className="text-gray-600">{t("proposal.card.labelPrice")}</span>
+                <span className="font-semibold text-gray-900">{priceLabel}</span>
+              </div>
+            )}
+            {proposal.quantity != null ? (
+              <div className="flex justify-between gap-2 text-xs">
+                <span className="text-gray-600">{t("proposal.card.labelQuantity")}</span>
+                <span className="font-medium text-gray-900">{proposal.quantity}</span>
+              </div>
+            ) : null}
+            {dateLabel ? (
+              <div className="flex justify-between gap-2 text-xs">
+                <span className="text-gray-600">{t("proposal.card.labelDate")}</span>
+                <span className="font-medium text-gray-900 capitalize">{dateLabel}</span>
+              </div>
+            ) : null}
+            {proposal.requestedTimeWindow ? (
+              <div className="flex justify-between gap-2 text-xs">
+                <span className="text-gray-600">{t("proposal.card.labelTime")}</span>
+                <span className="font-medium text-gray-900">
+                  {proposal.requestedTimeWindow}
+                </span>
+              </div>
+            ) : null}
+            {fulfillmentDisplay ? (
+              <div className="flex justify-between gap-2 text-xs">
+                <span className="text-gray-600">{t("proposal.card.labelFulfillment")}</span>
+                <span className="font-medium text-gray-900">{fulfillmentDisplay}</span>
+              </div>
+            ) : null}
+            {paymentPathLabel ? (
+              <div className="flex justify-between gap-2 text-xs">
+                <span className="text-gray-600">{t(PROPOSAL_I18N.highlights.payment)}</span>
+                <span className="font-medium text-gray-900">{paymentPathLabel}</span>
+              </div>
+            ) : null}
+          </div>
+
           {proposal.description ? (
             <div className="space-y-0.5">
               <p className="text-[10px] font-medium text-gray-600">
-                {t("proposal.fields.messageLabel")}
+                {t("proposal.card.labelNotes")}
               </p>
               <p className="text-xs text-gray-600 whitespace-pre-wrap">
                 {proposal.description}
@@ -471,6 +585,14 @@ export default function ProposalCard({
                 <ExternalLink className="h-3 w-3" aria-hidden />
                 {t("proposal.actions.viewItem")}
               </Link>
+              {proposal.status === "ACCEPTED" ? (
+                <Link
+                  href="/profile/deals"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 hover:underline"
+                >
+                  {t("proposal.card.viewAppointment")}
+                </Link>
+              ) : null}
             </div>
           ) : (
             <a
@@ -490,21 +612,6 @@ export default function ProposalCard({
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            {(showMoney || showValue) && (
-              <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-800">
-                {t(PROPOSAL_I18N.highlights.price)}: {priceLabel}
-              </span>
-            )}
-            {paymentPathLabel ? (
-              <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-800">
-                {t(PROPOSAL_I18N.highlights.payment)}: {paymentPathLabel}
-              </span>
-            ) : null}
-            {fulfillmentLabel ? (
-              <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-800">
-                {t(PROPOSAL_I18N.highlights.delivery)}: {fulfillmentLabel}
-              </span>
-            ) : null}
             {hasValueHighlight ? (
               <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
                 {t(PROPOSAL_I18N.highlights.value)}
@@ -585,13 +692,6 @@ export default function ProposalCard({
               </p>
               <p className="text-xs font-medium text-gray-900">{proposal.title}</p>
             </div>
-          ) : null}
-
-          {dateLabel ? (
-            <p className="text-xs text-gray-600 capitalize">{dateLabel}</p>
-          ) : null}
-          {proposal.requestedTimeWindow ? (
-            <p className="text-xs text-gray-600">{proposal.requestedTimeWindow}</p>
           ) : null}
 
           {paymentPath === "DIRECT_CONTACT" ? (
@@ -686,6 +786,7 @@ export default function ProposalCard({
                   onChange={(e) => {
                     setCommitmentAccepted(e.target.checked);
                     if (e.target.checked) setError(null);
+                    else setConfirmAccept(false);
                   }}
                   className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                 />
@@ -693,19 +794,55 @@ export default function ProposalCard({
                   {t(DEAL_COMMITMENT_I18N.acceptLabel)}
                 </span>
               </label>
+              {confirmAccept ? (
+                <div
+                  className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 space-y-1"
+                  role="status"
+                  data-hc-accept-confirm=""
+                >
+                  <p className="text-[11px] font-semibold text-emerald-950">
+                    {t("proposal.card.acceptConfirmHeading")}
+                  </p>
+                  <p className="text-[11px] text-emerald-900">
+                    {listingTitle}
+                    {(showMoney || showValue) ? ` · ${priceLabel}` : ""}
+                    {dateLabel ? ` · ${dateLabel}` : ""}
+                    {proposal.requestedTimeWindow
+                      ? ` · ${proposal.requestedTimeWindow}`
+                      : ""}
+                  </p>
+                  <p className="text-[10px] text-emerald-800">
+                    {t("proposal.card.acceptConfirmHint")}
+                  </p>
+                </div>
+              ) : null}
               <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled={busy !== null || !commitmentAccepted}
                 onClick={handleAccept}
                 className="flex-1 min-w-[5rem] rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                data-hc-accept-cta=""
               >
                 {busy === "accept" ? (
                   <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                ) : confirmAccept ? (
+                  t("proposal.card.acceptConfirmCta")
                 ) : (
                   t(PROPOSAL_I18N.actions.accept)
                 )}
               </button>
+              {confirmAccept ? (
+                <button
+                  type="button"
+                  disabled={busy !== null}
+                  onClick={() => setConfirmAccept(false)}
+                  className="flex-1 min-w-[5rem] rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {t("common.back", { defaultValue: "Terug" })}
+                </button>
+              ) : (
+                <>
               <button
                 type="button"
                 disabled={busy !== null}
@@ -726,6 +863,8 @@ export default function ProposalCard({
                   t(PROPOSAL_I18N.actions.reject)
                 )}
               </button>
+                </>
+              )}
             </div>
             </div>
           ) : null}

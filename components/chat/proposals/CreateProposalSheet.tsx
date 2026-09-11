@@ -46,6 +46,8 @@ type Props = {
   onDraftChanged?: () => void;
   conversationId: string;
   contextHeader?: ResolvedConversationHeader | null;
+  /** Counterparty display name for “Voorstel aan …”. */
+  peerDisplayName?: string | null;
 };
 
 function isFormDirty(
@@ -62,6 +64,7 @@ export default function CreateProposalSheet({
   onDraftChanged,
   conversationId,
   contextHeader,
+  peerDisplayName = null,
 }: Props) {
   const { t } = useTranslation();
   const { status: sessionStatus } = useSession();
@@ -424,7 +427,9 @@ export default function CreateProposalSheet({
                 id="create-proposal-title"
                 className="truncate text-base font-semibold text-gray-900"
               >
-                {t("proposal.create.title")}
+                {peerDisplayName
+                  ? t("proposal.card.toName", { name: peerDisplayName })
+                  : t("proposal.create.title")}
               </h2>
             </div>
             {editingDraft || isMeaningfulProposalDraft(form, initialFormRef.current) ? (

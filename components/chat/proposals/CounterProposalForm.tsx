@@ -26,6 +26,7 @@ import type { ProposalDTO } from '@/lib/proposals/proposal-types';
 import type { ProposalFieldsProduct } from './ProposalFieldsSection';
 import ProposalFieldsSection from './ProposalFieldsSection';
 import ProposalSummaryPreview from './ProposalSummaryPreview';
+import { diffFormAgainstProposal } from '@/lib/proposals/proposal-diff';
 
 type Props = {
   proposal: ProposalDTO;
@@ -328,11 +329,31 @@ export default function CounterProposalForm({
     }
   };
 
+  const liveDiff = useMemo(
+    () => diffFormAgainstProposal(proposal, form),
+    [proposal, form],
+  );
+
   return (
     <div className="mt-2 space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
       <p className="text-xs font-semibold text-gray-900">
         {t(PROPOSAL_POLISH_I18N.counter.heading)}
       </p>
+      <p className="text-[11px] text-gray-600">{t('proposal.diff.counterHint')}</p>
+
+      {liveDiff.length > 0 ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 space-y-1">
+          <p className="text-[10px] font-semibold uppercase text-amber-900">
+            {t('proposal.card.changesHeading')}
+          </p>
+          {liveDiff.map((row) => (
+            <p key={row.field} className="text-xs text-amber-950">
+              <span className="font-medium">{t(`proposal.diff.${row.field}`)}: </span>
+              {t('proposal.diff.arrow', { from: row.fromLabel, to: row.toLabel })}
+            </p>
+          ))}
+        </div>
+      ) : null}
 
       <ProposalFieldsSection
         form={form}
