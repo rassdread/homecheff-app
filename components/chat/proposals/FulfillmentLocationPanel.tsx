@@ -9,6 +9,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import {
   fulfillmentDateLabelKey,
   fulfillmentTimeLabelKey,
+  resolveLocationPanelPresentation,
 } from '@/lib/proposals/fulfillment-location';
 import type { CommunityOrderDTO } from '@/lib/proposals/proposal-types';
 
@@ -23,12 +24,24 @@ type LocationView = {
   savedAddressLine: string | null;
   counterpartName: string | null;
   fulfillmentMode: string | null;
+  communityOrder?: { status?: string } | null;
 };
 
 type Props = {
   communityOrderId: string;
   onCompleted?: (order: CommunityOrderDTO) => void;
 };
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  const l = label.trim();
+  const v = value.trim();
+  if (!l || !v) return null;
+  return (
+    <p className="text-[11px] text-amber-900 whitespace-pre-line">
+      {l}: <span className="font-medium">{v}</span>
+    </p>
+  );
+}
 
 export default function FulfillmentLocationPanel({
   communityOrderId,
@@ -99,6 +112,20 @@ export default function FulfillmentLocationPanel({
           defaultValue: 'Afhaaladres',
         });
 
+  const exactAddress = view.exactAddress?.trim() || '';
+  const scheduleDateValue = view.scheduleDate?.trim() || '';
+  const scheduleTimeValue = view.scheduleTimeWindow?.trim() || '';
+  const hasAddress = exactAddress.length > 0;
+  const orderCompleted = view.communityOrder?.status === 'COMPLETED';
+  const locationComplete = view.state === 'COMPLETE' && hasAddress;
+  const presentation = resolveLocationPanelPresentation({
+    state: view.state as never,
+    exactAddress,
+    scheduleDate: scheduleDateValue,
+    scheduleTimeWindow: scheduleTimeValue,
+    viewerCanComplete: view.viewerCanComplete,
+  });
+
   const submit = async () => {
     setBusy(true);
     setError(null);
@@ -124,8 +151,10 @@ export default function FulfillmentLocationPanel({
       if (!res.ok) {
         setError(
           typeof data.errorKey === 'string'
-            ? t(data.errorKey, { defaultValue: data.error || t('common.error') })
-            : data.error || t('common.error'),
+            ? t(data.errorKey, {
+                defaultValue: data.error || t('common.error', { defaultValue: 'Er ging iets mis' }),
+              })
+            : data.error || t('common.error', { defaultValue: 'Er ging iets mis' }),
         );
         return;
       }
@@ -157,6 +186,43 @@ export default function FulfillmentLocationPanel({
           defaultValue: 'Afhaaladres invullen',
         });
 
+  // Historical completed deals without operational address: meaningful empty state,
+  // never bare "Label:" / ":" rows.
+  if (presentation === 'not_recorded') {
+    return (
+      <div
+        className="rounded-lg border border-gray-200 bg-gray-50/80 p-2.5 space-y-1"
+        data-hc-fulfillment-location=""
+        data-hc-community-order-id={communityOrderId}
+        data-hc-location-state="NOT_RECORDED"
+      >
+        <div className="flex items-start gap-2">
+          <MapPin className="h-4 w-4 text-gray-500 shrink-0 mt-0.5" aria-hidden />
+          <p className="text-[11px] text-gray-700">
+            {orderCompleted
+              ? t('proposal.location.notRecordedCompleted', {
+                  defaultValue:
+                    'Locatie is voor deze afgeronde afspraak niet vastgelegd.',
+                })
+              : t('proposal.location.notRecorded', {
+                  defaultValue: 'Locatie is nog niet vastgelegd.',
+                })}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (presentation === 'hidden') return null;
+
+  const addressDisplay = hasAddress
+    ? exactAddress
+    : view.viewerCanComplete
+      ? t('proposal.location.addressPendingSelf', {
+          defaultValue: 'Nog te bevestigen',
+        })
+      : pendingCopy;
+
   return (
     <div
       className="rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 space-y-2"
@@ -168,7 +234,7 @@ export default function FulfillmentLocationPanel({
         <MapPin className="h-4 w-4 text-amber-800 shrink-0 mt-0.5" aria-hidden />
         <div className="min-w-0 flex-1 space-y-1">
           <p className="text-[11px] font-semibold text-amber-950">
-            {view.state === 'COMPLETE'
+            {locationComplete
               ? t('proposal.location.completeHeading', {
                   defaultValue: 'Locatie afgerond',
                 })
@@ -176,31 +242,25 @@ export default function FulfillmentLocationPanel({
                   defaultValue: 'Afspraak bevestigd — gegevens nog afronden',
                 })}
           </p>
-          <p className="text-[11px] text-amber-900">
-            {dateLabel}:{' '}
-            <span className="font-medium">
-              {view.scheduleDate ||
-                t('proposal.location.tbd', { defaultValue: 'Nog te bepalen' })}
-            </span>
-          </p>
-          <p className="text-[11px] text-amber-900">
-            {timeLabel}:{' '}
-            <span className="font-medium">
-              {view.scheduleTimeWindow ||
-                t('proposal.location.tbd', { defaultValue: 'Nog te bepalen' })}
-            </span>
-          </p>
-          <p className="text-[11px] text-amber-900 whitespace-pre-line">
-            {addressHeading}:{' '}
-            <span className="font-medium">
-              {view.exactAddress ||
-                (view.viewerCanComplete
-                  ? t('proposal.location.addressPendingSelf', {
-                      defaultValue: 'Nog te bevestigen',
-                    })
-                  : pendingCopy)}
-            </span>
-          </p>
+          <DetailRow
+            label={dateLabel}
+            value={
+              scheduleDateValue ||
+              (view.viewerCanComplete
+                ? t('proposal.location.tbd', { defaultValue: 'Nog te bepalen' })
+                : '')
+            }
+          />
+          <DetailRow
+            label={timeLabel}
+            value={
+              scheduleTimeValue ||
+              (view.viewerCanComplete
+                ? t('proposal.location.tbd', { defaultValue: 'Nog te bepalen' })
+                : '')
+            }
+          />
+          <DetailRow label={addressHeading} value={addressDisplay} />
         </div>
       </div>
 

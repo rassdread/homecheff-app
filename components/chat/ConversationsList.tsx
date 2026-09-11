@@ -51,8 +51,8 @@ interface ConversationsListProps {
 }
 
 /** Native Android: short tap opens chat/profile; drag ≥8px → scroll only (no preventDefault / capture). */
-const TAP_MAX_MOVE_PX = 8;
-const TAP_MAX_DURATION_MS = 500;
+const TAP_MAX_MOVE_PX = 14;
+const TAP_MAX_DURATION_MS = 750;
 
 function useBoundedPointerTap(onTap: () => void) {
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);

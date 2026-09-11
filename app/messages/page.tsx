@@ -43,6 +43,7 @@ function MessagesPageContent() {
   const isLargeDisplay = useMediaQuery('(min-width: 1024px)');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [contextHeader, setContextHeader] = useState<ResolvedConversationHeader | null>(null);
+  const [openConversationError, setOpenConversationError] = useState<string | null>(null);
   // Dedupe deep-link fetch (UX-FIN-4C.5): the ?conversation= effect already
   // fetches /api/conversations/{id} (which includes contextHeader), so the
   // header effect skips a second identical request for that same id.
@@ -83,8 +84,16 @@ function MessagesPageContent() {
   }, [nativeMounted, searchParams, router, messagesPath]);
 
   const handleSelectConversation = (conversation: Conversation) => {
+    setOpenConversationError(null);
     setSelectedConversation(conversation);
     setContextHeader(null);
+    try {
+      const params = new URLSearchParams(searchParams?.toString() || '');
+      params.set('conversation', conversation.id);
+      router.replace(`${messagesPath}?${params.toString()}`, { scroll: false });
+    } catch {
+      /* ignore */
+    }
   };
 
   useEffect(() => {
@@ -154,15 +163,45 @@ function MessagesPageContent() {
         /* ignore */
       }
 
+      let cancelled = false;
+      setOpenConversationError(null);
       fetch(`/api/conversations/${encodeURIComponent(conversationId)}`)
-        .then((response) => response.json())
-        .then((data) => {
+        .then(async (response) => {
+          const data = await response.json().catch(() => ({}));
+          if (cancelled) return;
+          if (!response.ok) {
+            reportMessagingDiagnostic('split_view_conv_fetch_http', {
+              status: response.status,
+              conversationId,
+            });
+            setOpenConversationError(
+              response.status === 403 || response.status === 401
+                ? t('messages.conversationAccessDenied', {
+                    defaultValue: 'Je hebt geen toegang tot dit gesprek.',
+                  })
+                : response.status === 404
+                  ? t('messages.conversationNotFound', {
+                      defaultValue: 'Dit gesprek bestaat niet (meer).',
+                    })
+                  : t('messages.conversationOpenFailed', {
+                      defaultValue:
+                        'Gesprek openen mislukt. Probeer het opnieuw.',
+                    }),
+            );
+            return;
+          }
           if (data.conversation) {
             const n = normalizeConversationListItem(data.conversation);
             if (!n) {
               reportMessagingDiagnostic('split_view_conv_fetch_shape', {
                 reason: 'normalize',
               });
+              setOpenConversationError(
+                t('messages.conversationOpenFailed', {
+                  defaultValue:
+                    'Gesprek openen mislukt. Probeer het opnieuw.',
+                }),
+              );
               return;
             }
             // Reuse this response for the header too, and mark the id so the
@@ -177,13 +216,29 @@ function MessagesPageContent() {
                 detail: { conversationId },
               })
             );
+          } else {
+            setOpenConversationError(
+              t('messages.conversationNotFound', {
+                defaultValue: 'Dit gesprek bestaat niet (meer).',
+              }),
+            );
           }
         })
         .catch((error) => {
           console.error('Error fetching conversation:', error);
+          if (!cancelled) {
+            setOpenConversationError(
+              t('messages.conversationOpenFailed', {
+                defaultValue: 'Gesprek openen mislukt. Probeer het opnieuw.',
+              }),
+            );
+          }
         });
+      return () => {
+        cancelled = true;
+      };
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const hidePageChromeForMobileChat =
     !!selectedConversation && !isLargeDisplay;
@@ -195,8 +250,12 @@ function MessagesPageContent() {
     !selectedConversation &&
     !isLargeDisplay;
 
-  if (sessionStatus === 'loading' || !session?.user) {
-    return null;
+  if (sessionStatus === 'loading') {
+    return <MessagesLoadingSkeleton />;
+  }
+
+  if (!session?.user) {
+    return <MessagesLoadingSkeleton />;
   }
 
   return (
@@ -209,6 +268,27 @@ function MessagesPageContent() {
         nativeMounted && 'hc-native-messages-page'
       )}
     >
+      {openConversationError ? (
+        <div
+          className="mx-auto w-full max-w-7xl px-4 pt-3 sm:px-6"
+          role="alert"
+          data-hc-messages-open-error=""
+        >
+          <div className="flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            <p>{openConversationError}</p>
+            <button
+              type="button"
+              className="shrink-0 font-medium underline"
+              onClick={() => {
+                setOpenConversationError(null);
+                handleBackToList();
+              }}
+            >
+              {t('common.close', { defaultValue: 'Sluiten' })}
+            </button>
+          </div>
+        </div>
+      ) : null}
       <header
         className={`w-full flex-shrink-0 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm ${
           hidePageChromeForMobileChat ? 'hidden lg:block' : ''

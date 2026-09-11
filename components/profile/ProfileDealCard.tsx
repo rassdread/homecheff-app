@@ -283,12 +283,12 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
           <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 space-y-1 text-xs text-gray-800">
             {dateTxt ? (
               <p>
-                <span className="text-gray-500">{t('proposal.card.labelDate')}: </span>
+                <span className="text-gray-500">{t('proposal.card.labelDate', { defaultValue: 'Datum' })}: </span>
                 <span className="font-medium capitalize">{dateTxt}</span>
               </p>
             ) : ful ? (
               <p>
-                <span className="text-gray-500">{t('proposal.card.labelDate')}: </span>
+                <span className="text-gray-500">{t('proposal.card.labelDate', { defaultValue: 'Datum' })}: </span>
                 <span className="font-medium">
                   {t('proposal.location.tbd', { defaultValue: 'Nog te bepalen' })}
                 </span>
@@ -296,12 +296,12 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
             ) : null}
             {timeTxt ? (
               <p>
-                <span className="text-gray-500">{t('proposal.card.labelTime')}: </span>
+                <span className="text-gray-500">{t('proposal.card.labelTime', { defaultValue: 'Tijd' })}: </span>
                 <span className="font-medium">{timeTxt}</span>
               </p>
             ) : ful ? (
               <p>
-                <span className="text-gray-500">{t('proposal.card.labelTime')}: </span>
+                <span className="text-gray-500">{t('proposal.card.labelTime', { defaultValue: 'Tijd' })}: </span>
                 <span className="font-medium">
                   {t('proposal.location.tbd', { defaultValue: 'Nog te bepalen' })}
                 </span>
@@ -309,7 +309,7 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
             ) : null}
             {ful ? (
               <p>
-                <span className="text-gray-500">{t('proposal.card.labelFulfillment')}: </span>
+                <span className="text-gray-500">{t('proposal.card.labelFulfillment', { defaultValue: 'Wijze' })}: </span>
                 <span className="font-medium">{ful}</span>
               </p>
             ) : null}
@@ -317,8 +317,8 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
               <p>
                 <span className="text-gray-500">
                   {deal.proposal.fulfillmentType === 'DELIVERY'
-                    ? t('proposal.location.deliveryAddress')
-                    : t('proposal.location.pickupAddress')}
+                    ? t('proposal.location.deliveryAddress', { defaultValue: 'Afleveradres' })
+                    : t('proposal.location.pickupAddress', { defaultValue: 'Afhaaladres' })}
                   :{' '}
                 </span>
                 <span className="font-medium whitespace-pre-wrap">{addressLine}</span>
@@ -326,7 +326,7 @@ export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
             ) : null}
             {deal.proposal.description ? (
               <p>
-                <span className="text-gray-500">{t('proposal.card.labelNotes')}: </span>
+                <span className="text-gray-500">{t('proposal.card.labelNotes', { defaultValue: 'Notities' })}: </span>
                 <span className="font-medium whitespace-pre-wrap">
                   {deal.proposal.description}
                 </span>

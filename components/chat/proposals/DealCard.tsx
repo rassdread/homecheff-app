@@ -328,7 +328,9 @@ export default function DealCard({
 
       {paymentPath !== 'NONE' ? (
         <p className="text-[11px] text-emerald-800">
-          <span className="font-medium">{t(DEAL_I18N.paymentHeading)}: </span>
+          <span className="font-medium">
+            {t(DEAL_I18N.paymentHeading, { defaultValue: 'Betaling' })}:{' '}
+          </span>
           {t(DEAL_I18N.paymentPath[paymentPath])}
         </p>
       ) : null}

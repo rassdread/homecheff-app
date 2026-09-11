@@ -142,6 +142,25 @@ export function deriveFulfillmentLocationState(input: {
   return 'SCHEDULE_PENDING';
 }
 
+/** UI mode for location card — never render empty "Label:" rows. */
+export function resolveLocationPanelPresentation(input: {
+  state: FulfillmentLocationState;
+  exactAddress?: string | null;
+  scheduleDate?: string | null;
+  scheduleTimeWindow?: string | null;
+  viewerCanComplete: boolean;
+}): 'hidden' | 'not_recorded' | 'panel' {
+  if (input.state === 'LOCATION_NOT_REQUIRED') return 'hidden';
+  const hasAddress = Boolean(input.exactAddress?.trim());
+  const hasSchedule = Boolean(
+    input.scheduleDate?.trim() || input.scheduleTimeWindow?.trim(),
+  );
+  if (!hasAddress && !hasSchedule && !input.viewerCanComplete) {
+    return 'not_recorded';
+  }
+  return 'panel';
+}
+
 export function toIsoDate(value: string | Date | null | undefined): string | null {
   if (!value) return null;
   if (value instanceof Date) {

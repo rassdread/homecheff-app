@@ -9745,6 +9745,8 @@
       "addressPendingSelf": "Nog te bevestigen",
       "pickupPendingOther": "Afhaaladres wordt nog door {name} bevestigd.",
       "deliveryPendingOther": "Afleveradres wordt nog bevestigd.",
+      "notRecorded": "Locatie is nog niet vastgelegd.",
+      "notRecordedCompleted": "Locatie is voor deze afgeronde afspraak niet vastgelegd.",
       "confirmPickupCta": "Afhaalmoment en adres invullen",
       "confirmDeliveryCta": "Bezorgmoment en adres bevestigen",
       "useSaved": "Dit adres gebruiken",

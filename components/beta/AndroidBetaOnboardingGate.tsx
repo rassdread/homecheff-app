@@ -74,10 +74,18 @@ export default function AndroidBetaOnboardingGate() {
   async function finishOnboarding() {
     setBusy(true);
     try {
-      await fetch('/api/beta/onboarding/complete', { method: 'POST', credentials: 'include' });
+      const res = await fetch('/api/beta/onboarding/complete', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      // Never permanently trap the whole app behind this gate.
       setOpen(false);
-    } catch {
-      /* keep open */
+      if (!res.ok) {
+        console.warn('[beta-onboarding] complete failed', res.status);
+      }
+    } catch (err) {
+      console.warn('[beta-onboarding] complete error', err);
+      setOpen(false);
     } finally {
       setBusy(false);
     }

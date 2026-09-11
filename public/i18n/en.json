@@ -9745,6 +9745,8 @@
       "addressPendingSelf": "Still to confirm",
       "pickupPendingOther": "Pickup address still to be confirmed by {name}.",
       "deliveryPendingOther": "Delivery address still to be confirmed.",
+      "notRecorded": "Location has not been recorded yet.",
+      "notRecordedCompleted": "Location was not recorded for this completed appointment.",
       "confirmPickupCta": "Add pickup time and address",
       "confirmDeliveryCta": "Confirm delivery time and address",
       "useSaved": "Use this address",

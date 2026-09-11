@@ -766,6 +766,21 @@ export function useTranslation() {
     // Hydration-safe: module-level cache can survive remounts while SSR always renders
     // empty strings (no translations on server). Only read cache after isReady so the
     // first client render matches SSR HTML and avoids React #425 text mismatches.
+    //
+    // Callers may pass `{ defaultValue: '…' }` (next-i18n style). Honor it as a real
+    // fallback — previously it was ignored and treated as an interpolation param, which
+    // produced empty "Label:" rows (bare colons) in deal/location cards during load.
+    const defaultValue =
+      params && typeof params.defaultValue === 'string'
+        ? String(params.defaultValue)
+        : undefined;
+    const interpolateParams =
+      params == null
+        ? undefined
+        : (Object.fromEntries(
+            Object.entries(params).filter(([k]) => k !== 'defaultValue'),
+          ) as Record<string, string | number>);
+
     const canUseTranslationCache = isReady || isChangingLanguage;
     let value: any = null;
     if (canUseTranslationCache && Object.keys(translations).length > 0) {
@@ -784,16 +799,24 @@ export function useTranslation() {
     if (value !== null) {
       // If value is a string, return it (with parameter replacement if needed)
       if (typeof value === 'string') {
-        if (params) {
+        if (interpolateParams && Object.keys(interpolateParams).length > 0) {
           // Één veilige helper voor zowel {x} als {{x}} (UX-FIN-3A.1).
-          return interpolateTranslation(value, params);
+          return interpolateTranslation(value, interpolateParams);
         }
         return value;
       }
       // If value is an object, it means we found the path but it's not a string
       // This happens when trying to get an object like inspiratie.subcategories.CHEFF
       // Return empty string to indicate it's not a string value (use getTranslationObject instead)
-      return '';
+      return defaultValue ?? '';
+    }
+
+    // Prefer explicit defaultValue over blank UI while dictionaries load / keys miss.
+    if (defaultValue !== undefined) {
+      if (interpolateParams && Object.keys(interpolateParams).length > 0) {
+        return interpolateTranslation(defaultValue, interpolateParams);
+      }
+      return defaultValue;
     }
 
     // If we're still loading and have no translations at all, return empty string
