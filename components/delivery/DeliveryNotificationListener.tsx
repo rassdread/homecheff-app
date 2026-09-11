@@ -35,7 +35,11 @@ export default function DeliveryNotificationListener() {
   const [audio] = useState(() => {
     if (typeof window !== 'undefined') {
       const notificationAudio = new Audio('/notification.mp3');
+      notificationAudio.preload = 'none';
       notificationAudio.volume = 0.5;
+      notificationAudio.addEventListener('error', () => {
+        /* missing asset must not break delivery dashboard */
+      });
       return notificationAudio;
     }
     return null;

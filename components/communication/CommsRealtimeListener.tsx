@@ -75,7 +75,12 @@ export default function CommsRealtimeListener() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const a = new Audio('/notification.mp3');
+    a.preload = 'none';
     a.volume = 0.45;
+    // Avoid console noise if asset is temporarily missing.
+    a.addEventListener('error', () => {
+      audioRef.current = null;
+    });
     audioRef.current = a;
   }, []);
 
