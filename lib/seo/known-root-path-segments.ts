@@ -155,13 +155,14 @@ const ROOT_FILE_SEGMENTS = new Set([
   'apple-touch-icon.png',
   'manifest.json',
   'robots.txt',
+  'notification.mp3',
   'opengraph-image',
   'twitter-image',
 ]);
 
-/** Root /brand/* and single-segment public static files (PNG/ICO/etc.). */
+/** Root /brand/* and single-segment public static files (PNG/ICO/audio/etc.). */
 const ROOT_STATIC_ASSET_RE =
-  /\.(?:png|jpe?g|webp|gif|ico|svg|woff2?|ttf|map)$/i;
+  /\.(?:png|jpe?g|webp|gif|ico|svg|woff2?|ttf|map|mp3|wav|ogg|m4a)$/i;
 
 /**
  * True for deployable `public/` brand and chrome assets that must never be
