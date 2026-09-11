@@ -39,7 +39,7 @@ export default function ConnectTrackSelector({
         </h3>
         <p className="mt-1 text-sm text-gray-600">
           {recoveryMode
-            ? 'Je Stripe-profiel staat als bedrijfs-/Express-profiel. Omdat je HomeCheff als particulier gebruikt, kun je een nieuw particulier betaalprofiel starten (alleen als er geen openstaand saldo is).'
+            ? 'Je betaalprofiel is eerder gestart via onze zakelijke verificatieroute. Omdat je HomeCheff als particulier gebruikt, kunnen we je betaalprofiel opnieuw instellen via de particuliere verificatie. Listings, reviews, chat en orders blijven behouden.'
             : 'Kies de route die bij jouw situatie past. Dit bepaalt welke Stripe-verificatie nodig is.'}
         </p>
       </div>
@@ -56,14 +56,14 @@ export default function ConnectTrackSelector({
             <div>
               <p className="font-medium text-gray-900">Particulier</p>
               <p className="mt-1 text-xs leading-relaxed text-gray-600">
-                Je verkoopt of biedt incidenteel iets aan als particulier en hebt
-                geen KvK-nummer.
+                Voor verkopen als particulier. Stripe verifieert je identiteit
+                en bankrekening; een KvK-inschrijving is voor deze
+                verificatieroute niet nodig.
               </p>
               <p className="mt-2 text-[11px] leading-relaxed text-gray-500">
-                Voor de Stripe-verificatie van deze particuliere
-                HomeCheff-betaalroute is geen KvK-nummer vereist. Je blijft zelf
-                verantwoordelijk voor eventuele wettelijke of fiscale
-                registratieverplichtingen.
+                HomeCheff kiest hiermee alleen de Stripe Connect-route.
+                Eventuele wettelijke of fiscale verplichtingen blijven afhankelijk
+                van jouw activiteit en situatie.
               </p>
             </div>
           </div>

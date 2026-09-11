@@ -150,10 +150,15 @@ export async function createConnectAccount(
   email: string,
   country: string = 'NL',
   typeOrTrack: 'express' | 'standard' | 'PARTICULAR' | 'BUSINESS' = 'express',
+  options?: { idempotencyKey?: string },
 ) {
   if (!stripe) {
     throw new Error('Stripe not configured. Missing STRIPE_SECRET_KEY.');
   }
+
+  const requestOpts = options?.idempotencyKey
+    ? { idempotencyKey: options.idempotencyKey }
+    : undefined;
 
   try {
     const { buildConnectAccountParamsForTrack, parseConnectTrack } = await import(
@@ -163,20 +168,24 @@ export async function createConnectAccount(
     if (track) {
       return await stripe.accounts.create(
         buildConnectAccountParamsForTrack(track, email, country),
+        requestOpts,
       );
     }
 
     // Legacy callers: express/standard
     const type = typeOrTrack === 'standard' ? 'standard' : 'express';
-    return await stripe.accounts.create({
-      type,
-      country,
-      email,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
+    return await stripe.accounts.create(
+      {
+        type,
+        country,
+        email,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
       },
-    });
+      requestOpts,
+    );
   } catch (error: any) {
     console.error('Error creating Stripe Connect account:', error);
     const stripeError = error as any;

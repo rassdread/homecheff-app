@@ -61,6 +61,15 @@ export async function startStripeConnectOnboarding(options?: {
             'Je Stripe-profiel kan niet automatisch worden vervangen.',
         };
       }
+      if (data.error === 'CONNECT_REPLACE_NEEDS_CONFIRMATION') {
+        return {
+          ok: false,
+          needsTrackSelection: true,
+          error:
+            data.message ||
+            'Bevestig of je HomeCheff als particulier of als bedrijf gebruikt.',
+        };
+      }
       return {
         ok: false,
         error:

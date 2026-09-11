@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createConnectAccount, stripe, matchesCurrentMode, isTestMode } from '@/lib/stripe';
@@ -10,6 +11,25 @@ import {
   type ConnectTrack,
 } from '@/lib/stripe/connect-tracks';
 import { evaluateConnectAccountReplacement } from '@/lib/stripe/connect-account-replacement';
+
+async function isRecoveryEligibleForUser(params: {
+  accountId: string | null | undefined;
+  track: ConnectTrack | null;
+  paymentReady: boolean;
+}): Promise<boolean> {
+  if (!isDualTrackConnectEnabled()) return false;
+  if (!params.accountId || params.paymentReady) return false;
+  // Already on PARTICULAR with an account → continue that onboarding, not recovery UI.
+  if (params.track === 'PARTICULAR') return false;
+  const decision = await evaluateConnectAccountReplacement({
+    existingAccountId: params.accountId,
+    requestedTrack: 'PARTICULAR',
+    existingTrack: params.track,
+  });
+  return (
+    decision.allowed && decision.reason === 'EMPTY_INCOMPLETE_STUCK_EXPRESS'
+  );
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -54,6 +74,7 @@ export async function GET(req: NextRequest) {
         connectTrack: null,
         dualTrackEnabled: isDualTrackConnectEnabled(),
         needsTrackSelection: isDualTrackConnectEnabled(),
+        recoveryEligible: false,
         cta,
       });
     }
@@ -68,6 +89,11 @@ export async function GET(req: NextRequest) {
 
     const cta = connectCtaModelForStatus(live.uiStatus);
     const track = parseConnectTrack(user.stripeConnectTrack);
+    const recoveryEligible = await isRecoveryEligibleForUser({
+      accountId: user.stripeConnectAccountId,
+      track,
+      paymentReady: live.paymentReady,
+    });
 
     return NextResponse.json({
       hasAccount: live.hasAccount,
@@ -83,9 +109,11 @@ export async function GET(req: NextRequest) {
       pendingVerificationCount: live.pendingVerificationCount,
       connectTrack: track,
       dualTrackEnabled: isDualTrackConnectEnabled(),
+      // New accounts OR stuck Express without explicit track → ask particulier/bedrijf.
       needsTrackSelection:
-        isDualTrackConnectEnabled() && !live.hasAccount && !track,
-      recoveryEligible: false, // stuck Express recovery deferred to later phase
+        isDualTrackConnectEnabled() &&
+        ((!live.hasAccount && !track) || (recoveryEligible && !track)),
+      recoveryEligible,
       cta,
     });
   } catch (error) {
@@ -130,8 +158,7 @@ export async function POST(req: NextRequest) {
     const dualTrack = isDualTrackConnectEnabled();
     const requestedTrack = parseConnectTrack(body.track);
     const existingTrack = parseConnectTrack(user.stripeConnectTrack);
-    // forceReplace intentionally ignored this rollout (stuck recovery deferred).
-    void body.forceReplace;
+    const forceReplace = body.forceReplace === true;
 
     // Already payment-ready → never create another account.
     if (user.stripeConnectOnboardingCompleted && user.stripeConnectAccountId) {
@@ -154,7 +181,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Dual-track: require explicit track for new accounts.
+    // Dual-track: require explicit track for new accounts / recovery.
     let track: ConnectTrack | null = requestedTrack || existingTrack;
     if (dualTrack) {
       if (!track) {
@@ -174,6 +201,7 @@ export async function POST(req: NextRequest) {
     }
 
     let accountId = user.stripeConnectAccountId;
+    let replaceOldAccountId: string | null = null;
     const isFakeTestAccount = accountId && accountId.startsWith('acct_test_');
 
     if (isFakeTestAccount) {
@@ -188,8 +216,6 @@ export async function POST(req: NextRequest) {
       accountId = null;
     }
 
-    // Track switch / stuck Express recovery intentionally DISABLED this rollout.
-    // Stuck Express users keep their existing account; recovery is a later phase.
     if (accountId && dualTrack) {
       const decision = await evaluateConnectAccountReplacement({
         existingAccountId: accountId,
@@ -205,17 +231,24 @@ export async function POST(req: NextRequest) {
         decision.allowed &&
         decision.reason === 'EMPTY_INCOMPLETE_STUCK_EXPRESS'
       ) {
-        // Do not auto-replace during this controlled rollout.
-        return NextResponse.json(
-          {
-            error: 'CONNECT_REPLACE_BLOCKED',
-            errorKey: 'stripe.connect.replaceBlocked',
-            reason: 'STUCK_RECOVERY_DISABLED_THIS_ROLLOUT',
-            message:
-              'Je bestaande Stripe-profiel blijft ongewijzigd. Nieuwe particuliere onboarding is beschikbaar voor accounts zonder bestaand Connect-profiel.',
-          },
-          { status: 409 },
-        );
+        if (track === 'PARTICULAR' && forceReplace) {
+          replaceOldAccountId = accountId;
+          accountId = null; // create new PARTICULAR below (idempotent key)
+        } else if (track === 'PARTICULAR' && !forceReplace) {
+          return NextResponse.json(
+            {
+              error: 'CONNECT_REPLACE_NEEDS_CONFIRMATION',
+              errorKey: 'stripe.connect.replaceNeedsConfirmation',
+              reason: 'FORCE_REPLACE_REQUIRED',
+              recoveryEligible: true,
+              needsTrackSelection: true,
+              message:
+                'Bevestig dat je HomeCheff als particulier gebruikt om je betaalprofiel opnieuw in te stellen.',
+            },
+            { status: 409 },
+          );
+        }
+        // BUSINESS on stuck Express → SAME_TRACK_REUSE handled above via evaluate
       } else if (
         !decision.allowed &&
         requestedTrack &&
@@ -241,21 +274,46 @@ export async function POST(req: NextRequest) {
         console.log('🔍 Creating Stripe Connect account', {
           track,
           mode: isTestMode ? 'TEST' : 'LIVE',
+          replacing: replaceOldAccountId,
         });
+        const idempotencyKey = replaceOldAccountId
+          ? `hc-particular-migrate-${user.id}-${replaceOldAccountId}`
+          : `hc-connect-create-${user.id}-${track}`;
         const connectAccount = await createConnectAccount(
           user.email!,
           'NL',
           dualTrack ? track! : 'express',
+          { idempotencyKey },
         );
         accountId = connectAccount.id;
 
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            stripeConnectAccountId: accountId,
-            stripeConnectTrack: track,
-            stripeConnectOnboardingCompleted: false,
-          },
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: user.id },
+            data: {
+              stripeConnectAccountId: accountId,
+              stripeConnectTrack: track,
+              stripeConnectOnboardingCompleted: false,
+            },
+          });
+          if (replaceOldAccountId) {
+            await tx.auditLog.create({
+              data: {
+                id: randomUUID(),
+                userId: user.id,
+                action: 'STRIPE_CONNECT_PARTICULAR_MIGRATE',
+                meta: {
+                  oldStripeAccountId: replaceOldAccountId,
+                  newStripeAccountId: accountId,
+                  reason: 'EMPTY_INCOMPLETE_STUCK_EXPRESS',
+                  trackBefore: existingTrack,
+                  trackAfter: track,
+                  actor: 'user_force_replace',
+                  timestamp: new Date().toISOString(),
+                },
+              },
+            });
+          }
         });
 
         try {
@@ -360,6 +418,7 @@ export async function POST(req: NextRequest) {
       onboardingUrl: accountLink.url,
       accountId,
       connectTrack: track,
+      migratedFrom: replaceOldAccountId,
     });
   } catch (error) {
     console.error('Stripe Connect onboarding error:', error);

@@ -109,15 +109,47 @@ export async function evaluateConnectAccountReplacement(params: {
       { limit: 5 },
       { stripeAccount: params.existingAccountId },
     );
-    if (payouts.data.some((p) => p.status === 'pending' || p.status === 'in_transit')) {
+    if (
+      payouts.data.some(
+        (p) => p.status === 'pending' || p.status === 'in_transit',
+      )
+    ) {
       return { allowed: false, reason: 'HAS_PENDING_PAYOUTS', classification };
+    }
+    // Any payout history → keep for audit; do not auto-relink.
+    if (payouts.data.length > 0) {
+      return { allowed: false, reason: 'MANUAL_REVIEW', classification };
     }
   } catch {
     return { allowed: false, reason: 'MANUAL_REVIEW', classification };
   }
 
-  // Transfers are on the platform account; check metadata destination if needed.
-  // Conservative: only auto-replace when charges+payouts disabled and details incomplete/restricted.
+  try {
+    const transfers = await stripe.transfers.list({
+      destination: params.existingAccountId,
+      limit: 5,
+    });
+    if (transfers.data.length > 0) {
+      return { allowed: false, reason: 'HAS_PENDING_TRANSFERS', classification };
+    }
+  } catch {
+    return { allowed: false, reason: 'MANUAL_REVIEW', classification };
+  }
+
+  try {
+    const disputes = await stripe.disputes.list(
+      { limit: 1 },
+      { stripeAccount: params.existingAccountId },
+    );
+    if (disputes.data.length > 0) {
+      return { allowed: false, reason: 'MANUAL_REVIEW', classification };
+    }
+  } catch {
+    // Connected account may not expose disputes; continue conservatively only
+    // when charges/payouts are both disabled (checked below).
+  }
+
+  // Conservative: only auto-replace when charges+payouts disabled.
   if (account.charges_enabled || account.payouts_enabled) {
     return { allowed: false, reason: 'MANUAL_REVIEW', classification };
   }

@@ -1,12 +1,12 @@
 /**
  * Dual-track Stripe Connect configuration for HomeCheff.
  *
- * TRACK PARTICULAR — NL individual, no Stripe-hosted dashboard, transfers-only.
+ * TRACK PARTICULAR — NL individual, dashboard=none; transfers + card_payments
+ *   for platform eligibility. HC payment model stays SCT (no direct/destination).
  * TRACK BUSINESS   — Express + hosted onboarding (KvK/KYB via Stripe).
  *
- * Service agreement: full (not recipient) until counsel confirms recipient is
- * appropriate for marketplace seller payouts. Full + dashboard=none is the
- * Stripe-documented path that lifts NL KvK for individuals (2026-05-14).
+ * Service agreement: full. Live validated 2026-09-11: dashboard=none individual
+ * with transfers+card_payments → no KvK/company docs.
  */
 
 import type Stripe from 'stripe';
@@ -35,9 +35,14 @@ export function isDualTrackConnectEnabled(): boolean {
   return ['1', 'true', 'on', 'yes'].includes(v.trim().toLowerCase());
 }
 
-/** Particular payout-only: transfers. Business Express: transfers (+ no card_payments unless needed). */
+/**
+ * Particular: transfers + card_payments requested.
+ * card_payments satisfies live platform capability rules; HomeCheff never uses
+ * connected-seller direct/destination charges — SCT only.
+ */
 export const PARTICULAR_CAPABILITIES: Stripe.AccountCreateParams.Capabilities = {
   transfers: { requested: true },
+  card_payments: { requested: true },
 };
 
 export const BUSINESS_CAPABILITIES: Stripe.AccountCreateParams.Capabilities = {
@@ -108,9 +113,9 @@ export type PaymentReadyInput = {
 
 /**
  * HomeCheff SCT: platform charges; seller receives transfers.
- * Legacy Express: charges_enabled && payouts_enabled (unchanged for working accounts).
- * Particular (dashboard=none, transfers-only): payouts_enabled + transfers active;
- * charges_enabled may stay false and must not block.
+ * Legacy Express / BUSINESS: charges_enabled && payouts_enabled.
+ * PARTICULAR (dashboard=none): payouts_enabled + transfers active;
+ * charges_enabled and card_payments capability may stay false/inactive and must not block.
  */
 export function isHomecheffPaymentReady(flags: PaymentReadyInput): boolean {
   if (flags.disabledReason) return false;
@@ -125,14 +130,14 @@ export function isHomecheffPaymentReady(flags: PaymentReadyInput): boolean {
     (flags.accountType === 'custom' && flags.dashboardType !== 'express');
 
   if (isParticular) {
+    // Intentionally ignore charges_enabled / card_payments status.
     return payouts && transfersIsActive;
   }
 
   // Legacy / business Express: require both (historical contract).
   if (charges && payouts) return true;
 
-  // Transfers-only fallback only when account clearly has no Stripe dashboard
-  // (not for Express business track).
+  // Dashboard=none fallback (track unknown but controller is particular-shaped).
   if (
     !charges &&
     payouts &&

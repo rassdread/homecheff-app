@@ -1,0 +1,190 @@
+{
+  "EXISTING_CONNECT_ACCOUNTS_TOTAL": 9,
+  "AUTO_MIGRATION_COUNT": 0,
+  "USER_CONFIRMATION_REQUIRED_COUNT": 6,
+  "MANUAL_REVIEW_COUNT": 0,
+  "KEEP_COUNT": 3,
+  "NOTE": "DRY_RUN_ONLY — no migration executed; PARTICULAR live create blocked by platform capability approval",
+  "rows": [
+    {
+      "ACCOUNT": "acct_1TU5nXR…",
+      "CURRENT_TYPE": "express/non_profit",
+      "CURRENT_STATUS": "charges=false,payouts=false",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": false,
+        "transfers_exist": false,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "PARTICULAR_LIKELY_WRONG_TYPE",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "stuck/wrong-type but particulier vs bedrijf not proven in HC data",
+      "PROPOSED_ACTION": "USER_CONFIRMATION_REQUIRED",
+      "CLASSIFICATION": "WRONG_NONPROFIT_OR_COMPANY_CHOICE"
+    },
+    {
+      "ACCOUNT": "acct_1UAByR2…",
+      "CURRENT_TYPE": "express/non_profit",
+      "CURRENT_STATUS": "charges=false,payouts=false",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": false,
+        "transfers_exist": false,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "PARTICULAR_LIKELY_WRONG_TYPE",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "stuck/wrong-type but particulier vs bedrijf not proven in HC data",
+      "PROPOSED_ACTION": "USER_CONFIRMATION_REQUIRED",
+      "CLASSIFICATION": "WRONG_NONPROFIT_OR_COMPANY_CHOICE"
+    },
+    {
+      "ACCOUNT": "acct_1TTisM2…",
+      "CURRENT_TYPE": "express/non_profit",
+      "CURRENT_STATUS": "charges=false,payouts=false",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": false,
+        "transfers_exist": false,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "PARTICULAR_LIKELY_WRONG_TYPE",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "stuck/wrong-type but particulier vs bedrijf not proven in HC data",
+      "PROPOSED_ACTION": "USER_CONFIRMATION_REQUIRED",
+      "CLASSIFICATION": "WRONG_NONPROFIT_OR_COMPANY_CHOICE"
+    },
+    {
+      "ACCOUNT": "acct_1TScm1R…",
+      "CURRENT_TYPE": "express/company",
+      "CURRENT_STATUS": "charges=false,payouts=false",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": false,
+        "transfers_exist": false,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "PARTICULAR_LIKELY_WRONG_TYPE",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "business signals present",
+      "PROPOSED_ACTION": "KEEP",
+      "CLASSIFICATION": "WRONG_NONPROFIT_OR_COMPANY_CHOICE"
+    },
+    {
+      "ACCOUNT": "acct_1Sj5DiR…",
+      "CURRENT_TYPE": "express/individual",
+      "CURRENT_STATUS": "charges=true,payouts=true",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": false,
+        "transfers_exist": false,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "ACTIVE_LEGACY",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "working payouts/charges",
+      "PROPOSED_ACTION": "KEEP",
+      "CLASSIFICATION": "LEGACY_INDIVIDUAL_EXPRESS_ACTIVE"
+    },
+    {
+      "ACCOUNT": "acct_1UCL80R…",
+      "CURRENT_TYPE": "express/null",
+      "CURRENT_STATUS": "charges=false,payouts=false",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": false,
+        "transfers_exist": false,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "PARTICULAR_LIKELY_STUCK",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "stuck/wrong-type but particulier vs bedrijf not proven in HC data",
+      "PROPOSED_ACTION": "USER_CONFIRMATION_REQUIRED",
+      "CLASSIFICATION": "STUCK_PRIVATE_EXPRESS"
+    },
+    {
+      "ACCOUNT": "acct_1U5cKJR…",
+      "CURRENT_TYPE": "express/null",
+      "CURRENT_STATUS": "charges=false,payouts=false",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": false,
+        "transfers_exist": false,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "PARTICULAR_LIKELY_STUCK",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "stuck/wrong-type but particulier vs bedrijf not proven in HC data",
+      "PROPOSED_ACTION": "USER_CONFIRMATION_REQUIRED",
+      "CLASSIFICATION": "STUCK_PRIVATE_EXPRESS"
+    },
+    {
+      "ACCOUNT": "acct_1Sj52gR…",
+      "CURRENT_TYPE": "express/individual",
+      "CURRENT_STATUS": "charges=true,payouts=true",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": true,
+        "transfers_exist": true,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "ACTIVE_LEGACY",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "working payouts/charges",
+      "PROPOSED_ACTION": "KEEP",
+      "CLASSIFICATION": "LEGACY_INDIVIDUAL_EXPRESS_ACTIVE"
+    },
+    {
+      "ACCOUNT": "acct_1UDs6rR…",
+      "CURRENT_TYPE": "express/non_profit",
+      "CURRENT_STATUS": "charges=false,payouts=false",
+      "HC_TRACK": null,
+      "BALANCE": 0,
+      "PENDING": 0,
+      "FINANCIAL_HISTORY": {
+        "available": 0,
+        "pending": 0,
+        "payouts_exist": false,
+        "transfers_exist": false,
+        "disputes_exist": false
+      },
+      "USER_CLASSIFICATION": "PARTICULAR_LIKELY_WRONG_TYPE",
+      "MIGRATION_ELIGIBLE": false,
+      "REASON": "stuck/wrong-type but particulier vs bedrijf not proven in HC data",
+      "PROPOSED_ACTION": "USER_CONFIRMATION_REQUIRED",
+      "CLASSIFICATION": "WRONG_NONPROFIT_OR_COMPANY_CHOICE"
+    }
+  ]
+}
