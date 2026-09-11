@@ -12,6 +12,11 @@ import {
   type ConnectTrack,
 } from '@/lib/stripe/connect-tracks';
 import { hasHomecheffSettlementExposure } from '@/lib/stripe/connect-migration';
+import {
+  isParticularAccountShape,
+  isBusinessAccountShape,
+  getStripeDashboardType,
+} from '@/lib/stripe/connect-account-shape';
 
 export type ConnectReplaceDecision =
   | {
@@ -19,7 +24,8 @@ export type ConnectReplaceDecision =
       reason:
         | 'NO_EXISTING_ACCOUNT'
         | 'EMPTY_INCOMPLETE_STUCK_EXPRESS'
-        | 'SAME_TRACK_REUSE';
+        | 'SAME_TRACK_REUSE'
+        | 'CONFIGURATION_MISMATCH_REPLACE';
     }
   | {
       allowed: false;
@@ -31,7 +37,8 @@ export type ConnectReplaceDecision =
         | 'HAS_HC_SETTLEMENT_EXPOSURE'
         | 'MANUAL_REVIEW'
         | 'STRIPE_UNAVAILABLE'
-        | 'TRACK_MISMATCH_KEEP';
+        | 'TRACK_MISMATCH_KEEP'
+        | 'CONFIGURATION_MISMATCH';
       classification?: string;
       safetyBlocker?: string;
     };
@@ -62,10 +69,33 @@ export async function evaluateConnectAccountReplacement(params: {
     return { allowed: false, reason: 'STRIPE_UNAVAILABLE' };
   }
 
-  // Same track + existing id → reuse (idempotent onboard link).
-  // PARTICULAR + PARTICULAR: always reuse (cancel/return must not create another).
+  // Same track + existing id → reuse only when Stripe shape matches the track.
+  // PARTICULAR non_profit/company must NEVER reuse (CONFIGURATION_MISMATCH).
   if (params.existingTrack && params.existingTrack === params.requestedTrack) {
-    return { allowed: true, reason: 'SAME_TRACK_REUSE' };
+    let accountForShape: Stripe.Account | null = null;
+    try {
+      accountForShape = await stripe.accounts.retrieve(params.existingAccountId);
+    } catch {
+      return { allowed: true, reason: 'NO_EXISTING_ACCOUNT' };
+    }
+
+    if (params.requestedTrack === 'PARTICULAR') {
+      if (isParticularAccountShape(accountForShape)) {
+        return { allowed: true, reason: 'SAME_TRACK_REUSE' };
+      }
+      // Fall through to safety + replace path for mismatch.
+    } else if (params.requestedTrack === 'BUSINESS') {
+      if (isBusinessAccountShape(accountForShape)) {
+        return { allowed: true, reason: 'SAME_TRACK_REUSE' };
+      }
+      return {
+        allowed: false,
+        reason: 'MANUAL_REVIEW',
+        classification: 'BUSINESS_SHAPE_MISMATCH',
+      };
+    } else {
+      return { allowed: true, reason: 'SAME_TRACK_REUSE' };
+    }
   }
 
   let account: Stripe.Account;
@@ -99,10 +129,19 @@ export async function evaluateConnectAccountReplacement(params: {
     };
   }
 
-  // PARTICULAR replace path
+  // PARTICULAR replace path — includes dashboard=none non_profit/company mismatch
+  const particularMismatch =
+    params.requestedTrack === 'PARTICULAR' &&
+    !isParticularAccountShape(account) &&
+    (account.business_type === 'non_profit' ||
+      account.business_type === 'company' ||
+      account.business_type === 'government_entity' ||
+      (getStripeDashboardType(account) === 'none' && account.business_type !== 'individual'));
+
   const stuck =
     classification === 'STUCK_PRIVATE_EXPRESS' ||
     classification === 'WRONG_NONPROFIT_OR_COMPANY_CHOICE' ||
+    particularMismatch ||
     // Allow BUSINESS→PARTICULAR flip when Express is incomplete/wrong
     (params.existingTrack === 'BUSINESS' &&
       !account.charges_enabled &&
@@ -225,5 +264,10 @@ export async function evaluateConnectAccountReplacement(params: {
     };
   }
 
-  return { allowed: true, reason: 'EMPTY_INCOMPLETE_STUCK_EXPRESS' };
+  return {
+    allowed: true,
+    reason: particularMismatch
+      ? 'CONFIGURATION_MISMATCH_REPLACE'
+      : 'EMPTY_INCOMPLETE_STUCK_EXPRESS',
+  };
 }

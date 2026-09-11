@@ -17,7 +17,10 @@ export default function StripeConnectSetup() {
   const [showTrackPicker, setShowTrackPicker] = useState(false);
   const [connectTrack, setConnectTrack] = useState<ConnectTrack | null>(null);
   const [recoveryEligible, setRecoveryEligible] = useState(false);
+  const [configurationMismatch, setConfigurationMismatch] = useState(false);
   const [dualTrackEnabled, setDualTrackEnabled] = useState(true);
+  const [entryTitle, setEntryTitle] = useState<string | null>(null);
+  const [entryBody, setEntryBody] = useState<string | null>(null);
 
   useEffect(() => {
     void checkStatus();
@@ -45,12 +48,18 @@ export default function StripeConnectSetup() {
         );
         setDualTrackEnabled(data.dualTrackEnabled !== false);
         setRecoveryEligible(Boolean(data.recoveryEligible));
+        setConfigurationMismatch(Boolean(data.configurationMismatch));
+        setEntryTitle(data.cta?.titleNl || null);
+        setEntryBody(data.cta?.bodyNl || null);
         const migrationClass = data.migrationClass as string | undefined;
         setShowTrackPicker(
           Boolean(
             data.dualTrackEnabled !== false &&
               (data.needsTrackSelection ||
                 data.recoveryEligible ||
+                data.configurationMismatch ||
+                data.entryState === 'CHOOSE_TRACK' ||
+                data.entryState === 'RECOVER_MISMATCH' ||
                 migrationClass === 'USER_CONFIRMATION_REQUIRED' ||
                 migrationClass === 'NEW_ACCOUNT_CHOICE'),
           ),
@@ -98,15 +107,15 @@ export default function StripeConnectSetup() {
     );
   }
 
-  if (uiStatus === 'PAYMENT_READY') {
+  if (uiStatus === 'PAYMENT_READY' && !configurationMismatch) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-xl p-6">
         <div className="flex items-center">
           <CheckCircle className="h-6 w-6 text-green-600 mr-3" />
           <div>
-            <h3 className="text-lg font-semibold text-green-800">Betaalaccount actief</h3>
+            <h3 className="text-lg font-semibold text-green-800">Betaalaccount gereed</h3>
             <p className="text-green-600">
-              Je kunt nu betalingen via HomeCheff ontvangen
+              Je betaalaccount is gereed om betalingen via HomeCheff te ontvangen
               {connectTrack === 'PARTICULAR'
                 ? ' (particulier).'
                 : connectTrack === 'BUSINESS'
@@ -115,6 +124,37 @@ export default function StripeConnectSetup() {
             </p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (showTrackPicker && dualTrackEnabled) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+        {configurationMismatch && (entryTitle || entryBody) && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-semibold text-amber-950">
+              {entryTitle || 'Je betaalaccount moet opnieuw worden ingesteld'}
+            </p>
+            {entryBody && (
+              <p className="mt-1 text-sm text-amber-900">{entryBody}</p>
+            )}
+          </div>
+        )}
+        <ConnectTrackSelector
+          recoveryMode={recoveryEligible || configurationMismatch}
+          mismatchMode={configurationMismatch}
+          loading={isLoading}
+          error={error}
+          onSelect={async (track) => {
+            setConnectTrack(track);
+            await startOnboarding(
+              track,
+              (recoveryEligible || configurationMismatch) &&
+                track === 'PARTICULAR',
+            );
+          }}
+        />
       </div>
     );
   }
@@ -128,24 +168,13 @@ export default function StripeConnectSetup() {
           <div>
             <h3 className="text-lg font-semibold text-sky-800">{model.titleNl}</h3>
             <p className="text-sky-700 mt-1">{model.bodyNl}</p>
+            {connectTrack && (
+              <p className="mt-2 text-xs font-medium text-sky-800">
+                Track: {connectTrack === 'PARTICULAR' ? 'Particulier' : 'Bedrijf'}
+              </p>
+            )}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (showTrackPicker && dualTrackEnabled) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <ConnectTrackSelector
-          recoveryMode={recoveryEligible}
-          loading={isLoading}
-          error={error}
-          onSelect={async (track) => {
-            setConnectTrack(track);
-            await startOnboarding(track, recoveryEligible && track === 'PARTICULAR');
-          }}
-        />
       </div>
     );
   }

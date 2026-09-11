@@ -99,6 +99,7 @@ export default function DeliveryProfileSettings() {
   const [showStripeTrackPicker, setShowStripeTrackPicker] = useState(false);
   const [stripeTrackError, setStripeTrackError] = useState<string | null>(null);
   const [stripeRecoveryEligible, setStripeRecoveryEligible] = useState(false);
+  const [stripeConfigMismatch, setStripeConfigMismatch] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -145,9 +146,13 @@ export default function DeliveryProfileSettings() {
           const stripeData = await stripeRes.json();
           setConnectUiStatus(stripeData.uiStatus || null);
           setStripeRecoveryEligible(Boolean(stripeData.recoveryEligible));
+          setStripeConfigMismatch(Boolean(stripeData.configurationMismatch));
           if (
             stripeData.needsTrackSelection ||
             stripeData.recoveryEligible ||
+            stripeData.configurationMismatch ||
+            stripeData.entryState === 'CHOOSE_TRACK' ||
+            stripeData.entryState === 'RECOVER_MISMATCH' ||
             stripeData.migrationClass === 'USER_CONFIRMATION_REQUIRED' ||
             stripeData.migrationClass === 'NEW_ACCOUNT_CHOICE' ||
             (!stripeData.hasAccount && stripeData.dualTrackEnabled !== false)
@@ -247,7 +252,8 @@ export default function DeliveryProfileSettings() {
         returnPath: '/delivery/settings',
         track,
         forceReplace: Boolean(
-          stripeRecoveryEligible && track === 'PARTICULAR',
+          (stripeRecoveryEligible || stripeConfigMismatch) &&
+            track === 'PARTICULAR',
         ),
       });
       if (result.needsTrackSelection) {
@@ -545,11 +551,11 @@ export default function DeliveryProfileSettings() {
             </h3>
 
             {user?.stripeConnectOnboardingCompleted ||
-            connectUiStatus === 'PAYMENT_READY' ? (
+            (connectUiStatus === 'PAYMENT_READY' && !stripeConfigMismatch) ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-center mb-3">
                   <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                  <h4 className="font-semibold text-green-800">Betaalaccount actief</h4>
+                  <h4 className="font-semibold text-green-800">Betaalaccount gereed</h4>
                 </div>
                 <p className="text-green-700 text-sm mb-3">
                   Je kunt nu betalingen ontvangen voor je bezorgingen. Uitbetalingen gebeuren automatisch naar je opgegeven bankrekening.
@@ -560,26 +566,27 @@ export default function DeliveryProfileSettings() {
                   <p>• Je ontvangt 88% van de bezorgkosten</p>
                 </div>
               </div>
-            ) : connectUiStatus === 'PENDING_VERIFICATION' ? (
-              <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
-                <div className="flex items-center mb-3">
-                  <AlertCircle className="h-5 w-5 text-sky-600 mr-2" />
-                  <h4 className="font-semibold text-sky-800">Verificatie loopt</h4>
-                </div>
-                <p className="text-sky-700 text-sm">
-                  Je gegevens zijn ontvangen. Stripe controleert je betaalaccount. Je hoeft nu niets opnieuw in te vullen.
-                </p>
-              </div>
-            ) : showStripeTrackPicker ? (
+            ) : showStripeTrackPicker || stripeConfigMismatch ? (
               <div className="border border-gray-200 rounded-lg p-4">
                 <ConnectTrackSelector
-                  recoveryMode={stripeRecoveryEligible}
+                  recoveryMode={stripeRecoveryEligible || stripeConfigMismatch}
+                  mismatchMode={stripeConfigMismatch}
                   loading={stripeLoading}
                   error={stripeTrackError}
                   onSelect={async (track) => {
                     await handleStripeOnboard(track);
                   }}
                 />
+              </div>
+            ) : connectUiStatus === 'PENDING_VERIFICATION' ? (
+              <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <AlertCircle className="h-5 w-5 text-sky-600 mr-2" />
+                  <h4 className="font-semibold text-sky-800">Verificatie wordt gecontroleerd</h4>
+                </div>
+                <p className="text-sky-700 text-sm">
+                  Je gegevens zijn ingestuurd. Stripe controleert ze. Je hoeft ze niet opnieuw in te vullen.
+                </p>
               </div>
             ) : (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">

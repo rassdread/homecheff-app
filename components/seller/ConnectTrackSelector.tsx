@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, User } from 'lucide-react';
+import { Building2, User, Check, ArrowLeft } from 'lucide-react';
 import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
 
 type Props = {
   onSelect: (track: ConnectTrack) => void | Promise<void>;
   loading?: boolean;
   error?: string | null;
-  /** Migration confirmation for stuck/wrong Express accounts. */
+  /** Migration confirmation for stuck/wrong Express / config mismatch. */
   recoveryMode?: boolean;
+  /** Explicit mismatch copy for PARTICULAR non_profit/company. */
+  mismatchMode?: boolean;
 };
 
 export default function ConnectTrackSelector({
@@ -17,8 +19,10 @@ export default function ConnectTrackSelector({
   loading,
   error,
   recoveryMode,
+  mismatchMode,
 }: Props) {
   const [pending, setPending] = useState<ConnectTrack | null>(null);
+  const [confirmTrack, setConfirmTrack] = useState<ConnectTrack | null>(null);
 
   const choose = async (track: ConnectTrack) => {
     setPending(track);
@@ -29,18 +33,116 @@ export default function ConnectTrackSelector({
     }
   };
 
+  if (confirmTrack) {
+    const isParticular = confirmTrack === 'PARTICULAR';
+    return (
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Je hebt gekozen voor
+          </p>
+          <h3 className="mt-1 text-lg font-semibold text-gray-900">
+            {isParticular ? 'PARTICULIER' : 'BEDRIJF'}
+          </h3>
+        </div>
+
+        {isParticular ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+            <p className="text-sm font-medium text-emerald-950 mb-2">
+              Stripe verifieert:
+            </p>
+            <ul className="space-y-1.5 text-sm text-emerald-900">
+              <li className="flex gap-2">
+                <Check className="h-4 w-4 shrink-0 mt-0.5" /> je identiteit
+              </li>
+              <li className="flex gap-2">
+                <Check className="h-4 w-4 shrink-0 mt-0.5" /> je persoonlijke
+                gegevens
+              </li>
+              <li className="flex gap-2">
+                <Check className="h-4 w-4 shrink-0 mt-0.5" /> je bankrekening
+              </li>
+            </ul>
+            <p className="mt-3 text-sm text-emerald-900">
+              Voor deze HomeCheff-verificatieroute vraagt Stripe geen
+              KvK-gegevens.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4">
+            <p className="text-sm font-medium text-blue-950 mb-2">
+              Stripe kan controleren:
+            </p>
+            <ul className="space-y-1.5 text-sm text-blue-900">
+              <li className="flex gap-2">
+                <Check className="h-4 w-4 shrink-0 mt-0.5" /> bedrijfsgegevens
+              </li>
+              <li className="flex gap-2">
+                <Check className="h-4 w-4 shrink-0 mt-0.5" /> vertegenwoordiger
+              </li>
+              <li className="flex gap-2">
+                <Check className="h-4 w-4 shrink-0 mt-0.5" /> bankrekening
+              </li>
+              <li className="flex gap-2">
+                <Check className="h-4 w-4 shrink-0 mt-0.5" /> aanvullende
+                bedrijfsdocumenten indien vereist
+              </li>
+            </ul>
+          </div>
+        )}
+
+        <p className="text-sm text-slate-600">
+          Je gaat nu naar Stripe om je identiteit en uitbetalingsrekening te
+          verifiëren.
+        </p>
+
+        {error && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {error}
+          </p>
+        )}
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            disabled={Boolean(loading || pending)}
+            onClick={() => void choose(confirmTrack)}
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
+          >
+            {pending
+              ? 'Bezig…'
+              : isParticular
+                ? 'Naar Stripe om te verifiëren'
+                : 'Naar Stripe om te verifiëren'}
+          </button>
+          <button
+            type="button"
+            disabled={Boolean(loading || pending)}
+            onClick={() => setConfirmTrack(null)}
+            className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Keuze wijzigen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">
-          Je gebruikt HomeCheff als:
+          Hoe verkoop je op HomeCheff?
         </h3>
         <p className="mt-1 text-sm text-gray-600">
-          {recoveryMode
-            ? 'Je betaalprofiel is eerder via een andere Stripe-route gestart. Kies hoe je HomeCheff gebruikt, zodat we je betaalprofiel correct kunnen instellen.'
-            : 'Kies de route die bij jouw situatie past. Dit bepaalt welke Stripe-verificatie nodig is.'}
+          {mismatchMode
+            ? 'Je betaalaccount is ingesteld als een organisatie, terwijl je HomeCheff gebruikt als particulier. Kies opnieuw hoe je wilt verkopen om de juiste verificatie te gebruiken.'
+            : recoveryMode
+              ? 'Je betaalprofiel is eerder via een andere Stripe-route gestart. Kies hoe je HomeCheff gebruikt, zodat we je betaalprofiel correct kunnen instellen.'
+              : 'Kies de route die bij jouw situatie past. Dit bepaalt welke Stripe-verificatie nodig is.'}
         </p>
-        {recoveryMode && (
+        {(recoveryMode || mismatchMode) && (
           <p className="mt-2 text-xs text-gray-500">
             Je HomeCheff-profiel, advertenties, berichten, reviews en
             bestellingen blijven behouden.
@@ -52,7 +154,7 @@ export default function ConnectTrackSelector({
         <button
           type="button"
           disabled={Boolean(loading || pending)}
-          onClick={() => void choose('PARTICULAR')}
+          onClick={() => setConfirmTrack('PARTICULAR')}
           className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-emerald-400 hover:bg-emerald-50/40 disabled:opacity-60"
         >
           <div className="flex items-start gap-3">
@@ -60,34 +162,29 @@ export default function ConnectTrackSelector({
             <div>
               <p className="font-medium text-gray-900">Particulier</p>
               <p className="mt-1 text-xs font-medium text-emerald-800">
-                Verkoop je als particulier?
+                Ik verkoop via HomeCheff als particulier.
               </p>
-              <ul className="mt-2 space-y-1 text-xs leading-relaxed text-gray-600 list-disc pl-4">
-                <li>Stripe controleert je identiteit</li>
-                <li>Bankrekening nodig voor uitbetaling</li>
-                <li>Deze Stripe-verificatieroute vraagt geen KvK-gegevens</li>
-                <li>
-                  HomeCheff-profiel en listings kun je ook zonder betaalaccount
-                  gebruiken
-                </li>
-                <li>
-                  Betaling via HomeCheff wordt beschikbaar na verificatie
-                </li>
-              </ul>
+              <p className="mt-2 text-xs leading-relaxed text-gray-600">
+                Stripe controleert je identiteit en bankrekening zodat je via
+                HomeCheff betalingen kunt ontvangen. Voor deze particuliere
+                Stripe-verificatieroute vraagt Stripe geen KvK-gegevens.
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                Je kunt HomeCheff ook gebruiken zonder het betaalaccount af te
+                ronden. Voor betalingen via HomeCheff moet de Stripe-verificatie
+                wel voltooid zijn.
+              </p>
+              <p className="mt-3 text-xs font-semibold text-emerald-800">
+                Doorgaan als particulier →
+              </p>
             </div>
           </div>
-          {pending === 'PARTICULAR' && (
-            <p className="mt-3 text-xs text-emerald-800">
-              Je gaat nu naar Stripe om je identiteit en uitbetalingsrekening te
-              verifiëren…
-            </p>
-          )}
         </button>
 
         <button
           type="button"
           disabled={Boolean(loading || pending)}
-          onClick={() => void choose('BUSINESS')}
+          onClick={() => setConfirmTrack('BUSINESS')}
           className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-blue-400 hover:bg-blue-50/40 disabled:opacity-60"
         >
           <div className="flex items-start gap-3">
@@ -95,21 +192,18 @@ export default function ConnectTrackSelector({
             <div>
               <p className="font-medium text-gray-900">Bedrijf</p>
               <p className="mt-1 text-xs font-medium text-blue-800">
-                Verkoop je vanuit een onderneming?
+                Ik verkoop via HomeCheff vanuit een onderneming.
               </p>
-              <ul className="mt-2 space-y-1 text-xs leading-relaxed text-gray-600 list-disc pl-4">
-                <li>Zakelijke Stripe-verificatie</li>
-                <li>Bedrijfsgegevens kunnen nodig zijn</li>
-                <li>Stripe kan bedrijfsdocumenten opvragen</li>
-              </ul>
+              <p className="mt-2 text-xs leading-relaxed text-gray-600">
+                Stripe controleert je zakelijke gegevens en uitbetalingsrekening.
+                Afhankelijk van je onderneming kan Stripe aanvullende
+                bedrijfsgegevens of documenten vragen.
+              </p>
+              <p className="mt-3 text-xs font-semibold text-blue-800">
+                Doorgaan als bedrijf →
+              </p>
             </div>
           </div>
-          {pending === 'BUSINESS' && (
-            <p className="mt-3 text-xs text-blue-800">
-              Je gaat nu naar Stripe om je identiteit en uitbetalingsrekening te
-              verifiëren…
-            </p>
-          )}
         </button>
       </div>
 

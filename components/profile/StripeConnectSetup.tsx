@@ -28,6 +28,7 @@ export default function StripeConnectSetup({
   const [statusLoading, setStatusLoading] = useState(true);
   const [showTrackPicker, setShowTrackPicker] = useState(false);
   const [recoveryEligible, setRecoveryEligible] = useState(false);
+  const [configurationMismatch, setConfigurationMismatch] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -44,14 +45,18 @@ export default function StripeConnectSetup({
       );
       setUiStatus(status);
       setRecoveryEligible(Boolean(data.recoveryEligible));
+      setConfigurationMismatch(Boolean(data.configurationMismatch));
       const migrationClass = data.migrationClass as string | undefined;
       const needsConfirmation =
         Boolean(data.needsTrackSelection) ||
         Boolean(data.recoveryEligible) ||
+        Boolean(data.configurationMismatch) ||
+        data.entryState === 'CHOOSE_TRACK' ||
+        data.entryState === 'RECOVER_MISMATCH' ||
         migrationClass === 'USER_CONFIRMATION_REQUIRED' ||
         migrationClass === 'NEW_ACCOUNT_CHOICE';
       setShowTrackPicker(needsConfirmation && data.dualTrackEnabled !== false);
-      if (status === 'PAYMENT_READY') {
+      if (status === 'PAYMENT_READY' && !data.configurationMismatch) {
         onUpdate();
       }
     } catch {
@@ -101,14 +106,14 @@ export default function StripeConnectSetup({
     );
   }
 
-  if (uiStatus === 'PAYMENT_READY') {
+  if (uiStatus === 'PAYMENT_READY' && !configurationMismatch) {
     return (
       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-emerald-600" />
             <span className="text-sm font-medium text-emerald-900">
-              Betaalaccount actief
+              Betaalaccount gereed
             </span>
           </div>
           <span className="text-xs text-emerald-700">
@@ -119,37 +124,41 @@ export default function StripeConnectSetup({
     );
   }
 
+  if (showTrackPicker) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <ConnectTrackSelector
+          recoveryMode={recoveryEligible || configurationMismatch}
+          mismatchMode={configurationMismatch}
+          loading={loading}
+          error={error}
+          onSelect={async (track) => {
+            await handleOnboard(
+              track,
+              (recoveryEligible || configurationMismatch) &&
+                track === 'PARTICULAR',
+            );
+          }}
+        />
+      </div>
+    );
+  }
+
   if (uiStatus === 'PENDING_VERIFICATION') {
     return (
       <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
         <div className="flex items-start gap-2">
           <Clock className="h-4 w-4 text-sky-600 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-sky-900">Verificatie loopt</p>
+            <p className="text-sm font-medium text-sky-900">
+              Verificatie wordt gecontroleerd
+            </p>
             <p className="text-xs text-sky-800 mt-1">
-              Je gegevens zijn ontvangen. Stripe controleert je betaalaccount. Je hoeft
-              nu niets opnieuw in te vullen.
+              Je gegevens zijn ingestuurd. Stripe controleert ze. Je hoeft ze niet
+              opnieuw in te vullen.
             </p>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (showTrackPicker) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <ConnectTrackSelector
-          recoveryMode={recoveryEligible}
-          loading={loading}
-          error={error}
-          onSelect={async (track) => {
-            await handleOnboard(
-              track,
-              recoveryEligible && track === 'PARTICULAR',
-            );
-          }}
-        />
       </div>
     );
   }

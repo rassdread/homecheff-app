@@ -78,6 +78,18 @@ export async function startStripeConnectOnboarding(options?: {
             'Bevestig of je HomeCheff als particulier of als bedrijf gebruikt.',
         };
       }
+      if (
+        data.error === 'PARTICULAR_ACCOUNT_CONFIGURATION_MISMATCH' ||
+        data.error === 'CONNECT_CONFIGURATION_MISMATCH'
+      ) {
+        return {
+          ok: false,
+          needsTrackSelection: true,
+          error:
+            data.message ||
+            'Je betaalaccount moet opnieuw worden ingesteld. Kies particulier of bedrijf.',
+        };
+      }
       return {
         ok: false,
         error:

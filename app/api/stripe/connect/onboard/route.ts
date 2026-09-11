@@ -23,6 +23,11 @@ import {
   findMigrationByOldOrNewAccount,
 } from '@/lib/stripe/connect-migration';
 import { getCurrentStripeConnectAccount } from '@/lib/stripe/current-connect-account';
+import { resolveConnectEntryState } from '@/lib/stripe/connect-entry-state';
+import {
+  getStripeDashboardType,
+  validateConnectAccountShape,
+} from '@/lib/stripe/connect-account-shape';
 
 export async function GET() {
   try {
@@ -68,6 +73,9 @@ export async function GET() {
         dualTrackEnabled: isDualTrackConnectEnabled(),
         needsTrackSelection: isDualTrackConnectEnabled(),
         recoveryEligible: false,
+        configurationMismatch: false,
+        entryState: 'CHOOSE_TRACK',
+        classification: 'NOT_STARTED',
         migrationClass: isDualTrackConnectEnabled()
           ? 'NEW_ACCOUNT_CHOICE'
           : 'KEEP_BUSINESS',
@@ -94,6 +102,13 @@ export async function GET() {
       }
     }
 
+    const entry = resolveConnectEntryState({
+      stripeConnectAccountId: user.stripeConnectAccountId,
+      stripeConnectTrack: user.stripeConnectTrack,
+      stripeConnectOnboardingCompleted: user.stripeConnectOnboardingCompleted,
+      stripeAccount: stripeAccount as any,
+    });
+
     const migrationClass = isDualTrackConnectEnabled()
       ? classifyConnectMigration({
           stripeConnectAccountId: user.stripeConnectAccountId,
@@ -107,16 +122,34 @@ export async function GET() {
 
     const track = parseConnectTrack(user.stripeConnectTrack);
     const recoveryEligible =
-      isDualTrackConnectEnabled() && migrationIsRecoveryMode(migrationClass);
+      entry.recoveryEligible ||
+      (isDualTrackConnectEnabled() && migrationIsRecoveryMode(migrationClass));
     const needsTrackSelection =
-      isDualTrackConnectEnabled() &&
-      migrationNeedsUserConfirmation(migrationClass) &&
-      !track;
+      entry.needsTrackSelection ||
+      (isDualTrackConnectEnabled() &&
+        migrationNeedsUserConfirmation(migrationClass) &&
+        !track) ||
+      entry.configurationMismatch;
 
-    // Track-aware CTA from normalized snapshot — NEVER force onboard during
-    // PENDING_VERIFICATION (that caused the production confirmation loop).
-    let cta = connectCtaModelForSnapshot(live);
+    // Prefer entry-state CTA for mismatch / choose; otherwise normalized snapshot.
+    let cta =
+      entry.entryState === 'RECOVER_MISMATCH' ||
+      entry.entryState === 'CHOOSE_TRACK' ||
+      entry.entryState === 'MANUAL_REVIEW'
+        ? {
+            kind:
+              entry.ctaLabelNl == null
+                ? ('status_only' as const)
+                : ('setup' as const),
+            showOnboardingCta: Boolean(entry.ctaLabelNl),
+            titleNl: entry.titleNl,
+            bodyNl: entry.bodyNl,
+            ctaLabelNl: entry.ctaLabelNl,
+          }
+        : connectCtaModelForSnapshot(live);
+
     if (
+      !entry.configurationMismatch &&
       track === 'PARTICULAR' &&
       live.canCreateOnboardingLink &&
       !live.paymentReady &&
@@ -126,18 +159,25 @@ export async function GET() {
       cta = {
         kind: 'complete',
         showOnboardingCta: true,
-        titleNl: 'Betaalaccount nog niet compleet',
+        titleNl: 'Je verificatie is nog niet afgerond',
         bodyNl:
           'Stripe heeft nog enkele persoonlijke gegevens of je bankrekening nodig. Deze Stripe-verificatieroute vraagt geen KvK-gegevens.',
         ctaLabelNl: 'Gegevens afronden',
       };
     }
 
+    // Mismatch: never allow Account Link on the bad account
+    const canCreateOnboardingLink = entry.configurationMismatch
+      ? false
+      : live.canCreateOnboardingLink && entry.canCreateOnboardingLink;
+
     return NextResponse.json({
       hasAccount: live.hasAccount,
       isCompleted: live.paymentReady,
       accountId: live.accountId,
-      uiStatus: live.uiStatus,
+      uiStatus: entry.configurationMismatch
+        ? live.uiStatus
+        : entry.uiStatus || live.uiStatus,
       paymentReady: live.paymentReady,
       payoutReady: live.payoutReady,
       detailsSubmitted: live.detailsSubmitted,
@@ -148,13 +188,23 @@ export async function GET() {
       pastDueCount: live.pastDueCount,
       pendingVerificationCount: live.pendingVerificationCount,
       missingCategories: live.missingCategories,
-      canCreateOnboardingLink: live.canCreateOnboardingLink,
+      canCreateOnboardingLink,
       disabledReason: live.disabledReason,
       connectTrack: track,
       dualTrackEnabled: isDualTrackConnectEnabled(),
-      needsTrackSelection: needsTrackSelection || recoveryEligible,
+      needsTrackSelection,
       recoveryEligible,
+      configurationMismatch: entry.configurationMismatch,
+      mismatchReason: entry.mismatchReason,
+      entryState: entry.entryState,
+      classification: entry.classification,
       migrationClass,
+      businessType: stripeAccount
+        ? (stripeAccount as { business_type?: string }).business_type ?? null
+        : null,
+      dashboardType: stripeAccount
+        ? getStripeDashboardType(stripeAccount as any)
+        : null,
       cta,
     });
   } catch (error) {
@@ -279,13 +329,110 @@ export async function POST(req: NextRequest) {
       accountId = null;
     }
 
-    // PARTICULAR already linked → always reuse (cancel/return / double-click safe).
+    // PARTICULAR already linked → reuse ONLY when Stripe shape matches.
+    // non_profit/company PARTICULAR must go through replacement (forceReplace).
     if (
       accountId &&
       track === 'PARTICULAR' &&
-      existingTrack === 'PARTICULAR'
+      existingTrack === 'PARTICULAR' &&
+      stripe
     ) {
-      // continue to Account Link
+      try {
+        const existingAcct = await stripe.accounts.retrieve(accountId);
+        const shape = validateConnectAccountShape(existingAcct, 'PARTICULAR');
+        if (!shape.ok) {
+          if (!forceReplace) {
+            return NextResponse.json(
+              {
+                error: 'PARTICULAR_ACCOUNT_CONFIGURATION_MISMATCH',
+                errorKey: 'stripe.connect.particularConfigMismatch',
+                reason: shape.reason,
+                recoveryEligible: true,
+                needsTrackSelection: true,
+                configurationMismatch: true,
+                businessType: shape.businessType,
+                dashboardType: shape.dashboardType,
+                message:
+                  'Je betaalaccount is ingesteld als een organisatie, terwijl je HomeCheff gebruikt als particulier. Stel je betaalaccount opnieuw in.',
+              },
+              { status: 409 },
+            );
+          }
+          // forceReplace confirmed → evaluate replacement for this mismatched account
+          const decision = await evaluateConnectAccountReplacement({
+            existingAccountId: accountId,
+            requestedTrack: 'PARTICULAR',
+            existingTrack: 'PARTICULAR',
+            userId: user.id,
+          });
+          if (
+            decision.allowed &&
+            (decision.reason === 'EMPTY_INCOMPLETE_STUCK_EXPRESS' ||
+              decision.reason === 'CONFIGURATION_MISMATCH_REPLACE')
+          ) {
+            const prior = await findMigrationByOldOrNewAccount(accountId);
+            if (
+              prior &&
+              prior.userId === user.id &&
+              prior.newStripeAccountId &&
+              prior.oldStripeAccountId === accountId
+            ) {
+              // Idempotent: reuse prior replacement if already created
+              const priorAcct = await stripe.accounts.retrieve(
+                prior.newStripeAccountId,
+              );
+              const priorShape = validateConnectAccountShape(
+                priorAcct,
+                'PARTICULAR',
+              );
+              if (priorShape.ok) {
+                accountId = prior.newStripeAccountId;
+                replaceOldAccountId = prior.oldStripeAccountId;
+                await prisma.user.update({
+                  where: { id: user.id },
+                  data: {
+                    stripeConnectAccountId: accountId,
+                    stripeConnectTrack: 'PARTICULAR',
+                    stripeConnectOnboardingCompleted: false,
+                  },
+                });
+              } else {
+                replaceOldAccountId = accountId;
+                accountId = null;
+              }
+            } else {
+              replaceOldAccountId = accountId;
+              accountId = null;
+            }
+          } else if (!decision.allowed) {
+            return NextResponse.json(
+              {
+                error: 'CONNECT_REPLACE_BLOCKED',
+                errorKey: 'stripe.connect.replaceBlocked',
+                reason: decision.reason,
+                safetyBlocker:
+                  'safetyBlocker' in decision
+                    ? decision.safetyBlocker
+                    : undefined,
+                message:
+                  'Je huidige Stripe-profiel kan nu niet veilig worden vervangen. Neem contact op met support.',
+              },
+              { status: 409 },
+            );
+          }
+        }
+        // else shape ok → continue to Account Link with same accountId
+      } catch (err) {
+        console.error('[stripe-onboard] PARTICULAR shape check failed', err);
+        return NextResponse.json(
+          {
+            error: 'CONNECT_CONFIGURATION_MISMATCH',
+            message:
+              'Kon je Stripe-account niet valideren. Probeer het later opnieuw.',
+          },
+          { status: 500 },
+        );
+      }
     } else if (accountId && dualTrack) {
       const decision = await evaluateConnectAccountReplacement({
         existingAccountId: accountId,
@@ -300,7 +447,8 @@ export async function POST(req: NextRequest) {
         accountId = null;
       } else if (
         decision.allowed &&
-        decision.reason === 'EMPTY_INCOMPLETE_STUCK_EXPRESS'
+        (decision.reason === 'EMPTY_INCOMPLETE_STUCK_EXPRESS' ||
+          decision.reason === 'CONFIGURATION_MISMATCH_REPLACE')
       ) {
         if (track === 'PARTICULAR' && forceReplace) {
           // Recovery: if a previous migrate already created a new account for this old id
@@ -383,6 +531,37 @@ export async function POST(req: NextRequest) {
           dualTrack ? track! : 'express',
           { idempotencyKey },
         );
+
+        // Immediate post-create shape validation — STOP if Stripe returns wrong config.
+        if (track === 'PARTICULAR' || track === 'BUSINESS') {
+          const createdShape = validateConnectAccountShape(
+            connectAccount,
+            track!,
+          );
+          if (!createdShape.ok) {
+            console.error('[stripe-onboard] CONNECT_CONFIGURATION_MISMATCH after create', {
+              accountId: connectAccount.id,
+              track,
+              businessType: createdShape.businessType,
+              dashboardType: createdShape.dashboardType,
+            });
+            return NextResponse.json(
+              {
+                error: 'CONNECT_CONFIGURATION_MISMATCH',
+                errorKey: 'stripe.connect.configurationMismatch',
+                mismatchCode: createdShape.mismatchCode,
+                reason: createdShape.reason,
+                businessType: createdShape.businessType,
+                dashboardType: createdShape.dashboardType,
+                accountId: connectAccount.id,
+                message:
+                  'Stripe-account is niet correct geconfigureerd. Onboarding gestopt. Neem contact op met support.',
+              },
+              { status: 500 },
+            );
+          }
+        }
+
         accountId = connectAccount.id;
 
         await prisma.$transaction(async (tx) => {
@@ -532,6 +711,50 @@ export async function POST(req: NextRequest) {
     if (!stripe) {
       return NextResponse.json(
         { error: 'Stripe not configured. Please check your Stripe API keys.' },
+        { status: 500 },
+      );
+    }
+
+    // Fresh retrieve + shape validation BEFORE any Account Link.
+    // PARTICULAR must be individual + dashboard=none or we STOP.
+    try {
+      const fresh = await stripe.accounts.retrieve(accountId);
+      if (track === 'PARTICULAR' || track === 'BUSINESS') {
+        const shape = validateConnectAccountShape(fresh, track);
+        if (!shape.ok) {
+          console.error('[stripe-onboard] CONNECT_CONFIGURATION_MISMATCH', {
+            userId: user.id,
+            accountId,
+            track,
+            businessType: shape.businessType,
+            dashboardType: shape.dashboardType,
+            reason: shape.reason,
+          });
+          return NextResponse.json(
+            {
+              error: 'CONNECT_CONFIGURATION_MISMATCH',
+              errorKey: 'stripe.connect.configurationMismatch',
+              mismatchCode: shape.mismatchCode,
+              reason: shape.reason,
+              businessType: shape.businessType,
+              dashboardType: shape.dashboardType,
+              accountId,
+              message:
+                track === 'PARTICULAR'
+                  ? 'Stripe-accountconfiguratie komt niet overeen met de particuliere route. Onboarding gestopt.'
+                  : 'Stripe-accountconfiguratie komt niet overeen met de zakelijke route. Onboarding gestopt.',
+            },
+            { status: 500 },
+          );
+        }
+      }
+    } catch (validateErr) {
+      console.error('[stripe-onboard] pre-link validate failed', validateErr);
+      return NextResponse.json(
+        {
+          error: 'CONNECT_CONFIGURATION_MISMATCH',
+          message: 'Kon Stripe-account niet valideren vóór onboarding.',
+        },
         { status: 500 },
       );
     }
