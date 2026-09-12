@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { validateProviderPricingForSave } from '@/lib/delivery/provider-pricing';
+import { validateProviderPricingConfig, validateProviderPricingForSave } from '@/lib/delivery/provider-pricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -177,6 +177,9 @@ export async function PUT(req: NextRequest) {
     const nextMaxDistance =
       maxDistance !== undefined ? Number(maxDistance) : undefined;
 
+    let resolvedPricingEnabled =
+      pricingEnabled !== undefined ? Boolean(pricingEnabled) : undefined;
+
     if (
       pricingEnabled !== undefined ||
       baseFeeCents !== undefined ||
@@ -209,10 +212,10 @@ export async function PUT(req: NextRequest) {
         );
       }
 
-      const pricingCheck = validateProviderPricingForSave({
+      const mergedPricing = {
         pricingEnabled:
-          pricingEnabled !== undefined
-            ? Boolean(pricingEnabled)
+          resolvedPricingEnabled !== undefined
+            ? resolvedPricingEnabled
             : existing.pricingEnabled,
         baseFeeCents:
           baseFeeCents !== undefined ? baseFeeCents : existing.baseFeeCents,
@@ -237,7 +240,20 @@ export async function PUT(req: NextRequest) {
           nationalCoverage !== undefined
             ? Boolean(nationalCoverage)
             : existing.nationalCoverage,
+      };
+
+      // If fee fields are complete, auto-enable pricing so sidebar readiness
+      // matches what the user just saved (toggle-off + filled rates was a trap).
+      const completeWhenEnabled = validateProviderPricingConfig({
+        ...mergedPricing,
+        pricingEnabled: true,
       });
+      if (completeWhenEnabled.ok && !mergedPricing.pricingEnabled) {
+        mergedPricing.pricingEnabled = true;
+        resolvedPricingEnabled = true;
+      }
+
+      const pricingCheck = validateProviderPricingForSave(mergedPricing);
 
       if (!pricingCheck.ok) {
         return NextResponse.json(
@@ -268,8 +284,7 @@ export async function PUT(req: NextRequest) {
         transportation: transportation !== undefined ? transportation : undefined,
         deliveryRegions: deliveryRegions !== undefined ? deliveryRegions : undefined,
         bio: bio !== undefined ? bio : undefined,
-        pricingEnabled:
-          pricingEnabled !== undefined ? Boolean(pricingEnabled) : undefined,
+        pricingEnabled: resolvedPricingEnabled,
         baseFeeCents: baseFeeCents !== undefined ? baseFeeCents : undefined,
         pricePerKmCents:
           pricePerKmCents !== undefined ? pricePerKmCents : undefined,

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import AdminFinancialOverview from './AdminFinancialOverview';
 import ComplianceFoundationPanel from './ComplianceFoundationPanel';
+import AdminStripeConnectReset from './AdminStripeConnectReset';
 
 // Financial Reports Component
 function FinancialReports() {
@@ -331,6 +332,7 @@ export default function FinancialManagement() {
         <div className="p-6">
           {activeSubTab === 'overview' && (
             <div className="space-y-6">
+              <AdminStripeConnectReset />
               <AdminFinancialOverview />
               <FinancialReports />
             </div>

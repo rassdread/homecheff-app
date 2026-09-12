@@ -1,0 +1,46 @@
+{
+  "usersSampled": 19,
+  "buckets": {
+    "ACCOUNT_READY_CORRECT": 1,
+    "READY_BUT_WRONG_BANNER_RISK": 0,
+    "STRIPE_ACTION_REQUIRED_CORRECT": 4,
+    "STRIPE_WAITING_VERIFICATION": 0,
+    "STRIPE_CHOICE_REQUIRED": 14,
+    "DELIVERY_READY_CORRECT": 0,
+    "DELIVERY_READY_BUT_WARNING_SHOWN_RISK": 0,
+    "DELIVERY_INCOMPLETE_CORRECT": 2,
+    "DELIVERY_INCOMPLETE_BUT_NO_WARNING_RISK": 0,
+    "LEGACY_ONLY": 0,
+    "MULTIPLE_CURRENT_ACCOUNT_ANOMALY": 0,
+    "LIVE_STRIPE_CHECKED": 5,
+    "LIVE_STRIPE_FAILED": 0
+  },
+  "samples": {
+    "READY_BUT_WRONG_BANNER_RISK": [],
+    "DELIVERY_READY_BUT_WARNING_SHOWN_RISK": [],
+    "DELIVERY_INCOMPLETE_SAMPLE": [
+      {
+        "email": "r.sergioarrias@gmail.com",
+        "missing": [
+          "pricing"
+        ],
+        "message": "Activeer en vul je bezorgtarief in.",
+        "pricingEnabled": false,
+        "verified": true,
+        "active": false
+      },
+      {
+        "email": "silvanatercia87@gmail.com",
+        "missing": [
+          "pricing"
+        ],
+        "message": "Activeer en vul je bezorgtarief in.",
+        "pricingEnabled": false,
+        "verified": false,
+        "active": true
+      }
+    ],
+    "STRIPE_WAITING_VERIFICATION": [],
+    "STRIPE_DB_COMPLETED_LIVE_NOT": []
+  }
+}

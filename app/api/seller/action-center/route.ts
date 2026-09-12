@@ -26,6 +26,7 @@ export async function GET() {
         passwordHash: true,
         stripeConnectAccountId: true,
         stripeConnectOnboardingCompleted: true,
+        stripeConnectTrack: true,
         Account: { select: { provider: true } },
         SellerProfile: { select: { id: true } },
       },
@@ -38,6 +39,7 @@ export async function GET() {
     let stripeSnapshot = {
       stripeConnectAccountId: user.stripeConnectAccountId,
       stripeConnectOnboardingCompleted: user.stripeConnectOnboardingCompleted,
+      stripeConnectTrack: user.stripeConnectTrack,
     };
 
     if (user.stripeConnectAccountId) {

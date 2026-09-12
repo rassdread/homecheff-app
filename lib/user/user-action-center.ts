@@ -18,6 +18,8 @@ import { prismaTypeString } from '@/lib/notifications/mapNotificationForApi';
 import type { ActionCenterEntityHints } from '@/lib/action-center/fetch-action-center-entities';
 import { resolveEntityHrefs } from '@/lib/action-center/fetch-action-center-entities';
 import type { PendingClientReward } from '@/lib/gamification/gamification-me-types';
+import { mapDeliveryProfileToLane } from '@/lib/account/resolve-account-readiness';
+import type { DeliveryProfileCompletionInput } from '@/lib/delivery/delivery-profile-completion';
 
 export type UserActionItem = SellerActionItem;
 export type UserActionSeverity = SellerActionSeverity;
@@ -60,6 +62,20 @@ export type UserActionCenterInput = {
     /** When false, profile exists but activation gate is incomplete. */
     activationComplete?: boolean;
     activationMessage?: string | null;
+    /** Optional raw fields for specific missing-requirement copy. */
+    pricingEnabled?: boolean;
+    providerType?: string;
+    isActive?: boolean;
+    isOnline?: boolean;
+    homeLat?: number | null;
+    homeLng?: number | null;
+    maxDistance?: number | null;
+    nationalCoverage?: boolean | null;
+    baseFeeCents?: number | null;
+    pricePerKmCents?: number | null;
+    minimumFeeCents?: number | null;
+    freeDeliveryRadiusKm?: number | null;
+    companyDisplayName?: string | null;
   } | null;
   activeDeliveryCount: number;
   affiliate?: {
@@ -228,15 +244,36 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
 
   // Incomplete activation (area/pricing) — not Stripe. Canonical editor: /delivery/settings.
   if (!activationComplete) {
+    const raw: DeliveryProfileCompletionInput | null =
+      profile.providerType != null
+        ? {
+            providerType: profile.providerType,
+            isActive: Boolean(profile.isActive),
+            isOnline: Boolean(profile.isOnline),
+            homeLat: profile.homeLat ?? null,
+            homeLng: profile.homeLng ?? null,
+            maxDistance: profile.maxDistance ?? null,
+            nationalCoverage: profile.nationalCoverage ?? null,
+            pricingEnabled: Boolean(profile.pricingEnabled),
+            baseFeeCents: profile.baseFeeCents ?? null,
+            pricePerKmCents: profile.pricePerKmCents ?? null,
+            minimumFeeCents: profile.minimumFeeCents ?? null,
+            freeDeliveryRadiusKm: profile.freeDeliveryRadiusKm ?? null,
+            companyDisplayName: profile.companyDisplayName ?? null,
+            isVerified: profile.isVerified,
+          }
+        : null;
+    const lane = mapDeliveryProfileToLane(raw);
     items.push({
       id: 'delivery-profile-incomplete',
       severity: 'orange',
-      title: 'Je bezorgprofiel is nog niet compleet.',
+      title: lane.titleNl || 'Je bezorgprofiel is nog niet compleet.',
       description:
+        lane.bodyNl ||
         profile.activationMessage?.trim() ||
         'Vul werkgebied en tarieven in om bezorgopdrachten te kunnen ontvangen.',
-      actionLabel: 'Bezorgprofiel afronden',
-      actionHref: DELIVERY_SETTINGS_HREF,
+      actionLabel: lane.ctaLabelNl || 'Bezorgprofiel afronden',
+      actionHref: lane.ctaHref || DELIVERY_SETTINGS_HREF,
     });
   } else if (!profile.isVerified) {
     items.push({

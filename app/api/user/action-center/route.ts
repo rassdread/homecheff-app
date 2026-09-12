@@ -66,6 +66,7 @@ export async function GET() {
         passwordHash: true,
         stripeConnectAccountId: true,
         stripeConnectOnboardingCompleted: true,
+        stripeConnectTrack: true,
         hcpWelcomeSeenAt: true,
         Account: { select: { provider: true } },
         SellerProfile: { select: { id: true } },
@@ -111,11 +112,15 @@ export async function GET() {
     let stripeSnapshot = {
       stripeConnectAccountId: user.stripeConnectAccountId,
       stripeConnectOnboardingCompleted: user.stripeConnectOnboardingCompleted,
+      stripeConnectTrack: user.stripeConnectTrack,
     };
 
     if (user.stripeConnectAccountId) {
       try {
-        stripeSnapshot = await refreshSellerStripeSnapshotIfStale(user.id, stripeSnapshot);
+        stripeSnapshot = await refreshSellerStripeSnapshotIfStale(
+          user.id,
+          stripeSnapshot,
+        );
       } catch (stripeErr) {
         console.warn('[user/action-center] stripe snapshot refresh failed; using stale', stripeErr);
       }
@@ -237,6 +242,19 @@ export async function GET() {
               isVerified: user.DeliveryProfile.isVerified,
               activationComplete: activation.isComplete,
               activationMessage: activation.ok ? null : activation.message,
+              pricingEnabled: user.DeliveryProfile.pricingEnabled,
+              providerType: user.DeliveryProfile.providerType,
+              isActive: user.DeliveryProfile.isActive,
+              isOnline: user.DeliveryProfile.isOnline,
+              homeLat: user.DeliveryProfile.homeLat,
+              homeLng: user.DeliveryProfile.homeLng,
+              maxDistance: user.DeliveryProfile.maxDistance,
+              nationalCoverage: user.DeliveryProfile.nationalCoverage,
+              baseFeeCents: user.DeliveryProfile.baseFeeCents,
+              pricePerKmCents: user.DeliveryProfile.pricePerKmCents,
+              minimumFeeCents: user.DeliveryProfile.minimumFeeCents,
+              freeDeliveryRadiusKm: user.DeliveryProfile.freeDeliveryRadiusKm,
+              companyDisplayName: user.DeliveryProfile.companyDisplayName,
             };
           })()
         : null;
