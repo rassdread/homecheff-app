@@ -1,0 +1,128 @@
+{
+  "PUBLIC_TEST_ITEMS_BEFORE": 11,
+  "TOTAL_SOFT_HIDDEN": 20,
+  "STILL_PUBLIC_OWNED_BY_FIXTURE_SELLERS": 0,
+  "REAL_USER_ITEMS_REMOVED": 0,
+  "samples": [
+    {
+      "id": "d486b83e-774e-4a55-9bb6-94ad40f99d54",
+      "title": "[DELETED CERT] propcert_mtng2c6x",
+      "wasActive": false,
+      "email": "deleted+propcert_mtng2c6x+seller@homecheff-validation.test"
+    },
+    {
+      "id": "60aab09b-0554-45c2-8cdc-e048e6c02149",
+      "title": "[DELETED CERT] propcert_mtng4sg3",
+      "wasActive": false,
+      "email": "deleted+propcert_mtng4sg3+seller@homecheff-validation.test"
+    },
+    {
+      "id": "a54509d5-dbf7-468f-9caf-4f1d3ac43912",
+      "title": "[DELETED CERT] propcert_mtwzauae",
+      "wasActive": false,
+      "email": "deleted+propcert_mtwzauae+seller@homecheff-validation.test"
+    },
+    {
+      "id": "c5991e6a-669e-4d52-bd6e-929206a2cd93",
+      "title": "FinalCert finalcert_mtx9u0vg",
+      "wasActive": true,
+      "email": "finalcert_mtx9u0vg+seller@homecheff-validation.test"
+    },
+    {
+      "id": "78c48401-cfa8-4fd2-a19f-d1d49dc580a8",
+      "title": "LocCert loccert_mtx01sye",
+      "wasActive": true,
+      "email": "loccert_mtx01sye+seller@homecheff-validation.test"
+    },
+    {
+      "id": "0cfa67f5-0e2a-4374-8fa2-56716dc9084a",
+      "title": "LocCert loccert_mtx0395t",
+      "wasActive": true,
+      "email": "loccert_mtx0395t+seller@homecheff-validation.test"
+    },
+    {
+      "id": "77dbab4f-1ac2-41f6-99c7-2922b5919259",
+      "title": "LocCert loccert_mtx08ejb",
+      "wasActive": true,
+      "email": "loccert_mtx08ejb+seller@homecheff-validation.test"
+    },
+    {
+      "id": "8522100e-75bf-4c93-be41-086790f73cfc",
+      "title": "[CERT-PRIVATE] OpsData opsdata_mtya7gsn",
+      "wasActive": false,
+      "email": "opsdata_mtya7gsn+seller@homecheff-validation.test"
+    },
+    {
+      "id": "a696778c-23fb-4c26-a43c-87469d242e77",
+      "title": "[CERT-PRIVATE] [CERT] AppCert appcert_mtxm45n9",
+      "wasActive": false,
+      "email": "appcert_mtxm45n9+seller@homecheff-validation.test"
+    },
+    {
+      "id": "ecb86d1e-4afc-419c-bc66-ad176963fd13",
+      "title": "FinalCert finalcert_mtxaj3my",
+      "wasActive": true,
+      "email": "finalcert_mtxaj3my+seller@homecheff-validation.test"
+    },
+    {
+      "id": "615021de-1721-45c6-83ed-72c9a13bba83",
+      "title": "FinalCert finalcert_mtxab640",
+      "wasActive": true,
+      "email": "finalcert_mtxab640+seller@homecheff-validation.test"
+    },
+    {
+      "id": "ace4f2cb-6fc6-4247-b25f-e90a1ed13a6d",
+      "title": "FinalCert finalcert_mtxa2wc5",
+      "wasActive": true,
+      "email": "finalcert_mtxa2wc5+seller@homecheff-validation.test"
+    },
+    {
+      "id": "d10c4982-320f-4201-9646-91b45fc4c28d",
+      "title": "Dbg dbg_mtxa6hqu",
+      "wasActive": true,
+      "email": "deleted+dbg_mtxa6hqu+s@homecheff-validation.test"
+    },
+    {
+      "id": "58e69074-f865-421c-843a-700b525750b7",
+      "title": "Dbg2 dbg2_mtxa7i3y",
+      "wasActive": true,
+      "email": "dbg2_mtxa7i3y+s@homecheff-validation.test"
+    },
+    {
+      "id": "2cd51b6a-56b6-4a26-86f3-7512c19f68d9",
+      "title": "[CERT-PRIVATE] [CERT] AppCert appcert_mtxlynmg",
+      "wasActive": false,
+      "email": "appcert_mtxlynmg+seller@homecheff-validation.test"
+    },
+    {
+      "id": "8395d675-a85d-448d-97c3-86a086cebe88",
+      "title": "[DELETED STAB] stab_mtxcgkw2",
+      "wasActive": false,
+      "email": "deleted+stab_mtxcgkw2+s@homecheff-validation.test"
+    },
+    {
+      "id": "15d82218-989b-4e2f-964a-ca64610c5490",
+      "title": "t",
+      "wasActive": true,
+      "email": "msgs_mtxchmb7+s@homecheff-validation.test"
+    },
+    {
+      "id": "cdf108f1-4fef-4bdf-8fbb-1eca53bb3af6",
+      "title": "[DELETED STAB] stab_mtxcjjyt",
+      "wasActive": false,
+      "email": "deleted+stab_mtxcjjyt+s@homecheff-validation.test"
+    },
+    {
+      "id": "4c23581a-f707-4ad0-ae71-3886bda545fa",
+      "title": "[CERT-PRIVATE] OpsData opsdata_mtya69mj",
+      "wasActive": false,
+      "email": "opsdata_mtya69mj+seller@homecheff-validation.test"
+    },
+    {
+      "id": "440d2228-eefe-4a55-9fed-117e81830514",
+      "title": "CERT EctaroShip Domestic NL — €7.50 (private)",
+      "wasActive": true,
+      "email": "r.sergioarrias@gmail.com"
+    }
+  ]
+}

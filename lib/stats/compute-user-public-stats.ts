@@ -3,6 +3,7 @@
  * Trust Stabilization Phase 0: favorites ≠ props; product reviews only for rating.
  */
 import { prisma } from '@/lib/prisma';
+import { andPublicListingWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 export type UserPublicStats = {
   fansCount: number;
@@ -58,10 +59,9 @@ export function toUserStatsTilePayload(stats: UserPublicStats): UserStatsTilePay
 
 export async function computeUserPublicStats(userId: string): Promise<UserPublicStats> {
   const sellerProducts = await prisma.product.findMany({
-    where: {
+    where: andPublicListingWhere({
       seller: { userId },
-      isActive: true,
-    },
+    }),
     select: { id: true },
   });
 

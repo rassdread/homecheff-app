@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 const prisma = new PrismaClient();
 
@@ -36,10 +37,7 @@ export async function GET(
           }
         },
         products: {
-          where: {
-            isActive: true,
-            integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] },
-          },
+          where: publicListingEligibilityWhere(),
           include: {
             Image: {
               select: {
@@ -71,10 +69,12 @@ export async function GET(
     });
 
     const activeProducts = await prisma.product.count({
-      where: { 
-        sellerId: sellerProfile.id,
-        isActive: true 
-      }
+      where: {
+        AND: [
+          { sellerId: sellerProfile.id },
+          publicListingEligibilityWhere(),
+        ],
+      },
     });
 
     // Calculate average rating (only submitted reviews)

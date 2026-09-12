@@ -15,6 +15,7 @@ import PublicProfileClient, { type PublicProfileHcpPayload } from "./PublicProfi
 import { loadPublicContactChannelsForUser } from "@/lib/profile/load-public-contact-channels";
 import { buildProfilePageJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName } from "@/lib/displayName";
+import { publicListingEligibilityWhere } from "@/lib/marketplace/public-listing-eligibility";
 
 export const revalidate = 0;
 
@@ -190,10 +191,7 @@ export default async function PublicProfilePage({
           select: { id: true, name: true },
         },
         products: {
-          where: {
-            isActive: true,
-            integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] },
-          },
+          where: publicListingEligibilityWhere(),
           select: {
             id: true,
             title: true,

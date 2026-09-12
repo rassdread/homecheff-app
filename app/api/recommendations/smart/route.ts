@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { calculateDistance } from '@/lib/geocoding';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 export async function GET(req: NextRequest) {
   const cors = getCorsHeaders(req);
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
       const trendingProductsData = await prisma.product.findMany({
         where: {
           id: { in: trendingProductIds },
-          isActive: true,
+          ...publicListingEligibilityWhere(),
         },
         include: {
           seller: {
@@ -82,17 +83,21 @@ export async function GET(req: NextRequest) {
 
       const nearbyProducts = await prisma.product.findMany({
         where: {
-          isActive: true,
-          seller: {
-            lat: {
-              gte: userLat - (radius / 111.32),
-              lte: userLat + (radius / 111.32),
+          AND: [
+            publicListingEligibilityWhere(),
+            {
+              seller: {
+                lat: {
+                  gte: userLat - (radius / 111.32),
+                  lte: userLat + (radius / 111.32),
+                },
+                lng: {
+                  gte: userLng - (radius / (111.32 * Math.cos((userLat * Math.PI) / 180))),
+                  lte: userLng + (radius / (111.32 * Math.cos((userLat * Math.PI) / 180))),
+                },
+              },
             },
-            lng: {
-              gte: userLng - (radius / (111.32 * Math.cos((userLat * Math.PI) / 180))),
-              lte: userLng + (radius / (111.32 * Math.cos((userLat * Math.PI) / 180))),
-            },
-          },
+          ],
         },
         include: {
           seller: {
@@ -161,7 +166,7 @@ export async function GET(req: NextRequest) {
       if (topCategory) {
         const similarProducts = await prisma.product.findMany({
           where: {
-            isActive: true,
+            ...publicListingEligibilityWhere(),
             category: topCategory as any,
           },
           include: {
@@ -210,7 +215,7 @@ export async function GET(req: NextRequest) {
       include: {
         User: { select: { name: true, profileImage: true } },
         products: {
-          where: { isActive: true },
+          where: publicListingEligibilityWhere(),
           include: {
             Image: { select: { fileUrl: true }, take: 1 },
           },

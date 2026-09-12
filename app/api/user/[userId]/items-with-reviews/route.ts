@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,13 +65,13 @@ export async function GET(
     // Get products with submitted reviews only (exclude webhook placeholders)
     const productsWithReviews = await prisma.product.findMany({
       where: {
-        seller: {
-          userId: userId
-        },
-        isActive: true,
-        reviews: {
-          some: submittedProductReviewWhere,
-        }
+        AND: [
+          publicListingEligibilityWhere(),
+          {
+            seller: { userId: userId },
+            reviews: { some: submittedProductReviewWhere },
+          },
+        ],
       },
       include: {
         Image: {

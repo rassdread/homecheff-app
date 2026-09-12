@@ -118,7 +118,7 @@ async function main() {
         priceCents: 10000,
         unit: 'PORTION',
         delivery: 'PICKUP',
-        isActive: true,
+        isActive: false, // never public-discoverable
         stock: 5,
         tags: [TAG],
       },

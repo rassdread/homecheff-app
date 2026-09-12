@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getDisplayName } from '@/lib/displayName';
+import { andPublicListingWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 export async function GET(req: NextRequest) {
   try {
@@ -596,12 +597,12 @@ async function getCategorySpecificMessages(userId: string, role: string | null) 
   // Get new products in user's favorite categories
   if (topCategories.length > 0) {
     const newProductsInCategories = await prisma.product.findMany({
-      where: {
+      where: andPublicListingWhere({
         category: { in: topCategories },
         createdAt: {
           gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
-        }
-      },
+        },
+      }),
       include: {
         seller: {
           select: {

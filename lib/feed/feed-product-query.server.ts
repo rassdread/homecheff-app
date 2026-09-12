@@ -8,7 +8,8 @@ import {
   batchHydrateFeedSellers,
   type FeedSellerHydrated,
 } from '@/lib/feed/feed-seller-hydration.server';
-import { productIntegrityPublicWhere } from '@/lib/trust/integrity-status';
+import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
+
 
 export type FeedProductQueryStrategy =
   | 'or_single'
@@ -156,24 +157,8 @@ type ProductIdRow = {
 };
 
 function baseVisibilityWhere(): Prisma.ProductWhereInput {
-  return {
-    AND: [
-      productIntegrityPublicWhere(),
-      {
-        OR: [
-          { isActive: true },
-          {
-            isActive: false,
-            orderItems: {
-              some: {
-                Order: { stripeSessionId: { not: null } },
-              },
-            },
-          },
-        ],
-      },
-    ],
-  };
+  // SoT: active + integrity + non-fixture sellers. No inactive+Stripe leak path.
+  return publicListingEligibilityWhere();
 }
 
 function andWhere(
@@ -210,32 +195,15 @@ async function fetchProductIdRows(
     take: FEED_DB_PRODUCT_CAP,
     select: PRODUCT_ID_SELECT,
   };
-  const activeWhere = andWhere(
-    { AND: [{ isActive: true }, productIntegrityPublicWhere()] },
-    whereExtras,
-  );
-  const inactiveWhere = andWhere(
-    {
-      AND: [
-        productIntegrityPublicWhere(),
-        {
-          isActive: false,
-          orderItems: {
-            some: { Order: { stripeSessionId: { not: null } } },
-          },
-        },
-      ],
-    },
-    whereExtras,
-  );
+  const activeWhere = andWhere(publicListingEligibilityWhere(), whereExtras);
 
-  const [activeRows, inactiveRows] = await Promise.all([
-    prisma.product.findMany({ where: activeWhere, ...idArgs }),
-    prisma.product.findMany({ where: inactiveWhere, ...idArgs }),
-  ]);
+  const activeRows = await prisma.product.findMany({
+    where: activeWhere,
+    ...idArgs,
+  });
 
   return mergeIdRowsByCreatedAtDesc(
-    [...(activeRows as ProductIdRow[]), ...(inactiveRows as ProductIdRow[])],
+    [...(activeRows as ProductIdRow[])],
     FEED_DB_PRODUCT_CAP,
   );
 }
@@ -386,34 +354,16 @@ export async function fetchFeedProducts(
   }
 
   const activeWhere = andWhere(
-    { AND: [{ isActive: true }, productIntegrityPublicWhere()] },
-    input.whereExtras,
-  );
-  const inactiveWhere = andWhere(
-    {
-      AND: [
-        productIntegrityPublicWhere(),
-        {
-          isActive: false,
-          orderItems: {
-            some: { Order: { stripeSessionId: { not: null } } },
-          },
-        },
-      ],
-    },
+    publicListingEligibilityWhere(),
     input.whereExtras,
   );
 
-  const [activeRows, inactiveRows] = await Promise.all([
-    prisma.product.findMany({ where: activeWhere, ...args }),
-    prisma.product.findMany({ where: inactiveWhere, ...args }),
-  ]);
+  const activeRows = await prisma.product.findMany({
+    where: activeWhere,
+    ...args,
+  });
 
-  const merged = mergeLegacyRows(
-    [...(activeRows as FeedProductRow[]), ...(inactiveRows as FeedProductRow[])],
-    FEED_DB_PRODUCT_CAP,
-  );
-  return { rows: merged };
+  return { rows: activeRows as FeedProductRow[] };
 }
 
 function mergeLegacyRows(

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { andPublicListingWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 export async function GET(req: NextRequest) {
   try {
@@ -43,10 +44,9 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Find new products in user's area
+    // Find new products in user's area (SoT: never surface cert fixtures)
     const newProducts = await prisma.product.findMany({
-      where: {
-        isActive: true,
+      where: andPublicListingWhere({
         createdAt: { gte: since },
         seller: {
           lat: {
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
             lte: user.lng + (radius / (111.32 * Math.cos((user.lat * Math.PI) / 180))),
           },
         },
-      },
+      }),
       include: {
         seller: {
           include: {

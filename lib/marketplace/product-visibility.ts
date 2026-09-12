@@ -1,6 +1,8 @@
 /**
  * Marketplace listing intent — Te koop / Gezocht visibility (V2/V3).
  * Legacy: missing listingIntent is treated as OFFER.
+ *
+ * Public discoverability SoT: `lib/marketplace/public-listing-eligibility.ts`.
  */
 
 export type ListingIntentValue = 'OFFER' | 'REQUEST' | string | null | undefined;
@@ -24,18 +26,13 @@ export function isRequestListing(product: ListingIntentInput): boolean {
 export type ListingPublicVisibilityInput = {
   isActive?: boolean | null;
   integrityStatus?: string | null;
+  sellerEmail?: string | null;
+  sellerBio?: string | null;
+  sellerSuspendedAt?: Date | string | null;
+  sellerAccountDeletedAt?: Date | string | null;
 };
 
-/**
- * Public feed/detail: active + integrity ACTIVE|REVIEW_REQUIRED only.
- * REMOVED / inactive listings must not leak titles, SEO, or payloads to anon users.
- */
-export function isListingPubliclyDiscoverable(
-  product: ListingPublicVisibilityInput,
-): boolean {
-  const integrity = String(product.integrityStatus ?? 'ACTIVE').toUpperCase();
-  return (
-    Boolean(product.isActive) &&
-    (integrity === 'ACTIVE' || integrity === 'REVIEW_REQUIRED')
-  );
-}
+export {
+  isListingPubliclyDiscoverable,
+  publicListingEligibilityWhere,
+} from '@/lib/marketplace/public-listing-eligibility';

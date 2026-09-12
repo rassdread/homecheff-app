@@ -184,7 +184,7 @@ try {
         category: 'CHEFF',
         unit: 'PORTION',
         delivery: 'PICKUP',
-        isActive: true,
+        isActive: false, // never public-discoverable
         stock: 5,
         maxStock: 5,
         acceptHomeCheffPayment: false,

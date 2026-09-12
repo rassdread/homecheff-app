@@ -1,10 +1,10 @@
 /**
  * SEO 0 — dynamic public listing URLs for sitemap-products.xml.
- * Eligibility mirrors feed visibility: active, integrity-OK, non-blocked seller user.
+ * Eligibility = shared public listing SoT.
  */
 
 import { prisma } from '@/lib/prisma';
-import { productIntegrityPublicWhere } from '@/lib/trust/integrity-status';
+import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
 import { buildProductDetailPath } from '@/lib/seo/productSlug';
 import { MAIN_DOMAIN } from '@/lib/seo/metadata';
 
@@ -17,17 +17,7 @@ export type PublicListingSitemapEntry = {
 export const PUBLIC_LISTING_SITEMAP_CAP = 50_000;
 
 export function publicListingSitemapWhere() {
-  return {
-    isActive: true,
-    ...productIntegrityPublicWhere(),
-    // Seller user not suspended/deleted (User has no isBlocked field).
-    seller: {
-      User: {
-        suspendedAt: null,
-        accountDeletedAt: null,
-      },
-    },
-  } as const;
+  return publicListingEligibilityWhere();
 }
 
 /**
@@ -55,15 +45,12 @@ export async function collectPublicListingSitemapEntries(): Promise<
     take: PUBLIC_LISTING_SITEMAP_CAP,
   });
 
-  return rows.map((row) => {
-    const path = buildProductDetailPath(
-      row.title,
-      row.seller?.User?.place ?? null,
-      row.id,
-    );
-    return {
-      loc: `${MAIN_DOMAIN}${path}`,
-      lastmod: row.createdAt.toISOString(),
-    };
-  });
+  return rows.map((row) => ({
+    loc: `${MAIN_DOMAIN}${buildProductDetailPath({
+      id: row.id,
+      title: row.title,
+      place: row.seller?.User?.place,
+    })}`,
+    lastmod: row.createdAt.toISOString(),
+  }));
 }

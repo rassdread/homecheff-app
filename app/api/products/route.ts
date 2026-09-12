@@ -22,6 +22,7 @@ import {
   discoveryEnrichmentFromBundle,
   fetchSellerTrustBundles,
 } from "@/lib/discovery/trust/batch-enrichment";
+import { publicListingEligibilityWhere } from "@/lib/marketplace/public-listing-eligibility";
 
 // BALANCED CACHING - snel maar compleet
 // Cache for 30 seconds - balance between freshness and performance
@@ -55,13 +56,15 @@ export async function GET(req: Request) {
       console.log('[Products API] Executing Prisma query...');
       allProducts = await prisma.product.findMany({
         where: { 
-          integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] },
-          ...(q ? buildProductTextSearchWhere(q) : {}),
-          ...(searchFilters.listingIntent === 'REQUEST'
-            ? { listingIntent: 'REQUEST' as const }
-            : searchFilters.listingIntent === 'OFFER'
-              ? { OR: [{ listingIntent: 'OFFER' as const }, { listingIntent: null }] }
-              : {}),
+          AND: [
+            publicListingEligibilityWhere(),
+            ...(q ? [buildProductTextSearchWhere(q)] : []),
+            ...(searchFilters.listingIntent === 'REQUEST'
+              ? [{ listingIntent: 'REQUEST' as const }]
+              : searchFilters.listingIntent === 'OFFER'
+                ? [{ OR: [{ listingIntent: 'OFFER' as const }, { listingIntent: null }] }]
+                : []),
+          ],
         },
         orderBy: [
           { createdAt: "desc" }

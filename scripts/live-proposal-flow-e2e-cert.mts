@@ -207,7 +207,7 @@ async function main() {
         priceCents: 1500,
         unit: 'PORTION',
         delivery: 'PICKUP',
-        isActive: true,
+        isActive: false, // never public-discoverable
         stock: 10,
         maxStock: 10,
         acceptHomeCheffPayment: true,
@@ -689,9 +689,10 @@ async function main() {
       msg: staleMsg,
     });
     gates.STALE_STATE = gateFrom(staleAccept.status > 0 && !/P\d{4}|prisma|stack/i.test(String(staleMsg)));
+    // Keep fixture non-discoverable (do not re-activate into public feed)
     await prisma.product.update({
       where: { id: product.id },
-      data: { isActive: true },
+      data: { isActive: false },
     });
     if (staleId && staleAccept.json?.proposal?.status === 'PENDING') {
       await api(buyerCookie, 'POST', `/api/proposals/${staleId}/cancel`);

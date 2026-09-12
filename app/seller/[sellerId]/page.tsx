@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import PublicSellerProfile from '@/components/seller/PublicSellerProfileNew';
 import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
 import { getPublicProfileHref, profileFallbackHref } from '@/lib/user/public-profile';
+import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 interface PublicSellerProfilePageProps {
   params: Promise<{ sellerId: string }> | { sellerId: string };
@@ -54,10 +55,7 @@ export default async function PublicSellerProfilePage({
         },
       },
       products: {
-        where: {
-          isActive: true,
-          integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] },
-        },
+        where: publicListingEligibilityWhere(),
         select: {
           id: true,
           title: true,

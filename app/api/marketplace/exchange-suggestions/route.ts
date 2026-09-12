@@ -10,6 +10,7 @@ import {
   type ExchangeSuggestionCapState,
   type ExchangeSuggestionSurface,
 } from '@/lib/marketplace/exchange-suggestions';
+import { andPublicListingWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,14 +61,15 @@ export async function GET(req: Request) {
     const viewerListingIds = viewerProducts.map((p) => p.id);
 
     const candidates = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        ...(sellerProfile ? { sellerId: { not: sellerProfile.id } } : {}),
-        OR: [
-          { barterOpenness: { in: ['BARTER_ONLY', 'MONEY_AND_BARTER'] } },
-          { listingIntent: 'REQUEST' },
-        ],
-      },
+      where: andPublicListingWhere([
+        ...(sellerProfile ? [{ sellerId: { not: sellerProfile.id } }] : []),
+        {
+          OR: [
+            { barterOpenness: { in: ['BARTER_ONLY', 'MONEY_AND_BARTER'] } },
+            { listingIntent: 'REQUEST' },
+          ],
+        },
+      ]),
       select: exchangeSuggestionProductSelect(),
       orderBy: { createdAt: 'desc' },
       take: CANDIDATE_LIMIT,

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getDisplayName } from '@/lib/displayName';
+import {
+  andPublicListingWhere,
+} from '@/lib/marketplace/public-listing-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +29,7 @@ export async function GET() {
       topSavedDishGroup,
     ] = await Promise.all([
       prisma.product.count({
-        where: { isActive: true, createdAt: { gte: dayAgo } },
+        where: andPublicListingWhere({ createdAt: { gte: dayAgo } }),
       }),
       prisma.user.count({
         where: { createdAt: { gte: weekAgo } },
@@ -70,7 +73,7 @@ export async function GET() {
       }),
       prisma.product
         .findMany({
-          where: { isActive: true, createdAt: { gte: weekAgo } },
+          where: andPublicListingWhere({ createdAt: { gte: weekAgo } }),
           select: { sellerId: true },
           distinct: ['sellerId'],
         })
@@ -131,7 +134,7 @@ export async function GET() {
     const risingGroup = await prisma.product
       .groupBy({
         by: ['sellerId'],
-        where: { isActive: true, createdAt: { gte: weekAgo } },
+        where: andPublicListingWhere({ createdAt: { gte: weekAgo } }),
         _count: { sellerId: true },
         orderBy: { _count: { sellerId: 'desc' } },
         take: 1,

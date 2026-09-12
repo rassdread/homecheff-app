@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 const prisma = new PrismaClient();
 
@@ -12,9 +13,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     // Optimized query: only essential fields, with pagination
     const products = await prisma.product.findMany({
-      where: {
-        isActive: true
-      },
+      where: publicListingEligibilityWhere(),
       select: {
         id: true,
         title: true,

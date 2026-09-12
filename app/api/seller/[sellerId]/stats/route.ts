@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { computeSellerResponseTimeStats } from '@/lib/communication/response-time';
+import { andPublicListingWhere } from '@/lib/marketplace/public-listing-eligibility';
 
 export async function GET(
   req: NextRequest,
@@ -49,14 +50,13 @@ export async function GET(
           }
         }
       }),
-      // Active products
+      // Active products (public-discoverable only)
       prisma.product.count({
-        where: { 
+        where: andPublicListingWhere({
           seller: {
             id: sellerId
           },
-          isActive: true
-        }
+        }),
       }),
       // Followers count (users who follow this seller)
       prisma.follow.count({

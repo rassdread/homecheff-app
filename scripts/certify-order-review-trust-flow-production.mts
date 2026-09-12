@@ -215,11 +215,7 @@ async function main() {
         unit: 'PORTION',
         delivery: 'PICKUP',
         sellerId: sellerProfile.id,
-        isActive: true,
-        stock: 10,
-      },
-    });
-    createdProductIds.push(product.id);
+        isActive: false, // never public-discoverable
 
     const reviewText = `ORTF cert review text ${TAG} — smaken top.`;
     const review = await prisma.productReview.create({
