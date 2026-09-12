@@ -126,6 +126,7 @@ import {
 import { getPerfPrisma } from "@/lib/performance/perf-prisma.server";
 import {
   buildFeedPaginationMeta,
+  normalizeFeedPaginationMeta,
   parseFeedPaginationParams,
 } from "@/lib/feed/feed-pagination";
 import {
@@ -416,7 +417,10 @@ async function handleFeedGet(
         },
         count: labeledItems.length,
         items: labeledItems,
-        pagination: payload.pagination,
+        pagination: normalizeFeedPaginationMeta(
+          payload.pagination,
+          labeledItems.length,
+        ),
         ...(payload.discovery ? { discovery: payload.discovery } : {}),
         ...(shouldExposeFeedDebug(searchParams)
           ? {

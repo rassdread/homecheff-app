@@ -17,6 +17,7 @@ import {
 import {
   FEED_FIRST_PAGE_TAKE,
   buildFeedPaginationMeta,
+  normalizeFeedPaginationMeta,
 } from '../lib/feed/feed-pagination';
 import {
   composedFeedCanContinue,
@@ -59,6 +60,13 @@ const capped = buildFeedPaginationMeta(10, 30, 34, {
 });
 assert.equal(capped.hasMore, true, 'sourceHitCap must not false-end inventory');
 assert.equal(capped.nextSkip, 34);
+
+const legacyCached = normalizeFeedPaginationMeta(
+  { take: 10, skip: 0, total: 34, hasMore: true },
+  10,
+);
+assert.equal(legacyCached.nextSkip, 10, 'legacy cache payloads get nextSkip');
+
 
 // --- Unique items across simulated pages using nextSkip ---
 const pool = Array.from({ length: 55 }, (_, i) => `id-${i}`);

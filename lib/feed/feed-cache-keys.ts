@@ -5,7 +5,7 @@
 import { normalizeFeedScope } from '@/lib/feed/feed-scope';
 
 /** Bumped when national pool eligibility changes (e.g. Caribbean place labels). */
-export const FEED_ORIGIN_CACHE_KEY_VERSION = 'v3'; // bump: exclude cert fixtures from public eligibility SoT
+export const FEED_ORIGIN_CACHE_KEY_VERSION = 'v4'; // bump: deep pagination nextSkip + scaled candidate window
 
 export const PUBLIC_FEED_CACHE_TAGS = [
   'homecheff-feed',

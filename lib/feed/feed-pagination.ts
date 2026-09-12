@@ -62,3 +62,29 @@ export function buildFeedPaginationMeta(
     nextSkip: skip + pageCount,
   };
 }
+
+/** Ensure cached / legacy pagination payloads always expose nextSkip. */
+export function normalizeFeedPaginationMeta(
+  pagination: Partial<FeedPaginationMeta> | null | undefined,
+  pageCount = 0,
+): FeedPaginationMeta {
+  const take =
+    typeof pagination?.take === 'number' && Number.isFinite(pagination.take)
+      ? pagination.take
+      : FEED_FIRST_PAGE_TAKE;
+  const skip =
+    typeof pagination?.skip === 'number' && Number.isFinite(pagination.skip)
+      ? pagination.skip
+      : 0;
+  const total =
+    typeof pagination?.total === 'number' && Number.isFinite(pagination.total)
+      ? pagination.total
+      : pageCount;
+  const hasMore = Boolean(pagination?.hasMore);
+  const nextSkip =
+    typeof pagination?.nextSkip === 'number' &&
+    Number.isFinite(pagination.nextSkip)
+      ? pagination.nextSkip
+      : skip + pageCount;
+  return { take, skip, total, hasMore, nextSkip };
+}
