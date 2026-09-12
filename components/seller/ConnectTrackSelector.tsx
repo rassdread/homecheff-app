@@ -102,12 +102,17 @@ export default function ConnectTrackSelector({
           </p>
         )}
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        {/*
+          CTA layout: 1-col full width below lg (phone + tablet portrait).
+          From lg: primary gets minmax(16rem, 1fr), secondary stays content-sized.
+          Avoids sm:flex-row + flex-1 (basis 0%) which crushed the Stripe CTA.
+        */}
+        <div className="grid w-full grid-cols-1 gap-2 lg:grid-cols-[minmax(16rem,1fr)_auto] lg:items-stretch">
           <button
             type="button"
             disabled={Boolean(loading || pending)}
             onClick={() => void choose(confirmTrack)}
-            className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-center text-sm font-semibold leading-snug text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending
               ? 'Bezig…'
@@ -119,9 +124,9 @@ export default function ConnectTrackSelector({
             type="button"
             disabled={Boolean(loading || pending)}
             onClick={() => setConfirmTrack(null)}
-            className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 lg:w-auto"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
             Keuze wijzigen
           </button>
         </div>
