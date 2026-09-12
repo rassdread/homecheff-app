@@ -189,10 +189,14 @@ function mergeIdRowsByCreatedAtDesc(
 async function fetchProductIdRows(
   prisma: PrismaClient,
   whereExtras?: Prisma.ProductWhereInput,
+  opts?: { take?: number; skip?: number },
 ): Promise<ProductIdRow[]> {
+  const take = Math.max(1, opts?.take ?? FEED_DB_PRODUCT_CAP);
+  const skip = Math.max(0, opts?.skip ?? 0);
   const idArgs = {
-    orderBy: [{ createdAt: 'desc' as const }],
-    take: FEED_DB_PRODUCT_CAP,
+    orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }],
+    take,
+    ...(skip > 0 ? { skip } : {}),
     select: PRODUCT_ID_SELECT,
   };
   const activeWhere = andWhere(publicListingEligibilityWhere(), whereExtras);
@@ -204,7 +208,7 @@ async function fetchProductIdRows(
 
   return mergeIdRowsByCreatedAtDesc(
     [...(activeRows as ProductIdRow[])],
-    FEED_DB_PRODUCT_CAP,
+    take,
   );
 }
 
@@ -292,6 +296,8 @@ async function hydrateProductsIdsFirst(
 export type FeedProductQueryInput = {
   whereExtras?: Prisma.ProductWhereInput;
   strategy?: FeedProductQueryStrategy;
+  take?: number;
+  skip?: number;
 };
 
 export type FeedProductQueryResult = {
@@ -304,11 +310,12 @@ export type FeedProductQueryResult = {
 export async function fetchFeedProductIdRows(
   prisma: PrismaClient,
   whereExtras?: Prisma.ProductWhereInput,
+  opts?: { take?: number; skip?: number },
 ): Promise<{
   idRows: ProductIdRow[];
   imageCountById: Map<string, number>;
 }> {
-  const idRows = await fetchProductIdRows(prisma, whereExtras);
+  const idRows = await fetchProductIdRows(prisma, whereExtras, opts);
   const imageCountById = new Map(idRows.map((r) => [r.id, r._count.Image]));
   return { idRows, imageCountById };
 }
@@ -329,10 +336,14 @@ export async function fetchFeedProducts(
     (process.env.FEED_PRODUCT_QUERY_STRATEGY as FeedProductQueryStrategy | undefined) ??
     'ids_first';
 
+  const take = Math.max(1, input.take ?? FEED_DB_PRODUCT_CAP);
+  const skip = Math.max(0, input.skip ?? 0);
+
   if (strategy === 'ids_first') {
     const { idRows, imageCountById } = await fetchFeedProductIdRows(
       prisma,
       input.whereExtras,
+      { take, skip },
     );
     const { rows, timing } = await hydrateFeedProductsFromIdRows(prisma, idRows);
     return { rows, idsFirstTiming: timing, imageCountById };
@@ -340,8 +351,9 @@ export async function fetchFeedProducts(
 
   const where = andWhere(baseVisibilityWhere(), input.whereExtras);
   const args = {
-    orderBy: [{ createdAt: 'desc' as const }],
-    take: FEED_DB_PRODUCT_CAP,
+    orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }],
+    take,
+    ...(skip > 0 ? { skip } : {}),
     select: FEED_PRODUCT_SELECT,
   };
 

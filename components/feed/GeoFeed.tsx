@@ -2753,7 +2753,7 @@ export default function GeoFeed({
         let data: {
           items?: unknown;
           discovery?: DiscoveryFeedPayload;
-          pagination?: { hasMore?: boolean; total?: number };
+          pagination?: { hasMore?: boolean; total?: number; nextSkip?: number };
           debug?: Record<string, unknown>;
         } | null = null;
 
@@ -2769,7 +2769,7 @@ export default function GeoFeed({
           data = early.json as {
             items?: unknown;
             discovery?: DiscoveryFeedPayload;
-            pagination?: { hasMore?: boolean; total?: number };
+            pagination?: { hasMore?: boolean; total?: number; nextSkip?: number };
             debug?: Record<string, unknown>;
           };
           feedPerfMark("feed:early-bootstrap-hit");
@@ -2793,7 +2793,7 @@ export default function GeoFeed({
           data = joined.json as {
             items?: unknown;
             discovery?: DiscoveryFeedPayload;
-            pagination?: { hasMore?: boolean; total?: number };
+            pagination?: { hasMore?: boolean; total?: number; nextSkip?: number };
             debug?: Record<string, unknown>;
           };
         }
@@ -2955,6 +2955,10 @@ export default function GeoFeed({
           }
           setItems(valid);
           const apiHasMore = Boolean(data.pagination?.hasMore);
+          const firstNextSkip =
+            typeof data.pagination?.nextSkip === "number"
+              ? data.pagination.nextSkip
+              : valid.length;
           let nextComp = recordDisplayedSeeds(
             compositionStateRef.current,
             valid.map((row) => ({
@@ -2968,6 +2972,7 @@ export default function GeoFeed({
             fetchedCount: valid.length,
             apiHasMore,
             skipUsed: 0,
+            advanceBy: firstNextSkip,
           });
           commitCompositionState(nextComp);
           const composedHasMore =
@@ -3233,17 +3238,24 @@ export default function GeoFeed({
       valid: FeedItem[];
       apiHasMore: boolean;
       skip: number;
+      nextSkip?: number;
       fromPrefetch: boolean;
       appendStartedAt: number;
     }) => {
       const { valid, apiHasMore, skip, fromPrefetch, appendStartedAt } = input;
+      const advanceBy =
+        input.nextSkip != null
+          ? Math.max(0, input.nextSkip - skip)
+          : Math.max(valid.length, apiHasMore ? FEED_FIRST_PAGE_TAKE : 0);
+
       if (valid.length === 0) {
         const next = markMarketplacePageResult(compositionStateRef.current, {
           fetchedCount: 0,
-          apiHasMore: false,
+          apiHasMore,
           skipUsed: skip,
+          advanceBy,
         });
-        const more = composedFeedCanContinue(next);
+        const more = apiHasMore || composedFeedCanContinue(next);
         commitCompositionState(next);
         feedHasMoreRef.current = more;
         setFeedHasMore(more);
@@ -3281,6 +3293,7 @@ export default function GeoFeed({
         fetchedCount: valid.length,
         apiHasMore,
         skipUsed: skip,
+        advanceBy,
       });
       const more = apiHasMore || composedFeedCanContinue(next);
       commitCompositionState(next);
@@ -3348,12 +3361,15 @@ export default function GeoFeed({
       const identityKey = latestFeedRequestKeyRef.current;
       if (!identityKey) return;
 
-      let targetSkip = itemsRef.current.length;
+      let targetSkip = Math.max(
+        compositionStateRef.current.marketplaceSkip,
+        itemsRef.current.length,
+      );
       if (
         cache.peek(identityKey, targetSkip) ||
         cache.hasInFlight(identityKey, targetSkip)
       ) {
-        targetSkip = itemsRef.current.length + FEED_FIRST_PAGE_TAKE;
+        targetSkip = targetSkip + FEED_FIRST_PAGE_TAKE;
       }
       if (
         cache.peek(identityKey, targetSkip) ||
@@ -3387,7 +3403,7 @@ export default function GeoFeed({
         }
         const data = (await feedRes.json()) as {
           items?: unknown;
-          pagination?: { hasMore?: boolean };
+          pagination?: { hasMore?: boolean; nextSkip?: number };
         };
         const rawItems = (data.items || []) as Record<string, unknown>[];
         const viewerForDistance =
@@ -3400,6 +3416,10 @@ export default function GeoFeed({
           skip: targetSkip,
           items: valid,
           apiHasMore: Boolean(data.pagination?.hasMore),
+          nextSkip:
+            typeof data.pagination?.nextSkip === "number"
+              ? data.pagination.nextSkip
+              : targetSkip + valid.length,
           preparedAt: Date.now(),
           source: "network",
         });
@@ -3534,7 +3554,7 @@ export default function GeoFeed({
         }
         const data = (await feedRes.json()) as {
           items?: unknown;
-          pagination?: { hasMore?: boolean };
+          pagination?: { hasMore?: boolean; nextSkip?: number };
         };
         const rawItems = (data.items || []) as Record<string, unknown>[];
         const viewerForDistance = effectiveViewerForDistance;
@@ -3542,6 +3562,10 @@ export default function GeoFeed({
         const seen = new Set(itemsRef.current.map((row) => row.id));
         const uniqueNew = valid.filter((row) => !seen.has(row.id));
         const apiHasMore = Boolean(data.pagination?.hasMore);
+        const broadenedAdvance =
+          typeof data.pagination?.nextSkip === "number"
+            ? Math.max(0, data.pagination.nextSkip - skip)
+            : Math.max(valid.length, apiHasMore ? FEED_FIRST_PAGE_TAKE : 0);
 
         if (uniqueNew.length > 0) {
           setItems((prev) => {
@@ -3564,7 +3588,7 @@ export default function GeoFeed({
           })),
         );
         next = markBroadenedPageResult(next, {
-          fetchedCount: valid.length,
+          fetchedCount: Math.max(valid.length, broadenedAdvance),
           newUniqueCount: uniqueNew.length,
           apiHasMore,
           skipUsed: skip,
@@ -3761,7 +3785,10 @@ export default function GeoFeed({
       return;
     }
 
-    const skip = itemsRef.current.length;
+    const skip = Math.max(
+      compositionStateRef.current.marketplaceSkip,
+      itemsRef.current.length,
+    );
     const identityKey =
       latestFeedRequestKeyRef.current ||
       buildLoadMoreParams(skip).toString();
@@ -3772,6 +3799,7 @@ export default function GeoFeed({
         valid: cached.items,
         apiHasMore: cached.apiHasMore,
         skip,
+        nextSkip: cached.nextSkip,
         fromPrefetch: true,
         appendStartedAt,
       });
@@ -3792,7 +3820,7 @@ export default function GeoFeed({
       if (!feedRes.ok) return;
       const data = (await feedRes.json()) as {
         items?: unknown;
-        pagination?: { hasMore?: boolean };
+        pagination?: { hasMore?: boolean; nextSkip?: number };
       };
       const rawItems = (data.items || []) as Record<string, unknown>[];
       const viewerForDistance =
@@ -3805,6 +3833,10 @@ export default function GeoFeed({
         valid,
         apiHasMore,
         skip,
+        nextSkip:
+          typeof data.pagination?.nextSkip === "number"
+            ? data.pagination.nextSkip
+            : skip + valid.length,
         fromPrefetch: false,
         appendStartedAt,
       });
@@ -7172,6 +7204,19 @@ export default function GeoFeed({
               ) : null}
             </div>
           ) : null}
+          {feedHydrated &&
+          !loading &&
+          !compositionState.emptyTerminal &&
+          items.length > 0 &&
+          compositionState.exactExhausted &&
+          compositionState.broadenedExhausted ? (
+            <p
+              className="py-4 text-center text-sm text-muted-foreground"
+              data-testid="feed-end-of-selection"
+            >
+              {t("feed.endOfSelection")}
+            </p>
+          ) : null}
         </div>
       ) : emptyRadiusNoLocal ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
@@ -7554,6 +7599,19 @@ export default function GeoFeed({
               />
             ) : null}
           </div>
+        ) : null}
+        {feedHydrated &&
+        !loading &&
+        !compositionState.emptyTerminal &&
+        items.length > 0 &&
+        compositionState.exactExhausted &&
+        compositionState.broadenedExhausted ? (
+          <p
+            className="py-4 text-center text-sm text-muted-foreground"
+            data-testid="feed-end-of-selection"
+          >
+            {t("feed.endOfSelection")}
+          </p>
         ) : null}
         </div>
       )}

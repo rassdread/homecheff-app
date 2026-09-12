@@ -25,15 +25,104 @@ export const FEED_DISCOVERY_BUFFER = 30;
 const FEED_ENRICHMENT_POOL_MIN = 40;
 
 /**
+ * Hard ceilings for deep infinite-scroll windows.
+ * Soft caps (FEED_DB_*_CAP / FEED_RESPONSE_ITEM_CAP) remain the page-1 baseline;
+ * later pages scale up to these hard maxes so inventory past ~40 stays reachable.
+ */
+export const FEED_DB_PRODUCT_HARD_MAX = 200;
+export const FEED_DB_LISTING_HARD_MAX = 150;
+export const FEED_DB_DISH_HARD_MAX = 150;
+export const FEED_ENRICHMENT_HARD_MAX = 200;
+export const FEED_RESPONSE_HARD_MAX = 200;
+
+export type FeedCandidateWindow = {
+  /** Absolute feed skip requested by the client. */
+  feedSkip: number;
+  feedTake: number;
+  /** Prisma skip for source queries (0 until deep sliding window). */
+  dbSkip: number;
+  productTake: number;
+  listingTake: number;
+  dishTake: number;
+  enrichmentPoolCap: number;
+  responseItemCap: number;
+};
+
+/**
+ * Build a candidate window that covers `skip + take` instead of a fixed ~40 pool.
+ * Shallow pages fetch from offset 0 (stable local-first merge). Deep pages slide
+ * the DB window so inventory beyond FEED_*_HARD_MAX remains paginable.
+ */
+export function computeFeedCandidateWindow(
+  skip: number,
+  take: number,
+): FeedCandidateWindow {
+  const feedSkip = Math.max(0, Math.floor(skip));
+  const feedTake = Math.max(1, Math.floor(take));
+  const neededFromStart = feedSkip + feedTake + FEED_DISCOVERY_BUFFER;
+
+  if (neededFromStart <= FEED_RESPONSE_HARD_MAX) {
+    const productTake = Math.min(
+      FEED_DB_PRODUCT_HARD_MAX,
+      Math.max(FEED_DB_PRODUCT_CAP, neededFromStart),
+    );
+    const listingTake = Math.min(
+      FEED_DB_LISTING_HARD_MAX,
+      Math.max(FEED_DB_LISTING_CAP, neededFromStart),
+    );
+    const dishTake = Math.min(
+      FEED_DB_DISH_HARD_MAX,
+      Math.max(FEED_DB_DISH_CAP, neededFromStart),
+    );
+    const enrichmentPoolCap = Math.min(
+      FEED_ENRICHMENT_HARD_MAX,
+      Math.max(FEED_ENRICHMENT_POOL_MIN, neededFromStart),
+    );
+    const responseItemCap = Math.min(
+      FEED_RESPONSE_HARD_MAX,
+      Math.max(FEED_RESPONSE_ITEM_CAP, neededFromStart),
+    );
+    return {
+      feedSkip,
+      feedTake,
+      dbSkip: 0,
+      productTake,
+      listingTake,
+      dishTake,
+      enrichmentPoolCap,
+      responseItemCap,
+    };
+  }
+
+  // Deep slide: align DB offset with feed skip so we are not stuck at HARD_MAX.
+  const dbSkip = Math.max(0, feedSkip - FEED_DISCOVERY_BUFFER);
+  const windowTake = Math.min(
+    FEED_RESPONSE_HARD_MAX,
+    feedTake + FEED_DISCOVERY_BUFFER * 2,
+  );
+  return {
+    feedSkip,
+    feedTake,
+    dbSkip,
+    productTake: Math.min(FEED_DB_PRODUCT_HARD_MAX, windowTake),
+    listingTake: Math.min(FEED_DB_LISTING_HARD_MAX, windowTake),
+    dishTake: Math.min(FEED_DB_DISH_HARD_MAX, windowTake),
+    enrichmentPoolCap: Math.min(FEED_ENRICHMENT_HARD_MAX, windowTake),
+    responseItemCap: Math.min(FEED_RESPONSE_HARD_MAX, windowTake),
+  };
+}
+
+/**
  * Enrichment pool scales with pagination so later pages retain enough candidates.
- * Capped at FEED_ENRICHMENT_POOL_CAP; never below FEED_ENRICHMENT_POOL_MIN on page 1.
+ * Capped at FEED_ENRICHMENT_HARD_MAX; never below FEED_ENRICHMENT_POOL_MIN on page 1.
  */
 export function computeEnrichmentPoolCap(skip: number, take: number): number {
-  const needed = skip + take + FEED_DISCOVERY_BUFFER;
-  return Math.min(
-    FEED_ENRICHMENT_POOL_CAP,
-    Math.max(FEED_ENRICHMENT_POOL_MIN, needed),
-  );
+  return computeFeedCandidateWindow(skip, take).enrichmentPoolCap;
+}
+
+/** Relative slice index inside the fetched/merged response window. */
+export function feedWindowRelativeSkip(window: FeedCandidateWindow): number {
+  return Math.max(0, window.feedSkip - window.dbSkip);
 }
 
 const SOURCE_PRIORITY: Record<string, number> = {

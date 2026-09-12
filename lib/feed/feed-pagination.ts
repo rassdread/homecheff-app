@@ -14,6 +14,8 @@ export type FeedPaginationMeta = {
   skip: number;
   total: number;
   hasMore: boolean;
+  /** Stable client cursor: skip + items returned this page (not client list length). */
+  nextSkip: number;
 };
 
 export function parseFeedPaginationParams(
@@ -35,12 +37,28 @@ export function buildFeedPaginationMeta(
   take: number,
   skip: number,
   total: number,
+  options?: {
+    /** Rows actually returned in this page (may be < take on the last page). */
+    pageCount?: number;
+    /**
+     * True when at least one DB source returned a full take window — more
+     * unique inventory may exist beyond the current in-memory pool.
+     */
+    sourceHitCap?: boolean;
+  },
 ): FeedPaginationMeta {
+  const pageCount =
+    options?.pageCount != null
+      ? Math.max(0, Math.floor(options.pageCount))
+      : take;
   const end = skip + take;
+  const pageHasMore = end < total;
+  const hasMore = pageHasMore || Boolean(options?.sourceHitCap);
   return {
     take,
     skip,
     total,
-    hasMore: end < total,
+    hasMore,
+    nextSkip: skip + pageCount,
   };
 }

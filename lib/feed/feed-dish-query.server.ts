@@ -203,6 +203,8 @@ async function hydrateDishesIdsFirst(
 export type FeedDishQueryInput = {
   where: Prisma.DishWhereInput;
   strategy?: FeedDishQueryStrategy;
+  take?: number;
+  skip?: number;
 };
 
 export type FeedDishQueryResult = {
@@ -218,13 +220,19 @@ export async function fetchFeedPublishedDishes(
     input.strategy ??
     (process.env.FEED_DISH_QUERY_STRATEGY as FeedDishQueryStrategy | undefined) ??
     'ids_first';
+  const take = Math.max(1, input.take ?? FEED_DB_DISH_CAP);
+  const skip = Math.max(0, input.skip ?? 0);
+  const pageArgs = {
+    orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }],
+    take,
+    ...(skip > 0 ? { skip } : {}),
+  };
 
   if (strategy === 'ids_first') {
     const idsStart = performance.now();
     const idRows = (await prisma.dish.findMany({
       where: input.where,
-      orderBy: [{ createdAt: 'desc' }],
-      take: FEED_DB_DISH_CAP,
+      ...pageArgs,
       select: DISH_ID_SELECT,
     })) as DishIdRow[];
     const idsMs = Math.round(performance.now() - idsStart);
@@ -238,8 +246,7 @@ export async function fetchFeedPublishedDishes(
   if (strategy === 'include_full') {
     const rows = (await prisma.dish.findMany({
       where: input.where,
-      orderBy: [{ createdAt: 'desc' }],
-      take: FEED_DB_DISH_CAP,
+      ...pageArgs,
       include: DISH_INCLUDE,
     })) as FeedDishRow[];
     return { rows };
@@ -247,8 +254,7 @@ export async function fetchFeedPublishedDishes(
 
   const rows = (await prisma.dish.findMany({
     where: input.where,
-    orderBy: [{ createdAt: 'desc' }],
-    take: FEED_DB_DISH_CAP,
+    ...pageArgs,
     select: {
       id: true,
       title: true,

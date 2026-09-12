@@ -62,14 +62,14 @@ import {
 } from "@/lib/feed/build-discovery-feed";
 import {
   collectUniqueSellerUserIds,
-  computeEnrichmentPoolCap,
+  computeFeedCandidateWindow,
   deduplicateCrossSourceFeedItems,
+  feedWindowRelativeSkip,
   linkedDishMediaFromPhotoMetadata,
   mergeLinkedFeedItemMedia,
   FEED_DB_DISH_CAP,
   FEED_DB_LISTING_CAP,
   FEED_DB_PRODUCT_CAP,
-  FEED_RESPONSE_ITEM_CAP,
 } from "@/lib/feed/feed-candidate-window";
 import {
   loadDishPhotoMetadata,
@@ -282,6 +282,9 @@ async function handleFeedGet(
       searchParams.get("take"),
       searchParams.get("skip"),
     );
+  const candidateWindow = computeFeedCandidateWindow(feedSkip, feedTake);
+  const enrichmentPoolCap = candidateWindow.enrichmentPoolCap;
+  const responseItemCap = candidateWindow.responseItemCap;
   const effectiveRadius = normalizeFeedRadiusKm(radius);
   const imageTraceById = new Map<
     string,
@@ -523,7 +526,10 @@ async function handleFeedGet(
     ...(productCategory ? { category: productCategory as any } : {}),
   };
 
-  const productIdPhase = fetchFeedProductIdRows(prisma, productWhereExtras).then(
+  const productIdPhase = fetchFeedProductIdRows(prisma, productWhereExtras, {
+    take: candidateWindow.productTake,
+    skip: candidateWindow.dbSkip,
+  }).then(
     (phase) => {
       apiPerf?.setCounts({
         dbProductIdsMs: Math.round(performance.now() - dbProductStart),
@@ -535,6 +541,7 @@ async function handleFeedGet(
   const listingQuery = prisma.listing.findMany({
       where: {
         isPublic: true,
+        status: "ACTIVE",
         ...(q ? buildListingTextSearchWhere(q) : {}),
         ...(listingCategory ? {
           category: listingCategory
@@ -544,8 +551,9 @@ async function handleFeedGet(
           lng: { gte: Number(lng) - (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
         } : {})
       },
-      orderBy: [{ createdAt: "desc" }],
-      take: FEED_DB_LISTING_CAP,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: candidateWindow.listingTake,
+      ...(candidateWindow.dbSkip > 0 ? { skip: candidateWindow.dbSkip } : {}),
       include: {
         User: {
           select: {
@@ -625,7 +633,11 @@ async function handleFeedGet(
     } : {}),
     ...(productCategory ? { category: productCategory } : {}),
   };
-  const dishQuery = fetchFeedPublishedDishes(prisma, { where: dishWhere }).then(
+  const dishQuery = fetchFeedPublishedDishes(prisma, {
+    where: dishWhere,
+    take: candidateWindow.dishTake,
+    skip: candidateWindow.dbSkip,
+  }).then(
     (result) => {
       const dbDishMs = Math.round(performance.now() - dbDishStart);
       apiPerf?.setCounts({
@@ -1086,8 +1098,6 @@ async function handleFeedGet(
   // International keeps worldwide results including NL (contract a).
   void FEED_SCOPE_INTERNATIONAL;
 
-  const enrichmentPoolCap = computeEnrichmentPoolCap(feedSkip, feedTake);
-
   const marketplacePool = sortedPool
     .filter((item) => isMarketplaceSaleItem(item as Record<string, unknown>))
     .slice(0, enrichmentPoolCap) as typeof allItems;
@@ -1325,12 +1335,12 @@ async function handleFeedGet(
 
   const marketplaceCap = Math.max(
     0,
-    FEED_RESPONSE_ITEM_CAP - Math.min(nonMarketplaceTail.length, 10),
+    responseItemCap - Math.min(nonMarketplaceTail.length, 10),
   );
   const responseMarketplace = orderedMarketplace.slice(0, marketplaceCap);
   const responseNonMarketplace = nonMarketplaceTail.slice(
     0,
-    FEED_RESPONSE_ITEM_CAP - responseMarketplace.length,
+    responseItemCap - responseMarketplace.length,
   );
   let responseItems = [
     ...responseMarketplace,
@@ -1354,12 +1364,23 @@ async function handleFeedGet(
   apiPerf?.mark('response_mapped');
 
   const feedTotal = responseItems.length;
-  // pagination.hasMore = more rows for THIS query (scope/radius/filters).
+  const relativeSkip = feedWindowRelativeSkip(candidateWindow);
+  const pageSlice = responseItems.slice(
+    relativeSkip,
+    relativeSkip + feedTake,
+  ) as Record<string, unknown>[];
+  const sourceHitCap =
+    productIdRows.length >= candidateWindow.productTake ||
+    oldListings.length >= candidateWindow.listingTake ||
+    publishedDishes.length >= candidateWindow.dishTake;
+  // pagination.hasMore = more rows for THIS query (scope/radius/filters),
+  // including when the DB source window was full (deep inventory beyond pool).
   // Client GeoFeed composes a broader feedHasMore (exact → broadened → recirculation).
-  const pagination = buildFeedPaginationMeta(feedTake, feedSkip, feedTotal);
-  const pageItems = sanitizeFeedItemsForResponse(
-    responseItems.slice(feedSkip, feedSkip + feedTake) as Record<string, unknown>[],
-  );
+  const pagination = buildFeedPaginationMeta(feedTake, feedSkip, feedTotal, {
+    pageCount: pageSlice.length,
+    sourceHitCap,
+  });
+  const pageItems = sanitizeFeedItemsForResponse(pageSlice);
   const inlineDataRemaining = countInlineDataMediaUrls(pageItems);
   if (inlineDataRemaining > 0) {
     console.warn(
@@ -1421,6 +1442,13 @@ async function handleFeedGet(
               dbListingCap: FEED_DB_LISTING_CAP,
               dbDishCap: FEED_DB_DISH_CAP,
               enrichmentPoolCap,
+              responseItemCap,
+              dbSkip: candidateWindow.dbSkip,
+              productTake: candidateWindow.productTake,
+              listingTake: candidateWindow.listingTake,
+              dishTake: candidateWindow.dishTake,
+              sourceHitCap,
+              nextSkip: pagination.nextSkip,
             },
             discoverySections: discoveryFeed?.sections.map((s) => ({
               id: s.sectionId,

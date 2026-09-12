@@ -158,12 +158,21 @@ function enterRecirculationOrEmpty(
  */
 export function markMarketplacePageResult(
   state: FeedCompositionState,
-  input: { fetchedCount: number; apiHasMore: boolean; skipUsed: number },
+  input: {
+    fetchedCount: number;
+    apiHasMore: boolean;
+    skipUsed: number;
+    /** When the API page was empty/dupes but hasMore, still advance the cursor. */
+    advanceBy?: number;
+  },
 ): FeedCompositionState {
-  const exhausted = input.fetchedCount === 0 || !input.apiHasMore;
+  const advance = Math.max(input.fetchedCount, input.advanceBy ?? 0);
+  // Exhaust only when the API reports no further exact-scope inventory.
+  // An empty/deduped page must not terminate pagination while hasMore is true.
+  const exhausted = !input.apiHasMore;
   let next: FeedCompositionState = {
     ...state,
-    marketplaceSkip: input.skipUsed + input.fetchedCount,
+    marketplaceSkip: input.skipUsed + advance,
     marketplaceExhausted: exhausted ? true : state.marketplaceExhausted,
   };
   if (!exhausted) return next;

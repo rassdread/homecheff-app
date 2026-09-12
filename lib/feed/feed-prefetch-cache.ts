@@ -16,6 +16,8 @@ export type FeedPrefetchBatch<TItem> = {
   skip: number;
   items: TItem[];
   apiHasMore: boolean;
+  /** Server-provided cursor for the next exact-scope page. */
+  nextSkip?: number;
   preparedAt: number;
   source: 'network' | 'recirculation';
 };

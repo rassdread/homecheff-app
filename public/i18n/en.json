@@ -5992,6 +5992,7 @@
     "filtersPendingHint": "Filters changed — apply to refresh results.",
     "applyFilters": "Apply",
     "updating": "Updating…",
+    "endOfSelection": "You've seen everything in this selection.",
     "searchingResults": "Searching for results…",
     "searchingResultsHint": "One moment — loading what’s available nearby.",
     "emptyConfirmedTitle": "Nothing found in your neighbourhood yet",

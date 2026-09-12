@@ -99,18 +99,18 @@ const pageMetaDedup = buildFeedPaginationMeta(10, 0, postDedupTotal);
 ok('6. pagination total matches post-dedup count', pageMetaDedup.total === 2);
 
 console.log('\nCandidate window');
-ok('DB product cap > enrichment cap', FEED_DB_PRODUCT_CAP > FEED_ENRICHMENT_POOL_CAP);
-ok('enrichment cap > default page size', FEED_ENRICHMENT_POOL_CAP > 10);
+ok('DB product cap > enrichment soft cap', FEED_DB_PRODUCT_CAP > FEED_ENRICHMENT_POOL_CAP);
+ok('enrichment soft cap > default page size', FEED_ENRICHMENT_POOL_CAP > 10);
 ok('response cap supports pagination pool', FEED_RESPONSE_ITEM_CAP >= 10);
 ok('page1 enrichment pool min 40', computeEnrichmentPoolCap(0, 10) >= 40);
-ok('page1 enrichment pool max cap', computeEnrichmentPoolCap(0, 10) <= FEED_ENRICHMENT_POOL_CAP);
+ok('page1 enrichment pool uses soft floor', computeEnrichmentPoolCap(0, 10) === 40);
 ok(
-  'skip scales enrichment pool',
-  computeEnrichmentPoolCap(10, 10) >= computeEnrichmentPoolCap(0, 10),
+  'skip scales enrichment pool past soft response cap',
+  computeEnrichmentPoolCap(40, 10) > FEED_RESPONSE_ITEM_CAP,
 );
 ok(
-  'enrichment formula uses discovery buffer',
-  computeEnrichmentPoolCap(0, 10) === Math.min(FEED_ENRICHMENT_POOL_CAP, Math.max(40, 10 + FEED_DISCOVERY_BUFFER)),
+  'enrichment formula uses discovery buffer on page1',
+  computeEnrichmentPoolCap(0, 10) === Math.max(40, 10 + FEED_DISCOVERY_BUFFER),
 );
 
 console.log('\nMarketplace classification');
@@ -131,8 +131,17 @@ console.log('\nPagination');
 const pageMeta = buildFeedPaginationMeta(10, 0, 25);
 ok('hasMore when total > take', pageMeta.hasMore === true);
 ok('total preserved', pageMeta.total === 25);
+ok('nextSkip advances by take on full page', pageMeta.nextSkip === 10);
 ok('page 2 hasMore', buildFeedPaginationMeta(10, 10, 25).hasMore === true);
 ok('last page no hasMore', buildFeedPaginationMeta(10, 20, 25).hasMore === false);
+ok(
+  'sourceHitCap keeps hasMore at pool end',
+  buildFeedPaginationMeta(10, 30, 34, { pageCount: 4, sourceHitCap: true }).hasMore === true,
+);
+ok(
+  'nextSkip uses pageCount on short page',
+  buildFeedPaginationMeta(10, 30, 34, { pageCount: 4 }).nextSkip === 34,
+);
 
 console.log('\nSeller collection');
 const sellerIds = collectUniqueSellerUserIds(
