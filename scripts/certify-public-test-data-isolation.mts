@@ -335,7 +335,7 @@ const report = {
   ROOT_CAUSE:
     'Public feed allowed inactive products with Stripe order history; cert scripts left isActive=true; no central fixture-seller exclusion; feed origin cache could briefly retain stale payloads.',
   PRODUCTION_DEPLOYMENT:
-    'dpl_GC7yF8d7z7swAiL931nE5C3PjPNJ @ https://homecheff.eu (fbf41f56)',
+    'dpl_7B9mjEKzWZipgK5dn7MBCr8VNUD2 @ https://homecheff.eu (d627c3a9)',
   FINAL_DECISION: allPass
     ? 'HOMECHEFF_PRODUCTION_TEST_DATA_ISOLATION_CERTIFIED'
     : 'NOT_CERTIFIED',

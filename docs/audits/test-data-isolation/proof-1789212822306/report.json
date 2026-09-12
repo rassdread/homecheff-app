@@ -1,0 +1,29 @@
+{
+  "HOMECHEFF": "https://homecheff.eu",
+  "PUBLIC_TEST_ITEMS_BEFORE": 11,
+  "PUBLIC_TEST_ITEMS_AFTER": 0,
+  "CERT_FIXTURES_IN_PUBLIC_FEED": 0,
+  "INACTIVE_ITEMS_IN_PUBLIC_FEED": 0,
+  "REAL_USER_ITEMS_REMOVED": 0,
+  "CERT_FIXTURES_AFFECT_REAL_METRICS": "NO",
+  "DB_PUBLIC_FIXTURE_COUNT": 0,
+  "STRUCTURAL_ACTIVE_FIXTURE_PROBE": "PASS",
+  "PUBLIC_TEST_HITS": {
+    "feed": [],
+    "products": [],
+    "search": [],
+    "searchFinal": [],
+    "nearby": [],
+    "authFeed": []
+  },
+  "TOTAL_FIXTURE_TITLE_HITS": 0,
+  "ANONYMOUS_FEED": "PASS",
+  "AUTHENTICATED_FEED": "PASS",
+  "SEARCH": "PASS",
+  "NEARBY": "PASS",
+  "PUBLIC_PROFILE_LISTINGS": "PASS",
+  "REGRESSION_TEST": "PASS",
+  "ROOT_CAUSE": "Public feed allowed inactive products with Stripe order history; cert scripts left isActive=true; no central fixture-seller exclusion; feed origin cache could briefly retain stale payloads.",
+  "PRODUCTION_DEPLOYMENT": "dpl_7B9mjEKzWZipgK5dn7MBCr8VNUD2 @ https://homecheff.eu (d627c3a9)",
+  "FINAL_DECISION": "HOMECHEFF_PRODUCTION_TEST_DATA_ISOLATION_CERTIFIED"
+}
