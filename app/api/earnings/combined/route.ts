@@ -13,6 +13,7 @@ import { matchesCurrentMode } from "@/lib/stripe";
 import { getSellerRequestablePayout } from "@/lib/sellerPayouts";
 import { DELIVERY_DELIVERER_PERCENT } from "@/lib/fees";
 import { getBusinessVisibilityProfile } from "@/lib/business/visibility-profile";
+import { getSellerCommercialLifetimeMetrics } from "@/lib/orders/seller-commercial-metrics";
 
 export const dynamic = 'force-dynamic';
 
@@ -70,58 +71,13 @@ export async function GET(req: NextRequest) {
       };
     } = {};
 
-    // Calculate seller earnings
+    // Calculate seller earnings (omzet SoT shared with /api/seller/dashboard/stats)
     if (user.SellerProfile) {
       const sellerProfile = user.SellerProfile;
-      
-      // Get orders with seller items
-      const allOrders = await prisma.order.findMany({
-        where: {
-          stripeSessionId: { not: null },
-          NOT: {
-            orderNumber: {
-              startsWith: 'SUB-'
-            }
-          },
-          items: {
-            some: {
-              Product: {
-                sellerId: sellerProfile.id
-              }
-            }
-          }
-        },
-        select: {
-          id: true,
-          createdAt: true,
-          status: true,
-          stripeSessionId: true,
-          items: {
-            where: {
-              Product: {
-                sellerId: sellerProfile.id
-              }
-            },
-            select: {
-              priceCents: true,
-              quantity: true
-            }
-          }
-        },
-        take: 1000
-      });
 
-      // Filter by Stripe mode
-      const orders = allOrders.filter(order => 
-        order.stripeSessionId && matchesCurrentMode(order.stripeSessionId)
-      );
-
-      // Calculate total earnings
-      const totalEarnings = orders.reduce((sum, order) => {
-        return sum + order.items.reduce((itemSum, item) => {
-          return itemSum + (item.priceCents * item.quantity);
-        }, 0);
-      }, 0);
+      const { totalEarningsCents, totalOrders } =
+        await getSellerCommercialLifetimeMetrics(prisma, sellerProfile.id);
+      const totalEarnings = totalEarningsCents;
 
       // Calculate platform fee
       const visibility = getBusinessVisibilityProfile({
@@ -163,7 +119,7 @@ export async function GET(req: NextRequest) {
         paidPayout,
         platformFee,
         netEarnings,
-        totalOrders: orders.length
+        totalOrders
       };
     }
 

@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
       where.status = status.toUpperCase();
     }
 
-    const orders = await prisma.order.findMany({
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
       where,
       orderBy: [
         { createdAt: 'desc' }, // Most recent orders first
@@ -99,7 +100,9 @@ export async function GET(req: NextRequest) {
           },
         },
       },
-    });
+    }),
+      prisma.order.count({ where }),
+    ]);
 
     // Transform orders for frontend
     const transformedOrders = orders.map(order => ({
@@ -141,7 +144,14 @@ export async function GET(req: NextRequest) {
       } : null,
     }));
 
-    return NextResponse.json({ orders: transformedOrders });
+    return NextResponse.json({
+      orders: transformedOrders,
+      meta: {
+        total,
+        limit,
+        offset,
+      },
+    });
   } catch (error) {
     console.error('Error fetching orders:', error);
     return NextResponse.json(

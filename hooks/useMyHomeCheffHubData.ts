@@ -147,9 +147,9 @@ export function useMyHomeCheffHubData(
       sellerRevenue7d: roleData.seller?.revenue7d ?? metrics.sellerRevenue7d,
       affiliateEarnedCents: roleData.partner?.availableCents ?? metrics.affiliateEarnedCents,
       affiliateReferrals: roleData.partner?.totalReferrals ?? metrics.affiliateReferrals,
-      deliveryActiveJobs:
-        (roleData.delivery?.stats?.availableOrders ?? 0) +
-        (roleData.delivery?.stats?.pendingDeliveries ?? 0),
+      // "Actieve opdrachten" = assigned work only (pending). Do not sum with available pool
+      // (that would double-count conceptually: open pool + already accepted).
+      deliveryActiveJobs: roleData.delivery?.stats?.pendingDeliveries ?? 0,
       // EUR major units from delivery dashboard (already /100 at API).
       deliveryEarningsToday: roleData.delivery?.stats?.todayEarnings ?? metrics.deliveryEarningsToday,
       affiliateConversions: roleData.partner?.totalReferrals ?? metrics.affiliateConversions,

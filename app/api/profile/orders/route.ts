@@ -7,7 +7,7 @@ function parseIntOr(d: any, fallback: number) {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-async function getEmail() {
+async function getEmail(): Promise<string | null> {
   try {
     const mod: any = await import("@/lib/auth");
     const session = await mod.auth?.();
@@ -19,7 +19,7 @@ async function getEmail() {
     const session = await getServerSession(authOptions as any);
     if ((session as any)?.user?.email) return (session as any).user.email as string;
   } catch {}
-  return "test@homecheff.local";
+  return null;
 }
 
 export async function GET(req: Request) {
@@ -29,6 +29,9 @@ export async function GET(req: Request) {
     const perPage = parseIntOr(searchParams.get("perPage"), 10);
 
     const email = await getEmail();
+    if (!email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const me = await prisma.user.findUnique({ where: { email }, select: { id: true } });
     if (!me) return NextResponse.json({ items: [], meta: { page, perPage, totalPages: 1, total: 0 } });
 

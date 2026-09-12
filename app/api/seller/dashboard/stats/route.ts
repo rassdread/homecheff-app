@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 import { getBusinessVisibilityProfile } from '@/lib/business/visibility-profile';
 import {
   analyticsMetricsForLevel,
   IMPLEMENTED_ANALYTICS_METRICS,
 } from '@/lib/business/analytics-tier';
+import {
+  filterOrdersByStripeMode,
+  grossSellerItemCents,
+  sellerCommercialOrderWhere,
+} from '@/lib/orders/seller-commercial-metrics';
 
 export const dynamic = 'force-dynamic';
 
@@ -159,21 +163,15 @@ async function getStatsForPeriod(
   });
   const productIds = sellerProducts.map((p) => p.id);
 
+  const commercialWhere = {
+    ...sellerCommercialOrderWhere(sellerId),
+    createdAt: { gte: startDate, lte: endDate },
+  };
+
   const [orders, reviews, viewsCount, favoritesCount, messagesCount] = await Promise.all([
     prisma.order
       .findMany({
-        where: {
-          createdAt: { gte: startDate, lte: endDate },
-          stripeSessionId: { startsWith: STRIPE_SESSION_ID_PREFIX },
-          NOT: { orderNumber: { startsWith: 'SUB-' } },
-          // Commercial dashboard metrics: never treat cancelled / refunded as omzet.
-          status: { notIn: ['CANCELLED', 'REFUNDED'] },
-          items: {
-            some: {
-              Product: { sellerId },
-            },
-          },
-        },
+        where: commercialWhere,
         select: {
           id: true,
           userId: true,
@@ -191,9 +189,7 @@ async function getStatsForPeriod(
         },
         take: 1000,
       })
-      .then((rows) =>
-        rows.filter((order) => order.stripeSessionId && matchesCurrentMode(order.stripeSessionId)),
-      ),
+      .then((rows) => filterOrdersByStripeMode(rows)),
     prisma.productReview.findMany({
       where: {
         product: { sellerId },
@@ -238,13 +234,7 @@ async function getStatsForPeriod(
     }),
   ]);
 
-  const totalRevenue = orders.reduce((sum, order) => {
-    return (
-      sum +
-      order.items.reduce((itemSum, item) => itemSum + item.priceCents * item.quantity, 0)
-    );
-  }, 0);
-
+  const totalRevenue = grossSellerItemCents(orders);
   const totalOrders = orders.length;
   const uniqueCustomers = new Set(orders.map((order) => order.userId)).size;
   const averageRating =
