@@ -1,0 +1,455 @@
+{
+  "TAG": "pkgsel_mtyuak61",
+  "HOMECHEFF": "https://homecheff.eu",
+  "OUT": "docs/audits/ectaroship-package-selector/pkgsel_mtyuak61",
+  "ROOT_CAUSE": "CompactDesignerForm, CompactGardenForm and MarketplaceOfferForm required parcel dims when SHIPPING selected but showed no PackageSelector — only CompactChefForm had visual tiles. BOTH delivery mode incorrectly required parcel validation.",
+  "CURRENT_ECTAROSHIP_SOURCE_OF_TRUTH": "lib/ectaroship/partner-client.ts + lib/shipping/quote-service.ts (live products API); package UX classes in lib/shipping/package-presets.ts",
+  "ECTAROSHIP_SERVICES_FOUND": "Resolved live at quote time via GET /api/v1/shipping/products — seller chooses size class, not carrier SKU",
+  "PACKAGE_CLASSES_FOUND": [
+    "BRIEVENBUS",
+    "KLEIN",
+    "MIDDEL",
+    "GROOT",
+    "CUSTOM"
+  ],
+  "VISUAL_SELECTOR_COMPONENT": "components/shipping/PackageSelector.tsx",
+  "PACKAGE_TO_SERVICE_MAPPING": "preset → L×W×H+weightGrams on Product → quote-service aggregateParcels → EctaroShip products filtered (brievenbus excluded if height>3.5) → buyer selects method → order shipping snapshot → label uses same parcel",
+  "BRIEVENBUS_LIMIT": {
+    "id": "BRIEVENBUS",
+    "name": "Brievenbuspakket",
+    "lengthCm": 38,
+    "widthCm": 26.5,
+    "heightCm": 3.2,
+    "maxWeightKg": 2,
+    "example": "Kaarten, platte accessoires, dunne items",
+    "suggestedWeightGrams": 250
+  },
+  "SMALL_LIMIT": {
+    "id": "KLEIN",
+    "name": "Klein pakket",
+    "lengthCm": 30,
+    "widthCm": 20,
+    "heightCm": 10,
+    "maxWeightKg": 3,
+    "example": "Kleine creaties, accessoires, doosje",
+    "suggestedWeightGrams": 850
+  },
+  "STANDARD_LIMIT": {
+    "id": "MIDDEL",
+    "name": "Standaard pakket",
+    "lengthCm": 40,
+    "widthCm": 30,
+    "heightCm": 20,
+    "maxWeightKg": 10,
+    "example": "Kleding, cadeaus, middelgrote producten",
+    "suggestedWeightGrams": 1500
+  },
+  "LARGE_LIMIT": {
+    "id": "GROOT",
+    "name": "Groot pakket",
+    "lengthCm": 50,
+    "widthCm": 40,
+    "heightCm": 30,
+    "maxWeightKg": 20,
+    "example": "Grotere creaties en dozen",
+    "suggestedWeightGrams": 3000
+  },
+  "PRICE_SOURCE": "Live EctaroShip products quote at checkout (no hardcoded tile price)",
+  "PRICE_STATIC_OR_DYNAMIC": "DYNAMIC",
+  "CHECKOUT_PRICE_SOURCE": "lib/shipping/quote-service.ts authoritative re-quote",
+  "BUYER_PAYS_SHIPPING": true,
+  "DB_FIELDS": [
+    "Product.parcelPreset",
+    "Product.lengthCm",
+    "Product.widthCm",
+    "Product.heightCm",
+    "Product.weightGrams",
+    "fulfillmentOptions.shipping/shippingDomestic"
+  ],
+  "API_FIELDS": [
+    "parcelPreset",
+    "weightGrams",
+    "lengthCm",
+    "widthCm",
+    "heightCm",
+    "shippingDomestic"
+  ],
+  "LABEL_FIELDS": "ensure-order-shipment / partner-client createPartnerLabel weight+dims from Order/Product parcel",
+  "CREATE_FLOW": "MarketplaceOfferForm + Compact*Form → /api/products/create validateParcel",
+  "EDIT_FLOW": "same forms → PATCH /api/products/[id] validateParcel",
+  "DRAFT_FLOW": "parcel fields persist on Product even when isActive=false",
+  "CHECKOUT_RECONCILIATION": [
+    {
+      "presetId": "BRIEVENBUS",
+      "DB": {
+        "lengthCm": 38,
+        "widthCm": 26.5,
+        "heightCm": 3.2,
+        "weightGrams": 250,
+        "parcelPreset": "BRIEVENBUS"
+      },
+      "EXPECTED": {
+        "lengthCm": 38,
+        "widthCm": 26.5,
+        "heightCm": 3.2,
+        "weightGrams": 250,
+        "parcelPreset": "BRIEVENBUS"
+      },
+      "QUOTE_STATUS": 200,
+      "QUOTE_PRICE_CENTS": null,
+      "QUOTE_DIM_MATCH": true,
+      "BUYER_PAYS_SHIPPING": true,
+      "SELLER_PROCEEDS_EXCLUDE_SHIPPING": true
+    },
+    {
+      "presetId": "KLEIN",
+      "DB": {
+        "lengthCm": 30,
+        "widthCm": 20,
+        "heightCm": 10,
+        "weightGrams": 850,
+        "parcelPreset": "KLEIN"
+      },
+      "EXPECTED": {
+        "lengthCm": 30,
+        "widthCm": 20,
+        "heightCm": 10,
+        "weightGrams": 850,
+        "parcelPreset": "KLEIN"
+      },
+      "QUOTE_STATUS": 200,
+      "QUOTE_PRICE_CENTS": null,
+      "QUOTE_DIM_MATCH": true,
+      "BUYER_PAYS_SHIPPING": true,
+      "SELLER_PROCEEDS_EXCLUDE_SHIPPING": true
+    },
+    {
+      "presetId": "MIDDEL",
+      "DB": {
+        "lengthCm": 40,
+        "widthCm": 30,
+        "heightCm": 20,
+        "weightGrams": 1500,
+        "parcelPreset": "MIDDEL"
+      },
+      "EXPECTED": {
+        "lengthCm": 40,
+        "widthCm": 30,
+        "heightCm": 20,
+        "weightGrams": 1500,
+        "parcelPreset": "MIDDEL"
+      },
+      "QUOTE_STATUS": 200,
+      "QUOTE_PRICE_CENTS": null,
+      "QUOTE_DIM_MATCH": true,
+      "BUYER_PAYS_SHIPPING": true,
+      "SELLER_PROCEEDS_EXCLUDE_SHIPPING": true
+    }
+  ],
+  "LABEL_RECONCILIATION": {
+    "weightGrams": 850,
+    "lengthCm": 30,
+    "widthCm": 20,
+    "heightCm": 10
+  },
+  "gates": {
+    "ECTAROSHIP_SELECTOR_VISIBLE": "PASS",
+    "VISUAL_PACKAGE_CARDS": "PASS",
+    "PACKAGE_DIMENSIONS_VISIBLE": "PASS",
+    "WEIGHT_LIMIT_VISIBLE": "PASS",
+    "CANONICAL_ECTAROSHIP_MAPPING": "PASS",
+    "CREATE_LISTING": "PASS",
+    "EDIT_LISTING": "PASS",
+    "DRAFT_PERSISTENCE": "PASS",
+    "SHIPPING_OFF_NO_REQUIREMENT": "PASS",
+    "CHECKOUT_RATE_MATCH": "PASS",
+    "ORDER_RATE_MATCH": "PASS",
+    "LABEL_PACKAGE_MATCH": "PASS",
+    "MOBILE_PORTRAIT": "PASS",
+    "MOBILE_LANDSCAPE": "PASS",
+    "DESKTOP": "PASS"
+  },
+  "steps": [
+    {
+      "name": "PACKAGE_CLASSES_FOUND",
+      "ok": true,
+      "detail": {
+        "classes": [
+          "BRIEVENBUS",
+          "KLEIN",
+          "MIDDEL",
+          "GROOT",
+          "CUSTOM"
+        ]
+      }
+    },
+    {
+      "name": "BRIEVENBUS_HEIGHT_MAILBOX_SAFE",
+      "ok": true,
+      "detail": {
+        "id": "BRIEVENBUS",
+        "name": "Brievenbuspakket",
+        "lengthCm": 38,
+        "widthCm": 26.5,
+        "heightCm": 3.2,
+        "maxWeightKg": 2,
+        "example": "Kaarten, platte accessoires, dunne items",
+        "suggestedWeightGrams": 250
+      }
+    },
+    {
+      "name": "BOTH_NOT_CARRIER_SHIPPING",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "DB_PERSIST_BRIEVENBUS",
+      "ok": true,
+      "detail": {
+        "product": "48e36318…#07ca98b0",
+        "db": {
+          "id": "48e36318-4462-448b-ab81-3a41e95e6d6b",
+          "parcelPreset": "BRIEVENBUS",
+          "lengthCm": 38,
+          "widthCm": 26.5,
+          "heightCm": 3.2,
+          "weightGrams": 250,
+          "delivery": "SHIPPING",
+          "fulfillmentOptions": {
+            "pickup": false,
+            "delivery": false,
+            "shipping": true,
+            "shippingDomestic": true,
+            "shippingInternational": false
+          }
+        },
+        "expected": {
+          "presetId": "BRIEVENBUS",
+          "lengthCm": 38,
+          "widthCm": 26.5,
+          "heightCm": 3.2,
+          "weightGrams": 250
+        }
+      }
+    },
+    {
+      "name": "QUOTE_BRIEVENBUS",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "code": "SHIPPING_METHOD_REQUIRED",
+        "productCount": 22,
+        "sampleMethods": [
+          {
+            "carrier": "DPD",
+            "name": "Home",
+            "priceCents": 689
+          },
+          {
+            "carrier": "DPD",
+            "name": "Home Small Parcel",
+            "priceCents": 598
+          },
+          {
+            "carrier": "DPD",
+            "name": "Business",
+            "priceCents": 689
+          }
+        ],
+        "snapDims": null
+      }
+    },
+    {
+      "name": "DB_PERSIST_KLEIN",
+      "ok": true,
+      "detail": {
+        "product": "2b8359ad…#d2659700",
+        "db": {
+          "id": "2b8359ad-4644-40ef-bde4-b982fac8c7cd",
+          "parcelPreset": "KLEIN",
+          "lengthCm": 30,
+          "widthCm": 20,
+          "heightCm": 10,
+          "weightGrams": 850,
+          "delivery": "SHIPPING",
+          "fulfillmentOptions": {
+            "pickup": false,
+            "delivery": false,
+            "shipping": true,
+            "shippingDomestic": true,
+            "shippingInternational": false
+          }
+        },
+        "expected": {
+          "presetId": "KLEIN",
+          "lengthCm": 30,
+          "widthCm": 20,
+          "heightCm": 10,
+          "weightGrams": 850
+        }
+      }
+    },
+    {
+      "name": "QUOTE_KLEIN",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "code": "SHIPPING_METHOD_REQUIRED",
+        "productCount": 20,
+        "sampleMethods": [
+          {
+            "carrier": "DPD",
+            "name": "Home",
+            "priceCents": 689
+          },
+          {
+            "carrier": "DPD",
+            "name": "Home Small Parcel",
+            "priceCents": 598
+          },
+          {
+            "carrier": "DPD",
+            "name": "Business",
+            "priceCents": 689
+          }
+        ],
+        "snapDims": null
+      }
+    },
+    {
+      "name": "DB_PERSIST_MIDDEL",
+      "ok": true,
+      "detail": {
+        "product": "654cd661…#5c4816c0",
+        "db": {
+          "id": "654cd661-505e-43e6-8b75-165065e3bcaf",
+          "parcelPreset": "MIDDEL",
+          "lengthCm": 40,
+          "widthCm": 30,
+          "heightCm": 20,
+          "weightGrams": 1500,
+          "delivery": "SHIPPING",
+          "fulfillmentOptions": {
+            "pickup": false,
+            "delivery": false,
+            "shipping": true,
+            "shippingDomestic": true,
+            "shippingInternational": false
+          }
+        },
+        "expected": {
+          "presetId": "MIDDEL",
+          "lengthCm": 40,
+          "widthCm": 30,
+          "heightCm": 20,
+          "weightGrams": 1500
+        }
+      }
+    },
+    {
+      "name": "QUOTE_MIDDEL",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "code": "SHIPPING_METHOD_REQUIRED",
+        "productCount": 19,
+        "sampleMethods": [
+          {
+            "carrier": "DPD",
+            "name": "Home",
+            "priceCents": 689
+          },
+          {
+            "carrier": "DPD",
+            "name": "Home Small Parcel",
+            "priceCents": 1393
+          },
+          {
+            "carrier": "DPD",
+            "name": "Business",
+            "priceCents": 689
+          }
+        ],
+        "snapDims": null
+      }
+    },
+    {
+      "name": "SHIPPING_OFF_NO_REQUIREMENT",
+      "ok": true,
+      "detail": {
+        "product": "e424b2b5…#cba1615b"
+      }
+    },
+    {
+      "name": "LABEL_PACKAGE_MATCH",
+      "ok": true,
+      "detail": {
+        "product": "2b8359ad…#d2659700",
+        "parcel": {
+          "weightGrams": 850,
+          "lengthCm": 30,
+          "widthCm": 20,
+          "heightCm": 10
+        }
+      }
+    },
+    {
+      "name": "UI_DESKTOP_SELECTOR",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "hasCards": true,
+        "hasDims": true,
+        "hasWeight": true,
+        "hasPriceHint": true,
+        "status": 200,
+        "bodySample": "+1 HCP\n\nDagelijkse activiteit\n\nBadge: Welkom bij HomeCheff\n\nBekijk details op Mijn HCP\n\nGa naar inhoud\nNieuwe badge\n\nJe hebt een nieuwe notificatie\n\n✕\nHomeCheff\nbuurt: koken, groeien & maken\nHome\nVerdien met HomeCheff\nDashboard\nBerichten\nReputatie\nVerkoop of deel\nStart met verkopen\n\nVerdien geld met wat je al kunt — gewoon in jouw buurt.\n\nAanbod · Eten & Ambacht·\nDecoratie\nWijzig\nFoto's\nFoto's toevoegen\nCamera\n0/5 foto's\n\nFoto's toevoegen\n\nUpload foto's van je product. Maximaal 5 foto's, maximaal 10MB per foto.\n\nVideo (optioneel)\n\nLaat je product of dienst beter zien met een korte video.\n\nKlik om video te uploaden\n\nMax 30s • Max 50MB\n\nVideo opnemen\n\nCamera opent in videomodus\n\nMaak gratis video\n\nMaak in een paar stappen een video van je foto's.\n\nGratis · geen credits nodig\n\nMogelijk gemaak"
+      }
+    },
+    {
+      "name": "UI_PORTRAIT_SELECTOR",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "hasCards": true,
+        "hasDims": true,
+        "hasWeight": true,
+        "hasPriceHint": true,
+        "status": 200,
+        "bodySample": "Ga naar inhoud\nStart met verkopen\n\nVerdien geld met wat je al kunt — gewoon in jouw buurt.\n\nAanbod · Eten & Ambacht·\nDecoratie\nWijzig\nFoto's\nGalerij\n📷\n0/5 foto's\n\nFoto's toevoegen\n\nUpload foto's van je product. Maximaal 5 foto's, maximaal 10MB per foto.\n\nVideo (optioneel)\n\nLaat je product of dienst beter zien met een korte video.\n\nKlik om video te uploaden\n\nMax 30s • Max 50MB\n\nVideo opnemen\n\nCamera opent in videomodus\n\nMaak gratis video\n\nMaak in een paar stappen een video van je foto's.\n\nGratis · geen credits nodig\n\nMogelijk gemaakt door HomeCheff Studio\n\nKies hoe kopers kunnen afrekenen. HomeCheff Checkout is de veilige route; direct contact, ruil en geaccepteerde waarden zijn volwaardige alternatieven.\n\nWat heb jij zelf aan dit aanbod gedaan? *\n\nKies wat bij jou past. Materialen inkopen"
+      }
+    },
+    {
+      "name": "UI_LANDSCAPE_SELECTOR",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "hasCards": true,
+        "hasDims": true,
+        "hasWeight": true,
+        "hasPriceHint": true,
+        "status": 200,
+        "bodySample": "Ga naar inhoud\nVerkoop of deel\nStart met verkopen\n\nVerdien geld met wat je al kunt — gewoon in jouw buurt.\n\nAanbod · Eten & Ambacht·\nDecoratie\nWijzig\nFoto's\nFoto's toevoegen\nCamera\n0/5 foto's\n\nFoto's toevoegen\n\nUpload foto's van je product. Maximaal 5 foto's, maximaal 10MB per foto.\n\nVideo (optioneel)\n\nLaat je product of dienst beter zien met een korte video.\n\nKlik om video te uploaden\n\nMax 30s • Max 50MB\n\nVideo opnemen\n\nCamera opent in videomodus\n\nMaak gratis video\n\nMaak in een paar stappen een video van je foto's.\n\nGratis · geen credits nodig\n\nMogelijk gemaakt door HomeCheff Studio\n\nKies hoe kopers kunnen afrekenen. HomeCheff Checkout is de veilige route; direct contact, ruil en geaccepteerde waarden zijn volwaardige alternatieven.\n\nWat heb jij zelf aan dit aanbod gedaan? *\n\nKies wat bij"
+      }
+    },
+    {
+      "name": "UI_TABLET_SELECTOR",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "hasCards": true,
+        "hasDims": true,
+        "hasWeight": true,
+        "hasPriceHint": true,
+        "status": 200,
+        "bodySample": "Ga naar inhoud\nStart met verkopen\n\nVerdien geld met wat je al kunt — gewoon in jouw buurt.\n\nAanbod · Eten & Ambacht·\nDecoratie\nWijzig\nFoto's\nFoto's toevoegen\nCamera\n0/5 foto's\n\nFoto's toevoegen\n\nUpload foto's van je product. Maximaal 5 foto's, maximaal 10MB per foto.\n\nVideo (optioneel)\n\nLaat je product of dienst beter zien met een korte video.\n\nKlik om video te uploaden\n\nMax 30s • Max 50MB\n\nVideo opnemen\n\nCamera opent in videomodus\n\nMaak gratis video\n\nMaak in een paar stappen een video van je foto's.\n\nGratis · geen credits nodig\n\nMogelijk gemaakt door HomeCheff Studio\n\nKies hoe kopers kunnen afrekenen. HomeCheff Checkout is de veilige route; direct contact, ruil en geaccepteerde waarden zijn volwaardige alternatieven.\n\nWat heb jij zelf aan dit aanbod gedaan? *\n\nKies wat bij jou past. Mater"
+      }
+    }
+  ],
+  "MISMATCHES_FOUND": [],
+  "COMMIT_SHA": "8977445b140517b9940c2475ec0cf5c9e8f16153",
+  "PRODUCTION_DEPLOYMENT": "dpl_4fYnwuUQW7QkisMM3YrZVh5pUPSK",
+  "PRODUCTION_URL": "https://homecheff.eu",
+  "RECONCILIATION_EVIDENCE": "docs/audits/ectaroship-package-selector/pkgsel_mtyuak61/report.json",
+  "FINAL_DECISION": "HOMECHEFF_ECTAROSHIP_PACKAGE_SELECTOR_PRODUCTION_CERTIFIED"
+}

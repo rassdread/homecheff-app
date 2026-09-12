@@ -13,12 +13,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import bcrypt from 'bcryptjs';
 import { chromium } from 'playwright';
-import {
-  PACKAGE_PRESETS,
-  resolvePresetDimensions,
-  isCarrierShippingSelected,
-} from '../lib/shipping/package-presets';
-import { validateParcel } from '../lib/shipping/parcel';
 
 function loadEnv(file: string) {
   const o: Record<string, string> = {};
@@ -41,6 +35,13 @@ const env = { ...loadEnv('.env'), ...loadEnv('.env.local') };
 for (const [k, v] of Object.entries(env)) {
   if (!process.env[k]) process.env[k] = v;
 }
+
+const {
+  PACKAGE_PRESETS,
+  resolvePresetDimensions,
+  isCarrierShippingSelected,
+} = await import('../lib/shipping/package-presets.js');
+const { validateParcel } = await import('../lib/shipping/parcel.js');
 
 const { PrismaClient } = await import('@prisma/client');
 const requireFromApp = createRequire(path.join(process.cwd(), 'package.json'));
@@ -395,22 +396,60 @@ try {
       },
     ]);
     const page = await ctx.newPage();
-    // Marketplace create DESIGN — fulfillment shipping checkbox path
-    const url = `${HOMECHEFF}/sell/new?category=DESIGNER&_t=${Date.now()}`;
+    // Dismiss cookie banner if present
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem('homecheff-cookie-consent', 'essential');
+      } catch {
+        /* ignore */
+      }
+    });
+    // Deep-link past marketplace entry into the offer form (physical craft → shipping)
+    const url = `${HOMECHEFF}/sell/new?intent=OFFER&marketplaceCategory=CREATE&specializations=create.decoration&_t=${Date.now()}`;
     const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForTimeout(2500);
-    // Try enable shipping if checkbox present
-    const shippingLabel = page.getByText(/Verzend|Shipping|EctaroShip/i).first();
-    if (await shippingLabel.count()) {
-      await shippingLabel.click({ force: true }).catch(() => {});
+    await page.waitForTimeout(2000);
+    // Cookie banner
+    const cookieBtn = page.getByRole('button', { name: /Alleen noodzakelijk|Accepteer alle|necessary/i });
+    if (await cookieBtn.count()) {
+      await cookieBtn.first().click({ force: true }).catch(() => {});
+      await page.waitForTimeout(500);
     }
-    // Click fulfillment shipping checkbox by nearby text
-    const shipCb = page.locator('label').filter({ hasText: /verzend|shipping/i }).locator('input[type=checkbox]').first();
-    if (await shipCb.count()) {
-      const checked = await shipCb.isChecked().catch(() => false);
-      if (!checked) await shipCb.check({ force: true }).catch(() => {});
+    // If still on entry, click through
+    const offerBtn = page.getByRole('button', { name: /Ik bied iets aan|I'm offering/i });
+    if (await offerBtn.count()) {
+      await offerBtn.first().click({ force: true }).catch(() => {});
+      await page.waitForTimeout(800);
     }
-    await page.waitForTimeout(1500);
+    const continueBtn = page.getByRole('button', { name: /Doorgaan|Continue|Naar formulier/i });
+    if (await continueBtn.count()) {
+      await continueBtn.last().click({ force: true }).catch(() => {});
+      await page.waitForTimeout(1200);
+    }
+    // Enable shipping fulfillment
+    const shipLabel = page.locator('label').filter({ hasText: /^Verzenden$|^Shipping$/i }).first();
+    if (await shipLabel.count()) {
+      await shipLabel.click({ force: true }).catch(() => {});
+      await page.waitForTimeout(1200);
+    } else {
+      const shipCb = page
+        .locator('label')
+        .filter({ hasText: /verzend/i })
+        .locator('input[type=checkbox]')
+        .first();
+      if (await shipCb.count()) {
+        const checked = await shipCb.isChecked().catch(() => false);
+        if (!checked) await shipCb.check({ force: true }).catch(() => {});
+        await page.waitForTimeout(1200);
+      }
+    }
+    // Scroll package selector into view
+    await page.evaluate(() => {
+      const el = Array.from(document.querySelectorAll('h3,p,button')).find((n) =>
+        /Hoe groot wordt het pakket|Brievenbuspakket|Package size/i.test(n.textContent || ''),
+      );
+      el?.scrollIntoView({ block: 'center' });
+    });
+    await page.waitForTimeout(500);
     const body = await page.locator('body').innerText();
     const hasCards =
       /Hoe groot wordt het pakket|How large is the package|Brievenbuspakket|Mailbox parcel|Klein pakket|Small parcel|Standaard pakket|Standard parcel/i.test(
@@ -432,7 +471,7 @@ try {
       hasWeight,
       hasPriceHint,
       status: res?.status(),
-      bodySample: body.slice(0, 500),
+      bodySample: body.slice(0, 800),
     };
   }
 
