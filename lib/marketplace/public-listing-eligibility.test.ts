@@ -8,6 +8,7 @@ import { describe, it } from 'node:test';
 import {
   andPublicListingWhere,
   isCertificationFixtureEmail,
+  isCertificationFixtureUser,
   isListingPubliclyDiscoverable,
   publicListingEligibilityWhere,
 } from './public-listing-eligibility';
@@ -63,5 +64,15 @@ describe('public-listing-eligibility SoT', () => {
     const json = JSON.stringify(combined);
     assert.match(json, /CHEFF/);
     assert.match(json, /homecheff-validation\.test/);
+  });
+
+  it('detects certification fixture users via bio marker', () => {
+    assert.equal(
+      isCertificationFixtureUser({
+        email: 'a@b.com',
+        bio: 'certificationFixture=true',
+      }),
+      true,
+    );
   });
 });

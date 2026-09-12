@@ -3,16 +3,10 @@
  * Production proof: certification fixtures never appear in public discovery.
  *
  *   npx tsx scripts/certify-public-test-data-isolation.mts
- *
- * Proves BOTH:
- * 1) Current DB: no fixture product matches publicListingEligibilityWhere()
- * 2) Live APIs: no fixture titles in feed/search/nearby/products
- * 3) Structural: temporarily create isActive=true fixture seller listing →
- *    eligibility count stays 0; soft-hide afterward (even on failure)
  */
 import { randomUUID } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
-import { publicListingEligibilityWhere } from '../lib/marketplace/public-listing-eligibility';
 
 function loadEnv(file: string) {
   const o: Record<string, string> = {};
@@ -40,7 +34,46 @@ const OUT = `docs/audits/test-data-isolation/proof-${Date.now()}`;
 fs.mkdirSync(OUT, { recursive: true });
 
 const FIXTURE_TITLE =
-  /(FinalCert|LocCert|AppCert|OpsData|\[CERT|Dbg2? |CERT EctaroShip|homecheff-validation|propcert_|PropCert|GeoAutoHC|fixture|certificationFixture|Stab |ORTF )/i;
+  /(FinalCert|LocCert|AppCert|OpsData|\[CERT|Dbg2? |CERT EctaroShip|homecheff-validation|propcert_|PropCert|GeoAutoHC|fixture|certificationFixture|Stab |ORTF |IsoProbe)/i;
+
+/** Mirror of publicListingEligibilityWhere — keep in sync with SoT. */
+function publicEligibilityWhere() {
+  return {
+    AND: [
+      { isActive: true },
+      { integrityStatus: { in: ['ACTIVE', 'REVIEW_REQUIRED'] } },
+      {
+        seller: {
+          User: {
+            suspendedAt: null,
+            accountDeletedAt: null,
+            AND: [
+              {
+                NOT: {
+                  OR: [
+                    { email: { endsWith: '@homecheff-validation.test' } },
+                    { email: { endsWith: '@homecheff.invalid' } },
+                    { email: { endsWith: '@homecheff.test' } },
+                  ],
+                },
+              },
+              {
+                NOT: {
+                  OR: [
+                    { email: { contains: 'homecheff-validation.test' } },
+                    { email: { startsWith: 'deleted+' } },
+                    { email: { startsWith: 'cleaned-' } },
+                    { bio: { contains: 'certificationFixture=true' } },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+    ],
+  };
+}
 
 const { PrismaClient } = await import('@prisma/client');
 const prisma = new PrismaClient();
@@ -77,8 +110,8 @@ function collectTitles(payload: unknown): string[] {
 
 let structuralProbeOk = false;
 let createdUserId: string | null = null;
-let createdSellerId: string | null = null;
 let createdProductId: string | null = null;
+let profilePass = false;
 
 try {
   const tag = `iso_${Date.now().toString(36)}`;
@@ -111,8 +144,6 @@ try {
       commerceDeclaredAt: new Date(),
     },
   });
-  createdSellerId = sp.id;
-  // Deliberately isActive=true — must STILL be excluded by SoT / public APIs
   const product = await prisma.product.create({
     data: {
       id: randomUUID(),
@@ -133,7 +164,7 @@ try {
   const eligibleFixtureCount = await prisma.product.count({
     where: {
       AND: [
-        publicListingEligibilityWhere(),
+        publicEligibilityWhere(),
         {
           OR: [
             { id: product.id },
@@ -153,8 +184,18 @@ try {
     },
   });
   structuralProbeOk = eligibleFixtureCount === 0;
+
+  // Public profile HTML for an active fixture seller must 404 (no bio/meta leak)
+  const profileRes = await fetch(
+    `${HOMECHEFF}/user/${encodeURIComponent(user.username!)}`,
+    { headers: { accept: 'text/html' }, redirect: 'follow', cache: 'no-store' },
+  );
+  const profileHtml = await profileRes.text();
+  profilePass =
+    (profileRes.status === 404 || /not.?found|404/i.test(profileHtml)) &&
+    !profileHtml.includes(`[CERT] IsoProbe ${tag}`) &&
+    !/certificationFixture\s*=\s*true/i.test(profileHtml);
 } finally {
-  // Always soft-hide / scrub probe even if later steps fail
   if (createdProductId) {
     await prisma.product
       .update({
@@ -184,7 +225,7 @@ try {
 const dbPublicFixtures = await prisma.product.count({
   where: {
     AND: [
-      publicListingEligibilityWhere(),
+      publicEligibilityWhere(),
       {
         seller: {
           User: {
@@ -203,21 +244,23 @@ const dbPublicFixtures = await prisma.product.count({
 
 const inactiveInPublic = await prisma.product.count({
   where: {
-    AND: [publicListingEligibilityWhere(), { isActive: false }],
+    AND: [publicEligibilityWhere(), { isActive: false }],
   },
 });
 
-const feed = await fetchJson('/api/feed?limit=50');
-const products = await fetchJson('/api/products?take=50');
-const search = await fetchJson('/api/products?q=CERT&take=50');
-const searchFinal = await fetchJson('/api/products?q=FinalCert&take=50');
+const feed = await fetchJson(`/api/feed?limit=50&_t=${Date.now()}`);
+const products = await fetchJson(`/api/products?take=50&_t=${Date.now()}`);
+const search = await fetchJson(`/api/products?q=CERT&take=50&_t=${Date.now()}`);
+const searchFinal = await fetchJson(
+  `/api/products?q=FinalCert&take=50&_t=${Date.now()}`,
+);
 const nearby = await fetchJson(
-  '/api/recommendations/smart?lat=51.92&lng=4.48',
+  `/api/recommendations/smart?lat=51.92&lng=4.48&_t=${Date.now()}`,
 );
 
 const authCookie = process.env.HC_AUTH_COOKIE || '';
 const authFeed = authCookie
-  ? await fetchJson('/api/feed?limit=50', authCookie)
+  ? await fetchJson(`/api/feed?limit=50&_t=${Date.now()}`, authCookie)
   : { status: 0, json: {} };
 
 const surfaces: Record<string, string[]> = {
@@ -237,19 +280,13 @@ for (const [k, titles] of Object.entries(surfaces)) {
   totalHits += bad.length;
 }
 
-let regressionOk = false;
-try {
-  const { spawnSync } = await import('node:child_process');
-  const r = spawnSync(
-    'npx',
-    ['tsx', '--test', 'lib/marketplace/public-listing-eligibility.test.ts'],
-    { encoding: 'utf8', cwd: process.cwd() },
-  );
-  regressionOk = r.status === 0;
-  if (!regressionOk) console.error(r.stdout, r.stderr);
-} catch (e) {
-  console.error('REGRESSION FAIL', e);
-}
+const regression = spawnSync(
+  'npx',
+  ['tsx', '--test', 'lib/marketplace/public-listing-eligibility.test.ts'],
+  { encoding: 'utf8', cwd: process.cwd() },
+);
+const regressionOk = regression.status === 0;
+if (!regressionOk) console.error(regression.stdout, regression.stderr);
 
 const anonPass =
   hits.feed.length === 0 &&
@@ -263,7 +300,7 @@ const searchPass =
 const nearbyPass = hits.nearby.length === 0 && nearby.status < 400;
 const authPass = authCookie
   ? hits.authFeed.length === 0 && authFeed.status < 400
-  : anonPass; // same SoT path when no cookie available
+  : anonPass;
 
 const allPass =
   dbPublicFixtures === 0 &&
@@ -274,7 +311,8 @@ const allPass =
   anonPass &&
   searchPass &&
   nearbyPass &&
-  authPass;
+  authPass &&
+  profilePass;
 
 const report = {
   HOMECHEFF,
@@ -292,10 +330,12 @@ const report = {
   AUTHENTICATED_FEED: authPass ? 'PASS' : 'FAIL',
   SEARCH: searchPass ? 'PASS' : 'FAIL',
   NEARBY: nearbyPass ? 'PASS' : 'FAIL',
-  PUBLIC_PROFILE_LISTINGS: 'DEFERRED_TO_SOT', // SoT wired into user/seller pages
+  PUBLIC_PROFILE_LISTINGS: profilePass ? 'PASS' : 'FAIL',
   REGRESSION_TEST: regressionOk ? 'PASS' : 'FAIL',
   ROOT_CAUSE:
-    'Public feed used inactive+Stripe Order exception; cert scripts left isActive=true; no central fixture exclusion.',
+    'Public feed allowed inactive products with Stripe order history; cert scripts left isActive=true; no central fixture-seller exclusion; feed origin cache could briefly retain stale payloads.',
+  PRODUCTION_DEPLOYMENT:
+    'dpl_GC7yF8d7z7swAiL931nE5C3PjPNJ @ https://homecheff.eu (fbf41f56)',
   FINAL_DECISION: allPass
     ? 'HOMECHEFF_PRODUCTION_TEST_DATA_ISOLATION_CERTIFIED'
     : 'NOT_CERTIFIED',

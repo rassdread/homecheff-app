@@ -15,7 +15,7 @@ import PublicProfileClient, { type PublicProfileHcpPayload } from "./PublicProfi
 import { loadPublicContactChannelsForUser } from "@/lib/profile/load-public-contact-channels";
 import { buildProfilePageJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName } from "@/lib/displayName";
-import { publicListingEligibilityWhere } from "@/lib/marketplace/public-listing-eligibility";
+import { publicListingEligibilityWhere, isCertificationFixtureUser } from "@/lib/marketplace/public-listing-eligibility";
 
 export const revalidate = 0;
 
@@ -62,6 +62,7 @@ export async function generateMetadata({
   const profileMetaSelect = {
     name: true,
     username: true,
+    email: true,
     profileImage: true,
     bio: true,
     place: true,
@@ -81,7 +82,12 @@ export async function generateMetadata({
         select: profileMetaSelect,
       });
 
-  if (!user || user.accountDeletedAt || !user.showProfileToEveryone) {
+  if (
+    !user ||
+    user.accountDeletedAt ||
+    !user.showProfileToEveryone ||
+    isCertificationFixtureUser(user)
+  ) {
     notFound();
   }
 
@@ -295,6 +301,11 @@ export default async function PublicProfilePage({
     notFound();
   }
 
+  // Certification / E2E fixture accounts are never publicly discoverable
+  if (isCertificationFixtureUser(user)) {
+    notFound();
+  }
+
   // 🔒 PRIVACY CHECK: Check if profile is public
   if (!user.showProfileToEveryone) {
     notFound(); // Return 404 to hide that the profile exists
@@ -326,7 +337,12 @@ export default async function PublicProfilePage({
       }),
       user.SellerProfile?.id
         ? prisma.product.count({
-            where: { sellerId: user.SellerProfile.id, createdAt: { gte: weekStart } },
+            where: {
+              AND: [
+                publicListingEligibilityWhere(),
+                { sellerId: user.SellerProfile.id, createdAt: { gte: weekStart } },
+              ],
+            },
           })
         : Promise.resolve(0),
       loadPublicContactChannelsForUser(user.id),

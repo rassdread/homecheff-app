@@ -51,6 +51,17 @@ export function isCertificationFixtureBio(
   return Boolean(bio && FIXTURE_BIO_RE.test(bio));
 }
 
+/** True when this account must never appear on public profile/discovery surfaces. */
+export function isCertificationFixtureUser(user: {
+  email?: string | null;
+  bio?: string | null;
+}): boolean {
+  return (
+    isCertificationFixtureEmail(user.email) ||
+    isCertificationFixtureBio(user.bio)
+  );
+}
+
 export type ListingPublicDiscoverabilityInput = {
   isActive?: boolean | null;
   integrityStatus?: string | null;
