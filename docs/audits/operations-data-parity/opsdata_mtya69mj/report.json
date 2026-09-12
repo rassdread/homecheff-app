@@ -1,0 +1,195 @@
+{
+  "TAG": "opsdata_mtya69mj",
+  "HOMECHEFF": "https://homecheff.eu",
+  "OUT": "docs/audits/operations-data-parity/opsdata_mtya69mj",
+  "NOTE": "Active operations route is /operations/vandaag (no /operations/dashboard).",
+  "DATA_MAP": {
+    "Verdiensten": "OperationsFinanceHero -> /api/earnings/combined -> getSellerRequestablePayout + getSellerCommercialLifetimeMetrics",
+    "MijnBestellingen": "MyHomeCheffHub -> /api/profile/orders + /orders -> /api/orders (buyer Order.userId)",
+    "Verkopen": "SellerTodayCard/hub -> /api/seller/dashboard/stats -> sellerCommercialOrderWhere"
+  },
+  "fixtures": {
+    "buyer": "297c4652…#f56deee5",
+    "seller": "292caac5…#8c173caf",
+    "paidOrder": "291c70f3…#4380ae3b",
+    "product": "4c23581a…#08c677a9"
+  },
+  "gates": {
+    "OPERATIONS_EARNINGS": "PASS",
+    "OPERATIONS_MY_ORDERS": "PASS",
+    "OPERATIONS_SALES": "PASS",
+    "EARNINGS_DB_UI_PARITY": "PASS",
+    "BUYER_ORDER_DB_UI_PARITY": "PASS",
+    "SELLER_ORDER_DB_UI_PARITY": "PASS",
+    "STATUS_COUNTS_PARITY": "PASS",
+    "NO_DOUBLE_COUNTING": "FAIL",
+    "ROLE_SCOPING": "PASS",
+    "SPECIALIZED_DASHBOARD_PARITY": "PASS",
+    "CERT_FIXTURES_EXCLUDED_FROM_REAL_METRICS": "PASS",
+    "MOBILE_PORTRAIT": "PASS",
+    "MOBILE_LANDSCAPE": "PASS",
+    "DESKTOP": "PASS"
+  },
+  "steps": [
+    {
+      "name": "AFFILIATE_LEDGER_CREATE",
+      "ok": true,
+      "detail": {
+        "cents": 1234
+      }
+    },
+    {
+      "name": "DB_SELLER_EXCLUDES_CANCELLED",
+      "ok": true,
+      "detail": {
+        "totalEarningsCents": 2500,
+        "totalOrders": 1
+      }
+    },
+    {
+      "name": "DB_BUYER_ORDER_COUNT",
+      "ok": true,
+      "detail": {
+        "dbBuyerCount": 2
+      }
+    },
+    {
+      "name": "EARNINGS_COMBINED_VS_DB",
+      "ok": true,
+      "detail": {
+        "api": 2500,
+        "db": 2500,
+        "ordersApi": 1,
+        "ordersDb": 1
+      }
+    },
+    {
+      "name": "SELLER_STATS_7D_VS_DB",
+      "ok": true,
+      "detail": {
+        "statsRevenue7d": 2500,
+        "statsOrders7d": 1
+      }
+    },
+    {
+      "name": "BUYER_ORDERS_API_VS_DB",
+      "ok": true,
+      "detail": {
+        "profile": 2,
+        "ordersMeta": 2,
+        "listLen": 2,
+        "db": 2,
+        "profileStatus": 200
+      }
+    },
+    {
+      "name": "ROLE_SCOPING_API",
+      "ok": true,
+      "detail": {
+        "buyerHasSellerEarnings": false,
+        "strangerSeesSellerMoney": false,
+        "strangerEarnings": 0
+      }
+    },
+    {
+      "name": "AFFILIATE_AVAILABLE_PARITY",
+      "ok": true,
+      "detail": {
+        "affDashAvail": 1234,
+        "affCombinedAvail": 1234,
+        "affStatus": 200
+      }
+    },
+    {
+      "name": "NO_CANCELLED_IN_SELLER_OMZET",
+      "ok": false,
+      "detail": {
+        "sellerListHasCancelled": true
+      }
+    },
+    {
+      "name": "AVAILABLE_IS_REQUESTABLE_NOT_GROSS",
+      "ok": true,
+      "detail": {
+        "available": 0,
+        "gross": 2500,
+        "note": "available comes from getSellerRequestablePayout; may be 0 without CAPTURED transactions"
+      }
+    },
+    {
+      "name": "DELIVERY_DASHBOARD_SCOPED",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "UI_OPERATIONS_DESKTOP",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "body": "+1 HCP\n\nDagelijkse activiteit\n\n2 nieuwe badges\n\nWelkom bij HomeCheff · Eerste verkoop\n\nGa naar inhoud\nNieuwe badge\n\nJe hebt een nieuwe notificatie\n\n✕\nHomeCheff\nbuurt: koken, groeien & maken\nHome\nVerdien met HomeCheff\nDashboard\nBerichten\nReputatie\nVerkoop of deel\n2\nDashboard\nOPERATIONS\n›\nVandaag\nVandaag\nBestellingen\nFinanciën\nStatistieken\n\nOPERATIONS · VANDAAG\n\nGoedemiddag, OpsData\n\nZaterdag 12 Sep",
+        "status": 200
+      }
+    },
+    {
+      "name": "UI_OPERATIONS_PORTRAIT",
+      "ok": true,
+      "detail": {
+        "ok": true
+      }
+    },
+    {
+      "name": "UI_OPERATIONS_LANDSCAPE",
+      "ok": true,
+      "detail": {
+        "ok": true
+      }
+    },
+    {
+      "name": "UI_HUB_BUYER",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "body": "+1 HCP\n\nDagelijkse activiteit\n\nBadge: Welkom bij HomeCheff\n\nBekijk details op Mijn HCP\n\nGa naar inhoud\nHomeCheff\nbuurt: koken, groeien & maken\nHome\nVerdien met HomeCheff\nDashboard\nBerichten\nReputatie\nVerkoop of deel\n\nWERK & ACTIVITEIT\n\nDashboard\n\nWelkom, OpsData buyer\n\nJouw werk\nMijn bestellingen\n\nActieve aankopen, status en bestelgeschiedenis.\n\n2 bestelling(en)\nBekijk bestellingen\nHC-saldo\n\nJe Ho",
+        "status": 200
+      }
+    },
+    {
+      "name": "UI_ORDERS_BUYER",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "body": "Ga naar inhoud\nNieuwe badge\n\nJe hebt een nieuwe notificatie\n\n✕\nHomeCheff\nbuurt: koken, groeien & maken\nHome\nVerdien met HomeCheff\nDashboard\nBerichten\nReputatie\nVerkoop of deel\n1\nDashboard\nMijn Aankopen\n\nOverzicht van producten die je hebt besteld\n\nStart rondleiding\nAlle\nIn behandeling\nBevestigd\nIn behandeling\nOnderweg\nAfgeleverd\nGeannuleerd\nFilter uitleg\n🛍️ CERT-opsdata_mtya69mj-CXL\n\n12 september",
+        "status": 200
+      }
+    },
+    {
+      "name": "UI_VERKOPER_DASH",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "body": "Ga naar inhoud\nHomeCheff\nbuurt: koken, groeien & maken\nHome\nVerdien met HomeCheff\nDashboard\nBerichten\nReputatie\nVerkoop of deel\n2\nDashboard\nOPERATIONS\n›\nVandaag\nVandaag\nBestellingen\nFinanciën\nStatistieken\nVerkoper Dashboard\n\nOverzicht van je verkoopactiviteiten en prestaties\n\nActies vereist\n\nWat nu jouw aandacht vraagt\n\nBetaalaccount instellen\n\nVerifieer je identiteit en bankrekening om betalingen",
+        "status": 200
+      }
+    },
+    {
+      "name": "UI_VERDIENSTEN",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "body": "Ga naar inhoud\nHomeCheff\nbuurt: koken, groeien & maken\nHome\nVerdien met HomeCheff\nDashboard\nBerichten\nReputatie\nVerkoop of deel\n2\nDashboard\nOPERATIONS\n›\nFinanciën\nVandaag\nBestellingen\nFinanciën\nStatistieken\nFinanciën\n\nOverzicht van alle verdiensten uit verschillende rollen\n\nExport CSV\nExport PDF\nUitbetaling aanvragen\n\nOp deze pagina zie je al je verdiensten per rol (verkoper, bezorger, affiliate).",
+        "status": 200
+      }
+    },
+    {
+      "name": "CERT_FIXTURES_EXCLUDED",
+      "ok": true,
+      "detail": {}
+    }
+  ],
+  "REMAINING_MISMATCHES": [
+    "NO_DOUBLE_COUNTING"
+  ],
+  "FINAL_DECISION": "NOT_CERTIFIED"
+}
