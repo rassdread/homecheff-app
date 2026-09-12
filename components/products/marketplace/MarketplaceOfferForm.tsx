@@ -12,6 +12,7 @@ import { PlaceResolveFeedback } from '@/components/geo/PlaceResolveFeedback';
 import { usePlaceAutoResolve } from '@/hooks/usePlaceAutoResolve';
 import PaymentMethodCheckboxes from '@/components/products/marketplace/PaymentMethodCheckboxes';
 import FulfillmentCheckboxes from '@/components/products/marketplace/FulfillmentCheckboxes';
+import IrlMeetupSafetyNote from '@/components/safety/IrlMeetupSafetyNote';
 import {
   defaultFulfillmentForCategory,
   legacyUrlCategoryToMarketplace,
@@ -35,7 +36,14 @@ import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLu
 import SettlementConnectGuidance from '@/components/products/marketplace/SettlementConnectGuidance';
 import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
-import { fulfillmentOptionsToApiString } from '@/lib/marketplace/fulfillment';
+import { fulfillmentOptionsToApiString, legacyDeliveryToFulfillment } from '@/lib/marketplace/fulfillment';
+import { PackageSelector } from '@/components/shipping/PackageSelector';
+import type { ParcelPresetId } from '@/lib/shipping/package-presets';
+import {
+  buildParcelApiPayload,
+  parcelStateFromProduct,
+  validateParcelFormUi,
+} from '@/lib/shipping/parcel-form';
 import {
   formFieldsForCategory,
   priceRequiredForModel,
@@ -149,6 +157,13 @@ export default function MarketplaceOfferForm({
   );
   const [sellerCanDeliver, setSellerCanDeliver] = useState(false);
   const [deliveryRadiusKm, setDeliveryRadiusKm] = useState('5');
+  const [parcelPreset, setParcelPreset] = useState<ParcelPresetId | ''>('');
+  const [weightGrams, setWeightGrams] = useState('');
+  const [lengthCm, setLengthCm] = useState('');
+  const [widthCm, setWidthCm] = useState('');
+  const [heightCm, setHeightCm] = useState('');
+  const [domesticShippingEnabled, setDomesticShippingEnabled] = useState(true);
+  const [parcelError, setParcelError] = useState<string | null>(null);
   const [useProfileLocation, setUseProfileLocation] = useState(true);
   const [placeName, setPlaceName] = useState('');
   const [pickupAddress, setPickupAddress] = useState('');
@@ -284,6 +299,16 @@ export default function MarketplaceOfferForm({
       setSellerContributionNote(snap.sellerContributionNote);
       setMadeToConsumerSpecifications(snap.madeToConsumerSpecifications);
       setRapidlyPerishable(snap.rapidlyPerishable);
+      if (snap.parcelPreset) {
+        setParcelPreset(snap.parcelPreset as ParcelPresetId);
+      }
+      if (snap.weightGrams != null) setWeightGrams(snap.weightGrams);
+      if (snap.lengthCm != null) setLengthCm(snap.lengthCm);
+      if (snap.widthCm != null) setWidthCm(snap.widthCm);
+      if (snap.heightCm != null) setHeightCm(snap.heightCm);
+      if (snap.domesticShippingEnabled === false) {
+        setDomesticShippingEnabled(false);
+      }
     }
     if (pendingExport && !exportAttachStarted.current) {
       exportAttachStarted.current = true;
@@ -343,6 +368,12 @@ export default function MarketplaceOfferForm({
       sellerContributionNote,
       madeToConsumerSpecifications,
       rapidlyPerishable,
+      parcelPreset: parcelPreset || '',
+      weightGrams,
+      lengthCm,
+      widthCm,
+      heightCm,
+      domesticShippingEnabled,
     });
   };
 
@@ -466,15 +497,16 @@ export default function MarketplaceOfferForm({
         parseFulfillmentOptions(existingProduct.fulfillmentOptions) as FulfillmentOptions,
       );
     } else if (existingProduct.deliveryMode) {
-      const dm = String(existingProduct.deliveryMode).toUpperCase();
-      setFulfillment({
-        pickup: dm === 'PICKUP' || dm === 'BOTH',
-        delivery: dm === 'DELIVERY' || dm === 'BOTH',
-        shipping: false,
-        digital: false,
-        onSiteClient: false,
-        onSiteProvider: false,
-      });
+      setFulfillment(legacyDeliveryToFulfillment(existingProduct.deliveryMode));
+    }
+    const parcelInit = parcelStateFromProduct(existingProduct);
+    if (parcelInit.weightGrams != null) setWeightGrams(parcelInit.weightGrams);
+    if (parcelInit.lengthCm != null) setLengthCm(parcelInit.lengthCm);
+    if (parcelInit.widthCm != null) setWidthCm(parcelInit.widthCm);
+    if (parcelInit.heightCm != null) setHeightCm(parcelInit.heightCm);
+    if (parcelInit.parcelPreset) setParcelPreset(parcelInit.parcelPreset);
+    if (parcelInit.domesticShippingEnabled === false) {
+      setDomesticShippingEnabled(false);
     }
     const imgs = existingProduct.Image ?? existingProduct.images;
     if (Array.isArray(imgs) && imgs.length > 0) {
@@ -680,6 +712,23 @@ export default function MarketplaceOfferForm({
       }
     }
 
+    if (fulfillment.shipping) {
+      const parcelUiError = validateParcelFormUi({
+        parcelPreset,
+        weightGrams,
+        lengthCm,
+        widthCm,
+        heightCm,
+        domesticShippingEnabled,
+      });
+      if (parcelUiError) {
+        setParcelError(parcelUiError);
+        setMessage(parcelUiError);
+        return;
+      }
+      setParcelError(null);
+    }
+
     const imageUrls = images
       .filter((i) => i.url?.trim() && !i.uploading)
       .map((i) => i.url.trim());
@@ -731,6 +780,16 @@ export default function MarketplaceOfferForm({
         : {}),
       madeToConsumerSpecifications,
       rapidlyPerishable,
+      ...(fulfillment.shipping
+        ? buildParcelApiPayload({
+            parcelPreset,
+            weightGrams,
+            lengthCm,
+            widthCm,
+            heightCm,
+            domesticShippingEnabled,
+          })
+        : {}),
     };
 
     const needsCommerceGate = offerRequiresCommerceDeclaration({
@@ -1084,9 +1143,43 @@ export default function MarketplaceOfferForm({
 
       <FulfillmentCheckboxes value={fulfillment} onChange={setFulfillment} />
 
+      {fulfillment.shipping ? (
+        <div className="rounded-xl border-2 border-orange-200 bg-orange-50/60 p-4">
+          <PackageSelector
+            presetId={parcelPreset}
+            onPresetChange={(id) => {
+              setParcelPreset(id);
+              setParcelError(null);
+            }}
+            weightGrams={weightGrams}
+            onWeightGramsChange={(v) => {
+              setWeightGrams(v);
+              setParcelError(null);
+            }}
+            lengthCm={lengthCm}
+            widthCm={widthCm}
+            heightCm={heightCm}
+            onLengthChange={setLengthCm}
+            onWidthChange={setWidthCm}
+            onHeightChange={setHeightCm}
+            domesticEnabled={domesticShippingEnabled}
+            onDomesticChange={setDomesticShippingEnabled}
+            error={parcelError}
+          />
+        </div>
+      ) : null}
+
       <BarterOpennessSelector
         value={barterOpenness}
         onChange={setBarterOpenness}
+      />
+
+      <IrlMeetupSafetyNote
+        visible={
+          acceptDirectContact ||
+          barterOpenness === 'BARTER_ONLY' ||
+          barterOpenness === 'MONEY_AND_BARTER'
+        }
       />
 
       <AcceptedValuesPicker

@@ -4,6 +4,7 @@
  */
 
 import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
+import { isCarrierShippingSelected } from '@/lib/shipping/package-presets';
 
 /** Gate: international remains OFF until customs/carrier certification. */
 export const INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED = false;
@@ -20,9 +21,10 @@ export function parseCarrierShippingFlags(product: {
   fulfillmentOptions?: unknown;
 }): CarrierShippingFlags {
   const fo = parseFulfillmentOptions(product.fulfillmentOptions);
-  const delivery = String(product.delivery ?? '').toUpperCase();
-  const shippingEnabled =
-    fo.shipping === true || delivery === 'SHIPPING' || delivery === 'BOTH';
+  const shippingEnabled = isCarrierShippingSelected({
+    fulfillmentShipping: fo.shipping,
+    deliveryMode: product.delivery,
+  });
 
   const raw =
     product.fulfillmentOptions && typeof product.fulfillmentOptions === 'object'

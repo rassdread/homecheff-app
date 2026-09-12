@@ -48,6 +48,11 @@ export type ShippingUiCopy = {
   title: string;
   autoCalc: string;
   noPriceToSet: string;
+  sizeQuestion: string;
+  sizeHint: string;
+  selected: string;
+  priceAtCheckout: string;
+  exactSize: string;
   domestic: string;
   international: string;
   internationalSoon: string;
@@ -85,11 +90,16 @@ export type ShippingUiCopy = {
 };
 
 const NL: ShippingUiCopy = {
-  title: 'Verzenden',
+  title: 'Verzenden met EctaroShip',
   autoCalc:
-    'Verzendkosten worden automatisch berekend voor de koper op basis van bestemming, pakketformaat en gewicht.',
+    'De koper betaalt de verzendkosten bij afrekenen. HomeCheff berekent de prijs live op basis van bestemming, pakketformaat en gewicht.',
   noPriceToSet:
-    'Je hoeft zelf geen verzendprijs in te stellen. Vul formaat en gewicht inclusief verpakking zo nauwkeurig mogelijk in.',
+    'Je hoeft zelf geen verzendprijs in te stellen. Kies het kleinste formaat waar je product inclusief verpakking in past.',
+  sizeQuestion: 'Hoe groot wordt het pakket?',
+  sizeHint: 'Kies het kleinste formaat waar je product inclusief verpakking in past.',
+  selected: 'Geselecteerd',
+  priceAtCheckout: 'Prijs wordt bij afrekenen berekend',
+  exactSize: 'Exacte pakketmaat',
   domestic: 'Verzenden binnen Nederland',
   international: 'Internationaal verzenden',
   internationalSoon: 'Internationaal verzenden — binnenkort beschikbaar',
@@ -97,17 +107,17 @@ const NL: ShippingUiCopy = {
     'Internationale verzending wordt alleen aangeboden als er voor het adres van de koper een beschikbare verzendmethode is.',
   packageFormat: 'Pakketformaat',
   presets: {
-    BRIEVENBUS: 'Brievenbus',
-    KLEIN: 'Klein',
-    MIDDEL: 'Middel',
-    GROOT: 'Groot',
+    BRIEVENBUS: 'Brievenbuspakket',
+    KLEIN: 'Klein pakket',
+    MIDDEL: 'Standaard pakket',
+    GROOT: 'Groot pakket',
     CUSTOM: 'Eigen formaat',
   },
   examples: {
-    BRIEVENBUS: 'Kaarten, kleine accessoires, platte producten',
-    KLEIN: 'Kleine creaties en accessoires',
+    BRIEVENBUS: 'Kaarten, platte accessoires, dunne items',
+    KLEIN: 'Kleine creaties, accessoires, doosje',
     MIDDEL: 'Kleding, cadeaus, middelgrote producten',
-    GROOT: 'Grotere creaties',
+    GROOT: 'Grotere creaties en dozen',
     CUSTOM: 'Zelf maten invullen',
   },
   weightLabel: 'Pakketgewicht',
@@ -117,7 +127,7 @@ const NL: ShippingUiCopy = {
   height: 'Hoogte (cm)',
   gram: 'gram',
   presetDisclaimer:
-    'Voorbeelden garanderen geen acceptatie door elke vervoerder — de beschikbare methoden worden live berekend bij checkout.',
+    'Indicatieafmetingen helpen bij de keuze — beschikbare vervoerders en prijzen worden live berekend bij checkout.',
   checkoutCalcForAddress: 'Verzendkosten worden berekend voor jouw adres.',
   shippingFee: 'Verzending',
   chooseMethod: 'Kies een verzendmethode',
@@ -130,11 +140,16 @@ const NL: ShippingUiCopy = {
 };
 
 const EN: ShippingUiCopy = {
-  title: 'Shipping',
+  title: 'Ship with EctaroShip',
   autoCalc:
-    'Shipping costs are calculated automatically for the buyer based on destination, package size and weight.',
+    'The buyer pays shipping at checkout. HomeCheff calculates the price live from destination, package size and weight.',
   noPriceToSet:
-    'You do not set a shipping price yourself. Enter size and weight including packaging as accurately as possible.',
+    'You do not set a shipping price. Pick the smallest size your product including packaging fits in.',
+  sizeQuestion: 'How large is the package?',
+  sizeHint: 'Choose the smallest size your product including packaging fits in.',
+  selected: 'Selected',
+  priceAtCheckout: 'Price calculated at checkout',
+  exactSize: 'Exact package size',
   domestic: 'Ship within the Netherlands',
   international: 'International shipping',
   internationalSoon: 'International shipping — coming soon',
@@ -143,16 +158,16 @@ const EN: ShippingUiCopy = {
   packageFormat: 'Package size',
   presets: {
     BRIEVENBUS: 'Mailbox parcel',
-    KLEIN: 'Small',
-    MIDDEL: 'Medium',
-    GROOT: 'Large',
+    KLEIN: 'Small parcel',
+    MIDDEL: 'Standard parcel',
+    GROOT: 'Large parcel',
     CUSTOM: 'Custom size',
   },
   examples: {
-    BRIEVENBUS: 'Cards, small accessories, flat items',
-    KLEIN: 'Small creations and accessories',
+    BRIEVENBUS: 'Cards, flat accessories, thin items',
+    KLEIN: 'Small creations, accessories, small box',
     MIDDEL: 'Clothing, gifts, medium-sized products',
-    GROOT: 'Larger creations',
+    GROOT: 'Larger creations and boxes',
     CUSTOM: 'Enter your own dimensions',
   },
   weightLabel: 'Parcel weight',
@@ -162,7 +177,7 @@ const EN: ShippingUiCopy = {
   height: 'Height (cm)',
   gram: 'grams',
   presetDisclaimer:
-    'Examples do not guarantee acceptance by every carrier — available methods are calculated live at checkout.',
+    'Indicative sizes help you choose — available carriers and prices are calculated live at checkout.',
   checkoutCalcForAddress: 'Shipping costs are calculated for your address.',
   shippingFee: 'Shipping',
   chooseMethod: 'Choose a shipping method',

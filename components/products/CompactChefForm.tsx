@@ -21,6 +21,10 @@ import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-acco
 import { sanitizeApiErrorForDisplay } from '@/lib/client/map-api-error-for-user';
 import { PackageSelector } from '@/components/shipping/PackageSelector';
 import type { ParcelPresetId } from '@/lib/shipping/package-presets';
+import {
+  buildParcelApiPayload,
+  validateParcelFormUi,
+} from '@/lib/shipping/parcel-form';
 
 type Uploaded = { 
   url: string; 
@@ -131,6 +135,7 @@ export default function CompactChefForm({
   const [widthCm, setWidthCm] = React.useState('');
   const [heightCm, setHeightCm] = React.useState('');
   const [domesticShippingEnabled, setDomesticShippingEnabled] = React.useState(true);
+  const [parcelError, setParcelError] = React.useState<string | null>(null);
   
   // Recipe data loaded flag
   const [recipeDataLoaded, setRecipeDataLoaded] = React.useState(false);
@@ -501,31 +506,31 @@ export default function CompactChefForm({
     }
 
     if (hasDeliveryOption('SHIPPING')) {
-      if (!domesticShippingEnabled) {
-        setMessage('Schakel «Verzenden binnen Nederland» in of schakel verzenden uit.');
+      const parcelUiError = validateParcelFormUi({
+        parcelPreset: (parcelPreset || '') as ParcelPresetId | '',
+        weightGrams,
+        lengthCm,
+        widthCm,
+        heightCm,
+        domesticShippingEnabled,
+      });
+      if (parcelUiError) {
+        setParcelError(parcelUiError);
+        setMessage(parcelUiError);
         return;
       }
-      const g = Number(String(weightGrams).replace(',', '.'));
-      const l = Number(String(lengthCm).replace(',', '.'));
-      const wi = Number(String(widthCm).replace(',', '.'));
-      const h = Number(String(heightCm).replace(',', '.'));
-      if (!(g > 0 && l > 0 && wi > 0 && h > 0)) {
-        setMessage('Kies een pakketformaat en vul het gewicht in gram in.');
-        return;
-      }
+      setParcelError(null);
     }
 
     const parcelPayload = hasDeliveryOption('SHIPPING')
-      ? {
-          weightGrams: Math.round(Number(String(weightGrams).replace(',', '.'))),
-          weightKg: Math.round(Number(String(weightGrams).replace(',', '.'))) / 1000,
-          lengthCm: Number(String(lengthCm).replace(',', '.')),
-          widthCm: Number(String(widthCm).replace(',', '.')),
-          heightCm: Number(String(heightCm).replace(',', '.')),
-          parcelPreset: parcelPreset || 'CUSTOM',
-          shippingDomestic: domesticShippingEnabled,
-          shippingInternational: false,
-        }
+      ? buildParcelApiPayload({
+          parcelPreset: (parcelPreset || '') as ParcelPresetId | '',
+          weightGrams,
+          lengthCm,
+          widthCm,
+          heightCm,
+          domesticShippingEnabled,
+        })
       : {};
 
     setSubmitting(true);
@@ -1158,9 +1163,15 @@ export default function CompactChefForm({
           <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
             <PackageSelector
               presetId={(parcelPreset || '') as ParcelPresetId | ''}
-              onPresetChange={(id) => setParcelPreset(id)}
+              onPresetChange={(id) => {
+                setParcelPreset(id);
+                setParcelError(null);
+              }}
               weightGrams={weightGrams}
-              onWeightGramsChange={setWeightGrams}
+              onWeightGramsChange={(v) => {
+                setWeightGrams(v);
+                setParcelError(null);
+              }}
               lengthCm={lengthCm}
               widthCm={widthCm}
               heightCm={heightCm}
@@ -1169,6 +1180,7 @@ export default function CompactChefForm({
               onHeightChange={setHeightCm}
               domesticEnabled={domesticShippingEnabled}
               onDomesticChange={setDomesticShippingEnabled}
+              error={parcelError}
             />
           </div>
         )}

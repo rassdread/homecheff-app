@@ -50,6 +50,7 @@ import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-
 import { listingProductCacheTag } from '@/lib/marketplace/detail/get-cached-listing-product-core';
 import { validateParcel } from '@/lib/shipping/parcel';
 import { INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED } from '@/lib/shipping/carrier-flags';
+import { isCarrierShippingSelected } from '@/lib/shipping/package-presets';
 import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
 import { normalizeDeliveryModeInput } from '@/lib/productDeliveryMode';
 
@@ -769,10 +770,12 @@ export async function PATCH(
             foPatch.fulfillmentOptions ??
               (product as { fulfillmentOptions?: unknown }).fulfillmentOptions,
           );
-          const shippingSelected =
-            mergedFo.shipping ||
-            String(deliveryForParcel).toUpperCase() === 'SHIPPING' ||
-            String(deliveryForParcel).toUpperCase() === 'BOTH';
+          const shippingSelected = isCarrierShippingSelected({
+            fulfillmentShipping: mergedFo.shipping,
+            deliveryMode: String(
+              body.deliveryMode ?? body.delivery ?? deliveryForParcel,
+            ),
+          });
 
           if (shippingSelected) {
             const parcel = validateParcel({
@@ -803,6 +806,7 @@ export async function PATCH(
             const baseFo =
               (foPatch.fulfillmentOptions as Record<string, boolean> | undefined) ??
               ({ ...mergedFo } as Record<string, boolean>);
+            baseFo.shipping = true;
             baseFo.shippingDomestic = body.shippingDomestic !== false;
             baseFo.shippingInternational =
               body.shippingInternational === true &&

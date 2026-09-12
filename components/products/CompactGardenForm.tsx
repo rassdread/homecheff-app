@@ -19,6 +19,13 @@ import { validateProductLocationForPublish } from '@/lib/geo/product-location-re
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 import { sanitizeApiErrorForDisplay } from '@/lib/client/map-api-error-for-user';
+import { PackageSelector } from '@/components/shipping/PackageSelector';
+import type { ParcelPresetId } from '@/lib/shipping/package-presets';
+import {
+  buildParcelApiPayload,
+  parcelStateFromProduct,
+  validateParcelFormUi,
+} from '@/lib/shipping/parcel-form';
 
 type Uploaded = { 
   url: string; 
@@ -97,6 +104,13 @@ export default function CompactGardenForm({
   // Seller delivery state
   const [sellerCanDeliver, setSellerCanDeliver] = React.useState(false);
   const [deliveryRadiusKm, setDeliveryRadiusKm] = React.useState<string>('');
+  const [parcelPreset, setParcelPreset] = React.useState<ParcelPresetId | ''>('');
+  const [weightGrams, setWeightGrams] = React.useState('');
+  const [lengthCm, setLengthCm] = React.useState('');
+  const [widthCm, setWidthCm] = React.useState('');
+  const [heightCm, setHeightCm] = React.useState('');
+  const [domesticShippingEnabled, setDomesticShippingEnabled] = React.useState(true);
+  const [parcelError, setParcelError] = React.useState<string | null>(null);
   
   // Tags
   const [tags, setTags] = React.useState<string[]>([]);
@@ -184,6 +198,13 @@ export default function CompactGardenForm({
       if (existingProduct.deliveryRadiusKm !== undefined && existingProduct.deliveryRadiusKm !== null) {
         setDeliveryRadiusKm(existingProduct.deliveryRadiusKm.toString());
       }
+      const parcelInit = parcelStateFromProduct(existingProduct);
+      if (parcelInit.weightGrams != null) setWeightGrams(parcelInit.weightGrams);
+      if (parcelInit.lengthCm != null) setLengthCm(parcelInit.lengthCm);
+      if (parcelInit.widthCm != null) setWidthCm(parcelInit.widthCm);
+      if (parcelInit.heightCm != null) setHeightCm(parcelInit.heightCm);
+      if (parcelInit.parcelPreset) setParcelPreset(parcelInit.parcelPreset);
+      if (parcelInit.domesticShippingEnabled === false) setDomesticShippingEnabled(false);
       
       if (existingProduct.Image && existingProduct.Image.length > 0) {
         setImages(existingProduct.Image.map((img: any) => ({ url: img.fileUrl })));
@@ -446,6 +467,34 @@ export default function CompactGardenForm({
       }
     }
 
+    if (hasDeliveryOption('SHIPPING')) {
+      const parcelUiError = validateParcelFormUi({
+        parcelPreset,
+        weightGrams,
+        lengthCm,
+        widthCm,
+        heightCm,
+        domesticShippingEnabled,
+      });
+      if (parcelUiError) {
+        setParcelError(parcelUiError);
+        setMessage(parcelUiError);
+        return;
+      }
+      setParcelError(null);
+    }
+
+    const parcelPayload = hasDeliveryOption('SHIPPING')
+      ? buildParcelApiPayload({
+          parcelPreset,
+          weightGrams,
+          lengthCm,
+          widthCm,
+          heightCm,
+          domesticShippingEnabled,
+        })
+      : {};
+
     setSubmitting(true);
     try {
       const imageUrls = imageUrlsReady;
@@ -476,6 +525,7 @@ export default function CompactGardenForm({
             sellerCanDeliver: hasDeliveryOption('DELIVERY') ? sellerCanDeliver : false,
             deliveryRadiusKm: hasDeliveryOption('DELIVERY') && sellerCanDeliver && deliveryRadiusKm ? parseFloat(deliveryRadiusKm) : null,
             tags: tags.filter(tag => tag.trim().length > 0),
+            ...parcelPayload,
             ...(video && {
               video: {
                 url: video.url,
@@ -524,6 +574,7 @@ export default function CompactGardenForm({
             stock: stock ? parseInt(stock) : 0,
             maxStock: maxStock ? parseInt(maxStock) : null,
             tags: tags.filter(tag => tag.trim().length > 0),
+            ...parcelPayload,
             growthPhotos: growthPhotos.length > 0 ? growthPhotos : undefined,
             ...(gardenMeta && {
               plantType: gardenMeta.plantType,
@@ -890,18 +941,30 @@ export default function CompactGardenForm({
           </div>
         )}
 
-        {/* Shipping Info - Alleen tonen wanneer SHIPPING gekozen is */}
+        {/* Shipping — visual EctaroShip package selector */}
         {hasDeliveryOption('SHIPPING') && (
           <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📦 {t('productForm.shippingInfo.title')}
-            </label>
-            <p className="text-xs text-gray-600 mb-2">
-              {t('productForm.shippingInfo.description')}
-            </p>
-            <p className="text-xs text-gray-500">
-              {t('productForm.shippingInfo.addressNote')}
-            </p>
+            <PackageSelector
+              presetId={parcelPreset}
+              onPresetChange={(id) => {
+                setParcelPreset(id);
+                setParcelError(null);
+              }}
+              weightGrams={weightGrams}
+              onWeightGramsChange={(v) => {
+                setWeightGrams(v);
+                setParcelError(null);
+              }}
+              lengthCm={lengthCm}
+              widthCm={widthCm}
+              heightCm={heightCm}
+              onLengthChange={setLengthCm}
+              onWidthChange={setWidthCm}
+              onHeightChange={setHeightCm}
+              domesticEnabled={domesticShippingEnabled}
+              onDomesticChange={setDomesticShippingEnabled}
+              error={parcelError}
+            />
           </div>
         )}
 

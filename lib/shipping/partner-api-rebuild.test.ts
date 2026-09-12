@@ -82,8 +82,9 @@ function read(rel: string) {
 
 {
   assert.equal(PACKAGE_PRESETS.length, 5);
-  assert.ok(PACKAGE_PRESETS.some((p) => p.id === 'BRIEVENBUS' && p.heightCm === 3));
-  assert.ok(PACKAGE_PRESETS.some((p) => p.id === 'KLEIN'));
+  assert.ok(PACKAGE_PRESETS.some((p) => p.id === 'BRIEVENBUS' && (p.heightCm ?? 99) <= 3.5));
+  assert.ok(PACKAGE_PRESETS.some((p) => p.id === 'BRIEVENBUS' && p.maxWeightKg === 2));
+  assert.ok(PACKAGE_PRESETS.some((p) => p.id === 'KLEIN' && p.maxWeightKg === 3));
   assert.ok(PACKAGE_PRESETS.some((p) => p.id === 'MIDDEL'));
   assert.ok(PACKAGE_PRESETS.some((p) => p.id === 'GROOT'));
   assert.ok(PACKAGE_PRESETS.some((p) => p.id === 'CUSTOM'));

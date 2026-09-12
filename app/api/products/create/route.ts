@@ -30,6 +30,7 @@ import { MARKETPLACE_ERROR_KEYS } from '@/lib/marketplace/i18n-keys';
 import { fulfillmentIsDigitalOnly } from '@/lib/marketplace/listing-taxonomy';
 import { validateParcel } from '@/lib/shipping/parcel';
 import { INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED } from '@/lib/shipping/carrier-flags';
+import { isCarrierShippingSelected } from '@/lib/shipping/package-presets';
 import {
   revalidatePublicFeedCache,
   shouldRevalidateAfterProductMutation,
@@ -448,12 +449,14 @@ export async function POST(req: Request) {
       parcelPreset: null,
     };
 
-    const shippingSelected =
-      fulfillmentForStore.shipping === true ||
-      String(delivery).toUpperCase() === 'SHIPPING' ||
-      String(delivery).toUpperCase() === 'BOTH';
+    const shippingSelected = isCarrierShippingSelected({
+      fulfillmentShipping: fulfillmentForStore.shipping === true,
+      deliveryMode:
+        typeof deliveryMode === 'string' ? deliveryMode : String(delivery),
+    });
 
     if (shippingSelected) {
+      fulfillmentForStore.shipping = true;
       const parcel = validateParcel({
         weightGrams,
         weightKg,

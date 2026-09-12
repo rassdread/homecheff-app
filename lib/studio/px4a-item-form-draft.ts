@@ -54,6 +54,13 @@ export type Px4aItemFormDraft = {
   sellerContributionNote: string;
   madeToConsumerSpecifications: boolean;
   rapidlyPerishable: boolean;
+  /** EctaroShip package class — optional for older drafts */
+  parcelPreset?: string;
+  weightGrams?: string;
+  lengthCm?: string;
+  widthCm?: string;
+  heightCm?: string;
+  domesticShippingEnabled?: boolean;
 };
 
 export type Px4aItemFormDraftInput = Omit<Px4aItemFormDraft, 'v' | 'savedAt'>;

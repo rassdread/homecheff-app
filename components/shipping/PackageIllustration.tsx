@@ -1,5 +1,6 @@
 /**
- * Simple original HomeCheff package illustrations (SVG) — not carrier-branded.
+ * Distinct HomeCheff package illustrations — proportions convey physical size class.
+ * Not carrier-branded; not identical icons.
  */
 
 import type { ParcelPresetId } from '@/lib/shipping/package-presets';
@@ -11,70 +12,94 @@ export function PackageIllustration({
   presetId: ParcelPresetId;
   className?: string;
 }) {
-  const dims =
-    presetId === 'BRIEVENBUS'
-      ? { w: 120, h: 40 }
-      : presetId === 'KLEIN'
-        ? { w: 70, h: 55 }
-        : presetId === 'MIDDEL'
-          ? { w: 90, h: 70 }
-          : presetId === 'GROOT'
-            ? { w: 110, h: 85 }
-            : { w: 80, h: 60 };
+  if (presetId === 'BRIEVENBUS') {
+    return (
+      <svg viewBox="0 0 160 100" className={className} aria-hidden role="img">
+        <rect x="0" y="0" width="160" height="100" fill="#F3F0EA" rx="10" />
+        {/* flat mailbox envelope */}
+        <rect
+          x="18"
+          y="38"
+          width="124"
+          height="28"
+          rx="3"
+          fill="#E8DFD0"
+          stroke="#8B7355"
+          strokeWidth="2"
+        />
+        <polyline
+          points="18,38 80,58 142,38"
+          fill="none"
+          stroke="#8B7355"
+          strokeWidth="2"
+        />
+        <line x1="28" y1="72" x2="132" y2="72" stroke="#C4B5A0" strokeWidth="1.5" />
+      </svg>
+    );
+  }
 
+  if (presetId === 'KLEIN') {
+    return (
+      <svg viewBox="0 0 160 100" className={className} aria-hidden role="img">
+        <rect x="0" y="0" width="160" height="100" fill="#F3F0EA" rx="10" />
+        {/* compact shoebox */}
+        <path d="M55 58 L80 46 L105 58 L105 78 L80 90 L55 78 Z" fill="#DCC9A8" stroke="#7A5C2E" strokeWidth="2" />
+        <path d="M55 58 L80 70 L105 58" fill="none" stroke="#7A5C2E" strokeWidth="1.5" />
+        <path d="M80 70 L80 90" stroke="#C45C26" strokeWidth="3" />
+      </svg>
+    );
+  }
+
+  if (presetId === 'MIDDEL') {
+    return (
+      <svg viewBox="0 0 160 100" className={className} aria-hidden role="img">
+        <rect x="0" y="0" width="160" height="100" fill="#F3F0EA" rx="10" />
+        {/* standard shipping box */}
+        <path d="M40 52 L80 32 L120 52 L120 78 L80 98 L40 78 Z" fill="#E0C9A0" stroke="#6B4F2A" strokeWidth="2" />
+        <path d="M40 52 L80 72 L120 52" fill="none" stroke="#6B4F2A" strokeWidth="1.5" />
+        <path d="M80 72 L80 98" stroke="#C45C26" strokeWidth="4" />
+        <path d="M55 42 L105 42" stroke="#C45C26" strokeWidth="3" opacity="0.7" />
+      </svg>
+    );
+  }
+
+  if (presetId === 'GROOT') {
+    return (
+      <svg viewBox="0 0 160 100" className={className} aria-hidden role="img">
+        <rect x="0" y="0" width="160" height="100" fill="#F3F0EA" rx="10" />
+        {/* large carton */}
+        <path d="M28 48 L80 22 L132 48 L132 82 L80 108 L28 82 Z" fill="#D4B88A" stroke="#5C4020" strokeWidth="2" />
+        <path d="M28 48 L80 74 L132 48" fill="none" stroke="#5C4020" strokeWidth="1.5" />
+        <path d="M80 74 L80 108" stroke="#C45C26" strokeWidth="5" />
+        <rect x="68" y="40" width="24" height="14" rx="2" fill="#F7F1E8" stroke="#5C4020" strokeWidth="1" opacity="0.9" />
+      </svg>
+    );
+  }
+
+  // CUSTOM — dashed outline
   return (
-    <svg
-      viewBox="0 0 160 120"
-      className={className}
-      aria-hidden
-      role="img"
-    >
-      <rect x="0" y="0" width="160" height="120" fill="#F7F1E8" rx="8" />
-      {/* package */}
+    <svg viewBox="0 0 160 100" className={className} aria-hidden role="img">
+      <rect x="0" y="0" width="160" height="100" fill="#F3F0EA" rx="10" />
       <rect
-        x={(160 - dims.w) / 2}
-        y={(120 - dims.h) / 2 - 4}
-        width={dims.w}
-        height={dims.h}
-        fill="#E8D5B5"
-        stroke="#8B6914"
+        x="45"
+        y="28"
+        width="70"
+        height="50"
+        rx="4"
+        fill="none"
+        stroke="#8B7355"
         strokeWidth="2"
-        rx="3"
+        strokeDasharray="6 4"
       />
-      {/* tape */}
-      <rect
-        x={(160 - dims.w) / 2 + dims.w / 2 - 4}
-        y={(120 - dims.h) / 2 - 4}
-        width="8"
-        height={dims.h}
-        fill="#C45C26"
-        opacity="0.85"
-      />
-      {/* dimension arrows */}
-      <line
-        x1={(160 - dims.w) / 2}
-        y1={(120 + dims.h) / 2 + 10}
-        x2={(160 + dims.w) / 2}
-        y2={(120 + dims.h) / 2 + 10}
-        stroke="#333"
-        strokeWidth="1.5"
-        markerEnd="url(#arrow)"
-        markerStart="url(#arrow)"
-      />
-      <defs>
-        <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-          <circle cx="3" cy="3" r="1.5" fill="#333" />
-        </marker>
-      </defs>
       <text
         x="80"
-        y="112"
+        y="58"
         textAnchor="middle"
-        fontSize="9"
-        fill="#444"
+        fontSize="18"
+        fill="#8B7355"
         fontFamily="system-ui,sans-serif"
       >
-        HomeCheff pakket
+        +
       </text>
     </svg>
   );
