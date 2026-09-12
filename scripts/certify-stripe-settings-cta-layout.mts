@@ -166,9 +166,6 @@ try {
     return user;
   }
 
-  const particularUser = await createSeller('particular');
-  const businessUser = await createSeller('business');
-
   const browser = await chromium.launch({ headless: true });
   const viewports = {
     desktop: { width: 1280, height: 800 },
@@ -207,6 +204,20 @@ try {
       },
     ]);
     const page = await ctx.newPage();
+    // Never leave settings for Stripe during layout certification.
+    await page.route('**/*', async (route) => {
+      const url = route.request().url();
+      if (
+        url.includes('connect.stripe.com') ||
+        url.includes('stripe.com/b/') ||
+        url.includes('stripe.com/express')
+      ) {
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
     await page.goto(`${HOMECHEFF}/settings?tab=payments`, {
       waitUntil: 'domcontentloaded',
       timeout: 60000,
@@ -214,18 +225,16 @@ try {
     await page.waitForTimeout(2500);
     await dismissNoise(page);
 
-    // Force confirm step via UI selection (no Stripe redirect yet).
     const choiceLabel = track === 'PARTICULAR' ? /Particulier/i : /Bedrijf/i;
     const choice = page.getByRole('button', { name: choiceLabel }).first();
     if ((await choice.count()) === 0) {
-      // Already mid-flow or different entry — try recovery/change path text.
       const body = await page.locator('body').innerText();
-      record(`${track}_${vp}_choice_visible`, false, { body: body.slice(0, 200) });
+      record(`${track}_${vp}_choice_visible`, false, { body: body.slice(0, 240) });
       await ctx.close();
       return null;
     }
     await choice.click();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(700);
     await dismissNoise(page);
 
     const metrics = await measureCtas(page);
@@ -234,37 +243,6 @@ try {
       fullPage: true,
     });
 
-    // Loading/disabled: click primary and ensure disabled while pending (short abort via navigation stay).
-    const primary = page.getByRole('button', {
-      name: /Naar Stripe om te verifiëren/i,
-    }).first();
-    // Don't follow Stripe redirect — listen and cancel navigation if possible.
-    let disabledDuring = false;
-    page.once('framenavigated', () => undefined);
-    const clickPromise = primary.click({ noWaitAfter: true }).catch(() => undefined);
-    await page.waitForTimeout(200);
-    disabledDuring = await primary.isDisabled().catch(() => false);
-    await clickPromise;
-    // If redirected to Stripe, that's OK for flow integrity — go back for EN check.
-    if (page.url().includes('connect.stripe.com') || page.url().includes('stripe.com')) {
-      await page.goto(`${HOMECHEFF}/settings?tab=payments`, {
-        waitUntil: 'domcontentloaded',
-        timeout: 60000,
-      });
-      await page.waitForTimeout(1500);
-    }
-
-    // English overflow: inject longer label via evaluate on a fresh confirm if still on settings.
-    await page.goto(`${HOMECHEFF}/settings?tab=payments`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    });
-    await page.waitForTimeout(1500);
-    await dismissNoise(page);
-    if ((await choice.count()) > 0) {
-      await choice.click();
-      await page.waitForTimeout(400);
-    }
     const enOverflow = await page.evaluate(() => {
       const btns = Array.from(document.querySelectorAll('button'));
       const primaryBtn = btns.find((b) =>
@@ -279,16 +257,39 @@ try {
       return { ok: !bad, width: w };
     });
 
+    // Loading/disabled without leaving the page (Stripe navigations aborted).
+    const primary = page
+      .getByRole('button', { name: /Naar Stripe om te verifiëren/i })
+      .first();
+    let disabledDuring = false;
+    const clickPromise = primary.click({ noWaitAfter: true }).catch(() => undefined);
+    await page.waitForTimeout(250);
+    disabledDuring = await primary.isDisabled().catch(() => false);
+    await clickPromise;
+    await page.waitForTimeout(400);
+
     await ctx.close();
     return { metrics, disabledDuring, enOverflow };
   }
 
-  // PARTICULAR × 3 viewports
-  let particularFlowOk = true;
-  let businessFlowOk = true;
-  const desktopP = await openConfirm(particularUser, 'PARTICULAR', 'desktop');
-  const portraitP = await openConfirm(particularUser, 'PARTICULAR', 'mobile_portrait');
-  const landscapeP = await openConfirm(particularUser, 'PARTICULAR', 'mobile_landscape');
+  // Fresh users per viewport so a Stripe start cannot hide the choice UI.
+  const particularDesktopUser = await createSeller('pdesk');
+  const particularPortraitUser = await createSeller('pport');
+  const particularLandscapeUser = await createSeller('pland');
+  const businessDesktopUser = await createSeller('bdesk');
+  const businessPortraitUser = await createSeller('bport');
+
+  const desktopP = await openConfirm(particularDesktopUser, 'PARTICULAR', 'desktop');
+  const portraitP = await openConfirm(
+    particularPortraitUser,
+    'PARTICULAR',
+    'mobile_portrait',
+  );
+  const landscapeP = await openConfirm(
+    particularLandscapeUser,
+    'PARTICULAR',
+    'mobile_landscape',
+  );
 
   const desktopOk =
     Boolean(desktopP?.metrics.primaryReadable) &&
@@ -315,8 +316,12 @@ try {
   });
 
   // BUSINESS × desktop + portrait (enough to prove track UI unchanged)
-  const desktopB = await openConfirm(businessUser, 'BUSINESS', 'desktop');
-  const portraitB = await openConfirm(businessUser, 'BUSINESS', 'mobile_portrait');
+  const desktopB = await openConfirm(businessDesktopUser, 'BUSINESS', 'desktop');
+  const portraitB = await openConfirm(
+    businessPortraitUser,
+    'BUSINESS',
+    'mobile_portrait',
+  );
   const businessDesktopOk =
     Boolean(desktopB?.metrics.primaryReadable) &&
     Boolean(desktopB?.metrics.secondaryNotDominating);
@@ -327,8 +332,8 @@ try {
   record('DESKTOP_BUSINESS', Boolean(businessDesktopOk), desktopB?.metrics);
   record('PORTRAIT_BUSINESS', Boolean(businessPortraitOk), portraitB?.metrics);
 
-  particularFlowOk = Boolean(desktopP && portraitP && landscapeP);
-  businessFlowOk = Boolean(desktopB && portraitB);
+  const particularFlowOk = Boolean(desktopP && portraitP && landscapeP);
+  const businessFlowOk = Boolean(desktopB && portraitB);
 
   setGate('STRIPE_CTA_DESKTOP', Boolean(desktopOk && businessDesktopOk));
   setGate('STRIPE_CTA_MOBILE_PORTRAIT', Boolean(portraitOk && businessPortraitOk));

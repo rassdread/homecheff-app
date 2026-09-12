@@ -1,0 +1,150 @@
+{
+  "TAG": "sctacta_mty9jecj",
+  "HOMECHEFF": "https://homecheff.eu",
+  "OUT": "docs/audits/stripe-settings-cta-layout/sctacta_mty9jecj",
+  "ROOT_CAUSE": "ConnectTrackSelector confirm CTAs used sm:flex-row with primary flex-1 (flex-basis:0%), allowing the Stripe CTA to be crushed into a one-word-per-line column while the secondary button kept intrinsic width.",
+  "STRIPE_BACKEND_LOGIC_CHANGED": "NO",
+  "gates": {
+    "STRIPE_CTA_DESKTOP": "PASS",
+    "STRIPE_CTA_MOBILE_PORTRAIT": "PASS",
+    "STRIPE_CTA_MOBILE_LANDSCAPE": "PASS",
+    "PARTICULAR_FLOW_UNCHANGED": "PASS",
+    "BUSINESS_FLOW_UNCHANGED": "PASS"
+  },
+  "steps": [
+    {
+      "name": "DESKTOP_PARTICULAR",
+      "ok": true,
+      "detail": {
+        "primary": {
+          "x": 442,
+          "y": 703.59375,
+          "width": 478.421875,
+          "height": 48
+        },
+        "secondary": {
+          "x": 928.421875,
+          "y": 703.59375,
+          "width": 157.578125,
+          "height": 48
+        },
+        "pText": "Naar Stripe om te verifiëren",
+        "primaryReadable": true,
+        "secondaryNotDominating": true,
+        "stacked": false,
+        "sideBySide": true
+      }
+    },
+    {
+      "name": "PORTRAIT_PARTICULAR",
+      "ok": true,
+      "detail": {
+        "primary": {
+          "x": 54,
+          "y": 778.59375,
+          "width": 282,
+          "height": 48
+        },
+        "secondary": {
+          "x": 54,
+          "y": 834.59375,
+          "width": 282,
+          "height": 48
+        },
+        "pText": "Naar Stripe om te verifiëren",
+        "primaryReadable": true,
+        "secondaryNotDominating": true,
+        "stacked": true,
+        "sideBySide": false
+      }
+    },
+    {
+      "name": "LANDSCAPE_PARTICULAR",
+      "ok": true,
+      "detail": {
+        "primary": {
+          "x": 66,
+          "y": 268.59375,
+          "width": 712,
+          "height": 48
+        },
+        "secondary": {
+          "x": 66,
+          "y": 324.59375,
+          "width": 712,
+          "height": 48
+        },
+        "pText": "Naar Stripe om te verifiëren",
+        "primaryReadable": true,
+        "secondaryNotDominating": true,
+        "stacked": true,
+        "sideBySide": false
+      }
+    },
+    {
+      "name": "EN_OVERFLOW_PARTICULAR",
+      "ok": false,
+      "detail": {
+        "ok": false,
+        "reason": "no-primary"
+      }
+    },
+    {
+      "name": "DISABLED_LOADING_PARTICULAR",
+      "ok": true,
+      "detail": {
+        "note": "disabledDuring may race Stripe redirect",
+        "disabledDuring": false
+      }
+    },
+    {
+      "name": "DESKTOP_BUSINESS",
+      "ok": true,
+      "detail": {
+        "primary": {
+          "x": 442,
+          "y": 697.59375,
+          "width": 478.421875,
+          "height": 48
+        },
+        "secondary": {
+          "x": 928.421875,
+          "y": 697.59375,
+          "width": 157.578125,
+          "height": 48
+        },
+        "pText": "Naar Stripe om te verifiëren",
+        "primaryReadable": true,
+        "secondaryNotDominating": true,
+        "stacked": false,
+        "sideBySide": true
+      }
+    },
+    {
+      "name": "PORTRAIT_BUSINESS",
+      "ok": true,
+      "detail": {
+        "primary": {
+          "x": 54,
+          "y": 223.59375,
+          "width": 282,
+          "height": 48
+        },
+        "secondary": {
+          "x": 54,
+          "y": 279.59375,
+          "width": 282,
+          "height": 48
+        },
+        "pText": "Naar Stripe om te verifiëren",
+        "primaryReadable": true,
+        "secondaryNotDominating": true,
+        "stacked": true,
+        "sideBySide": false
+      }
+    }
+  ],
+  "P0_REMAINING": 0,
+  "P0_LIST": [],
+  "FINAL_DECISION": "HOMECHEFF_STRIPE_SETTINGS_CTA_PRODUCTION_CERTIFIED"
+}
