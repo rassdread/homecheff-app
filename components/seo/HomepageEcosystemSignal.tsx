@@ -14,8 +14,8 @@ export default function HomepageEcosystemSignal({
   const title = 'Everybody Eats.';
   const titleSupport = isEn ? null : 'Iedereen eet mee.';
   const body = isEn
-    ? 'HomeCheff is the marketplace — and part of a wider ecosystem to create, sell, promote and grow.'
-    : 'HomeCheff is de marktplaats — en onderdeel van een breder ecosysteem om te maken, verkopen, promoten en groeien.';
+    ? 'HomeCheff is an ecosystem to create, sell, grow, promote and earn — Marketplace is one part, alongside Studio, Growth and Affiliate/Partners.'
+    : 'HomeCheff is een ecosysteem om te maken, verkopen, groeien, promoten en verdienen — Marketplace is één onderdeel, naast Studio, Growth en Affiliate/Partners.';
   const more = isEn ? 'How the ecosystem works' : 'Hoe het ecosysteem werkt';
 
   const links = [

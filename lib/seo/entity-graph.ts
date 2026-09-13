@@ -21,7 +21,7 @@ export const ENTITY_NODES = {
   brand: {
     id: 'brand',
     name: CANONICAL_BRAND_SPELLING,
-    role: 'Platform brand / digital neighbourhood marketplace',
+    role: 'Parent ecosystem brand — local entrepreneurship, creation and earning',
     canonicalUrl: 'https://homecheff.eu',
     schemaId: 'https://homecheff.eu/#organization',
     spelling: CANONICAL_BRAND_SPELLING,
@@ -71,11 +71,11 @@ export const ENTITY_NODES = {
   },
   neighbourhoodMarketplace: {
     id: 'neighbourhoodMarketplace',
-    name: 'Digital neighbourhood marketplace',
-    nameNl: 'Digitale buurtmarkt',
-    role: 'Canonical product category / positioning for the HomeCheff brand',
+    name: 'HomeCheff Marketplace (digital neighbourhood marketplace)',
+    nameNl: 'HomeCheff Marketplace (digitale buurtmarkt)',
+    role: 'SELL layer product — neighbourhood marketplace within the HomeCheff ecosystem',
     note:
-      'Concept node — not a separate Organization in JSON-LD. Local-first / neighbourhood-first, not neighbourhood-only; craftsmanship-first value creation, not ordinary second-hand resale.',
+      'Concept/product node — not a separate legal Organization. Local-first / neighbourhood-first, not neighbourhood-only; craftsmanship-first value creation, not ordinary second-hand resale. Parent brand = HomeCheff ecosystem.',
   },
   neighbourhoodEconomy: {
     id: 'neighbourhoodEconomy',
@@ -259,9 +259,9 @@ export const ENTITY_RELATIONSHIPS = [
   {
     from: 'brand',
     to: 'neighbourhoodMarketplace',
-    relation: 'positionedAs',
+    relation: 'includesAsProduct',
     note:
-      'HomeCheff is the digital neighbourhood marketplace (digitale buurtmarkt): local-first and scalable; unique craft may reach further. Everything starts close to home.',
+      'HomeCheff Marketplace is the SELL layer (digitale buurtmarkt) within the HomeCheff ecosystem — not the entire brand. Local-first; unique craft may reach further. Everything starts close to home.',
   },
   {
     from: 'brand',

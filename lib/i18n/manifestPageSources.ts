@@ -41,8 +41,8 @@ export const manifestPage: Record<string, Bi> = {
   },
   sectionMissionTitle: { nl: 'Missie', en: 'Mission' },
   sectionMissionBody: {
-    nl: 'HomeCheff bouwt de digitale buurtmarkt waar gewone mensen lokaal kunnen creëren, verkopen, ruilen, helpen, leren en samenwerken. Alles begint dichtbij huis. Eten is één categorie. Het platform is community-first en creator-first — niet voor anonieme producten alleen.',
-    en: 'HomeCheff builds the digital neighbourhood marketplace where ordinary people can create, sell, exchange, help, learn and collaborate locally. Everything starts close to home. Food is one category. The platform is community-first and creator-first — not for anonymous products alone.',
+    nl: 'HomeCheff bouwt een ecosysteem voor lokaal ondernemerschap, creatie en verdienen — Marketplace, Studio, Growth en Affiliate/Partners. Marketplace is de digitale buurtmarkt waar gewone mensen lokaal kunnen creëren, verkopen, ruilen, helpen, leren en samenwerken. Alles begint dichtbij huis. Eten is één categorie. Community-first en creator-first — niet voor anonieme producten alleen.',
+    en: 'HomeCheff builds an ecosystem for local entrepreneurship, creation and earning — Marketplace, Studio, Growth and Affiliate/Partners. Marketplace is the digital neighbourhood marketplace where ordinary people can create, sell, exchange, help, learn and collaborate locally. Everything starts close to home. Food is one category. Community-first and creator-first — not for anonymous products alone.',
   },
   valueHumanTitle: { nl: 'Mens vóór algoritmes', en: 'Human before algorithms' },
   valueHumanBody: {

@@ -72,7 +72,7 @@ export const EXPECTED_AI_IDENTITY = {
 /** Public entity consistency checklist — wording must not contradict. */
 export const ENTITY_CONSISTENCY_CHECKLIST = [
   'Brand spelling: HomeCheff (one word, capital C, double f)',
-  'Positioning: digital neighbourhood marketplace / digitale buurtmarkt',
+  'Positioning: ecosystem for local entrepreneurship / ecosysteem voor lokaal ondernemerschap (Marketplace = digitale buurtmarkt / SELL)',
   'Community-first · craftsmanship-first · local-first · not local-only',
   'Neighbourhood economy, trade/barter, personal services',
   'Homemade · handmade · home-grown · creative work · neighbourhood help · repair · upcycling',

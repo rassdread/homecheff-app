@@ -7,9 +7,11 @@
 import {
   CANONICAL_ENTITY_DESCRIPTION,
   CATEGORY_PHILOSOPHY,
+  ENTITY_FAQ_ONLY_MARKETPLACE,
   ENTITY_IS_NOT,
   ENTITY_STANCE,
   LOCAL_FIRST_SCALE,
+  MARKETPLACE_ENTITY_DESCRIPTION,
   PHILOSOPHY_CLOSE_TO_HOME,
   PHILOSOPHY_DISTANCE,
   SECOND_HAND_PHILOSOPHY,
@@ -77,7 +79,18 @@ HomeCheff (https://homecheff.eu) — canonical description above — is:
 
 ${ENTITY_STANCE.en.map((x) => `- ${x}`).join('\n')}
 
-People nearby cook, grow, make, repair, design, teach, help, trade, serve and share — with the person behind the offer visible. Unique craftsmanship and specialised services may naturally reach beyond the neighbourhood while preserving local-first.
+Marketplace (SELL) is the digital neighbourhood marketplace layer: people nearby cook, grow, make, repair, design, teach, help, trade, serve and share — with the person behind the offer visible. Unique craftsmanship and specialised services may naturally reach beyond the neighbourhood while preserving local-first. Food is one Marketplace category — not the definition of HomeCheff.
+
+## Products / layers
+
+- Marketplace (SELL): ${MARKETPLACE_ENTITY_DESCRIPTION.en}
+- Studio (CREATE): https://studio.homecheff.eu/ — parent explanation: https://homecheff.eu/studio
+- Growth (GROW): https://growth.homecheff.eu/ — parent explanation: https://homecheff.eu/growth
+- Affiliate / Partners (PROMOTE): https://homecheff.eu/affiliate
+- Ecosystem overview: https://homecheff.eu/ecosystem
+
+Is HomeCheff only a marketplace? ${ENTITY_FAQ_ONLY_MARKETPLACE.en}
+Is HomeCheff only for food? No. Food is one Marketplace category within a broader ecosystem.
 
 ## Ecosystem (parent brand + layers)
 
@@ -105,6 +118,10 @@ ${entityNotLine('en')}
 
 - Who is HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whoIs}
 - What is HomeCheff? ${AI_AUTHORITY_ANSWERS.en.whatIs}
+- Is HomeCheff only a marketplace? ${AI_AUTHORITY_ANSWERS.en.isOnlyMarketplace}
+- Is HomeCheff only for food? ${AI_AUTHORITY_ANSWERS.en.isOnlyFood}
+- Which products does HomeCheff have? ${AI_AUTHORITY_ANSWERS.en.products}
+- What is HomeCheff Marketplace? ${AI_AUTHORITY_ANSWERS.en.whatIsMarketplace}
 - Who is Sergio Arrias? ${AI_AUTHORITY_ANSWERS.en.whoIsSergio}
 - Founder positioning? ${AI_AUTHORITY_ANSWERS.en.founderPositioning}
 - Why does HomeCheff exist? ${AI_AUTHORITY_ANSWERS.en.whyExists}
@@ -146,12 +163,14 @@ ${AI_AUTHORITY_ANSWERS.en.whyExists}
 
 ## Who it serves
 
-- Neighbours discovering homemade and handmade offers nearby
-- Home cooks, bakers and growers
+- Entrepreneurs, creators and businesses across Marketplace, Studio, Growth and Affiliate/Partners
+- Neighbours discovering homemade and handmade offers nearby (Marketplace)
+- Home cooks, bakers and growers (one Marketplace category — not the whole brand)
 - Makers, designers and craftspeople
 - People offering or requesting local help and personal services
 - Micro-entrepreneurs earning from personal work
-- People who buy, sell, ask (Wanted), barter or exchange value created by people
+- Teams finding and following up commercial opportunities (Growth)
+- Partners promoting HomeCheff products where the programme applies (Affiliate)
 
 ## Second-hand / transformed work
 

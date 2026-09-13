@@ -23,12 +23,12 @@ export const MANIFEST_VISION: Record<ManifestLang, string> = {
   en: 'Technology should make people stronger — more opportunity, local resilience, trust and time — instead of dependency, addiction or isolation.',
 };
 
-/** What HomeCheff is — aligned with CANONICAL_ENTITY_DESCRIPTION + village-square nuance. */
+/** What HomeCheff is — parent ecosystem + Marketplace village-square nuance. */
 export const MANIFEST_IS: Record<ManifestLang, string> = {
   nl:
-    'HomeCheff is een digitale buurtmarkt (én digitaal dorpsplein) waar mensen waarde creëren door eigen vakmanschap, creativiteit en persoonlijke diensten. Mensen kunnen lokaal ontdekken, aanbieden, kopen, verkopen, ruilen en vragen, terwijl unieke creaties en gespecialiseerde diensten van nature een breder publiek kunnen bereiken. Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid. Community-first, creator-first, craftsmanship-first — local-first, niet alleen-lokaal.',
+    'HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Het verbindt Marketplace, HomeCheff Studio, HomeCheff Growth en Affiliate/Partners. Marketplace is de digitale buurtmarkt (én digitaal dorpsplein) waar mensen waarde creëren door eigen vakmanschap, creativiteit en persoonlijke diensten — lokaal ontdekken, aanbieden, kopen, verkopen, ruilen en vragen, terwijl uniek vakmanschap verder mag reiken. Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid. Community-first, creator-first, craftsmanship-first — local-first, niet alleen-lokaal. HomeCheff is breder dan eten en breder dan alleen Marketplace.',
   en:
-    'HomeCheff is a digital neighbourhood marketplace (and digital village square) where people create value through their own craftsmanship, creativity and personal services. People can discover, offer, buy, sell, trade and request locally, while unique creations and specialised services can naturally reach a wider audience. Everything starts close to home. Distance determines priority, not possibility. Community-first, creator-first, craftsmanship-first — local-first, not local-only.',
+    'HomeCheff is an ecosystem for local entrepreneurship, creation and earning. It connects Marketplace, HomeCheff Studio, HomeCheff Growth and Affiliate/Partners. Marketplace is the digital neighbourhood marketplace (and digital village square) where people create value through their own craftsmanship, creativity and personal services — discover, offer, buy, sell, trade and request locally, while unique craft may reach further. Everything starts close to home. Distance determines priority, not possibility. Community-first, creator-first, craftsmanship-first — local-first, not local-only. HomeCheff is broader than food and broader than Marketplace alone.',
 };
 
 /** Core values — stable keys for validators and cross-page reuse. */

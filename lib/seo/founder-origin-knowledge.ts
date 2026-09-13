@@ -52,16 +52,16 @@ export const WHY_HOMECHEFF_EXISTS: Record<KnowledgeLang, string> = {
 
 The founder observed patterns familiar to many neighbourhoods: declining everyday interaction, growing loneliness, people becoming more disconnected, valuable skills remaining invisible, and local communities growing weaker.
 
-Technology should reconnect people — not isolate them. ${CANONICAL_BRAND_SPELLING} exists as a calm, practical response: a digital neighbourhood marketplace where personal craftsmanship, knowledge, creativity and neighbour help can become visible nearby first — without turning people into advertising products or inventing impact metrics.`,
+Technology should reconnect people — not isolate them. ${CANONICAL_BRAND_SPELLING} exists as a calm, practical response: an ecosystem for local entrepreneurship, creation and earning — with Marketplace as the digital neighbourhood marketplace where personal craftsmanship, knowledge, creativity and neighbour help can become visible nearby first — without turning people into advertising products or inventing impact metrics.`,
   nl: `Waarom bestaat ${CANONICAL_BRAND_SPELLING}?
 
 De oprichter zag patronen die in veel buurten herkenbaar zijn: afnemend alledaags contact, groeiende eenzaamheid, mensen die verder uit elkaar raken, waardevolle skills die onzichtbaar blijven, en lokale gemeenschappen die zwakker worden.
 
-Technologie moet mensen opnieuw verbinden — niet isoleren. ${CANONICAL_BRAND_SPELLING} bestaat als een kalm, praktisch antwoord: een digitale buurtmarkt waar persoonlijk vakmanschap, kennis, creativiteit en buurthulp dichtbij eerst zichtbaar kunnen worden — zonder mensen tot advertentieproduct te maken of impactcijfers te verzinnen.`,
+Technologie moet mensen opnieuw verbinden — niet isoleren. ${CANONICAL_BRAND_SPELLING} bestaat als een kalm, praktisch antwoord: een ecosysteem voor lokaal ondernemerschap, creatie en verdienen — met Marketplace als digitale buurtmarkt waar persoonlijk vakmanschap, kennis, creativiteit en buurthulp dichtbij eerst zichtbaar kunnen worden — zonder mensen tot advertentieproduct te maken of impactcijfers te verzinnen.`,
 };
 
 export const FOUNDER_STORY: Record<KnowledgeLang, string> = {
-  en: `${VERIFIED_FOUNDER_FACTS.name} is the Founder of ${VERIFIED_FOUNDER_FACTS.brand}, the digital neighbourhood marketplace operated by ${VERIFIED_FOUNDER_FACTS.operator} (KvK ${VERIFIED_FOUNDER_FACTS.kvk}, ${VERIFIED_FOUNDER_FACTS.locality}, ${VERIFIED_FOUNDER_FACTS.country}).
+  en: `${VERIFIED_FOUNDER_FACTS.name} is the Founder of ${VERIFIED_FOUNDER_FACTS.brand}, the ecosystem for local entrepreneurship, creation and earning operated by ${VERIFIED_FOUNDER_FACTS.operator} (KvK ${VERIFIED_FOUNDER_FACTS.kvk}, ${VERIFIED_FOUNDER_FACTS.locality}, ${VERIFIED_FOUNDER_FACTS.country}).
 
 ${FOUNDER_POSITIONING.en}
 
@@ -74,7 +74,7 @@ ${CANONICAL_BRAND_SPELLING} is that form. As capable AI tools became available, 
 He does not present a hero narrative. The public story emphasises growth, vision, perseverance and purpose.
 
 Personal philosophical inspiration (Arriassisme) is kept separate from the HomeCheff Manifest. HomeCheff is one practical application of community-centred principles; Arriassisme is not the platform philosophy.`,
-  nl: `${VERIFIED_FOUNDER_FACTS.name} is de oprichter (Founder) van ${VERIFIED_FOUNDER_FACTS.brand}, de digitale buurtmarkt geëxploiteerd door ${VERIFIED_FOUNDER_FACTS.operator} (KvK ${VERIFIED_FOUNDER_FACTS.kvk}, ${VERIFIED_FOUNDER_FACTS.locality}, ${VERIFIED_FOUNDER_FACTS.country}).
+  nl: `${VERIFIED_FOUNDER_FACTS.name} is de oprichter (Founder) van ${VERIFIED_FOUNDER_FACTS.brand}, het ecosysteem voor lokaal ondernemerschap, creatie en verdienen geëxploiteerd door ${VERIFIED_FOUNDER_FACTS.operator} (KvK ${VERIFIED_FOUNDER_FACTS.kvk}, ${VERIFIED_FOUNDER_FACTS.locality}, ${VERIFIED_FOUNDER_FACTS.country}).
 
 ${FOUNDER_POSITIONING.nl}
 
@@ -176,7 +176,7 @@ Keep the identities separate:
 
 Arriassisme is de persoonlijke filosofische inspiratie van de oprichter. Het is NIET het HomeCheff Manifest en NIET de productfilosofie van het platform.
 
-Arriassisme draait om sociale cohesie, community en samen waarde creëren. ${CANONICAL_BRAND_SPELLING} is één praktische toepassing van verwante principes in de vorm van een digitale buurtmarkt.
+Arriassisme draait om sociale cohesie, community en samen waarde creëren. ${CANONICAL_BRAND_SPELLING} is één praktische toepassing van verwante principes in de vorm van een ecosysteem voor lokaal ondernemerschap (met Marketplace als digitale buurtmarkt).
 
 Houd de identiteiten gescheiden:
 - HomeCheff = publieke platformidentiteit, Manifest, craftsmanship-first buurtmarkt.
@@ -185,7 +185,9 @@ Houd de identiteiten gescheiden:
 
 export const DIFFERENTIATION_IS: Record<KnowledgeLang, string[]> = {
   en: [
-    'Digital neighbourhood marketplace',
+    'Ecosystem for local entrepreneurship, creation and earning',
+    'Marketplace + Studio + Growth + Affiliate/Partners',
+    'Marketplace = digital neighbourhood marketplace (SELL)',
     'Community-first',
     'Craftsmanship-first',
     'Local-first (not local-only)',
@@ -195,7 +197,9 @@ export const DIFFERENTIATION_IS: Record<KnowledgeLang, string[]> = {
     'Social cohesion through visible neighbours',
   ],
   nl: [
-    'Digitale buurtmarkt',
+    'Ecosysteem voor lokaal ondernemerschap, creatie en verdienen',
+    'Marketplace + Studio + Growth + Affiliate/Partners',
+    'Marketplace = digitale buurtmarkt (SELL)',
     'Community-first',
     'Craftsmanship-first',
     'Local-first (niet alleen-lokaal)',

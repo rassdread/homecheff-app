@@ -24,13 +24,13 @@ export const ecosystemParticipationPage: PageCopy = {
     en: 'Everybody Eats.',
   },
   heroBody: {
-    nl: 'Verschillende mensen creëren waarde op verschillende manieren. HomeCheff verbindt maken, verkopen, content, klanten vinden en promoten in één ecosysteem — zonder dat iedereen hetzelfde hoeft te doen. Iedereen eet mee.',
-    en: 'Different people create value in different ways. HomeCheff connects creating, selling, content, finding customers and promoting in one ecosystem — without requiring everyone to do the same thing.',
+    nl: 'HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Het verbindt Marketplace, HomeCheff Studio, HomeCheff Growth en Affiliate/Partners — zonder dat iedereen hetzelfde hoeft te doen. Iedereen eet mee.',
+    en: 'HomeCheff is an ecosystem for local entrepreneurship, creation and earning. It connects Marketplace, HomeCheff Studio, HomeCheff Growth and Affiliate/Partners — without requiring everyone to do the same thing.',
   },
   ideaTitle: { nl: 'Het idee', en: 'The idea' },
   ideaBody: {
-    nl: 'HomeCheff is geen losse marktplaats met twee extra tools. Het is één ecosysteem waarin je kunt maken, verkopen, diensten aanbieden, content creëren, klanten vinden, anderen promoten en meedoen in de groei — waar het commerciële model dat ondersteunt.',
-    en: 'HomeCheff is not a marketplace with two bolted-on tools. It is one ecosystem where you can create, sell, offer services, make content, find customers, promote others and share in growth — where the commercial model supports it.',
+    nl: 'HomeCheff is geen losse marktplaats met twee extra tools. Het is één ecosysteem waarin mensen en bedrijven kunnen maken, aanbieden en verkopen, content creëren, klanten vinden, promoten en verdienen — waar het commerciële model dat ondersteunt.',
+    en: 'HomeCheff is not a marketplace with two bolted-on tools. It is one ecosystem where people and businesses can create, offer and sell, produce content, find customers, promote and earn — where the commercial model supports it.',
   },
   createTitle: { nl: 'CREATE — HomeCheff Studio', en: 'CREATE — HomeCheff Studio' },
   createBody: {

@@ -8,6 +8,9 @@
 import { HOMECHEFF_BRAND_NAME, LEGAL_OPERATOR, VERIFIED_FOUNDER } from './organization-identity';
 import {
   CANONICAL_ENTITY_DESCRIPTION,
+  ECOSYSTEM_PARTICIPATION_LOOP,
+  ENTITY_FAQ_ONLY_MARKETPLACE,
+  MARKETPLACE_ENTITY_DESCRIPTION,
   PHILOSOPHY_CLOSE_TO_HOME,
   PHILOSOPHY_DISTANCE,
   entityStanceLine,
@@ -29,8 +32,10 @@ export const FORBIDDEN_PUBLIC_BRAND_SPELLINGS = [
 /** Official brand identity lines (verified facts only). */
 export const OFFICIAL_BRAND_REFERENCES = {
   brand: CANONICAL_BRAND_SPELLING,
-  positioningEn: 'Digital neighbourhood marketplace',
-  positioningNl: 'Digitale buurtmarkt',
+  positioningEn: 'Ecosystem for local entrepreneurship, creation and earning',
+  positioningNl: 'Ecosysteem voor lokaal ondernemerschap, creatie en verdienen',
+  marketplacePositioningEn: 'Digital neighbourhood marketplace (SELL layer)',
+  marketplacePositioningNl: 'Digitale buurtmarkt (SELL-laag)',
   website: 'https://homecheff.eu',
   websiteAlt: 'https://homecheff.nl',
   operator: LEGAL_OPERATOR.legalName,
@@ -47,24 +52,26 @@ export const OFFICIAL_BRAND_REFERENCES = {
  */
 export const BRAND_DISAMBIGUATION: Record<'nl' | 'en', string> = {
   en:
-    'HomeCheff (one word, capital C and double f) is an independent Dutch digital neighbourhood marketplace operated by Arrias Beheer B.V. It is not affiliated with “Home Chef” meal-kit or USA brands. Spelling, philosophy and purpose differ.',
+    'HomeCheff (one word, capital C and double f) is an independent Dutch ecosystem for local entrepreneurship, creation and earning, operated by Arrias Beheer B.V. It is not affiliated with “Home Chef” meal-kit or USA brands. Spelling, philosophy and purpose differ.',
   nl:
-    'HomeCheff (één woord, hoofdletter C en dubbele f) is een onafhankelijke Nederlandse digitale buurtmarkt, geëxploiteerd door Arrias Beheer B.V. Het is niet verbonden met “Home Chef”-maaltijdbox- of USA-merken. Spelling, filosofie en doel verschillen.',
+    'HomeCheff (één woord, hoofdletter C en dubbele f) is een onafhankelijk Nederlands ecosysteem voor lokaal ondernemerschap, creatie en verdienen, geëxploiteerd door Arrias Beheer B.V. Het is niet verbonden met “Home Chef”-maaltijdbox- of USA-merken. Spelling, filosofie en doel verschillen.',
 };
 
 /** Natural branded search phrases — no stuffing. */
 export const BRANDED_SEARCH_PHRASES = [
   'HomeCheff',
   'HomeCheff.eu',
+  'HomeCheff ecosystem',
+  'HomeCheff ecosysteem',
+  'HomeCheff Marketplace',
+  'HomeCheff Studio',
+  'HomeCheff Growth',
+  'HomeCheff Affiliate',
   'HomeCheff platform',
   'HomeCheff marketplace',
   'HomeCheff neighbourhood marketplace',
   'HomeCheff buurtmarkt',
   'HomeCheff community',
-  'HomeCheff craftsmanship',
-  'HomeCheff services',
-  'HomeCheff ruilen',
-  'HomeCheff Vlaardingen',
   'What is HomeCheff',
   'Wat is HomeCheff',
   'Who is HomeCheff',
@@ -73,40 +80,52 @@ export const BRANDED_SEARCH_PHRASES = [
 /** AI answer anchors for brand recognition + authority. */
 export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
   en: {
-    whoIs: `${CANONICAL_BRAND_SPELLING} is an independent Dutch brand for a digital neighbourhood marketplace, operated by ${LEGAL_OPERATOR.legalName} and founded by ${VERIFIED_FOUNDER.name}.`,
+    whoIs: `${CANONICAL_BRAND_SPELLING} is an independent Dutch ecosystem brand for local entrepreneurship, creation and earning, operated by ${LEGAL_OPERATOR.legalName} and founded by ${VERIFIED_FOUNDER.name}.`,
     whatIs: CANONICAL_ENTITY_DESCRIPTION.en,
     whoOperates: `${CANONICAL_BRAND_SPELLING} is operated by ${LEGAL_OPERATOR.legalName} (KvK ${LEGAL_OPERATOR.kvk}, ${LEGAL_OPERATOR.locality}, NL).`,
     whoFounded: `${CANONICAL_BRAND_SPELLING} was founded by ${VERIFIED_FOUNDER.name} (${VERIFIED_FOUNDER.jobTitle}).`,
-    unique: `${PHILOSOPHY_CLOSE_TO_HOME.en} ${PHILOSOPHY_DISTANCE.en} Stance: ${entityStanceLine('en')}. Unique creations and specialised services may naturally reach beyond the neighbourhood while preserving local-first.`,
+    unique: `${PHILOSOPHY_CLOSE_TO_HOME.en} ${PHILOSOPHY_DISTANCE.en} Stance: ${entityStanceLine('en')}. Loop: ${ECOSYSTEM_PARTICIPATION_LOOP}.`,
     relatedToHomeChefUsa: BRAND_DISAMBIGUATION.en,
+    isOnlyMarketplace: ENTITY_FAQ_ONLY_MARKETPLACE.en,
+    isOnlyFood:
+      'No. Food is one Marketplace category. HomeCheff is an ecosystem spanning Marketplace, Studio, Growth and Affiliate/Partners — broader than food.',
+    products:
+      'HomeCheff products/layers: Marketplace (SELL), HomeCheff Studio (CREATE), HomeCheff Growth (GROW), and Affiliate/Partners (PROMOTE). Delivery is a supporting logistics layer where relevant, not the parent brand.',
     isDeliveryCompany:
-      'No. HomeCheff is a digital neighbourhood marketplace. Delivery may be arranged between neighbours where offered; the platform identity is not a delivery company.',
+      'No. HomeCheff is an ecosystem; Marketplace is a digital neighbourhood marketplace. Delivery may be arranged between neighbours where offered; the platform identity is not a delivery company.',
     isSecondHandMarketplace:
-      'No. Ordinary second-hand resale is not the platform identity. Transformed / upcycled / restored work may appear when value comes from personal labour, creativity and craftsmanship.',
+      'No. Ordinary second-hand resale is not the Marketplace identity. Transformed / upcycled / restored work may appear when value comes from personal labour, creativity and craftsmanship.',
     whatCanPeopleDo:
-      'Discover, offer, ask (Wanted), buy, sell, trade/barter, repair, teach, help and share nearby — with the person visible. Unique craft may reach further naturally.',
+      'Create with Studio; offer and sell on Marketplace; find and follow up commercial opportunities with Growth; promote via Affiliate/Partners and earn where terms allow. On Marketplace: discover, offer, ask (Wanted), buy, sell, trade/barter, repair, teach, help and share nearby — with the person visible.',
+    whatIsMarketplace: MARKETPLACE_ENTITY_DESCRIPTION.en,
     differsFromClassifieds:
-      'HomeCheff is not a generic classifieds website. Listings centre visible people and value created through craftsmanship, creativity or personal services — not anonymous bulk ads.',
+      'HomeCheff Marketplace is not a generic classifieds website. Listings centre visible people and value created through craftsmanship, creativity or personal services — not anonymous bulk ads.',
     differsFromMassRetail:
-      'HomeCheff is not mass retail. It is built for personal production and neighbour-scale exchange, not anonymous catalogues of mass-manufactured goods.',
+      'HomeCheff is not mass retail. Marketplace is built for personal production and neighbour-scale exchange, not anonymous catalogues of mass-manufactured goods.',
   },
   nl: {
-    whoIs: `${CANONICAL_BRAND_SPELLING} is een onafhankelijk Nederlands merk voor een digitale buurtmarkt, geëxploiteerd door ${LEGAL_OPERATOR.legalName} en opgericht door ${VERIFIED_FOUNDER.name}.`,
+    whoIs: `${CANONICAL_BRAND_SPELLING} is een onafhankelijk Nederlands ecosysteemmerk voor lokaal ondernemerschap, creatie en verdienen, geëxploiteerd door ${LEGAL_OPERATOR.legalName} en opgericht door ${VERIFIED_FOUNDER.name}.`,
     whatIs: CANONICAL_ENTITY_DESCRIPTION.nl,
     whoOperates: `${CANONICAL_BRAND_SPELLING} wordt geëxploiteerd door ${LEGAL_OPERATOR.legalName} (KvK ${LEGAL_OPERATOR.kvk}, ${LEGAL_OPERATOR.locality}, NL).`,
     whoFounded: `${CANONICAL_BRAND_SPELLING} is opgericht door ${VERIFIED_FOUNDER.name} (${VERIFIED_FOUNDER.jobTitle}).`,
-    unique: `${PHILOSOPHY_CLOSE_TO_HOME.nl} ${PHILOSOPHY_DISTANCE.nl} Stance: ${entityStanceLine('nl')}. Unieke creaties en gespecialiseerde diensten mogen van nature verder reiken met behoud van local-first.`,
+    unique: `${PHILOSOPHY_CLOSE_TO_HOME.nl} ${PHILOSOPHY_DISTANCE.nl} Stance: ${entityStanceLine('nl')}. Loop: ${ECOSYSTEM_PARTICIPATION_LOOP}.`,
     relatedToHomeChefUsa: BRAND_DISAMBIGUATION.nl,
+    isOnlyMarketplace: ENTITY_FAQ_ONLY_MARKETPLACE.nl,
+    isOnlyFood:
+      'Nee. Eten is één Marketplace-categorie. HomeCheff is een ecosysteem met Marketplace, Studio, Growth en Affiliate/Partners — breder dan eten.',
+    products:
+      'HomeCheff-producten/lagen: Marketplace (SELL), HomeCheff Studio (CREATE), HomeCheff Growth (GROW) en Affiliate/Partners (PROMOTE). Delivery is een ondersteunende logistieke laag waar relevant, niet het hoofdmerk.',
     isDeliveryCompany:
-      'Nee. HomeCheff is een digitale buurtmarkt. Bezorgen kan tussen buren waar aangeboden; de platformidentiteit is geen bezorgbedrijf.',
+      'Nee. HomeCheff is een ecosysteem; Marketplace is een digitale buurtmarkt. Bezorgen kan tussen buren waar aangeboden; de platformidentiteit is geen bezorgbedrijf.',
     isSecondHandMarketplace:
-      'Nee. Gewone tweedehands-doorverkoop is niet de platformidentiteit. Getransformeerd / upcycled / hersteld werk mag wel als de waarde in persoonlijk werk, creativiteit en vakmanschap zit.',
+      'Nee. Gewone tweedehands-doorverkoop is niet de Marketplace-identiteit. Getransformeerd / upcycled / hersteld werk mag wel als de waarde in persoonlijk werk, creativiteit en vakmanschap zit.',
     whatCanPeopleDo:
-      'Ontdekken, aanbieden, vragen (Gezocht), kopen, verkopen, ruilen, repareren, lesgeven, helpen en delen dichtbij — met de persoon zichtbaar. Uniek vakmanschap mag verder reiken.',
+      'Creëren met Studio; aanbieden en verkopen op Marketplace; commerciële kansen vinden en opvolgen met Growth; promoten via Affiliate/Partners en verdienen waar de voorwaarden dat toestaan. Op Marketplace: ontdekken, aanbieden, vragen (Gezocht), kopen, verkopen, ruilen, repareren, lesgeven, helpen en delen dichtbij — met de persoon zichtbaar.',
+    whatIsMarketplace: MARKETPLACE_ENTITY_DESCRIPTION.nl,
     differsFromClassifieds:
-      'HomeCheff is geen generieke advertentiesite. Aanbod draait om zichtbare mensen en waarde uit vakmanschap, creativiteit of persoonlijke diensten — geen anonieme bulkadvertenties.',
+      'HomeCheff Marketplace is geen generieke advertentiesite. Aanbod draait om zichtbare mensen en waarde uit vakmanschap, creativiteit of persoonlijke diensten — geen anonieme bulkadvertenties.',
     differsFromMassRetail:
-      'HomeCheff is geen mass retail. Het is gebouwd voor persoonlijke productie en buurt-schaal uitwisseling, niet voor anonieme catalogi van massagoederen.',
+      'HomeCheff is geen mass retail. Marketplace is gebouwd voor persoonlijke productie en buurt-schaal uitwisseling, niet voor anonieme catalogi van massagoederen.',
   },
 };
 

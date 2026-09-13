@@ -12,8 +12,8 @@ export const pillarSharedFaq: Record<string, Bi> = {
     en: 'Is HomeCheff only for food?',
   },
   faq1A: {
-    nl: 'Nee. Eten is één categorie naast tuin, creaties, diensten, hulp, inspiratie en ruil. HomeCheff is de digitale buurtmarkt voor persoonlijk vakmanschap — niet een bezorgapp, niet alleen een food marketplace.',
-    en: 'No. Food is one category alongside garden, creations, services, help, inspiration and barter. HomeCheff is the digital neighbourhood marketplace for personal craftsmanship — not a delivery app, not a food marketplace only.',
+    nl: 'Nee. Eten is één categorie binnen Marketplace, naast tuin, creaties, diensten, hulp, inspiratie en ruil. HomeCheff zelf is een ecosysteem (Marketplace, Studio, Growth, Affiliate/Partners) — niet alleen een food marketplace of platform voor thuiskoks.',
+    en: 'No. Food is one category within Marketplace, alongside garden, creations, services, help, inspiration and barter. HomeCheff itself is an ecosystem (Marketplace, Studio, Growth, Affiliate/Partners) — not only a food marketplace or home-cook platform.',
   },
   faq2Q: {
     nl: 'Wie staat achter een aanbod?',
@@ -50,8 +50,8 @@ export const pillarSharedFaq: Record<string, Bi> = {
 
 const platformDefinitionPage: Record<string, Bi> = {
   metaTitle: {
-    nl: 'Wat is HomeCheff? | Digitale buurtmarkt · lokaal vakmanschap',
-    en: 'What is HomeCheff? | Digital neighbourhood marketplace',
+    nl: 'Wat is HomeCheff? | Ecosysteem voor lokaal ondernemerschap',
+    en: 'What is HomeCheff? | Ecosystem for local entrepreneurship',
   },
   metaDescription: {
     nl: CANONICAL_ENTITY_DESCRIPTION.nl,
@@ -62,23 +62,23 @@ const platformDefinitionPage: Record<string, Bi> = {
     en: 'What is HomeCheff?',
   },
   intro: {
-    nl: `${CANONICAL_ENTITY_DESCRIPTION.nl} Afstand bepaalt prioriteit, niet mogelijkheid. Local-first, niet alleen-lokaal. Niet een generieke classifieds-site. Niet een traditionele tweedehands-marktplaats. Niet een bezorgketen. Niet mass retail.`,
-    en: `${CANONICAL_ENTITY_DESCRIPTION.en} Distance determines priority, not possibility. Local-first, not local-only. Not a generic classifieds site. Not a traditional second-hand marketplace. Not a delivery chain. Not mass retail.`,
+    nl: `${CANONICAL_ENTITY_DESCRIPTION.nl} Afstand bepaalt prioriteit, niet mogelijkheid. Local-first, niet alleen-lokaal. Niet alleen een marktplaats. Niet alleen voor eten. Niet een generieke classifieds-site. Niet een traditionele tweedehands-marktplaats. Niet een bezorgketen. Niet mass retail.`,
+    en: `${CANONICAL_ENTITY_DESCRIPTION.en} Distance determines priority, not possibility. Local-first, not local-only. Not only a marketplace. Not only for food. Not a generic classifieds site. Not a traditional second-hand marketplace. Not a delivery chain. Not mass retail.`,
   },
   sectionWhoTitle: { nl: 'Voor wie is HomeCheff?', en: 'Who is HomeCheff for?' },
   sectionWhoBody: {
-    nl: 'Voor makers, buren, vakmensen en kleine ondernemers die iets persoonlijks willen delen — en voor mensen die lokaal willen ontdekken, afspreken, ruilen of veilig betalen. Praktisch: begin met één duidelijk aanbod of één Gezocht-oproep in je buurt. Of je nu kookt, kweekt, repareert, lesgeeft of helpt: dichtbij eerst; uniek vakmanschap mag van nature verder reiken.',
-    en: 'For makers, neighbours, craftspeople and small entrepreneurs who want to share something personal — and for people who want to discover, arrange, barter or pay safely nearby. Practically: start with one clear offer or one Wanted request in your neighbourhood. Whether you cook, grow, repair, teach or help: nearby first; unique craft may naturally reach further.',
+    nl: 'Voor makers, buren, vakmensen, creators, ondernemers en teams: creëren met Studio, verkopen via Marketplace, groeien met Growth, promoten via Affiliate/Partners. Praktisch: begin met één duidelijk aanbod of één Gezocht-oproep — of met content of leads. Dichtbij eerst; uniek vakmanschap mag van nature verder reiken.',
+    en: 'For makers, neighbours, craftspeople, creators, entrepreneurs and teams: create with Studio, sell via Marketplace, grow with Growth, promote via Affiliate/Partners. Practically: start with one clear offer or Wanted request — or with content or leads. Nearby first; unique craft may naturally reach further.',
   },
   sectionPersonTitle: { nl: 'De persoon achter het aanbod', en: 'The person behind the offer' },
   sectionPersonBody: {
-    nl: 'Op HomeCheff telt wie iets maakt minstens zo zwaar als wat er wordt aangeboden. Profielen, verhalen, reviews en vertrouwen maken zichtbaar dat achter elk item een mens zit — geen anonieme massaproductie of anonieme doorverkoop.',
-    en: 'On HomeCheff, who makes something matters at least as much as what is offered. Profiles, stories, reviews and trust show that a human is behind every item — not anonymous mass production or anonymous resale.',
+    nl: 'Op Marketplace telt wie iets maakt minstens zo zwaar als wat er wordt aangeboden. Profielen, verhalen, reviews en vertrouwen maken zichtbaar dat achter elk item een mens zit — geen anonieme massaproductie of anonieme doorverkoop.',
+    en: 'On Marketplace, who makes something matters at least as much as what is offered. Profiles, stories, reviews and trust show that a human is behind every item — not anonymous mass production or anonymous resale.',
   },
   sectionCategoriesTitle: { nl: 'Mensen creëren waarde', en: 'People create value' },
   sectionCategoriesBody: {
-    nl: 'Thuisgekookt, eigen oogst, handwerk, creatief werk, persoonlijke diensten, lokale expertise, reparaties, kennis, buurthulp en ruil horen bij dezelfde digitale buurtmarkt. Eten is één categorie. Mensen creëren waarde — ze verkopen geen anonieme massaproducten door.',
-    en: 'Homemade meals, self-grown produce, handmade creations, creative work, personal services, local expertise, repairs, knowledge, neighbourhood help and barter belong on the same digital neighbourhood marketplace. Food is one category. People create value — they do not resell anonymous mass products.',
+    nl: 'Thuisgekookt, eigen oogst, handwerk, creatief werk, persoonlijke diensten, lokale expertise, reparaties, kennis, buurthulp en ruil horen bij Marketplace. Eten is één categorie. Studio, Growth en Affiliate/Partners versterken het bredere ecosysteem. Mensen creëren waarde — ze verkopen geen anonieme massaproducten door.',
+    en: 'Homemade meals, self-grown produce, handmade creations, creative work, personal services, local expertise, repairs, knowledge, neighbourhood help and barter belong on Marketplace. Food is one category. Studio, Growth and Affiliate/Partners strengthen the wider ecosystem. People create value — they do not resell anonymous mass products.',
   },
   sectionNotTitle: { nl: 'Wat HomeCheff niet is', en: 'What HomeCheff is not' },
   sectionNotBody: {

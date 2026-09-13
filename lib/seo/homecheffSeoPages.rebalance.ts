@@ -28,7 +28,7 @@ function block(
     whyLocal: extras.whyLocal ?? {
       title: 'Why HomeCheff?',
       paragraphs: [
-        'HomeCheff is the digital neighbourhood marketplace: cook, grow, make, repair, design, teach, help and trade nearby. Food is one category, not the whole platform.',
+        'HomeCheff Marketplace is the digital neighbourhood marketplace within the ecosystem: cook, grow, make, repair, design, teach, help and trade nearby. Food is one category, not the whole platform.',
       ],
     },
     discover: extras.discover ?? {
@@ -71,7 +71,7 @@ function nlBlock(
     whyLocal: {
       title: 'Waarom HomeCheff?',
       paragraphs: [
-        'HomeCheff is de digitale buurtmarkt: koken, groeien, maken, repareren, ontwerpen, lesgeven, helpen en handelen dichtbij. Eten is één categorie, geen heel platform.',
+        'HomeCheff Marketplace is de digitale buurtmarkt van het ecosysteem: koken, groeien, maken, repareren, ontwerpen, lesgeven, helpen en handelen dichtbij. Eten is één categorie, geen heel platform.',
       ],
     },
     discover: {
@@ -96,7 +96,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     relatedIds: ['lokale-producten', 'handmade-creaties', 'buurthulp-lokaal'],
     nl: nlBlock(
       'Tuinoogst & groente uit de buurt | HomeCheff',
-      'Ontdek home-grown groente, fruit en planten van buren. HomeCheff is de digitale buurtmarkt — tuin naast eten, creaties en hulp.',
+      'Ontdek home-grown groente, fruit en planten van buren. HomeCheff Marketplace is de digitale buurtmarkt van het ecosysteem — tuin naast eten, creaties en hulp.',
       'Tuinoogst en groente van makers dichtbij',
       [
         'Zoek home-grown groente, fruit, kruiden en planten bij mensen in jouw buurt — niet alleen in de supermarkt.',
@@ -105,7 +105,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     ),
     en: block(
       'Home-grown garden produce nearby | HomeCheff',
-      'Discover home-grown vegetables, fruit and plants from neighbours. HomeCheff is the digital neighbourhood marketplace — garden beside food, craft and help.',
+      'Discover home-grown vegetables, fruit and plants from neighbours. HomeCheff Marketplace is the digital neighbourhood marketplace within the ecosystem — garden beside food, craft and help.',
       'Home-grown garden produce from makers nearby',
       [
         'Find home-grown vegetables, fruit, herbs and plants from people in your neighbourhood — not only supermarket produce.',
@@ -123,7 +123,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
       'Koop en ontdek handmade creaties van lokale makers. Digitaal dorpsplein — niet alleen eten, niet anonieme marktplaats.',
       'Handgemaakte producten van makers dichtbij',
       [
-        'HomeCheff is de digitale buurtmarkt voor handwerk, design en creaties van mensen om de hoek.',
+        'HomeCheff Marketplace is de digitale buurtmarkt van het ecosysteem voor handwerk, design en creaties van mensen om de hoek.',
         'Je ziet wie maakt wat je koopt — persoonlijk vakmanschap, geen fabrieksfeed.',
       ],
     ),
@@ -132,7 +132,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
       'Discover handmade creations from local makers. Digital neighbourhood marketplace — craftsmanship-first, not food-only, not anonymous classifieds.',
       'Handmade products from makers nearby',
       [
-        'HomeCheff is the digital neighbourhood marketplace for craft, design and handmade work from people around the corner.',
+        'HomeCheff Marketplace is the digital neighbourhood marketplace within the ecosystem for craft, design and handmade work from people around the corner.',
         'You see who made what you buy — personal craftsmanship, not a factory feed.',
       ],
     ),
@@ -240,7 +240,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     relatedIds: ['gezocht-wanted', 'barter-ruilen', 'reparaties-diensten'],
     nl: nlBlock(
       'Buurthulp & hulp vragen | HomeCheff',
-      'Vraag of bied buurthulp aan. HomeCheff is de digitale buurtmarkt voor hulp, Gezocht en community exchange.',
+      'Vraag of bied buurthulp aan. HomeCheff Marketplace is de digitale buurtmarkt van het ecosysteem voor hulp, Gezocht en community exchange.',
       'Buurthulp dichtbij',
       [
         'Hulp vragen en hulp bieden hoort bij het Dorpsplein — naast kopen en verkopen.',
@@ -249,7 +249,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     ),
     en: block(
       'Neighbour help and local requests | HomeCheff',
-      'Ask for or offer neighbour help. HomeCheff is the digital neighbourhood marketplace for help, Wanted and community exchange.',
+      'Ask for or offer neighbour help. HomeCheff Marketplace is the digital neighbourhood marketplace within the ecosystem for help, Wanted and community exchange.',
       'Neighbour help nearby',
       [
         'Asking for and offering help belongs on the Village Square — beside buying and selling.',
@@ -336,7 +336,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     relatedIds: ['handmade-creaties', 'lessen-skills', 'barter-ruilen'],
     nl: nlBlock(
       'Micro-ondernemen vanuit huis | HomeCheff',
-      'Start klein vanuit huis: eten, tuin, creaties of diensten. HomeCheff is de digitale buurtmarkt voor micro-ondernemers.',
+      'Start klein vanuit huis: eten, tuin, creaties of diensten. HomeCheff Marketplace is de digitale buurtmarkt van het ecosysteem voor micro-ondernemers.',
       'Micro-ondernemen dichtbij',
       [
         'Verdienen vanuit huis mag persoonlijk en lokaal blijven — met een gezicht achter het aanbod.',
@@ -345,7 +345,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     ),
     en: block(
       'Micro-entrepreneurship from home | HomeCheff',
-      'Start small from home: food, garden, creations or services. HomeCheff is the digital neighbourhood marketplace for micro-entrepreneurs.',
+      'Start small from home: food, garden, creations or services. HomeCheff Marketplace is the digital neighbourhood marketplace within the ecosystem for micro-entrepreneurs.',
       'Micro-entrepreneurship nearby',
       [
         'Earning from home can stay personal and local — with a face behind the offer.',
@@ -360,7 +360,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     relatedIds: ['alternatief-thuisbezorgd', 'thuisgekookt-kopen', 'buurthulp-lokaal'],
     nl: nlBlock(
       'Alternatief voor Uber Eats | HomeCheff',
-      'Zoek je iets anders dan delivery-apps? HomeCheff is de digitale buurtmarkt voor thuisgekookt en makers dichtbij — geen dark kitchen.',
+      'Zoek je iets anders dan delivery-apps? HomeCheff Marketplace is de digitale buurtmarkt van het ecosysteem voor thuisgekookt en makers dichtbij — geen dark kitchen.',
       'HomeCheff als alternatief voor Uber Eats',
       [
         'Uber Eats focust op bezorgketens. HomeCheff focust op buurtmakers: koken, groeien, maken en helpen.',
@@ -369,7 +369,7 @@ export const HOMECHEFF_SEO_REBALANCE_DEFS: SeoPageDefinition[] = [
     ),
     en: block(
       'Alternative to Uber Eats | HomeCheff',
-      'Looking beyond delivery apps? HomeCheff is the digital neighbourhood marketplace for home cooking and makers nearby — not dark kitchens.',
+      'Looking beyond delivery apps? HomeCheff Marketplace is the digital neighbourhood marketplace within the ecosystem for home cooking and makers nearby — not dark kitchens.',
       'HomeCheff as an alternative to Uber Eats',
       [
         'Uber Eats focuses on delivery chains. HomeCheff focuses on neighbourhood makers: cook, grow, make and help.',

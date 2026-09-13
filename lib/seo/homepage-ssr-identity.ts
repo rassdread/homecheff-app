@@ -2,7 +2,7 @@ import { getCurrentLanguage } from '@/lib/seo/metadata';
 import { getPlatformDefinition, type PlatformLang } from '@/lib/seo/platform-definition';
 import { ENTITY_HOMEPAGE_DEFINITION } from '@/lib/seo/entity-philosophy';
 
-/** Server-rendered homepage identity — Phase 2.1 entity philosophy aligned. */
+/** Server-rendered homepage identity — parent ecosystem + Marketplace SELL layer. */
 export type HomepageSsrIdentity = {
   lang: PlatformLang;
   identity: string;
@@ -12,12 +12,12 @@ export type HomepageSsrIdentity = {
 
 const COPY: Record<PlatformLang, Omit<HomepageSsrIdentity, 'lang'>> = {
   nl: {
-    identity: 'Digitale buurtmarkt',
+    identity: 'HomeCheff-ecosysteem · Marketplace',
     h1: 'Ontdek wat mensen bij jou in de buurt koken, groeien, maken en doen',
     definition: ENTITY_HOMEPAGE_DEFINITION.nl,
   },
   en: {
-    identity: 'Digital neighbourhood marketplace',
+    identity: 'HomeCheff ecosystem · Marketplace',
     h1: 'Discover what people nearby cook, grow, make and do',
     definition: ENTITY_HOMEPAGE_DEFINITION.en,
   },

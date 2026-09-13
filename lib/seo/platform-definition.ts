@@ -37,25 +37,25 @@ export type PlatformDefinitionBlock = {
 export const PLATFORM_DEFINITION: Record<PlatformLang, PlatformDefinitionBlock> = {
   nl: {
     entityDefinition: CANONICAL_ENTITY_DESCRIPTION.nl,
-    defaultTitle: 'HomeCheff — Digitale buurtmarkt · lokaal vakmanschap',
+    defaultTitle: 'HomeCheff — Ecosysteem voor lokaal ondernemerschap',
     defaultDescription: ENTITY_META_DESCRIPTION.nl,
     organizationDescription: manifestOrganizationDescription('nl'),
     websiteDescription: `${CANONICAL_ENTITY_DESCRIPTION.nl} ${PHILOSOPHY_DISTANCE.nl} ${LOCAL_FIRST_SCALE.nl}`,
     faqWhatIsHomeCheff: ENTITY_FAQ_WHAT.nl,
     seoHubIntro:
-      'HomeCheff is de digitale buurtmarkt — community-first, creator-first en craftsmanship-first. Local-first, niet alleen-lokaal. Mensen zijn de community, niet het product. Kies een onderwerp: eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil.',
-    footerTagline: 'Digitale buurtmarkt · community vóór data · alles begint dichtbij huis.',
+      'HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen — Marketplace, Studio, Growth en Affiliate/Partners. Marketplace is de digitale buurtmarkt (SELL): community-first, creator-first en craftsmanship-first. Local-first, niet alleen-lokaal. Eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil.',
+    footerTagline: 'HomeCheff-ecosysteem · Marketplace · Studio · Growth · Affiliate · alles begint dichtbij huis.',
   },
   en: {
     entityDefinition: CANONICAL_ENTITY_DESCRIPTION.en,
-    defaultTitle: 'HomeCheff — Digital neighbourhood marketplace',
+    defaultTitle: 'HomeCheff — Ecosystem for local entrepreneurship',
     defaultDescription: ENTITY_META_DESCRIPTION.en,
     organizationDescription: manifestOrganizationDescription('en'),
     websiteDescription: `${CANONICAL_ENTITY_DESCRIPTION.en} ${PHILOSOPHY_DISTANCE.en} ${LOCAL_FIRST_SCALE.en}`,
     faqWhatIsHomeCheff: ENTITY_FAQ_WHAT.en,
     seoHubIntro:
-      'HomeCheff is the digital neighbourhood marketplace — community-first, creator-first and craftsmanship-first. Local-first, not local-only. People are the community, not the product. Pick a topic: food is one category alongside garden, creations, services, neighbour help and barter.',
-    footerTagline: 'Digital neighbourhood marketplace · community before data · everything starts close to home.',
+      'HomeCheff is an ecosystem for local entrepreneurship, creation and earning — Marketplace, Studio, Growth and Affiliate/Partners. Marketplace is the digital neighbourhood marketplace (SELL): community-first, creator-first and craftsmanship-first. Local-first, not local-only. Food is one category alongside garden, creations, services, neighbour help and barter.',
+    footerTagline: 'HomeCheff ecosystem · Marketplace · Studio · Growth · Affiliate · everything starts close to home.',
   },
 };
 
@@ -63,14 +63,20 @@ export function getPlatformDefinition(lang: string): PlatformDefinitionBlock {
   return lang === 'en' ? PLATFORM_DEFINITION.en : PLATFORM_DEFINITION.nl;
 }
 
-/** Shared root keywords — neighbourhood marketplace + craft, not food-only / not resale */
+/** Shared root keywords — ecosystem + Marketplace craft, not food-only / not resale */
 export const PLATFORM_KEYWORDS: Record<PlatformLang, string[]> = {
   nl: [
     'HomeCheff',
     'HomeCheff.eu',
+    'HomeCheff ecosysteem',
+    'HomeCheff Marketplace',
+    'HomeCheff Studio',
+    'HomeCheff Growth',
+    'HomeCheff Affiliate',
     'HomeCheff buurtmarkt',
     'digitale buurtmarkt',
     'buurtmarkt',
+    'lokaal ondernemerschap',
     'community-first',
     'creator-first',
     'persoonlijk vakmanschap',
@@ -96,6 +102,11 @@ export const PLATFORM_KEYWORDS: Record<PlatformLang, string[]> = {
   en: [
     'HomeCheff',
     'HomeCheff.eu',
+    'HomeCheff ecosystem',
+    'HomeCheff Marketplace',
+    'HomeCheff Studio',
+    'HomeCheff Growth',
+    'HomeCheff Affiliate',
     'HomeCheff marketplace',
     'HomeCheff neighbourhood marketplace',
     'digital neighbourhood marketplace',

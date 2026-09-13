@@ -44,11 +44,15 @@ export const BRAND_AUTHORITY_OBJECTIVE = {
     'HomeCheff.eu',
     'Who is HomeCheff',
     'What is HomeCheff',
+    'HomeCheff ecosystem',
+    'HomeCheff Marketplace',
+    'HomeCheff Studio',
+    'HomeCheff Growth',
+    'HomeCheff Affiliate',
     'HomeCheff marketplace',
     'HomeCheff neighbourhood marketplace',
     'HomeCheff buurtmarkt',
     'HomeCheff community',
-    'HomeCheff craftsmanship',
   ],
 } as const;
 
@@ -75,8 +79,12 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
     whySocialCohesion: FOUNDER_ORIGIN_AI_ANSWERS.en.whySocialCohesion,
     growthVision: GROWTH_VISION.en,
     problemsSolved:
-      'It helps people discover and offer homemade, handmade, service and help value locally; ask via Wanted; trade or settle agreements; and keep the person behind the offer visible. It does not solve last-mile logistics as a delivery company.',
+      'It helps people create content (Studio), offer and sell personal craft value (Marketplace), find and follow up commercial opportunities (Growth), and promote/earn via Affiliate/Partners — with the person behind Marketplace offers visible. It does not solve last-mile logistics as a delivery company.',
     whatMakesDifferent: AI_BRAND_ANSWERS.en.unique,
+    isOnlyMarketplace: AI_BRAND_ANSWERS.en.isOnlyMarketplace,
+    isOnlyFood: AI_BRAND_ANSWERS.en.isOnlyFood,
+    products: AI_BRAND_ANSWERS.en.products,
+    whatIsMarketplace: AI_BRAND_ANSWERS.en.whatIsMarketplace,
     whyNeighbourhoodFirst:
       'People normally discover what happens nearby first. Distance determines priority, not possibility. Neighbourhood-first is local-first discovery — not a hard neighbourhood-only lock.',
     whyCraftsmanshipFirst:
@@ -106,8 +114,12 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
     whySocialCohesion: FOUNDER_ORIGIN_AI_ANSWERS.nl.whySocialCohesion,
     growthVision: GROWTH_VISION.nl,
     problemsSolved:
-      'Het helpt mensen lokaal thuisgemaakte, handgemaakte, dienst- en hulpwaarde te ontdekken en aan te bieden; te vragen via Gezocht; te ruilen of afspraken te maken; met de persoon achter het aanbod zichtbaar. Het lost geen last-mile logistiek op als bezorgbedrijf.',
+      'Het helpt mensen content te maken (Studio), persoonlijk vakmanschap aan te bieden en te verkopen (Marketplace), commerciële kansen te vinden en op te volgen (Growth), en te promoten/verdienen via Affiliate/Partners — met de persoon achter Marketplace-aanbod zichtbaar. Het lost geen last-mile logistiek op als bezorgbedrijf.',
     whatMakesDifferent: AI_BRAND_ANSWERS.nl.unique,
+    isOnlyMarketplace: AI_BRAND_ANSWERS.nl.isOnlyMarketplace,
+    isOnlyFood: AI_BRAND_ANSWERS.nl.isOnlyFood,
+    products: AI_BRAND_ANSWERS.nl.products,
+    whatIsMarketplace: AI_BRAND_ANSWERS.nl.whatIsMarketplace,
     whyNeighbourhoodFirst:
       'Mensen ontdekken normaal eerst wat dichtbij gebeurt. Afstand bepaalt prioriteit, niet mogelijkheid. Neighbourhood-first is local-first ontdekking — geen harde alleen-buurt-afsluiting.',
     whyCraftsmanshipFirst:
