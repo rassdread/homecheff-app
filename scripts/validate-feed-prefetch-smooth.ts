@@ -126,8 +126,13 @@ assert(geo.includes('computePrefetchRootMarginPx') || geo.includes('prefetchRoot
 assert(geo.includes('computeNearEndLoadMoreThresholdPx'), 'viewport-aware near-end loadMore');
 assert(geo.includes('scheduleIdleWork'), 'idle prefetch after first paint');
 assert(
-  geo.includes('recirculationBatchIndex >= 2'),
-  'idle auto-chain cap retained (no runaway background growth)',
+  geo.includes('queueNearEndContinuation') &&
+    geo.includes('isFeedSentinelNearEnd'),
+  'post-append near-end drain (IO continuous-intersection continuation)',
+);
+assert(
+  !geo.includes('recirculationBatchIndex >= 2'),
+  'hard recirculationBatchIndex>=2 auto-chain cap must be removed',
 );
 assert(
   !geo.includes('const nearMarginPx = 480'),

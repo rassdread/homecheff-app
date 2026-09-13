@@ -1,15 +1,20 @@
 #!/usr/bin/env npx tsx
 /**
- * Production certify: true unlimited recirculation on live GeoFeed.
- * Scrolls until card occurrences >= 80 OR recirculationBatchIndex >= enough
- * for 2 full cycles after unique plateau.
+ * Production certify: continuous infinite scroll on live GeoFeed.
+ * Requires long-run recirculation — not merely "recirculation started".
+ *
+ * Defaults: desktop/portrait TARGET=250, landscape TARGET_LANDSCAPE=150.
  */
 import { chromium, devices, webkit } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const BASE = (process.env.BASE_URL || 'https://homecheff.eu').replace(/\/$/, '');
-const TARGET = Number(process.env.TARGET_OCCURRENCES || 80);
+const TARGET = Number(process.env.TARGET_OCCURRENCES || 250);
+const TARGET_LANDSCAPE = Number(process.env.TARGET_LANDSCAPE || 150);
+const CHECKPOINTS = [34, 50, 80, 100, 150, 200, 250];
+const MAX_SCROLL_ITERS = Number(process.env.MAX_SCROLL_ITERS || 420);
+const STALL_LIMIT = Number(process.env.STALL_LIMIT || 18);
 const OUT = path.join(
   process.cwd(),
   'docs/audits/true-unlimited-recirculation',
@@ -129,11 +134,14 @@ async function runCase(
   label: string,
   browserType: typeof chromium | typeof webkit,
   viewport: { width: number; height: number },
+  target: number,
 ) {
   const browser = await browserType.launch({ headless: true });
   const context = await browser.newContext({ viewport, locale: 'nl-NL' });
   const page = await context.newPage();
   const series: Array<Record<string, unknown>> = [];
+  const checkpoints: Record<string, Record<string, unknown> | null> = {};
+  for (const cp of CHECKPOINTS) checkpoints[`CHECKPOINT_${cp}`] = null;
 
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 120000 });
   for (let w = 0; w < 45; w++) {
@@ -143,19 +151,43 @@ async function runCase(
   }
 
   let stall = 0;
-  let prevCards = 0;
-  for (let i = 0; i < 90; i++) {
+  let prevMetric = 0;
+  let stoppedEarly = false;
+  for (let i = 0; i < MAX_SCROLL_ITERS; i++) {
     await scrollOnce(page);
-    await page.waitForTimeout(i < 25 ? 1100 : 700);
+    await page.waitForTimeout(i < 40 ? 900 : 550);
     const s = await dump(page);
-    series.push({ i, ...s });
-    if (s.cardCount <= prevCards) stall += 1;
-    else stall = 0;
-    prevCards = s.cardCount;
-    const batch = Number((s.fiber as any)?.batch || 0);
     const hist = Number((s.fiber as any)?.hist || 0);
-    if ((s.cardCount >= TARGET || hist >= TARGET) && batch >= 2) break;
-    if (stall >= 12 && (s.fiber as any)?.recirc && hist >= Math.max(40, TARGET * 0.6)) break;
+    const metric = Math.max(s.cardCount, hist);
+    const batch = Number((s.fiber as any)?.batch || 0);
+    series.push({ i, metric, ...s });
+
+    for (const cp of CHECKPOINTS) {
+      const key = `CHECKPOINT_${cp}`;
+      if (!checkpoints[key] && metric >= cp) {
+        checkpoints[key] = {
+          i,
+          dom: s.cardCount,
+          hist,
+          batch,
+          stage: (s.fiber as any)?.stage ?? null,
+          feedHasMore: (s.fiber as any)?.recirc
+            ? true
+            : !(s.fiber as any)?.empty,
+          sentinel: s.sentinel,
+        };
+      }
+    }
+
+    if (metric <= prevMetric) stall += 1;
+    else stall = 0;
+    prevMetric = metric;
+
+    if (metric >= target && batch >= 1) break;
+    if (stall >= STALL_LIMIT) {
+      stoppedEarly = true;
+      break;
+    }
   }
 
   await browser.close();
@@ -165,51 +197,41 @@ async function runCase(
     ...series.map((s) => Number(s.uniqueCount || 0)),
   );
   const cardMax = Math.max(0, ...series.map((s) => Number(s.cardCount || 0)));
-  // First index where unique count stops growing for the rest of the run.
-  let plateau = -1;
-  for (let i = 0; i < series.length; i++) {
-    const rest = series.slice(i);
-    const maxRest = Math.max(...rest.map((s) => Number(s.uniqueCount || 0)));
-    if (Number(series[i].uniqueCount) >= maxRest && maxRest > 0) {
-      plateau = i;
-      break;
-    }
-  }
-  const after = plateau >= 0 ? series.slice(plateau) : series;
-  const growthAfterUnique =
-    after.length > 1
-      ? Number(after[after.length - 1].cardCount) - Number(after[0].cardCount)
-      : 0;
   const histMax = Math.max(
     0,
     ...series.map((s) => Number((s.fiber as any)?.hist || 0)),
   );
-  const recircActive = Boolean((final.fiber as any)?.recirc);
+  const metricMax = Math.max(cardMax, histMax);
   const batch = Number((final.fiber as any)?.batch || 0);
   const fiberUnique = Number((final.fiber as any)?.unique || 0);
-  const intentionalRecirc =
-    histMax > fiberUnique || growthAfterUnique > 0 || cardMax > uniqueMax;
+  const recircActive = Boolean((final.fiber as any)?.recirc);
+  const stage = String((final.fiber as any)?.stage || '');
   const pass =
     uniqueMax > 0 &&
     recircActive &&
-    batch >= 1 &&
-    intentionalRecirc &&
-    histMax >= TARGET &&
+    stage === 'recirculation' &&
+    batch >= 3 &&
+    metricMax >= target &&
+    !stoppedEarly &&
     Boolean(final.sentinel);
 
   return {
     label,
     viewport,
+    target,
     uniqueMax,
     cardMax,
     histMax,
+    metricMax,
     fiberUnique,
-    growthAfterUnique,
-    intentionalRecirc,
     recircActive,
     batch,
+    stage,
+    stoppedEarly,
+    stopped: stoppedEarly || metricMax < target,
     endOfSelection: final.endOfSelection,
     endText: final.endText,
+    checkpoints,
     series: series.map((s) => ({
       i: s.i,
       cards: s.cardCount,
@@ -228,25 +250,38 @@ async function runCase(
 async function main() {
   const results = [];
   results.push(
-    await runCase('DESKTOP', chromium, { width: 1440, height: 900 }),
+    await runCase('DESKTOP', chromium, { width: 1440, height: 900 }, TARGET),
   );
   results.push(
-    await runCase('MOBILE_PORTRAIT', chromium, {
-      ...devices['iPhone 13'].viewport!,
-      width: devices['iPhone 13'].viewport!.width,
-      height: devices['iPhone 13'].viewport!.height,
-    }),
+    await runCase(
+      'MOBILE_PORTRAIT',
+      chromium,
+      {
+        ...devices['iPhone 13'].viewport!,
+        width: devices['iPhone 13'].viewport!.width,
+        height: devices['iPhone 13'].viewport!.height,
+      },
+      TARGET,
+    ),
   );
   results.push(
-    await runCase('MOBILE_LANDSCAPE', chromium, { width: 844, height: 390 }),
+    await runCase(
+      'MOBILE_LANDSCAPE',
+      chromium,
+      { width: 844, height: 390 },
+      TARGET_LANDSCAPE,
+    ),
   );
 
   const report = {
     base: BASE,
     target: TARGET,
+    targetLandscape: TARGET_LANDSCAPE,
     at: new Date().toISOString(),
     results,
     PASS: results.every((r) => r.pass),
+    ACCEPTANCE:
+      'Desktop+portrait >=250 occurrences continuous; landscape >=150; no stall before target',
   };
   writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));

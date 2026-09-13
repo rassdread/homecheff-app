@@ -1081,6 +1081,27 @@ function resolveFeedIntersectionRoot(
   return null;
 }
 
+/**
+ * True when the load-more sentinel is still near the scroll end.
+ * After recirculation appends, IntersectionObserver often does NOT re-fire if
+ * the sentinel never left the intersection root — continuation must be explicit.
+ */
+function isFeedSentinelNearEnd(
+  sentinel: Element,
+  preferDesktopFeedColumn: boolean,
+  slackPx = 1400,
+): boolean {
+  if (typeof window === "undefined") return false;
+  const root = resolveFeedIntersectionRoot(sentinel, preferDesktopFeedColumn);
+  const sRect = sentinel.getBoundingClientRect();
+  if (root instanceof HTMLElement) {
+    const rRect = root.getBoundingClientRect();
+    return sRect.top <= rRect.bottom + slackPx;
+  }
+  const vh = window.innerHeight || 800;
+  return sRect.top <= vh + slackPx;
+}
+
 export default function GeoFeed({
   ssrAuthHint,
   initialInspiratieItems = [],
@@ -3489,6 +3510,39 @@ export default function GeoFeed({
     }
   }, []);
 
+  const inviteNearEndLoadMore = useCallback(() => {
+    if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+    if (recirculationInFlightRef.current) return;
+    const now = Date.now();
+    if (now < nearEndInviteCooldownUntilRef.current) return;
+    nearEndInviteCooldownUntilRef.current = now + 450;
+    void loadMoreFeedRef.current?.();
+  }, []);
+
+  /**
+   * After a recirculation (or broadened) append, IO may stay continuously
+   * intersecting and never emit another transition. Explicitly drain while the
+   * sentinel is still near-end — throttled by loading/inFlight locks.
+   */
+  const queueNearEndContinuation = useCallback(
+    (delayMs = 120) => {
+      window.setTimeout(() => {
+        if (!feedHasMoreRef.current) return;
+        if (feedLoadingMoreRef.current || recirculationInFlightRef.current) {
+          return;
+        }
+        const c = compositionStateRef.current;
+        if (c.emptyTerminal) return;
+        const el = feedLoadMoreRef.current;
+        if (el && !isFeedSentinelNearEnd(el, isDesktopSplit)) return;
+        // Bypass invite cooldown for post-append drain only.
+        nearEndInviteCooldownUntilRef.current = 0;
+        void loadMoreFeedRef.current?.();
+      }, delayMs);
+    },
+    [isDesktopSplit],
+  );
+
   const loadMoreFeed = useCallback(async () => {
     // Prefer refs so auto-kick / IO can run in the same tick as composition commit.
     if (
@@ -3743,20 +3797,37 @@ export default function GeoFeed({
           });
         preparedRecircBatchRef.current = null;
         if (batch.length === 0) {
+          // Generator returned nothing. Terminate only with zero eligible seeds.
+          const canContinue =
+            compositionStateRef.current.uniqueEligibleCount >=
+            FEED_RECIRC_MIN_SEED;
+          if (!canContinue) {
+            setCompositionState((prev) => {
+              const next = {
+                ...prev,
+                emptyTerminal: true,
+                recirculationActive: false,
+                stage: "empty" as FeedCompositionState["stage"],
+              };
+              compositionStateRef.current = next;
+              return next;
+            });
+            feedHasMoreRef.current = false;
+            setFeedHasMore(false);
+            return;
+          }
+          // Seeds exist but batch was empty (transient) — advance cursor and drain.
           setCompositionState((prev) => {
-            const next = {
-              ...prev,
-              emptyTerminal: prev.uniqueEligibleCount === 0,
-              recirculationActive: false,
-              stage: (prev.uniqueEligibleCount === 0
-                ? "empty"
-                : prev.stage) as FeedCompositionState["stage"],
-            };
+            const next = bumpRecirculatedCount(
+              { ...prev, recirculationActive: true, stage: "recirculation" },
+              0,
+            );
             compositionStateRef.current = next;
             return next;
           });
-          feedHasMoreRef.current = false;
-          setFeedHasMore(false);
+          feedHasMoreRef.current = true;
+          setFeedHasMore(true);
+          queueNearEndContinuation(80);
           return;
         }
 
@@ -3789,8 +3860,23 @@ export default function GeoFeed({
           }
         }
         if (nextRows.length === 0) {
-          feedHasMoreRef.current = false;
-          setFeedHasMore(false);
+          // Seeds existed but none mapped to paintable rows — advance recent
+          // history so the next generator tick is not stuck on the same ids.
+          setCompositionState((prev) => {
+            const next = bumpRecirculatedCount(
+              recordDisplayedSeeds(
+                { ...prev, recirculationActive: true, stage: "recirculation" },
+                batch,
+              ),
+              0,
+            );
+            compositionStateRef.current = next;
+            return next;
+          });
+          const more = composedFeedCanContinue(compositionStateRef.current);
+          feedHasMoreRef.current = more;
+          setFeedHasMore(more);
+          if (more) queueNearEndContinuation(80);
           return;
         }
         setRecirculatedRows((prev) => [...prev, ...nextRows]);
@@ -3811,6 +3897,8 @@ export default function GeoFeed({
         const latency = Date.now() - appendStartedAt;
         feedPrefetchCacheRef.current.diag.batchAppendLatencyMsTotal += latency;
         feedPrefetchCacheRef.current.diag.batchAppendCount += 1;
+        // Sentinel often remains intersecting after append — re-arm drain.
+        queueNearEndContinuation(100);
       } finally {
         recirculationInFlightRef.current = false;
         if (spinnerShownAtRef.current != null) {
@@ -3903,6 +3991,7 @@ export default function GeoFeed({
     applyMarketplacePage,
     prefetchNextMarketplacePage,
     prepareRecirculationIfNeeded,
+    queueNearEndContinuation,
     appliedScope,
     feedCoords,
     effectiveViewerForDistance,
@@ -3912,15 +4001,6 @@ export default function GeoFeed({
   loadMoreFeedRef.current = () => {
     void loadMoreFeed();
   };
-
-  const inviteNearEndLoadMore = useCallback(() => {
-    if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
-    if (recirculationInFlightRef.current) return;
-    const now = Date.now();
-    if (now < nearEndInviteCooldownUntilRef.current) return;
-    nearEndInviteCooldownUntilRef.current = now + 450;
-    void loadMoreFeedRef.current?.();
-  }, []);
 
   // Track scroll velocity for adaptive prefetch distance
   useEffect(() => {
@@ -4183,11 +4263,12 @@ export default function GeoFeed({
   /**
    * After exact marketplace exhaust, keep driving the EXISTING loadMore engine
    * through broadened → recirculation. Nested-scroll IntersectionObserver is
-   * unreliable on some WebKit desktop layouts; without this chain the endless
-   * feed starves even though recirculation is implemented.
+   * unreliable on some WebKit desktop layouts and often does not re-fire when
+   * the sentinel stays continuously intersecting after append.
    *
-   * Caps auto recirculation batches so we prepare continuity without unbounded
-   * background append while the user is idle far from the bottom.
+   * Continue while the sentinel is still near-end (underfilled / continuous
+   * intersection). Do NOT hard-cap at recirculationBatchIndex — that stopped
+   * endless scroll after ~2 recirculation batches in production.
    */
   useEffect(() => {
     if (loading || feedStartupBlocked || !feedHydrated) return;
@@ -4205,9 +4286,8 @@ export default function GeoFeed({
         return;
       }
       if (!shouldActivateRecirculation(c)) return;
-      // Auto-prepare the first two recirculation batches; further batches rely
-      // on sentinel / nested-scroll near-end (existing historical path).
-      if (c.recirculationBatchIndex >= 2) return;
+      const el = feedLoadMoreRef.current;
+      if (el && !isFeedSentinelNearEnd(el, isDesktopSplit)) return;
       void loadMoreFeedRef.current?.();
     }, 350);
 
@@ -4217,6 +4297,7 @@ export default function GeoFeed({
     feedStartupBlocked,
     feedHydrated,
     feedHasMore,
+    isDesktopSplit,
     compositionState.marketplaceExhausted,
     compositionState.broadenedExhausted,
     compositionState.recirculationActive,
