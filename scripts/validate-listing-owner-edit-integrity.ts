@@ -1,8 +1,11 @@
 /**
- * Owner Edit integrity — bare UUID /edit must not strip to public listing.
+ * Owner Edit integrity — bare UUID /edit must not strip to public listing,
+ * and edit page must not re-fetch in a render loop.
  *
- * Regression: product layout SEO redirect sent `/product/{uuid}/edit` →
- * `/product/{slug}` (public detail). Redirects now live on public page only.
+ * Regressions:
+ * 1) product layout SEO redirect sent `/product/{uuid}/edit` → `/product/{slug}`
+ * 2) edit page useEffect depended on unstable `t` from useTranslation →
+ *    fetch → setState → new `t` → fetch forever (loading flicker / form reset)
  *
  * Run: npx tsx scripts/validate-listing-owner-edit-integrity.ts
  */
@@ -19,6 +22,14 @@ import {
 const root = process.cwd();
 const layout = readFileSync(join(root, 'app/product/[id]/layout.tsx'), 'utf8');
 const page = readFileSync(join(root, 'app/product/[id]/page.tsx'), 'utf8');
+const editPage = readFileSync(
+  join(root, 'app/product/[id]/edit/page.tsx'),
+  'utf8',
+);
+const offerForm = readFileSync(
+  join(root, 'components/products/marketplace/MarketplaceOfferForm.tsx'),
+  'utf8',
+);
 const boundary = readFileSync(join(root, 'lib/ui/card-action-boundary.ts'), 'utf8');
 const productMgmt = readFileSync(
   join(root, 'components/profile/ProductManagement.tsx'),
@@ -76,5 +87,28 @@ assert.doesNotMatch(
   productMgmt,
   /data-owner-listing-card="true"[\s\S]*?onClick=\{\(\) =>[\s\S]*?buildProductEditPath/,
 );
+assert.match(
+  productMgmt,
+  /data-owner-action="edit"[\s\S]*?e\.preventDefault\(\)[\s\S]*?stopCardNavigation\(e\)[\s\S]*?handleEdit\(product\)/,
+);
+
+console.log('6) Edit page must not loop on unstable translation `t`');
+assert.match(editPage, /productId is the only fetch key/);
+assert.doesNotMatch(
+  editPage,
+  /\}, \[productId, routeParam, router, t\]\);/,
+);
+assert.match(editPage, /\}, \[productId\]\);/);
+assert.match(editPage, /canonicalizedRef/);
+assert.match(editPage, /currentPath !== canonicalEdit/);
+
+console.log('7) Marketplace edit hydrate once per listing id');
+assert.match(offerForm, /hydratedProductIdRef/);
+assert.match(offerForm, /hydrate once per product id/);
+assert.doesNotMatch(
+  offerForm,
+  /\}, \[editMode, existingProduct, marketplaceCategory\]\);/,
+);
+assert.match(offerForm, /if \(editMode\) return;/);
 
 console.log('\nHOMECHEFF_LISTING_OWNER_EDIT_INTEGRITY_VALIDATED');

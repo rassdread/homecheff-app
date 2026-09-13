@@ -744,8 +744,13 @@ report.cases.ownerEditPathIntegrity = await withPage("desk1280", async (page) =>
   }
 
   const start = `${BASE}/product/${productId}/edit`;
+  const apiHits = [];
+  page.on("request", (req) => {
+    const u = req.url();
+    if (u.includes(`/api/products/${productId}`)) apiHits.push(Date.now());
+  });
   await page.goto(start, { waitUntil: "domcontentloaded", timeout: 90000 });
-  await page.waitForTimeout(2500);
+  await page.waitForTimeout(3500);
   const finalUrl = page.url();
   const path = await page.evaluate(() => location.pathname);
   const stayedOnEdit = /\/product\/[^/]+\/edit\/?$/.test(path);
@@ -753,9 +758,23 @@ report.cases.ownerEditPathIntegrity = await withPage("desk1280", async (page) =>
     /\/product\/[^/]+\/?$/.test(path) && !/\/edit\/?$/.test(path);
   // Unauthenticated may bounce to login/verkoper AFTER edit route resolves — that is OK.
   // Forbidden: SEO layout stripping /edit onto public listing detail.
-  const ok = stayedOnEdit || (!landedPublicDetail && !path.startsWith("/product/"));
-  if (!ok) {
+  const pathOk =
+    stayedOnEdit || (!landedPublicDetail && !path.startsWith("/product/"));
+  // Fetch loop regression: after settle, product GET must not keep hammering.
+  const recentHits = apiHits.filter((t) => t > Date.now() - 2000).length;
+  const noFetchLoop = recentHits <= 2;
+  const ok = pathOk && noFetchLoop;
+  if (!pathOk) {
     fail("ownerEdit", "uuid-edit-stripped-to-public-detail", { start, finalUrl, path });
+  }
+  if (!noFetchLoop) {
+    fail("ownerEdit", "edit-fetch-loop", {
+      start,
+      finalUrl,
+      path,
+      apiHitCount: apiHits.length,
+      recentHits,
+    });
   }
   return {
     ok,
@@ -765,6 +784,9 @@ report.cases.ownerEditPathIntegrity = await withPage("desk1280", async (page) =>
     path,
     stayedOnEdit,
     landedPublicDetail,
+    apiHitCount: apiHits.length,
+    recentHits,
+    noFetchLoop,
   };
 });
 
@@ -787,16 +809,43 @@ report.cases.ownerListingCardSourceContract = (() => {
       !/data-owner-listing-card="true"[\s\S]*?onClick=\{\(\) =>[\s\S]*?buildProductEditPath/.test(
         src,
       );
-    const ok = cardBodyPublic && editAction && deleteAction && cardBodyNotEdit;
+    const editStopsParent =
+      /data-owner-action="edit"[\s\S]*?e\.preventDefault\(\)[\s\S]*?stopCardNavigation\(e\)[\s\S]*?handleEdit\(product\)/.test(
+        src,
+      );
+    const editPageSrc = readFileSync(
+      join(process.cwd(), "app/product/[id]/edit/page.tsx"),
+      "utf8",
+    );
+    const noUnstableTDeps = !/\}, \[productId, routeParam, router, t\]\);/.test(
+      editPageSrc,
+    );
+    const ok =
+      cardBodyPublic &&
+      editAction &&
+      deleteAction &&
+      cardBodyNotEdit &&
+      editStopsParent &&
+      noUnstableTDeps;
     if (!ok) {
       fail("ownerEdit", "card-body-edit-contract", {
         cardBodyPublic,
         editAction,
         deleteAction,
         cardBodyNotEdit,
+        editStopsParent,
+        noUnstableTDeps,
       });
     }
-    return { ok, cardBodyPublic, editAction, deleteAction, cardBodyNotEdit };
+    return {
+      ok,
+      cardBodyPublic,
+      editAction,
+      deleteAction,
+      cardBodyNotEdit,
+      editStopsParent,
+      noUnstableTDeps,
+    };
   } catch (e) {
     fail("ownerEdit", "card-source-read", String(e).slice(0, 120));
     return { ok: false, error: String(e).slice(0, 120) };

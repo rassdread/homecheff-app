@@ -238,6 +238,8 @@ export default function MarketplaceOfferForm({
         setProfileLat(u.lat != null ? Number(u.lat) : null);
         setProfileLng(u.lng != null ? Number(u.lng) : null);
         if (u.country) setProfileCountry(String(u.country));
+        // Edit mode: never overwrite listing location with profile defaults.
+        if (editMode) return;
         if (!placeName && (u.place || u.city)) {
           setPlaceName(String(u.place || u.city || ''));
         }
@@ -257,7 +259,7 @@ export default function MarketplaceOfferForm({
         }
       })
       .catch(() => undefined);
-  }, [session?.user, useProfileLocation, placeName]);
+  }, [session?.user, useProfileLocation, placeName, editMode]);
 
   useEffect(() => {
     if (editMode || typeof window === 'undefined') return;
@@ -389,6 +391,8 @@ export default function MarketplaceOfferForm({
     locationRequired &&
     placeName.trim().length >= 2 &&
     coordsSource !== 'address' &&
+    // Keep listing coords stable on edit open; only re-resolve after user clears them.
+    !(editMode && pickupLat != null && pickupLng != null) &&
     (!useProfileLocation || !profileHasCoords);
 
   const { state: placeResolveState, selectCandidate } = usePlaceAutoResolve({
@@ -411,14 +415,29 @@ export default function MarketplaceOfferForm({
     },
   });
 
+  const hydratedProductIdRef = React.useRef<string | null>(null);
+
   useEffect(() => {
-    if (!editMode || !existingProduct) return;
+    if (!editMode || !existingProduct?.id) return;
+    const productKey = String(existingProduct.id);
+    // Hydrate once per listing id — parent object identity must not reset form state.
+    if (hydratedProductIdRef.current === productKey) return;
+    hydratedProductIdRef.current = productKey;
+
+    const categoryForSpecs =
+      (existingProduct.marketplaceCategory as MarketplaceCategory | undefined) ??
+      (existingProduct.category
+        ? legacyUrlCategoryToMarketplace(
+            String(existingProduct.category) as 'CHEFF' | 'GARDEN' | 'DESIGNER',
+          )
+        : marketplaceCategory);
+
     setTitle(String(existingProduct.title ?? ''));
     setDescription(String(existingProduct.description ?? ''));
     const specs = normalizeSpecializations(
       existingProduct.specializations ??
         (existingProduct.subcategory ? [existingProduct.subcategory] : []),
-      (existingProduct.marketplaceCategory as MarketplaceCategory) ?? marketplaceCategory,
+      categoryForSpecs,
     );
     setSpecializations(specs);
     const normalizedAccepted = normalizeAcceptedTaxonomyIds(
@@ -478,6 +497,8 @@ export default function MarketplaceOfferForm({
     }
     if (existingProduct.placeName) {
       setPlaceName(String(existingProduct.placeName));
+    } else if (existingProduct.sellerPlace) {
+      setPlaceName(String(existingProduct.sellerPlace));
     }
     if (existingProduct.useProfileLocation != null) {
       setUseProfileLocation(Boolean(existingProduct.useProfileLocation));
@@ -542,7 +563,9 @@ export default function MarketplaceOfferForm({
       Boolean(existingProduct.madeToConsumerSpecifications),
     );
     setRapidlyPerishable(Boolean(existingProduct.rapidlyPerishable));
-  }, [editMode, existingProduct, marketplaceCategory]);
+    // Intentionally omit marketplaceCategory from deps — setting it inside would re-run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once per product id
+  }, [editMode, existingProduct?.id]);
 
   const showFoodAllergens = useMemo(
     () =>
@@ -859,7 +882,22 @@ export default function MarketplaceOfferForm({
       onSave?.(data.product ?? data);
       if (!editMode && data.product?.id) {
         clearPx4aItemFormDraft();
-        window.location.href = getProfileHrefAfterProductSave(data.product.id);
+        const savedCategory =
+          data.product.category === 'GROWN'
+            ? 'GARDEN'
+            : data.product.category === 'CHEFF' ||
+                data.product.category === 'GARDEN' ||
+                data.product.category === 'DESIGNER'
+              ? data.product.category
+              : marketplaceCategory === 'GROW'
+                ? 'GARDEN'
+                : marketplaceCategory === 'DESIGN' ||
+                    marketplaceCategory === 'ARTISTIC_SERVICE'
+                  ? 'DESIGNER'
+                  : 'CHEFF';
+        window.location.href = getProfileHrefAfterProductSave(savedCategory, {
+          added: true,
+        });
       }
     } catch {
       setMessage(t(MARKETPLACE_ERROR_KEYS.saveFailed));

@@ -1,46 +1,60 @@
-# Listing owner action integrity — Edit click regression
+# Listing owner Edit flow — loop + integrity regressions
 
-**Before main:** `6b5609cf00bb59a179a66282c780e1e5f54e9989`  
-**Before production:** `dpl_4CEBzpq7xYttK8cirrPLQdVsYcd6`
+## Incident A (Aug 2026) — SEO strip
 
-## Reproduction (production, real browser)
+**Symptom:** Bewerken opened public listing detail (`/product/{slug}`), `/edit` stripped.
 
-1. Navigate to `https://homecheff.eu/product/{uuid}/edit`  
-   (same destination Profile Aanbod “Bewerken” used)
-2. Final URL became `/product/{seo-slug}` — **public listing detail**
-3. `/edit` was stripped
+**Cause:** Shared `app/product/[id]/layout.tsx` bare-UUID SEO redirect did not preserve `/edit`.
 
-## Root cause
+**Fix:** Public redirects only on `app/product/[id]/page.tsx`. Canonical edit via `buildProductEditPath`.
 
-**E/F — wrong SEO redirect destination (not event bubbling).**
+## Incident B (Sep 2026) — edit fetch / form reset loop
 
-`app/product/[id]/layout.tsx` redirected bare UUID → slug **without** preserving `/edit`.  
-That layout wraps both public detail and edit. Owner Edit used `/product/{uuid}/edit`.
+**Symptom (production):** Profile → own listing → Bewerken → edit flow stuck / looping; cannot stably edit or save.
 
-Classification: layout SEO redirect applied to edit child route.
+### Trace
 
-## Fix
+Profile Aanbod card `Bewerken`
+→ `handleEdit` → `router.push(buildProductEditPath(...))`
+→ `/product/{slug-or-uuid}/edit`
+→ `EditProductPage` `useEffect` fetch `/api/products/{id}`
+→ `setProduct` → `MarketplaceOfferForm` hydrate
 
-1. Remove bare-UUID / REQUEST public redirects from shared product **layout**
-2. Own those redirects only in `app/product/[id]/page.tsx` (public detail)
-3. Add `buildProductEditPath` / `buildProductDetailPath` / `isProductEditPathname`
-4. Profile + detail Edit use edit path helpers
-5. Shared `cardActionBoundaryProps` for owner action toolbars
-6. Probe + `validate:listing-owner-edit-integrity` regression
+### ROOT_CAUSE
 
-## Owner actions inventory (this surface)
+`EditProductPage` fetch `useEffect` depended on unstable `t` from `useTranslation()` (new function identity every render):
 
-| Control | Surface | Expected | Before | After |
-|---|---|---|---|---|
-| Bewerken / Edit | Profile Aanbod card | `/product/.../edit` | Public detail (SEO strip) | Edit route |
-| Card body click | Profile Aanbod | Public listing | Went to edit (then stripped) | Public listing |
-| View on marketplace | Profile Aanbod | Public listing | OK (stopPropagation) | OK + boundary |
-| Delete | Profile Aanbod | Confirm delete | OK | OK + boundary |
-| Product bewerken | Listing detail owner CTA | slug/edit | Already slug | `buildProductEditPath` |
-| Inspiratie owner Edit | Public item detail | Profile edit | Separate flow | Boundary props |
+```
+}, [productId, routeParam, router, t]);
+```
 
-Feed tiles have no owner Edit control (preview shell only).
+### LOOP_TRIGGER
 
-## Feed / payment / legal
+1. Effect runs → `setIsLoading(true)` → fetch → `setProduct` → `setIsLoading(false)`
+2. Re-render creates new `t`
+3. Effect re-runs → infinite fetch / loading flicker / form remount+reset
 
-No semantic changes. Redirect ownership moved; no Stripe/proposal/LEGAL/TRUST changes.
+Amplifier: `MarketplaceOfferForm` hydrate effect depended on `[editMode, existingProduct, marketplaceCategory]`, so each new `existingProduct` object identity reset form fields (including `setMarketplaceCategory`).
+
+### Canonical edit route
+
+`/product/{seo-slug-hcid-{uuid}}/edit` via `buildProductEditPath(title, place, id)`.
+
+Bare UUID `/product/{uuid}/edit` may `router.replace` to canonical **once** when path actually differs.
+
+### Contract (unchanged)
+
+| Control | Destination |
+|---|---|
+| Card body | Public listing `/product/{id}` |
+| Bewerken | Edit only — `stopPropagation` + `preventDefault` |
+| Cancel/Back | Profile `?tab=aanbod` |
+
+### ACCOUNT / Stripe
+
+Open-edit does not gate on `ACCOUNT_REQUIREMENTS_MISSING`. Save still validates when changed data creates new requirements.
+
+## Automated coverage
+
+- `npm run validate:listing-owner-edit-integrity`
+- `npm run probe:interaction-integrity` (ownerEditPathIntegrity + card source contract)

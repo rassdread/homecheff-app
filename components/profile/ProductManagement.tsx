@@ -383,6 +383,7 @@ export default function ProductManagement({
                         type="button"
                         data-owner-action="edit"
                         onClick={(e) => {
+                          e.preventDefault();
                           stopCardNavigation(e);
                           handleEdit(product);
                         }}

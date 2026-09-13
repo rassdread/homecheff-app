@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, X } from 'lucide-react';
@@ -14,6 +14,64 @@ import {
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
 
+/**
+ * Map API product → editor shape.
+ * Preserve scalar listing fields (allergens, parcel, settlement, provenance)
+ * so edit hydrate does not fall back to create-defaults.
+ */
+function transformProductForEditor(raw: Record<string, any>) {
+  const category = raw.category === 'GROWN' ? 'GARDEN' : raw.category;
+  return {
+    ...raw,
+    id: raw.id,
+    sellerPlace: raw.seller?.User?.place ?? null,
+    title: raw.title,
+    description: raw.description,
+    priceCents: raw.priceCents,
+    stock: raw.stock,
+    maxStock: raw.maxStock,
+    isActive: raw.isActive,
+    category,
+    deliveryMode: raw.delivery,
+    subcategory: raw.subcategory,
+    marketplaceCategory: raw.marketplaceCategory ?? null,
+    specializations: raw.specializations ?? [],
+    acceptedSpecializations: raw.acceptedSpecializations ?? [],
+    listingIntent: raw.listingIntent ?? 'OFFER',
+    priceModel: raw.priceModel ?? 'FIXED',
+    barterOpenness: raw.barterOpenness ?? null,
+    fulfillmentOptions: raw.fulfillmentOptions ?? null,
+    unit: raw.unit,
+    displayNameType: raw.displayNameType || 'full',
+    isFutureProduct: raw.isFutureProduct || false,
+    availabilityDate: raw.availabilityDate,
+    Image: raw.Image || [],
+    pickupAddress: raw.pickupAddress,
+    pickupLat: raw.pickupLat,
+    pickupLng: raw.pickupLng,
+    sellerCanDeliver: raw.sellerCanDeliver || false,
+    deliveryRadiusKm: raw.deliveryRadiusKm,
+    Video: raw.Video || null,
+    tags: raw.tags || [],
+    acceptHomeCheffPayment: raw.acceptHomeCheffPayment ?? null,
+    acceptDirectContact: raw.acceptDirectContact ?? null,
+    orderMethod: raw.orderMethod ?? null,
+    allergens: raw.allergens ?? [],
+    allergensConfirmedAt: raw.allergensConfirmedAt ?? null,
+    integrityStatus: raw.integrityStatus ?? null,
+    sellerContributionTypes: raw.sellerContributionTypes ?? [],
+    sellerContributionNote: raw.sellerContributionNote ?? null,
+    madeToConsumerSpecifications: raw.madeToConsumerSpecifications ?? false,
+    rapidlyPerishable: raw.rapidlyPerishable ?? false,
+    weightGrams: raw.weightGrams ?? null,
+    lengthCm: raw.lengthCm ?? null,
+    widthCm: raw.widthCm ?? null,
+    heightCm: raw.heightCm ?? null,
+    parcelPreset: raw.parcelPreset ?? null,
+    domesticShippingEnabled: raw.domesticShippingEnabled,
+  };
+}
+
 export default function EditProductPage() {
   const { t } = useTranslation();
   const params = useParams();
@@ -23,85 +81,81 @@ export default function EditProductPage() {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const canonicalizedRef = useRef<string | null>(null);
 
   const routeParam = typeof params?.id === 'string' ? params.id : '';
   const productId = resolveProductIdFromParam(routeParam);
 
   useEffect(() => {
+    if (!productId) return;
+
+    let cancelled = false;
+
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         const response = await fetch(`/api/products/${productId}`);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('API Error:', errorData);
-          setError(errorData.error || t('profileV2.forms.productNotFound'));
+          if (cancelled) return;
+          setError(
+            errorData.error || t('profileV2.forms.productNotFound'),
+          );
           router.push('/verkoper');
           return;
         }
         const data = await response.json();
-        
-        // Transform to match Compact forms expected structure
-        const category = data.product.category === 'GROWN' ? 'GARDEN' : data.product.category;
-        const transformedProduct = {
-          id: data.product.id,
-          sellerPlace: data.product.seller?.User?.place ?? null,
-          title: data.product.title,
-          description: data.product.description,
-          priceCents: data.product.priceCents,
-          stock: data.product.stock,
-          maxStock: data.product.maxStock,
-          isActive: data.product.isActive,
-          category: category,
-          deliveryMode: data.product.delivery,
-          subcategory: data.product.subcategory,
-          marketplaceCategory: data.product.marketplaceCategory ?? null,
-          specializations: data.product.specializations ?? [],
-          acceptedSpecializations: data.product.acceptedSpecializations ?? [],
-          listingIntent: data.product.listingIntent ?? 'OFFER',
-          priceModel: data.product.priceModel ?? 'FIXED',
-          barterOpenness: data.product.barterOpenness ?? null,
-          fulfillmentOptions: data.product.fulfillmentOptions ?? null,
-          unit: data.product.unit,
-          displayNameType: data.product.displayNameType || 'full',
-          isFutureProduct: data.product.isFutureProduct || false,
-          availabilityDate: data.product.availabilityDate,
-          Image: data.product.Image || [],
-          pickupAddress: data.product.pickupAddress,
-          pickupLat: data.product.pickupLat,
-          pickupLng: data.product.pickupLng,
-          sellerCanDeliver: data.product.sellerCanDeliver || false,
-          deliveryRadiusKm: data.product.deliveryRadiusKm,
-          Video: data.product.Video || null,
-          tags: data.product.tags || [],
-          acceptHomeCheffPayment: data.product.acceptHomeCheffPayment ?? null,
-          acceptDirectContact: data.product.acceptDirectContact ?? null,
-          orderMethod: data.product.orderMethod ?? null,
-        };
+        if (cancelled) return;
 
-        // Canonicalize bare UUID edit URLs to slug/edit without leaving the edit flow.
-        if (isBareProductUuidParam(routeParam) && transformedProduct.isActive) {
+        const transformedProduct = transformProductForEditor(data.product);
+
+        // Canonicalize bare UUID → slug/edit exactly once per product.
+        // Never depend on unstable `t` / re-fetch on every render.
+        if (
+          isBareProductUuidParam(routeParam) &&
+          transformedProduct.isActive &&
+          canonicalizedRef.current !== transformedProduct.id
+        ) {
           const canonicalEdit = buildProductEditPath(
             transformedProduct.title,
             transformedProduct.sellerPlace,
             transformedProduct.id,
           );
-          router.replace(canonicalEdit);
+          const currentPath =
+            typeof window !== 'undefined'
+              ? window.location.pathname.replace(/\/+$/, '')
+              : '';
+          if (currentPath !== canonicalEdit) {
+            canonicalizedRef.current = transformedProduct.id;
+            router.replace(canonicalEdit);
+          }
         }
-        
+
         setProduct(transformedProduct);
-      } catch (error) {
-        console.error('Error fetching product:', error);
-        router.push('/verkoper');
+      } catch (err) {
+        console.error('Error fetching product:', err);
+        if (!cancelled) {
+          router.push('/verkoper');
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
-    if (productId) {
-      fetchProduct();
-    }
-  }, [productId, routeParam, router, t]);
+    void fetchProduct();
+    return () => {
+      cancelled = true;
+    };
+    // productId is the only fetch key. Do NOT list `t` — useTranslation recreates
+    // `t` every render and would re-trigger fetch → loading → setProduct forever.
+    // routeParam is read for one-shot UUID canonicalize; productId already changes
+    // only when the underlying listing id changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional stable fetch
+  }, [productId]);
 
   const handleSave = () => {
     if (!product) return;
@@ -136,9 +190,9 @@ export default function EditProductPage() {
 
       // Terug naar Profile V2 Aanbod-tab na verwijderen
       router.push(getProfileHrefAfterProductEdit(product?.category));
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      setError(error instanceof Error ? error.message : 'Failed to delete product');
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete product');
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
