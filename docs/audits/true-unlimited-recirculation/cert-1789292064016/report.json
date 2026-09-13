@@ -1,0 +1,311 @@
+{
+  "base": "https://homecheff.eu",
+  "target": 80,
+  "at": "2026-09-13T09:34:50.842Z",
+  "results": [
+    {
+      "label": "DESKTOP",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "uniqueMax": 26,
+      "cardMax": 80,
+      "growthAfterUnique": 0,
+      "recircActive": true,
+      "batch": 2,
+      "endOfSelection": true,
+      "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+      "series": [
+        {
+          "i": 0,
+          "cards": 20,
+          "unique": 10,
+          "stage": "exact",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 1,
+          "cards": 30,
+          "unique": 15,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 2,
+          "cards": 32,
+          "unique": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 3,
+          "cards": 32,
+          "unique": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 4,
+          "cards": 36,
+          "unique": 18,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 5,
+          "cards": 80,
+          "unique": 26,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        }
+      ],
+      "final": {
+        "i": 5,
+        "cardCount": 80,
+        "uniqueCount": 26,
+        "sentinel": true,
+        "endOfSelection": true,
+        "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+        "fiber": {
+          "batch": 2,
+          "stage": "recirculation",
+          "empty": false,
+          "recirc": true,
+          "unique": 34,
+          "hist": 51,
+          "exactExhausted": true,
+          "broadenedExhausted": true,
+          "marketplaceExhausted": true
+        },
+        "sampleBottom": [
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+        ],
+        "nested": true
+      },
+      "pass": false
+    },
+    {
+      "label": "MOBILE_PORTRAIT",
+      "viewport": {
+        "width": 390,
+        "height": 664
+      },
+      "uniqueMax": 26,
+      "cardMax": 80,
+      "growthAfterUnique": 0,
+      "recircActive": true,
+      "batch": 2,
+      "endOfSelection": true,
+      "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+      "series": [
+        {
+          "i": 0,
+          "cards": 30,
+          "unique": 15,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 1,
+          "cards": 30,
+          "unique": 15,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 2,
+          "cards": 32,
+          "unique": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 3,
+          "cards": 32,
+          "unique": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 4,
+          "cards": 48,
+          "unique": 24,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 5,
+          "cards": 80,
+          "unique": 26,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        }
+      ],
+      "final": {
+        "i": 5,
+        "cardCount": 80,
+        "uniqueCount": 26,
+        "sentinel": true,
+        "endOfSelection": true,
+        "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+        "fiber": {
+          "batch": 2,
+          "stage": "recirculation",
+          "empty": false,
+          "recirc": true,
+          "unique": 34,
+          "hist": 51,
+          "exactExhausted": true,
+          "broadenedExhausted": true,
+          "marketplaceExhausted": true
+        },
+        "sampleBottom": [
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+        ],
+        "nested": false
+      },
+      "pass": false
+    },
+    {
+      "label": "MOBILE_LANDSCAPE",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "uniqueMax": 26,
+      "cardMax": 80,
+      "growthAfterUnique": 0,
+      "recircActive": true,
+      "batch": 2,
+      "endOfSelection": true,
+      "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+      "series": [
+        {
+          "i": 0,
+          "cards": 20,
+          "unique": 10,
+          "stage": "exact",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 1,
+          "cards": 20,
+          "unique": 10,
+          "stage": "exact",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 2,
+          "cards": 30,
+          "unique": 15,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 3,
+          "cards": 32,
+          "unique": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 4,
+          "cards": 48,
+          "unique": 24,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 5,
+          "cards": 80,
+          "unique": 26,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        }
+      ],
+      "final": {
+        "i": 5,
+        "cardCount": 80,
+        "uniqueCount": 26,
+        "sentinel": true,
+        "endOfSelection": true,
+        "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+        "fiber": {
+          "batch": 2,
+          "stage": "recirculation",
+          "empty": false,
+          "recirc": true,
+          "unique": 34,
+          "hist": 51,
+          "exactExhausted": true,
+          "broadenedExhausted": true,
+          "marketplaceExhausted": true
+        },
+        "sampleBottom": [
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+        ],
+        "nested": true
+      },
+      "pass": false
+    }
+  ],
+  "PASS": false
+}

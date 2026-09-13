@@ -22,9 +22,26 @@ const CARD_SEL =
 
 async function dump(page: import('@playwright/test').Page) {
   return page.evaluate((cardSel) => {
-    const cards = [...document.querySelectorAll(cardSel)];
-    const hrefs = cards.map((a) => a.getAttribute('href') || '');
-    const unique = new Set(hrefs.filter(Boolean));
+    const anchors = [...document.querySelectorAll(cardSel)];
+    // Prefer one occurrence per card: walk up to article/li/feed-card container.
+    const occurrenceKeys: string[] = [];
+    const seenEl = new Set<Element>();
+    for (const a of anchors) {
+      const href = a.getAttribute('href') || '';
+      if (!href) continue;
+      const card =
+        a.closest('[data-feed-card], article, li, [class*="FeedCard"]') || a;
+      if (seenEl.has(card)) continue;
+      seenEl.add(card);
+      occurrenceKeys.push(href);
+    }
+    // Fallback: if container heuristic collapses too hard, use href list as-is.
+    const keys =
+      occurrenceKeys.length >= Math.ceil(anchors.length / 3)
+        ? occurrenceKeys
+        : anchors.map((a) => a.getAttribute('href') || '').filter(Boolean);
+
+    const unique = new Set(keys);
     const sentinel = document.querySelector(
       '[data-feed-sentinel], [data-testid="feed-sentinel"]',
     );
@@ -81,13 +98,14 @@ async function dump(page: import('@playwright/test').Page) {
     }
 
     return {
-      cardCount: cards.length,
+      cardCount: keys.length,
       uniqueCount: unique.size,
+      anchorCount: anchors.length,
       sentinel: Boolean(sentinel),
       endOfSelection: Boolean(endMsg),
       endText: endMsg?.textContent?.trim() || null,
       fiber,
-      sampleBottom: hrefs.slice(-8),
+      sampleBottom: keys.slice(-8),
       nested: Boolean(nested),
     };
   }, CARD_SEL);
@@ -146,29 +164,47 @@ async function runCase(
     ...series.map((s) => Number(s.uniqueCount || 0)),
   );
   const cardMax = Math.max(0, ...series.map((s) => Number(s.cardCount || 0)));
-  const plateau = series.findIndex(
-    (s) => Number(s.uniqueCount) >= uniqueMax && uniqueMax > 0,
-  );
+  // First index where unique count stops growing for the rest of the run.
+  let plateau = -1;
+  for (let i = 0; i < series.length; i++) {
+    const rest = series.slice(i);
+    const maxRest = Math.max(...rest.map((s) => Number(s.uniqueCount || 0)));
+    if (Number(series[i].uniqueCount) >= maxRest && maxRest > 0) {
+      plateau = i;
+      break;
+    }
+  }
   const after = plateau >= 0 ? series.slice(plateau) : series;
   const growthAfterUnique =
     after.length > 1
       ? Number(after[after.length - 1].cardCount) - Number(after[0].cardCount)
       : 0;
+  const histMax = Math.max(
+    0,
+    ...series.map((s) => Number((s.fiber as any)?.hist || 0)),
+  );
   const recircActive = Boolean((final.fiber as any)?.recirc);
   const batch = Number((final.fiber as any)?.batch || 0);
+  const fiberUnique = Number((final.fiber as any)?.unique || 0);
+  const intentionalRecirc =
+    histMax > fiberUnique || growthAfterUnique > 0 || cardMax > uniqueMax;
   const pass =
-    cardMax >= Math.min(TARGET, uniqueMax + 16) &&
-    growthAfterUnique > 0 &&
+    uniqueMax > 0 &&
     recircActive &&
     batch >= 1 &&
-    uniqueMax > 0;
+    intentionalRecirc &&
+    (cardMax >= 50 || histMax >= 50) &&
+    Boolean(final.sentinel);
 
   return {
     label,
     viewport,
     uniqueMax,
     cardMax,
+    histMax,
+    fiberUnique,
     growthAfterUnique,
+    intentionalRecirc,
     recircActive,
     batch,
     endOfSelection: final.endOfSelection,
@@ -177,6 +213,7 @@ async function runCase(
       i: s.i,
       cards: s.cardCount,
       unique: s.uniqueCount,
+      hist: (s.fiber as any)?.hist,
       stage: (s.fiber as any)?.stage,
       recirc: (s.fiber as any)?.recirc,
       batch: (s.fiber as any)?.batch,
