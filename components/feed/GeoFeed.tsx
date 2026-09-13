@@ -3516,8 +3516,47 @@ export default function GeoFeed({
     /**
      * Exact nearby/scope exhausted → fetch widened national discovery pages
      * before intentional recirculation. Keeps feedHasMore = "can discover more".
+     *
+     * When the active scope is already national/international (or soft-national
+     * fallback), there is no wider marketplace query — skip wasted duplicate
+     * API pages and hand off immediately to historical recirculation.
      */
     if (shouldFetchBroadenedDiscovery(comp)) {
+      const softNationalFallback =
+        nearbyNeedsLocation &&
+        browseLocationMode !== "country" &&
+        browseLocationMode !== "region" &&
+        !browseCountryCode;
+      const canWidenExactScope =
+        appliedScope === FEED_SCOPE_NEARBY && !softNationalFallback;
+
+      if (!canWidenExactScope) {
+        const sealed = markBroadenedPageResult(compositionStateRef.current, {
+          fetchedCount: 0,
+          newUniqueCount: 0,
+          apiHasMore: false,
+          skipUsed: comp.broadenedSkip,
+        });
+        const more = composedFeedCanContinue(sealed);
+        commitCompositionState(sealed);
+        feedHasMoreRef.current = more;
+        setFeedHasMore(more);
+        if (isGeoFeedDiagnosticsEnabled() || isNativeApp()) {
+          console.info("[hc-native-scroll]", "broadened-skip-already-wide", {
+            scope: appliedScope,
+            feedHasMore: more,
+            stage: sealed.stage,
+          });
+        }
+        if (more && shouldActivateRecirculation(sealed)) {
+          window.setTimeout(() => {
+            if (feedLoadingMoreRef.current || !feedHasMoreRef.current) return;
+            void loadMoreFeedRef.current?.();
+          }, 0);
+        }
+        return;
+      }
+
       const skip = comp.broadenedSkip;
       const identityKey = `broadened:${latestFeedRequestKeyRef.current || "feed"}:${skip}`;
       const appendStartedAt = Date.now();
@@ -3541,6 +3580,7 @@ export default function GeoFeed({
             void loadMoreFeedRef.current?.();
           }, 80);
         }
+        void reason;
       };
       try {
         const params = buildLoadMoreParams(skip, { broadened: true });
@@ -3857,6 +3897,8 @@ export default function GeoFeed({
   }, [
     feedStartupBlocked,
     nearbyNeedsLocation,
+    browseLocationMode,
+    browseCountryCode,
     buildLoadMoreParams,
     applyMarketplacePage,
     prefetchNextMarketplacePage,
@@ -7206,6 +7248,7 @@ export default function GeoFeed({
           ) : null}
           {feedHydrated &&
           !loading &&
+          feedHasMore &&
           !compositionState.emptyTerminal &&
           items.length > 0 &&
           compositionState.exactExhausted &&
@@ -7602,6 +7645,7 @@ export default function GeoFeed({
         ) : null}
         {feedHydrated &&
         !loading &&
+        feedHasMore &&
         !compositionState.emptyTerminal &&
         items.length > 0 &&
         compositionState.exactExhausted &&
