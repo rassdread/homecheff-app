@@ -144,17 +144,18 @@ async function runCase(
 
   let stall = 0;
   let prevCards = 0;
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 90; i++) {
     await scrollOnce(page);
-    await page.waitForTimeout(i < 20 ? 1100 : 750);
+    await page.waitForTimeout(i < 25 ? 1100 : 700);
     const s = await dump(page);
     series.push({ i, ...s });
     if (s.cardCount <= prevCards) stall += 1;
     else stall = 0;
     prevCards = s.cardCount;
     const batch = Number((s.fiber as any)?.batch || 0);
-    if (s.cardCount >= TARGET && batch >= 2) break;
-    if (stall >= 12 && (s.fiber as any)?.recirc) break;
+    const hist = Number((s.fiber as any)?.hist || 0);
+    if ((s.cardCount >= TARGET || hist >= TARGET) && batch >= 2) break;
+    if (stall >= 12 && (s.fiber as any)?.recirc && hist >= Math.max(40, TARGET * 0.6)) break;
   }
 
   await browser.close();
@@ -193,7 +194,7 @@ async function runCase(
     recircActive &&
     batch >= 1 &&
     intentionalRecirc &&
-    (cardMax >= 50 || histMax >= 50) &&
+    histMax >= TARGET &&
     Boolean(final.sentinel);
 
   return {

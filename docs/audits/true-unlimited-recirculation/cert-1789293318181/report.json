@@ -1,0 +1,701 @@
+{
+  "base": "https://homecheff.eu",
+  "target": 80,
+  "at": "2026-09-13T09:56:41.594Z",
+  "results": [
+    {
+      "label": "DESKTOP",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "uniqueMax": 26,
+      "cardMax": 40,
+      "histMax": 51,
+      "fiberUnique": 34,
+      "growthAfterUnique": 0,
+      "intentionalRecirc": true,
+      "recircActive": true,
+      "batch": 2,
+      "endOfSelection": true,
+      "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+      "series": [
+        {
+          "i": 0,
+          "cards": 10,
+          "unique": 10,
+          "hist": 10,
+          "stage": "exact",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 1,
+          "cards": 16,
+          "unique": 16,
+          "hist": 17,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 2,
+          "cards": 16,
+          "unique": 16,
+          "hist": 17,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 3,
+          "cards": 18,
+          "unique": 18,
+          "hist": 21,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 4,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 5,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 6,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 7,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 8,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 9,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 10,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 11,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 12,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 13,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 14,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 15,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 16,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        }
+      ],
+      "final": {
+        "i": 16,
+        "cardCount": 40,
+        "uniqueCount": 26,
+        "anchorCount": 80,
+        "sentinel": true,
+        "endOfSelection": true,
+        "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+        "fiber": {
+          "batch": 2,
+          "stage": "recirculation",
+          "empty": false,
+          "recirc": true,
+          "unique": 34,
+          "hist": 51,
+          "exactExhausted": true,
+          "broadenedExhausted": true,
+          "marketplaceExhausted": true
+        },
+        "sampleBottom": [
+          "/product/homecheff-design-studio-vlaardingen-cert-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+          "/product/4-jonkies-of-2-grote-vlaardingen-hcid-f2687957-ad14-4c63-92c6-3b4096aea2da",
+          "/product/homecheff-design-studio-vlaardingen-cert-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+          "/product/4-jonkies-of-2-grote-vlaardingen-hcid-f2687957-ad14-4c63-92c6-3b4096aea2da",
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+        ],
+        "nested": true
+      },
+      "pass": true
+    },
+    {
+      "label": "MOBILE_PORTRAIT",
+      "viewport": {
+        "width": 390,
+        "height": 664
+      },
+      "uniqueMax": 26,
+      "cardMax": 46,
+      "histMax": 59,
+      "fiberUnique": 34,
+      "growthAfterUnique": 6,
+      "intentionalRecirc": true,
+      "recircActive": true,
+      "batch": 3,
+      "endOfSelection": true,
+      "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+      "series": [
+        {
+          "i": 0,
+          "cards": 10,
+          "unique": 10,
+          "hist": 10,
+          "stage": "exact",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 1,
+          "cards": 15,
+          "unique": 15,
+          "hist": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 2,
+          "cards": 15,
+          "unique": 15,
+          "hist": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 3,
+          "cards": 16,
+          "unique": 16,
+          "hist": 17,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 4,
+          "cards": 16,
+          "unique": 16,
+          "hist": 17,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 5,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 6,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 7,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 8,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 9,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 10,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 11,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 12,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 13,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 14,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 15,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 16,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 17,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        },
+        {
+          "i": 18,
+          "cards": 46,
+          "unique": 26,
+          "hist": 59,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 3,
+          "sentinel": true
+        }
+      ],
+      "final": {
+        "i": 18,
+        "cardCount": 46,
+        "uniqueCount": 26,
+        "anchorCount": 92,
+        "sentinel": true,
+        "endOfSelection": true,
+        "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+        "fiber": {
+          "batch": 3,
+          "stage": "recirculation",
+          "empty": false,
+          "recirc": true,
+          "unique": 34,
+          "hist": 59,
+          "exactExhausted": true,
+          "broadenedExhausted": true,
+          "marketplaceExhausted": true
+        },
+        "sampleBottom": [
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336",
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/product/pastas-rottetdam-hcid-6903370f-ad45-49d6-b6c1-3d7332a100d9",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/product/fafa010-rottetdam-hcid-c07854ca-2767-4d7c-a667-478005ed8974",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+        ],
+        "nested": false
+      },
+      "pass": true
+    },
+    {
+      "label": "MOBILE_LANDSCAPE",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "uniqueMax": 26,
+      "cardMax": 40,
+      "histMax": 51,
+      "fiberUnique": 34,
+      "growthAfterUnique": 0,
+      "intentionalRecirc": true,
+      "recircActive": true,
+      "batch": 2,
+      "endOfSelection": true,
+      "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+      "series": [
+        {
+          "i": 0,
+          "cards": 10,
+          "unique": 10,
+          "hist": 10,
+          "stage": "exact",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 1,
+          "cards": 15,
+          "unique": 15,
+          "hist": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 2,
+          "cards": 15,
+          "unique": 15,
+          "hist": 16,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 3,
+          "cards": 16,
+          "unique": 16,
+          "hist": 17,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 4,
+          "cards": 24,
+          "unique": 24,
+          "hist": 31,
+          "stage": "broadened",
+          "recirc": false,
+          "batch": 0,
+          "sentinel": true
+        },
+        {
+          "i": 5,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 6,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 7,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 8,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 9,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 10,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 11,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 12,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 13,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 14,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 15,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 16,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        },
+        {
+          "i": 17,
+          "cards": 40,
+          "unique": 26,
+          "hist": 51,
+          "stage": "recirculation",
+          "recirc": true,
+          "batch": 2,
+          "sentinel": true
+        }
+      ],
+      "final": {
+        "i": 17,
+        "cardCount": 40,
+        "uniqueCount": 26,
+        "anchorCount": 80,
+        "sentinel": true,
+        "endOfSelection": true,
+        "endText": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
+        "fiber": {
+          "batch": 2,
+          "stage": "recirculation",
+          "empty": false,
+          "recirc": true,
+          "unique": 34,
+          "hist": 51,
+          "exactExhausted": true,
+          "broadenedExhausted": true,
+          "marketplaceExhausted": true
+        },
+        "sampleBottom": [
+          "/product/homecheff-design-studio-vlaardingen-cert-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+          "/product/4-jonkies-of-2-grote-vlaardingen-hcid-f2687957-ad14-4c63-92c6-3b4096aea2da",
+          "/product/homecheff-design-studio-vlaardingen-cert-hcid-fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+          "/product/4-jonkies-of-2-grote-vlaardingen-hcid-f2687957-ad14-4c63-92c6-3b4096aea2da",
+          "/product/zelfgemaakte-dromenvanger-schiedam-hcid-b26848d8-1d41-437c-9885-49cee8a8b0e9",
+          "/recipe/d086099a-b7f3-4661-9a2e-f3c834c6714c",
+          "/product/mini-parkje-schiedam-hcid-4d476194-bafe-4c9a-be49-c22343cd85ed",
+          "/recipe/bffec0e8-91ba-4eff-9b34-f8265169e336"
+        ],
+        "nested": true
+      },
+      "pass": true
+    }
+  ],
+  "PASS": true
+}
