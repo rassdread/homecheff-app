@@ -12,9 +12,12 @@ const strip = readFileSync('components/adaptive-workspace/WorkspaceOrientationSt
 const nl = readFileSync('public/i18n/nl.json', 'utf8');
 const en = readFileSync('public/i18n/en.json', 'utf8');
 
-assert(collapsible.includes('Hero verbergen') === false, 'labels come from i18n, not hardcoded NL in component');
 assert(collapsible.includes('homePhase1.heroHideLabel'), 'hide label key');
 assert(collapsible.includes('homePhase1.heroShowLabel'), 'show label key');
+assert(collapsible.includes("tOr('homePhase1.heroHideLabel'"), 'hide label has tOr fallback for stale i18n cache');
+assert(collapsible.includes("tOr('homePhase1.heroShowLabel'"), 'show label has tOr fallback for stale i18n cache');
+assert(collapsible.includes('Hero verbergen'), 'NL hide fallback copy');
+assert(collapsible.includes('Hero tonen'), 'NL show fallback copy');
 assert(collapsible.includes('aria-expanded'), 'expanded state');
 assert(collapsible.includes('min-h-[44px]'), 'touch target');
 assert(collapsible.includes('ChevronUp'), 'hide chevron');
