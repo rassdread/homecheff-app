@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import ListingDetailPage from '@/components/product/ListingDetailPage';
+import { toClientPlain } from '@/lib/client/to-client-plain';
 import { loadListingDetailCached } from '@/lib/marketplace/detail/load-listing-detail-cached';
 import {
   buildProductDetailPath,
@@ -76,7 +77,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   return (
     <>
       <h1 className="sr-only">{product?.title ?? ''}</h1>
-      <ListingDetailPage initialData={initialData} />
+      <ListingDetailPage initialData={toClientPlain(initialData)} />
     </>
   );
 }

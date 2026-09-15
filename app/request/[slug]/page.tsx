@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import ListingDetailPage from '@/components/product/ListingDetailPage';
+import { toClientPlain } from '@/lib/client/to-client-plain';
 import { loadListingDetailCached } from '@/lib/marketplace/detail/load-listing-detail-cached';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 
@@ -17,5 +18,5 @@ export default async function RequestDetailPage({ params }: PageProps) {
   const initialData = await loadListingDetailCached(id);
   if (!initialData) notFound();
 
-  return <ListingDetailPage initialData={initialData} />;
+  return <ListingDetailPage initialData={toClientPlain(initialData)} />;
 }

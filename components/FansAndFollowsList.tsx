@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { UserPlus, Users, Heart, LogIn } from 'lucide-react';
 import ClickableName from '@/components/ui/ClickableName';
 import SafeImage from '@/components/ui/SafeImage';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
+import { getFeedItemHref, getListingHref } from '@/lib/routing/public-hrefs';
 import { useTranslation } from '@/hooks/useTranslation';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 import {

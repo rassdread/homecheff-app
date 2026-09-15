@@ -4,6 +4,7 @@
  */
 
 import { buildDiscoveryTrust } from '@/lib/discovery/trust/build-discovery-trust';
+import { countFansBySellerIds } from '@/lib/follow/batch-fan-counts';
 import { getCachedListingProductCore } from '@/lib/marketplace/detail/get-cached-listing-product-core';
 import { requiresStripeForHomecheffCheckout } from '@/lib/product/order-method';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
@@ -42,6 +43,8 @@ export type ListingDetailPayload = {
     averageRating: number;
     reviewCount: number;
   };
+  /** Live Follow count for seller User.id — same source as feed cards. */
+  sellerFansCount: number;
   discoveryTrust: ReturnType<typeof buildDiscoveryTrust>;
 };
 
@@ -122,6 +125,11 @@ export async function loadListingDetail(
     ? paymentStatus.canCheckout
     : false;
 
+  const sellerUserId = sellerUser?.id;
+  const fansBySeller = sellerUserId
+    ? await countFansBySellerIds([sellerUserId])
+    : new Map<string, number>();
+
   return {
     product: {
       ...product,
@@ -148,6 +156,9 @@ export async function loadListingDetail(
       averageRating: 0,
       reviewCount: 0,
     },
+    sellerFansCount: sellerUserId
+      ? fansBySeller.get(sellerUserId) ?? 0
+      : 0,
     discoveryTrust: buildDiscoveryTrust({
       listingProductReviewCount: 0,
       listingIsActive: Boolean(product.isActive ?? true),

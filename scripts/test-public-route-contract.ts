@@ -13,7 +13,9 @@ import {
 import { resolveProductIdFromParam } from '../lib/seo/productSlug';
 import {
   listingDetailApiPath,
+  listingDetailRouteParamFromPathname,
   normalizeListingDetailRouteParam,
+  resolveListingDetailRouteParam,
 } from '../lib/marketplace/detail/listing-detail-route';
 
 let passed = 0;
@@ -87,6 +89,33 @@ check('API path strips slug trailing slash and uses UUID', () => {
     listingDetailApiPath(param),
     '/api/products/3b85deeb-5801-417a-a087-5b6027130ae0',
   );
+});
+
+check('listing detail param from pathname and array useParams', () => {
+  assert.equal(
+    listingDetailRouteParamFromPathname(
+      '/product/zelfgemaakte-boompjes-van-kralen-schiedam-hcid-0966c830-251f-4dfb-8df2-501ef5764a3e',
+    ),
+    'zelfgemaakte-boompjes-van-kralen-schiedam-hcid-0966c830-251f-4dfb-8df2-501ef5764a3e',
+  );
+  assert.equal(
+    resolveListingDetailRouteParam({
+      id: ['slug-hcid-3b85deeb-5801-417a-a087-5b6027130ae0'],
+    }),
+    'slug-hcid-3b85deeb-5801-417a-a087-5b6027130ae0',
+  );
+});
+
+check('toClientPlain strips Date/BigInt for RSC client props', () => {
+  const { toClientPlain } = require('../lib/client/to-client-plain') as typeof import('../lib/client/to-client-plain');
+  const plain = toClientPlain({
+    at: new Date('2026-09-15T00:00:00.000Z'),
+    n: Number.NaN,
+    big: BigInt(7),
+  });
+  assert.equal(plain.at, '2026-09-15T00:00:00.000Z');
+  assert.equal(plain.n, null);
+  assert.equal(plain.big, '7');
 });
 
 check('invalid profile inputs return null', () => {

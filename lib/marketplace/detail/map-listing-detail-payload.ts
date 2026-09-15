@@ -54,12 +54,19 @@ export function mapListingDetailPayload(data: {
   stats?: unknown;
   consumerCommerce?: unknown;
 }): MappedListingDetail {
+  if (!data?.product || typeof data.product !== 'object') {
+    throw new Error('listing-detail-payload-missing-product');
+  }
+
   const dishData = {
     isDish: data.isDish || false,
     category: data.dishCategory || null,
     ingredients: data.dish?.ingredients || [],
     instructions: data.dish?.instructions || [],
-    stepPhotos: (data.dish?.stepPhotos || []).map(
+    stepPhotos: (Array.isArray(data.dish?.stepPhotos)
+      ? data.dish.stepPhotos
+      : []
+    ).map(
       (p: {
         id: string;
         url: string;
@@ -72,7 +79,10 @@ export function mapListingDetailPayload(data: {
         description: p.description,
       }),
     ),
-    growthPhotos: (data.dish?.growthPhotos || []).map(
+    growthPhotos: (Array.isArray(data.dish?.growthPhotos)
+      ? data.dish.growthPhotos
+      : []
+    ).map(
       (p: {
         id: string;
         url: string;

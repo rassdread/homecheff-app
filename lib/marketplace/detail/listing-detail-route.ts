@@ -15,9 +15,22 @@ export type ListingDetailLoadError =
 
 export type ListingDetailKind = 'product' | 'request';
 
+function firstRouteSegment(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim()) return value;
+  if (Array.isArray(value) && typeof value[0] === 'string' && value[0].trim()) {
+    return value[0];
+  }
+  return null;
+}
+
 /** Strip query/hash/trailing slash from dynamic route segment. */
 export function normalizeListingDetailRouteParam(param: string): string {
-  let p = decodeURIComponent(param).trim();
+  let p = param;
+  try {
+    p = decodeURIComponent(param).trim();
+  } catch {
+    p = param.trim();
+  }
   const q = p.indexOf('?');
   const h = p.indexOf('#');
   const cut = Math.min(q === -1 ? p.length : q, h === -1 ? p.length : h);
@@ -30,15 +43,21 @@ export function resolveListingDetailRouteParam(
   params: Record<string, string | string[] | undefined> | null | undefined,
 ): string | null {
   if (!params) return null;
-  const id = params.id;
-  if (typeof id === 'string' && id.trim()) {
-    return normalizeListingDetailRouteParam(id);
-  }
-  const slug = params.slug;
-  if (typeof slug === 'string' && slug.trim()) {
-    return normalizeListingDetailRouteParam(slug);
-  }
+  const id = firstRouteSegment(params.id);
+  if (id) return normalizeListingDetailRouteParam(id);
+  const slug = firstRouteSegment(params.slug);
+  if (slug) return normalizeListingDetailRouteParam(slug);
   return null;
+}
+
+/** Client fallback when useParams() is empty (PWA / intercepted navigation). */
+export function listingDetailRouteParamFromPathname(
+  pathname: string | null | undefined,
+): string | null {
+  if (!pathname) return null;
+  const match = pathname.match(/^\/(?:product|request)\/([^/]+)\/?$/i);
+  if (!match?.[1]) return null;
+  return normalizeListingDetailRouteParam(match[1]);
 }
 
 export function resolveListingDetailKind(

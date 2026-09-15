@@ -47,6 +47,7 @@ type Props = {
     favoriteCount?: number;
   };
   makerLine?: string | null;
+  initialFansCount?: number;
   className?: string;
 };
 
@@ -57,13 +58,24 @@ export default function ProductMakerTrustStrip({
   companyName,
   productStats,
   makerLine,
+  initialFansCount,
   className,
 }: Props) {
   const { t } = useTranslation();
   const userId = sellerUser?.id ?? null;
-  const [stats, setStats] = useState(() =>
-    userId ? getCachedUserStats(userId) : null,
-  );
+  const [stats, setStats] = useState(() => {
+    if (userId) {
+      const cached = getCachedUserStats(userId);
+      if (cached) return cached;
+    }
+    if (typeof initialFansCount === 'number') {
+      return {
+        ...EMPTY_USER_STATS,
+        fansCount: Math.max(0, Math.floor(initialFansCount) || 0),
+      };
+    }
+    return null;
+  });
 
   useEffect(() => {
     if (!userId) return;
@@ -113,8 +125,6 @@ export default function ProductMakerTrustStrip({
   }
   if (s.totalProps > 0) {
     chips.push(`${s.totalProps} props`);
-  } else if (productStats?.favoriteCount && productStats.favoriteCount > 0) {
-    chips.push(`${productStats.favoriteCount} props`);
   }
   if (s.averageRating > 0 && s.totalReviews > 0 && !productStats?.reviewCount) {
     chips.push(`${s.averageRating.toFixed(1)}★ maker`);

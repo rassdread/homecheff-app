@@ -16,7 +16,9 @@ import {
   listingDetailApiPath,
   listingDetailFetchUrl,
   listingDetailResolvedId,
+  listingDetailRouteParamFromPathname,
   resolveListingDetailKind,
+  resolveListingDetailRouteParam,
   type ListingDetailLoadError,
 } from '@/lib/marketplace/detail/listing-detail-route';
 import { listingDetailDiag } from '@/lib/marketplace/detail/listing-detail-diag';
@@ -62,6 +64,13 @@ import {
 } from '@/lib/instant-experience/listing-detail-return-cache';
 import type { ListingDetailPayload } from '@/lib/marketplace/detail/load-listing-detail';
 import { mapListingDetailPayload } from '@/lib/marketplace/detail/map-listing-detail-payload';
+import { patchMakerFansCount } from '@/lib/follow/follow-state-store';
+import {
+  EMPTY_USER_STATS,
+  getCachedUserStats,
+  patchCachedUserFansCount,
+  seedCachedUserStats,
+} from '@/lib/userStatsClientCache';
 
 type Product = {
   id: string;
@@ -194,11 +203,10 @@ export default function ListingDetailPage({
   const params = useParams();
   const router = useRouter();
   const routeParam =
-    typeof params?.id === 'string'
-      ? params.id
-      : typeof params?.slug === 'string'
-        ? params.slug
-        : null;
+    resolveListingDetailRouteParam(params as Record<string, string | string[] | undefined>) ??
+    listingDetailRouteParamFromPathname(
+      typeof window !== 'undefined' ? window.location.pathname : null,
+    );
   // Helper function: Get available stock using same logic as checkout
   // Uses stock as primary, maxStock as fallback (consistent with Stripe checkout)
   const getAvailableStock = (product: Product | null) => {
@@ -212,9 +220,15 @@ export default function ListingDetailPage({
   const { data: session } = useSession();
   const { t } = useTranslation();
 
-  const mappedInitial = initialData
-    ? mapListingDetailPayload(initialData)
-    : null;
+  let mappedInitial: ReturnType<typeof mapListingDetailPayload> | null = null;
+  try {
+    mappedInitial = initialData ? mapListingDetailPayload(initialData) : null;
+  } catch (mapError) {
+    listingDetailDiag('rsc-map-failed', {
+      error: mapError instanceof Error ? mapError.message : String(mapError),
+    });
+    mappedInitial = null;
+  }
 
   const [product, setProduct] = useState<Product | null>(
     () => (mappedInitial?.product as Product) ?? null,
@@ -295,6 +309,19 @@ export default function ListingDetailPage({
   const handoffCheckedRef = useRef(false);
   const hasStaleSnapshotRef = useRef(Boolean(mappedInitial));
   const hasServerInitialRef = useRef(Boolean(mappedInitial));
+
+  useEffect(() => {
+    const uid = product?.seller?.User?.id;
+    const fans = initialData?.sellerFansCount;
+    if (!uid || typeof fans !== 'number') return;
+    patchMakerFansCount(uid, fans);
+    const cached = getCachedUserStats(uid);
+    if (cached) {
+      patchCachedUserFansCount(uid, fans);
+    } else {
+      seedCachedUserStats(uid, { ...EMPTY_USER_STATS, fansCount: fans });
+    }
+  }, [product?.seller?.User?.id, initialData?.sellerFansCount]);
 
   useLayoutEffect(() => {
     if (!routeParam || typeof window === 'undefined') return;
@@ -385,8 +412,8 @@ export default function ListingDetailPage({
     if (!routeParam) return;
     setBaseUrl(window.location.origin);
 
-    // Explicit retry after error: abandon RSC snapshot and re-fetch API.
-    if (fetchGeneration > 0) {
+    // Explicit retry after error: re-fetch API, but keep a working RSC body.
+    if (fetchGeneration > 0 && !product?.id) {
       hasServerInitialRef.current = false;
     }
 
@@ -521,29 +548,31 @@ export default function ListingDetailPage({
     }
     
     const fetchProduct = async () => {
-      const resolvedId = listingDetailResolvedId(routeParam);
-      const apiPath = listingDetailApiPath(routeParam);
-      const fetchUrl = listingDetailFetchUrl(routeParam);
-      const detailKind = resolveListingDetailKind(params ?? undefined);
-      const origin =
-        typeof window !== 'undefined' ? window.location.origin : '';
-      const diagBase = {
-        tileId: resolvedId,
-        routeParam,
-        resolvedId,
-        detailKind,
-        apiPath,
-        fetchUrl,
-        href:
-          typeof window !== 'undefined'
-            ? `${window.location.pathname}${window.location.search}`
-            : null,
-        native: isNativeApp(),
-        absoluteApi: shouldUseAbsoluteApiBase(),
-        origin,
-      };
-
       try {
+        const resolvedId = listingDetailResolvedId(routeParam);
+        const apiPath = listingDetailApiPath(routeParam);
+        const fetchUrl = listingDetailFetchUrl(routeParam);
+        const detailKind = resolveListingDetailKind(
+          params as Record<string, string | string[] | undefined> | undefined,
+        );
+        const origin =
+          typeof window !== 'undefined' ? window.location.origin : '';
+        const diagBase = {
+          tileId: resolvedId,
+          routeParam,
+          resolvedId,
+          detailKind,
+          apiPath,
+          fetchUrl,
+          href:
+            typeof window !== 'undefined'
+              ? `${window.location.pathname}${window.location.search}`
+              : null,
+          native: isNativeApp(),
+          absoluteApi: shouldUseAbsoluteApiBase(),
+          origin,
+        };
+
         if (!hasStaleSnapshotRef.current) {
           setIsLoading(true);
         }
@@ -572,23 +601,31 @@ export default function ListingDetailPage({
         });
 
         if (status === 404) {
-          setProduct(null);
-          setLoadError('not_found');
+          if (!hasStaleSnapshotRef.current) {
+            setProduct(null);
+            setLoadError('not_found');
+          }
           return;
         }
         if (status === 403) {
-          setProduct(null);
-          setLoadError('unavailable');
+          if (!hasStaleSnapshotRef.current) {
+            setProduct(null);
+            setLoadError('unavailable');
+          }
           return;
         }
         if (status >= 500) {
-          setProduct(null);
-          setLoadError('server_error');
+          if (!hasStaleSnapshotRef.current) {
+            setProduct(null);
+            setLoadError('server_error');
+          }
           return;
         }
         if (!response.ok) {
-          setProduct(null);
-          setLoadError('network');
+          if (!hasStaleSnapshotRef.current) {
+            setProduct(null);
+            setLoadError('network');
+          }
           return;
         }
 
@@ -602,14 +639,18 @@ export default function ListingDetailPage({
             bodySnippet,
             error: String(parseError),
           });
-          setProduct(null);
-          setLoadError('invalid');
+          if (!hasStaleSnapshotRef.current) {
+            setProduct(null);
+            setLoadError('invalid');
+          }
           return;
         }
         
         if (!data || !data.product) {
-          setProduct(null);
-          setLoadError('invalid');
+          if (!hasStaleSnapshotRef.current) {
+            setProduct(null);
+            setLoadError('invalid');
+          }
           return;
         }
 
@@ -618,7 +659,20 @@ export default function ListingDetailPage({
           setStats(data.stats);
         }
 
-        const mapped = mapListingDetailPayload(data);
+        let mapped;
+        try {
+          mapped = mapListingDetailPayload(data);
+        } catch (mapError) {
+          listingDetailDiag('fetch:map-failed', {
+            ...diagBase,
+            error: mapError instanceof Error ? mapError.message : String(mapError),
+          });
+          if (!hasStaleSnapshotRef.current) {
+            setProduct(null);
+            setLoadError('invalid');
+          }
+          return;
+        }
         const transformedProduct = mapped.product as Product;
         setDishInfo(mapped.dishInfo);
         setLinkedInspiration(mapped.linkedInspiration);
@@ -710,17 +764,16 @@ export default function ListingDetailPage({
       } catch (error) {
         listingDetailDiag('fetch:threw', {
           routeParam,
-          resolvedId,
-          apiPath,
-          fetchUrl,
           error: error instanceof Error ? error.message : String(error),
           native: isNativeApp(),
           origin:
             typeof window !== 'undefined' ? window.location.origin : '',
         });
         console.error('Error fetching product:', error);
-        setProduct(null);
-        setLoadError('network');
+        if (!hasStaleSnapshotRef.current) {
+          setProduct(null);
+          setLoadError('network');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -1138,6 +1191,7 @@ export default function ListingDetailPage({
                       publicContactChannels={publicContactChannels}
                       carouselImageUrl={carouselImageUrl}
                       shareUrl={productShareUrl}
+                      sellerFansCount={initialData?.sellerFansCount}
                       onQuantityChange={setQuantity}
                       onAddedToCart={() => setQuantity(1)}
                     />

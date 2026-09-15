@@ -99,6 +99,7 @@ type Props = {
   publicContactChannels: PublicContactChannel[];
   carouselImageUrl?: string | null;
   shareUrl: string;
+  sellerFansCount?: number;
   onQuantityChange: (n: number) => void;
   onAddedToCart?: () => void;
   className?: string;
@@ -122,6 +123,7 @@ export default function ProductSaleCommerceZone({
   publicContactChannels,
   carouselImageUrl,
   shareUrl,
+  sellerFansCount,
   onQuantityChange,
   onAddedToCart,
   className,
@@ -197,6 +199,7 @@ export default function ProductSaleCommerceZone({
             Boolean(product.seller?.kvk && product.seller?.companyName)
           }
           companyName={companyName ?? product.seller?.companyName ?? null}
+          initialFansCount={sellerFansCount}
         />
       ) : null}
 
