@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
+  Camera,
   Heart,
   MapPin,
   MessageCircle,
@@ -54,12 +56,15 @@ function ProfileAvatar({
   src,
   alt,
   onPreview,
+  onOwnerEdit,
 }: {
   src: string;
   alt: string;
   onPreview?: (url: string) => void;
+  onOwnerEdit?: () => void;
 }) {
   const canPreview = Boolean(onPreview && src && !src.includes('avatar-placeholder'));
+  const clickable = Boolean(onOwnerEdit) || canPreview;
 
   const circle = (
     <div className="hc-profile-v2-avatar-circle relative shrink-0 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg ring-2 ring-primary-brand/25">
@@ -74,14 +79,18 @@ function ProfileAvatar({
     </div>
   );
 
-  if (!canPreview) return circle;
+  if (!clickable) return circle;
 
   return (
     <button
       type="button"
       className="shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-brand focus-visible:ring-offset-2"
-      onClick={() => onPreview?.(src)}
-      aria-label={alt}
+      onClick={() => {
+        if (onOwnerEdit) onOwnerEdit();
+        else onPreview?.(src);
+      }}
+      aria-label={onOwnerEdit ? alt : alt}
+      data-hc-profile-photo-avatar=""
     >
       {circle}
     </button>
@@ -110,8 +119,10 @@ export default function ProfileV2Header({
   avatarPreviewUrl,
 }: Props) {
   const { t, language } = useTranslation();
+  const [photoEditorOpen, setPhotoEditorOpen] = useState(false);
   const { viewerIsOwner, user, stats, hcp, publicContact, ecosystemChipKeys } =
     ctx;
+  const canEditPhoto = Boolean(viewerIsOwner && onPhotoChange);
   const displayName = getDisplayName(user);
   const avatarSrc =
     avatarPreviewUrl ?? user.profileImage ?? user.image ?? '/avatar-placeholder.png';
@@ -159,10 +170,36 @@ export default function ProfileV2Header({
             <div className="hc-profile-v2-avatar-overlap">
               <ProfileAvatar
                 src={avatarSrc}
-                alt={t('profilePage.profilePhotoAlt')}
-                onPreview={onAvatarPreview}
+                alt={
+                  canEditPhoto
+                    ? t('profileV2.actions.changeProfilePhoto') || t('profilePage.profilePhotoAlt')
+                    : t('profilePage.profilePhotoAlt')
+                }
+                onPreview={canEditPhoto ? undefined : onAvatarPreview}
+                onOwnerEdit={canEditPhoto ? () => setPhotoEditorOpen(true) : undefined}
               />
+              {canEditPhoto ? (
+                <button
+                  type="button"
+                  onClick={() => setPhotoEditorOpen(true)}
+                  className="absolute bottom-0 right-0 z-10 flex h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-white shadow-md"
+                  aria-label={t('profileV2.actions.changeProfilePhoto') || t('profileV2.actions.changePhoto')}
+                  data-hc-profile-photo-badge=""
+                >
+                  <Camera className="h-5 w-5" aria-hidden />
+                </button>
+              ) : null}
             </div>
+            {canEditPhoto ? (
+              <button
+                type="button"
+                onClick={() => setPhotoEditorOpen(true)}
+                className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm"
+                data-hc-profile-photo-open=""
+              >
+                {t('profileV2.actions.changeProfilePhoto') || t('profileV2.actions.changePhoto')}
+              </button>
+            ) : null}
           </div>
 
           <div className="hc-profile-v2-hero-identity min-w-0 w-full space-y-4 text-center xl:text-left">
@@ -267,14 +304,16 @@ export default function ProfileV2Header({
           </div>
         </div>
 
-        <div className="hc-profile-v2-hero-actions">
-          {viewerIsOwner && onPhotoChange ? (
-            <ProfileV2HeroPhotoEdit
-              initialUrl={user.profileImage}
-              onPhotoChange={onPhotoChange}
-            />
-          ) : null}
+        {canEditPhoto ? (
+          <ProfileV2HeroPhotoEdit
+            open={photoEditorOpen}
+            onClose={() => setPhotoEditorOpen(false)}
+            currentUrl={avatarSrc}
+            onPhotoChange={onPhotoChange}
+          />
+        ) : null}
 
+        <div className="hc-profile-v2-hero-actions">
           <div className="flex flex-wrap items-center justify-center gap-2 xl:justify-start">
             {viewerIsOwner ? (
               <>

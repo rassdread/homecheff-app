@@ -432,7 +432,10 @@ export default function ProfileV2Client({
       topBar={topBar}
       onEditProfile={() => router.push('/settings')}
       onPhotoChange={(url) => {
-        setAvatarPreviewUrl(url);
+        const bust = url && !url.startsWith('blob:') && !url.startsWith('data:')
+          ? `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`
+          : url;
+        setAvatarPreviewUrl(bust);
         void refreshProfile();
         void updateSession();
         router.refresh();

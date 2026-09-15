@@ -6874,8 +6874,14 @@
       "editProfile": "Edit profile",
       "settings": "Settings",
       "changePhoto": "Change photo",
+      "changeProfilePhoto": "Change profile photo",
+      "choosePhoto": "Choose photo",
+      "chooseOtherPhoto": "Choose another photo",
       "message": "Message",
       "viewAanbod": "View offerings"
+    },
+    "photo": {
+      "hint": "Choose a photo. You see a preview first. Save puts it on your profile."
     },
     "forms": {
       "productNotFound": "Product not found",

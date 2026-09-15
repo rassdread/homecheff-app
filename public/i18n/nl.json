@@ -5116,8 +5116,14 @@
       "editProfile": "Profiel bewerken",
       "settings": "Instellingen",
       "changePhoto": "Foto wijzigen",
+      "changeProfilePhoto": "Profielfoto wijzigen",
+      "choosePhoto": "Foto kiezen",
+      "chooseOtherPhoto": "Andere foto kiezen",
       "message": "Bericht",
       "viewAanbod": "Aanbod bekijken"
+    },
+    "photo": {
+      "hint": "Kies een foto. Je ziet eerst een voorbeeld. Opslaan zet de foto op je profiel."
     },
     "forms": {
       "productNotFound": "Product niet gevonden",
