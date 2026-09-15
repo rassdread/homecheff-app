@@ -162,6 +162,8 @@ export function mapGeoFeedCardToTileModel(
           avatar: item.sellerAvatar ?? null,
           displayFullName: item.sellerDisplayFullName,
           displayNameOption: item.sellerDisplayNameOption,
+          fansCount: item.sellerFansCount ?? item.discovery?.social.fansCount ?? 0,
+          viewerIsFan: item.viewerIsFan,
         }
       : null,
 
@@ -186,6 +188,8 @@ export function mapGeoFeedCardToTileModel(
       (mode === 'inspiration'
         ? getDiscoveryLegacyVerticalCategory(item) ?? item.category ?? undefined
         : undefined),
+
+    isFavorited: item.isFavorited,
 
     offerMainCategory: valueExchange.offerMainCategory,
     offerSubCategory: valueExchange.offerSubCategory,

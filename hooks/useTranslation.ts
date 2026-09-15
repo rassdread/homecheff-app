@@ -354,8 +354,8 @@ export function useTranslation() {
     const cacheVersionKey = `i18n-${lang}-version`;
     // Bump bij elke wijziging in public/i18n/{nl,en}.json zodat browsers met stale
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
-    // 2.55 — Homepage hero hide/show labels (heroHideLabel / heroShowLabel)
-    const CACHE_VERSION = '2.55';
+    // 2.56 — Card fan count copy (1 fan / N fans)
+    const CACHE_VERSION = '2.56';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state

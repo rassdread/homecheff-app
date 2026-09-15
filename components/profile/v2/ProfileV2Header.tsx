@@ -16,6 +16,7 @@ import BusinessBadge from '@/components/ui/BusinessBadge';
 import BusinessPlanBadge from '@/components/business/BusinessPlanBadge';
 import { resolveBusinessPlanId } from '@/lib/business/visibility-profile';
 import FollowButton from '@/components/follow/FollowButton';
+import { formatFansCountLabel } from '@/lib/follow/format-fans-count';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 import MakerContactSection from '@/components/profile/MakerContactSection';
 import ProfileV2HeroPhotoEdit from '@/components/profile/v2/ProfileV2HeroPhotoEdit';
@@ -242,7 +243,7 @@ export default function ProfileV2Header({
               ) : null}
               <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
                 <Users className="h-3.5 w-3.5" aria-hidden />
-                {t('profileV2.header.fans', { count: fanCount })}
+                {formatFansCountLabel(fanCount, t)}
               </span>
               {followingCount > 0 ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
@@ -302,7 +303,8 @@ export default function ProfileV2Header({
                 <FollowButton
                   sellerId={user.id}
                   sellerName={displayName}
-                  isOwnProfile
+                  isOwnProfile={false}
+                  initialFansCount={fanCount}
                 />
                 {!showContactSection || !publicContact.some((c) => c.id === 'chat') ? (
                   <Link

@@ -48,6 +48,8 @@ import { legacyFeedSettlementBooleans } from "@/lib/marketplace/tiles/legacy-fee
 import {
   discoveryEnrichmentFromBundle,
 } from "@/lib/discovery/trust/batch-enrichment";
+import { countFansBySellerIds } from "@/lib/follow/batch-fan-counts";
+import { findViewerFavoritedItemIds } from "@/lib/favorite/batch-viewer-favorites";
 import { fetchSellerTrustBundlesWithTiming } from "@/lib/feed/trust-enrichment-timing";
 import { buildTrustTimingDebugPayload } from "@/lib/feed/trust-timing-debug";
 import type { DiscoveryEnrichment } from "@/lib/discovery/mappers/enrichment";
@@ -1197,10 +1199,22 @@ async function handleFeedGet(
     enrichTargets as Array<Record<string, unknown>>,
     extractFeedItemSellerUserId,
   );
-  const badgeMap =
+  const fanTargets = [
+    ...enrichTargets,
+    ...nonMarketplaceTail,
+  ] as Array<Record<string, unknown>>;
+  const sellerIdsForFans = collectUniqueSellerUserIds(
+    fanTargets,
+    extractFeedItemSellerUserId,
+  );
+  const fanItemIds = fanTargets.map((item) => String(item.id ?? ''));
+  const [badgeMap, fansCountBySeller, viewerFavoritedIds] = await Promise.all([
     sellerIdsForBadges.length > 0
-      ? await fetchAuthorBadgeSummariesByUserIds(sellerIdsForBadges, 2)
-      : new Map<string, { key: string; name: string; icon: string }[]>();
+      ? fetchAuthorBadgeSummariesByUserIds(sellerIdsForBadges, 2)
+      : Promise.resolve(new Map<string, { key: string; name: string; icon: string }[]>()),
+    countFansBySellerIds(sellerIdsForFans),
+    findViewerFavoritedItemIds(userId, fanItemIds),
+  ]);
   let trustTiming: import('@/lib/feed/trust-enrichment-timing').TrustEnrichmentTiming | null =
     null;
   let trustBundles: Awaited<
@@ -1220,10 +1234,18 @@ async function handleFeedGet(
     }
   }
   for (const item of enrichTargets) {
-    const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
+    const rec = item as Record<string, unknown>;
+    const uid = extractFeedItemSellerUserId(rec);
     if (!uid) continue;
     const chips = badgeMap.get(uid);
-    if (chips?.length) (item as Record<string, unknown>).sellerBadges = chips;
+    if (chips?.length) rec.sellerBadges = chips;
+  }
+  for (const rec of fanTargets) {
+    rec.isFavorited = viewerFavoritedIds.has(String(rec.id ?? ''));
+    const uid = extractFeedItemSellerUserId(rec);
+    if (!uid) continue;
+    rec.sellerFansCount = fansCountBySeller.get(uid) ?? 0;
+    rec.viewerIsFan = Boolean(userId && followedSellerUserIds.has(uid));
   }
   apiPerf?.mark('trust_business_dna_done');
   apiPerf?.setCounts({
@@ -1242,6 +1264,8 @@ async function handleFeedGet(
       discoveryEnrichmentFromBundle(bundle, {
         productReviewCount: Number((item as { reviewCount?: number }).reviewCount) || 0,
         listingIsActive: (item as { isActive?: boolean }).isActive !== false,
+        fansCount: Number((item as { sellerFansCount?: number }).sellerFansCount) || 0,
+        favoriteCount: Number((item as { favoriteCount?: number }).favoriteCount) || 0,
       }),
     );
   }

@@ -14,6 +14,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useHcpRewardUi } from "@/components/gamification/HcpRewardProvider";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
 import ProfilePublicAanbodTileGrid from "@/components/marketplace/tiles/ProfilePublicAanbodTileGrid";
+import { getCachedUserStats } from "@/lib/userStatsClientCache";
 import type { MarketplaceCategory } from "@prisma/client";
 
 type Dish = {
@@ -1008,6 +1009,7 @@ export default function MyDishesManager({
                   avatar: ownerUser.profileImage ?? ownerUser.image ?? null,
                   displayFullName: ownerUser.displayFullName,
                   displayNameOption: ownerUser.displayNameOption ?? null,
+                  fansCount: getCachedUserStats(ownerUser.id)?.fansCount,
                 }}
               />
             ) : (

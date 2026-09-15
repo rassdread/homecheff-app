@@ -410,6 +410,9 @@ type FeedItem = {
   sellerAvatar?: string | null;
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
+  sellerFansCount?: number;
+  viewerIsFan?: boolean;
+  isFavorited?: boolean;
   sellerBadges?: AuthorBadgeChip[];
   /** Afgeleide V3 taxonomy (Fase 5D). */
   taxonomy?: FeedTaxonomy;
@@ -645,6 +648,12 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
         : raw.propsCount != null
           ? Number(raw.propsCount)
           : undefined,
+    sellerFansCount:
+      raw.sellerFansCount != null && Number.isFinite(Number(raw.sellerFansCount))
+        ? Number(raw.sellerFansCount)
+        : discovery?.social.fansCount,
+    viewerIsFan: raw.viewerIsFan === true,
+    isFavorited: raw.isFavorited === true,
     sellerBadges: sellerBadges?.length ? sellerBadges : undefined,
     taxonomy,
     listingKind: discovery?.listingKind ?? withKind.listingKind,
@@ -940,6 +949,9 @@ function toCardItem(
     sellerAvatar: it.sellerAvatar,
     sellerDisplayFullName: it.sellerDisplayFullName,
     sellerDisplayNameOption: it.sellerDisplayNameOption,
+    sellerFansCount: it.sellerFansCount,
+    viewerIsFan: it.viewerIsFan,
+    isFavorited: it.isFavorited,
     sellerBadges: it.sellerBadges,
     taxonomy: it.taxonomy,
     listingKind: getDiscoveryListingKind(it),

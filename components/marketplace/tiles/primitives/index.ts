@@ -8,4 +8,5 @@ export { default as TileSettlementRow } from './TileSettlementRow';
 export { default as TileAcceptedValueIcons } from './TileAcceptedValueIcons';
 export { default as TileValueExchangeBlock } from './TileValueExchangeBlock';
 export { default as TileFavoriteAction } from './TileFavoriteAction';
+export { default as TileFollowAction } from './TileFollowAction';
 export { default as TileShareAction } from './TileShareAction';

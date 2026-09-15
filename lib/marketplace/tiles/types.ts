@@ -29,6 +29,8 @@ export type MarketplaceTilePerson = {
   avatar: string | null;
   displayFullName?: boolean | null;
   displayNameOption?: string | null;
+  fansCount?: number;
+  viewerIsFan?: boolean;
 };
 
 import type { BusinessPlanId } from '@/lib/business/visibility-profile';
@@ -101,6 +103,7 @@ export type MarketplaceTileModel = {
 
   mode: MarketplaceTileMode;
   inspirationCategoryLabel?: string;
+  isFavorited?: boolean;
 
   /** Phase 5B-A — derived value-exchange presentation fields. */
   offerMainCategory?: ValueExchangeMainCategory | null;

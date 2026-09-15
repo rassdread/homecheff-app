@@ -36,6 +36,9 @@ export type GeoFeedCardItem = {
   sellerAvatar?: string | null;
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
+  sellerFansCount?: number;
+  viewerIsFan?: boolean;
+  isFavorited?: boolean;
   sellerBadges?: Array<{ key: string; name: string; icon: string }>;
   taxonomy?: FeedTaxonomy;
   listingKind?: ListingKind;

@@ -30,6 +30,8 @@ export type TileMediaProps = {
   favoriteTitle?: string;
   mode?: MarketplaceTileMode;
   showFavorite?: boolean;
+  initialFavorited?: boolean;
+  ownerUserId?: string | null;
   showShare?: boolean;
   shareTitle?: string;
   shareDescription?: string | null;
@@ -53,6 +55,8 @@ export default function TileMedia({
   favoriteTitle,
   mode = 'sale',
   showFavorite = true,
+  initialFavorited,
+  ownerUserId,
   showShare = true,
   shareTitle,
   shareDescription = null,
@@ -94,6 +98,7 @@ export default function TileMedia({
               href={href}
               title={shareLabel}
               description={shareDescription}
+              imageUrl={imageUrl}
               baseUrl={shareBaseUrl}
               surface={shareSurface}
               listingId={favoriteId}
@@ -104,6 +109,8 @@ export default function TileMedia({
               id={favoriteId}
               title={favoriteTitle}
               mode={mode}
+              initialFavorited={initialFavorited}
+              ownerUserId={ownerUserId}
             />
           ) : null}
         </div>

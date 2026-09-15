@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ 
         success: true, 
         following: false,
+        fansCount: await prisma.follow.count({ where: { sellerId } }),
         message: 'Unfollowed successfully'
       }, { headers: cors });
     } else {
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ 
         success: true, 
         following: true,
+        fansCount: await prisma.follow.count({ where: { sellerId } }),
         message: 'Followed successfully'
       }, { headers: cors });
     }

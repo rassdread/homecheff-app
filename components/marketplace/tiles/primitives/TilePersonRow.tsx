@@ -4,8 +4,11 @@ import Link from 'next/link';
 import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import { getDisplayName } from '@/lib/displayName';
 import { formatItemPlaceDistanceLine } from '@/lib/geo/item-location';
+import { formatFansCountLabel } from '@/lib/follow/format-fans-count';
+import { useMakerFollowState } from '@/hooks/useMakerFollowState';
 import type { MarketplaceTileModel, TranslateFn } from '@/lib/marketplace/tiles';
 import { getPublicProfileHref } from '@/lib/user/public-profile';
+import TileFollowAction from '@/components/marketplace/tiles/primitives/TileFollowAction';
 
 export default function TilePersonRow({
   model,
@@ -17,6 +20,12 @@ export default function TilePersonRow({
   avatarSize?: 'xs' | 'sm';
 }) {
   const person = model.person;
+  const { fansCount, isOwnProfile } = useMakerFollowState({
+    sellerId: person?.userId ?? '',
+    initialFollowing: person?.viewerIsFan,
+    initialFansCount: person?.fansCount ?? 0,
+  });
+
   if (!person) return null;
 
   const isRequest = model.listingIntent === 'REQUEST';
@@ -72,10 +81,19 @@ export default function TilePersonRow({
         >
           {displayName ?? fallbackName}
         </Link>
-        {locationLine ? (
-          <p className="truncate text-[11px] text-gray-500">{locationLine}</p>
-        ) : null}
+        <p className="truncate text-[11px] text-gray-500">
+          {formatFansCountLabel(fansCount, t)}
+          {locationLine ? ` · ${locationLine}` : ''}
+        </p>
       </div>
+      {isOwnProfile ? null : (
+        <TileFollowAction
+          sellerId={person.userId}
+          sellerName={displayName ?? undefined}
+          initialFollowing={person.viewerIsFan}
+          initialFansCount={person.fansCount ?? 0}
+        />
+      )}
     </div>
   );
 }

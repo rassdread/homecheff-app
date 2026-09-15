@@ -8,6 +8,8 @@ import {
 } from '@/lib/marketplace/tiles/map-profile-listing-to-tile-model';
 import type { MarketplaceTilePerson } from '@/lib/marketplace/tiles';
 import MarketplaceTileMini from '@/components/marketplace/tiles/MarketplaceTileMini';
+import { useMakerFollowState } from '@/hooks/useMakerFollowState';
+import { getMakerFollowSnapshot } from '@/lib/follow/follow-state-store';
 
 export type ProfilePublicAanbodTileGridProps = {
   items: ProfileListingInput[];
@@ -32,13 +34,24 @@ export default function ProfilePublicAanbodTileGrid({
   const { t } = useTranslation();
   const baseUrl =
     typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
+  const live = useMakerFollowState({
+    sellerId: owner.userId,
+    initialFollowing: owner.viewerIsFan,
+    initialFansCount:
+      owner.fansCount ?? getMakerFollowSnapshot(owner.userId)?.fansCount ?? 0,
+  });
+  const ownerWithFans: MarketplaceTilePerson = {
+    ...owner,
+    fansCount: live.fansCount,
+    viewerIsFan: live.following,
+  };
 
   return (
     <div className={className}>
       {items.map((item) => {
         const model = mapProfileListingToTileModel(item, {
           href: productHref(item),
-          owner,
+          owner: ownerWithFans,
           mode: 'sale',
         });
         return (

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
-import { UserPlus, UserCheck } from 'lucide-react';
+import { UserCheck, UserPlus } from 'lucide-react';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useMakerFollowState } from '@/hooks/useMakerFollowState';
+import { cn } from '@/lib/utils';
 
 interface FollowButtonProps {
   sellerId: string;
@@ -13,47 +14,37 @@ interface FollowButtonProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   isOwnProfile?: boolean;
+  variant?: 'default' | 'tile';
+  initialFollowing?: boolean;
+  initialFansCount?: number;
 }
 
-export default function FollowButton({ 
-  sellerId, 
+export default function FollowButton({
+  sellerId,
   sellerName = 'deze verkoper',
   className = '',
   size = 'md',
-  isOwnProfile = false
+  isOwnProfile = false,
+  variant = 'default',
+  initialFollowing,
+  initialFansCount,
 }: FollowButtonProps) {
   const { t } = useTranslation();
   const { data: session } = useSession();
   const pathname = usePathname();
-  const [following, setFollowing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
+  const { following, toggle, isOwnProfile: viewerIsMaker } = useMakerFollowState({
+    sellerId,
+    initialFollowing,
+    initialFansCount,
+  });
 
-  // Check follow status on mount
-  useEffect(() => {
-    if (!session?.user) {
-      setCheckingStatus(false);
-      return;
-    }
+  if (isOwnProfile || viewerIsMaker) {
+    return null;
+  }
 
-    const checkFollowStatus = async () => {
-      try {
-        const response = await fetch(`/api/follows/status?sellerId=${sellerId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFollowing(data.following);
-        }
-      } catch (error) {
-        console.error('Error checking follow status:', error);
-      } finally {
-        setCheckingStatus(false);
-      }
-    };
-
-    checkFollowStatus();
-  }, [sellerId, session?.user]);
-
-  const handleToggleFollow = async () => {
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!session?.user) {
       const returnPath = `${pathname || '/'}${typeof window !== 'undefined' ? window.location.search : ''}`;
       openSoftAuthGateWithScroll({
@@ -67,85 +58,77 @@ export default function FollowButton({
       });
       return;
     }
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/follows/toggle', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sellerId }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFollowing(data.following);
-        
-        // Show feedback without redirect
-        if (data.following) {
-
-          // Just update the UI - no redirect needed
-        } else {
-
-          // Just update the UI - no alert needed
-        }
-      } else {
-        const error = await response.json();
-        console.error('Follow error:', error.error || 'Er is een fout opgetreden');
-      }
-    } catch (error) {
-      console.error('Error toggling follow:', error);
-    } finally {
-      setLoading(false);
-    }
+    void toggle(event);
   };
 
-  if (checkingStatus || isOwnProfile) {
-    return null;
+  if (variant === 'tile') {
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        className={cn(
+          'inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-1',
+          'rounded-lg px-2 py-1.5 text-[11px] font-semibold leading-tight',
+          'touch-manipulation select-none',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-brand',
+          following
+            ? 'bg-emerald-700 text-white [-webkit-text-fill-color:#ffffff]'
+            : 'border border-emerald-700/70 bg-white text-emerald-800 [-webkit-text-fill-color:#065f46]',
+          className,
+        )}
+        aria-pressed={following}
+        aria-label={following ? t('follow.followingButton') : t('follow.followButton')}
+      >
+        {following ? (
+          <UserCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        ) : (
+          <UserPlus className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        )}
+        <span className="whitespace-nowrap">
+          {following ? t('follow.followingButton') : t('follow.followButton')}
+        </span>
+      </button>
+    );
   }
 
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg'
+    lg: 'px-6 py-3 text-lg',
   };
 
   const iconSize = {
     sm: 'w-3 h-3',
     md: 'w-4 h-4',
-    lg: 'w-5 h-5'
+    lg: 'w-5 h-5',
   };
 
   return (
     <button
-      onClick={handleToggleFollow}
-      disabled={loading}
-      className={`
-        ${sizeClasses[size]}
-        flex items-center gap-2 rounded-xl font-semibold transition-all duration-200
-        transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
-        ${following 
-          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-200' 
-          : 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 hover:from-emerald-200 hover:to-emerald-300 border border-emerald-300'
-        }
-        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
-        ${following ? 'animate-pulse' : ''}
-        ${className}
-      `}
+      type="button"
+      onClick={handleClick}
+      className={cn(
+        sizeClasses[size],
+        'flex items-center gap-2 rounded-xl font-semibold transition-all duration-200',
+        'hover:scale-105 active:scale-95 shadow-md hover:shadow-lg',
+        following
+          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-200'
+          : 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 hover:from-emerald-200 hover:to-emerald-300 border border-emerald-300',
+        className,
+      )}
+      aria-pressed={following}
+      aria-label={
+        following
+          ? t('follow.followingButton')
+          : `${t('follow.followButton')} ${sellerName}`.trim()
+      }
     >
       {following ? (
-        <>
-          <UserCheck className={`${iconSize[size]} ${following ? 'animate-bounce' : ''}`} />
-          <span>{t('follow.followingButton')}</span>
-        </>
+        <UserCheck className={iconSize[size]} aria-hidden />
       ) : (
-        <>
-          <UserPlus className={iconSize[size]} />
-          <span>{t('follow.followButton')}</span>
-        </>
+        <UserPlus className={iconSize[size]} aria-hidden />
       )}
+      <span>{following ? t('follow.followingButton') : t('follow.followButton')}</span>
     </button>
   );
 }
-

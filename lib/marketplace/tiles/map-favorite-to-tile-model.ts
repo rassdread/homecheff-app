@@ -142,6 +142,7 @@ export function mapFavoriteRecordToTileModel(
       capacityRemaining: null,
       neededBy: null,
       mode: 'sale',
+      isFavorited: true,
     };
   }
 
@@ -186,6 +187,7 @@ export function mapFavoriteRecordToTileModel(
       neededBy: null,
       mode: 'inspiration',
       inspirationCategoryLabel: d.category ?? undefined,
+      isFavorited: true,
     };
   }
 
@@ -234,6 +236,7 @@ export function mapFavoriteRecordToTileModel(
       capacityRemaining: null,
       neededBy: null,
       mode: 'sale',
+      isFavorited: true,
     };
   }
 

@@ -42,6 +42,7 @@ export default function FavoriteButton({
 
   useEffect(() => {
     if (initialFavorited !== undefined) {
+      setFavorited(initialFavorited);
       setCheckingStatus(false);
       return;
     }

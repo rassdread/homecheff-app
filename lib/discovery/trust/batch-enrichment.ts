@@ -96,12 +96,16 @@ export function discoveryEnrichmentFromBundle(
   options: {
     productReviewCount?: number;
     listingIsActive?: boolean;
+    fansCount?: number;
+    favoriteCount?: number;
   } = {},
 ): DiscoveryEnrichment {
   if (!bundle) {
     return {
       productReviewCount: options.productReviewCount,
       listingIsActive: options.listingIsActive,
+      fansCount: options.fansCount,
+      favoriteCount: options.favoriteCount,
     };
   }
   return {
@@ -109,5 +113,7 @@ export function discoveryEnrichmentFromBundle(
     listingIsActive: options.listingIsActive,
     sellerTrustSnapshot: bundle.snapshot,
     trustBadges: bundle.trustBadges,
+    fansCount: options.fansCount,
+    favoriteCount: options.favoriteCount,
   };
 }

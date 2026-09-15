@@ -183,6 +183,58 @@ assert(
   'GeoFeedCards has no UserStatsTile import',
 );
 
+const fanItem = baseItem('PRODUCT');
+fanItem.sellerFansCount = 128;
+fanItem.viewerIsFan = true;
+fanItem.isFavorited = true;
+const fanModel = mapGeoFeedCardToTileModel(fanItem, {
+  href: '/product/fan',
+  mode: 'sale',
+});
+assert(fanModel.person?.fansCount === 128, 'tile person.fansCount from sellerFansCount');
+assert(fanModel.person?.viewerIsFan === true, 'tile person.viewerIsFan from payload');
+assert(fanModel.isFavorited === true, 'tile isFavorited from payload');
+
+const followBtn = fs.readFileSync(
+  path.join(process.cwd(), 'components/follow/FollowButton.tsx'),
+  'utf8',
+);
+assert(followBtn.includes("variant === 'tile'"), 'FollowButton has tile variant');
+assert(followBtn.includes('useMakerFollowState'), 'FollowButton reuses maker follow state');
+assert(!followBtn.includes('FollowV2'), 'no FollowV2');
+
+const feedRoute = fs.readFileSync(
+  path.join(process.cwd(), 'app/api/feed/route.ts'),
+  'utf8',
+);
+assert(feedRoute.includes('countFansBySellerIds'), 'feed batches fan counts');
+assert(feedRoute.includes('findViewerFavoritedItemIds'), 'feed batches viewer favorites');
+assert(feedRoute.includes('followedSellerUserIds'), 'feed reuses existing follow set');
+assert(!feedRoute.includes('FollowV2'), 'feed has no FollowV2');
+
+const profileHeader = fs.readFileSync(
+  path.join(process.cwd(), 'components/profile/v2/ProfileV2Header.tsx'),
+  'utf8',
+);
+assert(
+  profileHeader.includes('isOwnProfile={false}'),
+  'profile visitor FollowButton is not treated as own profile',
+);
+
+const personRow = fs.readFileSync(
+  path.join(process.cwd(), 'components/marketplace/tiles/primitives/TilePersonRow.tsx'),
+  'utf8',
+);
+assert(personRow.includes('TileFollowAction'), 'tile person row has Fan control');
+assert(personRow.includes('formatFansCountLabel'), 'tile shows canonical fan copy');
+
+const favoriteAction = fs.readFileSync(
+  path.join(process.cwd(), 'components/marketplace/tiles/primitives/TileFavoriteAction.tsx'),
+  'utf8',
+);
+assert(favoriteAction.includes('FavoriteButton'), 'favorite action reuses FavoriteButton');
+assert(favoriteAction.includes('initialFavorited'), 'favorite action accepts batched state');
+
 const tilesDir = path.join(process.cwd(), 'components/marketplace/tiles');
 const tileFiles = fs.readdirSync(tilesDir).filter((f) => f.endsWith('.tsx'));
 for (const file of tileFiles) {

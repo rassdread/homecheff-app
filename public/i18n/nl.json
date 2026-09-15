@@ -1323,7 +1323,9 @@
     "followButton": "Fan worden",
     "followingButton": "Fan",
     "followingCount": "Fan van {count}",
-    "fansCount": "{count} Fans"
+    "fansCount": "{count} Fans",
+    "fansCountOne": "1 fan",
+    "fansCountMany": "{count} fans"
   },
   "favorites": {
     "label": "Favorieten",

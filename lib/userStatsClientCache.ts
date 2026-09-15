@@ -68,6 +68,22 @@ export function seedCachedUserStats(userId: string, data: UserStatsPayload): voi
   cache.set(userId, { data, at: Date.now() });
 }
 
+export function invalidateCachedUserStats(userId: string): void {
+  if (!userId) return;
+  cache.delete(userId);
+  inFlight.delete(userId);
+}
+
+export function patchCachedUserFansCount(userId: string, fansCount: number): void {
+  if (!userId) return;
+  const row = cache.get(userId);
+  if (!row) return;
+  cache.set(userId, {
+    data: { ...row.data, fansCount: Math.max(0, fansCount) },
+    at: Date.now(),
+  });
+}
+
 export function fetchUserStatsDeduped(userId: string): Promise<UserStatsPayload> {
   const cached = getCachedUserStats(userId);
   if (cached) return Promise.resolve(cached);

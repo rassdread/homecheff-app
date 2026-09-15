@@ -64,6 +64,8 @@ export default function MarketplaceTileCompact({
         favoriteId={model.id}
         favoriteTitle={title}
         mode={model.mode}
+        initialFavorited={model.isFavorited}
+        ownerUserId={model.person?.userId}
         showShare
         shareTitle={title}
         shareDescription={model.description}

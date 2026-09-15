@@ -42,6 +42,15 @@ import { sortBadgesByDisplayPriority } from '@/lib/gamification/badge-priority';
 import { hcpPublicLevelTitle } from '@/lib/gamification/hcp-public-label';
 import { iconKeyToDisplayIcon } from '@/lib/gamification/author-badge-summaries';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
+import {
+  coerceUserStatsPayload,
+  seedCachedUserStats,
+} from '@/lib/userStatsClientCache';
+import {
+  FOLLOW_CHANGED_EVENT,
+  type FollowChangedDetail,
+  patchMakerFansCount,
+} from '@/lib/follow/follow-state-store';
 
 type PersistedProfileV2 = {
   activeTab?: string;
@@ -192,12 +201,19 @@ export default function ProfileV2Client({
       const data = await res.json();
       if (variant === 'private') {
         setStats(data as ProfileV2Stats);
+        if (typeof (data as ProfileV2Stats).followers === 'number') {
+          patchMakerFansCount(user.id, (data as ProfileV2Stats).followers);
+        }
       } else {
+        const fansCount = data.fansCount ?? 0;
+        patchMakerFansCount(user.id, fansCount);
+        const payload = coerceUserStatsPayload(data);
+        if (payload) seedCachedUserStats(user.id, payload);
         setStats((prev) => ({
           items: prev?.items ?? 0,
           dishes: prev?.dishes ?? 0,
           products: prev?.products ?? 0,
-          followers: data.fansCount ?? 0,
+          followers: fansCount,
           following: data.followingCount ?? 0,
           favorites: data.totalFavorites ?? 0,
           orders: 0,
@@ -213,6 +229,30 @@ export default function ProfileV2Client({
   useEffect(() => {
     void fetchStats();
   }, [fetchStats]);
+
+  useEffect(() => {
+    const onFollowChanged = (event: Event) => {
+      const detail = (event as CustomEvent<FollowChangedDetail>).detail;
+      if (!detail?.sellerId || detail.sellerId !== user.id) return;
+      setStats((prev) =>
+        prev
+          ? { ...prev, followers: detail.fansCount }
+          : {
+              items: 0,
+              dishes: 0,
+              products: 0,
+              followers: detail.fansCount,
+              following: 0,
+              favorites: 0,
+              orders: 0,
+              reviews: 0,
+              props: 0,
+            },
+      );
+    };
+    window.addEventListener(FOLLOW_CHANGED_EVENT, onFollowChanged);
+    return () => window.removeEventListener(FOLLOW_CHANGED_EVENT, onFollowChanged);
+  }, [user.id]);
 
   useEffect(() => {
     if (variant !== 'private') return;

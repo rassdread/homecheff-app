@@ -2687,7 +2687,9 @@
     "followButton": "Become a fan",
     "followingButton": "Fan",
     "followingCount": "Fan of {count}",
-    "fansCount": "{count} Fans"
+    "fansCount": "{count} Fans",
+    "fansCountOne": "1 fan",
+    "fansCountMany": "{count} fans"
   },
   "favorites": {
     "label": "Favorites",
