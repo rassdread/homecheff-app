@@ -53,9 +53,7 @@ export async function POST(req: NextRequest) {
     // Update user profile photo
     await prisma.user.update({
       where: { id: (session.user as any).id },
-      data: {
-        image: `/uploads/profile/${filename}`
-      }
+      data: { image: `/uploads/profile/${filename}`, profileImage: `/uploads/profile/${filename}` }
     });
 
     return NextResponse.json({ 

@@ -146,6 +146,39 @@ export async function uploadProfilePhoto(file: File): Promise<UploadResult> {
   return uploadFile(file, '/api/profile/photo/upload');
 }
 
+/** Persist an uploaded public URL to User.profileImage + User.image. Rejects blob/data URLs. */
+export async function persistProfilePhotoUrl(url: string | null): Promise<UploadResult> {
+  if (url && (url.startsWith('blob:') || url.startsWith('data:'))) {
+    return {
+      url: '',
+      success: false,
+      error: 'Deze foto kon niet duurzaam worden opgeslagen. Probeer het opnieuw.',
+    };
+  }
+  try {
+    const res = await fetch('/api/profile/photo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({ image: url }),
+    });
+    if (!res.ok) {
+      return {
+        url: '',
+        success: false,
+        error: 'Profielfoto opslaan is mislukt.',
+      };
+    }
+    return { url: url || '', success: true };
+  } catch {
+    return {
+      url: '',
+      success: false,
+      error: 'Profielfoto opslaan is mislukt.',
+    };
+  }
+}
+
 export async function uploadProductImages(file: File): Promise<UploadResult> {
   return uploadFile(file, '/api/upload');
 }

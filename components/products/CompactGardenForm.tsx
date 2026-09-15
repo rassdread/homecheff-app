@@ -19,6 +19,7 @@ import { validateProductLocationForPublish } from '@/lib/geo/product-location-re
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody, parseAccountRequirementsFromApiBody, humanAccountRequirementsMessage } from '@/lib/client/consume-account-requirements-response';
 import { sanitizeApiErrorForDisplay } from '@/lib/client/map-api-error-for-user';
+import { parseStockInput, parseStockInputOrZero } from '@/lib/products/parse-stock-input';
 import { PackageSelector } from '@/components/shipping/PackageSelector';
 import type { ParcelPresetId } from '@/lib/shipping/package-presets';
 import {
@@ -515,8 +516,8 @@ export default function CompactGardenForm({
             subcategory: subcategory || null,
             deliveryMode: deliveryModeFromOptions(deliveryOptions),
             images: imageUrls,
-            stock: stock ? parseInt(stock) : undefined,
-            maxStock: maxStock ? parseInt(maxStock) : undefined,
+            stock: parseStockInput(stock),
+            maxStock: parseStockInput(maxStock),
             isActive,
             platform,
             pickupAddress: finalPickupAddress,
@@ -571,8 +572,8 @@ export default function CompactGardenForm({
             pickupLng: finalPickupLng,
             sellerCanDeliver: hasDeliveryOption('DELIVERY') ? sellerCanDeliver : false,
             deliveryRadiusKm: hasDeliveryOption('DELIVERY') && sellerCanDeliver && deliveryRadiusKm ? parseFloat(deliveryRadiusKm) : null,
-            stock: stock ? parseInt(stock) : 0,
-            maxStock: maxStock ? parseInt(maxStock) : null,
+            stock: parseStockInputOrZero(stock),
+            maxStock: parseStockInput(maxStock) ?? null,
             tags: tags.filter(tag => tag.trim().length > 0),
             ...parcelPayload,
             growthPhotos: growthPhotos.length > 0 ? growthPhotos : undefined,

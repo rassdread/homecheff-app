@@ -58,7 +58,7 @@ describe('my-homecheff-hub-copy', () => {
 
   it('i18n CACHE_VERSION bumped past stale hub-less caches', () => {
     const src = readFileSync(join(root, 'hooks/useTranslation.ts'), 'utf8');
-    assert.match(src, /CACHE_VERSION = '2\.60'/);
+    assert.match(src, /CACHE_VERSION = '2\.61'/);
     assert.match(src, /myHomeCheffHub\?\.cards\?\.orders\?\.title/);
     assert.match(src, /myHomeCheffHub\?\.cards\?\.hc\?\.title/);
   });

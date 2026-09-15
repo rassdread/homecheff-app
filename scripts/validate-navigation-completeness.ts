@@ -90,7 +90,8 @@ assert(accountMenu.includes('DEALS_PROFILE_PATH'), 'account menu links Mijn Afsp
 assert(accountMenu.includes("href=\"/favorites\""), 'account menu links Favorieten');
 assert(accountMenu.includes('MY_HOMECHEFF_HUB_PATH'), 'account menu links Dashboard hub');
 const bottomNav = read('components/navigation/BottomNavigation.tsx');
-assert(bottomNav.includes('MY_HOMECHEFF_HUB_PATH'), 'bottom nav profile tab links to hub');
+assert(bottomNav.includes('MY_HOMECHEFF_HUB_PATH'), 'bottom nav dashboard tab uses hub path');
+assert(bottomNav.includes('href="/profile"'), 'bottom nav profile tab links to /profile');
 const sidebarIa = read('lib/home/home-desktop-sidebar-ia.ts');
 assert(sidebarIa.includes("href: '/orders'"), 'desktop sidebar buyer orders link fixed');
 assert(sidebarIa.includes('MY_HOMECHEFF_HUB_PATH'), 'desktop sidebar includes hub link');

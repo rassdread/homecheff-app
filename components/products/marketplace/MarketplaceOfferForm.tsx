@@ -38,6 +38,7 @@ import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normali
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
 import { fulfillmentOptionsToApiString, legacyDeliveryToFulfillment } from '@/lib/marketplace/fulfillment';
 import { PackageSelector } from '@/components/shipping/PackageSelector';
+import { parseStockInput, parseStockInputOrZero } from '@/lib/products/parse-stock-input';
 import type { ParcelPresetId } from '@/lib/shipping/package-presets';
 import {
   buildParcelApiPayload,
@@ -783,8 +784,8 @@ export default function MarketplaceOfferForm({
       pickupAddress: loc.pickupAddress,
       pickupLat: loc.pickupLat,
       pickupLng: loc.pickupLng,
-      stock: fieldConfig.showStock ? Number(stock) || 0 : 0,
-      maxStock: fieldConfig.showMaxStock && maxStock ? Number(maxStock) : null,
+      stock: fieldConfig.showStock ? parseStockInputOrZero(stock) : 0,
+      maxStock: fieldConfig.showMaxStock ? parseStockInput(maxStock) ?? null : null,
       isActive,
       images: imageUrls,
       video,

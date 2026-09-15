@@ -567,6 +567,7 @@ async function handleFeedGet(
             name: true,
             username: true,
             profileImage: true,
+            image: true,
             displayFullName: true,
             displayNameOption: true,
             place: true,
@@ -774,7 +775,7 @@ async function handleFeedGet(
       id: dish.user.id,
       name: dish.user.name,
       username: dish.user.username,
-      profileImage: dish.user.profileImage,
+      profileImage: dish.user.profileImage || dish.user.image || null,
       displayFullName: dish.user.displayFullName,
       displayNameOption: dish.user.displayNameOption
     },
@@ -879,7 +880,7 @@ async function handleFeedGet(
       id: listing.User.id || undefined,
       name: listing.User.name || undefined,
       username: listing.User.username || undefined,
-      avatar: listing.User.profileImage || undefined,
+      avatar: listing.User.profileImage || listing.User.image || undefined,
       displayFullName: listing.User.displayFullName || undefined,
       displayNameOption: listing.User.displayNameOption || undefined
     } : undefined
@@ -948,7 +949,7 @@ async function handleFeedGet(
       id: product.seller.User?.id || undefined,
       name: product.seller.User?.name || undefined,
       username: product.seller.User?.username || undefined,
-      avatar: product.seller.User?.profileImage || undefined,
+      avatar: product.seller.User?.profileImage || product.seller.User?.image || undefined,
       displayFullName: product.seller.User?.displayFullName || undefined,
       displayNameOption: product.seller.User?.displayNameOption || undefined,
       lat: product.seller.lat ?? null,

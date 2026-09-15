@@ -77,7 +77,8 @@ export async function POST(req: NextRequest) {
     await prisma.user.update({
       where: { id: (session.user as any).id },
       data: {
-        image: publicUrl
+        image: publicUrl,
+        profileImage: publicUrl,
       }
     });
 

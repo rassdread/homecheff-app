@@ -72,11 +72,14 @@ assert(
 // --- 5B.3 Navigation surfaces (mapped facts) -----------------------------
 console.log('\n5B.3 Navigation surfaces present');
 assert(
-  bottomNav.includes('/#homecheff-feed') &&
+  bottomNav.includes('data-hc-bottom-nav-item="home"') &&
+    bottomNav.includes('data-hc-bottom-nav-item="messages"') &&
+    bottomNav.includes('data-hc-bottom-nav-item="create"') &&
+    bottomNav.includes('data-hc-bottom-nav-item="dashboard"') &&
+    bottomNav.includes('data-hc-bottom-nav-item="profile"') &&
     bottomNav.includes('/messages') &&
-    bottomNav.includes('/mijn-hcp') &&
-    bottomNav.includes('/profile'),
-  'bottom nav slots present (discover / messages / hcp / profile)',
+    bottomNav.includes('href="/profile"'),
+  'bottom nav slots present (home / messages / create / dashboard / profile)',
 );
 assert(
   navbar.includes('DEALS_PROFILE_PATH') &&

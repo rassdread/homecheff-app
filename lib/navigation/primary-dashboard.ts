@@ -93,7 +93,9 @@ export function isPrimaryDashboardPath(
   if (
     path === MY_HOMECHEFF_HUB_PATH ||
     path === '/my-homecheff' ||
-    path.startsWith('/mijn-homecheff/')
+    path.startsWith('/mijn-homecheff/') ||
+    path === '/mijn-hcp' ||
+    path.startsWith('/mijn-hcp')
   ) {
     return true;
   }

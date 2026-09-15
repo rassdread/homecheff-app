@@ -38,6 +38,8 @@ export default async function ProfilePage({
       gender: true,
       interests: true,
       profileImage: true,
+      image: true,
+      image: true,
       role: true,
       sellerRoles: true,
       buyerRoles: true,
@@ -97,6 +99,7 @@ export default async function ProfilePage({
                   name: true,
                   username: true,
                   profileImage: true,
+                  image: true,
                   displayFullName: true,
                   displayNameOption: true
                 }

@@ -722,8 +722,14 @@ export async function PATCH(
             isActive: publishState.isActive,
             unit: body.unit || 'PORTION',
             delivery: body.delivery,
-            maxStock: body.maxStock !== undefined ? body.maxStock : null,
-            stock: body.stock !== undefined ? body.stock : 0,
+            maxStock: body.maxStock !== undefined ? body.maxStock : undefined,
+            stock: (() => {
+              if (body.stock === undefined || body.stock === null || body.stock === '') {
+                return undefined;
+              }
+              const n = Number(body.stock);
+              return Number.isFinite(n) ? n : undefined;
+            })(),
             displayNameType: body.displayNameType,
             isFutureProduct: body.isFutureProduct !== undefined ? body.isFutureProduct : false,
             availabilityDate: body.availabilityDate ? new Date(body.availabilityDate) : null,

@@ -130,6 +130,7 @@ export const FEED_PRODUCT_SELECT: Prisma.ProductSelect = {
           name: true,
           username: true,
           profileImage: true,
+          image: true,
           displayFullName: true,
           displayNameOption: true,
           stripeConnectAccountId: true,

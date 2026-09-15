@@ -9,6 +9,7 @@ export const FEED_SELLER_USER_SELECT = {
   name: true,
   username: true,
   profileImage: true,
+  image: true,
   displayFullName: true,
   displayNameOption: true,
   stripeConnectAccountId: true,
@@ -40,6 +41,7 @@ export type FeedSellerHydrated = {
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    image?: string | null;
     displayFullName: boolean | null;
     displayNameOption: string | null;
     stripeConnectAccountId: string | null;
@@ -53,6 +55,14 @@ export type FeedSellerHydrated = {
 };
 
 export type FeedUserHydrated = FeedSellerHydrated['User'];
+
+function withCanonicalAvatar<T extends { profileImage: string | null; image?: string | null }>(
+  user: T,
+): T {
+  const raw = user.profileImage || user.image || null;
+  const profileImage = raw && !raw.startsWith('blob:') ? raw : null;
+  return { ...user, profileImage };
+}
 
 export async function batchHydrateFeedSellers(
   prisma: PrismaClient,
@@ -78,7 +88,7 @@ export async function batchHydrateFeedSellers(
       lng: row.lng,
       kvk: row.kvk,
       companyName: row.companyName,
-      User: row.User,
+      User: withCanonicalAvatar(row.User),
     });
   }
   return out;
@@ -98,7 +108,7 @@ export async function batchHydrateFeedUsers(
   });
 
   for (const row of rows) {
-    out.set(row.id, row);
+    out.set(row.id, withCanonicalAvatar(row));
   }
   return out;
 }

@@ -23,6 +23,7 @@ import DateOfBirthSettingsCard from '@/components/account/DateOfBirthSettingsCar
 import { useTranslation } from '@/hooks/useTranslation';
 import { getCurrentLocation } from '@/lib/geolocation';
 import { DELIVERY_PROFILE_UPDATED_EVENT } from '@/lib/delivery/delivery-profile-canonical';
+import { DELIVERY_DASHBOARD_HREF } from '@/lib/delivery/delivery-profile-completion';
 import {
   aggregateRequirementNotice,
   noticesForDeliveryMissing,
@@ -97,7 +98,8 @@ function formatDeliveryCompletionHint(completion?: {
     noticesForDeliveryMissing(completion.missing || []),
   );
   if (!notice) return completion.message || null;
-  return `${notice.titleNl}\n${notice.bodyNl}`;
+  const cta = notice.ctaLabelNl ? `\n${notice.ctaLabelNl}` : '';
+  return `${notice.titleNl}\n${notice.bodyNl}${cta}`;
 }
 
 interface DeliverySettingsProps {
@@ -325,7 +327,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (opts?: { continueAfter?: boolean }) => {
     if (saveLockRef.current || loading) return;
     saveLockRef.current = true;
     setLoading(true);
@@ -387,6 +389,24 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
           window.dispatchEvent(new Event('notificationsUpdated'));
         }
         router.refresh();
+        if (opts?.continueAfter) {
+          if (data.completion?.isComplete) {
+            router.push(DELIVERY_DASHBOARD_HREF);
+          } else {
+            const hint =
+              formatDeliveryCompletionHint(data.completion) ||
+              (data.completion?.message ? String(data.completion.message) : null) ||
+              'Je bezorgprofiel is nog niet compleet. Controleer de ontbrekende onderdelen.';
+            setCompletionHint(hint);
+            if (typeof document !== 'undefined') {
+              requestAnimationFrame(() => {
+                document
+                  .getElementById('delivery-settings-requirements')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              });
+            }
+          }
+        }
       } else {
         setSuccess(false);
         const message =
@@ -450,7 +470,10 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
           {completionHint ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <div
+              id="delivery-settings-requirements"
+              className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+            >
               <p className="font-semibold whitespace-pre-line">{completionHint}</p>
             </div>
           ) : null}
@@ -1317,12 +1340,22 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
               <p className="text-sm text-gray-600">Bezig met opslaan…</p>
             ) : null}
             <Button
-              onClick={handleSave}
+              type="button"
+              onClick={() => void handleSave()}
               disabled={loading}
+              variant="outline"
               className="flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {loading ? 'Bezig met opslaan…' : t('common.saveSettings')}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleSave({ continueAfter: true })}
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              {t('common.continue') || 'Doorgaan'}
             </Button>
           </div>
         </div>

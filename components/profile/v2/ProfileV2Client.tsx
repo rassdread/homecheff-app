@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import AppBackBar from '@/components/navigation/AppBackBar';
 import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
 import ProfileV2Shell from '@/components/profile/v2/ProfileV2Shell';
@@ -51,6 +52,7 @@ import {
   type FollowChangedDetail,
   patchMakerFansCount,
 } from '@/lib/follow/follow-state-store';
+import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 
 type PersistedProfileV2 = {
   activeTab?: string;
@@ -154,6 +156,8 @@ export default function ProfileV2Client({
 }: ProfileV2ClientProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { update: updateSession } = useSession();
+  const { refreshProfile } = useUserBootstrap();
   const viewerIsOwner = variant === 'private';
   const user = useMemo(() => normalizeProfileV2User(rawUser), [rawUser]);
 
@@ -189,6 +193,7 @@ export default function ProfileV2Client({
   });
   const [ownerHcp, setOwnerHcp] = useState<PublicProfileHcpPayload | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -427,10 +432,12 @@ export default function ProfileV2Client({
       topBar={topBar}
       onEditProfile={() => router.push('/settings')}
       onPhotoChange={(url) => {
-        if (url) setAvatarPreviewUrl(url);
-        void fetchStats();
+        setAvatarPreviewUrl(url);
+        void refreshProfile();
+        void updateSession();
+        router.refresh();
       }}
-      onAvatarPreview={setAvatarPreviewUrl}
+      onAvatarPreview={setLightboxUrl}
       avatarPreviewUrl={avatarPreviewUrl}
       ownerSidepanel={ownerSidepanel}
     >
@@ -441,13 +448,13 @@ export default function ProfileV2Client({
       {activeTab === 'vertrouwen' ? <ProfileV2VertrouwenPanel {...panelProps} /> : null}
     </ProfileV2Shell>
     <FeedMediaLightbox
-      open={Boolean(avatarPreviewUrl)}
-      onClose={() => setAvatarPreviewUrl(null)}
+      open={Boolean(lightboxUrl)}
+      onClose={() => setLightboxUrl(null)}
       payload={
-        avatarPreviewUrl
+        lightboxUrl
           ? {
               kind: 'image',
-              src: avatarPreviewUrl,
+              src: lightboxUrl,
               alt: t('profilePage.profilePhotoAlt'),
             }
           : null

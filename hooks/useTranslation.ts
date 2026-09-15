@@ -356,7 +356,7 @@ export function useTranslation() {
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
     // 2.58 — Huishoudelijke hulp service group + Schoonmaak specialisatie
     // 2.60 — Hero "Ontdek in je buurt" (was "Hero verbergen")
-    const CACHE_VERSION = '2.60';
+    const CACHE_VERSION = '2.61';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state

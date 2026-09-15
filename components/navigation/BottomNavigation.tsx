@@ -357,8 +357,8 @@ export default function BottomNavigation() {
 
 
   /** Eén navigatiemechanisme: client Link naar feed-hash (geen prefetch+push dubbel). */
-  const discoverLabel = t('bottomNav.discoverTab');
-  const discoverIcon = '🧭';
+  const discoverLabel = t('bottomNav.homeTab') || t('bottomNav.discoverTab');
+  const discoverIcon = '🏠';
 
   const isActive = (href: string) => {
     if (!pathname) return false;
@@ -367,9 +367,8 @@ export default function BottomNavigation() {
   };
 
   const isFeedDiscoverActive = pathname === '/';
-  const isHcpRouteActive = pathname === '/mijn-hcp';
-  const isMyHomeCheffActive =
-    pathname === MY_HOMECHEFF_HUB_PATH || pathname === '/my-homecheff';
+  const isProfileTabActive =
+    pathname === '/profile' || Boolean(pathname?.startsWith('/profile/'));
 
   const navUser = useMemo(
     () =>
@@ -387,8 +386,8 @@ export default function BottomNavigation() {
     [navUser]
   );
 
-  /** WX 1C.1.2 — guests: hide Earn from primary bottom nav (marketplace-first). Auth keeps ops dashboard when eligible. */
-  const showDashboardTab = Boolean(session?.user) && userHasOperationsDashboard(navUser);
+  /** Fixed 5-slot bar: Home, Berichten, Toevoegen, Dashboard, Profiel. */
+  const showDashboardTab = true;
   const isDashboardTabActive = isPrimaryDashboardPath(pathname, primaryDashboardHref);
 
   /** Alleen echte `<Link>` als er een user is — tijdens `loading` geen links naar /verkoper e.d. (voorkomt verkeerde eerste tap voor gast). */
@@ -595,13 +594,13 @@ export default function BottomNavigation() {
 
   const handleProfileClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
-      const p = sanitizePostAuthRelativeUrl(MY_HOMECHEFF_HUB_PATH) || MY_HOMECHEFF_HUB_PATH;
+      const p = sanitizePostAuthRelativeUrl('/profile') || '/profile';
       openGuestBottomNavPanel('profile', p, () => {
         savePendingIntent({ type: 'complete_profile', returnPath: p });
       });
       return;
     }
-    router.push(MY_HOMECHEFF_HUB_PATH);
+    router.push('/profile');
   };
 
   // Quick Add Handlers
@@ -1718,15 +1717,16 @@ export default function BottomNavigation() {
             'md:max-w-[720px] md:justify-between md:gap-x-0 md:px-1'
           )}
         >
-          {/* Ontdekken — één Link (geen router.push + prefetch dubbel) */}
+          {/* Home */}
           <div className="flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
             <Link
-              href="/#homecheff-feed"
+              href="/"
               prefetch={false}
+              data-hc-bottom-nav-item="home"
               aria-current={isFeedDiscoverActive ? 'page' : undefined}
               className={navTabClasses(isFeedDiscoverActive, isNativeShell)}
               onClick={(e) => {
-                navDebug('bottom-nav:tap', { tab: 'discover', href: '/#homecheff-feed', path: pathname });
+                navDebug('bottom-nav:tap', { tab: 'home', href: '/', path: pathname });
                 if (pathname === '/') {
                   e.preventDefault();
                   scrollToHomeFeed();
@@ -1740,103 +1740,13 @@ export default function BottomNavigation() {
             </Link>
           </div>
 
-          {/* Dashboard — role-aware; hidden for buyer-only (no ops dashboard) */}
-          {showDashboardTab ? (
-            <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
-              {useDirectTabLinks ? (
-                <Link
-                  href={primaryDashboardHref}
-                  prefetch={false}
-                  className={navTabClasses(isDashboardTabActive, isNativeShell)}
-                  onClick={() =>
-                    navDebug('bottom-nav:tap', {
-                      tab: 'dashboard',
-                      href: primaryDashboardHref,
-                      path: pathname,
-                    })
-                  }
-                >
-                  <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
-                  <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                    {t('bottomNav.dashboard')}
-                  </span>
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleDashboardClick}
-                  className={navTabClasses(isDashboardTabActive, isNativeShell)}
-                >
-                  <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
-                  <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                    {t('bottomNav.earn')}
-                  </span>
-                </button>
-              )}
-              {!session?.user && (
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
-                  <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
-                    <div className="font-semibold mb-1">💰 {t('bottomNav.earn')}</div>
-                    <div className="text-gray-300">{t('bottomNav.earnDesc')}</div>
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                      <div className="border-4 border-transparent border-t-gray-900"></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : null}
-
-          {/* ADD Button (FAB) — blijft dominant met zachte emerald-glow */}
-          <div className="relative group flex-shrink-0 flex justify-center px-0.5 sm:px-1.5">
-            <button
-              type="button"
-              data-wx-primary-action=""
-              data-wx-bottom-create=""
-              onClick={handleQuickAddClick}
-              className={cn(
-                'relative rounded-full text-white transition-all duration-200 ease-out touch-manipulation select-none active:scale-95',
-                'bg-gradient-to-br from-primary-brand via-emerald-600 to-teal-600',
-                'shadow-[0_8px_26px_-6px_rgba(16,185,129,0.55),0_4px_14px_-4px_rgba(14,116,144,0.35)]',
-                'hover:shadow-[0_10px_32px_-6px_rgba(16,185,129,0.6)] hover:scale-[1.06]',
-                'ring-[3px] ring-white/95 ring-offset-2 ring-offset-transparent',
-                'focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/45 focus-visible:ring-offset-2',
-                /* Native: geen negatieve top — anders reikt de hit-box van z-40-laag ver de feed in (Android WebView blokkeert scroll). */
-                isNativeShell
-                  ? 'top-0 p-[0.9375rem] sm:p-[1.0625rem]'
-                  : '-top-3 sm:-top-4 p-3 sm:p-[1.05rem]'
-              )}
-              aria-label={t('bottomNav.addItems')}
-            >
-              <svg
-                className={cn(isNativeShell ? 'w-9 h-9' : 'w-8 h-8 sm:w-9 sm:h-9')}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path>
-              </svg>
-            </button>
-            {!session?.user && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
-                <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
-                  <div className="font-semibold mb-1">{t('bottomNav.addItems')}</div>
-                  <div className="text-gray-300">{t('bottomNav.addItemsDesc')}</div>
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                    <div className="border-4 border-transparent border-t-gray-900"></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Berichten */}
           <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
             {messagesTabUseLink ? (
               <Link
                 href="/messages"
                 prefetch={false}
+                data-hc-bottom-nav-item="messages"
                 className={navTabClasses(isActive('/messages'), isNativeShell)}
                 onClick={() =>
                   navDebug('bottom-nav:tap', { tab: 'messages', href: '/messages', path: pathname })
@@ -1857,6 +1767,7 @@ export default function BottomNavigation() {
             ) : (
               <button
                 type="button"
+                data-hc-bottom-nav-item="messages"
                 onClick={handleMessagesClick}
                 className={navTabClasses(isActive('/messages'), isNativeShell)}
               >
@@ -1886,34 +1797,96 @@ export default function BottomNavigation() {
             )}
           </div>
 
-          {/* HomeCheff Points — eigen capsule tussen Berichten en Mijn HC (zelfde design-taal als de balk) */}
-          {session?.user ? (
-            <div className="flex-shrink-0 flex items-center justify-center px-0.5 sm:px-1 md:px-1.5">
-              <Link
-                href="/mijn-hcp"
-                prefetch={false}
-                className={cn(
-                  'flex flex-col items-center justify-center rounded-2xl touch-pan-y transition-all duration-200 ease-out',
-                  'min-h-[52px] min-w-[3.25rem] sm:min-w-[3.5rem] px-2 py-1.5',
-                  'bg-gradient-to-b from-emerald-50/98 via-teal-50/92 to-cyan-50/75',
-                  'border border-emerald-200/60 shadow-[0_3px_16px_-6px_rgba(13,148,136,0.28),inset_0_1px_0_rgba(255,255,255,0.85)]',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
-                  isHcpRouteActive
-                    ? 'ring-2 ring-emerald-400/50 ring-offset-2 ring-offset-white scale-[1.02]'
-                    : 'hover:border-teal-300/85 hover:shadow-[0_5px_20px_-6px_rgba(13,148,136,0.38)] active:scale-[0.97]'
-                )}
-                aria-label={t('bottomNav.hcpCapsuleAria')}
-                onClick={() =>
-                  navDebug('bottom-nav:tap', { tab: 'hcp', href: '/mijn-hcp', path: pathname })
-                }
+          {/* ADD Button (FAB) — blijft dominant met zachte emerald-glow */}
+          <div className="relative group flex-shrink-0 flex justify-center px-0.5 sm:px-1.5">
+            <button
+              type="button"
+              data-wx-primary-action=""
+              data-wx-bottom-create=""
+              data-hc-bottom-nav-item="create"
+              onClick={handleQuickAddClick}
+              className={cn(
+                'relative rounded-full text-white transition-all duration-200 ease-out touch-manipulation select-none active:scale-95',
+                'bg-gradient-to-br from-primary-brand via-emerald-600 to-teal-600',
+                'shadow-[0_8px_26px_-6px_rgba(16,185,129,0.55),0_4px_14px_-4px_rgba(14,116,144,0.35)]',
+                'hover:shadow-[0_10px_32px_-6px_rgba(16,185,129,0.6)] hover:scale-[1.06]',
+                'ring-[3px] ring-white/95 ring-offset-2 ring-offset-transparent',
+                'focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/45 focus-visible:ring-offset-2',
+                isNativeShell
+                  ? 'top-0 p-[0.9375rem] sm:p-[1.0625rem]'
+                  : '-top-3 sm:-top-4 p-3 sm:p-[1.05rem]'
+              )}
+              aria-label={t('bottomNav.addItems')}
+            >
+              <svg
+                className={cn(isNativeShell ? 'w-9 h-9' : 'w-8 h-8 sm:w-9 sm:h-9')}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden
               >
-                <span className="text-[0.7rem] leading-none sm:text-sm" aria-hidden>
-                  ⭐
-                </span>
-                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight text-teal-800 leading-tight mt-1">
-                  {t('bottomNav.reputationTab')}
-                </span>
-              </Link>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </button>
+            {!session?.user && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
+                <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
+                  <div className="font-semibold mb-1">{t('bottomNav.addItems')}</div>
+                  <div className="text-gray-300">{t('bottomNav.addItemsDesc')}</div>
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                    <div className="border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Dashboard — centrale Mijn HomeCheff-ingang */}
+          {showDashboardTab ? (
+            <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
+              {useDirectTabLinks ? (
+                <Link
+                  href={primaryDashboardHref}
+                  prefetch={false}
+                  data-hc-bottom-nav-item="dashboard"
+                  className={navTabClasses(isDashboardTabActive, isNativeShell)}
+                  onClick={() =>
+                    navDebug('bottom-nav:tap', {
+                      tab: 'dashboard',
+                      href: primaryDashboardHref,
+                      path: pathname,
+                    })
+                  }
+                >
+                  <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+                  <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                    {t('bottomNav.dashboard')}
+                  </span>
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  data-hc-bottom-nav-item="dashboard"
+                  onClick={handleDashboardClick}
+                  className={navTabClasses(isDashboardTabActive, isNativeShell)}
+                >
+                  <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+                  <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                    {t('bottomNav.dashboard')}
+                  </span>
+                </button>
+              )}
+              {!session?.user && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
+                  <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
+                    <div className="font-semibold mb-1">💰 {t('bottomNav.dashboard')}</div>
+                    <div className="text-gray-300">{t('bottomNav.earnDesc')}</div>
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                      <div className="border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
 
@@ -1921,27 +1894,29 @@ export default function BottomNavigation() {
           <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
             {profileTabUseLink ? (
               <Link
-                href={MY_HOMECHEFF_HUB_PATH}
+                href="/profile"
                 prefetch={false}
-                className={navTabClasses(isMyHomeCheffActive, isNativeShell)}
+                data-hc-bottom-nav-item="profile"
+                className={navTabClasses(isProfileTabActive, isNativeShell)}
                 onClick={() =>
                   navDebug('bottom-nav:tap', {
-                    tab: 'my-homecheff',
-                    href: MY_HOMECHEFF_HUB_PATH,
+                    tab: 'profile',
+                    href: '/profile',
                     path: pathname,
                   })
                 }
               >
                 <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">👤</div>
                 <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                  {session?.user ? t('myHomeCheffHub.nav.hubShort') : t('bottomNav.profile')}
+                  {t('bottomNav.profile')}
                 </span>
               </Link>
             ) : (
               <button
                 type="button"
+                data-hc-bottom-nav-item="profile"
                 onClick={handleProfileClick}
-                className={navTabClasses(isMyHomeCheffActive, isNativeShell)}
+                className={navTabClasses(isProfileTabActive, isNativeShell)}
               >
                 <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">👤</div>
                 <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
@@ -1952,7 +1927,7 @@ export default function BottomNavigation() {
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
                 <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
-                  <div className="font-semibold mb-1">{t('bottomNav.myHomeCheff')}</div>
+                  <div className="font-semibold mb-1">{t('bottomNav.profile')}</div>
                   <div className="text-gray-300">{t('bottomNav.myHomeCheffDesc')}</div>
                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
                     <div className="border-4 border-transparent border-t-gray-900"></div>

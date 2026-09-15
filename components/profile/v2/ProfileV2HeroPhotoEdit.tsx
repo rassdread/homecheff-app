@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Camera, ImageIcon } from 'lucide-react';
-import { uploadProfilePhoto } from '@/lib/upload';
+import { persistProfilePhotoUrl, uploadProfilePhoto } from '@/lib/upload';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type Props = {
@@ -26,11 +26,16 @@ export default function ProfileV2HeroPhotoEdit({ initialUrl, onPhotoChange }: Pr
     setUploading(true);
     try {
       const result = await uploadProfilePhoto(file);
-      if (result.success && result.url) {
-        onPhotoChange?.(result.url);
-      } else {
+      if (!result.success || !result.url) {
         alert(result.error ?? t('errors.uploadError'));
+        return;
       }
+      const persisted = await persistProfilePhotoUrl(result.url);
+      if (!persisted.success) {
+        alert(persisted.error ?? t('errors.uploadError'));
+        return;
+      }
+      onPhotoChange?.(result.url);
     } catch {
       alert(t('errors.uploadError'));
     } finally {

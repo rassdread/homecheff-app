@@ -639,6 +639,34 @@ export default function AffiliateDashboardClient() {
               </div>
             </div>
 
+            {!data?.affiliate?.isSubAffiliate ? (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-5 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {t('partners.network.title')}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-700">
+                      {t('partners.helpers.invitePartner')}
+                    </p>
+                    <p className="mt-2 text-sm text-emerald-900">
+                      {data.stats.downlineCount} {t('partners.network.statsDirect')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenNetworkInvite(true);
+                      setActiveTab('sub-affiliates');
+                    }}
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                  >
+                    {t('partners.actions.invitePartner')}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5 text-sm text-gray-700 space-y-2">
               <h3 className="font-semibold text-gray-900">{t('affiliate.dashboard.attributionPolicyTitle')}</h3>
               <p>

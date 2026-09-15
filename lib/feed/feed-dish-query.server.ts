@@ -33,6 +33,7 @@ export type FeedDishRow = {
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    image?: string | null;
     displayFullName: boolean | null;
     displayNameOption: string | null;
     place: string | null;
@@ -73,6 +74,7 @@ const DISH_USER_SELECT = {
   name: true,
   username: true,
   profileImage: true,
+  image: true,
   displayFullName: true,
   displayNameOption: true,
   place: true,

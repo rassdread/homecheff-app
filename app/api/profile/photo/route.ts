@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,15 @@ export async function POST(req: Request) {
 
   const { image } = await req.json();
   // Allow null values for removing photo
+  if (
+    typeof image === "string" &&
+    (image.startsWith("blob:") || image.startsWith("data:"))
+  ) {
+    return Response.json(
+      { error: "Profielfoto moet een duurzame publieke URL zijn." },
+      { status: 400 },
+    );
+  }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } });
   if (!user) return new Response("User not found", { status: 404 });
@@ -23,5 +33,9 @@ export async function POST(req: Request) {
     },
   });
 
-  return Response.json({ ok: true });
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath("/api/feed");
+
+  return Response.json({ ok: true, image: image ?? null });
 }
