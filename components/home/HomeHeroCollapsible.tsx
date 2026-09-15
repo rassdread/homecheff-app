@@ -8,8 +8,8 @@ import { useHomeHeroCollapsed } from '@/hooks/useHomeHeroCollapsed';
 const hideButtonClass = cn(
   'inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5',
   'rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold',
-  'text-white bg-black/50 border border-white/70 shadow-sm backdrop-blur-[2px]',
-  'hover:bg-black/60 hover:border-white',
+  'text-white bg-black/45 border border-white/70 shadow-sm backdrop-blur-[2px]',
+  'hover:bg-black/55 hover:border-white',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
   'focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
   'touch-manipulation select-none',
@@ -62,23 +62,21 @@ export default function HomeHeroCollapsible({ children, className }: Props) {
 
   return (
     <div
-      className={cn('relative min-w-0', className)}
+      className={cn('min-w-0', className)}
       data-hc-hero-collapsible="expanded"
     >
+      <div id="home-hero-expanded">{children}</div>
       <div
-        id="home-hero-expanded"
         className={cn(
-          'motion-reduce:transition-none transition-opacity duration-200 ease-out',
-          '[&>section]:pb-12 [&_[data-wx-orientation-strip]]:pb-12',
+          'flex justify-center px-3 py-1.5',
+          'bg-gradient-to-r from-primary-brand via-primary-brand to-emerald-800',
+          'border-b border-primary-brand/30',
         )}
       >
-        {children}
-      </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] flex justify-center px-3 pb-2">
         <button
           type="button"
           onClick={toggle}
-          className={cn(hideButtonClass, 'pointer-events-auto')}
+          className={hideButtonClass}
           aria-expanded
           aria-controls="home-hero-expanded"
           aria-label={hideLabel}
