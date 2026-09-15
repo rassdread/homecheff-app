@@ -2,9 +2,11 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import DeliverySettings from '@/components/delivery/DeliverySettings';
-import {
-  DELIVERY_START_HREF,
-} from '@/lib/delivery/delivery-profile-completion';
+import { DELIVERY_START_HREF } from '@/lib/delivery/delivery-profile-completion';
+import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function DeliverySettingsPage() {
   const session = await auth();
@@ -26,20 +28,32 @@ export default async function DeliverySettingsPage() {
           id: true,
           name: true,
           email: true,
+          lat: true,
+          lng: true,
+          place: true,
         },
       },
     },
   });
 
-  // No stub profiles: settings API requires a real DeliveryProfile row.
-  // Sellers without a courier profile start via the same onboarding chooser.
   if (!deliveryProfile) {
     redirect(DELIVERY_START_HREF);
   }
 
+  const completion = getDeliveryProfileCompletionFromRow(
+    deliveryProfile,
+    deliveryProfile.user,
+  );
+
   const deliveryProfileWithDefaults = {
     ...deliveryProfile,
-    preferredRadius: deliveryProfile.preferredRadius || 3.0,
+    preferredRadius:
+      deliveryProfile.preferredRadius || deliveryProfile.maxDistance || 5,
+    homeLat: deliveryProfile.homeLat ?? deliveryProfile.user.lat ?? null,
+    homeLng: deliveryProfile.homeLng ?? deliveryProfile.user.lng ?? null,
+    homeAddress:
+      deliveryProfile.homeAddress || deliveryProfile.user.place || null,
+    completion,
   };
 
   return <DeliverySettings deliveryProfile={deliveryProfileWithDefaults} />;

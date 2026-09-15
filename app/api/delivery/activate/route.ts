@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { evaluateProviderActivation } from '@/lib/delivery/provider-activation';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
+import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
 import { canManageCompanySettings } from '@/lib/delivery/company-auth';
 import { isDeliveryBusinessProvider } from '@/lib/delivery/provider-identity';
 import {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const profile = await prisma.deliveryProfile.findUnique({
     where: { userId: session.user.id },
     include: {
-      user: { select: { id: true, dateOfBirth: true } },
+      user: { select: { id: true, dateOfBirth: true, lat: true, lng: true, place: true } },
     },
   });
 
@@ -73,24 +73,9 @@ export async function POST(req: NextRequest) {
     }
 
     const flags = getDeliveryAlignmentFlags();
-    const gate = evaluateProviderActivation(
-      {
-        providerType: profile.providerType,
-        isActive: profile.isActive,
-        isOnline: profile.isOnline,
-        homeLat: profile.homeLat,
-        homeLng: profile.homeLng,
-        maxDistance: profile.maxDistance,
-        nationalCoverage: profile.nationalCoverage,
-        pricingEnabled: profile.pricingEnabled,
-        baseFeeCents: profile.baseFeeCents,
-        pricePerKmCents: profile.pricePerKmCents,
-        minimumFeeCents: profile.minimumFeeCents,
-        freeDeliveryRadiusKm: profile.freeDeliveryRadiusKm,
-        companyDisplayName: profile.companyDisplayName,
-      },
-      { requirePricing: flags.providerPricingEnabled },
-    );
+    const gate = getDeliveryProfileCompletionFromRow(profile, profile.user, {
+      requirePricing: flags.providerPricingEnabled,
+    });
     if (!gate.ok) {
       return NextResponse.json(
         {
@@ -137,30 +122,18 @@ export async function GET() {
 
   const profile = await prisma.deliveryProfile.findUnique({
     where: { userId: session.user.id },
+    include: {
+      user: { select: { lat: true, lng: true, place: true } },
+    },
   });
   if (!profile) {
     return NextResponse.json({ ok: false, code: 'PROFILE_NOT_FOUND' }, { status: 404 });
   }
 
   const flags = getDeliveryAlignmentFlags();
-  const gate = evaluateProviderActivation(
-    {
-      providerType: profile.providerType,
-      isActive: profile.isActive,
-      isOnline: profile.isOnline,
-      homeLat: profile.homeLat,
-      homeLng: profile.homeLng,
-      maxDistance: profile.maxDistance,
-      nationalCoverage: profile.nationalCoverage,
-      pricingEnabled: profile.pricingEnabled,
-      baseFeeCents: profile.baseFeeCents,
-      pricePerKmCents: profile.pricePerKmCents,
-      minimumFeeCents: profile.minimumFeeCents,
-      freeDeliveryRadiusKm: profile.freeDeliveryRadiusKm,
-      companyDisplayName: profile.companyDisplayName,
-    },
-    { requirePricing: flags.providerPricingEnabled },
-  );
+  const gate = getDeliveryProfileCompletionFromRow(profile, profile.user, {
+    requirePricing: flags.providerPricingEnabled,
+  });
 
   return NextResponse.json({
     ok: true,

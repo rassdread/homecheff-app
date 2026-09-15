@@ -174,6 +174,10 @@ export function mapDeliveryProfileToLane(
     titleNl = 'Werkgebied ontbreekt';
     bodyNl = 'Stel je werkgebied in (locatie + straal).';
     ctaLabelNl = 'Werkgebied instellen';
+  } else if (missing.length === 1 && missing[0] === 'availability') {
+    titleNl = 'Beschikbaarheid ontbreekt';
+    bodyNl = 'Stel je beschikbare dagen en tijden in.';
+    ctaLabelNl = 'Beschikbaarheid instellen';
   } else if (missing.includes('companyDisplayName')) {
     titleNl = 'Bedrijfsnaam ontbreekt';
     bodyNl = 'Vul een bedrijfsnaam in voor je bezorgprofiel.';

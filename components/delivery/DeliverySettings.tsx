@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   MapPin, 
   Clock, 
@@ -20,6 +20,8 @@ import ShiftNotificationSettings from './ShiftNotificationSettings';
 import AddSellerRolesSettings from './AddSellerRolesSettings';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getCurrentLocation } from '@/lib/geolocation';
+import { DELIVERY_PROFILE_UPDATED_EVENT } from '@/lib/delivery/delivery-profile-canonical';
 
 interface DeliveryProfile {
   id: string;
@@ -55,6 +57,14 @@ interface DeliveryProfile {
     id: string;
     name: string | null;
     email: string;
+    lat?: number | null;
+    lng?: number | null;
+    place?: string | null;
+  };
+  completion?: {
+    isComplete: boolean;
+    missing?: string[];
+    message?: string | null;
   };
 }
 
@@ -81,8 +91,9 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   const [formData, setFormData] = useState({
     transportation: deliveryProfile.transportation || [],
     maxDistance: deliveryProfile.maxDistance || 5,
-    preferredRadius: deliveryProfile.preferredRadius || 5,
-    deliveryMode: deliveryProfile.deliveryMode || 'FIXED',
+    preferredRadius:
+      deliveryProfile.preferredRadius || deliveryProfile.maxDistance || 5,
+    deliveryMode: deliveryProfile.deliveryMode === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED',
     availableDays: deliveryProfile.availableDays || [],
     availableTimeSlots: deliveryProfile.availableTimeSlots || [],
     bio: deliveryProfile.bio || '',
@@ -95,17 +106,27 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     currency: deliveryProfile.currency || 'EUR',
     nationalCoverage: deliveryProfile.nationalCoverage ?? false,
     acceptanceMode: deliveryProfile.acceptanceMode || 'MANUAL_CONFIRM',
-    workStartTime: deliveryProfile.workStartTime || '09:00',
-    workEndTime: deliveryProfile.workEndTime || '21:00',
+    workStartTime: deliveryProfile.workStartTime || '',
+    workEndTime: deliveryProfile.workEndTime || '',
     temporaryOffline: deliveryProfile.temporaryOffline ?? false,
     maxSimultaneousDeliveries: deliveryProfile.maxSimultaneousDeliveries ?? 3,
     maxDeliveriesPerSlot: deliveryProfile.maxDeliveriesPerSlot ?? 2,
     preparationTimeMinutes: deliveryProfile.preparationTimeMinutes ?? 15,
     estimatedPickupDelayMinutes: deliveryProfile.estimatedPickupDelayMinutes ?? 10,
+    homeLat: deliveryProfile.homeLat ?? deliveryProfile.user?.lat ?? null as number | null,
+    homeLng: deliveryProfile.homeLng ?? deliveryProfile.user?.lng ?? null as number | null,
+    homeAddress: deliveryProfile.homeAddress || deliveryProfile.user?.place || '',
   });
   
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [completionHint, setCompletionHint] = useState<string | null>(
+    deliveryProfile.completion?.isComplete
+      ? null
+      : deliveryProfile.completion?.message || null,
+  );
+  const saveLockRef = useRef(false);
   const [notificationSettings, setNotificationSettings] = useState<any>(null);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
   const [userSellerRoles, setUserSellerRoles] = useState<string[]>([]);
@@ -136,6 +157,74 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     };
 
     fetchData();
+  }, []);
+
+  const applyPersistedProfile = (profile: Record<string, unknown>, user?: Record<string, unknown> | null) => {
+    const slots = (profile.availableTimeSlots as string[]) || (profile.availableTimes as string[]) || [];
+    setFormData((prev) => ({
+      ...prev,
+      transportation: (profile.transportation as string[]) || prev.transportation,
+      maxDistance: Number(profile.maxDistance ?? prev.maxDistance) || prev.maxDistance,
+      preferredRadius:
+        Number(profile.preferredRadius ?? profile.maxDistance ?? prev.preferredRadius) ||
+        prev.preferredRadius,
+      deliveryMode: profile.deliveryMode === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED',
+      availableDays: (profile.availableDays as string[]) || [],
+      availableTimeSlots: slots,
+      bio: (profile.bio as string) || '',
+      isActive: Boolean(profile.isActive),
+      pricingEnabled: Boolean(profile.pricingEnabled),
+      baseFeeEuro: centsToEuroInput(profile.baseFeeCents as number | null),
+      pricePerKmEuro: centsToEuroInput(profile.pricePerKmCents as number | null),
+      minimumFeeEuro: centsToEuroInput(profile.minimumFeeCents as number | null),
+      freeDeliveryRadiusKm: Number(profile.freeDeliveryRadiusKm ?? 0),
+      currency: String(profile.currency || 'EUR'),
+      nationalCoverage: Boolean(profile.nationalCoverage),
+      acceptanceMode: String(profile.acceptanceMode || 'MANUAL_CONFIRM'),
+      workStartTime: (profile.workStartTime as string) || '',
+      workEndTime: (profile.workEndTime as string) || '',
+      temporaryOffline: Boolean(profile.temporaryOffline),
+      maxSimultaneousDeliveries: Number(profile.maxSimultaneousDeliveries ?? 3),
+      maxDeliveriesPerSlot: Number(profile.maxDeliveriesPerSlot ?? 2),
+      preparationTimeMinutes: Number(profile.preparationTimeMinutes ?? 15),
+      estimatedPickupDelayMinutes: Number(profile.estimatedPickupDelayMinutes ?? 10),
+      homeLat:
+        (profile.homeLat as number | null) ??
+        (user?.lat as number | null) ??
+        prev.homeLat,
+      homeLng:
+        (profile.homeLng as number | null) ??
+        (user?.lng as number | null) ??
+        prev.homeLng,
+      homeAddress:
+        (profile.homeAddress as string) ||
+        (user?.place as string) ||
+        prev.homeAddress,
+    }));
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const hydrateFromApi = async () => {
+      try {
+        const res = await fetch('/api/delivery/settings', { cache: 'no-store' });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (cancelled || !data?.profile) return;
+        applyPersistedProfile(data.profile, data.user);
+        if (data.completion?.isComplete) {
+          setCompletionHint(null);
+        } else if (data.completion?.message) {
+          setCompletionHint(String(data.completion.message));
+        }
+      } catch (error) {
+        console.error('Error hydrating delivery settings:', error);
+      }
+    };
+    void hydrateFromApi();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const transportationOptions = [
@@ -213,14 +302,17 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   };
 
   const handleSave = async () => {
+    if (saveLockRef.current || loading) return;
+    saveLockRef.current = true;
     setLoading(true);
     setSuccess(false);
+    setSaveError(null);
     
     try {
       const payload = {
         transportation: formData.transportation,
         maxDistance: formData.maxDistance,
-        preferredRadius: formData.preferredRadius,
+        preferredRadius: formData.preferredRadius || formData.maxDistance,
         deliveryMode: formData.deliveryMode,
         availableDays: formData.availableDays,
         availableTimeSlots: formData.availableTimeSlots,
@@ -234,45 +326,75 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         currency: formData.currency || 'EUR',
         nationalCoverage: formData.nationalCoverage,
         acceptanceMode: formData.acceptanceMode,
-        workStartTime: formData.workStartTime,
-        workEndTime: formData.workEndTime,
+        workStartTime: formData.workStartTime || null,
+        workEndTime: formData.workEndTime || null,
         temporaryOffline: formData.temporaryOffline,
         maxSimultaneousDeliveries: formData.maxSimultaneousDeliveries,
         maxDeliveriesPerSlot: formData.maxDeliveriesPerSlot,
         preparationTimeMinutes: formData.preparationTimeMinutes,
         estimatedPickupDelayMinutes: formData.estimatedPickupDelayMinutes,
+        homeLat: formData.homeLat,
+        homeLng: formData.homeLng,
+        homeAddress: formData.homeAddress || null,
       };
 
       const response = await fetch('/api/delivery/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify(payload)
       });
 
-      if (response.ok) {
-        setSuccess(true);
-        // Toon success bericht kort en navigeer dan terug naar dashboard
-        setTimeout(() => {
-          router.push('/delivery/dashboard');
-        }, 1500);
-      } else {
-        const error = await response.json().catch(() => ({}));
-        const message =
-          typeof error?.error === 'string'
-            ? error.error
-            : t('errors.saveError');
-        if (error?.code === 'DELIVERY_PROFILE_MISSING' || response.status === 404) {
-          alert(message);
-          router.push('/delivery/start');
-          return;
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data?.success && data?.persisted && data?.profile) {
+        applyPersistedProfile(data.profile, data.user);
+        if (data.completion?.isComplete) {
+          setCompletionHint(null);
+        } else if (data.completion?.message) {
+          setCompletionHint(String(data.completion.message));
         }
-        alert(`${t('delivery.error')}: ${message}`);
+        setSuccess(true);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event(DELIVERY_PROFILE_UPDATED_EVENT));
+          window.dispatchEvent(new Event('notificationsUpdated'));
+        }
+        router.refresh();
+      } else {
+        setSuccess(false);
+        const message =
+          typeof data?.error === 'string'
+            ? data.error
+            : t('errors.saveError') || 'Opslaan is mislukt. Je wijzigingen zijn niet bewaard.';
+        setSaveError(message);
+        if (data?.code === 'DELIVERY_PROFILE_MISSING' || response.status === 404) {
+          router.push('/delivery/start');
+        }
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert(t('errors.saveError'));
+      setSuccess(false);
+      setSaveError(
+        'Je instellingen zijn niet opgeslagen. Controleer je verbinding en probeer het opnieuw.',
+      );
     } finally {
       setLoading(false);
+      saveLockRef.current = false;
+    }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    try {
+      setSaveError(null);
+      const coords = await getCurrentLocation();
+      setFormData((prev) => ({
+        ...prev,
+        homeLat: coords.lat,
+        homeLng: coords.lng,
+        homeAddress: coords.address || prev.homeAddress,
+      }));
+    } catch {
+      setSaveError('Locatie kon niet worden opgehaald. Sta locatie toe of vul je adres in.');
     }
   };
 
@@ -300,6 +422,22 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
+          {completionHint ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+              <p className="font-semibold">Je bezorgprofiel is nog niet compleet</p>
+              <p className="mt-1">{completionHint}</p>
+            </div>
+          ) : null}
+          {saveError ? (
+            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              {saveError}
+            </div>
+          ) : null}
+          {success && !saveError ? (
+            <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+              Instellingen opgeslagen. Je beschikbaarheid, tarieven en werkgebied zijn bewaard.
+            </div>
+          ) : null}
           {/* Help & Uitleg - BOVENAAN */}
           <HelpSettings />
 
@@ -393,6 +531,33 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
             <div className="flex items-center gap-3 mb-6">
               <MapPin className="w-6 h-6 text-primary-600" />
               <h2 className="text-xl font-semibold text-gray-900">{t('delivery.workAreaTitle')}</h2>
+            </div>
+
+            <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
+              <p className="text-sm font-medium text-blue-950 mb-2">Startlocatie voor je werkgebied</p>
+              <p className="text-sm text-blue-800 mb-3">
+                {formData.homeLat != null && formData.homeLng != null
+                  ? `Locatie opgeslagen${formData.homeAddress ? `: ${formData.homeAddress}` : ` (${formData.homeLat.toFixed(4)}, ${formData.homeLng.toFixed(4)})`}`
+                  : 'Nog geen locatie. Zonder locatie blijft je bezorgprofiel incompleet.'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => void handleUseCurrentLocation()}
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
+                >
+                  Gebruik huidige locatie
+                </button>
+                <input
+                  type="text"
+                  value={formData.homeAddress}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, homeAddress: e.target.value }))
+                  }
+                  placeholder="Adres of plaats (optioneel)"
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -1098,23 +1263,19 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
           )}
 
           {/* Save Button */}
-          <div className="flex justify-end">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+            {loading ? (
+              <p className="text-sm text-gray-600">Bezig met opslaan…</p>
+            ) : null}
             <Button
               onClick={handleSave}
               disabled={loading}
               className="flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              {loading ? t('common.saving') : t('common.saveSettings')}
+              {loading ? 'Bezig met opslaan…' : t('common.saveSettings')}
             </Button>
           </div>
-
-          {/* Success Message */}
-          {success && (
-            <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
-              {t('common.settingsSaved')}
-            </div>
-          )}
         </div>
       </div>
     </div>

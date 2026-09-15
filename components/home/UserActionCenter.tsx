@@ -222,7 +222,7 @@ export default function UserActionCenter({
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(apiEndpoint);
+      const res = await fetch(apiEndpoint, { cache: 'no-store' });
       if (!res.ok) {
         setError(true);
         setData(null);
@@ -253,12 +253,14 @@ export default function UserActionCenter({
     const onNotificationsUpdated = () => void load();
     window.addEventListener('focus', loadIfStale);
     window.addEventListener('notificationsUpdated', onNotificationsUpdated);
+    window.addEventListener('deliveryProfileUpdated', onNotificationsUpdated);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') loadIfStale();
     });
     return () => {
       window.removeEventListener('focus', loadIfStale);
       window.removeEventListener('notificationsUpdated', onNotificationsUpdated);
+      window.removeEventListener('deliveryProfileUpdated', onNotificationsUpdated);
     };
   }, [load, loadIfStale]);
 

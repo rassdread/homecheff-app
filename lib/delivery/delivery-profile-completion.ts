@@ -1,6 +1,9 @@
 /**
  * Single source of truth for “is this delivery profile ready for matching?”.
  * Wraps evaluateProviderActivation — do not invent a parallel checklist elsewhere.
+ *
+ * Call getDeliveryProfileCompletion() from sidebar, dashboard, settings,
+ * onboarding and banners. Never duplicate the missing-field rules.
  */
 
 import {
@@ -9,13 +12,18 @@ import {
   type ProviderActivationResult,
 } from '@/lib/delivery/provider-activation';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
+import {
+  toProviderActivationProfile,
+  type CanonicalDeliveryProfileRow,
+  type DeliveryUserLocation,
+} from '@/lib/delivery/delivery-profile-canonical';
 
 export type DeliveryProfileCompletionInput = ProviderActivationProfile & {
   isVerified?: boolean;
 };
 
 export type DeliveryProfileCompletionResult = ProviderActivationResult & {
-  /** True when activation gate passes (area + pricing [+ business name]). */
+  /** True when activation gate passes (area + availability + pricing [+ business name]). */
   isComplete: boolean;
 };
 
@@ -49,4 +57,26 @@ export function isDeliveryProfileComplete(
   options?: { requirePricing?: boolean },
 ): boolean {
   return evaluateDeliveryProfileCompletion(profile, options).isComplete;
+}
+
+/** Canonical alias used by UI/API. Same rules as evaluateDeliveryProfileCompletion. */
+export function getDeliveryProfileCompletion(
+  profile: DeliveryProfileCompletionInput,
+  options?: { requirePricing?: boolean },
+): DeliveryProfileCompletionResult {
+  return evaluateDeliveryProfileCompletion(profile, options);
+}
+
+export function getDeliveryProfileCompletionFromRow(
+  profile: CanonicalDeliveryProfileRow,
+  user?: DeliveryUserLocation | null,
+  options?: { requirePricing?: boolean },
+): DeliveryProfileCompletionResult {
+  return getDeliveryProfileCompletion(
+    {
+      ...toProviderActivationProfile(profile, user),
+      isVerified: profile.isVerified,
+    },
+    options,
+  );
 }

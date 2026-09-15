@@ -31,7 +31,7 @@ export const OPERATIONS_ROUTES = {
   delivery: {
     home: '/delivery',
     settings: '/delivery/settings',
-    profileEditor: '/delivery/instellingen',
+    profileEditor: '/delivery/settings',
     signup: '/delivery/start',
   },
   affiliate: {

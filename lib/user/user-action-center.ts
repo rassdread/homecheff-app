@@ -76,6 +76,10 @@ export type UserActionCenterInput = {
     minimumFeeCents?: number | null;
     freeDeliveryRadiusKm?: number | null;
     companyDisplayName?: string | null;
+    availableDays?: string[] | null;
+    availableTimeSlots?: string[] | null;
+    workStartTime?: string | null;
+    workEndTime?: string | null;
   } | null;
   activeDeliveryCount: number;
   affiliate?: {
@@ -242,7 +246,7 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
   const profile = input.deliveryProfile;
   const activationComplete = profile.activationComplete !== false;
 
-  // Incomplete activation (area/pricing) — not Stripe. Canonical editor: /delivery/settings.
+  // Incomplete activation (area/pricing/availability) — not Stripe. Canonical editor: /delivery/settings.
   if (!activationComplete) {
     const raw: DeliveryProfileCompletionInput | null =
       profile.providerType != null
@@ -260,6 +264,10 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
             minimumFeeCents: profile.minimumFeeCents ?? null,
             freeDeliveryRadiusKm: profile.freeDeliveryRadiusKm ?? null,
             companyDisplayName: profile.companyDisplayName ?? null,
+            availableDays: profile.availableDays ?? [],
+            availableTimeSlots: profile.availableTimeSlots ?? [],
+            workStartTime: profile.workStartTime ?? null,
+            workEndTime: profile.workEndTime ?? null,
             isVerified: profile.isVerified,
           }
         : null;
@@ -274,15 +282,6 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
         'Vul werkgebied en tarieven in om bezorgopdrachten te kunnen ontvangen.',
       actionLabel: lane.ctaLabelNl || 'Bezorgprofiel afronden',
       actionHref: lane.ctaHref || DELIVERY_SETTINGS_HREF,
-    });
-  } else if (!profile.isVerified) {
-    items.push({
-      id: 'delivery-verification',
-      severity: 'orange',
-      title: 'Je bezorgprofiel is nog niet geactiveerd.',
-      description: 'Activeer je profiel om opdrachten te kunnen doen.',
-      actionLabel: 'Bezorgprofiel openen',
-      actionHref: DELIVERY_SETTINGS_HREF,
     });
   }
 

@@ -98,6 +98,10 @@ describe('resolveAccountReadiness', () => {
         minimumFeeCents: null,
         freeDeliveryRadiusKm: null,
         companyDisplayName: null,
+        availableDays: ['maandag'],
+        availableTimeSlots: ['morning'],
+        workStartTime: '09:00',
+        workEndTime: '21:00',
       },
     });
     assert.equal(result.stripe.state, 'READY');
@@ -136,6 +140,10 @@ describe('resolveAccountReadiness', () => {
         minimumFeeCents: 250,
         freeDeliveryRadiusKm: 0,
         companyDisplayName: null,
+        availableDays: ['maandag'],
+        availableTimeSlots: ['morning'],
+        workStartTime: '09:00',
+        workEndTime: '21:00',
       },
     });
     assert.equal(result.delivery.state, 'READY');

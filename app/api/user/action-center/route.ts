@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 import { refreshSellerStripeSnapshotIfStale } from '@/lib/stripe/sync-seller-payment-status';
 import { buildUserActionItems } from '@/lib/user/user-action-center';
-import { evaluateDeliveryProfileCompletion } from '@/lib/delivery/delivery-profile-completion';
+import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
 import type { PendingClientReward } from '@/lib/gamification/gamification-me-types';
 import {
   isSellerDashboardOrderBadgeNotification,
@@ -87,6 +87,10 @@ export async function GET() {
             minimumFeeCents: true,
             freeDeliveryRadiusKm: true,
             companyDisplayName: true,
+            availableDays: true,
+            availableTimeSlots: true,
+            workStartTime: true,
+            workEndTime: true,
           },
         },
         affiliate: {
@@ -221,22 +225,10 @@ export async function GET() {
     try {
       const deliveryProfileForActions = user.DeliveryProfile
         ? (() => {
-            const activation = evaluateDeliveryProfileCompletion({
-              providerType: user.DeliveryProfile.providerType,
-              isActive: user.DeliveryProfile.isActive,
-              isOnline: user.DeliveryProfile.isOnline,
-              homeLat: user.DeliveryProfile.homeLat,
-              homeLng: user.DeliveryProfile.homeLng,
-              maxDistance: user.DeliveryProfile.maxDistance,
-              nationalCoverage: user.DeliveryProfile.nationalCoverage,
-              pricingEnabled: user.DeliveryProfile.pricingEnabled,
-              baseFeeCents: user.DeliveryProfile.baseFeeCents,
-              pricePerKmCents: user.DeliveryProfile.pricePerKmCents,
-              minimumFeeCents: user.DeliveryProfile.minimumFeeCents,
-              freeDeliveryRadiusKm: user.DeliveryProfile.freeDeliveryRadiusKm,
-              companyDisplayName: user.DeliveryProfile.companyDisplayName,
-              isVerified: user.DeliveryProfile.isVerified,
-            });
+            const activation = getDeliveryProfileCompletionFromRow(
+              user.DeliveryProfile,
+              { lat: user.lat, lng: user.lng, place: user.place },
+            );
             return {
               id: user.DeliveryProfile.id,
               isVerified: user.DeliveryProfile.isVerified,
@@ -255,6 +247,10 @@ export async function GET() {
               minimumFeeCents: user.DeliveryProfile.minimumFeeCents,
               freeDeliveryRadiusKm: user.DeliveryProfile.freeDeliveryRadiusKm,
               companyDisplayName: user.DeliveryProfile.companyDisplayName,
+              availableDays: user.DeliveryProfile.availableDays,
+              availableTimeSlots: user.DeliveryProfile.availableTimeSlots,
+              workStartTime: user.DeliveryProfile.workStartTime,
+              workEndTime: user.DeliveryProfile.workEndTime,
             };
           })()
         : null;

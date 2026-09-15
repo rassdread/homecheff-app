@@ -4,6 +4,8 @@ import {
   DELIVERY_ONBOARDING_CANONICAL_HREF,
   DELIVERY_PROFILE_EDITOR_HREF,
   evaluateDeliveryProfileCompletion,
+  getDeliveryProfileCompletion,
+  getDeliveryProfileCompletionFromRow,
   isDeliveryProfileComplete,
 } from '@/lib/delivery/delivery-profile-completion';
 import { ACTIVITY_CARD_TYPE_REGISTRY } from '@/lib/discovery/activity-cards/activity-card-type-registry';
@@ -41,6 +43,10 @@ const completeProfile = {
   minimumFeeCents: 495,
   freeDeliveryRadiusKm: 0,
   companyDisplayName: null,
+  availableDays: ['maandag', 'dinsdag'],
+  availableTimeSlots: ['morning', 'afternoon'],
+  workStartTime: '09:00',
+  workEndTime: '21:00',
 };
 
 describe('delivery profile completion source of truth', () => {
@@ -57,6 +63,39 @@ describe('delivery profile completion source of truth', () => {
     const r = evaluateDeliveryProfileCompletion(completeProfile);
     assert.equal(r.isComplete, true);
     assert.equal(r.ok, true);
+  });
+
+  it('requires availability even when area and pricing are set', () => {
+    const r = evaluateDeliveryProfileCompletion({
+      ...completeProfile,
+      availableDays: [],
+      availableTimeSlots: [],
+      workStartTime: null,
+      workEndTime: null,
+    });
+    assert.equal(r.isComplete, false);
+    if (!r.ok) {
+      assert.ok(r.missing.includes('availability'));
+    }
+  });
+
+  it('treats User lat/lng as service-area fallback until home* is persisted', () => {
+    const r = getDeliveryProfileCompletionFromRow(
+      {
+        ...completeProfile,
+        homeLat: null,
+        homeLng: null,
+      },
+      { lat: 51.91, lng: 4.34, place: 'Vlaardingen' },
+    );
+    assert.equal(r.isComplete, true);
+  });
+
+  it('getDeliveryProfileCompletion matches evaluateDeliveryProfileCompletion', () => {
+    assert.equal(
+      getDeliveryProfileCompletion(completeProfile).isComplete,
+      evaluateDeliveryProfileCompletion(completeProfile).isComplete,
+    );
   });
 
   it('exposes canonical routes', () => {

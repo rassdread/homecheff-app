@@ -64,7 +64,7 @@ export function useOperationsSidepanelData(enabled = true) {
 
     try {
       const [actionRes, earningsRes] = await Promise.all([
-        fetch('/api/user/action-center'),
+        fetch('/api/user/action-center', { cache: 'no-store' }),
         fetch('/api/earnings/combined'),
       ]);
 
@@ -117,6 +117,7 @@ export function useOperationsSidepanelData(enabled = true) {
     const onNotificationsUpdated = () => void load();
     window.addEventListener('focus', loadIfStale);
     window.addEventListener('notificationsUpdated', onNotificationsUpdated);
+    window.addEventListener('deliveryProfileUpdated', onNotificationsUpdated);
     window.addEventListener('unreadCountUpdate', onNotificationsUpdated);
     window.addEventListener('messagesRead', onNotificationsUpdated);
     document.addEventListener('visibilitychange', () => {
@@ -125,6 +126,7 @@ export function useOperationsSidepanelData(enabled = true) {
     return () => {
       window.removeEventListener('focus', loadIfStale);
       window.removeEventListener('notificationsUpdated', onNotificationsUpdated);
+      window.removeEventListener('deliveryProfileUpdated', onNotificationsUpdated);
       window.removeEventListener('unreadCountUpdate', onNotificationsUpdated);
       window.removeEventListener('messagesRead', onNotificationsUpdated);
     };

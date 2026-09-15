@@ -20,6 +20,10 @@ export type ProviderActivationProfile = {
   minimumFeeCents: number | null;
   freeDeliveryRadiusKm: number | null;
   companyDisplayName: string | null;
+  availableDays?: string[] | null;
+  availableTimeSlots?: string[] | null;
+  workStartTime?: string | null;
+  workEndTime?: string | null;
 };
 
 export type ProviderActivationResult =
@@ -53,6 +57,22 @@ export function evaluateProviderActivation(
     missing.push('serviceArea');
   }
 
+  const hasDays = Array.isArray(profile.availableDays)
+    ? profile.availableDays.some((d) => typeof d === 'string' && d.trim())
+    : false;
+  const hasSlots = Array.isArray(profile.availableTimeSlots)
+    ? profile.availableTimeSlots.some((s) => typeof s === 'string' && s.trim())
+    : false;
+  const hasWorkHours =
+    typeof profile.workStartTime === 'string' &&
+    /^\d{1,2}:\d{2}$/.test(profile.workStartTime.trim()) &&
+    typeof profile.workEndTime === 'string' &&
+    /^\d{1,2}:\d{2}$/.test(profile.workEndTime.trim());
+
+  if (!hasDays || (!hasSlots && !hasWorkHours)) {
+    missing.push('availability');
+  }
+
   if (requirePricing) {
     const pricing = validateProviderPricingConfig({
       pricingEnabled: profile.pricingEnabled,
@@ -72,6 +92,7 @@ export function evaluateProviderActivation(
     const hints: Record<string, string> = {
       companyDisplayName: 'Vul een bedrijfsnaam in',
       serviceArea: 'Stel je werkgebied in (locatie + straal)',
+      availability: 'Stel je beschikbare dagen en tijden in',
       pricing: 'Activeer en vul je bezorgtarief in',
     };
     return {

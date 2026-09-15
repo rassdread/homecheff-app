@@ -161,6 +161,7 @@ export async function PUT(req: NextRequest) {
       age, 
       transportation, 
       maxDistance, 
+      preferredRadius,
       availableDays, 
       availableTimeSlots, 
       bio, 
@@ -227,18 +228,23 @@ export async function PUT(req: NextRequest) {
     const updatedProfile = await prisma.deliveryProfile.update({
       where: { userId: user!.id },
       data: {
-        ...(age && { age }),
+        ...(age !== undefined && age !== null ? { age } : {}),
         ...(validTransportModes && { transportation: validTransportModes }),
-        ...(maxDistance && { maxDistance }),
-        ...(availableDays && { availableDays }),
-        ...(availableTimeSlots && { availableTimeSlots }),
+        ...(maxDistance !== undefined && maxDistance !== null && maxDistance !== ''
+          ? { maxDistance: Number(maxDistance) }
+          : {}),
+        ...(preferredRadius !== undefined && preferredRadius !== null && preferredRadius !== ''
+          ? { preferredRadius: Number(preferredRadius) }
+          : {}),
+        ...(Array.isArray(availableDays) ? { availableDays } : {}),
+        ...(Array.isArray(availableTimeSlots) ? { availableTimeSlots } : {}),
         ...(bio !== undefined && { bio }),
         ...(isActive !== undefined && { isActive }),
         ...(deliveryMode && { deliveryMode }),
-        ...(deliveryRegions && { deliveryRegions }),
-        ...(finalHomeLat && { homeLat: finalHomeLat }),
-        ...(finalHomeLng && { homeLng: finalHomeLng }),
-        ...(finalHomeAddress && { homeAddress: finalHomeAddress }),
+        ...(Array.isArray(deliveryRegions) ? { deliveryRegions } : {}),
+        ...(finalHomeLat != null ? { homeLat: finalHomeLat } : {}),
+        ...(finalHomeLng != null ? { homeLng: finalHomeLng } : {}),
+        ...(finalHomeAddress ? { homeAddress: finalHomeAddress } : {}),
         updatedAt: new Date()
       }
     });

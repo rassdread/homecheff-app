@@ -69,6 +69,10 @@ describe('provider activation gate', () => {
       minimumFeeCents: 495,
       freeDeliveryRadiusKm: 0,
       companyDisplayName: 'Vlaardingen Express',
+      availableDays: ['maandag'],
+      availableTimeSlots: ['morning'],
+      workStartTime: '09:00',
+      workEndTime: '21:00',
     });
     assert.equal(r.ok, true);
   });
@@ -88,6 +92,10 @@ describe('provider activation gate', () => {
       minimumFeeCents: 495,
       freeDeliveryRadiusKm: 0,
       companyDisplayName: '',
+      availableDays: ['maandag'],
+      availableTimeSlots: ['morning'],
+      workStartTime: '09:00',
+      workEndTime: '21:00',
     });
     assert.equal(r.ok, false);
     if (!r.ok) assert.ok(r.missing.includes('companyDisplayName'));
