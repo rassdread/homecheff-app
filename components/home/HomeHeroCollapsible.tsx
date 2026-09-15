@@ -9,6 +9,7 @@ const hideButtonClass = cn(
   'inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5',
   'rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold',
   'text-white bg-black/45 border border-white/70 shadow-sm backdrop-blur-[2px]',
+  '[-webkit-text-fill-color:#ffffff]',
   'hover:bg-black/55 hover:border-white',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
   'focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
@@ -19,6 +20,7 @@ const hideButtonClass = cn(
 const showButtonClass = cn(
   'flex w-full min-h-[44px] items-center justify-center gap-1.5',
   'rounded-xl px-3 py-2 text-sm font-semibold text-white',
+  '[-webkit-text-fill-color:#ffffff]',
   'bg-gradient-to-r from-primary-brand via-[#007a5c] to-emerald-800',
   'border border-white/30 shadow-md',
   'hover:brightness-[1.04] active:brightness-95',

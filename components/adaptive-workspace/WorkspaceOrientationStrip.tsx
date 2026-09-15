@@ -37,6 +37,7 @@ type Props = {
 const ctaPrimaryClass = cn(
   'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-1.5',
   'text-sm font-bold bg-white text-emerald-900 shadow-md whitespace-nowrap',
+  '[-webkit-text-fill-color:#064e3b]',
   'hover:bg-emerald-50 touch-manipulation transition-colors',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
 );
