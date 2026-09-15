@@ -10,7 +10,7 @@ const WORKSHOP_PATTERNS =
 const COACHING_PATTERNS = /\b(coaching|coach|mentor|begeleiding|tutor)\b/i;
 
 const TASK_PATTERNS =
-  /\b(klus(je|jes)?|task|handyman|klusjesman|tuinman|oppas|verhuiz)\b/i;
+  /\b(klus(je|jes)?|task|handyman|klusjesman|tuinman|oppas|verhuiz|schoonmaak|schoonmaker|huishoudelijk|opruimen|strijken)\b/i;
 
 const SERVICE_PATTERNS =
   /\b(dienst(en)?|service|webdesign|website|fotograaf|photographer|tattoo)\b/i;

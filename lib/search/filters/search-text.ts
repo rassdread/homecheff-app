@@ -1,6 +1,7 @@
 import type { SearchableListingRecord } from '../contracts/search-contract';
 import { inferSearchQueryIntent } from '../infer-query-intent';
 import { toSearchableListingRecord } from '@/lib/discovery/consumer-accessors';
+import { listingMatchesTaxonomySearchQuery } from '@/lib/marketplace/taxonomy-resolve';
 
 function normalizeTerm(value: string): string {
   return value.trim().toLowerCase();
@@ -41,6 +42,14 @@ export function matchesSearchTextQuery(
 
   const haystack = haystackForItem(resolved);
   if (haystack.includes(term)) return true;
+
+  const listingTaxonomyIds = [
+    resolved.subcategory,
+    ...(resolved.specializations ?? []),
+  ];
+  if (listingMatchesTaxonomySearchQuery(listingTaxonomyIds, term)) {
+    return true;
+  }
 
   const words = term.split(/\s+/).filter(Boolean);
   if (words.length > 1 && words.every((w) => haystack.includes(w))) {

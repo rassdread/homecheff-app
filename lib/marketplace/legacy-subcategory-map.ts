@@ -90,6 +90,15 @@ const LEGACY_DUTCH_SUBCATEGORY_MAP: Record<string, string> = {
 
   // Services (legacy free text)
   schoonmaak: 'practical.cleaning',
+  schoonmaker: 'practical.cleaning',
+  schoonmaakhulp: 'practical.cleaning',
+  'huishoudelijke hulp': 'practical.household',
+  huishouden: 'practical.household',
+  'hulp in huis': 'practical.household',
+  opruimen: 'practical.tidying',
+  wassen: 'practical.laundry',
+  strijken: 'practical.laundry',
+  boodschappen: 'practical.errands',
   oppas: 'practical.childcare',
   kinderopvang: 'practical.childcare',
   fietsreparatie: 'practical.bike_repair',

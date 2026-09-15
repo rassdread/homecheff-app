@@ -8464,6 +8464,7 @@
     "orientationActions": "Zoeken · Aanbieden · Vragen · Kopen · Verkopen · Ruilen · Helpen · Ontdekken",
     "heroHideLabel": "Hero verbergen",
     "heroShowLabel": "Hero tonen",
+    "heroRestoreLabel": "Intro tonen",
     "schemaWebsiteDescription": "HomeCheff — het digitale thuis van persoonlijk vakmanschap. Ontdek lokale makers, vakmensen en buren — eten, tuin, creaties, diensten en hulp.",
     "verticals": {
       "cheff": {
@@ -9451,6 +9452,9 @@
           }
         },
         "practical": {
+          "household": {
+            "label": "Huishoudelijke hulp"
+          },
           "all": {
             "label": "Praktische diensten"
           }
@@ -9713,11 +9717,23 @@
         }
       },
       "practical": {
-        "gardenwork": {
-          "label": "Tuinwerk"
+        "household": {
+          "label": "Huishoudelijke hulp"
         },
         "cleaning": {
           "label": "Schoonmaak"
+        },
+        "tidying": {
+          "label": "Opruimen"
+        },
+        "laundry": {
+          "label": "Wassen & strijken"
+        },
+        "errands": {
+          "label": "Boodschappen / praktische hulp"
+        },
+        "gardenwork": {
+          "label": "Tuinwerk"
         },
         "movinghelp": {
           "label": "Verhuishulp"
@@ -9771,11 +9787,11 @@
     "blocklist": {
       "dropshipping": {
         "label": "Dropshipping",
-        "reason": "HomeCheff is bedoeld voor zelfgemaakte en lokaal geoogste producten, niet voor doorverkoop van anonieme massaproducten."
+        "reason": "HomeCheff is bedoeld voor aanbod waar jij zelf betekenisvolle waarde toevoegt — niet voor ongewijzigde doorverkoop of dropshipping."
       },
       "resale": {
-        "label": "Wederverkoop",
-        "reason": "Alleen producten die je zelf maakt, oogst of aanbiedt zijn toegestaan — geen wederverkoop van bestaande goederen."
+        "label": "Ongewijzigde wederverkoop",
+        "reason": "Ongewijzigde wederverkoop hoort niet op HomeCheff. Zelf maken, bereiden, kweken, ontwerpen, personaliseren, bewerken, restaureren of samenstellen wel — herkomst van onderdelen is niet doorslaggevend."
       },
       "rental": {
         "label": "Verhuur",

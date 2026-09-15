@@ -37,6 +37,7 @@ function group(
   category: MarketplaceTaxonomyCategory,
   icon: string,
   tone: TaxonomyTone,
+  searchTerms?: string[],
 ): MarketplaceTaxonomyItem {
   return {
     id,
@@ -45,6 +46,7 @@ function group(
     labelKey: taxonomyGroupLabelKey(id),
     icon,
     tone,
+    searchTerms,
     allowedAsOffer: false,
     allowedAsRequest: false,
     allowedAsAcceptedValue: false,
@@ -102,8 +104,16 @@ const G_DESIGN_WEB = 'grp.design.web';
 const G_DESIGN_BRAND = 'grp.design.brand';
 const G_DESIGN_MEDIA = 'grp.design.media';
 const G_ARTISTIC = 'grp.artistic.all';
+const G_HOUSEHOLD = 'grp.practical.household';
 const G_PRACTICAL = 'grp.practical.all';
 const G_KNOWLEDGE = 'grp.knowledge.all';
+
+const HOUSEHOLD_CLUSTER_TERMS = [
+  'huishoudelijke hulp',
+  'hulp in huis',
+  'household help',
+  'huishouden',
+];
 
 export const MARKETPLACE_TAXONOMY_GROUP_IDS = [
   G_MEALS,
@@ -117,6 +127,7 @@ export const MARKETPLACE_TAXONOMY_GROUP_IDS = [
   G_DESIGN_BRAND,
   G_DESIGN_MEDIA,
   G_ARTISTIC,
+  G_HOUSEHOLD,
   G_PRACTICAL,
   G_KNOWLEDGE,
 ] as const;
@@ -146,6 +157,7 @@ export const MARKETPLACE_TAXONOMY: readonly MarketplaceTaxonomyItem[] = [
   group(G_DESIGN_BRAND, 'DESIGN', 'Sparkles', 'creative'),
   group(G_DESIGN_MEDIA, 'DESIGN', 'Video', 'creative'),
   group(G_ARTISTIC, 'ARTISTIC_SERVICE', 'Palette', 'artistic'),
+  group(G_HOUSEHOLD, 'PRACTICAL_SERVICE', 'Home', 'service', HOUSEHOLD_CLUSTER_TERMS),
   group(G_PRACTICAL, 'PRACTICAL_SERVICE', 'Wrench', 'service'),
   group(G_KNOWLEDGE, 'KNOWLEDGE', 'BookOpen', 'knowledge'),
 
@@ -234,8 +246,58 @@ export const MARKETPLACE_TAXONOMY: readonly MarketplaceTaxonomyItem[] = [
   item('artistic.music', 'ARTISTIC_SERVICE', { icon: 'Music', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['muziek', 'music'] }),
   item('artistic.voice', 'ARTISTIC_SERVICE', { icon: 'Mic', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['zang', 'voice', 'vocals'] }),
 
+  item('practical.household', 'PRACTICAL_SERVICE', {
+    icon: 'Home',
+    tone: 'service',
+    parentId: G_HOUSEHOLD,
+    searchTerms: [
+      ...HOUSEHOLD_CLUSTER_TERMS,
+      'overige huishoudelijke hulp',
+      'huishoudelijke hulp gezocht',
+    ],
+  }),
+  item('practical.cleaning', 'PRACTICAL_SERVICE', {
+    icon: 'Sparkles',
+    tone: 'service',
+    parentId: G_HOUSEHOLD,
+    searchTerms: [
+      ...HOUSEHOLD_CLUSTER_TERMS,
+      'schoonmaak',
+      'schoonmaker',
+      'schoonmaakhulp',
+      'cleaning',
+    ],
+  }),
+  item('practical.tidying', 'PRACTICAL_SERVICE', {
+    icon: 'Folders',
+    tone: 'service',
+    parentId: G_HOUSEHOLD,
+    searchTerms: [...HOUSEHOLD_CLUSTER_TERMS, 'opruimen', 'opruimhulp', 'tidying'],
+  }),
+  item('practical.laundry', 'PRACTICAL_SERVICE', {
+    icon: 'Shirt',
+    tone: 'service',
+    parentId: G_HOUSEHOLD,
+    searchTerms: [
+      ...HOUSEHOLD_CLUSTER_TERMS,
+      'wassen',
+      'strijken',
+      'wassen en strijken',
+      'laundry',
+    ],
+  }),
+  item('practical.errands', 'PRACTICAL_SERVICE', {
+    icon: 'ShoppingBasket',
+    tone: 'service',
+    parentId: G_HOUSEHOLD,
+    searchTerms: [
+      ...HOUSEHOLD_CLUSTER_TERMS,
+      'boodschappen',
+      'praktische huishoudelijke hulp',
+      'errands',
+    ],
+  }),
   item('practical.gardenwork', 'PRACTICAL_SERVICE', { icon: 'Shovel', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['tuinwerk', 'garden work'] }),
-  item('practical.cleaning', 'PRACTICAL_SERVICE', { icon: 'Sparkles', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['schoonmaak', 'cleaning'] }),
   item('practical.movinghelp', 'PRACTICAL_SERVICE', { icon: 'Truck', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['verhuishulp', 'moving help'] }),
   item('practical.computerhelp', 'PRACTICAL_SERVICE', { icon: 'Monitor', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['computerhulp', 'computer help', 'it support'] }),
   item('practical.repair', 'PRACTICAL_SERVICE', { icon: 'Wrench', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['reparatie', 'repair'] }),

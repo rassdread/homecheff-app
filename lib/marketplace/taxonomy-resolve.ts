@@ -106,6 +106,73 @@ export function getTaxonomyItemSearchTerms(id: string): string[] {
   return entry?.searchTerms ?? [];
 }
 
+const TAXONOMY_QUERY_STOPWORDS = new Set([
+  'gezocht',
+  'zoekt',
+  'zoeken',
+  'nodig',
+  'needed',
+  'wie',
+  'kan',
+  'help',
+]);
+
+function taxonomySearchBlob(entry: MarketplaceTaxonomyItem): string {
+  return [entry.id, ...(entry.searchTerms ?? [])]
+    .filter((part) => typeof part === 'string' && part.trim())
+    .join(' ')
+    .toLowerCase();
+}
+
+function taxonomyBlobMatchesQuery(blob: string, term: string, topical: string, words: string[]): boolean {
+  if (!blob) return false;
+  if (blob.includes(term) || (topical && blob.includes(topical))) return true;
+  const significant = words.filter((word) => word.length > 2);
+  return significant.length > 0 && significant.every((word) => blob.includes(word));
+}
+
+/** Canonical ids whose labels/synonyms match a free-text query. Group hits expand to children. */
+export function getTaxonomyIdsMatchingSearchQuery(q: string): Set<string> {
+  const term = q.trim().toLowerCase();
+  const ids = new Set<string>();
+  if (!term) return ids;
+
+  const words = term
+    .split(/\s+/)
+    .filter((word) => word && !TAXONOMY_QUERY_STOPWORDS.has(word));
+  const topical = words.join(' ');
+  const items = MARKETPLACE_TAXONOMY.filter(
+    (entry) => entry.level === 'item' && !entry.blocked,
+  );
+
+  for (const group of MARKETPLACE_TAXONOMY) {
+    if (group.level !== 'group') continue;
+    if (!taxonomyBlobMatchesQuery(taxonomySearchBlob(group), term, topical, words)) {
+      continue;
+    }
+    for (const item of items) {
+      if (item.parentId === group.id) ids.add(item.id);
+    }
+  }
+
+  for (const item of items) {
+    if (taxonomyBlobMatchesQuery(taxonomySearchBlob(item), term, topical, words)) {
+      ids.add(item.id);
+    }
+  }
+
+  return ids;
+}
+
+export function listingMatchesTaxonomySearchQuery(
+  listingTaxonomyIds: Array<string | null | undefined>,
+  q: string,
+): boolean {
+  const wanted = getTaxonomyIdsMatchingSearchQuery(q);
+  if (wanted.size === 0) return false;
+  return listingTaxonomyIds.some((id) => Boolean(id) && wanted.has(id));
+}
+
 function roleFilter(
   role: 'offer' | 'request' | 'acceptedValue',
   options?: TaxonomyResolveOptions,

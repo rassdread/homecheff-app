@@ -8463,6 +8463,7 @@
     "orientationActions": "Search · Offer · Ask · Buy · Sell · Trade · Help · Discover",
     "heroHideLabel": "Hide hero",
     "heroShowLabel": "Show hero",
+    "heroRestoreLabel": "Show intro",
     "orientationValueExchangeHint": "Trade without money too — discover what you can get with what you can offer.",
     "schemaWebsiteDescription": "HomeCheff — the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.",
     "verticals": {
@@ -9451,6 +9452,9 @@
           }
         },
         "practical": {
+          "household": {
+            "label": "Household help"
+          },
           "all": {
             "label": "Practical services"
           }
@@ -9713,11 +9717,23 @@
         }
       },
       "practical": {
-        "gardenwork": {
-          "label": "Garden work"
+        "household": {
+          "label": "Household help"
         },
         "cleaning": {
           "label": "Cleaning"
+        },
+        "tidying": {
+          "label": "Tidying"
+        },
+        "laundry": {
+          "label": "Laundry & ironing"
+        },
+        "errands": {
+          "label": "Errands / practical help"
+        },
+        "gardenwork": {
+          "label": "Garden work"
         },
         "movinghelp": {
           "label": "Moving help"
@@ -9771,11 +9787,11 @@
     "blocklist": {
       "dropshipping": {
         "label": "Dropshipping",
-        "reason": "HomeCheff is for self-made and locally grown products, not resale of anonymous mass products."
+        "reason": "HomeCheff is for offers where you personally add meaningful value — not unmodified resale or dropshipping."
       },
       "resale": {
-        "label": "Resale",
-        "reason": "Only products you make, grow or offer yourself are allowed — no resale of existing goods."
+        "label": "Unmodified resale",
+        "reason": "Unmodified resale does not belong on HomeCheff. Making, preparing, growing, designing, personalising, transforming, restoring or assembling does — material origin is not decisive."
       },
       "rental": {
         "label": "Rental",

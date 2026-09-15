@@ -23,6 +23,7 @@ export const TAXONOMY_GROUP_LABELS: Record<string, TaxonomyLabelPair> = {
   'design.brand': { nl: 'Branding & marketing', en: 'Branding & marketing' },
   'design.media': { nl: 'Media & design', en: 'Media & design' },
   'artistic.all': { nl: 'Artistieke diensten', en: 'Artistic services' },
+  'practical.household': { nl: 'Huishoudelijke hulp', en: 'Household help' },
   'practical.all': { nl: 'Praktische diensten', en: 'Practical services' },
   'knowledge.all': { nl: 'Kennis & workshops', en: 'Knowledge & workshops' },
 };
@@ -122,8 +123,12 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'artistic.voice': { nl: 'Zang', en: 'Voice' },
 
   // PRACTICAL_SERVICE
-  'practical.gardenwork': { nl: 'Tuinwerk', en: 'Garden work' },
+  'practical.household': { nl: 'Huishoudelijke hulp', en: 'Household help' },
   'practical.cleaning': { nl: 'Schoonmaak', en: 'Cleaning' },
+  'practical.tidying': { nl: 'Opruimen', en: 'Tidying' },
+  'practical.laundry': { nl: 'Wassen & strijken', en: 'Laundry & ironing' },
+  'practical.errands': { nl: 'Boodschappen / praktische hulp', en: 'Errands / practical help' },
+  'practical.gardenwork': { nl: 'Tuinwerk', en: 'Garden work' },
   'practical.movinghelp': { nl: 'Verhuishulp', en: 'Moving help' },
   'practical.computerhelp': { nl: 'Computerhulp', en: 'Computer help' },
   'practical.repair': { nl: 'Reparatie', en: 'Repair' },
