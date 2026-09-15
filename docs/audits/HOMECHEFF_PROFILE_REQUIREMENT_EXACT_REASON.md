@@ -2,6 +2,9 @@
 
 **Rule:** never show a generic profile warning when the system already knows which field is missing.
 
+**COMMIT_SHA:** `ab2e1a81`  
+**PRODUCTION_AUTHENTICATED_SMOKE:** PASS (`https://homecheff.eu`, tag `preq_mu2jeoxh`)
+
 ## Source of truth
 
 | Surface | Engine |
@@ -31,22 +34,30 @@ Composer: `lib/account/evaluate-profile-requirements.ts`
 
 ## Production gates
 
-Run after deploy:
-
 ```bash
 npx tsx scripts/certify-profile-requirement-notices-production.mts
 ```
 
-Expected:
+| Gate | Result |
+|---|---|
+| GENERIC_PROFILE_WARNING_WITHOUT_REASON | NONE |
+| LISTING_GATE_EXACT_MISSING_REASON | PASS |
+| DELIVERY_EXACT_MISSING_REASON | PASS |
+| SIDEBAR_EXACT_MISSING_REASON | PASS |
+| SIDEBAR_CTA_TARGET | PASS |
+| RESOLVED_WARNING_DISAPPEARS | PASS |
+| MULTIPLE_MISSING_REQUIREMENTS | PASS |
+| BLOCKING_VS_RECOMMENDED | PASS |
+| PROFILE_REQUIREMENTS_SOURCE_OF_TRUTH | PASS |
+| STALE_PROFILE_WARNINGS | NONE |
+| DUPLICATE_PROFILE_WARNINGS | NONE |
 
-- `GENERIC_PROFILE_WARNING_WITHOUT_REASON = NONE`
-- `LISTING_GATE_EXACT_MISSING_REASON = PASS`
-- `DELIVERY_EXACT_MISSING_REASON = PASS`
-- `SIDEBAR_EXACT_MISSING_REASON = PASS`
-- `SIDEBAR_CTA_TARGET = PASS`
-- `RESOLVED_WARNING_DISAPPEARS = PASS`
-- `MULTIPLE_MISSING_REQUIREMENTS = PASS`
-- `BLOCKING_VS_RECOMMENDED = PASS`
-- `PROFILE_REQUIREMENTS_SOURCE_OF_TRUTH = PASS`
-- `STALE_PROFILE_WARNINGS = NONE`
-- `DUPLICATE_PROFILE_WARNINGS = NONE`
+Live examples:
+
+- Listing without terms → “Accepteer de algemene voorwaarden.” / CTA “Voorwaarden accepteren”
+- Sidebar without woonplaats → “Voeg je woonplaats toe om items in jouw buurt te kunnen aanbieden.”
+- Incomplete courier (pricing) → “Vul je bezorgtarief in voordat je bezorgopdrachten kunt aannemen.”
+- After prices saved → delivery incomplete notice gone
+- Complete account → no profile/account/delivery incomplete items
+
+Evidence: `docs/audits/profile-requirement-notices-cert/report.json`

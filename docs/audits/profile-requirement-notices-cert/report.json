@@ -1,0 +1,32 @@
+{
+  "PRODUCTION_AUTHENTICATED_SMOKE": "PASS",
+  "HOMECHEFF": "https://homecheff.eu",
+  "tag": "preq_mu2jeoxh",
+  "GENERIC_PROFILE_WARNING_WITHOUT_REASON": "NONE",
+  "STALE_PROFILE_WARNINGS": "NONE",
+  "SIDEBAR_EXACT_MISSING_REASON": "PASS",
+  "SIDEBAR_CTA_TARGET": "PASS",
+  "PROFILE_REQUIREMENTS_SOURCE_OF_TRUTH": "PASS",
+  "LISTING_GATE_EXACT_MISSING_REASON": "PASS",
+  "BLOCKING_VS_RECOMMENDED": "PASS",
+  "DELIVERY_EXACT_MISSING_REASON": "PASS",
+  "RESOLVED_WARNING_DISAPPEARS": "PASS",
+  "MULTIPLE_MISSING_REQUIREMENTS": "PASS",
+  "DUPLICATE_PROFILE_WARNINGS": "NONE",
+  "listingStatus": 403,
+  "listingError": "ACCOUNT_REQUIREMENTS_MISSING",
+  "listingNotice": {
+    "titleNl": "Accepteer de algemene voorwaarden.",
+    "bodyNl": "Je moet de voorwaarden accepteren voordat je iets kunt aanbieden.",
+    "ctaLabelNl": "Voorwaarden accepteren",
+    "targetRoute": "/profile",
+    "missingCodes": [
+      "termsAccepted"
+    ]
+  },
+  "courierTitle": "Vul je bezorgtarief in voordat je bezorgopdrachten kunt aannemen.",
+  "noPlaceTitle": "Voeg je woonplaats toe om items in jouw buurt te kunnen aanbieden.",
+  "completeItemIds": [
+    "hcp-welcome"
+  ]
+}
