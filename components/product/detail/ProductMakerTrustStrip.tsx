@@ -20,6 +20,7 @@ import {
 } from '@/lib/user/public-profile';
 import FollowButton from '@/components/follow/FollowButton';
 import { formatFansCountLabel } from '@/lib/follow/format-fans-count';
+import { cn } from '@/lib/utils';
 import {
   FOLLOW_CHANGED_EVENT,
   type FollowChangedDetail,
