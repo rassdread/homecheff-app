@@ -23,6 +23,7 @@ import type { GuestSalesPanelId } from '@/lib/guest/guest-explanation-panels';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import LandscapeWorkBarCommands from '@/components/adaptive-workspace/LandscapeWorkBarCommands';
 import { resolveOrientationExplanation } from '@/lib/adaptive-workspace-react/resolve-orientation-explanation';
+import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
 
 const GuestSalesInfoPanel = dynamic(
   () => import('@/components/home/GuestSalesInfoPanel'),
@@ -35,8 +36,8 @@ type Props = {
 
 const ctaPrimaryClass = cn(
   'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-1.5',
-  'text-sm font-bold bg-white text-primary-brand shadow-md whitespace-nowrap',
-  'hover:bg-primary-50 touch-manipulation transition-colors',
+  'text-sm font-bold bg-white text-emerald-900 shadow-md whitespace-nowrap',
+  'hover:bg-emerald-50 touch-manipulation transition-colors',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
 );
 
@@ -95,6 +96,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
 
   return (
     <>
+      <HomeHeroCollapsible>
       <div
         data-wx-orientation-strip=""
         data-wx-orientation-model="B"
@@ -235,26 +237,12 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                 data-wx-orientation-cta=""
                 className="flex flex-wrap items-center gap-2 pt-0.5"
               >
-                <a
-                  href="#homecheff-feed"
-                  data-wx-primary-action=""
-                  data-wx-buyer-cta=""
-                  className={ctaPrimaryClass}
-                  aria-label={t('homePhase1.ctaDiscover')}
-                >
-                  <span>{t('homePhase1.ctaDiscover')}</span>
-                </a>
                 <button
                   type="button"
-                  data-wx-secondary-action=""
+                  data-wx-primary-action=""
                   data-wx-seller-cta=""
                   onClick={onShare}
-                  className={cn(
-                    'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 py-1.5',
-                    'text-sm font-semibold border border-white/55 bg-white/10 text-white whitespace-nowrap',
-                    'hover:bg-white/20 touch-manipulation transition-colors',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
-                  )}
+                  className={ctaPrimaryClass}
                   aria-label={t('homePhase1.ctaShare')}
                 >
                   <Plus className="h-4 w-4 shrink-0" aria-hidden />
@@ -273,6 +261,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
           </div>
         )}
       </div>
+      </HomeHeroCollapsible>
       {guestBottomNavPanelEl}
       {isGuest ? (
         <GuestSalesInfoPanel panel={guestSalesPanel} onClose={() => setGuestSalesPanel(null)} />

@@ -19,10 +19,10 @@ assert(!hero.includes('homePhase1.ctaDiscover'), 'discover CTA removed from lega
 
 const orientation = readFileSync('components/adaptive-workspace/WorkspaceOrientationStrip.tsx', 'utf8');
 assert(!orientation.includes('Compass'), 'discover compass CTA removed from AW orientation strip');
-assert(orientation.includes('homePhase1.ctaDiscover'), 'buyer discover CTA on AW orientation strip');
+assert(!orientation.includes('homePhase1.ctaDiscover'), 'discover CTA not restored as extra hero button');
+assert(orientation.includes('HomeHeroCollapsible'), 'hero hide/show control on AW orientation strip');
 assert(orientation.includes('homePhase1.ctaShare'), 'seller share CTA on AW orientation strip');
-assert(orientation.includes('data-wx-buyer-cta'), 'buyer CTA marked primary path');
-assert(orientation.includes('data-wx-seller-cta'), 'seller CTA marked secondary path');
+assert(orientation.includes('data-wx-seller-cta'), 'seller CTA marked');
 assert(orientation.includes('orientationLocalLaunchNote') || orientation.includes('homePhase1.orientationLocalLaunchNote'), 'local launch trust note');
 assert(!hero.includes('landscape:sr-only'), 'no icon-only share in landscape');
 assert(hero.includes('homeCompactHeader.supportLine'), 'single support line key');

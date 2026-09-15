@@ -13,9 +13,22 @@ export const LS_HERO_COLLAPSED = "homecheff.heroCollapsed";
 export const LS_INFO_COLLAPSED = "homecheff.infoCollapsed";
 
 /** true = compacte balk / samenvatting; leest nieuwe key, anders legacy “hide”-flags. */
+export function readHeroCollapsedPreference(): boolean | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const current = window.localStorage.getItem(LS_HERO_COLLAPSED);
+    if (current === "true") return true;
+    if (current === "false") return false;
+    const legacy = window.localStorage.getItem(LS_HIDE_HOME_HERO);
+    if (legacy === "true") return true;
+  } catch {
+    /* ignore quota / private mode */
+  }
+  return null;
+}
+
 export function readHeroCollapsedFromStorage(): boolean {
-  if (readLsBool(LS_HERO_COLLAPSED)) return true;
-  return readLsBool(LS_HIDE_HOME_HERO);
+  return readHeroCollapsedPreference() === true;
 }
 
 export function readInfoCollapsedFromStorage(): boolean {
@@ -24,12 +37,12 @@ export function readInfoCollapsedFromStorage(): boolean {
 }
 
 export function writeHeroCollapsed(collapsed: boolean): void {
-  writeLsBool(LS_HERO_COLLAPSED, collapsed);
   if (typeof window === "undefined") return;
   try {
+    window.localStorage.setItem(LS_HERO_COLLAPSED, collapsed ? "true" : "false");
     window.localStorage.removeItem(LS_HIDE_HOME_HERO);
   } catch {
-    /* ignore */
+    /* ignore quota / private mode */
   }
 }
 

@@ -8459,6 +8459,8 @@
     "orientationActionPrimary": "Discover nearby",
     "orientationActionSecondary": "Sell or share",
     "orientationActions": "Search · Offer · Ask · Buy · Sell · Trade · Help · Discover",
+    "heroHideLabel": "Hide hero",
+    "heroShowLabel": "Show hero",
     "orientationValueExchangeHint": "Trade without money too — discover what you can get with what you can offer.",
     "schemaWebsiteDescription": "HomeCheff — the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.",
     "verticals": {

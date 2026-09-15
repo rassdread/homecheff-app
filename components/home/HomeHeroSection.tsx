@@ -8,6 +8,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
 import HomepageEcosystemNavLinks from '@/components/home/HomepageEcosystemNavLinks';
+import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
 
 const ctaPrimaryClass = cn(
   'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2',
@@ -40,6 +41,7 @@ export default function HomeHeroSection() {
 
   return (
     <>
+      <HomeHeroCollapsible>
       <section
         className="relative overflow-hidden rounded-xl xl:rounded-2xl hc-hero-dorpsplein mb-1 sm:mb-1.5 shadow-md"
         aria-labelledby="home-compact-header-title"
@@ -90,6 +92,7 @@ export default function HomeHeroSection() {
           <p className="sr-only">{seoEverybodyEats}</p>
         </div>
       </section>
+      </HomeHeroCollapsible>
 
       {guestBottomNavPanelEl}
     </>
