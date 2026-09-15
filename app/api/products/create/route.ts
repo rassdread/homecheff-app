@@ -72,6 +72,25 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    let user =
+      sessionUserId &&
+      (await prisma.user.findUnique({
+        where: { id: sessionUserId },
+        include: { SellerProfile: true, Account: { select: { provider: true } } },
+      }));
+    if (!user && sessionEmail) {
+      user = await prisma.user.findUnique({
+        where: { email: sessionEmail },
+        include: { SellerProfile: true, Account: { select: { provider: true } } },
+      });
+    }
+    if (!user) {
+      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
+    }
+    const accBlock = assertAccountRequirementsOr403(user, 'postItem');
+    if (accBlock) return accBlock;
+
     console.log('[Products Create API] Received request body:', {
       hasTitle: !!body.title,
       hasDescription: !!body.description,
@@ -201,28 +220,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get user with seller profile (id preferred; email fallback matches other seller APIs)
-    let user =
-      sessionUserId &&
-      (await prisma.user.findUnique({
-        where: { id: sessionUserId },
-        include: { SellerProfile: true, Account: { select: { provider: true } } },
-      }));
-    if (!user && sessionEmail) {
-      user = await prisma.user.findUnique({
-        where: { email: sessionEmail },
-        include: { SellerProfile: true, Account: { select: { provider: true } } },
-      });
-    }
-
-    if (!user) {
-      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
-    }
-
-    const accBlock = assertAccountRequirementsOr403(user, 'postItem');
-    if (accBlock) return accBlock;
-
-    // Always create SellerProfile if it doesn't exist (user is trying to sell, so allow it)
     let sellerProfileId = user.SellerProfile?.id;
     
     if (!sellerProfileId) {
