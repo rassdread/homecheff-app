@@ -30,8 +30,19 @@
     "socialsHeading": "Socials",
     "shareForMyself": "For myself",
     "shareForCompany": "For my company: {company}",
-    "moreOptions": "More options",
-    "x": "X"
+    "moreOptions": "More",
+    "x": "X",
+    "snapchat": "Snapchat",
+    "threads": "Threads",
+    "bluesky": "Bluesky",
+    "messenger": "Messenger",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Write something with your post…",
+    "photoLabel": "Photo",
+    "useItemPhoto": "Use item photo",
+    "choosePhoto": "Choose another photo",
+    "noPhoto": "No photo",
+    "linkLabel": "Link"
   },
   "appUpdateGate": {
     "optionalTitle": "New HomeCheff beta available",
@@ -235,9 +246,9 @@
       "cta": "Verify email"
     },
     "username": {
-      "title": "Your profile is not complete yet.",
-      "body": "Choose a permanent username to continue.",
-      "cta": "Complete profile"
+      "title": "Choose a permanent username.",
+      "body": "A temporary or missing username is not enough to take part on HomeCheff.",
+      "cta": "Choose username"
     },
     "termsAccepted": {
       "title": "You still need to accept the terms.",
@@ -257,7 +268,7 @@
   "sellerActivation": {
     "title": "Optional: add your location",
     "body": "You can explore and list first. City and country (and postcode in NL) help nearby buyers — update when it suits you.",
-    "ctaProfile": "Update profile",
+    "ctaProfile": "Add hometown",
     "later": "Not now"
   },
   "personaBanner": {
@@ -2032,9 +2043,9 @@
     },
     "types": {
       "profileCompletion": {
-        "title": "Complete your profile",
-        "description": "Add missing details so others can find and trust you more easily.",
-        "action": "Complete profile"
+        "title": "Add a profile photo to complete your profile.",
+        "description": "A photo helps others recognise you. You can continue without one.",
+        "action": "Add photo"
       },
       "requestReview": {
         "title": "Share your experience",
@@ -2093,9 +2104,9 @@
       "cta": "Set up delivery profile"
     },
     "complete_delivery_profile": {
-      "title": "Finish your delivery profile",
-      "description": "Add your service area and rates to receive delivery jobs. Stripe is only needed for payouts.",
-      "cta": "Complete delivery profile"
+      "title": "Set your service area, delivery times or delivery rate.",
+      "description": "Without these details we cannot match you to delivery jobs. Stripe is only needed for payouts.",
+      "cta": "Add delivery details"
     }
   },
   "activations": {

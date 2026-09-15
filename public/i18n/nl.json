@@ -30,8 +30,19 @@
     "socialsHeading": "Socials",
     "shareForMyself": "Voor mezelf",
     "shareForCompany": "Voor mijn bedrijf: {company}",
-    "moreOptions": "Meer opties",
-    "x": "X"
+    "moreOptions": "Meer",
+    "x": "X",
+    "snapchat": "Snapchat",
+    "threads": "Threads",
+    "bluesky": "Bluesky",
+    "messenger": "Messenger",
+    "messageLabel": "Bericht",
+    "messagePlaceholder": "Schrijf iets bij je bericht…",
+    "photoLabel": "Foto",
+    "useItemPhoto": "Gebruik itemfoto",
+    "choosePhoto": "Kies andere foto",
+    "noPhoto": "Geen foto",
+    "linkLabel": "Link"
   },
   "appUpdateGate": {
     "optionalTitle": "Nieuwe HomeCheff beta beschikbaar",
@@ -235,9 +246,9 @@
       "cta": "E-mail verifiëren"
     },
     "username": {
-      "title": "Je profiel is nog niet compleet.",
-      "body": "Kies een definitieve gebruikersnaam om verder te gaan.",
-      "cta": "Profiel aanvullen"
+      "title": "Kies een definitieve gebruikersnaam.",
+      "body": "Een tijdelijke of ontbrekende gebruikersnaam is niet genoeg om actief deel te nemen op HomeCheff.",
+      "cta": "Gebruikersnaam kiezen"
     },
     "termsAccepted": {
       "title": "Je moet de voorwaarden nog accepteren.",
@@ -257,7 +268,7 @@
   "sellerActivation": {
     "title": "Optioneel: voeg je locatie toe",
     "body": "Je mag eerst verkennen en aanbod plaatsen. Stad en land (en postcode in NL) helpen kopers in de buurt — pas aan wanneer het jou uitkomt.",
-    "ctaProfile": "Profiel bijwerken",
+    "ctaProfile": "Woonplaats toevoegen",
     "later": "Nu niet"
   },
   "personaBanner": {
@@ -668,9 +679,9 @@
     },
     "types": {
       "profileCompletion": {
-        "title": "Maak je profiel compleet",
-        "description": "Voeg ontbrekende gegevens toe zodat anderen je beter kunnen vinden en vertrouwen.",
-        "action": "Profiel aanvullen"
+        "title": "Voeg een profielfoto toe om je profiel compleet te maken.",
+        "description": "Een foto helpt anderen je te herkennen. Je kunt zonder foto wel verder.",
+        "action": "Foto toevoegen"
       },
       "requestReview": {
         "title": "Deel je ervaring",
@@ -729,9 +740,9 @@
       "cta": "Bezorgprofiel instellen"
     },
     "complete_delivery_profile": {
-      "title": "Rond je bezorgprofiel af",
-      "description": "Vul werkgebied en tarieven in om bezorgopdrachten te ontvangen. Stripe is alleen nodig voor uitbetalingen.",
-      "cta": "Bezorgprofiel afronden"
+      "title": "Stel je werkgebied, bezorgtijden of bezorgtarief in.",
+      "description": "Zonder deze gegevens kunnen we je niet matchen op bezorgopdrachten. Stripe is alleen nodig voor uitbetalingen.",
+      "cta": "Bezorggegevens aanvullen"
     }
   },
   "activations": {

@@ -15,6 +15,10 @@ import {
 } from '@/lib/onboarding/email-verification-prompt-events';
 import { userCopyKeysForMissingRequirement } from '@/lib/client/map-api-error-for-user';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
+import {
+  aggregateRequirementNotice,
+  noticesForAccountMissing,
+} from '@/lib/account/profile-requirement-notice';
 
 export default function AccountRequirementsGateHost() {
   const { t } = useTranslation();
@@ -44,6 +48,7 @@ export default function AccountRequirementsGateHost() {
 
   if (!open) return null;
 
+  const notice = aggregateRequirementNotice(noticesForAccountMissing(missing));
   const showUsernameHint = missing.some((m) => m.key === 'username');
 
   const runStripeOnboard = async () => {
@@ -77,7 +82,7 @@ export default function AccountRequirementsGateHost() {
         </div>
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 pt-3 pb-3">
           <h2 id="account-req-title" className="text-lg font-bold text-slate-900 pr-2">
-            {t('accountRequirementsGate.title')}
+            {notice?.titleNl || missing[0]?.titleNl || missing[0]?.label || t('accountRequirementsGate.title')}
           </h2>
           <button
             type="button"
@@ -88,8 +93,8 @@ export default function AccountRequirementsGateHost() {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <p className="px-5 pt-4 text-sm leading-relaxed text-slate-600">
-          {t('accountRequirementsGate.body')}
+        <p className="whitespace-pre-line px-5 pt-4 text-sm leading-relaxed text-slate-600">
+          {notice?.bodyNl || missing[0]?.bodyNl || t('accountRequirementsGate.body')}
         </p>
         {hintKey ? (
           <p className="px-5 pt-3 text-sm leading-relaxed text-slate-700 border-b border-slate-100 pb-3">
@@ -110,10 +115,10 @@ export default function AccountRequirementsGateHost() {
                 className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-3"
               >
                 <span className="text-sm font-semibold text-slate-900">
-                  {t(copy.titleKey as never)}
+                  {item.titleNl || t(copy.titleKey as never)}
                 </span>
                 <span className="text-sm leading-relaxed text-slate-600">
-                  {t(copy.bodyKey as never)}
+                  {item.bodyNl || t(copy.bodyKey as never)}
                 </span>
                 {copy.actionKind === 'emailVerify' && session?.user?.email ? (
                   <button
@@ -150,7 +155,7 @@ export default function AccountRequirementsGateHost() {
                     onClick={() => setOpen(false)}
                     className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
                   >
-                    {t(copy.ctaKey as never)}
+                    {item.ctaLabelNl || t(copy.ctaKey as never)}
                   </Link>
                 )}
                 {item.key === 'emailVerified' ? (

@@ -108,7 +108,8 @@ describe('resolveAccountReadiness', () => {
     assert.equal(result.stripe.showActionWarning, false);
     assert.equal(result.delivery.state, 'ACTION_REQUIRED');
     assert.equal(result.delivery.showActionWarning, true);
-    assert.match(result.delivery.bodyNl || '', /[Pp]rijzen|[Tt]arief/);
+    assert.match(`${result.delivery.titleNl} ${result.delivery.bodyNl}`, /tarief|prijs/i);
+    assert.equal(result.delivery.ctaLabelNl, 'Bezorgtarief instellen');
   });
 
   it('delivery complete + stripe incomplete → only stripe warning', () => {

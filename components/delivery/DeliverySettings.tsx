@@ -22,6 +22,10 @@ import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getCurrentLocation } from '@/lib/geolocation';
 import { DELIVERY_PROFILE_UPDATED_EVENT } from '@/lib/delivery/delivery-profile-canonical';
+import {
+  aggregateRequirementNotice,
+  noticesForDeliveryMissing,
+} from '@/lib/account/profile-requirement-notice';
 
 interface DeliveryProfile {
   id: string;
@@ -81,6 +85,19 @@ function euroInputToCents(raw: string): number | null {
   return Math.round(n * 100);
 }
 
+function formatDeliveryCompletionHint(completion?: {
+  isComplete?: boolean;
+  missing?: string[];
+  message?: string | null;
+} | null): string | null {
+  if (!completion || completion.isComplete) return null;
+  const notice = aggregateRequirementNotice(
+    noticesForDeliveryMissing(completion.missing || []),
+  );
+  if (!notice) return completion.message || null;
+  return `${notice.titleNl}\n${notice.bodyNl}`;
+}
+
 interface DeliverySettingsProps {
   deliveryProfile: DeliveryProfile;
 }
@@ -124,7 +141,9 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   const [completionHint, setCompletionHint] = useState<string | null>(
     deliveryProfile.completion?.isComplete
       ? null
-      : deliveryProfile.completion?.message || null,
+      : formatDeliveryCompletionHint(deliveryProfile.completion) ||
+        deliveryProfile.completion?.message ||
+        null,
   );
   const saveLockRef = useRef(false);
   const [notificationSettings, setNotificationSettings] = useState<any>(null);
@@ -214,8 +233,11 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         applyPersistedProfile(data.profile, data.user);
         if (data.completion?.isComplete) {
           setCompletionHint(null);
-        } else if (data.completion?.message) {
-          setCompletionHint(String(data.completion.message));
+        } else {
+          setCompletionHint(
+            formatDeliveryCompletionHint(data.completion) ||
+              (data.completion?.message ? String(data.completion.message) : null),
+          );
         }
       } catch (error) {
         console.error('Error hydrating delivery settings:', error);
@@ -351,8 +373,11 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         applyPersistedProfile(data.profile, data.user);
         if (data.completion?.isComplete) {
           setCompletionHint(null);
-        } else if (data.completion?.message) {
-          setCompletionHint(String(data.completion.message));
+        } else {
+          setCompletionHint(
+            formatDeliveryCompletionHint(data.completion) ||
+              (data.completion?.message ? String(data.completion.message) : null),
+          );
         }
         setSuccess(true);
         if (typeof window !== 'undefined') {
@@ -424,8 +449,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         <div className="space-y-8">
           {completionHint ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-              <p className="font-semibold">Je bezorgprofiel is nog niet compleet</p>
-              <p className="mt-1">{completionHint}</p>
+              <p className="font-semibold whitespace-pre-line">{completionHint}</p>
             </div>
           ) : null}
           {saveError ? (

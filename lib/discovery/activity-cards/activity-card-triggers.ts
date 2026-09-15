@@ -161,8 +161,8 @@ export const TRIGGER_SIGNAL_SOURCES: Record<
     source: 'DiscoveryTrustContract',
   },
   profile_incomplete: {
-    signal: 'completenessPercent < 100',
-    source: 'computeCompletenessItems',
+    signal: '!profileImage || !hasLocation',
+    source: 'User.profileImage / User geo fields',
   },
   profile_complete: {
     signal: 'completenessPercent === 100',

@@ -20,6 +20,11 @@ import {
   type DeliveryProfileCompletionInput,
 } from '@/lib/delivery/delivery-profile-completion';
 import {
+  aggregateRequirementNotice,
+  noticesForAccountMissing,
+  noticesForDeliveryMissing,
+} from '@/lib/account/profile-requirement-notice';
+import {
   getAccountRequirements,
   type AccountRequirementsUserInput,
 } from '@/lib/account-requirements';
@@ -157,38 +162,15 @@ export function mapDeliveryProfileToLane(
   }
 
   const missing = completion.ok ? [] : completion.missing;
-  let titleNl = 'Je bezorgprofiel is nog niet compleet.';
-  let bodyNl = completion.ok
-    ? 'Vul werkgebied en tarieven in.'
-    : completion.message;
-  let ctaLabelNl = 'Bezorgprofiel afronden';
-
-  if (missing.length === 1 && missing[0] === 'pricing') {
-    titleNl = 'Bezorgtarief nog niet actief';
-    bodyNl =
-      profile.pricingEnabled === false
-        ? 'Zet “Prijzen actief” aan en vul je bezorgtarief in.'
-        : 'Activeer en vul je bezorgtarief in.';
-    ctaLabelNl = 'Bezorgtarief instellen';
-  } else if (missing.length === 1 && missing[0] === 'serviceArea') {
-    titleNl = 'Werkgebied ontbreekt';
-    bodyNl = 'Stel je werkgebied in (locatie + straal).';
-    ctaLabelNl = 'Werkgebied instellen';
-  } else if (missing.length === 1 && missing[0] === 'availability') {
-    titleNl = 'Beschikbaarheid ontbreekt';
-    bodyNl = 'Stel je beschikbare dagen en tijden in.';
-    ctaLabelNl = 'Beschikbaarheid instellen';
-  } else if (missing.includes('companyDisplayName')) {
-    titleNl = 'Bedrijfsnaam ontbreekt';
-    bodyNl = 'Vul een bedrijfsnaam in voor je bezorgprofiel.';
-    ctaLabelNl = 'Profiel afronden';
-  }
+  const notice = aggregateRequirementNotice(noticesForDeliveryMissing(missing), {
+    completeCtaNl: 'Bezorggegevens aanvullen',
+  });
 
   return {
     state: 'ACTION_REQUIRED',
-    titleNl,
-    bodyNl,
-    ctaLabelNl,
+    titleNl: notice?.titleNl || 'Stel de ontbrekende bezorggegevens in.',
+    bodyNl: notice?.bodyNl || (completion.ok ? '' : completion.message),
+    ctaLabelNl: notice?.ctaLabelNl || 'Bezorginstellingen openen',
     ctaHref: DELIVERY_SETTINGS,
     showActionWarning: true,
   };
@@ -198,7 +180,8 @@ export function mapAccountBasicsToLane(
   user: AccountRequirementsUserInput,
 ): AccountReadinessLane {
   const req = getAccountRequirements(user);
-  if (req.missing.length === 0) {
+  const blocking = req.missing.filter((m) => m.key !== 'stripeOnboarding');
+  if (blocking.length === 0) {
     return {
       state: 'READY',
       titleNl: null,
@@ -208,12 +191,15 @@ export function mapAccountBasicsToLane(
       showActionWarning: false,
     };
   }
+  const notice = aggregateRequirementNotice(noticesForAccountMissing(blocking), {
+    completeCtaNl: 'Account voltooien',
+  });
   return {
     state: 'ACTION_REQUIRED',
-    titleNl: 'Je account is nog niet compleet.',
-    bodyNl: 'Voltooi je account om HomeCheff volledig te gebruiken.',
-    ctaLabelNl: 'Account afronden',
-    ctaHref: req.missing[0]?.actionHref ?? PROFILE,
+    titleNl: notice?.titleNl || blocking[0].titleNl || blocking[0].label,
+    bodyNl: notice?.bodyNl || blocking[0].bodyNl || blocking[0].label,
+    ctaLabelNl: notice?.ctaLabelNl || blocking[0].ctaLabelNl || 'Gegevens aanvullen',
+    ctaHref: notice?.targetRoute ?? blocking[0]?.actionHref ?? PROFILE,
     showActionWarning: true,
   };
 }

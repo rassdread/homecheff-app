@@ -9,6 +9,10 @@ import {
 } from '@/lib/client/map-api-error-for-user';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  aggregateRequirementNotice,
+  noticesForAccountMissing,
+} from '@/lib/account/profile-requirement-notice';
 
 /**
  * Inline, actionable account-requirements panel for listing publish errors.
@@ -30,6 +34,8 @@ export default function AccountRequirementsInlineAlert({
 
   const primary = userCopyKeysForMissingRequirements(missing);
   if (!primary || !missing.length) return null;
+  const notice = aggregateRequirementNotice(noticesForAccountMissing(missing));
+  const primaryItem = missing[0];
 
   const runStripe = async () => {
     setStripeBusy(true);
@@ -52,9 +58,13 @@ export default function AccountRequirementsInlineAlert({
       role="alert"
       data-testid="account-requirements-inline"
     >
-      <p className="font-semibold leading-snug">{t(primary.titleKey as never)}</p>
-      <p className="mt-1 leading-relaxed text-amber-900/90">
-        {t(primary.bodyKey as never)}
+      <p className="font-semibold leading-snug">
+        {notice?.titleNl || primaryItem.titleNl || t(primary.titleKey as never)}
+      </p>
+      <p className="mt-1 whitespace-pre-line leading-relaxed text-amber-900/90">
+        {notice && missing.length > 1
+          ? notice.bodyNl
+          : primaryItem.bodyNl || t(primary.bodyKey as never)}
       </p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         {missing.map((item) => {
@@ -80,7 +90,7 @@ export default function AccountRequirementsInlineAlert({
               href={copy.actionHref ?? item.actionHref}
               className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-emerald-700 sm:w-auto"
             >
-              {t(copy.ctaKey as never)}
+              {item.ctaLabelNl || t(copy.ctaKey as never)}
             </Link>
           );
         })}

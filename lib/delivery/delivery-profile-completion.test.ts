@@ -174,7 +174,7 @@ describe('action center delivery incomplete CTA', () => {
     pendingHcpRewards: [],
   };
 
-  it('shows Bezorgprofiel afronden → /delivery/settings when activation incomplete', () => {
+  it('shows exact missing delivery reason → /delivery/settings when activation incomplete', () => {
     const items = buildUserActionItems({
       ...base,
       deliveryProfile: {
@@ -182,13 +182,30 @@ describe('action center delivery incomplete CTA', () => {
         isVerified: false,
         activationComplete: false,
         activationMessage: 'Stel je werkgebied in (locatie + straal).',
+        providerType: 'INDEPENDENT',
+        isActive: false,
+        isOnline: false,
+        homeLat: 51.91,
+        homeLng: 4.34,
+        maxDistance: 10,
+        nationalCoverage: false,
+        pricingEnabled: false,
+        baseFeeCents: null,
+        pricePerKmCents: null,
+        minimumFeeCents: null,
+        availableDays: ['maandag'],
+        availableTimeSlots: ['morning'],
+        workStartTime: '09:00',
+        workEndTime: '21:00',
       },
     });
 
     const incomplete = items.find((i) => i.id === 'delivery-profile-incomplete');
     assert.ok(incomplete);
-    assert.equal(incomplete?.actionLabel, 'Bezorgprofiel afronden');
+    assert.equal(incomplete?.title, 'Vul je bezorgtarief in voordat je bezorgopdrachten kunt aannemen.');
+    assert.equal(incomplete?.actionLabel, 'Bezorgtarief instellen');
     assert.equal(incomplete?.actionHref, '/delivery/settings');
+    assert.equal(/Bezorgprofiel afronden|Rond je bezorgprofiel af|Profiel bijwerken/.test(incomplete?.title || ''), false);
   });
 
   it('hides incomplete CTA when activation is complete and verified', () => {

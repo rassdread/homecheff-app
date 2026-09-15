@@ -23,8 +23,8 @@ export const ACTIVITY_CARD_TYPE_REGISTRY: Record<
     dismissible: true,
     cooldownDays: 7,
     ctaKind: 'navigate',
-    isEligible: (i) => i.loggedIn && i.completenessPercent < 100,
-    eligibilityReason: () => 'profile_incomplete',
+    isEligible: (i) => i.loggedIn && !i.profileImage,
+    eligibilityReason: () => 'profile_photo_missing',
   },
   REQUEST_REVIEW: {
     type: 'REQUEST_REVIEW',

@@ -5,6 +5,10 @@ import Link from 'next/link';
 import DeliveryNotificationListener from './DeliveryNotificationListener';
 import CommunityDeliveryPanel from './CommunityDeliveryPanel';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  aggregateRequirementNotice,
+  noticesForDeliveryMissing,
+} from '@/lib/account/profile-requirement-notice';
 import { 
   MapPin, 
   Clock, 
@@ -145,6 +149,7 @@ export default function DeliveryDashboard() {
   const [courierTab, setCourierTab] = useState<'platform' | 'community'>('platform');
   const [feedback, setFeedback] = useState<{ type: 'error' | 'warning'; message: string } | null>(null);
   const [activationHint, setActivationHint] = useState<string | null>(null);
+  const [activationCta, setActivationCta] = useState('Bezorggegevens aanvullen');
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -341,8 +346,19 @@ export default function DeliveryDashboard() {
         return;
       }
       const data = await response.json();
-      if (data?.canActivate === false && data?.activation?.message) {
-        setActivationHint(String(data.activation.message));
+      if (data?.canActivate === false) {
+        const missing = Array.isArray(data?.activation?.missing)
+          ? data.activation.missing
+          : [];
+        const notice = aggregateRequirementNotice(noticesForDeliveryMissing(missing));
+        setActivationHint(
+          notice
+            ? `${notice.titleNl}\n${notice.bodyNl}`
+            : data?.activation?.message
+              ? String(data.activation.message)
+              : null,
+        );
+        setActivationCta(notice?.ctaLabelNl || 'Bezorggegevens aanvullen');
       } else {
         setActivationHint(null);
       }
@@ -750,13 +766,12 @@ export default function DeliveryDashboard() {
 
       {!isSeller && activationHint ? (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          <p className="font-semibold">Rond je bezorgprofiel af</p>
-          <p className="mt-1 text-amber-900/90">{activationHint}</p>
+          <p className="whitespace-pre-line font-semibold">{activationHint}</p>
           <Link
             href="/delivery/settings"
             className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-amber-800 underline"
           >
-            Naar bezorginstellingen
+            {activationCta}
           </Link>
         </div>
       ) : null}

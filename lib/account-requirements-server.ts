@@ -5,6 +5,8 @@ import {
   type AccountRequirementsAction,
   type AccountRequirementsUserInput,
 } from '@/lib/account-requirements';
+import { evaluateProfileRequirements } from '@/lib/account/evaluate-profile-requirements';
+import { serializeRequirementNotice } from '@/lib/account/profile-requirement-notice';
 
 export function accountRequirementsMissingResponse(
   user: AccountRequirementsUserInput | null | undefined,
@@ -12,6 +14,8 @@ export function accountRequirementsMissingResponse(
 ): NextResponse {
   const snap = getAccountRequirements(user ?? null);
   const missing = missingRequirementsForAction(action, snap.missing);
+  const evaluated = evaluateProfileRequirements({ user: user ?? null, action });
+  const notice = serializeRequirementNotice(evaluated.notice);
   const needsEmail = missing.some((m) => m.key === 'emailVerified');
   const hintKey = (() => {
     if (action === 'sendMessage') {
@@ -31,6 +35,11 @@ export function accountRequirementsMissingResponse(
       action,
       missing,
       hintKey,
+      isComplete: false,
+      blockingRequirements: evaluated.blockingRequirements,
+      recommendedRequirements: [],
+      notice,
+      targetRoute: evaluated.targetRoute,
     },
     { status: 403 }
   );

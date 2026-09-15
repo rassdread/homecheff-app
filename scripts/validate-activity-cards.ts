@@ -76,7 +76,14 @@ const noPhoto = resolveActivityCardContracts({
 });
 assert(
   noPhoto.some((c) => c.type === 'PROFILE_COMPLETION'),
-  'incomplete profile → PROFILE_COMPLETION',
+  'missing photo → PROFILE_COMPLETION',
+);
+const photoPresent = resolveActivityCardContracts({
+  input: { ...baseInput, profileImage: '/img.jpg', completenessPercent: 60, hasStripe: false },
+});
+assert(
+  !photoPresent.some((c) => c.type === 'PROFILE_COMPLETION'),
+  'photo present → no generic PROFILE_COMPLETION even if completeness < 100',
 );
 const reviewDue = resolveActivityCardContracts({
   input: { ...baseInput, completedDealWithoutReview: true, productCount: 2 },

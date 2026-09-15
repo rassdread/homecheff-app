@@ -1,12 +1,16 @@
 /**
  * Centrale regels: browsen blijft open; actieve acties (berichten, plaatsen) pas na verificatie + definitieve username (+ voorwaarden).
  *
+ * All Ages Phase 2: geen globale leeftijd/DOB in deze gates.
  * Stripe / verkopen: `canSell` is een UI-snapshot; API-enforcement voor betaalproducten loopt via
  * `resolveProductPublishState` (lib/product/order-method.ts, Fase 2D).
  * `assertAccountRequirementsOr403(..., 'sell')` wordt nergens aangeroepen — bewust legacy-compat.
+ *
+ * See also: lib/capabilities/homecheff-capabilities.ts
  */
 
 import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
+import { enrichMissingRequirement } from '@/lib/account/profile-requirement-notice';
 
 export type AccountRequirementsAction = 'sendMessage' | 'postItem' | /** @legacy UI-only; enforcement via publish gate */ 'sell';
 
@@ -20,6 +24,10 @@ export type MissingRequirement = {
   key: MissingRequirementKey;
   label: string;
   actionHref: string;
+  titleNl?: string;
+  bodyNl?: string;
+  ctaLabelNl?: string;
+  severity?: 'BLOCKING' | 'RECOMMENDED' | 'INFORMATIONAL';
 };
 
 export type AccountRequirementsUserInput = {
@@ -141,6 +149,8 @@ export function getAccountRequirements(
   if (!termsOk) missing.push(MISSING_TERMS);
   if (stripeIncomplete) missing.push(MISSING_STRIPE);
 
+  const enriched = missing.map(enrichMissingRequirement);
+
   const canSendMessage = emailOk && usernameOk;
   const canPostItem = canSendMessage && termsOk;
   const canSell = canPostItem && !stripeIncomplete;
@@ -151,7 +161,7 @@ export function getAccountRequirements(
     canSendMessage,
     canSell,
     canReceivePayments: canSell,
-    missing,
+    missing: enriched,
   };
 }
 

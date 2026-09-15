@@ -2,11 +2,21 @@
 
 import type { MissingRequirement } from '@/lib/account-requirements';
 import { openAccountRequirementsGate } from '@/lib/onboarding/open-account-requirements-gate';
+import {
+  aggregateRequirementNotice,
+  noticesForAccountMissing,
+} from '@/lib/account/profile-requirement-notice';
 
 export type AccountRequirementsApiPayload = {
   missing: MissingRequirement[];
   action?: 'sendMessage' | 'postItem' | 'sell';
   hintKey?: string;
+  notice?: {
+    titleNl?: string;
+    bodyNl?: string;
+    ctaLabelNl?: string;
+    targetRoute?: string;
+  } | null;
 };
 
 function parseAccountRequirementsBody(
@@ -24,6 +34,10 @@ function parseAccountRequirementsBody(
         ? o.action
         : undefined,
     hintKey: typeof o.hintKey === 'string' ? o.hintKey : undefined,
+    notice:
+      o.notice && typeof o.notice === 'object'
+        ? (o.notice as AccountRequirementsApiPayload['notice'])
+        : null,
   };
 }
 
@@ -64,4 +78,22 @@ export function parseAccountRequirementsFromApiBody(
 ): AccountRequirementsApiPayload | null {
   if (status !== 403) return null;
   return parseAccountRequirementsBody(body);
+}
+
+export function humanAccountRequirementsMessage(
+  payload: AccountRequirementsApiPayload,
+): string {
+  if (payload.notice?.titleNl) {
+    return payload.notice.bodyNl
+      ? `${payload.notice.titleNl} ${payload.notice.bodyNl}`
+      : payload.notice.titleNl;
+  }
+  const aggregated = aggregateRequirementNotice(
+    noticesForAccountMissing(payload.missing),
+  );
+  if (aggregated) {
+    return `${aggregated.titleNl} ${aggregated.bodyNl}`;
+  }
+  const first = payload.missing[0];
+  return first?.titleNl || first?.label || 'Er ontbreken nog accountgegevens.';
 }

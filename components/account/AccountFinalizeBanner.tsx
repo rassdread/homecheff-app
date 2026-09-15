@@ -36,7 +36,7 @@ export default function AccountFinalizeBanner() {
         href="/profile"
         className="mt-2 inline-block font-semibold text-emerald-800 underline underline-offset-2"
       >
-        {t('accountRequirementsGate.cta')}
+        {t('accountRequirementsUx.username.cta')}
       </Link>
     </div>
   );

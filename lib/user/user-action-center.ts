@@ -4,6 +4,12 @@ import {
   type AccountRequirementsUserInput,
 } from '@/lib/account-requirements';
 import {
+  aggregateRequirementNotice,
+  noticesForAccountMissing,
+  noticesForDeliveryMissing,
+  recommendedProfileNotices,
+} from '@/lib/account/profile-requirement-notice';
+import {
   buildSellerActionItems,
   partitionSellerActionItems,
   type SellerActionItem,
@@ -80,6 +86,7 @@ export type UserActionCenterInput = {
     availableTimeSlots?: string[] | null;
     workStartTime?: string | null;
     workEndTime?: string | null;
+    activationMissing?: string[];
   } | null;
   activeDeliveryCount: number;
   affiliate?: {
@@ -167,38 +174,43 @@ function buildAccountIncompleteAction(
     getAccountRequirements(user).missing,
   );
   if (missing.length === 0) return null;
+  const notice = aggregateRequirementNotice(noticesForAccountMissing(missing), {
+    completeCtaNl: 'Account voltooien',
+  });
+  if (!notice) return null;
 
   return {
     id: 'account-incomplete',
     severity: 'red',
-    title: 'Je account is nog niet compleet.',
-    description: 'Voltooi je account om HomeCheff volledig te gebruiken.',
-    actionLabel: 'Account afronden',
-    actionHref: missing[0]?.actionHref ?? PROFILE_HREF,
+    title: notice.titleNl,
+    description: notice.bodyNl,
+    actionLabel: notice.ctaLabelNl,
+    actionHref: notice.targetRoute,
   };
 }
 
 function buildProfileIncompleteAction(
   user: UserActionCenterInput['user'],
 ): UserActionItem | null {
-  const hasName = Boolean(user.name?.trim());
-  const hasImage = Boolean(user.image?.trim());
-  const hasPlace =
-    Boolean(user.place?.trim()) ||
-    (user.lat != null &&
-      user.lng != null &&
-      Number.isFinite(Number(user.lat)) &&
-      Number.isFinite(Number(user.lng)));
-
-  if (hasName && hasImage && hasPlace) return null;
+  const items = recommendedProfileNotices({
+    name: user.name,
+    image: user.image,
+    place: user.place,
+    lat: user.lat,
+    lng: user.lng,
+  });
+  const notice = aggregateRequirementNotice(items, {
+    completeCtaNl: 'Profiel voltooien',
+  });
+  if (!notice) return null;
 
   return {
     id: 'profile-incomplete',
     severity: 'orange',
-    title: 'Maak je profiel completer.',
-    description: 'Voeg naam, foto of locatie toe om beter zichtbaar te zijn.',
-    actionLabel: 'Profiel aanvullen',
-    actionHref: PROFILE_HREF,
+    title: notice.titleNl,
+    description: notice.bodyNl,
+    actionLabel: notice.ctaLabelNl,
+    actionHref: notice.targetRoute,
   };
 }
 
@@ -272,16 +284,25 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
           }
         : null;
     const lane = mapDeliveryProfileToLane(raw);
+    const fallbackNotice = aggregateRequirementNotice(
+      noticesForDeliveryMissing(profile.activationMissing || []),
+      { completeCtaNl: 'Bezorggegevens aanvullen' },
+    );
     items.push({
       id: 'delivery-profile-incomplete',
       severity: 'orange',
-      title: lane.titleNl || 'Je bezorgprofiel is nog niet compleet.',
+      title:
+        lane.titleNl ||
+        fallbackNotice?.titleNl ||
+        'Stel de ontbrekende bezorggegevens in.',
       description:
         lane.bodyNl ||
+        fallbackNotice?.bodyNl ||
         profile.activationMessage?.trim() ||
-        'Vul werkgebied en tarieven in om bezorgopdrachten te kunnen ontvangen.',
-      actionLabel: lane.ctaLabelNl || 'Bezorgprofiel afronden',
-      actionHref: lane.ctaHref || DELIVERY_SETTINGS_HREF,
+        'Vul werkgebied, tijden of tarieven in om bezorgopdrachten te kunnen ontvangen.',
+      actionLabel:
+        lane.ctaLabelNl || fallbackNotice?.ctaLabelNl || 'Bezorginstellingen openen',
+      actionHref: lane.ctaHref || fallbackNotice?.targetRoute || DELIVERY_SETTINGS_HREF,
     });
   }
 

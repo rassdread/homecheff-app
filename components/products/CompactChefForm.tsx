@@ -17,7 +17,7 @@ import ProductEditInspirationLink from '@/components/products/ProductEditInspira
 import type { InspirationCategory } from '@/lib/inspiratie/instruction-content';
 import { validateProductLocationForPublish } from '@/lib/geo/product-location-requirements';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
-import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
+import { tryShowAccountRequirementsFromApiBody, parseAccountRequirementsFromApiBody, humanAccountRequirementsMessage } from '@/lib/client/consume-account-requirements-response';
 import { sanitizeApiErrorForDisplay } from '@/lib/client/map-api-error-for-user';
 import { PackageSelector } from '@/components/shipping/PackageSelector';
 import type { ParcelPresetId } from '@/lib/shipping/package-presets';
@@ -661,7 +661,12 @@ export default function CompactChefForm({
           details: data.details
         });
         if (tryShowAccountRequirementsFromApiBody(res.status, data)) {
-          setMessage(t('accountRequirementsGate.hint'));
+          const parsed = parseAccountRequirementsFromApiBody(res.status, data);
+          setMessage(
+            parsed
+              ? humanAccountRequirementsMessage(parsed)
+              : t('accountRequirementsGate.hint'),
+          );
           return;
         }
         setMessage(

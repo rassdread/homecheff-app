@@ -4,6 +4,10 @@ import {
   type AccountRequirementsUserInput,
 } from '@/lib/account-requirements';
 import {
+  aggregateRequirementNotice,
+  noticesForAccountMissing,
+} from '@/lib/account/profile-requirement-notice';
+import {
   connectCtaModelForStatus,
   shouldEmitStripeOnboardAction,
 } from '@/lib/stripe/connect-account-status';
@@ -158,14 +162,18 @@ function buildAccountIncompleteAction(
 ): SellerActionItem | null {
   const missing = missingRequirementsForAction('postItem', getAccountRequirements(user).missing);
   if (missing.length === 0) return null;
+  const notice = aggregateRequirementNotice(noticesForAccountMissing(missing), {
+    completeCtaNl: 'Account voltooien',
+  });
+  if (!notice) return null;
 
   return {
     id: 'account-incomplete',
     severity: 'red',
-    title: 'Je account is nog niet compleet.',
-    description: 'Voltooi je account om HomeCheff volledig te gebruiken.',
-    actionLabel: 'Account afronden',
-    actionHref: missing[0]?.actionHref ?? PROFILE_HREF,
+    title: notice.titleNl,
+    description: notice.bodyNl,
+    actionLabel: notice.ctaLabelNl,
+    actionHref: notice.targetRoute,
   };
 }
 

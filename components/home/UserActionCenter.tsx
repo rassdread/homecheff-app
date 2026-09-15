@@ -131,7 +131,7 @@ export function ActionCenterRow({
           <div className="min-w-0 flex-1">
             <p
               className={cn(
-                'font-semibold leading-snug break-words',
+                'whitespace-pre-line font-semibold leading-snug break-words',
                 compact ? 'text-xs' : 'text-sm',
                 styles.title,
               )}
@@ -141,7 +141,7 @@ export function ActionCenterRow({
             {showDescription ? (
               <p
                 className={cn(
-                  'mt-0.5 leading-relaxed break-words',
+                  'mt-0.5 whitespace-pre-line leading-relaxed break-words',
                   compact ? 'text-[11px]' : 'text-xs',
                   styles.desc,
                 )}

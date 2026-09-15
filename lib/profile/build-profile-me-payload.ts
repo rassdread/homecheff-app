@@ -1,5 +1,7 @@
 import type { AccountRequirementsSnapshot } from '@/lib/account-requirements';
 import { getAccountRequirements } from '@/lib/account-requirements';
+import { evaluateProfileRequirements } from '@/lib/account/evaluate-profile-requirements';
+import { serializeRequirementNotice } from '@/lib/account/profile-requirement-notice';
 
 type ProfileMeRow = {
   Business: { kvkNumber: string | null } | null;
@@ -21,6 +23,7 @@ type ProfileMeRow = {
   profileImage: string | null;
   address: string | null;
   city: string | null;
+  place?: string | null;
   postalCode: string | null;
   country: string | null;
   lat: number | null;
@@ -63,11 +66,39 @@ export function buildProfileMePayload(user: ProfileMeRow): {
     passwordHash,
     Account,
   });
+  const profileRequirements = evaluateProfileRequirements({
+    user: {
+      emailVerified,
+      username: rest.username,
+      termsAccepted: rest.termsAccepted,
+      stripeConnectAccountId: rest.stripeConnectAccountId,
+      stripeConnectOnboardingCompleted: rest.stripeConnectOnboardingCompleted,
+      passwordHash,
+      Account,
+      name: rest.name,
+      image: rest.image || rest.profileImage,
+      place: rest.place || rest.city || rest.address,
+      lat: rest.lat,
+      lng: rest.lng,
+      city: rest.city,
+      country: rest.country,
+      postalCode: rest.postalCode,
+    },
+    action: 'postItem',
+    includeSellerLocation: false,
+  });
 
   const processedUser = {
     ...rest,
     emailVerified: emailVerified != null,
     accountRequirements,
+    profileRequirements: {
+      isComplete: profileRequirements.isComplete,
+      blockingRequirements: profileRequirements.blockingRequirements,
+      recommendedRequirements: profileRequirements.recommendedRequirements,
+      notice: serializeRequirementNotice(profileRequirements.notice),
+      targetRoute: profileRequirements.targetRoute,
+    },
     kvkNumber,
     address: rest.address,
     city: rest.city,

@@ -251,6 +251,7 @@ export async function GET() {
               availableTimeSlots: user.DeliveryProfile.availableTimeSlots,
               workStartTime: user.DeliveryProfile.workStartTime,
               workEndTime: user.DeliveryProfile.workEndTime,
+              activationMissing: activation.ok ? [] : activation.missing,
             };
           })()
         : null;

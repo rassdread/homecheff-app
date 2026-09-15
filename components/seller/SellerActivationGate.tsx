@@ -5,6 +5,10 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
+import {
+  aggregateRequirementNotice,
+  recommendedSellerLocationNotices,
+} from '@/lib/account/profile-requirement-notice';
 
 type MeUser = {
   city?: string | null;
@@ -13,7 +17,8 @@ type MeUser = {
 };
 
 /**
- * Progressive seller activation: nudge address/location when missing, without blocking the whole flow.
+ * Progressive seller activation: nudge address/location when missing, without blocking.
+ * Copy always names the exact missing field(s).
  */
 export default function SellerActivationGate() {
   const { data: session, status } = useSession();
@@ -44,40 +49,39 @@ export default function SellerActivationGate() {
     };
   }, [session?.user, status]);
 
+  const notices = user
+    ? recommendedSellerLocationNotices({
+        city: user.city,
+        country: user.country,
+        postalCode: user.postalCode,
+      })
+    : [];
+  const notice = aggregateRequirementNotice(notices);
+
   useEffect(() => {
-    if (dismissed || loading || !user) return;
-    const country = (user.country || '').trim();
-    const city = (user.city || '').trim();
-    const postal = (user.postalCode || '').trim();
-    const needsNlPostal = country === 'NL' && !postal;
-    const missing = !country || !city || needsNlPostal;
-    if (missing && !tracked.current) {
+    if (dismissed || loading || !notice) return;
+    if (!tracked.current) {
       tracked.current = true;
       trackOnboardingEvent('SELLER_ACTIVATION_STARTED', { surface: 'sell_new' });
     }
-  }, [dismissed, loading, user]);
+  }, [dismissed, loading, notice]);
 
-  if (loading || dismissed || !user) return null;
-  const country = (user.country || '').trim();
-  const city = (user.city || '').trim();
-  const postal = (user.postalCode || '').trim();
-  const needsNlPostal = country === 'NL' && !postal;
-  if (country && city && !needsNlPostal) return null;
+  if (loading || dismissed || !user || !notice) return null;
 
   return (
     <div className="mb-6 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 text-sm text-amber-950 shadow-sm">
-      <p className="font-semibold">{t('sellerActivation.title')}</p>
-      <p className="mt-1 text-amber-900/90">{t('sellerActivation.body')}</p>
+      <p className="font-semibold">{notice.titleNl}</p>
+      <p className="mt-1 whitespace-pre-line text-amber-900/90">{notice.bodyNl}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <Link
-          href="/profile"
+          href={notice.targetRoute}
           prefetch={false}
           className="inline-flex min-h-[40px] items-center rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
           onClick={() =>
             trackOnboardingEvent('SELLER_ACTIVATION_COMPLETED', { step: 'profile_link' })
           }
         >
-          {t('sellerActivation.ctaProfile')}
+          {notice.ctaLabelNl}
         </Link>
         <button
           type="button"
