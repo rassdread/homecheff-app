@@ -355,7 +355,8 @@ export function useTranslation() {
     // Bump bij elke wijziging in public/i18n/{nl,en}.json zodat browsers met stale
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
     // 2.58 — Huishoudelijke hulp service group + Schoonmaak specialisatie
-    const CACHE_VERSION = '2.59';
+    // 2.60 — Hero "Ontdek in je buurt" (was "Hero verbergen")
+    const CACHE_VERSION = '2.60';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state

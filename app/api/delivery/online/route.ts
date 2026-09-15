@@ -130,6 +130,8 @@ export async function POST(req: NextRequest) {
     typeof body.timeZone === 'string' && body.timeZone.trim()
       ? body.timeZone.trim()
       : DELIVERY_MARKET_TIMEZONE;
+  // timeZone is the courier IANA zone from the client. Fallback is NL market
+  // default only — end_of_day is wall-clock 23:59 in that zone, stored as UTC.
 
   await expireExpiredTemporaryOnline(prisma);
 

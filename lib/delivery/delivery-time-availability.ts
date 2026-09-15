@@ -156,6 +156,18 @@ export function zonedLocalToUtc(
   return new Date(naiveUtc - diff);
 }
 
+/**
+ * End of the courier's *local* civil day as a UTC instant.
+ *
+ * `timeZone` MUST be an IANA zone (e.g. Europe/Amsterdam, Europe/Brussels).
+ * The Go-online client sends `Intl.DateTimeFormat().resolvedOptions().timeZone`.
+ * If the client omits it, callers fall back to DELIVERY_MARKET_TIMEZONE
+ * (Europe/Amsterdam) — that is the NL market default, not a claim that every
+ * future courier lives in Amsterdam. Stored `onlineUntil` is always UTC.
+ *
+ * Do not compute end-of-day via the Node process timezone or a hardcoded
+ * UTC+1 offset.
+ */
 export function endOfDayUtc(now: Date, timeZone: string): Date {
   const { y, m, d } = ymdInTimeZone(now, timeZone);
   const until = zonedLocalToUtc(

@@ -105,7 +105,8 @@ export async function GET(req: NextRequest) {
             place: true,
             address: true,
             city: true,
-            postalCode: true
+            postalCode: true,
+            dateOfBirth: true,
           }
         }
       }
@@ -133,7 +134,8 @@ export async function GET(req: NextRequest) {
               place: true,
               address: true,
               city: true,
-              postalCode: true
+              postalCode: true,
+              dateOfBirth: true,
             }
           }
         }

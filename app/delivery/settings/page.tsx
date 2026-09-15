@@ -31,6 +31,7 @@ export default async function DeliverySettingsPage() {
           lat: true,
           lng: true,
           place: true,
+          dateOfBirth: true,
         },
       },
     },

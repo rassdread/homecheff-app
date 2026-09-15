@@ -100,6 +100,8 @@ type Props = {
   carouselImageUrl?: string | null;
   shareUrl: string;
   sellerFansCount?: number;
+  viewerIsFan?: boolean;
+  isFavorited?: boolean;
   onQuantityChange: (n: number) => void;
   onAddedToCart?: () => void;
   className?: string;
@@ -124,6 +126,8 @@ export default function ProductSaleCommerceZone({
   carouselImageUrl,
   shareUrl,
   sellerFansCount,
+  viewerIsFan,
+  isFavorited,
   onQuantityChange,
   onAddedToCart,
   className,
@@ -200,6 +204,7 @@ export default function ProductSaleCommerceZone({
           }
           companyName={companyName ?? product.seller?.companyName ?? null}
           initialFansCount={sellerFansCount}
+          initialFollowing={viewerIsFan}
         />
       ) : null}
 
@@ -325,11 +330,13 @@ export default function ProductSaleCommerceZone({
               productTitle={product.title}
               size="sm"
               variant="button"
+              initialFavorited={isFavorited}
             />
             <ShareButton
               url={shareUrl}
               title={product.title}
               description={product.description || ''}
+              imageUrl={carouselImageUrl || product.image || null}
               className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
             />
           </div>

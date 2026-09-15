@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useHomeHeroCollapsed } from '@/hooks/useHomeHeroCollapsed';
@@ -34,11 +34,31 @@ type Props = {
   className?: string;
 };
 
+function scrollViewportToFeedStart() {
+  if (typeof document === 'undefined') return;
+  const desktop = document.getElementById('homecheff-feed-desktop');
+  const mobile = document.getElementById('homecheff-feed');
+  const target =
+    desktop && desktop.getClientRects().length > 0 ? desktop : mobile || desktop;
+  target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 export default function HomeHeroCollapsible({ children, className }: Props) {
   const { tOr } = useTranslation();
-  const { collapsed, toggle } = useHomeHeroCollapsed();
-  const hideLabel = tOr('homePhase1.heroHideLabel', 'Hide hero', 'Hero verbergen');
+  const { collapsed, setHeroCollapsed, toggle } = useHomeHeroCollapsed();
+  const hideLabel = tOr(
+    'homePhase1.heroHideLabel',
+    'Discover nearby',
+    'Ontdek in je buurt',
+  );
   const showLabel = tOr('homePhase1.heroShowLabel', 'Show hero', 'Hero tonen');
+
+  const collapseToFeed = () => {
+    setHeroCollapsed(true);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(scrollViewportToFeedStart);
+    });
+  };
 
   if (collapsed) {
     return (
@@ -77,14 +97,14 @@ export default function HomeHeroCollapsible({ children, className }: Props) {
       >
         <button
           type="button"
-          onClick={toggle}
+          onClick={collapseToFeed}
           className={hideButtonClass}
           aria-expanded
           aria-controls="home-hero-expanded"
           aria-label={hideLabel}
           data-testid="home-hero-hide"
         >
-          <ChevronUp className="h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden />
+          <ChevronDown className="h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden />
           <span>{hideLabel}</span>
         </button>
       </div>

@@ -3,9 +3,11 @@
  * Trust / badges / contacts / dish / reviewAgg load via detail-extras (deferred).
  */
 
+import { auth } from '@/lib/auth';
 import { buildDiscoveryTrust } from '@/lib/discovery/trust/build-discovery-trust';
 import { countFansBySellerIds } from '@/lib/follow/batch-fan-counts';
 import { getCachedListingProductCore } from '@/lib/marketplace/detail/get-cached-listing-product-core';
+import { prisma } from '@/lib/prisma';
 import { requiresStripeForHomecheffCheckout } from '@/lib/product/order-method';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 import { buildPublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
@@ -45,6 +47,10 @@ export type ListingDetailPayload = {
   };
   /** Live Follow count for seller User.id — same source as feed cards. */
   sellerFansCount: number;
+  /** Viewer Follow row for this seller User.id — first-paint Fan parity. */
+  viewerIsFan: boolean;
+  /** Viewer Favorite row for this listing product.id — first-paint Favoriet parity. */
+  isFavorited: boolean;
   discoveryTrust: ReturnType<typeof buildDiscoveryTrust>;
 };
 
@@ -130,6 +136,32 @@ export async function loadListingDetail(
     ? await countFansBySellerIds([sellerUserId])
     : new Map<string, number>();
 
+  let viewerIsFan = false;
+  let isFavorited = false;
+  try {
+    const session = await auth();
+    const viewerId = session?.user?.id ?? null;
+    if (viewerId) {
+      const [follow, favorite] = await Promise.all([
+        sellerUserId && viewerId !== sellerUserId
+          ? prisma.follow.findFirst({
+              where: { followerId: viewerId, sellerId: sellerUserId },
+              select: { id: true },
+            })
+          : Promise.resolve(null),
+        prisma.favorite.findFirst({
+          where: { userId: viewerId, productId: product.id },
+          select: { id: true },
+        }),
+      ]);
+      viewerIsFan = Boolean(follow);
+      isFavorited = Boolean(favorite);
+    }
+  } catch {
+    viewerIsFan = false;
+    isFavorited = false;
+  }
+
   return {
     product: {
       ...product,
@@ -159,6 +191,8 @@ export async function loadListingDetail(
     sellerFansCount: sellerUserId
       ? fansBySeller.get(sellerUserId) ?? 0
       : 0,
+    viewerIsFan,
+    isFavorited,
     discoveryTrust: buildDiscoveryTrust({
       listingProductReviewCount: 0,
       listingIsActive: Boolean(product.isActive ?? true),

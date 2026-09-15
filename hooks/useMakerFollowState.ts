@@ -32,9 +32,13 @@ export function useMakerFollowState({
   useEffect(() => {
     if (!sellerId) return;
     if (initialFollowing !== undefined || initialFansCount !== undefined) {
+      const prev = getMakerFollowSnapshot(sellerId);
       seedMakerFollowSnapshot(sellerId, {
-        following: Boolean(initialFollowing),
-        fansCount: initialFansCount ?? getMakerFollowSnapshot(sellerId)?.fansCount ?? 0,
+        following:
+          initialFollowing !== undefined
+            ? Boolean(initialFollowing)
+            : Boolean(prev?.following),
+        fansCount: initialFansCount ?? prev?.fansCount ?? 0,
       });
     }
     return subscribeMakerFollow(sellerId, () => bump((n) => n + 1));

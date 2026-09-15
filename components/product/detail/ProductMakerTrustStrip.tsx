@@ -49,6 +49,7 @@ type Props = {
   };
   makerLine?: string | null;
   initialFansCount?: number;
+  initialFollowing?: boolean;
   className?: string;
 };
 
@@ -60,6 +61,7 @@ export default function ProductMakerTrustStrip({
   productStats,
   makerLine,
   initialFansCount,
+  initialFollowing,
   className,
 }: Props) {
   const { t } = useTranslation();
@@ -176,6 +178,7 @@ export default function ProductMakerTrustStrip({
                 sellerId={sellerUser.id}
                 sellerName={sellerUser.name ?? sellerUser.username ?? undefined}
                 size="sm"
+                initialFollowing={initialFollowing}
                 initialFansCount={s.fansCount}
               />
               <Link
@@ -259,6 +262,7 @@ export default function ProductMakerTrustStrip({
             sellerId={sellerUser.id}
             sellerName={sellerUser.name ?? sellerUser.username ?? undefined}
             size="sm"
+            initialFollowing={initialFollowing}
             initialFansCount={s.fansCount}
           />
         ) : null}

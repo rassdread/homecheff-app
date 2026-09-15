@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button';
 import ShiftNotificationSettings from './ShiftNotificationSettings';
 import AddSellerRolesSettings from './AddSellerRolesSettings';
 import HelpSettings from '@/components/onboarding/HelpSettings';
+import DateOfBirthSettingsCard from '@/components/account/DateOfBirthSettingsCard';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getCurrentLocation } from '@/lib/geolocation';
 import { DELIVERY_PROFILE_UPDATED_EVENT } from '@/lib/delivery/delivery-profile-canonical';
@@ -64,6 +65,7 @@ interface DeliveryProfile {
     lat?: number | null;
     lng?: number | null;
     place?: string | null;
+    dateOfBirth?: Date | string | null;
   };
   completion?: {
     isComplete: boolean;
@@ -462,6 +464,29 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
               Instellingen opgeslagen. Je beschikbaarheid, tarieven en werkgebied zijn bewaard.
             </div>
           ) : null}
+          <DateOfBirthSettingsCard
+            initialDateOfBirth={deliveryProfile.user?.dateOfBirth ?? null}
+            onSaved={() => {
+              window.dispatchEvent(new Event(DELIVERY_PROFILE_UPDATED_EVENT));
+              void (async () => {
+                try {
+                  const res = await fetch('/api/delivery/settings', { cache: 'no-store' });
+                  if (!res.ok) return;
+                  const data = await res.json();
+                  if (data.completion?.isComplete) {
+                    setCompletionHint(null);
+                  } else {
+                    setCompletionHint(
+                      formatDeliveryCompletionHint(data.completion) ||
+                        (data.completion?.message ? String(data.completion.message) : null),
+                    );
+                  }
+                } catch {
+                  /* keep current hint */
+                }
+              })();
+            }}
+          />
           {/* Help & Uitleg - BOVENAAN */}
           <HelpSettings />
 

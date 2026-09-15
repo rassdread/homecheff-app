@@ -77,8 +77,9 @@ export function setMakerFollowSnapshot(
 export function patchMakerFansCount(sellerId: string, fansCount: number): void {
   if (!sellerId) return;
   const prev = snapshots.get(sellerId);
-  setMakerFollowSnapshot(sellerId, {
-    following: prev?.following ?? false,
+  if (!prev) return;
+  write(sellerId, {
+    following: prev.following,
     fansCount: Math.max(0, Math.floor(fansCount) || 0),
   });
 }

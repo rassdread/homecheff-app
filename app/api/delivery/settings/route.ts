@@ -67,6 +67,7 @@ const USER_LOCATION_SELECT = {
   lng: true,
   place: true,
   address: true,
+  dateOfBirth: true,
   stripeConnectAccountId: true,
   stripeConnectOnboardingCompleted: true,
 } as const;
@@ -78,12 +79,14 @@ function jsonProfile(
     lng: number | null;
     place: string | null;
     address?: string | null;
+    dateOfBirth?: Date | string | null;
   } | null,
 ) {
   const serialized = serializeCanonicalSettingsProfile(profile);
-  const completion = getDeliveryProfileCompletion(
-    toProviderActivationProfile(profile, user),
-  );
+  const completion = getDeliveryProfileCompletion({
+    ...toProviderActivationProfile(profile, user),
+    dateOfBirth: user?.dateOfBirth ?? null,
+  });
   return {
     profile: serialized,
     completion: {
@@ -159,9 +162,10 @@ export async function GET() {
       });
     }
 
-    const completionNow = getDeliveryProfileCompletion(
-      toProviderActivationProfile(deliveryProfile, user),
-    );
+    const completionNow = getDeliveryProfileCompletion({
+      ...toProviderActivationProfile(deliveryProfile, user),
+      dateOfBirth: user.dateOfBirth,
+    });
     if (completionNow.isComplete && !deliveryProfile.isVerified) {
       deliveryProfile = await prisma.deliveryProfile.update({
         where: { userId: user.id },
@@ -304,9 +308,10 @@ export async function PUT(req: NextRequest) {
       ),
     };
 
-    const completionPreview = getDeliveryProfileCompletion(
-      toProviderActivationProfile(mergedForGate, user),
-    );
+    const completionPreview = getDeliveryProfileCompletion({
+      ...toProviderActivationProfile(mergedForGate, user),
+      dateOfBirth: user.dateOfBirth,
+    });
 
     const updatedDeliveryProfile = await prisma.$transaction(async (tx) => {
       const updated = await tx.deliveryProfile.update({

@@ -64,7 +64,8 @@ import {
 } from '@/lib/instant-experience/listing-detail-return-cache';
 import type { ListingDetailPayload } from '@/lib/marketplace/detail/load-listing-detail';
 import { mapListingDetailPayload } from '@/lib/marketplace/detail/map-listing-detail-payload';
-import { patchMakerFansCount } from '@/lib/follow/follow-state-store';
+import { patchMakerFansCount, seedMakerFollowSnapshot } from '@/lib/follow/follow-state-store';
+import { seedFavoriteSnapshot } from '@/lib/favorite/favorite-state-store';
 import {
   EMPTY_USER_STATS,
   getCachedUserStats,
@@ -314,14 +315,32 @@ export default function ListingDetailPage({
     const uid = product?.seller?.User?.id;
     const fans = initialData?.sellerFansCount;
     if (!uid || typeof fans !== 'number') return;
-    patchMakerFansCount(uid, fans);
+    if (typeof initialData?.viewerIsFan === 'boolean') {
+      seedMakerFollowSnapshot(uid, {
+        following: initialData.viewerIsFan,
+        fansCount: fans,
+      });
+    } else {
+      patchMakerFansCount(uid, fans);
+    }
     const cached = getCachedUserStats(uid);
     if (cached) {
       patchCachedUserFansCount(uid, fans);
     } else {
       seedCachedUserStats(uid, { ...EMPTY_USER_STATS, fansCount: fans });
     }
-  }, [product?.seller?.User?.id, initialData?.sellerFansCount]);
+    if (product?.id && typeof initialData?.isFavorited === 'boolean') {
+      seedFavoriteSnapshot('product', product.id, {
+        favorited: initialData.isFavorited,
+      });
+    }
+  }, [
+    product?.id,
+    product?.seller?.User?.id,
+    initialData?.sellerFansCount,
+    initialData?.viewerIsFan,
+    initialData?.isFavorited,
+  ]);
 
   useLayoutEffect(() => {
     if (!routeParam || typeof window === 'undefined') return;
@@ -1192,6 +1211,8 @@ export default function ListingDetailPage({
                       carouselImageUrl={carouselImageUrl}
                       shareUrl={productShareUrl}
                       sellerFansCount={initialData?.sellerFansCount}
+                      viewerIsFan={initialData?.viewerIsFan}
+                      isFavorited={initialData?.isFavorited}
                       onQuantityChange={setQuantity}
                       onAddedToCart={() => setQuantity(1)}
                     />
