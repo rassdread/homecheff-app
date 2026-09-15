@@ -3,6 +3,12 @@
  * Runtime copy lives in public/i18n/nl.json and public/i18n/en.json.
  */
 
+import {
+  TAXONOMY_GROUP_LABELS,
+  TAXONOMY_ITEM_LABELS,
+  type TaxonomyLabelPair,
+} from '@/lib/marketplace/taxonomy-labels.data';
+
 /** Full label key for a taxonomy item id, e.g. create.meal → marketplace.taxonomy.create.meal.label */
 export function taxonomyLabelKey(id: string): string {
   if (id.startsWith('blocked.')) {
@@ -21,6 +27,26 @@ export function taxonomyShortLabelKey(id: string): string {
 export function taxonomyGroupLabelKey(groupId: string): string {
   const normalized = groupId.startsWith('grp.') ? groupId.slice(4) : groupId;
   return `marketplace.taxonomy.groups.${normalized}.label`;
+}
+
+export function compiledTaxonomyGroupLabel(groupId: string): TaxonomyLabelPair | undefined {
+  const normalized = groupId.startsWith('grp.') ? groupId.slice(4) : groupId;
+  return TAXONOMY_GROUP_LABELS[normalized];
+}
+
+export function compiledTaxonomyItemLabel(id: string): TaxonomyLabelPair | undefined {
+  return TAXONOMY_ITEM_LABELS[id];
+}
+
+/** Keep chips visible when HTTP/localStorage i18n is a version behind the registry. */
+export function taxonomyLabelWithFallback(
+  translated: string,
+  pair: TaxonomyLabelPair | undefined,
+  language: string,
+): string {
+  if (translated.trim()) return translated;
+  if (!pair) return translated;
+  return language === 'en' ? pair.en : pair.nl;
 }
 
 /** Block reason key for blocked taxonomy entries */

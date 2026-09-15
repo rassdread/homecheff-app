@@ -8,6 +8,7 @@ import {
   listingMatchesTaxonomySearchQuery,
 } from '@/lib/marketplace/taxonomy-resolve';
 import { matchesSearchTextQuery } from '@/lib/search/filters/search-text';
+import { taxonomyLabelWithFallback } from '@/lib/marketplace/taxonomy-i18n';
 import { TAXONOMY_GROUP_LABELS, TAXONOMY_ITEM_LABELS } from '@/lib/marketplace/taxonomy-labels.data';
 import { toCanonicalTaxonomyId } from '@/lib/marketplace/taxonomy-normalize';
 
@@ -78,5 +79,20 @@ describe('household help taxonomy', () => {
     assert.equal(matchesSearchTextQuery(cleaningListing, 'schoonmaakhulp'), true);
     assert.equal(matchesSearchTextQuery(cleaningListing, 'huishoudelijke hulp'), true);
     assert.equal(matchesSearchTextQuery(cleaningListing, 'wassen'), false);
+  });
+
+  it('falls back to compiled labels when i18n returns empty', () => {
+    assert.equal(
+      taxonomyLabelWithFallback('', TAXONOMY_GROUP_LABELS['practical.household'], 'nl'),
+      'Huishoudelijke hulp',
+    );
+    assert.equal(
+      taxonomyLabelWithFallback('', TAXONOMY_ITEM_LABELS['practical.cleaning'], 'nl'),
+      'Schoonmaak',
+    );
+    assert.equal(
+      taxonomyLabelWithFallback('Schoonmaak', TAXONOMY_ITEM_LABELS['practical.cleaning'], 'nl'),
+      'Schoonmaak',
+    );
   });
 });

@@ -14,8 +14,11 @@ import {
   type TaxonomyEntryRole,
 } from '@/lib/marketplace/taxonomy-resolve';
 import {
+  compiledTaxonomyGroupLabel,
+  compiledTaxonomyItemLabel,
   taxonomyGroupLabelKey,
   taxonomyLabelKey,
+  taxonomyLabelWithFallback,
 } from '@/lib/marketplace/taxonomy-i18n';
 import { normalizeTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import {
@@ -55,7 +58,7 @@ export default function MarketplaceEntryFlow({
   initialSpecializations = [],
   allowedCategories,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const normalizedInitialSpecs = useMemo(
     () => normalizeTaxonomyIds(initialSpecializations, initialCategory ?? null),
@@ -117,6 +120,20 @@ export default function MarketplaceEntryFlow({
     setStep('summary');
   };
 
+  const groupLabel = (groupId: string) =>
+    taxonomyLabelWithFallback(
+      t(taxonomyGroupLabelKey(groupId)),
+      compiledTaxonomyGroupLabel(groupId),
+      language,
+    );
+
+  const itemLabel = (taxonomyId: string) =>
+    taxonomyLabelWithFallback(
+      t(taxonomyLabelKey(taxonomyId)),
+      compiledTaxonomyItemLabel(taxonomyId),
+      language,
+    );
+
   const chipClass = (active: boolean, tone: TaxonomyTone = 'service') =>
     `inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${taxonomyToneChipClass(active, tone)} shadow-sm`;
 
@@ -135,7 +152,7 @@ export default function MarketplaceEntryFlow({
     >
       <TaxonomyLucideIcon name={icon} className="h-4 w-4" tone={tone} />
       {active ? <span aria-hidden>✓ </span> : null}
-      {t(taxonomyLabelKey(taxonomyId))}
+      {itemLabel(taxonomyId)}
     </button>
   );
 
@@ -248,7 +265,7 @@ export default function MarketplaceEntryFlow({
                 }`}
               >
                 <TaxonomyLucideIcon name={group.icon} tone={group.tone} />
-                {t(taxonomyGroupLabelKey(group.id))}
+                {groupLabel(group.id)}
               </button>
             ))}
           </div>
@@ -274,7 +291,7 @@ export default function MarketplaceEntryFlow({
             {t('marketplace.back')}
           </button>
           <h2 className="text-lg font-semibold text-gray-900 mb-1">
-            {t(taxonomyGroupLabelKey(selectedGroupId))}
+            {groupLabel(selectedGroupId)}
           </h2>
           <p className="text-sm text-gray-600 mb-1">
             {t('marketplace.entry.itemsHeading')}
@@ -358,7 +375,7 @@ export default function MarketplaceEntryFlow({
                         className="h-3.5 w-3.5"
                         tone={tone}
                       />
-                      {t(taxonomyLabelKey(taxonomyId))}
+                      {itemLabel(taxonomyId)}
                     </span>
                   );
                 })}

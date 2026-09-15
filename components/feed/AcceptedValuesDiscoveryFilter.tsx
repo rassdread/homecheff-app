@@ -14,8 +14,11 @@ import {
 } from '@/lib/marketplace/taxonomy-resolve';
 import { MARKETPLACE_CATEGORIES } from '@/lib/marketplace/listing-taxonomy';
 import {
+  compiledTaxonomyGroupLabel,
+  compiledTaxonomyItemLabel,
   taxonomyGroupLabelKey,
   taxonomyLabelKey,
+  taxonomyLabelWithFallback,
 } from '@/lib/marketplace/taxonomy-i18n';
 import { taxonomyToneChipClass } from '@/lib/marketplace/taxonomy-tone';
 import { isPendingAcceptedValueId } from '@/lib/marketplace/pending-accepted-values/constants';
@@ -49,7 +52,7 @@ export default function AcceptedValuesDiscoveryFilter({
   className,
   offerMode = false,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { registry } = usePendingAcceptedValueRegistry();
   const [query, setQuery] = useState('');
 
@@ -59,11 +62,15 @@ export default function AcceptedValuesDiscoveryFilter({
     const q = query.trim().toLowerCase();
     if (!q) return allItems;
     return allItems.filter((item) => {
-      const label = t(taxonomyLabelKey(item.id)).toLowerCase();
+      const label = taxonomyLabelWithFallback(
+        t(taxonomyLabelKey(item.id)),
+        compiledTaxonomyItemLabel(item.id),
+        language,
+      ).toLowerCase();
       const terms = (item.searchTerms ?? []).map((term) => term.toLowerCase());
       return label.includes(q) || terms.some((term) => term.includes(q));
     });
-  }, [allItems, query, t]);
+  }, [allItems, query, t, language]);
 
   const grouped = useMemo(() => {
     const sections: Array<{ groupId: string; groupLabelKey: string; itemIds: string[] }> =
@@ -208,7 +215,11 @@ export default function AcceptedValuesDiscoveryFilter({
               >
                 {section.groupId.startsWith('flat.')
                   ? t('marketplace.discovery.acceptedValuesFilter.itemsLabel')
-                  : t(section.groupLabelKey)}
+                  : taxonomyLabelWithFallback(
+                      t(section.groupLabelKey),
+                      compiledTaxonomyGroupLabel(section.groupId),
+                      language,
+                    )}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {section.itemIds.map((id) => {
@@ -228,7 +239,11 @@ export default function AcceptedValuesDiscoveryFilter({
                         className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}
                         tone={item.tone}
                       />
-                      {t(taxonomyLabelKey(id))}
+                      {taxonomyLabelWithFallback(
+                        t(taxonomyLabelKey(id)),
+                        compiledTaxonomyItemLabel(id),
+                        language,
+                      )}
                     </button>
                   );
                 })}

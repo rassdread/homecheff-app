@@ -4,7 +4,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import { resolveAcceptedValueEntry } from '@/lib/marketplace/pending-accepted-values/resolve-pending-display';
 import { usePendingAcceptedValueRegistry } from '@/hooks/usePendingAcceptedValueRegistry';
-import { taxonomyLabelKey } from '@/lib/marketplace/taxonomy-i18n';
+import { taxonomyLabelKey, compiledTaxonomyItemLabel, taxonomyLabelWithFallback } from '@/lib/marketplace/taxonomy-i18n';
 import { TAXONOMY_TONE_CLASSES } from '@/lib/marketplace/taxonomy-tone';
 import { cn } from '@/lib/utils';
 
@@ -23,13 +23,19 @@ export default function AcceptedValueChip({
   compact = false,
   className,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { registry } = usePendingAcceptedValueRegistry();
   const entry = resolveAcceptedValueEntry(id, registry);
   if (!entry) return null;
 
   const label =
-    entry.kind === 'official' ? t(taxonomyLabelKey(entry.id)) : entry.label;
+    entry.kind === 'official'
+      ? taxonomyLabelWithFallback(
+          t(taxonomyLabelKey(entry.id)),
+          compiledTaxonomyItemLabel(entry.id),
+          language,
+        )
+      : entry.label;
 
   return (
     <button

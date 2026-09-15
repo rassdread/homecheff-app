@@ -11,8 +11,11 @@ import {
   type TaxonomyEntryRole,
 } from '@/lib/marketplace/taxonomy-resolve';
 import {
+  compiledTaxonomyGroupLabel,
+  compiledTaxonomyItemLabel,
   taxonomyGroupLabelKey,
   taxonomyLabelKey,
+  taxonomyLabelWithFallback,
 } from '@/lib/marketplace/taxonomy-i18n';
 import { taxonomyToneChipClass } from '@/lib/marketplace/taxonomy-tone';
 import type { TaxonomyTone } from '@/lib/marketplace/taxonomy-types';
@@ -33,7 +36,7 @@ export default function TaxonomySpecializationPicker({
   onChange,
   className,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -58,6 +61,20 @@ export default function TaxonomySpecializationPicker({
 
   const chipClass = (active: boolean, tone: TaxonomyTone = 'service') =>
     `inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${taxonomyToneChipClass(active, tone)}`;
+
+  const groupLabel = (groupId: string) =>
+    taxonomyLabelWithFallback(
+      t(taxonomyGroupLabelKey(groupId)),
+      compiledTaxonomyGroupLabel(groupId),
+      language,
+    );
+
+  const itemLabel = (taxonomyId: string) =>
+    taxonomyLabelWithFallback(
+      t(taxonomyLabelKey(taxonomyId)),
+      compiledTaxonomyItemLabel(taxonomyId),
+      language,
+    );
 
   return (
     <div className={className ?? 'rounded-xl border border-gray-200 bg-gray-50/60 p-4 space-y-4'}>
@@ -87,7 +104,7 @@ export default function TaxonomySpecializationPicker({
                 className="h-3.5 w-3.5"
                 tone={tone}
               />
-              {t(taxonomyLabelKey(taxonomyId))}
+              {itemLabel(taxonomyId)}
               <span aria-hidden>×</span>
             </button>
           );
@@ -110,7 +127,7 @@ export default function TaxonomySpecializationPicker({
             }`}
           >
             <TaxonomyLucideIcon name={group.icon} className="h-4 w-4 shrink-0" tone={group.tone} />
-            {t(taxonomyGroupLabelKey(group.id))}
+            {groupLabel(group.id)}
           </button>
         ))}
       </div>
@@ -118,7 +135,7 @@ export default function TaxonomySpecializationPicker({
       {selectedGroupId ? (
         <div className="space-y-2">
           <p className="text-xs font-medium text-gray-700">
-            {t(taxonomyGroupLabelKey(selectedGroupId))}
+            {groupLabel(selectedGroupId)}
           </p>
           <div className="flex flex-wrap gap-2">
             {itemsForGroup.map((item) => (
@@ -131,7 +148,7 @@ export default function TaxonomySpecializationPicker({
               >
                 <TaxonomyLucideIcon name={item.icon} className="h-3.5 w-3.5" tone={item.tone} />
                 {value.includes(item.id) ? <span aria-hidden>✓ </span> : null}
-                {t(taxonomyLabelKey(item.id))}
+                {itemLabel(item.id)}
               </button>
             ))}
           </div>

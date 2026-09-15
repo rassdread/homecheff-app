@@ -355,7 +355,7 @@ export function useTranslation() {
     // Bump bij elke wijziging in public/i18n/{nl,en}.json zodat browsers met stale
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
     // 2.58 — Huishoudelijke hulp service group + Schoonmaak specialisatie
-    const CACHE_VERSION = '2.58';
+    const CACHE_VERSION = '2.59';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state
@@ -395,8 +395,8 @@ export function useTranslation() {
 
             // Single shared background refresh — no ?t= cache-bust (allows HTTP cache)
             if (!inflightTranslationLoads.has(lang)) {
-              const bg = fetch(`/api/i18n/${lang}`, {
-                cache: 'force-cache',
+              const bg = fetch(`/api/i18n/${lang}?v=${CACHE_VERSION}`, {
+                cache: 'no-store',
                 credentials: 'same-origin',
               })
                 .then(async (response) => {
@@ -437,8 +437,8 @@ export function useTranslation() {
 
     let shared = inflightTranslationLoads.get(lang);
     if (!shared) {
-      shared = fetch(`/api/i18n/${lang}`, {
-        cache: 'force-cache',
+      shared = fetch(`/api/i18n/${lang}?v=${CACHE_VERSION}`, {
+        cache: 'no-store',
         credentials: 'same-origin',
       })
         .then(async (response) => {
