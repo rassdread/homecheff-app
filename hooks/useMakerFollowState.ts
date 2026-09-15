@@ -27,6 +27,7 @@ export function useMakerFollowState({
   const { data: session } = useSession();
   const pathname = usePathname();
   const [, bump] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!sellerId) return;
@@ -74,6 +75,7 @@ export function useMakerFollowState({
       event?.preventDefault();
       event?.stopPropagation();
       if (!sellerId) return;
+      setError(null);
 
       if (!session?.user) {
         const returnPath = `${pathname || '/'}${typeof window !== 'undefined' ? window.location.search : ''}`;
@@ -109,11 +111,14 @@ export function useMakerFollowState({
         const res = await fetch('/api/follows/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
           body: JSON.stringify({ sellerId }),
         });
         if (!res.ok) {
           setMakerFollowSnapshot(sellerId, prev, { local: true });
           patchCachedUserFansCount(sellerId, prev.fansCount);
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          setError(data.error || 'follow_failed');
           return;
         }
         const data = (await res.json()) as { following?: boolean; fansCount?: number };
@@ -123,9 +128,11 @@ export function useMakerFollowState({
         setMakerFollowSnapshot(sellerId, { following, fansCount }, { local: true });
         patchCachedUserFansCount(sellerId, fansCount);
         invalidateCachedUserStats(sellerId);
+        setError(null);
       } catch {
         setMakerFollowSnapshot(sellerId, prev, { local: true });
         patchCachedUserFansCount(sellerId, prev.fansCount);
+        setError('follow_failed');
       }
     },
     [pathname, sellerId, session?.user, initialFollowing, initialFansCount],
@@ -135,6 +142,7 @@ export function useMakerFollowState({
     following: snap.following,
     fansCount: snap.fansCount,
     toggle,
+    error,
     isOwnProfile: Boolean(session?.user?.id && session.user.id === sellerId),
   };
 }

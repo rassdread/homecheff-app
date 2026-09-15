@@ -52,6 +52,14 @@ assert.match(create, /useOverlayHistoryBack/);
 assert.match(create, /create-guest-auth/);
 assert.match(create, /create-roles-gate/);
 
+const shareSheet = readFileSync(
+  join(root, "components/share/HomecheffVisibleShareSheet.tsx"),
+  "utf8",
+);
+assert.match(shareSheet, /useOverlayHistoryBack/);
+assert.match(shareSheet, /Foto toevoegen|addPhoto/);
+assert.match(shareSheet, /Terug|copy\.back/);
+
 const workbar = readFileSync(
   join(root, "components/adaptive-workspace/LandscapeWorkBarCommands.tsx"),
   "utf8",

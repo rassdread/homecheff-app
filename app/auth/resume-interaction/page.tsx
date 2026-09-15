@@ -67,13 +67,14 @@ export default function ResumeInteractionPage() {
       const returnTo = safeReturn(intent.returnPath, '/');
       try {
         if (intent.type === 'save_item' || intent.type === 'like_item') {
-          const productId = intent.targetId?.trim();
-          if (!productId) throw new Error('missing_product');
+          const targetId = intent.targetId?.trim();
+          if (!targetId) throw new Error('missing_product');
+          const isDish = intent.draftKey === 'dish';
           const res = await fetch('/api/favorites/toggle', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ productId }),
+            body: JSON.stringify(isDish ? { dishId: targetId } : { productId: targetId }),
           });
           if (!res.ok) {
             const err = (await res.json().catch(() => ({}))) as { error?: string };

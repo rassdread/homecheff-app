@@ -1,11 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
+import {
+  fetchFavoriteStatusDeduped,
+  getFavoriteSnapshot,
+  seedFavoriteSnapshot,
+  setFavoriteSnapshot,
+  subscribeFavorite,
+  type FavoriteItemKind,
+} from '@/lib/favorite/favorite-state-store';
 
 interface FavoriteButtonProps {
   productId?: string;
@@ -33,50 +41,43 @@ export default function FavoriteButton({
   const { t } = useTranslation();
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [favorited, setFavorited] = useState(initialFavorited ?? false);
+  const [, bump] = useState(0);
   const [favoriteCount, setFavoriteCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(initialFavorited === undefined);
+  const [error, setError] = useState<string | null>(null);
 
-  const itemKey = productId ?? dishId;
+  const kind: FavoriteItemKind | null = productId ? 'product' : dishId ? 'dish' : null;
+  const itemId = productId ?? dishId ?? '';
 
   useEffect(() => {
+    if (!kind || !itemId) return;
     if (initialFavorited !== undefined) {
-      setFavorited(initialFavorited);
-      setCheckingStatus(false);
-      return;
+      seedFavoriteSnapshot(kind, itemId, { favorited: initialFavorited });
     }
+    return subscribeFavorite(kind, itemId, () => bump((n) => n + 1));
+  }, [kind, itemId, initialFavorited]);
 
-    if (!session?.user || !itemKey) {
-      setCheckingStatus(false);
-      return;
-    }
+  const snap = kind && itemId ? getFavoriteSnapshot(kind, itemId) : null;
+  const favorited = snap?.favorited ?? Boolean(initialFavorited);
 
-    const checkFavoriteStatus = async () => {
-      try {
-        const qs = productId
-          ? `productId=${productId}`
-          : `dishId=${encodeURIComponent(dishId!)}`;
-        const response = await fetch(`/api/favorites/status?${qs}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFavorited(data.favorited);
-        }
-      } catch (error) {
-        console.error('Error checking favorite status:', error);
-      } finally {
-        setCheckingStatus(false);
-      }
+  useEffect(() => {
+    if (!kind || !itemId || !session?.user) return;
+    if (initialFavorited !== undefined) return;
+    if (snap?.favorited) return;
+    let cancelled = false;
+    void fetchFavoriteStatusDeduped(kind, itemId).then((next) => {
+      if (cancelled) return;
+      seedFavoriteSnapshot(kind, itemId, { favorited: next });
+    });
+    return () => {
+      cancelled = true;
     };
-
-    void checkFavoriteStatus();
-  }, [productId, dishId, itemKey, session?.user, initialFavorited]);
+  }, [kind, itemId, session?.user, initialFavorited, snap?.favorited]);
 
   const handleToggleFavorite = async (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    e?.preventDefault();
+    e?.stopPropagation();
+    setError(null);
 
     if (!session?.user) {
       const returnPath = `${pathname || '/'}${typeof window !== 'undefined' ? window.location.search : ''}`;
@@ -87,51 +88,46 @@ export default function FavoriteButton({
           targetId: productId || dishId,
           returnPath,
           autoResume: true,
+          draftKey: dishId && !productId ? 'dish' : undefined,
         },
       });
       return;
     }
 
-    if (!productId && !dishId) return;
+    if (!kind || !itemId) return;
 
+    const prev = { favorited };
+    const optimistic = !prev.favorited;
+    setFavoriteSnapshot(kind, itemId, { favorited: optimistic }, { local: true });
     setLoading(true);
     try {
       const response = await fetch('/api/favorites/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify(productId ? { productId } : { dishId }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setFavorited(data.favorited);
-        if (showCount) {
-          setFavoriteCount((c) => Math.max(0, c + (data.favorited ? 1 : -1)));
-          onCountChange?.(favoriteCount);
-        }
-      } else {
-        const error = await response.json();
-        alert(error.error || t('errors.favoriteError'));
+      if (!response.ok) {
+        setFavoriteSnapshot(kind, itemId, prev, { local: true });
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        setError(data.error || t('errors.favoriteError'));
+        return;
       }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      alert(t('errors.favoriteError'));
+      const data = (await response.json()) as { favorited?: boolean };
+      const next = Boolean(data.favorited);
+      setFavoriteSnapshot(kind, itemId, { favorited: next }, { local: true });
+      if (showCount) {
+        setFavoriteCount((c) => Math.max(0, c + (next ? 1 : -1)));
+        onCountChange?.(favoriteCount);
+      }
+    } catch {
+      setFavoriteSnapshot(kind, itemId, prev, { local: true });
+      setError(t('errors.favoriteError'));
     } finally {
       setLoading(false);
     }
   };
-
-  if (checkingStatus) {
-    return (
-      <button
-        disabled
-        className={`p-2 bg-white/80 backdrop-blur-sm rounded-full cursor-not-allowed ${className}`}
-        aria-label={t('favorites.loading')}
-      >
-        <Heart className="w-4 h-4 text-gray-400" />
-      </button>
-    );
-  }
 
   const sizeClasses = {
     sm: variant === 'button' ? 'px-3 py-1.5 text-sm' : 'p-1.5',
@@ -147,54 +143,74 @@ export default function FavoriteButton({
 
   const label = favorited ? t('favorites.saved') : t('favorites.save');
 
+  const errorLine = error ? (
+    <span className="sr-only" role="alert">
+      {error}
+    </span>
+  ) : null;
+
   if (variant === 'button') {
     return (
-      <button
-        onClick={handleToggleFavorite}
-        disabled={loading}
-        className={`
-          ${sizeClasses[size]}
-          flex items-center gap-2 rounded-lg font-medium transition-colors
-          ${favorited
-            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
-          disabled:opacity-50 disabled:cursor-not-allowed
-          ${className}
-        `}
-        title={label}
-        aria-pressed={favorited}
-      >
-        <Heart className={`${iconSize[size]} ${favorited ? 'fill-current' : ''}`} />
-        <span>{label}</span>
-      </button>
+      <span className="inline-flex flex-col items-start gap-1">
+        <button
+          type="button"
+          onClick={handleToggleFavorite}
+          disabled={loading || !itemId}
+          className={`
+            ${sizeClasses[size]}
+            flex items-center gap-2 rounded-lg font-medium transition-colors
+            ${favorited
+              ? 'bg-red-100 text-red-700 hover:bg-red-200'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+            disabled:opacity-50 disabled:cursor-not-allowed
+            ${className}
+          `}
+          title={error || label}
+          aria-pressed={favorited}
+          aria-label={label}
+        >
+          <Heart className={`${iconSize[size]} ${favorited ? 'fill-current' : ''}`} />
+          <span>{label}</span>
+        </button>
+        {error ? (
+          <span className="text-[11px] font-medium text-red-700" role="alert">
+            {error}
+          </span>
+        ) : null}
+        {errorLine}
+      </span>
     );
   }
 
   return (
-    <button
-      onClick={handleToggleFavorite}
-      disabled={loading}
-      className={`
-        ${sizeClasses[size]}
-        bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors
-        disabled:opacity-50 disabled:cursor-not-allowed
-        inline-flex items-center gap-1
-        ${className}
-      `}
-      title={label}
-      aria-label={label}
-      aria-pressed={favorited}
-    >
-      <Heart
+    <span className="inline-flex flex-col items-end">
+      <button
+        type="button"
+        onClick={handleToggleFavorite}
+        disabled={loading || !itemId}
         className={`
-          ${iconSize[size]}
-          transition-colors
-          ${favorited ? 'text-red-500 fill-red-500' : 'text-neutral-600 hover:text-red-500'}
+          ${sizeClasses[size]}
+          bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors
+          disabled:opacity-50 disabled:cursor-not-allowed
+          inline-flex items-center gap-1
+          ${className}
         `}
-      />
-      {showCount && favoriteCount > 0 ? (
-        <span className="text-xs font-semibold text-gray-600">{favoriteCount}</span>
-      ) : null}
-    </button>
+        title={error || label}
+        aria-label={label}
+        aria-pressed={favorited}
+      >
+        <Heart
+          className={`
+            ${iconSize[size]}
+            transition-colors
+            ${favorited ? 'text-red-500 fill-red-500' : 'text-neutral-600 hover:text-red-500'}
+          `}
+        />
+        {showCount && favoriteCount > 0 ? (
+          <span className="text-xs font-semibold text-gray-600">{favoriteCount}</span>
+        ) : null}
+      </button>
+      {errorLine}
+    </span>
   );
 }

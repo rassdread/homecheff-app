@@ -8,17 +8,17 @@ import { useMarketplaceShareContext } from '@/hooks/useMarketplaceShareContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cardActionBoundaryProps } from '@/lib/ui/card-action-boundary';
 import {
-  shareListingOrCopy,
-  shouldPreferNativeShare,
   toAbsolutePublicUrl,
 } from '@/lib/share/listing-share';
 import AffiliatePromoteChooser from '@/components/share/AffiliatePromoteChooser';
 import HomecheffVisibleShareSheet from '@/components/share/HomecheffVisibleShareSheet';
+import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
 
 type TileShareActionProps = {
   href: string;
   title: string;
   description?: string | null;
+  imageUrl?: string | null;
   baseUrl?: string;
   surface?: 'feed' | 'search' | 'profile' | 'category' | 'tile';
   listingId?: string;
@@ -32,6 +32,7 @@ export default function TileShareAction({
   href,
   title,
   description,
+  imageUrl = null,
   baseUrl,
   surface = 'tile',
   listingId,
@@ -53,6 +54,7 @@ export default function TileShareAction({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  useOverlayHistoryBack('tile-share-chooser', chooserOpen, () => setChooserOpen(false));
 
   const shareReady = !session?.user?.email || !contextLoading;
 
@@ -89,28 +91,11 @@ export default function TileShareAction({
 
   const runShareWithUrl = useCallback(
     async (url: string, kind: 'plain' | 'personal' | 'company') => {
-      if (shouldPreferNativeShare()) {
-        const result = await shareListingOrCopy({
-          url,
-          title,
-          text: description?.trim() || title,
-        });
-        trackAnalytics(result.method, result.ok, kind);
-        if (result.method === 'needs_visible_panel' || result.method === 'failed') {
-          openSheet(url);
-          return result;
-        }
-        if (result.ok && result.method === 'clipboard') {
-          setCopied(true);
-          window.setTimeout(() => setCopied(false), 2000);
-        }
-        return result;
-      }
       openSheet(url);
       trackAnalytics('panel', true, kind);
       return { ok: true as const, method: 'clipboard' as const };
     },
-    [description, openSheet, title, trackAnalytics],
+    [openSheet, trackAnalytics],
   );
 
   const resolveAndShare = useCallback(
@@ -220,6 +205,7 @@ export default function TileShareAction({
         url={sheetUrl}
         shareTitle={title}
         shareText={description?.trim() || title}
+        itemImageUrl={imageUrl}
         onCopied={() => {
           setCopied(true);
           window.setTimeout(() => setCopied(false), 2000);

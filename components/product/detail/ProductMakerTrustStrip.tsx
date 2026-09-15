@@ -18,7 +18,12 @@ import {
   getPublicProfileHref,
   profileFallbackHref,
 } from '@/lib/user/public-profile';
-import { cn } from '@/lib/utils';
+import FollowButton from '@/components/follow/FollowButton';
+import { formatFansCountLabel } from '@/lib/follow/format-fans-count';
+import {
+  FOLLOW_CHANGED_EVENT,
+  type FollowChangedDetail,
+} from '@/lib/follow/follow-state-store';
 
 type Props = {
   sellerUser?: {
@@ -71,6 +76,20 @@ export default function ProductMakerTrustStrip({
     };
   }, [userId]);
 
+  useEffect(() => {
+    if (!userId) return;
+    const onFollow = (event: Event) => {
+      const detail = (event as CustomEvent<FollowChangedDetail>).detail;
+      if (!detail || detail.sellerId !== userId) return;
+      setStats((prev) => ({
+        ...(prev ?? EMPTY_USER_STATS),
+        fansCount: detail.fansCount,
+      }));
+    };
+    window.addEventListener(FOLLOW_CHANGED_EVENT, onFollow);
+    return () => window.removeEventListener(FOLLOW_CHANGED_EVENT, onFollow);
+  }, [userId]);
+
   if (!sellerUser?.id) return null;
 
   const s = stats ?? EMPTY_USER_STATS;
@@ -89,8 +108,8 @@ export default function ProductMakerTrustStrip({
         `${productStats.orderCount} verkopen`,
     );
   }
-  if (s.fansCount > 0) {
-    chips.push(`${s.fansCount} fans`);
+  if (s.fansCount >= 0) {
+    chips.push(formatFansCountLabel(s.fansCount, t));
   }
   if (s.totalProps > 0) {
     chips.push(`${s.totalProps} props`);
@@ -141,15 +160,23 @@ export default function ProductMakerTrustStrip({
             ) : null}
           </div>
           {sellerUser.id ? (
-            <Link
-              href={
-                getPublicProfileHref(sellerUser.id, sellerUser.username) ??
-                profileFallbackHref(sellerUser.id)
-              }
-              className="shrink-0 text-xs font-semibold text-secondary-brand hover:text-secondary-700"
-            >
-              {t('productDetail.viewProfile') || 'Profiel'} →
-            </Link>
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <FollowButton
+                sellerId={sellerUser.id}
+                sellerName={sellerUser.name ?? sellerUser.username ?? undefined}
+                size="sm"
+                initialFansCount={s.fansCount}
+              />
+              <Link
+                href={
+                  getPublicProfileHref(sellerUser.id, sellerUser.username) ??
+                  profileFallbackHref(sellerUser.id)
+                }
+                className="text-xs font-semibold text-secondary-brand hover:text-secondary-700"
+              >
+                {t('productDetail.viewProfile') || 'Profiel'} →
+              </Link>
+            </div>
           ) : null}
         </div>
       </div>
@@ -216,6 +243,14 @@ export default function ProductMakerTrustStrip({
             <UserBadgeChips badges={sellerBadges} max={2} size="sm" />
           ) : null}
         </div>
+        {sellerUser.id ? (
+          <FollowButton
+            sellerId={sellerUser.id}
+            sellerName={sellerUser.name ?? sellerUser.username ?? undefined}
+            size="sm"
+            initialFansCount={s.fansCount}
+          />
+        ) : null}
       </div>
     </div>
   );

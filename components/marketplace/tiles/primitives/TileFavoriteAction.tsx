@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
-import type { MarketplaceTileMode } from '@/lib/marketplace/tiles';
+import { cardActionBoundaryProps } from '@/lib/ui/card-action-boundary';
 
 export default function TileFavoriteAction({
   id,
@@ -27,8 +27,8 @@ export default function TileFavoriteAction({
   return (
     <div
       className={className}
-      onClick={(e) => e.stopPropagation()}
-      onKeyDown={(e) => e.stopPropagation()}
+      data-preview-ignore
+      {...cardActionBoundaryProps()}
     >
       <FavoriteButton
         {...(mode === 'inspiration' ? { dishId: id } : { productId: id })}

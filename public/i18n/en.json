@@ -5890,6 +5890,7 @@
     "productDeleteError": "An error occurred while deleting the product",
     "loginRequiredForFavorites": "You must be logged in to favorite products",
     "favoriteError": "An error occurred while favoriting",
+    "followError": "Could not follow this maker. Try again.",
     "acceptAllTermsRequired": "You must accept all required conditions",
     "maxRemindersAllowed": "Maximum 5 reminders allowed",
     "reminderAlreadyExists": "This reminder already exists",

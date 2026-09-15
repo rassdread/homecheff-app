@@ -375,7 +375,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                   />
                   {/* Only show follow/chat buttons if user is logged in */}
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <FollowButton sellerId={sellerProfile.id} sellerName={getDisplayName(sellerProfile.User)} />
+                    <FollowButton sellerId={sellerProfile.User.id} sellerName={getDisplayName(sellerProfile.User)} />
                     <StartChatButton 
                       sellerId={sellerProfile.id} 
                       sellerName={getDisplayName(sellerProfile.User)} 

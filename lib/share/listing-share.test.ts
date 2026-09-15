@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   buildMailtoShareUrl,
   buildWhatsAppShareUrl,
+  canShareFiles,
   canUseWebShare,
   shouldPreferNativeShare,
   toAbsolutePublicUrl,
@@ -36,6 +37,10 @@ describe('listing-share helpers', () => {
 
   it('reports web share availability from navigator', () => {
     assert.equal(typeof canUseWebShare(), 'boolean');
+  });
+
+  it('canShareFiles is false in node without Web Share', () => {
+    assert.equal(canShareFiles([]), false);
   });
 
   it('shouldPreferNativeShare is boolean (false in node)', () => {

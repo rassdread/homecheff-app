@@ -37,7 +37,19 @@ export type ListingSharePayload = {
   url: string;
   title: string;
   text?: string;
+  files?: File[];
 };
+
+/** True when this browser can attach files to navigator.share. */
+export function canShareFiles(files: File[]): boolean {
+  if (!files.length || !canUseWebShare()) return false;
+  if (typeof navigator.canShare !== 'function') return false;
+  try {
+    return navigator.canShare({ files });
+  } catch {
+    return false;
+  }
+}
 
 export type ListingShareResult =
   | { ok: true; method: 'native' | 'clipboard' }
@@ -56,17 +68,31 @@ export async function shareListingOrCopy(
   const text = (payload.text || title).trim();
   if (!url) return { ok: false, method: 'failed', error: 'missing_url' };
 
-  if (shouldPreferNativeShare()) {
+  const files = (payload.files ?? []).filter(Boolean);
+  const shareWithFiles = files.length > 0 && canShareFiles(files);
+
+  if (shouldPreferNativeShare() || shareWithFiles) {
     try {
-      await navigator.share({ title, text, url });
-      return { ok: true, method: 'native' };
+      const data: ShareData = shareWithFiles
+        ? { title, text, url, files }
+        : { title, text, url };
+      if (typeof navigator.canShare === 'function' && !navigator.canShare(data)) {
+        if (shareWithFiles) {
+          return { ok: false, method: 'failed', error: 'files_unsupported' };
+        }
+      } else {
+        await navigator.share(data);
+        return { ok: true, method: 'native' };
+      }
     } catch (err) {
       const name =
         err && typeof err === 'object' && 'name' in err
           ? String((err as { name: string }).name)
           : '';
       if (name === 'AbortError') return { ok: false, method: 'cancelled' };
-      // Fall through to visible panel / clipboard.
+      if (shareWithFiles) {
+        return { ok: false, method: 'failed', error: 'files_unsupported' };
+      }
     }
   }
 

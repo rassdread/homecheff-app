@@ -35,6 +35,14 @@ export async function POST(req: NextRequest) {
 
     const followerId = user.id;
 
+    const maker = await prisma.user.findUnique({
+      where: { id: sellerId },
+      select: { id: true },
+    });
+    if (!maker) {
+      return NextResponse.json({ error: 'Maker not found' }, { status: 404, headers: cors });
+    }
+
     // Check if user is trying to follow themselves
     if (followerId === sellerId) {
       return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400, headers: cors });

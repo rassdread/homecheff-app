@@ -3427,6 +3427,7 @@
     "productDeleteError": "Er is een fout opgetreden bij het verwijderen van het product",
     "loginRequiredForFavorites": "Je moet ingelogd zijn om producten te favorieten",
     "favoriteError": "Er is een fout opgetreden bij het favorieten",
+    "followError": "Fan worden is niet gelukt. Probeer het opnieuw.",
     "acceptAllTermsRequired": "Je moet alle vereiste voorwaarden accepteren",
     "maxRemindersAllowed": "Maximaal 5 herinneringen toegestaan",
     "reminderAlreadyExists": "Deze herinnering bestaat al",

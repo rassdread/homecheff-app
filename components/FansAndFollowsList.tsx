@@ -9,7 +9,11 @@ import ClickableName from '@/components/ui/ClickableName';
 import SafeImage from '@/components/ui/SafeImage';
 import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getFeedItemHref, getListingHref } from '@/lib/routing/public-hrefs';
+import FavoriteButton from '@/components/favorite/FavoriteButton';
+import {
+  FAVORITE_CHANGED_EVENT,
+  type FavoriteChangedDetail,
+} from '@/lib/favorite/favorite-state-store';
 
 type Follow = { 
   id: string; 
@@ -140,6 +144,21 @@ export default function FansAndFollowsList({ userId, initialTab = 'follows' }: F
       ac.abort();
     };
   }, [userId]);
+
+  useEffect(() => {
+    const onFav = (event: Event) => {
+      const detail = (event as CustomEvent<FavoriteChangedDetail>).detail;
+      if (!detail || detail.favorited) return;
+      setFavorites((prev) =>
+        prev.filter((favorite) => {
+          if (detail.kind === 'dish') return favorite.Dish?.id !== detail.id;
+          return favorite.Product?.id !== detail.id && (favorite.Listing as { id?: string } | undefined)?.id !== detail.id;
+        }),
+      );
+    };
+    window.addEventListener(FAVORITE_CHANGED_EVENT, onFav);
+    return () => window.removeEventListener(FAVORITE_CHANGED_EVENT, onFav);
+  }, []);
 
   if (loading) {
     return (
@@ -306,8 +325,21 @@ export default function FansAndFollowsList({ userId, initialTab = 'follows' }: F
                             </div>
                           </div>
                         )}
-                        <div className="absolute top-3 right-3 w-9 h-9 bg-gradient-to-br from-pink-500 to-red-500 rounded-full border-4 border-white flex items-center justify-center shadow-lg">
-                          <Heart className="w-5 h-5 text-white fill-white" />
+                        <div
+                          className="absolute top-3 right-3"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        >
+                          <FavoriteButton
+                            {...(favorite.Dish
+                              ? { dishId: favorite.Dish.id }
+                              : { productId: (favorite.Product || favorite.Listing)?.id })}
+                            productTitle={title}
+                            size="sm"
+                            initialFavorited
+                          />
                         </div>
                         {favorite.Product && !favorite.Product.isActive && (
                           <div className="absolute top-3 left-3 bg-gray-800 bg-opacity-75 text-white px-2 py-1 rounded-full text-xs font-medium">

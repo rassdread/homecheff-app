@@ -32,7 +32,7 @@ export default function FollowButton({
   const { t } = useTranslation();
   const { data: session } = useSession();
   const pathname = usePathname();
-  const { following, toggle, isOwnProfile: viewerIsMaker } = useMakerFollowState({
+  const { following, toggle, error, isOwnProfile: viewerIsMaker } = useMakerFollowState({
     sellerId,
     initialFollowing,
     initialFansCount,
@@ -63,6 +63,7 @@ export default function FollowButton({
 
   if (variant === 'tile') {
     return (
+      <span className="inline-flex flex-col items-end">
       <button
         type="button"
         onClick={handleClick}
@@ -78,6 +79,7 @@ export default function FollowButton({
         )}
         aria-pressed={following}
         aria-label={following ? t('follow.followingButton') : t('follow.followButton')}
+        title={error ? t('errors.followError') : undefined}
       >
         {following ? (
           <UserCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -88,6 +90,12 @@ export default function FollowButton({
           {following ? t('follow.followingButton') : t('follow.followButton')}
         </span>
       </button>
+      {error ? (
+        <span className="mt-0.5 max-w-[9rem] text-[10px] font-medium leading-tight text-red-700" role="alert">
+          {t('errors.followError') || 'Fan worden is niet gelukt. Probeer het opnieuw.'}
+        </span>
+      ) : null}
+      </span>
     );
   }
 
@@ -104,6 +112,7 @@ export default function FollowButton({
   };
 
   return (
+    <span className="inline-flex flex-col items-start gap-1">
     <button
       type="button"
       onClick={handleClick}
@@ -117,6 +126,7 @@ export default function FollowButton({
         className,
       )}
       aria-pressed={following}
+      title={error ? t('errors.followError') : undefined}
       aria-label={
         following
           ? t('follow.followingButton')
@@ -130,5 +140,11 @@ export default function FollowButton({
       )}
       <span>{following ? t('follow.followingButton') : t('follow.followButton')}</span>
     </button>
+    {error ? (
+      <span className="text-xs font-medium text-red-700" role="alert">
+        {t('errors.followError') || 'Fan worden is niet gelukt. Probeer het opnieuw.'}
+      </span>
+    ) : null}
+    </span>
   );
 }
