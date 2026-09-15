@@ -83,10 +83,34 @@ test('AUTO_CONFIRM passes when all provider rules satisfied', () => {
   assert.equal(r.ok, true);
 });
 
+test('TEMPORARY_ONLINE_OVERRIDE passes AUTO outside working hours', () => {
+  const until = new Date(Date.now() + 60 * 60 * 1000);
+  const r = validateProviderAutoConfirm(
+    {
+      ...baseProfile,
+      isOnline: true,
+      onlineUntil: until,
+      workStartTime: '00:00',
+      workEndTime: '00:01',
+      availableDays: ['zondag'],
+      availableTimeSlots: [],
+    },
+    { routeDistanceKm: 5, now: new Date() }
+  );
+  assert.equal(r.ok, true);
+});
+
 test('AUTO_CONFIRM fails closed when offline / capacity / radius', () => {
   assert.equal(
     validateProviderAutoConfirm(
-      { ...baseProfile, isOnline: false },
+      {
+        ...baseProfile,
+        isOnline: false,
+        workStartTime: null,
+        workEndTime: null,
+        availableDays: [],
+        availableTimeSlots: [],
+      },
       { routeDistanceKm: 5 }
     ).ok,
     false

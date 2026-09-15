@@ -9,6 +9,7 @@ import {
   aggregateRequirementNotice,
   isGenericProfileWarning,
   noticesForDeliveryMissing,
+  noticesForOnlineGate,
   recommendedProfileNotices,
 } from './profile-requirement-notice';
 import { humanAccountRequirementsMessage } from '../client/consume-account-requirements-response';
@@ -246,5 +247,24 @@ describe('profile requirements engine — exact missing reasons', () => {
     assert.equal(items.some((i) => i.id === 'profile-incomplete'), false);
     const account = items.find((i) => i.id === 'account-incomplete');
     assert.match(account!.title, /mist nog \d+ onderdelen/i);
+  });
+
+  it('delivery DOB missing is exact and not generic incomplete', () => {
+    const notices = noticesForDeliveryMissing(['dateOfBirth']);
+    assert.equal(notices.length, 1);
+    assert.equal(notices[0].titleNl, 'Bevestig je leeftijd om te kunnen bezorgen.');
+    assert.equal(notices[0].ctaLabelNl, 'Leeftijd bevestigen');
+    assert.equal(notices[0].targetRoute, '/delivery/settings#leeftijd');
+    assert.equal(isGenericProfileWarning(notices[0].titleNl), false);
+    const online = noticesForOnlineGate(['dateOfBirth']);
+    assert.equal(
+      online[0].titleNl,
+      'Bevestig eerst je leeftijd om online te kunnen gaan als bezorger.',
+    );
+  });
+
+  it('delivery under 18 copy is specific to delivery', () => {
+    const notices = noticesForDeliveryMissing(['under18']);
+    assert.equal(notices[0].titleNl, 'Bezorging via HomeCheff is beschikbaar vanaf 18 jaar.');
   });
 });

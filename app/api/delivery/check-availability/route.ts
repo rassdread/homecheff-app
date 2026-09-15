@@ -7,6 +7,8 @@ import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { delivererMatchingWhere } from '@/lib/delivery/delivery-eligibility';
 import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
+import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
+import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +32,8 @@ export async function POST(req: NextRequest) {
       ? String(sellerCountry).trim().toUpperCase()
       : null;
 
+    await expireExpiredTemporaryOnline(prisma);
+
     // Find active delivery profiles with GPS coordinates
     const availableProfiles = await prisma.deliveryProfile.findMany({
       where: {
@@ -51,8 +55,13 @@ export async function POST(req: NextRequest) {
         homeLat: true,
         homeLng: true,
         isOnline: true,
+        lastOnlineAt: true,
+        onlineUntil: true,
         availableDays: true,
         availableTimeSlots: true,
+        workStartTime: true,
+        workEndTime: true,
+        temporaryOffline: true,
         user: {
           select: {
             id: true,
@@ -124,25 +133,22 @@ export async function POST(req: NextRequest) {
 
     // Check availability based on delivery time
     const requestedDate = deliveryDate ? new Date(deliveryDate) : new Date();
-    const requestedDay = requestedDate.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
-    const requestedHour = deliveryTime ? parseInt(deliveryTime.split(':')[0]) : new Date().getHours();
+    const probeAt = Number.isNaN(requestedDate.getTime()) ? new Date() : requestedDate;
 
-    // Filter by time availability
-    const availableProfilesFiltered = profilesInRange.filter(profile => {
-      // Check if profile works on this day
-      if (!profile.availableDays.includes(requestedDay as any)) {
-        return false;
-      }
-
-      // Check if profile works in this time slot (with 3-hour window)
-      const timeSlotAvailable = profile.availableTimeSlots.some((slot: string) => {
-        const [startTime, endTime] = slot.split('-').map(t => parseInt(t.split(':')[0]));
-        // Check if the requested hour + 3 hours window fits within the slot
-        return requestedHour >= startTime && (requestedHour + 3) <= endTime;
-      });
-      
-      return timeSlotAvailable;
-    });
+    const availableProfilesFiltered = profilesInRange.filter((profile) =>
+      resolveDeliveryTimeAvailability(
+        {
+          availableDays: profile.availableDays,
+          availableTimeSlots: profile.availableTimeSlots,
+          workStartTime: profile.workStartTime,
+          workEndTime: profile.workEndTime,
+          temporaryOffline: profile.temporaryOffline,
+          isOnline: profile.isOnline,
+          onlineUntil: profile.onlineUntil,
+        },
+        probeAt,
+      ).available,
+    );
 
     const isAvailable = availableProfilesFiltered.length > 0;
     const availableCount = availableProfilesFiltered.length;

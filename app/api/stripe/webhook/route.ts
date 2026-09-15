@@ -12,6 +12,8 @@ import { ensurePaidOrderShipment } from "@/lib/shipping/ensure-order-shipment";
 import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
 import { recordMarketplaceBuyerActivation } from "@/lib/acquisition/marketplace-acquisition";
 import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
+import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
+import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
 import {
   parseProviderQuoteMetadata,
   PRICING_SOURCE_PLATFORM_LEGACY,
@@ -1313,6 +1315,7 @@ export async function POST(req: NextRequest) {
               !!metadata.deliveryProfileId?.trim();
 
             if (coordinates?.lat && coordinates?.lng || namedSelectionBootstrap) {
+              await expireExpiredTemporaryOnline(prisma);
               // Find all available deliverers within range
               const availableDeliverers = await prisma.deliveryProfile.findMany({
                 where: {
@@ -1523,6 +1526,16 @@ export async function POST(req: NextRequest) {
                   if (!sellerCoords || !coordinates?.lat || !coordinates?.lng) {
                     return false;
                   }
+                  const timeAvailable = resolveDeliveryTimeAvailability({
+                    availableDays: deliverer.availableDays,
+                    availableTimeSlots: deliverer.availableTimeSlots,
+                    workStartTime: deliverer.workStartTime,
+                    workEndTime: deliverer.workEndTime,
+                    temporaryOffline: deliverer.temporaryOffline,
+                    isOnline: deliverer.isOnline,
+                    onlineUntil: deliverer.onlineUntil,
+                  }).available;
+                  if (!timeAvailable) return false;
                   const position = resolveDelivererPosition({
                     gpsTrackingEnabled: deliverer.gpsTrackingEnabled,
                     isOnline: deliverer.isOnline,

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { processDuePushOutbox } from '@/lib/notifications/push-outbox-delivery';
 import { authorizeCronRequest } from '@/lib/email/cron-auth';
+import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,7 @@ async function handleCron(req: NextRequest) {
 
   try {
     const now = new Date();
+    await expireExpiredTemporaryOnline(prisma, now);
     const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
 
     const notifications = await prisma.$queryRaw<any[]>`

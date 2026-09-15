@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import DeliveryNotificationListener from './DeliveryNotificationListener';
 import CommunityDeliveryPanel from './CommunityDeliveryPanel';
+import GoOnlineDurationSheet, { type GoOnlineNotice } from './GoOnlineDurationSheet';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   aggregateRequirementNotice,
@@ -101,6 +102,21 @@ interface DeliveryOrder {
 export default function DeliveryDashboard() {
   const { t, language, isReady, isLoading: translationsLoading } = useTranslation();
   const [isOnline, setIsOnline] = useState(false);
+  const [isTemporarilyOnline, setIsTemporarilyOnline] = useState(false);
+  const [availability, setAvailability] = useState<{
+    source?: string;
+    available?: boolean;
+    overrideActive?: boolean;
+    statusTitleNl?: string;
+    statusBodyNl?: string;
+    untilLabel?: string | null;
+    onlineUntil?: string | null;
+  } | null>(null);
+  const [onlineSheetOpen, setOnlineSheetOpen] = useState(false);
+  const [onlineSheetMode, setOnlineSheetMode] = useState<'online' | 'extend'>('online');
+  const [onlineBusy, setOnlineBusy] = useState(false);
+  const [onlineError, setOnlineError] = useState<string | null>(null);
+  const [onlineNotice, setOnlineNotice] = useState<GoOnlineNotice>(null);
   const [currentOrder, setCurrentOrder] = useState<DeliveryOrder | null>(null);
   const [stats, setStats] = useState<DeliveryStats>({
     todayEarnings: 0,
@@ -160,26 +176,17 @@ export default function DeliveryDashboard() {
       fetchStripeConnectStatus();
       fetchActivationStatus();
     }
-    
-    // Auto-refresh every 30 seconds when online
+
     const interval = setInterval(() => {
-      if (isOnline) {
-        fetchDeliveryData(true); // Pass true to indicate it's a refresh
-      }
+      fetchDeliveryData(true);
     }, 30000);
-    
-    // Check every minute if we should auto-go online (when within available times)
-    const autoOnlineInterval = setInterval(() => {
-      fetchOnlineStatus(); // This will check and auto-go online if needed
-    }, 60000); // Check every minute
-    
+
     return () => {
       clearInterval(interval);
-      clearInterval(autoOnlineInterval);
     };
-  }, [isOnline]);
+  }, [isSeller]);
 
-  // Start GPS tracking when online
+  // Start GPS tracking when available for jobs
   useEffect(() => {
     if (isOnline && gpsEnabled) {
       startGPSTracking();
@@ -187,6 +194,28 @@ export default function DeliveryDashboard() {
       stopGPSTracking();
     }
   }, [isOnline, gpsEnabled]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('goOnline') === '1') {
+      openOnlineSheet('online');
+      params.delete('goOnline');
+      const next = `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`;
+      window.history.replaceState(null, '', next);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isTemporarilyOnline || !availability?.onlineUntil) return;
+    const until = new Date(availability.onlineUntil).getTime();
+    if (!Number.isFinite(until)) return;
+    const wait = Math.max(250, until - Date.now() + 400);
+    const timer = window.setTimeout(() => {
+      void fetchDeliveryData(true);
+    }, wait);
+    return () => window.clearTimeout(timer);
+  }, [isTemporarilyOnline, availability?.onlineUntil]);
 
   let gpsWatchId: number | null = null;
 
@@ -248,72 +277,10 @@ export default function DeliveryDashboard() {
       if (response.ok) {
         const data = await response.json();
         const profile = data.profile;
-        const currentIsOnline = profile?.isOnline || false;
-        setIsOnline(currentIsOnline);
-        // GPS enabled if deliveryMode is DYNAMIC OR gpsTrackingEnabled is true
         setGpsEnabled(
-          profile?.deliveryMode === 'DYNAMIC' || 
+          profile?.deliveryMode === 'DYNAMIC' ||
           profile?.gpsTrackingEnabled === true
         );
-
-        // Auto-go online if within available times and currently offline
-        const timeSlots = profile?.availableTimeSlots ?? profile?.availableTimes;
-        if (!currentIsOnline && profile?.availableDays && timeSlots) {
-          const now = new Date();
-          const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
-          const currentHour = now.getHours();
-
-          // Check if current day is in available days
-          const isDayAvailable = profile.availableDays.length === 0 || 
-                                 profile.availableDays.includes(currentDay);
-
-          // Check if current time is in available time slots
-          let isTimeAvailable = timeSlots.length === 0;
-          if (timeSlots.length > 0) {
-            isTimeAvailable = timeSlots.some((slot: string) => {
-              if (slot.includes('-')) {
-                const parts = slot.split('-');
-                const startTime = parts[0].includes(':') 
-                  ? parseInt(parts[0].split(':')[0])
-                  : parseInt(parts[0]);
-                const endTime = parts[1].includes(':')
-                  ? parseInt(parts[1].split(':')[0])
-                  : parseInt(parts[1]);
-                return currentHour >= startTime && currentHour < endTime;
-              } else if (slot.includes(':')) {
-                const slotHour = parseInt(slot.split(':')[0]);
-                return currentHour >= slotHour && currentHour < slotHour + 1;
-              } else {
-                const timeSlotMap: Record<string, { start: number; end: number }> = {
-                  'morning': { start: 6, end: 12 },
-                  'afternoon': { start: 12, end: 18 },
-                  'evening': { start: 18, end: 23 }
-                };
-                const mapped = timeSlotMap[slot.toLowerCase()];
-                if (mapped) {
-                  return currentHour >= mapped.start && currentHour < mapped.end;
-                }
-              }
-              return false;
-            });
-          }
-
-          // Auto-go online if within available times
-          if (isDayAvailable && isTimeAvailable) {
-            try {
-              const toggleResponse = await fetch('/api/delivery/toggle-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isOnline: true })
-              });
-              if (toggleResponse.ok) {
-                setIsOnline(true);
-              }
-            } catch (error) {
-              console.error('Error auto-going online:', error);
-            }
-          }
-        }
       }
     } catch (error) {
       console.error('Error fetching online status:', error);
@@ -390,6 +357,8 @@ export default function DeliveryDashboard() {
           upcomingJobs: data.upcomingJobs || [],
           pendingBookingRequests: data.pendingBookingRequests || [],
           isOnline: data.isOnline || false,
+          isTemporarilyOnline: data.isTemporarilyOnline || false,
+          availability: data.availability || null,
           isSeller: data.isSeller || false,
           shippingOrders: data.shippingOrders || [],
           allOrders: data.allOrders || [],
@@ -404,7 +373,9 @@ export default function DeliveryDashboard() {
         setAvailableOrders(data.availableOrders || []);
         setUpcomingJobs(data.upcomingJobs || []);
         setPendingBookingRequests(data.pendingBookingRequests || []);
-        setIsOnline(data.isOnline || false);
+        setIsOnline(Boolean(data.availability?.available ?? data.isOnline));
+        setIsTemporarilyOnline(Boolean(data.isTemporarilyOnline || data.availability?.overrideActive));
+        setAvailability(data.availability || null);
         setIsSeller(data.isSeller || false);
         setShippingOrders(data.shippingOrders || []);
         setAllOrders(data.allOrders || []);
@@ -436,30 +407,105 @@ export default function DeliveryDashboard() {
     }
   };
 
-  const toggleOnlineStatus = async () => {
+  const applyOnlinePayload = (data: {
+    isOnline?: boolean;
+    isTemporarilyOnline?: boolean;
+    availability?: typeof availability;
+    onlineUntil?: string | null;
+    notice?: GoOnlineNotice;
+  }) => {
+    const nextAvailability = data.availability ?? availability;
+    setAvailability(nextAvailability);
+    setIsTemporarilyOnline(
+      Boolean(data.isTemporarilyOnline || nextAvailability?.overrideActive),
+    );
+    setIsOnline(Boolean(nextAvailability?.available ?? data.isOnline));
+  };
+
+  const goOfflineNow = async () => {
+    setOnlineBusy(true);
+    setOnlineError(null);
     try {
-      const response = await fetch('/api/delivery/toggle-status', {
+      const response = await fetch('/api/delivery/online', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isOnline: !isOnline })
+        body: JSON.stringify({ action: 'offline' }),
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsOnline(!isOnline);
-        
-        // Show warning if going online outside available times
-        if (data.warning) {
-          setFeedback({ type: 'warning', message: t('delivery.warning', { message: data.warning }) });
-        }
-      } else {
-        const error = await response.json();
-        // Show error message to user
-        setFeedback({ type: 'error', message: error.error || t('delivery.errorChangingStatus') });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setFeedback({
+          type: 'error',
+          message: data.message || data.error || t('delivery.errorChangingStatus'),
+        });
+        return;
       }
+      applyOnlinePayload(data);
+      await fetchDeliveryData(true);
+    } catch (error) {
+      console.error('Error going offline:', error);
+      setFeedback({ type: 'error', message: t('delivery.errorChangingStatus') });
+    } finally {
+      setOnlineBusy(false);
+    }
+  };
+
+  const openOnlineSheet = (mode: 'online' | 'extend') => {
+    setOnlineSheetMode(mode);
+    setOnlineError(null);
+    setOnlineNotice(null);
+    setOnlineSheetOpen(true);
+    void (async () => {
+      try {
+        const response = await fetch('/api/delivery/online');
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setOnlineError(data.message || data.error || t('delivery.errorChangingStatus'));
+          return;
+        }
+        if (data.canGoOnline === false && data.notice) {
+          setOnlineNotice(data.notice);
+        }
+        if (data.availability) setAvailability(data.availability);
+      } catch {
+        // Sheet can still submit; API will return the exact block reason.
+      }
+    })();
+  };
+
+  const confirmOnlineDuration = async (input: {
+    preset: '30m' | '1h' | '2h' | '4h' | 'end_of_day' | 'custom';
+    customUntil: string | null;
+    timeZone: string;
+  }) => {
+    setOnlineBusy(true);
+    setOnlineError(null);
+    try {
+      const response = await fetch('/api/delivery/online', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: onlineSheetMode === 'extend' ? 'extend' : 'online',
+          preset: input.preset,
+          customUntil: input.customUntil,
+          timeZone: input.timeZone,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (data.notice) {
+          setOnlineNotice(data.notice);
+        }
+        setOnlineError(data.message || data.error || t('delivery.errorChangingStatus'));
+        return;
+      }
+      applyOnlinePayload(data);
+      setOnlineSheetOpen(false);
+      await fetchDeliveryData(true);
     } catch (error) {
       console.error('Error toggling status:', error);
-      setFeedback({ type: 'error', message: t('delivery.errorChangingStatus') });
+      setOnlineError(t('delivery.errorChangingStatus'));
+    } finally {
+      setOnlineBusy(false);
     }
   };
 
@@ -669,16 +715,27 @@ export default function DeliveryDashboard() {
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <div
-          className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm ${
+          className={`flex flex-col justify-center px-3 sm:px-4 py-2 rounded-lg text-sm ${
             isOnline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
           }`}
         >
-          <div
-            className={`w-2 h-2 rounded-full flex-shrink-0 ${
-              isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-            }`}
-          />
-          <span>{isOnline ? t('delivery.online') : t('delivery.offline')}</span>
+          <span className="flex items-center gap-1.5">
+            <span
+              className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+              }`}
+            />
+            <span className="font-semibold">
+              {availability?.statusTitleNl || (isOnline ? t('delivery.online') : t('delivery.offline'))}
+            </span>
+          </span>
+          {availability?.statusBodyNl ? (
+            <span className="pl-3.5 text-xs font-medium">
+              {isTemporarilyOnline && availability.untilLabel
+                ? `Online tot ${availability.untilLabel}`
+                : availability.statusBodyNl}
+            </span>
+          ) : null}
         </div>
         {gpsEnabled && currentLocation && (
           <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg bg-blue-100 text-blue-800 text-sm">
@@ -689,29 +746,39 @@ export default function DeliveryDashboard() {
         )}
       </div>
       {!isSeller && (
-        <button
-          type="button"
-          onClick={toggleOnlineStatus}
-          className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium whitespace-nowrap ${
-            isOnline
-              ? 'bg-red-600 text-white hover:bg-red-700'
-              : 'bg-emerald-600 text-white hover:bg-emerald-700'
-          }`}
-        >
-          {isOnline ? (
-            <>
+        isTemporarilyOnline ? (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => openOnlineSheet('extend')}
+              disabled={onlineBusy}
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium whitespace-nowrap bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              Verleng
+            </button>
+            <button
+              type="button"
+              onClick={() => void goOfflineNow()}
+              disabled={onlineBusy}
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium whitespace-nowrap bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+            >
               <Pause className="w-4 h-4" />
               <span className="hidden sm:inline">{t('delivery.goOffline')}</span>
               <span className="sm:hidden">{t('delivery.offline')}</span>
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('delivery.goOnline')}</span>
-              <span className="sm:hidden">{t('delivery.online')}</span>
-            </>
-          )}
-        </button>
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => openOnlineSheet('online')}
+            disabled={onlineBusy}
+            className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium whitespace-nowrap bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            <Play className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('delivery.goOnline')}</span>
+            <span className="sm:hidden">{t('delivery.online')}</span>
+          </button>
+        )
       )}
     </>
   );
@@ -726,6 +793,23 @@ export default function DeliveryDashboard() {
       contentClassName="py-0"
     >
       <DeliveryNotificationListener />
+      <GoOnlineDurationSheet
+        open={onlineSheetOpen}
+        mode={onlineSheetMode}
+        busy={onlineBusy}
+        error={onlineError}
+        notice={onlineNotice}
+        currentUntil={availability?.onlineUntil ?? null}
+        currentUntilLabel={availability?.untilLabel ?? null}
+        onClose={() => {
+          if (!onlineBusy) {
+            setOnlineSheetOpen(false);
+            setOnlineError(null);
+            setOnlineNotice(null);
+          }
+        }}
+        onConfirm={(input) => void confirmOnlineDuration(input)}
+      />
 
       {feedback ? (
         <div
@@ -773,6 +857,21 @@ export default function DeliveryDashboard() {
           >
             {activationCta}
           </Link>
+        </div>
+      ) : null}
+
+      {!isSeller && availability ? (
+        <div
+          className={`mt-4 rounded-xl border px-4 py-3 ${
+            isOnline
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-950'
+              : 'border-gray-200 bg-white text-gray-800'
+          }`}
+        >
+          <p className="text-xs font-bold uppercase tracking-wide">
+            {availability.statusTitleNl}
+          </p>
+          <p className="mt-1 text-sm font-medium">{availability.statusBodyNl}</p>
         </div>
       ) : null}
 
@@ -1398,12 +1497,15 @@ export default function DeliveryDashboard() {
                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                       <Pause className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
                     </div>
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{t('delivery.youAreOffline')}</h3>
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                      {availability?.statusTitleNl || t('delivery.youAreOffline')}
+                    </h3>
                     <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                      {t('delivery.goOnlineToReceive', { radius: stats.deliveryRadius })}
+                      {availability?.statusBodyNl ||
+                        t('delivery.goOnlineToReceive', { radius: stats.deliveryRadius })}
                     </p>
                     <button
-                      onClick={toggleOnlineStatus}
+                      onClick={() => openOnlineSheet('online')}
                       className="bg-emerald-600 text-white py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg hover:bg-emerald-700 font-semibold text-sm sm:text-base flex items-center justify-center gap-2 mx-auto shadow-lg"
                     >
                       <Play className="w-4 h-4 sm:w-5 sm:h-5" />

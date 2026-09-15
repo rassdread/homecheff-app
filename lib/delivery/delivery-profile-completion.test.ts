@@ -13,6 +13,8 @@ import { ACTIVITY_CARD_REGISTRY } from '@/lib/discovery/activity-cards/activity-
 import { buildUserActionItems } from '@/lib/user/user-action-center';
 import type { SellerStripeSnapshot } from '@/lib/stripe/seller-payment-status';
 
+const adultDob = new Date(Date.UTC(1990, 5, 15, 12, 0, 0));
+
 const incompleteProfile = {
   providerType: 'INDEPENDENT',
   isActive: false,
@@ -27,6 +29,7 @@ const incompleteProfile = {
   minimumFeeCents: null,
   freeDeliveryRadiusKm: null,
   companyDisplayName: null,
+  dateOfBirth: adultDob,
 };
 
 const completeProfile = {
@@ -47,6 +50,7 @@ const completeProfile = {
   availableTimeSlots: ['morning', 'afternoon'],
   workStartTime: '09:00',
   workEndTime: '21:00',
+  dateOfBirth: adultDob,
 };
 
 describe('delivery profile completion source of truth', () => {
@@ -86,7 +90,7 @@ describe('delivery profile completion source of truth', () => {
         homeLat: null,
         homeLng: null,
       },
-      { lat: 51.91, lng: 4.34, place: 'Vlaardingen' },
+      { lat: 51.91, lng: 4.34, place: 'Vlaardingen', dateOfBirth: adultDob },
     );
     assert.equal(r.isComplete, true);
   });
@@ -96,6 +100,18 @@ describe('delivery profile completion source of truth', () => {
       getDeliveryProfileCompletion(completeProfile).isComplete,
       evaluateDeliveryProfileCompletion(completeProfile).isComplete,
     );
+  });
+
+  it('blocks complete operational profile when DOB is missing', () => {
+    const r = evaluateDeliveryProfileCompletion({
+      ...completeProfile,
+      dateOfBirth: null,
+    });
+    assert.equal(r.isComplete, false);
+    if (!r.ok) {
+      assert.ok(r.missing.includes('dateOfBirth'));
+      assert.match(r.message, /leeftijd/i);
+    }
   });
 
   it('exposes canonical routes', () => {
@@ -197,6 +213,7 @@ describe('action center delivery incomplete CTA', () => {
         availableTimeSlots: ['morning'],
         workStartTime: '09:00',
         workEndTime: '21:00',
+        dateOfBirth: adultDob,
       },
     });
 

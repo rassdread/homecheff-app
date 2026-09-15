@@ -23,7 +23,7 @@
  */
 
 import type { MissingRequirement, MissingRequirementKey } from '@/lib/account-requirements';
-import { DELIVERY_SETTINGS_HREF } from '@/lib/delivery/delivery-profile-completion';
+import { DELIVERY_AGE_STEP_HREF, DELIVERY_SETTINGS_HREF } from '@/lib/delivery/delivery-profile-completion';
 
 export type RequirementSeverity = 'BLOCKING' | 'RECOMMENDED' | 'INFORMATIONAL';
 
@@ -38,7 +38,9 @@ export type ProfileRequirementCode =
   | 'deliveryServiceArea'
   | 'deliveryAvailability'
   | 'deliveryPricing'
-  | 'deliveryCompanyName';
+  | 'deliveryCompanyName'
+  | 'deliveryDateOfBirth'
+  | 'deliveryUnder18';
 
 export type ProfileRequirementNotice = {
   code: ProfileRequirementCode;
@@ -169,6 +171,25 @@ const SELLER_LOCATION: Record<
 };
 
 const DELIVERY_CATALOG: Record<string, ProfileRequirementNotice> = {
+  dateOfBirth: {
+    code: 'deliveryDateOfBirth',
+    severity: 'BLOCKING',
+    shortLabelNl: 'Leeftijd',
+    titleNl: 'Bevestig je leeftijd om te kunnen bezorgen.',
+    bodyNl: 'Om via HomeCheff te bezorgen moet je minimaal 18 jaar zijn.',
+    ctaLabelNl: 'Leeftijd bevestigen',
+    targetRoute: DELIVERY_AGE_STEP_HREF,
+  },
+  under18: {
+    code: 'deliveryUnder18',
+    severity: 'BLOCKING',
+    shortLabelNl: '18+',
+    titleNl: 'Bezorging via HomeCheff is beschikbaar vanaf 18 jaar.',
+    bodyNl:
+      'Je account en andere HomeCheff-mogelijkheden blijven beschikbaar. Bezorgen kan zodra je 18 bent.',
+    ctaLabelNl: 'Bekijk bezorginstellingen',
+    targetRoute: DELIVERY_AGE_STEP_HREF,
+  },
   serviceArea: {
     code: 'deliveryServiceArea',
     severity: 'BLOCKING',
@@ -295,6 +316,45 @@ export function recommendedSellerLocationNotices(input: {
 
 export function noticesForDeliveryMissing(missing: string[]): ProfileRequirementNotice[] {
   return missing.map((code) => DELIVERY_CATALOG[code]).filter(Boolean);
+}
+
+/** Copy when going online is blocked by incomplete delivery profile. */
+export function noticesForOnlineGate(missing: string[]): ProfileRequirementNotice[] {
+  return noticesForDeliveryMissing(missing).map((notice) => {
+    if (notice.code === 'deliveryDateOfBirth') {
+      return {
+        ...notice,
+        titleNl: 'Bevestig eerst je leeftijd om online te kunnen gaan als bezorger.',
+        ctaLabelNl: 'Leeftijd bevestigen',
+      };
+    }
+    if (notice.code === 'deliveryUnder18') {
+      return {
+        ...notice,
+        titleNl: 'Bezorging via HomeCheff is beschikbaar vanaf 18 jaar.',
+      };
+    }
+    if (notice.code === 'deliveryPricing') {
+      return {
+        ...notice,
+        titleNl: 'Vul eerst je bezorgtarieven in voordat je online kunt gaan.',
+        ctaLabelNl: 'Bezorgtarieven instellen',
+      };
+    }
+    if (notice.code === 'deliveryServiceArea') {
+      return {
+        ...notice,
+        titleNl: 'Stel eerst je werkgebied in voordat je online kunt gaan.',
+      };
+    }
+    if (notice.code === 'deliveryAvailability') {
+      return {
+        ...notice,
+        titleNl: 'Stel eerst je bezorgtijden in voordat je online kunt gaan.',
+      };
+    }
+    return notice;
+  });
 }
 
 export function aggregateRequirementNotice(

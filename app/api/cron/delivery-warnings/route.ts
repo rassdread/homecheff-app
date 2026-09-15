@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { DeliveryCountdownService } from '@/lib/delivery-countdown';
+import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
+import { prisma } from '@/lib/prisma';
 
 /**
  * Cron job endpoint to check and send delivery countdown warnings
@@ -24,6 +26,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    await expireExpiredTemporaryOnline(prisma);
     await DeliveryCountdownService.checkAndSendWarnings();
 
     return NextResponse.json({ 

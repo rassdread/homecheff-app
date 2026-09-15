@@ -48,6 +48,7 @@ export type DeliveryUserLocation = {
   lng?: number | null;
   place?: string | null;
   address?: string | null;
+  dateOfBirth?: Date | string | null;
 };
 
 export type CanonicalDeliveryProfileRow = {

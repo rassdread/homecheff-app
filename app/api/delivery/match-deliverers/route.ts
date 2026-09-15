@@ -15,6 +15,8 @@ import { getDeliveryAlignmentFlags } from "@/lib/delivery/delivery-alignment-fla
 import { normalizeCountryCode } from "@/lib/gamification/country-code";
 import { auth } from "@/lib/auth";
 import { isProviderVisibleToBuyer } from "@/lib/delivery/delivery-cert-scope";
+import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
+import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +28,8 @@ export async function GET(req: NextRequest) {
     const productId = searchParams.get('productId');
     const buyerLat = parseFloat(searchParams.get('buyerLat') || '0');
     const buyerLng = parseFloat(searchParams.get('buyerLng') || '0');
+
+    await expireExpiredTemporaryOnline(prisma);
 
     if (!productId) {
       return NextResponse.json({ error: 'Product ID required' }, { status: 400 });
@@ -95,6 +99,8 @@ export async function GET(req: NextRequest) {
         homeLat: true,
         homeLng: true,
         isOnline: true,
+        lastOnlineAt: true,
+        onlineUntil: true,
         isActive: true,
         isVerified: true,
         isBlocked: true,
@@ -113,6 +119,7 @@ export async function GET(req: NextRequest) {
         temporaryOffline: true,
         workStartTime: true,
         workEndTime: true,
+        availableTimeSlots: true,
         estimatedPickupDelayMinutes: true,
         preparationTimeMinutes: true,
         maxSimultaneousDeliveries: true,
@@ -241,6 +248,17 @@ export async function GET(req: NextRequest) {
     // Filter and sort the matched deliverers
     const filteredAndSortedDeliverers = matchedDeliverers
       .filter((delivery): delivery is NonNullable<typeof delivery> => delivery != null)
+      .filter((delivery) =>
+        resolveDeliveryTimeAvailability({
+          availableDays: delivery.availableDays,
+          availableTimeSlots: delivery.availableTimeSlots,
+          workStartTime: delivery.workStartTime,
+          workEndTime: delivery.workEndTime,
+          temporaryOffline: delivery.temporaryOffline,
+          isOnline: delivery.isOnline,
+          onlineUntil: delivery.onlineUntil,
+        }).available,
+      )
       .filter(delivery => {
         if (isCaribbean) {
           // For Caribbean islands: only check if deliverer is on the same island
@@ -335,6 +353,7 @@ export async function GET(req: NextRequest) {
             isVerified: delivery.isVerified,
             isBlocked: delivery.isBlocked,
             isOnline: delivery.isOnline,
+            onlineUntil: delivery.onlineUntil,
             pricingEnabled: delivery.pricingEnabled,
             baseFeeCents: delivery.baseFeeCents,
             pricePerKmCents: delivery.pricePerKmCents,
@@ -346,6 +365,7 @@ export async function GET(req: NextRequest) {
             workStartTime: delivery.workStartTime,
             workEndTime: delivery.workEndTime,
             availableDays: delivery.availableDays,
+            availableTimeSlots: delivery.availableTimeSlots,
             maxSimultaneousDeliveries: delivery.maxSimultaneousDeliveries,
             preparationTimeMinutes: delivery.preparationTimeMinutes,
             estimatedPickupDelayMinutes: delivery.estimatedPickupDelayMinutes,

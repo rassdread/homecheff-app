@@ -1803,6 +1803,9 @@ model DeliveryProfile {
   isOnline             Boolean                       @default(false)
   lastOnlineAt         DateTime?
   lastOfflineAt        DateTime?
+  /// TEMPORARY_ONLINE_OVERRIDE expiry (UTC). lastOnlineAt = onlineSince.
+  /// Scheduled availability stays on availableDays / slots / work hours.
+  onlineUntil          DateTime?
   /// Phase 13E: admin block (distinct from isActive toggle)
   isBlocked            Boolean                       @default(false)
   blockedAt            DateTime?
@@ -1847,6 +1850,7 @@ model DeliveryProfile {
   shiftNotifications   ShiftNotification[]
   vehiclePhotos        VehiclePhoto[]
 
+  @@index([onlineUntil])
   @@map("DeliveryProfile")
 }
 

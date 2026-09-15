@@ -9,6 +9,8 @@ import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { Stripe } from 'stripe';
 import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoords } from '@/lib/delivery/delivery-position';
+import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
+import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 import {
   customerAddressForPhase,
   customerPhoneForPhase,
@@ -29,6 +31,8 @@ export async function GET(req: NextRequest) {
     }
 
     const userId = (session as any).user.id;
+
+    await expireExpiredTemporaryOnline(prisma);
 
     // Check if user is a seller (has sellerRoles or is SELLER role)
     const user = await prisma.user.findUnique({
@@ -52,6 +56,13 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         isOnline: true,
+        lastOnlineAt: true,
+        onlineUntil: true,
+        availableDays: true,
+        availableTimeSlots: true,
+        workStartTime: true,
+        workEndTime: true,
+        temporaryOffline: true,
         isActive: true,
         isVerified: true,
         maxDistance: true,
@@ -845,8 +856,18 @@ export async function GET(req: NextRequest) {
         take: 20
       });
 
+      const timeAvailability = resolveDeliveryTimeAvailability({
+        availableDays: deliveryProfile.availableDays,
+        availableTimeSlots: deliveryProfile.availableTimeSlots,
+        workStartTime: deliveryProfile.workStartTime,
+        workEndTime: deliveryProfile.workEndTime,
+        temporaryOffline: deliveryProfile.temporaryOffline,
+        isOnline: deliveryProfile.isOnline,
+        onlineUntil: deliveryProfile.onlineUntil,
+      });
+
       // Filter orders by distance and time availability (Google Maps route of Haversine)
-      // Only show orders if deliverer is online
+      // Only show marketplace jobs when scheduled-available or temporary-online.
       const delivererPosition = resolveDelivererPosition(
         {
           gpsTrackingEnabled: deliveryProfile.gpsTrackingEnabled,
@@ -865,7 +886,7 @@ export async function GET(req: NextRequest) {
       const ordersWithDistance = await Promise.all(
         availableDeliveryOrders
           .filter((deliveryOrder) => {
-            if (!deliveryProfile.isOnline || !deliveryOrder.order) return false;
+            if (!timeAvailability.available || !deliveryOrder.order) return false;
             const product = deliveryOrder.order.items[0]?.Product;
             const pickupCoords = resolveDeliveryPickupCoords(product);
             const buyerUser = deliveryOrder.order.User;
@@ -1129,9 +1150,25 @@ export async function GET(req: NextRequest) {
       } : undefined
     };
 
+    const timeAvailability = deliveryProfile
+      ? resolveDeliveryTimeAvailability({
+          availableDays: deliveryProfile.availableDays,
+          availableTimeSlots: deliveryProfile.availableTimeSlots,
+          workStartTime: deliveryProfile.workStartTime,
+          workEndTime: deliveryProfile.workEndTime,
+          temporaryOffline: deliveryProfile.temporaryOffline,
+          isOnline: deliveryProfile.isOnline,
+          onlineUntil: deliveryProfile.onlineUntil,
+        })
+      : null;
+
     return NextResponse.json({
       stats,
-      isOnline: deliveryProfile?.isOnline || false,
+      isOnline: timeAvailability?.available ?? false,
+      isTemporarilyOnline: timeAvailability?.source === 'TEMPORARY_ONLINE_OVERRIDE',
+      onlineUntil: deliveryProfile?.onlineUntil ?? null,
+      lastOnlineAt: deliveryProfile?.lastOnlineAt ?? null,
+      availability: timeAvailability,
       currentOrder: transformedCurrentOrder,
       recentOrders: transformedRecentOrders,
       availableOrders: transformedAvailableOrders,

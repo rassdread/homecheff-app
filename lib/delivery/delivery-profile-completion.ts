@@ -17,9 +17,11 @@ import {
   type CanonicalDeliveryProfileRow,
   type DeliveryUserLocation,
 } from '@/lib/delivery/delivery-profile-canonical';
+import { evaluateDeliveryAgeRequirement } from '@/lib/delivery/delivery-age';
 
 export type DeliveryProfileCompletionInput = ProviderActivationProfile & {
   isVerified?: boolean;
+  dateOfBirth?: Date | string | null;
 };
 
 export type DeliveryProfileCompletionResult = ProviderActivationResult & {
@@ -28,6 +30,7 @@ export type DeliveryProfileCompletionResult = ProviderActivationResult & {
 };
 
 export const DELIVERY_SETTINGS_HREF = '/delivery/settings';
+export const DELIVERY_AGE_STEP_HREF = '/delivery/settings#leeftijd';
 export const DELIVERY_START_HREF = '/delivery/start';
 export const DELIVERY_SIGNUP_HREF = '/delivery/signup';
 export const DELIVERY_DASHBOARD_HREF = '/delivery/dashboard';
@@ -46,9 +49,30 @@ export function evaluateDeliveryProfileCompletion(
   const gate = evaluateProviderActivation(profile, {
     requirePricing: options?.requirePricing ?? flags.providerPricingEnabled,
   });
+  const age = evaluateDeliveryAgeRequirement({
+    dateOfBirth: profile.dateOfBirth,
+    ageGateEnabled: flags.commercialAgeGate18Enabled,
+  });
+  const missing = [...age.missing, ...(gate.ok ? [] : gate.missing)];
+  if (missing.length > 0) {
+    const hints: Record<string, string> = {
+      dateOfBirth: 'Bevestig je leeftijd om te kunnen bezorgen',
+      under18: 'Bezorging via HomeCheff is beschikbaar vanaf 18 jaar',
+      companyDisplayName: 'Vul een bedrijfsnaam in',
+      serviceArea: 'Stel je werkgebied in (locatie + straal)',
+      availability: 'Stel je beschikbare dagen en tijden in',
+      pricing: 'Activeer en vul je bezorgtarief in',
+    };
+    return {
+      ok: false,
+      missing,
+      message: missing.map((m) => hints[m] || m).join('. ') + '.',
+      isComplete: false,
+    };
+  }
   return {
     ...gate,
-    isComplete: gate.ok,
+    isComplete: true,
   };
 }
 
@@ -76,7 +100,74 @@ export function getDeliveryProfileCompletionFromRow(
     {
       ...toProviderActivationProfile(profile, user),
       isVerified: profile.isVerified,
+      dateOfBirth: user?.dateOfBirth ?? null,
     },
     options,
   );
+}
+
+export type DeliveryOnboardingPartId =
+  | 'age'
+  | 'serviceArea'
+  | 'availability'
+  | 'pricing'
+  | 'companyDisplayName';
+
+export type DeliveryOnboardingPart = {
+  id: DeliveryOnboardingPartId;
+  labelNl: string;
+  done: boolean;
+};
+
+export function getDeliveryOnboardingProgress(
+  profile: DeliveryProfileCompletionInput,
+  options?: { requirePricing?: boolean },
+): {
+  completed: number;
+  total: number;
+  labelNl: string;
+  remainingNl: string[];
+  parts: DeliveryOnboardingPart[];
+} {
+  const result = evaluateDeliveryProfileCompletion(profile, options);
+  const missing = new Set(result.ok ? [] : result.missing);
+  const includeCompany = profile.providerType === 'DELIVERY_BUSINESS';
+  const parts: DeliveryOnboardingPart[] = [
+    {
+      id: 'age',
+      labelNl: 'Leeftijd',
+      done: !missing.has('dateOfBirth') && !missing.has('under18'),
+    },
+    {
+      id: 'serviceArea',
+      labelNl: 'Werkgebied',
+      done: !missing.has('serviceArea'),
+    },
+    {
+      id: 'availability',
+      labelNl: 'Beschikbaarheid',
+      done: !missing.has('availability'),
+    },
+    {
+      id: 'pricing',
+      labelNl: 'Tarieven',
+      done: !missing.has('pricing'),
+    },
+  ];
+  if (includeCompany) {
+    parts.push({
+      id: 'companyDisplayName',
+      labelNl: 'Bedrijfsnaam',
+      done: !missing.has('companyDisplayName'),
+    });
+  }
+  const completed = parts.filter((p) => p.done).length;
+  const remainingNl = parts.filter((p) => !p.done).map((p) => p.labelNl);
+  return {
+    completed,
+    total: parts.length,
+    labelNl: `${completed} van ${parts.length} onderdelen voltooid`,
+    remainingNl,
+    parts,
+  };
 }

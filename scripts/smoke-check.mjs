@@ -100,6 +100,7 @@ const routes = [
   "app/api/stripe/webhook/route.ts",
   "app/api/upload/route.ts",
   "app/api/upload/video-token/route.ts",
+  "app/api/delivery/online/route.ts",
   "app/login/page.tsx",
   "app/register/page.tsx",
   "app/forgot-password/page.tsx",

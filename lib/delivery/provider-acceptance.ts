@@ -4,6 +4,11 @@
  */
 
 import { isCommerciallyMatchableDeliverer } from '@/lib/delivery/delivery-eligibility';
+import {
+  DELIVERY_MARKET_TIMEZONE,
+  minutesNowInTimeZone,
+  resolveDeliveryTimeAvailability,
+} from '@/lib/delivery/delivery-time-availability';
 
 export const ACCEPTANCE_MODE_AUTO = 'AUTO_CONFIRM';
 export const ACCEPTANCE_MODE_MANUAL = 'MANUAL_CONFIRM';
@@ -16,6 +21,7 @@ export type ProviderAcceptanceProfile = {
   isVerified: boolean;
   isBlocked?: boolean | null;
   isOnline?: boolean | null;
+  onlineUntil?: Date | string | null;
   pricingEnabled?: boolean | null;
   baseFeeCents?: number | null;
   pricePerKmCents?: number | null;
@@ -30,6 +36,7 @@ export type ProviderAcceptanceProfile = {
   workEndTime?: string | null;
   breakWindows?: unknown;
   availableDays?: string[] | null;
+  availableTimeSlots?: string[] | null;
   maxSimultaneousDeliveries?: number | null;
   maxDeliveriesPerSlot?: number | null;
   preparationTimeMinutes?: number | null;
@@ -79,32 +86,6 @@ function parseHm(hm: string): number | null {
   const min = Number(m[2]);
   if (h < 0 || h > 23 || min < 0 || min > 59) return null;
   return h * 60 + min;
-}
-
-function weekdayKeyNl(d: Date): string {
-  const keys = [
-    'zondag',
-    'maandag',
-    'dinsdag',
-    'woensdag',
-    'donderdag',
-    'vrijdag',
-    'zaterdag',
-  ];
-  return keys[d.getDay()] ?? 'maandag';
-}
-
-function weekdayKeyEn(d: Date): string {
-  const keys = [
-    'sunday',
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-  ];
-  return keys[d.getDay()] ?? 'monday';
 }
 
 function isWithinBreak(
@@ -166,33 +147,28 @@ export function validateProviderAutoConfirm(
     }
   }
 
-  if (profile.isOnline === false) failed.push('online');
+  const time = resolveDeliveryTimeAvailability(
+    {
+      availableDays: profile.availableDays,
+      availableTimeSlots: profile.availableTimeSlots,
+      workStartTime: profile.workStartTime,
+      workEndTime: profile.workEndTime,
+      temporaryOffline: profile.temporaryOffline,
+      isOnline: profile.isOnline,
+      onlineUntil: profile.onlineUntil,
+    },
+    now,
+  );
 
-  const days = profile.availableDays ?? [];
-  if (days.length > 0) {
-    const nl = weekdayKeyNl(now);
-    const en = weekdayKeyEn(now);
-    const hit = days.some(
-      (d) =>
-        d.toLowerCase() === nl ||
-        d.toLowerCase() === en ||
-        d.toLowerCase().startsWith(nl.slice(0, 2))
-    );
-    if (!hit) failed.push('weekday');
+  if (!time.available) {
+    failed.push(time.scheduledActive ? 'online' : 'working_hours');
   }
 
-  const start = profile.workStartTime
-    ? parseHm(profile.workStartTime)
-    : null;
-  const end = profile.workEndTime ? parseHm(profile.workEndTime) : null;
-  const minutesNow = now.getHours() * 60 + now.getMinutes();
-  if (start != null && end != null) {
-    if (minutesNow < start || minutesNow >= end) {
-      failed.push('working_hours');
+  if (!time.overrideActive) {
+    const minutesNow = minutesNowInTimeZone(now, DELIVERY_MARKET_TIMEZONE);
+    if (isWithinBreak(minutesNow, profile.breakWindows)) {
+      failed.push('break');
     }
-  }
-  if (isWithinBreak(minutesNow, profile.breakWindows)) {
-    failed.push('break');
   }
 
   if (

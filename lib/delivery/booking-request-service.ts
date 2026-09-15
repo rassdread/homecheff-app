@@ -17,6 +17,7 @@ import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
+import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 
 export async function expireStaleBookingRequests(
   prisma: PrismaClient,
@@ -162,6 +163,8 @@ export async function createDeliveryBookingRequest(
     notes?: string | null;
   }
 ) {
+  await expireExpiredTemporaryOnline(prisma);
+
   const profile = await prisma.deliveryProfile.findUnique({
     where: { id: input.deliveryProfileId },
     include: {
@@ -233,6 +236,7 @@ export async function createDeliveryBookingRequest(
       isVerified: profile.isVerified,
       isBlocked: profile.isBlocked,
       isOnline: profile.isOnline,
+      onlineUntil: profile.onlineUntil,
       pricingEnabled: profile.pricingEnabled,
       baseFeeCents: profile.baseFeeCents,
       pricePerKmCents: profile.pricePerKmCents,
@@ -247,6 +251,7 @@ export async function createDeliveryBookingRequest(
       workEndTime: profile.workEndTime,
       breakWindows: profile.breakWindows,
       availableDays: profile.availableDays,
+      availableTimeSlots: profile.availableTimeSlots,
       maxSimultaneousDeliveries: profile.maxSimultaneousDeliveries,
       maxDeliveriesPerSlot: profile.maxDeliveriesPerSlot,
       preparationTimeMinutes: profile.preparationTimeMinutes,

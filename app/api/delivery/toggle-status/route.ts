@@ -1,185 +1,120 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import {
+  applyDeliveryOnlineSession,
+  expireExpiredTemporaryOnline,
+} from '@/lib/delivery/delivery-online-session';
+import { DELIVERY_MARKET_TIMEZONE } from '@/lib/delivery/delivery-time-availability';
+import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
+import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
+import {
+  aggregateRequirementNotice,
+  noticesForOnlineGate,
+  serializeRequirementNotice,
+} from '@/lib/account/profile-requirement-notice';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Legacy wrapper. Prefer POST /api/delivery/online with a duration preset.
+ * Going online without a duration is rejected so the dashboard sheet is used.
+ */
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userEmail = session.user.email;
-    if (!userEmail) {
-      return NextResponse.json({ error: 'No email found' }, { status: 400 });
-    }
+    const body = await req.json().catch(() => ({}));
+    const wantOnline = body.isOnline !== false && body.action !== 'offline';
 
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-      select: { id: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const body = await req.json();
-    const { isOnline } = body;
+    await expireExpiredTemporaryOnline(prisma);
 
     const deliveryProfile = await prisma.deliveryProfile.findUnique({
-      where: { userId: user.id },
-      select: {
-        id: true,
-        userId: true,
-        availableDays: true,
-        availableTimeSlots: true,
-        isOnline: true,
-        isActive: true,
-        isVerified: true,
-        isBlocked: true,
-        age: true,
-        user: { select: { dateOfBirth: true } },
-      }
+      where: { userId: session.user.id },
+      include: {
+        user: { select: { lat: true, lng: true, place: true, dateOfBirth: true } },
+      },
     });
 
     if (!deliveryProfile) {
       return NextResponse.json({ error: 'Delivery profile not found' }, { status: 404 });
     }
 
-    if (isOnline) {
-      const { resolveCommercialDeliveryAgeYears, logCommercialAgeBlock, COMMERCIAL_DELIVERY_UNDERAGE_MESSAGE_NL } =
-        await import('@/lib/delivery/delivery-age');
-      const { getDeliveryAlignmentFlags } = await import(
-        '@/lib/delivery/delivery-alignment-flags'
-      );
-      const ageGateEnabled = getDeliveryAlignmentFlags().commercialAgeGate18Enabled;
-      const resolution = resolveCommercialDeliveryAgeYears({
-        dateOfBirth: deliveryProfile.user?.dateOfBirth,
-        profileAge: deliveryProfile.age,
-        ageGateEnabled,
+    if (!wantOnline) {
+      const applied = await applyDeliveryOnlineSession(prisma, deliveryProfile.id, {
+        action: 'offline',
       });
-      if (!resolution.eligible) {
-        logCommercialAgeBlock({
-          boundary: 'online',
-          userId: deliveryProfile.userId,
-          profileId: deliveryProfile.id,
-          reason: resolution.reason,
-        });
-        return NextResponse.json(
-          {
-            error:
-              resolution.reason === 'MISSING_DOB' ||
-              resolution.reason === 'INVALID_DOB'
-                ? 'Voor commerciële bezorging is een geldige geboortedatum vereist.'
-                : COMMERCIAL_DELIVERY_UNDERAGE_MESSAGE_NL,
-            code:
-              resolution.reason === 'MISSING_DOB' ||
-              resolution.reason === 'INVALID_DOB'
-                ? 'DELIVERY_DOB_REQUIRED'
-                : 'DELIVERY_UNDERAGE',
-          },
-          { status: 403 }
-        );
+      if (!applied.ok) {
+        return NextResponse.json({ error: applied.error, code: applied.code }, { status: 400 });
       }
+      return NextResponse.json({
+        success: true,
+        isOnline: false,
+        onlineUntil: null,
+        message: 'Je bent nu offline en ontvangt geen bestellingen',
+      });
     }
 
-    // Check if going online is within available times (for warning, not blocking)
-    let isWithinAvailableTimes = true;
-    let warningMessage: string | null = null;
-
-    if (isOnline) {
-      const now = new Date();
-      const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
-      const currentHour = now.getHours();
-
-      // Check if current day is in available days
-      if (deliveryProfile.availableDays.length > 0 && !deliveryProfile.availableDays.includes(currentDay)) {
-        isWithinAvailableTimes = false;
-        const dayNames: Record<string, string> = {
-          'MONDAY': 'maandag',
-          'TUESDAY': 'dinsdag',
-          'WEDNESDAY': 'woensdag',
-          'THURSDAY': 'donderdag',
-          'FRIDAY': 'vrijdag',
-          'SATURDAY': 'zaterdag',
-          'SUNDAY': 'zondag'
-        };
-        const currentDayName = dayNames[currentDay] || currentDay.toLowerCase();
-        warningMessage = `Je gaat online buiten je opgegeven beschikbare dagen. Vandaag is ${currentDayName} en je hebt deze dag niet opgegeven als beschikbaar.`;
-      }
-
-      // Check if current time is in available time slots
-      if (deliveryProfile.availableTimeSlots.length > 0) {
-        const timeSlotAvailable = deliveryProfile.availableTimeSlots.some((slot: string) => {
-          // Handle different time slot formats
-          if (slot.includes('-')) {
-            // Format: "09:00-12:00" or "9-12"
-            const parts = slot.split('-');
-            const startTime = parts[0].includes(':') 
-              ? parseInt(parts[0].split(':')[0])
-              : parseInt(parts[0]);
-            const endTime = parts[1].includes(':')
-              ? parseInt(parts[1].split(':')[0])
-              : parseInt(parts[1]);
-            
-            // Check if current hour is within the time slot
-            return currentHour >= startTime && currentHour < endTime;
-          } else if (slot.includes(':')) {
-            // Format: "09:00" - single time point, check if within 1 hour window
-            const slotHour = parseInt(slot.split(':')[0]);
-            return currentHour >= slotHour && currentHour < slotHour + 1;
-          } else {
-            // Format: "morning", "afternoon", "evening" - map to hours
-            const timeSlotMap: Record<string, { start: number; end: number }> = {
-              'morning': { start: 6, end: 12 },
-              'afternoon': { start: 12, end: 18 },
-              'evening': { start: 18, end: 23 }
-            };
-            const mapped = timeSlotMap[slot.toLowerCase()];
-            if (mapped) {
-              return currentHour >= mapped.start && currentHour < mapped.end;
-            }
-          }
-          return false;
-        });
-
-        if (!timeSlotAvailable) {
-          isWithinAvailableTimes = false;
-          if (!warningMessage) {
-            warningMessage = 'Je gaat online buiten je opgegeven beschikbare tijdsloten.';
-          }
-        }
-      }
+    const flags = getDeliveryAlignmentFlags();
+    const completion = getDeliveryProfileCompletionFromRow(
+      deliveryProfile,
+      deliveryProfile.user,
+      { requirePricing: flags.providerPricingEnabled },
+    );
+    if (!completion.ok) {
+      const notice = serializeRequirementNotice(
+        aggregateRequirementNotice(noticesForOnlineGate(completion.missing), {
+          completeCtaNl: 'Bezorggegevens aanvullen',
+        }),
+      );
+      return NextResponse.json(
+        {
+          error: notice?.titleNl || completion.message,
+          code: 'ACTIVATION_INCOMPLETE',
+          missing: completion.missing,
+          notice,
+        },
+        { status: 400 },
+      );
     }
 
-    // Update delivery profile online status
-    const updatedProfile = await prisma.deliveryProfile.update({
-      where: { userId: user.id },
-      data: {
-        isOnline: isOnline,
-        lastOnlineAt: isOnline ? new Date() : undefined,
-        lastOfflineAt: !isOnline ? new Date() : undefined
-      }
+    const preset = typeof body.preset === 'string' ? body.preset : null;
+    if (!preset && !body.until && !body.customUntil) {
+      return NextResponse.json(
+        {
+          error: 'Kies hoe lang je online wilt blijven.',
+          code: 'DURATION_REQUIRED',
+        },
+        { status: 400 },
+      );
+    }
+
+    const applied = await applyDeliveryOnlineSession(prisma, deliveryProfile.id, {
+      action: body.action === 'extend' ? 'extend' : 'online',
+      preset: preset as '30m' | '1h' | '2h' | '4h' | 'end_of_day' | 'custom',
+      customUntil: body.customUntil || body.until || null,
+      timeZone: body.timeZone || DELIVERY_MARKET_TIMEZONE,
+      currentUntil: deliveryProfile.onlineUntil,
     });
-    
+    if (!applied.ok) {
+      return NextResponse.json({ error: applied.error, code: applied.code }, { status: 400 });
+    }
+
     return NextResponse.json({
       success: true,
-      isOnline: updatedProfile.isOnline,
-      message: isOnline 
-        ? 'Je bent nu online en ontvangt bestellingen' 
-        : 'Je bent nu offline en ontvangt geen bestellingen',
-      warning: warningMessage || undefined,
-      isWithinAvailableTimes
+      isOnline: true,
+      onlineUntil: applied.onlineUntil,
+      lastOnlineAt: applied.lastOnlineAt,
+      message: 'Je bent nu online en ontvangt bestellingen',
     });
-
   } catch (error) {
     console.error('Error toggling delivery status:', error);
     return NextResponse.json(
       { error: 'Failed to toggle delivery status' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

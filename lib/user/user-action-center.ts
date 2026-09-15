@@ -86,6 +86,7 @@ export type UserActionCenterInput = {
     availableTimeSlots?: string[] | null;
     workStartTime?: string | null;
     workEndTime?: string | null;
+    dateOfBirth?: Date | string | null;
     activationMissing?: string[];
   } | null;
   activeDeliveryCount: number;
@@ -281,6 +282,7 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
             workStartTime: profile.workStartTime ?? null,
             workEndTime: profile.workEndTime ?? null,
             isVerified: profile.isVerified,
+            dateOfBirth: profile.dateOfBirth ?? null,
           }
         : null;
     const lane = mapDeliveryProfileToLane(raw);
