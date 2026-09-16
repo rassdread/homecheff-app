@@ -257,6 +257,23 @@ export type DeliveryAgeRequirementStatus =
   | 'DELIVERY_UNDER_18'
   | 'DELIVERY_DOB_INVALID';
 
+/** Canonical three-state delivery age used by feed, dashboard, and gates. */
+export type CanonicalDeliveryAgeStatus =
+  | 'VERIFIED_18_PLUS'
+  | 'UNDER_18'
+  | 'UNKNOWN';
+
+export type CanonicalDeliveryAgeSource = 'USER_DATE_OF_BIRTH' | 'NONE';
+
+export type CanonicalDeliveryAgeResolution = {
+  status: CanonicalDeliveryAgeStatus;
+  source: CanonicalDeliveryAgeSource;
+  verified: boolean;
+  dateOfBirthPresent: boolean;
+  ageYears: number | null;
+  requirementMissing: Array<'dateOfBirth' | 'under18'>;
+};
+
 export function evaluateDeliveryAgeRequirement(params: {
   dateOfBirth?: Date | string | null;
   now?: Date;
@@ -303,6 +320,65 @@ export function evaluateDeliveryAgeRequirement(params: {
     missing: ['dateOfBirth'],
     ageYears: null,
   };
+}
+
+/**
+ * Single canonical age decision for commercial delivery.
+ *
+ * Source of truth is User.dateOfBirth only. DeliveryProfile.age is a legacy
+ * integer snapshot and must never flip VERIFIED_18_PLUS back to UNKNOWN.
+ * Stripe Connect KYC DOB is payout identity, not this gate.
+ */
+export function resolveDeliveryAgeStatus(params: {
+  dateOfBirth?: Date | string | null;
+  now?: Date;
+  ageGateEnabled?: boolean;
+}): CanonicalDeliveryAgeResolution {
+  const evaluated = evaluateDeliveryAgeRequirement(params);
+  if (evaluated.status === 'DELIVERY_AGE_ELIGIBLE') {
+    const dateOfBirthPresent = evaluated.ageYears != null;
+    return {
+      status: 'VERIFIED_18_PLUS',
+      source: dateOfBirthPresent ? 'USER_DATE_OF_BIRTH' : 'NONE',
+      verified: dateOfBirthPresent,
+      dateOfBirthPresent,
+      ageYears: evaluated.ageYears,
+      requirementMissing: [],
+    };
+  }
+  if (evaluated.status === 'DELIVERY_UNDER_18') {
+    return {
+      status: 'UNDER_18',
+      source: 'USER_DATE_OF_BIRTH',
+      verified: true,
+      dateOfBirthPresent: true,
+      ageYears: evaluated.ageYears,
+      requirementMissing: ['under18'],
+    };
+  }
+  return {
+    status: 'UNKNOWN',
+    source: 'NONE',
+    verified: false,
+    dateOfBirthPresent: false,
+    ageYears: null,
+    requirementMissing: ['dateOfBirth'],
+  };
+}
+
+/** Age confirmation CTA is only for delivery users whose canonical DOB is unknown. */
+export function deliveryAgeRequirementApplies(hasDeliveryProfile: boolean): boolean {
+  return hasDeliveryProfile;
+}
+
+export function shouldEmitDeliveryAgeConfirmation(params: {
+  hasDeliveryProfile: boolean;
+  age: Pick<CanonicalDeliveryAgeResolution, 'status'>;
+}): boolean {
+  return (
+    deliveryAgeRequirementApplies(params.hasDeliveryProfile) &&
+    params.age.status === 'UNKNOWN'
+  );
 }
 
 export function logCommercialAgeBlock(params: {

@@ -55,7 +55,7 @@ async function main() {
       freeDeliveryRadiusKm: true,
       providerType: true,
       companyDisplayName: true,
-      user: { select: { lat: true, lng: true, place: true } },
+      user: { select: { lat: true, lng: true, place: true, dateOfBirth: true } },
     },
   });
 

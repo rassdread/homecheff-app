@@ -6,6 +6,7 @@ import { STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 import { refreshSellerStripeSnapshotIfStale } from '@/lib/stripe/sync-seller-payment-status';
 import { buildUserActionItems } from '@/lib/user/user-action-center';
 import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
+import { toDeliveryUserLocation } from '@/lib/delivery/delivery-profile-canonical';
 import type { PendingClientReward } from '@/lib/gamification/gamification-me-types';
 import {
   isSellerDashboardOrderBadgeNotification,
@@ -68,6 +69,7 @@ export async function GET() {
         stripeConnectOnboardingCompleted: true,
         stripeConnectTrack: true,
         hcpWelcomeSeenAt: true,
+        dateOfBirth: true,
         Account: { select: { provider: true } },
         SellerProfile: { select: { id: true } },
         DeliveryProfile: {
@@ -225,9 +227,15 @@ export async function GET() {
     try {
       const deliveryProfileForActions = user.DeliveryProfile
         ? (() => {
+            const deliveryUser = toDeliveryUserLocation({
+              lat: user.lat,
+              lng: user.lng,
+              place: user.place,
+              dateOfBirth: user.dateOfBirth,
+            });
             const activation = getDeliveryProfileCompletionFromRow(
               user.DeliveryProfile,
-              { lat: user.lat, lng: user.lng, place: user.place },
+              deliveryUser,
             );
             return {
               id: user.DeliveryProfile.id,
@@ -251,6 +259,7 @@ export async function GET() {
               availableTimeSlots: user.DeliveryProfile.availableTimeSlots,
               workStartTime: user.DeliveryProfile.workStartTime,
               workEndTime: user.DeliveryProfile.workEndTime,
+              dateOfBirth: user.dateOfBirth,
               activationMissing: activation.ok ? [] : activation.missing,
             };
           })()

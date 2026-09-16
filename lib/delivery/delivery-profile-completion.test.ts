@@ -114,6 +114,41 @@ describe('delivery profile completion source of truth', () => {
     }
   });
 
+  it('does not treat a known under-18 DOB as missing DOB', () => {
+    const r = evaluateDeliveryProfileCompletion({
+      ...completeProfile,
+      dateOfBirth: new Date(Date.UTC(2010, 0, 1, 12, 0, 0)),
+    });
+    assert.equal(r.isComplete, false);
+    if (!r.ok) {
+      assert.ok(r.missing.includes('under18'));
+      assert.equal(r.missing.includes('dateOfBirth'), false);
+      assert.match(r.message, /18 jaar/i);
+    }
+  });
+
+  it('keeps 18+ complete when User.dateOfBirth is present even if a legacy profile age is absent', () => {
+    const r = getDeliveryProfileCompletionFromRow(
+      completeProfile,
+      { lat: 51.91, lng: 4.34, place: 'Vlaardingen', dateOfBirth: adultDob },
+    );
+    assert.equal(r.isComplete, true);
+    assert.equal(r.ok, true);
+  });
+
+  it('fails closed to UNKNOWN when the user location omits canonical DOB', () => {
+    const r = getDeliveryProfileCompletionFromRow(completeProfile, {
+      lat: 51.91,
+      lng: 4.34,
+      place: 'Vlaardingen',
+      dateOfBirth: null,
+    });
+    assert.equal(r.isComplete, false);
+    if (!r.ok) {
+      assert.ok(r.missing.includes('dateOfBirth'));
+    }
+  });
+
   it('exposes canonical routes', () => {
     assert.equal(DELIVERY_ONBOARDING_CANONICAL_HREF, '/delivery/start');
     assert.equal(DELIVERY_PROFILE_EDITOR_HREF, '/delivery/settings');
@@ -240,5 +275,119 @@ describe('action center delivery incomplete CTA', () => {
       false,
     );
     assert.equal(items.some((i) => i.id === 'delivery-verification'), false);
+  });
+
+  it('does not ask 18+ delivery users to confirm age when User.dateOfBirth is present', () => {
+    const items = buildUserActionItems({
+      ...base,
+      deliveryProfile: {
+        id: 'dp1',
+        isVerified: true,
+        activationComplete: false,
+        providerType: 'INDEPENDENT',
+        isActive: true,
+        isOnline: false,
+        homeLat: 51.91,
+        homeLng: 4.34,
+        maxDistance: 10,
+        nationalCoverage: false,
+        pricingEnabled: false,
+        baseFeeCents: null,
+        pricePerKmCents: null,
+        minimumFeeCents: null,
+        availableDays: ['maandag'],
+        availableTimeSlots: ['morning'],
+        workStartTime: '09:00',
+        workEndTime: '21:00',
+        dateOfBirth: adultDob,
+        activationMissing: ['pricing'],
+      },
+    });
+    const incomplete = items.find((i) => i.id === 'delivery-profile-incomplete');
+    assert.ok(incomplete);
+    assert.equal(incomplete?.actionLabel === 'Leeftijd bevestigen', false);
+    assert.match(incomplete?.title || '', /tarief/i);
+  });
+
+  it('shows leeftijd bevestigen only when canonical DOB is unknown', () => {
+    const items = buildUserActionItems({
+      ...base,
+      deliveryProfile: {
+        id: 'dp1',
+        isVerified: false,
+        activationComplete: false,
+        providerType: 'INDEPENDENT',
+        isActive: true,
+        isOnline: false,
+        homeLat: 51.91,
+        homeLng: 4.34,
+        maxDistance: 10,
+        nationalCoverage: false,
+        pricingEnabled: true,
+        baseFeeCents: 350,
+        pricePerKmCents: 80,
+        minimumFeeCents: 495,
+        availableDays: ['maandag'],
+        availableTimeSlots: ['morning'],
+        workStartTime: '09:00',
+        workEndTime: '21:00',
+        dateOfBirth: null,
+        activationMissing: ['dateOfBirth'],
+      },
+    });
+    const incomplete = items.find((i) => i.id === 'delivery-profile-incomplete');
+    assert.equal(incomplete?.title, 'Bevestig je leeftijd om te kunnen bezorgen.');
+    assert.equal(incomplete?.actionLabel, 'Leeftijd bevestigen');
+  });
+
+  it('does not classify known under-18 as missing DOB on the feed', () => {
+    const items = buildUserActionItems({
+      ...base,
+      deliveryProfile: {
+        id: 'dp1',
+        isVerified: false,
+        activationComplete: false,
+        providerType: 'INDEPENDENT',
+        isActive: true,
+        isOnline: false,
+        homeLat: 51.91,
+        homeLng: 4.34,
+        maxDistance: 10,
+        nationalCoverage: false,
+        pricingEnabled: true,
+        baseFeeCents: 350,
+        pricePerKmCents: 80,
+        minimumFeeCents: 495,
+        availableDays: ['maandag'],
+        availableTimeSlots: ['morning'],
+        workStartTime: '09:00',
+        workEndTime: '21:00',
+        dateOfBirth: new Date(Date.UTC(2010, 0, 1, 12, 0, 0)),
+        activationMissing: ['under18'],
+      },
+    });
+    const incomplete = items.find((i) => i.id === 'delivery-profile-incomplete');
+    assert.equal(
+      incomplete?.title,
+      'Bezorging via HomeCheff is beschikbaar vanaf 18 jaar.',
+    );
+    assert.equal(incomplete?.actionLabel === 'Leeftijd bevestigen', false);
+  });
+
+  it('does not show a delivery age banner when the user has no delivery profile', () => {
+    const items = buildUserActionItems({
+      ...base,
+      roles: {
+        hasSellerProfile: false,
+        hasDeliveryProfile: false,
+        hasAffiliate: false,
+      },
+      deliveryProfile: null,
+    });
+    assert.equal(items.some((i) => i.actionLabel === 'Leeftijd bevestigen'), false);
+    assert.equal(
+      items.some((i) => /leeftijd om te kunnen bezorgen/i.test(i.title)),
+      false,
+    );
   });
 });

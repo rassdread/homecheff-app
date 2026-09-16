@@ -8,6 +8,7 @@ import {
   COMMERCIAL_DELIVERY_MIN_AGE,
   evaluateDeliveryAgeRequirement,
   formatDateOfBirthIso,
+  resolveDeliveryAgeStatus,
 } from '@/lib/delivery/delivery-age';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 
@@ -38,6 +39,10 @@ export async function GET(req: NextRequest) {
     dateOfBirth: user.dateOfBirth,
     ageGateEnabled: flags.commercialAgeGate18Enabled,
   });
+  const canonical = resolveDeliveryAgeStatus({
+    dateOfBirth: user.dateOfBirth,
+    ageGateEnabled: flags.commercialAgeGate18Enabled,
+  });
   const fromDob = calculateAgeFromDob(user.dateOfBirth);
 
   return NextResponse.json(
@@ -47,6 +52,9 @@ export async function GET(req: NextRequest) {
       ageYears: fromDob.ok ? fromDob.ageYears : null,
       eligible: age.eligible,
       status: age.status,
+      canonicalStatus: canonical.status,
+      source: canonical.source,
+      verified: canonical.verified,
       minAge: COMMERCIAL_DELIVERY_MIN_AGE,
     },
     { headers: cors },
@@ -78,6 +86,7 @@ export async function PUT(req: NextRequest) {
       locked: true,
       ageYears: result.ageYears,
       eligible: result.eligible,
+      canonicalStatus: result.eligible ? 'VERIFIED_18_PLUS' : 'UNDER_18',
     },
     { headers: cors },
   );

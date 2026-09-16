@@ -17,7 +17,7 @@ import {
   type CanonicalDeliveryProfileRow,
   type DeliveryUserLocation,
 } from '@/lib/delivery/delivery-profile-canonical';
-import { evaluateDeliveryAgeRequirement } from '@/lib/delivery/delivery-age';
+import { resolveDeliveryAgeStatus } from '@/lib/delivery/delivery-age';
 
 export type DeliveryProfileCompletionInput = ProviderActivationProfile & {
   isVerified?: boolean;
@@ -49,11 +49,11 @@ export function evaluateDeliveryProfileCompletion(
   const gate = evaluateProviderActivation(profile, {
     requirePricing: options?.requirePricing ?? flags.providerPricingEnabled,
   });
-  const age = evaluateDeliveryAgeRequirement({
+  const age = resolveDeliveryAgeStatus({
     dateOfBirth: profile.dateOfBirth,
     ageGateEnabled: flags.commercialAgeGate18Enabled,
   });
-  const missing = [...age.missing, ...(gate.ok ? [] : gate.missing)];
+  const missing = [...age.requirementMissing, ...(gate.ok ? [] : gate.missing)];
   if (missing.length > 0) {
     const hints: Record<string, string> = {
       dateOfBirth: 'Bevestig je leeftijd om te kunnen bezorgen',
@@ -100,7 +100,7 @@ export function getDeliveryProfileCompletionFromRow(
     {
       ...toProviderActivationProfile(profile, user),
       isVerified: profile.isVerified,
-      dateOfBirth: user?.dateOfBirth ?? null,
+      dateOfBirth: user?.dateOfBirth ?? null, // canonical User.dateOfBirth; never DeliveryProfile.age
     },
     options,
   );

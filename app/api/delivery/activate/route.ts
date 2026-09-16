@@ -123,7 +123,7 @@ export async function GET() {
   const profile = await prisma.deliveryProfile.findUnique({
     where: { userId: session.user.id },
     include: {
-      user: { select: { lat: true, lng: true, place: true } },
+      user: { select: { lat: true, lng: true, place: true, dateOfBirth: true } },
     },
   });
   if (!profile) {

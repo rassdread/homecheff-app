@@ -48,8 +48,29 @@ export type DeliveryUserLocation = {
   lng?: number | null;
   place?: string | null;
   address?: string | null;
-  dateOfBirth?: Date | string | null;
+  /**
+   * Canonical User.dateOfBirth. Required whenever a user object is passed so
+   * callers cannot silently drop age and treat VERIFIED_18_PLUS as UNKNOWN.
+   * `null` means the account has no stored DOB.
+   */
+  dateOfBirth: Date | string | null;
 };
+
+export function toDeliveryUserLocation(user: {
+  lat?: number | null;
+  lng?: number | null;
+  place?: string | null;
+  address?: string | null;
+  dateOfBirth?: Date | string | null;
+}): DeliveryUserLocation {
+  return {
+    lat: user.lat ?? null,
+    lng: user.lng ?? null,
+    place: user.place ?? null,
+    address: user.address ?? null,
+    dateOfBirth: user.dateOfBirth ?? null,
+  };
+}
 
 export type CanonicalDeliveryProfileRow = {
   isActive: boolean;

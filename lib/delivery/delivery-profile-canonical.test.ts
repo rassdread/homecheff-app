@@ -87,7 +87,7 @@ describe('canonical delivery settings write', () => {
     const { data } = buildCanonicalSettingsUpdate({
       body: { availableDays: ['maandag'] },
       existing: { ...existing, homeLat: null, homeLng: null },
-      user: { lat: 52.1, lng: 4.2, place: 'Amsterdam' },
+      user: { lat: 52.1, lng: 4.2, place: 'Amsterdam', dateOfBirth: null },
     });
     assert.equal(data.homeLat, 52.1);
     assert.equal(data.homeLng, 4.2);

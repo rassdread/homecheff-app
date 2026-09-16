@@ -79,7 +79,7 @@ function jsonProfile(
     lng: number | null;
     place: string | null;
     address?: string | null;
-    dateOfBirth?: Date | string | null;
+    dateOfBirth: Date | string | null;
   } | null,
 ) {
   const serialized = serializeCanonicalSettingsProfile(profile);
