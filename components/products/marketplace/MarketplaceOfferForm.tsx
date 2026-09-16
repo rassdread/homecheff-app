@@ -38,7 +38,8 @@ import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normali
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
 import { fulfillmentOptionsToApiString, legacyDeliveryToFulfillment } from '@/lib/marketplace/fulfillment';
 import { PackageSelector } from '@/components/shipping/PackageSelector';
-import { parseStockInput, parseStockInputOrZero } from '@/lib/products/parse-stock-input';
+import { parseStockPatchInput } from '@/lib/products/parse-stock-input';
+import { stockErrorMessage } from '@/lib/products/listing-inventory';
 import type { ParcelPresetId } from '@/lib/shipping/package-presets';
 import {
   buildParcelApiPayload,
@@ -219,8 +220,14 @@ export default function MarketplaceOfferForm({
         marketplaceCategory,
         specializations,
         primarySpecialization(specializations),
+        {
+          priceModel,
+          listingIntent,
+          digital: fulfillmentIsDigitalOnly(fulfillment),
+          productCategory: existingProduct?.category ?? initialLegacyCategory,
+        },
       ),
-    [marketplaceCategory, specializations],
+    [marketplaceCategory, specializations, priceModel, listingIntent, fulfillment, existingProduct?.category, initialLegacyCategory],
   );
 
   const digitalOnly = fulfillmentIsDigitalOnly(fulfillment);
@@ -483,6 +490,8 @@ export default function MarketplaceOfferForm({
     }
     if (existingProduct.stock != null) {
       setStock(String(existingProduct.stock));
+    } else {
+      setStock('0');
     }
     if (existingProduct.maxStock != null) {
       setMaxStock(String(existingProduct.maxStock));
@@ -762,6 +771,33 @@ export default function MarketplaceOfferForm({
       acceptedSpecializations,
     });
 
+    const stockFields: Record<string, number | null> = {};
+    if (fieldConfig.showStock) {
+      const parsed = parseStockPatchInput(stock);
+      if (parsed.kind === 'reject' || (!editMode && parsed.kind === 'omit')) {
+        setMessage(
+          t('marketplace.errors.invalidStock') ||
+            stockErrorMessage(parsed.kind === 'reject' ? parsed.code : 'STOCK_INVALID'),
+        );
+        return;
+      }
+      if (parsed.kind === 'set') {
+        stockFields.stock = parsed.value;
+        if (fieldConfig.showMaxStock) {
+          const parsedMax = parseStockPatchInput(maxStock);
+          if (parsedMax.kind === 'reject') {
+            setMessage(
+              t('marketplace.errors.invalidStock') || stockErrorMessage(parsedMax.code),
+            );
+            return;
+          }
+          const ceiling = parsedMax.kind === 'set' ? parsedMax.value : null;
+          stockFields.maxStock =
+            ceiling != null && parsed.value > ceiling ? parsed.value : ceiling;
+        }
+      }
+    }
+
     const payload = {
       title: title.trim(),
       description: description.trim(),
@@ -784,8 +820,7 @@ export default function MarketplaceOfferForm({
       pickupAddress: loc.pickupAddress,
       pickupLat: loc.pickupLat,
       pickupLng: loc.pickupLng,
-      stock: fieldConfig.showStock ? parseStockInputOrZero(stock) : 0,
-      maxStock: fieldConfig.showMaxStock ? parseStockInput(maxStock) ?? null : null,
+      ...stockFields,
       isActive,
       images: imageUrls,
       video,
@@ -1371,7 +1406,10 @@ export default function MarketplaceOfferForm({
             </label>
             <input
               type="number"
+              inputMode="numeric"
               min={0}
+              step={1}
+              data-testid="listing-stock-input"
               className="w-full rounded-lg border border-gray-300 px-3 py-2"
               value={stock}
               onChange={(e) => setStock(e.target.value)}
@@ -1435,6 +1473,7 @@ export default function MarketplaceOfferForm({
         <button
           type="submit"
           disabled={busy}
+          data-testid="listing-stock-save"
           className="flex-1 min-h-[48px] rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
         >
           {busy ? (

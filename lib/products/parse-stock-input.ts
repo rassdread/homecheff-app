@@ -13,3 +13,8 @@ export function parseStockInputOrZero(
 ): number {
   return parseStockInput(value) ?? 0;
 }
+
+export {
+  parseStockPatchInput,
+  type StockPatchResult,
+} from './listing-inventory';

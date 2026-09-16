@@ -6,10 +6,15 @@
  * or negotiated HomeCheff checkout. Direct FIXED inventory stays enforced.
  */
 
+import { listingUsesPhysicalInventory, type ListingInventoryInput } from '@/lib/products/listing-inventory';
+
 export type ProposalStockPolicyInput = {
   priceModel?: string | null;
   marketplaceCategory?: string | null;
-  fulfillmentOptions?: { digital?: boolean | null } | null;
+  productCategory?: string | null;
+  fulfillmentOptions?: ListingInventoryInput['fulfillmentOptions'];
+  specializations?: string[] | null;
+  listingIntent?: string | null;
 };
 
 /**
@@ -19,33 +24,7 @@ export type ProposalStockPolicyInput = {
 export function proposalNegotiationIgnoresStockAvailability(
   input: ProposalStockPolicyInput,
 ): boolean {
-  const model = String(input.priceModel ?? '').trim().toUpperCase();
-  if (
-    model === 'ON_REQUEST' ||
-    model === 'VOLUNTARY' ||
-    model === 'HOURLY' ||
-    model === 'DAILY'
-  ) {
-    return true;
-  }
-
-  const category = String(input.marketplaceCategory ?? '')
-    .trim()
-    .toUpperCase();
-  if (
-    category === 'ARTISTIC_SERVICE' ||
-    category === 'PRACTICAL_SERVICE' ||
-    category === 'KNOWLEDGE' ||
-    category === 'DESIGN'
-  ) {
-    return true;
-  }
-
-  if (input.fulfillmentOptions?.digital === true) {
-    return true;
-  }
-
-  return false;
+  return !listingUsesPhysicalInventory(input);
 }
 
 /**
@@ -56,7 +35,7 @@ export function proposalNegotiationIgnoresStockAvailability(
 export function requiresInventoryForCheckout(
   input: ProposalStockPolicyInput,
 ): boolean {
-  return !proposalNegotiationIgnoresStockAvailability(input);
+  return listingUsesPhysicalInventory(input);
 }
 
 export function validateProposalQuantityAgainstStock(

@@ -53,6 +53,7 @@ import { INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED } from '@/lib/shipping/carr
 import { isCarrierShippingSelected } from '@/lib/shipping/package-presets';
 import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
 import { normalizeDeliveryModeInput } from '@/lib/productDeliveryMode';
+import { parseStockPatchInput, stockErrorMessage, listingUsesPhysicalInventory } from '@/lib/products/listing-inventory';
 
 export const dynamic = 'force-dynamic';
 
@@ -372,10 +373,34 @@ export async function GET(
       }
     }
 
+    const usesInventory = listingUsesPhysicalInventory({
+      priceModel: (product as { priceModel?: string | null }).priceModel,
+      marketplaceCategory: (product as { marketplaceCategory?: string | null }).marketplaceCategory,
+      productCategory: (product as { category?: string | null }).category,
+      specializations: (product as { specializations?: string[] }).specializations,
+      listingIntent: (product as { listingIntent?: string | null }).listingIntent,
+      fulfillmentOptions: product.fulfillmentOptions
+        ? parseFulfillmentOptions(product.fulfillmentOptions)
+        : null,
+    });
+    const reservedStock = usesInventory
+      ? (
+          await prisma.stockReservation.aggregate({
+            where: {
+              productId: product.id,
+              status: 'PENDING',
+              expiresAt: { gt: new Date() },
+            },
+            _sum: { quantity: true },
+          })
+        )._sum.quantity ?? 0
+      : 0;
+
     return NextResponse.json({
       product: {
         ...product,
-        Video: sortedVideo
+        Video: sortedVideo,
+        reservedStock,
       },
       publicContactChannels,
       checkoutAvailable,
@@ -431,6 +456,16 @@ export async function PATCH(
     const raw = (await params).id;
     const id = resolveProductIdFromParam(raw);
     const body = await request.json();
+    const stockPatch = parseStockPatchInput(body.stock);
+    if (stockPatch.kind === 'reject') {
+      return NextResponse.json(
+        {
+          error: stockErrorMessage(stockPatch.code),
+          errorKey: 'marketplace.errors.invalidStock',
+        },
+        { status: 400 },
+      );
+    }
 
     const session = await auth();
     const email: string | undefined = session?.user?.email || undefined;
@@ -723,13 +758,7 @@ export async function PATCH(
             unit: body.unit || 'PORTION',
             delivery: body.delivery,
             maxStock: body.maxStock !== undefined ? body.maxStock : undefined,
-            stock: (() => {
-              if (body.stock === undefined || body.stock === null || body.stock === '') {
-                return undefined;
-              }
-              const n = Number(body.stock);
-              return Number.isFinite(n) ? n : undefined;
-            })(),
+            stock: stockPatch.kind === 'set' ? stockPatch.value : undefined,
             displayNameType: body.displayNameType,
             isFutureProduct: body.isFutureProduct !== undefined ? body.isFutureProduct : false,
             availabilityDate: body.availabilityDate ? new Date(body.availabilityDate) : null,

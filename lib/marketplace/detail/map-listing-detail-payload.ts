@@ -146,6 +146,8 @@ export function mapListingDetailPayload(data: {
     photos: imageList,
     stock: data.product.stock,
     maxStock: data.product.maxStock,
+    reservedStock: data.product.reservedStock ?? 0,
+    fulfillmentOptions: data.product.fulfillmentOptions ?? null,
     deliveryMode: data.product.deliveryMode,
     delivery: data.product.delivery || 'PICKUP',
     createdAt: data.product.createdAt,

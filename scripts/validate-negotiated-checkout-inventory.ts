@@ -34,6 +34,15 @@ assert.equal(
 );
 
 assert.equal(
+  requiresInventoryForCheckout({
+    priceModel: 'FIXED',
+    marketplaceCategory: 'DESIGN',
+  }),
+  true,
+  'DESIGN FIXED physical: inventory required',
+);
+
+assert.equal(
   proposalNegotiationIgnoresStockAvailability({
     priceModel: 'ON_REQUEST',
   }),
@@ -41,15 +50,12 @@ assert.equal(
 );
 
 const checkout = read('app/api/checkout/route.ts');
-assert.match(checkout, /requiresInventoryForCheckout/);
+assert.match(checkout, /lockAndReserveCheckoutStock/);
 assert.match(checkout, /Onvoldoende voorraad om deze bestelling te plaatsen/);
-assert.match(
-  checkout,
-  /Negotiated ON_REQUEST|inventoryRequired|!inventoryRequired/,
-);
+assert.match(checkout, /stockHoldId/);
 
 const webhook = read('app/api/stripe/webhook/route.ts');
-assert.match(webhook, /requiresInventoryForCheckout/);
+assert.match(webhook, /confirmReservationAndDecrementStock/);
 assert.match(webhook, /inventoryRequired/);
 
 const policy = read('lib/proposals/proposal-stock-policy.ts');

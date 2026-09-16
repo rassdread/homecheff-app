@@ -27,6 +27,7 @@ import {
   validateProposalQuantityAgainstStock,
   type ProposalStockPolicyInput,
 } from './proposal-stock-policy';
+import { availableToBuy } from '@/lib/products/listing-inventory';
 
 export {
   proposalNegotiationIgnoresStockAvailability,
@@ -141,14 +142,7 @@ export async function loadProductProposalContext(
     _sum: { quantity: true },
   });
   const reservedQty = reserved._sum.quantity ?? 0;
-  const totalStock =
-    typeof product.stock === 'number'
-      ? product.stock
-      : typeof product.maxStock === 'number'
-        ? product.maxStock
-        : null;
-  const availableStock =
-    totalStock != null ? Math.max(0, totalStock - reservedQty) : null;
+  const availableStock = availableToBuy(product.stock, reservedQty);
 
   const sellerUser = product.seller.User;
   const acceptsHomeCheff =
@@ -299,20 +293,6 @@ export async function decrementProductStockOnAccept(
   productId: string,
   quantity: number,
 ): Promise<void> {
-  const product = await tx.product.findUnique({
-    where: { id: productId },
-    select: { stock: true, maxStock: true },
-  });
-  if (!product) return;
-
-  const totalStock =
-    typeof product.stock === 'number'
-      ? product.stock
-      : typeof product.maxStock === 'number'
-        ? product.maxStock
-        : null;
-  if (totalStock == null) return;
-
   const updated = await tx.product.updateMany({
     where: { id: productId, stock: { gte: quantity } },
     data: { stock: { decrement: quantity } },

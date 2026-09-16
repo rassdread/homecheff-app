@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { 
   Star, Package, Edit3, Trash2, AlertCircle,
@@ -31,6 +32,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import {
   buildListingDetailHref,
 } from '@/lib/seo/listing-routes';
+import { buildProductEditPath } from '@/lib/seo/productSlug';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import type { MarketplaceCategory } from '@prisma/client';
@@ -64,6 +66,7 @@ import {
 } from '@/lib/instant-experience/listing-detail-return-cache';
 import type { ListingDetailPayload } from '@/lib/marketplace/detail/load-listing-detail';
 import { mapListingDetailPayload } from '@/lib/marketplace/detail/map-listing-detail-payload';
+import { availableToBuy, listingUsesPhysicalInventory } from '@/lib/products/listing-inventory';
 import { patchMakerFansCount, seedMakerFollowSnapshot } from '@/lib/follow/follow-state-store';
 import { seedFavoriteSnapshot } from '@/lib/favorite/favorite-state-store';
 import {
@@ -85,6 +88,15 @@ type Product = {
   photos?: { id: string; url: string; idx: number }[];
   stock?: number | null;
   maxStock?: number | null;
+  reservedStock?: number | null;
+  fulfillmentOptions?: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+    onSiteClient?: boolean | null;
+    onSiteProvider?: boolean | null;
+  } | null;
   deliveryMode?: string | null;
   createdAt: string | Date;
   category?: string;
@@ -135,6 +147,23 @@ type ProductStats = {
   averageRating: number;
   reviewCount: number;
 };
+
+function getAvailableStock(product: Product | null) {
+  if (!product) return null;
+  if (
+    !listingUsesPhysicalInventory({
+      priceModel: product.priceModel,
+      marketplaceCategory: product.marketplaceCategory,
+      productCategory: product.category,
+      specializations: product.specializations,
+      listingIntent: product.listingIntent,
+      fulfillmentOptions: product.fulfillmentOptions,
+    })
+  ) {
+    return null;
+  }
+  return availableToBuy(product.stock, product.reservedStock ?? 0);
+}
 
 const getCategoryTheme = (category: string | undefined, t: (key: string) => string) => {
   switch (category) {
@@ -208,16 +237,6 @@ export default function ListingDetailPage({
     listingDetailRouteParamFromPathname(
       typeof window !== 'undefined' ? window.location.pathname : null,
     );
-  // Helper function: Get available stock using same logic as checkout
-  // Uses stock as primary, maxStock as fallback (consistent with Stripe checkout)
-  const getAvailableStock = (product: Product | null) => {
-    if (!product) return null;
-    return typeof product.stock === 'number' && product.stock !== null
-      ? product.stock
-      : typeof product.maxStock === 'number' && product.maxStock !== null
-        ? product.maxStock
-        : null;
-  };
   const { data: session } = useSession();
   const { t } = useTranslation();
 
@@ -1063,14 +1082,17 @@ export default function ListingDetailPage({
                     />
                     {isOwner ? (
                       <div className="absolute bottom-3 right-3 z-20 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setIsEditing(!isEditing)}
+                        <Link
+                          href={buildProductEditPath(
+                            product.title,
+                            product.seller?.User?.place,
+                            product.id,
+                          )}
                           className="rounded-full bg-white/90 p-2.5 shadow-lg backdrop-blur-sm hover:bg-white"
                           title={t('common.edit')}
                         >
                           <Edit3 className="h-5 w-5 text-blue-600" />
-                        </button>
+                        </Link>
                         <button
                           type="button"
                           onClick={() => setShowDeleteConfirm(true)}

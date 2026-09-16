@@ -1,6 +1,7 @@
 import type { MarketplaceCategory } from '@prisma/client';
 import { getMarketplaceTaxonomyItem } from './taxonomy-resolve';
 import { toCanonicalTaxonomyId } from './taxonomy-normalize';
+import { listingUsesPhysicalInventory } from '@/lib/products/listing-inventory';
 
 export type MarketplaceFormFieldConfig = {
   showStock: boolean;
@@ -63,6 +64,12 @@ export function formFieldsForCategory(
   category: MarketplaceCategory,
   specializations?: string[] | null,
   legacySubcategory?: string | null,
+  options?: {
+    priceModel?: string | null;
+    listingIntent?: string | null;
+    digital?: boolean;
+    productCategory?: string | null;
+  },
 ): MarketplaceFormFieldConfig {
   const specs = resolveSpecIds(specializations, legacySubcategory).filter((id) =>
     getMarketplaceTaxonomyItem(id),
@@ -71,41 +78,31 @@ export function formFieldsForCategory(
   const isWorkshop =
     category === 'KNOWLEDGE' && specs.some((id) => isWorkshopTaxonomyId(id));
 
-  const isPhysicalProduct =
-    category === 'CREATE' && specs.some((id) => isPhysicalCreateTaxonomyId(id));
-
-  const isService =
-    category === 'ARTISTIC_SERVICE' ||
-    category === 'PRACTICAL_SERVICE' ||
-    category === 'KNOWLEDGE' ||
-    category === 'DESIGN';
+  const showStock = listingUsesPhysicalInventory({
+    marketplaceCategory: category,
+    productCategory: options?.productCategory,
+    specializations: specs,
+    priceModel: options?.priceModel,
+    listingIntent: options?.listingIntent,
+    fulfillmentOptions: options?.digital ? { digital: true } : null,
+  });
 
   if (isWorkshop) {
     return {
-      showStock: true,
-      showMaxStock: true,
+      showStock,
+      showMaxStock: showStock,
       showAvailabilityDate: true,
       showSellerDelivery: false,
       stockLabelKey: 'marketplace.form.seatsAvailable',
     };
   }
 
-  if (isPhysicalProduct || category === 'GROW') {
+  if (showStock) {
     return {
       showStock: true,
       showMaxStock: true,
       showAvailabilityDate: true,
-      showSellerDelivery: true,
-      stockLabelKey: 'marketplace.form.stock',
-    };
-  }
-
-  if (isService) {
-    return {
-      showStock: false,
-      showMaxStock: false,
-      showAvailabilityDate: false,
-      showSellerDelivery: false,
+      showSellerDelivery: category !== 'DESIGN',
       stockLabelKey: 'marketplace.form.stock',
     };
   }

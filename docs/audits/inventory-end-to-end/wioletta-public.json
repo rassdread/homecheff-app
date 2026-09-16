@@ -1,0 +1,21 @@
+{
+  "WIOLETTA_USER_FOUND": "YES",
+  "WIOLETTA_RELEVANT_LISTINGS": 6,
+  "WIOLETTA_STOCK_SUPPORTED_PRODUCT_COUNT": 6,
+  "WIOLETTA_FAILURE_ROOT_CAUSE": "All six pre-fix DESIGN OFFER listings are physical (pickup/shipping) with leftover design.video/design.photo specs. Production form treated DESIGN as a service, hid stock, and saved stock:0. Current DB stock is 0 on every listing.",
+  "EXISTING_PRODUCTS_AUDITED": 51,
+  "SEGMENTS": {
+    "DESIGN": 19,
+    "CREATE": 29,
+    "ON_REQUEST": 2,
+    "DIGITAL": 1
+  },
+  "EXISTING_STOCK_SUPPORTED": 44,
+  "EXISTING_STOCK_GT_ZERO": 37,
+  "EXISTING_STOCK_ZERO": 7,
+  "EXISTING_STOCK_NULL": 0,
+  "LEGACY_PRODUCTS_AFFECTED": "All DESIGN FIXED physical listings on production (including Wioletta). CREATE without taxonomy whitelist also hid the field on production. Mixed digital+pickup CREATE skipped checkout inventory until digital-only fix.",
+  "LEGACY_COMPATIBILITY_ROOT_CAUSE": "formFieldsForCategory classified DESIGN as service; CREATE required PHYSICAL_CREATE_TAXONOMY_IDS; listingUsesPhysicalInventory treated any digital:true as no inventory.",
+  "MIGRATION_REQUIRED": "NO",
+  "NO_DESTRUCTIVE_MIGRATION": "PASS"
+}

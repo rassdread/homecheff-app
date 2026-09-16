@@ -5,13 +5,39 @@
 import { prisma } from '@/lib/prisma';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 import { listingProductCoreInclude } from '@/lib/marketplace/detail/listing-product-core-include';
+import { listingUsesPhysicalInventory } from '@/lib/products/listing-inventory';
+import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
 
 export async function fetchListingProductCoreUncached(id: string) {
   const product = await prisma.product.findUnique({
     where: { id },
     include: listingProductCoreInclude,
   });
-  if (product) return product;
+  if (product) {
+    const reserved = listingUsesPhysicalInventory({
+      priceModel: product.priceModel,
+      marketplaceCategory: product.marketplaceCategory,
+      productCategory: product.category,
+      fulfillmentOptions: product.fulfillmentOptions
+        ? parseFulfillmentOptions(product.fulfillmentOptions)
+        : null,
+      specializations: product.specializations,
+      listingIntent: product.listingIntent,
+    })
+      ? await prisma.stockReservation.aggregate({
+          where: {
+            productId: product.id,
+            status: 'PENDING',
+            expiresAt: { gt: new Date() },
+          },
+          _sum: { quantity: true },
+        })
+      : { _sum: { quantity: 0 } };
+    return {
+      ...product,
+      reservedStock: reserved._sum.quantity ?? 0,
+    };
+  }
 
   const listing = await prisma.listing.findUnique({
     where: { id },
@@ -51,6 +77,7 @@ export async function fetchListingProductCoreUncached(id: string) {
     marketplaceCategory: null,
     stock: null,
     maxStock: null,
+    reservedStock: 0,
     orderMethod: 'HOMECHEFF_PAYMENT',
     Image: (listing.ListingMedia || []).map(
       (m: { id: string; url: string; sortOrder: number }, i: number) => ({

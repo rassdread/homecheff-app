@@ -36,8 +36,13 @@ import {
 } from '@/lib/delivery/booking-request-service';
 import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
-import { requiresInventoryForCheckout } from '@/lib/proposals/proposal-stock-policy';
-import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
+import { randomUUID } from 'crypto';
+import { revalidateTag } from 'next/cache';
+import {
+  expireHoldReservations,
+  lockAndReserveCheckoutStock,
+} from '@/lib/products/stock-reservation';
+import { listingProductCacheTag } from '@/lib/marketplace/detail/listing-product-core';
 import {
   buildAuthoritativeLineItems,
   evaluateCheckoutFloor,
@@ -161,7 +166,8 @@ export async function POST(req: NextRequest) {
     const allergenBlock = await assertProductsAllergenConfirmationOr400(productIds);
     if (allergenBlock) return allergenBlock;
     
-    // Use transaction to atomically check stock for all products
+    // Use transaction to atomically check stock and hold units for all products
+    const stockHoldId = randomUUID();
     const stockCheckResult = await prisma.$transaction(async (tx) => {
       const products = await tx.product.findMany({
         where: { id: { in: productIds } },
@@ -308,98 +314,12 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Check stock atomically for all items
-      const insufficientStock: Array<{
-        productId: string;
-        requested: number;
-        available: number;
-        title: string;
-      }> = [];
-
-      for (const item of items) {
-        const product = products.find(p => p.id === item.productId);
-        if (!product) {
-          insufficientStock.push({
-            productId: item.productId,
-            requested: item.quantity,
-            available: 0,
-            title: 'Onbekend product'
-          });
-          continue;
-        }
-
-        // Get current stock (atomically locked in transaction)
-        const currentProduct = await tx.product.findUnique({
-          where: { id: item.productId },
-          select: {
-            stock: true,
-            maxStock: true,
-            title: true,
-            priceModel: true,
-            marketplaceCategory: true,
-            fulfillmentOptions: true,
-          },
-        });
-
-        if (!currentProduct) {
-          insufficientStock.push({
-            productId: item.productId,
-            requested: item.quantity,
-            available: 0,
-            title: product.title
-          });
-          continue;
-        }
-
-        const fulfillmentOptions = currentProduct.fulfillmentOptions
-          ? parseFulfillmentOptions(currentProduct.fulfillmentOptions)
-          : null;
-        const inventoryRequired = requiresInventoryForCheckout({
-          priceModel: currentProduct.priceModel,
-          marketplaceCategory: currentProduct.marketplaceCategory,
-          fulfillmentOptions,
-        });
-
-        // Negotiated ON_REQUEST / service / digital: accepted deal is entitlement.
-        // Do not block (or reserve) on Product.stock.
-        if (!inventoryRequired) {
-          continue;
-        }
-
-        // Get reserved quantity (pending reservations that haven't expired)
-        const reservedQuantity = await tx.stockReservation.aggregate({
-          where: {
-            productId: item.productId,
-            status: 'PENDING',
-            expiresAt: { gt: new Date() }
-          },
-          _sum: { quantity: true }
-        });
-
-        const reservedQty = reservedQuantity._sum.quantity || 0;
-
-        const availableStock =
-          typeof currentProduct.stock === 'number'
-            ? currentProduct.stock
-            : typeof currentProduct.maxStock === 'number'
-              ? currentProduct.maxStock
-              : null;
-
-        if (availableStock !== null) {
-          // Available stock = total stock - reserved stock
-          const actuallyAvailable = availableStock - reservedQty;
-          const isOutOfStock = actuallyAvailable <= 0;
-          const exceedsAvailable = item.quantity > actuallyAvailable;
-          if (isOutOfStock || exceedsAvailable) {
-            insufficientStock.push({
-              productId: item.productId,
-              requested: item.quantity,
-              available: Math.max(0, actuallyAvailable),
-              title: currentProduct.title,
-            });
-          }
-        }
-      }
+      // Check stock atomically for all items and create PENDING holds
+      const { insufficientStock } = await lockAndReserveCheckoutStock(
+        tx as never,
+        items,
+        stockHoldId,
+      );
 
       return { error: null, products, insufficientStock };
     });
@@ -1084,6 +1004,7 @@ export async function POST(req: NextRequest) {
       checkoutEligibleBaseCents: checkoutFloor.eligibleBaseCents.toString(),
       enableSmsNotification: enableSmsNotification ? 'true' : 'false',
       smsNotificationCostCents: smsNotificationCostCents.toString(),
+      stockHoldId,
     };
 
     if (communityOrderId && typeof communityOrderId === 'string') {
@@ -1157,58 +1078,24 @@ export async function POST(req: NextRequest) {
         ? (configuredPaymentMethodTypes as Stripe.Checkout.SessionCreateParams.PaymentMethodType[])
         : defaultPaymentMethodTypes;
 
-    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
-
-    // Create stock reservations for all items with stock management (15 minute expiry)
-    const reservationExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    let checkoutSession: Stripe.Checkout.Session;
     try {
+      checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    } catch (stripeError) {
       await prisma.$transaction(async (tx) => {
-        for (const item of items) {
-          // Only create reservation if product has inventory-managed stock
-          const product = await tx.product.findUnique({
-            where: { id: item.productId },
-            select: {
-              stock: true,
-              maxStock: true,
-              priceModel: true,
-              marketplaceCategory: true,
-              fulfillmentOptions: true,
-            },
-          });
-
-          if (!product) continue;
-
-          const fulfillmentOptions = product.fulfillmentOptions
-            ? parseFulfillmentOptions(product.fulfillmentOptions)
-            : null;
-          if (
-            !requiresInventoryForCheckout({
-              priceModel: product.priceModel,
-              marketplaceCategory: product.marketplaceCategory,
-              fulfillmentOptions,
-            })
-          ) {
-            continue;
-          }
-
-          if (product.stock !== null || product.maxStock !== null) {
-            await tx.stockReservation.create({
-              data: {
-                productId: item.productId,
-                stripeSessionId: checkoutSession.id,
-                quantity: item.quantity,
-                expiresAt: reservationExpiry,
-                status: 'PENDING'
-              }
-            });
-          }
-        }
+        await expireHoldReservations(
+          tx as never,
+          stockHoldId,
+          items.map((item: { productId: string }) => item.productId),
+        );
       });
-      console.log(`✅ Stock reservations created for session ${checkoutSession.id}`);
-    } catch (reservationError: any) {
-      console.error(`❌ Failed to create stock reservations:`, reservationError);
-      // Don't fail checkout if reservation fails - webhook will handle stock check
+      throw stripeError;
     }
+
+    for (const item of items as Array<{ productId: string }>) {
+      revalidateTag(listingProductCacheTag(item.productId));
+    }
+    console.log(`✅ Stock holds ${stockHoldId} bound to session ${checkoutSession.id}`);
 
     // Check delivery availability if delivery is requested
     // Named-provider + confirmed booking already validated the selected provider;

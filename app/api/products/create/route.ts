@@ -27,6 +27,7 @@ import {
   validateMarketplacePrice,
 } from '@/lib/marketplace/parse-v2-payload';
 import { MARKETPLACE_ERROR_KEYS } from '@/lib/marketplace/i18n-keys';
+import { parseStockPatchInput, stockErrorMessage } from '@/lib/products/listing-inventory';
 import { fulfillmentIsDigitalOnly } from '@/lib/marketplace/listing-taxonomy';
 import { validateParcel } from '@/lib/shipping/parcel';
 import { INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED } from '@/lib/shipping/carrier-flags';
@@ -162,6 +163,18 @@ export async function POST(req: Request) {
       placeName: placeNameRaw,
       useProfileLocation: useProfileLocationRaw,
     } = body || {};
+
+    const stockParsed = parseStockPatchInput(stock);
+    if (stockParsed.kind === 'reject') {
+      return NextResponse.json(
+        {
+          error: stockErrorMessage(stockParsed.code),
+          errorKey: MARKETPLACE_ERROR_KEYS.invalidStock,
+        },
+        { status: 400 },
+      );
+    }
+    const stockValue = stockParsed.kind === 'set' ? stockParsed.value : 0;
     
     const v2Preview = parseMarketplaceV2FromBody(body as Record<string, unknown>, Number(priceCents) || 0);
     let orderMethod = parseProductOrderMethod(
@@ -529,7 +542,7 @@ export async function POST(req: Request) {
         pickupLng: resolvedPickupLng,
         sellerCanDeliver: Boolean(sellerCanDeliver),
         deliveryRadiusKm: deliveryRadiusKm !== undefined && deliveryRadiusKm !== null ? Number(deliveryRadiusKm) : null,
-        stock: stock !== undefined && stock !== null ? Number(stock) : 0,
+        stock: stockValue,
         maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
         tags: Array.isArray(tags) ? tags.filter((tag: string) => tag && tag.trim().length > 0) : [],
         orderMethod,
@@ -624,7 +637,7 @@ export async function POST(req: Request) {
           place: pickupAddress || null,
           lat: pickupLat !== undefined && pickupLat !== null ? Number(pickupLat) : null,
           lng: pickupLng !== undefined && pickupLng !== null ? Number(pickupLng) : null,
-          stock: stock !== undefined && stock !== null ? Number(stock) : 0,
+          stock: stockValue,
           maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
           ingredients: [],
           instructions: [],
@@ -725,7 +738,7 @@ export async function POST(req: Request) {
           place: pickupAddress || null,
           lat: pickupLat !== undefined && pickupLat !== null ? Number(pickupLat) : null,
           lng: pickupLng !== undefined && pickupLng !== null ? Number(pickupLng) : null,
-          stock: stock !== undefined && stock !== null ? Number(stock) : 0,
+          stock: stockValue,
           maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
           ingredients: ingredientList,
           instructions: instructionList,
@@ -807,7 +820,7 @@ export async function POST(req: Request) {
           place: pickupAddress || null,
           lat: pickupLat !== undefined && pickupLat !== null ? Number(pickupLat) : null,
           lng: pickupLng !== undefined && pickupLng !== null ? Number(pickupLng) : null,
-          stock: stock !== undefined && stock !== null ? Number(stock) : 0,
+          stock: stockValue,
           maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
           materials: materialList,
           instructions: Array.isArray(instructions)

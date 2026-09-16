@@ -14,6 +14,9 @@ import {
   getDishContentMetrics,
 } from "@/lib/gamification/content-hcp";
 import { syncLinkedProductFromDishPatch } from "@/lib/items/sync-linked-product-dish";
+import { parseStockPatchInput, stockErrorMessage } from "@/lib/products/listing-inventory";
+import { revalidateTag } from "next/cache";
+import { listingProductCacheTag } from "@/lib/marketplace/detail/listing-product-core";
 import {
   revalidatePublicFeedCache,
   shouldRevalidateAfterDishMutation,
@@ -191,7 +194,16 @@ export async function PATCH(
     if (place !== undefined) updateData.place = place;
     if (lat !== undefined) updateData.lat = lat;
     if (lng !== undefined) updateData.lng = lng;
-    if (stock !== undefined) updateData.stock = stock;
+    if (stock !== undefined) {
+      const parsed = parseStockPatchInput(stock);
+      if (parsed.kind === 'reject') {
+        return NextResponse.json(
+          { error: stockErrorMessage(parsed.code) },
+          { status: 400 },
+        );
+      }
+      if (parsed.kind === 'set') updateData.stock = parsed.value;
+    }
     if (maxStock !== undefined) updateData.maxStock = maxStock;
 
     const placeChanged =
@@ -387,6 +399,8 @@ export async function PATCH(
           }
         : {}),
     }).catch((e) => console.warn("[dish PATCH] linked product sync", e));
+
+    revalidateTag(listingProductCacheTag(completeDish.id));
 
     // Transform to match expected format (same as GET endpoint)
     const transformedDish = {

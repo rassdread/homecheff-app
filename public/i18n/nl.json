@@ -9411,7 +9411,8 @@
       "priceInvalidContact": "Prijs is ongeldig (laat leeg voor prijs op aanvraag).",
       "priceMissingOrInvalid": "Prijs ontbreekt of is ongeldig.",
       "specializationsRequired": "Selecteer minimaal één specialisatie.",
-      "barterAcceptedRequired": "Kies minimaal één geaccepteerde waarde voor alleen ruil."
+      "barterAcceptedRequired": "Kies minimaal één geaccepteerde waarde voor alleen ruil.",
+      "invalidStock": "Voorraad moet een heel getal van 0 of hoger zijn. 0 = uitverkocht."
     },
     "barterOpenness": {
       "hint": "Kies of je alleen verkoopt, ook open staat voor ruil, of alleen ruil accepteert. Ruilen is nooit verplicht en niet gegarandeerd — je spreekt het samen af."

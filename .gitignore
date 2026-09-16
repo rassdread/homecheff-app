@@ -60,6 +60,7 @@ android/*.jks
 STRIPE_KEYS.txt
 *_KEYS.txt
 *.key
+docs/audits/inventory-end-to-end/wioletta-internal.json
 
 # Gradle build cache (lokaal); Android Gradle-scripts staan wél in git (Capacitor).
 .gradle/

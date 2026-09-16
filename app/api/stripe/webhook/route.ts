@@ -26,6 +26,10 @@ import {
 } from "@/lib/delivery/delivery-position";
 import { requiresInventoryForCheckout } from "@/lib/proposals/proposal-stock-policy";
 import { parseFulfillmentOptions } from "@/lib/marketplace/listing-taxonomy";
+import { confirmReservationAndDecrementStock } from "@/lib/products/stock-reservation";
+import { revalidateTag } from "next/cache";
+import { listingProductCacheTag } from "@/lib/marketplace/detail/listing-product-core";
+import { revalidatePublicFeedCache } from "@/lib/feed/revalidate-public-feed";
 import {
   settleAllSellerLegsForOrder,
   settleSellerOrderItem,
@@ -1046,15 +1050,16 @@ export async function POST(req: NextRequest) {
           const createdOrderItems: Array<{ id: string; productId: string; orderItemId: string }> = [];
           
           for (const item of items) {
-            // Check stock availability before decrementing (race condition prevention)
             const product = await tx.product.findUnique({
               where: { id: item.productId },
               select: {
                 stock: true,
-                maxStock: true,
                 priceModel: true,
                 marketplaceCategory: true,
+                category: true,
                 fulfillmentOptions: true,
+                specializations: true,
+                listingIntent: true,
               },
             });
 
@@ -1068,26 +1073,12 @@ export async function POST(req: NextRequest) {
             const inventoryRequired = requiresInventoryForCheckout({
               priceModel: product.priceModel,
               marketplaceCategory: product.marketplaceCategory,
+              productCategory: product.category,
               fulfillmentOptions,
+              specializations: product.specializations,
+              listingIntent: product.listingIntent,
             });
 
-            const availableStock = typeof product.stock === 'number' 
-              ? product.stock 
-              : typeof product.maxStock === 'number' 
-                ? product.maxStock 
-                : null;
-
-            // Strict stock check only for inventory-managed listings
-            if (inventoryRequired && availableStock !== null) {
-              if (availableStock <= 0) {
-                throw new Error(`Product ${item.productId} is out of stock. Available: ${availableStock}, Requested: ${item.quantity}`);
-              }
-              if (availableStock < item.quantity) {
-                throw new Error(`Insufficient stock for product ${item.productId}. Available: ${availableStock}, Requested: ${item.quantity}`);
-              }
-            }
-
-            // Create order item
             const orderItem = await tx.orderItem.create({
               data: {
                 orderId: newOrder.id,
@@ -1103,46 +1094,13 @@ export async function POST(req: NextRequest) {
               orderItemId: orderItem.id
             });
 
-            // Confirm stock reservation and update product stock atomically
-            const reservation = await tx.stockReservation.findFirst({
-              where: { 
-                stripeSessionId: session.id,
-                productId: item.productId,
-                status: 'PENDING'
-              },
-              select: { id: true, status: true }
+            await confirmReservationAndDecrementStock(tx, {
+              productId: item.productId,
+              quantity: item.quantity,
+              stripeSessionId: session.id,
+              holdId: session.metadata?.stockHoldId || null,
+              inventoryRequired,
             });
-
-            if (reservation && reservation.status === 'PENDING') {
-              // Update reservation to CONFIRMED
-              await tx.stockReservation.update({
-                where: { id: reservation.id },
-                data: { status: 'CONFIRMED' }
-              });
-            }
-
-            // Decrement only inventory-managed products
-            if (
-              inventoryRequired &&
-              product.stock !== null &&
-              typeof product.stock === 'number'
-            ) {
-              // Use decrement which is atomic and prevents negative stock
-              const updatedProduct = await tx.product.update({
-                where: { id: item.productId },
-                data: {
-                  stock: {
-                    decrement: item.quantity,
-                  },
-                },
-                select: { stock: true }
-              });
-
-              // Verify stock didn't go negative (safety check)
-              if (updatedProduct.stock !== null && updatedProduct.stock < 0) {
-                throw new Error(`Stock went negative for product ${item.productId}. This should not happen.`);
-              }
-            }
           }
 
           console.log(`✅ Webhook: Order created successfully - OrderId: ${newOrder.id}, BuyerId: ${buyerId}, StripeSessionId: ${session.id}`);
@@ -1151,6 +1109,11 @@ export async function POST(req: NextRequest) {
 
         const createdOrder = order.order;
         const createdOrderItems = order.orderItems;
+
+        for (const item of createdOrderItems) {
+          revalidateTag(listingProductCacheTag(item.productId));
+        }
+        revalidatePublicFeedCache('webhook:order-stock');
 
         if (buyerId && createdOrderItems.length > 0) {
           void recordMarketplaceBuyerActivation(buyerId).catch((e) =>

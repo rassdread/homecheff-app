@@ -9411,7 +9411,8 @@
       "priceInvalidContact": "Price is invalid (leave empty for price on request).",
       "priceMissingOrInvalid": "Price is missing or invalid.",
       "specializationsRequired": "Select at least one specialization.",
-      "barterAcceptedRequired": "Choose at least one accepted value for barter-only listings."
+      "barterAcceptedRequired": "Choose at least one accepted value for barter-only listings.",
+      "invalidStock": "Stock must be a whole number of 0 or more. 0 = sold out."
     },
     "barterOpenness": {
       "hint": "Choose whether you sell for money only, accept money and barter, or barter only. Bartering is never required or guaranteed — you arrange it together."
