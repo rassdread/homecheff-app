@@ -65,6 +65,7 @@ async function main() {
     },
   });
 
+  const sampleA: { userId: string; deliveryProfileId: string }[] = [];
   const totals = {
     deliveryProfiles: rows.length,
     A_verified18PlusWouldSeeStaleAgeBanner: 0,
@@ -105,6 +106,9 @@ async function main() {
 
     if (canonical.status === 'VERIFIED_18_PLUS' && staleMissingDob) {
       totals.A_verified18PlusWouldSeeStaleAgeBanner += 1;
+      if (sampleA.length < 1 && row.user?.id) {
+        sampleA.push({ userId: row.user.id, deliveryProfileId: row.id });
+      }
     }
     if (canonical.status === 'UNDER_18' && staleMissingDob) {
       totals.B_verifiedUnder18TreatedAsMissingDob += 1;
@@ -152,6 +156,18 @@ async function main() {
           under18Gate: totals.under18AfterFix,
         },
         dobNeverLogged: true,
+        reproSample: sampleA[0]
+          ? {
+              USER_ID: sampleA[0].userId,
+              DELIVERY_PROFILE_ID: sampleA[0].deliveryProfileId,
+              CURRENT_AGE_STATUS: 'VERIFIED_18_PLUS',
+              AGE_SOURCE: 'USER_DATE_OF_BIRTH',
+              DOB_PRESENT: true,
+              AGE_VERIFIED: true,
+              AGE_REQUIREMENT_GENERATED_BEFORE: true,
+              AGE_REQUIREMENT_GENERATED_AFTER: false,
+            }
+          : null,
       },
       null,
       2,
