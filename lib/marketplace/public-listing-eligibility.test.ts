@@ -19,6 +19,10 @@ describe('public-listing-eligibility SoT', () => {
       isCertificationFixtureEmail('foo+seller@homecheff-validation.test'),
       true,
     );
+    assert.equal(
+      isCertificationFixtureEmail('mediacert+homecheff@example.com'),
+      true,
+    );
     assert.equal(isCertificationFixtureEmail('user@gmail.com'), false);
   });
 
@@ -54,6 +58,7 @@ describe('public-listing-eligibility SoT', () => {
     assert.ok(where.AND);
     const json = JSON.stringify(where);
     assert.match(json, /homecheff-validation\.test/);
+    assert.match(json, /mediacert\+homecheff@example\.com/);
     assert.match(json, /isActive/);
     assert.match(json, /ACTIVE/);
     assert.doesNotMatch(json, /orderItems/);

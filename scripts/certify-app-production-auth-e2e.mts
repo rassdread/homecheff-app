@@ -13,7 +13,10 @@
  * - bio marker: certificationFixture=true
  * - soft-hide cleanup (no real-user mutation)
  *
- *   npx tsx scripts/certify-app-production-auth-e2e.mts
+ * After a run, disposable *@homecheff-validation.test users must be anonymized
+ * with `npx tsx scripts/cleanup-production-test-accounts.ts --apply`.
+ * Reuse MediaCertHC for media certs (lib/certification/internal-test-identities.ts)
+ * instead of minting extra public sellers.
  */
 import { createRequire } from 'node:module';
 import { createHash, randomUUID } from 'node:crypto';

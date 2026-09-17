@@ -20,6 +20,11 @@ import {
   isIntegrityPubliclyDiscoverable,
 } from '@/lib/trust/integrity-status';
 
+import {
+  isInternalTestKeepEmail,
+  INTERNAL_TEST_KEEP_EMAILS,
+} from '@/lib/certification/internal-test-identities';
+
 /** Email domains / patterns used exclusively by certification & E2E fixtures. */
 export const CERTIFICATION_FIXTURE_EMAIL_SUFFIXES = [
   '@homecheff-validation.test',
@@ -37,6 +42,7 @@ export function isCertificationFixtureEmail(
 ): boolean {
   if (!email) return false;
   const e = email.trim().toLowerCase();
+  if (isInternalTestKeepEmail(e)) return true;
   if (FIXTURE_EMAIL_RE.test(e)) return true;
   // Scrubbed / cleaned cert accounts
   if (e.includes('homecheff-validation.test')) return true;
@@ -116,6 +122,9 @@ export function publicListingEligibilityWhere(): Prisma.ProductWhereInput {
                     { email: { startsWith: 'deleted+' } },
                     { email: { startsWith: 'cleaned-' } },
                     { bio: { contains: 'certificationFixture=true' } },
+                    ...INTERNAL_TEST_KEEP_EMAILS.map((email) => ({
+                      email: { equals: email },
+                    })),
                   ],
                 },
               },
