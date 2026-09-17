@@ -26,6 +26,7 @@ import {
   resolveAffiliateConnectDestination,
   syncAffiliateConnectMirrorFromUser,
 } from '../lib/stripe/affiliate-connect-mirror';
+import { disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
 
 const BASE = 'https://homecheff.eu';
 const SUFFIX = randomBytes(3).toString('hex');
@@ -530,14 +531,7 @@ async function main() {
   } finally {
     await browser.close().catch(() => null);
     for (const id of createdUserIds) {
-      try {
-        await prisma.affiliate.deleteMany({ where: { userId: id } });
-        await prisma.deliveryProfile.deleteMany({ where: { userId: id } });
-        await prisma.sellerProfile.deleteMany({ where: { userId: id } });
-        await prisma.user.deleteMany({ where: { id } });
-      } catch (e) {
-        console.warn('cleanup', id, e);
-      }
+      await disposeTempCertificationUsers([id]);
     }
   }
 

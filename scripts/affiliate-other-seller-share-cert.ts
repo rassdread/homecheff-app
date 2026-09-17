@@ -47,6 +47,11 @@ function addAffiliateToUrl(url: string, referralCode: string | null): string {
 
 async function main() {
   const { prisma } = await import("@/lib/prisma");
+  const { disposeTempCertificationUsers } = await import(
+    "@/lib/certification/dispose-temp-fixtures"
+  );
+  const createdTempIds: string[] = [];
+  try {
   const { buildListingDetailHref } = await import("@/lib/seo/listing-routes");
 
   const sharer = await prisma.user.findUnique({
@@ -275,6 +280,7 @@ async function main() {
         },
         select: { id: true },
       });
+      createdTempIds.push(fallbackUser.id);
       await processAttributionOnSignup(
         fallbackUser.id,
         `hc_ref=${encodeURIComponent(sergioCode)}`,
@@ -490,7 +496,10 @@ async function main() {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, "certification.json"), JSON.stringify(out, null, 2));
   console.log(JSON.stringify(out, null, 2));
-  await prisma.$disconnect();
+  } finally {
+    await disposeTempCertificationUsers(createdTempIds);
+    await prisma.$disconnect();
+  }
 }
 
 main().catch((e) => {

@@ -109,6 +109,9 @@ async function main() {
   const prisma = new PrismaClient();
   const createdUserIds: string[] = [];
   const results: Record<string, Gate> = {};
+  const { disposeTempCertificationUsers } = await import(
+    '../lib/certification/dispose-temp-fixtures.ts'
+  );
 
   try {
     const email = `${TAG}+courier@homecheff-validation.test`;
@@ -393,8 +396,7 @@ async function main() {
     if (!allPass) process.exitCode = 1;
   } finally {
     for (const id of createdUserIds) {
-      await prisma.deliveryProfile.deleteMany({ where: { userId: id } }).catch(() => {});
-      await prisma.user.delete({ where: { id } }).catch(() => {});
+      await disposeTempCertificationUsers([id]);
     }
     await prisma.$disconnect();
   }

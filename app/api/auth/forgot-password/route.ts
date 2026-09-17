@@ -6,6 +6,7 @@ import { getPublicAppUrl } from "@/lib/public-app-url";
 import { logEmailSendFailure } from "@/lib/email-log";
 import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
 import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
+import { passwordResetEligible } from "@/lib/auth/tombstone-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
         name: true,
         username: true,
         passwordHash: true,
+        accountDeletedAt: true,
       },
     });
 
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
         "Als dit e-mailadres bij ons bekend is en een wachtwoord heeft, ontvang je zo een e-mail met een link. Controleer ook je spammap.",
     });
 
-    if (!user?.passwordHash) {
+    if (!user || !passwordResetEligible(user)) {
       return genericOk;
     }
 

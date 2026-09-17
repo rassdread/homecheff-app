@@ -120,6 +120,9 @@ async function api(
 }
 
 const prisma = new PrismaClient();
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 
 const created: {
   buyerId?: string;
@@ -1252,22 +1255,6 @@ try {
       title: `[CERT-PRIVATE] ${listingTitle}`,
     },
   });
-  // Do NOT delete conversations/orders — needed for evidence continuity.
-  // Disable password login on fixtures after cert (accounts remain marked).
-  for (const id of [
-    buyer.id,
-    seller.id,
-    courier.id,
-    affiliateUser.id,
-  ]) {
-    await prisma.user.update({
-      where: { id },
-      data: {
-        bio: `${FIXTURE_BIO}; cleaned=${new Date().toISOString()}`,
-        // keep passwordHash so re-runs can mint cookies; emails stay validation.test
-      },
-    });
-  }
 
   const required = [
     'CHAT_CONVERSATION_OPEN',
@@ -1339,5 +1326,10 @@ try {
   console.error('CERT FATAL', e);
   process.exitCode = 1;
 } finally {
+  await disposeTempCertificationUsers(
+    [created.buyerId, created.sellerId, created.courierId, created.affiliateId].filter(
+      (id): id is string => Boolean(id),
+    ),
+  );
   await prisma.$disconnect();
 }

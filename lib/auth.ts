@@ -363,6 +363,7 @@ export const authOptions: NextAuthOptions = {
                   socialOnboardingCompleted: true,
                   username: true,
                   suspendedAt: true,
+                  accountDeletedAt: true,
                 },
               }),
             { label: "jwt_user_lookup", attempts: 3, delayMs: 150 },
@@ -374,6 +375,9 @@ export const authOptions: NextAuthOptions = {
         }
         
         if (dbUser) {
+          if ((dbUser as { accountDeletedAt?: Date | null }).accountDeletedAt) {
+            return { deleted: true };
+          }
           // MINIMAL TOKEN: Only store essential IDs and boolean flags
           // For Edge browser: Keep everything as small as possible
           minimalToken.role = dbUser.role as Role;
@@ -405,6 +409,20 @@ export const authOptions: NextAuthOptions = {
         }
       }
       
+      if (minimalToken.id) {
+        try {
+          const tomb = await prisma.user.findUnique({
+            where: { id: String(minimalToken.id) },
+            select: { accountDeletedAt: true },
+          });
+          if (tomb?.accountDeletedAt) {
+            return { deleted: true };
+          }
+        } catch (err) {
+          console.error("❌ jwt tombstone lookup failed:", err);
+        }
+      }
+
       // Explicitly remove any large fields that NextAuth might have added
       // DO NOT include: name, picture, image, socialName, socialImage, username (unless needed for flags)
       
@@ -422,7 +440,23 @@ export const authOptions: NextAuthOptions = {
       return minimalToken;
     },
     async session({ session, token }) {
+      if ((token as { deleted?: boolean }).deleted) {
+        return { ...session, user: undefined as any, expires: new Date(0).toISOString() };
+      }
       if (session.user && token) {
+        if ((token as { id?: string }).id) {
+          try {
+            const tomb = await prisma.user.findUnique({
+              where: { id: String((token as { id?: string }).id) },
+              select: { accountDeletedAt: true },
+            });
+            if (tomb?.accountDeletedAt) {
+              return { ...session, user: undefined as any, expires: new Date(0).toISOString() };
+            }
+          } catch (error) {
+            console.error('Error checking tombstone in session callback:', error);
+          }
+        }
         // MINIMAL TOKEN APPROACH: Fetch ALL user data from database
         // Token only contains: id, email, role, and boolean flags
         // Everything else comes from database to keep token size minimal

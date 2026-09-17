@@ -101,6 +101,9 @@ async function main() {
   if (!authSecret) throw new Error('NEXTAUTH_SECRET missing');
 
   const prisma = new PrismaClient();
+  const { disposeTempCertificationUsers } = await import(
+    '../lib/certification/dispose-temp-fixtures.ts'
+  );
   const gates: Record<string, Gate> = {};
   const details: Record<string, unknown> = {};
   const createdUserIds: string[] = [];
@@ -485,7 +488,7 @@ async function main() {
         .catch(() => undefined);
     }
     if (createdUserIds.length) {
-      await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } }).catch(() => undefined);
+      await disposeTempCertificationUsers(createdUserIds);
     }
     await prisma.$disconnect();
   }

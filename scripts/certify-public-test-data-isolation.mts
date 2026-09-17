@@ -77,6 +77,9 @@ function publicEligibilityWhere() {
 
 const { PrismaClient } = await import('@prisma/client');
 const prisma = new PrismaClient();
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 
 async function fetchJson(path: string, cookie?: string) {
   const res = await fetch(`${HOMECHEFF}${path}`, {
@@ -209,16 +212,7 @@ try {
       .catch(() => null);
   }
   if (createdUserId) {
-    await prisma.user
-      .update({
-        where: { id: createdUserId },
-        data: {
-          email: `cleaned-${createdUserId.slice(0, 8)}@homecheff-validation.test`,
-          bio: 'certificationFixture=true;cleaned=true',
-          accountDeletedAt: new Date(),
-        },
-      })
-      .catch(() => null);
+    await disposeTempCertificationUsers([createdUserId]);
   }
 }
 

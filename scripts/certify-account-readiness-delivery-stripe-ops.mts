@@ -34,6 +34,9 @@ const TAG = `ardso_${Date.now().toString(36)}`;
 
 const { PrismaClient } = await import('@prisma/client');
 const prisma = new PrismaClient();
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 
 const {
   mapStripeSnapshotToLane,
@@ -302,19 +305,7 @@ pass('STRIPE_CTA_NL', true);
 pass('STRIPE_CTA_EN', true);
 gates.STRIPE_BACKEND_LOGIC_CHANGED = 'NO';
 
-for (const id of createdUserIds) {
-  await prisma.user
-    .update({
-      where: { id },
-      data: {
-        email: `cleaned-${id.slice(0, 8)}@homecheff-validation.test`,
-        bio: 'certificationFixture=true;cleaned=true',
-        accountDeletedAt: new Date(),
-        stripeConnectAccountId: null,
-      },
-    })
-    .catch(() => null);
-}
+await disposeTempCertificationUsers(createdUserIds);
 
 const failKeys = Object.entries(gates).filter(
   ([, v]) => typeof v === 'string' && v.startsWith('FAIL'),

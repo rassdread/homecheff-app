@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
+import { isTombstonedAccount } from "@/lib/auth/tombstone-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -35,10 +36,10 @@ export async function PUT(req: NextRequest) {
     }
 
     const user = await findUserByCanonicalEmail(prisma, session.user.email, {
-      select: { id: true, passwordHash: true },
+      select: { id: true, passwordHash: true, accountDeletedAt: true },
     });
 
-    if (!user) {
+    if (!user || isTombstonedAccount(user)) {
       return NextResponse.json({ error: "Gebruiker niet gevonden" }, { status: 404 });
     }
 

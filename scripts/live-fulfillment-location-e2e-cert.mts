@@ -79,6 +79,9 @@ function record(name: string, ok: boolean, detail?: unknown) {
 
 const prisma = new PrismaClient();
 const created: { buyerId?: string; sellerId?: string; productId?: string } = {};
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 
 try {
   const secret = process.env.NEXTAUTH_SECRET;
@@ -376,25 +379,10 @@ try {
         data: { isActive: false, title: `[DELETED CERT] ${TAG}` },
       });
     }
-    if (created.buyerId) {
-      await prisma.user.update({
-        where: { id: created.buyerId },
-        data: {
-          email: `deleted+${TAG}+buyer@homecheff-validation.test`,
-          username: null,
-          passwordHash: null,
-        },
-      });
-    }
-    if (created.sellerId) {
-      await prisma.user.update({
-        where: { id: created.sellerId },
-        data: {
-          email: `deleted+${TAG}+seller@homecheff-validation.test`,
-          username: null,
-          passwordHash: null,
-        },
-      });
+    if (created.buyerId || created.sellerId) {
+      await disposeTempCertificationUsers(
+        [created.buyerId, created.sellerId].filter((id): id is string => Boolean(id)),
+      );
     }
   } catch {
     /* ignore cleanup */

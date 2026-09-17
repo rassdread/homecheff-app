@@ -146,6 +146,9 @@ async function authPage(
 
 const prisma = new PrismaClient();
 const createdUserIds: string[] = [];
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 
 try {
   fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true });
@@ -629,14 +632,6 @@ try {
     where: { id: product.id },
     data: { isActive: false, title: `[CERT-PRIVATE] OpsData ${TAG}` },
   });
-  for (const id of createdUserIds) {
-    await prisma.user.update({
-      where: { id },
-      data: {
-        bio: `${FIXTURE_BIO}; cleaned=${new Date().toISOString()}`,
-      },
-    });
-  }
 
   const p0 = Object.entries(gates)
     .filter(([, v]) => v === 'FAIL')
@@ -680,5 +675,6 @@ try {
   console.error('CERT FATAL', e);
   process.exitCode = 1;
 } finally {
+  await disposeTempCertificationUsers(createdUserIds);
   await prisma.$disconnect();
 }

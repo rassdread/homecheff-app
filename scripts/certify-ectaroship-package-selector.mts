@@ -88,6 +88,9 @@ async function mintCookie(secret: string, userId: string, email: string) {
 const prisma = new PrismaClient();
 const createdUserIds: string[] = [];
 const createdProductIds: string[] = [];
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 
 try {
   fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true });
@@ -516,16 +519,6 @@ try {
       data: { isActive: false, title: `[CERT-PRIVATE] cleaned ${TAG}` },
     });
   }
-  for (const id of createdUserIds) {
-    await prisma.user.update({
-      where: { id },
-      data: {
-        email: `cleaned-${id.slice(0, 8)}-${TAG}@homecheff-validation.test`,
-        bio: `${FIXTURE_BIO}; cleaned=${new Date().toISOString()}`,
-        accountDeletedAt: new Date(),
-      },
-    });
-  }
 
   const p0 = Object.entries(gates)
     .filter(([, v]) => v === 'FAIL')
@@ -598,5 +591,6 @@ try {
   console.error('CERT FATAL', e);
   process.exitCode = 1;
 } finally {
+  await disposeTempCertificationUsers(createdUserIds);
   await prisma.$disconnect();
 }

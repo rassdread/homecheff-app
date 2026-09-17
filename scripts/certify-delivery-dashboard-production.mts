@@ -363,6 +363,9 @@ async function main() {
 
   const prisma = new PrismaClient();
   const createdUserIds: string[] = [];
+  const { disposeTempCertificationUsers } = await import(
+    '../lib/certification/dispose-temp-fixtures.ts'
+  );
   const gates: Record<string, Gate> = {};
   const details: Record<string, unknown> = {};
   const matrix: Record<string, unknown> = {};
@@ -605,12 +608,7 @@ async function main() {
   } finally {
     if (browser) await browser.close();
     if (createdUserIds.length) {
-      await prisma.deliveryProfile
-        .deleteMany({ where: { userId: { in: createdUserIds } } })
-        .catch(() => undefined);
-      await prisma.user
-        .deleteMany({ where: { id: { in: createdUserIds } } })
-        .catch(() => undefined);
+      await disposeTempCertificationUsers(createdUserIds);
     }
     await prisma.$disconnect();
   }

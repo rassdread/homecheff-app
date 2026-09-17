@@ -29,16 +29,12 @@ async function main() {
     console.log(`${ok ? 'PASS' : 'FAIL'} ${id}: ${detail}`);
   }
 
+  const { disposeTempCertificationUsers } = await import(
+    '../lib/certification/dispose-temp-fixtures.ts'
+  );
+
   async function cleanupUserIds(ids: string[]) {
-    for (const id of ids) {
-      try {
-        await prisma.deliveryProfile.deleteMany({ where: { userId: id } });
-        await prisma.business.deleteMany({ where: { userId: id } });
-        await prisma.user.deleteMany({ where: { id } });
-      } catch {
-        /* best-effort */
-      }
-    }
+    await disposeTempCertificationUsers(ids);
   }
 
   const createdIds: string[] = [];

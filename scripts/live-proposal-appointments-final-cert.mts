@@ -93,6 +93,9 @@ async function api(
 }
 
 const prisma = new PrismaClient();
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 const created: {
   buyerId?: string;
   sellerId?: string;
@@ -1080,25 +1083,10 @@ try {
         /* ignore */
       }
     }
-    if (created.buyerId) {
-      await prisma.user.update({
-        where: { id: created.buyerId },
-        data: {
-          email: `deleted+${TAG}+buyer@homecheff-validation.test`,
-          username: null,
-          passwordHash: null,
-        },
-      });
-    }
-    if (created.sellerId) {
-      await prisma.user.update({
-        where: { id: created.sellerId },
-        data: {
-          email: `deleted+${TAG}+seller@homecheff-validation.test`,
-          username: null,
-          passwordHash: null,
-        },
-      });
+    if (created.buyerId || created.sellerId) {
+      await disposeTempCertificationUsers(
+        [created.buyerId, created.sellerId].filter((id): id is string => Boolean(id)),
+      );
     }
   } catch {
     /* ignore */

@@ -116,6 +116,9 @@ async function measureCtas(page: Page) {
 
 const prisma = new PrismaClient();
 const createdIds: string[] = [];
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 
 try {
   fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true });
@@ -343,17 +346,6 @@ try {
 
   await browser.close();
 
-  // Soft cleanup — keep markers, no Stripe backend mutation beyond UI click redirects.
-  for (const id of createdIds) {
-    await prisma.user.update({
-      where: { id },
-      data: {
-        bio: `${FIXTURE_BIO}; cleaned=${new Date().toISOString()}`,
-        email: `cleaned-${id.slice(0, 8)}-${TAG}@homecheff-validation.test`,
-      },
-    });
-  }
-
   const p0 = Object.entries(gates)
     .filter(([, v]) => v === 'FAIL')
     .map(([k]) => k);
@@ -384,5 +376,6 @@ try {
   console.error('CERT FATAL', e);
   process.exitCode = 1;
 } finally {
+  await disposeTempCertificationUsers(createdIds);
   await prisma.$disconnect();
 }

@@ -91,8 +91,10 @@ async function main() {
     if (!pass) process.exitCode = 1;
   } finally {
     if (userId) {
-      await prisma.deliveryProfile.deleteMany({ where: { userId } }).catch(() => {});
-      await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+      const { disposeTempCertificationUsers } = await import(
+        '../lib/certification/dispose-temp-fixtures'
+      );
+      await disposeTempCertificationUsers([userId]);
     }
     await prisma.$disconnect();
   }

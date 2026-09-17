@@ -115,6 +115,9 @@ async function main() {
   }
 
   const prisma = new PrismaClient();
+  const { disposeTempCertificationUsers } = await import(
+    '../lib/certification/dispose-temp-fixtures.ts'
+  );
   const steps: Step[] = [];
   const gates: Record<string, Gate> = {};
   const created = {
@@ -1116,25 +1119,10 @@ async function main() {
       }
       // Hard-delete disposable users cascades most relations when configured;
       // prefer deactivating if cascade is unsafe.
-      if (created.buyerId) {
-        await prisma.user.update({
-          where: { id: created.buyerId },
-          data: {
-            email: `deleted+${TAG}+buyer@homecheff-validation.test`,
-            username: null,
-            passwordHash: null,
-          },
-        });
-      }
-      if (created.sellerId) {
-        await prisma.user.update({
-          where: { id: created.sellerId },
-          data: {
-            email: `deleted+${TAG}+seller@homecheff-validation.test`,
-            username: null,
-            passwordHash: null,
-          },
-        });
+      if (created.buyerId || created.sellerId) {
+        await disposeTempCertificationUsers(
+          [created.buyerId, created.sellerId].filter(Boolean),
+        );
       }
       record('cleanup', true, { productId: created.productId?.slice(0, 8) });
       gates.TEST_DATA_CLEANUP = 'PASS';

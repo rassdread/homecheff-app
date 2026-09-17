@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
+import { isTombstonedAccount } from "@/lib/auth/tombstone-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -51,13 +52,16 @@ export async function POST(req: NextRequest) {
 
     const emailFromToken = vt.identifier.slice(RESET_PREFIX.length);
     const user = await findUserByCanonicalEmail(prisma, emailFromToken, {
-      select: { id: true, email: true },
+      select: { id: true, email: true, accountDeletedAt: true },
     });
 
-    if (!user) {
+    if (!user || isTombstonedAccount(user)) {
       await prisma.verificationToken.delete({ where: { token } }).catch(() => {});
       return NextResponse.json(
-        { error: "Account niet gevonden." },
+        {
+          error:
+            "Deze link is ongeldig of verlopen. Vraag opnieuw een wachtwoord-reset aan.",
+        },
         { status: 400 }
       );
     }

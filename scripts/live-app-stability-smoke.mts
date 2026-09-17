@@ -74,6 +74,11 @@ async function api(cookie: string, method: string, urlPath: string, body?: unkno
 }
 
 const prisma = new PrismaClient();
+let createdBuyerId: string | null = null;
+let createdSellerId: string | null = null;
+const { disposeTempCertificationUsers } = await import(
+  '../lib/certification/dispose-temp-fixtures.ts'
+);
 const publicRoutes = [
   '/',
   '/login',
@@ -163,6 +168,8 @@ try {
         buyerRoles: ['CONSUMER'],
       },
     });
+    createdSellerId = seller.id;
+    createdBuyerId = buyer.id;
     const sp = await prisma.sellerProfile.create({
       data: {
         id: randomUUID(),
@@ -494,18 +501,6 @@ try {
         data: { isActive: false, title: `[DELETED STAB] ${TAG}` },
       })
       .catch(() => {});
-    await prisma.user
-      .update({
-        where: { id: buyer.id },
-        data: { email: `deleted+${buyer.email}`, username: null },
-      })
-      .catch(() => {});
-    await prisma.user
-      .update({
-        where: { id: seller.id },
-        data: { email: `deleted+${seller.email}`, username: null },
-      })
-      .catch(() => {});
     await ctx.close();
   }
 
@@ -529,5 +524,8 @@ try {
   console.error(e);
   process.exit(1);
 } finally {
+  await disposeTempCertificationUsers(
+    [createdBuyerId, createdSellerId].filter((id): id is string => Boolean(id)),
+  );
   await prisma.$disconnect();
 }

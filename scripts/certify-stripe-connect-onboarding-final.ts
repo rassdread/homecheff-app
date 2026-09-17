@@ -27,6 +27,7 @@ import {
   canCreateConnectOnboardingLink,
 } from '../lib/stripe/connect-account-status';
 import { parseConnectTrack } from '../lib/stripe/connect-tracks';
+import { disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
 
 const BASE = 'https://homecheff.eu';
 const SUFFIX = randomBytes(3).toString('hex');
@@ -179,11 +180,7 @@ async function cleanup() {
   }
   for (const id of createdUserIds) {
     try {
-      await prisma.sellerProfile.deleteMany({ where: { userId: id } });
-      await prisma.business.deleteMany({ where: { userId: id } });
-      await prisma.deliveryProfile.deleteMany({ where: { userId: id } });
-      await prisma.auditLog.deleteMany({ where: { userId: id } });
-      await prisma.user.deleteMany({ where: { id } });
+      await disposeTempCertificationUsers([id]);
     } catch (e) {
       console.warn('cleanup user failed', id, e);
     }
