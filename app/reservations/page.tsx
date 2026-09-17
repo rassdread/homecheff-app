@@ -1,5 +1,4 @@
-"use client";
-import React, { useState, useEffect } from "react";
+import { invokeNativeShareOnce } from '@/lib/share/listing-share';
 
 type Reservation = {
   id: string;
@@ -54,12 +53,11 @@ export default function ReservationsPage() {
     }));
   };
 
-  const handleShare = (url: string) => {
-    if (navigator.share) {
-      navigator.share({ url });
-    } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(url)}`);
-    }
+  const handleShare = async (url: string) => {
+    const abs = url.startsWith('http') ? url : `${window.location.origin}${url}`;
+    const result = await invokeNativeShareOnce({ title: 'HomeCheff', url: abs });
+    if (result.ok || result.method === 'cancelled' || result.method === 'busy') return;
+    window.open(`https://wa.me/?text=${encodeURIComponent(abs)}`);
   };
 
   return (

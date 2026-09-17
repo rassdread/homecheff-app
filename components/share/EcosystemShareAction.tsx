@@ -92,6 +92,7 @@ export default function EcosystemShareAction({
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const [sheetPayload, setSheetPayload] = useState<HomecheffSharePayload | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const inFlightRef = useRef(false);
 
   const oppId = asOpportunityId(opportunityId);
   const shareLang = language === 'en' ? 'en' : 'nl';
@@ -211,7 +212,8 @@ export default function EcosystemShareAction({
     async (e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (busy || loading) return;
+      if (busy || loading || inFlightRef.current) return;
+      inFlightRef.current = true;
       setBusy(true);
       try {
         if (needsContextChoice) {
@@ -220,6 +222,7 @@ export default function EcosystemShareAction({
         }
         await resolveAndShare();
       } finally {
+        inFlightRef.current = false;
         setBusy(false);
       }
     },
@@ -349,7 +352,7 @@ export default function EcosystemShareAction({
         shareTitle={sheetPayload?.title || title}
         shareText={
           sheetPayload
-            ? formatShareForChannel(sheetPayload, 'whatsapp').text
+            ? formatShareForChannel(sheetPayload, 'native').text
             : text
         }
         preparing={sheetOpen && !sheetUrl}

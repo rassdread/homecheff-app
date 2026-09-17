@@ -3,6 +3,13 @@
  * Desktop Chromium/Safari often expose navigator.share with an empty/useless sheet.
  */
 
+import {
+  buildExactlyOnceWebShareData,
+  buildSingleUrlWhatsAppHref,
+  composeSingleUrlShareBody,
+  invokeNativeShareOnce,
+} from '@/lib/share/exactly-once-share';
+
 export function toAbsolutePublicUrl(urlOrPath: string, origin?: string): string {
   const raw = String(urlOrPath || '').trim();
   if (!raw) return '';
@@ -72,27 +79,13 @@ export async function shareListingOrCopy(
   const shareWithFiles = files.length > 0 && canShareFiles(files);
 
   if (shouldPreferNativeShare() || shareWithFiles) {
-    try {
-      const data: ShareData = shareWithFiles
-        ? { title, text, url, files }
-        : { title, text, url };
-      if (typeof navigator.canShare === 'function' && !navigator.canShare(data)) {
-        if (shareWithFiles) {
-          return { ok: false, method: 'failed', error: 'files_unsupported' };
-        }
-      } else {
-        await navigator.share(data);
-        return { ok: true, method: 'native' };
-      }
-    } catch (err) {
-      const name =
-        err && typeof err === 'object' && 'name' in err
-          ? String((err as { name: string }).name)
-          : '';
-      if (name === 'AbortError') return { ok: false, method: 'cancelled' };
-      if (shareWithFiles) {
-        return { ok: false, method: 'failed', error: 'files_unsupported' };
-      }
+    const result = await invokeNativeShareOnce({ title, text, url, files });
+    if (result.ok) return { ok: true, method: 'native' };
+    if (result.method === 'cancelled' || result.method === 'busy') {
+      return { ok: false, method: 'cancelled' };
+    }
+    if (result.error === 'files_unsupported' || shareWithFiles) {
+      return { ok: false, method: 'failed', error: 'files_unsupported' };
     }
   }
 
@@ -110,8 +103,7 @@ export async function shareListingOrCopy(
 }
 
 export function buildWhatsAppShareUrl(url: string, title: string): string {
-  const text = `${title} ${url}`.trim();
-  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+  return buildSingleUrlWhatsAppHref(url, title);
 }
 
 export function buildMailtoShareUrl(
@@ -120,8 +112,8 @@ export function buildMailtoShareUrl(
   description?: string,
 ): string {
   const subject = encodeURIComponent(title);
-  const body = encodeURIComponent(
-    `${description?.trim() || title}\n\n${url}`.trim(),
-  );
+  const body = encodeURIComponent(composeSingleUrlShareBody(description, url, title));
   return `mailto:?subject=${subject}&body=${body}`;
 }
+
+export { buildExactlyOnceWebShareData, invokeNativeShareOnce };

@@ -42,6 +42,12 @@ describe('visible share panel contract', () => {
     assert.doesNotMatch(src, /preparedUrl|preparingCompanyLink|Nu delen/);
   });
 
+  it('sheet native path goes through invokeNativeShareOnce, not raw navigator.share', () => {
+    const src = read('components/share/HomecheffVisibleShareSheet.tsx');
+    assert.match(src, /invokeNativeShareOnce/);
+    assert.doesNotMatch(src, /await navigator\.share\(/);
+  });
+
   it('desktop must not rely solely on navigator.share', () => {
     assert.equal(shouldPreferNativeShare(), false);
     const listing = read('lib/share/listing-share.ts');

@@ -15,9 +15,14 @@ import {
 import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
 import {
   canUseWebShare,
-  shareListingOrCopy,
+  invokeNativeShareOnce,
   shouldPreferNativeShare,
 } from '@/lib/share/listing-share';
+import {
+  buildSingleUrlWhatsAppHref,
+  composeSingleUrlShareBody,
+  stripUrlFromShareText,
+} from '@/lib/share/exactly-once-share';
 import {
   formatShareForChannel,
   type HomecheffSharePayload,
@@ -260,11 +265,16 @@ export default function HomecheffVisibleShareSheet({
   const copyCaptionAndMaybeNative = useCallback(
     async (channel: 'instagram' | 'tiktok') => {
       if (!effectiveUrl) return;
-      const text = payload
-        ? formatShareForChannel(payload, channel).text
-        : `${shareText || shareTitle}\n\n${effectiveUrl}`;
+      const formatted = payload
+        ? formatShareForChannel(payload, channel)
+        : { title: shareTitle, text: shareText || shareTitle, url: effectiveUrl };
+      const clipboardText = composeSingleUrlShareBody(
+        formatted.text,
+        effectiveUrl,
+        formatted.title,
+      );
       try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(clipboardText);
         setHint(channel === 'instagram' ? copy.instagramHint : copy.tiktokHint);
         onDestination?.(channel);
       } catch {
@@ -272,30 +282,14 @@ export default function HomecheffVisibleShareSheet({
         return;
       }
 
-      if (canUseWebShare()) {
-        try {
-          const shareData: ShareData = {
-            title: payload?.title || shareTitle,
-            text,
-            url: effectiveUrl,
-          };
-          // Prefer handing off to installed apps when the OS supports it.
-          if (typeof navigator.canShare === 'function' && !navigator.canShare(shareData)) {
-            /* caption already copied */
-          } else {
-            await navigator.share(shareData);
-            onNativeShare?.();
-          }
-        } catch (err) {
-          const name =
-            err && typeof err === 'object' && 'name' in err
-              ? String((err as { name: string }).name)
-              : '';
-          if (name !== 'AbortError') {
-            /* caption copy already succeeded — keep hint */
-          }
-        }
-      }
+      if (!canUseWebShare()) return;
+      const result = await invokeNativeShareOnce({
+        title: formatted.title || shareTitle,
+        text: stripUrlFromShareText(formatted.text, effectiveUrl),
+        url: effectiveUrl,
+        files: userFile ? [userFile] : [],
+      });
+      if (result.ok) onNativeShare?.();
     },
     [
       copy.error,
@@ -307,6 +301,7 @@ export default function HomecheffVisibleShareSheet({
       payload,
       shareText,
       shareTitle,
+      userFile,
     ],
   );
 
@@ -316,22 +311,19 @@ export default function HomecheffVisibleShareSheet({
       ? formatShareForChannel(payload, 'native')
       : { title: shareTitle, text: composedText || shareTitle, url: effectiveUrl };
     const files = userFile ? [userFile] : [];
-    const result = await shareListingOrCopy(
-      {
-        url: formatted.url || effectiveUrl,
-        title: formatted.title,
-        text: formatted.text,
-        files,
-      },
-      { allowSilentClipboard: false },
-    );
+    const result = await invokeNativeShareOnce({
+      url: formatted.url || effectiveUrl,
+      title: formatted.title,
+      text: formatted.text,
+      files,
+    });
     if (result.ok) {
       onNativeShare?.();
       onDestination?.('native');
       onClose();
       return;
     }
-    if (result.method === 'cancelled') return;
+    if (result.method === 'cancelled' || result.method === 'busy') return;
     if (result.error === 'files_unsupported' || files.length > 0) {
       await copyUrlWithOptionalFallback('files_unsupported');
       return;
@@ -356,19 +348,23 @@ export default function HomecheffVisibleShareSheet({
   const waHref = ready
     ? payload
       ? buildWhatsAppShareUrlFromPayload(payload)
-      : `https://wa.me/?text=${encodeURIComponent(`${shareTitle} ${effectiveUrl}`)}`
+      : buildSingleUrlWhatsAppHref(effectiveUrl!, shareTitle, composedText)
     : undefined;
   const liHref = ready ? buildLinkedInShareUrl(effectiveUrl!) : undefined;
   const fbHref = ready ? buildFacebookShareUrl(effectiveUrl!) : undefined;
   const xHref = ready
     ? payload
       ? buildXShareUrlFromPayload(payload)
-      : `https://twitter.com/intent/tweet?url=${encodeURIComponent(effectiveUrl!)}&text=${encodeURIComponent(shareTitle)}`
+      : `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+          composeSingleUrlShareBody(shareTitle, effectiveUrl!),
+        )}`
     : undefined;
   const mailHref = ready
     ? payload
       ? buildMailtoShareUrlFromPayload(payload)
-      : `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(`${shareText || shareTitle}\n\n${effectiveUrl}`)}`
+      : `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(
+          composeSingleUrlShareBody(shareText || shareTitle, effectiveUrl!, shareTitle),
+        )}`
     : undefined;
   const imageUrl = payload?.image || itemImageUrl || undefined;
 

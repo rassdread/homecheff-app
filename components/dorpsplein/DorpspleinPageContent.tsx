@@ -55,6 +55,7 @@ import { getHintsForPage } from "@/lib/onboarding/hints";
 import ClientOnly from "@/components/util/ClientOnly";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAffiliateLink } from "@/hooks/useAffiliateLink";
+import { invokeNativeShareOnce } from "@/lib/share/listing-share";
 import { savePendingIntent } from "@/lib/onboarding/pending-intent";
 import {
   loadFeedSurfaceState,
@@ -1578,34 +1579,42 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                                   e.stopPropagation();
                                   const baseUrl = `${window.location.origin}/product/${item.id}`;
                                   const shareUrl = addAffiliateToUrl(baseUrl);
-                                  if (navigator.share) {
-                                    navigator.share({
+                                  void (async () => {
+                                    const result = await invokeNativeShareOnce({
                                       title: item.title,
                                       text: item.description || '',
-                                      url: shareUrl
+                                      url: shareUrl,
                                     });
-                                    // Show notification if affiliate
-                                    if (isAffiliate) {
-                                      setTimeout(() => {
-                                        addNotification({
-                                          type: 'info',
-                                          title: 'Affiliate link gedeeld',
-                                          message: 'Je affiliate link is automatisch meegestuurd!',
-                                          duration: 4000,
-                                        });
-                                      }, 500);
+                                    if (result.method === 'cancelled' || result.method === 'busy') {
+                                      return;
                                     }
-                                  } else {
-                                    navigator.clipboard.writeText(shareUrl);
-                                    addNotification({
-                                      type: 'success',
-                                      title: t('dorpsplein.copySuccess'),
-                                      message: isAffiliate 
-                                        ? 'Link gekopieerd met je affiliate code!'
-                                        : t('dorpsplein.copyMessage'),
-                                      duration: 3000,
-                                    });
-                                  }
+                                    if (result.ok) {
+                                      if (isAffiliate) {
+                                        setTimeout(() => {
+                                          addNotification({
+                                            type: 'info',
+                                            title: 'Affiliate link gedeeld',
+                                            message: 'Je affiliate link is automatisch meegestuurd!',
+                                            duration: 4000,
+                                          });
+                                        }, 500);
+                                      }
+                                      return;
+                                    }
+                                    try {
+                                      await navigator.clipboard.writeText(shareUrl);
+                                      addNotification({
+                                        type: 'success',
+                                        title: t('dorpsplein.copySuccess'),
+                                        message: isAffiliate
+                                          ? 'Link gekopieerd met je affiliate code!'
+                                          : t('dorpsplein.copyMessage'),
+                                        duration: 3000,
+                                      });
+                                    } catch {
+                                      /* ignore */
+                                    }
+                                  })();
                                   setOpenOptionsMenu(null);
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors relative"

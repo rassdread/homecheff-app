@@ -54,6 +54,7 @@ export default function TileShareAction({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const inFlightRef = useRef(false);
   useOverlayHistoryBack('tile-share-chooser', chooserOpen, () => setChooserOpen(false));
 
   const shareReady = !session?.user?.email || !contextLoading;
@@ -119,15 +120,17 @@ export default function TileShareAction({
     async (e: MouseEvent | KeyboardEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (busy || !shareReady) return;
+      if (busy || !shareReady || inFlightRef.current) return;
       if (needsContextChoice) {
         setChooserOpen(true);
         return;
       }
+      inFlightRef.current = true;
       setBusy(true);
       try {
         await resolveAndShare();
       } finally {
+        inFlightRef.current = false;
         setBusy(false);
       }
     },

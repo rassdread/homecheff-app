@@ -118,6 +118,8 @@ export function formatShareForChannel(
 
   switch (channel) {
     case 'whatsapp':
+      // URL lives in `text` for wa.me (no separate url field). Never pass this
+      // `text` into navigator.share together with `url`.
       return {
         title: copy.title,
         text: `${copy.longText}\n\n${url}`,
@@ -158,6 +160,7 @@ export function formatShareForChannel(
         url,
       };
     case 'native':
+      // Web Share: caption without URL; destination only in `url`.
       return {
         title: copy.title,
         text: copy.longText,

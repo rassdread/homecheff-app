@@ -34,6 +34,7 @@ export default function ShareButton({
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const inFlightRef = useRef(false);
 
   const {
     memberships,
@@ -75,12 +76,15 @@ export default function ShareButton({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (busy || !shareReady) return;
+          if (busy || !shareReady || inFlightRef.current) return;
           if (needsContextChoice) {
             setChooserOpen(true);
             return;
           }
-          void openResolvedSheet();
+          inFlightRef.current = true;
+          void openResolvedSheet().finally(() => {
+            inFlightRef.current = false;
+          });
         }}
         aria-label={isReady ? t('share.via') : 'Delen'}
         className={`

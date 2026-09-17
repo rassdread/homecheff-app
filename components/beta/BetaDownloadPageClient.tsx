@@ -12,6 +12,7 @@ import {
 } from '@/lib/beta-download-client';
 import { getGooglePlayOpenTestingUrl, isPlayOpenTestingUrlConfigured } from '@/lib/app-distribution';
 import { openExternalUrl } from '@/lib/native/openExternalUrl';
+import { invokeNativeShareOnce } from '@/lib/share/listing-share';
 
 type Props = {
   playStoreUrl: string | null;
@@ -100,25 +101,22 @@ export default function BetaDownloadPageClient({
     setShareBusy(true);
     setShareHint(null);
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: t('appPlayLanding.shareTitle'),
-          text: t('appPlayLanding.shareText'),
-          url: shareUrl,
-        });
-      } else if (navigator.clipboard?.writeText) {
+      const result = await invokeNativeShareOnce({
+        title: t('appPlayLanding.shareTitle'),
+        text: t('appPlayLanding.shareText'),
+        url: shareUrl,
+      });
+      if (result.ok || result.method === 'cancelled' || result.method === 'busy') {
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareUrl);
         setShareHint(t('appPlayLanding.shareCopied'));
       } else {
         setShareHint(shareUrl);
       }
     } catch {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        setShareHint(t('appPlayLanding.shareCopied'));
-      } catch {
-        setShareHint(t('appPlayLanding.shareManual', { url: shareUrl }));
-      }
+      setShareHint(t('appPlayLanding.shareManual', { url: shareUrl }));
     } finally {
       setShareBusy(false);
     }

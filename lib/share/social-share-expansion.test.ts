@@ -127,6 +127,7 @@ describe('HomecheffSharePayload + channel formatters', () => {
     assert.equal(n.title, 'Verdien met HomeCheff');
     assert.match(n.text, /Verkoop wat je maakt/);
     assert.equal(n.url, personal.url);
+    assert.equal(n.text.includes(personal.url), false);
   });
 
   it('copy channel includes attributed URL', () => {
