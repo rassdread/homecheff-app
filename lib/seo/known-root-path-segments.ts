@@ -91,6 +91,7 @@ export const APP_FIRST_SEGMENTS = [
   'operations',
   'orders',
   'over-ons',
+  'p',
   'payment',
   'persoonlijk-vakmanschap',
   'pitch',

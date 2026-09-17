@@ -119,4 +119,11 @@ describe('affiliate dashboard layout contracts', () => {
     assert.match(eco, /HomecheffVisibleShareSheet/);
     assert.match(eco, /resolveShareUrl/);
   });
+
+  it('promo library reuses exactly-once visible share sheet', () => {
+    const src = read('components/affiliate/AffiliatePromoLibraryClient.tsx');
+    assert.match(src, /HomecheffVisibleShareSheet/);
+    assert.match(src, /resolveShareUrl/);
+    assert.doesNotMatch(src, /navigator\.share/);
+  });
 });

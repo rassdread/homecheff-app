@@ -174,6 +174,7 @@ model User {
   promoCodesAsSeller                     PromoCode[]               @relation("PromoCodeSeller")
   promoCodeRedemptions                   PromoCodeRedemption[]
   affiliate                              Affiliate?
+  affiliateMediaAssets                   AffiliateMediaAsset[]
   attributions                           Attribution[]
   hcpEvents                              HcpEvent[]
   hcpStats                               UserHcpStats?
@@ -304,10 +305,93 @@ model Affiliate {
   commissionLedgers                 CommissionLedger[]
   payouts                           AffiliatePayout[]
   subAffiliateInvites               SubAffiliateInvite[] @relation("SubAffiliateInvites")
+  mediaShareEvents                  AffiliateMediaShareEvent[]
+  mediaClickEvents                  AffiliateMediaClickEvent[]
 
   @@index([userId])
   @@index([parentAffiliateId])
   @@index([status])
+}
+
+enum AffiliateMediaKind {
+  IMAGE
+  VIDEO
+}
+
+enum AffiliateMediaVisibility {
+  PRIVATE
+  AFFILIATE_COMMUNITY
+  OFFICIAL
+}
+
+enum AffiliateMediaModerationStatus {
+  DRAFT
+  ACTIVE
+  UNDER_REVIEW
+  REJECTED
+  ARCHIVED
+}
+
+/// Promotional media for affiliates — never a Marketplace listing/feed item.
+model AffiliateMediaAsset {
+  id               String                         @id @default(uuid())
+  creatorUserId    String
+  kind             AffiliateMediaKind
+  storageKey       String
+  mediaUrl         String
+  posterUrl        String?
+  posterStorageKey String?
+  mimeType         String
+  byteSize         Int
+  width            Int?
+  height           Int?
+  durationMs       Int?
+  title            String?
+  caption          String?
+  ctaText          String?
+  visibility       AffiliateMediaVisibility
+  moderationStatus AffiliateMediaModerationStatus @default(DRAFT)
+  reuseConsentAt   DateTime?
+  shareSlug        String                         @unique
+  destinationPath  String                         @default("/")
+  language         String?
+  region           String?
+  campaignTag      String?
+  createdAt        DateTime                       @default(now())
+  updatedAt        DateTime                       @updatedAt
+  deletedAt        DateTime?
+  creator          User                           @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
+  shareEvents      AffiliateMediaShareEvent[]
+  clickEvents      AffiliateMediaClickEvent[]
+
+  @@index([creatorUserId, createdAt])
+  @@index([visibility, moderationStatus, createdAt])
+  @@index([deletedAt])
+}
+
+model AffiliateMediaShareEvent {
+  id                 String              @id @default(uuid())
+  assetId            String
+  sharingAffiliateId String
+  channel            String
+  createdAt          DateTime            @default(now())
+  asset              AffiliateMediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  sharingAffiliate   Affiliate           @relation(fields: [sharingAffiliateId], references: [id], onDelete: Cascade)
+
+  @@index([assetId, createdAt])
+  @@index([sharingAffiliateId, createdAt])
+}
+
+model AffiliateMediaClickEvent {
+  id                 String              @id @default(uuid())
+  assetId            String
+  sharingAffiliateId String?
+  refCode            String?
+  createdAt          DateTime            @default(now())
+  asset              AffiliateMediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  sharingAffiliate   Affiliate?          @relation(fields: [sharingAffiliateId], references: [id], onDelete: SetNull)
+
+  @@index([assetId, createdAt])
 }
 
 model ReferralLink {

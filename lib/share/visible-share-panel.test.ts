@@ -46,6 +46,7 @@ describe('visible share panel contract', () => {
     const src = read('components/share/HomecheffVisibleShareSheet.tsx');
     assert.match(src, /invokeNativeShareOnce/);
     assert.doesNotMatch(src, /await navigator\.share\(/);
+    assert.match(src, /cancelled' \|\| result\.method === 'busy'\) return/);
   });
 
   it('desktop must not rely solely on navigator.share', () => {

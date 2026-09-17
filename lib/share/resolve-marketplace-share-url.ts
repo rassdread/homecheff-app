@@ -116,6 +116,7 @@ export function listingPathFromAbsolute(url: string): string | null {
     }
     const path = u.pathname.replace(/\/+$/, "") || "/";
     if (/^\/(product|request)\//i.test(path)) return path;
+    if (/^\/p\/[a-z0-9]+$/i.test(path)) return path;
     const exact = new Set([
       "/werken-bij",
       "/verdien",

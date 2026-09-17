@@ -29,6 +29,12 @@ const AFFILIATE_TABS: Tab[] = [
     match: (path) => path.startsWith('/affiliate/promo-codes'),
   },
   {
+    id: 'promoMedia',
+    href: OPERATIONS_ROUTES.affiliate.promoMedia,
+    labelKey: 'myHomeCheffHub.affiliateNav.promoMedia',
+    match: (path) => path.startsWith('/affiliate/promotiemateriaal'),
+  },
+  {
     id: 'earnings',
     href: OPERATIONS_ROUTES.finance.home,
     labelKey: 'myHomeCheffHub.affiliateNav.earnings',
