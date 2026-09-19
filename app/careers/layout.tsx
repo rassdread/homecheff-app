@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import { MAIN_DOMAIN, getCurrentLanguage } from '@/lib/seo/metadata';
 import { buildOpportunityOpenGraphMetadata } from '@/lib/share/og-opportunity';
 import {
-  CAREERS_NL_PATHS,
+  CAREERS_EN_PATHS,
   careersHreflangLanguages,
 } from '@/lib/navigation/public-careers-nav';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
   const og = buildOpportunityOpenGraphMetadata('hub', lang, MAIN_DOMAIN);
-  const path = CAREERS_NL_PATHS.hub;
+  const path = CAREERS_EN_PATHS.hub;
 
   return {
     ...og,
@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function WerkenBijLayout({
+export default function CareersLayout({
   children,
 }: {
   children: React.ReactNode;

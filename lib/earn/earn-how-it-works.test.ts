@@ -55,7 +55,8 @@ describe('werken-bij hero How it works CTA', () => {
   it('exposes How it works CTA copy and routes to dedicated explainer', () => {
     const hub = read('components/verdien/VerdienHubPage.tsx');
     assert.match(hub, /ctaHowItWorks/);
-    assert.match(hub, /href="\/werken-bij\/hoe-werkt-het"/);
+    assert.match(hub, /howItWorksHref/);
+    assert.match(hub, /careersPath\('howItWorks'/);
     assert.doesNotMatch(
       hub,
       /ctaHowItWorks[\s\S]{0,80}href="\/werken-bij"/,
@@ -108,7 +109,7 @@ describe('how-it-works dedicated page', () => {
     const page = read('app/werken-bij/hoe-werkt-het/page.tsx');
     const hub = read('app/werken-bij/page.tsx');
     assert.match(page, /EarnHowItWorksPage/);
-    assert.match(page, /hoe-werkt-het/);
+    assert.match(page, /CAREERS_NL_PATHS\.howItWorks/);
     assert.match(hub, /VerdienHubPage/);
     assert.notEqual(page, hub);
   });
@@ -338,6 +339,7 @@ describe('share architecture allowlist', () => {
   it('allows hoe-werkt-het share destination', () => {
     const resolve = read('lib/share/resolve-marketplace-share-url.ts');
     assert.match(resolve, /\/werken-bij\/hoe-werkt-het/);
+    assert.match(resolve, /\/careers\/how-it-works/);
     const ctx = read('hooks/useMarketplaceShareContext.ts');
     assert.match(ctx, /\/werken-bij\/hoe-werkt-het/);
   });

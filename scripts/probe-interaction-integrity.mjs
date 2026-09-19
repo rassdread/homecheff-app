@@ -46,6 +46,11 @@ const STATIC_ROUTES = [
   "/affiliate",
   "/seo-hub",
   "/werken-bij",
+  "/werken-bij/vacatures",
+  "/werken-bij/hoe-werkt-het",
+  "/careers",
+  "/careers/jobs",
+  "/careers/how-it-works",
   "/docs",
   "/evidence",
   "/hcp-ranglijsten",
@@ -359,7 +364,10 @@ report.cases.careerPortrait = await withPage("portrait390", async (page) => {
     return { opened: false, ok: false };
   }
   try {
-    const nav = await clickMenuHref(page, "/werken-bij");
+    const href =
+      (await page.locator('#navbar-mobile-menu a[data-hc-public-careers-nav]').first().getAttribute('href')) ||
+      '/werken-bij';
+    const nav = await clickMenuHref(page, href);
     if (!nav.ok) fail("career", "werken-bij hamburger", nav);
     await page.screenshot({ path: join(OUT, "career-portrait.png") }).catch(() => {});
     return { opened: true, ...nav };
@@ -379,7 +387,10 @@ report.cases.careerLandscape = await withPage("land844", async (page) => {
     return { opened: false, ok: false };
   }
   try {
-    const nav = await clickMenuHref(page, "/werken-bij");
+    const href =
+      (await page.locator('#navbar-mobile-menu a[data-hc-public-careers-nav]').first().getAttribute('href')) ||
+      '/werken-bij';
+    const nav = await clickMenuHref(page, href);
     if (!nav.ok) fail("career", "werken-bij landscape menu", nav);
     return { opened: true, ...nav };
   } catch (e) {
@@ -708,7 +719,7 @@ report.cases.desktopCareer = await withPage("desk1280", async (page) => {
   await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded", timeout: 90000 });
   await dismiss(page);
   await page.waitForTimeout(1000);
-  const direct = page.locator('[data-wx-desktop-nav] a[href="/werken-bij"], header[data-wx-navbar] a[href="/werken-bij"]').first();
+  const direct = page.locator('[data-wx-desktop-nav] a[data-hc-public-careers-nav], header[data-wx-navbar] a[data-hc-public-careers-nav]').first();
   if (await direct.count()) {
     const box = await direct.boundingBox();
     if (!box || box.width < 2) {
@@ -718,7 +729,7 @@ report.cases.desktopCareer = await withPage("desk1280", async (page) => {
     await direct.click({ timeout: 4000 });
     await page.waitForTimeout(1000);
     const path = await page.evaluate(() => location.pathname);
-    const ok = path === "/werken-bij";
+    const ok = path === "/werken-bij" || path === "/careers";
     if (!ok) fail("desktop", "werken-bij", { path });
     return { mode: "direct", ok, path };
   }

@@ -15,6 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { careersPath, localizePublicCareersHref } from '@/lib/navigation/public-careers-nav';
 import EcosystemShareAction from '@/components/share/EcosystemShareAction';
 import {
   OPPORTUNITY_DESTINATIONS,
@@ -153,6 +154,10 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
   }, [initialLang]);
 
   const hubDest = OPPORTUNITY_DESTINATIONS.hub;
+  const lang =
+    isReady && (language === 'en' || language === 'nl') ? language : initialLang;
+  const howItWorksHref = careersPath('howItWorks', lang);
+  const jobsHref = careersPath('jobs', lang);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50/80 via-white to-slate-50">
@@ -176,7 +181,7 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
               {copy.ctaPrimary}
             </a>
             <Link
-              href="/werken-bij/hoe-werkt-het"
+              href={howItWorksHref}
               className="inline-flex min-h-[44px] items-center rounded-xl border border-emerald-300 bg-white px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
               onClick={() =>
                 trackHub('opportunity_card_click', { id: 'hero_how_it_works' })
@@ -185,7 +190,7 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
               {copy.ctaHowItWorks}
             </Link>
             <EcosystemShareAction
-              destinationHref={hubDest.href}
+              destinationHref={localizePublicCareersHref(hubDest.href, lang)}
               title={copy.shareTitle}
               text={copy.shareText}
               surface="verdien_hub"
@@ -222,6 +227,7 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {CARDS.map((card) => {
               const dest = OPPORTUNITY_DESTINATIONS[card.id];
+              const destHref = localizePublicCareersHref(dest.href, lang);
               const Icon = card.icon;
               const isExternal = dest.href.startsWith('http');
               const cardCopy = copy.cards[card.cardKey];
@@ -245,14 +251,14 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
                   <div className="mt-auto flex flex-col gap-2 pt-5">
                     {isExternal ? (
                       <a
-                        href={dest.href}
+                        href={destHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
                         onClick={() =>
                           trackHub('opportunity_card_click', {
                             id: card.id,
-                            href: dest.href,
+                            href: destHref,
                           })
                         }
                       >
@@ -260,12 +266,12 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
                       </a>
                     ) : (
                       <Link
-                        href={dest.href}
+                        href={destHref}
                         className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
                         onClick={() =>
                           trackHub('opportunity_card_click', {
                             id: card.id,
-                            href: dest.href,
+                            href: destHref,
                           })
                         }
                       >
@@ -273,7 +279,7 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
                       </Link>
                     )}
                     <EcosystemShareAction
-                      destinationHref={dest.href}
+                      destinationHref={destHref}
                       title={cardCopy.title}
                       text={shareCopyFor(copy, card.id)}
                       surface="verdien_hub"
@@ -341,7 +347,7 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
             {copy.employment.body}
           </p>
           <Link
-            href="/werken-bij/vacatures"
+            href={jobsHref}
             className="mt-4 inline-flex text-sm font-semibold text-emerald-700 hover:text-emerald-900"
           >
             {copy.employment.cta}

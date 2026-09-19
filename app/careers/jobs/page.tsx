@@ -4,7 +4,7 @@ import { getVerdienHubCopy } from '@/lib/i18n/verdienHubSources';
 import { MAIN_DOMAIN, getCurrentLanguage } from '@/lib/seo/metadata';
 import { buildOpportunityOpenGraphMetadata } from '@/lib/share/og-opportunity';
 import {
-  CAREERS_NL_PATHS,
+  CAREERS_EN_PATHS,
   careersHreflangLanguages,
 } from '@/lib/navigation/public-careers-nav';
 
@@ -14,14 +14,14 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     ...og,
     alternates: {
-      canonical: `${MAIN_DOMAIN}${CAREERS_NL_PATHS.jobs}`,
+      canonical: `${MAIN_DOMAIN}${CAREERS_EN_PATHS.jobs}`,
       languages: careersHreflangLanguages('jobs'),
     },
     robots: { index: true, follow: true },
   };
 }
 
-export default async function VacaturesPage() {
+export default async function CareersJobsPage() {
   const lang = await getCurrentLanguage();
   return <VacaturesPageClient copy={getVerdienHubCopy(lang)} initialLang={lang} />;
 }

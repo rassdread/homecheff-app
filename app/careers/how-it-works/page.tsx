@@ -3,14 +3,14 @@ import EarnHowItWorksPage from '@/components/verdien/EarnHowItWorksPage';
 import { getEarnHowItWorksCopy } from '@/lib/i18n/earnHowItWorksSources';
 import { MAIN_DOMAIN, getCurrentLanguage } from '@/lib/seo/metadata';
 import {
-  CAREERS_NL_PATHS,
+  CAREERS_EN_PATHS,
   careersHreflangLanguages,
 } from '@/lib/navigation/public-careers-nav';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
   const copy = getEarnHowItWorksCopy(lang);
-  const path = CAREERS_NL_PATHS.howItWorks;
+  const path = CAREERS_EN_PATHS.howItWorks;
   const url = `${MAIN_DOMAIN}${path}`;
 
   return {
@@ -39,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function HoeWerktHetPage() {
+export default async function CareersHowItWorksPage() {
   const lang = await getCurrentLanguage();
   return (
     <EarnHowItWorksPage copy={getEarnHowItWorksCopy(lang)} initialLang={lang} />

@@ -9,6 +9,7 @@ import {
   HOMEPAGE_INFO_MORE_GROUPS,
   HOMEPAGE_INFO_PRIMARY_LINKS,
 } from '@/lib/home/homepage-info-chrome';
+import { localizePublicCareersHref } from '@/lib/navigation/public-careers-nav';
 import { getLegalOperatorDisplay } from '@/lib/seo/legal-operator-display';
 
 type ChromeVariant = 'rail' | 'nav' | 'workspace';
@@ -56,7 +57,7 @@ function MorePanel({
   onClose: () => void;
   titleId: string;
 }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   return (
     <Modal
@@ -93,7 +94,7 @@ function MorePanel({
                 {group.links.map((link) => (
                   <li key={`${group.id}:${link.id}`}>
                     <Link
-                      href={link.href}
+                      href={localizePublicCareersHref(link.href, language)}
                       prefetch={false}
                       className="block rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-emerald-800"
                       onClick={onClose}

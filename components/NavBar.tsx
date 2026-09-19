@@ -36,7 +36,7 @@ import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/Workspa
 import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
 import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
 import {
-  PUBLIC_CAREERS_PATH,
+  careersPath,
   PUBLIC_CAREERS_NAV_TESTID,
   PUBLIC_EARN_CHILD_LINKS,
 } from '@/lib/navigation/public-careers-nav';
@@ -56,7 +56,8 @@ export default function NavBar() {
     pathname?.startsWith('/affiliate') || pathname?.startsWith('/verdiensten')
       ? 'affiliate'
       : 'homecheff';
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const careersHref = careersPath('hub', language);
   const appUpdateStatus = useAppUpdateStatus();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -475,12 +476,12 @@ export default function NavBar() {
               <span className="whitespace-nowrap">{t('navbar.home')}</span>
             </Link>
             <Link
-              href={PUBLIC_CAREERS_PATH}
+              href={careersHref}
               prefetch={false}
               data-hc-public-careers-nav=""
               data-testid={PUBLIC_CAREERS_NAV_TESTID}
               className={desktopNavGhostClass}
-              onClick={() => navDebug('navbar:desktop', { href: PUBLIC_CAREERS_PATH })}
+              onClick={() => navDebug('navbar:desktop', { href: careersHref })}
             >
               <Briefcase className={desktopNavIconClass} aria-hidden />
               <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
@@ -757,14 +758,14 @@ export default function NavBar() {
                 <span>{t('navbar.home')}</span>
               </Link>
               <Link
-                href={PUBLIC_CAREERS_PATH}
+                href={careersHref}
                 prefetch={false}
                 data-hc-public-careers-nav=""
                 data-testid={`${PUBLIC_CAREERS_NAV_TESTID}-mobile`}
                 className={mobileNavRowClass}
                 onClick={() => {
                   closeMobileMenu();
-                  navDebug('navbar:mobile', { href: PUBLIC_CAREERS_PATH });
+                  navDebug('navbar:mobile', { href: careersHref });
                 }}
               >
                 <Briefcase className="w-4 h-4 shrink-0" aria-hidden />

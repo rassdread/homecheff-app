@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import EcosystemShareAction from '@/components/share/EcosystemShareAction';
 import { useTranslation } from '@/hooks/useTranslation';
+import { careersPath } from '@/lib/navigation/public-careers-nav';
 import {
   getEarnHowItWorksCopy,
   type EarnHowItWorksCopy,
@@ -144,6 +145,10 @@ export default function EarnHowItWorksPage({ copy: serverCopy, initialLang }: Pr
 
   const showDashboard =
     status === 'authenticated' && Boolean(session?.user);
+  const lang =
+    isReady && (language === 'en' || language === 'nl') ? language : initialLang;
+  const hubHref = careersPath('hub', lang);
+  const howItWorksHref = careersPath('howItWorks', lang);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50/80 via-white to-slate-50">
@@ -160,7 +165,7 @@ export default function EarnHowItWorksPage({ copy: serverCopy, initialLang }: Pr
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/werken-bij"
+              href={hubHref}
               className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
             >
               {copy.hero.ctaOpportunities}
@@ -440,7 +445,7 @@ export default function EarnHowItWorksPage({ copy: serverCopy, initialLang }: Pr
             </h2>
             <div className="mt-4 flex justify-center">
               <EcosystemShareAction
-                destinationHref="/werken-bij/hoe-werkt-het"
+                destinationHref={howItWorksHref}
                 title={copy.hero.title}
                 text={copy.share.text}
                 surface="earn_how_it_works"

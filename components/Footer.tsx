@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
+import { careersPath } from '@/lib/navigation/public-careers-nav';
 import Logo from '@/components/Logo';
 import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp, ShieldAlert, Users, Scroll, Library, BarChart3, Scale, Compass, Palette, Rocket } from 'lucide-react';
 import { COMMUNITY_GUIDELINES_URL, SAFETY_STANDARDS_URL } from '@/lib/legal/policy-urls';
@@ -10,7 +11,7 @@ import { isCompactMobileFooterPath } from '@/lib/layout/compactFooterRoutes';
 import { formatLegalOperatorRegistryLine } from '@/lib/seo/legal-operator-display';
 
 export default function Footer() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const pathname = usePathname();
   const compactPath = isCompactMobileFooterPath(pathname);
 
@@ -24,7 +25,7 @@ export default function Footer() {
   }
 
   const links = [
-    { href: '/werken-bij', label: t('siteFooter.earnWithHomecheff') || 'Verdien met HomeCheff', icon: TrendingUp },
+    { href: careersPath('hub', language), label: t('siteFooter.earnWithHomecheff') || 'Verdien met HomeCheff', icon: TrendingUp },
     { href: '/ecosystem', label: t('siteFooter.ecosystem'), icon: Compass },
     { href: '/studio', label: t('siteFooter.studio'), icon: Palette },
     { href: '/growth', label: t('siteFooter.growth'), icon: Rocket },

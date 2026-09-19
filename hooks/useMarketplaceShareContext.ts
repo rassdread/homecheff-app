@@ -179,6 +179,9 @@ export function useMarketplaceShareContext() {
       '/onboarding/seller',
       '/werken-bij/vacatures',
       '/werken-bij/hoe-werkt-het',
+      '/careers',
+      '/careers/jobs',
+      '/careers/how-it-works',
     ];
     for (const destinationPath of paths) {
       void ensureCompanyShareUrl({ organizationId: orgId, destinationPath });

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { addLocalePrefix } from '@/lib/locale';
+import { mapCareersPathForLanguage } from '@/lib/navigation/public-careers-nav';
 import { useSsrLanguage } from '@/components/i18n/SsrLanguageProvider';
 import { useSession } from 'next-auth/react';
 import { interpolateTranslation } from '@/lib/i18n/interpolate';
@@ -660,14 +661,24 @@ export function useTranslation() {
       const hostname = window.location.hostname;
       const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('localhost');
       const isDomainBased = hostname.includes('homecheff.nl') || hostname.includes('homecheff.eu');
-      
+      const nextPath = mapCareersPathForLanguage(window.location.pathname, newLanguage);
+      const nextRelative = `${nextPath}${window.location.search}${window.location.hash}`;
+      const pathChanged = nextPath !== window.location.pathname;
+
+      const goToMappedOrReload = async (absoluteOrigin?: string) => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (pathChanged) {
+          window.location.assign(absoluteOrigin ? `${absoluteOrigin}${nextRelative}` : nextRelative);
+          return;
+        }
+        window.location.reload();
+      };
+
       // On localhost or when not using domain-based routing, just reload the page
       // The language will be detected from cookie/localStorage
       if (isLocalhost || !isDomainBased) {
         console.log('[i18n] Using cookie-based routing (localhost or non-domain environment), reloading...');
-        // Small delay to ensure cookie is set and persisted before reload
-        await new Promise(resolve => setTimeout(resolve, 100));
-        window.location.reload();
+        await goToMappedOrReload();
         return;
       }
       
@@ -681,23 +692,20 @@ export function useTranslation() {
       
       if (newLanguage === 'en' && !isEnglishDomain) {
         // Switch to English: go to .eu (hoofddomein)
-        const newUrl = `https://homecheff.eu${currentPath}`;
-        console.log(`[i18n] Navigating from ${currentDomain}${currentPath} to ${newUrl}`);
-        window.location.href = newUrl;
+        console.log(`[i18n] Navigating from ${currentDomain}${currentPath} to https://homecheff.eu${nextRelative}`);
+        await goToMappedOrReload('https://homecheff.eu');
         return;
       }
       // Op .eu: nooit naar .nl redirecten (Safari sessie/cookies). Taal NL op .eu = cookie + reload.
       if (newLanguage === 'nl' && isEnglishDomain) {
         console.log('[i18n] Staying on .eu with Dutch language (no redirect to .nl for Safari)');
-        await new Promise(resolve => setTimeout(resolve, 100));
-        window.location.reload();
+        await goToMappedOrReload();
         return;
       }
       
       // Already on correct domain, just reload to apply translations
       console.log('[i18n] Already on correct domain, reloading...');
-      await new Promise(resolve => setTimeout(resolve, 100));
-      window.location.reload();
+      await goToMappedOrReload();
     } catch (error) {
       console.error('[i18n] Error during language change:', error);
       // Reset flag on error
@@ -871,7 +879,7 @@ export function useTranslation() {
    * @returns The path with locale prefix if needed (e.g., '/en/inspiratie' for English)
    */
   const getLocalizedPath = (path: string): string => {
-    return addLocalePrefix(path, language);
+    return addLocalePrefix(mapCareersPathForLanguage(path, language), language);
   };
 
   // Zorg dat <html lang> en document.title basis overeenkomen met gekozen taal (voor toegankelijkheid en consistentie)

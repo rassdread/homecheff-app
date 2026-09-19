@@ -42,6 +42,7 @@ export const APP_FIRST_SEGMENTS = [
   'bijverdienen-vanuit-huis',
   'buurt-economie',
   'buurthulp',
+  'careers',
   'changelog',
   'checkout',
   'community-guidelines',
