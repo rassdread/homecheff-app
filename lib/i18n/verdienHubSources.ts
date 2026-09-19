@@ -211,7 +211,7 @@ export const verdienHubEn = {
       "share": "Share Growth"
     },
     "jobs": {
-      "title": "Work at HomeCheff",
+      "title": "Careers",
       "proposition": "Real roles and internships at HomeCheff itself.",
       "forWhom": "Applicants for internal HomeCheff roles.",
       "howStart": "View open vacancies — no fake jobs.",
@@ -241,8 +241,8 @@ export const verdienHubEn = {
     "title": "Work at HomeCheff (internal)",
     "body": "This is only for real HomeCheff employment or internships — not for independent couriers, sellers or affiliates.",
     "cta": "Go to vacancies",
-    "nav": "Vacancies",
-    "pageTitle": "Work at HomeCheff",
+    "nav": "Careers",
+    "pageTitle": "Careers",
     "pageIntro": "Only real internal HomeCheff openings appear here.",
     "emptyTitle": "We currently have no open positions.",
     "emptyBody": "When there is a real vacancy, it will appear here. Meanwhile you can participate by selling, delivering or affiliating.",

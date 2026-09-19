@@ -80,6 +80,16 @@ export const HOMEPAGE_INFO_MORE_GROUPS: readonly HomepageInfoGroup[] = [
         labelKey: 'siteFooter.affiliateProgram',
       },
       {
+        id: 'earn',
+        href: '/werken-bij',
+        labelKey: 'siteFooter.earnWithHomecheff',
+      },
+      {
+        id: 'careers',
+        href: '/werken-bij',
+        labelKey: 'navbar.werkenBij',
+      },
+      {
         id: 'feedback',
         href: '/contact?subject=feedback',
         labelKey: 'siteFooter.feedback',
@@ -105,6 +115,7 @@ export const HOMEPAGE_INFO_MORE_GROUPS: readonly HomepageInfoGroup[] = [
 
 const FOOTER_INVENTORY_HREFS = [
   '/affiliate',
+  '/werken-bij',
   '/ecosystem',
   '/studio',
   '/growth',

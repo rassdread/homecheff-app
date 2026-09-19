@@ -712,7 +712,8 @@ report.cases.desktopCareer = await withPage("desk1280", async (page) => {
   if (await direct.count()) {
     const box = await direct.boundingBox();
     if (!box || box.width < 2) {
-      return { mode: "not-visible-desktop-primary", ok: true };
+      fail("desktop", "werken-bij-not-visible", { box });
+      return { mode: "not-visible-desktop-primary", ok: false };
     }
     await direct.click({ timeout: 4000 });
     await page.waitForTimeout(1000);
@@ -721,7 +722,7 @@ report.cases.desktopCareer = await withPage("desk1280", async (page) => {
     if (!ok) fail("desktop", "werken-bij", { path });
     return { mode: "direct", ok, path };
   }
-  return { mode: "not-in-desktop-primary", ok: true, note: "guest careers in hamburger only" };
+  return { mode: "not-in-desktop-primary", ok: false, note: "guest careers must be in desktop header" };
 });
 
 // --- Owner Edit integrity: bare UUID /edit must NOT strip to public listing ---

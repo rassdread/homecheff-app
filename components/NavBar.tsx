@@ -8,7 +8,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import type { EcosystemProductId } from '@/lib/ecosystem-navigation/contract';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Menu, X, HelpCircle, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, Info, Smartphone, Download, Plus, Award, CalendarClock, Bell } from 'lucide-react';
+import { Home, User, LogOut, Menu, X, HelpCircle, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Info, Smartphone, Download, Plus, Award, CalendarClock, Bell, Briefcase } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -35,6 +35,11 @@ import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
 import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
+import {
+  PUBLIC_CAREERS_PATH,
+  PUBLIC_CAREERS_NAV_TESTID,
+  PUBLIC_EARN_CHILD_LINKS,
+} from '@/lib/navigation/public-careers-nav';
 import SimplifiedAccountMenu from '@/components/navigation/SimplifiedAccountMenu';
 import {
   NAVBAR_CLOSE_MENU_EVENT,
@@ -469,18 +474,17 @@ export default function NavBar() {
               <Home className={desktopNavIconClass} aria-hidden />
               <span className="whitespace-nowrap">{t('navbar.home')}</span>
             </Link>
-            {/* WX 1C.1.2 — Careers only in primary desktop nav when signed in; guests find it in the menu. */}
-            {user ? (
-              <Link
-                href="/werken-bij"
-                prefetch={false}
-                className={desktopNavGhostClass}
-                onClick={() => navDebug('navbar:desktop', { href: '/werken-bij' })}
-              >
-                <Lightbulb className={desktopNavIconClass} aria-hidden />
-                <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
-              </Link>
-            ) : null}
+            <Link
+              href={PUBLIC_CAREERS_PATH}
+              prefetch={false}
+              data-hc-public-careers-nav=""
+              data-testid={PUBLIC_CAREERS_NAV_TESTID}
+              className={desktopNavGhostClass}
+              onClick={() => navDebug('navbar:desktop', { href: PUBLIC_CAREERS_PATH })}
+            >
+              <Briefcase className={desktopNavIconClass} aria-hidden />
+              <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
+            </Link>
             <Link
               href={user ? MY_HOMECHEFF_HUB_PATH : '/login'}
               prefetch={false}
@@ -752,6 +756,20 @@ export default function NavBar() {
                 <Home className="w-4 h-4 shrink-0" aria-hidden />
                 <span>{t('navbar.home')}</span>
               </Link>
+              <Link
+                href={PUBLIC_CAREERS_PATH}
+                prefetch={false}
+                data-hc-public-careers-nav=""
+                data-testid={`${PUBLIC_CAREERS_NAV_TESTID}-mobile`}
+                className={mobileNavRowClass}
+                onClick={() => {
+                  closeMobileMenu();
+                  navDebug('navbar:mobile', { href: PUBLIC_CAREERS_PATH });
+                }}
+              >
+                <Briefcase className="w-4 h-4 shrink-0" aria-hidden />
+                <span>{t('navbar.werkenBij')}</span>
+              </Link>
 
               {/* Primary create — hidden when bottom nav (+) is visible */}
               {!bottomNavReachable ? (
@@ -813,22 +831,6 @@ export default function NavBar() {
                     </span>
                   </span>
                 </button>
-              ) : null}
-
-              {/* WX 1C.1.2 — authenticated: Careers stays with primary menu items */}
-              {user ? (
-                <Link
-                  href="/werken-bij"
-                  prefetch={false}
-                  className={mobileNavRowClass}
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    navDebug('navbar:mobile', { href: '/werken-bij' });
-                  }}
-                >
-                  <Lightbulb className="w-4 h-4 shrink-0" />
-                  <span>{t('navbar.werkenBij')}</span>
-                </Link>
               ) : null}
 
               <Link
@@ -947,34 +949,34 @@ export default function NavBar() {
                 </>
               )}
 
-              {/* WX 1C.1.2 — guest secondary: Careers/Earn stay available, off primary discovery */}
+              <div className="my-2 border-t border-gray-200" />
+              <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                {t('navbar.earnWithHomecheff')}
+              </p>
+              {PUBLIC_EARN_CHILD_LINKS.map((link) => (
+                <Link
+                  key={link.id}
+                  href={link.href}
+                  prefetch={false}
+                  className={mobileNavRowClass}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    navDebug('navbar:mobile', { href: link.href, earnChild: link.id });
+                  }}
+                >
+                  <span>{t(link.labelKey)}</span>
+                </Link>
+              ))}
+
               {!user ? (
-                <>
-                  <div className="my-2 border-t border-gray-200" />
-                  <div className="px-1 py-1">
-                    <OntdekHomeCheffMenu
-                      currentProduct={ecosystemCurrentProduct}
-                      authenticated={false}
-                      surface="mobile_menu"
-                      variant="inline"
-                    />
-                  </div>
-                  <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                    {t('navbar.secondaryLinksLabel')}
-                  </p>
-                  <Link
-                    href="/werken-bij"
-                    prefetch={false}
-                    className={cn(mobileNavRowClass, 'text-gray-600')}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/werken-bij', secondary: true });
-                    }}
-                  >
-                    <Lightbulb className="h-4 w-4 shrink-0 text-gray-400" />
-                    <span>{t('navbar.werkenBij')}</span>
-                  </Link>
-                </>
+                <div className="px-1 py-1">
+                  <OntdekHomeCheffMenu
+                    currentProduct={ecosystemCurrentProduct}
+                    authenticated={false}
+                    surface="mobile_menu"
+                    variant="inline"
+                  />
+                </div>
               ) : null}
 
               {/* Canonical Over HomeCheff / legal — once per mobile menu (not also inside account). */}

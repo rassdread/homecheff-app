@@ -1,26 +1,10 @@
 import type { Metadata } from 'next';
-import { cookies, headers } from 'next/headers';
 import EarnHowItWorksPage from '@/components/verdien/EarnHowItWorksPage';
-import {
-  getEarnHowItWorksCopy,
-  type EarnHowItWorksLang,
-} from '@/lib/i18n/earnHowItWorksSources';
-import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
-
-async function resolveLang(): Promise<EarnHowItWorksLang> {
-  const headersList = await headers();
-  const languageHeader = headersList.get('X-HomeCheff-Language');
-  const cookieStore = await cookies();
-  const languageCookie = cookieStore.get('homecheff-language');
-  if (languageHeader === 'nl' || languageHeader === 'en') return languageHeader;
-  if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
-    return languageCookie.value;
-  }
-  return 'nl';
-}
+import { getEarnHowItWorksCopy } from '@/lib/i18n/earnHowItWorksSources';
+import { MAIN_DOMAIN, getCurrentLanguage, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const lang = await resolveLang();
+  const lang = await getCurrentLanguage();
   const copy = getEarnHowItWorksCopy(lang);
   const path = '/werken-bij/hoe-werkt-het';
   const url = `${MAIN_DOMAIN}${path}`;
@@ -52,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HoeWerktHetPage() {
-  const lang = await resolveLang();
+  const lang = await getCurrentLanguage();
   return (
     <EarnHowItWorksPage copy={getEarnHowItWorksCopy(lang)} initialLang={lang} />
   );

@@ -1,21 +1,9 @@
 import type { Metadata } from 'next';
-import { cookies, headers } from 'next/headers';
-import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
+import { MAIN_DOMAIN, getCurrentLanguage, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 import { buildOpportunityOpenGraphMetadata } from '@/lib/share/og-opportunity';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const headersList = await headers();
-  const languageHeader = headersList.get('X-HomeCheff-Language');
-  const cookieStore = await cookies();
-  const languageCookie = cookieStore.get('homecheff-language');
-
-  let lang: 'nl' | 'en' = 'nl';
-  if (languageHeader === 'nl' || languageHeader === 'en') {
-    lang = languageHeader;
-  } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
-    lang = languageCookie.value as 'nl' | 'en';
-  }
-
+  const lang = await getCurrentLanguage();
   const og = buildOpportunityOpenGraphMetadata('hub', lang, MAIN_DOMAIN);
   const path = '/werken-bij';
 
