@@ -14,6 +14,7 @@ import {
   mergeLanguageVary,
   resolveEcosystemLanguage,
 } from '../lib/ecosystem-locale';
+import { careersPath } from '../lib/navigation/public-careers-nav';
 
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
@@ -202,6 +203,67 @@ assert(
 assert(
   mergeLanguageVary(null).includes('x-vercel-ip-country'),
   'fresh-visitor Vary still keys on country (cookie empty is not enough)',
+);
+
+// Geo initial locale → Careers route family (existing careersPath; do not rebuild Careers).
+function careersFamilyFromCountry(country: string | null) {
+  const lang = languageFromCountryCode(country);
+  return {
+    lang,
+    hub: careersPath('hub', lang),
+    jobs: careersPath('jobs', lang),
+    howItWorks: careersPath('howItWorks', lang),
+  };
+}
+
+for (const country of ['NL', 'BE', 'SR'] as const) {
+  const fam = careersFamilyFromCountry(country);
+  assert(fam.lang === 'nl', `${country} initial locale → nl`);
+  assert(fam.hub === '/werken-bij', `${country} Careers nav → /werken-bij`);
+  assert(fam.jobs === '/werken-bij/vacatures', `${country} jobs → /werken-bij/vacatures`);
+  assert(
+    fam.howItWorks === '/werken-bij/hoe-werkt-het',
+    `${country} how-it-works → /werken-bij/hoe-werkt-het`,
+  );
+}
+
+for (const country of ['US', 'GB', 'DE', 'FR', 'ES', 'NG'] as const) {
+  const fam = careersFamilyFromCountry(country);
+  assert(fam.lang === 'en', `${country} initial locale → en`);
+  assert(fam.hub === '/careers', `${country} Careers nav → /careers`);
+  assert(fam.jobs === '/careers/jobs', `${country} jobs → /careers/jobs`);
+  assert(
+    fam.howItWorks === '/careers/how-it-works',
+    `${country} how-it-works → /careers/how-it-works`,
+  );
+}
+
+assert(careersFamilyFromCountry(null).hub === '/careers', 'unknown geo Careers nav → /careers');
+assert(
+  careersPath(
+    'hub',
+    resolveColdStartLanguage({
+      host: 'homecheff.eu',
+      hasExplicitPreference: true,
+      explicitLanguage: 'nl',
+      cookieLanguage: 'nl',
+      countryCode: 'US',
+    }),
+  ) === '/werken-bij',
+  'explicit NL over US geo still uses /werken-bij',
+);
+assert(
+  careersPath(
+    'hub',
+    resolveColdStartLanguage({
+      host: 'homecheff.eu',
+      hasExplicitPreference: true,
+      explicitLanguage: 'en',
+      cookieLanguage: 'en',
+      countryCode: 'NL',
+    }),
+  ) === '/careers',
+  'explicit EN over NL geo still uses /careers',
 );
 
 console.log('validate-cold-start-locale: PASS');
