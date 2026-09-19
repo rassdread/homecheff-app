@@ -15,7 +15,7 @@ import { EN_SEO_PAGE_SLUGS, NL_SEO_PAGE_SLUGS } from '@/lib/seo/homecheffSeoPage
 const ETEN_VERKOPEN_PREFIX = 'eten-verkopen-';
 
 /** Static `app/en/*` folders (not the `[seoSlug]` catch-all). */
-export const EN_APP_FIRST_SEGMENTS = ['seo-hub', 'welkom', 'what-is-homecheff'] as const;
+export const EN_APP_FIRST_SEGMENTS = ['invite', 'seo-hub', 'welkom', 'what-is-homecheff'] as const;
 
 const NL_SEO_SLUGS: readonly string[] = NL_SEO_PAGE_SLUGS;
 const EN_SEO_SLUGS: readonly string[] = EN_SEO_PAGE_SLUGS;
@@ -72,6 +72,7 @@ export const APP_FIRST_SEGMENTS = [
   'hoe-homecheff-werkt',
   'how-homecheff-grows',
   'inspiratie',
+  'invite',
   'listing',
   'llms-full.txt',
   'llms.txt',

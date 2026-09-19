@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CommissionLedgerStatus } from "@prisma/client";
+import { mapOwnedAttributionsToReferralList } from "@/lib/affiliates/affiliate-referrals-view";
+import { buildPersonalReferralUrl } from "@/lib/affiliates/personal-referral";
 
 export const dynamic = 'force-dynamic';
 
@@ -64,7 +66,6 @@ export async function GET(req: NextRequest) {
                   select: {
                     id: true,
                     name: true,
-                    email: true,
                     username: true,
                     createdAt: true,
                   },
@@ -118,21 +119,24 @@ export async function GET(req: NextRequest) {
       (a) => a.type === 'BUSINESS_SIGNUP'
     ).length;
 
-    // Map referrals with user information (ordered by most recent first)
-    const referrals = affiliate.attributions
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .map((attribution) => ({
+    // Owned attributions only (session affiliate). No email / no cross-affiliate ids.
+    const referrals = mapOwnedAttributionsToReferralList(
+      affiliate.id,
+      affiliate.attributions.map((attribution) => ({
         id: attribution.id,
+        affiliateId: affiliate.id,
         userId: attribution.userId,
-        name: attribution.user.name,
-        email: attribution.user.email,
-        username: attribution.user.username || null,
         type: attribution.type,
         source: attribution.source,
         createdAt: attribution.createdAt,
         startsAt: attribution.startsAt,
         endsAt: attribution.endsAt,
-      }));
+        user: {
+          name: attribution.user.name,
+          username: attribution.user.username,
+        },
+      })),
+    );
 
     // Count active promo codes
     const activePromoCodes = affiliate.promoCodes.length;
@@ -176,16 +180,8 @@ export async function GET(req: NextRequest) {
 
     // Get referral link code if it exists
     const referralLink = affiliate.referralLinks[0];
-    
-    // Generate the full referral link with correct base URL
-    // Detect language from referrer header or cookie
-    // API routes don't have /en/ in pathname, so check referrer or cookie
-    const referer = req.headers.get('referer') || '';
-    const isEnglish = referer.includes('/en/') || req.cookies.get('homecheff-language')?.value === 'en';
-    const langPrefix = isEnglish ? '/en' : '';
-    
-    const referralLinkUrl = referralLink 
-      ? `${req.nextUrl.origin}${langPrefix}/welkom/${referralLink.code}`
+    const referralLinkUrl = referralLink
+      ? buildPersonalReferralUrl(req.nextUrl.origin, referralLink.code)
       : null;
 
     return NextResponse.json({

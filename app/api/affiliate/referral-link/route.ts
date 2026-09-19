@@ -8,8 +8,58 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  buildPersonalReferralUrl,
+  ensurePersonalReferralLink,
+} from "@/lib/affiliates/personal-referral";
 
 export const dynamic = 'force-dynamic';
+
+function referralOrigin(req: NextRequest): string {
+  return req.nextUrl.origin || "https://homecheff.eu";
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id && !session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = session.user.id
+      ? await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { id: true },
+        })
+      : await prisma.user.findUnique({
+          where: { email: session.user.email! },
+          select: { id: true },
+        });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const ensured = await ensurePersonalReferralLink(user.id);
+    if (!ensured) {
+      return NextResponse.json(
+        { error: "Referral link unavailable" },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json({
+      code: ensured.code,
+      link: buildPersonalReferralUrl(referralOrigin(req), ensured.code),
+    });
+  } catch (error) {
+    console.error("Error ensuring referral link:", error);
+    return NextResponse.json(
+      { error: "Failed to create referral link" },
+      { status: 500 },
+    );
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {

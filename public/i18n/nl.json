@@ -7604,6 +7604,8 @@
       "referralsCount": "{count} aanmeldingen via link",
       "referralBusiness": "Bedrijf",
       "referralUser": "Gebruiker",
+      "referralWindowActive": "Attributie actief",
+      "referralWindowEnded": "Attributievenster afgelopen",
       "viewProfile": "Bekijk profiel",
       "profile": "Profiel",
       "noReferrals": "Nog geen aanmeldingen via jouw link",
@@ -10596,6 +10598,15 @@
       "partnerLink": "Partnerlink",
       "profile": "Profiel"
     }
+  },
+  "inviteNeighbour": {
+    "title": "Nodig een buur uit",
+    "description": "Deel je persoonlijke uitnodigingslink. Als iemand zich via die link aanmeldt, blijft de attributie bij jou.",
+    "copy": "Kopieer link",
+    "copied": "Gekopieerd",
+    "share": "Delen",
+    "shareText": "Doe mee met HomeCheff in de buurt:",
+    "unavailable": "Je uitnodigingslink is nu niet beschikbaar. Probeer het later opnieuw."
   },
   "roleQuickLinks": {
     "title": "Snelle acties",

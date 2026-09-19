@@ -80,7 +80,7 @@ const RECOMMENDATION_REGISTRY: RecommendationDef[] = [
     priority: 72,
     titleKey: `${KEY}.inviteBusiness.title`,
     descriptionKey: `${KEY}.inviteBusiness.description`,
-    href: '/welkom',
+    href: '/invite',
     isEligible: (i) =>
       i.loggedIn && i.hasSellerRole && i.productCount >= 3 && i.completedInvites < 1,
   },
@@ -90,7 +90,7 @@ const RECOMMENDATION_REGISTRY: RecommendationDef[] = [
     priority: 65,
     titleKey: `${KEY}.inviteClub.title`,
     descriptionKey: `${KEY}.inviteClub.description`,
-    href: '/welkom',
+    href: '/invite',
     isEligible: (i) => i.loggedIn && i.hasLocation && i.completedInvites < 2,
   },
   {

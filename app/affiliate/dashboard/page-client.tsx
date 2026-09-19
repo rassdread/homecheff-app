@@ -62,14 +62,14 @@ interface DashboardData {
   referrals?: Array<{
     id: string;
     userId: string;
-    name: string;
-    email: string;
+    displayName: string;
     username: string | null;
     type: string;
     source: string;
     createdAt: string;
     startsAt: string;
     endsAt: string;
+    windowStatus: 'active' | 'ended';
   }>;
   upline: {
     id: string;
@@ -101,7 +101,7 @@ interface DashboardData {
 export default function AffiliateDashboardClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t, tOr } = useTranslation();
+  const { t, tOr, language } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -987,10 +987,7 @@ export default function AffiliateDashboardClient() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-gray-900 truncate">
-                              {referral.name}
-                            </p>
-                            <p className="text-sm text-gray-600 truncate">
-                              {referral.email}
+                              {referral.displayName}
                             </p>
                             {referral.username && (
                               <p className="text-xs text-gray-500 mt-1 truncate">
@@ -1014,11 +1011,21 @@ export default function AffiliateDashboardClient() {
                               : t('affiliate.dashboard.referralUser')}
                           </span>
                           <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
-                            {new Date(referral.createdAt).toLocaleDateString('nl-NL', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
+                            {t(
+                              referral.windowStatus === 'active'
+                                ? 'affiliate.dashboard.referralWindowActive'
+                                : 'affiliate.dashboard.referralWindowEnded',
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
+                            {new Date(referral.createdAt).toLocaleDateString(
+                              language === 'en' ? 'en-GB' : 'nl-NL',
+                              {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              },
+                            )}
                           </p>
                         </div>
                         <Link

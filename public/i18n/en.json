@@ -2093,7 +2093,7 @@
         "action": "Set up delivery profile"
       },
       "inviteFriend": {
-        "title": "Invite a neighbor",
+        "title": "Invite a neighbour",
         "description": "Grow the community by inviting someone to HomeCheff.",
         "action": "Invite"
       }
@@ -7610,6 +7610,8 @@
       "referralsCount": "{count} sign-ups via link",
       "referralBusiness": "Business",
       "referralUser": "User",
+      "referralWindowActive": "Attribution active",
+      "referralWindowEnded": "Attribution window ended",
       "viewProfile": "View profile",
       "profile": "Profile",
       "noReferrals": "No sign-ups via your link yet",
@@ -10596,6 +10598,15 @@
       "partnerLink": "Partner link",
       "profile": "Profile"
     }
+  },
+  "inviteNeighbour": {
+    "title": "Invite a neighbour",
+    "description": "Share your personal invite link. If someone signs up through that link, attribution stays with you.",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "share": "Share",
+    "shareText": "Join HomeCheff in your neighbourhood:",
+    "unavailable": "Your invite link is not available right now. Try again later."
   },
   "roleQuickLinks": {
     "title": "Quick actions",

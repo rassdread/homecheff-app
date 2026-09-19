@@ -166,7 +166,7 @@ export const ACTIVITY_CARD_TYPE_REGISTRY: Record<
     descriptionKey: 'activityCards.types.inviteFriend.description',
     icon: 'UserPlus',
     actionLabelKey: 'activityCards.types.inviteFriend.action',
-    actionHref: '/welkom',
+    actionHref: '/invite',
     dismissible: true,
     cooldownDays: 14,
     ctaKind: 'navigate',
