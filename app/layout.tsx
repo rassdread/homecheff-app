@@ -72,18 +72,22 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const languageHeader = headersList.get('X-HomeCheff-Language');
   const cookieStore = await cookies();
-  const languageCookie = cookieStore.get('homecheff-language');
-  let lang: 'nl' | 'en' = 'nl';
+  const languageCookie =
+    cookieStore.get('hc_locale')?.value ||
+    cookieStore.get('homecheff-language')?.value;
+  let lang: 'nl' | 'en' = 'en';
   if (languageHeader === 'nl' || languageHeader === 'en') {
     lang = languageHeader;
-  } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
-    lang = languageCookie.value as 'nl' | 'en';
+  } else if (languageCookie === 'nl' || languageCookie === 'en') {
+    lang = languageCookie;
   } else {
     const { resolveColdStartLanguage } = await import('@/lib/locale');
     lang = resolveColdStartLanguage({
-      cookieLanguage: languageCookie?.value,
+      cookieLanguage: languageCookie,
       host: hostname,
-      acceptLanguage: headersList.get('accept-language'),
+      countryCode:
+        headersList.get('x-vercel-ip-country') ||
+        headersList.get('cf-ipcountry'),
     });
   }
 
@@ -186,18 +190,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const hostname = headersList.get('host') || '';
   const languageHeader = headersList.get('X-HomeCheff-Language');
   const cookieStore = await cookies();
-  const languageCookie = cookieStore.get('homecheff-language');
-  let htmlLang: 'en' | 'nl' = 'nl';
+  const languageCookie =
+    cookieStore.get('hc_locale')?.value ||
+    cookieStore.get('homecheff-language')?.value;
+  let htmlLang: 'en' | 'nl' = 'en';
   if (languageHeader === 'nl' || languageHeader === 'en') {
     htmlLang = languageHeader;
-  } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
-    htmlLang = languageCookie.value as 'en' | 'nl';
+  } else if (languageCookie === 'nl' || languageCookie === 'en') {
+    htmlLang = languageCookie;
   } else {
     const { resolveColdStartLanguage } = await import('@/lib/locale');
     htmlLang = resolveColdStartLanguage({
-      cookieLanguage: languageCookie?.value,
+      cookieLanguage: languageCookie,
       host: hostname,
-      acceptLanguage: headersList.get('accept-language'),
+      countryCode:
+        headersList.get('x-vercel-ip-country') ||
+        headersList.get('cf-ipcountry'),
     });
   }
   // Seed client SessionProvider — avoids guest CTA flash after OAuth / hard navigations.
@@ -243,7 +251,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
       </head>
       <body className="min-h-screen bg-gray-50 font-sans antialiased overflow-x-clip max-w-[100vw] w-full">
-        <Providers session={session}>
+        <Providers session={session} initialLanguage={htmlLang}>
           <SkipLink />
           <PerformanceMonitor />
           <ConsentAwareAnalytics />

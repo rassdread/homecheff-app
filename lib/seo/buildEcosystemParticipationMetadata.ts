@@ -3,8 +3,7 @@
  */
 
 import type { Metadata } from 'next';
-import { cookies, headers } from 'next/headers';
-import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
+import { MAIN_DOMAIN, getCurrentLanguage, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
 import {
   ECOSYSTEM_PARTICIPATION_SOURCES,
@@ -12,15 +11,7 @@ import {
 import type { Bi } from '@/lib/i18n/seoLandingSources';
 
 async function resolveLang(): Promise<'nl' | 'en'> {
-  const headersList = await headers();
-  const languageHeader = headersList.get('X-HomeCheff-Language');
-  const cookieStore = await cookies();
-  const languageCookie = cookieStore.get('homecheff-language');
-  if (languageHeader === 'nl' || languageHeader === 'en') return languageHeader;
-  if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
-    return languageCookie.value as 'nl' | 'en';
-  }
-  return 'nl';
+  return getCurrentLanguage();
 }
 
 export async function resolvePublicLandingLang(): Promise<'nl' | 'en'> {

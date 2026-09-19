@@ -15,6 +15,7 @@ import {
   ECOSYSTEM_LOCALE_PREF_COOKIE,
   MARKETPLACE_LEGACY_LOCALE_COOKIE,
   ecosystemLocaleCookieAttributes,
+  mergeLanguageVary,
   parseEcosystemLanguage,
 } from '@/lib/ecosystem-locale';
 import { getAuthSessionCookieDomain } from '@/lib/auth-origin';
@@ -182,7 +183,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Taal: explicit/cookie → /en path → IP country (NL/BE/SR→nl) → en
+  // Taal: explicit/cookie → /en path → IP country (NL/BE/SR→nl, else/unknown→en)
   const host = request.headers.get('host') || '';
   const legacyCookie = request.cookies.get(MARKETPLACE_LEGACY_LOCALE_COOKIE)?.value;
   const ecoCookie = request.cookies.get(ECOSYSTEM_LOCALE_COOKIE)?.value;
@@ -374,6 +375,9 @@ export async function middleware(request: NextRequest) {
     request: { headers: requestHeaders },
   });
   applyLocaleSeed(res);
+  // Language is per-visitor (cookie + geo). Cookie-only Vary is not enough
+  // for a first visit: NL and US both arrive without a locale cookie.
+  res.headers.set('Vary', mergeLanguageVary(res.headers.get('Vary')));
   // Security headers alleen op pagina's, nooit op /api (video-proxy mag geen CSP krijgen, anders laadt video niet in Edge)
   // Ook niet op favicon/PNG icons/manifest: CSP op image-responses breekt tab-favicon in Safari.
   if (!pathname.startsWith('/api/') && !isPublicIconOrManifestPath(pathname)) {

@@ -26,15 +26,18 @@ export async function getCurrentLanguage(): Promise<'nl' | 'en'> {
   const headersList = await headers();
   const languageHeader = headersList.get('X-HomeCheff-Language');
   const cookieStore = await cookies();
-  const languageCookie = cookieStore.get('homecheff-language');
-  
+  const languageCookie =
+    cookieStore.get('hc_locale')?.value ||
+    cookieStore.get('homecheff-language')?.value;
+
   if (languageHeader === 'nl' || languageHeader === 'en') {
     return languageHeader;
   }
-  if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
-    return languageCookie.value as 'nl' | 'en';
+  if (languageCookie === 'nl' || languageCookie === 'en') {
+    return languageCookie;
   }
-  return 'nl';
+  // Unknown geo / missing header: English, never silent Dutch.
+  return 'en';
 }
 
 /** Geeft altijd het hoofddomein .eu terug (canonical, OG, structured data). */

@@ -8,7 +8,10 @@ import {
   languageFromCountryCode,
 } from '../lib/locale';
 import {
+  DUTCH_DEFAULT_COUNTRIES,
+  LANGUAGE_RESPONSE_VARY,
   languageFromCountryCode as ecoFromCountry,
+  mergeLanguageVary,
   resolveEcosystemLanguage,
 } from '../lib/ecosystem-locale';
 
@@ -20,17 +23,24 @@ assert(preferLanguageFromAcceptLanguage('nl-NL,nl;q=0.9,en;q=0.8') === 'nl', 'nl
 assert(preferLanguageFromAcceptLanguage('en-US,en;q=0.9') === 'en', 'en-US');
 assert(preferLanguageFromAcceptLanguage('de-DE,de;q=0.9') === null, 'de → null');
 
+assert(DUTCH_DEFAULT_COUNTRIES.has('NL'), 'NL in Dutch default set');
+assert(DUTCH_DEFAULT_COUNTRIES.has('BE'), 'BE in Dutch default set');
+assert(DUTCH_DEFAULT_COUNTRIES.has('SR'), 'SR in Dutch default set');
+
 assert(languageFromCountryCode('NL') === 'nl', 'NL → nl');
 assert(languageFromCountryCode('BE') === 'nl', 'BE → nl');
-assert(languageFromCountryCode('SR') === 'en', 'SR → en');
+assert(languageFromCountryCode('SR') === 'nl', 'SR → nl');
 assert(languageFromCountryCode('SU') === 'en', 'SU → en');
 assert(languageFromCountryCode('DE') === 'en', 'DE → en');
 assert(languageFromCountryCode('FR') === 'en', 'FR → en');
 assert(languageFromCountryCode('GB') === 'en', 'GB → en');
 assert(languageFromCountryCode('US') === 'en', 'US → en');
+assert(languageFromCountryCode('ES') === 'en', 'ES → en');
+assert(languageFromCountryCode('NG') === 'en', 'NG → en');
 assert(languageFromCountryCode(null) === 'en', 'null → en');
 assert(languageFromCountryCode('XX') === 'en', 'XX → en');
 assert(ecoFromCountry('be') === 'nl', 'be lowercase → nl');
+assert(ecoFromCountry('sr') === 'nl', 'sr lowercase → nl');
 
 assert(
   resolveColdStartLanguage({
@@ -50,8 +60,8 @@ assert(
   resolveColdStartLanguage({
     host: 'homecheff.eu',
     countryCode: 'SR',
-  }) === 'en',
-  'SR IP → en',
+  }) === 'nl',
+  'SR IP → nl',
 );
 assert(
   resolveColdStartLanguage({
@@ -63,10 +73,32 @@ assert(
 assert(
   resolveColdStartLanguage({
     host: 'homecheff.eu',
+    countryCode: 'GB',
+  }) === 'en',
+  'GB IP → en',
+);
+assert(
+  resolveColdStartLanguage({
+    host: 'homecheff.eu',
     countryCode: 'DE',
     acceptLanguage: 'nl-NL',
   }) === 'en',
   'DE IP wins over Accept-Language nl',
+);
+assert(
+  resolveColdStartLanguage({
+    host: 'homecheff.eu',
+    countryCode: 'BE',
+    acceptLanguage: 'fr-BE,fr;q=0.9',
+  }) === 'nl',
+  'BE stays NL even with French Accept-Language',
+);
+assert(
+  resolveColdStartLanguage({
+    host: 'homecheff.eu',
+    acceptLanguage: 'nl-NL,nl;q=0.9',
+  }) === 'en',
+  'unknown country → en (not Accept-Language)',
 );
 assert(
   resolveColdStartLanguage({ host: 'homecheff.eu' }) === 'en',
@@ -92,12 +124,53 @@ assert(
   'explicit wins over account + IP',
 );
 assert(
+  resolveColdStartLanguage({
+    host: 'homecheff.eu',
+    countryCode: 'FR',
+  }) === 'en',
+  'FR IP → en',
+);
+assert(
+  resolveColdStartLanguage({
+    host: 'homecheff.eu',
+    countryCode: 'ES',
+  }) === 'en',
+  'ES IP → en',
+);
+assert(
+  resolveColdStartLanguage({
+    host: 'homecheff.eu',
+    countryCode: 'NG',
+  }) === 'en',
+  'NG IP → en',
+);
+assert(
+  resolveColdStartLanguage({
+    host: 'homecheff.eu',
+    hasExplicitPreference: true,
+    explicitLanguage: 'nl',
+    cookieLanguage: 'nl',
+    countryCode: 'US',
+  }) === 'nl',
+  'manual NL override persists over US geo',
+);
+assert(
+  resolveColdStartLanguage({
+    host: 'homecheff.eu',
+    hasExplicitPreference: true,
+    explicitLanguage: 'en',
+    cookieLanguage: 'en',
+    countryCode: 'NL',
+  }) === 'en',
+  'manual EN override persists over NL geo',
+);
+assert(
   resolveEcosystemLanguage({
     accountLanguage: 'nl',
     cookieLanguage: 'en',
     countryCode: 'US',
   }) === 'nl',
-  'account wins over cookie',
+  'account wins over cookie in resolver (middleware does not pass account)',
 );
 assert(
   resolveColdStartLanguage({
@@ -113,6 +186,22 @@ assert(
     acceptLanguage: 'en-US',
   }) === 'nl',
   '.nl host → NL market default when no cookie',
+);
+
+assert(LANGUAGE_RESPONSE_VARY.includes('Cookie'), 'Vary includes Cookie');
+assert(
+  LANGUAGE_RESPONSE_VARY.includes('x-vercel-ip-country'),
+  'Vary includes x-vercel-ip-country',
+);
+assert(LANGUAGE_RESPONSE_VARY.includes('cf-ipcountry'), 'Vary includes cf-ipcountry');
+assert(
+  mergeLanguageVary('RSC').includes('x-vercel-ip-country') &&
+    mergeLanguageVary('RSC').includes('Cookie'),
+  'mergeLanguageVary keeps existing + country + cookie',
+);
+assert(
+  mergeLanguageVary(null).includes('x-vercel-ip-country'),
+  'fresh-visitor Vary still keys on country (cookie empty is not enough)',
 );
 
 console.log('validate-cold-start-locale: PASS');

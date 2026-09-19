@@ -3,7 +3,7 @@
  * Om een nieuwe taal toe te voegen: voeg toe aan SUPPORTED_LOCALES, maak een nieuwe JSON in public/i18n (bijv. de.json)
  * en zorg dat middleware/useTranslation de nieuwe code ondersteunt.
  *
- * IP default language: see lib/ecosystem-locale.ts (NL/BE → nl, else en; SR → en).
+ * IP default language: see lib/ecosystem-locale.ts (NL/BE/SR → nl, else/unknown → en).
  */
 import {
   languageFromCountryCode,
@@ -70,8 +70,10 @@ export type ColdStartLanguageInput = {
 /**
  * Cold-start / request language.
  * Priority: explicit → account → cookie → /en path → IP country (NL/BE/SR→nl) → en
- * Accept-Language is only used when country is unknown and no cookie exists (soft hint),
- * then still falls through to IP/en — we do NOT prefer Accept-Language over IP when country is known.
+ *
+ * Browser Accept-Language is never the primary default. When country/geo is
+ * missing or invalid, fall through to English so international visitors are
+ * not shown Dutch by accident.
  */
 export function resolveColdStartLanguage(input: ColdStartLanguageInput): Language {
   const pathname = input.pathname || '';
@@ -87,34 +89,13 @@ export function resolveColdStartLanguage(input: ColdStartLanguageInput): Languag
       ? parseEcosystemLanguage(input.explicitLanguage ?? input.cookieLanguage)
       : null;
 
-  const resolved = resolveEcosystemLanguage({
+  return resolveEcosystemLanguage({
     explicitLanguage: explicit,
     accountLanguage: input.accountLanguage,
     cookieLanguage: input.cookieLanguage,
     pathLanguage,
     countryCode: input.countryCode ?? hostCountryHint,
   });
-
-  // Soft Accept-Language only when country unknown and resolver returned en from empty country
-  if (
-    !input.cookieLanguage &&
-    !explicit &&
-    !input.accountLanguage &&
-    !pathLanguage &&
-    !normalizeOrNull(input.countryCode) &&
-    !hostCountryHint
-  ) {
-    const fromHeader = preferLanguageFromAcceptLanguage(input.acceptLanguage);
-    if (fromHeader) return fromHeader;
-  }
-
-  return resolved;
-}
-
-function normalizeOrNull(c: string | null | undefined): string | null {
-  if (!c) return null;
-  const t = c.trim().toUpperCase();
-  return /^[A-Z]{2}$/.test(t) ? t : null;
 }
 
 export { languageFromCountryCode };

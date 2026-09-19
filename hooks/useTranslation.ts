@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { addLocalePrefix, resolveColdStartLanguage } from '@/lib/locale';
+import { addLocalePrefix } from '@/lib/locale';
+import { useSsrLanguage } from '@/components/i18n/SsrLanguageProvider';
 import { useSession } from 'next-auth/react';
 import { interpolateTranslation } from '@/lib/i18n/interpolate';
 import {
@@ -163,7 +164,8 @@ const safeCookie = {
 // Detected language (cookie, domain, localStorage) runs in useEffect below.
 export function useTranslation() {
   const { data: session, status: sessionStatus } = useSession();
-  const [language, setLanguage] = useState<Language>('nl');
+  const ssrLanguage = useSsrLanguage();
+  const [language, setLanguage] = useState<Language>(ssrLanguage);
   const [isLoading, setIsLoading] = useState(true); // Start as loading
   const [isReady, setIsReady] = useState(false);
   const [updateKey, setUpdateKey] = useState(0);
@@ -243,7 +245,9 @@ export function useTranslation() {
       return;
     }
     
-    // Priority: explicit (pref cookie / switcher localStorage) → account → cookie → cold-start (IP via middleware cookie / en)
+    // Priority: explicit switcher → existing cookie (incl. IP seed) → account
+    // → /en path → cold-start EN. Do not let account language replace the
+    // language the visitor is already viewing (login must not flip locale).
     const pathname = window.location.pathname;
     const isEnglishRoute = pathname.startsWith('/en/') || pathname === '/en';
     const savedInStorage = safeLocalStorage.getItem('homecheff-language') as Language | null;
@@ -251,11 +255,13 @@ export function useTranslation() {
     const hasExplicitPref = safeCookie.hasExplicitPreference() || hasStorage;
     const cookieLanguage = safeCookie.getLanguage();
 
-    let detectedLanguage: Language = 'en';
+    let detectedLanguage: Language = ssrLanguage;
 
     if (hasExplicitPref && (hasStorage || cookieLanguage)) {
       detectedLanguage = (hasStorage ? savedInStorage : cookieLanguage) as Language;
       safeCookie.setLanguage(detectedLanguage, { explicit: true });
+    } else if (cookieLanguage) {
+      detectedLanguage = cookieLanguage;
     } else if (
       sessionStatus === 'authenticated' &&
       session?.user &&
@@ -265,24 +271,12 @@ export function useTranslation() {
       detectedLanguage = userLanguagePreference;
       safeLocalStorage.setItem('homecheff-language', userLanguagePreference);
       safeCookie.setLanguage(userLanguagePreference, { explicit: true });
-    } else if (cookieLanguage) {
-      detectedLanguage = cookieLanguage;
-      // Keep cookie; do not promote IP seed to localStorage (so account can still win)
     } else if (isEnglishRoute) {
       detectedLanguage = 'en';
     } else {
-      detectedLanguage = resolveColdStartLanguage({
-        cookieLanguage,
-        pathname,
-        host: window.location.hostname,
-        acceptLanguage:
-          typeof navigator !== 'undefined' && navigator.languages?.length
-            ? navigator.languages.join(',')
-            : typeof navigator !== 'undefined'
-              ? navigator.language
-              : null,
-      });
-      // Seed cookie only (middleware usually already did); not localStorage
+      // Client has no IP country. Re-resolving here would fall through to EN
+      // and flip a Dutch SSR/geo default (NL/BE/SR) on first paint.
+      detectedLanguage = ssrLanguage;
       safeCookie.setLanguage(detectedLanguage, { explicit: false });
     }
 
@@ -303,9 +297,10 @@ export function useTranslation() {
     });
     loadTranslations(detectedLanguage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionStatus, session, userPreferenceLoaded, userLanguagePreference]); // Re-run when session or user preference changes
+  }, [sessionStatus, session, userPreferenceLoaded, userLanguagePreference, ssrLanguage]); // Re-run when session or user preference changes
   
-  // Sync from API when no conflicting explicit switcher preference is stored
+  // Sync from API only when there is no viewing cookie / explicit switcher pref.
+  // Login must not flip an anonymous geo default or a manual choice.
   useEffect(() => {
     if (!userPreferenceLoaded || !userLanguagePreference) return;
 
@@ -313,8 +308,13 @@ export function useTranslation() {
       const fromStorage = safeLocalStorage.getItem('homecheff-language') as Language | null;
       if (fromStorage === 'nl' || fromStorage === 'en') {
         if (fromStorage !== userLanguagePreference) return;
+      } else {
+        return;
       }
     }
+
+    const viewingCookie = safeCookie.getLanguage();
+    if (viewingCookie && viewingCookie !== userLanguagePreference) return;
 
     if (language === userLanguagePreference) return;
 
@@ -356,7 +356,7 @@ export function useTranslation() {
     // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
     // 2.58 — Huishoudelijke hulp service group + Schoonmaak specialisatie
     // 2.60 — Hero "Ontdek in je buurt" (was "Hero verbergen")
-    const CACHE_VERSION = '2.62';
+    const CACHE_VERSION = '2.63';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state

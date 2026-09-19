@@ -28,6 +28,8 @@ import { CommsUnreadProvider } from '@/components/communication/CommsUnreadProvi
 import NavigationHistorySync from '@/components/navigation/NavigationHistorySync';
 import FeedPerfBaselineMount from '@/components/performance/FeedPerfBaselineMount';
 import { WorkspaceChromeProvider } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
+import { SsrLanguageProvider } from '@/components/i18n/SsrLanguageProvider';
+import type { Language } from '@/lib/locale';
 
 const SoftAuthGateHost = dynamic(
   () => import('@/components/auth/SoftAuthGateHost'),
@@ -52,17 +54,21 @@ function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
 export default function Providers({
   children,
   session,
+  initialLanguage = 'en',
 }: {
   children: React.ReactNode;
   /** Seed from RSC so post-OAuth / hard navigations skip a false logged-out flash. */
   session?: Session | null;
+  /** Middleware-resolved language so first client paint matches SSR html lang. */
+  initialLanguage?: Language;
 }) {
   return (
-    <SessionProvider
-      session={session ?? undefined}
-      refetchInterval={5 * 60}
-      refetchOnWindowFocus={false}
-    >
+    <SsrLanguageProvider language={initialLanguage}>
+      <SessionProvider
+        session={session ?? undefined}
+        refetchInterval={5 * 60}
+        refetchOnWindowFocus={false}
+      >
       <FeedPerfBaselineMount />
       <AppShellHtmlClasses />
       <Suspense fallback={null}>
@@ -123,6 +129,7 @@ export default function Providers({
           </UserBootstrapProvider>
         </SessionIsolationWrapper>
       </AppUpdateStatusProvider>
-    </SessionProvider>
+      </SessionProvider>
+    </SsrLanguageProvider>
   );
 }
