@@ -1,4 +1,8 @@
 import type { PersonalRouteCard } from '@/lib/verdiencheck/personal-route';
+import {
+  trackVerdienCheckFunnelEvent,
+  VERDIENCHECK_FUNNEL_EVENTS,
+} from '@/lib/analytics/verdiencheck-funnel';
 import VerdienCheckSourceDetails from './VerdienCheckSourceDetails';
 
 export default function VerdienCheckActionCard(props: {
@@ -22,6 +26,11 @@ export default function VerdienCheckActionCard(props: {
           target="_blank"
           rel="noreferrer"
           className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-emerald-800 underline"
+          onClick={() =>
+            trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.officialLinkClicked, {
+              action: 'LEARN_MORE',
+            })
+          }
         >
           {card.cta.label}
         </a>

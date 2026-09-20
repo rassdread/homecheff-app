@@ -45,9 +45,18 @@ import type {
 import { buildPersonalVerdienRoute } from '@/lib/verdiencheck/personal-route';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import {
+  clearVerdienCheckSession,
   readVerdienCheckSession,
   writeVerdienCheckSession,
 } from '@/lib/verdiencheck/privacy/session-client';
+import {
+  readVerdienCheckEntryPointFromLocation,
+  resetVerdienCheckFunnelOccurrence,
+  trackVerdienCheckFunnelEvent,
+  VERDIENCHECK_FUNNEL_EVENTS,
+  type VerdienCheckEntryPoint,
+} from '@/lib/analytics/verdiencheck-funnel';
+import { verdienCheckProgressBucket } from '@/lib/verdiencheck/privacy/analytics-guard';
 import {
   EMPTY_WIZARD_STATE,
   applyActivityChoice,
@@ -72,6 +81,7 @@ import VerdienCheckDisclaimer from './VerdienCheckDisclaimer';
 import VerdienCheckFinancialImpact from './VerdienCheckFinancialImpact';
 import VerdienCheckLaterSection from './VerdienCheckLaterSection';
 import VerdienCheckNowSection from './VerdienCheckNowSection';
+import VerdienCheckResultCta from './VerdienCheckResultCta';
 import VerdienCheckResultSummary from './VerdienCheckResultSummary';
 import VerdienCheckSoonSection from './VerdienCheckSoonSection';
 
@@ -133,8 +143,14 @@ export default function VerdienCheckWizard(props: {
   const [hydrated, setHydrated] = useState(false);
   const [step, setStep] = useState<WizardStepId>('jurisdiction');
   const [state, setState] = useState<WizardState>(EMPTY_WIZARD_STATE);
+  const [entryPoint, setEntryPoint] = useState<VerdienCheckEntryPoint>('direct');
 
   useEffect(() => {
+    const from = readVerdienCheckEntryPointFromLocation();
+    setEntryPoint(from);
+    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.viewed, {
+      entry_point: from,
+    });
     const saved = readVerdienCheckSession();
     if (saved) {
       setState({ ...EMPTY_WIZARD_STATE, ...saved.state });
@@ -159,33 +175,44 @@ export default function VerdienCheckWizard(props: {
 
   const calculatorInput = wizardStateToCalculatorInput(state);
 
-  const calcResult = calculatorInput
-    ? runCalculator(calculatorInput)
-    : runCalculator({
-        jurisdiction: 'OTHER',
-        calendarYear: 2026,
-        personContext: { situation: 'OTHER' },
-        currentAnnualIncomeCents: null,
-        allowances: ['UNKNOWN'],
-        activity: {
-          kinds: [],
-          frequency: 'UNKNOWN',
-          customers: 'UNKNOWN',
-          commercialIntent: 'UNKNOWN',
-          independence: 'UNKNOWN',
-          continuity: 'UNKNOWN',
-          timeOrMoneyInvested: 'UNKNOWN',
-          listingCount: null,
-          transactionCount: null,
-          typicalTicketCents: null,
-          unitCount: null,
-        },
-        incomeSource: 'MARKETPLACE_SELLER',
-        estimatedTurnoverCents: 0,
-        estimatedCosts: { amountCents: 0, source: V1_COST_SOURCE },
-        commercialResultCents: 0,
-        scenarioAdditionalResultCents: 0,
-      });
+  const emptyCalculatorFallback = {
+    jurisdiction: 'OTHER' as const,
+    calendarYear: 2026,
+    personContext: { situation: 'OTHER' as const },
+    currentAnnualIncomeCents: null,
+    allowances: ['UNKNOWN' as const],
+    activity: {
+      kinds: [],
+      frequency: 'UNKNOWN' as const,
+      customers: 'UNKNOWN' as const,
+      commercialIntent: 'UNKNOWN' as const,
+      independence: 'UNKNOWN' as const,
+      continuity: 'UNKNOWN' as const,
+      timeOrMoneyInvested: 'UNKNOWN' as const,
+      listingCount: null,
+      transactionCount: null,
+      typicalTicketCents: null,
+      unitCount: null,
+    },
+    incomeSource: 'MARKETPLACE_SELLER' as const,
+    estimatedTurnoverCents: 0,
+    estimatedCosts: { amountCents: 0, source: V1_COST_SOURCE },
+    commercialResultCents: 0,
+    scenarioAdditionalResultCents: 0,
+  };
+
+  let calcResult;
+  try {
+    calcResult = calculatorInput
+      ? runCalculator(calculatorInput)
+      : runCalculator(emptyCalculatorFallback);
+  } catch {
+    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.calculatorFailed, {
+      error_code: 'CALCULATOR_FAILED',
+      component: 'VerdienCheckCalculator',
+    });
+    calcResult = runCalculator(emptyCalculatorFallback);
+  }
 
   const guidanceContext =
     state.taxResidence === 'NL' && personSituation
@@ -246,19 +273,69 @@ export default function VerdienCheckWizard(props: {
   const title = copy.steps[step]?.title ?? copy.pageTitle;
   const options = copy.steps[step]?.options ?? {};
 
+  useEffect(() => {
+    if (!hydrated) return;
+    const total = Math.max(1, steps.length);
+    const bucket = verdienCheckProgressBucket({
+      stepIndex,
+      totalVisibleSteps: total,
+      isResult: step === 'result',
+    });
+    if (step !== 'jurisdiction') {
+      trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.started, {
+        entry_point: entryPoint,
+      });
+    }
+    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.stepProgress, {
+      entry_point: entryPoint,
+      progress_bucket: bucket,
+      step_number: stepIndex + 1,
+      total_visible_steps: total,
+    });
+    if (step === 'result') {
+      trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.completed, {
+        entry_point: entryPoint,
+      });
+      trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.resultViewed, {
+        entry_point: entryPoint,
+      });
+    }
+  }, [hydrated, step, stepIndex, steps.length, entryPoint]);
+
+  function restartCheck() {
+    clearVerdienCheckSession();
+    resetVerdienCheckFunnelOccurrence();
+    setState(EMPTY_WIZARD_STATE);
+    setStep('jurisdiction');
+    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.restartClicked, {
+      entry_point: entryPoint,
+    });
+  }
+
   return (
     <div
       data-verdiencheck-shell=""
       className="relative z-[80] isolate min-h-screen overflow-x-hidden bg-stone-50 pointer-events-auto"
     >
       <div className="relative z-[80] mx-auto w-full min-w-0 max-w-md px-4 pb-52 pt-2 break-words pointer-events-auto">
-        <AppBackBar
-          fallbackUrl="/"
-          label={copy.leaveProduct}
-          title={copy.chromeTitle}
-          titleTag="p"
-          backAriaLabel={copy.leaveProduct}
-        />
+        <div
+          onClickCapture={(event) => {
+            const target = event.target as HTMLElement | null;
+            if (!target?.closest('button')) return;
+            trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
+              entry_point: entryPoint,
+              action: 'RETURN_TO_HOMECHEFF',
+            });
+          }}
+        >
+          <AppBackBar
+            fallbackUrl="/"
+            label={copy.leaveProduct}
+            title={copy.chromeTitle}
+            titleTag="p"
+            backAriaLabel={copy.leaveProduct}
+          />
+        </div>
         <p className="mt-4 text-sm text-gray-600">{copy.intro}</p>
         <p className="mt-1 text-xs text-gray-400">
           {stepIndex + 1} / {steps.length}
@@ -1618,7 +1695,24 @@ export default function VerdienCheckWizard(props: {
               <p className="text-sm leading-relaxed text-stone-600">
                 {personalRoute.trackingMessage}
               </p>
+              <VerdienCheckResultCta
+                copy={copy}
+                entryPoint={entryPoint}
+                primaryStartSelling={personalRoute.proceedSemantics === 'READY_TO_PROCEED'}
+                secondaryStartSelling={personalRoute.proceedSemantics === 'PROCEED_AFTER_ACTION'}
+                onRestart={restartCheck}
+              />
             </div>
+          )}
+
+          {step === 'result' && state.taxResidence === 'OTHER' && (
+            <VerdienCheckResultCta
+              copy={copy}
+              entryPoint={entryPoint}
+              primaryStartSelling={false}
+              secondaryStartSelling={false}
+              onRestart={restartCheck}
+            />
           )}
         </div>
 

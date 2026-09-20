@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import VerdienCheckErrorBoundary from '@/components/verdiencheck/VerdienCheckErrorBoundary';
 import VerdienCheckWizard from '@/components/verdiencheck/VerdienCheckWizard';
 import { isVerdienCheckPublicRouteVisible } from '@/lib/verdiencheck/flags';
 import { verdiencheckPageMetadata } from '@/lib/verdiencheck/public-seo';
@@ -18,9 +19,11 @@ export default async function VerdienCheckPage() {
   }
   const language = await getCurrentLanguage();
   return (
-    <VerdienCheckWizard
-      copy={getVerdienCheckCopy(language)}
-      language={language}
-    />
+    <VerdienCheckErrorBoundary>
+      <VerdienCheckWizard
+        copy={getVerdienCheckCopy(language)}
+        language={language}
+      />
+    </VerdienCheckErrorBoundary>
   );
 }

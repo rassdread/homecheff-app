@@ -11,7 +11,7 @@ export default async function WerkenBijPage() {
   const lang = await getCurrentLanguage();
   return (
     <>
-      <VerdienCheckPublicEntry variant="hub" />
+      <VerdienCheckPublicEntry variant="hub" entryPoint="werken-bij" />
       <VerdienHubPage copy={getVerdienHubCopy(lang)} initialLang={lang} />
     </>
   );

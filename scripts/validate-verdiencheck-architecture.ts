@@ -206,14 +206,29 @@ assert.doesNotMatch(sessionSrc, /window\.localStorage/);
 assert.match(sessionSrc, /hc_verdiencheck_v1/);
 assert.doesNotMatch(sessionSrc, /prisma/);
 
-// PASS: no sensitive answers in AnalyticsEvent
+// PASS: no sensitive answers in AnalyticsEvent / server analytics
 for (const file of [...walk('components/verdiencheck'), ...walk('app/verdiencheck'), ...walk('lib/verdiencheck')]) {
   const src = read(file);
   assert.doesNotMatch(src, /AnalyticsEvent/);
   assert.doesNotMatch(src, /gtag\(/);
   assert.doesNotMatch(src, /opportunity-analytics/);
   assert.doesNotMatch(src, /trackUserType/);
+  assert.doesNotMatch(src, /\/api\/analytics/);
+  assert.doesNotMatch(src, /fetch\(/);
 }
+
+const funnelSrc = read('lib/analytics/verdiencheck-funnel.ts');
+assert.match(funnelSrc, /inspectVerdienCheckAnalyticsPayload/);
+assert.doesNotMatch(funnelSrc, /AnalyticsEvent/);
+assert.doesNotMatch(funnelSrc, /\/api\/analytics/);
+assert.doesNotMatch(funnelSrc, /prisma/);
+assert.doesNotMatch(funnelSrc, /WizardState/);
+assert.doesNotMatch(funnelSrc, /writeVerdienCheckSession/);
+
+const guardSrc = read('lib/verdiencheck/privacy/analytics-guard.ts');
+assert.match(guardSrc, /FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS/);
+assert.match(guardSrc, /benefitType|benefittype/);
+assert.match(sessionSrc, /FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS/);
 
 assert.ok(fs.existsSync(path.join(ROOT, 'docs/verdiencheck/FAQ-COMPLIANCE-INVENTORY.md')));
 

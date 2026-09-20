@@ -1,5 +1,9 @@
 import type { PersonalRouteCard } from '@/lib/verdiencheck/personal-route';
 import { PERSONAL_ROUTE_COPY } from '@/lib/verdiencheck/personal-route/copy';
+import {
+  trackVerdienCheckFunnelEvent,
+  VERDIENCHECK_FUNNEL_EVENTS,
+} from '@/lib/analytics/verdiencheck-funnel';
 import VerdienCheckActionCard from './VerdienCheckActionCard';
 
 export default function VerdienCheckLaterSection(props: {
@@ -9,7 +13,14 @@ export default function VerdienCheckLaterSection(props: {
   const extra = [...props.cards, ...props.restDetails];
   if (extra.length === 0) return null;
   return (
-    <details className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+    <details
+      className="rounded-2xl border border-stone-200 bg-stone-50 p-4"
+      onToggle={(event) => {
+        if ((event.currentTarget as HTMLDetailsElement).open) {
+          trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.detailsOpened);
+        }
+      }}
+    >
       <summary className="cursor-pointer text-sm font-medium text-stone-800">
         {PERSONAL_ROUTE_COPY.laterSection}
       </summary>

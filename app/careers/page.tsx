@@ -7,7 +7,7 @@ export default async function CareersPage() {
   const lang = await getCurrentLanguage();
   return (
     <>
-      <VerdienCheckPublicEntry variant="hub" />
+      <VerdienCheckPublicEntry variant="hub" entryPoint="careers" />
       <VerdienHubPage copy={getVerdienHubCopy(lang)} initialLang={lang} />
     </>
   );

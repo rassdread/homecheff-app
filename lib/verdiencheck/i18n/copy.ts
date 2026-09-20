@@ -7,6 +7,8 @@ export type VerdienCheckCopy = {
   disclaimer: string;
   back: string;
   leaveProduct: string;
+  startSelling: string;
+  restartCheck: string;
   next: string;
   otherCountry: string;
   packUnavailable: string;
@@ -65,6 +67,8 @@ const NL: VerdienCheckCopy = {
     'Dit is een schatting en persoonlijke uitleg op basis van wat je hebt ingevuld. Jij blijft verantwoordelijk voor wat je doorgeeft en regelt. Schatting voor 2026.',
   back: 'Terug',
   leaveProduct: 'Naar HomeCheff',
+  startSelling: 'Begin met verkopen',
+  restartCheck: 'Opnieuw invullen',
   next: 'Verder',
   otherCountry: 'Deze VerdienCheck is nu beschikbaar voor Nederland.',
   packUnavailable: 'De berekening voor 2026 is nog niet beschikbaar.',
@@ -471,6 +475,8 @@ const EN: VerdienCheckCopy = {
     'This is an estimate and personal explanation based on what you entered. You remain responsible for what you report and arrange. Estimate for 2026.',
   back: 'Back',
   leaveProduct: 'To HomeCheff',
+  startSelling: 'Start selling',
+  restartCheck: 'Fill in again',
   next: 'Next',
   otherCountry: 'This earning check is currently available for the Netherlands.',
   packUnavailable: 'The 2026 calculation is not available yet.',

@@ -1,7 +1,18 @@
 import Link from 'next/link';
 import { isVerdienCheckPublicCtaEnabled } from '@/lib/verdiencheck/flags';
+import {
+  sanitizeVerdienCheckEntryPoint,
+  type VerdienCheckEntryPoint,
+} from '@/lib/verdiencheck/privacy/analytics-guard';
 
 type Variant = 'faq' | 'seller' | 'hub' | 'home';
+
+const VARIANT_ENTRY: Record<Variant, VerdienCheckEntryPoint> = {
+  faq: 'faq',
+  seller: 'seller',
+  hub: 'direct',
+  home: 'direct',
+};
 
 const COPY: Record<
   Variant,
@@ -34,20 +45,24 @@ const COPY: Record<
  */
 export default function VerdienCheckPublicEntry({
   variant = 'faq',
+  entryPoint,
 }: {
   variant?: Variant;
+  entryPoint?: VerdienCheckEntryPoint;
 }) {
   if (!isVerdienCheckPublicCtaEnabled()) return null;
   const copy = COPY[variant];
+  const from = sanitizeVerdienCheckEntryPoint(entryPoint ?? VARIANT_ENTRY[variant]);
   return (
     <aside
       data-verdiencheck-public-entry={variant}
+      data-verdiencheck-entry={from}
       className="mx-auto mb-6 max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50/80 px-5 py-4 sm:px-6"
     >
       <p className="text-base font-semibold text-emerald-950">{copy.title}</p>
       <p className="mt-1 text-sm leading-relaxed text-emerald-900/80">{copy.body}</p>
       <Link
-        href="/verdiencheck"
+        href={`/verdiencheck?from=${from}`}
         className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900"
       >
         {copy.cta}

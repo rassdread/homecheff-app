@@ -8,6 +8,7 @@ import {
   type WizardState,
   type WizardStepId,
 } from '../wizard/schema';
+import { FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS } from './analytics-guard';
 
 export const VERDIENCHECK_SESSION_KEY = 'hc_verdiencheck_v1';
 export const VERDIENCHECK_SESSION_VERSION = 1;
@@ -18,23 +19,8 @@ export type VerdienCheckSession = {
   state: WizardState;
 };
 
-const SENSITIVE_ANALYTICS_KEYS = [
-  'income',
-  'inkomen',
-  'amount',
-  'bedrag',
-  'turnover',
-  'omzet',
-  'result',
-  'uitkering',
-  'benefit',
-  'toeslag',
-  'allowance',
-  'partner',
-] as const;
-
 export function forbiddenAnalyticsKeys(): readonly string[] {
-  return SENSITIVE_ANALYTICS_KEYS;
+  return FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS;
 }
 
 function canUseSessionStorage(): boolean {
