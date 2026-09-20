@@ -147,7 +147,11 @@ const existingUnregistered = routeFrom(
     allowances: ['NONE'],
   }),
 );
-assert.match(nowText(existingUnregistered), /Controleer je KVK-inschrijving|KVK/);
+assert.doesNotMatch(nowText(existingUnregistered), /Controleer je KVK-inschrijving/);
+assert.match(
+  `${existingUnregistered.soon.map((c) => `${c.title} ${c.body}`).join('\n')}\n${existingUnregistered.later.map((c) => `${c.title} ${c.body}`).join('\n')}`,
+  /Controleer je KVK-inschrijving|Kamer van Koophandel/,
+);
 assert.match(existingUnregistered.headline, /Je kunt beginnen/);
 assert.doesNotMatch(existingUnregistered.headline, /regel eerst/);
 
@@ -379,7 +383,10 @@ const regularSameTurnover = routeFrom(
     estimatedAnnualTransactions: '100',
   }),
 );
-assert.notEqual(nowText(artwork), nowText(regularSameTurnover));
+assert.notEqual(
+  `${nowText(artwork)}\n${allText(artwork)}`,
+  `${nowText(regularSameTurnover)}\n${allText(regularSameTurnover)}`,
+);
 assert.doesNotMatch(allText(artwork), /vanaf €20\.000|belastingvrij/);
 assert.doesNotMatch(allText(regularSameTurnover), /vanaf €20\.000|belastingvrij/);
 

@@ -205,7 +205,7 @@ assert.doesNotMatch(wwWait.headline, /^Je kunt beginnen/);
 
 const copy = getVerdienCheckCopy('nl');
 assert.equal(copy.chromeTitle, 'VerdienCheck');
-assert.equal(copy.leaveProduct, 'Naar HomeCheff');
+assert.equal(copy.leaveProduct, 'VerdienCheck afsluiten');
 
 const wizardSrc = fs.readFileSync(
   path.join(process.cwd(), 'components/verdiencheck/VerdienCheckWizard.tsx'),

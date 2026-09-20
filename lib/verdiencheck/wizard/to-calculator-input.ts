@@ -44,11 +44,10 @@ import {
   mapSaleFrequencyToFoodSellingFrequency,
   type FoodActivityContext,
 } from '../domain/food-activity';
+import { annualizeWizardEuro, deriveIncomeBasesFromUserFacts } from './derive-income-bases';
 
 function annualizeEuro(raw: string, period: WizardState['amountEntryPeriod']): number | null {
-  const cents = parseEuroInputToCents(raw);
-  if (cents == null) return null;
-  return period === 'MONTH' ? cents * 12 : cents;
+  return annualizeWizardEuro(raw, period);
 }
 
 function parseAges(raw: string): number[] {
@@ -185,9 +184,14 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
       : state.scenarioPreset
         ? scenarioPresetToCents(state.scenarioPreset)
         : liveResult;
-  const assessmentCents = annualizeEuro(state.baselineAssessmentEuro, period);
+  const bases = deriveIncomeBasesFromUserFacts(state);
+  const assessmentCents = bases.baselineAssessmentIncomeCents;
   const children = buildChildren(state);
   const monthsRaw = Number.parseInt(state.workedMonthsInYear, 10);
+  const costsEntered = state.estimatedCostsEuro.trim() !== '';
+  const assumeCostsDeductible = costsEntered
+    ? state.assumeEstimatedCostsTaxDeductible
+    : (state.assumeEstimatedCostsTaxDeductible ?? true);
 
   return {
     jurisdiction: state.taxResidence === 'NL' ? 'NL' : 'OTHER',
@@ -203,13 +207,14 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
       state.acceptRowAssumption || state.growthStart != null
         ? ADDITIONAL_INCOME_CLASSIFICATION.RESULT_FROM_OTHER_WORK
         : null,
-    assumeEstimatedCostsTaxDeductible: state.assumeEstimatedCostsTaxDeductible,
-    baselineGrossEmploymentIncomeCents: annualizeEuro(state.baselineGrossEmploymentEuro, period),
-    baselineBox1TaxableIncomeCents: annualizeEuro(state.baselineBox1Euro, period),
-    baselineAggregateIncomeCents: annualizeEuro(state.baselineAggregateEuro, period),
-    baselineArbeidsinkomenCents: annualizeEuro(state.baselineArbeidsinkomenEuro, period),
+    assumeEstimatedCostsTaxDeductible: assumeCostsDeductible,
+    baselineGrossEmploymentIncomeCents: bases.baselineGrossEmploymentIncomeCents,
+    baselineBox1TaxableIncomeCents: bases.baselineBox1TaxableIncomeCents,
+    baselineAggregateIncomeCents: bases.baselineAggregateIncomeCents,
+    baselineArbeidsinkomenCents: bases.baselineArbeidsinkomenCents,
     baselineAssessmentIncomeCents: assessmentCents,
-    baselineZvwContributionIncomeAlreadyUsedCents: annualizeEuro(state.baselineZvwUsedEuro, period),
+    baselineZvwContributionIncomeAlreadyUsedCents:
+      bases.baselineZvwContributionIncomeAlreadyUsedCents,
     assetsEligibility: state.assetsEligibility,
     healthcareAssetsEligibility: state.assetsEligibility,
     housingAssetsEligibility: state.housingAssetsEligibility,

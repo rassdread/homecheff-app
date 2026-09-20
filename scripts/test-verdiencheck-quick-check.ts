@@ -199,16 +199,24 @@ assert.equal(visibleSteps(ww).includes('wwStartPeriod'), false);
 assert.equal(visibleSteps(bijstand).includes('bijstandMunicipality'), false);
 
 const starterMoney = applyMoneyDepthChoice(starter, 'YES');
-assert.equal(visibleSteps(starterMoney).includes('amounts'), true);
+assert.equal(visibleSteps(starterMoney).includes('currentIncome'), true);
+assert.equal(visibleSteps(starterMoney).includes('amounts'), false);
 assert.equal(visibleSteps(starterMoney).includes('incomeBases'), false);
 const firstMoney = firstMoneyStep(starterMoney);
 assert.ok(firstMoney);
-assert.notEqual(firstMoney, 'incomeBases');
+assert.equal(firstMoney, 'currentIncome');
 
 const employeeMoney = applyMoneyDepthChoice(employee, 'YES');
-assert.equal(visibleSteps(employeeMoney).includes('incomeBases'), true);
+assert.equal(visibleSteps(employeeMoney).includes('incomeBases'), false);
+assert.equal(visibleSteps(employeeMoney).includes('currentIncome'), true);
 assert.equal(visibleSteps(employeeMoney).includes('allowances'), true);
 assert.ok(questionsBeforeFirstResult(employeeMoney).length <= 6);
+
+const employeeAdvanced = applyMoneyDepthChoice(
+  { ...employee, advancedAccuracyRequested: true },
+  'YES',
+);
+assert.equal(visibleSteps(employeeAdvanced).includes('incomeBases'), true);
 
 const employeeAllowancesMoney = applyMoneyDepthChoice(
   { ...employeeAllowances, moneyDepthRequested: true },
@@ -308,14 +316,15 @@ assert.notEqual(hundredSales.proceedSemantics, 'INSUFFICIENT_CONTEXT');
 
 const nl = getVerdienCheckCopy('nl');
 assert.match(nl.intro, /bijverdienen/);
-assert.match(nl.quickCheckDone, /Dat was de snelle check/);
-assert.match(nl.moneyNo, /Nee, dit is genoeg/);
+assert.match(nl.quickCheckDone, /Dat was je snelle VerdienCheck/);
+assert.match(nl.moneyYes, /Bereken mijn geld/);
 assert.equal(nl.steps.uwvBenefit?.options?.UNKNOWN, 'Ik weet het niet');
 assert.doesNotMatch(`${nl.intro}\n${nl.registrationKvkLabel}`, /\bde de\b/);
 
 const wizardSrc = fs.readFileSync(path.join(ROOT, 'components/verdiencheck/VerdienCheckWizard.tsx'), 'utf8');
 assert.match(wizardSrc, /copy\.quickCheckDone/);
-assert.match(wizardSrc, /copy\.moneyNo/);
+assert.match(wizardSrc, /copy\.moneyYes/);
+assert.doesNotMatch(wizardSrc, /copy\.moneyNo/);
 assert.match(wizardSrc, /sessionStorage|persist/);
 assert.doesNotMatch(wizardSrc, /prisma/);
 

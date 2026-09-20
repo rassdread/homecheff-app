@@ -8,7 +8,7 @@ import type { BenefitRouteFamily } from '../domain/person';
 
 export const PERSONAL_ROUTE_COPY = {
   tracking:
-    'Je hoeft niet alles nu te weten. De VerdienCheck laat zien wat nu belangrijk is en wat je later opnieuw kunt controleren.',
+    'Je hoeft niet alles nu te regelen. Als je situatie verandert, kun je opnieuw controleren wat belangrijk wordt.',
   growthReassurance:
     'Als je activiteit groeit, laat VerdienCheck zien wat later belangrijk wordt.',
   laterSection: 'Wat kan later belangrijk worden?',
@@ -146,7 +146,7 @@ export function headlineFor(input: {
 
   return {
     headline: 'Je kunt beginnen.',
-    summary: PERSONAL_ROUTE_COPY.growthReassurance,
+    summary: 'Voor wat je nu wilt doen hoef je niet eerst alles te regelen.',
     canStartMessage: 'Je kunt beginnen.',
   };
 }

@@ -26,6 +26,7 @@ export default function VerdienCheckResultCta(props: {
   /** sell = listing CTA only; nav = leave/restart; all = both (fallback). */
   variant?: 'sell' | 'nav' | 'all';
   ctaMode?: ResultCtaMode;
+  completed?: boolean;
 }) {
   const { requireAuthAction, guestAuthPanel, isGuest } = useGuestAuthGate();
   const variant = props.variant ?? 'all';
@@ -137,7 +138,7 @@ export default function VerdienCheckResultCta(props: {
             className="relative z-[80] inline-flex min-h-12 w-full items-center justify-center text-base text-gray-600 underline pointer-events-auto"
             onClick={props.onRestart}
           >
-            {props.copy.restartCheck}
+            {props.completed ? props.copy.restartCompleted : props.copy.restartFromStart}
           </button>
         </>
       ) : null}

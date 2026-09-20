@@ -88,6 +88,7 @@ export const WIZARD_STEP_IDS = [
   'existingRegistrations',
   'costAssumption',
   'rowAssumption',
+  'currentIncome',
   'incomeBases',
   'assets',
   'scenario',
@@ -166,6 +167,11 @@ export type WizardState = {
   previousYearVatTurnoverEuro: string;
   assumeEstimatedCostsTaxDeductible: boolean | null;
   acceptRowAssumption: boolean;
+  currentIncomeEuro: string;
+  currentIncomeUnknown: boolean;
+  hasOtherIncome: boolean | 'UNKNOWN' | null;
+  otherIncomeEuro: string;
+  advancedAccuracyRequested: boolean;
   baselineGrossEmploymentEuro: string;
   baselineBox1Euro: string;
   baselineAggregateEuro: string;
@@ -204,7 +210,7 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   moneyDeclined: false,
   moneyDepthCompleted: false,
   detailsDepthRequested: false,
-  amountEntryPeriod: 'YEAR',
+  amountEntryPeriod: 'MONTH',
   discussedWithUwv: null,
   wantsStartPeriod: null,
   wantsToRetainWw: null,
@@ -252,6 +258,11 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   previousYearVatTurnoverEuro: '',
   assumeEstimatedCostsTaxDeductible: null,
   acceptRowAssumption: false,
+  currentIncomeEuro: '',
+  currentIncomeUnknown: false,
+  hasOtherIncome: null,
+  otherIncomeEuro: '',
+  advancedAccuracyRequested: false,
   baselineGrossEmploymentEuro: '',
   baselineBox1Euro: '',
   baselineAggregateEuro: '',
@@ -329,6 +340,8 @@ const FINANCIAL_EURO_KEYS = [
   'estimatedAnnualTransactions',
   'otherRelevantVatTurnoverEuro',
   'previousYearVatTurnoverEuro',
+  'currentIncomeEuro',
+  'otherIncomeEuro',
   'baselineGrossEmploymentEuro',
   'baselineBox1Euro',
   'baselineAggregateEuro',
@@ -373,6 +386,11 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.parentWorkStudyStatus = null;
   next.assumeEstimatedCostsTaxDeductible = null;
   next.acceptRowAssumption = false;
+  next.currentIncomeEuro = '';
+  next.currentIncomeUnknown = false;
+  next.hasOtherIncome = null;
+  next.otherIncomeEuro = '';
+  next.advancedAccuracyRequested = false;
   next.scenarioPreset = null;
   next.hasOtherBusinessTurnover = null;
   next.vatRegistrationStatus = null;
@@ -518,6 +536,23 @@ export function wantsFinancialDetailQuestions(state: WizardState): boolean {
     state.situationGroup === 'EMPLOYEE' ||
     state.situationGroup === 'EXISTING_ENTREPRENEUR' ||
     state.allowances.some((id) => id !== 'NONE' && id !== 'UNKNOWN')
+  );
+}
+
+export function hasEnteredEstimatedCosts(state: WizardState): boolean {
+  return state.estimatedCostsEuro.trim() !== '';
+}
+
+export function wizardHasInProgressAnswers(state: WizardState): boolean {
+  return (
+    state.taxResidence != null ||
+    state.activityChoice != null ||
+    state.growthStart != null ||
+    state.situationGroup != null ||
+    state.moneyDepthRequested ||
+    state.moneyDepthCompleted ||
+    state.currentIncomeEuro.trim() !== '' ||
+    state.scenarioPreset != null
   );
 }
 
@@ -828,7 +863,9 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
   },
   {
     id: 'amounts',
-    visible: (s) => moneyLayerVisible(s),
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      (needsSeriousAdminQuestions(s) || s.advancedAccuracyRequested),
   },
   {
     id: 'otherVatTurnover',
@@ -843,15 +880,23 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
   },
   {
     id: 'costAssumption',
-    visible: (s) => moneyLayerVisible(s) && wantsFinancialDetailQuestions(s),
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      wantsFinancialDetailQuestions(s) &&
+      hasEnteredEstimatedCosts(s),
   },
   {
     id: 'rowAssumption',
-    visible: (s) => moneyLayerVisible(s) && wantsFinancialDetailQuestions(s),
+    visible: (s) =>
+      moneyLayerVisible(s) && wantsFinancialDetailQuestions(s) && s.growthStart == null,
+  },
+  {
+    id: 'currentIncome',
+    visible: (s) => moneyLayerVisible(s),
   },
   {
     id: 'incomeBases',
-    visible: (s) => moneyLayerVisible(s) && wantsFinancialDetailQuestions(s),
+    visible: (s) => moneyLayerVisible(s) && s.advancedAccuracyRequested,
   },
   {
     id: 'assets',

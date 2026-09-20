@@ -274,6 +274,15 @@ export function buildPersonalVerdienRoute(input: {
     later = [...laterMoved, ...later];
   }
 
+  if (semantics === 'READY_TO_PROCEED') {
+    const business = now.filter((c) => c.family === 'business_registration');
+    now = now.filter((c) => c.family !== 'business_registration');
+    const soonMoved = business.filter((c) => c.severity === 'ACTION' || c.severity === 'CHECK');
+    const laterMoved = business.filter((c) => c.severity !== 'ACTION' && c.severity !== 'CHECK');
+    soon = [...soonMoved, ...soon];
+    later = [...laterMoved, ...later];
+  }
+
   const foodSold = Boolean(ctx?.food || ctx?.activity?.kinds.includes('FOOD'));
   const copy = headlineFor({
     semantics,

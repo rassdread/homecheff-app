@@ -95,6 +95,7 @@ const QUESTION_AUDIT: Record<string, Class> = {
   existingRegistrations: 'MINOR_FRICTION',
   costAssumption: 'MINOR_FRICTION',
   rowAssumption: 'MINOR_FRICTION',
+  currentIncome: 'CLEAR',
   incomeBases: 'CONFUSING',
   assets: 'CLEAR',
   scenario: 'CLEAR',
@@ -147,10 +148,12 @@ for (const lang of ['nl', 'en'] as const) {
   assert.match(copy.progressOngoing, /vragen|questions/i);
   assert.match(copy.registrationKvkLabel, /Kamer van Koophandel|Chamber of Commerce/);
   assert.match(copy.registrationKorLabel, /Kleineondernemersregeling|Small-business/);
-  assert.match(copy.quickCheckDone, /snelle check|quick check/i);
+  assert.match(copy.quickCheckDone, /snelle VerdienCheck|quick VerdienCheck/i);
   assert.match(copy.moneyYes, /bereken|calculate/i);
-  assert.match(copy.moneyNo, /genoeg|enough/i);
+  assert.match(copy.moneyPrompt, /geld|money/);
   assert.match(copy.periodMonth, /maand|month/i);
+  assert.match(copy.restartConfirmTitle, /Opnieuw beginnen|Start again/);
+  assert.match(copy.currentIncomeUnknown, /Weet ik niet|don’t know/i);
   assert.doesNotMatch(userFacing, /\bde de\b/);
   assert.doesNotMatch(userFacing, /\bhet het\b/);
   assert.doesNotMatch(userFacing, /Kamer van Koophandel \(Kamer van Koophandel\)/);
@@ -164,7 +167,8 @@ assert.match(wizardSrc, /copy\.yearlyHint/);
 assert.match(wizardSrc, /copy\.moneyExplain/);
 assert.match(wizardSrc, /copy\.quickCheckDone/);
 assert.match(wizardSrc, /copy\.moneyPrompt/);
-assert.match(wizardSrc, /copy\.moneyNo/);
+assert.match(wizardSrc, /copy\.moneyYes/);
+assert.doesNotMatch(wizardSrc, /copy\.moneyNo/);
 assert.match(wizardSrc, /registrationKvkLabel/);
 assert.match(wizardSrc, /aria-pressed/);
 assert.doesNotMatch(wizardSrc, /\{stepIndex \+ 1\} \/ \{steps\.length\}/);

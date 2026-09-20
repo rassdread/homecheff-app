@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { runCalculator } from '@/lib/verdiencheck/calculator/engine';
 import type {
   AssetsEligibility,
@@ -31,6 +31,7 @@ import {
   formatCentsAsEuroDisplay,
   parseEuroInputToCents,
   SCENARIO_PRESET_EUROS,
+  type ScenarioPresetEuro,
 } from '@/lib/verdiencheck/domain/money';
 import { derivePersonSituation, type SituationGroup, type UwvBenefit } from '@/lib/verdiencheck/domain/person';
 import type { MunicipalPreparationPeriodStatus, ZwOrigin } from '@/lib/verdiencheck/domain/benefits';
@@ -41,7 +42,7 @@ import type {
   FoodSafetyPlanStatus,
   PackagingMode,
 } from '@/lib/verdiencheck/domain/food-activity';
-import { buildPersonalVerdienRoute, PERSONAL_ROUTE_COPY } from '@/lib/verdiencheck/personal-route';
+import { buildPersonalVerdienRoute } from '@/lib/verdiencheck/personal-route';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import {
   clearVerdienCheckSession,
@@ -70,12 +71,18 @@ import {
   previousStep,
   progressSteps,
   questionsBeforeFirstResult,
+  wizardHasInProgressAnswers,
   type ActivityChoice,
   type WizardState,
   type WizardStepId,
   type TaxResidenceChoice,
 } from '@/lib/verdiencheck/wizard/schema';
 import { wizardStateToBenefitFacts, wizardStateToBusinessFacts, wizardStateToCalculatorInput, wizardStateToFoodFacts } from '@/lib/verdiencheck/wizard/to-calculator-input';
+import { compareScenarioPresets } from '@/lib/verdiencheck/wizard/scenario-comparison';
+import {
+  positionVerdienCheckActiveStep,
+  VERDIENCHECK_ACTIVE_STEP_ID,
+} from '@/lib/verdiencheck/wizard/active-step-focus';
 import {
   earningIntentFromEntry,
   isAffiliateActivity,
@@ -90,6 +97,7 @@ import VerdienCheckDisclaimer from './VerdienCheckDisclaimer';
 import VerdienCheckFinancialImpact from './VerdienCheckFinancialImpact';
 import VerdienCheckLaterSection from './VerdienCheckLaterSection';
 import VerdienCheckNowSection from './VerdienCheckNowSection';
+import VerdienCheckRestartConfirm from './VerdienCheckRestartConfirm';
 import VerdienCheckResultCta from './VerdienCheckResultCta';
 import VerdienCheckResultSummary from './VerdienCheckResultSummary';
 import VerdienCheckSoonSection from './VerdienCheckSoonSection';
@@ -185,6 +193,13 @@ export default function VerdienCheckWizard(props: {
   const [step, setStep] = useState<WizardStepId>('jurisdiction');
   const [state, setState] = useState<WizardState>(EMPTY_WIZARD_STATE);
   const [entryPoint, setEntryPoint] = useState<VerdienCheckEntryPoint>('direct');
+  const [restartOpen, setRestartOpen] = useState(false);
+  const [showResumeHint, setShowResumeHint] = useState(false);
+  const [currentIncomeError, setCurrentIncomeError] = useState(false);
+  const activeStepRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const invalidRef = useRef<HTMLParagraphElement>(null);
+  const prevStepRef = useRef<WizardStepId | null>(null);
 
   useEffect(() => {
     const from = readVerdienCheckEntryPointFromLocation();
@@ -194,8 +209,12 @@ export default function VerdienCheckWizard(props: {
     });
     const saved = readVerdienCheckSession();
     if (saved) {
-      setState({ ...EMPTY_WIZARD_STATE, ...saved.state });
+      const restored = { ...EMPTY_WIZARD_STATE, ...saved.state };
+      setState(restored);
       setStep(saved.currentStep);
+      if (wizardHasInProgressAnswers(restored)) {
+        setShowResumeHint(true);
+      }
     }
     setHydrated(true);
   }, []);
@@ -306,6 +325,22 @@ export default function VerdienCheckWizard(props: {
   });
 
   function goNext() {
+    if (step === 'currentIncome') {
+      const hasAmount = parseEuroInputToCents(state.currentIncomeEuro) != null;
+      if (!state.currentIncomeUnknown && !hasAmount) {
+        setCurrentIncomeError(true);
+        requestAnimationFrame(() => {
+          positionVerdienCheckActiveStep({
+            container: activeStepRef.current,
+            heading: headingRef.current,
+            invalidTarget: invalidRef.current,
+            mode: 'invalid',
+          });
+        });
+        return;
+      }
+      setCurrentIncomeError(false);
+    }
     const n = nextStep(state, step);
     if (n) {
       setState(markMoneyDepthCompleted(state, step, n));
@@ -327,9 +362,28 @@ export default function VerdienCheckWizard(props: {
 
   const progress = progressSteps(state, step);
   const stepIndex = Math.max(0, progress.indexOf(step));
-  const title = copy.steps[step]?.title ?? copy.pageTitle;
+  const title =
+    step === 'result' && state.moneyDepthCompleted
+      ? copy.moneyResultTitle
+      : step === 'result'
+        ? personalRoute.headline
+        : (copy.steps[step]?.title ?? copy.pageTitle);
   const options = copy.steps[step]?.options ?? {};
   const moneyLayer = state.moneyDepthRequested && step !== 'result' && !questionsBeforeFirstResult(state).includes(step);
+  const scenarioComparison =
+    step === 'result' && state.moneyDepthCompleted ? compareScenarioPresets(state) : null;
+
+  useLayoutEffect(() => {
+    if (!hydrated) return;
+    const previous = prevStepRef.current;
+    if (previous === step) return;
+    prevStepRef.current = step;
+    positionVerdienCheckActiveStep({
+      container: activeStepRef.current,
+      heading: headingRef.current,
+      mode: 'step',
+    });
+  }, [hydrated, step]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -371,9 +425,17 @@ export default function VerdienCheckWizard(props: {
     }
   }, [hydrated, step, stepIndex, progress.length, entryPoint, state.moneyDepthCompleted]);
 
+  function requestRestart() {
+    setRestartOpen(true);
+  }
+
   function restartCheck() {
     clearVerdienCheckSession();
     resetVerdienCheckFunnelOccurrence();
+    setRestartOpen(false);
+    setShowResumeHint(false);
+    setCurrentIncomeError(false);
+    prevStepRef.current = null;
     setState(EMPTY_WIZARD_STATE);
     setStep('jurisdiction');
     trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.restartClicked, {
@@ -391,16 +453,22 @@ export default function VerdienCheckWizard(props: {
     if (first) setStep(first);
   }
 
-  function declineMoneyDepth() {
-    setState(applyMoneyDepthChoice(state, 'NO'));
-  }
-
   return (
     <div
       data-verdiencheck-shell=""
       className="relative min-w-0 overflow-x-hidden bg-stone-50"
     >
-      <div className="mx-auto w-full min-w-0 max-w-md px-4 pb-10 pt-2 break-words">
+      <VerdienCheckRestartConfirm
+        copy={copy}
+        open={restartOpen}
+        onCancel={() => setRestartOpen(false)}
+        onConfirm={restartCheck}
+      />
+      <div
+        ref={activeStepRef}
+        id={VERDIENCHECK_ACTIVE_STEP_ID}
+        className="mx-auto w-full min-w-0 max-w-md px-4 pb-10 pt-2 break-words scroll-mt-[calc(var(--hc-top-nav-height,4rem)+0.75rem)]"
+      >
         <p className="mt-2 text-sm font-medium text-gray-600">
           {progressPhrase({
             copy,
@@ -410,6 +478,18 @@ export default function VerdienCheckWizard(props: {
             moneyLayer,
           })}
         </p>
+        {showResumeHint && wizardHasInProgressAnswers(state) ? (
+          <div className="mt-3 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700">
+            <p>{copy.resumeHint}</p>
+            <button
+              type="button"
+              className="mt-2 text-base text-emerald-800 underline"
+              onClick={requestRestart}
+            >
+              {copy.restartFromStart}
+            </button>
+          </div>
+        ) : null}
         {step === 'jurisdiction' ? (
           <div className="mt-3 space-y-2 text-base leading-relaxed text-gray-700">
             <p>{copy.intro}</p>
@@ -417,7 +497,11 @@ export default function VerdienCheckWizard(props: {
             <p>{copy.introGrowth}</p>
           </div>
         ) : null}
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gray-900 break-words">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="mt-4 text-2xl font-semibold tracking-tight text-gray-900 break-words outline-none"
+        >
           {title}
         </h1>
 
@@ -1483,6 +1567,99 @@ export default function VerdienCheckWizard(props: {
               </ChoiceButton>
             ))}
 
+          {step === 'currentIncome' && (
+            <div className="space-y-4">
+              <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
+              <p className="text-base leading-relaxed text-gray-700">{copy.baselineEstablished}</p>
+              <div className="flex flex-col gap-2">
+                <ChoiceButton
+                  selected={state.amountEntryPeriod === 'MONTH'}
+                  onClick={() => setState({ ...state, amountEntryPeriod: 'MONTH' })}
+                >
+                  {copy.periodMonth}
+                </ChoiceButton>
+                <ChoiceButton
+                  selected={state.amountEntryPeriod === 'YEAR'}
+                  onClick={() => setState({ ...state, amountEntryPeriod: 'YEAR' })}
+                >
+                  {copy.periodYear}
+                </ChoiceButton>
+              </div>
+              {state.amountEntryPeriod === 'MONTH' ? (
+                <p className="text-sm leading-relaxed text-gray-600">{copy.monthToYearHint}</p>
+              ) : null}
+              {currentIncomeError ? (
+                <p ref={invalidRef} tabIndex={-1} className="text-base text-red-700">
+                  {copy.currentIncomeInvalid}
+                </p>
+              ) : null}
+              <label className="block">
+                <span className="text-base text-gray-700">{copy.steps.currentIncome?.title}</span>
+                <input
+                  inputMode="decimal"
+                  value={state.currentIncomeUnknown ? '' : state.currentIncomeEuro}
+                  disabled={state.currentIncomeUnknown}
+                  onChange={(e) =>
+                    setState({
+                      ...state,
+                      currentIncomeEuro: e.target.value,
+                      currentIncomeUnknown: false,
+                    })
+                  }
+                  className={`mt-1 ${FIELD}`}
+                  placeholder="€"
+                />
+              </label>
+              <ChoiceButton
+                selected={state.currentIncomeUnknown}
+                onClick={() =>
+                  setState({
+                    ...state,
+                    currentIncomeUnknown: true,
+                    currentIncomeEuro: '',
+                  })
+                }
+              >
+                {copy.currentIncomeUnknown}
+              </ChoiceButton>
+              <p className="text-base font-medium text-gray-900">{copy.otherIncomeTitle}</p>
+              <TriChoices
+                value={state.hasOtherIncome}
+                options={copy.steps.currentIncome?.options ?? {}}
+                onSelect={(value) => setState({ ...state, hasOtherIncome: value })}
+              />
+              {state.hasOtherIncome === true ? (
+                <label className="block">
+                  <span className="text-base text-gray-700">{copy.otherIncomeAmount}</span>
+                  <input
+                    inputMode="decimal"
+                    value={state.otherIncomeEuro}
+                    onChange={(e) => setState({ ...state, otherIncomeEuro: e.target.value })}
+                    className={`mt-1 ${FIELD}`}
+                    placeholder="€"
+                  />
+                </label>
+              ) : null}
+              <ChoiceButton
+                selected={state.advancedAccuracyRequested}
+                onClick={() =>
+                  setState({
+                    ...state,
+                    advancedAccuracyRequested: !state.advancedAccuracyRequested,
+                  })
+                }
+              >
+                {copy.advancedAccuracy}
+              </ChoiceButton>
+              {state.advancedAccuracyRequested ? (
+                <p className="text-sm leading-relaxed text-gray-600">{copy.advancedAccuracyExplain}</p>
+              ) : null}
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
+                {copy.next}
+              </button>
+            </div>
+          )}
+
           {step === 'amounts' && (
             <div className="space-y-4">
               <p className="text-base leading-relaxed text-gray-700">{copy.moneyExplain}</p>
@@ -1694,12 +1871,7 @@ export default function VerdienCheckWizard(props: {
 
           {step === 'incomeBases' && (
             <div className="space-y-4">
-              <p className="text-base leading-relaxed text-gray-700">{copy.incomeBasesNote}</p>
-              <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
-              <p className="text-base leading-relaxed text-gray-700">
-                {state.amountEntryPeriod === 'MONTH' ? copy.monthToYearHint : copy.yearlyHint}
-              </p>
-              <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
+              <p className="text-base leading-relaxed text-gray-700">{copy.advancedAccuracyExplain}</p>
               {(
                 [
                   ['baselineGrossEmploymentEuro', copy.grossEmploymentHelp],
@@ -1747,6 +1919,7 @@ export default function VerdienCheckWizard(props: {
 
           {step === 'scenario' && (
             <div className="space-y-3">
+              <p className="text-base leading-relaxed text-gray-700">{copy.extraResultExplain}</p>
               {SCENARIO_PRESET_EUROS.map((euro) => (
                 <ChoiceButton
                   key={euro}
@@ -1795,9 +1968,75 @@ export default function VerdienCheckWizard(props: {
           )}
 
           {step === 'result' && state.taxResidence === 'NL' && (
-            <div className="space-y-4">
-              <VerdienCheckResultSummary route={personalRoute} />
-              <VerdienCheckNowSection cards={personalRoute.now} />
+            <div className="space-y-5">
+              {state.moneyDepthCompleted && !isBenefitSituation(state) ? (
+                <VerdienCheckFinancialImpact
+                  copy={copy}
+                  route={personalRoute}
+                  scenarioPreset={state.scenarioPreset}
+                  customScenarioEuro={state.customScenarioEuro}
+                  comparison={scenarioComparison}
+                  onSelectPreset={(euro: ScenarioPresetEuro) =>
+                    setState({ ...state, scenarioPreset: euro })
+                  }
+                  onSelectCustom={() => setState({ ...state, scenarioPreset: 'custom' })}
+                  onCustomChange={(value) =>
+                    setState({ ...state, customScenarioEuro: value, scenarioPreset: 'custom' })
+                  }
+                />
+              ) : (
+                <VerdienCheckResultSummary route={personalRoute} omitHeadline />
+              )}
+              <VerdienCheckNowSection cards={personalRoute.now} heading={copy.nowHeading} />
+              {personalRoute.proceedSemantics === 'READY_TO_PROCEED' &&
+              personalRoute.now.length === 0 &&
+              !state.moneyDepthCompleted ? (
+                <p className="text-base leading-relaxed text-stone-700">{copy.restNotToday}</p>
+              ) : null}
+              {isAffiliateActivity(state.activityChoice) ? (
+                <p className="text-sm leading-relaxed text-stone-600">{copy.affiliateReviewNote}</p>
+              ) : null}
+              {(personalRoute.soon.length > 0 ||
+                personalRoute.later.length > 0 ||
+                personalRoute.restDetails.length > 0) && (
+                <details
+                  className="rounded-2xl border border-stone-200 bg-stone-50 p-4"
+                  onToggle={(event) => {
+                    if ((event.currentTarget as HTMLDetailsElement).open) {
+                      trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.detailsOpened);
+                    }
+                  }}
+                >
+                  <summary className="cursor-pointer min-h-12 text-base font-medium text-stone-800">
+                    {copy.laterHeading}
+                  </summary>
+                  <div className="mt-3 space-y-3">
+                    <VerdienCheckSoonSection cards={personalRoute.soon} plain />
+                    <VerdienCheckLaterSection
+                      cards={personalRoute.later}
+                      restDetails={personalRoute.restDetails}
+                      plain
+                    />
+                  </div>
+                </details>
+              )}
+              {!isBenefitSituation(state) && !state.moneyDepthCompleted ? (
+                <div className="space-y-3">
+                  <p className="text-base font-medium leading-relaxed text-stone-800">
+                    {copy.quickCheckDone}
+                  </p>
+                  <p className="text-sm leading-relaxed text-stone-600">
+                    {personalRoute.trackingMessage}
+                  </p>
+                  <button type="button" className={NEXT_BTN} onClick={startMoneyDepth}>
+                    {copy.moneyYes}
+                  </button>
+                  <p className="text-sm leading-relaxed text-stone-500">{copy.moneyPrompt}</p>
+                </div>
+              ) : null}
+              {state.moneyDepthCompleted ? (
+                <p className="text-base font-medium text-stone-800">{copy.moneyDone}</p>
+              ) : null}
               {personalRoute.proceedSemantics === 'READY_TO_PROCEED' ||
               personalRoute.proceedSemantics === 'PROCEED_AFTER_ACTION' ? (
                 <VerdienCheckResultCta
@@ -1806,63 +2045,18 @@ export default function VerdienCheckWizard(props: {
                   primaryStartSelling={resultCtaMode === 'SELL_PRIMARY'}
                   secondaryStartSelling={resultCtaMode === 'SELL_SECONDARY'}
                   ctaMode={resultCtaMode}
-                  onRestart={restartCheck}
+                  onRestart={requestRestart}
                   variant="sell"
                 />
               ) : null}
-              {personalRoute.proceedSemantics === 'READY_TO_PROCEED' ? (
-                <p className="text-sm leading-relaxed text-stone-600">
-                  {copy.restNotToday} {PERSONAL_ROUTE_COPY.growthReassurance}
-                </p>
-              ) : null}
-              {isAffiliateActivity(state.activityChoice) ? (
-                <p className="text-sm leading-relaxed text-stone-600">{copy.affiliateReviewNote}</p>
-              ) : null}
-              <p className="text-sm leading-relaxed text-stone-500">{copy.quickCheckDone}</p>
-              {!isBenefitSituation(state) && !state.moneyDeclined && !state.moneyDepthCompleted ? (
-                <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4">
-                  <p className="text-base leading-relaxed text-stone-800">{copy.moneyPrompt}</p>
-                  <ChoiceButton selected={false} onClick={startMoneyDepth}>
-                    {copy.moneyYes}
-                  </ChoiceButton>
-                  <ChoiceButton selected={false} onClick={declineMoneyDepth}>
-                    {copy.moneyNo}
-                  </ChoiceButton>
-                </div>
-              ) : null}
-              {state.moneyDepthCompleted && !isBenefitSituation(state) ? (
-                <VerdienCheckFinancialImpact copy={copy} route={personalRoute} />
-              ) : null}
-              <details
-                className="rounded-2xl border border-stone-200 bg-stone-50 p-4"
-                onToggle={(event) => {
-                  if ((event.currentTarget as HTMLDetailsElement).open) {
-                    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.detailsOpened);
-                  }
-                }}
-              >
-                <summary className="cursor-pointer min-h-12 text-base font-medium text-stone-800">
-                  {PERSONAL_ROUTE_COPY.moreDetail}
-                </summary>
-                <div className="mt-3 space-y-3">
-                  <VerdienCheckSoonSection cards={personalRoute.soon} plain />
-                  <VerdienCheckLaterSection
-                    cards={personalRoute.later}
-                    restDetails={personalRoute.restDetails}
-                    plain
-                  />
-                </div>
-              </details>
-              <p className="text-sm leading-relaxed text-stone-600">
-                {personalRoute.trackingMessage}
-              </p>
               <VerdienCheckResultCta
                 copy={copy}
                 entryPoint={entryPoint}
                 primaryStartSelling={false}
                 secondaryStartSelling={false}
-                onRestart={restartCheck}
+                onRestart={requestRestart}
                 variant="nav"
+                completed={step === 'result'}
               />
             </div>
           )}
@@ -1873,7 +2067,8 @@ export default function VerdienCheckWizard(props: {
               entryPoint={entryPoint}
               primaryStartSelling={false}
               secondaryStartSelling={false}
-              onRestart={restartCheck}
+              onRestart={requestRestart}
+              completed
             />
           )}
         </div>

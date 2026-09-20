@@ -314,12 +314,12 @@ assert.doesNotMatch(PERSONAL_ROUTE_COPY.kvkLaterTitle, /^KVK/);
 const wizardSrc = fs.readFileSync(path.join(ROOT, 'components/verdiencheck/VerdienCheckWizard.tsx'), 'utf8');
 assert.match(wizardSrc, /variant="sell"/);
 assert.match(wizardSrc, /variant="nav"/);
-assert.match(wizardSrc, /PERSONAL_ROUTE_COPY\.growthReassurance/);
+assert.match(wizardSrc, /copy\.restNotToday|personalRoute\.trackingMessage/);
 const sellIdx = wizardSrc.indexOf('variant="sell"');
 const moneyIdx = wizardSrc.indexOf('copy.moneyPrompt');
-const detailsIdx = wizardSrc.indexOf('PERSONAL_ROUTE_COPY.moreDetail');
-assert.ok(sellIdx > 0 && moneyIdx > sellIdx, 'sell CTA must appear before money prompt');
-assert.ok(detailsIdx > sellIdx, 'sell CTA must appear before Meer uitleg');
+const laterIdx = wizardSrc.indexOf('copy.laterHeading');
+assert.ok(moneyIdx > 0 && sellIdx > moneyIdx, 'optional money before HomeCheff CTA');
+assert.ok(laterIdx > 0 && laterIdx < moneyIdx, 'later guidance before optional money');
 
 const actionSrc = fs.readFileSync(path.join(ROOT, 'components/verdiencheck/VerdienCheckActionCard.tsx'), 'utf8');
 assert.match(actionSrc, /benefit_prestart/);

@@ -86,6 +86,31 @@ export type VerdienCheckCopy = {
   periodYear: string;
   periodMonth: string;
   monthToYearHint: string;
+  currentIncomeUnknown: string;
+  otherIncomeTitle: string;
+  otherIncomeAmount: string;
+  advancedAccuracy: string;
+  advancedAccuracyExplain: string;
+  extraResultExplain: string;
+  moneyResultTitle: string;
+  monthlyFromYearNote: string;
+  baselineEstablished: string;
+  scenarioSwitchHint: string;
+  moneyDone: string;
+  closeCheck: string;
+  restartFromStart: string;
+  restartCompleted: string;
+  restartConfirmTitle: string;
+  restartConfirmBody: string;
+  restartConfirmCancel: string;
+  restartConfirmConfirm: string;
+  resumeHint: string;
+  nowHeading: string;
+  laterHeading: string;
+  comparisonHeading: string;
+  comparisonNet: string;
+  comparisonMonth: string;
+  currentIncomeInvalid: string;
   steps: Record<string, { title: string; options?: Record<string, string>; help?: string }>;
 };
 
@@ -101,7 +126,7 @@ const NL: VerdienCheckCopy = {
   disclaimer:
     'Dit is een schatting en persoonlijke uitleg op basis van wat je hebt ingevuld. Jij blijft verantwoordelijk voor wat je doorgeeft en regelt. Schatting voor 2026.',
   back: 'Terug',
-  leaveProduct: 'Naar HomeCheff',
+  leaveProduct: 'VerdienCheck afsluiten',
   startSelling: 'Maak je eerste aanbod',
   discoverHomecheff: 'Ontdek HomeCheff',
   discoverHomecheffBody:
@@ -110,10 +135,10 @@ const NL: VerdienCheckCopy = {
   affiliatePartnerCta: 'Bekijk het partnerprogramma',
   affiliatePartnerBody:
     'HomeCheff heeft ook een partnerprogramma waarmee je commissie kunt verdienen. Dat is optioneel en geen voorwaarde voor dit resultaat.',
-  restNotToday: 'Je hoeft de rest niet vandaag te regelen.',
+  restNotToday: 'Je hoeft niet alles nu te regelen.',
   affiliateReviewNote:
     'Commissie geef je meestal aan in je belastingaangifte. Of het bijverdienste of een onderneming is, hangt af van hoe je werkt. HomeCheff verzint dat niet.',
-  restartCheck: 'Opnieuw invullen',
+  restartCheck: 'VerdienCheck opnieuw doen',
   next: 'Verder',
   otherCountry: 'Deze VerdienCheck is nu beschikbaar voor Nederland.',
   packUnavailable: 'De berekening voor 2026 is nog niet beschikbaar.',
@@ -122,7 +147,7 @@ const NL: VerdienCheckCopy = {
   expectedResult: 'Wat ongeveer overblijft',
   expectedTurnover: 'Wat verwacht je ongeveer binnen te krijgen dit jaar?',
   expectedCosts: 'Wat geef je er ongeveer aan uit dit jaar?',
-  extraResult: 'Extra over voordat belasting speelt',
+  extraResult: 'Extra resultaat (na relevante kosten)',
   estimatedSales: 'Hoeveel verkopen ongeveer dit jaar?',
   otherTurnoverAmount: 'Ongeveer hoeveel, per jaar? Een schatting is goed.',
   previousYearTurnover: 'Ongeveer hoeveel vorig jaar, per jaar?',
@@ -133,10 +158,10 @@ const NL: VerdienCheckCopy = {
   childBudgetChanges: 'Kindgebonden budget',
   childcareChanges: 'Kinderopvangtoeslag',
   netKeep: 'Voor jou extra over',
-  perMonth: 'Dat is ongeveer … per maand extra.',
+  perMonth: 'Gemiddeld is dat ongeveer … per maand extra over.',
   guidanceTitle: 'Wat moet ik regelen?',
   guidanceLater: 'Begeleiding volgt wanneer de regels klaar zijn.',
-  whatIf: 'Wat als je extra verdient?',
+  whatIf: 'Wat als je extra resultaat verdient?',
   customAmount: 'Zelf invullen',
   provisionalTitle: 'Voorlopige berekening',
   otherAllowancesExcluded: 'We rekenen je andere toeslagen nog niet mee.',
@@ -169,7 +194,7 @@ const NL: VerdienCheckCopy = {
     'Voor de belasting kan iemand je fiscale partner zijn. Dat is niet hetzelfde als een toeslagpartner. Weet je het niet, kies dat. Gok niet.',
   singleOlderHelp:
     'Dit is een belastingkorting voor AOW als je alleenstaand bent. Dat is iets anders dan een korting voor alleenstaande ouders met kinderen.',
-  estimateOk: 'Een schatting is goed. Je hoeft het niet precies te weten.',
+  estimateOk: 'Een schatting is goed.',
   yearlyHint:
     'Vul het bedrag per jaar in. Weet je alleen per maand? Tel dan twaalf maanden bij elkaar, bijvoorbeeld €1.800 × 12.',
   moneyExplain:
@@ -188,14 +213,42 @@ const NL: VerdienCheckCopy = {
   keepEstimatePrefix: 'Van €',
   keepEstimateMiddle: ' extra resultaat houd je naar schatting ongeveer €',
   keepEstimateSuffix: ' over.',
-  quickCheckDone: 'Dat was de snelle check. Je mag hier stoppen.',
+  quickCheckDone: 'Dat was je snelle VerdienCheck. Je mag hier stoppen.',
   moneyPrompt:
-    'Wil je weten wat extra verdienen ongeveer voor je geld betekent?',
-  moneyYes: 'Ja, bereken het',
+    'Benieuwd wat extra verdienen voor je geld betekent?',
+  moneyYes: 'Bereken mijn geld',
   moneyNo: 'Nee, dit is genoeg',
   periodYear: 'Per jaar',
   periodMonth: 'Per maand',
-  monthToYearHint: 'We maken er een jaarbedrag van (×12). Een schatting is goed.',
+  monthToYearHint: 'We maken er een jaarbedrag van (×12). Geen vakantiegeld of bonus erbij, tenzij je dat zelf meerekent.',
+  currentIncomeUnknown: 'Weet ik niet',
+  otherIncomeTitle: 'Heb je daarnaast nog ander inkomen?',
+  otherIncomeAmount: 'Ongeveer hoeveel extra, per jaar of per maand zoals hierboven?',
+  advancedAccuracy: 'Ik wil nauwkeuriger rekenen',
+  advancedAccuracyExplain:
+    'Dit zijn bedragen van je jaaropgave of aangifte. Ze maken de schatting preciezer. Je hoeft ze niet in te vullen.',
+  extraResultExplain:
+    'Kies hoeveel extra resultaat je wilt toetsen. Resultaat is wat overblijft nadat relevante kosten eraf zijn — niet je omzet.',
+  moneyResultTitle: 'Dit betekent het ongeveer voor jou',
+  monthlyFromYearNote:
+    'Gemiddeld is dat het jaarbedrag gedeeld door 12. Dat is niet het moment waarop belasting wordt verrekend.',
+  baselineEstablished: 'Dit is je huidige situatie. Hierna toetsen we extra verdienen.',
+  scenarioSwitchHint: 'Je huidige situatie blijft staan. Kies een ander bedrag om te vergelijken.',
+  moneyDone: 'Dat was je VerdienCheck.',
+  closeCheck: 'VerdienCheck afsluiten',
+  restartFromStart: 'Opnieuw beginnen',
+  restartCompleted: 'VerdienCheck opnieuw doen',
+  restartConfirmTitle: 'Opnieuw beginnen?',
+  restartConfirmBody: 'Je ingevulde antwoorden van deze VerdienCheck worden gewist.',
+  restartConfirmCancel: 'Annuleren',
+  restartConfirmConfirm: 'Opnieuw beginnen',
+  resumeHint: 'Je hebt al antwoorden ingevuld. Je kunt verdergaan of opnieuw beginnen.',
+  nowHeading: 'Nu',
+  laterHeading: 'Later / als je groeit',
+  comparisonHeading: 'Vergelijk extra resultaat',
+  comparisonNet: 'Naar schatting extra over',
+  comparisonMonth: 'Gemiddeld per maand',
+  currentIncomeInvalid: 'Vul een bedrag in, of kies dat je het niet weet.',
   steps: {
     jurisdiction: {
       title: 'Woon je in Nederland?',
@@ -446,7 +499,10 @@ const NL: VerdienCheckCopy = {
       title: 'Klopt deze manier van rekenen voor de schatting?',
       options: { ACCEPT: 'Ja, reken het zo' },
     },
-    incomeBases: { title: 'Wat is je huidige inkomen per jaar?' },
+    incomeBases: {
+      title: 'Gegevens uit je jaaropgave of aangifte',
+      help: 'Alleen als je nauwkeuriger wilt rekenen. Dit zijn verschillende bedragen. Kopieer niet hetzelfde getal in elk veld.',
+    },
     assets: {
       title: 'Is je spaargeld laag genoeg voor zorgtoeslag?',
       help: 'Toeslagen kijken naar vermogen, zoals spaargeld. Weet je de grens niet, kies dat je het niet weet.',
@@ -553,6 +609,15 @@ const NL: VerdienCheckCopy = {
       title: 'Blijft deze huishoudsituatie het hele jaar hetzelfde?',
       options: { YES: 'Ja, het hele jaar', NO: 'Nee, het verandert in 2026' },
     },
+    currentIncome: {
+      title: 'Wat verdien je nu ongeveer?',
+      help: 'Dit is je huidige situatie, vóór extra bijverdienen. Een schatting is goed. Weet je het niet, zeg dat. Vul hetzelfde bedrag niet meerdere keren in.',
+      options: {
+        NO: 'Nee',
+        YES: 'Ja',
+        UNKNOWN: 'Weet ik niet',
+      },
+    },
     amounts: { title: 'Wat denk je ongeveer te verkopen dit jaar?' },
     otherVatTurnover: {
       title: 'Verkoop je hetzelfde ook buiten HomeCheff?',
@@ -573,8 +638,11 @@ const NL: VerdienCheckCopy = {
         KOR_UNKNOWN: 'KOR weet ik niet',
       },
     },
-    scenario: { title: 'Wat als je extra verdient?' },
-    result: { title: 'Jouw situatie' },
+    scenario: {
+      title: 'Wat als je extra resultaat verdient?',
+      help: 'Je huidige situatie staat vast. Nu toetsen we extra resultaat: wat overblijft nadat relevante kosten eraf zijn.',
+    },
+    result: { title: 'Jouw uitkomst' },
   },
 };
 
@@ -590,7 +658,7 @@ const EN: VerdienCheckCopy = {
   disclaimer:
     'This is an estimate and personal explanation based on what you entered. You remain responsible for what you report and arrange. Estimate for 2026.',
   back: 'Back',
-  leaveProduct: 'To HomeCheff',
+  leaveProduct: 'Close VerdienCheck',
   startSelling: 'Create your first listing',
   discoverHomecheff: 'Discover HomeCheff',
   discoverHomecheffBody:
@@ -599,10 +667,10 @@ const EN: VerdienCheckCopy = {
   affiliatePartnerCta: 'See the partner programme',
   affiliatePartnerBody:
     'HomeCheff also has a partner programme where you can earn commission. That is optional and not required for this result.',
-  restNotToday: 'You do not have to arrange the rest today.',
+  restNotToday: 'You do not need to arrange everything now.',
   affiliateReviewNote:
     'Commission usually has to be reported in your tax return. Whether it is extra work or a business depends on how you work. HomeCheff does not invent that.',
-  restartCheck: 'Fill in again',
+  restartCheck: 'Do VerdienCheck again',
   next: 'Next',
   otherCountry: 'This earning check is currently available for the Netherlands.',
   packUnavailable: 'The 2026 calculation is not available yet.',
@@ -611,7 +679,7 @@ const EN: VerdienCheckCopy = {
   expectedResult: 'What is roughly left',
   expectedTurnover: 'About how much do you expect to receive this year?',
   expectedCosts: 'About how much will you spend on this this year?',
-  extraResult: 'Extra before tax',
+  extraResult: 'Extra result (after relevant costs)',
   estimatedSales: 'About how many sales this year?',
   otherTurnoverAmount: 'About how much per year? An estimate is fine.',
   previousYearTurnover: 'About how much last year, per year?',
@@ -622,10 +690,10 @@ const EN: VerdienCheckCopy = {
   childBudgetChanges: 'Child budget',
   childcareChanges: 'Childcare allowance',
   netKeep: 'You keep extra',
-  perMonth: 'That is about … extra per month.',
+  perMonth: 'On average that is about … extra per month.',
   guidanceTitle: 'What should I arrange?',
   guidanceLater: 'Guidance follows once the rules are ready.',
-  whatIf: 'What if you earn extra?',
+  whatIf: 'What if you earn extra result?',
   customAmount: 'Enter your own amount',
   provisionalTitle: 'Provisional calculation',
   otherAllowancesExcluded: 'We do not include your other allowances yet.',
@@ -658,7 +726,7 @@ const EN: VerdienCheckCopy = {
     'For tax, someone can be your fiscal partner. That is not the same as an allowance partner. If you are unsure, choose that you do not know.',
   singleOlderHelp:
     'This is a tax credit for state pension if you live alone. It is not a credit for single parents with children.',
-  estimateOk: 'An estimate is fine. You do not need to be exact.',
+  estimateOk: 'An estimate is fine.',
   yearlyHint:
     'Enter the amount per year. If you only know a monthly amount, add twelve months, for example €1,800 × 12.',
   moneyExplain:
@@ -677,14 +745,43 @@ const EN: VerdienCheckCopy = {
   keepEstimatePrefix: 'From €',
   keepEstimateMiddle: ' extra result you keep an estimated €',
   keepEstimateSuffix: '.',
-  quickCheckDone: 'That was the quick check. You can stop here.',
+  quickCheckDone: 'That was your quick VerdienCheck. You can stop here.',
   moneyPrompt:
-    'Do you want to know what extra earnings roughly mean for your money?',
-  moneyYes: 'Yes, calculate it',
+    'Curious what extra earnings would mean for your money?',
+  moneyYes: 'Calculate my money',
   moneyNo: 'No, this is enough',
   periodYear: 'Per year',
   periodMonth: 'Per month',
-  monthToYearHint: 'We turn this into a yearly amount (×12). An estimate is fine.',
+  monthToYearHint:
+    'We turn this into a yearly amount (×12). No holiday pay or bonus unless you include it yourself.',
+  currentIncomeUnknown: 'I don’t know',
+  otherIncomeTitle: 'Do you have any other income besides this?',
+  otherIncomeAmount: 'About how much extra, using the same period as above?',
+  advancedAccuracy: 'I want a more precise calculation',
+  advancedAccuracyExplain:
+    'These figures come from your annual statement or tax return. They make the estimate more precise. You do not have to fill them in.',
+  extraResultExplain:
+    'Choose how much extra result you want to test. Result is what remains after relevant costs — not turnover.',
+  moneyResultTitle: 'This is roughly what it means for you',
+  monthlyFromYearNote:
+    'On average that is the yearly amount divided by 12. That is not when tax is actually settled.',
+  baselineEstablished: 'This is your current situation. Next we test extra earnings.',
+  scenarioSwitchHint: 'Your current situation stays. Pick another amount to compare.',
+  moneyDone: 'That was your VerdienCheck.',
+  closeCheck: 'Close VerdienCheck',
+  restartFromStart: 'Start again',
+  restartCompleted: 'Do VerdienCheck again',
+  restartConfirmTitle: 'Start again?',
+  restartConfirmBody: 'Your answers from this VerdienCheck will be cleared.',
+  restartConfirmCancel: 'Cancel',
+  restartConfirmConfirm: 'Start again',
+  resumeHint: 'You already entered answers. You can continue or start again.',
+  nowHeading: 'Now',
+  laterHeading: 'Later / as you grow',
+  comparisonHeading: 'Compare extra result',
+  comparisonNet: 'Estimated extra kept',
+  comparisonMonth: 'Average per month',
+  currentIncomeInvalid: 'Enter an amount, or choose that you do not know.',
   steps: {
     jurisdiction: {
       title: 'Do you live in the Netherlands?',
@@ -931,7 +1028,10 @@ const EN: VerdienCheckCopy = {
       title: 'How should we treat your extra earnings?',
       options: { ACCEPT: 'Yes, calculate it this way' },
     },
-    incomeBases: { title: 'What is your current income?' },
+    incomeBases: {
+      title: 'Figures from your annual statement or tax return',
+      help: 'Only if you want a more precise calculation. These are different amounts. Do not copy the same number into every field.',
+    },
     assets: {
       title: 'Are you within the asset limit for healthcare allowance?',
       options: {
@@ -1034,6 +1134,15 @@ const EN: VerdienCheckCopy = {
       title: 'Does this household situation stay the same all year?',
       options: { YES: 'Yes, all year', NO: 'No, it changes in 2026' },
     },
+    currentIncome: {
+      title: 'About how much do you earn now?',
+      help: 'This is your current situation, before extra earnings. An estimate is fine. If you do not know, say so. Do not enter the same amount several times.',
+      options: {
+        NO: 'No',
+        YES: 'Yes',
+        UNKNOWN: 'I don’t know',
+      },
+    },
     amounts: { title: 'What do you think you will sell this year, roughly?' },
     otherVatTurnover: {
       title: 'Do you also sell the same things outside HomeCheff?',
@@ -1054,8 +1163,11 @@ const EN: VerdienCheckCopy = {
         KOR_UNKNOWN: 'I don’t know about KOR',
       },
     },
-    scenario: { title: 'What if you earn extra?' },
-    result: { title: 'Your situation' },
+    scenario: {
+      title: 'What if you earn extra result?',
+      help: 'Your current situation is set. Now we test extra result: what remains after relevant costs.',
+    },
+    result: { title: 'Your outcome' },
   },
 };
 

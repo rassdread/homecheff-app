@@ -50,6 +50,16 @@ export function findPersonalRouteContradictions(
     });
   }
 
+  if (
+    route.proceedSemantics === 'READY_TO_PROCEED' &&
+    route.now.some((c) => c.family === 'business_registration')
+  ) {
+    out.push({
+      code: 'READY_WITH_KVK_NOW',
+      message: 'READY_TO_PROCEED must not show KVK/business registration as a NOW prerequisite',
+    });
+  }
+
   return out;
 }
 
