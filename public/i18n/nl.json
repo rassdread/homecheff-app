@@ -3508,6 +3508,7 @@
     "manifestTitle": "Waarom HomeCheff bestaat",
     "manifestDescription": "Voor de filosofische basis — missie, waarden en wat we weigeren te worden — lees het HomeCheff Manifest.",
     "manifestLink": "Naar het Manifest",
+    "moreDetail": "Meer uitleg",
     "categories": {
       "general": "Algemeen",
       "features": "Functies & Gebruik",
@@ -3545,7 +3546,7 @@
       },
       "5": {
         "question": "Kan ik bijverdienen naast mijn uitkering?",
-        "answer": "Ja, je kunt bijverdienen naast je uitkering, maar er zijn wel regels:\n\n💰 UITKERINGEN EN BIJVERDIENEN:\n• Wajong: 70% van je inkomsten wordt verrekend met je uitkering\n• Bijstand: Je mag een deel van je inkomsten houden\n• Alle inkomsten moeten binnen 1 week worden gemeld aan het UWV\n\n💡 PRAKTISCHE TIPS:\n• Houd je uitgaven bij voor aftrek van je omzet\n• Overleg met het UWV over je specifieke situatie\n• Gebruik je hobby om extra inkomen te genereren\n• Maak gebruik van de vrijstellingen die er zijn\n\n⚠️ BELANGRIJK: Neem altijd contact op met het UWV voordat je begint met verkopen! De product-/dienstovereenkomst is tussen koper en aanbieder; HomeCheff faciliteert platform en betaling. en biedt geen belasting- of uitkeringsadvies."
+        "answer": "Krijg je een uitkering? Dan kan het belangrijk zijn om vóór je begint iets met UWV of je gemeente af te stemmen. Wat je eerst moet regelen hangt af van de regeling.\n\n---\n\nBij WW: volg de UWV-informatie en kies een van de drie officiële routes (met startperiode, zonder startperiode, of zonder behoud van WW). Tijdens de UWV-startperiode is je WW 29% lager; dat is geen algemene WW-korting.\n\nBij bijstand: bespreek je plan eerst met je gemeente; Bbz en een voorbereidingsperiode zijn gemeentelijk.\n\nBij WIA, Wajong, Ziektewet, WAO of WAZ: bespreek je plan met je arbeidsdeskundige. Geef inkomsten binnen 1 week door en wijzigingen binnen 2 dagen. Ook commerciële internetverkopen kunnen relevant zijn, ook zonder KVK. Dat HomeCheff of UWV gegevens vraagt, betekent niet dat HomeCheff je uitkering herberekent.\n\nBronnen:\nUWV — Eigen bedrijf starten\nhttps://www.uwv.nl/nl/eigen-bedrijf-starten\nUWV — Bedrijf starten vanuit een WW-uitkering\nhttps://www.uwv.nl/nl/eigen-bedrijf-starten/bedrijf-vanuit-ww\nUWV — Inkomsten doorgeven WIA, WAO, WAZ, Wajong en Ziektewet\nhttps://www.uwv.nl/nl/inkomsten-doorgeven/wia-wao-waz-wajong-ziektewet-welke-inkomsten-doorgeven\nRijksoverheid — Starten vanuit bijstand / Bbz\nhttps://www.rijksoverheid.nl/vraag-en-antwoord/bijstand-voor-zelfstandigen-bbz/kan-ik-als-startende-ondernemer-met-een-bijstandsuitkering-gebruikmaken-van-het-bbz"
       },
       "6": {
         "question": "Wat is de aansprakelijkheid van HomeCheff?",
@@ -3731,19 +3732,19 @@
     "taxes": {
       "0": {
         "question": "Moet ik belasting betalen over mijn verkopen?",
-        "answer": "Ja, als verkoper ben je zelf verantwoordelijk voor het opgeven van alle inkomsten bij de Belastingdienst. Er is geen minimumbedrag - alle inkomsten moeten worden opgegeven."
+        "answer": "Dat hangt af van je situatie en van wat je verdient nadat relevante kosten zijn afgetrokken. Er bestaat geen algemene HomeCheff-grens waaronder inkomsten automatisch belastingvrij zijn.\n\n---\n\nOf je inkomstenbelasting betaalt, volgt uit je persoonlijke situatie en het jaar. Omzet is niet hetzelfde als belastbaar resultaat. HomeCheff biedt geen belastingadvies.\n\nBron: Belastingdienst — Inkomsten uit overig werk\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/werk-en-inkomen/content/wat-zijn-inkomsten-uit-overig-werk"
       },
       "1": {
         "question": "Vanaf welk bedrag moet ik BTW betalen?",
-        "answer": "Je bent BTW-plichtig vanaf €20.000 omzet per jaar. Onder dit bedrag hoef je geen BTW te betalen, maar je moet wel je inkomsten opgeven voor de inkomstenbelasting."
+        "answer": "Voor btw gelden aparte regels. Dat is iets anders dan inkomstenbelasting of KVK. Er is geen simpele HomeCheff-grens waarna je automatisch btw betaalt.\n\n---\n\nBtw hangt eerst af van of je ondernemer bent voor de btw. Dat is iets anders dan KVK. Bij een kleine omzet kan een registratiedrempel gelden. De KOR is een aparte vrijstelling waar je onder voorwaarden voor kunt kiezen — geen belastingvrije inkomsten.\n\nBronnen:\nBelastingdienst — Ondernemer voor de btw\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/voor_wie_geldt_de_btw/ondernemer\nBelastingdienst — Registratiedrempel voor kleine ondernemers\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/kleineondernemersregeling/registratiedrempel-voor-kleine-ondernemers\nBelastingdienst — Voorwaarden KOR\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/kor-voorwaarden"
       },
       "2": {
         "question": "Geeft HomeCheff mijn gegevens door aan de Belastingdienst?",
-        "answer": "HomeCheff kan wettelijk verplicht zijn relevante gegevens te verzamelen en te rapporteren wanneer de toepasselijke regels (zoals DAC7) dat vereisen. Of en wanneer dat gebeurt hangt af van drempels en wetgeving. Dit is geen bewijs dat HomeCheff al een volledige aangifte voor jou indient, en het bepaalt niet automatisch jouw belastingplicht. Raadpleeg bij twijfel een adviseur."
+        "answer": "HomeCheff kan wettelijk verplicht zijn bepaalde verkoopgegevens te rapporteren. Dat betekent niet automatisch dat je belasting moet betalen.\n\n---\n\nOf en wanneer rapportage speelt hangt af van de toepasselijke regels (zoals DAC7). Dit is geen bewijs dat HomeCheff al een volledige aangifte voor jou indient. Voor verkoop van goederen kan een uitzondering gelden bij weinig transacties en een lage tegenprestatie in een kalenderjaar. Dat is een rapportage-uitzondering, geen belastingvrije grens. Voor persoonlijke diensten geldt die uitzondering niet.\n\nBron: Belastingdienst — Wat betekent DAC7 voor mij als verkoper?\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/ondernemers/content/informatie-voor-verkopers-DAC7"
       },
       "3": {
         "question": "Moet ik me inschrijven bij de KvK?",
-        "answer": "Bij structurele verkoop (regelmatig verkopen) moet je je inschrijven bij de Kamer van Koophandel. Voor incidentele verkoop is dit meestal niet nodig."
+        "answer": "Of KVK voor jou relevant is, hangt af van hoe je verkoopt en hoe structureel of commercieel je activiteit is.\n\n---\n\nKVK kijkt of je zelfstandig levert, geld verdient, en regelmatig levert aan anderen dan alleen familie of vrienden. Dezelfde omzet kan tot een andere uitkomst leiden. Ga je vaker en zelfstandig aan klanten verkopen? Dan kan KVK relevant worden. HomeCheff bepaalt niet dat je ondernemer bent.\n\nBron: KVK — Moet je je bedrijf inschrijven bij KVK?\nhttps://www.kvk.nl/starten/moet-ik-mijn-bedrijf-inschrijven-bij-kvk/"
       },
       "4": {
         "question": "Biedt HomeCheff belastingadvies?",
@@ -3801,23 +3802,23 @@
     "sustainability": {
       "0": {
         "question": "Hoe draagt HomeCheff bij aan het tegengaan van voedselverspilling?",
-        "answer": "🌱 HomeCheff helpt voedselverspilling tegen te gaan door het delen van overtollige maaltijden en producten. Als je voor jezelf kookt en er teveel van hebt, kun je dat delen met anderen in je buurt. Dit is niet alleen duurzaam, maar ook sociaal - je helpt anderen terwijl je verspilling voorkomt.\n\n💡 Denk aan: Extra portie pasta, overtollige groenten uit je tuin, of een taart die te groot was voor je gezin. In plaats van weggooien, deel je het met je gemeenschap."
+        "answer": "HomeCheff maakt het makkelijker om extra eten of drinken in de buurt te laten zien in plaats van weg te gooien. Dat is een community-doel, geen wettelijke vrijstelling.\n\n---\n\nVerkoop je eten of drinken via het platform, dan gelden voedselveiligheid en allergeneninformatie. Of NVWA-registratie relevant is, hangt af van hoe vaak je verkoopt — niet van of je het ‘delen’ noemt."
       },
       "1": {
         "question": "Valt het delen van overtollig eten onder commerciële verkoop?",
-        "answer": "❌ Nee, dit valt onder 'delen van overtollig voedsel' en niet onder commerciële voedselproductie. Je kookt voor jezelf en deelt alleen wat je over hebt. Dit is vergelijkbaar met het delen van eten met buren of vrienden - alleen dan via een platform.\n\n✅ Je bent geen restaurant of commerciële keuken. Je deelt gewoon je overtollige maaltijden om verspilling tegen te gaan."
+        "answer": "Delen of verkopen: voor voedselregels telt wat je doet, niet alleen hoe je het noemt. Verkoop je eten of drinken via HomeCheff, dan gelden voedselveiligheid en allergeneninformatie.\n\n---\n\nVerkoop je meerdere keren per jaar eten of drinken? Dan wordt NVWA-registratie relevant. Ook als je maar af en toe verkoopt, moet je veilig en hygiënisch werken en klanten informeren over allergenen.\n\nBron: NVWA — Eten en drinken verkopen vanuit huis\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/voedselveilig-werken-in-horeca-ambacht-en-retail/verkopen-vanuit-huis"
       },
       "2": {
         "question": "Moet ik me registreren bij de NVWA als ik overtollig eten deel?",
-        "answer": "❌ Nee, voor het delen van overtollig eten hoef je je niet te registreren bij de NVWA. Dit geldt alleen voor commerciële voedselproductie. Omdat je voor jezelf kookt en alleen deelt wat over is, val je niet onder de voedselinspectie wetten.\n\n🏠 Je keuken blijft een particuliere keuken, geen commerciële keuken. Je deelt gewoon je overtollige maaltijden met je buurt."
+        "answer": "Niet automatisch. Verkoop je meerdere keren per jaar eten of drinken? Dan wordt NVWA-registratie relevant.\n\n---\n\nOok als je maar af en toe verkoopt, moet je veilig en hygiënisch werken en klanten informeren over allergenen. Je hoeft niet altijd zelf een voedselveiligheidsplan te schrijven; je kunt een goedgekeurde hygiënecode gebruiken. HomeCheff eist geen HACCP-certificaat.\n\nBron: NVWA — Registreer uw levensmiddelenbedrijf\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/levensmiddelen-produceren-en-verhandelen/registratie-en-erkenning/registreer-uw-levensmiddelenbedrijf"
       },
       "3": {
         "question": "Wat is het verschil tussen verkopen en delen van overtollig eten?",
-        "answer": "🔄 Het verschil zit in de intentie:\n\n📤 DELEN (wat wij doen):\n• Je kookt voor jezelf\n• Je hebt teveel gemaakt\n• Je deelt de overtollige portie\n• Kleine vergoeding voor ingrediënten\n\n💰 VERKOPEN (commercieel):\n• Je kookt specifiek voor verkoop\n• Je produceert op bestelling\n• Je bent een commerciële keuken\n• Volledige winstmarge\n\nHomeCheff richt zich op het eerste: delen van overtollig eten!"
+        "answer": "Het verschil zit niet in een HomeCheff-label ‘delen’ versus ‘verkopen’. Voor voedselregels telt hoe vaak en hoe je eten of drinken aan anderen aanbiedt.\n\n---\n\nVerkoop je meerdere keren per jaar eten of drinken? Dan wordt NVWA-registratie relevant. Ook bij een eenmalige verkoop moet je veilig en hygiënisch werken en klanten informeren over allergenen.\n\nBron: NVWA — Stappenplan veilig eten en drinken verkopen aan consumenten\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/voedselveilig-werken-in-horeca-ambacht-en-retail/stappenplan"
       },
       "4": {
         "question": "Zijn er limieten aan hoeveel ik kan delen?",
-        "answer": "📊 Ja, om onder de radar te blijven van voedselinspectie:\n\n✅ TOEGESTAAN:\n• Incidentele verkoop van overtollig eten\n• Kleine hoeveelheden (1-5 porties per keer)\n• Thuisgemaakte maaltijden\n• Verse producten uit eigen tuin\n\n❌ NIET TOEGESTAAN:\n• Grote commerciële productie\n• Dagelijkse verkoop van dezelfde producten\n• Professionele keuken setup\n• Massaproductie\n\n🎯 Blijf binnen de 'delen' categorie, niet 'verkopen'!"
+        "answer": "Er is geen HomeCheff-portiesgrens die voedselinspectie vervangt. NVWA-registratie hangt af van hoe vaak je eten of drinken verkoopt, niet van een vast aantal porties.\n\n---\n\nVerkoop je meerdere keren per jaar eten of drinken? Dan wordt NVWA-registratie relevant. Ook als je maar af en toe verkoopt, moet je veilig en hygiënisch werken en klanten informeren over allergenen.\n\nBron: NVWA — Eten en drinken verkopen vanuit huis\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/voedselveilig-werken-in-horeca-ambacht-en-retail/verkopen-vanuit-huis"
       },
       "5": {
         "question": "Hoe kan ik veilig overtollig eten delen?",
@@ -3825,11 +3826,11 @@
       },
       "6": {
         "question": "Mag ik zelf gekweekte groenten en tuinproducten delen?",
-        "answer": "🌱 Ja! Het delen van overtollige groenten uit je eigen tuin valt onder dezelfde categorie als overtollig eten. Je kweekt voor jezelf en deelt alleen wat je over hebt.\n\n✅ TOEGESTAAN:\n• Overtollige tomaten, komkommers, sla\n• Teveel kruiden (basilicum, peterselie, tijm)\n• Extra fruit van je fruitbomen\n• Bloemen en planten die je over hebt\n• Zaden en stekjes van je planten\n\n🏡 Dit is geen commerciële landbouw - je deelt gewoon je tuinoogst!"
+        "answer": "Ja. Tuinproducten kun je op HomeCheff laten zien. Als je ze als eten of drinken verkoopt, gelden de voedselregels.\n\n---\n\nVerkoop je meerdere keren per jaar eten of drinken? Dan wordt NVWA-registratie relevant. HomeCheff geeft geen algemene landbouwvrijstelling."
       },
       "7": {
         "question": "Valt het delen van tuinproducten onder landbouwwetgeving?",
-        "answer": "❌ Nee, voor het delen van overtollige tuinproducten hoef je je niet te registreren bij de NVWA. Dit geldt alleen voor commerciële landbouw en voedselproductie.\n\n🌿 Jouw situatie:\n• Particuliere tuin (geen commerciële kwekerij)\n• Je kweekt voor jezelf\n• Je deelt alleen wat over is\n• Geen grootschalige productie\n\n✅ Je bent geen boer of kweker - je deelt gewoon je tuinoogst om verspilling tegen te gaan!"
+        "answer": "HomeCheff geeft geen algemene vrijstelling voor tuin- of landbouwregels. Verkoop je oogst als eten of drinken, dan gelden de voedselregels.\n\n---\n\nVerkoop je meerdere keren per jaar eten of drinken? Dan wordt NVWA-registratie relevant. Ook bij incidentele verkoop moet je veilig en hygiënisch werken. Specifieke landbouwregistratie hangt van de activiteit af en wordt hier niet als algemene regel gegeven.\n\nBron: NVWA — Eten en drinken verkopen vanuit huis\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/voedselveilig-werken-in-horeca-ambacht-en-retail/verkopen-vanuit-huis"
       },
       "8": {
         "question": "Wat als ik teveel planten heb gekweekt?",
@@ -3837,7 +3838,7 @@
       },
       "9": {
         "question": "Zijn er limieten aan het delen van tuinproducten?",
-        "answer": "📊 Ja, om binnen de 'delen' categorie te blijven:\n\n✅ TOEGESTAAN (incidenteel delen):\n• Kleine hoeveelheden overtollige groenten\n• Enkele planten/stekjes per keer\n• Verse kruiden uit je tuin\n• Bloemen die je over hebt\n• Zaden van je eigen planten\n\n❌ NIET TOEGESTAAN (commerciële productie):\n• Grote hoeveelheden van dezelfde groente\n• Dagelijkse verkoop van tuinproducten\n• Professionele kwekerij setup\n• Massaproductie van planten\n\n🎯 Blijf binnen de 'hobbytuinier deelt overtollige oogst' categorie!"
+        "answer": "Er is geen vaste HomeCheff-hoeveelheid die landbouw- of voedselregels vervangt. Hoe vaak en hoe je verkoopt telt zwaarder dan een portieslimiet.\n\n---\n\nVerkoop je oogst als eten of drinken, dan gelden voedselveiligheid en allergeneninformatie. Bij meerdere keren per jaar wordt NVWA-registratie relevant."
       },
       "10": {
         "question": "Hoe kan ik veilig tuinproducten delen?",
@@ -4204,9 +4205,9 @@
     "taxResponsibilityCheckbox": "Ik begrijp mijn belastingverantwoordelijkheid als verkoper",
     "taxAdviceNote": "Consulteer een accountant voor specifieke belastingadvies. HomeCheff biedt geen belastingadvies.",
     "taxYourResponsibility": "Jouw verantwoordelijkheid:",
-    "taxYourResponsibilityText": "Je bent zelf verantwoordelijk voor het opgeven van alle inkomsten bij de Belastingdienst. Er is geen minimumbedrag - alle inkomsten moeten worden opgegeven.",
+    "taxYourResponsibilityText": "Je bent zelf verantwoordelijk voor het aangeven van je inkomsten. Er bestaat geen algemene HomeCheff-grens waaronder inkomsten automatisch belastingvrij zijn. HomeCheff biedt geen belastingadvies.",
     "taxOurObligation": "Onze verplichting:",
-    "taxOurObligationText": "HomeCheff is wettelijk verplicht om je gegevens door te geven aan de Belastingdienst als je meer dan 30 transacties per jaar uitvoert of meer dan €2.000 omzet behaalt.",
+    "taxOurObligationText": "HomeCheff kan wettelijk verplicht zijn bepaalde verkoopgegevens te rapporteren. Dat betekent niet automatisch dat je belasting moet betalen.",
     "privacyAndTerms": "Privacy & Voorwaarden",
     "privacyAndTermsSubtitle": "Lees en accepteer onze privacyverklaring en algemene voorwaarden",
     "subscriptionNote": "Abonnement kiezen doe je na je registratie",
@@ -7105,8 +7106,8 @@
     "s4_1L4": "Verkopers zijn verantwoordelijk voor productkwaliteit en veiligheid",
     "s4_1L5": "Alle producten moeten accuraat worden beschreven",
     "s4_2Heading": "4.2 Belastingverantwoordelijkheid",
-    "s4_2Title": "Belangrijke waarschuwing",
-    "s4_2P": "Verkopers zijn zelf verantwoordelijk voor het aangeven van inkomsten bij de belastingdienst. Er is geen minimumbedrag — alle inkomsten moeten worden opgegeven.",
+    "s4_2Title": "Belastingverantwoordelijkheid",
+    "s4_2P": "Verkopers zijn zelf verantwoordelijk voor het aangeven van inkomsten. Er bestaat geen algemene HomeCheff-grens waaronder inkomsten automatisch belastingvrij zijn. HomeCheff biedt geen belastingadvies.",
     "s4_3Title": "4.3 Transactieverwerking",
     "s4_3L1": "Betalingen worden verwerkt via Stripe",
     "s4_3L2": "Platformkosten worden in rekening gebracht",
@@ -10730,7 +10731,7 @@
       "settingsLink": "Later wijzigen in instellingen"
     }
   },
-  "taxOurObligationText": "HomeCheff kan wettelijk verplicht zijn gegevens te verzamelen en te rapporteren wanneer de toepasselijke regels (zoals DAC7) dat vereisen. Dit is geen automatische vaststelling van jouw belastingplicht.",
+  "taxOurObligationText": "HomeCheff kan wettelijk verplicht zijn bepaalde verkoopgegevens te rapporteren. Dat betekent niet automatisch dat je belasting moet betalen.",
   "verdienHub": {
     "eyebrow": "Meedoen & verdienen",
     "title": "Verdien met HomeCheff",

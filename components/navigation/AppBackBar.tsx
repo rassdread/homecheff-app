@@ -15,6 +15,10 @@ type Props = {
   backNavMode?: 'auto' | 'explicit';
   /** Extra row content (e.g. actions) to the right of the title */
   endSlot?: ReactNode;
+  /** Chrome titles should not steal the page H1. Default remains h2 for existing bars. */
+  titleTag?: 'h2' | 'p';
+  /** Accessible name for the back control when the visible label is not “Terug”. */
+  backAriaLabel?: string;
 };
 
 export default function AppBackBar({
@@ -26,6 +30,8 @@ export default function AppBackBar({
   backVariant = 'minimal',
   backNavMode = 'explicit',
   endSlot,
+  titleTag = 'h2',
+  backAriaLabel,
 }: Props) {
   return (
     <div
@@ -41,12 +47,19 @@ export default function AppBackBar({
         label={label}
         variant={backVariant}
         backNavMode={backNavMode}
+        ariaLabel={backAriaLabel}
         className="shrink-0"
       />
       {title ? (
-        <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-800 sm:text-base">
-          {title}
-        </h2>
+        titleTag === 'p' ? (
+          <p className="min-w-0 w-full basis-full text-sm font-semibold leading-tight text-gray-800 break-words sm:w-auto sm:flex-1 sm:basis-auto sm:truncate sm:text-base">
+            {title}
+          </p>
+        ) : (
+          <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-800 sm:text-base">
+            {title}
+          </h2>
+        )
       ) : null}
       {endSlot ? <div className="ml-auto flex shrink-0 items-center gap-2">{endSlot}</div> : null}
     </div>

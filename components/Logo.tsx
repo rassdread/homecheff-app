@@ -45,7 +45,7 @@ export default function Logo({ size = 'md', showText = true, className = '', log
     >
       {/* Logo Image - probeer eerst afbeelding, fallback naar SVG */}
       {/* Responsive sizing: kleiner op mobiel, groter op desktop */}
-      <div className={`relative flex-shrink-0 ${
+      <div className={`relative flex-shrink-0 overflow-hidden ${
         size === 'sm' ? 'w-9 h-9 sm:w-10 sm:h-9' :
         size === 'md' ? 'w-10 h-10 sm:w-12 sm:h-12' :
         'w-12 h-12 sm:w-14 sm:h-14'
@@ -55,11 +55,11 @@ export default function Logo({ size = 'md', showText = true, className = '', log
             key={CANONICAL_LOGO_VERSION}
             src={useImageLogo}
             alt="HomeCheff"
-            fill
-            className="object-contain"
+            width={48}
+            height={48}
+            className="h-full w-full object-contain"
             unoptimized={process.env.NODE_ENV === 'development'}
             priority
-            sizes="(max-width: 640px) 40px, 48px"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}

@@ -1,6 +1,7 @@
 import VerdienHubPage from '@/components/verdien/VerdienHubPage';
 import { getVerdienHubCopy } from '@/lib/i18n/verdienHubSources';
 import { getCurrentLanguage } from '@/lib/seo/metadata';
+import VerdienCheckPublicEntry from '@/components/verdiencheck/VerdienCheckPublicEntry';
 
 /**
  * Server entry for /werken-bij — passes hub copy so first paint is never empty
@@ -8,5 +9,10 @@ import { getCurrentLanguage } from '@/lib/seo/metadata';
  */
 export default async function WerkenBijPage() {
   const lang = await getCurrentLanguage();
-  return <VerdienHubPage copy={getVerdienHubCopy(lang)} initialLang={lang} />;
+  return (
+    <>
+      <VerdienCheckPublicEntry variant="hub" />
+      <VerdienHubPage copy={getVerdienHubCopy(lang)} initialLang={lang} />
+    </>
+  );
 }

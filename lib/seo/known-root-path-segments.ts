@@ -135,6 +135,7 @@ export const APP_FIRST_SEGMENTS = [
   'user',
   'verdienen-zonder-dropshipping',
   'verdiensten',
+  'verdiencheck',
   'vergelijken',
   'verificatie',
   'verify-email',

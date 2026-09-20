@@ -447,7 +447,7 @@ export default function NavBar() {
       >
         <div
           className={cn(
-            'flex items-center justify-between min-w-0 gap-1 sm:gap-2',
+            'flex items-center justify-between min-w-0 gap-1 sm:gap-2 overflow-hidden',
             shortLandscapeChrome ? 'h-12' : 'h-16',
           )}
         >

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getCurrentLanguage } from '@/lib/seo/metadata';
 import { MAIN_DOMAIN } from '@/lib/seo/constants';
 import { buildOpportunityOpenGraphMetadata } from '@/lib/share/og-opportunity';
+import VerdienCheckPublicEntry from '@/components/verdiencheck/VerdienCheckPublicEntry';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
@@ -13,5 +14,10 @@ export default function SellerOnboardingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <VerdienCheckPublicEntry variant="seller" />
+      {children}
+    </>
+  );
 }

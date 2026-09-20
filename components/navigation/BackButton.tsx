@@ -29,6 +29,7 @@ interface BackButtonProps {
    * (e.g. “Terug naar berichten” → `/messages`), never `router.back()` which can land on another chat.
    */
   backNavMode?: 'auto' | 'explicit';
+  ariaLabel?: string;
 }
 
 const DORPSPLEIN_FALLBACK = '/?chip=sale#homecheff-feed';
@@ -39,6 +40,7 @@ export default function BackButton({
   className = '',
   variant = 'default',
   backNavMode = 'auto',
+  ariaLabel,
 }: BackButtonProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -77,7 +79,7 @@ export default function BackButton({
   };
 
   return (
-    <button type="button" onClick={handleBack} className={`${variantStyles[variant]} ${className}`} aria-label={t('common.goBack')}>
+    <button type="button" onClick={handleBack} className={`${variantStyles[variant]} ${className}`} aria-label={ariaLabel ?? t('common.goBack')}>
       <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
       <span className="whitespace-nowrap">{label}</span>
     </button>

@@ -1,0 +1,1641 @@
+'use client';
+
+import { useEffect, useState, type ReactNode } from 'react';
+import AppBackBar from '@/components/navigation/AppBackBar';
+import { runCalculator } from '@/lib/verdiencheck/calculator/engine';
+import type {
+  AssetsEligibility,
+  PartnerHealthcareInsuranceStatus,
+} from '@/lib/verdiencheck/calculator/types';
+import type {
+  CommercialIntent,
+  CustomerScope,
+  SaleFrequency,
+} from '@/lib/verdiencheck/domain/activity';
+import type { AllowanceId } from '@/lib/verdiencheck/domain/allowances';
+import type { AgeTaxRegime2026 } from '@/lib/verdiencheck/domain/income-bases';
+import {
+  AOW_MONTHS_2026,
+  type AowBirthCohort2026,
+  type AowMonth2026,
+  type SingleOlderPersonsCreditEligibility,
+} from '@/lib/verdiencheck/domain/aow';
+import type {
+  FiscalPartnerDuration,
+  IackCoParentStatus,
+  IackHouseholdDuration,
+  IackRelativeAge,
+} from '@/lib/verdiencheck/domain/iack';
+import { V1_COST_SOURCE } from '@/lib/verdiencheck/domain/costs';
+import {
+  commercialResultCents,
+  formatCentsAsEuroDisplay,
+  parseEuroInputToCents,
+  SCENARIO_PRESET_EUROS,
+} from '@/lib/verdiencheck/domain/money';
+import { derivePersonSituation, type SituationGroup, type UwvBenefit } from '@/lib/verdiencheck/domain/person';
+import type { MunicipalPreparationPeriodStatus, ZwOrigin } from '@/lib/verdiencheck/domain/benefits';
+import type {
+  HomecheffGrowthIntent,
+} from '@/lib/verdiencheck/domain/growth-intent';
+import type {
+  FoodSafetyPlanStatus,
+  PackagingMode,
+} from '@/lib/verdiencheck/domain/food-activity';
+import { buildPersonalVerdienRoute } from '@/lib/verdiencheck/personal-route';
+import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
+import {
+  readVerdienCheckSession,
+  writeVerdienCheckSession,
+} from '@/lib/verdiencheck/privacy/session-client';
+import {
+  EMPTY_WIZARD_STATE,
+  applyActivityChoice,
+  applyGrowthStartChoice,
+  applySituationGroup,
+  isBenefitSituation,
+  nextStep,
+  previousStep,
+  visibleSteps,
+  type ActivityChoice,
+  type WizardState,
+  type WizardStepId,
+  type TaxResidenceChoice,
+} from '@/lib/verdiencheck/wizard/schema';
+import { wizardStateToBenefitFacts, wizardStateToBusinessFacts, wizardStateToCalculatorInput, wizardStateToFoodFacts } from '@/lib/verdiencheck/wizard/to-calculator-input';
+import type {
+  ChildcareCareType,
+  ChildcareProviderEligibility,
+  ParentWorkStudyStatus,
+} from '@/lib/verdiencheck/domain/childcare';
+import VerdienCheckDisclaimer from './VerdienCheckDisclaimer';
+import VerdienCheckFinancialImpact from './VerdienCheckFinancialImpact';
+import VerdienCheckLaterSection from './VerdienCheckLaterSection';
+import VerdienCheckNowSection from './VerdienCheckNowSection';
+import VerdienCheckResultSummary from './VerdienCheckResultSummary';
+import VerdienCheckSoonSection from './VerdienCheckSoonSection';
+
+function ChoiceButton(props: {
+  selected: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={props.onClick}
+      className={`relative z-[80] block min-h-11 w-full rounded-xl border px-4 py-3 text-left text-base pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${
+        props.selected
+          ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950'
+          : 'border-gray-200 bg-white text-gray-800'
+      }`}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+function TriChoices(props: {
+  value: boolean | 'UNKNOWN' | null;
+  options: Record<string, string>;
+  onSelect: (value: boolean | 'UNKNOWN') => void;
+}) {
+  return (
+    <>
+      {(
+        [
+          ['YES', true],
+          ['NO', false],
+          ['UNKNOWN', 'UNKNOWN'],
+        ] as const
+      ).map(([key, value]) => (
+        <ChoiceButton
+          key={key}
+          selected={props.value === value}
+          onClick={() => props.onSelect(value)}
+        >
+          {props.options[key] ?? key}
+        </ChoiceButton>
+      ))}
+    </>
+  );
+}
+
+function persist(step: WizardStepId, state: WizardState) {
+  writeVerdienCheckSession({ version: 1, currentStep: step, state });
+}
+
+export default function VerdienCheckWizard(props: {
+  copy: VerdienCheckCopy;
+  language: 'nl' | 'en';
+}) {
+  const { copy, language } = props;
+  const [hydrated, setHydrated] = useState(false);
+  const [step, setStep] = useState<WizardStepId>('jurisdiction');
+  const [state, setState] = useState<WizardState>(EMPTY_WIZARD_STATE);
+
+  useEffect(() => {
+    const saved = readVerdienCheckSession();
+    if (saved) {
+      setState({ ...EMPTY_WIZARD_STATE, ...saved.state });
+      setStep(saved.currentStep);
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    persist(step, state);
+  }, [hydrated, step, state]);
+
+  const turnoverCents = parseEuroInputToCents(state.estimatedTurnoverEuro) ?? 0;
+  const costsCents = parseEuroInputToCents(state.estimatedCostsEuro) ?? 0;
+  const liveResult = commercialResultCents(turnoverCents, costsCents);
+
+  const personSituation = derivePersonSituation({
+    group: state.situationGroup,
+    uwvBenefit: state.uwvBenefit,
+  });
+
+  const calculatorInput = wizardStateToCalculatorInput(state);
+
+  const calcResult = calculatorInput
+    ? runCalculator(calculatorInput)
+    : runCalculator({
+        jurisdiction: 'OTHER',
+        calendarYear: 2026,
+        personContext: { situation: 'OTHER' },
+        currentAnnualIncomeCents: null,
+        allowances: ['UNKNOWN'],
+        activity: {
+          kinds: [],
+          frequency: 'UNKNOWN',
+          customers: 'UNKNOWN',
+          commercialIntent: 'UNKNOWN',
+          independence: 'UNKNOWN',
+          continuity: 'UNKNOWN',
+          timeOrMoneyInvested: 'UNKNOWN',
+          listingCount: null,
+          transactionCount: null,
+          typicalTicketCents: null,
+          unitCount: null,
+        },
+        incomeSource: 'MARKETPLACE_SELLER',
+        estimatedTurnoverCents: 0,
+        estimatedCosts: { amountCents: 0, source: V1_COST_SOURCE },
+        commercialResultCents: 0,
+        scenarioAdditionalResultCents: 0,
+      });
+
+  const guidanceContext =
+    state.taxResidence === 'NL' && personSituation
+      ? {
+          jurisdiction: 'NL' as const,
+          year: 2026,
+          personSituation,
+          allowances: state.allowances,
+          activity: calculatorInput
+            ? calculatorInput.activity
+            : {
+                kinds: state.activityKinds,
+                frequency: state.frequency ?? 'UNKNOWN',
+                customers: state.customers ?? 'UNKNOWN',
+                commercialIntent: state.intent ?? 'UNKNOWN',
+                independence:
+                  state.independentlyDeterminesWork == null
+                    ? 'UNKNOWN'
+                    : state.independentlyDeterminesWork,
+                continuity: 'UNKNOWN',
+                timeOrMoneyInvested: 'UNKNOWN',
+                listingCount: null,
+                transactionCount: null,
+                typicalTicketCents: null,
+                unitCount: null,
+              },
+          business: wizardStateToBusinessFacts(state),
+          benefits: wizardStateToBenefitFacts(state),
+          food: wizardStateToFoodFacts(state),
+        }
+      : null;
+
+  const personalRoute = buildPersonalVerdienRoute({
+    ctx: guidanceContext,
+    calculator: calcResult,
+    declaredGrowth: state.growthStart,
+  });
+
+  function goNext() {
+    const n = nextStep(state, step);
+    if (n) setStep(n);
+  }
+
+  function goBack() {
+    const p = previousStep(state, step);
+    if (p) setStep(p);
+  }
+
+  function selectResidence(value: TaxResidenceChoice) {
+    const next = { ...state, taxResidence: value };
+    setState(next);
+    const n = nextStep(next, 'jurisdiction');
+    if (n) setStep(n);
+  }
+
+  const steps = visibleSteps(state);
+  const stepIndex = Math.max(0, steps.indexOf(step));
+  const title = copy.steps[step]?.title ?? copy.pageTitle;
+  const options = copy.steps[step]?.options ?? {};
+
+  return (
+    <div
+      data-verdiencheck-shell=""
+      className="relative z-[80] isolate min-h-screen overflow-x-hidden bg-stone-50 pointer-events-auto"
+    >
+      <div className="relative z-[80] mx-auto w-full min-w-0 max-w-md px-4 pb-52 pt-2 break-words pointer-events-auto">
+        <AppBackBar
+          fallbackUrl="/"
+          label={copy.leaveProduct}
+          title={copy.chromeTitle}
+          titleTag="p"
+          backAriaLabel={copy.leaveProduct}
+        />
+        <p className="mt-4 text-sm text-gray-600">{copy.intro}</p>
+        <p className="mt-1 text-xs text-gray-400">
+          {stepIndex + 1} / {steps.length}
+        </p>
+        <h1 className="mt-4 text-xl font-semibold tracking-tight text-gray-900 break-words sm:text-2xl">
+          {title}
+        </h1>
+
+        <div className="mt-6 flex flex-col space-y-3">
+          {step === 'jurisdiction' &&
+            (['NL', 'OTHER'] as const).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.taxResidence === key}
+                onClick={() => selectResidence(key)}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'situation' &&
+            (
+              [
+                'EMPLOYEE',
+                'WW',
+                'BIJSTAND',
+                'OTHER_UWV',
+                'EXISTING_ENTREPRENEUR',
+                'NONE',
+              ] as SituationGroup[]
+            ).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.situationGroup === key}
+                onClick={() => {
+                  const next = applySituationGroup(state, key);
+                  setState(next);
+                  const n = nextStep(next, 'situation');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'uwvBenefit' &&
+            (['WIA', 'WAJONG', 'ZW', 'WAO', 'WAZ'] as UwvBenefit[]).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.uwvBenefit === key}
+                onClick={() => {
+                  const next = { ...state, uwvBenefit: key };
+                  setState(next);
+                  const n = nextStep(next, 'uwvBenefit');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'uwvDiscussedPlan' && (
+            <TriChoices
+              value={state.discussedWithUwv}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, discussedWithUwv: value };
+                setState(next);
+                const n = nextStep(next, 'uwvDiscussedPlan');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'wwStartPeriod' && (
+            <TriChoices
+              value={state.wantsStartPeriod}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, wantsStartPeriod: value };
+                setState(next);
+                const n = nextStep(next, 'wwStartPeriod');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'wwRetainBenefit' && (
+            <TriChoices
+              value={state.wantsToRetainWw}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, wantsToRetainWw: value };
+                setState(next);
+                const n = nextStep(next, 'wwRetainBenefit');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'wwFormerEmployer' && (
+            <TriChoices
+              value={state.formerEmployerWorkPlanned}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, formerEmployerWorkPlanned: value };
+                setState(next);
+                const n = nextStep(next, 'wwFormerEmployer');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'wwUwvSupplement' && (
+            <TriChoices
+              value={state.receivesUwvSupplement}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, receivesUwvSupplement: value };
+                setState(next);
+                const n = nextStep(next, 'wwUwvSupplement');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'uwvResearchPeriod' && (
+            <TriChoices
+              value={state.wantsResearchPeriod}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, wantsResearchPeriod: value };
+                setState(next);
+                const n = nextStep(next, 'uwvResearchPeriod');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'uwvPermission' && (
+            <TriChoices
+              value={state.uwvPermission}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, uwvPermission: value };
+                setState(next);
+                const n = nextStep(next, 'uwvPermission');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'zwOrigin' &&
+            (['FROM_OR_AFTER_WW', 'OTHER', 'UNKNOWN'] as ZwOrigin[]).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.zwOrigin === key}
+                onClick={() => {
+                  const next = { ...state, zwOrigin: key };
+                  setState(next);
+                  const n = nextStep(next, 'zwOrigin');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'bijstandMunicipality' && (
+            <>
+              {(
+                [
+                  ['YES', true],
+                  ['NO', false],
+                ] as const
+              ).map(([key, value]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.municipalityKnown === value}
+                  onClick={() => {
+                    const next = {
+                      ...state,
+                      municipalityKnown: value,
+                      municipalityName: value ? state.municipalityName : '',
+                    };
+                    setState(next);
+                    if (!value) {
+                      const n = nextStep(next, 'bijstandMunicipality');
+                      if (n) setStep(n);
+                    }
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              {state.municipalityKnown === true ? (
+                <div className="space-y-2">
+                  <input
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base"
+                    placeholder="Gemeente"
+                    value={state.municipalityName}
+                    onChange={(e) =>
+                      setState({ ...state, municipalityName: e.target.value })
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="min-h-11 w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                    onClick={goNext}
+                  >
+                    {copy.next}
+                  </button>
+                </div>
+              ) : null}
+            </>
+          )}
+
+          {step === 'bijstandPreparation' &&
+            (['AVAILABLE', 'NOT_AVAILABLE', 'UNKNOWN'] as MunicipalPreparationPeriodStatus[]).map(
+              (key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.preparationPeriod === key}
+                  onClick={() => {
+                    const next = { ...state, preparationPeriod: key };
+                    setState(next);
+                    const n = nextStep(next, 'bijstandPreparation');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ),
+            )}
+
+          {step === 'aow' &&
+            (
+              [
+                'BELOW_AOW_2026',
+                'REACHES_AOW_IN_2026',
+                'FULL_YEAR_AOW_2026',
+              ] as AgeTaxRegime2026[]
+            ).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.ageTaxRegime === key}
+                onClick={() => {
+                  const next = { ...state, ageTaxRegime: key };
+                  setState(next);
+                  const n = nextStep(next, 'aow');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'aowBirthCohort' &&
+            (['BORN_BEFORE_1946', 'BORN_ON_OR_AFTER_1946'] as AowBirthCohort2026[]).map(
+              (key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.aowBirthCohort === key}
+                  onClick={() => {
+                    const next = { ...state, aowBirthCohort: key };
+                    setState(next);
+                    const n = nextStep(next, 'aowBirthCohort');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ),
+            )}
+
+          {step === 'aowMonth' &&
+            AOW_MONTHS_2026.map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.aowMonth === key}
+                onClick={() => {
+                  const next = { ...state, aowMonth: key as AowMonth2026 };
+                  setState(next);
+                  const n = nextStep(next, 'aowMonth');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'singleOlderAow' && (
+            <>
+              {(
+                ['ELIGIBLE', 'NOT_ELIGIBLE', 'UNKNOWN'] as SingleOlderPersonsCreditEligibility[]
+              ).map((key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.singleOlderPersonsCreditEligibility === key}
+                  onClick={() => {
+                    const next = {
+                      ...state,
+                      singleOlderPersonsCreditEligibility: key,
+                    };
+                    setState(next);
+                    const n = nextStep(next, 'singleOlderAow');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              <details className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                <summary>{copy.whatMeansThis}</summary>
+                <p className="mt-2">{copy.singleOlderHelp}</p>
+              </details>
+            </>
+          )}
+
+          {step === 'allowances' && (
+            <>
+              {(
+                [
+                  'HEALTHCARE',
+                  'RENT',
+                  'CHILD_BUDGET',
+                  'CHILDCARE',
+                  'NONE',
+                  'UNKNOWN',
+                ] as AllowanceId[]
+              ).map((key) => {
+                const selected = state.allowances.includes(key);
+                return (
+                  <ChoiceButton
+                    key={key}
+                    selected={selected}
+                    onClick={() => {
+                      let nextSel: AllowanceId[];
+                      if (key === 'NONE' || key === 'UNKNOWN') {
+                        nextSel = selected ? [] : [key];
+                      } else {
+                        const without = state.allowances.filter(
+                          (id) => id !== 'NONE' && id !== 'UNKNOWN' && id !== key,
+                        );
+                        nextSel = selected ? without : [...without, key];
+                      }
+                      setState({ ...state, allowances: nextSel, hasPartner: null });
+                    }}
+                  >
+                    {options[key] ?? key}
+                  </ChoiceButton>
+                );
+              })}
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </>
+          )}
+
+          {step === 'partner' &&
+            (['YES', 'NO', 'UNKNOWN'] as const).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={
+                  (key === 'YES' && state.hasPartner === true) ||
+                  (key === 'NO' && state.hasPartner === false) ||
+                  (key === 'UNKNOWN' && state.hasPartner === 'UNKNOWN')
+                }
+                onClick={() => {
+                  const hasPartner: WizardState['hasPartner'] =
+                    key === 'YES' ? true : key === 'NO' ? false : 'UNKNOWN';
+                  const next: WizardState = {
+                    ...state,
+                    hasPartner,
+                    partnerHealthcareInsuranceStatus:
+                      hasPartner === true
+                        ? state.partnerHealthcareInsuranceStatus
+                        : null,
+                    partnerAssessmentEuro:
+                      hasPartner === true ? state.partnerAssessmentEuro : '',
+                  };
+                  setState(next);
+                  const n = nextStep(next, 'partner');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'partnerInsurance' &&
+            (['INSURED', 'NOT_INSURED', 'UNKNOWN'] as PartnerHealthcareInsuranceStatus[]).map(
+              (key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.partnerHealthcareInsuranceStatus === key}
+                  onClick={() => {
+                    const next = {
+                      ...state,
+                      partnerHealthcareInsuranceStatus: key,
+                    };
+                    setState(next);
+                    const n = nextStep(next, 'partnerInsurance');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ),
+            )}
+
+          {step === 'partnerIncome' && (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-sm text-gray-600">{copy.partnerAssessmentHelp}</span>
+                <input
+                  inputMode="decimal"
+                  value={state.partnerAssessmentEuro}
+                  onChange={(e) =>
+                    setState({ ...state, partnerAssessmentEuro: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                  placeholder="€"
+                />
+              </label>
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'housingRent' && (
+            <div className="space-y-4">
+              <input
+                inputMode="decimal"
+                value={state.bareRentEuro}
+                onChange={(e) =>
+                  setState({ ...state, bareRentEuro: e.target.value, onlyTotalRentKnown: false })
+                }
+                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                placeholder="€"
+              />
+              <ChoiceButton
+                selected={state.onlyTotalRentKnown === true}
+                onClick={() =>
+                  setState({ ...state, onlyTotalRentKnown: true, bareRentEuro: '' })
+                }
+              >
+                {language === 'en'
+                  ? 'I only know the total rent, not the bare rent'
+                  : 'Ik weet alleen de totale huur, niet de kale huur'}
+              </ChoiceButton>
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'housingHousehold' && (
+            <div className="space-y-3">
+              {(['SINGLE', 'MULTI'] as const).map((key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.housingHouseholdType === key}
+                  onClick={() => setState({ ...state, housingHouseholdType: key })}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              <input
+                inputMode="numeric"
+                value={state.oldestHouseholdResidentAge}
+                onChange={(e) =>
+                  setState({ ...state, oldestHouseholdResidentAge: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                placeholder={language === 'en' ? 'Age of oldest resident' : 'Leeftijd oudste bewoner'}
+              />
+              <ChoiceButton
+                selected={state.housingHasThuiswonendKindUnder23 === true}
+                onClick={() =>
+                  setState({
+                    ...state,
+                    housingHasThuiswonendKindUnder23: !state.housingHasThuiswonendKindUnder23,
+                  })
+                }
+              >
+                {language === 'en'
+                  ? 'A child under 23 lives with me'
+                  : 'Er woont een kind jonger dan 23 bij mij'}
+              </ChoiceButton>
+              {state.housingHasThuiswonendKindUnder23 === true && (
+                <input
+                  inputMode="decimal"
+                  value={state.housingChildAssessmentEuro}
+                  onChange={(e) =>
+                    setState({ ...state, housingChildAssessmentEuro: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                  placeholder="€"
+                />
+              )}
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'housingAssets' &&
+            (['ELIGIBLE', 'NOT_ELIGIBLE', 'UNKNOWN'] as AssetsEligibility[]).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.housingAssetsEligibility === key}
+                onClick={() => {
+                  const next = { ...state, housingAssetsEligibility: key };
+                  setState(next);
+                  const n = nextStep(next, 'housingAssets');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'children' && (
+            <div className="space-y-4">
+              <input
+                value={state.childrenAges}
+                onChange={(e) => setState({ ...state, childrenAges: e.target.value })}
+                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                placeholder="8, 14"
+              />
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'youngChild' &&
+            (
+              [
+                ['YES', true],
+                ['NO', false],
+              ] as const
+            ).map(([key, value]) => (
+              <ChoiceButton
+                key={key}
+                selected={state.hasChildUnder12 === value}
+                onClick={() => {
+                  const next = { ...state, hasChildUnder12: value };
+                  setState(next);
+                  const n = nextStep(next, 'youngChild');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'iackHousehold' && (
+            <>
+              {(
+                ['AT_LEAST_6_MONTHS', 'LESS_THAN_6_MONTHS', 'UNKNOWN'] as IackHouseholdDuration[]
+              ).map((key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.iackHouseholdDuration === key}
+                  onClick={() => {
+                    const next = { ...state, iackHouseholdDuration: key };
+                    setState(next);
+                    const n = nextStep(next, 'iackHousehold');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              <details className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                <summary>{copy.whatMeansThis}</summary>
+                <p className="mt-2">{copy.iackHelp}</p>
+              </details>
+            </>
+          )}
+
+          {step === 'iackCoParent' &&
+            (
+              ['QUALIFYING_CO_PARENT', 'NOT_QUALIFYING', 'UNKNOWN'] as IackCoParentStatus[]
+            ).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.iackCoParentStatus === key}
+                onClick={() => {
+                  const next = { ...state, iackCoParentStatus: key };
+                  setState(next);
+                  const n = nextStep(next, 'iackCoParent');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'fiscalPartner' && (
+            <>
+              {(
+                [
+                  'NONE',
+                  'LESS_THAN_6_MONTHS',
+                  'MORE_THAN_6_MONTHS',
+                  'UNKNOWN',
+                ] as FiscalPartnerDuration[]
+              ).map((key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.fiscalPartnerDuration === key}
+                  onClick={() => {
+                    const next = { ...state, fiscalPartnerDuration: key };
+                    setState(next);
+                    const n = nextStep(next, 'fiscalPartner');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              <details className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                <summary>{copy.whatMeansThis}</summary>
+                <p className="mt-2">{copy.fiscalPartnerHelp}</p>
+              </details>
+            </>
+          )}
+
+          {step === 'iackPartnerIncome' && (
+            <div className="space-y-4">
+              <input
+                inputMode="decimal"
+                value={state.partnerArbeidsinkomenEuro}
+                onChange={(e) =>
+                  setState({ ...state, partnerArbeidsinkomenEuro: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+              />
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'iackRelativeAge' &&
+            (['USER_OLDER', 'PARTNER_OLDER', 'UNKNOWN'] as IackRelativeAge[]).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.iackRelativeAge === key}
+                onClick={() => {
+                  const next = { ...state, iackRelativeAge: key };
+                  setState(next);
+                  const n = nextStep(next, 'iackRelativeAge');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'childBudgetAssets' &&
+            (['ELIGIBLE', 'NOT_ELIGIBLE', 'UNKNOWN'] as AssetsEligibility[]).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.childBudgetAssetsEligibility === key}
+                onClick={() => {
+                  const next = { ...state, childBudgetAssetsEligibility: key };
+                  setState(next);
+                  const n = nextStep(next, 'childBudgetAssets');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'childcare' && (
+            <div className="space-y-3">
+              {(
+                [
+                  ['DAYCARE_CENTER', language === 'en' ? 'Daycare' : 'Dagopvang'],
+                  ['AFTER_SCHOOL_CENTER', 'BSO'],
+                  ['CHILDMINDER', language === 'en' ? 'Childminder' : 'Gastouder'],
+                ] as const
+              ).map(([key, label]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.childcareCareType === key}
+                  onClick={() => setState({ ...state, childcareCareType: key as ChildcareCareType })}
+                >
+                  {label}
+                </ChoiceButton>
+              ))}
+              <input
+                inputMode="numeric"
+                value={state.childcareHoursPerMonth}
+                onChange={(e) => setState({ ...state, childcareHoursPerMonth: e.target.value })}
+                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                placeholder={language === 'en' ? 'Hours per month' : 'Uren per maand'}
+              />
+              <input
+                inputMode="decimal"
+                value={state.childcareHourlyRateEuro}
+                onChange={(e) => setState({ ...state, childcareHourlyRateEuro: e.target.value })}
+                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                placeholder="€"
+              />
+              {(
+                [
+                  ['REGISTERED_ELIGIBLE', language === 'en' ? 'Registered provider' : 'Geregistreerde opvang'],
+                  ['NOT_ELIGIBLE', language === 'en' ? 'Not eligible' : 'Niet subsidiabel'],
+                  ['UNKNOWN', language === 'en' ? 'I don’t know' : 'Weet ik niet'],
+                ] as const
+              ).map(([key, label]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.childcareProviderStatus === key}
+                  onClick={() =>
+                    setState({
+                      ...state,
+                      childcareProviderStatus: key as ChildcareProviderEligibility,
+                    })
+                  }
+                >
+                  {label}
+                </ChoiceButton>
+              ))}
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'workStudy' &&
+            (['ELIGIBLE', 'NOT_ELIGIBLE', 'UNKNOWN'] as ParentWorkStudyStatus[]).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.parentWorkStudyStatus === key}
+                onClick={() => {
+                  const next = { ...state, parentWorkStudyStatus: key };
+                  setState(next);
+                  const n = nextStep(next, 'workStudy');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'midYear' &&
+            (['YES', 'NO'] as const).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={
+                  (key === 'YES' && state.midYearHouseholdChange === false) ||
+                  (key === 'NO' && state.midYearHouseholdChange === true)
+                }
+                onClick={() => {
+                  const next = {
+                    ...state,
+                    midYearHouseholdChange: key === 'NO',
+                  };
+                  setState(next);
+                  const n = nextStep(next, 'midYear');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'activity' &&
+            (['MAKE', 'FOOD', 'SERVICE', 'GARDEN', 'UNKNOWN'] as ActivityChoice[]).map(
+              (key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.activityChoice === key}
+                  onClick={() => {
+                    const next = {
+                      ...state,
+                      activityChoice: key,
+                      activityKinds: applyActivityChoice(key),
+                    };
+                    setState(next);
+                    const n = nextStep(next, 'activity');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ),
+            )}
+
+          {step === 'growthStart' &&
+            (
+              [
+                'TRYING_OUT',
+                'OCCASIONAL_EARNING',
+                'REGULAR_EARNING',
+                'SERIOUS_SIDE_INCOME',
+                'BUILDING_BUSINESS',
+              ] as HomecheffGrowthIntent[]
+            ).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.growthStart === key}
+                onClick={() => {
+                  const next = applyGrowthStartChoice(state, key);
+                  setState(next);
+                  const n = nextStep(next, 'growthStart');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'frequency' &&
+            (['ONE_OFF', 'OCCASIONAL', 'REGULAR', 'UNKNOWN'] as SaleFrequency[]).map(
+              (key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.frequency === key}
+                  onClick={() => {
+                    const next = { ...state, frequency: key };
+                    setState(next);
+                    const n = nextStep(next, 'frequency');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ),
+            )}
+
+          {step === 'foodSellingFrequency' &&
+            (
+              [
+                'ONE_OFF',
+                'OCCASIONAL_RECURRING',
+                'REGULAR',
+                'UNKNOWN',
+              ] as const
+            ).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.foodUxFrequency === key}
+                onClick={() => {
+                  const next = { ...state, foodUxFrequency: key };
+                  setState(next);
+                  const n = nextStep(next, 'foodSellingFrequency');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'foodPackaging' &&
+            (
+              [
+                'UNPACKAGED',
+                'PREPACKED',
+                'PREPACKED_FOR_DIRECT_SALE',
+                'UNKNOWN',
+              ] as PackagingMode[]
+            ).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.packagingMode === key}
+                onClick={() => {
+                  const next = { ...state, packagingMode: key };
+                  setState(next);
+                  const n = nextStep(next, 'foodPackaging');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'foodNvwa' && (
+            <TriChoices
+              value={state.nvwaRegistered}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, nvwaRegistered: value };
+                setState(next);
+                const n = nextStep(next, 'foodNvwa');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'foodSafetyPlan' &&
+            (
+              [
+                'USING_APPROVED_HYGIENE_CODE',
+                'USING_OWN_HACCP_PLAN',
+                'NOT_ARRANGED',
+                'UNKNOWN',
+              ] as FoodSafetyPlanStatus[]
+            ).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.foodSafetyPlanStatus === key}
+                onClick={() => {
+                  const next = { ...state, foodSafetyPlanStatus: key };
+                  setState(next);
+                  const n = nextStep(next, 'foodSafetyPlan');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'foodAnimalOrigin' && (
+            <TriChoices
+              value={state.handlesAnimalOriginProducts}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, handlesAnimalOriginProducts: value };
+                setState(next);
+                const n = nextStep(next, 'foodAnimalOrigin');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'customers' &&
+            (['PRIVATE_CIRCLE', 'PUBLIC', 'MIXED', 'UNKNOWN'] as CustomerScope[]).map(
+              (key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.customers === key}
+                  onClick={() => {
+                    const next = { ...state, customers: key };
+                    setState(next);
+                    const n = nextStep(next, 'customers');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ),
+            )}
+
+          {step === 'independentlyDeterminesWork' &&
+            (
+              [
+                ['YES', true],
+                ['NO', false],
+                ['UNKNOWN', 'UNKNOWN'],
+              ] as const
+            ).map(([key, value]) => (
+              <ChoiceButton
+                key={key}
+                selected={state.independentlyDeterminesWork === value}
+                onClick={() => {
+                  const next = { ...state, independentlyDeterminesWork: value };
+                  setState(next);
+                  const n = nextStep(next, 'independentlyDeterminesWork');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'customerAcquisition' &&
+            (
+              [
+                ['YES', true],
+                ['NO', false],
+                ['UNKNOWN', 'UNKNOWN'],
+              ] as const
+            ).map(([key, value]) => (
+              <ChoiceButton
+                key={key}
+                selected={state.customerAcquisition === value}
+                onClick={() => {
+                  const next = { ...state, customerAcquisition: value };
+                  setState(next);
+                  const n = nextStep(next, 'customerAcquisition');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'intent' &&
+            (
+              [
+                'HOBBY_COST_RECOVERY',
+                'SIDE_INCOME',
+                'SERIOUS_SIDE_INCOME',
+                'BUILD_BUSINESS',
+                'UNKNOWN',
+              ] as CommercialIntent[]
+            ).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.intent === key}
+                onClick={() => {
+                  const next = { ...state, intent: key };
+                  setState(next);
+                  const n = nextStep(next, 'intent');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'amounts' && (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-sm text-gray-600">{copy.expectedTurnover}</span>
+                <input
+                  inputMode="decimal"
+                  value={state.estimatedTurnoverEuro}
+                  onChange={(e) =>
+                    setState({ ...state, estimatedTurnoverEuro: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                  placeholder="€"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">{copy.expectedCosts}</span>
+                <input
+                  inputMode="decimal"
+                  value={state.estimatedCostsEuro}
+                  onChange={(e) =>
+                    setState({ ...state, estimatedCostsEuro: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                  placeholder="€"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">{copy.estimatedSales}</span>
+                <input
+                  inputMode="numeric"
+                  value={state.estimatedAnnualTransactions}
+                  onChange={(e) =>
+                    setState({ ...state, estimatedAnnualTransactions: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                />
+              </label>
+              <p className="text-base font-medium text-gray-900">
+                {copy.expectedResult}: €{formatCentsAsEuroDisplay(liveResult)}
+              </p>
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'otherVatTurnover' && (
+            <div className="space-y-3">
+              {(
+                [
+                  ['YES', true],
+                  ['NO', false],
+                  ['UNKNOWN', 'UNKNOWN'],
+                ] as const
+              ).map(([key, value]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.hasOtherBusinessTurnover === value}
+                  onClick={() =>
+                    setState({ ...state, hasOtherBusinessTurnover: value })
+                  }
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              {state.hasOtherBusinessTurnover === true && (
+                <input
+                  inputMode="decimal"
+                  value={state.otherRelevantVatTurnoverEuro}
+                  onChange={(e) =>
+                    setState({ ...state, otherRelevantVatTurnoverEuro: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                  placeholder={copy.otherTurnoverAmount}
+                />
+              )}
+              <input
+                inputMode="decimal"
+                value={state.previousYearVatTurnoverEuro}
+                onChange={(e) =>
+                  setState({ ...state, previousYearVatTurnoverEuro: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                placeholder={copy.previousYearTurnover}
+              />
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'existingRegistrations' && (
+            <div className="space-y-4">
+              {(
+                [
+                  ['KVK_YES', true],
+                  ['KVK_NO', false],
+                  ['KVK_UNKNOWN', 'UNKNOWN'],
+                ] as const
+              ).map(([key, value]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.alreadyKvkRegistered === value}
+                  onClick={() => setState({ ...state, alreadyKvkRegistered: value })}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              {(
+                [
+                  ['VAT_YES', 'REGISTERED'],
+                  ['VAT_NO', 'NOT_REGISTERED'],
+                  ['VAT_UNKNOWN', 'UNKNOWN'],
+                ] as const
+              ).map(([key, value]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.vatRegistrationStatus === value}
+                  onClick={() => setState({ ...state, vatRegistrationStatus: value })}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              {(
+                [
+                  ['KOR_YES', true],
+                  ['KOR_NO', false],
+                  ['KOR_UNKNOWN', 'UNKNOWN'],
+                ] as const
+              ).map(([key, value]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.korParticipating === value}
+                  onClick={() => setState({ ...state, korParticipating: value })}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'costAssumption' &&
+            (['YES', 'NO'] as const).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={
+                  (key === 'YES' && state.assumeEstimatedCostsTaxDeductible === true) ||
+                  (key === 'NO' && state.assumeEstimatedCostsTaxDeductible === false)
+                }
+                onClick={() => {
+                  const next = {
+                    ...state,
+                    assumeEstimatedCostsTaxDeductible: key === 'YES',
+                  };
+                  setState(next);
+                  const n = nextStep(next, 'costAssumption');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'rowAssumption' && (
+            <div className="space-y-4">
+              <p className="text-base text-gray-800">{copy.rowAssumptionNote}</p>
+              <ChoiceButton
+                selected={state.acceptRowAssumption}
+                onClick={() => {
+                  const next = { ...state, acceptRowAssumption: true };
+                  setState(next);
+                  const n = nextStep(next, 'rowAssumption');
+                  if (n) setStep(n);
+                }}
+              >
+                {options.ACCEPT ?? copy.next}
+              </ChoiceButton>
+            </div>
+          )}
+
+          {step === 'incomeBases' && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">{copy.incomeBasesNote}</p>
+              {(
+                [
+                  ['baselineGrossEmploymentEuro', copy.grossEmploymentHelp],
+                  ['baselineBox1Euro', copy.box1Help],
+                  ['baselineAggregateEuro', copy.aggregateHelp],
+                  ['baselineArbeidsinkomenEuro', copy.arbeidsHelp],
+                  ['baselineAssessmentEuro', copy.assessmentHelp],
+                  ['baselineZvwUsedEuro', copy.zvwUsedHelp],
+                ] as const
+              ).map(([field, help]) => (
+                <label key={field} className="block">
+                  <span className="text-sm text-gray-600">{help}</span>
+                  <input
+                    inputMode="decimal"
+                    value={state[field]}
+                    onChange={(e) =>
+                      setState({ ...state, [field]: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                    placeholder="€"
+                  />
+                </label>
+              ))}
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                onClick={goNext}
+              >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'assets' &&
+            (['ELIGIBLE', 'NOT_ELIGIBLE', 'UNKNOWN'] as AssetsEligibility[]).map((key) => (
+              <ChoiceButton
+                key={key}
+                selected={state.assetsEligibility === key}
+                onClick={() => {
+                  const next = { ...state, assetsEligibility: key };
+                  setState(next);
+                  const n = nextStep(next, 'assets');
+                  if (n) setStep(n);
+                }}
+              >
+                {options[key] ?? key}
+              </ChoiceButton>
+            ))}
+
+          {step === 'scenario' && (
+            <div className="space-y-3">
+              {SCENARIO_PRESET_EUROS.map((euro) => (
+                <ChoiceButton
+                  key={euro}
+                  selected={state.scenarioPreset === euro}
+                  onClick={() => {
+                    const next = { ...state, scenarioPreset: euro };
+                    setState(next);
+                    const n = nextStep(next, 'scenario');
+                    if (n) setStep(n);
+                  }}
+                >
+                  €{euro.toLocaleString('nl-NL')}
+                </ChoiceButton>
+              ))}
+              <ChoiceButton
+                selected={state.scenarioPreset === 'custom'}
+                onClick={() => setState({ ...state, scenarioPreset: 'custom' })}
+              >
+                {copy.customAmount}
+              </ChoiceButton>
+              {state.scenarioPreset === 'custom' && (
+                <>
+                  <input
+                    inputMode="decimal"
+                    value={state.customScenarioEuro}
+                    onChange={(e) =>
+                      setState({ ...state, customScenarioEuro: e.target.value })
+                    }
+                    className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                    placeholder="€"
+                  />
+                  <button
+                    type="button"
+                    className="min-h-11 w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                    onClick={goNext}
+                  >
+                    {copy.next}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {step === 'result' && state.taxResidence === 'OTHER' && (
+            <p className="text-base text-gray-800">{copy.otherCountry}</p>
+          )}
+
+          {step === 'result' && state.taxResidence === 'NL' && (
+            <div className="space-y-4">
+              <VerdienCheckResultSummary route={personalRoute} />
+              <VerdienCheckNowSection cards={personalRoute.now} />
+              {!isBenefitSituation(state) && (
+                <VerdienCheckFinancialImpact copy={copy} route={personalRoute} />
+              )}
+              <VerdienCheckSoonSection cards={personalRoute.soon} />
+              <VerdienCheckLaterSection
+                cards={personalRoute.later}
+                restDetails={personalRoute.restDetails}
+              />
+              <p className="text-sm leading-relaxed text-stone-600">
+                {personalRoute.trackingMessage}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {step !== 'jurisdiction' && (
+          <button
+            type="button"
+            onClick={goBack}
+            className="relative z-[80] mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+          >
+            {copy.back}
+          </button>
+        )}
+
+        <div className="mt-10">
+          <VerdienCheckDisclaimer copy={copy} />
+        </div>
+      </div>
+    </div>
+  );
+}

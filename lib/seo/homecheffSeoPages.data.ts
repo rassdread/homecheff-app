@@ -1108,10 +1108,10 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Eten verkopen vanuit huis: regels en uitleg | HomeCheff",
       description:
-        "Orientatie over eten verkopen vanuit huis: wat je op HomeCheff regelt, waar je zelf verantwoordelijk voor bent. Geen juridisch advies — controleer lokale wetgeving.",
+        "Eten verkopen vanuit huis: wat je op HomeCheff regelt, waar je zelf verantwoordelijk voor bent. Geen juridisch advies. NVWA-registratie wordt relevant bij meerdere keren per jaar.",
       h1: "Eten verkopen vanuit huis: regels en uitleg",
       intro: [
-        "Eten verkopen vanuit huis raakt vaak hygiëne, vergunningen en belasting—dat verschilt per gemeente en situatie. HomeCheff is een marketplace en is geen juridisch adviseur: check altijd officiële bronnen en waar nodig een professional.",
+        "Verkoop je meerdere keren per jaar eten of drinken? Dan wordt NVWA-registratie relevant. Ook als je maar af en toe verkoopt, moet je veilig en hygiënisch werken en klanten informeren over allergenen. HomeCheff is een marketplace en geen juridisch adviseur.",
         "Op het platform vragen we makers om eerlijke productinformatie en duidelijke voorwaarden richting klanten.",
         "Door transparant te zijn over ingrediënten, allergenen en ophaal-/bezorgafspraken help je jezelf en je klanten.",
       ],
@@ -1120,7 +1120,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         paragraphs: [
           "De onboarding helpt je de stappen te zien die horen bij verkopen op HomeCheff.",
           "Daarnaast ben jij zelf verantwoordelijk om te voldoen aan regels die voor jou gelden.",
-          "Bij twijfel: gemeente, Voedsel en Waren Autoriteit of een adviseur raadplegen.",
+          "Bij twijfel: NVWA, KVK of een adviseur raadplegen. HomeCheff bepaalt niet of jij ondernemer bent.",
         ],
       },
       audience: {
@@ -1150,10 +1150,10 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Rules for Selling Food from Home | HomeCheff",
       description:
-        "Orientation on selling food from home: what HomeCheff handles, what you remain responsible for. Not legal advice—check local rules.",
+        "Orientation on selling food from home: what HomeCheff handles, what you remain responsible for. Not legal advice. NVWA registration becomes relevant if you sell several times a year.",
       h1: "Rules for selling food from home",
       intro: [
-        "Selling food from home often touches hygiene, permits, and tax—this varies by municipality and case. HomeCheff is a marketplace, not your lawyer: always verify official sources and professionals when needed.",
+        "If you sell food or drink several times a year, NVWA registration becomes relevant. Even if you sell only occasionally, you must work safely and hygienically and inform customers about allergens. HomeCheff is a marketplace, not a legal adviser.",
         "We ask sellers for honest product information and clear customer-facing terms.",
         "Transparency on ingredients, allergens, and pickup/delivery helps everyone.",
       ],
@@ -1162,7 +1162,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         paragraphs: [
           "Seller onboarding shows steps relevant to selling on HomeCheff.",
           "You remain responsible for rules that apply to you.",
-          "When in doubt, contact your municipality, food safety authority, or an advisor.",
+          "When in doubt, check NVWA, KVK, or an adviser. HomeCheff does not decide whether you are an entrepreneur.",
         ],
       },
       audience: {

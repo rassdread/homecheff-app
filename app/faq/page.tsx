@@ -5,6 +5,35 @@ import { useTranslation } from '@/hooks/useTranslation';
 import AppBackBar from '@/components/navigation/AppBackBar';
 import Link from 'next/link';
 
+function FaqAnswer({
+  answer,
+  moreLabel,
+}: {
+  answer: string;
+  moreLabel: string;
+}) {
+  const parts = answer.split(/\n---\n/);
+  const lead = (parts[0] ?? '').trim();
+  const details = parts.slice(1).join('\n---\n').trim();
+  return (
+    <div className="px-6 pb-6">
+      <div className="space-y-3 border-t border-gray-100 pt-4">
+        <p className="whitespace-pre-line leading-relaxed text-gray-700">{lead}</p>
+        {details ? (
+          <details className="rounded-lg bg-gray-50 px-4 py-3">
+            <summary className="cursor-pointer text-sm font-medium text-emerald-800">
+              {moreLabel || 'Meer uitleg'}
+            </summary>
+            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700">
+              {details}
+            </p>
+          </details>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 // FAQ categories will be loaded dynamically based on language
 const getFAQCategories = (t: (key: string) => string) => [
   {
@@ -334,13 +363,10 @@ export default function FAQPage() {
                       </button>
                       
                       {isOpen && (
-                        <div className="px-6 pb-6">
-                          <div className="pt-4 border-t border-gray-100">
-                            <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                              {item.answer}
-                            </p>
-                          </div>
-                        </div>
+                        <FaqAnswer
+                          answer={item.answer}
+                          moreLabel={t('faq.moreDetail')}
+                        />
                       )}
                     </div>
                   );

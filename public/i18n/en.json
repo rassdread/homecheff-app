@@ -3130,6 +3130,7 @@
     "manifestTitle": "Why HomeCheff exists",
     "manifestDescription": "For the philosophical foundation — mission, values and what we refuse to become — read the HomeCheff Manifest.",
     "manifestLink": "Go to the Manifest",
+    "moreDetail": "More detail",
     "categories": {
       "general": "General",
       "features": "Features & Usage",
@@ -3167,7 +3168,7 @@
       },
       "5": {
         "question": "Can I earn extra income alongside my benefits?",
-        "answer": "Yes, you can earn extra income alongside your benefits, but there are rules:\n\n💰 BENEFITS AND EXTRA INCOME:\n• Wajong: 70% of your income is deducted from your benefits\n• Social assistance: You can keep part of your income\n• All income must be reported to the UWV within 1 week\n\n💡 PRACTICAL TIPS:\n• Keep track of your expenses for deduction from your revenue\n• Consult with the UWV about your specific situation\n• Use your hobby to generate extra income\n• Take advantage of available exemptions\n\n⚠️ IMPORTANT: Always contact the UWV before you start selling! HomeCheff does not provide tax or benefits advice; the product/service agreement is between buyer and provider."
+        "answer": "If you receive benefits, it can be important to align with UWV or your municipality before you start. What you need to arrange first depends on the scheme.\n\n---\n\nFor WW: follow UWV information and choose one of the three official routes (with a start period, without a start period, or without keeping WW). During the UWV start period your WW is 29% lower; that is not a general WW reduction.\n\nFor social assistance: discuss your plan with your municipality first; Bbz and a preparation period are municipal.\n\nFor WIA, Wajong, Ziektewet, WAO or WAZ: discuss your plan with your labour expert. Report income within 1 week and changes within 2 days. Commercial internet sales can be relevant even without KVK. That HomeCheff or UWV asks for data does not mean HomeCheff recalculates your benefit.\n\nSources:\nUWV — Starting your own business\nhttps://www.uwv.nl/nl/eigen-bedrijf-starten\nUWV — Starting a business from WW\nhttps://www.uwv.nl/nl/eigen-bedrijf-starten/bedrijf-vanuit-ww\nUWV — Reporting income (WIA, WAO, WAZ, Wajong, Ziektewet)\nhttps://www.uwv.nl/nl/inkomsten-doorgeven/wia-wao-waz-wajong-ziektewet-welke-inkomsten-doorgeven\nRijksoverheid — Starting from social assistance / Bbz\nhttps://www.rijksoverheid.nl/vraag-en-antwoord/bijstand-voor-zelfstandigen-bbz/kan-ik-als-startende-ondernemer-met-een-bijstandsuitkering-gebruikmaken-van-het-bbz"
       },
       "6": {
         "question": "What is HomeCheff's liability?",
@@ -3353,19 +3354,19 @@
     "taxes": {
       "0": {
         "question": "Do I have to pay taxes on my sales?",
-        "answer": "Yes, as a seller, you are responsible for reporting all income to the tax authorities. There is no minimum amount - all income must be reported."
+        "answer": "That depends on your situation and on what you earn after relevant costs are deducted. There is no general HomeCheff threshold below which income is automatically tax-free.\n\n---\n\nWhether you pay income tax follows from your personal situation and the year. Turnover is not the same as taxable profit. HomeCheff does not provide tax advice.\n\nSource: Belastingdienst — Income from other work\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/werk-en-inkomen/content/wat-zijn-inkomsten-uit-overig-werk"
       },
       "1": {
         "question": "From what amount do I have to pay VAT?",
-        "answer": "You are VAT-liable from €20,000 revenue per year. Below this amount, you don't have to pay VAT, but you must report your income for income tax."
+        "answer": "VAT has its own rules. That is separate from income tax or KVK. There is no simple HomeCheff threshold after which you automatically pay VAT.\n\n---\n\nVAT first depends on whether you are an entrepreneur for VAT. That is different from KVK. A registration threshold may apply at a small turnover. KOR is a separate exemption you can opt into under conditions — not tax-free income.\n\nSources:\nBelastingdienst — Entrepreneur for VAT\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/voor_wie_geldt_de_btw/ondernemer\nBelastingdienst — Registration threshold for small businesses\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/kleineondernemersregeling/registratiedrempel-voor-kleine-ondernemers\nBelastingdienst — KOR conditions\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/kor-voorwaarden"
       },
       "2": {
         "question": "Does HomeCheff share my data with the tax authorities?",
-        "answer": "HomeCheff may be legally required to collect and report relevant data when applicable rules (such as DAC7) so require. Whether and when that happens depends on thresholds and law. This does not mean HomeCheff already files a full return for you, and it does not automatically determine your tax liability. Consult an adviser if unsure."
+        "answer": "HomeCheff may be legally required to report certain sales data. That does not automatically mean you have to pay tax.\n\n---\n\nWhether and when reporting applies depends on the relevant rules (such as DAC7). This is not proof that HomeCheff already files a full return for you. For sales of goods an exception may apply at few transactions and a low consideration in a calendar year. That is a reporting exception, not a tax-free threshold. The exception does not apply to personal services.\n\nSource: Belastingdienst — What does DAC7 mean for me as a seller?\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/ondernemers/content/informatie-voor-verkopers-DAC7"
       },
       "3": {
         "question": "Do I need to register with the Chamber or Commerce?",
-        "answer": "For structural sales (regular selling), you must register with the Chamber of Commerce. For occasional sales, this is usually not necessary."
+        "answer": "Whether KVK is relevant for you depends on how you sell and how structural or commercial your activity is.\n\n---\n\nKVK looks at whether you supply independently, earn money, and regularly supply to people other than only family or friends. The same turnover can lead to a different outcome. If you sell more often and independently to customers, KVK can become relevant. HomeCheff does not decide that you are an entrepreneur.\n\nSource: KVK — Do you need to register your business with KVK?\nhttps://www.kvk.nl/starten/moet-ik-mijn-bedrijf-inschrijven-bij-kvk/"
       },
       "4": {
         "question": "Does HomeCheff provide tax advice?",
@@ -3423,23 +3424,23 @@
     "sustainability": {
       "0": {
         "question": "How does HomeCheff contribute to reducing food waste?",
-        "answer": "🌱 HomeCheff helps reduce food waste by sharing surplus meals and products. If you cook for yourself and have too much, you can share it with others in your neighborhood. This is not only sustainable but also social - you help others while preventing waste.\n\n💡 Think of: Extra portion of pasta, surplus vegetables from your garden, or a cake that was too big for your family. Instead of throwing away, you share it with your community."
+        "answer": "HomeCheff makes it easier to show extra food or drink nearby instead of throwing it away. That is a community goal, not a legal exemption.\n\n---\n\nIf you sell food or drink on the platform, food safety and allergen information still apply. Whether NVWA registration is relevant depends on how often you sell — not on calling it ‘sharing’."
       },
       "1": {
         "question": "Does sharing surplus food fall under commercial sales?",
-        "answer": "❌ No, this falls under 'sharing surplus food' and not commercial food production. You cook for yourself and only share what you have left. This is similar to sharing food with neighbors or friends - just via a platform.\n\n✅ You are not a restaurant or commercial kitchen. You simply share your surplus meals to reduce waste."
+        "answer": "Sharing or selling: food rules look at what you do, not only what you call it. If you sell food or drink on HomeCheff, food safety and allergen information apply.\n\n---\n\nIf you sell food or drink several times a year, NVWA registration becomes relevant. Even if you sell only occasionally, you must work safely and hygienically and inform customers about allergens.\n\nSource: NVWA — Selling food and drink from home\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/voedselveilig-werken-in-horeca-ambacht-en-retail/verkopen-vanuit-huis"
       },
       "2": {
         "question": "Do I need to register with the NVWA if I share surplus food?",
-        "answer": "❌ No, for sharing surplus food, you don't need to register with the NVWA. This only applies to commercial food production. Because you cook for yourself and only share what's left, you don't fall under food inspection laws.\n\n🏠 Your kitchen remains a private kitchen, not a commercial kitchen. You simply share your surplus meals with your neighborhood."
+        "answer": "Not automatically. If you sell food or drink several times a year, NVWA registration becomes relevant.\n\n---\n\nEven if you sell only occasionally, you must work safely and hygienically and inform customers about allergens. You do not always have to write your own food-safety plan; you can use an approved hygiene code. HomeCheff does not require an HACCP certificate.\n\nSource: NVWA — Register your food business\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/levensmiddelen-produceren-en-verhandelen/registratie-en-erkenning/registreer-uw-levensmiddelenbedrijf"
       },
       "3": {
         "question": "What's the difference between selling and sharing surplus food?",
-        "answer": "🔄 The difference is in the intention:\n\n📤 SHARING (what we do):\n• You cook for yourself\n• You made too much\n• You share the surplus portion\n• Small compensation for ingredients\n\n💰 SELLING (commercial):\n• You cook specifically for sale\n• You produce to order\n• You are a commercial kitchen\n• Full profit margin\n\nHomeCheff focuses on the first: sharing surplus food!"
+        "answer": "The difference is not a HomeCheff label of ‘sharing’ versus ‘selling’. Food rules look at how often and how you offer food or drink to others.\n\n---\n\nIf you sell food or drink several times a year, NVWA registration becomes relevant. Even for a one-off sale you must work safely and hygienically and inform customers about allergens.\n\nSource: NVWA — Step-by-step plan for selling food and drink\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/voedselveilig-werken-in-horeca-ambacht-en-retail/stappenplan"
       },
       "4": {
         "question": "Are there limits to how much I can share?",
-        "answer": "📊 Yes, to stay under the radar of food inspection:\n\n✅ ALLOWED:\n• Occasional sale of surplus food\n• Small quantities (1-5 portions at a time)\n• Homemade meals\n• Fresh products from your own garden\n\n❌ NOT ALLOWED:\n• Large commercial production\n• Daily sale of the same products\n• Professional kitchen setup\n• Mass production\n\n🎯 Stay within the 'sharing' category, not 'selling'!"
+        "answer": "There is no HomeCheff portion limit that replaces food inspection. NVWA registration depends on how often you sell food or drink, not on a fixed number of portions.\n\n---\n\nIf you sell food or drink several times a year, NVWA registration becomes relevant. Even if you sell only occasionally, you must work safely and hygienically and inform customers about allergens.\n\nSource: NVWA — Selling food and drink from home\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/voedselveilig-werken-in-horeca-ambacht-en-retail/verkopen-vanuit-huis"
       },
       "5": {
         "question": "How can I safely share surplus food?",
@@ -3447,11 +3448,11 @@
       },
       "6": {
         "question": "Can I share self-grown vegetables and garden products?",
-        "answer": "🌱 Yes! Sharing surplus vegetables from your own garden falls under the same category as surplus food. You grow for yourself and only share what you have left.\n\n✅ ALLOWED:\n• Surplus tomatoes, cucumbers, lettuce\n• Too many herbs (basil, parsley, thyme)\n• Extra fruit from your fruit trees\n• Flowers and plants you have left\n• Seeds and cuttings from your plants\n\n🏡 This is not commercial agriculture - you simply share your garden harvest!"
+        "answer": "Yes. You can show garden products on HomeCheff. If you sell them as food or drink, food rules apply.\n\n---\n\nIf you sell food or drink several times a year, NVWA registration becomes relevant. HomeCheff does not give a general agricultural exemption."
       },
       "7": {
         "question": "Does sharing garden products fall under agricultural regulations?",
-        "answer": "❌ No, for sharing surplus garden products, you don't need to register with the NVWA. This only applies to commercial agriculture and food production.\n\n🌿 Your situation:\n• Private garden (not a commercial nursery)\n• You grow for yourself\n• You only share what's left\n• No large-scale production\n\n✅ You are not a farmer or grower - you simply share your garden harvest to reduce waste!"
+        "answer": "HomeCheff does not give a general exemption from garden or agricultural rules. If you sell harvest as food or drink, food rules apply.\n\n---\n\nIf you sell food or drink several times a year, NVWA registration becomes relevant. Even for occasional sales you must work safely and hygienically. Specific agricultural registration depends on the activity and is not given here as a general rule.\n\nSource: NVWA — Selling food and drink from home\nhttps://www.nvwa.nl/onderwerpen/voedselveiligheid/voedselveilig-werken-in-horeca-ambacht-en-retail/verkopen-vanuit-huis"
       },
       "8": {
         "question": "What if I've grown too many plants?",
@@ -3459,7 +3460,7 @@
       },
       "9": {
         "question": "Are there limits to sharing garden products?",
-        "answer": "📊 Yes, to stay within the 'sharing' category:\n\n✅ ALLOWED (occasional sharing):\n• Small quantities of surplus vegetables\n• A few plants/cuttings at a time\n• Fresh herbs from your garden\n• Flowers you have left\n• Seeds from your own plants\n\n❌ NOT ALLOWED (commercial production):\n• Large quantities of the same vegetable\n• Daily sale of garden products\n• Professional nursery setup\n• Mass production of plants\n\n🎯 Stay within the 'hobby gardener shares surplus harvest' category!"
+        "answer": "There is no fixed HomeCheff quantity that replaces agricultural or food rules. How often and how you sell matters more than a portion limit.\n\n---\n\nIf you sell harvest as food or drink, food safety and allergen information apply. If you sell several times a year, NVWA registration becomes relevant."
       },
       "10": {
         "question": "How can I safely share garden products?",
@@ -4435,9 +4436,9 @@
     "taxResponsibilityCheckbox": "I understand my tax responsibility as a seller",
     "taxAdviceNote": "Consult an accountant for specific tax advice. HomeCheff does not provide tax advice.",
     "taxYourResponsibility": "Your responsibility:",
-    "taxYourResponsibilityText": "You are responsible for reporting all income to the tax authorities. There is no minimum amount - all income must be reported.",
+    "taxYourResponsibilityText": "You are responsible for declaring your income. There is no general HomeCheff threshold below which income is automatically tax-free. HomeCheff does not provide tax advice.",
     "taxOurObligation": "Our obligation:",
-    "taxOurObligationText": "HomeCheff is legally required to share your information with the tax authorities if you make more than 30 transactions per year or achieve more than €2,000 in revenue.",
+    "taxOurObligationText": "HomeCheff may be legally required to report certain sales data. That does not automatically mean you have to pay tax.",
     "privacyAndTerms": "Privacy & Terms",
     "privacyAndTermsSubtitle": "Read and accept our privacy policy and terms and conditions",
     "subscriptionNote": "Choose subscription after registration",
@@ -6567,8 +6568,8 @@
     "s4_1L4": "Sellers are responsible for product quality and safety",
     "s4_1L5": "All products must be described accurately",
     "s4_2Heading": "4.2 Tax responsibility",
-    "s4_2Title": "Important notice",
-    "s4_2P": "Sellers are responsible for declaring income to the tax authorities. There is no minimum amount — all income must be declared.",
+    "s4_2Title": "Tax responsibility",
+    "s4_2P": "Sellers are responsible for declaring income. There is no general HomeCheff threshold below which income is automatically tax-free. HomeCheff does not provide tax advice.",
     "s4_3Title": "4.3 Transaction processing",
     "s4_3L1": "Payments are processed via Stripe",
     "s4_3L2": "Platform fees apply",
@@ -10730,7 +10731,7 @@
       "settingsLink": "Change later in settings"
     }
   },
-  "taxOurObligationText": "HomeCheff may be legally required to collect and report data when applicable rules (such as DAC7) so require. This does not automatically determine your tax liability.",
+  "taxOurObligationText": "HomeCheff may be legally required to report certain sales data. That does not automatically mean you have to pay tax.",
   "verdienHub": {
     "eyebrow": "Participate & earn",
     "title": "Earn with HomeCheff",

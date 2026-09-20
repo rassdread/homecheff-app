@@ -8,6 +8,7 @@ import {
 } from '@/lib/seo/metadata';
 import { getFaqPageJsonLd } from '@/lib/seo/faqStructuredData';
 import { getPlatformDefinition } from '@/lib/seo/platform-definition';
+import VerdienCheckPublicEntry from '@/components/verdiencheck/VerdienCheckPublicEntry';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
@@ -106,6 +107,7 @@ export default async function FAQLayout({ children }: { children: ReactNode }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
       />
+      <VerdienCheckPublicEntry variant="faq" />
       {children}
     </>
   );
