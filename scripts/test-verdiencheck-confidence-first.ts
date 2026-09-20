@@ -199,6 +199,8 @@ assert.equal(
   true,
 );
 assert.equal(regularFood.now.some((c) => c.family === 'business_registration'), false);
+assert.equal(regularFood.now.some((c) => c.id.includes('needs_kvk')), false);
+assert.doesNotMatch(regularFood.now.map((c) => c.title).join('\n'), /KVK-inschrijving/);
 assert.equal(regularFood.now.some((c) => c.family === 'reporting'), false);
 assert.equal(regularFood.now.some((c) => c.family === 'optimization'), false);
 assert.ok(regularFood.now.every((c) => c.family.startsWith('food_')));

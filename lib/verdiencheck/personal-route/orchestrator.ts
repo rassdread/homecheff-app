@@ -260,8 +260,13 @@ export function buildPersonalVerdienRoute(input: {
   }
 
   if (semantics === 'PROCEED_AFTER_ACTION') {
-    const keep = now.filter((c) => FOOD_NOW_FAMILIES.has(c.family));
-    const moved = now.filter((c) => !FOOD_NOW_FAMILIES.has(c.family));
+    const keep = now.filter(
+      (c) =>
+        FOOD_NOW_FAMILIES.has(c.family) &&
+        !c.id.includes('needs_kvk') &&
+        !c.sourceRuleIds.some((id) => id.includes('needs_kvk')),
+    );
+    const moved = now.filter((c) => !keep.includes(c));
     now = keep;
     const soonMoved = moved.filter((c) => c.severity === 'ACTION' || c.severity === 'CHECK');
     const laterMoved = moved.filter((c) => c.severity !== 'ACTION' && c.severity !== 'CHECK');
