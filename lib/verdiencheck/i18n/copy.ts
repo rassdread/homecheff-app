@@ -61,6 +61,7 @@ export type VerdienCheckCopy = {
   progressAlmost: string;
   progressDone: string;
   progressOngoing: string;
+  progressMoney: string;
   startSellingNeedsAccount: string;
   registrationKvkLabel: string;
   registrationVatLabel: string;
@@ -69,6 +70,13 @@ export type VerdienCheckCopy = {
   keepEstimatePrefix: string;
   keepEstimateMiddle: string;
   keepEstimateSuffix: string;
+  quickCheckDone: string;
+  moneyPrompt: string;
+  moneyYes: string;
+  moneyNo: string;
+  periodYear: string;
+  periodMonth: string;
+  monthToYearHint: string;
   steps: Record<string, { title: string; options?: Record<string, string>; help?: string }>;
 };
 
@@ -76,7 +84,7 @@ const NL: VerdienCheckCopy = {
   pageTitle: 'Verdienen zonder verrassingen',
   chromeTitle: 'VerdienCheck',
   intro:
-    'Een paar korte vragen. Daarna zie je wat extra verdienen voor jou ongeveer betekent.',
+    'Kan ik gewoon beginnen? Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
   disclaimer:
     'Dit is een schatting en persoonlijke uitleg op basis van wat je hebt ingevuld. Jij blijft verantwoordelijk voor wat je doorgeeft en regelt. Schatting voor 2026.',
   back: 'Terug',
@@ -146,16 +154,25 @@ const NL: VerdienCheckCopy = {
   progressAlmost: 'Bijna klaar',
   progressDone: 'Klaar',
   progressOngoing: 'Nog een paar vragen',
+  progressMoney: 'Vragen over je geld',
   startSellingNeedsAccount:
     'Inloggen is alleen om te gaan verkopen. Je VerdienCheck-antwoorden gaan niet naar je account.',
   registrationKvkLabel: 'Kamer van Koophandel (KVK)',
   registrationVatLabel: 'Btw',
   registrationKorLabel: 'Kleineondernemersregeling (KOR)',
   uwvBenefitUnknownHint:
-    'Weet je de naam niet? Ga één stap terug en kies Anders. Dan gok je niet.',
+    'Weet je de naam niet? Kies dat hieronder. Gok niet.',
   keepEstimatePrefix: 'Van €',
   keepEstimateMiddle: ' extra resultaat houd je naar schatting ongeveer €',
   keepEstimateSuffix: ' over.',
+  quickCheckDone: 'Dat was de snelle check. Je mag hier stoppen.',
+  moneyPrompt:
+    'Wil je ook weten wat extra verdienen ongeveer betekent voor je belasting en toeslagen?',
+  moneyYes: 'Ja, bereken het',
+  moneyNo: 'Nee, dit is genoeg',
+  periodYear: 'Per jaar',
+  periodMonth: 'Per maand',
+  monthToYearHint: 'We maken er een jaarbedrag van (×12). Een schatting is goed.',
   steps: {
     jurisdiction: {
       title: 'Woon je in Nederland?',
@@ -182,16 +199,16 @@ const NL: VerdienCheckCopy = {
       },
     },
     situation: {
-      title: 'Welke situatie past bij jou?',
-      help: 'UWV is de instantie voor werkloosheid en arbeidsongeschiktheid. Bijstand komt van je gemeente. Weet je het niet precies, kies Anders.',
+      title: 'Welke situatie past het beste bij jou?',
+      help: 'Kies wat het meest klopt. Weet je het niet zeker, kies dat. UWV gaat over werkloosheid en arbeidsongeschiktheid. Bijstand komt van je gemeente.',
       options: {
         EMPLOYEE: 'Ik werk in loondienst',
         WW: 'Ik krijg WW (werkloosheid)',
         BIJSTAND: 'Ik krijg bijstand van de gemeente',
-        OTHER_UWV: 'Ik krijg een andere uitkering van UWV',
+        OTHER_UWV: 'Ik krijg geld van UWV',
         EXISTING_ENTREPRENEUR: 'Ik ben al ondernemer',
-        NONE: 'Anders / geen van deze',
-        OTHER: 'Anders / geen van deze',
+        NONE: 'Geen van deze / ik weet het niet zeker',
+        OTHER: 'Geen van deze / ik weet het niet zeker',
       },
     },
     uwvBenefit: {
@@ -203,6 +220,7 @@ const NL: VerdienCheckCopy = {
         ZW: 'Ziektewet',
         WAO: 'WAO — oudere arbeidsongeschiktheidsuitkering',
         WAZ: 'WAZ — arbeidsongeschikt als zelfstandige',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
     uwvDiscussedPlan: {
@@ -539,7 +557,7 @@ const EN: VerdienCheckCopy = {
   pageTitle: 'Earn without surprises',
   chromeTitle: 'VerdienCheck',
   intro:
-    'A few short questions. Then you see what extra earnings roughly mean for you.',
+    'Can I just start? Answer a few questions and see what matters for you now.',
   disclaimer:
     'This is an estimate and personal explanation based on what you entered. You remain responsible for what you report and arrange. Estimate for 2026.',
   back: 'Back',
@@ -609,16 +627,25 @@ const EN: VerdienCheckCopy = {
   progressAlmost: 'Almost done',
   progressDone: 'Done',
   progressOngoing: 'A few more questions',
+  progressMoney: 'Questions about your money',
   startSellingNeedsAccount:
     'Sign-in is only to start selling. Your VerdienCheck answers are not saved to your account.',
   registrationKvkLabel: 'Chamber of Commerce (KVK)',
   registrationVatLabel: 'VAT',
   registrationKorLabel: 'Small-business VAT scheme (KOR)',
   uwvBenefitUnknownHint:
-    'If you do not know the name, go one step back and choose Other. Then you are not guessing.',
+    'If you do not know the name, choose that below. Do not guess.',
   keepEstimatePrefix: 'From €',
   keepEstimateMiddle: ' extra result you keep an estimated €',
   keepEstimateSuffix: '.',
+  quickCheckDone: 'That was the quick check. You can stop here.',
+  moneyPrompt:
+    'Do you also want to know what extra earnings roughly mean for your tax and allowances?',
+  moneyYes: 'Yes, calculate it',
+  moneyNo: 'No, this is enough',
+  periodYear: 'Per year',
+  periodMonth: 'Per month',
+  monthToYearHint: 'We turn this into a yearly amount (×12). An estimate is fine.',
   steps: {
     jurisdiction: {
       title: 'Do you live in the Netherlands?',
@@ -645,16 +672,16 @@ const EN: VerdienCheckCopy = {
       },
     },
     situation: {
-      title: 'Which situation fits you?',
-      help: 'UWV handles unemployment and disability benefits. Social assistance comes from your municipality. If you are unsure, choose Other.',
+      title: 'Which situation fits you best?',
+      help: 'Choose what fits most. If you are not sure, say so. UWV handles unemployment and disability. Social assistance comes from your municipality.',
       options: {
         EMPLOYEE: 'I work as an employee',
         WW: 'I receive WW (unemployment benefit)',
         BIJSTAND: 'I receive social assistance from the municipality',
-        OTHER_UWV: 'I receive another benefit from UWV',
+        OTHER_UWV: 'I receive money from UWV',
         EXISTING_ENTREPRENEUR: 'I already have a business',
-        NONE: 'Other / none of these',
-        OTHER: 'Other / none of these',
+        NONE: 'None of these / I am not sure',
+        OTHER: 'None of these / I am not sure',
       },
     },
     uwvBenefit: {
@@ -666,6 +693,7 @@ const EN: VerdienCheckCopy = {
         ZW: 'Sickness benefit',
         WAO: 'WAO — older disability benefit',
         WAZ: 'WAZ — disability benefit for the self-employed',
+        UNKNOWN: 'I don’t know',
       },
     },
     uwvDiscussedPlan: {

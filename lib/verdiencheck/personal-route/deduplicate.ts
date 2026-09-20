@@ -43,8 +43,8 @@ function friendlyBody(hit: GuidanceHit): { title: string; body: string } {
   }
   if (family === 'business_registration' || hit.rule.id.includes('.kvk.')) {
     return {
-      title: hit.rule.shortTitle,
-      body: hit.rule.shortText.replace(/\bKVK\b/, 'de Kamer van Koophandel (KVK)'),
+      title: hit.rule.shortTitle.replace(/\bKVK\b/, 'Kamer van Koophandel (KVK)'),
+      body: hit.rule.shortText.replace(/\bKVK\b/, 'Kamer van Koophandel (KVK)'),
     };
   }
   return { title: hit.rule.shortTitle, body: hit.rule.shortText };

@@ -271,7 +271,12 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
   assert.match(noKvkStillReports, /Ook zonder KVK/);
   const wwStart = textOf(wwGuidanceRules(ww({ wantsStartPeriod: 'YES' })));
   assert.match(wwStart, /iets anders dan zorg- of huurtoeslag/);
-  const stepsWw = visibleSteps({ ...EMPTY_WIZARD_STATE, taxResidence: 'NL', situationGroup: 'WW' });
+  const stepsWw = visibleSteps({
+    ...EMPTY_WIZARD_STATE,
+    taxResidence: 'NL',
+    situationGroup: 'WW',
+    detailsDepthRequested: true,
+  });
   assert.equal(stepsWw.includes('wwStartPeriod'), true);
   assert.equal(stepsWw.includes('wwFormerEmployer'), false);
   assert.equal(
@@ -279,6 +284,7 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
       ...EMPTY_WIZARD_STATE,
       taxResidence: 'NL',
       situationGroup: 'WW',
+      detailsDepthRequested: true,
       wantsStartPeriod: true,
     }).includes('wwFormerEmployer'),
     true,
@@ -288,8 +294,17 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
       ...EMPTY_WIZARD_STATE,
       taxResidence: 'NL',
       situationGroup: 'BIJSTAND',
+      detailsDepthRequested: true,
     }).includes('bijstandMunicipality'),
     true,
+  );
+  assert.equal(
+    visibleSteps({
+      ...EMPTY_WIZARD_STATE,
+      taxResidence: 'NL',
+      situationGroup: 'WW',
+    }).includes('wwStartPeriod'),
+    false,
   );
   results.CONCEPT_ISOLATION = 'PASS';
 }

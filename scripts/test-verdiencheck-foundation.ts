@@ -251,7 +251,11 @@ assert.equal(
   visibleSteps({ ...nlState, situationGroup: 'OTHER_UWV' }).includes('uwvBenefit'),
   true,
 );
-assert.equal(visibleSteps({ ...nlState, allowances: ['RENT'] }).includes('partner'), true);
+assert.equal(visibleSteps({ ...nlState, allowances: ['RENT'] }).includes('partner'), false);
+assert.equal(
+  visibleSteps({ ...nlState, allowances: ['RENT'], moneyDepthRequested: true }).includes('partner'),
+  true,
+);
 assert.equal(visibleSteps({ ...nlState, allowances: ['NONE'] }).includes('partner'), false);
 assert.equal(
   visibleSteps({ ...EMPTY_WIZARD_STATE, taxResidence: 'OTHER' }).includes('situation'),

@@ -19,24 +19,24 @@ const COPY: Record<
   { title: string; body: string; cta: string }
 > = {
   home: {
-    title: 'Wil je iets verkopen maar weet je niet wat dat betekent voor belasting, toeslagen of regels?',
-    body: 'Je hoeft niet eerst alles over ondernemen te weten. Begin met wat je kunt. Bekijk vooraf wat voor jou belangrijk is.',
-    cta: 'Doe de VerdienCheck',
+    title: 'Kan ik gewoon beginnen?',
+    body: 'Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
+    cta: 'Start de snelle check',
   },
   faq: {
-    title: 'Onzeker over belasting, toeslagen of regels?',
-    body: 'HomeCheff helpt je de volgende stap te zien. Geen algemene drempel, geen belastingadvies.',
-    cta: 'Doe de VerdienCheck',
+    title: 'Kan ik gewoon beginnen?',
+    body: 'Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
+    cta: 'Start de snelle check',
   },
   seller: {
-    title: 'Begin met wat je kunt',
-    body: 'Je hoeft niet eerst alles over ondernemen te weten. Bekijk vooraf wat voor jouw verkoop relevant is.',
-    cta: 'Doe de VerdienCheck',
+    title: 'Kan ik gewoon beginnen?',
+    body: 'Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
+    cta: 'Start de snelle check',
   },
   hub: {
-    title: 'Eerst kijken wat voor jou speelt?',
-    body: 'HomeCheff helpt je bij de volgende stap: belasting, toeslagen of voedselregels — alleen wat bij jouw situatie past.',
-    cta: 'Doe de VerdienCheck',
+    title: 'Kan ik gewoon beginnen?',
+    body: 'Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
+    cta: 'Start de snelle check',
   },
 };
 

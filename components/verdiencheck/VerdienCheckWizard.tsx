@@ -42,7 +42,7 @@ import type {
   FoodSafetyPlanStatus,
   PackagingMode,
 } from '@/lib/verdiencheck/domain/food-activity';
-import { buildPersonalVerdienRoute } from '@/lib/verdiencheck/personal-route';
+import { buildPersonalVerdienRoute, PERSONAL_ROUTE_COPY } from '@/lib/verdiencheck/personal-route';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import {
   clearVerdienCheckSession,
@@ -61,11 +61,16 @@ import {
   EMPTY_WIZARD_STATE,
   applyActivityChoice,
   applyGrowthStartChoice,
+  applyMoneyDepthChoice,
   applySituationGroup,
+  applyUwvBenefitUnknown,
+  firstMoneyStep,
   isBenefitSituation,
+  markMoneyDepthCompleted,
   nextStep,
   previousStep,
-  visibleSteps,
+  progressSteps,
+  questionsBeforeFirstResult,
   type ActivityChoice,
   type WizardState,
   type WizardStepId,
@@ -157,8 +162,10 @@ function progressPhrase(input: {
   step: WizardStepId;
   stepIndex: number;
   total: number;
+  moneyLayer: boolean;
 }): string {
   if (input.step === 'result') return input.copy.progressDone;
+  if (input.moneyLayer) return input.copy.progressMoney;
   if (input.stepIndex <= 0) return input.copy.progressOngoing;
   const remaining = input.total - input.stepIndex - 1;
   if (remaining <= 1) return input.copy.progressAlmost;
@@ -194,14 +201,21 @@ export default function VerdienCheckWizard(props: {
     persist(step, state);
   }, [hydrated, step, state]);
 
-  const turnoverCents = parseEuroInputToCents(state.estimatedTurnoverEuro) ?? 0;
-  const costsCents = parseEuroInputToCents(state.estimatedCostsEuro) ?? 0;
+  const turnoverCents =
+    (state.amountEntryPeriod === 'MONTH'
+      ? (parseEuroInputToCents(state.estimatedTurnoverEuro) ?? 0) * 12
+      : parseEuroInputToCents(state.estimatedTurnoverEuro) ?? 0);
+  const costsCents =
+    (state.amountEntryPeriod === 'MONTH'
+      ? (parseEuroInputToCents(state.estimatedCostsEuro) ?? 0) * 12
+      : parseEuroInputToCents(state.estimatedCostsEuro) ?? 0);
   const liveResult = commercialResultCents(turnoverCents, costsCents);
 
-  const personSituation = derivePersonSituation({
-    group: state.situationGroup,
-    uwvBenefit: state.uwvBenefit,
-  });
+  const personSituation =
+    derivePersonSituation({
+      group: state.situationGroup,
+      uwvBenefit: state.uwvBenefit,
+    }) ?? (state.uwvBenefitUnknown ? 'OTHER' : null);
 
   const calculatorInput = wizardStateToCalculatorInput(state);
 
@@ -279,11 +293,15 @@ export default function VerdienCheckWizard(props: {
     ctx: guidanceContext,
     calculator: calcResult,
     declaredGrowth: state.growthStart,
+    forceCheckFirstReason: state.uwvBenefitUnknown ? 'UWV_SCHEME_UNKNOWN' : null,
   });
 
   function goNext() {
     const n = nextStep(state, step);
-    if (n) setStep(n);
+    if (n) {
+      setState(markMoneyDepthCompleted(state, step, n));
+      setStep(n);
+    }
   }
 
   function goBack() {
@@ -298,14 +316,15 @@ export default function VerdienCheckWizard(props: {
     if (n) setStep(n);
   }
 
-  const steps = visibleSteps(state);
-  const stepIndex = Math.max(0, steps.indexOf(step));
+  const progress = progressSteps(state, step);
+  const stepIndex = Math.max(0, progress.indexOf(step));
   const title = copy.steps[step]?.title ?? copy.pageTitle;
   const options = copy.steps[step]?.options ?? {};
+  const moneyLayer = state.moneyDepthRequested && step !== 'result' && !questionsBeforeFirstResult(state).includes(step);
 
   useEffect(() => {
     if (!hydrated) return;
-    const total = Math.max(1, steps.length);
+    const total = Math.max(1, progress.length);
     const bucket = verdienCheckProgressBucket({
       stepIndex,
       totalVisibleSteps: total,
@@ -313,6 +332,9 @@ export default function VerdienCheckWizard(props: {
     });
     if (step !== 'jurisdiction') {
       trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.started, {
+        entry_point: entryPoint,
+      });
+      trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.quickStarted, {
         entry_point: entryPoint,
       });
     }
@@ -326,11 +348,19 @@ export default function VerdienCheckWizard(props: {
       trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.completed, {
         entry_point: entryPoint,
       });
+      trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.quickCompleted, {
+        entry_point: entryPoint,
+      });
       trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.resultViewed, {
         entry_point: entryPoint,
       });
+      if (state.moneyDepthCompleted) {
+        trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.moneyCompleted, {
+          entry_point: entryPoint,
+        });
+      }
     }
-  }, [hydrated, step, stepIndex, steps.length, entryPoint]);
+  }, [hydrated, step, stepIndex, progress.length, entryPoint, state.moneyDepthCompleted]);
 
   function restartCheck() {
     clearVerdienCheckSession();
@@ -340,6 +370,20 @@ export default function VerdienCheckWizard(props: {
     trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.restartClicked, {
       entry_point: entryPoint,
     });
+  }
+
+  function startMoneyDepth() {
+    const next = applyMoneyDepthChoice(state, 'YES');
+    setState(next);
+    const first = firstMoneyStep(next);
+    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.moneyStarted, {
+      entry_point: entryPoint,
+    });
+    if (first) setStep(first);
+  }
+
+  function declineMoneyDepth() {
+    setState(applyMoneyDepthChoice(state, 'NO'));
   }
 
   return (
@@ -367,7 +411,13 @@ export default function VerdienCheckWizard(props: {
           />
         </div>
         <p className="mt-2 text-sm font-medium text-gray-600">
-          {progressPhrase({ copy, step, stepIndex, total: steps.length })}
+          {progressPhrase({
+            copy,
+            step,
+            stepIndex,
+            total: progress.length,
+            moneyLayer,
+          })}
         </p>
         {step === 'jurisdiction' ? (
           <p className="mt-3 text-base leading-relaxed text-gray-700">{copy.intro}</p>
@@ -420,7 +470,7 @@ export default function VerdienCheckWizard(props: {
                   key={key}
                   selected={state.uwvBenefit === key}
                   onClick={() => {
-                    const next = { ...state, uwvBenefit: key };
+                    const next = { ...state, uwvBenefit: key, uwvBenefitUnknown: false };
                     setState(next);
                     const n = nextStep(next, 'uwvBenefit');
                     if (n) setStep(n);
@@ -429,6 +479,17 @@ export default function VerdienCheckWizard(props: {
                   {options[key] ?? key}
                 </ChoiceButton>
               ))}
+              <ChoiceButton
+                selected={state.uwvBenefitUnknown}
+                onClick={() => {
+                  const next = applyUwvBenefitUnknown(state);
+                  setState(next);
+                  const n = nextStep(next, 'uwvBenefit');
+                  if (n) setStep(n);
+                }}
+              >
+                {options.UNKNOWN ?? copy.needMore}
+              </ChoiceButton>
               <p className="text-base leading-relaxed text-gray-700">{copy.uwvBenefitUnknownHint}</p>
             </>
           )}
@@ -1421,7 +1482,23 @@ export default function VerdienCheckWizard(props: {
             <div className="space-y-4">
               <p className="text-base leading-relaxed text-gray-700">{copy.moneyExplain}</p>
               <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
-              <p className="text-base leading-relaxed text-gray-700">{copy.yearlyHint}</p>
+              <div className="flex flex-col gap-2">
+                <ChoiceButton
+                  selected={state.amountEntryPeriod === 'YEAR'}
+                  onClick={() => setState({ ...state, amountEntryPeriod: 'YEAR' })}
+                >
+                  {copy.periodYear}
+                </ChoiceButton>
+                <ChoiceButton
+                  selected={state.amountEntryPeriod === 'MONTH'}
+                  onClick={() => setState({ ...state, amountEntryPeriod: 'MONTH' })}
+                >
+                  {copy.periodMonth}
+                </ChoiceButton>
+              </div>
+              <p className="text-base leading-relaxed text-gray-700">
+                {state.amountEntryPeriod === 'MONTH' ? copy.monthToYearHint : copy.yearlyHint}
+              </p>
               <label className="block">
                 <span className="text-base text-gray-700">{copy.expectedTurnover}</span>
                 <input
@@ -1613,7 +1690,10 @@ export default function VerdienCheckWizard(props: {
           {step === 'incomeBases' && (
             <div className="space-y-4">
               <p className="text-base leading-relaxed text-gray-700">{copy.incomeBasesNote}</p>
-              <p className="text-base leading-relaxed text-gray-700">{copy.yearlyHint}</p>
+              <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
+              <p className="text-base leading-relaxed text-gray-700">
+                {state.amountEntryPeriod === 'MONTH' ? copy.monthToYearHint : copy.yearlyHint}
+              </p>
               <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
               {(
                 [
@@ -1713,14 +1793,40 @@ export default function VerdienCheckWizard(props: {
             <div className="space-y-4">
               <VerdienCheckResultSummary route={personalRoute} />
               <VerdienCheckNowSection cards={personalRoute.now} />
-              {!isBenefitSituation(state) && (
+              <p className="text-lg font-medium text-stone-800">{copy.quickCheckDone}</p>
+              {!isBenefitSituation(state) && !state.moneyDeclined && !state.moneyDepthCompleted ? (
+                <div className="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+                  <p className="text-base leading-relaxed text-stone-800">{copy.moneyPrompt}</p>
+                  <ChoiceButton selected={false} onClick={startMoneyDepth}>
+                    {copy.moneyYes}
+                  </ChoiceButton>
+                  <ChoiceButton selected={false} onClick={declineMoneyDepth}>
+                    {copy.moneyNo}
+                  </ChoiceButton>
+                </div>
+              ) : null}
+              {state.moneyDepthCompleted && !isBenefitSituation(state) ? (
                 <VerdienCheckFinancialImpact copy={copy} route={personalRoute} />
-              )}
-              <VerdienCheckSoonSection cards={personalRoute.soon} />
-              <VerdienCheckLaterSection
-                cards={personalRoute.later}
-                restDetails={personalRoute.restDetails}
-              />
+              ) : null}
+              <details
+                className="rounded-2xl border border-stone-200 bg-stone-50 p-4"
+                onToggle={(event) => {
+                  if ((event.currentTarget as HTMLDetailsElement).open) {
+                    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.detailsOpened);
+                  }
+                }}
+              >
+                <summary className="cursor-pointer min-h-12 text-base font-medium text-stone-800">
+                  {PERSONAL_ROUTE_COPY.moreDetail}
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <VerdienCheckSoonSection cards={personalRoute.soon} />
+                  <VerdienCheckLaterSection
+                    cards={personalRoute.later}
+                    restDetails={personalRoute.restDetails}
+                  />
+                </div>
+              </details>
               <p className="text-sm leading-relaxed text-stone-600">
                 {personalRoute.trackingMessage}
               </p>

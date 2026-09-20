@@ -10,6 +10,7 @@ export const PERSONAL_ROUTE_COPY = {
   tracking:
     'Wij houden je verkopen bij en laten het weten als er iets verandert. Je hoeft niet alles nu te weten.',
   laterSection: 'Wat kan later belangrijk worden?',
+  moreDetail: 'Meer uitleg',
   soonSection: 'Straks relevant',
   nowSection: 'Nu belangrijk',
   allDetails: 'Bekijk alle details',

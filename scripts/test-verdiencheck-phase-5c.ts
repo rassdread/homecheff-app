@@ -127,7 +127,7 @@ assert.ok(existingRegistered.now.length <= MAX_PRIMARY_NOW_CARDS);
 assert.doesNotMatch(nowText(existingRegistered), /Controleer je KVK-inschrijving/);
 assert.equal(existingRegistered.proceedSemantics, 'READY_TO_PROCEED');
 assert.match(existingRegistered.headline, /^Je kunt beginnen\.$/);
-assert.match(allText(existingRegistered), /al bij KVK staat ingeschreven/);
+assert.match(allText(existingRegistered), /al bij (KVK|Kamer van Koophandel \(KVK\)) staat ingeschreven/);
 
 const existingUnregistered = routeFrom(
   state({
@@ -235,8 +235,8 @@ const bakerState = state({
     packagingMode: 'UNPACKAGED',
   });
 const bakerQs = questionSteps(bakerState);
-assert.equal(visibleSteps(bakerState).filter((id) => id !== 'result').length, 7);
-assert.ok(bakerQs.length >= 5 && bakerQs.length <= 7);
+assert.equal(visibleSteps(bakerState).filter((id) => id !== 'result').length, 5);
+assert.ok(bakerQs.length >= 3 && bakerQs.length <= 6);
 
 const baker = routeFrom(
   state({

@@ -133,6 +133,26 @@ assert.equal(
   false,
 );
 assert.equal(
+  trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.quickStarted, { entry_point: 'faq' }),
+  true,
+);
+assert.equal(
+  trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.quickStarted, { entry_point: 'faq' }),
+  false,
+);
+assert.equal(
+  trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.quickCompleted, { entry_point: 'faq' }),
+  true,
+);
+assert.equal(
+  trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.moneyStarted, { entry_point: 'faq' }),
+  true,
+);
+assert.equal(
+  trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.moneyCompleted, { entry_point: 'faq' }),
+  true,
+);
+assert.equal(
   trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.stepProgress, {
     entry_point: 'faq',
     progress_bucket: 'EARLY',
@@ -216,6 +236,9 @@ assert.equal(
 const names = events.map((e) => e.event);
 assert.equal(names.filter((n) => n === VERDIENCHECK_FUNNEL_EVENTS.viewed).length, 1);
 assert.equal(names.filter((n) => n === VERDIENCHECK_FUNNEL_EVENTS.started).length, 1);
+assert.equal(names.filter((n) => n === VERDIENCHECK_FUNNEL_EVENTS.quickStarted).length, 1);
+assert.equal(names.filter((n) => n === VERDIENCHECK_FUNNEL_EVENTS.quickCompleted).length, 1);
+assert.equal(names.filter((n) => n === VERDIENCHECK_FUNNEL_EVENTS.moneyStarted).length, 1);
 assert.equal(names.filter((n) => n === VERDIENCHECK_FUNNEL_EVENTS.completed).length, 1);
 assert.ok(names.includes(VERDIENCHECK_FUNNEL_EVENTS.stepProgress));
 assert.ok(names.includes(VERDIENCHECK_FUNNEL_EVENTS.resultViewed));

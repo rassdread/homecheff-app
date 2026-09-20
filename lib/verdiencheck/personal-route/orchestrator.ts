@@ -150,6 +150,7 @@ export function buildPersonalVerdienRoute(input: {
   calculator: CalculatorResult | null;
   declaredGrowth?: HomecheffGrowthIntent | null;
   hits?: readonly GuidanceHit[];
+  forceCheckFirstReason?: 'UWV_SCHEME_UNKNOWN' | null;
 }): PersonalVerdienRoute {
   const ctx = input.ctx;
   const observed: ObservedActivity = ctx
@@ -200,6 +201,28 @@ export function buildPersonalVerdienRoute(input: {
     semantics = 'CHECK_FIRST';
   }
 
+  if (input.forceCheckFirstReason === 'UWV_SCHEME_UNKNOWN') {
+    semantics = 'CHECK_FIRST';
+    const unknownCard: PersonalRouteCard = {
+      id: 'ux.uwv.scheme_unknown',
+      family: 'benefit_prestart',
+      timing: 'NOW',
+      severity: 'CHECK',
+      title: 'Controleer eerst welke uitkering je van UWV krijgt.',
+      body: 'Dat bepaalt welke regels voor bijverdienen gelden. Kijk op een recente brief of in Mijn UWV. Gok de naam niet.',
+      sourceRuleIds: [],
+      cta: {
+        label: 'Naar Mijn UWV',
+        href: 'https://www.uwv.nl/particulieren',
+        kind: 'official',
+      },
+      officialSource: 'UWV',
+      officialSourceUrl: 'https://www.uwv.nl/particulieren',
+      primary: true,
+    };
+    now = [unknownCard, ...now.filter((c) => c.id !== unknownCard.id)].slice(0, MAX_PRIMARY_NOW_CARDS);
+  }
+
   if (semantics === 'CHECK_FIRST') {
     const distracting = now.filter(
       (c) => /^Je kunt beginnen\.?$/i.test(c.title) && c.family !== 'benefit_prestart',
@@ -217,11 +240,18 @@ export function buildPersonalVerdienRoute(input: {
     foodMultiple: foodMultiple === true,
     waitForPermission: hasWaitForPermission(now),
   });
+  const uwvUnknown = input.forceCheckFirstReason === 'UWV_SCHEME_UNKNOWN';
 
   const route: PersonalVerdienRoute = {
-    headline: copy.headline,
-    summary: copy.summary,
-    canStartMessage: copy.canStartMessage,
+    headline: uwvUnknown
+      ? 'Controleer eerst welke uitkering je van UWV krijgt.'
+      : copy.headline,
+    summary: uwvUnknown
+      ? 'Dat bepaalt welke regels voor bijverdienen gelden. Daarna kijken we wat je via HomeCheff kunt doen.'
+      : copy.summary,
+    canStartMessage: uwvUnknown
+      ? 'Je bent bijna klaar. Controleer eerst dit.'
+      : copy.canStartMessage,
     proceedSemantics: semantics,
     now,
     soon,

@@ -45,6 +45,12 @@ import {
   type FoodActivityContext,
 } from '../domain/food-activity';
 
+function annualizeEuro(raw: string, period: WizardState['amountEntryPeriod']): number | null {
+  const cents = parseEuroInputToCents(raw);
+  if (cents == null) return null;
+  return period === 'MONTH' ? cents * 12 : cents;
+}
+
 function parseAges(raw: string): number[] {
   return parseWizardChildAges(raw);
 }
@@ -74,7 +80,7 @@ function buildIackContext(state: WizardState): IackContext | null {
   return {
     children,
     fiscalPartnerDuration: state.fiscalPartnerDuration ?? 'UNKNOWN',
-    partnerArbeidsinkomenCents: parseEuroInputToCents(state.partnerArbeidsinkomenEuro),
+    partnerArbeidsinkomenCents: annualizeEuro(state.partnerArbeidsinkomenEuro, state.amountEntryPeriod),
     relativeAge: state.iackRelativeAge,
   };
 }
@@ -105,14 +111,14 @@ function buildHousingHousehold(state: WizardState, userAssess: number | null): H
         localKey: 'partner',
         role: 'TOESLAGPARTNER',
         ageYears: applicantAge,
-        assessmentIncomeCents: parseEuroInputToCents(state.partnerAssessmentEuro),
+        assessmentIncomeCents: annualizeEuro(state.partnerAssessmentEuro, state.amountEntryPeriod),
       });
     } else {
       residents.push({
         localKey: 'medebewoner',
         role: 'MEDEBEWONER',
         ageYears: applicantAge,
-        assessmentIncomeCents: parseEuroInputToCents(state.partnerAssessmentEuro) ?? 0,
+        assessmentIncomeCents: annualizeEuro(state.partnerAssessmentEuro, state.amountEntryPeriod) ?? 0,
       });
     }
   }
@@ -121,7 +127,7 @@ function buildHousingHousehold(state: WizardState, userAssess: number | null): H
       localKey: 'kind',
       role: 'THUISWONEND_KIND',
       ageYears: 16,
-      assessmentIncomeCents: parseEuroInputToCents(state.housingChildAssessmentEuro) ?? 0,
+      assessmentIncomeCents: annualizeEuro(state.housingChildAssessmentEuro, state.amountEntryPeriod) ?? 0,
     });
   }
   return {
@@ -169,16 +175,17 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
   const frequency = state.frequency ?? derived?.frequency ?? 'UNKNOWN';
   const intent = state.intent ?? derived?.intent ?? 'UNKNOWN';
   const allowances = [...effectiveAllowances(state)];
-  const turnoverCents = parseEuroInputToCents(state.estimatedTurnoverEuro) ?? 0;
-  const costsCents = parseEuroInputToCents(state.estimatedCostsEuro) ?? 0;
+  const period = state.amountEntryPeriod;
+  const turnoverCents = annualizeEuro(state.estimatedTurnoverEuro, period) ?? 0;
+  const costsCents = annualizeEuro(state.estimatedCostsEuro, period) ?? 0;
   const liveResult = commercialResultCents(turnoverCents, costsCents);
   const scenarioCents =
     state.scenarioPreset === 'custom'
-      ? parseEuroInputToCents(state.customScenarioEuro) ?? liveResult
+      ? annualizeEuro(state.customScenarioEuro, period) ?? liveResult
       : state.scenarioPreset
         ? scenarioPresetToCents(state.scenarioPreset)
         : liveResult;
-  const assessmentCents = parseEuroInputToCents(state.baselineAssessmentEuro);
+  const assessmentCents = annualizeEuro(state.baselineAssessmentEuro, period);
   const children = buildChildren(state);
   const monthsRaw = Number.parseInt(state.workedMonthsInYear, 10);
 
@@ -197,12 +204,12 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
         ? ADDITIONAL_INCOME_CLASSIFICATION.RESULT_FROM_OTHER_WORK
         : null,
     assumeEstimatedCostsTaxDeductible: state.assumeEstimatedCostsTaxDeductible,
-    baselineGrossEmploymentIncomeCents: parseEuroInputToCents(state.baselineGrossEmploymentEuro),
-    baselineBox1TaxableIncomeCents: parseEuroInputToCents(state.baselineBox1Euro),
-    baselineAggregateIncomeCents: parseEuroInputToCents(state.baselineAggregateEuro),
-    baselineArbeidsinkomenCents: parseEuroInputToCents(state.baselineArbeidsinkomenEuro),
+    baselineGrossEmploymentIncomeCents: annualizeEuro(state.baselineGrossEmploymentEuro, period),
+    baselineBox1TaxableIncomeCents: annualizeEuro(state.baselineBox1Euro, period),
+    baselineAggregateIncomeCents: annualizeEuro(state.baselineAggregateEuro, period),
+    baselineArbeidsinkomenCents: annualizeEuro(state.baselineArbeidsinkomenEuro, period),
     baselineAssessmentIncomeCents: assessmentCents,
-    baselineZvwContributionIncomeAlreadyUsedCents: parseEuroInputToCents(state.baselineZvwUsedEuro),
+    baselineZvwContributionIncomeAlreadyUsedCents: annualizeEuro(state.baselineZvwUsedEuro, period),
     assetsEligibility: state.assetsEligibility,
     healthcareAssetsEligibility: state.assetsEligibility,
     housingAssetsEligibility: state.housingAssetsEligibility,
@@ -212,7 +219,7 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
         ? null
         : {
             hasPartner: state.hasPartner === 'UNKNOWN' ? 'UNKNOWN' : state.hasPartner,
-            partnerAssessmentIncomeCents: parseEuroInputToCents(state.partnerAssessmentEuro),
+            partnerAssessmentIncomeCents: annualizeEuro(state.partnerAssessmentEuro, period),
             partnerHealthcareInsuranceStatus: state.partnerHealthcareInsuranceStatus,
           },
     calculationPeriod: CALCULATION_PERIOD.FULL_YEAR_STABLE_SITUATION,
@@ -286,7 +293,7 @@ export function wizardStateToBusinessFacts(state: WizardState): BusinessGuidance
   }
   const otherKnown = state.hasOtherBusinessTurnover === false
     ? 0
-    : parseEuroInputToCents(state.otherRelevantVatTurnoverEuro);
+    : annualizeEuro(state.otherRelevantVatTurnoverEuro, state.amountEntryPeriod);
   const other =
     state.hasOtherBusinessTurnover === 'UNKNOWN' || state.hasOtherBusinessTurnover == null
       ? UNKNOWN
@@ -315,7 +322,7 @@ export function wizardStateToBusinessFacts(state: WizardState): BusinessGuidance
       currentYearRelevantTurnoverCents:
         typeof other === 'number' ? input.estimatedTurnoverCents + other : UNKNOWN,
       previousYearRelevantTurnoverCents:
-        parseEuroInputToCents(state.previousYearVatTurnoverEuro) ?? UNKNOWN,
+        annualizeEuro(state.previousYearVatTurnoverEuro, state.amountEntryPeriod) ?? UNKNOWN,
       activityEligibility:
         activity.kinds.length === 0 ? 'UNKNOWN' : 'ELIGIBLE',
       currentlyParticipating: triFromBool(state.korParticipating),

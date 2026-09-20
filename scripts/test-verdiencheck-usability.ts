@@ -146,6 +146,13 @@ for (const lang of ['nl', 'en'] as const) {
   assert.match(copy.progressOngoing, /vragen|questions/i);
   assert.match(copy.registrationKvkLabel, /Kamer van Koophandel|Chamber of Commerce/);
   assert.match(copy.registrationKorLabel, /Kleineondernemersregeling|Small-business/);
+  assert.match(copy.quickCheckDone, /snelle check|quick check/i);
+  assert.match(copy.moneyYes, /bereken|calculate/i);
+  assert.match(copy.moneyNo, /genoeg|enough/i);
+  assert.match(copy.periodMonth, /maand|month/i);
+  assert.doesNotMatch(userFacing, /\bde de\b/);
+  assert.doesNotMatch(userFacing, /\bhet het\b/);
+  assert.doesNotMatch(userFacing, /Kamer van Koophandel \(Kamer van Koophandel\)/);
 }
 
 assert.match(wizardSrc, /progressPhrase/);
@@ -154,7 +161,9 @@ assert.match(wizardSrc, /min-h-12/);
 assert.match(wizardSrc, /copy\.estimateOk/);
 assert.match(wizardSrc, /copy\.yearlyHint/);
 assert.match(wizardSrc, /copy\.moneyExplain/);
-assert.match(wizardSrc, /copy\.uwvBenefitUnknownHint/);
+assert.match(wizardSrc, /copy\.quickCheckDone/);
+assert.match(wizardSrc, /copy\.moneyPrompt/);
+assert.match(wizardSrc, /copy\.moneyNo/);
 assert.match(wizardSrc, /registrationKvkLabel/);
 assert.match(wizardSrc, /aria-pressed/);
 assert.doesNotMatch(wizardSrc, /\{stepIndex \+ 1\} \/ \{steps\.length\}/);
@@ -202,7 +211,7 @@ const starterQs = questionCount({
   growthStart: 'TRYING_OUT',
   situationGroup: 'NONE',
 });
-assert.ok(starterQs >= 5 && starterQs <= 8, `starter ${starterQs}`);
+assert.ok(starterQs >= 3 && starterQs <= 6, `starter ${starterQs}`);
 
 const foodQs = questionCount({
   activityChoice: 'FOOD',
@@ -210,21 +219,21 @@ const foodQs = questionCount({
   foodUxFrequency: 'ONE_OFF',
   situationGroup: 'NONE',
 });
-assert.ok(foodQs >= 6 && foodQs <= 10, `food ${foodQs}`);
+assert.ok(foodQs >= 4 && foodQs <= 7, `food ${foodQs}`);
 
 const wwQs = questionCount({
   activityChoice: 'MAKE',
   growthStart: 'TRYING_OUT',
   situationGroup: 'WW',
 });
-assert.ok(wwQs >= 7 && wwQs <= 14, `ww ${wwQs}`);
+assert.ok(wwQs >= 4 && wwQs <= 8, `ww ${wwQs}`);
 
 const bijstandQs = questionCount({
   activityChoice: 'MAKE',
   growthStart: 'TRYING_OUT',
   situationGroup: 'BIJSTAND',
 });
-assert.ok(bijstandQs >= 6 && bijstandQs <= 12, `bijstand ${bijstandQs}`);
+assert.ok(bijstandQs >= 4 && bijstandQs <= 8, `bijstand ${bijstandQs}`);
 
 assert.ok(FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS.includes('benefittype'));
 assert.doesNotMatch(funnelSrc, /persona|leeftijd|age_band|benefit_type/);

@@ -45,7 +45,7 @@ assert.match(page, /isVerdienCheckPublicRouteVisible/);
 
 const entry = read('components/verdiencheck/VerdienCheckPublicEntry.tsx');
 assert.match(entry, /isVerdienCheckPublicCtaEnabled/);
-assert.match(entry, /Doe de VerdienCheck/);
+assert.match(entry, /Start de snelle check/);
 
 const wizard = read('components/verdiencheck/VerdienCheckWizard.tsx');
 assert.match(wizard, /data-verdiencheck-shell/);

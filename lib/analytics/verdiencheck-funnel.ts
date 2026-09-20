@@ -26,8 +26,12 @@ import {
 export const VERDIENCHECK_FUNNEL_EVENTS = {
   viewed: 'verdiencheck_viewed',
   started: 'verdiencheck_started',
+  quickStarted: 'verdiencheck_quick_started',
   stepProgress: 'verdiencheck_step_progress',
   completed: 'verdiencheck_completed',
+  quickCompleted: 'verdiencheck_quick_completed',
+  moneyStarted: 'verdiencheck_money_started',
+  moneyCompleted: 'verdiencheck_money_completed',
   resultViewed: 'verdiencheck_result_viewed',
   detailsOpened: 'verdiencheck_details_opened',
   officialLinkClicked: 'verdiencheck_official_link_clicked',
@@ -59,7 +63,11 @@ export type VerdienCheckFunnelSink = (
 
 type OccurrenceDedup = {
   started: boolean;
+  quickStarted: boolean;
   completed: boolean;
+  quickCompleted: boolean;
+  moneyStarted: boolean;
+  moneyCompleted: boolean;
   resultViewed: boolean;
   detailsOpened: boolean;
   calculatorFailed: boolean;
@@ -70,7 +78,11 @@ type OccurrenceDedup = {
 function emptyOccurrence(): OccurrenceDedup {
   return {
     started: false,
+    quickStarted: false,
     completed: false,
+    quickCompleted: false,
+    moneyStarted: false,
+    moneyCompleted: false,
     resultViewed: false,
     detailsOpened: false,
     calculatorFailed: false,
@@ -127,6 +139,11 @@ function shouldEmit(eventName: VerdienCheckFunnelEventName, payload: VerdienChec
     occurrence.started = true;
     return true;
   }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.quickStarted) {
+    if (occurrence.quickStarted) return false;
+    occurrence.quickStarted = true;
+    return true;
+  }
   if (eventName === VERDIENCHECK_FUNNEL_EVENTS.stepProgress) {
     const bucket = payload.progress_bucket ?? '';
     if (!bucket || occurrence.progress.has(bucket)) return false;
@@ -136,6 +153,21 @@ function shouldEmit(eventName: VerdienCheckFunnelEventName, payload: VerdienChec
   if (eventName === VERDIENCHECK_FUNNEL_EVENTS.completed) {
     if (occurrence.completed) return false;
     occurrence.completed = true;
+    return true;
+  }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.quickCompleted) {
+    if (occurrence.quickCompleted) return false;
+    occurrence.quickCompleted = true;
+    return true;
+  }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.moneyStarted) {
+    if (occurrence.moneyStarted) return false;
+    occurrence.moneyStarted = true;
+    return true;
+  }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.moneyCompleted) {
+    if (occurrence.moneyCompleted) return false;
+    occurrence.moneyCompleted = true;
     return true;
   }
   if (eventName === VERDIENCHECK_FUNNEL_EVENTS.resultViewed) {
