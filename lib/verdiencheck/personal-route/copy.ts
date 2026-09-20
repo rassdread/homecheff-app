@@ -33,11 +33,14 @@ export const PERSONAL_ROUTE_COPY = {
   dac7Cta: 'Meer uitleg over platformrapportage',
   growthVat: 'Als je verkoop groeit, kijk dan of btw voor jou speelt.',
   growthNvwa:
-    'Als je vaker eten verkoopt, kijk dan of je je bij de voedselautoriteit moet melden.',
+    'Ga je vaker of bedrijfsmatig verkopen? Controleer dan of je je bij de voedselautoriteit moet registreren.',
   korTitle: 'Kleineondernemersregeling later bekijken',
   vatReviewTitle: 'Later kun je kijken of btw voor jou speelt',
   nvwaOnceTitle: 'Bij één keer verkopen hoef je je meestal niet te melden bij de voedselautoriteit',
+  nvwaFewTimesTitle:
+    'Bij een paar keer per jaar is meldplicht bij de voedselautoriteit meestal nog niet aan de orde',
   nvwaRequiredTitle: 'Meld je nu bij de voedselautoriteit',
+  nvwaReviewTitle: 'Controleer of je je bij de voedselautoriteit moet registreren',
   kvkLaterTitle: 'Als je vaker gaat verkopen',
   kvkLaterBody:
     'Dan kijken we opnieuw of inschrijven bij de Kamer van Koophandel relevant wordt. Nu is dat meestal nog geen eerste stap.',

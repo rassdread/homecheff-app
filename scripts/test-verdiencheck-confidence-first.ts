@@ -177,6 +177,39 @@ assert.match(oneOffFood.now.map((c) => `${c.title} ${c.body}`).join('\n'), /veil
 assert.doesNotMatch(oneOffFood.now.map((c) => `${c.title} ${c.body}`).join('\n'), /\bNVWA\b|DAC7|KOR|KVK/);
 assert.doesNotMatch(oneOffFood.headline, /\bNVWA\b|HACCP|registreren/);
 
+const fewTimesFood = routeFrom(
+  state({
+    activityChoice: 'FOOD',
+    growthStart: 'TRYING_OUT',
+    foodUxFrequency: 'OCCASIONAL_RECURRING',
+    frequency: 'OCCASIONAL',
+    intent: 'HOBBY_COST_RECOVERY',
+    situationGroup: 'NONE',
+    allowances: ['NONE'],
+    packagingMode: 'UNPACKAGED',
+    customers: 'PUBLIC',
+  }),
+);
+assert.equal(fewTimesFood.proceedSemantics, 'READY_TO_PROCEED');
+assert.equal(fewTimesFood.headline, 'Je kunt beginnen.');
+assert.match(fewTimesFood.now.map((c) => `${c.title} ${c.body}`).join('\n'), /veilig|allergenen/i);
+assert.equal(
+  fewTimesFood.now.some((c) => c.family === 'food_registration' && c.severity === 'ACTION'),
+  false,
+);
+assert.doesNotMatch(
+  fewTimesFood.now.map((c) => `${c.title} ${c.body}`).join('\n'),
+  /Meld je nu bij de voedselautoriteit|registration_required/,
+);
+assert.ok(
+  fewTimesFood.later.some(
+    (c) =>
+      c.id.includes('few_times_non_business') ||
+      c.title.includes('paar keer per jaar') ||
+      c.body.includes('vaker of bedrijfsmatig'),
+  ),
+);
+
 const regularFood = routeFrom(
   state({
     activityChoice: 'FOOD',
@@ -322,6 +355,17 @@ assert.equal(
       activityChoice: 'FOOD',
       growthStart: 'TRYING_OUT',
       foodUxFrequency: 'ONE_OFF',
+      situationGroup: 'NONE',
+    }),
+  ).length,
+  5,
+);
+assert.equal(
+  questionsBeforeFirstResult(
+    state({
+      activityChoice: 'FOOD',
+      growthStart: 'TRYING_OUT',
+      foodUxFrequency: 'OCCASIONAL_RECURRING',
       situationGroup: 'NONE',
     }),
   ).length,

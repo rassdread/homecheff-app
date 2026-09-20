@@ -13,6 +13,7 @@ import {
   assessNvwaRegistration,
   emptyFoodActivity,
   isFoodRoute,
+  mapSaleFrequencyToFoodSellingFrequency,
   mapUxFoodFrequency,
   prepackedLabelContext,
   type FoodActivityContext,
@@ -91,6 +92,7 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
   NVWA_KVK_ISOLATION: 'FAIL',
   GUIDANCE_DEFAULT_NON_BLOCKING: 'FAIL',
   INTENT_FIRST_COPY: 'FAIL',
+  NVWA_BOUNDARY_MATRIX: 'FAIL',
 };
 
 {
@@ -118,7 +120,18 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
   const unknown = emptyFoodActivity('FOOD');
   unknown.sellingFrequency = 'UNKNOWN';
   assert.equal(assessNvwaRegistration(unknown), 'UNKNOWN');
-  assert.equal(mapUxFoodFrequency('OCCASIONAL_RECURRING'), 'MULTIPLE_TIMES_PER_YEAR');
+  assert.equal(mapUxFoodFrequency('ONE_OFF'), 'ONCE_PER_YEAR');
+  assert.equal(mapUxFoodFrequency('OCCASIONAL_RECURRING'), 'A_FEW_TIMES_PER_YEAR');
+  assert.equal(mapUxFoodFrequency('REGULAR'), 'MULTIPLE_TIMES_PER_YEAR');
+  assert.equal(mapSaleFrequencyToFoodSellingFrequency('OCCASIONAL'), 'A_FEW_TIMES_PER_YEAR');
+  assert.equal(mapSaleFrequencyToFoodSellingFrequency('REGULAR'), 'MULTIPLE_TIMES_PER_YEAR');
+  const few = emptyFoodActivity('FOOD');
+  few.sellingFrequency = 'A_FEW_TIMES_PER_YEAR';
+  assert.equal(assessNvwaRegistration(few), 'NOT_REQUIRED_OCCASIONAL_NON_BUSINESS');
+  assert.equal(
+    assessNvwaRegistration(few, { likelyEntrepreneur: true }),
+    'REVIEW_REQUIRED',
+  );
   results.NVWA_REGISTRATION_FREQUENCY = 'PASS';
 }
 
@@ -301,6 +314,7 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
   const later = all.find((h) => h.rule.id === 'nl2026.food.intent.later_growth');
   assert.ok(later);
   assert.match(later!.rule.shortText, /KVK kan relevant worden als je activiteit structureler wordt/);
+  assert.match(later!.rule.shortText, /vaker of bedrijfsmatig/);
 
   const manyHits = evaluateFoodGuidance({
     jurisdiction: 'NL',
@@ -320,6 +334,126 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
     }).includes('foodSellingFrequency'),
   );
   results.INTENT_FIRST_COPY = 'PASS';
+}
+
+{
+  function ruleIds(rules: { id: string }[]): string[] {
+    return rules.map((r) => r.id);
+  }
+  function fewFood(): FoodActivityContext {
+    return { ...emptyFoodActivity('FOOD'), sellingFrequency: 'A_FEW_TIMES_PER_YEAR' };
+  }
+  function multipleFood(): FoodActivityContext {
+    return { ...emptyFoodActivity('FOOD'), sellingFrequency: 'MULTIPLE_TIMES_PER_YEAR' };
+  }
+
+  assert.equal(
+    assessNvwaRegistration({ ...emptyFoodActivity('FOOD'), sellingFrequency: 'ONCE_PER_YEAR' }),
+    'NOT_REQUIRED_BASED_ON_ONE_OFF_FREQUENCY',
+  );
+  assert.equal(assessNvwaRegistration(fewFood()), 'NOT_REQUIRED_OCCASIONAL_NON_BUSINESS');
+  assert.equal(assessNvwaRegistration(multipleFood()), 'REGISTRATION_REQUIRED');
+
+  const fewRules = nvwaRegistrationRules({
+    food: fewFood(),
+    kvkAssessment: 'INSUFFICIENT_INFORMATION',
+  });
+  assert.ok(fewRules.some((r) => r.id === 'nl2026.food.nvwa.few_times_non_business' && r.timing === 'LATER'));
+  assert.equal(fewRules.some((r) => r.id === 'nl2026.food.nvwa.registration_required'), false);
+  assert.equal(fewRules.some((r) => r.id === 'nl2026.food.nvwa.needs_kvk_operational'), false);
+  assert.doesNotMatch(textOf(fewRules), /<=\s*\d|maximaal \d+ keer|omzetgrens/);
+
+  const fewEntrepreneur = nvwaRegistrationRules({
+    food: fewFood(),
+    kvkAssessment: 'CLEAR_REGISTRATION_INDICATION',
+    alreadyKvkRegistered: 'YES',
+    personSituation: 'EXISTING_ENTREPRENEUR',
+  });
+  assert.ok(fewEntrepreneur.some((r) => r.id === 'nl2026.food.nvwa.review' && r.timing === 'SOON'));
+  assert.equal(fewEntrepreneur.some((r) => r.id === 'nl2026.food.nvwa.registration_required'), false);
+
+  const tryingOccasional = evaluateFoodGuidance({
+    jurisdiction: 'NL',
+    year: 2026,
+    personSituation: 'EMPLOYEE',
+    allowances: ['NONE'],
+    activity: { ...oneOffCake(), frequency: 'OCCASIONAL', commercialIntent: 'HOBBY_COST_RECOVERY' },
+    food: fewFood(),
+  });
+  assert.equal(
+    tryingOccasional.some((h) => h.rule.id === 'nl2026.food.nvwa.registration_required'),
+    false,
+  );
+  assert.ok(tryingOccasional.some((h) => h.rule.id === 'nl2026.food.intent.you_can_start'));
+  assert.ok(tryingOccasional.some((h) => h.rule.id.includes('safety.hygiene_always')));
+
+  const tryingRecurring = evaluateFoodGuidance({
+    jurisdiction: 'NL',
+    year: 2026,
+    personSituation: 'EMPLOYEE',
+    allowances: ['NONE'],
+    activity: { ...regularFood(), commercialIntent: 'HOBBY_COST_RECOVERY' },
+    food: multipleFood(),
+  });
+  assert.equal(
+    tryingRecurring.find((h) => h.rule.id === 'nl2026.food.nvwa.registration_required')?.timing,
+    'NOW',
+  );
+
+  const publicOccasional = nvwaRegistrationRules({
+    food: { ...fewFood(), sellsDirectToConsumers: 'YES' },
+    kvkAssessment: 'INSUFFICIENT_INFORMATION',
+  });
+  assert.ok(ruleIds(publicOccasional).includes('nl2026.food.nvwa.few_times_non_business'));
+
+  const noKvkRecurring = nvwaRegistrationRules({
+    food: multipleFood(),
+    kvkAssessment: 'INSUFFICIENT_INFORMATION',
+    alreadyKvkRegistered: 'NO',
+  });
+  assert.ok(ruleIds(noKvkRecurring).includes('nl2026.food.nvwa.registration_required'));
+  assert.ok(ruleIds(noKvkRecurring).includes('nl2026.food.nvwa.needs_kvk_operational'));
+
+  const existingKvkFood = nvwaRegistrationRules({
+    food: multipleFood(),
+    kvkAssessment: 'CLEAR_REGISTRATION_INDICATION',
+    alreadyKvkRegistered: 'YES',
+    personSituation: 'EXISTING_ENTREPRENEUR',
+  });
+  assert.ok(ruleIds(existingKvkFood).includes('nl2026.food.nvwa.registration_required'));
+  assert.equal(ruleIds(existingKvkFood).includes('nl2026.food.nvwa.needs_kvk_operational'), false);
+
+  const planFew = foodSafetyRules(fewFood());
+  assert.ok(planFew.some((r) => r.id === 'nl2026.food.safety.plan_review' && r.timing === 'SOON'));
+  assert.equal(planFew.some((r) => r.id === 'nl2026.food.safety.plan_required'), false);
+  assert.ok(planFew.some((r) => r.id === 'nl2026.food.safety.hygiene_always'));
+
+  const planRegular = foodSafetyRules({
+    ...multipleFood(),
+    foodSafetyPlanStatus: 'NOT_ARRANGED',
+  });
+  assert.ok(planRegular.some((r) => r.id === 'nl2026.food.safety.plan_required' && r.timing === 'NOW'));
+
+  const prepacked = {
+    ...fewFood(),
+    packagingMode: 'PREPACKED' as const,
+  };
+  assert.equal(assessNvwaRegistration(prepacked), 'NOT_REQUIRED_OCCASIONAL_NON_BUSINESS');
+  assert.match(textOf(foodLabellingRules(prepacked)), /etiketregels/);
+
+  const unpack = { ...fewFood(), packagingMode: 'UNPACKAGED' as const };
+  assert.match(textOf(foodLabellingRules(unpack)), /allergen/);
+
+  const animal = {
+    ...fewFood(),
+    handlesAnimalOriginProducts: 'YES' as const,
+    sellsDirectToConsumers: 'YES' as const,
+    sellsBusinessToBusiness: 'NO' as const,
+  };
+  assert.equal(assessAnimalOriginRecognition(animal), 'REGISTRATION_MAY_BE_SUFFICIENT');
+  assert.equal(assessNvwaRegistration(animal), 'NOT_REQUIRED_OCCASIONAL_NON_BUSINESS');
+
+  results.NVWA_BOUNDARY_MATRIX = 'PASS';
 }
 
 assert.equal(NL_2026_MODULE_STATUS.foodHomeSellingGuidance, 'CERTIFIED');

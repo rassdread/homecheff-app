@@ -222,7 +222,9 @@ const foodQs = questionCount({
   foodUxFrequency: 'ONE_OFF',
   situationGroup: 'NONE',
 });
-assert.ok(foodQs >= 4 && foodQs <= 7, `food ${foodQs}`);
+assert.equal(nl.steps.foodSellingFrequency.options.OCCASIONAL_RECURRING, 'Een paar keer per jaar');
+assert.doesNotMatch(nl.steps.foodSellingFrequency.options.OCCASIONAL_RECURRING, /\d/);
+assert.match(nl.steps.foodSellingFrequency.options.REGULAR, /Meerdere keren per jaar/);
 
 const wwQs = questionCount({
   activityChoice: 'MAKE',

@@ -21,6 +21,8 @@ import {
   NVWA_MIJNNVWA_TRANSITION_DATE,
   NVWA_REGISTRATION_SYSTEM,
 } from '../../rulesets/nl/2026/food-guidance-parameters';
+import type { PersonSituation } from '../../domain/person';
+import type { TriState } from '../../domain/tri-state';
 
 const BASE = {
   jurisdiction: 'NL' as const,
@@ -36,9 +38,15 @@ export type TimedRule = GuidanceRule & { timing: GuidanceTiming };
 export function nvwaRegistrationRules(input: {
   food: FoodActivityContext;
   kvkAssessment: KvkEntrepreneurshipAssessment;
+  alreadyKvkRegistered?: TriState;
+  personSituation?: PersonSituation | null;
 }): TimedRule[] {
   if (!isFoodRoute(input.food.activityType)) return [];
-  const assessment = assessNvwaRegistration(input.food);
+  const likelyEntrepreneur =
+    input.personSituation === 'EXISTING_ENTREPRENEUR' ||
+    input.alreadyKvkRegistered === 'YES' ||
+    input.kvkAssessment === 'CLEAR_REGISTRATION_INDICATION';
+  const assessment = assessNvwaRegistration(input.food, { likelyEntrepreneur });
   const rules: TimedRule[] = [];
 
   if (assessment === 'NOT_REQUIRED_BASED_ON_ONE_OFF_FREQUENCY') {
@@ -47,11 +55,11 @@ export function nvwaRegistrationRules(input: {
       id: 'nl2026.food.nvwa.once_per_year',
       timing: 'LATER',
       severity: 'INFO',
-      shortTitle: 'NVWA-registratie is bij een eenmalige verkoop meestal niet nodig',
+      shortTitle: 'Bij één keer verkopen hoef je je meestal niet te melden bij de voedselautoriteit',
       shortText:
-        'Je hoeft je op basis van deze eenmalige verkoop niet bij de NVWA te registreren. Je moet het eten wel veilig en hygiënisch bereiden en je klanten informeren over allergenen.',
+        'Je hoeft je op basis van deze eenmalige verkoop niet bij de voedselautoriteit te registreren. Je moet het eten wel veilig en hygiënisch bereiden en je klanten informeren over allergenen.',
       expandedExplanation:
-        'NVWA-registratie hangt af van hoe vaak je voedsel verkoopt, niet van omzet of aantal porties. Als je later vaker gaat verkopen, kijken we dit opnieuw.',
+        'Registratieplicht geldt voor levensmiddelenbedrijven, niet voor een omzetbedrag. De voedselautoriteit zegt dat je je niet hoeft te registreren als je één keer per jaar voedsel verkoopt. Ga je vaker of bedrijfsmatig verkopen, controleer dan of je je moet registreren.',
       cta: {
         label: 'Bekijk het stappenplan',
         href: SRC_NVWA_STAPPENPLAN.officialSourceUrl,
@@ -59,6 +67,28 @@ export function nvwaRegistrationRules(input: {
       },
       officialSource: SRC_NVWA_STAPPENPLAN.officialSource,
       officialSourceUrl: SRC_NVWA_STAPPENPLAN.officialSourceUrl,
+      recheckTrigger: 'FOOD_SELLING_FREQUENCY_CHANGED',
+    });
+  }
+
+  if (assessment === 'NOT_REQUIRED_OCCASIONAL_NON_BUSINESS') {
+    rules.push({
+      ...BASE,
+      id: 'nl2026.food.nvwa.few_times_non_business',
+      timing: 'LATER',
+      severity: 'INFO',
+      shortTitle: 'Bij een paar keer per jaar is meldplicht bij de voedselautoriteit meestal nog niet aan de orde',
+      shortText:
+        'De voedselautoriteit noemt als voorbeeld dat je geen ondernemer bent als je maar een paar keer per jaar voedsel verkoopt. Ga je vaker of bedrijfsmatig verkopen, controleer dan of je je moet registreren. Voedselveiligheid en allergenen blijven gelden.',
+      expandedExplanation:
+        'NVWA-registratie geldt voor levensmiddelenbedrijven. Frequentie alleen is geen wettelijk getal. HomeCheff verzint geen drempel in keren per jaar. Intentie is geen vrijstelling.',
+      cta: {
+        label: 'Bekijk wanneer registratie nodig is',
+        href: SRC_NVWA_REGISTRATIE.officialSourceUrl,
+        kind: 'official',
+      },
+      officialSource: SRC_NVWA_REGISTRATIE.officialSource,
+      officialSourceUrl: SRC_NVWA_REGISTRATIE.officialSourceUrl,
       recheckTrigger: 'FOOD_SELLING_FREQUENCY_CHANGED',
     });
   }
@@ -135,18 +165,18 @@ export function nvwaRegistrationRules(input: {
       id: 'nl2026.food.nvwa.review',
       timing: 'SOON',
       severity: 'CHECK',
-      shortTitle: 'We kijken later of NVWA-registratie speelt',
+      shortTitle: 'Controleer of je je bij de voedselautoriteit moet registreren',
       shortText:
-        'Als je vaker gaat verkopen, controleren we of je je levensmiddelenbedrijf bij de NVWA moet registreren.',
+        'Of registratie nodig is, hangt af van of je een levensmiddelenbedrijf / ondernemer bent, niet van een omzetbedrag. De voedselautoriteit noemt “een paar keer per jaar” als voorbeeld van geen ondernemer, en “meerdere keren per jaar” als je wel een bedrijf start.',
       expandedExplanation:
-        'Zonder duidelijke frequentie verzinnen we geen omzet- of portiesdrempel.',
+        'HomeCheff verzint geen getal voor “een paar keer”. Intentie is geen vrijstelling. Als je regelmatig of bedrijfsmatig eten verkoopt, is registratie wel aan de orde.',
       cta: {
-        label: 'Bekijk het stappenplan',
-        href: SRC_NVWA_STAPPENPLAN.officialSourceUrl,
+        label: 'Bekijk wanneer registratie nodig is',
+        href: SRC_NVWA_REGISTRATIE.officialSourceUrl,
         kind: 'official',
       },
-      officialSource: SRC_NVWA_STAPPENPLAN.officialSource,
-      officialSourceUrl: SRC_NVWA_STAPPENPLAN.officialSourceUrl,
+      officialSource: SRC_NVWA_REGISTRATIE.officialSource,
+      officialSourceUrl: SRC_NVWA_REGISTRATIE.officialSourceUrl,
       recheckTrigger: 'FOOD_SELLING_FREQUENCY_CHANGED',
     });
   }
@@ -156,6 +186,7 @@ export function nvwaRegistrationRules(input: {
 
 export function nvwaAssessmentFor(
   food: FoodActivityContext,
+  operator?: { likelyEntrepreneur?: boolean },
 ): NvwaRegistrationAssessment {
-  return assessNvwaRegistration(food);
+  return assessNvwaRegistration(food, operator);
 }

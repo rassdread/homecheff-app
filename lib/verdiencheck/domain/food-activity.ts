@@ -23,6 +23,7 @@ export type PreparationLocation = (typeof PREPARATION_LOCATIONS)[number];
 
 export const FOOD_SELLING_FREQUENCIES = [
   'ONCE_PER_YEAR',
+  'A_FEW_TIMES_PER_YEAR',
   'MULTIPLE_TIMES_PER_YEAR',
   'UNKNOWN',
 ] as const;
@@ -46,6 +47,7 @@ export type SalesChannel = (typeof SALES_CHANNELS)[number];
 
 export const NVWA_REGISTRATION_ASSESSMENTS = [
   'NOT_REQUIRED_BASED_ON_ONE_OFF_FREQUENCY',
+  'NOT_REQUIRED_OCCASIONAL_NON_BUSINESS',
   'REGISTRATION_REQUIRED',
   'ALREADY_REGISTERED',
   'REVIEW_REQUIRED',
@@ -134,15 +136,15 @@ export function isFoodRoute(type: FoodActivityType): boolean {
 
 /**
  * UX frequency → legal food frequency.
- * “Een paar keer per jaar” maps to MULTIPLE_TIMES_PER_YEAR (NVWA stappenplan).
+ * “Een paar keer per jaar” stays A_FEW_TIMES_PER_YEAR (NVWA non-entrepreneur example).
+ * Do not invent a numeric threshold.
  */
 export function mapSaleFrequencyToFoodSellingFrequency(
   frequency: SaleFrequency,
 ): FoodSellingFrequency {
   if (frequency === 'ONE_OFF') return 'ONCE_PER_YEAR';
-  if (frequency === 'OCCASIONAL' || frequency === 'REGULAR') {
-    return 'MULTIPLE_TIMES_PER_YEAR';
-  }
+  if (frequency === 'OCCASIONAL') return 'A_FEW_TIMES_PER_YEAR';
+  if (frequency === 'REGULAR') return 'MULTIPLE_TIMES_PER_YEAR';
   return 'UNKNOWN';
 }
 
@@ -150,9 +152,8 @@ export function mapUxFoodFrequency(
   ux: 'ONE_OFF' | 'OCCASIONAL_RECURRING' | 'REGULAR' | 'UNKNOWN',
 ): FoodSellingFrequency {
   if (ux === 'ONE_OFF') return 'ONCE_PER_YEAR';
-  if (ux === 'OCCASIONAL_RECURRING' || ux === 'REGULAR') {
-    return 'MULTIPLE_TIMES_PER_YEAR';
-  }
+  if (ux === 'OCCASIONAL_RECURRING') return 'A_FEW_TIMES_PER_YEAR';
+  if (ux === 'REGULAR') return 'MULTIPLE_TIMES_PER_YEAR';
   return 'UNKNOWN';
 }
 
@@ -174,8 +175,14 @@ export function emptyFoodActivity(
   };
 }
 
+export type NvwaOperatorHint = {
+  /** Already clearly an entrepreneur. Does not mean KVK NO → NVWA NO. */
+  likelyEntrepreneur?: boolean;
+};
+
 export function assessNvwaRegistration(
   ctx: FoodActivityContext,
+  operator?: NvwaOperatorHint,
 ): NvwaRegistrationAssessment {
   if (!isFoodRoute(ctx.activityType)) return 'NOT_REQUIRED_BASED_ON_ONE_OFF_FREQUENCY';
   if (ctx.nvwaRegistrationStatus === 'YES') return 'ALREADY_REGISTERED';
@@ -183,6 +190,10 @@ export function assessNvwaRegistration(
     return 'NOT_REQUIRED_BASED_ON_ONE_OFF_FREQUENCY';
   }
   if (ctx.sellingFrequency === 'UNKNOWN') return 'UNKNOWN';
+  if (ctx.sellingFrequency === 'A_FEW_TIMES_PER_YEAR') {
+    if (operator?.likelyEntrepreneur === true) return 'REVIEW_REQUIRED';
+    return 'NOT_REQUIRED_OCCASIONAL_NON_BUSINESS';
+  }
   if (ctx.sellingFrequency === 'MULTIPLE_TIMES_PER_YEAR') {
     if (ctx.sellsDirectToConsumers === 'NO' && ctx.sellsBusinessToBusiness === 'UNKNOWN') {
       return 'REVIEW_REQUIRED';

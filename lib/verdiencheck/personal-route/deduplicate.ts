@@ -23,6 +23,12 @@ function friendlyBody(hit: GuidanceHit): { title: string; body: string } {
   if (hit.rule.id.includes('nvwa.once_per_year')) {
     return { title: PERSONAL_ROUTE_COPY.nvwaOnceTitle, body: hit.rule.shortText };
   }
+  if (hit.rule.id.includes('nvwa.few_times_non_business')) {
+    return { title: PERSONAL_ROUTE_COPY.nvwaFewTimesTitle, body: hit.rule.shortText };
+  }
+  if (hit.rule.id.includes('nvwa.review')) {
+    return { title: PERSONAL_ROUTE_COPY.nvwaReviewTitle, body: hit.rule.shortText };
+  }
   if (hit.rule.id.includes('nvwa.registration_required')) {
     return { title: PERSONAL_ROUTE_COPY.nvwaRequiredTitle, body: hit.rule.shortText };
   }

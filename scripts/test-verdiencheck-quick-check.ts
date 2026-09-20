@@ -145,6 +145,12 @@ const regularFood = state({
   foodUxFrequency: 'REGULAR',
   situationGroup: 'NONE',
 });
+const fewTimesFood = state({
+  activityChoice: 'FOOD',
+  growthStart: 'TRYING_OUT',
+  foodUxFrequency: 'OCCASIONAL_RECURRING',
+  situationGroup: 'NONE',
+});
 const ww = state({
   activityChoice: 'MAKE',
   growthStart: 'TRYING_OUT',
@@ -166,6 +172,7 @@ const AFTER = {
   employee: countBefore(employee),
   employeeAllowances: countBefore(employeeAllowances),
   oneOffFood: countBefore(oneOffFood),
+  fewTimesFood: countBefore(fewTimesFood),
   regularFood: countBefore(regularFood),
   ww: countBefore(ww),
   bijstand: countBefore(bijstand),
@@ -176,6 +183,7 @@ assert.ok(AFTER.simpleStarter >= 3 && AFTER.simpleStarter <= 6, `starter ${AFTER
 assert.ok(AFTER.employee >= 3 && AFTER.employee <= 6, `employee ${AFTER.employee}`);
 assert.ok(AFTER.employeeAllowances >= 3 && AFTER.employeeAllowances <= 6, `employee+allowances ${AFTER.employeeAllowances}`);
 assert.ok(AFTER.oneOffFood >= 4 && AFTER.oneOffFood <= 7, `one-off food ${AFTER.oneOffFood}`);
+assert.equal(AFTER.fewTimesFood, AFTER.oneOffFood, 'few-times food must stay the same quick-check length');
 assert.ok(AFTER.regularFood <= 8, `regular food ${AFTER.regularFood}`);
 assert.ok(AFTER.ww <= 8, `ww ${AFTER.ww}`);
 assert.ok(AFTER.bijstand <= 8, `bijstand ${AFTER.bijstand}`);

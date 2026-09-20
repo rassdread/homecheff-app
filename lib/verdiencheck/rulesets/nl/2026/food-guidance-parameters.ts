@@ -47,6 +47,12 @@ export const FOOD_GUIDANCE_PARAMETER_META = {
     officialSource: SRC_NVWA_STAPPENPLAN.officialSource,
     officialSourceUrl: SRC_NVWA_STAPPENPLAN.officialSourceUrl,
   },
+  'nvwa.registration.fewTimesPerYearNonEntrepreneurExample': {
+    value: 'A_FEW_TIMES_PER_YEAR',
+    numericThreshold: null,
+    officialSource: SRC_NVWA_REGISTRATIE.officialSource,
+    officialSourceUrl: SRC_NVWA_REGISTRATIE.officialSourceUrl,
+  },
   'nvwa.homeSelling.rulesApply': {
     value: true,
     officialSource: SRC_NVWA_THUIS.officialSource,

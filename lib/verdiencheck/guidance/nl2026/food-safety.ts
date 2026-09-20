@@ -97,6 +97,26 @@ export function foodSafetyRules(food: FoodActivityContext): TimedRule[] {
         recheckTrigger: 'FOOD_SAFETY_PLAN_CHANGED',
       });
     }
+  } else if (food.sellingFrequency === 'A_FEW_TIMES_PER_YEAR') {
+    rules.push({
+      ...BASE,
+      id: 'nl2026.food.safety.plan_review',
+      timing: 'SOON',
+      severity: 'CHECK',
+      shortTitle: 'Als je vaker of bedrijfsmatig verkoopt, werk dan met een voedselveiligheidsplan',
+      shortText:
+        'De voedselautoriteit vraagt een voedselveiligheidsplan of hygiënecode als je meerdere keren per jaar eten verkoopt. Bij een paar keer is dat nog geen startblokkade. Voedselveilig werken geldt wél.',
+      expandedExplanation:
+        'Dit is geen vrijstelling en geen getal van X keer. HomeCheff eist geen HACCP-certificaat.',
+      cta: {
+        label: 'Bekijk HACCP',
+        href: SRC_NVWA_HACCP.officialSourceUrl,
+        kind: 'official',
+      },
+      officialSource: SRC_NVWA_HACCP.officialSource,
+      officialSourceUrl: SRC_NVWA_HACCP.officialSourceUrl,
+      recheckTrigger: 'FOOD_SAFETY_PLAN_CHANGED',
+    });
   }
 
   rules.push({

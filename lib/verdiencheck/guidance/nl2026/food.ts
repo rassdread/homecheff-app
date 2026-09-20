@@ -63,7 +63,7 @@ function laterGrowthRule(): GuidanceRule {
     blocking: false,
     shortTitle: 'Wat kan later belangrijk worden?',
     shortText:
-      'KVK kan relevant worden als je activiteit structureler wordt. NVWA-registratie wordt relevant als je vaker eten gaat verkopen.',
+      'KVK kan relevant worden als je activiteit structureler wordt. Ga je vaker of bedrijfsmatig eten verkopen, controleer dan of je je bij de voedselautoriteit moet registreren.',
     expandedExplanation:
       'We tonen dit niet als eerste waarschuwing bij een eenmalige poging. Observed activity overschrijft later je oorspronkelijke intentie voor de timing, niet voor de juridische engines.',
     cta: { label: 'Bekijk alles wat voor mij geldt', kind: 'later' },
@@ -109,7 +109,12 @@ export function evaluateFoodGuidance(ctx: GuidanceContext): TimedGuidanceHit[] {
   const timedRules = [
     ...foodSafetyRules(food),
     ...foodLabellingRules(food),
-    ...nvwaRegistrationRules({ food, kvkAssessment: kvk }),
+    ...nvwaRegistrationRules({
+      food,
+      kvkAssessment: kvk,
+      alreadyKvkRegistered: ctx.business?.kvk?.alreadyRegistered,
+      personSituation: ctx.personSituation,
+    }),
   ];
 
   const hits: TimedGuidanceHit[] = timedRules.map((r) => {

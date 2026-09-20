@@ -499,7 +499,6 @@ export function needsSeriousAdminQuestions(state: WizardState): boolean {
     state.frequency === 'REGULAR' ||
     state.intent === 'BUILD_BUSINESS' ||
     state.intent === 'SERIOUS_SIDE_INCOME' ||
-    state.foodUxFrequency === 'OCCASIONAL_RECURRING' ||
     state.foodUxFrequency === 'REGULAR'
   );
 }

@@ -348,11 +348,11 @@ const NL: VerdienCheckCopy = {
       },
     },
     foodSellingFrequency: {
-      title: 'Hoe vaak wil je eten of drinken verkopen?',
+      title: 'Hoe vaak denk je dit ongeveer te verkopen?',
       options: {
         ONE_OFF: 'Eenmalig / één keer per jaar',
         OCCASIONAL_RECURRING: 'Een paar keer per jaar',
-        REGULAR: 'Regelmatig',
+        REGULAR: 'Meerdere keren per jaar / regelmatig',
         UNKNOWN: 'Weet ik nog niet',
       },
     },
@@ -820,11 +820,11 @@ const EN: VerdienCheckCopy = {
       },
     },
     foodSellingFrequency: {
-      title: 'How often do you want to sell food or drinks?',
+      title: 'About how often do you think you will sell this?',
       options: {
         ONE_OFF: 'Once / once a year',
         OCCASIONAL_RECURRING: 'A few times a year',
-        REGULAR: 'Regularly',
+        REGULAR: 'Multiple times a year / regularly',
         UNKNOWN: 'I don’t know yet',
       },
     },
