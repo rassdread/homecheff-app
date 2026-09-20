@@ -211,11 +211,14 @@ const wizardSrc = fs.readFileSync(
   path.join(process.cwd(), 'components/verdiencheck/VerdienCheckWizard.tsx'),
   'utf8',
 );
-assert.match(wizardSrc, /titleTag="p"/);
-assert.match(wizardSrc, /leaveProduct/);
-assert.match(wizardSrc, /backAriaLabel=\{copy\.leaveProduct\}/);
+assert.doesNotMatch(wizardSrc, /AppBackBar/);
+assert.doesNotMatch(wizardSrc, /backAriaLabel=\{copy\.leaveProduct\}/);
 assert.match(wizardSrc, /min-h-1[12] w-full/);
 assert.match(wizardSrc, /focus-visible:outline-emerald-700/);
+assert.match(
+  fs.readFileSync(path.join(process.cwd(), 'components/verdiencheck/VerdienCheckResultCta.tsx'), 'utf8'),
+  /leaveProduct/,
+);
 assert.match(
   fs.readFileSync(path.join(process.cwd(), 'components/navigation/AppBackBar.tsx'), 'utf8'),
   /basis-full/,
@@ -225,9 +228,9 @@ const privacySrc = fs.readFileSync(
   path.join(process.cwd(), 'components/PrivacyNotice.tsx'),
   'utf8',
 );
-assert.match(privacySrc, /verdiencheckRoute/);
-assert.match(privacySrc, /bottom-4/);
-assert.doesNotMatch(privacySrc, /verdiencheckRoute[\s\S]*top-16/);
+assert.doesNotMatch(privacySrc, /verdiencheckRoute/);
+assert.match(privacySrc, /5\.25rem/);
+assert.doesNotMatch(privacySrc, /top-16/);
 
 const publicEntrySrc = fs.readFileSync(
   path.join(process.cwd(), 'components/verdiencheck/VerdienCheckPublicEntry.tsx'),

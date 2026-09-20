@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 
 /**
@@ -11,9 +10,7 @@ import { useTranslation } from '@/hooks/useTranslation';
  */
 const PrivacyNotice: React.FC = () => {
   const { t } = useTranslation();
-  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
-  const verdiencheckRoute = Boolean(pathname?.startsWith('/verdiencheck'));
 
   useEffect(() => {
     const accepted = localStorage.getItem('privacy-notice-accepted');
@@ -42,11 +39,7 @@ const PrivacyNotice: React.FC = () => {
     <div
       data-wx-cookie-banner=""
       data-wx-cookie-compact="1"
-      className={
-        verdiencheckRoute
-          ? 'pointer-events-none fixed inset-x-0 bottom-4 z-[120] flex justify-center px-3 lg:justify-end lg:px-5'
-          : 'pointer-events-none fixed inset-x-0 z-[35] flex justify-center px-3 max-lg:bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:bottom-5 lg:justify-end lg:px-5'
-      }
+      className="pointer-events-none fixed inset-x-0 z-[35] flex justify-center px-3 max-lg:bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:bottom-5 lg:justify-end lg:px-5"
     >
       <div
         data-wx-cookie-compact="1"

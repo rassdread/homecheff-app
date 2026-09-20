@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import AppBackBar from '@/components/navigation/AppBackBar';
 import { runCalculator } from '@/lib/verdiencheck/calculator/engine';
 import type {
   AssetsEligibility,
@@ -399,27 +398,9 @@ export default function VerdienCheckWizard(props: {
   return (
     <div
       data-verdiencheck-shell=""
-      className="relative z-[80] isolate min-h-screen overflow-x-hidden bg-stone-50 pointer-events-auto"
+      className="relative min-w-0 overflow-x-hidden bg-stone-50"
     >
-      <div className="relative z-[80] mx-auto w-full min-w-0 max-w-md px-4 pb-52 pt-2 break-words pointer-events-auto">
-        <div
-          onClickCapture={(event) => {
-            const target = event.target as HTMLElement | null;
-            if (!target?.closest('button')) return;
-            trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
-              entry_point: entryPoint,
-              action: 'RETURN_TO_HOMECHEFF',
-            });
-          }}
-        >
-          <AppBackBar
-            fallbackUrl="/"
-            label={copy.leaveProduct}
-            title={copy.chromeTitle}
-            titleTag="p"
-            backAriaLabel={copy.leaveProduct}
-          />
-        </div>
+      <div className="mx-auto w-full min-w-0 max-w-md px-4 pb-10 pt-2 break-words">
         <p className="mt-2 text-sm font-medium text-gray-600">
           {progressPhrase({
             copy,

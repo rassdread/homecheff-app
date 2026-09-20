@@ -20,7 +20,7 @@ export default function Footer() {
    * reads as a floating HomeCheff brand strip in the left rail dead space.
    * Home owns continuous Workspace chrome; legal links remain on other routes.
    */
-  if (pathname === '/' || pathname?.startsWith('/verdiencheck')) {
+  if (pathname === '/') {
     return null;
   }
 

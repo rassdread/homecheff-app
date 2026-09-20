@@ -11,7 +11,6 @@ export const BOTTOM_NAV_HIDDEN_PATH_PREFIXES = [
   '/register',
   '/auth',
   '/signin',
-  '/verdiencheck',
 ] as const;
 
 /** @deprecated — alle shells gebruiken dezelfde lijst; optie blijft voor API-compat. */

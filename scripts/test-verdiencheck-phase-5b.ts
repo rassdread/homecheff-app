@@ -15,7 +15,8 @@ import {
   isVerdienWijzerEnabled,
 } from '../lib/verdiencheck/flags';
 import { verdiencheckPageMetadata } from '../lib/verdiencheck/public-seo';
-import { BOTTOM_NAV_HIDDEN_PATH_PREFIXES } from '../lib/bottomNavRoutes';
+import { BOTTOM_NAV_HIDDEN_PATH_PREFIXES, isBottomNavigationHidden } from '../lib/bottomNavRoutes';
+import { isCompactMobileFooterPath } from '../lib/layout/compactFooterRoutes';
 import { findForbiddenPublicCopy } from '../lib/verdiencheck/public-copy-patterns';
 
 const ROOT = process.cwd();
@@ -37,7 +38,13 @@ assert.deepEqual(meta.robots, { index: false, follow: false });
 const sitemapSrc = read('lib/seo/sitemapXml.ts');
 assert.doesNotMatch(sitemapSrc, /verdiencheck/i);
 
-assert.ok(BOTTOM_NAV_HIDDEN_PATH_PREFIXES.includes('/verdiencheck'));
+assert.equal(
+  BOTTOM_NAV_HIDDEN_PATH_PREFIXES.includes('/verdiencheck'),
+  false,
+  'VerdienCheck must use shared HomeCheff bottom navigation',
+);
+assert.equal(isBottomNavigationHidden('/verdiencheck'), false);
+assert.equal(isCompactMobileFooterPath('/verdiencheck'), true);
 
 const page = read('app/verdiencheck/page.tsx');
 assert.match(page, /verdiencheckPageMetadata/);
@@ -49,7 +56,9 @@ assert.match(entry, /Start de snelle check/);
 
 const wizard = read('components/verdiencheck/VerdienCheckWizard.tsx');
 assert.match(wizard, /data-verdiencheck-shell/);
-assert.match(wizard, /z-\[80\]/);
+assert.doesNotMatch(wizard, /AppBackBar/);
+assert.doesNotMatch(wizard, /isolate min-h-screen/);
+assert.doesNotMatch(wizard, /z-\[80\] isolate/);
 
 const nl = read('public/i18n/nl.json');
 assert.doesNotMatch(nl, /BTW-plichtig vanaf €20\.000/);

@@ -22,6 +22,7 @@ const COMPACT_PREFIXES = [
   "/favorites",
   "/sell",
   "/checkout",
+  "/verdiencheck",
 ] as const;
 
 /** Home / discover: alleen exact `/` (feed), niet elke subroute. */
