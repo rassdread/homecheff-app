@@ -28,7 +28,7 @@ export const COMMERCIAL_INTENTS = [
 ] as const;
 export type CommercialIntent = (typeof COMMERCIAL_INTENTS)[number];
 
-export const ACTIVITY_KINDS = ['FOOD', 'PRODUCT', 'SERVICE'] as const;
+export const ACTIVITY_KINDS = ['FOOD', 'PRODUCT', 'SERVICE', 'COMMISSION'] as const;
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
 export type ActivityContext = {

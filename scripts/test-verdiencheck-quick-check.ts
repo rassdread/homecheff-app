@@ -307,7 +307,7 @@ const hundredSales = routeFrom(
 assert.notEqual(hundredSales.proceedSemantics, 'INSUFFICIENT_CONTEXT');
 
 const nl = getVerdienCheckCopy('nl');
-assert.match(nl.intro, /Kan ik gewoon beginnen/);
+assert.match(nl.intro, /bijverdienen/);
 assert.match(nl.quickCheckDone, /Dat was de snelle check/);
 assert.match(nl.moneyNo, /Nee, dit is genoeg/);
 assert.equal(nl.steps.uwvBenefit?.options?.UNKNOWN, 'Ik weet het niet');
@@ -330,7 +330,7 @@ const entrySrc = fs.readFileSync(
   path.join(ROOT, 'components/verdiencheck/VerdienCheckPublicEntry.tsx'),
   'utf8',
 );
-assert.match(entrySrc, /Start de snelle check/);
+assert.match(entrySrc, /Doe de VerdienCheck|Start de snelle check/);
 
 const dedupe = fs.readFileSync(path.join(ROOT, 'lib/verdiencheck/personal-route/deduplicate.ts'), 'utf8');
 assert.match(dedupe, /Kamer van Koophandel \(KVK\)/);

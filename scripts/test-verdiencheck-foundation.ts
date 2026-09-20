@@ -234,11 +234,11 @@ assert.notEqual(paint.unitCount, hundred.unitCount);
 
 // --- income source v1
 assert.equal(isV1IncomeSourceEnabled('MARKETPLACE_SELLER'), true);
-assert.equal(isV1IncomeSourceEnabled('AFFILIATE'), false);
+assert.equal(isV1IncomeSourceEnabled('AFFILIATE'), true);
 assert.equal(isV1IncomeSourceEnabled('DELIVERY'), false);
 
 const affCalc = runCalculator(baseInput({ incomeSource: 'AFFILIATE' }));
-assert.equal(affCalc.status, 'INCOME_SOURCE_DISABLED');
+assert.notEqual(affCalc.status, 'INCOME_SOURCE_DISABLED');
 
 // --- privacy: no DB
 assert.equal(persistenceUsesDatabase(), false);

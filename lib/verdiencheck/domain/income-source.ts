@@ -7,9 +7,13 @@ export const INCOME_SOURCES = [
 
 export type IncomeSource = (typeof INCOME_SOURCES)[number];
 
-/** V1 calculator/wijzer: marketplace seller only. */
+/**
+ * Same certified calculator formulas. Affiliate is extra-earning result, not a new tax class.
+ * DELIVERY remains disabled until separately certified.
+ */
 export const V1_ENABLED_INCOME_SOURCES: readonly IncomeSource[] = [
   'MARKETPLACE_SELLER',
+  'AFFILIATE',
 ];
 
 export function isV1IncomeSourceEnabled(source: IncomeSource): boolean {

@@ -4,10 +4,19 @@ export type VerdienCheckCopy = {
   pageTitle: string;
   chromeTitle: string;
   intro: string;
+  introReassurance: string;
+  introGrowth: string;
   disclaimer: string;
   back: string;
   leaveProduct: string;
   startSelling: string;
+  discoverHomecheff: string;
+  discoverHomecheffBody: string;
+  beginViaHomecheff: string;
+  affiliatePartnerCta: string;
+  affiliatePartnerBody: string;
+  restNotToday: string;
+  affiliateReviewNote: string;
   restartCheck: string;
   next: string;
   otherCountry: string;
@@ -84,12 +93,26 @@ const NL: VerdienCheckCopy = {
   pageTitle: 'Verdienen zonder verrassingen',
   chromeTitle: 'VerdienCheck',
   intro:
-    'Kan ik gewoon beginnen? Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
+    'Wil je iets bijverdienen? Ontdek in een paar eenvoudige vragen wat dat voor jou betekent.',
+  introReassurance:
+    'Je hoeft niet vooraf alles over belasting, KVK of andere regels te weten. De VerdienCheck laat eerst zien wat voor jou nú belangrijk is.',
+  introGrowth:
+    'Ga je daarna via HomeCheff verder? Dan helpen we je tijdens het opbouwen stap voor stap te begrijpen wat later relevant wordt. Wij doen je belastingaangifte of inschrijvingen niet voor je.',
   disclaimer:
     'Dit is een schatting en persoonlijke uitleg op basis van wat je hebt ingevuld. Jij blijft verantwoordelijk voor wat je doorgeeft en regelt. Schatting voor 2026.',
   back: 'Terug',
   leaveProduct: 'Naar HomeCheff',
   startSelling: 'Maak je eerste aanbod',
+  discoverHomecheff: 'Ontdek HomeCheff',
+  discoverHomecheffBody:
+    'Wil je hiermee beginnen? Via HomeCheff kun je verkopen of een dienst aanbieden. Terwijl je opbouwt, helpen we je stap voor stap begrijpen wat voor jouw situatie relevant wordt.',
+  beginViaHomecheff: 'Begin via HomeCheff',
+  affiliatePartnerCta: 'Bekijk het partnerprogramma',
+  affiliatePartnerBody:
+    'HomeCheff heeft ook een partnerprogramma waarmee je commissie kunt verdienen. Dat is optioneel en geen voorwaarde voor dit resultaat.',
+  restNotToday: 'Je hoeft de rest niet vandaag te regelen.',
+  affiliateReviewNote:
+    'Commissie geef je meestal aan in je belastingaangifte. Of het bijverdienste of een onderneming is, hangt af van hoe je werkt. HomeCheff verzint dat niet.',
   restartCheck: 'Opnieuw invullen',
   next: 'Verder',
   otherCountry: 'Deze VerdienCheck is nu beschikbaar voor Nederland.',
@@ -97,7 +120,7 @@ const NL: VerdienCheckCopy = {
   notCalculated: 'Nog niet berekend',
   needMore: 'We hebben nog iets van je nodig.',
   expectedResult: 'Wat ongeveer overblijft',
-  expectedTurnover: 'Wat betalen klanten ongeveer dit jaar?',
+  expectedTurnover: 'Wat verwacht je ongeveer binnen te krijgen dit jaar?',
   expectedCosts: 'Wat geef je er ongeveer aan uit dit jaar?',
   extraResult: 'Extra over voordat belasting speelt',
   estimatedSales: 'Hoeveel verkopen ongeveer dit jaar?',
@@ -150,7 +173,7 @@ const NL: VerdienCheckCopy = {
   yearlyHint:
     'Vul het bedrag per jaar in. Weet je alleen per maand? Tel dan twaalf maanden bij elkaar, bijvoorbeeld €1.800 × 12.',
   moneyExplain:
-    'Wat klanten betalen is omzet. Wat jij eraan uitgeeft zijn kosten. Wat overblijft is resultaat, nog zonder belasting.',
+    'Wat binnenkomt is omzet of commissie. Wat jij eraan uitgeeft zijn kosten. Wat overblijft is resultaat, nog zonder belasting.',
   progressAlmost: 'Bijna klaar',
   progressDone: 'Klaar',
   progressOngoing: 'Nog een paar vragen',
@@ -179,12 +202,14 @@ const NL: VerdienCheckCopy = {
       options: { NL: 'Ja, in Nederland', OTHER: 'Nee, ergens anders' },
     },
     activity: {
-      title: 'Wat wil je via HomeCheff doen?',
+      title: 'Waarmee wil je iets bijverdienen?',
       options: {
-        MAKE: 'Iets verkopen dat ik maak',
+        MAKE: 'Iets verkopen',
         FOOD: 'Eten of drinken verkopen',
-        SERVICE: 'Een dienst aanbieden',
+        SERVICE: 'Een dienst of klus aanbieden',
+        AFFILIATE: 'Commissie verdienen door iets te delen of aan te brengen',
         GARDEN: 'Iets uit mijn tuin verkopen',
+        OTHER: 'Iets anders',
         UNKNOWN: 'Ik weet het nog niet precies',
       },
     },
@@ -193,7 +218,7 @@ const NL: VerdienCheckCopy = {
       options: {
         TRYING_OUT: 'Eerst eens proberen',
         OCCASIONAL_EARNING: 'Af en toe iets verdienen',
-        REGULAR_EARNING: 'Regelmatig verkopen',
+        REGULAR_EARNING: 'Regelmatig bijverdienen',
         SERIOUS_SIDE_INCOME: 'Serieus bijverdienen',
         BUILDING_BUSINESS: 'Een onderneming opbouwen',
       },
@@ -557,12 +582,26 @@ const EN: VerdienCheckCopy = {
   pageTitle: 'Earn without surprises',
   chromeTitle: 'VerdienCheck',
   intro:
-    'Can I just start? Answer a few questions and see what matters for you now.',
+    'Want to earn something extra? Find out in a few simple questions what that means for you.',
+  introReassurance:
+    'You do not need to know everything about tax, KVK or other rules first. VerdienCheck first shows what matters for you now.',
+  introGrowth:
+    'If you then continue through HomeCheff, we help you understand later steps as your activity grows. We do not file your taxes or register you with authorities.',
   disclaimer:
     'This is an estimate and personal explanation based on what you entered. You remain responsible for what you report and arrange. Estimate for 2026.',
   back: 'Back',
   leaveProduct: 'To HomeCheff',
   startSelling: 'Create your first listing',
+  discoverHomecheff: 'Discover HomeCheff',
+  discoverHomecheffBody:
+    'Want to get started? You can sell or offer a service through HomeCheff. As you grow, we help you understand what becomes relevant for your situation.',
+  beginViaHomecheff: 'Start through HomeCheff',
+  affiliatePartnerCta: 'See the partner programme',
+  affiliatePartnerBody:
+    'HomeCheff also has a partner programme where you can earn commission. That is optional and not required for this result.',
+  restNotToday: 'You do not have to arrange the rest today.',
+  affiliateReviewNote:
+    'Commission usually has to be reported in your tax return. Whether it is extra work or a business depends on how you work. HomeCheff does not invent that.',
   restartCheck: 'Fill in again',
   next: 'Next',
   otherCountry: 'This earning check is currently available for the Netherlands.',
@@ -570,7 +609,7 @@ const EN: VerdienCheckCopy = {
   notCalculated: 'Not calculated yet',
   needMore: 'We still need something from you.',
   expectedResult: 'What is roughly left',
-  expectedTurnover: 'About how much will customers pay this year?',
+  expectedTurnover: 'About how much do you expect to receive this year?',
   expectedCosts: 'About how much will you spend on this this year?',
   extraResult: 'Extra before tax',
   estimatedSales: 'About how many sales this year?',
@@ -623,7 +662,7 @@ const EN: VerdienCheckCopy = {
   yearlyHint:
     'Enter the amount per year. If you only know a monthly amount, add twelve months, for example €1,800 × 12.',
   moneyExplain:
-    'What customers pay is turnover. What you spend are costs. What is left is the result, before tax.',
+    'What comes in is turnover or commission. What you spend are costs. What is left is the result, before tax.',
   progressAlmost: 'Almost done',
   progressDone: 'Done',
   progressOngoing: 'A few more questions',
@@ -652,12 +691,14 @@ const EN: VerdienCheckCopy = {
       options: { NL: 'Yes, in the Netherlands', OTHER: 'No, somewhere else' },
     },
     activity: {
-      title: 'What do you want to do on HomeCheff?',
+      title: 'What do you want to earn extra with?',
       options: {
-        MAKE: 'Sell something I make',
+        MAKE: 'Sell something',
         FOOD: 'Sell food or drinks',
-        SERVICE: 'Offer a service',
+        SERVICE: 'Offer a service or job',
+        AFFILIATE: 'Earn commission by sharing or referring',
         GARDEN: 'Sell something from my garden',
+        OTHER: 'Something else',
         UNKNOWN: 'I don’t know yet',
       },
     },
@@ -666,7 +707,7 @@ const EN: VerdienCheckCopy = {
       options: {
         TRYING_OUT: 'Just try it first',
         OCCASIONAL_EARNING: 'Earn something now and then',
-        REGULAR_EARNING: 'Sell regularly',
+        REGULAR_EARNING: 'Earn extra regularly',
         SERIOUS_SIDE_INCOME: 'Earn serious extra income',
         BUILDING_BUSINESS: 'Build a business',
       },

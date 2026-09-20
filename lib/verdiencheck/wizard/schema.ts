@@ -98,7 +98,14 @@ export type WizardStepId = (typeof WIZARD_STEP_IDS)[number];
 
 export type TaxResidenceChoice = 'NL' | 'OTHER';
 
-export type ActivityChoice = 'MAKE' | 'FOOD' | 'SERVICE' | 'GARDEN' | 'UNKNOWN';
+export type ActivityChoice =
+  | 'MAKE'
+  | 'FOOD'
+  | 'SERVICE'
+  | 'AFFILIATE'
+  | 'GARDEN'
+  | 'OTHER'
+  | 'UNKNOWN';
 
 export type WizardState = {
   taxResidence: TaxResidenceChoice | null;
@@ -284,7 +291,8 @@ export function parseWizardChildAges(raw: string): number[] {
 export function applyActivityChoice(choice: ActivityChoice): ActivityKind[] {
   if (choice === 'FOOD') return ['FOOD'];
   if (choice === 'SERVICE') return ['SERVICE'];
-  if (choice === 'MAKE' || choice === 'GARDEN') return ['PRODUCT'];
+  if (choice === 'AFFILIATE') return ['COMMISSION'];
+  if (choice === 'MAKE' || choice === 'GARDEN' || choice === 'OTHER') return ['PRODUCT'];
   return [];
 }
 

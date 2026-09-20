@@ -8,9 +8,9 @@ import type { BenefitRouteFamily } from '../domain/person';
 
 export const PERSONAL_ROUTE_COPY = {
   tracking:
-    'Wij houden je verkopen bij en laten het weten als er iets verandert. Je hoeft niet alles nu te weten.',
+    'Je hoeft niet alles nu te weten. De VerdienCheck laat zien wat nu belangrijk is en wat je later opnieuw kunt controleren.',
   growthReassurance:
-    'Als je verkoop groeit, laat VerdienCheck zien wat later belangrijk wordt.',
+    'Als je activiteit groeit, laat VerdienCheck zien wat later belangrijk wordt.',
   laterSection: 'Wat kan later belangrijk worden?',
   moreDetail: 'Meer uitleg',
   soonSection: 'Straks relevant',
@@ -77,7 +77,7 @@ export function headlineFor(input: {
   if (input.benefitFamily === 'WW') {
     return {
       headline: 'Controleer dit eerst met UWV.',
-      summary: 'Bespreek je plan met UWV. Daarna kun je verder met verkopen.',
+      summary: 'Bespreek je plan met UWV. Daarna kun je verder.',
       canStartMessage: 'Je bent bijna klaar. Controleer eerst dit.',
     };
   }
@@ -139,7 +139,7 @@ export function headlineFor(input: {
     return {
       headline: 'Je kunt het eerst proberen.',
       summary:
-        'Je hoeft niet eerst alles over ondernemen te regelen. Als je vaker gaat verkopen, helpt HomeCheff je zien wat later belangrijk wordt.',
+        'Je hoeft niet eerst alles over ondernemen te regelen. Als je vaker gaat verdienen, kun je dit later opnieuw bekijken.',
       canStartMessage: 'Je kunt beginnen.',
     };
   }

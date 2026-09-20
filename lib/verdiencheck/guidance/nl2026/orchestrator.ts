@@ -51,11 +51,11 @@ function trackingRule(): GuidanceRule {
     conditions: {},
     severity: 'INFO',
     blocking: false,
-    shortTitle: 'Wij houden je verkopen bij',
+    shortTitle: 'Je hoeft niet alles nu te weten',
     shortText:
-      'HomeCheff houdt je verkopen voor je bij, zodat we dit later opnieuw kunnen bekijken.',
+      'De VerdienCheck laat zien wat nu belangrijk is. Als je situatie verandert, kun je dit later opnieuw bekijken.',
     expandedExplanation:
-      'Opnieuw bekijken kan bij een eerste verkoop, gewijzigde omzet, of een nieuw kalenderjaar. Geen willekeurige meldingen.',
+      'Opnieuw bekijken kan als je vaker gaat verdienen, of in een nieuw jaar. HomeCheff doet je aangifte niet voor je.',
     cta: { label: 'Later', kind: 'later' },
     officialSource: null,
     officialSourceUrl: null,

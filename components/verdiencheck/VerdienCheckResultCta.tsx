@@ -9,8 +9,11 @@ import {
   type VerdienCheckEntryPoint,
 } from '@/lib/analytics/verdiencheck-funnel';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
+import type { ResultCtaMode } from '@/lib/verdiencheck/presentation/earning-context';
 
 const SELL_HREF = '/sell/new';
+const DISCOVER_HREF = '/wat-is-homecheff';
+const AFFILIATE_HREF = '/werken-bij';
 
 export default function VerdienCheckResultCta(props: {
   copy: VerdienCheckCopy;
@@ -22,11 +25,17 @@ export default function VerdienCheckResultCta(props: {
   onRestart: () => void;
   /** sell = listing CTA only; nav = leave/restart; all = both (fallback). */
   variant?: 'sell' | 'nav' | 'all';
+  ctaMode?: ResultCtaMode;
 }) {
   const { requireAuthAction, guestAuthPanel, isGuest } = useGuestAuthGate();
   const variant = props.variant ?? 'all';
+  const mode = props.ctaMode ?? (props.primaryStartSelling ? 'SELL_PRIMARY' : props.secondaryStartSelling ? 'SELL_SECONDARY' : 'NONE');
   const showSellBlock = variant === 'sell' || variant === 'all';
   const showNav = variant === 'nav' || variant === 'all';
+  const showListingSell =
+    showSellBlock && (mode === 'SELL_PRIMARY' || mode === 'SELL_SECONDARY');
+  const showDiscover = showSellBlock && mode === 'DISCOVER';
+  const showAffiliate = showSellBlock && mode === 'AFFILIATE';
 
   function onStartSelling(e: MouseEvent) {
     if (isGuest) {
@@ -48,13 +57,9 @@ export default function VerdienCheckResultCta(props: {
   const sellClassSecondary =
     'relative z-[80] inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-emerald-700 bg-white px-4 py-3 text-lg font-medium text-emerald-900 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700';
 
-  const showSell =
-    showSellBlock &&
-    (props.primaryStartSelling || (props.secondaryStartSelling && !props.primaryStartSelling));
-
   return (
     <div className="space-y-3" data-verdiencheck-result-cta="">
-      {showSellBlock && props.primaryStartSelling ? (
+      {showListingSell && mode === 'SELL_PRIMARY' ? (
         <button
           type="button"
           className={sellClassPrimary}
@@ -64,7 +69,7 @@ export default function VerdienCheckResultCta(props: {
           {props.copy.startSelling}
         </button>
       ) : null}
-      {showSellBlock && props.secondaryStartSelling && !props.primaryStartSelling ? (
+      {showListingSell && mode === 'SELL_SECONDARY' ? (
         <button
           type="button"
           className={sellClassSecondary}
@@ -74,7 +79,43 @@ export default function VerdienCheckResultCta(props: {
           {props.copy.startSelling}
         </button>
       ) : null}
-      {showSell && isGuest ? (
+      {showDiscover ? (
+        <>
+          <p className="text-base leading-relaxed text-gray-700">{props.copy.discoverHomecheffBody}</p>
+          <Link
+            href={DISCOVER_HREF}
+            className={sellClassSecondary}
+            data-verdiencheck-primary-cta="discover"
+            onClick={() =>
+              trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
+                entry_point: props.entryPoint,
+                action: 'LEARN_MORE',
+              })
+            }
+          >
+            {props.copy.discoverHomecheff}
+          </Link>
+        </>
+      ) : null}
+      {showAffiliate ? (
+        <>
+          <p className="text-base leading-relaxed text-gray-700">{props.copy.affiliatePartnerBody}</p>
+          <Link
+            href={AFFILIATE_HREF}
+            className={sellClassSecondary}
+            data-verdiencheck-primary-cta="affiliate"
+            onClick={() =>
+              trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
+                entry_point: props.entryPoint,
+                action: 'LEARN_MORE',
+              })
+            }
+          >
+            {props.copy.affiliatePartnerCta}
+          </Link>
+        </>
+      ) : null}
+      {showListingSell && isGuest ? (
         <p className="text-base leading-relaxed text-gray-600">{props.copy.startSellingNeedsAccount}</p>
       ) : null}
       {showNav ? (
@@ -100,7 +141,7 @@ export default function VerdienCheckResultCta(props: {
           </button>
         </>
       ) : null}
-      {showSell ? guestAuthPanel : null}
+      {showListingSell ? guestAuthPanel : null}
     </div>
   );
 }

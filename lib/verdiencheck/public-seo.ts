@@ -12,12 +12,12 @@ export function verdiencheckPageMetadata(): Metadata {
   return {
     title: { absolute: 'VerdienCheck | HomeCheff' },
     description:
-      'Wil je iets verkopen maar weet je niet wat dat betekent voor belasting, toeslagen of regels? Bekijk vooraf wat voor jou belangrijk is. Geen belastingadvies.',
+      'Wil je iets bijverdienen maar weet je niet wat dat betekent voor belasting, toeslagen of regels? Bekijk vooraf wat voor jou belangrijk is. Geen belastingadvies en geen belofte van een belastingvrij bedrag.',
     alternates: { canonical },
     openGraph: {
       title: 'VerdienCheck | HomeCheff',
       description:
-        'Wil je iets verkopen maar weet je niet wat dat betekent voor belasting, toeslagen of regels? Bekijk vooraf wat voor jou belangrijk is. Geen belastingadvies.',
+        'Wil je iets bijverdienen maar weet je niet wat dat betekent voor belasting, toeslagen of regels? Bekijk vooraf wat voor jou belangrijk is. Geen belastingadvies en geen belofte van een belastingvrij bedrag.',
       url: canonical,
       locale: 'nl_NL',
       type: 'website',

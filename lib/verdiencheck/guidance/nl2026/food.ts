@@ -41,9 +41,9 @@ function positiveStartRule(): GuidanceRule {
     blocking: false,
     shortTitle: 'Je kunt beginnen',
     shortText:
-      'Je kunt klein beginnen. Voor wat je nu wilt doen hoef je niet eerst alles over ondernemen te weten. HomeCheff helpt je als er later iets verandert.',
+      'Je kunt klein beginnen. Voor wat je nu wilt doen hoef je niet eerst alles over ondernemen te weten. Als er later iets verandert, kun je de VerdienCheck opnieuw doen.',
     expandedExplanation:
-      'Je kunt beginnen. Wij laten het weten als er later iets verandert. Intentie is geen wettelijke vrijstelling; als je vaker gaat verkopen kijken we opnieuw.',
+      'Je kunt beginnen. Als er later iets verandert, kun je dit opnieuw bekijken. Intentie is geen wettelijke vrijstelling; als je vaker gaat verkopen kijken we opnieuw.',
     cta: { label: 'Later', kind: 'later' },
     officialSource: SRC_NVWA_THUIS.officialSource,
     officialSourceUrl: SRC_NVWA_THUIS.officialSourceUrl,

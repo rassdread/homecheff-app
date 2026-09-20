@@ -305,7 +305,7 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
   });
   const nowBlob = textOf(all.filter((h) => h.timing === 'NOW').map((h) => h.rule));
   assert.match(nowBlob, /Je kunt beginnen/);
-  assert.match(nowBlob, /Wij laten het weten als er later iets verandert/);
+  assert.match(nowBlob, /Als er later iets verandert/);
   assert.doesNotMatch(nowBlob, /Je moet ondernemer worden/);
   assert.doesNotMatch(nowBlob, /Je moet je bedrijf registreren/);
   assert.doesNotMatch(nowBlob, /Pas op voor de Belastingdienst/);

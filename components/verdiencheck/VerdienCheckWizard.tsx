@@ -77,6 +77,11 @@ import {
   type TaxResidenceChoice,
 } from '@/lib/verdiencheck/wizard/schema';
 import { wizardStateToBenefitFacts, wizardStateToBusinessFacts, wizardStateToCalculatorInput, wizardStateToFoodFacts } from '@/lib/verdiencheck/wizard/to-calculator-input';
+import {
+  earningIntentFromEntry,
+  isAffiliateActivity,
+  resolveResultCtaMode,
+} from '@/lib/verdiencheck/presentation/earning-context';
 import type {
   ChildcareCareType,
   ChildcareProviderEligibility,
@@ -295,6 +300,11 @@ export default function VerdienCheckWizard(props: {
     declaredGrowth: state.growthStart,
     forceCheckFirstReason: state.uwvBenefitUnknown ? 'UWV_SCHEME_UNKNOWN' : null,
   });
+  const resultCtaMode = resolveResultCtaMode({
+    intent: earningIntentFromEntry(entryPoint),
+    activity: state.activityChoice,
+    semantics: personalRoute.proceedSemantics,
+  });
 
   function goNext() {
     const n = nextStep(state, step);
@@ -420,7 +430,11 @@ export default function VerdienCheckWizard(props: {
           })}
         </p>
         {step === 'jurisdiction' ? (
-          <p className="mt-3 text-base leading-relaxed text-gray-700">{copy.intro}</p>
+          <div className="mt-3 space-y-2 text-base leading-relaxed text-gray-700">
+            <p>{copy.intro}</p>
+            <p>{copy.introReassurance}</p>
+            <p>{copy.introGrowth}</p>
+          </div>
         ) : null}
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gray-900 break-words">
           {title}
@@ -1234,7 +1248,17 @@ export default function VerdienCheckWizard(props: {
             ))}
 
           {step === 'activity' &&
-            (['MAKE', 'FOOD', 'SERVICE', 'GARDEN', 'UNKNOWN'] as ActivityChoice[]).map(
+            (
+              [
+                'MAKE',
+                'FOOD',
+                'SERVICE',
+                'AFFILIATE',
+                'GARDEN',
+                'OTHER',
+                'UNKNOWN',
+              ] as ActivityChoice[]
+            ).map(
               (key) => (
                 <ChoiceButton
                   key={key}
@@ -1798,16 +1822,20 @@ export default function VerdienCheckWizard(props: {
                 <VerdienCheckResultCta
                   copy={copy}
                   entryPoint={entryPoint}
-                  primaryStartSelling={personalRoute.proceedSemantics === 'READY_TO_PROCEED'}
-                  secondaryStartSelling={personalRoute.proceedSemantics === 'PROCEED_AFTER_ACTION'}
+                  primaryStartSelling={resultCtaMode === 'SELL_PRIMARY'}
+                  secondaryStartSelling={resultCtaMode === 'SELL_SECONDARY'}
+                  ctaMode={resultCtaMode}
                   onRestart={restartCheck}
                   variant="sell"
                 />
               ) : null}
               {personalRoute.proceedSemantics === 'READY_TO_PROCEED' ? (
                 <p className="text-sm leading-relaxed text-stone-600">
-                  {PERSONAL_ROUTE_COPY.growthReassurance}
+                  {copy.restNotToday} {PERSONAL_ROUTE_COPY.growthReassurance}
                 </p>
+              ) : null}
+              {isAffiliateActivity(state.activityChoice) ? (
+                <p className="text-sm leading-relaxed text-stone-600">{copy.affiliateReviewNote}</p>
               ) : null}
               <p className="text-sm leading-relaxed text-stone-500">{copy.quickCheckDone}</p>
               {!isBenefitSituation(state) && !state.moneyDeclined && !state.moneyDepthCompleted ? (

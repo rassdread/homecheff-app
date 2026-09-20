@@ -269,7 +269,7 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
       typicalTicketCents: null,
       unitCount: null,
     },
-    incomeSource: 'MARKETPLACE_SELLER',
+    incomeSource: state.activityChoice === 'AFFILIATE' ? 'AFFILIATE' : 'MARKETPLACE_SELLER',
     estimatedTurnoverCents: turnoverCents,
     estimatedCosts: { amountCents: costsCents, source: V1_COST_SOURCE },
     commercialResultCents: liveResult,

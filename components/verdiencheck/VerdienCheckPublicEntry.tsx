@@ -19,14 +19,14 @@ const COPY: Record<
   { title: string; body: string; cta: string }
 > = {
   home: {
-    title: 'Kan ik gewoon beginnen?',
-    body: 'Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
-    cta: 'Start de snelle check',
+    title: 'Wil je iets bijverdienen?',
+    body: 'Ontdek in een paar eenvoudige vragen wat dat voor jou betekent.',
+    cta: 'Doe de VerdienCheck',
   },
   faq: {
-    title: 'Kan ik gewoon beginnen?',
-    body: 'Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
-    cta: 'Start de snelle check',
+    title: 'Wil je iets bijverdienen?',
+    body: 'Ontdek in een paar eenvoudige vragen wat dat voor jou betekent.',
+    cta: 'Doe de VerdienCheck',
   },
   seller: {
     title: 'Kan ik gewoon beginnen?',
@@ -34,9 +34,9 @@ const COPY: Record<
     cta: 'Start de snelle check',
   },
   hub: {
-    title: 'Kan ik gewoon beginnen?',
-    body: 'Beantwoord een paar vragen en zie wat voor jou nu belangrijk is.',
-    cta: 'Start de snelle check',
+    title: 'Wil je iets bijverdienen?',
+    body: 'Ontdek in een paar eenvoudige vragen wat dat voor jou betekent.',
+    cta: 'Doe de VerdienCheck',
   },
 };
 
