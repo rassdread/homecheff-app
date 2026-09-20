@@ -214,7 +214,7 @@ const wizardSrc = fs.readFileSync(
 assert.match(wizardSrc, /titleTag="p"/);
 assert.match(wizardSrc, /leaveProduct/);
 assert.match(wizardSrc, /backAriaLabel=\{copy\.leaveProduct\}/);
-assert.match(wizardSrc, /min-h-11 w-full/);
+assert.match(wizardSrc, /min-h-1[12] w-full/);
 assert.match(wizardSrc, /focus-visible:outline-emerald-700/);
 assert.match(
   fs.readFileSync(path.join(process.cwd(), 'components/navigation/AppBackBar.tsx'), 'utf8'),

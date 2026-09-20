@@ -133,7 +133,7 @@ function profitEstimateRule(scheme: UwvDisabilityScheme): GuidanceRule {
     shortText:
       'Geef een realistische schatting door. Later volgt een definitieve uitkering op basis van winstcijfers die UWV van de Belastingdienst krijgt.',
     expandedExplanation: unknown
-      ? 'UWV berekent winst als belastbare winst plus mkb-winstvrijstelling plus ondernemersaftrek. HomeCheff mapt je commercialResult daar in deze fase niet op. uwvBenefitProfitBasisCents blijft UNKNOWN tot een gecertificeerde adapter bestaat.'
+      ? 'UWV berekent winst als belastbare winst plus mkb-winstvrijstelling plus ondernemersaftrek. HomeCheff kan je resultaat daar in deze fase nog niet op mappen. We kunnen dit bedrag nog niet betrouwbaar berekenen tot een gecertificeerde koppeling bestaat.'
       : 'UWV-winstbasis is bekend.',
     cta: {
       label: 'Open UWV',

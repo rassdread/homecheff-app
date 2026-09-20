@@ -58,9 +58,9 @@ export function bijstandGuidanceRules(
       severity: 'CHECK',
       shortTitle: 'Lokaal beleid vragen we na bij de gemeente',
       shortText:
-        'Ook als je gemeente bekend is, behandelen we lokale regels als onbekend tot een gemeente-ruleset bestaat.',
+        'Niet iedere gemeente heeft dezelfde regels. Vraag het na bij jouw gemeente. HomeCheff vult lokale regels niet zelf in.',
       expandedExplanation:
-        'Geen hardcoded gemeenteregel als Nederlandse hoofdregel. Later kan een municipality-ruleset worden toegevoegd.',
+        'Niet iedere gemeente heeft dezelfde regels. HomeCheff raadt geen lokaal beleid. Vraag je gemeente wat er bij jullie mogelijk is.',
       cta: {
         label: 'Bekijk de landelijke Bbz-uitleg',
         href: SRC_RIJK_BBZ_REGELS.officialSourceUrl,
@@ -119,7 +119,7 @@ export function bijstandGuidanceRules(
       shortText:
         'Je gemeente kan een voorbereidingsperiode of Bbz-ondersteuning hebben. Dat raden we niet af van je postcode.',
       expandedExplanation:
-        'Beschikbaarheid, duur en voorwaarden stelt de gemeente. HomeCheff vult UNKNOWN in tot jij of een latere gemeente-ruleset het weet.',
+        'Beschikbaarheid, duur en voorwaarden stelt de gemeente. HomeCheff weet dit nog niet tot jij het invult of tot een latere gemeente-regeling bekend is.',
       cta: {
         label: 'Bekijk de landelijke uitleg',
         href: SRC_RIJK_BIJSTAND_START.officialSourceUrl,

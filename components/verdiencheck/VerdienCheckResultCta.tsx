@@ -39,9 +39,11 @@ export default function VerdienCheckResultCta(props: {
   }
 
   const sellClassPrimary =
-    'relative z-[80] inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-800 px-4 py-3 text-base font-semibold text-white pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700';
+    'relative z-[80] inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-emerald-800 px-4 py-3 text-lg font-semibold text-white pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700';
   const sellClassSecondary =
-    'relative z-[80] inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-emerald-700 bg-white px-4 py-3 text-base font-medium text-emerald-900 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700';
+    'relative z-[80] inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-emerald-700 bg-white px-4 py-3 text-lg font-medium text-emerald-900 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700';
+
+  const showSell = props.primaryStartSelling || (props.secondaryStartSelling && !props.primaryStartSelling);
 
   return (
     <div className="space-y-3" data-verdiencheck-result-cta="">
@@ -55,9 +57,12 @@ export default function VerdienCheckResultCta(props: {
           {props.copy.startSelling}
         </button>
       ) : null}
+      {showSell && isGuest ? (
+        <p className="text-base leading-relaxed text-gray-600">{props.copy.startSellingNeedsAccount}</p>
+      ) : null}
       <Link
         href="/"
-        className="relative z-[80] inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 pointer-events-auto"
+        className="relative z-[80] inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg text-gray-800 pointer-events-auto"
         onClick={() =>
           trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
             entry_point: props.entryPoint,
@@ -69,7 +74,7 @@ export default function VerdienCheckResultCta(props: {
       </Link>
       <button
         type="button"
-        className="relative z-[80] inline-flex min-h-11 w-full items-center justify-center text-sm text-gray-500 underline pointer-events-auto"
+        className="relative z-[80] inline-flex min-h-12 w-full items-center justify-center text-base text-gray-600 underline pointer-events-auto"
         onClick={props.onRestart}
       >
         {props.copy.restartCheck}

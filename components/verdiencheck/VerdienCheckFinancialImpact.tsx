@@ -52,10 +52,19 @@ export default function VerdienCheckFinancialImpact(props: {
             </div>
           )}
         {exact ? (
-          <div className="flex justify-between gap-4 border-t border-stone-100 pt-2 font-semibold">
-            <dt>{copy.netKeep}</dt>
-            <dd>{euro(net)}</dd>
-          </div>
+          <>
+            <p className="border-t border-stone-100 pt-3 text-base font-medium text-stone-900">
+              {copy.keepEstimatePrefix}
+              {formatCentsAsEuroDisplay(extra ?? 0)}
+              {copy.keepEstimateMiddle}
+              {formatCentsAsEuroDisplay(net)}
+              {copy.keepEstimateSuffix}
+            </p>
+            <div className="flex justify-between gap-4 font-semibold">
+              <dt>{copy.netKeep}</dt>
+              <dd>{euro(net)}</dd>
+            </div>
+          </>
         ) : (
           <p className="border-t border-stone-100 pt-2 text-stone-600">{impact.headline}</p>
         )}

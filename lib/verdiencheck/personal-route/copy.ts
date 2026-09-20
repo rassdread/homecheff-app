@@ -24,11 +24,18 @@ export const PERSONAL_ROUTE_COPY = {
   foodCombinedBody:
     'Bereid het veilig en hygiënisch en vertel klanten welke allergenen erin zitten.',
   foodRegistrationExtra:
-    'Je verkoopt meerdere keren per jaar. Regel daarom ook je NVWA-registratie.',
+    'Je verkoopt meerdere keren per jaar. Meld je dan ook bij de voedselautoriteit (NVWA).',
   dac7Title: 'HomeCheff kan wettelijk verplicht zijn verkoopgegevens door te geven',
   dac7Body: 'Dat betekent niet automatisch dat je belasting moet betalen.',
-  growthVat: 'Je verkoop groeit. Daardoor wordt btw-registratie nu relevant.',
-  growthNvwa: 'Je verkoopt inmiddels vaker. Tijd om je NVWA-registratie te controleren.',
+  dac7Cta: 'Meer uitleg over platformrapportage',
+  growthVat: 'Je verkoop groeit. Kijk daarom even of btw voor jou geldt.',
+  growthNvwa:
+    'Je verkoopt inmiddels vaker. Controleer of je je bij de voedselautoriteit (NVWA) moet melden.',
+  korTitle: 'Kleineondernemersregeling (KOR) later bekijken',
+  vatReviewTitle: 'Controleer later of btw voor jou geldt',
+  nvwaOnceTitle:
+    'Bij één keer verkopen hoef je je meestal niet te melden bij de voedselautoriteit (NVWA)',
+  nvwaRequiredTitle: 'Meld je bij de voedselautoriteit (NVWA)',
   growthBusiness: 'Je verkoop is gegroeid. Daardoor worden een paar zakelijke stappen relevant.',
   bijstandPlanHelp:
     'Wij kunnen de gegevens die je al hebt ingevuld later gebruiken om je plan overzichtelijk te maken.',

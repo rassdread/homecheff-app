@@ -93,8 +93,9 @@ function ChoiceButton(props: {
   return (
     <button
       type="button"
+      aria-pressed={props.selected}
       onClick={props.onClick}
-      className={`relative z-[80] block min-h-11 w-full rounded-xl border px-4 py-3 text-left text-base pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${
+      className={`relative z-[80] block min-h-12 w-full rounded-xl border px-4 py-3 text-left text-lg pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${
         props.selected
           ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950'
           : 'border-gray-200 bg-white text-gray-800'
@@ -131,8 +132,37 @@ function TriChoices(props: {
   );
 }
 
+const NEXT_BTN =
+  'relative z-[80] min-h-12 w-full rounded-xl bg-emerald-800 px-4 py-3 text-lg font-semibold text-white pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700';
+const FIELD =
+  'min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg';
+
 function persist(step: WizardStepId, state: WizardState) {
   writeVerdienCheckSession({ version: 1, currentStep: step, state });
+}
+
+function StepHelp(props: { copy: VerdienCheckCopy; step: string }) {
+  const help = props.copy.steps[props.step]?.help;
+  if (!help) return null;
+  return (
+    <details className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-base text-gray-700">
+      <summary className="cursor-pointer min-h-12 text-base">{props.copy.whatMeansThis}</summary>
+      <p className="mt-2 leading-relaxed">{help}</p>
+    </details>
+  );
+}
+
+function progressPhrase(input: {
+  copy: VerdienCheckCopy;
+  step: WizardStepId;
+  stepIndex: number;
+  total: number;
+}): string {
+  if (input.step === 'result') return input.copy.progressDone;
+  if (input.stepIndex <= 0) return input.copy.progressOngoing;
+  const remaining = input.total - input.stepIndex - 1;
+  if (remaining <= 1) return input.copy.progressAlmost;
+  return input.copy.progressOngoing;
 }
 
 export default function VerdienCheckWizard(props: {
@@ -336,11 +366,13 @@ export default function VerdienCheckWizard(props: {
             backAriaLabel={copy.leaveProduct}
           />
         </div>
-        <p className="mt-4 text-sm text-gray-600">{copy.intro}</p>
-        <p className="mt-1 text-xs text-gray-400">
-          {stepIndex + 1} / {steps.length}
+        <p className="mt-2 text-sm font-medium text-gray-600">
+          {progressPhrase({ copy, step, stepIndex, total: steps.length })}
         </p>
-        <h1 className="mt-4 text-xl font-semibold tracking-tight text-gray-900 break-words sm:text-2xl">
+        {step === 'jurisdiction' ? (
+          <p className="mt-3 text-base leading-relaxed text-gray-700">{copy.intro}</p>
+        ) : null}
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gray-900 break-words">
           {title}
         </h1>
 
@@ -381,21 +413,25 @@ export default function VerdienCheckWizard(props: {
               </ChoiceButton>
             ))}
 
-          {step === 'uwvBenefit' &&
-            (['WIA', 'WAJONG', 'ZW', 'WAO', 'WAZ'] as UwvBenefit[]).map((key) => (
-              <ChoiceButton
-                key={key}
-                selected={state.uwvBenefit === key}
-                onClick={() => {
-                  const next = { ...state, uwvBenefit: key };
-                  setState(next);
-                  const n = nextStep(next, 'uwvBenefit');
-                  if (n) setStep(n);
-                }}
-              >
-                {options[key] ?? key}
-              </ChoiceButton>
-            ))}
+          {step === 'uwvBenefit' && (
+            <>
+              {(['WIA', 'WAJONG', 'ZW', 'WAO', 'WAZ'] as UwvBenefit[]).map((key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.uwvBenefit === key}
+                  onClick={() => {
+                    const next = { ...state, uwvBenefit: key };
+                    setState(next);
+                    const n = nextStep(next, 'uwvBenefit');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              <p className="text-base leading-relaxed text-gray-700">{copy.uwvBenefitUnknownHint}</p>
+            </>
+          )}
 
           {step === 'uwvDiscussedPlan' && (
             <TriChoices
@@ -534,7 +570,7 @@ export default function VerdienCheckWizard(props: {
               {state.municipalityKnown === true ? (
                 <div className="space-y-2">
                   <input
-                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base"
+                    className={FIELD}
                     placeholder="Gemeente"
                     value={state.municipalityName}
                     onChange={(e) =>
@@ -543,7 +579,7 @@ export default function VerdienCheckWizard(props: {
                   />
                   <button
                     type="button"
-                    className="min-h-11 w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                    className={NEXT_BTN}
                     onClick={goNext}
                   >
                     {copy.next}
@@ -691,7 +727,7 @@ export default function VerdienCheckWizard(props: {
               })}
               <button
                 type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                className={NEXT_BTN}
                 onClick={goNext}
               >
                 {copy.next}
@@ -754,20 +790,20 @@ export default function VerdienCheckWizard(props: {
           {step === 'partnerIncome' && (
             <div className="space-y-4">
               <label className="block">
-                <span className="text-sm text-gray-600">{copy.partnerAssessmentHelp}</span>
+                <span className="text-base text-gray-700">{copy.partnerAssessmentHelp}</span>
                 <input
                   inputMode="decimal"
                   value={state.partnerAssessmentEuro}
                   onChange={(e) =>
                     setState({ ...state, partnerAssessmentEuro: e.target.value })
                   }
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                  className={`mt-1 ${FIELD}`}
                   placeholder="€"
                 />
               </label>
               <button
                 type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                className={NEXT_BTN}
                 onClick={goNext}
               >
                 {copy.next}
@@ -783,7 +819,7 @@ export default function VerdienCheckWizard(props: {
                 onChange={(e) =>
                   setState({ ...state, bareRentEuro: e.target.value, onlyTotalRentKnown: false })
                 }
-                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                className={FIELD}
                 placeholder="€"
               />
               <ChoiceButton
@@ -798,7 +834,7 @@ export default function VerdienCheckWizard(props: {
               </ChoiceButton>
               <button
                 type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                className={NEXT_BTN}
                 onClick={goNext}
               >
                 {copy.next}
@@ -823,7 +859,7 @@ export default function VerdienCheckWizard(props: {
                 onChange={(e) =>
                   setState({ ...state, oldestHouseholdResidentAge: e.target.value })
                 }
-                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                className={FIELD}
                 placeholder={language === 'en' ? 'Age of oldest resident' : 'Leeftijd oudste bewoner'}
               />
               <ChoiceButton
@@ -846,13 +882,13 @@ export default function VerdienCheckWizard(props: {
                   onChange={(e) =>
                     setState({ ...state, housingChildAssessmentEuro: e.target.value })
                   }
-                  className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                  className={FIELD}
                   placeholder="€"
                 />
               )}
               <button
                 type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                className={NEXT_BTN}
                 onClick={goNext}
               >
                 {copy.next}
@@ -881,14 +917,11 @@ export default function VerdienCheckWizard(props: {
               <input
                 value={state.childrenAges}
                 onChange={(e) => setState({ ...state, childrenAges: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-3 py-3"
-                placeholder="8, 14"
+                className={FIELD}
+                placeholder={language === 'en' ? 'For example 8, 14' : 'Bijvoorbeeld 8, 14'}
+                aria-label={title}
               />
-              <button
-                type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
-                onClick={goNext}
-              >
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
                 {copy.next}
               </button>
             </div>
@@ -996,11 +1029,11 @@ export default function VerdienCheckWizard(props: {
                 onChange={(e) =>
                   setState({ ...state, partnerArbeidsinkomenEuro: e.target.value })
                 }
-                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                className={FIELD}
               />
               <button
                 type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                className={NEXT_BTN}
                 onClick={goNext}
               >
                 {copy.next}
@@ -1044,9 +1077,9 @@ export default function VerdienCheckWizard(props: {
             <div className="space-y-3">
               {(
                 [
-                  ['DAYCARE_CENTER', language === 'en' ? 'Daycare' : 'Dagopvang'],
-                  ['AFTER_SCHOOL_CENTER', 'BSO'],
-                  ['CHILDMINDER', language === 'en' ? 'Childminder' : 'Gastouder'],
+                  ['DAYCARE_CENTER', options.DAYCARE_CENTER ?? 'Kinderdagverblijf'],
+                  ['AFTER_SCHOOL_CENTER', options.AFTER_SCHOOL_CENTER ?? 'Buitenschoolse opvang (BSO)'],
+                  ['CHILDMINDER', options.CHILDMINDER ?? 'Gastouder'],
                 ] as const
               ).map(([key, label]) => (
                 <ChoiceButton
@@ -1061,21 +1094,21 @@ export default function VerdienCheckWizard(props: {
                 inputMode="numeric"
                 value={state.childcareHoursPerMonth}
                 onChange={(e) => setState({ ...state, childcareHoursPerMonth: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                className={FIELD}
                 placeholder={language === 'en' ? 'Hours per month' : 'Uren per maand'}
               />
               <input
                 inputMode="decimal"
                 value={state.childcareHourlyRateEuro}
                 onChange={(e) => setState({ ...state, childcareHourlyRateEuro: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                className={FIELD}
                 placeholder="€"
               />
               {(
                 [
-                  ['REGISTERED_ELIGIBLE', language === 'en' ? 'Registered provider' : 'Geregistreerde opvang'],
-                  ['NOT_ELIGIBLE', language === 'en' ? 'Not eligible' : 'Niet subsidiabel'],
-                  ['UNKNOWN', language === 'en' ? 'I don’t know' : 'Weet ik niet'],
+                  ['REGISTERED_ELIGIBLE', options.REGISTERED_ELIGIBLE ?? (language === 'en' ? 'Yes, this childcare counts for allowance' : 'Ja, deze opvang telt voor toeslag')],
+                  ['NOT_ELIGIBLE', options.NOT_ELIGIBLE ?? (language === 'en' ? 'No, this childcare does not count for allowance' : 'Nee, deze opvang telt niet voor toeslag')],
+                  ['UNKNOWN', options.UNKNOWN ?? (language === 'en' ? 'I don’t know' : 'Ik weet het niet')],
                 ] as const
               ).map(([key, label]) => (
                 <ChoiceButton
@@ -1093,7 +1126,7 @@ export default function VerdienCheckWizard(props: {
               ))}
               <button
                 type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                className={NEXT_BTN}
                 onClick={goNext}
               >
                 {copy.next}
@@ -1386,49 +1419,48 @@ export default function VerdienCheckWizard(props: {
 
           {step === 'amounts' && (
             <div className="space-y-4">
+              <p className="text-base leading-relaxed text-gray-700">{copy.moneyExplain}</p>
+              <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
+              <p className="text-base leading-relaxed text-gray-700">{copy.yearlyHint}</p>
               <label className="block">
-                <span className="text-sm text-gray-600">{copy.expectedTurnover}</span>
+                <span className="text-base text-gray-700">{copy.expectedTurnover}</span>
                 <input
                   inputMode="decimal"
                   value={state.estimatedTurnoverEuro}
                   onChange={(e) =>
                     setState({ ...state, estimatedTurnoverEuro: e.target.value })
                   }
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                  className={`mt-1 ${FIELD}`}
                   placeholder="€"
                 />
               </label>
               <label className="block">
-                <span className="text-sm text-gray-600">{copy.expectedCosts}</span>
+                <span className="text-base text-gray-700">{copy.expectedCosts}</span>
                 <input
                   inputMode="decimal"
                   value={state.estimatedCostsEuro}
                   onChange={(e) =>
                     setState({ ...state, estimatedCostsEuro: e.target.value })
                   }
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                  className={`mt-1 ${FIELD}`}
                   placeholder="€"
                 />
               </label>
               <label className="block">
-                <span className="text-sm text-gray-600">{copy.estimatedSales}</span>
+                <span className="text-base text-gray-700">{copy.estimatedSales}</span>
                 <input
                   inputMode="numeric"
                   value={state.estimatedAnnualTransactions}
                   onChange={(e) =>
                     setState({ ...state, estimatedAnnualTransactions: e.target.value })
                   }
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                  className={`mt-1 ${FIELD}`}
                 />
               </label>
-              <p className="text-base font-medium text-gray-900">
+              <p className="text-lg font-medium text-gray-900">
                 {copy.expectedResult}: €{formatCentsAsEuroDisplay(liveResult)}
               </p>
-              <button
-                type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
-                onClick={goNext}
-              >
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
                 {copy.next}
               </button>
             </div>
@@ -1460,7 +1492,7 @@ export default function VerdienCheckWizard(props: {
                   onChange={(e) =>
                     setState({ ...state, otherRelevantVatTurnoverEuro: e.target.value })
                   }
-                  className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                  className={FIELD}
                   placeholder={copy.otherTurnoverAmount}
                 />
               )}
@@ -1470,12 +1502,12 @@ export default function VerdienCheckWizard(props: {
                 onChange={(e) =>
                   setState({ ...state, previousYearVatTurnoverEuro: e.target.value })
                 }
-                className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                className={FIELD}
                 placeholder={copy.previousYearTurnover}
               />
               <button
                 type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                className={NEXT_BTN}
                 onClick={goNext}
               >
                 {copy.next}
@@ -1485,6 +1517,7 @@ export default function VerdienCheckWizard(props: {
 
           {step === 'existingRegistrations' && (
             <div className="space-y-4">
+              <p className="text-base font-medium text-gray-900">{copy.registrationKvkLabel}</p>
               {(
                 [
                   ['KVK_YES', true],
@@ -1500,6 +1533,7 @@ export default function VerdienCheckWizard(props: {
                   {options[key] ?? key}
                 </ChoiceButton>
               ))}
+              <p className="text-base font-medium text-gray-900">{copy.registrationVatLabel}</p>
               {(
                 [
                   ['VAT_YES', 'REGISTERED'],
@@ -1515,6 +1549,7 @@ export default function VerdienCheckWizard(props: {
                   {options[key] ?? key}
                 </ChoiceButton>
               ))}
+              <p className="text-base font-medium text-gray-900">{copy.registrationKorLabel}</p>
               {(
                 [
                   ['KOR_YES', true],
@@ -1530,11 +1565,7 @@ export default function VerdienCheckWizard(props: {
                   {options[key] ?? key}
                 </ChoiceButton>
               ))}
-              <button
-                type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
-                onClick={goNext}
-              >
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
                 {copy.next}
               </button>
             </div>
@@ -1581,7 +1612,9 @@ export default function VerdienCheckWizard(props: {
 
           {step === 'incomeBases' && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">{copy.incomeBasesNote}</p>
+              <p className="text-base leading-relaxed text-gray-700">{copy.incomeBasesNote}</p>
+              <p className="text-base leading-relaxed text-gray-700">{copy.yearlyHint}</p>
+              <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
               {(
                 [
                   ['baselineGrossEmploymentEuro', copy.grossEmploymentHelp],
@@ -1593,23 +1626,19 @@ export default function VerdienCheckWizard(props: {
                 ] as const
               ).map(([field, help]) => (
                 <label key={field} className="block">
-                  <span className="text-sm text-gray-600">{help}</span>
+                  <span className="text-base text-gray-700">{help}</span>
                   <input
                     inputMode="decimal"
                     value={state[field]}
                     onChange={(e) =>
                       setState({ ...state, [field]: e.target.value })
                     }
-                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-3"
+                    className={`mt-1 ${FIELD}`}
                     placeholder="€"
                   />
                 </label>
               ))}
-              <button
-                type="button"
-                className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
-                onClick={goNext}
-              >
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
                 {copy.next}
               </button>
             </div>
@@ -1661,12 +1690,12 @@ export default function VerdienCheckWizard(props: {
                     onChange={(e) =>
                       setState({ ...state, customScenarioEuro: e.target.value })
                     }
-                    className="w-full rounded-xl border border-gray-200 px-3 py-3"
+                    className={FIELD}
                     placeholder="€"
                   />
                   <button
                     type="button"
-                    className="min-h-11 w-full rounded-xl bg-emerald-800 px-4 py-3 text-white"
+                    className={NEXT_BTN}
                     onClick={goNext}
                   >
                     {copy.next}
@@ -1716,11 +1745,13 @@ export default function VerdienCheckWizard(props: {
           )}
         </div>
 
+        {step !== 'result' ? <StepHelp copy={copy} step={step} /> : null}
+
         {step !== 'jurisdiction' && (
           <button
             type="button"
             onClick={goBack}
-            className="relative z-[80] mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+            className="relative z-[80] mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg text-gray-800 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
           >
             {copy.back}
           </button>

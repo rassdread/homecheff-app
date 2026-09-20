@@ -4,16 +4,48 @@ import { cardFamilyOf, hitTiming } from './prioritize';
 import { PERSONAL_ROUTE_COPY } from './copy';
 import type { CardFamily } from './types';
 
+function friendlyCta(hit: GuidanceHit): GuidanceHit['rule']['cta'] {
+  if (cardFamilyOf(hit.rule.id) !== 'reporting' || !hit.rule.cta) return hit.rule.cta ?? null;
+  return { ...hit.rule.cta, label: PERSONAL_ROUTE_COPY.dac7Cta };
+}
+
 function friendlyBody(hit: GuidanceHit): { title: string; body: string } {
   const family = cardFamilyOf(hit.rule.id);
   if (family === 'reporting') {
     return { title: PERSONAL_ROUTE_COPY.dac7Title, body: PERSONAL_ROUTE_COPY.dac7Body };
   }
+  if (hit.rule.id.includes('vat.entrepreneurship_review')) {
+    return { title: PERSONAL_ROUTE_COPY.vatReviewTitle, body: hit.rule.shortText };
+  }
   if (hit.rule.id.includes('vat.registration_exceeded') || hit.rule.id.includes('vat.registration_possible')) {
     return { title: PERSONAL_ROUTE_COPY.growthVat, body: hit.rule.shortText };
   }
+  if (hit.rule.id.includes('nvwa.once_per_year')) {
+    return { title: PERSONAL_ROUTE_COPY.nvwaOnceTitle, body: hit.rule.shortText };
+  }
   if (hit.rule.id.includes('nvwa.registration_required')) {
-    return { title: PERSONAL_ROUTE_COPY.growthNvwa, body: hit.rule.shortText };
+    return { title: PERSONAL_ROUTE_COPY.nvwaRequiredTitle, body: hit.rule.shortText };
+  }
+  if (family === 'optimization' || hit.rule.id.includes('.kor.')) {
+    return { title: PERSONAL_ROUTE_COPY.korTitle, body: hit.rule.shortText };
+  }
+  if (hit.rule.id.includes('bijstand.bbz_review')) {
+    return {
+      title: 'Extra hulp bij starten beoordeelt de gemeente',
+      body: hit.rule.shortText,
+    };
+  }
+  if (hit.rule.id.includes('bijstand.local_policy')) {
+    return {
+      title: 'Vraag de regels na bij jouw gemeente',
+      body: hit.rule.shortText,
+    };
+  }
+  if (family === 'business_registration' || hit.rule.id.includes('.kvk.')) {
+    return {
+      title: hit.rule.shortTitle,
+      body: hit.rule.shortText.replace(/\bKVK\b/, 'de Kamer van Koophandel (KVK)'),
+    };
   }
   return { title: hit.rule.shortTitle, body: hit.rule.shortText };
 }
@@ -29,7 +61,7 @@ function toCard(hit: GuidanceHit, primary: boolean): PersonalRouteCard {
     title: text.title,
     body: text.body,
     sourceRuleIds: [hit.rule.id],
-    cta: hit.rule.cta ?? null,
+    cta: friendlyCta(hit),
     officialSource: hit.rule.officialSource,
     officialSourceUrl: hit.rule.officialSourceUrl,
     primary,

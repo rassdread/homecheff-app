@@ -18,14 +18,14 @@ export default function VerdienCheckActionCard(props: {
           : 'border-stone-200'
       }`}
     >
-      <h3 className="text-base font-semibold text-stone-900">{card.title}</h3>
-      <p className="mt-1 text-sm leading-relaxed text-stone-600">{card.body}</p>
+      <h3 className="text-lg font-semibold text-stone-900">{card.title}</h3>
+      <p className="mt-1 text-base leading-relaxed text-stone-600">{card.body}</p>
       {card.cta?.href ? (
         <a
           href={card.cta.href}
           target="_blank"
           rel="noreferrer"
-          className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-emerald-800 underline"
+          className="mt-3 inline-flex min-h-12 items-center text-base font-medium text-emerald-800 underline"
           onClick={() =>
             trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.officialLinkClicked, {
               action: 'LEARN_MORE',

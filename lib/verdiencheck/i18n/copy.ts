@@ -55,14 +55,28 @@ export type VerdienCheckCopy = {
   iackHelp: string;
   fiscalPartnerHelp: string;
   singleOlderHelp: string;
-  steps: Record<string, { title: string; options?: Record<string, string> }>;
+  estimateOk: string;
+  yearlyHint: string;
+  moneyExplain: string;
+  progressAlmost: string;
+  progressDone: string;
+  progressOngoing: string;
+  startSellingNeedsAccount: string;
+  registrationKvkLabel: string;
+  registrationVatLabel: string;
+  registrationKorLabel: string;
+  uwvBenefitUnknownHint: string;
+  keepEstimatePrefix: string;
+  keepEstimateMiddle: string;
+  keepEstimateSuffix: string;
+  steps: Record<string, { title: string; options?: Record<string, string>; help?: string }>;
 };
 
 const NL: VerdienCheckCopy = {
   pageTitle: 'Verdienen zonder verrassingen',
   chromeTitle: 'VerdienCheck',
   intro:
-    'Ontdek wat bijverdienen voor jou betekent. Zie vooraf wat je ongeveer overhoudt. HomeCheff laat zien wat je nu moet regelen en wat pas later belangrijk wordt.',
+    'Een paar korte vragen. Daarna zie je wat extra verdienen voor jou ongeveer betekent.',
   disclaimer:
     'Dit is een schatting en persoonlijke uitleg op basis van wat je hebt ingevuld. Jij blijft verantwoordelijk voor wat je doorgeeft en regelt. Schatting voor 2026.',
   back: 'Terug',
@@ -74,15 +88,15 @@ const NL: VerdienCheckCopy = {
   packUnavailable: 'De berekening voor 2026 is nog niet beschikbaar.',
   notCalculated: 'Nog niet berekend',
   needMore: 'We hebben nog iets van je nodig.',
-  expectedResult: 'Verwacht resultaat',
-  expectedTurnover: 'Verwachte omzet',
-  expectedCosts: 'Verwachte kosten',
-  extraResult: 'Extra resultaat',
+  expectedResult: 'Wat ongeveer overblijft',
+  expectedTurnover: 'Wat betalen klanten ongeveer dit jaar?',
+  expectedCosts: 'Wat geef je er ongeveer aan uit dit jaar?',
+  extraResult: 'Extra over voordat belasting speelt',
   estimatedSales: 'Hoeveel verkopen ongeveer dit jaar?',
-  otherTurnoverAmount: 'Welke omzet buiten HomeCheff (zelfde activiteiten)?',
-  previousYearTurnover: 'Welke relevante omzet had je vorig kalenderjaar?',
+  otherTurnoverAmount: 'Ongeveer hoeveel, per jaar? Een schatting is goed.',
+  previousYearTurnover: 'Ongeveer hoeveel vorig jaar, per jaar?',
   taxChanges: 'Belasting verandert',
-  zvwChanges: 'Zvw-bijdrage',
+  zvwChanges: 'Bijdrage zorgverzekering',
   healthcareChanges: 'Zorgtoeslag verandert',
   rentChanges: 'Huurtoeslag verandert',
   childBudgetChanges: 'Kindgebonden budget',
@@ -99,30 +113,49 @@ const NL: VerdienCheckCopy = {
   taxRegimeUnsupported: 'Deze AOW-situatie kunnen we nog niet berekenen.',
   sourceOfIncomeReview: 'Dit resultaat moeten we eerst beter bekijken.',
   rowAssumptionNote:
-    'Voor deze berekening gaan we ervan uit dat dit resultaat uit overig werk is.',
+    'Voor deze schatting rekenen we je extra verdienste als bijverdienste naast ander werk. Dat is geen officieel besluit van de Belastingdienst.',
   costAssumptionNote:
-    'Voor deze berekening gaan we ervan uit dat de ingevulde kosten aftrekbaar zijn.',
+    'Voor deze schatting gaan we ervan uit dat de kosten die je invult aftrekbaar zijn. Weet je dat niet, kies dan liever niet.',
   incompleteCredits: 'Sommige kortingen rekenen we nog niet mee.',
   allowanceKink: 'Je toeslag verandert als je meer verdient.',
   midYearNote:
     'Als je situatie in de loop van het jaar verandert, rekenen we dit nog niet.',
-  assessmentHelp: 'Dit is het inkomen waarmee Toeslagen rekent.',
-  box1Help: 'Het inkomen waarover inkomstenbelasting wordt berekend.',
-  aggregateHelp: 'Je verzamelinkomen, apart van je loon.',
-  arbeidsHelp: 'Je arbeidsinkomen, inclusief extra verdiensten uit werk.',
+  assessmentHelp: 'Het jaarinkomen waarmee toeslagen rekenen. Een schatting is goed.',
+  box1Help: 'Het jaarinkomen waarover inkomstenbelasting gaat. Een schatting is goed.',
+  aggregateHelp: 'Je verzamelinkomen op je belastingaangifte, naast je loon. Een schatting is goed.',
+  arbeidsHelp: 'Wat je met werk verdient, inclusief extra verdiensten. Per jaar. Een schatting is goed.',
   zvwUsedHelp:
-    'Het deel van je inkomen waarover al Zvw-bijdrage is berekend, bijvoorbeeld je loon.',
-  grossEmploymentHelp: 'Je bruto loon. Dit is niet hetzelfde als toetsingsinkomen.',
+    'Het deel van je inkomen waarover je al een zorgverzekeringsbijdrage betaalt, bijvoorbeeld je loon. Per jaar.',
+  grossEmploymentHelp: 'Je bruto jaarloon. Dat is niet hetzelfde bedrag als voor toeslagen.',
   partnerAssessmentHelp:
-    'Het toetsingsinkomen van je partner. Dat verandert niet door jouw extra verdienste.',
-  incomeBasesNote: 'Vul elk bedrag apart in. Dit zijn niet dezelfde begrippen.',
+    'Het jaarinkomen van je partner voor toeslagen. Dat verandert niet door jouw extra verdienste. Een schatting is goed.',
+  incomeBasesNote:
+    'Vul elk bedrag apart in, per jaar. Een schatting is goed. Dit zijn niet dezelfde bedragen.',
   whatMeansThis: 'Wat betekent dit?',
   iackHelp:
     'Dit gaat over een belastingkorting als je werken combineert met zorg voor een jong kind. Dat is iets anders dan kindgebonden budget of kinderopvangtoeslag.',
   fiscalPartnerHelp:
-    'Een fiscale partner is niet hetzelfde als een toeslagpartner. Weet je het niet, kies dan dat je het niet weet.',
+    'Voor de belasting kan iemand je fiscale partner zijn. Dat is niet hetzelfde als een toeslagpartner. Weet je het niet, kies dat. Gok niet.',
   singleOlderHelp:
-    'Dit is de alleenstaandeouderenkorting voor AOW. Dat is iets anders dan een korting voor alleenstaande ouders met kinderen.',
+    'Dit is een belastingkorting voor AOW als je alleenstaand bent. Dat is iets anders dan een korting voor alleenstaande ouders met kinderen.',
+  estimateOk: 'Een schatting is goed. Je hoeft het niet precies te weten.',
+  yearlyHint:
+    'Vul het bedrag per jaar in. Weet je alleen per maand? Tel dan twaalf maanden bij elkaar, bijvoorbeeld €1.800 × 12.',
+  moneyExplain:
+    'Wat klanten betalen is omzet. Wat jij eraan uitgeeft zijn kosten. Wat overblijft is resultaat, nog zonder belasting.',
+  progressAlmost: 'Bijna klaar',
+  progressDone: 'Klaar',
+  progressOngoing: 'Nog een paar vragen',
+  startSellingNeedsAccount:
+    'Inloggen is alleen om te gaan verkopen. Je VerdienCheck-antwoorden gaan niet naar je account.',
+  registrationKvkLabel: 'Kamer van Koophandel (KVK)',
+  registrationVatLabel: 'Btw',
+  registrationKorLabel: 'Kleineondernemersregeling (KOR)',
+  uwvBenefitUnknownHint:
+    'Weet je de naam niet? Ga één stap terug en kies Anders. Dan gok je niet.',
+  keepEstimatePrefix: 'Van €',
+  keepEstimateMiddle: ' extra resultaat houd je naar schatting ongeveer €',
+  keepEstimateSuffix: ' over.',
   steps: {
     jurisdiction: {
       title: 'Woon je in Nederland?',
@@ -150,72 +183,77 @@ const NL: VerdienCheckCopy = {
     },
     situation: {
       title: 'Welke situatie past bij jou?',
+      help: 'UWV is de instantie voor werkloosheid en arbeidsongeschiktheid. Bijstand komt van je gemeente. Weet je het niet precies, kies Anders.',
       options: {
         EMPLOYEE: 'Ik werk in loondienst',
-        WW: 'Ik krijg WW',
-        BIJSTAND: 'Ik krijg bijstand',
-        OTHER_UWV: 'Ik krijg een andere UWV-uitkering',
+        WW: 'Ik krijg WW (werkloosheid)',
+        BIJSTAND: 'Ik krijg bijstand van de gemeente',
+        OTHER_UWV: 'Ik krijg een andere uitkering van UWV',
         EXISTING_ENTREPRENEUR: 'Ik ben al ondernemer',
         NONE: 'Anders / geen van deze',
         OTHER: 'Anders / geen van deze',
       },
     },
     uwvBenefit: {
-      title: 'Welke UWV-uitkering?',
+      title: 'Welke uitkering van UWV krijg je?',
+      help: 'Kijk op je UWV-brief als je de naam niet zeker weet. Gok niet. Ziektewet, WIA, Wajong, WAO en WAZ staan meestal op die brief.',
       options: {
-        WIA: 'WIA',
-        WAJONG: 'Wajong',
+        WIA: 'WIA — arbeidsongeschikt vanuit werk',
+        WAJONG: 'Wajong — vanaf jonge leeftijd arbeidsongeschikt',
         ZW: 'Ziektewet',
-        WAO: 'WAO',
-        WAZ: 'WAZ',
+        WAO: 'WAO — oudere arbeidsongeschiktheidsuitkering',
+        WAZ: 'WAZ — arbeidsongeschikt als zelfstandige',
       },
     },
     uwvDiscussedPlan: {
-      title: 'Heb je al met UWV besproken dat je wilt starten?',
+      title: 'Heb je met UWV al over starten gepraat?',
       options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
     },
     wwStartPeriod: {
-      title: 'Wil je gebruikmaken van de UWV-startperiode?',
+      title: 'Wil je via UWV een startperiode gebruiken?',
+      help: 'Dat is een UWV-regeling om vanuit WW te starten. Je hoeft de regels niet uit je hoofd te kennen. Weet je het niet, kies dat.',
       options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het nog niet' },
     },
     wwRetainBenefit: {
-      title: 'Wil je WW houden terwijl je start?',
-      options: { YES: 'Ja', NO: 'Nee, zonder behoud van WW', UNKNOWN: 'Ik weet het nog niet' },
+      title: 'Wil je je WW houden terwijl je start?',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het nog niet' },
     },
     wwFormerEmployer: {
-      title: 'Wil je tijdens je startperiode werk doen voor je laatste werkgever?',
-      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Weet ik nog niet' },
+      title: 'Wil je tijdens het starten werk doen voor je laatste werkgever?',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het nog niet' },
     },
     wwUwvSupplement: {
-      title: 'Krijg je naast WW ook een toeslag van UWV?',
-      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Weet ik niet' },
+      title: 'Krijg je naast WW ook extra geld van UWV?',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
     },
     uwvResearchPeriod: {
-      title: 'Wil je een UWV-onderzoeksperiode gebruiken?',
+      title: 'Wil je eerst met UWV uitzoeken of starten past?',
+      help: 'UWV noemt dit soms een onderzoeksperiode. Weet je het niet, zeg dat gewoon.',
       options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het nog niet' },
     },
     uwvPermission: {
       title: 'Heb je al toestemming van UWV?',
-      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Weet ik niet' },
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
     },
     zwOrigin: {
-      title: 'Krijg je Ziektewet tijdens of na WW?',
+      title: 'Krijg je Ziektewet tijdens of na je WW?',
       options: {
         FROM_OR_AFTER_WW: 'Ja, tijdens of na WW',
         OTHER: 'Nee, een andere situatie',
-        UNKNOWN: 'Weet ik niet',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
     bijstandMunicipality: {
       title: 'Weet je welke gemeente jouw bijstand regelt?',
-      options: { YES: 'Ja', NO: 'Nee / weet ik niet' },
+      options: { YES: 'Ja', NO: 'Nee / ik weet het niet' },
     },
     bijstandPreparation: {
-      title: 'Heeft jouw gemeente een voorbereidingsperiode?',
+      title: 'Mag je van de gemeente eerst oefenen voordat je écht start?',
+      help: 'Sommige gemeenten noemen dit een voorbereidingsperiode. Je hoeft die naam niet te kennen. Weet je het niet, kies dat.',
       options: {
         AVAILABLE: 'Ja',
         NOT_AVAILABLE: 'Nee',
-        UNKNOWN: 'Weet ik niet',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
     aow: {
@@ -271,13 +309,17 @@ const NL: VerdienCheckCopy = {
     },
     partner: {
       title: 'Heb je een toeslagpartner?',
-      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Weet ik niet' },
+      help: 'Een toeslagpartner is iemand met wie toeslagen jouw huishouden bekijken, vaak je partner. Weet je het niet, kies dat.',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
     },
     partnerInsurance: {
       title: 'Is je partner verzekerd voor zorg?',
       options: { INSURED: 'Ja', NOT_INSURED: 'Nee', UNKNOWN: 'Weet ik niet' },
     },
-    partnerIncome: { title: 'Wat is het toetsingsinkomen van je partner?' },
+    partnerIncome: {
+      title: 'Wat is het jaarinkomen van je partner voor toeslagen?',
+      help: 'Toeslagen noemen dit toetsingsinkomen. Een schatting is goed. Weet je alleen per maand? Tel twaalf maanden bij elkaar.',
+    },
     frequency: {
       title: 'Hoe vaak denk je te verkopen?',
       options: {
@@ -298,24 +340,27 @@ const NL: VerdienCheckCopy = {
     },
     foodPackaging: {
       title: 'Is het eten vooraf verpakt?',
+      help: 'Voorverpakt betekent: de klant kan het product niet meer zelf samenstellen. Weet je het niet, kies dat.',
       options: {
-        UNPACKAGED: 'Nee, onverpakt',
-        PREPACKED: 'Ja, voorverpakt voordat de klant kiest',
-        PREPACKED_FOR_DIRECT_SALE: 'Verpakt voor directe verkoop',
-        UNKNOWN: 'Weet ik nog niet',
+        UNPACKAGED: 'Nee, niet verpakt',
+        PREPACKED: 'Ja, al verpakt voordat de klant kiest',
+        PREPACKED_FOR_DIRECT_SALE: 'Verpakt, en meteen verkocht',
+        UNKNOWN: 'Ik weet het nog niet',
       },
     },
     foodNvwa: {
-      title: 'Heb je je al bij de NVWA geregistreerd?',
-      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Weet ik niet' },
+      title: 'Heb je je al gemeld bij de voedselautoriteit (NVWA)?',
+      help: 'NVWA is de voedselautoriteit. Bij een eenmalige verkoop is dit vaak nog niet nodig. Weet je het niet, kies dat.',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
     },
     foodSafetyPlan: {
-      title: 'Heb je een voedselveiligheidsplan of hygiënecode?',
+      title: 'Heb je afspraken over veilig en schoon werken met eten?',
+      help: 'Dat kan een hygiënecode van je branche zijn, of een eigen plan. Geen certificaat verplicht om deze vraag te beantwoorden.',
       options: {
         USING_APPROVED_HYGIENE_CODE: 'Ja, een hygiënecode van mijn branche',
-        USING_OWN_HACCP_PLAN: 'Ja, een eigen voedselveiligheidsplan',
+        USING_OWN_HACCP_PLAN: 'Ja, een eigen plan voor veilig werken',
         NOT_ARRANGED: 'Nog niet',
-        UNKNOWN: 'Weet ik niet',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
     foodAnimalOrigin: {
@@ -350,23 +395,28 @@ const NL: VerdienCheckCopy = {
       },
     },
     costAssumption: {
-      title: 'Mogen we voor deze berekening aannemen dat jouw kosten aftrekbaar zijn?',
-      options: { YES: 'Ja, voor deze berekening', NO: 'Nee, liever niet' },
+      title: 'Mogen we voor deze schatting aannemen dat jouw kosten aftrekbaar zijn?',
+      help: 'Aftrekbaar betekent: de Belastingdienst mag ze van je verdienste afhalen. Weet je het niet, kies liever niet.',
+      options: { YES: 'Ja, voor deze schatting', NO: 'Nee, liever niet' },
     },
     rowAssumption: {
-      title: 'Hoe rekenen we je extra verdienste?',
-      options: { ACCEPT: 'Klopt, reken het zo' },
+      title: 'Klopt deze manier van rekenen voor de schatting?',
+      options: { ACCEPT: 'Ja, reken het zo' },
     },
-    incomeBases: { title: 'Wat is je huidige inkomen?' },
+    incomeBases: { title: 'Wat is je huidige inkomen per jaar?' },
     assets: {
-      title: 'Val je binnen de vermogensgrens voor zorgtoeslag?',
+      title: 'Is je spaargeld laag genoeg voor zorgtoeslag?',
+      help: 'Toeslagen kijken naar vermogen, zoals spaargeld. Weet je de grens niet, kies dat je het niet weet.',
       options: {
-        ELIGIBLE: 'Ja, mijn vermogen is laag genoeg',
-        NOT_ELIGIBLE: 'Nee, ik heb te veel vermogen',
-        UNKNOWN: 'Weet ik niet',
+        ELIGIBLE: 'Ja, mijn spaargeld is laag genoeg',
+        NOT_ELIGIBLE: 'Nee, ik heb te veel spaargeld of vermogen',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
-    housingRent: { title: 'Wat is de kale huur per maand?' },
+    housingRent: {
+      title: 'Wat is de kale huur per maand?',
+      help: 'Kale huur is huur zonder gas, water en servicekosten. Een schatting is goed.',
+    },
     housingHousehold: {
       title: 'Hoe ziet je huishouden voor de huurtoeslag eruit?',
       options: {
@@ -375,14 +425,17 @@ const NL: VerdienCheckCopy = {
       },
     },
     housingAssets: {
-      title: 'Val je binnen de vermogensgrens voor huurtoeslag?',
+      title: 'Is je spaargeld laag genoeg voor huurtoeslag?',
       options: {
-        ELIGIBLE: 'Ja, mijn vermogen is laag genoeg',
-        NOT_ELIGIBLE: 'Nee, ik heb te veel vermogen',
-        UNKNOWN: 'Weet ik niet',
+        ELIGIBLE: 'Ja, mijn spaargeld is laag genoeg',
+        NOT_ELIGIBLE: 'Nee, ik heb te veel spaargeld of vermogen',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
-    children: { title: 'Hoe oud zijn je kinderen? (leeftijden, gescheiden door komma)' },
+    children: {
+      title: 'Hoe oud zijn je kinderen?',
+      help: 'Typ de leeftijden, bijvoorbeeld 8 en 14.',
+    },
     youngChild: {
       title: 'Heb je een kind jonger dan 12?',
       options: { YES: 'Ja', NO: 'Nee' },
@@ -404,15 +457,18 @@ const NL: VerdienCheckCopy = {
       },
     },
     fiscalPartner: {
-      title: 'Heb je een fiscale partner?',
+      title: 'Heb je voor de belasting een fiscale partner?',
       options: {
         NONE: 'Nee',
         LESS_THAN_6_MONTHS: 'Ja, korter dan een half jaar',
         MORE_THAN_6_MONTHS: 'Ja, langer dan een half jaar',
-        UNKNOWN: 'Weet ik niet',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
-    iackPartnerIncome: { title: 'Wat is het arbeidsinkomen van je fiscale partner?' },
+    iackPartnerIncome: {
+      title: 'Wat verdient je partner ongeveer met werk, per jaar?',
+      help: 'Een schatting is goed. Weet je alleen per maand? Tel twaalf maanden bij elkaar.',
+    },
     iackRelativeAge: {
       title: 'Wie is ouder: jij of je fiscale partner?',
       options: {
@@ -422,42 +478,55 @@ const NL: VerdienCheckCopy = {
       },
     },
     childBudgetAssets: {
-      title: 'Val je binnen de vermogensgrens voor kindgebonden budget?',
+      title: 'Is je spaargeld laag genoeg voor kindgebonden budget?',
       options: {
-        ELIGIBLE: 'Ja, mijn vermogen is laag genoeg',
-        NOT_ELIGIBLE: 'Nee, ik heb te veel vermogen',
-        UNKNOWN: 'Weet ik niet',
+        ELIGIBLE: 'Ja, mijn spaargeld is laag genoeg',
+        NOT_ELIGIBLE: 'Nee, ik heb te veel spaargeld of vermogen',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
-    childcare: { title: 'Welke opvang gebruik je?' },
+    childcare: {
+      title: 'Welke opvang gebruik je?',
+      help: 'Een schatting van uren en prijs is goed. Weet je niet of de opvang telt voor toeslag, kies dat je het niet weet.',
+      options: {
+        DAYCARE_CENTER: 'Kinderdagverblijf',
+        AFTER_SCHOOL_CENTER: 'Buitenschoolse opvang (BSO)',
+        CHILDMINDER: 'Gastouder',
+        REGISTERED_ELIGIBLE: 'Ja, deze opvang telt voor toeslag',
+        NOT_ELIGIBLE: 'Nee, deze opvang telt niet voor toeslag',
+        UNKNOWN: 'Ik weet het niet',
+      },
+    },
     workStudy: {
-      title: 'Werk of studeer je in 2026 het hele jaar in een situatie met recht op kinderopvangtoeslag?',
+      title: 'Werk of studeer je het hele jaar 2026?',
+      help: 'Kinderopvangtoeslag vraagt of je het hele jaar werkt of studeert. Weet je de regels niet, kies dat je het niet weet.',
       options: {
         ELIGIBLE: 'Ja',
         NOT_ELIGIBLE: 'Nee',
-        UNKNOWN: 'Weet ik niet',
+        UNKNOWN: 'Ik weet het niet',
       },
     },
     midYear: {
       title: 'Blijft deze huishoudsituatie het hele jaar hetzelfde?',
       options: { YES: 'Ja, het hele jaar', NO: 'Nee, het verandert in 2026' },
     },
-    amounts: { title: 'Wat denk je te verkopen?' },
+    amounts: { title: 'Wat denk je ongeveer te verkopen dit jaar?' },
     otherVatTurnover: {
-      title: 'Heb je buiten HomeCheff nog omzet uit dezelfde activiteiten?',
-      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Weet ik niet' },
+      title: 'Verkoop je hetzelfde ook buiten HomeCheff?',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
     },
     existingRegistrations: {
       title: 'Heb je dit al geregeld?',
+      help: 'KVK is de Kamer van Koophandel. KOR is een btw-regeling voor kleine ondernemers. Weet je het niet, zeg dat. Gok niet.',
       options: {
-        KVK_YES: 'Ik sta bij KVK',
-        KVK_NO: 'Ik sta niet bij KVK',
+        KVK_YES: 'Ja, ik sta bij de Kamer van Koophandel (KVK)',
+        KVK_NO: 'Nee, ik sta niet bij KVK',
         KVK_UNKNOWN: 'KVK weet ik niet',
-        VAT_YES: 'Ik heb een btw-registratie',
-        VAT_NO: 'Ik heb geen btw-registratie',
+        VAT_YES: 'Ja, ik ben aangemeld voor btw',
+        VAT_NO: 'Nee, ik ben niet aangemeld voor btw',
         VAT_UNKNOWN: 'Btw weet ik niet',
-        KOR_YES: 'Ik doe mee aan de KOR',
-        KOR_NO: 'Ik doe niet mee aan de KOR',
+        KOR_YES: 'Ja, ik gebruik de kleineondernemersregeling (KOR)',
+        KOR_NO: 'Nee, ik gebruik die btw-regeling niet',
         KOR_UNKNOWN: 'KOR weet ik niet',
       },
     },
@@ -470,7 +539,7 @@ const EN: VerdienCheckCopy = {
   pageTitle: 'Earn without surprises',
   chromeTitle: 'VerdienCheck',
   intro:
-    'See what extra earnings mean for you. HomeCheff shows what to arrange now and what can wait.',
+    'A few short questions. Then you see what extra earnings roughly mean for you.',
   disclaimer:
     'This is an estimate and personal explanation based on what you entered. You remain responsible for what you report and arrange. Estimate for 2026.',
   back: 'Back',
@@ -482,13 +551,13 @@ const EN: VerdienCheckCopy = {
   packUnavailable: 'The 2026 calculation is not available yet.',
   notCalculated: 'Not calculated yet',
   needMore: 'We still need something from you.',
-  expectedResult: 'Expected result',
-  expectedTurnover: 'Expected sales',
-  expectedCosts: 'Expected costs',
-  extraResult: 'Extra result',
+  expectedResult: 'What is roughly left',
+  expectedTurnover: 'About how much will customers pay this year?',
+  expectedCosts: 'About how much will you spend on this this year?',
+  extraResult: 'Extra before tax',
   estimatedSales: 'About how many sales this year?',
-  otherTurnoverAmount: 'Turnover outside HomeCheff (same activities)?',
-  previousYearTurnover: 'What was your relevant turnover last calendar year?',
+  otherTurnoverAmount: 'About how much per year? An estimate is fine.',
+  previousYearTurnover: 'About how much last year, per year?',
   taxChanges: 'Tax changes',
   zvwChanges: 'Healthcare insurance contribution',
   healthcareChanges: 'Healthcare allowance changes',
@@ -507,30 +576,49 @@ const EN: VerdienCheckCopy = {
   taxRegimeUnsupported: 'We cannot calculate this state-pension situation yet.',
   sourceOfIncomeReview: 'We need to look at this result more carefully first.',
   rowAssumptionNote:
-    'For this calculation we treat this as income from other work.',
+    'For this estimate we treat your extra earnings as extra work alongside other work. That is not an official tax decision.',
   costAssumptionNote:
-    'For this calculation we treat the costs you entered as deductible.',
+    'For this estimate we treat the costs you enter as deductible. If you are unsure, choose not to.',
   incompleteCredits: 'Some tax credits are not included yet.',
   allowanceKink: 'Your allowance changes if you earn more.',
   midYearNote:
     'If your situation changes during the year, we cannot calculate this yet.',
-  assessmentHelp: 'This is the income Toeslagen uses.',
-  box1Help: 'The income used for income tax.',
-  aggregateHelp: 'Your aggregate income, separate from your wage.',
-  arbeidsHelp: 'Your employment income, including extra earnings from work.',
+  assessmentHelp: 'The yearly income used for allowances. An estimate is fine.',
+  box1Help: 'The yearly income used for income tax. An estimate is fine.',
+  aggregateHelp: 'Your aggregate income on your tax return, besides your wage. An estimate is fine.',
+  arbeidsHelp: 'What you earn from work, including extra earnings. Per year. An estimate is fine.',
   zvwUsedHelp:
-    'The part of your income that already has a Zvw contribution, for example your wage.',
-  grossEmploymentHelp: 'Your gross wage. This is not the same as assessment income.',
+    'The part of your income that already has a healthcare insurance contribution, for example your wage. Per year.',
+  grossEmploymentHelp: 'Your gross yearly wage. This is not the same figure used for allowances.',
   partnerAssessmentHelp:
-    'Your partner’s assessment income. It does not change because of your extra earnings.',
-  incomeBasesNote: 'Enter each amount separately. These are not the same figures.',
+    'Your partner’s yearly income for allowances. It does not change because of your extra earnings. An estimate is fine.',
+  incomeBasesNote:
+    'Enter each amount separately, per year. An estimate is fine. These are not the same figures.',
   whatMeansThis: 'What does this mean?',
   iackHelp:
     'This is a tax credit when you combine work with care for a young child. It is not the same as child budget or childcare allowance.',
   fiscalPartnerHelp:
-    'A fiscal partner is not the same as an allowance partner. If you are unsure, choose that you do not know.',
+    'For tax, someone can be your fiscal partner. That is not the same as an allowance partner. If you are unsure, choose that you do not know.',
   singleOlderHelp:
-    'This is the single older persons tax credit for state pension. It is not a credit for single parents with children.',
+    'This is a tax credit for state pension if you live alone. It is not a credit for single parents with children.',
+  estimateOk: 'An estimate is fine. You do not need to be exact.',
+  yearlyHint:
+    'Enter the amount per year. If you only know a monthly amount, add twelve months, for example €1,800 × 12.',
+  moneyExplain:
+    'What customers pay is turnover. What you spend are costs. What is left is the result, before tax.',
+  progressAlmost: 'Almost done',
+  progressDone: 'Done',
+  progressOngoing: 'A few more questions',
+  startSellingNeedsAccount:
+    'Sign-in is only to start selling. Your VerdienCheck answers are not saved to your account.',
+  registrationKvkLabel: 'Chamber of Commerce (KVK)',
+  registrationVatLabel: 'VAT',
+  registrationKorLabel: 'Small-business VAT scheme (KOR)',
+  uwvBenefitUnknownHint:
+    'If you do not know the name, go one step back and choose Other. Then you are not guessing.',
+  keepEstimatePrefix: 'From €',
+  keepEstimateMiddle: ' extra result you keep an estimated €',
+  keepEstimateSuffix: '.',
   steps: {
     jurisdiction: {
       title: 'Do you live in the Netherlands?',
@@ -558,24 +646,26 @@ const EN: VerdienCheckCopy = {
     },
     situation: {
       title: 'Which situation fits you?',
+      help: 'UWV handles unemployment and disability benefits. Social assistance comes from your municipality. If you are unsure, choose Other.',
       options: {
         EMPLOYEE: 'I work as an employee',
-        WW: 'I receive WW',
-        BIJSTAND: 'I receive social assistance',
-        OTHER_UWV: 'I receive another UWV benefit',
+        WW: 'I receive WW (unemployment benefit)',
+        BIJSTAND: 'I receive social assistance from the municipality',
+        OTHER_UWV: 'I receive another benefit from UWV',
         EXISTING_ENTREPRENEUR: 'I already have a business',
         NONE: 'Other / none of these',
         OTHER: 'Other / none of these',
       },
     },
     uwvBenefit: {
-      title: 'Which UWV benefit?',
+      title: 'Which UWV benefit do you receive?',
+      help: 'Check your UWV letter if you are not sure of the name. Do not guess.',
       options: {
-        WIA: 'WIA',
-        WAJONG: 'Wajong',
+        WIA: 'WIA — disabled from work',
+        WAJONG: 'Wajong — disabled from a young age',
         ZW: 'Sickness benefit',
-        WAO: 'WAO',
-        WAZ: 'WAZ',
+        WAO: 'WAO — older disability benefit',
+        WAZ: 'WAZ — disability benefit for the self-employed',
       },
     },
     uwvDiscussedPlan: {
@@ -583,12 +673,13 @@ const EN: VerdienCheckCopy = {
       options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
     },
     wwStartPeriod: {
-      title: 'Do you want to use the UWV start period?',
+      title: 'Do you want to use a UWV start period?',
+      help: 'This is a UWV scheme to start from WW. You do not need to know the rules by heart. If you are unsure, say so.',
       options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know yet' },
     },
     wwRetainBenefit: {
-      title: 'Do you want to keep WW while you start?',
-      options: { YES: 'Yes', NO: 'No, without keeping WW', UNKNOWN: 'I don’t know yet' },
+      title: 'Do you want to keep your WW while you start?',
+      options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know yet' },
     },
     wwFormerEmployer: {
       title: 'Do you want to work for your last employer during the start period?',
@@ -599,7 +690,8 @@ const EN: VerdienCheckCopy = {
       options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
     },
     uwvResearchPeriod: {
-      title: 'Do you want to use a UWV research period?',
+      title: 'Do you first want to check with UWV whether starting fits?',
+      help: 'UWV sometimes calls this a research period. If you are unsure, say so.',
       options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know yet' },
     },
     uwvPermission: {
@@ -619,7 +711,8 @@ const EN: VerdienCheckCopy = {
       options: { YES: 'Yes', NO: 'No / I don’t know' },
     },
     bijstandPreparation: {
-      title: 'Does your municipality offer a preparation period?',
+      title: 'May your municipality let you practise before you really start?',
+      help: 'Some municipalities call this a preparation period. You do not need to know that name. If you are unsure, say so.',
       options: {
         AVAILABLE: 'Yes',
         NOT_AVAILABLE: 'No',
@@ -685,7 +778,10 @@ const EN: VerdienCheckCopy = {
       title: 'Is your partner insured for healthcare?',
       options: { INSURED: 'Yes', NOT_INSURED: 'No', UNKNOWN: 'I don’t know' },
     },
-    partnerIncome: { title: 'What is your partner’s assessment income?' },
+    partnerIncome: {
+      title: 'What is your partner’s yearly income for allowances?',
+      help: 'Allowances call this assessment income. An estimate is fine. If you only know a monthly amount, add twelve months.',
+    },
     frequency: {
       title: 'How often do you think you will sell?',
       options: {
@@ -714,14 +810,15 @@ const EN: VerdienCheckCopy = {
       },
     },
     foodNvwa: {
-      title: 'Have you already registered with the NVWA?',
+      title: 'Have you already registered with the food authority (NVWA)?',
+      help: 'NVWA is the Dutch food authority. For a one-off sale this is often not needed yet. If you are unsure, say so.',
       options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
     },
     foodSafetyPlan: {
-      title: 'Do you have a food-safety plan or hygiene code?',
+      title: 'Do you have a way of working safely and cleanly with food?',
       options: {
         USING_APPROVED_HYGIENE_CODE: 'Yes, a sector hygiene code',
-        USING_OWN_HACCP_PLAN: 'Yes, my own food-safety plan',
+        USING_OWN_HACCP_PLAN: 'Yes, my own plan for working safely',
         NOT_ARRANGED: 'Not yet',
         UNKNOWN: 'I don’t know',
       },
@@ -790,7 +887,10 @@ const EN: VerdienCheckCopy = {
         UNKNOWN: 'I don’t know',
       },
     },
-    children: { title: 'How old are your children? (ages, comma-separated)' },
+    children: {
+      title: 'How old are your children?',
+      help: 'Type the ages, for example 8 and 14.',
+    },
     youngChild: {
       title: 'Do you have a child under 12?',
       options: { YES: 'Yes', NO: 'No' },
@@ -812,7 +912,7 @@ const EN: VerdienCheckCopy = {
       },
     },
     fiscalPartner: {
-      title: 'Do you have a fiscal partner?',
+      title: 'Do you have a fiscal partner for tax?',
       options: {
         NONE: 'No',
         LESS_THAN_6_MONTHS: 'Yes, for less than six months',
@@ -820,7 +920,10 @@ const EN: VerdienCheckCopy = {
         UNKNOWN: 'I don’t know',
       },
     },
-    iackPartnerIncome: { title: 'What is your fiscal partner’s employment income?' },
+    iackPartnerIncome: {
+      title: 'About how much does your partner earn from work per year?',
+      help: 'An estimate is fine. If you only know a monthly amount, add twelve months.',
+    },
     iackRelativeAge: {
       title: 'Who is older: you or your fiscal partner?',
       options: {
@@ -837,9 +940,21 @@ const EN: VerdienCheckCopy = {
         UNKNOWN: 'I don’t know',
       },
     },
-    childcare: { title: 'What childcare do you use?' },
+    childcare: {
+      title: 'What childcare do you use?',
+      help: 'An estimate of hours and price is fine. If you do not know whether it counts for allowance, say you do not know.',
+      options: {
+        DAYCARE_CENTER: 'Daycare centre',
+        AFTER_SCHOOL_CENTER: 'After-school care (BSO)',
+        CHILDMINDER: 'Childminder',
+        REGISTERED_ELIGIBLE: 'Yes, this childcare counts for allowance',
+        NOT_ELIGIBLE: 'No, this childcare does not count for allowance',
+        UNKNOWN: 'I don’t know',
+      },
+    },
     workStudy: {
-      title: 'Do you work or study all of 2026 in a situation that qualifies for childcare allowance?',
+      title: 'Do you work or study all of 2026?',
+      help: 'Childcare allowance asks whether you work or study all year. If you do not know the rules, say you do not know.',
       options: {
         ELIGIBLE: 'Yes',
         NOT_ELIGIBLE: 'No',
@@ -850,23 +965,24 @@ const EN: VerdienCheckCopy = {
       title: 'Does this household situation stay the same all year?',
       options: { YES: 'Yes, all year', NO: 'No, it changes in 2026' },
     },
-    amounts: { title: 'What do you think you will sell?' },
+    amounts: { title: 'What do you think you will sell this year, roughly?' },
     otherVatTurnover: {
-      title: 'Do you have turnover outside HomeCheff from the same activities?',
+      title: 'Do you also sell the same things outside HomeCheff?',
       options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
     },
     existingRegistrations: {
       title: 'Have you already arranged this?',
+      help: 'KVK is the Chamber of Commerce. KOR is a VAT scheme for small businesses. If you are unsure, say so. Do not guess.',
       options: {
-        KVK_YES: 'I am registered with KVK',
-        KVK_NO: 'I am not registered with KVK',
+        KVK_YES: 'Yes, I am registered with the Chamber of Commerce (KVK)',
+        KVK_NO: 'No, I am not registered with KVK',
         KVK_UNKNOWN: 'I don’t know about KVK',
-        VAT_YES: 'I have a VAT registration',
-        VAT_NO: 'I do not have a VAT registration',
+        VAT_YES: 'Yes, I am registered for VAT',
+        VAT_NO: 'No, I am not registered for VAT',
         VAT_UNKNOWN: 'I don’t know about VAT',
-        KOR_YES: 'I use the small-business VAT scheme',
-        KOR_NO: 'I do not use that scheme',
-        KOR_UNKNOWN: 'I don’t know',
+        KOR_YES: 'Yes, I use the small-business VAT scheme (KOR)',
+        KOR_NO: 'No, I do not use that VAT scheme',
+        KOR_UNKNOWN: 'I don’t know about KOR',
       },
     },
     scenario: { title: 'What if you earn extra?' },

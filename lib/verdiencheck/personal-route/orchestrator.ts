@@ -185,9 +185,9 @@ export function buildPersonalVerdienRoute(input: {
   const nowCardsAll = deduplicateNowHits(sorted).sort(
     (a, b) => familyRank(a.family) - familyRank(b.family),
   );
-  const { primary: now, rest: restDetails } = capPrimaryNow(nowCardsAll);
+  let { primary: now, rest: restDetails } = capPrimaryNow(nowCardsAll);
   const soon = hitsToTimedCards(sorted, 'SOON');
-  const later = hitsToTimedCards(sorted, 'LATER');
+  let later = hitsToTimedCards(sorted, 'LATER');
 
   const hasContext = Boolean(
     ctx &&
@@ -198,6 +198,16 @@ export function buildPersonalVerdienRoute(input: {
 
   if (benefitFamily && hasPreStartAction(now)) {
     semantics = 'CHECK_FIRST';
+  }
+
+  if (semantics === 'CHECK_FIRST') {
+    const distracting = now.filter(
+      (c) => /^Je kunt beginnen\.?$/i.test(c.title) && c.family !== 'benefit_prestart',
+    );
+    if (distracting.length > 0) {
+      now = now.filter((c) => !distracting.includes(c));
+      later = [...distracting, ...later];
+    }
   }
 
   const copy = headlineFor({
