@@ -28,6 +28,13 @@ export const LANDSCAPE_WORK_POSTURE = {
  */
 export const LANDSCAPE_SHORT_CHROME_MAX_HEIGHT_EXCLUSIVE = 520;
 
+/**
+ * Do not replace the desktop header with the phone work-bar merely because a
+ * wide window is short. Matches NavBar `xl` (1280px): at this width the
+ * shared desktop nav is the essential surface and must stay reachable.
+ */
+export const LANDSCAPE_SHORT_CHROME_MAX_WIDTH_EXCLUSIVE = 1280;
+
 export type WorkspaceChromeDensity = "standard" | "compact";
 
 export type LandscapeWorkPosturePlan = {
@@ -76,7 +83,8 @@ export function resolveLandscapeWorkPosture(
   const shortChromeCompact =
     workPostureActive &&
     usableHeightPx > 0 &&
-    usableHeightPx < LANDSCAPE_SHORT_CHROME_MAX_HEIGHT_EXCLUSIVE;
+    usableHeightPx < LANDSCAPE_SHORT_CHROME_MAX_HEIGHT_EXCLUSIVE &&
+    usableWidthPx < LANDSCAPE_SHORT_CHROME_MAX_WIDTH_EXCLUSIVE;
 
   return {
     posture,

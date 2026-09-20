@@ -195,6 +195,7 @@ export type {
 export {
   LANDSCAPE_WORK_POSTURE,
   LANDSCAPE_SHORT_CHROME_MAX_HEIGHT_EXCLUSIVE,
+  LANDSCAPE_SHORT_CHROME_MAX_WIDTH_EXCLUSIVE,
   resolveLandscapeWorkPosture,
   isSameLandscapeWorkPosturePlan,
 } from "./resolve-landscape-work-posture";

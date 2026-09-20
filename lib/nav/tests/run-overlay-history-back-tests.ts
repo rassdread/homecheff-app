@@ -31,7 +31,9 @@ assert.match(nav, /useOverlayHistoryBack/);
 assert.match(nav, /data-wx-landscape-menu/);
 assert.match(nav, /z-\[200\]|z-\[99990\]/);
 assert.match(nav, /createPortal/);
-assert.match(nav, /max-h-\[85dvh\]/);
+assert.match(nav, /max-h-\[100dvh\]/);
+assert.match(nav, /overflow-y-auto/);
+assert.match(nav, /scrollIntoView/);
 
 const search = readFileSync(
   join(root, "components/feed/FeedSearchContextBar.tsx"),

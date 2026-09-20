@@ -137,6 +137,21 @@ export default function NavBar() {
     setIsMobileMenuOpen(false);
   });
 
+  /** Keep keyboard focus inside the scrollport on short viewports. */
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const el = document.getElementById('navbar-mobile-menu');
+    if (!el) return;
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+    };
+    el.addEventListener('focusin', onFocusIn);
+    return () => el.removeEventListener('focusin', onFocusIn);
+  }, [isMobileMenuOpen]);
+
   useEffect(() => {
     const root = document.documentElement;
     if (suppressNavbarChrome) {
@@ -684,7 +699,7 @@ export default function NavBar() {
                         right: typeof window !== 'undefined' && window.innerWidth < 768 ? 16 : dropdownPosition.right,
                         left: typeof window !== 'undefined' && window.innerWidth < 768 ? 16 : 'auto',
                         width: typeof window !== 'undefined' && window.innerWidth < 768 ? 'calc(100vw - 32px)' : DROPDOWN_WIDTH,
-                        maxHeight: typeof window !== 'undefined' ? `calc(100vh - ${dropdownPosition.top}px - 24px)` : 'none'
+                        maxHeight: typeof window !== 'undefined' ? `calc(100dvh - ${dropdownPosition.top}px - 24px)` : 'none'
                       }}
                     >
                       <SimplifiedAccountMenu
@@ -725,8 +740,9 @@ export default function NavBar() {
         </div>
       </div>
 
-        {/* Compact / mobile navigation (< xl). Short landscape portals to body so the
-            panel is not clipped by the height-0 suppressed header / feed stacking. */}
+        {/* Compact / mobile navigation (< xl). Always an independently scrollable
+            overlay so short viewports and document-owned-scroll shells cannot clip
+            essential items. Short landscape portals above the suppressed header. */}
         {isMobileMenuOpen &&
           (() => {
             const panel = (
@@ -735,13 +751,16 @@ export default function NavBar() {
             data-wx-landscape-menu={suppressNavbarChrome ? '1' : '0'}
             className={cn(
               'xl:hidden border-t border-gray-200 py-4 bg-white dark:bg-gray-900',
-              suppressNavbarChrome &&
-                'hc-wx-landscape-menu-panel fixed top-0 z-[99990] max-h-[85dvh] overflow-y-auto shadow-lg border-b pointer-events-auto',
-              suppressNavbarChrome &&
-                'pt-[max(3.75rem,calc(3.25rem+env(safe-area-inset-top,0px)))]',
-              !suppressNavbarChrome && 'max-w-7xl mx-auto px-3 sm:px-5',
-              bottomNavReachable &&
-                'pb-[max(1rem,calc(env(safe-area-inset-bottom,0px)+5.5rem))]',
+              'overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+              suppressNavbarChrome
+                ? 'hc-wx-landscape-menu-panel !flex fixed inset-x-0 top-0 z-[99990] max-h-[100dvh] shadow-lg border-b pointer-events-auto pt-[max(3.75rem,calc(2.75rem+env(safe-area-inset-top,0px)))] pb-[max(1rem,env(safe-area-inset-bottom,0px))]'
+                : cn(
+                    'fixed inset-x-0 z-[200] max-w-7xl mx-auto px-3 sm:px-5 shadow-lg',
+                    'top-[var(--hc-top-nav-height,4rem)]',
+                    bottomNavReachable
+                      ? 'max-h-[calc(100dvh-var(--hc-top-nav-height,4rem)-var(--hc-bottom-nav-offset,5.25rem))] pb-[max(1rem,calc(env(safe-area-inset-bottom,0px)+5.5rem))]'
+                      : 'max-h-[calc(100dvh-var(--hc-top-nav-height,4rem)-env(safe-area-inset-bottom,0px))] pb-[max(1rem,env(safe-area-inset-bottom,0px))]',
+                  ),
             )}
           >
             <nav className="flex flex-col space-y-2" aria-label={t('navbar.mobileMenuAria')}>
@@ -991,7 +1010,7 @@ export default function NavBar() {
             </nav>
           </div>
             );
-            if (suppressNavbarChrome && typeof document !== 'undefined') {
+            if (typeof document !== 'undefined') {
               return createPortal(panel, document.body);
             }
             return panel;

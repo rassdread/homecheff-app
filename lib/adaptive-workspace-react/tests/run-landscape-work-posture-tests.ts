@@ -88,6 +88,34 @@ begin("tablet / desktop / ultrawide landscape");
   ok("tablet/desktop/ultrawide landscape collapses bottom nav");
 }
 
+begin("wide short windows keep desktop chrome");
+{
+  for (const [w, h] of [
+    [1280, 500],
+    [1366, 600],
+    [1440, 500],
+    [1440, 600],
+    [1440, 700],
+  ] as const) {
+    const plan = resolveLandscapeWorkPosture({
+      usableWidthPx: w,
+      usableHeightPx: h,
+    });
+    assert.equal(plan.workPostureActive, true, `${w}x${h}`);
+    assert.equal(
+      plan.shortChromeCompact,
+      false,
+      `${w}x${h} must not hide the shared desktop header`,
+    );
+  }
+  const phoneLandscape = resolveLandscapeWorkPosture({
+    usableWidthPx: 844,
+    usableHeightPx: 390,
+  });
+  assert.equal(phoneLandscape.shortChromeCompact, true);
+  ok("xl+ short height keeps header; phone landscape still compact");
+}
+
 begin("fail-closed non-finite");
 {
   const bad = resolveLandscapeWorkPosture({
@@ -173,6 +201,9 @@ begin("source seals — no UA/device branching in policy + chrome");
   assert.match(navBar, /data-wx-navbar/);
   assert.match(navBar, /suppressNavbarChrome|data-wx-navbar-suppressed/);
   assert.match(navBar, /NAVBAR_TOGGLE_MENU_EVENT|navbar-command-bus/);
+  assert.match(navBar, /max-h-\[100dvh\]/);
+  assert.match(navBar, /overflow-y-auto/);
+  assert.match(policy, /LANDSCAPE_SHORT_CHROME_MAX_WIDTH_EXCLUSIVE/);
 
   const workBar = readFileSync(
     join(root, "components/adaptive-workspace/LandscapeWorkBarCommands.tsx"),
