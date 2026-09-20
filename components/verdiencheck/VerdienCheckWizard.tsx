@@ -1793,9 +1793,25 @@ export default function VerdienCheckWizard(props: {
             <div className="space-y-4">
               <VerdienCheckResultSummary route={personalRoute} />
               <VerdienCheckNowSection cards={personalRoute.now} />
-              <p className="text-lg font-medium text-stone-800">{copy.quickCheckDone}</p>
+              {personalRoute.proceedSemantics === 'READY_TO_PROCEED' ||
+              personalRoute.proceedSemantics === 'PROCEED_AFTER_ACTION' ? (
+                <VerdienCheckResultCta
+                  copy={copy}
+                  entryPoint={entryPoint}
+                  primaryStartSelling={personalRoute.proceedSemantics === 'READY_TO_PROCEED'}
+                  secondaryStartSelling={personalRoute.proceedSemantics === 'PROCEED_AFTER_ACTION'}
+                  onRestart={restartCheck}
+                  variant="sell"
+                />
+              ) : null}
+              {personalRoute.proceedSemantics === 'READY_TO_PROCEED' ? (
+                <p className="text-sm leading-relaxed text-stone-600">
+                  {PERSONAL_ROUTE_COPY.growthReassurance}
+                </p>
+              ) : null}
+              <p className="text-sm leading-relaxed text-stone-500">{copy.quickCheckDone}</p>
               {!isBenefitSituation(state) && !state.moneyDeclined && !state.moneyDepthCompleted ? (
-                <div className="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+                <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4">
                   <p className="text-base leading-relaxed text-stone-800">{copy.moneyPrompt}</p>
                   <ChoiceButton selected={false} onClick={startMoneyDepth}>
                     {copy.moneyYes}
@@ -1820,10 +1836,11 @@ export default function VerdienCheckWizard(props: {
                   {PERSONAL_ROUTE_COPY.moreDetail}
                 </summary>
                 <div className="mt-3 space-y-3">
-                  <VerdienCheckSoonSection cards={personalRoute.soon} />
+                  <VerdienCheckSoonSection cards={personalRoute.soon} plain />
                   <VerdienCheckLaterSection
                     cards={personalRoute.later}
                     restDetails={personalRoute.restDetails}
+                    plain
                   />
                 </div>
               </details>
@@ -1833,9 +1850,10 @@ export default function VerdienCheckWizard(props: {
               <VerdienCheckResultCta
                 copy={copy}
                 entryPoint={entryPoint}
-                primaryStartSelling={personalRoute.proceedSemantics === 'READY_TO_PROCEED'}
-                secondaryStartSelling={personalRoute.proceedSemantics === 'PROCEED_AFTER_ACTION'}
+                primaryStartSelling={false}
+                secondaryStartSelling={false}
                 onRestart={restartCheck}
+                variant="nav"
               />
             </div>
           )}

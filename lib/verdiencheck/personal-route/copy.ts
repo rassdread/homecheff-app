@@ -9,6 +9,8 @@ import type { BenefitRouteFamily } from '../domain/person';
 export const PERSONAL_ROUTE_COPY = {
   tracking:
     'Wij houden je verkopen bij en laten het weten als er iets verandert. Je hoeft niet alles nu te weten.',
+  growthReassurance:
+    'Als je verkoop groeit, laat VerdienCheck zien wat later belangrijk wordt.',
   laterSection: 'Wat kan later belangrijk worden?',
   moreDetail: 'Meer uitleg',
   soonSection: 'Straks relevant',
@@ -21,22 +23,24 @@ export const PERSONAL_ROUTE_COPY = {
   turnoverVsResult:
     'Omzet is wat klanten betalen. Resultaat is wat overblijft nadat je relevante kosten eraf haalt.',
   unknownFinancial: 'We kunnen het nog niet precies schatten.',
-  foodCombinedTitle: 'Je verkoopt eten',
+  foodCombinedTitle: 'Let bij eten op twee dingen',
   foodCombinedBody:
     'Bereid het veilig en hygiënisch en vertel klanten welke allergenen erin zitten.',
   foodRegistrationExtra:
-    'Je verkoopt meerdere keren per jaar. Meld je dan ook bij de voedselautoriteit (NVWA).',
-  dac7Title: 'HomeCheff kan wettelijk verplicht zijn verkoopgegevens door te geven',
+    'Je verkoopt meerdere keren per jaar. Meld je dan ook bij de voedselautoriteit.',
+  dac7Title: 'Als je verkoop groeit, kan HomeCheff verkoopgegevens moeten doorgeven',
   dac7Body: 'Dat betekent niet automatisch dat je belasting moet betalen.',
   dac7Cta: 'Meer uitleg over platformrapportage',
-  growthVat: 'Je verkoop groeit. Kijk daarom even of btw voor jou geldt.',
+  growthVat: 'Als je verkoop groeit, kijk dan of btw voor jou speelt.',
   growthNvwa:
-    'Je verkoopt inmiddels vaker. Controleer of je je bij de voedselautoriteit (NVWA) moet melden.',
-  korTitle: 'Kleineondernemersregeling (KOR) later bekijken',
-  vatReviewTitle: 'Controleer later of btw voor jou geldt',
-  nvwaOnceTitle:
-    'Bij één keer verkopen hoef je je meestal niet te melden bij de voedselautoriteit (NVWA)',
-  nvwaRequiredTitle: 'Meld je bij de voedselautoriteit (NVWA)',
+    'Als je vaker eten verkoopt, kijk dan of je je bij de voedselautoriteit moet melden.',
+  korTitle: 'Kleineondernemersregeling later bekijken',
+  vatReviewTitle: 'Later kun je kijken of btw voor jou speelt',
+  nvwaOnceTitle: 'Bij één keer verkopen hoef je je meestal niet te melden bij de voedselautoriteit',
+  nvwaRequiredTitle: 'Meld je nu bij de voedselautoriteit',
+  kvkLaterTitle: 'Als je vaker gaat verkopen',
+  kvkLaterBody:
+    'Dan kijken we opnieuw of inschrijven bij de Kamer van Koophandel relevant wordt. Nu is dat meestal nog geen eerste stap.',
   growthBusiness: 'Je verkoop is gegroeid. Daardoor worden een paar zakelijke stappen relevant.',
   bijstandPlanHelp:
     'Wij kunnen de gegevens die je al hebt ingevuld later gebruiken om je plan overzichtelijk te maken.',
@@ -48,6 +52,7 @@ export function headlineFor(input: {
   benefitFamily: BenefitRouteFamily | null;
   growth: HomecheffGrowthIntent | null;
   foodMultiple: boolean;
+  foodSold?: boolean;
   waitForPermission?: boolean;
 }): { headline: string; summary: string; canStartMessage: string } {
   if (input.semantics === 'INSUFFICIENT_CONTEXT') {
@@ -60,7 +65,7 @@ export function headlineFor(input: {
 
   if (input.waitForPermission) {
     return {
-      headline: 'Controleer eerst één stap voordat je begint.',
+      headline: 'Controleer dit eerst met UWV.',
       summary: 'Er is één ding dat je nu moet nagaan bij UWV. Daarna kun je verder.',
       canStartMessage: 'Je bent bijna klaar. Controleer eerst dit.',
     };
@@ -68,16 +73,15 @@ export function headlineFor(input: {
 
   if (input.benefitFamily === 'WW') {
     return {
-      headline: 'Je kunt vanuit WW starten. Controleer eerst welke UWV-route bij je past.',
-      summary: 'Eerst je uitkering. Daarna kijken we naar verkopen en wat je ongeveer overhoudt.',
+      headline: 'Controleer dit eerst met UWV.',
+      summary: 'Bespreek je plan met UWV. Daarna kun je verder met verkopen.',
       canStartMessage: 'Je bent bijna klaar. Controleer eerst dit.',
     };
   }
   if (input.benefitFamily === 'BIJSTAND') {
     return {
-      headline:
-        'Je gemeente kan je helpen om vanuit de bijstand te starten. Bespreek je plan eerst met de gemeente.',
-      summary: PERSONAL_ROUTE_COPY.bijstandPlanHelp,
+      headline: 'Bespreek dit eerst met je gemeente.',
+      summary: 'Je gemeente bepaalt de regels voor bijverdienen vanuit de bijstand.',
       canStartMessage: 'Je bent bijna klaar. Controleer eerst dit.',
     };
   }
@@ -89,7 +93,7 @@ export function headlineFor(input: {
     input.benefitFamily === 'WAZ'
   ) {
     return {
-      headline: 'Controleer eerst één stap voordat je begint.',
+      headline: 'Controleer dit eerst met UWV.',
       summary: 'Bespreek je plan met UWV. Daarna kijken we wat je via HomeCheff kunt doen.',
       canStartMessage: 'Je bent bijna klaar. Controleer eerst dit.',
     };
@@ -97,7 +101,7 @@ export function headlineFor(input: {
 
   if (input.semantics === 'CHECK_FIRST') {
     return {
-      headline: 'Controleer eerst één stap voordat je begint.',
+      headline: 'Controleer eerst één stap.',
       summary: 'Er is één ding dat je nu moet nagaan. Daarna kun je verder.',
       canStartMessage: 'Je bent bijna klaar. Controleer eerst dit.',
     };
@@ -105,8 +109,8 @@ export function headlineFor(input: {
 
   if (input.foodMultiple && input.semantics === 'PROCEED_AFTER_ACTION') {
     return {
-      headline: 'Je kunt verkopen, maar regel een paar praktische zaken.',
-      summary: 'Begin met veilig werken en de stappen die nu nodig zijn. De rest komt later.',
+      headline: 'Je kunt verkopen, maar regel nu deze praktische stap.',
+      summary: 'Begin met veilig werken. De rest komt later.',
       canStartMessage: 'Je kunt beginnen. Regel daarnaast wat nu nodig is.',
     };
   }
@@ -119,12 +123,27 @@ export function headlineFor(input: {
     };
   }
 
-  const trying = input.growth === 'TRYING_OUT' || input.growth === 'OCCASIONAL_EARNING';
+  if (input.foodSold) {
+    return {
+      headline: 'Je kunt beginnen.',
+      summary:
+        'Let bij eten meteen op deze twee dingen: veilig bereiden en allergenen duidelijk maken.',
+      canStartMessage: 'Je kunt beginnen.',
+    };
+  }
+
+  if (input.growth === 'TRYING_OUT') {
+    return {
+      headline: 'Je kunt het eerst proberen.',
+      summary:
+        'Je hoeft niet eerst alles over ondernemen te regelen. Als je vaker gaat verkopen, helpt HomeCheff je zien wat later belangrijk wordt.',
+      canStartMessage: 'Je kunt beginnen.',
+    };
+  }
+
   return {
     headline: 'Je kunt beginnen.',
-    summary: trying
-      ? 'Voor wat je nu wilt doen hoef je niet eerst alles over ondernemen te weten. HomeCheff helpt je als er later iets verandert.'
-      : 'Begin met wat je kunt. HomeCheff laat zien wat verdienen voor jou betekent.',
+    summary: PERSONAL_ROUTE_COPY.growthReassurance,
     canStartMessage: 'Je kunt beginnen.',
   };
 }

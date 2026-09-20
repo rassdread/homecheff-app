@@ -20,8 +20,13 @@ export default function VerdienCheckResultCta(props: {
   /** Secondary sell CTA below required checks — not above NOW cards. */
   secondaryStartSelling: boolean;
   onRestart: () => void;
+  /** sell = listing CTA only; nav = leave/restart; all = both (fallback). */
+  variant?: 'sell' | 'nav' | 'all';
 }) {
   const { requireAuthAction, guestAuthPanel, isGuest } = useGuestAuthGate();
+  const variant = props.variant ?? 'all';
+  const showSellBlock = variant === 'sell' || variant === 'all';
+  const showNav = variant === 'nav' || variant === 'all';
 
   function onStartSelling(e: MouseEvent) {
     if (isGuest) {
@@ -43,43 +48,59 @@ export default function VerdienCheckResultCta(props: {
   const sellClassSecondary =
     'relative z-[80] inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-emerald-700 bg-white px-4 py-3 text-lg font-medium text-emerald-900 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700';
 
-  const showSell = props.primaryStartSelling || (props.secondaryStartSelling && !props.primaryStartSelling);
+  const showSell =
+    showSellBlock &&
+    (props.primaryStartSelling || (props.secondaryStartSelling && !props.primaryStartSelling));
 
   return (
     <div className="space-y-3" data-verdiencheck-result-cta="">
-      {props.primaryStartSelling ? (
-        <button type="button" className={sellClassPrimary} onClick={onStartSelling}>
+      {showSellBlock && props.primaryStartSelling ? (
+        <button
+          type="button"
+          className={sellClassPrimary}
+          data-verdiencheck-primary-cta="sell"
+          onClick={onStartSelling}
+        >
           {props.copy.startSelling}
         </button>
       ) : null}
-      {props.secondaryStartSelling && !props.primaryStartSelling ? (
-        <button type="button" className={sellClassSecondary} onClick={onStartSelling}>
+      {showSellBlock && props.secondaryStartSelling && !props.primaryStartSelling ? (
+        <button
+          type="button"
+          className={sellClassSecondary}
+          data-verdiencheck-primary-cta="sell-secondary"
+          onClick={onStartSelling}
+        >
           {props.copy.startSelling}
         </button>
       ) : null}
       {showSell && isGuest ? (
         <p className="text-base leading-relaxed text-gray-600">{props.copy.startSellingNeedsAccount}</p>
       ) : null}
-      <Link
-        href="/"
-        className="relative z-[80] inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg text-gray-800 pointer-events-auto"
-        onClick={() =>
-          trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
-            entry_point: props.entryPoint,
-            action: 'RETURN_TO_HOMECHEFF',
-          })
-        }
-      >
-        {props.copy.leaveProduct}
-      </Link>
-      <button
-        type="button"
-        className="relative z-[80] inline-flex min-h-12 w-full items-center justify-center text-base text-gray-600 underline pointer-events-auto"
-        onClick={props.onRestart}
-      >
-        {props.copy.restartCheck}
-      </button>
-      {guestAuthPanel}
+      {showNav ? (
+        <>
+          <Link
+            href="/"
+            className="relative z-[80] inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg text-gray-800 pointer-events-auto"
+            onClick={() =>
+              trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
+                entry_point: props.entryPoint,
+                action: 'RETURN_TO_HOMECHEFF',
+              })
+            }
+          >
+            {props.copy.leaveProduct}
+          </Link>
+          <button
+            type="button"
+            className="relative z-[80] inline-flex min-h-12 w-full items-center justify-center text-base text-gray-600 underline pointer-events-auto"
+            onClick={props.onRestart}
+          >
+            {props.copy.restartCheck}
+          </button>
+        </>
+      ) : null}
+      {showSell ? guestAuthPanel : null}
     </div>
   );
 }

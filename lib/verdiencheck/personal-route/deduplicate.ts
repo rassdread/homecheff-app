@@ -29,6 +29,24 @@ function friendlyBody(hit: GuidanceHit): { title: string; body: string } {
   if (family === 'optimization' || hit.rule.id.includes('.kor.')) {
     return { title: PERSONAL_ROUTE_COPY.korTitle, body: hit.rule.shortText };
   }
+  if (hit.rule.id.includes('ww.wait_permission')) {
+    return {
+      title: 'Wacht op toestemming van UWV',
+      body: 'Zolang UWV nog geen toestemming heeft, wacht je met starten. Daarna kun je verder.',
+    };
+  }
+  if (hit.rule.id.includes('ww.discuss_before_start')) {
+    return {
+      title: 'Bespreek je plan met UWV',
+      body: 'Dat is de ene stap die je nu eerst doet. Daarna kun je verder met verkopen.',
+    };
+  }
+  if (hit.rule.id.includes('bijstand.discuss_municipality')) {
+    return {
+      title: 'Bespreek dit met je gemeente',
+      body: 'Je gemeente bepaalt de regels voor bijverdienen vanuit de bijstand. Dat is de ene stap die je nu eerst doet.',
+    };
+  }
   if (hit.rule.id.includes('bijstand.bbz_review')) {
     return {
       title: 'Extra hulp bij starten beoordeelt de gemeente',
@@ -40,6 +58,9 @@ function friendlyBody(hit: GuidanceHit): { title: string; body: string } {
       title: 'Vraag de regels na bij jouw gemeente',
       body: hit.rule.shortText,
     };
+  }
+  if (hit.rule.id.includes('kvk.incidental') || hit.rule.id.includes('kvk.insufficient')) {
+    return { title: PERSONAL_ROUTE_COPY.kvkLaterTitle, body: PERSONAL_ROUTE_COPY.kvkLaterBody };
   }
   if (family === 'business_registration' || hit.rule.id.includes('.kvk.')) {
     return {
@@ -97,9 +118,9 @@ function mergeGroup(hits: GuidanceHit[], family: CardFamily, primary: boolean): 
         ? `${PERSONAL_ROUTE_COPY.foodCombinedBody} ${PERSONAL_ROUTE_COPY.foodRegistrationExtra}`
         : PERSONAL_ROUTE_COPY.foodCombinedBody,
       sourceRuleIds: hits.map((h) => h.rule.id),
-      cta: first.rule.cta ?? null,
-      officialSource: first.rule.officialSource,
-      officialSourceUrl: first.rule.officialSourceUrl,
+      cta: nvwa ? (hits.find((h) => h.rule.id.includes('nvwa.registration_required'))?.rule.cta ?? first.rule.cta ?? null) : null,
+      officialSource: nvwa ? first.rule.officialSource : null,
+      officialSourceUrl: nvwa ? first.rule.officialSourceUrl : null,
       primary,
     };
   }

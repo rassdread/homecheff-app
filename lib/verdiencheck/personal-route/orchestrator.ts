@@ -60,27 +60,55 @@ function resolveSemantics(input: {
   return 'READY_TO_PROCEED';
 }
 
-/** Exploring sellers: business CHECK is not a start blocker and is not NOW. */
-function demoteExploringBusinessHits(
+function isExploringGrowth(growth: HomecheffGrowthIntent | null | undefined): boolean {
+  return growth === 'TRYING_OUT' || growth === 'OCCASIONAL_EARNING';
+}
+
+/**
+ * A rule can apply without being a start action.
+ * INFO/CHECK KVK, “you can start”, and growth reviews are not NOW tasks.
+ */
+function demoteFutureBusinessHits(
   hits: readonly GuidanceHit[],
   growth: HomecheffGrowthIntent | null | undefined,
 ): GuidanceHit[] {
-  if (growth !== 'TRYING_OUT' && growth !== 'OCCASIONAL_EARNING') return [...hits];
+  const exploring = isExploringGrowth(growth);
   return hits.map((hit) => {
     const family = cardFamilyOf(hit.rule.id);
+    if (family === 'start') {
+      return { ...hit, timing: 'LATER' as const };
+    }
     if (family !== 'business_registration') return hit;
     if (hit.rule.severity === 'ACTION' || hit.rule.severity === 'REQUIRED_BY_PLATFORM') {
       return hit;
     }
-    if (hit.rule.id.includes('kvk.incidental') || hit.rule.id.includes('you_can_start')) {
-      return hit;
+    if (
+      hit.rule.severity === 'INFO' ||
+      hit.rule.id.includes('kvk.incidental') ||
+      hit.rule.id.includes('kvk.insufficient') ||
+      hit.rule.id.includes('kvk.already_registered')
+    ) {
+      return { ...hit, timing: 'LATER' as const };
     }
     if (hitTiming(hit) !== 'NOW') return hit;
     return {
       ...hit,
-      timing: hit.rule.severity === 'CHECK' ? ('SOON' as const) : ('LATER' as const),
+      timing: exploring ? ('LATER' as const) : ('SOON' as const),
     };
   });
+}
+
+const FOOD_NOW_FAMILIES = new Set(['food_safety', 'food_allergen', 'food_registration']);
+
+function pickPrimaryBenefitCard(cards: readonly PersonalRouteCard[]): PersonalRouteCard | null {
+  const benefit = cards.filter((c) => c.family === 'benefit_prestart');
+  if (benefit.length === 0) return null;
+  return (
+    benefit.find((c) => c.id === 'ux.uwv.scheme_unknown') ??
+    benefit.find((c) => c.sourceRuleIds.some((id) => id.includes('wait_permission'))) ??
+    benefit[0] ??
+    null
+  );
 }
 
 function demoteDac7UnlessNeeded(hits: readonly GuidanceHit[]): GuidanceHit[] {
@@ -175,7 +203,7 @@ export function buildPersonalVerdienRoute(input: {
           frequency: ctx.activity.frequency,
         })
       : null);
-  const timed = demoteExploringBusinessHits(
+  const timed = demoteFutureBusinessHits(
     demoteAlreadyRegisteredKvk(
       demoteKor(demoteDac7UnlessNeeded(applyObservedActivityTiming(rawHits, observed))),
     ),
@@ -187,7 +215,7 @@ export function buildPersonalVerdienRoute(input: {
     (a, b) => familyRank(a.family) - familyRank(b.family),
   );
   let { primary: now, rest: restDetails } = capPrimaryNow(nowCardsAll);
-  const soon = hitsToTimedCards(sorted, 'SOON');
+  let soon = hitsToTimedCards(sorted, 'SOON');
   let later = hitsToTimedCards(sorted, 'LATER');
 
   const hasContext = Boolean(
@@ -208,7 +236,7 @@ export function buildPersonalVerdienRoute(input: {
       family: 'benefit_prestart',
       timing: 'NOW',
       severity: 'CHECK',
-      title: 'Controleer eerst welke uitkering je van UWV krijgt.',
+      title: 'Controleer welke uitkering je hebt.',
       body: 'Dat bepaalt welke regels voor bijverdienen gelden. Kijk op een recente brief of in Mijn UWV. Gok de naam niet.',
       sourceRuleIds: [],
       cta: {
@@ -224,30 +252,40 @@ export function buildPersonalVerdienRoute(input: {
   }
 
   if (semantics === 'CHECK_FIRST') {
-    const distracting = now.filter(
-      (c) => /^Je kunt beginnen\.?$/i.test(c.title) && c.family !== 'benefit_prestart',
-    );
-    if (distracting.length > 0) {
-      now = now.filter((c) => !distracting.includes(c));
-      later = [...distracting, ...later];
-    }
+    const benefit = now.filter((c) => c.family === 'benefit_prestart');
+    const other = now.filter((c) => c.family !== 'benefit_prestart');
+    const primary = pickPrimaryBenefitCard(benefit);
+    now = primary ? [primary] : benefit.slice(0, 1);
+    later = [...benefit.filter((c) => c !== primary), ...other, ...later];
   }
 
+  if (semantics === 'PROCEED_AFTER_ACTION') {
+    const keep = now.filter((c) => FOOD_NOW_FAMILIES.has(c.family));
+    const moved = now.filter((c) => !FOOD_NOW_FAMILIES.has(c.family));
+    now = keep;
+    const soonMoved = moved.filter((c) => c.severity === 'ACTION' || c.severity === 'CHECK');
+    const laterMoved = moved.filter((c) => c.severity !== 'ACTION' && c.severity !== 'CHECK');
+    soon = [...soonMoved, ...soon];
+    later = [...laterMoved, ...later];
+  }
+
+  const foodSold = Boolean(ctx?.food || ctx?.activity?.kinds.includes('FOOD'));
   const copy = headlineFor({
     semantics,
     benefitFamily,
     growth: declared,
     foodMultiple: foodMultiple === true,
+    foodSold,
     waitForPermission: hasWaitForPermission(now),
   });
   const uwvUnknown = input.forceCheckFirstReason === 'UWV_SCHEME_UNKNOWN';
 
   const route: PersonalVerdienRoute = {
     headline: uwvUnknown
-      ? 'Controleer eerst welke uitkering je van UWV krijgt.'
+      ? 'Controleer welke uitkering je hebt.'
       : copy.headline,
     summary: uwvUnknown
-      ? 'Dat bepaalt welke regels voor bijverdienen gelden. Daarna kijken we wat je via HomeCheff kunt doen.'
+      ? 'Dat bepaalt welke regels voor bijverdienen gelden. Kijk op een recente brief of in Mijn UWV.'
       : copy.summary,
     canStartMessage: uwvUnknown
       ? 'Je bent bijna klaar. Controleer eerst dit.'
@@ -283,7 +321,7 @@ export function buildPersonalVerdienRoute(input: {
     return {
       ...route,
       proceedSemantics: 'CHECK_FIRST',
-      headline: 'Controleer eerst één stap voordat je begint.',
+      headline: 'Controleer eerst één stap.',
       canStartMessage: 'Je bent bijna klaar. Controleer eerst dit.',
     };
   }

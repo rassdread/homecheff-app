@@ -211,7 +211,7 @@ const starter = routeFrom(
     customers: 'PRIVATE_CIRCLE',
   }),
 );
-assert.match(starter.headline, /^Je kunt beginnen\.$/);
+assert.match(starter.headline, /Je kunt (beginnen|het eerst proberen)/);
 assert.doesNotMatch(nowText(starter), /NVWA|DAC7|KOR|Belastingdienst/);
 assert.equal(starter.proceedSemantics, 'READY_TO_PROCEED');
 const starterQs = questionSteps(

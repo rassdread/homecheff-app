@@ -142,7 +142,8 @@ for (const lang of ['nl', 'en'] as const) {
   assert.match(copy.estimateOk, /schatting|estimate/i);
   assert.match(copy.yearlyHint, /jaar|year/i);
   assert.match(copy.moneyExplain, /omzet|turnover/i);
-  assert.match(copy.startSellingNeedsAccount, /inloggen|sign-in/i);
+  assert.match(copy.startSelling, /Maak je eerste aanbod|Create your first listing/);
+  assert.match(copy.moneyPrompt, /geld|money/);
   assert.match(copy.progressOngoing, /vragen|questions/i);
   assert.match(copy.registrationKvkLabel, /Kamer van Koophandel|Chamber of Commerce/);
   assert.match(copy.registrationKorLabel, /Kleineondernemersregeling|Small-business/);
@@ -187,6 +188,8 @@ const fiveSecond = [
     foodMultiple: true,
   }),
 ];
+assert.equal(fiveSecond[0]?.headline, 'Je kunt het eerst proberen.');
+assert.equal(fiveSecond[1]?.headline, 'Controleer dit eerst met UWV.');
 for (const row of fiveSecond) {
   assert.match(row.canStartMessage, /beginnen|Controleer eerst|bijna klaar/);
   assert.doesNotMatch(row.headline, /UNKNOWN|VAT entrepreneurship|REVIEW_REQUIRED/);

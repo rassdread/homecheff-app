@@ -165,7 +165,7 @@ const cook = state({
 });
 const cookRoute = routeFrom(cook);
 assert.ok(cookRoute.now.length <= 3);
-assert.match(cookRoute.headline, /regel een paar praktische zaken|regel eerst één ding|Je kunt/);
+assert.match(cookRoute.headline, /regel nu deze praktische stap|regel een paar praktische zaken|regel eerst één ding|Je kunt/);
 const cookNow = cookRoute.now.map((c) => `${c.title} ${c.body}`).join('\n');
 assert.match(cookNow, /NVWA|allergenen|hygiënisch|voedselveilig/i);
 results.MAX_THREE_PRIMARY_NOW_CARDS = 'PASS';
@@ -269,7 +269,7 @@ const ww = routeFrom(
     discussedWithUwv: false,
   }),
 );
-assert.match(ww.headline, /WW|Controleer eerst/i);
+assert.match(ww.headline, /UWV|WW|Controleer dit eerst/i);
 assert.notEqual(ww.proceedSemantics, 'READY_TO_PROCEED');
 assert.equal(findPersonalRouteContradictions(ww).length, 0);
 assert.doesNotMatch(ww.headline, /Je kunt beginnen\./);
@@ -544,7 +544,7 @@ const matrix = {
 };
 
 assert.match(matrix.bijstand.headline, /gemeente/i);
-assert.match(matrix.wwUndecided.headline, /WW|Controleer eerst/);
+assert.match(matrix.wwUndecided.headline, /UWV|WW|Controleer dit eerst/);
 assert.doesNotMatch(blob(matrix.artwork), /Je bent ondernemer/);
 assert.doesNotMatch(blob(matrix.dac7Goods30), /Je bent gemeld bij de Belastingdienst/);
 assert.ok(matrix.dac7Goods30.now.every((c) => c.family !== 'reporting'));

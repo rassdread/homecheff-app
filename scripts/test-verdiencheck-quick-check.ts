@@ -209,7 +209,7 @@ const employeeAllowancesMoney = applyMoneyDepthChoice(
 assert.equal(visibleSteps(employeeAllowancesMoney).includes('partner'), true);
 
 const starterRoute = routeFrom(starter);
-assert.match(starterRoute.headline, /^Je kunt beginnen\.$/);
+assert.match(starterRoute.headline, /Je kunt (beginnen|het eerst proberen)/);
 assert.equal(starterRoute.proceedSemantics, 'READY_TO_PROCEED');
 assert.doesNotMatch(starterRoute.now.map((c) => c.title).join('\n'), /KOR|DAC7|btw/i);
 
@@ -270,7 +270,7 @@ assert.equal(unknownUwv.uwvBenefit, null);
 assert.equal(derivePersonSituation({ group: 'OTHER_UWV', uwvBenefit: null }), null);
 const unknownRoute = routeFrom(unknownUwv);
 assert.equal(unknownRoute.proceedSemantics, 'CHECK_FIRST');
-assert.match(unknownRoute.headline, /welke uitkering je van UWV krijgt/);
+assert.match(unknownRoute.headline, /welke uitkering je hebt/);
 assert.doesNotMatch(unknownRoute.headline, /^Je kunt beginnen\.$/);
 assert.equal(
   unknownRoute.now.some((c) => c.id === 'ux.uwv.scheme_unknown'),
@@ -285,7 +285,7 @@ const artwork = routeFrom(
     estimatedTurnoverEuro: '5000',
   }),
 );
-assert.match(artwork.headline, /^Je kunt beginnen\.$/);
+assert.match(artwork.headline, /Je kunt (beginnen|het eerst proberen)/);
 
 const hundredSales = routeFrom(
   state({
