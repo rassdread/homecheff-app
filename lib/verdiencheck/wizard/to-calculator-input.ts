@@ -180,7 +180,7 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
   const liveResult = commercialResultCents(turnoverCents, costsCents);
   const scenarioCents =
     state.scenarioPreset === 'custom'
-      ? annualizeEuro(state.customScenarioEuro, period) ?? liveResult
+      ? parseEuroInputToCents(state.customScenarioEuro) ?? liveResult
       : state.scenarioPreset
         ? scenarioPresetToCents(state.scenarioPreset)
         : liveResult;

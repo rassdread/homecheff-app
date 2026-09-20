@@ -19,6 +19,8 @@ import {
   applySituationGroup,
   clearFinancialDepth,
   firstMoneyStep,
+  markMoneyDepthCompleted,
+  nextStep,
   questionsBeforeFirstResult,
   visibleSteps,
   wizardHasInProgressAnswers,
@@ -129,6 +131,17 @@ if (calcA.status === 'READY' && calcB.status === 'READY') {
   assert.equal(calcB.commercialAdditionalResultCents, 5000 * 100);
 }
 
+const customMonthly = wizardStateToCalculatorInput(
+  employeeBaseline({
+    scenarioPreset: 'custom',
+    customScenarioEuro: '5000',
+    amountEntryPeriod: 'MONTH',
+  }),
+);
+assert.ok(customMonthly);
+assert.equal(customMonthly.scenarioAdditionalResultCents, 5000 * 100);
+assert.equal(customMonthly.baselineBox1TaxableIncomeCents, 3200 * 12 * 100);
+
 const comparison = compareScenarioPresets(employeeBaseline());
 assert.ok(comparison);
 assert.equal(comparison?.length, SCENARIO_PRESET_EUROS.length);
@@ -185,6 +198,13 @@ assert.match(wizardSrc, /VERDIENCHECK_ACTIVE_STEP_ID/);
 assert.match(ctaSrc, /restartCompleted|restartFromStart/);
 assert.match(impactSrc, /onSelectPreset/);
 assert.match(impactSrc, /comparison/);
+assert.match(wizardSrc, /markMoneyDepthCompleted\(next, 'scenario'/);
+{
+  const fromScenario = employeeBaseline({ moneyDepthCompleted: false, scenarioPreset: 5000 });
+  const to = nextStep(fromScenario, 'scenario');
+  assert.equal(to, 'result');
+  assert.equal(markMoneyDepthCompleted(fromScenario, 'scenario', to).moneyDepthCompleted, true);
+}
 assert.match(nl.restartConfirmBody, /gewist/);
 assert.doesNotMatch(nl.restartConfirmBody, /permanent|voorgoed|definitief/);
 

@@ -1569,7 +1569,6 @@ export default function VerdienCheckWizard(props: {
 
           {step === 'currentIncome' && (
             <div className="space-y-4">
-              <p className="text-base leading-relaxed text-gray-700">{copy.estimateOk}</p>
               <p className="text-base leading-relaxed text-gray-700">{copy.baselineEstablished}</p>
               <div className="flex flex-col gap-2">
                 <ChoiceButton
@@ -1594,7 +1593,7 @@ export default function VerdienCheckWizard(props: {
                 </p>
               ) : null}
               <label className="block">
-                <span className="text-base text-gray-700">{copy.steps.currentIncome?.title}</span>
+                <span className="sr-only">{copy.steps.currentIncome?.title}</span>
                 <input
                   inputMode="decimal"
                   value={state.currentIncomeUnknown ? '' : state.currentIncomeEuro}
@@ -1608,6 +1607,7 @@ export default function VerdienCheckWizard(props: {
                   }
                   className={`mt-1 ${FIELD}`}
                   placeholder="€"
+                  aria-label={copy.steps.currentIncome?.title}
                 />
               </label>
               <ChoiceButton
@@ -1926,8 +1926,8 @@ export default function VerdienCheckWizard(props: {
                   selected={state.scenarioPreset === euro}
                   onClick={() => {
                     const next = { ...state, scenarioPreset: euro };
-                    setState(next);
                     const n = nextStep(next, 'scenario');
+                    setState(markMoneyDepthCompleted(next, 'scenario', n));
                     if (n) setStep(n);
                   }}
                 >
@@ -1987,18 +1987,16 @@ export default function VerdienCheckWizard(props: {
               ) : (
                 <VerdienCheckResultSummary route={personalRoute} omitHeadline />
               )}
-              <VerdienCheckNowSection cards={personalRoute.now} heading={copy.nowHeading} />
-              {personalRoute.proceedSemantics === 'READY_TO_PROCEED' &&
-              personalRoute.now.length === 0 &&
-              !state.moneyDepthCompleted ? (
-                <p className="text-base leading-relaxed text-stone-700">{copy.restNotToday}</p>
+              {!state.moneyDepthCompleted ? (
+                <VerdienCheckNowSection cards={personalRoute.now} heading={copy.nowHeading} />
               ) : null}
               {isAffiliateActivity(state.activityChoice) ? (
                 <p className="text-sm leading-relaxed text-stone-600">{copy.affiliateReviewNote}</p>
               ) : null}
-              {(personalRoute.soon.length > 0 ||
+              {!state.moneyDepthCompleted &&
+              (personalRoute.soon.length > 0 ||
                 personalRoute.later.length > 0 ||
-                personalRoute.restDetails.length > 0) && (
+                personalRoute.restDetails.length > 0) ? (
                 <details
                   className="rounded-2xl border border-stone-200 bg-stone-50 p-4"
                   onToggle={(event) => {
@@ -2019,7 +2017,7 @@ export default function VerdienCheckWizard(props: {
                     />
                   </div>
                 </details>
-              )}
+              ) : null}
               {!isBenefitSituation(state) && !state.moneyDepthCompleted ? (
                 <div className="space-y-3">
                   <p className="text-base font-medium leading-relaxed text-stone-800">
@@ -2028,10 +2026,10 @@ export default function VerdienCheckWizard(props: {
                   <p className="text-sm leading-relaxed text-stone-600">
                     {personalRoute.trackingMessage}
                   </p>
+                  <p className="text-base leading-relaxed text-stone-700">{copy.moneyPrompt}</p>
                   <button type="button" className={NEXT_BTN} onClick={startMoneyDepth}>
                     {copy.moneyYes}
                   </button>
-                  <p className="text-sm leading-relaxed text-stone-500">{copy.moneyPrompt}</p>
                 </div>
               ) : null}
               {state.moneyDepthCompleted ? (
