@@ -31,7 +31,7 @@ assert.match(nav, /useOverlayHistoryBack/);
 assert.match(nav, /data-wx-landscape-menu/);
 assert.match(nav, /z-\[200\]|z-\[99990\]/);
 assert.match(nav, /createPortal/);
-assert.match(nav, /max-h-\[100dvh\]/);
+assert.match(nav, /max-h-\[100dvh\]|max-h-\[calc\(100dvh/);
 assert.match(nav, /overflow-y-auto/);
 assert.match(nav, /scrollIntoView/);
 

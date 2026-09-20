@@ -201,7 +201,7 @@ begin("source seals — no UA/device branching in policy + chrome");
   assert.match(navBar, /data-wx-navbar/);
   assert.match(navBar, /suppressNavbarChrome|data-wx-navbar-suppressed/);
   assert.match(navBar, /NAVBAR_TOGGLE_MENU_EVENT|navbar-command-bus/);
-  assert.match(navBar, /max-h-\[100dvh\]/);
+  assert.match(navBar, /max-h-\[100dvh\]|max-h-\[calc\(100dvh/);
   assert.match(navBar, /overflow-y-auto/);
   assert.match(policy, /LANDSCAPE_SHORT_CHROME_MAX_WIDTH_EXCLUSIVE/);
 

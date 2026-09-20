@@ -1555,7 +1555,8 @@ html[data-wx-short-landscape="1"] .hc-wx-orientation-strip[data-wx-single-bar="1
 html[data-wx-short-landscape="1"] #navbar-mobile-menu[data-wx-landscape-menu="1"],
 .hc-wx-landscape-menu-panel {
   z-index: 99990;
-  max-height: 100dvh;
+  top: 3.25rem;
+  max-height: calc(100dvh - 3.25rem);
   left: 0;
   right: max(
     4rem,

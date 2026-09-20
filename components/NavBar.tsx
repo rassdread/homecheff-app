@@ -753,7 +753,7 @@ export default function NavBar() {
               'xl:hidden border-t border-gray-200 py-4 bg-white dark:bg-gray-900',
               'overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]',
               suppressNavbarChrome
-                ? 'hc-wx-landscape-menu-panel !flex fixed inset-x-0 top-0 z-[99990] max-h-[100dvh] shadow-lg border-b pointer-events-auto pt-[max(3.75rem,calc(2.75rem+env(safe-area-inset-top,0px)))] pb-[max(1rem,env(safe-area-inset-bottom,0px))]'
+                ? 'hc-wx-landscape-menu-panel !flex fixed inset-x-0 top-[3.25rem] z-[99990] max-h-[calc(100dvh-3.25rem)] shadow-lg border-b pointer-events-auto pb-[max(1rem,env(safe-area-inset-bottom,0px))]'
                 : cn(
                     'fixed inset-x-0 z-[200] max-w-7xl mx-auto px-3 sm:px-5 shadow-lg',
                     'top-[var(--hc-top-nav-height,4rem)]',
