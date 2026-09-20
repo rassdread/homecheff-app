@@ -82,6 +82,7 @@ import { compareScenarioPresets } from '@/lib/verdiencheck/wizard/scenario-compa
 import {
   positionVerdienCheckActiveStep,
   VERDIENCHECK_ACTIVE_STEP_ID,
+  VERDIENCHECK_STEP_HEADING_ID,
 } from '@/lib/verdiencheck/wizard/active-step-focus';
 import {
   earningIntentFromEntry,
@@ -498,9 +499,10 @@ export default function VerdienCheckWizard(props: {
           </div>
         ) : null}
         <h1
+          id={VERDIENCHECK_STEP_HEADING_ID}
           ref={headingRef}
           tabIndex={-1}
-          className="mt-4 text-2xl font-semibold tracking-tight text-gray-900 break-words outline-none"
+          className="mt-4 scroll-mt-[calc(var(--hc-top-nav-height,4.5rem)+0.75rem)] text-2xl font-semibold tracking-tight text-gray-900 break-words outline-none"
         >
           {title}
         </h1>
@@ -1588,7 +1590,12 @@ export default function VerdienCheckWizard(props: {
                 <p className="text-sm leading-relaxed text-gray-600">{copy.monthToYearHint}</p>
               ) : null}
               {currentIncomeError ? (
-                <p ref={invalidRef} tabIndex={-1} className="text-base text-red-700">
+                <p
+                  ref={invalidRef}
+                  tabIndex={-1}
+                  role="alert"
+                  className="text-base text-red-700"
+                >
                   {copy.currentIncomeInvalid}
                 </p>
               ) : null}

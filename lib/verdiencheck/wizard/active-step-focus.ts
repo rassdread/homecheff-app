@@ -4,6 +4,7 @@
  */
 
 export const VERDIENCHECK_ACTIVE_STEP_ID = 'verdiencheck-active-step';
+export const VERDIENCHECK_STEP_HEADING_ID = 'verdiencheck-step-heading';
 
 function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -37,6 +38,11 @@ function headerOffsetPx(): number {
   return 76;
 }
 
+function focusWithoutPageJump(el: HTMLElement | null | undefined): void {
+  if (!el) return;
+  el.focus({ preventScroll: true });
+}
+
 export function positionVerdienCheckActiveStep(input: {
   container: HTMLElement | null;
   heading: HTMLElement | null;
@@ -44,16 +50,20 @@ export function positionVerdienCheckActiveStep(input: {
   mode: 'step' | 'invalid';
 }): void {
   if (typeof window === 'undefined') return;
-  const target =
-    input.mode === 'invalid' && input.invalidTarget
-      ? input.invalidTarget
-      : input.heading ?? input.container;
-  if (!target) return;
+  // Always park the question heading. Scrolling the error to the header offset
+  // hides the question on short or zoomed viewports.
+  const scrollTarget = input.heading ?? input.container;
+  if (!scrollTarget) {
+    focusWithoutPageJump(
+      input.mode === 'invalid' ? input.invalidTarget : input.heading,
+    );
+    return;
+  }
 
   const reduce = prefersReducedMotion();
-  const owner = findScrollOwner(target);
+  const owner = findScrollOwner(scrollTarget);
   const offset = headerOffsetPx();
-  const rect = target.getBoundingClientRect();
+  const rect = scrollTarget.getBoundingClientRect();
 
   if (owner === window) {
     const top = window.scrollY + rect.top - offset;
@@ -65,9 +75,9 @@ export function positionVerdienCheckActiveStep(input: {
     ownerEl.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
   }
 
-  if (input.mode === 'invalid' && input.invalidTarget) {
-    input.invalidTarget.focus();
-    return;
-  }
-  input.heading?.focus();
+  const focusTarget =
+    input.mode === 'invalid' && input.invalidTarget
+      ? input.invalidTarget
+      : input.heading ?? input.container;
+  focusWithoutPageJump(focusTarget);
 }

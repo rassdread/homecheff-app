@@ -38,6 +38,10 @@ const impactSrc = fs.readFileSync(
   path.join(ROOT, 'components/verdiencheck/VerdienCheckFinancialImpact.tsx'),
   'utf8',
 );
+const focusSrc = fs.readFileSync(
+  path.join(ROOT, 'lib/verdiencheck/wizard/active-step-focus.ts'),
+  'utf8',
+);
 const nl = getVerdienCheckCopy('nl');
 
 function state(partial: Partial<WizardState>): WizardState {
@@ -198,6 +202,11 @@ assert.match(wizardSrc, /VERDIENCHECK_ACTIVE_STEP_ID/);
 assert.match(ctaSrc, /restartCompleted|restartFromStart/);
 assert.match(impactSrc, /onSelectPreset/);
 assert.match(impactSrc, /comparison/);
+assert.match(impactSrc, /aria-labelledby=\{VERDIENCHECK_STEP_HEADING_ID\}/);
+assert.doesNotMatch(impactSrc, /<h2[^>]*>\{copy\.moneyResultTitle\}/);
+assert.match(wizardSrc, /id=\{VERDIENCHECK_STEP_HEADING_ID\}/);
+assert.match(focusSrc, /preventScroll:\s*true/);
+assert.match(focusSrc, /const scrollTarget = input\.heading \?\? input\.container/);
 assert.match(wizardSrc, /markMoneyDepthCompleted\(next, 'scenario'/);
 {
   const fromScenario = employeeBaseline({ moneyDepthCompleted: false, scenarioPreset: 5000 });

@@ -5,6 +5,7 @@ import { PERSONAL_ROUTE_COPY } from '@/lib/verdiencheck/personal-route/copy';
 import type { ScenarioPresetEuro } from '@/lib/verdiencheck/domain/money';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import type { ScenarioComparisonRow } from '@/lib/verdiencheck/wizard/scenario-comparison';
+import { VERDIENCHECK_STEP_HEADING_ID } from '@/lib/verdiencheck/wizard/active-step-focus';
 import type { WizardState } from '@/lib/verdiencheck/wizard/schema';
 
 function euro(cents: number): string {
@@ -35,9 +36,9 @@ export default function VerdienCheckFinancialImpact(props: {
   return (
     <section
       id="verdiencheck-money-result"
+      aria-labelledby={VERDIENCHECK_STEP_HEADING_ID}
       className="space-y-4 rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
     >
-      <h2 className="text-2xl font-semibold tracking-tight text-stone-900">{copy.moneyResultTitle}</h2>
       <p className="text-sm leading-relaxed text-stone-600">{copy.scenarioSwitchHint}</p>
       <div className="flex flex-wrap gap-2">
         {SCENARIO_PRESET_EUROS.map((euroAmount) => (
