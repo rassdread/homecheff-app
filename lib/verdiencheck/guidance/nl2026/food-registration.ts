@@ -35,6 +35,11 @@ const BASE = {
 
 export type TimedRule = GuidanceRule & { timing: GuidanceTiming };
 
+/** NVWA registration is only executable once the company is inscribed at KVK. UNKNOWN ≠ YES. */
+export function kvkSatisfiedForNvwaRegistration(alreadyKvkRegistered?: TriState): boolean {
+  return alreadyKvkRegistered === 'YES';
+}
+
 export function nvwaRegistrationRules(input: {
   food: FoodActivityContext;
   kvkAssessment: KvkEntrepreneurshipAssessment;
@@ -94,47 +99,70 @@ export function nvwaRegistrationRules(input: {
   }
 
   if (assessment === 'REGISTRATION_REQUIRED') {
-    rules.push({
-      ...BASE,
-      id: 'nl2026.food.nvwa.registration_required',
-      timing: 'NOW',
-      severity: 'ACTION',
-      shortTitle: 'Registreer je levensmiddelenbedrijf bij de NVWA',
-      shortText:
-        'Je verkoopt inmiddels vaker. Daardoor wordt NVWA-registratie relevant. Wil je meerdere keren per jaar eten verkopen? Dan moet je je levensmiddelenbedrijf bij de NVWA registreren. Dat doe je via MijnNVWA.',
-      expandedExplanation: `Registratie loopt via ${NVWA_REGISTRATION_SYSTEM}. Vanaf ${NVWA_MIJNNVWA_TRANSITION_DATE} gebruikt NVWA MijnNVWA voor levensmiddelenregistratie. HomeCheff registreert niet namens jou.`,
-      cta: {
-        label: 'Bekijk wat ik moet regelen',
-        href: SRC_NVWA_REGISTRATIE.officialSourceUrl,
-        kind: 'official',
-      },
-      officialSource: SRC_NVWA_REGISTRATIE.officialSource,
-      officialSourceUrl: SRC_NVWA_REGISTRATIE.officialSourceUrl,
-      recheckTrigger: 'NVWA_REGISTRATION_CHANGED',
-    });
-    if (
-      input.kvkAssessment !== 'CLEAR_REGISTRATION_INDICATION' &&
-      input.food.nvwaRegistrationStatus !== 'YES'
-    ) {
+    const kvkReady = kvkSatisfiedForNvwaRegistration(input.alreadyKvkRegistered);
+    if (kvkReady) {
       rules.push({
         ...BASE,
-        id: 'nl2026.food.nvwa.needs_kvk_operational',
+        id: 'nl2026.food.nvwa.registration_required',
         timing: 'NOW',
-        severity: 'CHECK',
-        shortTitle: 'Voor NVWA-registratie heb je een KVK-inschrijving nodig',
+        severity: 'ACTION',
+        shortTitle: 'Registreer je levensmiddelenbedrijf bij de NVWA',
         shortText:
-          'Voor NVWA-registratie heb je een KVK-inschrijving nodig. Controleer daarom ook je KVK-situatie. HomeCheff zet je KVK-beoordeling niet automatisch op verplicht.',
-        expandedExplanation:
-          'NVWA gebruikt KVK operationeel. Dat is iets anders dan de KVK-ondernemerscriteria zelf. Food maakt je niet automatisch ondernemer voor KVK.',
+          'Je verkoopt inmiddels vaker. Daardoor wordt NVWA-registratie relevant. Wil je meerdere keren per jaar eten verkopen? Dan moet je je levensmiddelenbedrijf bij de NVWA registreren. Dat doe je via MijnNVWA.',
+        expandedExplanation: `Registratie loopt via ${NVWA_REGISTRATION_SYSTEM}. Vanaf ${NVWA_MIJNNVWA_TRANSITION_DATE} gebruikt NVWA MijnNVWA voor levensmiddelenregistratie. HomeCheff registreert niet namens jou.`,
         cta: {
-          label: 'Bekijk KVK',
-          href: SRC_KVK_INSCHRIJVEN.officialSourceUrl,
+          label: 'Bekijk wat ik moet regelen',
+          href: SRC_NVWA_REGISTRATIE.officialSourceUrl,
           kind: 'official',
         },
         officialSource: SRC_NVWA_REGISTRATIE.officialSource,
         officialSourceUrl: SRC_NVWA_REGISTRATIE.officialSourceUrl,
-        recheckTrigger: 'KVK_STATUS_CHANGED',
+        recheckTrigger: 'NVWA_REGISTRATION_CHANGED',
       });
+    } else {
+      rules.push({
+        ...BASE,
+        id: 'nl2026.food.nvwa.registration_required',
+        timing: 'SOON',
+        severity: 'CHECK',
+        shortTitle: 'NVWA-registratie kan nodig worden',
+        shortText:
+          'Ga je structureler eten verkopen? Dan kunnen eerst een KVK-inschrijving en daarna registratie van je levensmiddelenactiviteit nodig zijn. VerdienCheck laat zien welke stap voor jouw situatie eerst komt.',
+        expandedExplanation: `Om je levensmiddelenbedrijf bij de NVWA te registreren moet je bedrijf zijn ingeschreven bij de Kamer van Koophandel. NVWA-registratie loopt via ${NVWA_REGISTRATION_SYSTEM}. HomeCheff registreert niet namens jou en verzint geen automatische KVK-plicht.`,
+        cta: {
+          label: 'Bekijk de volgorde bij NVWA',
+          href: SRC_NVWA_STAPPENPLAN.officialSourceUrl,
+          kind: 'official',
+        },
+        officialSource: SRC_NVWA_STAPPENPLAN.officialSource,
+        officialSourceUrl: SRC_NVWA_STAPPENPLAN.officialSourceUrl,
+        recheckTrigger: 'NVWA_REGISTRATION_CHANGED',
+      });
+      if (input.food.nvwaRegistrationStatus !== 'YES') {
+        const kvkIndicated = input.kvkAssessment === 'CLEAR_REGISTRATION_INDICATION';
+        rules.push({
+          ...BASE,
+          id: 'nl2026.food.nvwa.needs_kvk_operational',
+          timing: 'NOW',
+          severity: kvkIndicated ? 'ACTION' : 'CHECK',
+          shortTitle: kvkIndicated
+            ? 'Regel eerst je inschrijving bij de Kamer van Koophandel'
+            : 'Voor NVWA-registratie is een KVK-inschrijving nodig',
+          shortText: kvkIndicated
+            ? 'Je antwoorden passen bij de KVK-ondernemerscriteria. Schrijf je eerst in bij de Kamer van Koophandel. Daarna kun je je levensmiddelenactiviteit bij de NVWA registreren. HomeCheff schrijft niet namens jou in.'
+            : 'Om je levensmiddelenbedrijf bij de NVWA te registreren moet je bedrijf bij de Kamer van Koophandel staan. Of je je nu moet inschrijven hangt af van de KVK-ondernemerscriteria. Eten verkopen maakt je niet automatisch ondernemer.',
+          expandedExplanation:
+            'NVWA gebruikt KVK operationeel voor registratie. Dat is iets anders dan de KVK-ondernemerscriteria zelf. HomeCheff zet je KVK-beoordeling niet automatisch op verplicht als die criteria nog niet vaststaan.',
+          cta: {
+            label: 'Bekijk de KVK-criteria',
+            href: SRC_KVK_INSCHRIJVEN.officialSourceUrl,
+            kind: 'official',
+          },
+          officialSource: SRC_NVWA_REGISTRATIE.officialSource,
+          officialSourceUrl: SRC_NVWA_REGISTRATIE.officialSourceUrl,
+          recheckTrigger: 'KVK_STATUS_CHANGED',
+        });
+      }
     }
   }
 

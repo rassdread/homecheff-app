@@ -60,6 +60,24 @@ export function findPersonalRouteContradictions(
     });
   }
 
+  const nvwaNowAction = route.now.some(
+    (c) =>
+      c.severity === 'ACTION' &&
+      (c.id.includes('nvwa.registration_required') ||
+        c.sourceRuleIds.some((id) => id.includes('nvwa.registration_required'))),
+  );
+  const kvkPrerequisiteOpen = [...route.now, ...route.soon].some(
+    (c) =>
+      c.id.includes('needs_kvk') ||
+      c.sourceRuleIds.some((id) => id.includes('needs_kvk') || id.includes('kvk.registration_indication')),
+  );
+  if (nvwaNowAction && kvkPrerequisiteOpen) {
+    out.push({
+      code: 'NVWA_BEFORE_KVK_PREREQUISITE',
+      message: 'NVWA registration ACTION must not appear before an unsatisfied KVK prerequisite',
+    });
+  }
+
   return out;
 }
 

@@ -53,6 +53,16 @@ export const FOOD_GUIDANCE_PARAMETER_META = {
     officialSource: SRC_NVWA_REGISTRATIE.officialSource,
     officialSourceUrl: SRC_NVWA_REGISTRATIE.officialSourceUrl,
   },
+  'nvwa.registration.requiresKvkInscription': {
+    value: true,
+    officialSource: SRC_NVWA_REGISTRATIE.officialSource,
+    officialSourceUrl: SRC_NVWA_REGISTRATIE.officialSourceUrl,
+  },
+  'nvwa.registration.orderAfterKvk': {
+    value: 'KVK_THEN_NVWA',
+    officialSource: SRC_NVWA_STAPPENPLAN.officialSource,
+    officialSourceUrl: SRC_NVWA_STAPPENPLAN.officialSourceUrl,
+  },
   'nvwa.homeSelling.rulesApply': {
     value: true,
     officialSource: SRC_NVWA_THUIS.officialSource,

@@ -30,6 +30,9 @@ function friendlyBody(hit: GuidanceHit): { title: string; body: string } {
     return { title: PERSONAL_ROUTE_COPY.nvwaReviewTitle, body: hit.rule.shortText };
   }
   if (hit.rule.id.includes('nvwa.registration_required')) {
+    if (hitTiming(hit) !== 'NOW' || hit.rule.severity !== 'ACTION') {
+      return { title: PERSONAL_ROUTE_COPY.nvwaAfterKvkTitle, body: hit.rule.shortText };
+    }
     return { title: PERSONAL_ROUTE_COPY.nvwaRequiredTitle, body: hit.rule.shortText };
   }
   if (family === 'optimization' || hit.rule.id.includes('.kor.')) {

@@ -253,9 +253,10 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
     food: many,
     kvkAssessment: 'CLEAR_REGISTRATION_INDICATION',
   });
+  assert.ok(kvkClear.some((r) => r.id === 'nl2026.food.nvwa.needs_kvk_operational' && r.severity === 'ACTION'));
   assert.equal(
-    kvkClear.some((r) => r.id === 'nl2026.food.nvwa.needs_kvk_operational'),
-    false,
+    kvkClear.find((r) => r.id === 'nl2026.food.nvwa.registration_required')?.timing,
+    'SOON',
   );
   results.NVWA_KVK_ISOLATION = 'PASS';
 }
@@ -325,7 +326,14 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
     food: { ...emptyFoodActivity('FOOD'), sellingFrequency: 'MULTIPLE_TIMES_PER_YEAR' },
   });
   const manyBlob = textOf(manyHits.map((h) => h.rule));
-  assert.match(manyBlob, /Je verkoopt inmiddels vaker. Daardoor wordt NVWA-registratie relevant/);
+  assert.match(manyBlob, /KVK-inschrijving en daarna|NVWA-registratie kan nodig/);
+  assert.doesNotMatch(
+    manyHits
+      .filter((h) => h.timing === 'NOW')
+      .map((h) => h.rule.shortTitle)
+      .join('\n'),
+    /Meld je nu bij de voedselautoriteit|Registreer je levensmiddelenbedrijf/,
+  );
   assert.ok(
     visibleSteps({
       ...EMPTY_WIZARD_STATE,
@@ -397,7 +405,7 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
   });
   assert.equal(
     tryingRecurring.find((h) => h.rule.id === 'nl2026.food.nvwa.registration_required')?.timing,
-    'NOW',
+    'SOON',
   );
 
   const publicOccasional = nvwaRegistrationRules({
@@ -413,6 +421,18 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
   });
   assert.ok(ruleIds(noKvkRecurring).includes('nl2026.food.nvwa.registration_required'));
   assert.ok(ruleIds(noKvkRecurring).includes('nl2026.food.nvwa.needs_kvk_operational'));
+  assert.equal(
+    noKvkRecurring.find((r) => r.id === 'nl2026.food.nvwa.registration_required')?.timing,
+    'SOON',
+  );
+  assert.notEqual(
+    noKvkRecurring.find((r) => r.id === 'nl2026.food.nvwa.registration_required')?.severity,
+    'ACTION',
+  );
+  assert.equal(
+    noKvkRecurring.find((r) => r.id === 'nl2026.food.nvwa.needs_kvk_operational')?.timing,
+    'NOW',
+  );
 
   const existingKvkFood = nvwaRegistrationRules({
     food: multipleFood(),
@@ -421,6 +441,8 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
     personSituation: 'EXISTING_ENTREPRENEUR',
   });
   assert.ok(ruleIds(existingKvkFood).includes('nl2026.food.nvwa.registration_required'));
+  assert.equal(existingKvkFood.find((r) => r.id === 'nl2026.food.nvwa.registration_required')?.timing, 'NOW');
+  assert.equal(existingKvkFood.find((r) => r.id === 'nl2026.food.nvwa.registration_required')?.severity, 'ACTION');
   assert.equal(ruleIds(existingKvkFood).includes('nl2026.food.nvwa.needs_kvk_operational'), false);
 
   const planFew = foodSafetyRules(fewFood());

@@ -210,9 +210,25 @@ const regularFood = state({
 });
 assert.equal(questionsBeforeFirstResult(regularFood).length, 5);
 const regularFoodRoute = routeFrom(regularFood);
-assert.equal(regularFoodRoute.proceedSemantics, 'PROCEED_AFTER_ACTION');
 assert.equal(
-  regularFoodRoute.now.some((c) => c.family === 'food_registration' && c.severity === 'ACTION'),
+  regularFoodRoute.now.some(
+    (c) =>
+      c.severity === 'ACTION' &&
+      (c.id.includes('nvwa.registration_required') ||
+        c.sourceRuleIds.some((id) => id.includes('nvwa.registration_required'))),
+  ),
+  false,
+);
+assert.doesNotMatch(
+  regularFoodRoute.now.map((c) => c.title).join('\n'),
+  /Meld je nu bij de voedselautoriteit/,
+);
+assert.equal(
+  regularFoodRoute.now.some(
+    (c) =>
+      c.family === 'food_safety' ||
+      /veilig|allergenen|hygiënisch/i.test(`${c.title} ${c.body}`),
+  ),
   true,
 );
 

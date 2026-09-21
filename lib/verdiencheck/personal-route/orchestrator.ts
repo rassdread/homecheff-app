@@ -42,7 +42,29 @@ function hasPreStartAction(cards: readonly PersonalRouteCard[]): boolean {
 
 function hasCurrentFoodRegistrationAction(cards: readonly PersonalRouteCard[]): boolean {
   return cards.some(
-    (c) => c.family === 'food_registration' && actionSemanticsOf(c) === 'CURRENT_ACTION',
+    (c) =>
+      c.family === 'food_registration' &&
+      actionSemanticsOf(c) === 'CURRENT_ACTION' &&
+      !c.id.includes('needs_kvk') &&
+      !c.sourceRuleIds.some((id) => id.includes('needs_kvk')),
+  );
+}
+
+function hasKvkBeforeNvwaAction(cards: readonly PersonalRouteCard[]): boolean {
+  return cards.some(
+    (c) =>
+      c.severity === 'ACTION' &&
+      (c.id.includes('needs_kvk') ||
+        c.sourceRuleIds.some((id) => id.includes('needs_kvk') || id.includes('kvk.registration_indication')) ||
+        (c.family === 'business_registration' && c.id.includes('registration_indication'))),
+  );
+}
+
+function hasPendingNvwaRegistration(cards: readonly PersonalRouteCard[]): boolean {
+  return cards.some(
+    (c) =>
+      c.id.includes('nvwa.registration_required') ||
+      c.sourceRuleIds.some((id) => id.includes('nvwa.registration_required')),
   );
 }
 
@@ -53,10 +75,16 @@ function hasWaitForPermission(cards: readonly PersonalRouteCard[]): boolean {
 function resolveSemantics(input: {
   hasContext: boolean;
   now: readonly PersonalRouteCard[];
+  laterCards?: readonly PersonalRouteCard[];
 }): ProceedSemantics {
   if (!input.hasContext) return 'INSUFFICIENT_CONTEXT';
   if (hasPreStartAction(input.now)) return 'CHECK_FIRST';
   if (hasCurrentFoodRegistrationAction(input.now)) return 'PROCEED_AFTER_ACTION';
+  const pendingNvwa = hasPendingNvwaRegistration([
+    ...input.now,
+    ...(input.laterCards ?? []),
+  ]);
+  if (pendingNvwa && hasKvkBeforeNvwaAction(input.now)) return 'PROCEED_AFTER_ACTION';
   return 'READY_TO_PROCEED';
 }
 
@@ -223,7 +251,7 @@ export function buildPersonalVerdienRoute(input: {
       ctx.activity.kinds.length > 0 &&
       ctx.personSituation,
   );
-  let semantics = resolveSemantics({ hasContext, now });
+  let semantics = resolveSemantics({ hasContext, now, laterCards: [...soon, ...later] });
 
   if (benefitFamily && hasPreStartAction(now)) {
     semantics = 'CHECK_FIRST';
@@ -260,12 +288,22 @@ export function buildPersonalVerdienRoute(input: {
   }
 
   if (semantics === 'PROCEED_AFTER_ACTION') {
-    const keep = now.filter(
-      (c) =>
-        FOOD_NOW_FAMILIES.has(c.family) &&
-        !c.id.includes('needs_kvk') &&
-        !c.sourceRuleIds.some((id) => id.includes('needs_kvk')),
+    const pendingNvwa = hasPendingNvwaRegistration([...now, ...soon, ...later]);
+    const hasNeedsKvk = now.some(
+      (c) => c.id.includes('needs_kvk') || c.sourceRuleIds.some((id) => id.includes('needs_kvk')),
     );
+    const keep = now.filter((c) => {
+      if (FOOD_NOW_FAMILIES.has(c.family)) return true;
+      if (
+        pendingNvwa &&
+        !hasNeedsKvk &&
+        c.family === 'business_registration' &&
+        c.severity === 'ACTION'
+      ) {
+        return true;
+      }
+      return false;
+    });
     const moved = now.filter((c) => !keep.includes(c));
     now = keep;
     const soonMoved = moved.filter((c) => c.severity === 'ACTION' || c.severity === 'CHECK');

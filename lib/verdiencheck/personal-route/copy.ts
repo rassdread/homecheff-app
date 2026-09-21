@@ -51,7 +51,8 @@ export const PERSONAL_ROUTE_COPY = {
   foodCombinedBody:
     'Bereid het veilig en hygiënisch en vertel klanten welke allergenen erin zitten.',
   foodRegistrationExtra:
-    'Je verkoopt meerdere keren per jaar. Meld je dan ook bij de voedselautoriteit.',
+    'Ga je meerdere keren per jaar eten verkopen, dan kan registratie van je levensmiddelenactiviteit nodig worden. Die stap komt na een eventuele KVK-inschrijving.',
+  nvwaAfterKvkTitle: 'NVWA-registratie kan nodig worden',
   dac7Title: 'Als je verkoop groeit, kan HomeCheff verkoopgegevens moeten doorgeven',
   dac7Body: 'Dat betekent niet automatisch dat je belasting moet betalen.',
   dac7Cta: 'Meer uitleg over platformrapportage',

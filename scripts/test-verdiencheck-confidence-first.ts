@@ -228,15 +228,26 @@ const regularFood = routeFrom(
 assert.equal(regularFood.proceedSemantics, 'PROCEED_AFTER_ACTION');
 assert.match(regularFood.headline, /regel nu deze praktische stap/);
 assert.equal(
-  regularFood.now.some((c) => c.family === 'food_registration' && c.severity === 'ACTION'),
+  regularFood.now.some(
+    (c) =>
+      c.severity === 'ACTION' &&
+      (c.id.includes('needs_kvk') || c.sourceRuleIds.some((id) => id.includes('needs_kvk'))),
+  ),
   true,
 );
-assert.equal(regularFood.now.some((c) => c.family === 'business_registration'), false);
-assert.equal(regularFood.now.some((c) => c.id.includes('needs_kvk')), false);
-assert.doesNotMatch(regularFood.now.map((c) => c.title).join('\n'), /KVK-inschrijving/);
+assert.equal(
+  regularFood.now.some(
+    (c) =>
+      c.severity === 'ACTION' &&
+      (c.id.includes('nvwa.registration_required') ||
+        c.sourceRuleIds.some((id) => id.includes('nvwa.registration_required'))),
+  ),
+  false,
+);
+assert.doesNotMatch(regularFood.now.map((c) => c.title).join('\n'), /Meld je nu bij de voedselautoriteit/);
+assert.match(regularFood.now.map((c) => `${c.title} ${c.body}`).join('\n'), /Kamer van Koophandel|KVK/);
 assert.equal(regularFood.now.some((c) => c.family === 'reporting'), false);
 assert.equal(regularFood.now.some((c) => c.family === 'optimization'), false);
-assert.ok(regularFood.now.every((c) => c.family.startsWith('food_')));
 
 const ww = routeFrom(
   state({
