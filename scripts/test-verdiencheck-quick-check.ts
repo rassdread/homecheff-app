@@ -209,7 +209,10 @@ assert.equal(firstMoney, 'currentIncome');
 const employeeMoney = applyMoneyDepthChoice(employee, 'YES');
 assert.equal(visibleSteps(employeeMoney).includes('incomeBases'), false);
 assert.equal(visibleSteps(employeeMoney).includes('currentIncome'), true);
-assert.equal(visibleSteps(employeeMoney).includes('allowances'), true);
+assert.equal(visibleSteps(employeeMoney).includes('allowances'), false);
+assert.equal(visibleSteps(employeeMoney).includes('partner'), true);
+assert.equal(visibleSteps(employeeMoney).includes('rentsHome'), true);
+assert.equal(visibleSteps(employeeMoney).includes('hasChildren'), true);
 assert.ok(questionsBeforeFirstResult(employeeMoney).length <= 6);
 
 const employeeAdvanced = applyMoneyDepthChoice(

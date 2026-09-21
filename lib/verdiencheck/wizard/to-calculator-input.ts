@@ -1,5 +1,5 @@
 import type { CalculatorInput } from '../calculator/types';
-import { hasAllowance } from '../domain/allowances';
+import { deriveAllowancesFromFacts } from '../domain/allowances';
 import type { Child } from '../domain/children';
 import type { ChildcareEntry } from '../domain/childcare';
 import { CALCULATION_PERIOD, type HousingHousehold, type HousingResident } from '../domain/household';
@@ -92,11 +92,11 @@ function effectiveAllowances(state: WizardState) {
   if (isBenefitSituation(state) || state.growthStart === 'TRYING_OUT') {
     return ['NONE'] as const;
   }
-  return state.allowances;
+  return deriveAllowancesFromFacts(state);
 }
 
 function buildHousingHousehold(state: WizardState, userAssess: number | null): HousingHousehold | null {
-  if (!hasAllowance(effectiveAllowances(state), 'RENT')) return null;
+  if (state.rentsHome !== true && !effectiveAllowances(state).includes('RENT')) return null;
   const oldestRaw = state.oldestHouseholdResidentAge.trim();
   const oldest = oldestRaw === '' ? null : Number.parseInt(oldestRaw, 10);
   const applicantAge = Number.isInteger(oldest) ? oldest : null;
@@ -179,6 +179,7 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
   const intent = state.intent ?? derived?.intent ?? 'UNKNOWN';
   const allowances = [...effectiveAllowances(state)];
   const period = state.amountEntryPeriod;
+  const incomePeriod = state.currentIncomePeriod;
   const turnoverCents = annualizeEuro(state.estimatedTurnoverEuro, period) ?? 0;
   const costsCents = annualizeEuro(state.estimatedCostsEuro, period) ?? 0;
   const liveResult = commercialResultCents(turnoverCents, costsCents);
@@ -187,13 +188,15 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
     costsEuro: state.helperCostsEuro,
     costsUnknown: state.helperCostsUnknown,
   });
+  const parsedCustom =
+    state.scenarioPreset === 'custom' ? parseEuroInputToCents(state.customScenarioEuro) : null;
   const scenarioCents =
     state.scenarioInputMode === 'REVENUE_COST'
       ? helperFeedsCertifiedEngine(helperMapped)
         ? helperMapped.resultCents
         : 0
       : state.scenarioPreset === 'custom'
-        ? parseEuroInputToCents(state.customScenarioEuro) ?? 0
+        ? parsedCustom ?? 0
         : state.scenarioPreset
           ? scenarioPresetToCents(state.scenarioPreset)
           : liveResult;
@@ -237,7 +240,7 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
         ? null
         : {
             hasPartner: state.hasPartner === 'UNKNOWN' ? 'UNKNOWN' : state.hasPartner,
-            partnerAssessmentIncomeCents: annualizeEuro(state.partnerAssessmentEuro, period),
+            partnerAssessmentIncomeCents: annualizeEuro(state.partnerAssessmentEuro, incomePeriod),
             partnerHealthcareInsuranceStatus: state.partnerHealthcareInsuranceStatus,
           },
     calculationPeriod: CALCULATION_PERIOD.FULL_YEAR_STABLE_SITUATION,
@@ -245,7 +248,7 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
     housingHousehold: buildHousingHousehold(state, assessmentCents),
     bareRentCentsPerMonth: parseEuroInputToCents(state.bareRentEuro),
     onlyTotalRentKnown: state.onlyTotalRentKnown === true,
-    childBudgetHousehold: hasAllowance(allowances, 'CHILD_BUDGET')
+    childBudgetHousehold: allowances.includes('CHILD_BUDGET')
       ? {
           children,
           hasToeslagPartner: state.hasPartner,
@@ -253,7 +256,7 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
           midYearHouseholdChange: state.midYearHouseholdChange === true,
         }
       : null,
-    childcareHousehold: hasAllowance(allowances, 'CHILDCARE')
+    childcareHousehold: allowances.includes('CHILDCARE')
       ? {
           entries: buildChildcareEntries(state),
           hasToeslagPartner: state.hasPartner,
@@ -262,7 +265,25 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
           midYearHouseholdChange: state.midYearHouseholdChange === true,
         }
       : null,
-    allowances: allowances.length > 0 ? allowances : ['UNKNOWN'],
+    userHealthcareInsuranceStatus:
+      state.dutchHealthInsurance === true
+        ? 'INSURED'
+        : state.dutchHealthInsurance === false
+          ? 'NOT_INSURED'
+          : state.dutchHealthInsurance === 'UNKNOWN'
+            ? 'UNKNOWN'
+            : null,
+    housingTenure:
+      state.rentsHome === true
+        ? 'RENTS'
+        : state.rentsHome === false
+          ? 'DOES_NOT_RENT'
+          : state.rentsHome === 'UNKNOWN'
+            ? 'UNKNOWN'
+            : null,
+    hasChildren: state.hasChildren,
+    usesChildcare: state.usesChildcare,
+    allowances: allowances.length > 0 ? allowances : ['HEALTHCARE'],
     activity: {
       kinds: state.activityKinds,
       frequency,

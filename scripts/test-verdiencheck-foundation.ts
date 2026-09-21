@@ -180,6 +180,11 @@ assert.equal(commercialResultCents(300_000, 100_000), 200_000);
 assert.notEqual(300_000, 200_000);
 assert.equal(parseEuroInputToCents('19,99'), 1999);
 assert.equal(parseEuroInputToCents('19.99'), 1999);
+assert.equal(parseEuroInputToCents('1.000'), 100_000);
+assert.equal(parseEuroInputToCents('1.250'), 125_000);
+assert.equal(parseEuroInputToCents('15.000'), 1_500_000);
+assert.equal(parseEuroInputToCents('3.333'), 333_300);
+assert.equal(parseEuroInputToCents('100'), 10_000);
 assert.equal(Number.isInteger(commercialResultCents(300_000, 100_000)), true);
 
 assert.throws(() => commercialResultCents(1.5, 0));

@@ -377,10 +377,17 @@ assert.equal(NL_2026_PACK.parameters['zt.standardPremiumCents']?.value, euro(2_1
   if (ok.status === 'OK') assert.equal(ok.taxableROWResultCents, euro(1_000));
   const neg = resolveTaxableRowResult({
     classification: 'RESULT_FROM_OTHER_WORK',
-    commercialResultCents: 0,
+    commercialResultCents: -100,
     assumeEstimatedCostsTaxDeductible: true,
   });
   assert.equal(neg.status, 'SOURCE_OF_INCOME_REVIEW_REQUIRED');
+  const zeroExtra = resolveTaxableRowResult({
+    classification: 'RESULT_FROM_OTHER_WORK',
+    commercialResultCents: 0,
+    assumeEstimatedCostsTaxDeductible: true,
+  });
+  assert.equal(zeroExtra.status, 'OK');
+  if (zeroExtra.status === 'OK') assert.equal(zeroExtra.taxableROWResultCents, 0);
 }
 
 // --- ROW counts as arbeidsinkomen
@@ -506,7 +513,11 @@ assert.equal(NL_2026_PACK.parameters['zt.standardPremiumCents']?.value, euro(2_1
   }
 
   const hobby = runCalculator(employeeCore(20_000, 0));
-  assert.equal(hobby.status, 'SOURCE_OF_INCOME_REVIEW_REQUIRED');
+  assert.equal(hobby.status, 'READY');
+  if (hobby.status === 'READY') {
+    assert.equal(hobby.netExtraCents, 0);
+    assert.equal(hobby.baseline.healthcareAllowance, hobby.scenario.healthcareAllowance);
+  }
 
   results.UNKNOWN_PROPAGATION = 'PASS';
 }
@@ -523,7 +534,8 @@ assert.equal(NL_2026_PACK.parameters['zt.standardPremiumCents']?.value, euro(2_1
     assert.equal(isUnknown(partial.deltas.rentAllowance), true);
     assert.notEqual(partial.deltas.rentAllowance, 0);
     assert.equal(typeof partial.deltas.healthcareAllowance, 'number');
-    assert.equal(typeof partial.netExtraCents, 'number');
+    assert.equal(isUnknown(partial.netExtraCents), true);
+    assert.notEqual(partial.netExtraCents, 0);
   }
 
   const child = runCalculator(

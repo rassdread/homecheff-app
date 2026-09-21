@@ -66,6 +66,7 @@ import {
   applyRevenueCostHelperFields,
   applySituationGroup,
   applyUwvBenefitUnknown,
+  derivedWizardAllowances,
   firstMoneyStep,
   isBenefitSituation,
   markMoneyDepthCompleted,
@@ -103,6 +104,7 @@ import type {
 import VerdienCheckCostAdvantage from './VerdienCheckCostAdvantage';
 import VerdienCheckDisclaimer from './VerdienCheckDisclaimer';
 import VerdienCheckFinancialImpact from './VerdienCheckFinancialImpact';
+import VerdienCheckBaselineCard from './VerdienCheckBaselineCard';
 import VerdienCheckLaterSection from './VerdienCheckLaterSection';
 import VerdienCheckNowSection from './VerdienCheckNowSection';
 import VerdienCheckRestartConfirm from './VerdienCheckRestartConfirm';
@@ -296,7 +298,7 @@ export default function VerdienCheckWizard(props: {
           jurisdiction: 'NL' as const,
           year: 2026,
           personSituation,
-          allowances: state.allowances,
+          allowances: derivedWizardAllowances(state),
           activity: calculatorInput
             ? calculatorInput.activity
             : {
@@ -348,6 +350,14 @@ export default function VerdienCheckWizard(props: {
         });
         return;
       }
+      if (
+        state.currentIncomeBasis === 'NET' &&
+        state.ageTaxRegime === 'REACHES_AOW_IN_2026'
+      ) {
+        setState({ ...state, currentIncomeBasis: 'GROSS' });
+        setCurrentIncomeError(true);
+        return;
+      }
       setCurrentIncomeError(false);
     }
     if (step === 'scenario' && state.scenarioInputMode === 'REVENUE_COST') {
@@ -386,7 +396,8 @@ export default function VerdienCheckWizard(props: {
   const progress = progressSteps(state, step);
   const stepIndex = Math.max(0, progress.indexOf(step));
   const extraResultChosen =
-    state.scenarioInputMode === 'REVENUE_COST'
+    state.scenarioLayerRequested &&
+    (state.scenarioInputMode === 'REVENUE_COST'
       ? helperFeedsCertifiedEngine(
           mapRevenueAndAllowableCosts({
             revenueEuro: state.helperRevenueEuro,
@@ -396,12 +407,12 @@ export default function VerdienCheckWizard(props: {
         )
       : state.scenarioPreset === 'custom'
         ? parseEuroInputToCents(state.customScenarioEuro) != null
-        : state.scenarioPreset != null;
+        : state.scenarioPreset != null);
   const title =
     step === 'result' && state.moneyDepthCompleted && extraResultChosen
       ? copy.moneyResultTitle
       : step === 'result' && state.moneyDepthCompleted
-        ? copy.baselineCompleteTitle
+        ? copy.situationNowTitle
       : step === 'result'
         ? personalRoute.headline
         : (copy.steps[step]?.title ?? copy.pageTitle);
@@ -555,7 +566,7 @@ export default function VerdienCheckWizard(props: {
             {copy.moneyPhaseNowTitle}. {copy.moneyPhaseNowBody}
           </p>
         ) : null}
-        {step === 'result' && state.moneyDepthCompleted && !extraResultChosen ? (
+        {step === 'result' && state.moneyDepthCompleted && state.scenarioLayerRequested && !extraResultChosen ? (
           <p className="mt-2 text-base leading-relaxed text-gray-700">{copy.whatIf}</p>
         ) : null}
 
@@ -885,6 +896,19 @@ export default function VerdienCheckWizard(props: {
             </>
           )}
 
+          {step === 'dutchHealthInsurance' && (
+            <TriChoices
+              value={state.dutchHealthInsurance}
+              options={options}
+              onSelect={(value) => {
+                const next = { ...state, dutchHealthInsurance: value };
+                setState(next);
+                const n = nextStep(next, 'dutchHealthInsurance');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
           {step === 'allowances' && (
             <>
               {(
@@ -1005,6 +1029,65 @@ export default function VerdienCheckWizard(props: {
                 {copy.next}
               </button>
             </div>
+          )}
+
+          {step === 'rentsHome' && (
+            <TriChoices
+              value={state.rentsHome}
+              options={options}
+              onSelect={(value) => {
+                const next: WizardState = {
+                  ...state,
+                  rentsHome: value,
+                  bareRentEuro: value === true ? state.bareRentEuro : '',
+                  onlyTotalRentKnown: value === true ? state.onlyTotalRentKnown : null,
+                  housingHouseholdType: value === true ? state.housingHouseholdType : null,
+                  housingAssetsEligibility: value === true ? state.housingAssetsEligibility : null,
+                };
+                setState(next);
+                const n = nextStep(next, 'rentsHome');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'hasChildren' && (
+            <TriChoices
+              value={state.hasChildren}
+              options={options}
+              onSelect={(value) => {
+                const next: WizardState = {
+                  ...state,
+                  hasChildren: value,
+                  childrenAges: value === true ? state.childrenAges : '',
+                  hasChildUnder12: value === true ? state.hasChildUnder12 : null,
+                  usesChildcare: value === true ? state.usesChildcare : null,
+                  childcareCareType: value === true ? state.childcareCareType : null,
+                };
+                setState(next);
+                const n = nextStep(next, 'hasChildren');
+                if (n) setStep(n);
+              }}
+            />
+          )}
+
+          {step === 'usesChildcare' && (
+            <TriChoices
+              value={state.usesChildcare}
+              options={options}
+              onSelect={(value) => {
+                const next: WizardState = {
+                  ...state,
+                  usesChildcare: value,
+                  childcareCareType: value === true ? state.childcareCareType : null,
+                  childcareHoursPerMonth: value === true ? state.childcareHoursPerMonth : '',
+                  childcareHourlyRateEuro: value === true ? state.childcareHourlyRateEuro : '',
+                };
+                setState(next);
+                const n = nextStep(next, 'usesChildcare');
+                if (n) setStep(n);
+              }}
+            />
           )}
 
           {step === 'housingRent' && (
@@ -1622,20 +1705,47 @@ export default function VerdienCheckWizard(props: {
               <p className="text-base leading-relaxed text-gray-700">{copy.baselineEstablished}</p>
               <div className="flex flex-col gap-2">
                 <ChoiceButton
-                  selected={state.amountEntryPeriod === 'MONTH'}
-                  onClick={() => setState({ ...state, amountEntryPeriod: 'MONTH' })}
+                  selected={state.currentIncomeBasis !== 'NET'}
+                  onClick={() => setState({ ...state, currentIncomeBasis: 'GROSS' })}
+                >
+                  {copy.incomeGross}
+                </ChoiceButton>
+                <ChoiceButton
+                  selected={state.currentIncomeBasis === 'NET'}
+                  onClick={() => {
+                    if (state.ageTaxRegime === 'REACHES_AOW_IN_2026') {
+                      setState({ ...state, currentIncomeBasis: 'GROSS' });
+                      return;
+                    }
+                    setState({ ...state, currentIncomeBasis: 'NET' });
+                  }}
+                >
+                  {copy.incomeNet}
+                </ChoiceButton>
+              </div>
+              {state.ageTaxRegime === 'REACHES_AOW_IN_2026' ? (
+                <p className="text-sm leading-relaxed text-gray-600">{copy.netInputAowNote}</p>
+              ) : null}
+              <div className="flex flex-col gap-2">
+                <ChoiceButton
+                  selected={state.currentIncomePeriod === 'MONTH'}
+                  onClick={() => setState({ ...state, currentIncomePeriod: 'MONTH' })}
                 >
                   {copy.periodMonth}
                 </ChoiceButton>
                 <ChoiceButton
-                  selected={state.amountEntryPeriod === 'YEAR'}
-                  onClick={() => setState({ ...state, amountEntryPeriod: 'YEAR' })}
+                  selected={state.currentIncomePeriod === 'YEAR'}
+                  onClick={() => setState({ ...state, currentIncomePeriod: 'YEAR' })}
                 >
                   {copy.periodYear}
                 </ChoiceButton>
               </div>
-              {state.amountEntryPeriod === 'MONTH' ? (
+              {state.currentIncomePeriod === 'MONTH' ? (
                 <p className="text-sm leading-relaxed text-gray-600">{copy.monthToYearHint}</p>
+              ) : null}
+              {state.currentIncomeBasis === 'NET' &&
+              state.ageTaxRegime !== 'REACHES_AOW_IN_2026' ? (
+                <p className="text-sm leading-relaxed text-gray-600">{copy.netInputEstimateNote}</p>
               ) : null}
               {currentIncomeError ? (
                 <p
@@ -2052,6 +2162,37 @@ export default function VerdienCheckWizard(props: {
           {step === 'result' && state.taxResidence === 'NL' && (
             <div className="space-y-5">
               {state.moneyDepthCompleted && !isBenefitSituation(state) ? (
+                <VerdienCheckBaselineCard
+                  copy={copy}
+                  route={personalRoute}
+                  incomeAnnualCents={
+                    calculatorInput?.baselineGrossEmploymentIncomeCents ??
+                    calculatorInput?.baselineBox1TaxableIncomeCents ??
+                    null
+                  }
+                  incomeIsNetEstimate={state.currentIncomeBasis === 'NET'}
+                  incomeUnknownReason={
+                    state.currentIncomeUnknown
+                      ? copy.currentIncomeUnknown
+                      : state.currentIncomeBasis === 'NET' &&
+                          calculatorInput?.baselineBox1TaxableIncomeCents == null
+                        ? copy.netInputEstimateNote
+                        : null
+                  }
+                />
+              ) : null}
+              {state.moneyDepthCompleted && !isBenefitSituation(state) && !state.scenarioLayerRequested ? (
+                <button
+                  type="button"
+                  className={NEXT_BTN}
+                  onClick={() => setState({ ...state, scenarioLayerRequested: true })}
+                >
+                  {copy.viewExtraScenarioCta}
+                </button>
+              ) : null}
+              {state.moneyDepthCompleted &&
+              !isBenefitSituation(state) &&
+              state.scenarioLayerRequested ? (
                 <VerdienCheckFinancialImpact
                   copy={copy}
                   route={personalRoute}
@@ -2063,7 +2204,11 @@ export default function VerdienCheckWizard(props: {
                   helperCostsUnknown={state.helperCostsUnknown}
                   comparison={scenarioComparison}
                   onSelectPreset={(euro: ScenarioPresetEuro) =>
-                    setState({ ...applyDirectResultMode(state), scenarioPreset: euro })
+                    setState({
+                      ...applyDirectResultMode(state),
+                      scenarioPreset: euro,
+                      customScenarioEuro: '',
+                    })
                   }
                   onSelectCustom={() =>
                     setState({ ...applyDirectResultMode(state), scenarioPreset: 'custom' })
@@ -2073,6 +2218,13 @@ export default function VerdienCheckWizard(props: {
                       ...applyDirectResultMode(state),
                       customScenarioEuro: value,
                       scenarioPreset: 'custom',
+                    })
+                  }
+                  onApplyCustom={() =>
+                    setState({
+                      ...applyDirectResultMode(state),
+                      scenarioPreset: 'custom',
+                      customScenarioEuro: state.customScenarioEuro,
                     })
                   }
                   onSelectResultMode={() => setState(applyDirectResultMode(state))}
@@ -2087,9 +2239,9 @@ export default function VerdienCheckWizard(props: {
                     setState(applyRevenueCostHelperFields(state, { helperCostsUnknown: unknown }))
                   }
                 />
-              ) : (
+              ) : !state.moneyDepthCompleted ? (
                 <VerdienCheckResultSummary route={personalRoute} omitHeadline />
-              )}
+              ) : null}
               {!state.moneyDepthCompleted ? (
                 <VerdienCheckNowSection cards={personalRoute.now} heading={copy.nowHeading} />
               ) : null}

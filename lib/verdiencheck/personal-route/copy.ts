@@ -26,7 +26,7 @@ export const PERSONAL_ROUTE_COPY = {
     'Niet alle benodigde gegevens zijn bekend. Ontbrekende onderdelen zijn niet als €0 meegenomen.',
   progressHeadline: 'Je gaat erop vooruit.',
   estimateOnRules:
-    'Schatting voor 2026 op basis van je ingevulde gegevens en de geldende rekenregels.',
+    'Schatting voor 2026 op basis van je ingevulde gegevens en de geldende rekenregels. Dit is geschat recht, geen definitief besluit van Dienst Toeslagen.',
   taxAndAllowancesIncluded:
     'Belasting en veranderingen in je toeslagen zijn hierin meegenomen.',
   viewCalculation: 'Bekijk de berekening',

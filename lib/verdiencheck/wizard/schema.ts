@@ -3,11 +3,7 @@
  */
 
 import {
-  hasAllowance,
-  needsChildBudgetFields,
-  needsChildcareFields,
-  needsPartnerContext,
-  needsRentFields,
+  deriveAllowancesFromFacts,
   type AllowanceId,
 } from '../domain/allowances';
 import type { ActivityKind, CommercialIntent, CustomerScope, SaleFrequency } from '../domain/activity';
@@ -65,15 +61,18 @@ export const WIZARD_STEP_IDS = [
   'aowBirthCohort',
   'aowMonth',
   'singleOlderAow',
+  'dutchHealthInsurance',
   'allowances',
   'partner',
   'partnerInsurance',
   'currentIncome',
   'incomeBases',
   'partnerIncome',
+  'rentsHome',
   'housingRent',
   'housingHousehold',
   'housingAssets',
+  'hasChildren',
   'children',
   'youngChild',
   'iackHousehold',
@@ -82,6 +81,7 @@ export const WIZARD_STEP_IDS = [
   'iackPartnerIncome',
   'iackRelativeAge',
   'childBudgetAssets',
+  'usesChildcare',
   'childcare',
   'workStudy',
   'midYear',
@@ -125,6 +125,13 @@ export type WizardState = {
   moneyDepthCompleted: boolean;
   detailsDepthRequested: boolean;
   amountEntryPeriod: 'YEAR' | 'MONTH';
+  currentIncomePeriod: 'YEAR' | 'MONTH';
+  currentIncomeBasis: 'GROSS' | 'NET' | null;
+  dutchHealthInsurance: boolean | 'UNKNOWN' | null;
+  rentsHome: boolean | 'UNKNOWN' | null;
+  hasChildren: boolean | 'UNKNOWN' | null;
+  usesChildcare: boolean | 'UNKNOWN' | null;
+  scenarioLayerRequested: boolean;
   discussedWithUwv: boolean | 'UNKNOWN' | null;
   wantsStartPeriod: boolean | 'UNKNOWN' | null;
   wantsToRetainWw: boolean | 'UNKNOWN' | null;
@@ -220,6 +227,13 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   moneyDepthCompleted: false,
   detailsDepthRequested: false,
   amountEntryPeriod: 'MONTH',
+  currentIncomePeriod: 'MONTH',
+  currentIncomeBasis: 'GROSS',
+  dutchHealthInsurance: null,
+  rentsHome: null,
+  hasChildren: null,
+  usesChildcare: null,
+  scenarioLayerRequested: false,
   discussedWithUwv: null,
   wantsStartPeriod: null,
   wantsToRetainWw: null,
@@ -403,6 +417,13 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.acceptRowAssumption = false;
   next.currentIncomeEuro = '';
   next.currentIncomeUnknown = false;
+  next.currentIncomeBasis = 'GROSS';
+  next.currentIncomePeriod = 'MONTH';
+  next.dutchHealthInsurance = null;
+  next.rentsHome = null;
+  next.hasChildren = null;
+  next.usesChildcare = null;
+  next.scenarioLayerRequested = false;
   next.hasOtherIncome = null;
   next.otherIncomeEuro = '';
   next.advancedAccuracyRequested = false;
@@ -450,6 +471,7 @@ export function applySituationGroup(
       moneyDepthRequested: false,
       moneyDeclined: false,
       moneyDepthCompleted: false,
+      scenarioLayerRequested: false,
       allowances: ['NONE'],
     });
     next.allowances = ['NONE'];
@@ -478,6 +500,7 @@ export function applyMoneyDepthChoice(
       moneyDepthRequested: false,
       moneyDeclined: true,
       moneyDepthCompleted: false,
+      scenarioLayerRequested: false,
     };
   }
   return {
@@ -485,6 +508,7 @@ export function applyMoneyDepthChoice(
     moneyDepthRequested: true,
     moneyDeclined: false,
     moneyDepthCompleted: false,
+    scenarioLayerRequested: false,
   };
 }
 
@@ -549,10 +573,11 @@ export function needsSeriousAdminQuestions(state: WizardState): boolean {
 export function wantsFinancialDetailQuestions(state: WizardState): boolean {
   if (isBenefitSituation(state)) return false;
   if (state.growthStart === 'TRYING_OUT') return false;
+  const derived = deriveAllowancesFromFacts(state);
   return (
     state.situationGroup === 'EMPLOYEE' ||
     state.situationGroup === 'EXISTING_ENTREPRENEUR' ||
-    state.allowances.some((id) => id !== 'NONE' && id !== 'UNKNOWN')
+    derived.some((id) => id !== 'NONE' && id !== 'UNKNOWN')
   );
 }
 
@@ -753,25 +778,23 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
         s.ageTaxRegime === 'REACHES_AOW_IN_2026'),
   },
   {
+    id: 'dutchHealthInsurance',
+    visible: (s) => moneyLayerVisible(s) && shouldAskPartnerQuestions(s),
+  },
+  {
     id: 'allowances',
-    visible: (s) =>
-      moneyLayerVisible(s) &&
-      s.growthStart !== 'TRYING_OUT',
+    visible: () => false,
   },
   {
     id: 'partner',
-    visible: (s) =>
-      moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      needsPartnerContext(s.allowances),
+    visible: (s) => moneyLayerVisible(s) && shouldAskPartnerQuestions(s),
   },
   {
     id: 'partnerInsurance',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      s.hasPartner === true &&
-      hasAllowance(s.allowances, 'HEALTHCARE'),
+      shouldAskPartnerQuestions(s) &&
+      s.hasPartner === true,
   },
   {
     id: 'currentIncome',
@@ -785,61 +808,65 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
     id: 'partnerIncome',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      s.hasPartner === true &&
-      (hasAllowance(s.allowances, 'HEALTHCARE') ||
-        hasAllowance(s.allowances, 'CHILD_BUDGET') ||
-        hasAllowance(s.allowances, 'CHILDCARE') ||
-        hasAllowance(s.allowances, 'RENT')),
+      shouldAskPartnerQuestions(s) &&
+      s.hasPartner === true,
+  },
+  {
+    id: 'rentsHome',
+    visible: (s) => moneyLayerVisible(s) && shouldAskPartnerQuestions(s),
   },
   {
     id: 'housingRent',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      needsRentFields(s.allowances),
+      shouldAskPartnerQuestions(s) &&
+      s.rentsHome === true,
   },
   {
     id: 'housingHousehold',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      needsRentFields(s.allowances),
+      shouldAskPartnerQuestions(s) &&
+      s.rentsHome === true,
   },
   {
     id: 'housingAssets',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      needsRentFields(s.allowances),
+      shouldAskPartnerQuestions(s) &&
+      s.rentsHome === true,
+  },
+  {
+    id: 'hasChildren',
+    visible: (s) => moneyLayerVisible(s) && shouldAskPartnerQuestions(s),
   },
   {
     id: 'children',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      (needsChildBudgetFields(s.allowances) || needsChildcareFields(s.allowances)),
+      shouldAskPartnerQuestions(s) &&
+      s.hasChildren === true,
   },
   {
     id: 'youngChild',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      parseWizardChildAges(s.childrenAges).length === 0 &&
-      (needsChildBudgetFields(s.allowances) || needsChildcareFields(s.allowances)),
+      shouldAskPartnerQuestions(s) &&
+      s.hasChildren === true &&
+      parseWizardChildAges(s.childrenAges).length === 0,
   },
   {
     id: 'iackHousehold',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
       wizardIackQuestionsNeeded(s),
   },
   {
     id: 'iackCoParent',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
       wizardIackQuestionsNeeded(s) &&
       s.iackHouseholdDuration !== 'AT_LEAST_6_MONTHS',
   },
@@ -847,14 +874,14 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
     id: 'fiscalPartner',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
       wizardIackQuestionsNeeded(s),
   },
   {
     id: 'iackPartnerIncome',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
       s.hasPartner === true &&
       s.advancedAccuracyRequested &&
       wizardIackQuestionsNeeded(s) &&
@@ -864,7 +891,7 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
     id: 'iackRelativeAge',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
       wizardIackQuestionsNeeded(s) &&
       s.fiscalPartnerDuration === 'MORE_THAN_6_MONTHS',
   },
@@ -872,31 +899,36 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
     id: 'childBudgetAssets',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      needsChildBudgetFields(s.allowances),
+      shouldAskPartnerQuestions(s) &&
+      s.hasChildren === true,
+  },
+  {
+    id: 'usesChildcare',
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
+      s.hasChildren === true,
   },
   {
     id: 'childcare',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      needsChildcareFields(s.allowances),
+      shouldAskPartnerQuestions(s) &&
+      s.usesChildcare === true,
   },
   {
     id: 'workStudy',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      needsChildcareFields(s.allowances),
+      shouldAskPartnerQuestions(s) &&
+      s.usesChildcare === true,
   },
   {
     id: 'midYear',
     visible: (s) =>
       moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      (needsRentFields(s.allowances) ||
-        needsChildBudgetFields(s.allowances) ||
-        needsChildcareFields(s.allowances)),
+      shouldAskPartnerQuestions(s) &&
+      (s.rentsHome === true || s.hasChildren === true),
   },
   {
     id: 'frequency',
@@ -967,10 +999,7 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
   },
   {
     id: 'assets',
-    visible: (s) =>
-      moneyLayerVisible(s) &&
-      allowanceFollowUpsVisible(s) &&
-      hasAllowance(s.allowances, 'HEALTHCARE'),
+    visible: (s) => moneyLayerVisible(s) && shouldAskPartnerQuestions(s),
   },
   {
     id: 'scenario',
@@ -1023,12 +1052,27 @@ export function progressSteps(state: WizardState, current: WizardStepId): Wizard
   return quick;
 }
 
+export function derivedWizardAllowances(state: WizardState): AllowanceId[] {
+  if (isBenefitSituation(state) || state.growthStart === 'TRYING_OUT') {
+    return ['NONE'];
+  }
+  return deriveAllowancesFromFacts(state);
+}
+
+export function shouldAskPartnerQuestions(state: WizardState): boolean {
+  return allowanceFollowUpsVisible(state) && !derivedWizardAllowances(state).includes('NONE');
+}
+
 export function shouldAskRentFields(state: WizardState): boolean {
-  return needsRentFields(state.allowances);
+  return state.rentsHome === true || needsRentFieldsFallback(state);
+}
+
+function needsRentFieldsFallback(state: WizardState): boolean {
+  return derivedWizardAllowances(state).includes('RENT');
 }
 
 export function shouldAskChildcareFields(state: WizardState): boolean {
-  return needsChildcareFields(state.allowances);
+  return state.usesChildcare === true || derivedWizardAllowances(state).includes('CHILDCARE');
 }
 
 export function nextStep(

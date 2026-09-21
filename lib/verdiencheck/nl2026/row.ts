@@ -40,10 +40,19 @@ export function resolveTaxableRowResult(input: {
   }
   assumptions.push('ADDITIONAL_INCOME_CLASSIFICATION=RESULT_FROM_OTHER_WORK');
 
-  if (input.commercialResultCents <= 0) {
+  if (input.commercialResultCents < 0) {
     return {
       status: 'SOURCE_OF_INCOME_REVIEW_REQUIRED',
       taxableROWResultCents: UNKNOWN,
+      assumptions,
+    };
+  }
+
+  if (input.commercialResultCents === 0) {
+    assumptions.push('assumeEstimatedCostsTaxDeductible=true');
+    return {
+      status: 'OK',
+      taxableROWResultCents: 0,
       assumptions,
     };
   }

@@ -132,11 +132,17 @@ for (const [label, ids] of Object.entries({ A, B, C, D, E, F, G, H, I, J, L })) 
 
 assert.equal(A.includes('partnerIncome'), false);
 assert.equal(A.includes('iackPartnerIncome'), false);
+assert.equal(A.includes('partner'), true);
+assert.equal(A.includes('allowances'), false);
+assert.equal(A.includes('rentsHome'), true);
+assert.equal(A.includes('hasChildren'), true);
+assert.equal(A.includes('dutchHealthInsurance'), true);
 assert.equal(B.includes('partner'), true);
 assert.equal(B.includes('partnerIncome'), true);
 assert.equal(count(B, 'partnerIncome'), 1);
 assert.equal(C.includes('partner'), false);
 assert.equal(C.includes('partnerIncome'), false);
+assert.equal(C.includes('rentsHome'), false);
 assert.equal(E.includes('partnerIncome'), false);
 assert.equal(F.includes('partnerIncome'), false);
 assert.equal(F.includes('iackPartnerIncome'), false);
@@ -165,7 +171,7 @@ assert.equal(markMoneyDepthCompleted(noPartnerLast, 'currentIncome', 'result').m
 const healthcareLast = state({ ...employeeRegular, allowances: ['HEALTHCARE'], hasPartner: false });
 assert.equal(nextStep(healthcareLast, 'assets'), 'result');
 assert.equal(markMoneyDepthCompleted(healthcareLast, 'assets', 'result').moneyDepthCompleted, true);
-assert.equal(previousStep({ ...noPartnerLast, moneyDepthRequested: true }, 'currentIncome'), 'allowances');
+assert.equal(previousStep({ ...noPartnerLast, moneyDepthRequested: true }, 'currentIncome'), 'aow');
 
 const input500 = wizardStateToCalculatorInput(
   state({
@@ -202,12 +208,18 @@ if (calc500.status === 'READY' && calc2500.status === 'READY') {
 
 assert.match(nl.moneyPhaseNowTitle, /situatie nu/i);
 assert.match(nl.baselineCompleteTitle, /uitgangssituatie is compleet/i);
+assert.match(nl.situationNowTitle, /situatie nu/i);
+assert.match(nl.viewExtraScenarioCta, /extra verdienen/i);
 assert.match(nl.steps.partnerIncome?.title ?? '', /toeslagpartner/i);
 assert.doesNotMatch(nl.steps.partnerIncome?.title ?? '', /gezamenlijk/i);
 assert.match(wizardSrc, /function advanceFrom/);
 assert.match(wizardSrc, /advanceFrom\(next, 'assets'\)/);
-assert.match(wizardSrc, /baselineCompleteTitle/);
+assert.match(wizardSrc, /situationNowTitle/);
+assert.match(wizardSrc, /viewExtraScenarioCta/);
+assert.match(wizardSrc, /VerdienCheckBaselineCard/);
 assert.match(impactSrc, /copy\.whatIf/);
+assert.match(impactSrc, /onApplyCustom/);
+assert.match(impactSrc, /onKeyDown/);
 assert.doesNotMatch(schemaSrc, /moneyLayerVisible\(s\) && needsSeriousAdminQuestions/);
 assert.doesNotMatch(engineSrc, /UNKNOWN.*\?\? 0/);
 

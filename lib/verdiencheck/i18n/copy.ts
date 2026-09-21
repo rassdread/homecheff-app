@@ -148,6 +148,30 @@ export type VerdienCheckCopy = {
   comparisonNet: string;
   comparisonMonth: string;
   currentIncomeInvalid: string;
+  incomeGross: string;
+  incomeNet: string;
+  applyCustomAmount: string;
+  situationNowTitle: string;
+  viewExtraScenarioCta: string;
+  notYetCalculable: string;
+  estimatedEntitlement: string;
+  extraTaxAndContributions: string;
+  extraIncomeTax: string;
+  zvwContributionLabel: string;
+  setAsidePrefix: string;
+  setAsideSuffix: string;
+  totalAllowances: string;
+  allowanceChange: string;
+  netExtraKeepTitle: string;
+  whatChangesTitle: string;
+  incomeHeading: string;
+  allowancesHeading: string;
+  grossIncomeLabel: string;
+  perYearShort: string;
+  perMonthShort: string;
+  netInputEstimateNote: string;
+  netInputAowNote: string;
+  extraTaxReserveTitle: string;
   shareAction: string;
   shareTitle: string;
   shareMessage: string;
@@ -339,6 +363,32 @@ const NL: VerdienCheckCopy = {
   comparisonNet: 'Naar schatting extra over',
   comparisonMonth: 'Gemiddeld per maand',
   currentIncomeInvalid: 'Vul een bedrag in, of kies dat je het niet weet.',
+  incomeGross: 'Bruto',
+  incomeNet: 'Netto',
+  applyCustomAmount: 'Toepassen',
+  situationNowTitle: 'Dit is je situatie nu',
+  viewExtraScenarioCta: 'Bekijk wat extra verdienen doet',
+  notYetCalculable: 'Nog niet te berekenen',
+  estimatedEntitlement: 'Geschat recht volgens je ingevulde situatie',
+  extraTaxAndContributions: 'Extra belasting en bijdragen',
+  extraIncomeTax: 'Extra inkomstenbelasting',
+  zvwContributionLabel: 'Zvw-bijdrage',
+  setAsidePrefix: 'Zet hiervoor ongeveer €',
+  setAsideSuffix: ' opzij.',
+  totalAllowances: 'Totaal toeslagen',
+  allowanceChange: 'Toeslagenverandering',
+  netExtraKeepTitle: 'Wat houd je extra over?',
+  whatChangesTitle: 'Wat verandert?',
+  incomeHeading: 'Inkomen',
+  allowancesHeading: 'Toeslagen',
+  grossIncomeLabel: 'Bruto inkomen',
+  perYearShort: '/ jaar',
+  perMonthShort: '/ maand',
+  netInputEstimateNote:
+    'Met netto maken we een schatting van je bruto jaarinkomen. Dat is geen loonstrookberekening.',
+  netInputAowNote:
+    'In het jaar dat je AOW krijgt, kunnen we netto niet betrouwbaar terugrekenen. Vul bruto in.',
+  extraTaxReserveTitle: 'Extra belasting en bijdragen',
   shareAction: 'Deel de VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:
@@ -488,6 +538,11 @@ const NL: VerdienCheckCopy = {
         UNKNOWN: 'Weet ik niet',
       },
     },
+    dutchHealthInsurance: {
+      title: 'Heb je een Nederlandse zorgverzekering?',
+      help: 'Zorgtoeslag is alleen mogelijk met een Nederlandse basisverzekering. Weet je het niet, kies dat. Gok niet.',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
+    },
     allowances: {
       title: 'Krijg je toeslagen?',
       options: {
@@ -608,6 +663,11 @@ const NL: VerdienCheckCopy = {
         UNKNOWN: 'Ik weet het niet',
       },
     },
+    rentsHome: {
+      title: 'Huur je een woning?',
+      help: 'Alleen nodig voor huurtoeslag. Koop of inwonen telt hier niet als huur.',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
+    },
     housingRent: {
       title: 'Wat is de kale huur per maand?',
       help: 'Kale huur is huur zonder gas, water en servicekosten. Een schatting is goed.',
@@ -626,6 +686,11 @@ const NL: VerdienCheckCopy = {
         NOT_ELIGIBLE: 'Nee, ik heb te veel spaargeld of vermogen',
         UNKNOWN: 'Ik weet het niet',
       },
+    },
+    hasChildren: {
+      title: 'Heb je kinderen?',
+      help: 'Nodig voor kindgebonden budget en kinderopvangtoeslag. Leeftijden vragen we alleen als je ja zegt.',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
     },
     children: {
       title: 'Hoe oud zijn je kinderen?',
@@ -679,6 +744,11 @@ const NL: VerdienCheckCopy = {
         NOT_ELIGIBLE: 'Nee, ik heb te veel spaargeld of vermogen',
         UNKNOWN: 'Ik weet het niet',
       },
+    },
+    usesChildcare: {
+      title: 'Gebruik je kinderopvang?',
+      help: 'Alleen nodig voor kinderopvangtoeslag. Zonder opvang slaan we deze vragen over.',
+      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
     },
     childcare: {
       title: 'Welke opvang gebruik je?',
@@ -927,6 +997,32 @@ const EN: VerdienCheckCopy = {
   comparisonNet: 'Estimated extra kept',
   comparisonMonth: 'Average per month',
   currentIncomeInvalid: 'Enter an amount, or choose that you do not know.',
+  incomeGross: 'Gross',
+  incomeNet: 'Net',
+  applyCustomAmount: 'Apply',
+  situationNowTitle: 'This is your situation now',
+  viewExtraScenarioCta: 'See what extra earning does',
+  notYetCalculable: 'Not yet calculable',
+  estimatedEntitlement: 'Estimated entitlement based on the situation you entered',
+  extraTaxAndContributions: 'Extra tax and contributions',
+  extraIncomeTax: 'Extra income tax',
+  zvwContributionLabel: 'Zvw contribution',
+  setAsidePrefix: 'Set aside about €',
+  setAsideSuffix: ' for this.',
+  totalAllowances: 'Total allowances',
+  allowanceChange: 'Allowance change',
+  netExtraKeepTitle: 'How much extra do you keep?',
+  whatChangesTitle: 'What changes?',
+  incomeHeading: 'Income',
+  allowancesHeading: 'Allowances',
+  grossIncomeLabel: 'Gross income',
+  perYearShort: '/ year',
+  perMonthShort: '/ month',
+  netInputEstimateNote:
+    'With net pay we estimate your gross annual income. This is not a payslip calculation.',
+  netInputAowNote:
+    'In the year you reach state pension age we cannot reliably reverse net pay. Enter gross instead.',
+  extraTaxReserveTitle: 'Extra tax and contributions',
   shareAction: 'Share VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:
@@ -1076,6 +1172,11 @@ const EN: VerdienCheckCopy = {
         UNKNOWN: 'I don’t know',
       },
     },
+    dutchHealthInsurance: {
+      title: 'Do you have Dutch health insurance?',
+      help: 'Healthcare allowance is only possible with Dutch basic insurance. If you do not know, say so. Do not guess.',
+      options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
+    },
     allowances: {
       title: 'Do you receive allowances?',
       options: {
@@ -1191,6 +1292,11 @@ const EN: VerdienCheckCopy = {
         UNKNOWN: 'I don’t know',
       },
     },
+    rentsHome: {
+      title: 'Do you rent your home?',
+      help: 'Only needed for rent allowance. Buying or living with family does not count as rent here.',
+      options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
+    },
     housingRent: { title: 'What is the bare monthly rent?' },
     housingHousehold: {
       title: 'What is your rent-allowance household?',
@@ -1206,6 +1312,11 @@ const EN: VerdienCheckCopy = {
         NOT_ELIGIBLE: 'No, my assets are too high',
         UNKNOWN: 'I don’t know',
       },
+    },
+    hasChildren: {
+      title: 'Do you have children?',
+      help: 'Needed for child budget and childcare allowance. We only ask ages if you say yes.',
+      options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
     },
     children: {
       title: 'How old are your children?',
@@ -1259,6 +1370,11 @@ const EN: VerdienCheckCopy = {
         NOT_ELIGIBLE: 'No, my assets are too high',
         UNKNOWN: 'I don’t know',
       },
+    },
+    usesChildcare: {
+      title: 'Do you use childcare?',
+      help: 'Only needed for childcare allowance. Without childcare we skip these questions.',
+      options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
     },
     childcare: {
       title: 'What childcare do you use?',

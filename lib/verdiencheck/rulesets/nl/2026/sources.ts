@@ -61,15 +61,15 @@ export const SRC_BEPERKT_AFTREKBARE_2026 = {
 } as const;
 
 export const SRC_ZVW_2026 = {
-  officialSource: 'Belastingdienst / FisIn — Inkomensafhankelijke bijdrage Zvw 2026',
+  officialSource: 'Belastingdienst — Percentages inkomensafhankelijke bijdrage Zvw 2026',
   officialSourceUrl:
-    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/werk_en_inkomen/zorgverzekeringswet/',
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/werk_en_inkomen/zorgverzekeringswet/veranderingen-bijdrage-zvw/percentages-zvw',
 } as const;
 
 export const SRC_ZORGTOESLAG_2026 = {
   officialSource: 'Dienst Toeslagen — Berekening zorgtoeslag 2026',
   officialSourceUrl:
-    'https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/content/hoe-wordt-zorgtoeslag-berekend',
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/themaoverstijgend/brochures_en_publicaties/berekening-zorgtoeslag',
 } as const;
 
 export const SRC_WZT_2026 = {
@@ -334,5 +334,5 @@ export const NL_2026_EFFECTIVE = {
   year: 2026,
   effectiveFrom: '2026-01-01',
   effectiveUntil: '2026-12-31',
-  verifiedAt: '2026-09-20',
+  verifiedAt: '2026-09-21',
 };

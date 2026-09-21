@@ -252,7 +252,10 @@ const inputNeg = wizardStateToCalculatorInput(helperNeg);
 assert.ok(inputNeg);
 assert.equal(inputNeg.scenarioAdditionalResultCents, 0);
 const negCalc = runCalculator(inputNeg);
-assert.equal(negCalc.status, 'SOURCE_OF_INCOME_REVIEW_REQUIRED');
+assert.equal(negCalc.status, 'READY');
+if (negCalc.status === 'READY') {
+  assert.equal(negCalc.netExtraCents, 0);
+}
 
 const healthcareHelper = applyRevenueCostHelperFields(
   employeeBaseline({
@@ -358,7 +361,7 @@ assert.match(nl.whatIsResultBody, /niet automatisch belasting over alles/);
 assert.match(wizardSrc, /questionsBeforeFirstResult/);
 assert.equal(questionsBeforeFirstResult(state({ activityChoice: 'MAKE', growthStart: 'TRYING_OUT', situationGroup: 'NONE' })).length, 4);
 assert.match(engineSrc, /commercialAdditional = input\.scenarioAdditionalResultCents/);
-assert.equal(rowSrc.includes('commercialResultCents <= 0'), true);
+assert.equal(rowSrc.includes('commercialResultCents < 0'), true);
 assert.ok(ztSrc.length > 0 && rentSrc.length > 0 && kgbSrc.length > 0 && kotSrc.length > 0);
 
 const fiveSecondCopy = [

@@ -39,3 +39,31 @@ export function needsChildcareFields(selection: AllowanceSelection): boolean {
 export function needsChildBudgetFields(selection: AllowanceSelection): boolean {
   return hasAllowance(selection, 'CHILD_BUDGET');
 }
+
+export type AllowanceFactState = {
+  allowances: AllowanceSelection;
+  rentsHome: boolean | 'UNKNOWN' | null;
+  hasChildren: boolean | 'UNKNOWN' | null;
+  usesChildcare: boolean | 'UNKNOWN' | null;
+};
+
+/**
+ * Engine decides which 2026 allowances to attempt from household facts.
+ * User multi-select is not the primary calculation switch.
+ * NONE remains an explicit skip (benefits / trying-out).
+ */
+export function deriveAllowancesFromFacts(state: AllowanceFactState): AllowanceId[] {
+  if (state.allowances.includes('NONE')) return ['NONE'];
+  if (state.allowances.includes('UNKNOWN')) return ['UNKNOWN'];
+  const ids: AllowanceId[] = ['HEALTHCARE'];
+  if (state.rentsHome === true || hasAllowance(state.allowances, 'RENT')) {
+    ids.push('RENT');
+  }
+  if (state.hasChildren === true || hasAllowance(state.allowances, 'CHILD_BUDGET')) {
+    ids.push('CHILD_BUDGET');
+  }
+  if (state.usesChildcare === true || hasAllowance(state.allowances, 'CHILDCARE')) {
+    ids.push('CHILDCARE');
+  }
+  return ids;
+}

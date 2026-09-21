@@ -11,6 +11,7 @@ import { PERSONAL_ROUTE_COPY } from './copy';
 import type {
   FinancialImpactPresentation,
   MoneySimulatorView,
+  CurrentBaselineView,
   SimulatorAllowanceId,
   SimulatorAllowanceLine,
 } from './types';
@@ -105,7 +106,6 @@ function buildAllowanceLine(
   const currentN = knownNumber(current);
   const scenarioN = knownNumber(scenario);
   const unknown = isUnknown(current) || isUnknown(scenario) || isUnknown(delta);
-  const allowancesUnknown = Boolean(allowances?.includes('UNKNOWN'));
   const prefix =
     meta.id === 'RENT'
       ? 'housing:'
@@ -128,9 +128,7 @@ function buildAllowanceLine(
       rightLost: false,
       unchanged: false,
       unknown: false,
-      excludedReason: allowancesUnknown
-        ? 'Je weet niet of je toeslagen ontvangt. Toeslagen zijn daarom niet meegenomen.'
-        : null,
+      excludedReason: null,
     };
   }
 
@@ -166,7 +164,7 @@ function uncertaintyFromMissing(missing: readonly string[], allowances: Allowanc
     return 'Je huidige inkomen is niet volledig bekend. Daardoor is deze uitkomst een indicatie. Ontbrekende bedragen zijn niet als €0 meegenomen.';
   }
   if (missing.includes('allowances') || allowances?.includes('UNKNOWN')) {
-    return 'Je weet niet of je toeslagen ontvangt. Toeslagen zijn daarom niet meegenomen.';
+    return 'Toeslagen zijn nog niet te berekenen omdat je situatie daarvoor onvolledig is. Ontbrekende bedragen zijn niet als €0 meegenomen.';
   }
   if (missing.includes('bareRentCentsPerMonth') || missing.includes('housingHousehold') || missing.some((item) => item.startsWith('housing:'))) {
     return 'Huurtoeslag is niet meegenomen omdat je huurgegevens ontbreken.';
@@ -260,6 +258,33 @@ export function buildMoneySimulatorView(
   };
 }
 
+function monthlyFromAnnual(cents: number): number {
+  return Math.round(cents / 12);
+}
+
+export function buildCurrentBaselineView(
+  result: CalculatorReadyResult,
+  allowances: AllowanceSelection | null,
+): CurrentBaselineView {
+  const lines = ALLOWANCE_META.map((meta) =>
+    buildAllowanceLine(result, meta, allowances, result.missingInputs),
+  ).filter((line) => line.included || line.unknown);
+  const annuals = lines.map((line) =>
+    line.unknown ? UNKNOWN : (knownNumber(line.currentCents) ?? UNKNOWN),
+  );
+  const totalAnnual = sumKnown(annuals);
+  const totalMonthly =
+    typeof totalAnnual === 'number' ? monthlyFromAnnual(totalAnnual) : totalAnnual;
+  return {
+    incomeAnnualCents: null,
+    incomeMonthlyCents: null,
+    incomeUnknown: false,
+    incomeUnknownReason: null,
+    incomeIsNetEstimate: false,
+    allowances: lines,
+  };
+}
+
 export function presentFinancialImpact(
   result: CalculatorResult | null,
   options?: { allowances?: AllowanceSelection | null },
@@ -283,6 +308,7 @@ export function presentFinancialImpact(
       explanation: PERSONAL_ROUTE_COPY.estimateOnRules,
       turnoverVsResultNote,
       simulator: emptySimulator(extra, why),
+      baseline: null,
     };
   }
 
@@ -312,6 +338,7 @@ export function presentFinancialImpact(
       explanation: PERSONAL_ROUTE_COPY.estimateOnRules,
       turnoverVsResultNote,
       simulator,
+      baseline: buildCurrentBaselineView(result, allowances),
     };
   }
 
@@ -326,5 +353,6 @@ export function presentFinancialImpact(
     explanation: PERSONAL_ROUTE_COPY.estimateOnRules,
     turnoverVsResultNote,
     simulator,
+    baseline: buildCurrentBaselineView(result, allowances),
   };
 }

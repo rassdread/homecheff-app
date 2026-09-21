@@ -21,14 +21,52 @@ export function commercialResultCents(
   return turnoverCents - costsCents;
 }
 
-/** Parse user euro input without float drift (19.99 * 100). */
+/**
+ * Parse user euro input without float drift.
+ * Dutch thousands (`1.000`, `1.250`) stay whole euros; `19,99` / `19.99` are cents.
+ */
 export function parseEuroInputToCents(raw: string): Cents | null {
-  const t = raw.trim().replace(/\s/g, '').replace(',', '.');
-  if (t === '') return null;
-  if (!/^\d+(\.\d{1,2})?$/.test(t)) return null;
-  const [whole, frac = ''] = t.split('.');
+  const trimmed = raw.trim().replace(/\s/g, '').replace(/^€/, '');
+  if (trimmed === '' || trimmed === '-' || trimmed === '+') return null;
+  const sign = trimmed.startsWith('-') ? -1 : 1;
+  const body = trimmed.replace(/^[+-]/, '');
+  if (body === '') return null;
+
+  const lastComma = body.lastIndexOf(',');
+  const lastDot = body.lastIndexOf('.');
+  let normalized: string;
+
+  if (lastComma >= 0 && lastDot >= 0) {
+    if (lastComma > lastDot) {
+      if (!/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(body)) return null;
+      normalized = body.replace(/\./g, '').replace(',', '.');
+    } else {
+      if (!/^\d{1,3}(,\d{3})+(\.\d{1,2})?$/.test(body)) return null;
+      normalized = body.replace(/,/g, '');
+    }
+  } else if (lastComma >= 0) {
+    if (!/^\d+,\d{1,2}$/.test(body)) return null;
+    normalized = body.replace(',', '.');
+  } else if (lastDot >= 0) {
+    const parts = body.split('.');
+    const last = parts[parts.length - 1] ?? '';
+    if (parts.length === 2 && last.length <= 2) {
+      if (!/^\d+\.\d{1,2}$/.test(body)) return null;
+      normalized = body;
+    } else if (parts.every((part, index) => (index === 0 ? /^\d{1,3}$/.test(part) : /^\d{3}$/.test(part)))) {
+      normalized = parts.join('');
+    } else {
+      return null;
+    }
+  } else {
+    if (!/^\d+$/.test(body)) return null;
+    normalized = body;
+  }
+
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
+  const [whole, frac = ''] = normalized.split('.');
   const frac2 = (frac + '00').slice(0, 2);
-  return Number(whole) * 100 + Number(frac2);
+  return sign * (Number(whole) * 100 + Number(frac2));
 }
 
 export function formatCentsAsEuro(cents: Cents): string {

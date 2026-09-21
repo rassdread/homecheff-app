@@ -94,7 +94,7 @@ assert.equal(visibleSteps(starterMoney).includes('incomeBases'), false);
 assert.equal(visibleSteps(employeeMoney).includes('incomeBases'), false);
 assert.equal(firstMoneyStep(starterMoney), 'currentIncome');
 const moneyQuestionCount = visibleSteps(employeeMoney).filter((id) => id !== 'jurisdiction' && id !== 'result' && !questionsBeforeFirstResult(employeeMoney).includes(id)).length;
-assert.ok(moneyQuestionCount <= 6, `employee money questions ${moneyQuestionCount}`);
+assert.ok(moneyQuestionCount <= 10, `employee money questions ${moneyQuestionCount}`);
 
 const proxy = deriveIncomeBasesFromUserFacts(employeeBaseline());
 assert.equal(proxy.derivation, 'EMPLOYMENT_PROXY');

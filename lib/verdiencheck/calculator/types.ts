@@ -75,6 +75,11 @@ export type CalculatorInput = {
   onlyTotalRentKnown?: boolean | null;
   childBudgetHousehold?: ChildBudgetHousehold | null;
   childcareHousehold?: ChildcareHousehold | null;
+  /** Omitted in older tests: treated as insured. UNKNOWN never maps to €0. */
+  userHealthcareInsuranceStatus?: PartnerHealthcareInsuranceStatus | null;
+  housingTenure?: 'RENTS' | 'DOES_NOT_RENT' | 'UNKNOWN' | null;
+  hasChildren?: boolean | 'UNKNOWN' | null;
+  usesChildcare?: boolean | 'UNKNOWN' | null;
   allowances: AllowanceSelection;
   activity: ActivityContext;
   incomeSource: IncomeSource;

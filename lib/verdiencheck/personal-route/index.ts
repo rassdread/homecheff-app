@@ -5,7 +5,7 @@ export {
 } from './orchestrator';
 export { findPersonalRouteContradictions, assertNoPersonalRouteContradictions } from './contradiction';
 export { PERSONAL_ROUTE_COPY } from './copy';
-export { presentFinancialImpact, buildMoneySimulatorView } from './financial';
+export { presentFinancialImpact, buildMoneySimulatorView, buildCurrentBaselineView } from './financial';
 export { cardFamilyOf, actionSemanticsOf } from './prioritize';
 export type {
   PersonalVerdienRoute,

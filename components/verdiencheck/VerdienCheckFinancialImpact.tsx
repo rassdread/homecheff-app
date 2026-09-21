@@ -1,5 +1,6 @@
 import {
   formatCentsAsWholeEuroDisplay,
+  parseEuroInputToCents,
   roundCentsToWholeEuroCents,
   SCENARIO_PRESET_EUROS,
 } from '@/lib/verdiencheck/domain/money';
@@ -53,6 +54,7 @@ export default function VerdienCheckFinancialImpact(props: {
   onSelectPreset: (euro: ScenarioPresetEuro) => void;
   onSelectCustom: () => void;
   onCustomChange: (value: string) => void;
+  onApplyCustom: () => void;
   onSelectResultMode: () => void;
   onSelectHelperMode: () => void;
   onHelperRevenueChange: (value: string) => void;
@@ -75,14 +77,19 @@ export default function VerdienCheckFinancialImpact(props: {
   });
   const helperActive = props.scenarioInputMode === 'REVENUE_COST';
   const exact = impact.status === 'EXACT' && net != null;
+  const parsedCustom = parseEuroInputToCents(props.customScenarioEuro);
   const awaitingCustom =
-    !helperActive &&
-    props.scenarioPreset === 'custom' &&
-    (extra == null || extra === 0);
+    !helperActive && props.scenarioPreset === 'custom' && parsedCustom == null;
   const awaitingHelper = helperActive && helperChain == null;
 
   const tax = known(sim.taxDeltaCents);
-  const includedAllowances = sim.allowances.filter((line) => line.included);
+  const incomeTax = known(sim.incomeTaxDeltaCents);
+  const zvw = known(sim.zvwDeltaCents);
+  const includedAllowances = sim.allowances.filter((line) => line.included || line.unknown);
+  const allowanceDeltaTotal = includedAllowances.reduce((sum, line) => {
+    const delta = known(line.deltaCents);
+    return delta == null ? sum : (sum ?? 0) + delta;
+  }, null as number | null);
   const perHundred =
     exact && extra != null && extra > 0 ? Math.round((net / extra) * 100) : null;
 
@@ -139,13 +146,30 @@ export default function VerdienCheckFinancialImpact(props: {
             </button>
           </div>
           {props.scenarioPreset === 'custom' ? (
-            <input
-              inputMode="decimal"
-              value={props.customScenarioEuro}
-              onChange={(e) => props.onCustomChange(e.target.value)}
-              className="min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg"
-              placeholder="€"
-            />
+            <div className="space-y-2">
+              <input
+                inputMode="decimal"
+                enterKeyHint="done"
+                value={props.customScenarioEuro}
+                onChange={(e) => props.onCustomChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    props.onApplyCustom();
+                  }
+                }}
+                className="min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg"
+                placeholder="€"
+                aria-label={copy.customAmount}
+              />
+              <button
+                type="button"
+                onClick={props.onApplyCustom}
+                className="min-h-11 w-full rounded-xl bg-emerald-800 px-4 py-2 text-base font-semibold text-white"
+              >
+                {copy.applyCustomAmount}
+              </button>
+            </div>
           ) : null}
         </>
       ) : null}
@@ -199,6 +223,93 @@ export default function VerdienCheckFinancialImpact(props: {
               Van iedere €100 extra resultaat houd je in dit scenario ongeveer €{perHundred} extra
               over.
             </p>
+          ) : null}
+
+          {includedAllowances.length > 0 ? (
+            <div className="overflow-x-auto rounded-xl border border-stone-100">
+              <table className="w-full min-w-[16rem] text-left text-sm">
+                <caption className="sr-only">{copy.allowancesHeading}</caption>
+                <thead>
+                  <tr className="border-b border-stone-100 text-stone-500">
+                    <th className="px-3 py-2 font-medium">{copy.allowancesHeading}</th>
+                    <th className="px-3 py-2 font-medium">{PERSONAL_ROUTE_COPY.nowLabel}</th>
+                    <th className="px-3 py-2 font-medium">
+                      {PERSONAL_ROUTE_COPY.scenarioLabel}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {includedAllowances.map((line) => {
+                    const currentN = known(line.currentCents);
+                    const scenarioN = known(line.scenarioCents);
+                    return (
+                      <tr key={line.id} className="border-b border-stone-50">
+                        <td className="px-3 py-2">{ALLOWANCE_NAME[line.id]}</td>
+                        <td className="px-3 py-2">
+                          {currentN != null && !line.unknown
+                            ? `€${whole(Math.round(currentN / 12))} ${copy.perMonthShort}`
+                            : copy.notYetCalculable}
+                        </td>
+                        <td className="px-3 py-2">
+                          {scenarioN != null && !line.unknown
+                            ? `€${whole(Math.round(scenarioN / 12))} ${copy.perMonthShort}`
+                            : copy.notYetCalculable}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+
+          {allowanceDeltaTotal != null ? (
+            <p className="text-sm font-medium text-stone-800">
+              {copy.allowanceChange} {signedWhole(Math.round(allowanceDeltaTotal / 12))} {copy.perMonthShort}
+            </p>
+          ) : null}
+
+          <p className="text-base font-semibold text-stone-900">{copy.netExtraKeepTitle}</p>
+          {exact && net != null ? (
+            <p className="text-lg font-semibold text-stone-900">
+              €{whole(net)} {copy.perYearShort}
+              {month != null ? (
+                <span className="block text-base font-normal text-stone-700">
+                  €{whole(month)} {copy.perMonthShort}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
+
+          {incomeTax != null || zvw != null ? (
+            <div className="space-y-1 rounded-xl border border-stone-100 bg-stone-50 p-3 text-sm">
+              <p className="font-medium text-stone-800">{copy.extraTaxReserveTitle}</p>
+              {incomeTax != null ? (
+                <div className="flex justify-between gap-4">
+                  <span>{copy.extraIncomeTax}</span>
+                  <span>€{whole(incomeTax)}</span>
+                </div>
+              ) : null}
+              {zvw != null ? (
+                <div className="flex justify-between gap-4">
+                  <span>{copy.zvwContributionLabel}</span>
+                  <span>€{whole(zvw)}</span>
+                </div>
+              ) : null}
+              {tax != null ? (
+                <>
+                  <div className="flex justify-between gap-4 border-t border-stone-200 pt-1 font-medium">
+                    <span>Totaal</span>
+                    <span>€{whole(tax)}</span>
+                  </div>
+                  <p className="pt-1 text-stone-600">
+                    {copy.setAsidePrefix}
+                    {whole(tax)}
+                    {copy.setAsideSuffix}
+                  </p>
+                </>
+              ) : null}
+            </div>
           ) : null}
         </div>
       ) : (

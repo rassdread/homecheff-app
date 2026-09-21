@@ -73,6 +73,17 @@ export type SimulatorAllowanceLine = {
   excludedReason: string | null;
 };
 
+export type CurrentBaselineView = {
+  incomeAnnualCents: number | null;
+  incomeMonthlyCents: number | null;
+  incomeUnknown: boolean;
+  incomeUnknownReason: string | null;
+  incomeIsNetEstimate: boolean;
+  allowances: SimulatorAllowanceLine[];
+  totalAllowancesAnnualCents: CentsOrUnknown | null;
+  totalAllowancesMonthlyCents: CentsOrUnknown | null;
+};
+
 export type MoneySimulatorView = {
   extraResultCents: Cents | null;
   taxDeltaCents: CentsOrUnknown | null;
@@ -98,6 +109,7 @@ export type FinancialImpactPresentation = {
   explanation: string;
   turnoverVsResultNote: string;
   simulator: MoneySimulatorView;
+  baseline: CurrentBaselineView | null;
 };
 
 export type PersonalVerdienRoute = {

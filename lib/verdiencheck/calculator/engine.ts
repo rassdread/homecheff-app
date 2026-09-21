@@ -269,6 +269,11 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
     input.healthcareAssetsEligibility ?? input.assetsEligibility ?? null;
   const rowCents = typeof taxableRow === 'number' ? taxableRow : null;
 
+  const userInsurance = input.userHealthcareInsuranceStatus ?? null;
+  const housingTenure = input.housingTenure ?? null;
+  const hasChildrenFact = input.hasChildren ?? null;
+  const usesChildcareFact = input.usesChildcare ?? null;
+
   if (allowancesNone) {
     healthcareA = 0;
     healthcareB = 0;
@@ -293,70 +298,82 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
   }
 
   if (wantsHealthcare) {
-    if (assessA == null) missingInputs.push('baselineAssessmentIncomeCents');
-    if (healthcareAssets == null || healthcareAssets === 'UNKNOWN') {
-      missingInputs.push('healthcareAssetsEligibility');
-    }
-    if (hasPartner === 'UNKNOWN' || hasPartner == null) {
-      missingInputs.push('partnerContext.hasPartner');
-    }
-    if (hasPartner === true) {
-      const ins = partner?.partnerHealthcareInsuranceStatus;
-      if (ins == null || ins === 'UNKNOWN') {
-        missingInputs.push('partnerHealthcareInsuranceStatus');
-      }
-      if (partner?.partnerAssessmentIncomeCents == null) {
-        missingInputs.push('partnerAssessmentIncomeCents');
-      }
-    }
-
-    const partnerAssessKnown =
-      hasPartner === false ||
-      (hasPartner === true && partner?.partnerAssessmentIncomeCents != null);
-
-    if (healthcareAssets === 'NOT_ELIGIBLE' && assessA != null) {
+    if (userInsurance === 'NOT_INSURED') {
       healthcareA = 0;
       healthcareB = 0;
       healthcareDelta = 0;
-    } else if (
-      healthcareAssets === 'ELIGIBLE' &&
-      assessA != null &&
-      canTax &&
-      rowCents != null &&
-      partnerAssessKnown &&
-      (hasPartner === false ||
-        (hasPartner === true &&
-          partner?.partnerHealthcareInsuranceStatus &&
-          partner.partnerHealthcareInsuranceStatus !== 'UNKNOWN'))
-    ) {
-      const partnerAssess =
-        hasPartner === true ? (partner?.partnerAssessmentIncomeCents ?? 0) : 0;
-      const partnerIns =
-        hasPartner === true
-          ? partner?.partnerHealthcareInsuranceStatus === 'NOT_INSURED'
-            ? 'NOT_INSURED'
-            : 'INSURED'
-          : 'INSURED';
-      healthcareA = calculateHealthcareAllowance2026({
-        hasPartner: hasPartner === true,
-        assessmentIncomeCents: assessA,
-        partnerAssessmentIncomeCents: partnerAssess,
-        partnerInsurance: partnerIns,
-      });
-      healthcareB = calculateHealthcareAllowance2026({
-        hasPartner: hasPartner === true,
-        assessmentIncomeCents: assessA + rowCents,
-        partnerAssessmentIncomeCents: partnerAssess,
-        partnerInsurance: partnerIns,
-      });
-      healthcareDelta = healthcareB - healthcareA;
+    } else if (userInsurance === 'UNKNOWN') {
+      missingInputs.push('userHealthcareInsuranceStatus');
+    } else {
+      if (assessA == null) missingInputs.push('baselineAssessmentIncomeCents');
+      if (healthcareAssets == null || healthcareAssets === 'UNKNOWN') {
+        missingInputs.push('healthcareAssetsEligibility');
+      }
+      if (hasPartner === 'UNKNOWN' || hasPartner == null) {
+        missingInputs.push('partnerContext.hasPartner');
+      }
+      if (hasPartner === true) {
+        const ins = partner?.partnerHealthcareInsuranceStatus;
+        if (ins == null || ins === 'UNKNOWN') {
+          missingInputs.push('partnerHealthcareInsuranceStatus');
+        }
+        if (partner?.partnerAssessmentIncomeCents == null) {
+          missingInputs.push('partnerAssessmentIncomeCents');
+        }
+      }
+
+      const partnerAssessKnown =
+        hasPartner === false ||
+        (hasPartner === true && partner?.partnerAssessmentIncomeCents != null);
+
+      if (healthcareAssets === 'NOT_ELIGIBLE' && assessA != null) {
+        healthcareA = 0;
+        healthcareB = 0;
+        healthcareDelta = 0;
+      } else if (
+        healthcareAssets === 'ELIGIBLE' &&
+        assessA != null &&
+        canTax &&
+        rowCents != null &&
+        partnerAssessKnown &&
+        (hasPartner === false ||
+          (hasPartner === true &&
+            partner?.partnerHealthcareInsuranceStatus &&
+            partner.partnerHealthcareInsuranceStatus !== 'UNKNOWN'))
+      ) {
+        const partnerAssess =
+          hasPartner === true ? (partner?.partnerAssessmentIncomeCents ?? 0) : 0;
+        const partnerIns =
+          hasPartner === true
+            ? partner?.partnerHealthcareInsuranceStatus === 'NOT_INSURED'
+              ? 'NOT_INSURED'
+              : 'INSURED'
+            : 'INSURED';
+        healthcareA = calculateHealthcareAllowance2026({
+          hasPartner: hasPartner === true,
+          assessmentIncomeCents: assessA,
+          partnerAssessmentIncomeCents: partnerAssess,
+          partnerInsurance: partnerIns,
+        });
+        healthcareB = calculateHealthcareAllowance2026({
+          hasPartner: hasPartner === true,
+          assessmentIncomeCents: assessA + rowCents,
+          partnerAssessmentIncomeCents: partnerAssess,
+          partnerInsurance: partnerIns,
+        });
+        healthcareDelta = healthcareB - healthcareA;
+      }
     }
   }
 
   if (!allowancesNone && !wantsRent && !allowancesUnknown) {
-    rentA = 0;
-    rentB = 0;
-    rentDelta = 0;
+    if (housingTenure === 'UNKNOWN') {
+      missingInputs.push('housingTenure');
+    } else {
+      rentA = 0;
+      rentB = 0;
+      rentDelta = 0;
+    }
   }
   if (wantsRent) {
     if (midYear) {
@@ -405,9 +422,13 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
   }
 
   if (!allowancesNone && !wantsChildBudget && !allowancesUnknown) {
-    childBudgetA = 0;
-    childBudgetB = 0;
-    childBudgetDelta = 0;
+    if (hasChildrenFact === 'UNKNOWN') {
+      missingInputs.push('hasChildren');
+    } else {
+      childBudgetA = 0;
+      childBudgetB = 0;
+      childBudgetDelta = 0;
+    }
   }
   if (wantsChildBudget) {
     if (midYear) {
@@ -452,9 +473,13 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
   }
 
   if (!allowancesNone && !wantsChildcare && !allowancesUnknown) {
-    childcareA = 0;
-    childcareB = 0;
-    childcareDelta = 0;
+    if (usesChildcareFact === 'UNKNOWN' || hasChildrenFact === 'UNKNOWN') {
+      missingInputs.push(usesChildcareFact === 'UNKNOWN' ? 'usesChildcare' : 'hasChildren');
+    } else {
+      childcareA = 0;
+      childcareB = 0;
+      childcareDelta = 0;
+    }
   }
   if (wantsChildcare) {
     if (midYear) {
@@ -501,9 +526,10 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
   const unsupportedTaxCredits = collectUnsupportedCredits(input);
   const selectedUnknown =
     (wantsHealthcare && isUnknown(healthcareDelta)) ||
-    (wantsRent && isUnknown(rentDelta)) ||
-    (wantsChildBudget && isUnknown(childBudgetDelta)) ||
-    (wantsChildcare && isUnknown(childcareDelta));
+    ((wantsRent || housingTenure === 'UNKNOWN') && isUnknown(rentDelta)) ||
+    ((wantsChildBudget || hasChildrenFact === 'UNKNOWN') && isUnknown(childBudgetDelta)) ||
+    ((wantsChildcare || usesChildcareFact === 'UNKNOWN' || hasChildrenFact === 'UNKNOWN') &&
+      isUnknown(childcareDelta));
 
   let completeness: CalculatorReadyResult['completeness'] = 'COMPLETE_FOR_CORE';
   if (unsupportedTaxCredits.length > 0) completeness = 'PARTIAL_PERSONAL_TAX_CREDITS';
@@ -527,7 +553,8 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
     typeof healthcareDelta === 'number' &&
     typeof rentDelta === 'number' &&
     typeof childBudgetDelta === 'number' &&
-    typeof childcareDelta === 'number'
+    typeof childcareDelta === 'number' &&
+    !selectedUnknown
   ) {
     const extra =
       taxableRow -
@@ -537,19 +564,6 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
       rentDelta +
       childBudgetDelta +
       childcareDelta;
-    netExtra = extra;
-    netMonth = toCentsRoundHalfUp(fromCents(extra) / BigInt(12));
-    coreKnown = true;
-  } else if (
-    typeof taxableRow === 'number' &&
-    typeof incomeTaxDelta === 'number' &&
-    typeof zvwDelta === 'number' &&
-    typeof healthcareDelta === 'number'
-  ) {
-    let extra = taxableRow - incomeTaxDelta - zvwDelta + healthcareDelta;
-    if (typeof rentDelta === 'number') extra += rentDelta;
-    if (typeof childBudgetDelta === 'number') extra += childBudgetDelta;
-    if (typeof childcareDelta === 'number') extra += childcareDelta;
     netExtra = extra;
     netMonth = toCentsRoundHalfUp(fromCents(extra) / BigInt(12));
     coreKnown = true;
