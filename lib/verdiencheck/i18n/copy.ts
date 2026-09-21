@@ -229,7 +229,7 @@ const NL: VerdienCheckCopy = {
     'Dit zijn bedragen van je jaaropgave of aangifte. Ze maken de schatting preciezer. Je hoeft ze niet in te vullen.',
   extraResultExplain:
     'Kies hoeveel extra resultaat je wilt toetsen. Resultaat is wat overblijft nadat relevante kosten eraf zijn — niet je omzet.',
-  moneyResultTitle: 'Dit betekent het ongeveer voor jou',
+  moneyResultTitle: 'Je gaat erop vooruit',
   monthlyFromYearNote:
     'Gemiddeld is dat het jaarbedrag gedeeld door 12. Dat is niet het moment waarop belasting wordt verrekend.',
   baselineEstablished: 'Dit is je huidige situatie. Hierna toetsen we extra verdienen.',
@@ -762,7 +762,7 @@ const EN: VerdienCheckCopy = {
     'These figures come from your annual statement or tax return. They make the estimate more precise. You do not have to fill them in.',
   extraResultExplain:
     'Choose how much extra result you want to test. Result is what remains after relevant costs — not turnover.',
-  moneyResultTitle: 'This is roughly what it means for you',
+  moneyResultTitle: 'You come out ahead',
   monthlyFromYearNote:
     'On average that is the yearly amount divided by 12. That is not when tax is actually settled.',
   baselineEstablished: 'This is your current situation. Next we test extra earnings.',

@@ -22,7 +22,31 @@ export const PERSONAL_ROUTE_COPY = {
     'Dit is een schatting en persoonlijke uitleg op basis van wat je hebt ingevuld. Jij blijft verantwoordelijk voor wat je doorgeeft en regelt.',
   turnoverVsResult:
     'Omzet is wat klanten betalen. Resultaat is wat overblijft nadat je relevante kosten eraf haalt.',
-  unknownFinancial: 'We kunnen het nog niet precies schatten.',
+  unknownFinancial:
+    'Niet alle benodigde gegevens zijn bekend. Ontbrekende onderdelen zijn niet als €0 meegenomen.',
+  progressHeadline: 'Je gaat erop vooruit.',
+  estimateOnRules:
+    'Schatting voor 2026 op basis van je ingevulde gegevens en de geldende rekenregels.',
+  taxAndAllowancesIncluded:
+    'Belasting en veranderingen in je toeslagen zijn hierin meegenomen.',
+  viewCalculation: 'Bekijk de berekening',
+  whyTaxTitle: 'Waarom verandert mijn belasting?',
+  whyTaxBody:
+    'Extra resultaat komt boven op je huidige inkomen. Daardoor betaal je mogelijk meer inkomstenbelasting en kunnen heffingskortingen veranderen.',
+  whyAllowancesTitle: 'Waarom kunnen mijn toeslagen veranderen?',
+  whyAllowancesBody:
+    'Veel toeslagen hangen af van je inkomen en huishoudsituatie. Als je inkomen stijgt, kan een toeslag lager worden of stoppen. De simulator rekent met je huidige situatie plus het gekozen extra resultaat.',
+  extraTax: 'Extra belasting',
+  netProgress: 'Geschat extra over',
+  nowLabel: 'Nu',
+  scenarioLabel: 'Met extra resultaat',
+  healthcareName: 'Zorgtoeslag',
+  rentName: 'Huurtoeslag',
+  childBudgetName: 'Kindgebonden budget',
+  childcareName: 'Kinderopvangtoeslag',
+  rightAtZero: 'Bij dit geschatte inkomen ligt de berekende toeslag op €0. Deze verandering is al meegenomen in je geschatte vooruitgang.',
+  unchangedAllowance: 'Deze toeslag verandert naar schatting niet.',
+  calculationComplete: 'Berekening compleet',
   foodCombinedTitle: 'Let bij eten op twee dingen',
   foodCombinedBody:
     'Bereid het veilig en hygiënisch en vertel klanten welke allergenen erin zitten.',

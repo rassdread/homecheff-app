@@ -59,6 +59,34 @@ export type PersonalRouteCard = {
   primary: boolean;
 };
 
+export type SimulatorAllowanceId = 'HEALTHCARE' | 'RENT' | 'CHILD_BUDGET' | 'CHILDCARE';
+
+export type SimulatorAllowanceLine = {
+  id: SimulatorAllowanceId;
+  included: boolean;
+  currentCents: CentsOrUnknown | null;
+  scenarioCents: CentsOrUnknown | null;
+  deltaCents: CentsOrUnknown | null;
+  rightLost: boolean;
+  unchanged: boolean;
+  unknown: boolean;
+  excludedReason: string | null;
+};
+
+export type MoneySimulatorView = {
+  extraResultCents: Cents | null;
+  taxDeltaCents: CentsOrUnknown | null;
+  incomeTaxDeltaCents: CentsOrUnknown | null;
+  zvwDeltaCents: CentsOrUnknown | null;
+  allowances: SimulatorAllowanceLine[];
+  netExtraCents: CentsOrUnknown | null;
+  monthlyApproxCents: CentsOrUnknown | null;
+  netFromEngine: true;
+  includedNotes: string[];
+  excludedNotes: string[];
+  uncertaintyWhy: string | null;
+};
+
 export type FinancialImpactPresentation = {
   status: 'EXACT' | 'PARTIAL' | 'UNKNOWN' | 'NOT_APPLICABLE';
   extraResultCents: Cents | null;
@@ -69,6 +97,7 @@ export type FinancialImpactPresentation = {
   headline: string;
   explanation: string;
   turnoverVsResultNote: string;
+  simulator: MoneySimulatorView;
 };
 
 export type PersonalVerdienRoute = {

@@ -191,7 +191,9 @@ assert.equal(readyRoute.now.some((c) => c.family === 'business_registration'), f
 const currentIncomeCopy = `${nl.steps.currentIncome?.title}\n${nl.steps.currentIncome?.help}`;
 assert.doesNotMatch(currentIncomeCopy, /toetsingsinkomen|verzamelinkomen|Zvw|arbeidsinkomen/i);
 assert.match(nl.steps.currentIncome?.title ?? '', /nu ongeveer/);
+assert.doesNotMatch(nl.steps.currentIncome?.title ?? '', /HomeCheff/);
 assert.match(nl.steps.scenario?.title ?? '', /extra resultaat/);
+assert.match(nl.moneyResultTitle, /vooruit/);
 assert.match(nl.moneyYes, /Bereken mijn geld/);
 assert.match(wizardSrc, /copy\.moneyYes/);
 assert.doesNotMatch(wizardSrc, /copy\.moneyNo/);

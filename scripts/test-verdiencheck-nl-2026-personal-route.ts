@@ -210,7 +210,7 @@ const unknownRoute = routeFrom(
 assert.equal(isUnknown(unknownRoute.financialImpact.netExtraCents) || unknownRoute.financialImpact.status !== 'EXACT', true);
 assert.notEqual(unknownRoute.financialImpact.netExtraCents, 0);
 if (unknownRoute.financialImpact.status !== 'EXACT') {
-  assert.match(unknownRoute.financialImpact.headline, /nog niet precies/);
+  assert.match(unknownRoute.financialImpact.headline, /niet als €0|niet volledig bekend|niet alle benodigde/i);
 }
 results.UNKNOWN_NOT_ZERO = 'PASS';
 

@@ -173,7 +173,7 @@ assert.match(wizardSrc, /registrationKvkLabel/);
 assert.match(wizardSrc, /aria-pressed/);
 assert.doesNotMatch(wizardSrc, /\{stepIndex \+ 1\} \/ \{steps\.length\}/);
 assert.match(ctaSrc, /startSellingNeedsAccount/);
-assert.match(financialSrc, /keepEstimatePrefix/);
+assert.match(financialSrc, /taxAndAllowancesIncluded|viewCalculation/);
 assert.match(PERSONAL_ROUTE_COPY.dac7Title, /verkoopgegevens/);
 assert.doesNotMatch(PERSONAL_ROUTE_COPY.dac7Title, /^Platformrapportage$/);
 assert.match(PERSONAL_ROUTE_COPY.vatReviewTitle, /btw/);

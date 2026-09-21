@@ -46,6 +46,21 @@ export function formatCentsAsEuroDisplay(cents: Cents): string {
   return formatted.endsWith(',00') ? formatted.slice(0, -3) : formatted;
 }
 
+/** UI headline rounding. Engine remains integer cents. */
+export function roundCentsToWholeEuroCents(cents: Cents): Cents {
+  assertCents(cents, 'cents');
+  const sign = cents < 0 ? -1 : 1;
+  const euros = Math.floor((Math.abs(cents) + 50) / 100);
+  return sign * euros * 100;
+}
+
+export function formatCentsAsWholeEuroDisplay(cents: Cents): string {
+  const whole = roundCentsToWholeEuroCents(cents);
+  const sign = whole < 0 ? '-' : '';
+  const euros = Math.abs(whole) / 100;
+  return `${sign}${String(euros).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+}
+
 export const SCENARIO_PRESET_EUROS = [500, 1000, 2500, 5000, 10000] as const;
 export type ScenarioPresetEuro = (typeof SCENARIO_PRESET_EUROS)[number];
 

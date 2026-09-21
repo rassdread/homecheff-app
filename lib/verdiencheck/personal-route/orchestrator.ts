@@ -309,7 +309,9 @@ export function buildPersonalVerdienRoute(input: {
     soon,
     later,
     restDetails,
-    financialImpact: presentFinancialImpact(input.calculator),
+    financialImpact: presentFinancialImpact(input.calculator, {
+      allowances: ctx?.allowances ?? null,
+    }),
     trackingMessage: PERSONAL_ROUTE_COPY.tracking,
     officialActions: officialActionsFrom([...now, ...soon, ...later, ...restDetails]),
     unknowns: ctx && input.calculator?.status === 'READY' ? input.calculator.missingInputs : [],
