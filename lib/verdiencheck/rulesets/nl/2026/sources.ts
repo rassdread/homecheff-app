@@ -66,6 +66,22 @@ export const SRC_ZVW_2026 = {
     'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/werk_en_inkomen/zorgverzekeringswet/veranderingen-bijdrage-zvw/percentages-zvw',
 } as const;
 
+export const SRC_WHITE_MONTHLY_TABLE_2026 = {
+  officialSource:
+    'Belastingdienst — Witte Maandloon-tabel loonbelasting/premie volksverzekeringen; Nederland, Standaard (uitgave januari 2026)',
+  officialSourceUrl:
+    'https://download.belastingdienst.nl/belastingdienst/dl/rekenhulpen/loonheffing/2026/v01/pdf/wit_mnd_nl_std_20260101.pdf',
+  publication: 'uitgave januari 2026',
+  effectiveFrom: '2026-01-01',
+  pdfSha256: 'c959d65273e18a1a2fdf33562fd34e31d45d3bca0f260ea232815d28e69284dc',
+} as const;
+
+export const SRC_HANDBOEK_LOONHEFFINGEN_2026 = {
+  officialSource: 'Belastingdienst — Handboek Loonheffingen 2026',
+  officialSourceUrl:
+    'https://download.belastingdienst.nl/belastingdienst/docs/handboek-loonheffingen-lh0221t61fd.pdf',
+} as const;
+
 export const SRC_ZORGTOESLAG_2026 = {
   officialSource: 'Dienst Toeslagen — Berekening zorgtoeslag 2026',
   officialSourceUrl:

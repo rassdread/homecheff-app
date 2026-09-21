@@ -83,6 +83,12 @@ export type BaselinePresentationFacts = {
   fiscalWageCents: number | null;
   assessmentIncomeCents: number | null;
   enteredNetMonthlyCents: number | null;
+  enteredGrossMonthlyCents?: number | null;
+  estimatedGrossMonthlyCents?: number | null;
+  statutoryNetMonthlyCents?: number | null;
+  payrollUsed?: boolean;
+  payrollTaxCredit?: 'YES' | 'NO' | 'UNKNOWN' | null;
+  payrollTaxCreditAssumed?: boolean;
   incomeUnknown: boolean;
   incomeUnknownReason: string | null;
   incomeIsNetEstimate: boolean;
@@ -102,6 +108,12 @@ export type CurrentBaselineView = {
   fiscalWageCents: number | null;
   assessmentIncomeCents: number | null;
   enteredNetMonthlyCents: number | null;
+  enteredGrossMonthlyCents: number | null;
+  estimatedGrossMonthlyCents: number | null;
+  statutoryNetMonthlyCents: number | null;
+  payrollUsed: boolean;
+  payrollTaxCredit: 'YES' | 'NO' | 'UNKNOWN' | null;
+  payrollTaxCreditAssumed: boolean;
   incomeUnknown: boolean;
   incomeUnknownReason: string | null;
   incomeIsNetEstimate: boolean;

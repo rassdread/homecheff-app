@@ -578,7 +578,7 @@ results.SCENARIO_MATRIX = 'PASS';
 
 assert.equal(NL_2026_MODULE_STATUS.personalRouteOrchestration, 'CERTIFIED');
 assert.equal(NL_2026_MODULE_STATUS.progressiveDisclosure, 'CERTIFIED');
-assert.equal(NL_2026_PACK.version, '2026.5a-personal-route');
+assert.equal(NL_2026_PACK.version, '2026.6-official-payroll-white-monthly');
 assert.equal(NL_2026_PACK.status, 'DRAFT');
 
 console.log('verdiencheck NL-2026 personal route tests: PASS');

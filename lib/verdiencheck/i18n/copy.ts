@@ -271,6 +271,14 @@ export type VerdienCheckCopy = {
   incomeBasesDetailsBody: string;
   estimateProvenanceTitle: string;
   estimateProvenanceBody: string;
+  payrollTaxCreditQuestion: string;
+  payrollTaxCreditYes: string;
+  payrollTaxCreditNo: string;
+  payrollTaxCreditUnknown: string;
+  payrollTaxCreditLabel: string;
+  payrollTaxCreditAssumedYes: string;
+  payrollNetBeforeDeductionsNote: string;
+  statutoryNetEstimateLabel: string;
   shareAction: string;
   shareTitle: string;
   shareMessage: string;
@@ -401,7 +409,7 @@ const NL: VerdienCheckCopy = {
   holidayPayPercentInvalid: 'Vul een geldig percentage in (0–100).',
   estimatedGrossIncomeLabel: 'Geschat bruto inkomen',
   netToGrossPayslipNote:
-    'Dit is een schatting op basis van de belastingregels. Je loonstrook of jaaropgaaf is nauwkeuriger.',
+    'Dit is een schatting op basis van de officiële loonbelastingtabel 2026. Dat is geen exacte loonstrookreconstructie. Je loonstrook of jaaropgaaf is nauwkeuriger.',
   extraPlanTitle: 'Wat ben je van plan extra te verdienen?',
   extraResultBeforeTaxLabel: 'Extra resultaat vóór belasting',
   extraResultInputInvalid: 'Vul een geldig bedrag in.',
@@ -556,7 +564,7 @@ const NL: VerdienCheckCopy = {
   comparisonMonth: 'Gemiddeld per maand',
   currentIncomeInvalid: 'Vul een bedrag in, of kies dat je het niet weet.',
   incomeGross: 'Bruto',
-  incomeNet: 'Netto',
+  incomeNet: 'Netto (wat op mijn rekening binnenkomt)',
   applyCustomAmount: 'Toepassen',
   situationNowTitle: 'Dit is je situatie nu',
   viewExtraScenarioCta: 'Bekijk wat extra verdienen doet',
@@ -577,7 +585,7 @@ const NL: VerdienCheckCopy = {
   perYearShort: '/ jaar',
   perMonthShort: '/ maand',
   netInputEstimateNote:
-    'Met netto maken we een schatting van je bruto jaarinkomen. Dat is geen loonstrookberekening. Je loonstrook of jaaropgaaf is nauwkeuriger.',
+    'Gebruik het nettoloon vóór eventuele persoonlijke inhoudingen zoals pensioen of een eigen bijdrage voor een auto, als je dat bedrag weet. Ken je alleen wat op je rekening binnenkomt? Dan schatten we bruto daarmee. Dat blijft een schatting, geen exacte loonstrook.',
   netInputAowNote:
     'In het jaar dat je AOW krijgt, kunnen we netto niet betrouwbaar terugrekenen. Vul bruto in.',
   extraTaxReserveTitle: 'Extra belasting en bijdragen',
@@ -603,9 +611,18 @@ const NL: VerdienCheckCopy = {
   incomeBasesDetailsTitle: 'Bruto, fiscaal en toetsingsinkomen',
   incomeBasesDetailsBody:
     'Bruto is je contractuele loon. Fiscaal inkomen is het bedrag waarover inkomstenbelasting wordt berekend. Toetsingsinkomen gebruiken we voor toeslagen. Die bedragen kunnen later uit elkaar lopen, bijvoorbeeld door pensioen of een eigen woning.',
-  estimateProvenanceTitle: 'Hoe is dit geschat?',
+  estimateProvenanceTitle: 'Hoe is bruto geschat?',
   estimateProvenanceBody:
-    'Met netto maken we een schatting van je bruto-inkomen. Dat is geen exacte loonstrookreconstructie. Je loonstrook of jaaropgaaf is nauwkeuriger.',
+    'We gebruiken de officiële witte maandtabel loonbelasting 2026, het ingevulde maandnetto, en of loonheffingskorting is gekozen of aangenomen. Werkgeversinhoudingen die je niet hebt opgegeven (zoals pensioen) zitten er niet in. Jaarlijkse inkomstenbelasting rekenen we apart, niet als extra inhouding bovenop de tabel.',
+  payrollTaxCreditQuestion: 'Wordt loonheffingskorting toegepast?',
+  payrollTaxCreditYes: 'Ja',
+  payrollTaxCreditNo: 'Nee',
+  payrollTaxCreditUnknown: 'Weet ik niet',
+  payrollTaxCreditLabel: 'Loonheffingskorting',
+  payrollTaxCreditAssumedYes: 'aangenomen Ja',
+  payrollNetBeforeDeductionsNote:
+    'Gebruik het nettoloon vóór eventuele persoonlijke inhoudingen zoals pensioen of een eigen bijdrage voor een auto, als je dat bedrag weet.',
+  statutoryNetEstimateLabel: 'Geschat netto volgens standaard loonberekening',
   shareAction: 'Deel VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:
@@ -1150,7 +1167,7 @@ const EN: VerdienCheckCopy = {
   holidayPayPercentInvalid: 'Enter a valid percentage (0–100).',
   estimatedGrossIncomeLabel: 'Estimated gross income',
   netToGrossPayslipNote:
-    'This is an estimate based on the tax rules. Your payslip or annual statement is more accurate.',
+    'This is an estimate based on the official 2026 wage-tax table. It is not an exact payslip reconstruction. Your payslip or annual statement is more accurate.',
   extraPlanTitle: 'What extra are you planning to earn?',
   extraResultBeforeTaxLabel: 'Extra result before tax',
   extraResultInputInvalid: 'Enter a valid amount.',
@@ -1305,7 +1322,7 @@ const EN: VerdienCheckCopy = {
   comparisonMonth: 'Average per month',
   currentIncomeInvalid: 'Enter an amount, or choose that you do not know.',
   incomeGross: 'Gross',
-  incomeNet: 'Net',
+  incomeNet: 'Net (what is deposited into my account)',
   applyCustomAmount: 'Apply',
   situationNowTitle: 'This is your situation now',
   viewExtraScenarioCta: 'See what extra earning does',
@@ -1326,7 +1343,7 @@ const EN: VerdienCheckCopy = {
   perYearShort: '/ year',
   perMonthShort: '/ month',
   netInputEstimateNote:
-    'With net pay we estimate your gross annual income. This is not a payslip calculation. Your payslip or annual statement is more accurate.',
+    'Use net pay before personal deductions such as pension or a company-car contribution if you know that amount. If you only know the bank deposit, we estimate gross from that. It remains an estimate, not an exact payslip.',
   netInputAowNote:
     'In the year you reach state pension age we cannot reliably reverse net pay. Enter gross instead.',
   extraTaxReserveTitle: 'Extra tax and contributions',
@@ -1352,9 +1369,18 @@ const EN: VerdienCheckCopy = {
   incomeBasesDetailsTitle: 'Gross, fiscal and assessment income',
   incomeBasesDetailsBody:
     'Gross is your contractual wage. Fiscal income is the amount used for income tax. Assessment income is used for allowances. Those amounts can later diverge, for example through pension or an owner-occupied home.',
-  estimateProvenanceTitle: 'How is this estimated?',
+  estimateProvenanceTitle: 'How was gross estimated?',
   estimateProvenanceBody:
-    'From net pay we estimate your gross income. This is not an exact payslip reconstruction. Your payslip or annual statement is more accurate.',
+    'We use the official 2026 Dutch white monthly wage-tax table, the monthly net you entered, and whether payroll tax credit was selected or assumed. Employer-specific deductions you did not supply (such as pension) are excluded. Annual income tax is calculated separately, not added on top of payroll withholding.',
+  payrollTaxCreditQuestion: 'Is payroll tax credit (loonheffingskorting) applied?',
+  payrollTaxCreditYes: 'Yes',
+  payrollTaxCreditNo: 'No',
+  payrollTaxCreditUnknown: 'I don’t know',
+  payrollTaxCreditLabel: 'Payroll tax credit',
+  payrollTaxCreditAssumedYes: 'assumed Yes',
+  payrollNetBeforeDeductionsNote:
+    'Use net pay before personal deductions such as pension or a company-car contribution if you know that amount.',
+  statutoryNetEstimateLabel: 'Estimated net according to standard payroll calculation',
   shareAction: 'Share VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:

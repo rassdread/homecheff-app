@@ -12,7 +12,7 @@ export const NL_2026_PACK: RulePack = freezeRulePack({
   id: 'NL-2026',
   jurisdiction: 'NL' satisfies TaxJurisdiction,
   year: 2026,
-  version: '2026.5a-personal-route',
+  version: '2026.6-official-payroll-white-monthly',
   status: 'DRAFT',
   effectiveFrom: NL_2026_EFFECTIVE.effectiveFrom,
   effectiveUntil: NL_2026_EFFECTIVE.effectiveUntil,

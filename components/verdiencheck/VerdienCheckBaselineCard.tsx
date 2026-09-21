@@ -115,6 +115,42 @@ export default function VerdienCheckBaselineCard(props: {
             </span>
           </div>
         ) : null}
+        {incomeIsNetEstimate && baseline?.estimatedGrossMonthlyCents != null ? (
+          <div className="flex justify-between gap-4 text-base text-stone-800">
+            <span>
+              {props.copy.estimatedGrossMonthlyLabel}
+              <span
+                data-verdiencheck-estimate=""
+                className="ml-2 text-xs font-normal uppercase tracking-wide text-amber-800"
+              >
+                {props.copy.estimateLabel}
+              </span>
+            </span>
+            <span className="text-right font-medium tabular-nums">
+              €{whole(baseline.estimatedGrossMonthlyCents)} {props.copy.perMonthShort}
+            </span>
+          </div>
+        ) : null}
+        {!incomeIsNetEstimate &&
+        baseline?.payrollUsed &&
+        baseline.statutoryNetMonthlyCents != null &&
+        baseline.enteredNetMonthlyCents == null ? (
+          <div className="flex justify-between gap-4 text-base text-stone-800">
+            <span>
+              {props.copy.statutoryNetEstimateLabel}
+              <span
+                data-verdiencheck-estimate=""
+                className="ml-2 text-xs font-normal uppercase tracking-wide text-amber-800"
+              >
+                {props.copy.estimateLabel}
+              </span>
+            </span>
+            <span className="text-right font-medium tabular-nums">
+              €{whole(baseline.statutoryNetMonthlyCents)} {props.copy.perMonthShort}
+            </span>
+          </div>
+        ) : null}
+        {!(incomeIsNetEstimate && baseline?.estimatedGrossMonthlyCents != null) ? (
         <div className="flex justify-between gap-4 text-base text-stone-800">
           <span>
             {incomeIsNetEstimate
@@ -151,6 +187,7 @@ export default function VerdienCheckBaselineCard(props: {
             </span>
           )}
         </div>
+        ) : null}
         {showHolidayAmount ? (
           <div className="flex justify-between gap-4 text-sm text-stone-700">
             <span>{props.copy.holidayPayAmountLabel}</span>
@@ -161,6 +198,23 @@ export default function VerdienCheckBaselineCard(props: {
           <div className="flex justify-between gap-4 text-sm text-stone-700">
             <span>{props.copy.holidayPayAmountLabel}</span>
             <span>{props.copy.holidayPayIncludedShort}</span>
+          </div>
+        ) : null}
+        {baseline?.payrollUsed || baseline?.payrollTaxCredit != null ? (
+          <div
+            data-verdiencheck-lhk=""
+            className="flex justify-between gap-4 text-sm text-stone-700"
+          >
+            <span>{props.copy.payrollTaxCreditLabel}</span>
+            <span>
+              {baseline.payrollTaxCredit === 'NO'
+                ? props.copy.payrollTaxCreditNo
+                : baseline.payrollTaxCredit === 'YES'
+                  ? props.copy.payrollTaxCreditYes
+                  : baseline?.payrollTaxCreditAssumed
+                    ? props.copy.payrollTaxCreditAssumedYes
+                    : props.copy.payrollTaxCreditUnknown}
+            </span>
           </div>
         ) : null}
         {incomeIsNetEstimate && incomeAnnual != null ? (
@@ -258,8 +312,8 @@ export default function VerdienCheckBaselineCard(props: {
             <span className="font-medium">{props.copy.incomeBasesDetailsTitle}. </span>
             {props.copy.incomeBasesDetailsBody}
           </p>
-          {incomeIsNetEstimate ? (
-            <p>
+          {incomeIsNetEstimate || baseline?.payrollUsed ? (
+            <p data-verdiencheck-how-gross="">
               <span className="font-medium">{props.copy.estimateProvenanceTitle} </span>
               {props.copy.estimateProvenanceBody}
             </p>

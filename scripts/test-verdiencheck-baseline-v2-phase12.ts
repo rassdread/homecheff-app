@@ -154,7 +154,7 @@ assert.equal(A.basisProvenance.box1.source, 'DERIVED_FROM_FISCAL_WAGE');
 assert.equal(A.basisProvenance.assessment.source, 'DERIVED_FROM_FISCAL_WAGE');
 assert.equal(A.basisProvenance.zvwUsed.kind, 'DERIVED');
 assert.notEqual(A.basisProvenance.contractualGross.source, A.basisProvenance.assessment.source);
-assert.equal(A.incomeSourcePrecedence, 'RECONSTRUCTED_MONTHLY_GROSS_PLUS_HOLIDAY');
+assert.equal(A.incomeSourcePrecedence, 'PAYROLL_WHITE_MONTHLY_2026_PLUS_HOLIDAY');
 
 // B — HOLIDAY INCLUDED, no double count
 const B = deriveIncomeBasesFromUserFacts(employee({ holidayPayIncluded: 'YES' }));
@@ -179,7 +179,9 @@ assert.equal(C.basisProvenance.zvwUsed.kind, 'DERIVED');
 assert.ok((C.fiscalWageCents ?? 0) > 2200 * 12 * 100);
 assert.match(nl.estimateLabel, /schatting/i);
 assert.match(nl.netToGrossPayslipNote, /schatting/);
-assert.doesNotMatch(nl.netToGrossPayslipNote, /exacte loonstrookreconstructie|exact payslip/i);
+assert.match(nl.netToGrossPayslipNote, /geen exacte loonstrookreconstructie/i);
+assert.equal(C.payroll.used, true);
+assert.equal(C.netToGrossMethod, 'WHITE_MONTHLY_TABLE_2026_INVERSE');
 
 const C_INPUT = wizardStateToCalculatorInput(C_STATE);
 assert.ok(C_INPUT);
@@ -374,6 +376,12 @@ for (const key of [
   'holidaypay',
   'zvw',
   'box1',
+  'payroll',
+  'loonheffing',
+  'loonheffingskorting',
+  'withholding',
+  'loon',
+  'net',
 ] as const) {
   assert.ok((FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS as readonly string[]).includes(key), key);
   assert.equal(inspectVerdienCheckAnalyticsPayload({ [key]: 1 }).ok, false);

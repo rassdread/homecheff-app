@@ -147,6 +147,12 @@ export const FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS = [
   'fiscaal',
   'jaaropgaaf',
   'jaaropgave',
+  'payroll',
+  'loonheffing',
+  'loonheffingskorting',
+  'withholding',
+  'loon',
+  'net',
 ] as const;
 
 const FORBIDDEN_VALUE_TOKENS = [

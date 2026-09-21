@@ -2,17 +2,28 @@
  * User-known money facts → calculator income bases.
  * Never maps UNKNOWN to 0. Never claims gross == box1 == verzamelinkomen.
  *
- * A same-number employee estimate is allowed until payroll V2, but each basis
- * is independently DERIVED with its own provenance — not one annualIncome
- * copied into every field.
+ * Payroll withholding is an input/derivation layer only. It does not replace
+ * the certified annual Box 1 engine, and 12× withholding is never added as
+ * a second tax cost.
  *
- * NET salary is inverted via annual IB/credits — never treated as taxable income.
+ * NET salary is inverted via the official 2026 white monthly table when the
+ * Phase-3 employee route applies; otherwise via annual IB/credits. Never
+ * treat net as taxable income.
+ *
  * Holiday pay is reconstructed only for employee-like current income, never on
  * advanced fiscal/jaaropgave fields.
  */
 
 import { parseEuroInputToCents } from '../domain/money';
 import { estimateGrossFromNetSalary2026 } from '../nl2026/net-to-gross';
+import {
+  calculateEmployeePayroll2026,
+  invertEmployeePayrollNet2026,
+  PAYROLL_FORWARD_MODEL,
+  PAYROLL_INVERSE_MODEL,
+  resolvePayrollTaxCredit,
+  type PayrollTaxCreditChoice,
+} from '../rulesets/nl/2026/payroll-white-monthly';
 import { reconstructAnnualWithHolidayPay, shouldAskHolidayPay } from './holiday-pay';
 import type { WizardState } from './schema';
 
@@ -30,6 +41,8 @@ export type IncomeSourcePrecedence =
   | 'KNOWN_ASSESSMENT_INCOME'
   | 'ANNUAL_GROSS_ALREADY_INCLUSIVE'
   | 'RECONSTRUCTED_MONTHLY_GROSS_PLUS_HOLIDAY'
+  | 'PAYROLL_WHITE_MONTHLY_2026_PLUS_HOLIDAY'
+  | 'PAYROLL_WHITE_MONTHLY_2026'
   | 'NET_TO_GROSS_ESTIMATE_PLUS_HOLIDAY'
   | 'NET_TO_GROSS_ESTIMATE'
   | 'EMPLOYMENT_PROXY'
@@ -43,11 +56,18 @@ export type IncomeBasisSource =
   | 'KNOWN_ASSESSMENT_INCOME'
   | 'KNOWN_FISCAL_WAGE'
   | 'KNOWN_GROSS_EMPLOYMENT'
+  | 'PAYROLL_WHITE_MONTHLY_2026'
   | 'NET_TO_GROSS_ESTIMATE'
   | 'EMPLOYMENT_ESTIMATE'
   | 'DERIVED_FROM_FISCAL_WAGE'
   | 'DERIVED_FROM_GROSS_EMPLOYMENT'
   | 'UNKNOWN';
+
+export type NetToGrossMethod =
+  | 'BINARY_SEARCH_ANNUAL_IB_CREDITS'
+  | 'WHITE_MONTHLY_TABLE_2026_INVERSE'
+  | 'WHITE_MONTHLY_TABLE_2026_FORWARD'
+  | null;
 
 export type IncomeBasisProvenance = {
   kind: IncomeAmountProvenanceKind;
@@ -62,6 +82,24 @@ export type IncomeBasesProvenance = {
   arbeidsinkomen: IncomeBasisProvenance;
   assessment: IncomeBasisProvenance;
   zvwUsed: IncomeBasisProvenance;
+};
+
+export type PayrollSnapshot = {
+  used: boolean;
+  eligible: boolean;
+  fallbackReason: string | null;
+  payrollTaxCreditChoice: PayrollTaxCreditChoice | null;
+  payrollTaxCreditApplied: boolean;
+  payrollTaxCreditAssumed: boolean;
+  estimatedGrossMonthlyCents: number | null;
+  statutoryNetMonthlyCents: number | null;
+  withheldPayrollTaxCents: number | null;
+  tabelloonCents: number | null;
+  employeeZvwCents: number;
+  differenceCents: number | null;
+  iterations: number | null;
+  method: typeof PAYROLL_FORWARD_MODEL | typeof PAYROLL_INVERSE_MODEL | null;
+  provenance: 'ESTIMATE' | 'NONE';
 };
 
 export type DerivedIncomeBases = {
@@ -82,13 +120,14 @@ export type DerivedIncomeBases = {
    */
   baselineZvwContributionIncomeAlreadyUsedCents: number | null;
   derivation: IncomeBaseDerivation;
-  netToGrossMethod: 'BINARY_SEARCH_ANNUAL_IB_CREDITS' | null;
+  netToGrossMethod: NetToGrossMethod;
   netToGrossConfidence: 'ESTIMATE' | 'NONE' | null;
   holidayPayUnresolved: boolean;
   holidayPayCents: number | null;
   /** Summary of the derivation path. Per-basis truth lives in `basisProvenance`. */
   incomeSourcePrecedence: IncomeSourcePrecedence;
   basisProvenance: IncomeBasesProvenance;
+  payroll: PayrollSnapshot;
 };
 
 const UNKNOWN_PROV: IncomeBasisProvenance = { kind: 'UNKNOWN', source: 'UNKNOWN' };
@@ -109,6 +148,130 @@ function prov(kind: IncomeAmountProvenanceKind, source: IncomeBasisSource): Inco
   return { kind, source };
 }
 
+function unusedPayroll(reason: string | null, eligible = false): PayrollSnapshot {
+  const resolved = resolvePayrollTaxCredit(null);
+  return {
+    used: false,
+    eligible,
+    fallbackReason: reason,
+    payrollTaxCreditChoice: null,
+    payrollTaxCreditApplied: resolved.applied,
+    payrollTaxCreditAssumed: resolved.assumed,
+    estimatedGrossMonthlyCents: null,
+    statutoryNetMonthlyCents: null,
+    withheldPayrollTaxCents: null,
+    tabelloonCents: null,
+    employeeZvwCents: 0,
+    differenceCents: null,
+    iterations: null,
+    method: null,
+    provenance: 'NONE',
+  };
+}
+
+export function shouldAskPayrollTaxCredit(state: WizardState): boolean {
+  if (state.currentIncomeUnknown) return false;
+  if (state.currentIncomePeriod !== 'MONTH') return false;
+  if (state.ageTaxRegime !== 'BELOW_AOW_2026') return false;
+  if (state.hasOtherIncome === true) return false;
+  return state.situationGroup === 'EMPLOYEE' || state.situationGroup === 'NONE';
+}
+
+export function payrollWhiteMonthlyEligible(state: WizardState): {
+  ok: boolean;
+  reason: string | null;
+} {
+  if (state.currentIncomeUnknown) return { ok: false, reason: 'INCOME_UNKNOWN' };
+  if (state.currentIncomePeriod !== 'MONTH') return { ok: false, reason: 'NOT_MONTHLY' };
+  if (state.ageTaxRegime !== 'BELOW_AOW_2026') return { ok: false, reason: 'NOT_BELOW_AOW' };
+  if (state.hasOtherIncome === true) return { ok: false, reason: 'OTHER_INCOME' };
+  if (state.hasOtherIncome !== false) return { ok: false, reason: 'OTHER_INCOME_UNRESOLVED' };
+  if (!(state.situationGroup === 'EMPLOYEE' || state.situationGroup === 'NONE')) {
+    return { ok: false, reason: 'NOT_EMPLOYEE_ROUTE' };
+  }
+  return { ok: true, reason: null };
+}
+
+function computePayrollSnapshot(
+  state: WizardState,
+  monthlyCents: number,
+  basis: 'GROSS' | 'NET',
+): PayrollSnapshot {
+  const eligible = payrollWhiteMonthlyEligible(state);
+  const resolved = resolvePayrollTaxCredit(state.payrollTaxCredit);
+  if (!eligible.ok) {
+    return {
+      ...unusedPayroll(eligible.reason, false),
+      payrollTaxCreditChoice: state.payrollTaxCredit,
+      payrollTaxCreditApplied: resolved.applied,
+      payrollTaxCreditAssumed: resolved.assumed,
+    };
+  }
+
+  const assumptionsCredit: PayrollSnapshot['payrollTaxCreditChoice'] = resolved.choice;
+  if (basis === 'GROSS') {
+    const forward = calculateEmployeePayroll2026({
+      grossMonthlyCents: monthlyCents,
+      payrollTaxCredit: resolved.applied,
+    });
+    if (forward.status !== 'OK') {
+      return {
+        ...unusedPayroll(forward.reason, true),
+        payrollTaxCreditChoice: assumptionsCredit,
+        payrollTaxCreditApplied: resolved.applied,
+        payrollTaxCreditAssumed: resolved.assumed,
+      };
+    }
+    return {
+      used: true,
+      eligible: true,
+      fallbackReason: null,
+      payrollTaxCreditChoice: assumptionsCredit,
+      payrollTaxCreditApplied: resolved.applied,
+      payrollTaxCreditAssumed: resolved.assumed,
+      estimatedGrossMonthlyCents: monthlyCents,
+      statutoryNetMonthlyCents: forward.statutoryNetMonthlyCents,
+      withheldPayrollTaxCents: forward.withheldPayrollTaxCents,
+      tabelloonCents: forward.tabelloonCents,
+      employeeZvwCents: forward.employeeZvwCents,
+      differenceCents: 0,
+      iterations: null,
+      method: PAYROLL_FORWARD_MODEL,
+      provenance: 'ESTIMATE',
+    };
+  }
+
+  const inverted = invertEmployeePayrollNet2026({
+    targetStatutoryNetMonthlyCents: monthlyCents,
+    payrollTaxCredit: resolved.applied,
+  });
+  if (inverted.status !== 'OK') {
+    return {
+      ...unusedPayroll(inverted.reason, true),
+      payrollTaxCreditChoice: assumptionsCredit,
+      payrollTaxCreditApplied: resolved.applied,
+      payrollTaxCreditAssumed: resolved.assumed,
+    };
+  }
+  return {
+    used: true,
+    eligible: true,
+    fallbackReason: null,
+    payrollTaxCreditChoice: assumptionsCredit,
+    payrollTaxCreditApplied: resolved.applied,
+    payrollTaxCreditAssumed: resolved.assumed,
+    estimatedGrossMonthlyCents: inverted.estimatedGrossMonthlyCents,
+    statutoryNetMonthlyCents: inverted.calculatedNetAtSolutionCents,
+    withheldPayrollTaxCents: inverted.withheldPayrollTaxCents,
+    tabelloonCents: inverted.tabelloonCents,
+    employeeZvwCents: inverted.employeeZvwCents,
+    differenceCents: inverted.differenceCents,
+    iterations: inverted.iterations,
+    method: PAYROLL_INVERSE_MODEL,
+    provenance: 'ESTIMATE',
+  };
+}
+
 export function annualizeWizardEuro(
   raw: string,
   period: WizardState['amountEntryPeriod'] | WizardState['currentIncomePeriod'],
@@ -118,7 +281,7 @@ export function annualizeWizardEuro(
   return period === 'MONTH' ? cents * 12 : cents;
 }
 
-function emptyBases(derivation: IncomeBaseDerivation): DerivedIncomeBases {
+function emptyBases(derivation: IncomeBaseDerivation, payroll?: PayrollSnapshot): DerivedIncomeBases {
   return {
     contractualGrossEmploymentIncomeCents: null,
     fiscalWageCents: null,
@@ -136,6 +299,7 @@ function emptyBases(derivation: IncomeBaseDerivation): DerivedIncomeBases {
     holidayPayCents: null,
     incomeSourcePrecedence: 'UNKNOWN',
     basisProvenance: unknownProvenance(),
+    payroll: payroll ?? unusedPayroll(derivation === 'UNKNOWN' ? 'UNKNOWN' : derivation),
   };
 }
 
@@ -164,22 +328,25 @@ function holidayPrecedence(
   state: WizardState,
   reconstruction: { status: string; holidayCents: number },
   netEstimate: boolean,
+  payrollUsed: boolean,
 ): IncomeSourcePrecedence {
   if (reconstruction.status === 'INCLUDED' && state.currentIncomePeriod === 'YEAR') {
     return 'ANNUAL_GROSS_ALREADY_INCLUSIVE';
   }
   if (reconstruction.status === 'ADDED') {
+    if (payrollUsed) return 'PAYROLL_WHITE_MONTHLY_2026_PLUS_HOLIDAY';
     return netEstimate
       ? 'NET_TO_GROSS_ESTIMATE_PLUS_HOLIDAY'
       : 'RECONSTRUCTED_MONTHLY_GROSS_PLUS_HOLIDAY';
   }
+  if (payrollUsed) return 'PAYROLL_WHITE_MONTHLY_2026';
   if (netEstimate) return 'NET_TO_GROSS_ESTIMATE';
   return 'EMPLOYMENT_PROXY';
 }
 
 /**
  * Simple employee path: reconstructed annual gross may equal fiscal/box1/assessment
- * until payroll/housing/car exist. Each field is still independently derived.
+ * until housing/car exist. Each field is still independently derived.
  */
 function deriveEmployeeEstimate(input: {
   contractualCents: number;
@@ -189,15 +356,28 @@ function deriveEmployeeEstimate(input: {
   netEstimate: boolean;
   state: WizardState;
   reconstructionStatus: string;
+  payroll: PayrollSnapshot;
 }): DerivedIncomeBases {
   const annual = input.reconstructedAnnual;
   const estimateKind: IncomeAmountProvenanceKind = input.netEstimate ? 'ESTIMATE' : 'DERIVED';
+  const payrollUsed = input.payroll.used;
   const grossSource: IncomeBasisSource = input.netEstimate
-    ? 'NET_TO_GROSS_ESTIMATE'
+    ? payrollUsed
+      ? 'PAYROLL_WHITE_MONTHLY_2026'
+      : 'NET_TO_GROSS_ESTIMATE'
     : 'EMPLOYMENT_ESTIMATE';
   const fiscalSource: IncomeBasisSource = input.netEstimate
-    ? 'NET_TO_GROSS_ESTIMATE'
+    ? payrollUsed
+      ? 'PAYROLL_WHITE_MONTHLY_2026'
+      : 'NET_TO_GROSS_ESTIMATE'
     : 'DERIVED_FROM_GROSS_EMPLOYMENT';
+  const method: NetToGrossMethod = input.netEstimate
+    ? payrollUsed
+      ? 'WHITE_MONTHLY_TABLE_2026_INVERSE'
+      : 'BINARY_SEARCH_ANNUAL_IB_CREDITS'
+    : payrollUsed
+      ? 'WHITE_MONTHLY_TABLE_2026_FORWARD'
+      : null;
   return {
     contractualGrossEmploymentIncomeCents: input.contractualCents,
     fiscalWageCents: annual,
@@ -209,7 +389,7 @@ function deriveEmployeeEstimate(input: {
     householdAssessmentIncomeCents: householdAssessment(annual, input.state),
     baselineZvwContributionIncomeAlreadyUsedCents: annual,
     derivation: input.derivation,
-    netToGrossMethod: input.netEstimate ? 'BINARY_SEARCH_ANNUAL_IB_CREDITS' : null,
+    netToGrossMethod: method,
     netToGrossConfidence: input.netEstimate ? 'ESTIMATE' : null,
     holidayPayUnresolved: false,
     holidayPayCents: input.holidayCents || null,
@@ -217,6 +397,7 @@ function deriveEmployeeEstimate(input: {
       input.state,
       { status: input.reconstructionStatus, holidayCents: input.holidayCents },
       input.netEstimate,
+      payrollUsed,
     ),
     basisProvenance: {
       contractualGross: prov(input.netEstimate ? 'ESTIMATE' : 'USER_PROVIDED', grossSource),
@@ -227,6 +408,7 @@ function deriveEmployeeEstimate(input: {
       assessment: prov(estimateKind, 'DERIVED_FROM_FISCAL_WAGE'),
       zvwUsed: prov('DERIVED', 'DERIVED_FROM_FISCAL_WAGE'),
     },
+    payroll: input.payroll,
   };
 }
 
@@ -246,10 +428,28 @@ function advancedSummaryPrecedence(input: {
   return 'KNOWN_FISCAL_ASSESSMENT';
 }
 
+function monthlyCurrentCents(state: WizardState): number | null {
+  const cents = parseEuroInputToCents(state.currentIncomeEuro);
+  if (cents == null) return null;
+  if (state.currentIncomePeriod === 'MONTH') return cents;
+  return null;
+}
+
+function payrollFromCurrentIncome(state: WizardState): PayrollSnapshot {
+  const monthly = monthlyCurrentCents(state);
+  const basis = state.currentIncomeBasis === 'NET' ? 'NET' : 'GROSS';
+  if (monthly == null || state.currentIncomeUnknown) {
+    return unusedPayroll('NO_MONTHLY_AMOUNT', payrollWhiteMonthlyEligible(state).ok);
+  }
+  return computePayrollSnapshot(state, monthly, basis);
+}
+
 /**
  * Advanced jaaropgave fields win per basis. Known assessment never overwrites
  * Box 1. Known fiscal wage never overwrites independently known assessment.
  * Holiday pay is never added on top of advanced fiscal fields.
+ * Payroll may still estimate contractual monthly gross/net without replacing
+ * stronger annual fiscal/assessment facts.
  */
 export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncomeBases {
   const period = state.amountEntryPeriod;
@@ -267,10 +467,17 @@ export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncom
     advancedAssessment != null ||
     advancedZvw != null;
 
+  const payroll = payrollFromCurrentIncome(state);
+  const payrollContractualAnnual =
+    payroll.used && payroll.estimatedGrossMonthlyCents != null
+      ? payroll.estimatedGrossMonthlyCents * 12
+      : null;
+
   if (hasAdvanced) {
     const fiscalWage = advancedBox1 ?? advancedGross;
+    const contractual = advancedGross ?? payrollContractualAnnual;
     return {
-      contractualGrossEmploymentIncomeCents: advancedGross,
+      contractualGrossEmploymentIncomeCents: contractual,
       fiscalWageCents: fiscalWage,
       baselineGrossEmploymentIncomeCents: advancedGross,
       baselineBox1TaxableIncomeCents: advancedBox1,
@@ -280,8 +487,12 @@ export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncom
       householdAssessmentIncomeCents: householdAssessment(advancedAssessment, state),
       baselineZvwContributionIncomeAlreadyUsedCents: advancedZvw,
       derivation: 'ADVANCED',
-      netToGrossMethod: null,
-      netToGrossConfidence: null,
+      netToGrossMethod: payroll.used
+        ? payroll.method === PAYROLL_INVERSE_MODEL
+          ? 'WHITE_MONTHLY_TABLE_2026_INVERSE'
+          : 'WHITE_MONTHLY_TABLE_2026_FORWARD'
+        : null,
+      netToGrossConfidence: payroll.used ? 'ESTIMATE' : null,
       holidayPayUnresolved: false,
       holidayPayCents: null,
       incomeSourcePrecedence: advancedSummaryPrecedence({
@@ -295,7 +506,9 @@ export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncom
         contractualGross:
           advancedGross != null
             ? prov('USER_PROVIDED', 'KNOWN_GROSS_EMPLOYMENT')
-            : UNKNOWN_PROV,
+            : payrollContractualAnnual != null
+              ? prov('ESTIMATE', 'PAYROLL_WHITE_MONTHLY_2026')
+              : UNKNOWN_PROV,
         fiscalWage:
           fiscalWage != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
         box1: advancedBox1 != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
@@ -310,6 +523,7 @@ export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncom
         zvwUsed:
           advancedZvw != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
       },
+      payroll,
     };
   }
 
@@ -325,39 +539,49 @@ export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncom
   const netMode = state.currentIncomeBasis === 'NET';
   if (netMode) {
     if (!canUseEmploymentProxy(state)) {
-      return emptyBases('NET_UNRESOLVED');
+      return emptyBases('NET_UNRESOLVED', payroll);
     }
-    const inverted = estimateGrossFromNetSalary2026({
-      netAnnualCents: current,
-      regime: state.ageTaxRegime,
-      aowBirthCohort: state.aowBirthCohort,
-    });
-    if (inverted.status !== 'OK') {
-      return emptyBases('NET_UNRESOLVED');
+    const invertedAnnual = payroll.used && payroll.estimatedGrossMonthlyCents != null
+      ? payroll.estimatedGrossMonthlyCents * 12
+      : null;
+    let contractual = invertedAnnual;
+    let methodFallback = false;
+    if (contractual == null) {
+      methodFallback = true;
+      const inverted = estimateGrossFromNetSalary2026({
+        netAnnualCents: current,
+        regime: state.ageTaxRegime,
+        aowBirthCohort: state.aowBirthCohort,
+      });
+      if (inverted.status !== 'OK') {
+        return emptyBases('NET_UNRESOLVED', payroll);
+      }
+      contractual = inverted.grossCents;
     }
-    const reconstructed = reconstructAnnualWithHolidayPay(inverted.grossCents, state);
+    const reconstructed = reconstructAnnualWithHolidayPay(contractual, state);
     if (reconstructed.unresolved) {
       return {
-        ...emptyBases('NET_UNRESOLVED'),
+        ...emptyBases('NET_UNRESOLVED', payroll),
         holidayPayUnresolved: true,
         incomeSourcePrecedence: 'UNKNOWN',
       };
     }
     return deriveEmployeeEstimate({
-      contractualCents: inverted.grossCents,
+      contractualCents: contractual,
       reconstructedAnnual: reconstructed.annualCents,
       holidayCents: reconstructed.holidayCents,
       derivation: 'NET_EMPLOYMENT_ESTIMATE',
       netEstimate: true,
       state,
       reconstructionStatus: reconstructed.status,
+      payroll: methodFallback ? { ...payroll, used: false, fallbackReason: payroll.fallbackReason ?? 'IB_CREDITS_FALLBACK' } : payroll,
     });
   }
 
   const reconstructed = reconstructAnnualWithHolidayPay(current, state);
   if (shouldAskHolidayPay(state) && reconstructed.unresolved) {
     return {
-      ...emptyBases('UNKNOWN'),
+      ...emptyBases('UNKNOWN', payroll),
       holidayPayUnresolved: true,
       incomeSourcePrecedence: 'UNKNOWN',
     };
@@ -372,11 +596,12 @@ export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncom
       netEstimate: false,
       state,
       reconstructionStatus: reconstructed.status,
+      payroll,
     });
   }
 
   return {
-    ...emptyBases('PARTIAL'),
+    ...emptyBases('PARTIAL', payroll),
     contractualGrossEmploymentIncomeCents: current,
     baselineGrossEmploymentIncomeCents: reconstructed.annualCents,
     holidayPayUnresolved: reconstructed.unresolved,

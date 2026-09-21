@@ -41,6 +41,7 @@ export const NL_2026_MODULE_STATUS = {
   nowSoonLaterOrchestration: 'CERTIFIED',
   guidanceDeduplication: 'CERTIFIED',
   fearReductionUx: 'CERTIFIED',
+  payrollWhiteMonthly: 'CERTIFIED_FOR_STANDARD_WHITE_MONTHLY',
 } as const;
 
 export type Nl2026ModuleId = keyof typeof NL_2026_MODULE_STATUS;

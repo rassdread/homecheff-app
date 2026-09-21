@@ -8,7 +8,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { runCalculator } from '../lib/verdiencheck/calculator/engine';
 import { isUnknown } from '../lib/verdiencheck/domain/unknown';
-import { estimateGrossFromNetSalary2026 } from '../lib/verdiencheck/nl2026/net-to-gross';
 import { getVerdienCheckCopy } from '../lib/verdiencheck/i18n/copy';
 import { presentFinancialImpact } from '../lib/verdiencheck/personal-route/financial';
 import {
@@ -109,7 +108,7 @@ assert.equal(excl8.baselineGrossEmploymentIncomeCents, ANNUAL_INCL_8_CENTS);
 assert.equal(excl8.baselineBox1TaxableIncomeCents, ANNUAL_INCL_8_CENTS);
 assert.equal(excl8.baselineAssessmentIncomeCents, ANNUAL_INCL_8_CENTS);
 assert.equal(excl8.holidayPayCents, HOLIDAY_8_CENTS);
-assert.equal(excl8.incomeSourcePrecedence, 'RECONSTRUCTED_MONTHLY_GROSS_PLUS_HOLIDAY');
+assert.equal(excl8.incomeSourcePrecedence, 'PAYROLL_WHITE_MONTHLY_2026_PLUS_HOLIDAY');
 const excl8Input = wizardStateToCalculatorInput(
   employee({ holidayPayIncluded: 'NO', holidayPayPercentMode: 'STATUTORY_8' }),
 );
@@ -173,22 +172,20 @@ const netMonthly = employee({
 });
 const netBases = deriveIncomeBasesFromUserFacts(netMonthly);
 assert.equal(netBases.derivation, 'NET_EMPLOYMENT_ESTIMATE');
-assert.equal(netBases.netToGrossMethod, 'BINARY_SEARCH_ANNUAL_IB_CREDITS');
+assert.equal(netBases.netToGrossMethod, 'WHITE_MONTHLY_TABLE_2026_INVERSE');
 assert.equal(netBases.netToGrossConfidence, 'ESTIMATE');
-const inverted = estimateGrossFromNetSalary2026({
-  netAnnualCents: 2200 * 12 * 100,
-  regime: 'BELOW_AOW_2026',
-  aowBirthCohort: null,
-});
-assert.equal(inverted.status, 'OK');
-if (inverted.status === 'OK') {
-  const reconstructed = reconstructAnnualWithHolidayPay(inverted.grossCents, netMonthly);
+assert.equal(netBases.payroll.used, true);
+assert.equal(netBases.payroll.employeeZvwCents, 0);
+const invertedGrossMonthly = netBases.payroll.estimatedGrossMonthlyCents;
+assert.ok(invertedGrossMonthly != null);
+if (invertedGrossMonthly != null) {
+  const reconstructed = reconstructAnnualWithHolidayPay(invertedGrossMonthly * 12, netMonthly);
   assert.equal(reconstructed.status, 'ADDED');
   assert.equal(netBases.baselineGrossEmploymentIncomeCents, reconstructed.annualCents);
-  assert.ok(reconstructed.annualCents > inverted.grossCents);
+  assert.ok(reconstructed.annualCents > invertedGrossMonthly * 12);
 }
 assert.match(nl.estimatedGrossIncomeLabel, /Geschat bruto/);
-assert.match(nl.netToGrossPayslipNote, /schatting op basis van de belastingregels/);
+assert.match(nl.netToGrossPayslipNote, /schatting op basis van de officiële loonbelastingtabel/);
 
 const fiscalKnown = deriveIncomeBasesFromUserFacts(
   employee({

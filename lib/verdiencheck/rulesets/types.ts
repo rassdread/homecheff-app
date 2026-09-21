@@ -13,6 +13,7 @@ export type RulePackModuleStatus =
   | RulePackStatus
   | 'CERTIFIED_FOR_ASSUMPTION_MODE'
   | 'CERTIFIED_FOR_REVIEW_ONLY'
+  | 'CERTIFIED_FOR_STANDARD_WHITE_MONTHLY'
   | 'PARTIAL';
 
 export type RuleParameter = {

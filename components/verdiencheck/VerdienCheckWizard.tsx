@@ -80,7 +80,7 @@ import {
   type WizardStepId,
   type TaxResidenceChoice,
 } from '@/lib/verdiencheck/wizard/schema';
-import { deriveIncomeBasesFromUserFacts } from '@/lib/verdiencheck/wizard/derive-income-bases';
+import { deriveIncomeBasesFromUserFacts, shouldAskPayrollTaxCredit } from '@/lib/verdiencheck/wizard/derive-income-bases';
 import { parseHolidayPercent, shouldAskHolidayPay } from '@/lib/verdiencheck/wizard/holiday-pay';
 import { wizardStateToBenefitFacts, wizardStateToBusinessFacts, wizardStateToCalculatorInput, wizardStateToFoodFacts } from '@/lib/verdiencheck/wizard/to-calculator-input';
 import {
@@ -338,6 +338,12 @@ export default function VerdienCheckWizard(props: {
           ? Math.round((parseEuroInputToCents(state.currentIncomeEuro) as number) / 12)
           : null
       : null;
+  const enteredGrossMonthlyCents =
+    state.currentIncomeBasis === 'GROSS' &&
+    !state.currentIncomeUnknown &&
+    state.currentIncomePeriod === 'MONTH'
+      ? parseEuroInputToCents(state.currentIncomeEuro)
+      : null;
   const personalRoute = buildPersonalVerdienRoute({
     ctx: guidanceContext,
     calculator: calcResult,
@@ -359,6 +365,12 @@ export default function VerdienCheckWizard(props: {
       fiscalWageCents: derivedIncomeBases.fiscalWageCents,
       assessmentIncomeCents: derivedIncomeBases.baselineAssessmentIncomeCents,
       enteredNetMonthlyCents,
+      enteredGrossMonthlyCents,
+      estimatedGrossMonthlyCents: derivedIncomeBases.payroll.estimatedGrossMonthlyCents,
+      statutoryNetMonthlyCents: derivedIncomeBases.payroll.statutoryNetMonthlyCents,
+      payrollUsed: derivedIncomeBases.payroll.used,
+      payrollTaxCredit: derivedIncomeBases.payroll.payrollTaxCreditChoice,
+      payrollTaxCreditAssumed: derivedIncomeBases.payroll.payrollTaxCreditAssumed,
       incomeUnknown: state.currentIncomeUnknown || derivedIncomeBases.holidayPayUnresolved,
       incomeUnknownReason: state.currentIncomeUnknown
         ? copy.currentIncomeUnknown
@@ -1835,6 +1847,26 @@ export default function VerdienCheckWizard(props: {
               {state.currentIncomeBasis === 'NET' &&
               state.ageTaxRegime !== 'REACHES_AOW_IN_2026' ? (
                 <p className="text-sm leading-relaxed text-gray-600">{copy.netInputEstimateNote}</p>
+              ) : null}
+              {shouldAskPayrollTaxCredit(state) && !state.currentIncomeUnknown ? (
+                <div className="space-y-2">
+                  <p className="text-base font-medium text-gray-900">{copy.payrollTaxCreditQuestion}</p>
+                  {(
+                    [
+                      ['YES', copy.payrollTaxCreditYes],
+                      ['NO', copy.payrollTaxCreditNo],
+                      ['UNKNOWN', copy.payrollTaxCreditUnknown],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <ChoiceButton
+                      key={key}
+                      selected={state.payrollTaxCredit === key}
+                      onClick={() => setState({ ...state, payrollTaxCredit: key })}
+                    >
+                      {label}
+                    </ChoiceButton>
+                  ))}
+                </div>
               ) : null}
               {currentIncomeError ? (
                 <p

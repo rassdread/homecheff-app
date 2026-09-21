@@ -130,6 +130,7 @@ export type WizardState = {
   holidayPayIncluded: 'YES' | 'NO' | 'UNKNOWN' | null;
   holidayPayPercentMode: 'STATUTORY_8' | 'CUSTOM' | null;
   holidayPayCustomPercent: string;
+  payrollTaxCredit: 'YES' | 'NO' | 'UNKNOWN' | null;
   dutchHealthInsurance: boolean | 'UNKNOWN' | null;
   rentsHome: boolean | 'UNKNOWN' | null;
   hasChildren: boolean | 'UNKNOWN' | null;
@@ -235,6 +236,7 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   holidayPayIncluded: null,
   holidayPayPercentMode: null,
   holidayPayCustomPercent: '',
+  payrollTaxCredit: null,
   dutchHealthInsurance: null,
   rentsHome: null,
   hasChildren: null,
@@ -428,6 +430,7 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.holidayPayIncluded = null;
   next.holidayPayPercentMode = null;
   next.holidayPayCustomPercent = '';
+  next.payrollTaxCredit = null;
   next.dutchHealthInsurance = null;
   next.rentsHome = null;
   next.hasChildren = null;
