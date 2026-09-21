@@ -86,6 +86,29 @@ export type VerdienCheckCopy = {
   periodYear: string;
   periodMonth: string;
   monthToYearHint: string;
+  yearInclusiveHint: string;
+  holidayPayQuestion: string;
+  holidayPayYes: string;
+  holidayPayNo: string;
+  holidayPayUnknown: string;
+  holidayPayHowMuch: string;
+  holidayPayStatutory8: string;
+  holidayPayCustomPercent: string;
+  holidayPayUnknownExplain: string;
+  holidayPayUnresolvedNote: string;
+  holidayPayPercentLabel: string;
+  holidayPayPercentInvalid: string;
+  estimatedGrossIncomeLabel: string;
+  netToGrossPayslipNote: string;
+  extraPlanTitle: string;
+  extraResultBeforeTaxLabel: string;
+  extraResultInputInvalid: string;
+  nowColumn: string;
+  withExtraColumn: string;
+  differenceColumn: string;
+  extraTaxZvwLabel: string;
+  youKeepExtraLabel: string;
+  extraResultYearLabel: string;
   currentIncomeUnknown: string;
   otherIncomeTitle: string;
   otherIncomeAmount: string;
@@ -281,7 +304,7 @@ const NL: VerdienCheckCopy = {
   perMonth: 'Gemiddeld is dat ongeveer … per maand extra over.',
   guidanceTitle: 'Wat moet ik regelen?',
   guidanceLater: 'Begeleiding volgt wanneer de regels klaar zijn.',
-  whatIf: 'Wat als je extra verdient?',
+  whatIf: 'Wat ben je van plan extra te verdienen?',
   customAmount: 'Zelf invullen',
   provisionalTitle: 'Voorlopige berekening',
   otherAllowancesExcluded: 'We rekenen je andere toeslagen nog niet mee.',
@@ -340,7 +363,34 @@ const NL: VerdienCheckCopy = {
   moneyNo: 'Nee, dit is genoeg',
   periodYear: 'Per jaar',
   periodMonth: 'Per maand',
-  monthToYearHint: 'We maken er een jaarbedrag van (×12). Geen vakantiegeld of bonus erbij, tenzij je dat zelf meerekent.',
+  monthToYearHint: 'We maken er een jaarbedrag van (×12).',
+  yearInclusiveHint:
+    'Vul bij voorkeur je bruto jaarloon inclusief vakantiegeld in, zoals op je jaaropgaaf.',
+  holidayPayQuestion: 'Zit je vakantiegeld al in dit bedrag?',
+  holidayPayYes: 'Ja',
+  holidayPayNo: 'Nee',
+  holidayPayUnknown: 'Weet ik niet',
+  holidayPayHowMuch: 'Hoeveel vakantiegeld krijg je?',
+  holidayPayStatutory8: '8% (wettelijk minimum)',
+  holidayPayCustomPercent: 'Ander percentage',
+  holidayPayUnknownExplain:
+    'Bij veel werknemers is vakantiegeld minimaal 8% en wordt het apart uitbetaald. Controleer je loonstrook, contract of jaaropgaaf.',
+  holidayPayUnresolvedNote:
+    'Zonder te weten of vakantiegeld al in dit bedrag zit, kunnen we je jaarinkomen niet exact schatten. Ontbrekende vakantiebijslag is niet als €0 meegenomen.',
+  holidayPayPercentLabel: 'Percentage vakantiegeld',
+  holidayPayPercentInvalid: 'Vul een geldig percentage in (0–100).',
+  estimatedGrossIncomeLabel: 'Geschat bruto inkomen',
+  netToGrossPayslipNote:
+    'Dit is een schatting op basis van de belastingregels. Je loonstrook of jaaropgaaf is nauwkeuriger.',
+  extraPlanTitle: 'Wat ben je van plan extra te verdienen?',
+  extraResultBeforeTaxLabel: 'Extra resultaat vóór belasting',
+  extraResultInputInvalid: 'Vul een geldig bedrag in.',
+  nowColumn: 'Nu',
+  withExtraColumn: 'Met extra',
+  differenceColumn: 'Verschil',
+  extraTaxZvwLabel: 'Extra belasting/Zvw',
+  youKeepExtraLabel: 'Je houdt extra over',
+  extraResultYearLabel: 'Extra resultaat vóór belasting',
   currentIncomeUnknown: 'Weet ik niet',
   otherIncomeTitle: 'Heb je daarnaast nog ander inkomen?',
   otherIncomeAmount: 'Ongeveer hoeveel extra, per jaar of per maand zoals hierboven?',
@@ -348,7 +398,7 @@ const NL: VerdienCheckCopy = {
   advancedAccuracyExplain:
     'Dit zijn bedragen van je jaaropgave of aangifte. Ze maken de schatting preciezer. Je hoeft ze niet in te vullen.',
   extraResultExplain:
-    'Kies hoeveel extra resultaat je wilt toetsen. Resultaat is wat overblijft nadat relevante kosten eraf zijn — niet je omzet.',
+    'Dit is jouw extra resultaat: wat overblijft nadat relevante kosten eraf zijn — niet je omzet.',
   scenarioResultHint: 'Dit is je extra resultaat nadat relevante kosten eraf zijn.',
   costsCountTitle: 'Je relevante kosten tellen mee',
   costsCountBody:
@@ -364,7 +414,7 @@ const NL: VerdienCheckCopy = {
   resultExampleCaption: 'Voorbeeld, geen persoonlijke berekening:',
   knowMyResult: 'Ik weet mijn resultaat',
   calculateFromRevenueCosts: 'Bereken uit omzet en kosten',
-  helperRevenueLabel: 'Wat verwacht je te verkopen?',
+  helperRevenueLabel: 'Verwachte omzet',
   helperCostsLabel: 'Relevante kosten',
   helperCostsUnknown: 'Ik weet mijn kosten niet',
   helperResultLabel: 'Jouw resultaat vóór belasting',
@@ -507,7 +557,7 @@ const NL: VerdienCheckCopy = {
   perYearShort: '/ jaar',
   perMonthShort: '/ maand',
   netInputEstimateNote:
-    'Met netto maken we een schatting van je bruto jaarinkomen. Dat is geen loonstrookberekening.',
+    'Met netto maken we een schatting van je bruto jaarinkomen. Dat is geen loonstrookberekening. Je loonstrook of jaaropgaaf is nauwkeuriger.',
   netInputAowNote:
     'In het jaar dat je AOW krijgt, kunnen we netto niet betrouwbaar terugrekenen. Vul bruto in.',
   extraTaxReserveTitle: 'Extra belasting en bijdragen',
@@ -926,8 +976,8 @@ const NL: VerdienCheckCopy = {
       },
     },
     scenario: {
-      title: 'Wat als je extra resultaat verdient?',
-      help: 'Je huidige situatie staat vast. Nu toetsen we extra resultaat: wat overblijft nadat relevante kosten eraf zijn.',
+      title: 'Wat ben je van plan extra te verdienen?',
+      help: 'Je huidige situatie staat vast. Vul jouw extra resultaat in, of bereken het uit omzet en kosten.',
     },
     result: { title: 'Jouw uitkomst' },
   },
@@ -978,7 +1028,7 @@ const EN: VerdienCheckCopy = {
   perMonth: 'On average that is about … extra per month.',
   guidanceTitle: 'What should I arrange?',
   guidanceLater: 'Guidance follows once the rules are ready.',
-  whatIf: 'What if you earn extra?',
+  whatIf: 'What extra are you planning to earn?',
   customAmount: 'Enter your own amount',
   provisionalTitle: 'Provisional calculation',
   otherAllowancesExcluded: 'We do not include your other allowances yet.',
@@ -1037,8 +1087,34 @@ const EN: VerdienCheckCopy = {
   moneyNo: 'No, this is enough',
   periodYear: 'Per year',
   periodMonth: 'Per month',
-  monthToYearHint:
-    'We turn this into a yearly amount (×12). No holiday pay or bonus unless you include it yourself.',
+  monthToYearHint: 'We turn this into a yearly amount (×12).',
+  yearInclusiveHint:
+    'Preferably enter your gross annual wage including holiday pay, as on your annual statement.',
+  holidayPayQuestion: 'Is holiday pay already included in this amount?',
+  holidayPayYes: 'Yes',
+  holidayPayNo: 'No',
+  holidayPayUnknown: 'I don’t know',
+  holidayPayHowMuch: 'How much holiday pay do you receive?',
+  holidayPayStatutory8: '8% (statutory minimum)',
+  holidayPayCustomPercent: 'A different percentage',
+  holidayPayUnknownExplain:
+    'For many employees holiday pay is at least 8% and is paid separately. Check your payslip, contract or annual statement.',
+  holidayPayUnresolvedNote:
+    'Without knowing whether holiday pay is already in this amount, we cannot estimate your annual income exactly. Missing holiday pay is not treated as €0.',
+  holidayPayPercentLabel: 'Holiday-pay percentage',
+  holidayPayPercentInvalid: 'Enter a valid percentage (0–100).',
+  estimatedGrossIncomeLabel: 'Estimated gross income',
+  netToGrossPayslipNote:
+    'This is an estimate based on the tax rules. Your payslip or annual statement is more accurate.',
+  extraPlanTitle: 'What extra are you planning to earn?',
+  extraResultBeforeTaxLabel: 'Extra result before tax',
+  extraResultInputInvalid: 'Enter a valid amount.',
+  nowColumn: 'Now',
+  withExtraColumn: 'With extra',
+  differenceColumn: 'Difference',
+  extraTaxZvwLabel: 'Extra tax/Zvw',
+  youKeepExtraLabel: 'You keep extra',
+  extraResultYearLabel: 'Extra result before tax',
   currentIncomeUnknown: 'I don’t know',
   otherIncomeTitle: 'Do you have any other income besides this?',
   otherIncomeAmount: 'About how much extra, using the same period as above?',
@@ -1046,7 +1122,7 @@ const EN: VerdienCheckCopy = {
   advancedAccuracyExplain:
     'These figures come from your annual statement or tax return. They make the estimate more precise. You do not have to fill them in.',
   extraResultExplain:
-    'Choose how much extra result you want to test. Result is what remains after relevant costs — not turnover.',
+    'This is your extra result: what remains after relevant costs — not turnover.',
   scenarioResultHint: 'This is your extra result after relevant costs.',
   costsCountTitle: 'Your relevant costs count too',
   costsCountBody:
@@ -1062,7 +1138,7 @@ const EN: VerdienCheckCopy = {
   resultExampleCaption: 'Example only, not your personal calculation:',
   knowMyResult: 'I know my result',
   calculateFromRevenueCosts: 'Calculate from sales and costs',
-  helperRevenueLabel: 'How much do you expect to sell?',
+  helperRevenueLabel: 'Expected turnover',
   helperCostsLabel: 'Relevant costs',
   helperCostsUnknown: 'I do not know my costs',
   helperResultLabel: 'Your result before tax',
@@ -1205,7 +1281,7 @@ const EN: VerdienCheckCopy = {
   perYearShort: '/ year',
   perMonthShort: '/ month',
   netInputEstimateNote:
-    'With net pay we estimate your gross annual income. This is not a payslip calculation.',
+    'With net pay we estimate your gross annual income. This is not a payslip calculation. Your payslip or annual statement is more accurate.',
   netInputAowNote:
     'In the year you reach state pension age we cannot reliably reverse net pay. Enter gross instead.',
   extraTaxReserveTitle: 'Extra tax and contributions',
@@ -1616,8 +1692,8 @@ const EN: VerdienCheckCopy = {
       },
     },
     scenario: {
-      title: 'What if you earn extra result?',
-      help: 'Your current situation is set. Now we test extra result: what remains after relevant costs.',
+      title: 'What extra are you planning to earn?',
+      help: 'Your current situation is set. Enter your extra result, or calculate it from sales and costs.',
     },
     result: { title: 'Your outcome' },
   },

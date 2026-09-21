@@ -329,6 +329,23 @@ export const SRC_NVWA_ERKENNING = {
     'https://www.nvwa.nl/onderwerpen/voedselveiligheid/levensmiddelen-produceren-en-verhandelen/registratie-en-erkenning/erkenning',
 } as const;
 
+export const SRC_HOLIDAY_PAY_2026 = {
+  officialSource: 'Rijksoverheid — Hoe hoog is mijn vakantiegeld? (wettelijk minimum 8%)',
+  officialSourceUrl:
+    'https://www.rijksoverheid.nl/vraag-en-antwoord/vakantiedagen-en-vakantiegeld/hoe-hoog-is-mijn-vakantiegeld',
+} as const;
+
+export const SRC_WML_HOLIDAY_PAY_2026 = {
+  officialSource: 'Wet minimumloon en minimumvakantiebijslag — artikel 15',
+  officialSourceUrl: 'https://wetten.overheid.nl/BWBR0002638',
+} as const;
+
+export const SRC_TOETSINGSINKOMEN_HOLIDAY_2026 = {
+  officialSource: 'Dienst Toeslagen — maximaal inkomen zorgtoeslag 2026 (vakantiegeld telt mee)',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/content/maximaal-inkomen-voor-zorgtoeslag',
+} as const;
+
 export const NL_2026_EFFECTIVE = {
   jurisdiction: 'NL' as const,
   year: 2026,

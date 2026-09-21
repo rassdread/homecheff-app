@@ -67,6 +67,7 @@ function employee(partial: Partial<WizardState> = {}): WizardState {
       allowances: ['NONE'],
       currentIncomeEuro: '3200',
       amountEntryPeriod: 'MONTH',
+      holidayPayIncluded: 'YES',
       hasOtherIncome: false,
       scenarioPreset: 5000,
       ...partial,

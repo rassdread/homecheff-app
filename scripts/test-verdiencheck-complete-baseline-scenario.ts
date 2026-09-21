@@ -162,7 +162,10 @@ function moneyState(partial: Partial<WizardState>): WizardState {
   };
   next = applyGrowthStartChoice(next, partial.growthStart ?? 'REGULAR_EARNING');
   next = applySituationGroup(next, partial.situationGroup ?? 'EMPLOYEE');
-  return applyMoneyDepthChoice({ ...next, ...partial, taxResidence: 'NL' }, 'YES');
+  return applyMoneyDepthChoice(
+    { ...next, ...partial, taxResidence: 'NL', holidayPayIncluded: partial.holidayPayIncluded ?? 'YES' },
+    'YES',
+  );
 }
 
 const netWizard = moneyState({
@@ -240,7 +243,8 @@ assert.match(wizardSrc, /showHeading=\{extraResultChosen\}/);
 assert.match(wizardSrc, /viewExtraScenarioCta/);
 assert.match(wizardSrc, /scenarioLayerRequested/);
 assert.match(wizardSrc, /currentIncomeBasis/);
-assert.match(impactSrc, /onApplyCustom/);
+assert.match(impactSrc, /showExample=\{false\}/);
+assert.doesNotMatch(impactSrc, /onApplyCustom/);
 assert.match(impactSrc, /Enter/);
 assert.match(impactSrc, /extraTaxReserveTitle/);
 assert.doesNotMatch(engineSrc, /UNKNOWN.*\?\? 0/);

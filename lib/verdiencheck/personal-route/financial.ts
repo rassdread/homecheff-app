@@ -198,6 +198,10 @@ function emptySimulator(extra: number | null, why: string | null): MoneySimulato
     taxDeltaCents: UNKNOWN,
     incomeTaxDeltaCents: UNKNOWN,
     zvwDeltaCents: UNKNOWN,
+    currentIncomeTaxCents: UNKNOWN,
+    scenarioIncomeTaxCents: UNKNOWN,
+    currentZvwCents: UNKNOWN,
+    scenarioZvwCents: UNKNOWN,
     allowances: ALLOWANCE_META.map((meta) => ({
       id: meta.id,
       included: false,
@@ -248,6 +252,10 @@ export function buildMoneySimulatorView(
     taxDeltaCents: tax,
     incomeTaxDeltaCents: result.deltas.incomeTax,
     zvwDeltaCents: result.deltas.zvw,
+    currentIncomeTaxCents: result.baseline.incomeTax,
+    scenarioIncomeTaxCents: result.scenario.incomeTax,
+    currentZvwCents: result.baseline.zvwContribution,
+    scenarioZvwCents: result.scenario.zvwContribution,
     allowances: lines,
     netExtraCents: isUnknown(net) || !result.netExtraIsDefinitive ? UNKNOWN : net,
     monthlyApproxCents: isUnknown(month) || !result.netExtraIsDefinitive ? UNKNOWN : month,
@@ -287,7 +295,7 @@ export function buildCurrentBaselineView(
 
 export function presentFinancialImpact(
   result: CalculatorResult | null,
-  options?: { allowances?: AllowanceSelection | null },
+  options?: { allowances?: AllowanceSelection | null; holidayPayUnresolved?: boolean },
 ): FinancialImpactPresentation {
   const turnoverVsResultNote = PERSONAL_ROUTE_COPY.turnoverVsResult;
   const allowances = options?.allowances ?? null;
@@ -321,23 +329,37 @@ export function presentFinancialImpact(
     result.deltas.childcareAllowance,
   ]);
   const simulator = buildMoneySimulatorView(result, allowances);
-  const net = simulator.netExtraCents;
-  const month = simulator.monthlyApproxCents;
+  const holidayUnresolved = options?.holidayPayUnresolved === true;
+  const net = holidayUnresolved ? UNKNOWN : simulator.netExtraCents;
+  const month = holidayUnresolved ? UNKNOWN : simulator.monthlyApproxCents;
+  const holidayWhy =
+    'Zonder te weten of vakantiegeld al in dit bedrag zit, kunnen we je jaarinkomen niet exact schatten. Ontbrekende vakantiebijslag is niet als €0 meegenomen.';
 
-  if (isUnknown(net) || !result.netExtraIsDefinitive) {
+  if (holidayUnresolved || isUnknown(net) || !result.netExtraIsDefinitive) {
     const anyKnown =
       knownNumber(tax) != null || knownNumber(allowanceDelta) != null || extra !== 0;
+    const holidaySimulator = holidayUnresolved
+      ? {
+          ...simulator,
+          netExtraCents: UNKNOWN,
+          monthlyApproxCents: UNKNOWN,
+          taxDeltaCents: UNKNOWN,
+          incomeTaxDeltaCents: UNKNOWN,
+          zvwDeltaCents: UNKNOWN,
+          uncertaintyWhy: holidayWhy,
+        }
+      : simulator;
     return {
-      status: anyKnown ? 'PARTIAL' : 'UNKNOWN',
+      status: anyKnown && !holidayUnresolved ? 'PARTIAL' : holidayUnresolved ? 'PARTIAL' : 'UNKNOWN',
       extraResultCents: extra,
-      taxDeltaCents: tax,
-      allowanceDeltaCents: allowanceDelta,
+      taxDeltaCents: holidayUnresolved ? UNKNOWN : tax,
+      allowanceDeltaCents: holidayUnresolved ? UNKNOWN : allowanceDelta,
       netExtraCents: UNKNOWN,
       monthlyApproxCents: UNKNOWN,
-      headline: simulator.uncertaintyWhy ?? PERSONAL_ROUTE_COPY.unknownFinancial,
+      headline: holidaySimulator.uncertaintyWhy ?? PERSONAL_ROUTE_COPY.unknownFinancial,
       explanation: PERSONAL_ROUTE_COPY.estimateOnRules,
       turnoverVsResultNote,
-      simulator,
+      simulator: holidaySimulator,
       baseline: buildCurrentBaselineView(result, allowances),
     };
   }

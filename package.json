@@ -59,6 +59,7 @@
     "test:verdiencheck-complete-baseline-scenario": "npx tsx scripts/test-verdiencheck-complete-baseline-scenario.ts",
     "test:verdiencheck-affiliate-share": "npx tsx scripts/test-verdiencheck-affiliate-share.ts",
     "test:verdiencheck-acquisition-loop": "npx tsx scripts/test-verdiencheck-acquisition-loop.ts",
+    "test:verdiencheck-holiday-pay-personal-scenario": "npx tsx scripts/test-verdiencheck-holiday-pay-personal-scenario.ts",
     "validate:verdiencheck-public-copy": "npx tsx scripts/validate-verdiencheck-public-copy.ts",
     "validate:trust-1-marketplace-integrity": "npx tsx scripts/validate-trust-1-marketplace-integrity.ts",
     "probe:legal-1-seller-classification": "node scripts/probe-legal-1-seller-classification.mjs",

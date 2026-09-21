@@ -207,6 +207,7 @@ export function buildPersonalVerdienRoute(input: {
   declaredGrowth?: HomecheffGrowthIntent | null;
   hits?: readonly GuidanceHit[];
   forceCheckFirstReason?: 'UWV_SCHEME_UNKNOWN' | null;
+  holidayPayUnresolved?: boolean;
 }): PersonalVerdienRoute {
   const ctx = input.ctx;
   const observed: ObservedActivity = ctx
@@ -349,6 +350,7 @@ export function buildPersonalVerdienRoute(input: {
     restDetails,
     financialImpact: presentFinancialImpact(input.calculator, {
       allowances: ctx?.allowances ?? null,
+      holidayPayUnresolved: input.holidayPayUnresolved === true,
     }),
     trackingMessage: PERSONAL_ROUTE_COPY.tracking,
     officialActions: officialActionsFrom([...now, ...soon, ...later, ...restDetails]),

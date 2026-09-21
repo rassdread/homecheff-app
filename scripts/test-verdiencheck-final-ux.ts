@@ -71,6 +71,7 @@ function employeeBaseline(partial: Partial<WizardState> = {}): WizardState {
     allowances: ['NONE'],
     currentIncomeEuro: '3200',
     amountEntryPeriod: 'MONTH',
+    holidayPayIncluded: 'YES',
     hasOtherIncome: false,
     scenarioPreset: 5000,
     ...partial,
@@ -192,7 +193,7 @@ const currentIncomeCopy = `${nl.steps.currentIncome?.title}\n${nl.steps.currentI
 assert.doesNotMatch(currentIncomeCopy, /toetsingsinkomen|verzamelinkomen|Zvw|arbeidsinkomen/i);
 assert.match(nl.steps.currentIncome?.title ?? '', /nu ongeveer/);
 assert.doesNotMatch(nl.steps.currentIncome?.title ?? '', /HomeCheff/);
-assert.match(nl.steps.scenario?.title ?? '', /extra resultaat/);
+assert.match(nl.steps.scenario?.title ?? '', /van plan extra te verdienen/);
 assert.match(nl.moneyResultTitle, /vooruit/);
 assert.match(nl.moneyYes, /Bereken mijn geld/);
 assert.match(wizardSrc, /copy\.moneyYes/);

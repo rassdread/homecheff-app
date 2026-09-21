@@ -80,6 +80,8 @@ import {
   type WizardStepId,
   type TaxResidenceChoice,
 } from '@/lib/verdiencheck/wizard/schema';
+import { deriveIncomeBasesFromUserFacts } from '@/lib/verdiencheck/wizard/derive-income-bases';
+import { parseHolidayPercent, shouldAskHolidayPay } from '@/lib/verdiencheck/wizard/holiday-pay';
 import { wizardStateToBenefitFacts, wizardStateToBusinessFacts, wizardStateToCalculatorInput, wizardStateToFoodFacts } from '@/lib/verdiencheck/wizard/to-calculator-input';
 import {
   helperFeedsCertifiedEngine,
@@ -102,6 +104,7 @@ import type {
   ParentWorkStudyStatus,
 } from '@/lib/verdiencheck/domain/childcare';
 import VerdienCheckCostAdvantage from './VerdienCheckCostAdvantage';
+import VerdienCheckHolidayPayFields from './VerdienCheckHolidayPayFields';
 import VerdienCheckDisclaimer from './VerdienCheckDisclaimer';
 import VerdienCheckFinancialImpact from './VerdienCheckFinancialImpact';
 import VerdienCheckBaselineCard from './VerdienCheckBaselineCard';
@@ -208,6 +211,7 @@ export default function VerdienCheckWizard(props: {
   const [restartOpen, setRestartOpen] = useState(false);
   const [showResumeHint, setShowResumeHint] = useState(false);
   const [currentIncomeError, setCurrentIncomeError] = useState(false);
+  const [holidayPayError, setHolidayPayError] = useState(false);
   const activeStepRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const invalidRef = useRef<HTMLParagraphElement>(null);
@@ -324,11 +328,13 @@ export default function VerdienCheckWizard(props: {
         }
       : null;
 
+  const derivedIncomeBases = deriveIncomeBasesFromUserFacts(state);
   const personalRoute = buildPersonalVerdienRoute({
     ctx: guidanceContext,
     calculator: calcResult,
     declaredGrowth: state.growthStart,
     forceCheckFirstReason: state.uwvBenefitUnknown ? 'UWV_SCHEME_UNKNOWN' : null,
+    holidayPayUnresolved: derivedIncomeBases.holidayPayUnresolved,
   });
   const resultCtaMode = resolveResultCtaMode({
     intent: earningIntentFromEntry(entryPoint),
@@ -359,7 +365,19 @@ export default function VerdienCheckWizard(props: {
         setCurrentIncomeError(true);
         return;
       }
+      if (
+        shouldAskHolidayPay(state) &&
+        !state.currentIncomeUnknown &&
+        (state.holidayPayIncluded == null ||
+          (state.holidayPayIncluded === 'NO' &&
+            state.holidayPayPercentMode === 'CUSTOM' &&
+            parseHolidayPercent(state.holidayPayCustomPercent) == null))
+      ) {
+        setHolidayPayError(true);
+        return;
+      }
       setCurrentIncomeError(false);
+      setHolidayPayError(false);
     }
     if (step === 'scenario' && state.scenarioInputMode === 'REVENUE_COST') {
       const mapped = mapRevenueAndAllowableCosts({
@@ -1762,7 +1780,9 @@ export default function VerdienCheckWizard(props: {
               </div>
               {state.currentIncomePeriod === 'MONTH' ? (
                 <p className="text-sm leading-relaxed text-gray-600">{copy.monthToYearHint}</p>
-              ) : null}
+              ) : (
+                <p className="text-sm leading-relaxed text-gray-600">{copy.yearInclusiveHint}</p>
+              )}
               {state.currentIncomeBasis === 'NET' &&
               state.ageTaxRegime !== 'REACHES_AOW_IN_2026' ? (
                 <p className="text-sm leading-relaxed text-gray-600">{copy.netInputEstimateNote}</p>
@@ -1807,6 +1827,35 @@ export default function VerdienCheckWizard(props: {
               >
                 {copy.currentIncomeUnknown}
               </ChoiceButton>
+              {shouldAskHolidayPay(state) && !state.currentIncomeUnknown ? (
+                <>
+                  {holidayPayError ? (
+                    <p role="alert" className="text-sm text-red-700">
+                      {state.holidayPayIncluded === 'NO' && state.holidayPayPercentMode === 'CUSTOM'
+                        ? copy.holidayPayPercentInvalid
+                        : copy.holidayPayQuestion}
+                    </p>
+                  ) : null}
+                  <VerdienCheckHolidayPayFields
+                  copy={copy}
+                  included={state.holidayPayIncluded}
+                  percentMode={state.holidayPayPercentMode}
+                  customPercent={state.holidayPayCustomPercent}
+                  onIncluded={(value) => {
+                    setHolidayPayError(false);
+                    setState({ ...state, holidayPayIncluded: value });
+                  }}
+                  onPercentMode={(value) => {
+                    setHolidayPayError(false);
+                    setState({ ...state, holidayPayPercentMode: value });
+                  }}
+                  onCustomPercent={(value) => {
+                    setHolidayPayError(false);
+                    setState({ ...state, holidayPayCustomPercent: value });
+                  }}
+                />
+                </>
+              ) : null}
               <p className="text-base font-medium text-gray-900">{copy.otherIncomeTitle}</p>
               <TriChoices
                 value={state.hasOtherIncome}
@@ -2105,6 +2154,7 @@ export default function VerdienCheckWizard(props: {
               <p className="text-base leading-relaxed text-gray-700">{copy.extraResultExplain}</p>
               <VerdienCheckCostAdvantage
                 copy={copy}
+                showExample={false}
                 mode={state.scenarioInputMode}
                 helperRevenueEuro={state.helperRevenueEuro}
                 helperCostsEuro={state.helperCostsEuro}
@@ -2191,14 +2241,19 @@ export default function VerdienCheckWizard(props: {
                     calculatorInput?.baselineBox1TaxableIncomeCents ??
                     null
                   }
-                  incomeIsNetEstimate={state.currentIncomeBasis === 'NET'}
+                  incomeIsNetEstimate={
+                    state.currentIncomeBasis === 'NET' &&
+                    derivedIncomeBases.netToGrossConfidence === 'ESTIMATE'
+                  }
                   incomeUnknownReason={
                     state.currentIncomeUnknown
                       ? copy.currentIncomeUnknown
-                      : state.currentIncomeBasis === 'NET' &&
-                          calculatorInput?.baselineBox1TaxableIncomeCents == null
-                        ? copy.netInputEstimateNote
-                        : null
+                      : derivedIncomeBases.holidayPayUnresolved
+                        ? copy.holidayPayUnresolvedNote
+                        : state.currentIncomeBasis === 'NET' &&
+                            calculatorInput?.baselineBox1TaxableIncomeCents == null
+                          ? copy.netInputEstimateNote
+                          : null
                   }
                 />
               ) : null}
@@ -2239,13 +2294,6 @@ export default function VerdienCheckWizard(props: {
                       ...applyDirectResultMode(state),
                       customScenarioEuro: value,
                       scenarioPreset: 'custom',
-                    })
-                  }
-                  onApplyCustom={() =>
-                    setState({
-                      ...applyDirectResultMode(state),
-                      scenarioPreset: 'custom',
-                      customScenarioEuro: state.customScenarioEuro,
                     })
                   }
                   onSelectResultMode={() => setState(applyDirectResultMode(state))}

@@ -59,7 +59,11 @@ export default function VerdienCheckBaselineCard(props: {
           {props.copy.incomeHeading}
         </p>
         <div className="flex justify-between gap-4 text-base text-stone-800">
-          <span>{props.copy.grossIncomeLabel}</span>
+          <span>
+            {props.incomeIsNetEstimate
+              ? props.copy.estimatedGrossIncomeLabel
+              : props.copy.grossIncomeLabel}
+          </span>
           {props.incomeAnnualCents != null ? (
             <span className="text-right font-medium">
               €{whole(props.incomeAnnualCents)} {props.copy.perYearShort}
@@ -77,7 +81,7 @@ export default function VerdienCheckBaselineCard(props: {
           )}
         </div>
         {props.incomeIsNetEstimate ? (
-          <p className="text-sm leading-relaxed text-stone-600">{props.copy.netInputEstimateNote}</p>
+          <p className="text-sm leading-relaxed text-stone-600">{props.copy.netToGrossPayslipNote}</p>
         ) : null}
       </div>
 

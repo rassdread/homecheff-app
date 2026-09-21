@@ -35,6 +35,14 @@ function known(value: CentsOrUnknown | null | undefined): number | null {
   return value;
 }
 
+function annualDisplay(copy: VerdienCheckCopy, value: number | null): string {
+  return value == null ? copy.notYetCalculable : `€${whole(value)}`;
+}
+
+function deltaDisplay(copy: VerdienCheckCopy, value: number | null): string {
+  return value == null ? copy.notYetCalculable : signedWhole(value);
+}
+
 const ALLOWANCE_NAME: Record<SimulatorAllowanceId, string> = {
   HEALTHCARE: PERSONAL_ROUTE_COPY.healthcareName,
   RENT: PERSONAL_ROUTE_COPY.rentName,
@@ -55,7 +63,6 @@ export default function VerdienCheckFinancialImpact(props: {
   onSelectPreset: (euro: ScenarioPresetEuro) => void;
   onSelectCustom: () => void;
   onCustomChange: (value: string) => void;
-  onApplyCustom: () => void;
   onSelectResultMode: () => void;
   onSelectHelperMode: () => void;
   onHelperRevenueChange: (value: string) => void;
@@ -80,8 +87,14 @@ export default function VerdienCheckFinancialImpact(props: {
   const helperActive = props.scenarioInputMode === 'REVENUE_COST';
   const exact = impact.status === 'EXACT' && net != null;
   const parsedCustom = parseEuroInputToCents(props.customScenarioEuro);
-  const awaitingCustom =
-    !helperActive && props.scenarioPreset === 'custom' && parsedCustom == null;
+  const customEmpty =
+    !helperActive && props.scenarioPreset === 'custom' && props.customScenarioEuro.trim() === '';
+  const customInvalid =
+    !helperActive &&
+    props.scenarioPreset === 'custom' &&
+    props.customScenarioEuro.trim() !== '' &&
+    parsedCustom == null;
+  const awaitingCustom = customEmpty;
   const awaitingHelper = helperActive && helperChain == null;
 
   const tax = known(sim.taxDeltaCents);
@@ -105,6 +118,7 @@ export default function VerdienCheckFinancialImpact(props: {
       <p className="text-sm leading-relaxed text-stone-600">{copy.scenarioSwitchHint}</p>
       <VerdienCheckCostAdvantage
         copy={copy}
+        showExample={false}
         mode={props.scenarioInputMode}
         helperRevenueEuro={props.helperRevenueEuro}
         helperCostsEuro={props.helperCostsEuro}
@@ -149,28 +163,28 @@ export default function VerdienCheckFinancialImpact(props: {
           </div>
           {props.scenarioPreset === 'custom' ? (
             <div className="space-y-2">
-              <input
-                inputMode="decimal"
-                enterKeyHint="done"
-                value={props.customScenarioEuro}
-                onChange={(e) => props.onCustomChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    props.onApplyCustom();
-                  }
-                }}
-                className="min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg"
-                placeholder="€"
-                aria-label={copy.customAmount}
-              />
-              <button
-                type="button"
-                onClick={props.onApplyCustom}
-                className="min-h-11 w-full rounded-xl bg-emerald-800 px-4 py-2 text-base font-semibold text-white"
-              >
-                {copy.applyCustomAmount}
-              </button>
+              <label className="block">
+                <span className="text-sm font-medium text-stone-800">
+                  {copy.extraResultBeforeTaxLabel}
+                </span>
+                <input
+                  inputMode="decimal"
+                  enterKeyHint="done"
+                  value={props.customScenarioEuro}
+                  onChange={(e) => props.onCustomChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.preventDefault();
+                  }}
+                  className="mt-1 min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg"
+                  placeholder="€"
+                  aria-label={copy.extraResultBeforeTaxLabel}
+                />
+              </label>
+              {customInvalid ? (
+                <p role="alert" className="text-sm text-red-700">
+                  {copy.extraResultInputInvalid}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </>
@@ -180,8 +194,100 @@ export default function VerdienCheckFinancialImpact(props: {
         <p className="text-base leading-relaxed text-stone-700">
           {helperActive ? copy.helperAwaiting : 'Vul een extra resultaat in. Je huidige situatie blijft staan.'}
         </p>
-      ) : exact && extra != null && net != null ? (
+      ) : customInvalid ? null : extra != null ? (
         <div className="space-y-3" data-verdiencheck-result-chain="">
+          <div className="overflow-x-auto rounded-xl border border-stone-100" data-verdiencheck-personal-delta="">
+            <table className="w-full min-w-[20rem] text-left text-sm">
+              <caption className="sr-only">{copy.whatChangesTitle}</caption>
+              <thead>
+                <tr className="border-b border-stone-100 text-stone-500">
+                  <th className="px-3 py-2 font-medium">{copy.whatChangesTitle}</th>
+                  <th className="px-3 py-2 font-medium">{copy.nowColumn}</th>
+                  <th className="px-3 py-2 font-medium">{copy.withExtraColumn}</th>
+                  <th className="px-3 py-2 font-medium">{copy.differenceColumn}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-stone-50">
+                  <td className="px-3 py-2">{PERSONAL_ROUTE_COPY.incomeTaxName}</td>
+                  <td className="px-3 py-2 tabular-nums">
+                    {annualDisplay(copy, known(sim.currentIncomeTaxCents))}
+                  </td>
+                  <td className="px-3 py-2 tabular-nums">
+                    {annualDisplay(copy, known(sim.scenarioIncomeTaxCents))}
+                  </td>
+                  <td className="px-3 py-2 tabular-nums">
+                    {deltaDisplay(copy, known(sim.incomeTaxDeltaCents))}
+                  </td>
+                </tr>
+                <tr className="border-b border-stone-50">
+                  <td className="px-3 py-2">{PERSONAL_ROUTE_COPY.zvwName}</td>
+                  <td className="px-3 py-2 tabular-nums">
+                    {annualDisplay(copy, known(sim.currentZvwCents))}
+                  </td>
+                  <td className="px-3 py-2 tabular-nums">
+                    {annualDisplay(copy, known(sim.scenarioZvwCents))}
+                  </td>
+                  <td className="px-3 py-2 tabular-nums">{deltaDisplay(copy, known(sim.zvwDeltaCents))}</td>
+                </tr>
+                {includedAllowances.map((line) => (
+                  <tr key={line.id} className="border-b border-stone-50">
+                    <td className="px-3 py-2">{ALLOWANCE_NAME[line.id]}</td>
+                    <td className="px-3 py-2 tabular-nums">
+                      {annualDisplay(copy, line.unknown ? null : known(line.currentCents))}
+                    </td>
+                    <td className="px-3 py-2 tabular-nums">
+                      {annualDisplay(copy, line.unknown ? null : known(line.scenarioCents))}
+                    </td>
+                    <td className="px-3 py-2 tabular-nums">
+                      {deltaDisplay(copy, line.unknown ? null : known(line.deltaCents))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="space-y-1 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+            <div className="flex justify-between gap-4 text-base">
+              <span>{copy.extraResultYearLabel}</span>
+              <span className="tabular-nums font-medium">
+                €{whole(extra)} {copy.perYearShort}
+              </span>
+            </div>
+            <div className="flex justify-between gap-4 text-base">
+              <span>{copy.extraTaxZvwLabel}</span>
+              <span className="tabular-nums">
+                {tax != null ? `− €${whole(tax)} ${copy.perYearShort}` : copy.notYetCalculable}
+              </span>
+            </div>
+            <div className="flex justify-between gap-4 text-base">
+              <span>{copy.allowanceChange}</span>
+              <span className="tabular-nums">
+                {allowanceDeltaTotal != null
+                  ? `${signedWhole(allowanceDeltaTotal)} ${copy.perYearShort}`
+                  : copy.notYetCalculable}
+              </span>
+            </div>
+            <div className="mt-2 flex justify-between gap-4 border-t border-emerald-200 pt-2 text-base font-semibold text-stone-900">
+              <span>{copy.youKeepExtraLabel}</span>
+              <span className="text-right tabular-nums">
+                {exact && net != null ? (
+                  <>
+                    €{whole(net)} {copy.perYearShort}
+                    {month != null ? (
+                      <span className="block text-sm font-normal text-stone-700">
+                        €{whole(month)} {copy.perMonthShort}
+                      </span>
+                    ) : null}
+                  </>
+                ) : (
+                  copy.notYetCalculable
+                )}
+              </span>
+            </div>
+          </div>
+          {exact && net != null ? (
+            <>
           <p className="text-lg font-semibold leading-snug text-stone-900">{copy.fromSaleToKeptTitle}</p>
           {helperChain ? (
             <VerdienCheckOmzetKostenResult
@@ -335,6 +441,12 @@ export default function VerdienCheckFinancialImpact(props: {
               ) : null}
             </div>
           ) : null}
+            </>
+          ) : (
+            <p className="text-base leading-relaxed text-stone-700">
+              {sim.uncertaintyWhy ?? impact.headline}
+            </p>
+          )}
         </div>
       ) : (
         <p className="text-base leading-relaxed text-stone-700">

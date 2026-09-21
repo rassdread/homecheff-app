@@ -89,6 +89,10 @@ export type MoneySimulatorView = {
   taxDeltaCents: CentsOrUnknown | null;
   incomeTaxDeltaCents: CentsOrUnknown | null;
   zvwDeltaCents: CentsOrUnknown | null;
+  currentIncomeTaxCents: CentsOrUnknown | null;
+  scenarioIncomeTaxCents: CentsOrUnknown | null;
+  currentZvwCents: CentsOrUnknown | null;
+  scenarioZvwCents: CentsOrUnknown | null;
   allowances: SimulatorAllowanceLine[];
   netExtraCents: CentsOrUnknown | null;
   monthlyApproxCents: CentsOrUnknown | null;

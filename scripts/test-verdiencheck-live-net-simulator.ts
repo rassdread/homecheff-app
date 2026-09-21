@@ -160,7 +160,7 @@ assert.equal(NL_2026_MODULE_STATUS.childcareAllowance, 'CERTIFIED');
 
 assert.doesNotMatch(nl.steps.currentIncome?.title ?? '', /HomeCheff/);
 assert.match(nl.steps.currentIncome?.title ?? '', /nu ongeveer/);
-assert.match(nl.steps.scenario?.title ?? '', /extra resultaat/);
+assert.match(nl.steps.scenario?.title ?? '', /van plan extra te verdienen/);
 assert.equal(nl.moneyResultTitle, 'Je gaat erop vooruit');
 assert.match(PERSONAL_ROUTE_COPY.progressHeadline, /vooruit/);
 assert.doesNotMatch(PERSONAL_ROUTE_COPY.unknownFinancial, /We kunnen het nog niet precies schatten/);

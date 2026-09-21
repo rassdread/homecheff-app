@@ -127,6 +127,9 @@ export type WizardState = {
   amountEntryPeriod: 'YEAR' | 'MONTH';
   currentIncomePeriod: 'YEAR' | 'MONTH';
   currentIncomeBasis: 'GROSS' | 'NET' | null;
+  holidayPayIncluded: 'YES' | 'NO' | 'UNKNOWN' | null;
+  holidayPayPercentMode: 'STATUTORY_8' | 'CUSTOM' | null;
+  holidayPayCustomPercent: string;
   dutchHealthInsurance: boolean | 'UNKNOWN' | null;
   rentsHome: boolean | 'UNKNOWN' | null;
   hasChildren: boolean | 'UNKNOWN' | null;
@@ -229,6 +232,9 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   amountEntryPeriod: 'MONTH',
   currentIncomePeriod: 'MONTH',
   currentIncomeBasis: 'GROSS',
+  holidayPayIncluded: null,
+  holidayPayPercentMode: null,
+  holidayPayCustomPercent: '',
   dutchHealthInsurance: null,
   rentsHome: null,
   hasChildren: null,
@@ -419,6 +425,9 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.currentIncomeUnknown = false;
   next.currentIncomeBasis = 'GROSS';
   next.currentIncomePeriod = 'MONTH';
+  next.holidayPayIncluded = null;
+  next.holidayPayPercentMode = null;
+  next.holidayPayCustomPercent = '';
   next.dutchHealthInsurance = null;
   next.rentsHome = null;
   next.hasChildren = null;

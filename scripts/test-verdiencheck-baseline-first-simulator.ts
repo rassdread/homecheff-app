@@ -181,6 +181,7 @@ const input500 = wizardStateToCalculatorInput(
     currentIncomeEuro: '3200',
     amountEntryPeriod: 'MONTH',
     hasOtherIncome: false,
+    holidayPayIncluded: 'YES',
     scenarioPreset: 500,
   }),
 );
@@ -192,6 +193,7 @@ const input2500 = wizardStateToCalculatorInput(
     currentIncomeEuro: '3200',
     amountEntryPeriod: 'MONTH',
     hasOtherIncome: false,
+    holidayPayIncluded: 'YES',
     scenarioPreset: 2500,
   }),
 );
@@ -218,7 +220,8 @@ assert.match(wizardSrc, /situationNowTitle/);
 assert.match(wizardSrc, /viewExtraScenarioCta/);
 assert.match(wizardSrc, /VerdienCheckBaselineCard/);
 assert.match(impactSrc, /copy\.whatIf/);
-assert.match(impactSrc, /onApplyCustom/);
+assert.doesNotMatch(impactSrc, /onApplyCustom/);
+assert.match(impactSrc, /onCustomChange/);
 assert.match(impactSrc, /onKeyDown/);
 assert.doesNotMatch(schemaSrc, /moneyLayerVisible\(s\) && needsSeriousAdminQuestions/);
 assert.doesNotMatch(engineSrc, /UNKNOWN.*\?\? 0/);
@@ -232,6 +235,7 @@ const unknownPartner = wizardStateToCalculatorInput(
     currentIncomeEuro: '3200',
     amountEntryPeriod: 'MONTH',
     hasOtherIncome: false,
+    holidayPayIncluded: 'YES',
     partnerAssessmentEuro: '99999',
   }),
 );
