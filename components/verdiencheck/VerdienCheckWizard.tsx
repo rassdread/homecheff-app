@@ -107,6 +107,7 @@ import VerdienCheckFinancialImpact from './VerdienCheckFinancialImpact';
 import VerdienCheckBaselineCard from './VerdienCheckBaselineCard';
 import VerdienCheckLaterSection from './VerdienCheckLaterSection';
 import VerdienCheckNowSection from './VerdienCheckNowSection';
+import VerdienCheckQuickInsight from './VerdienCheckQuickInsight';
 import VerdienCheckRestartConfirm from './VerdienCheckRestartConfirm';
 import VerdienCheckResultCta from './VerdienCheckResultCta';
 import VerdienCheckShareAction from './VerdienCheckShareAction';
@@ -551,6 +552,10 @@ export default function VerdienCheckWizard(props: {
             <p>{copy.intro}</p>
             <p>{copy.introReassurance}</p>
             <p>{copy.introGrowth}</p>
+            <VerdienCheckQuickInsight
+              copy={copy}
+              onStart={() => headingRef.current?.focus()}
+            />
           </div>
         ) : null}
         <h1
@@ -2239,6 +2244,10 @@ export default function VerdienCheckWizard(props: {
                   onHelperCostsUnknown={(unknown) =>
                     setState(applyRevenueCostHelperFields(state, { helperCostsUnknown: unknown }))
                   }
+                  growthTitles={[
+                    ...personalRoute.soon.map((card) => card.title),
+                    ...personalRoute.later.map((card) => card.title),
+                  ]}
                 />
               ) : !state.moneyDepthCompleted ? (
                 <VerdienCheckResultSummary route={personalRoute} omitHeadline />

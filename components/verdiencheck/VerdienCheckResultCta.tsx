@@ -61,6 +61,9 @@ export default function VerdienCheckResultCta(props: {
 
   return (
     <div className="space-y-3" data-verdiencheck-result-cta="">
+      {showListingSell ? (
+        <p className="text-base leading-relaxed text-gray-700">{props.copy.keepOverviewPrompt}</p>
+      ) : null}
       {showListingSell && mode === 'SELL_PRIMARY' ? (
         <button
           type="button"
@@ -68,7 +71,7 @@ export default function VerdienCheckResultCta(props: {
           data-verdiencheck-primary-cta="sell"
           onClick={onStartSelling}
         >
-          {props.copy.startSelling}
+          {props.copy.sellViaHomecheff}
         </button>
       ) : null}
       {showListingSell && mode === 'SELL_SECONDARY' ? (
@@ -78,7 +81,7 @@ export default function VerdienCheckResultCta(props: {
           data-verdiencheck-primary-cta="sell-secondary"
           onClick={onStartSelling}
         >
-          {props.copy.startSelling}
+          {props.copy.sellViaHomecheff}
         </button>
       ) : null}
       {showDiscover ? (

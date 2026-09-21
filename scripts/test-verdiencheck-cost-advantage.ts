@@ -157,6 +157,15 @@ const mappedB = mapRevenueAndAllowableCosts({
 assert.equal(mappedB.status, 'OK');
 assert.equal(mappedB.resultCents, 1_000_000);
 
+const mappedZero = mapRevenueAndAllowableCosts({
+  revenueEuro: '10000',
+  costsEuro: '10000',
+  costsUnknown: false,
+});
+assert.equal(mappedZero.status, 'ZERO');
+assert.equal(mappedZero.resultCents, 0);
+assert.equal(helperFeedsCertifiedEngine(mappedZero), false);
+
 const mappedC = mapRevenueAndAllowableCosts({
   revenueEuro: '10000',
   costsEuro: '',
@@ -214,6 +223,16 @@ const helperB = applyRevenueCostHelperFields(employeeBaseline(), {
 const inputHelperB = wizardStateToCalculatorInput(helperB);
 assert.ok(inputHelperB);
 assert.equal(inputHelperB.scenarioAdditionalResultCents, 1_000_000);
+
+const helperZero = applyRevenueCostHelperFields(employeeBaseline(), {
+  helperRevenueEuro: '10000',
+  helperCostsEuro: '10000',
+  helperCostsUnknown: false,
+});
+assert.equal(helperZero.customScenarioEuro, '');
+const inputHelperZero = wizardStateToCalculatorInput(helperZero);
+assert.ok(inputHelperZero);
+assert.equal(inputHelperZero.scenarioAdditionalResultCents, 0);
 
 const helperC = applyRevenueCostHelperFields(employeeBaseline(), {
   helperRevenueEuro: '10000',
@@ -334,15 +353,19 @@ assert.equal(backToResult.scenarioInputMode, 'RESULT');
 assert.equal(backToResult.customScenarioEuro, '6000');
 
 assert.match(nl.costsCountTitle, /kosten tellen/i);
-assert.match(nl.costsCountBody, /niet automatisch/);
+assert.match(nl.costsCountBody, /niet je hele omzet is automatisch je resultaat/i);
 assert.match(nl.scenarioResultHint, /extra resultaat nadat relevante kosten/i);
 assert.match(nl.receiptsNote, /bonnetjes en facturen/);
+assert.match(nl.receiptsCalloutBody, /HomeCheff bepaalt niet/);
 assert.match(nl.costsAreRealExpenses, /daadwerkelijk hebt gemaakt/);
 assert.match(nl.helperInvestmentNote, /afschrijving/);
 assert.match(nl.helperPartialCostsNote, /Niet alle kosten zijn aftrekbaar/);
 assert.match(nl.helperUnknownCostsNote, /niet als €0/);
 assert.match(nl.moneyResultTitle, /vooruit/);
-assert.doesNotMatch(`${nl.costsCountBody}\n${nl.officialSellingThought}\n${en.costsCountBody}`, /zwart/i);
+assert.doesNotMatch(
+  `${nl.costsCountBody}\n${nl.officialSellingThought}\n${nl.keepOverviewPrompt}\n${nl.sellViaHomecheff}\n${en.costsCountBody}`,
+  /zwart|illegaal|via HomeCheff mag je kosten|HomeCheff maakt kosten aftrekbaar/i,
+);
 assert.doesNotMatch(nl.helperCostExamples, /alle kosten zijn aftrekbaar/i);
 assert.match(PERSONAL_ROUTE_COPY.progressHeadline, /vooruit/);
 assert.match(PERSONAL_ROUTE_COPY.taxAndAllowancesIncluded, /toeslagen/);
@@ -350,7 +373,12 @@ assert.match(impactSrc, /moneyResultTitle/);
 assert.match(impactSrc, /fromSaleToKeptTitle/);
 assert.match(impactSrc, /helperProgressMid/);
 assert.match(impactSrc, /taxAndAllowancesIncluded/);
+assert.match(impactSrc, /VerdienCheckOmzetKostenResult/);
+assert.match(impactSrc, /data-verdiencheck-result-chain/);
+assert.match(impactSrc, /taxAndZvwChainLabel/);
+assert.match(impactSrc, /reallyKeepExtraLabel/);
 assert.match(wizardSrc, /VerdienCheckCostAdvantage/);
+assert.match(wizardSrc, /VerdienCheckQuickInsight/);
 assert.match(wizardSrc, /applyRevenueCostHelperFields/);
 assert.match(wizardSrc, /EMPTY_WIZARD_STATE/);
 assert.match(helperSrc, /UNKNOWN_COSTS/);
@@ -377,7 +405,7 @@ assert.match(fiveSecondCopy, /omzet/);
 assert.match(fiveSecondCopy, /resultaat/);
 assert.match(fiveSecondCopy, /kosten/);
 assert.match(fiveSecondCopy, /vooruit/);
-assert.match(nl.costsCountEngine, /resultaat na kosten/);
+assert.match(nl.costsCountEngine, /niet simpelweg met je totale verkoopbedrag/);
 assert.match(PERSONAL_ROUTE_COPY.taxAndAllowancesIncluded, /Belasting en veranderingen in je toeslagen/);
 
 console.log(

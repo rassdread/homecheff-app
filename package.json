@@ -53,6 +53,7 @@
     "test:verdiencheck-confidence-first": "npx tsx scripts/test-verdiencheck-confidence-first.ts",
     "test:verdiencheck-live-net-simulator": "npx tsx scripts/test-verdiencheck-live-net-simulator.ts",
     "test:verdiencheck-cost-advantage": "npx tsx scripts/test-verdiencheck-cost-advantage.ts",
+    "test:verdiencheck-revenue-cost-quick-insight": "npx tsx scripts/test-verdiencheck-revenue-cost-quick-insight.ts",
     "test:verdiencheck-food-kvk-nvwa": "npx tsx scripts/test-verdiencheck-food-kvk-nvwa.ts",
     "test:verdiencheck-baseline-first-simulator": "npx tsx scripts/test-verdiencheck-baseline-first-simulator.ts",
     "test:verdiencheck-complete-baseline-scenario": "npx tsx scripts/test-verdiencheck-complete-baseline-scenario.ts",

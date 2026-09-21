@@ -16,6 +16,7 @@ import type { WizardState } from '@/lib/verdiencheck/wizard/schema';
 import VerdienCheckCostAdvantage, {
   helperChainFromState,
 } from '@/components/verdiencheck/VerdienCheckCostAdvantage';
+import VerdienCheckOmzetKostenResult from '@/components/verdiencheck/VerdienCheckOmzetKostenResult';
 import type { ScenarioInputMode } from '@/lib/verdiencheck/domain/revenue-cost-helper';
 
 function whole(cents: number): string {
@@ -60,6 +61,7 @@ export default function VerdienCheckFinancialImpact(props: {
   onHelperRevenueChange: (value: string) => void;
   onHelperCostsChange: (value: string) => void;
   onHelperCostsUnknown: (unknown: boolean) => void;
+  growthTitles?: readonly string[];
 }) {
   const { copy, route } = props;
   const impact = route.financialImpact;
@@ -178,43 +180,65 @@ export default function VerdienCheckFinancialImpact(props: {
         <p className="text-base leading-relaxed text-stone-700">
           {helperActive ? copy.helperAwaiting : 'Vul een extra resultaat in. Je huidige situatie blijft staan.'}
         </p>
-      ) : exact && extra != null ? (
-        <div className="space-y-2">
+      ) : exact && extra != null && net != null ? (
+        <div className="space-y-3" data-verdiencheck-result-chain="">
+          <p className="text-lg font-semibold leading-snug text-stone-900">{copy.fromSaleToKeptTitle}</p>
           {helperChain ? (
-            <div className="space-y-2 rounded-xl border border-stone-100 bg-stone-50 p-3">
-              <p className="text-sm font-medium text-stone-800">{copy.fromSaleToKeptTitle}</p>
-              <ul className="space-y-1 text-sm">
-                <li className="flex justify-between gap-4">
-                  <span>{copy.helperRevenueLabel}</span>
-                  <span>€{whole(helperChain.revenueCents)}</span>
-                </li>
-                <li className="flex justify-between gap-4">
-                  <span>{copy.helperCostsLabel}</span>
-                  <span>− €{whole(helperChain.costsCents)}</span>
-                </li>
-                <li className="flex justify-between gap-4 font-medium text-stone-800">
-                  <span>{copy.helperResultLabel}</span>
-                  <span>€{whole(helperChain.resultCents)}</span>
-                </li>
-              </ul>
+            <VerdienCheckOmzetKostenResult
+              copy={copy}
+              variant="live"
+              revenueCents={helperChain.revenueCents}
+              costsCents={helperChain.costsCents}
+              resultCents={helperChain.resultCents}
+            />
+          ) : (
+            <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+              <div className="flex items-end justify-between gap-3">
+                <p className="text-sm font-semibold text-stone-900">{copy.resultBeforeTaxLabel}</p>
+                <p className="text-xl font-semibold tabular-nums text-emerald-950">€{whole(extra)}</p>
+              </div>
+            </div>
+          )}
+          <p aria-hidden="true" className="text-center text-xs font-medium text-stone-400">
+            ↓
+          </p>
+          {tax != null ? (
+            <div className="flex justify-between gap-4 text-base">
+              <span>{copy.taxAndZvwChainLabel}</span>
+              <span className="tabular-nums">− €{whole(tax)}</span>
             </div>
           ) : null}
+          {allowanceDeltaTotal != null ? (
+            <div className="flex justify-between gap-4 text-base">
+              <span>{copy.allowanceChangeChainLabel}</span>
+              <span className="tabular-nums">{signedWhole(allowanceDeltaTotal)}</span>
+            </div>
+          ) : null}
+          <p aria-hidden="true" className="text-center text-xs font-medium text-stone-400">
+            ↓
+          </p>
+          <div>
+            <p className="text-sm font-medium text-stone-700">{copy.reallyKeepExtraLabel}</p>
+            <p className="text-xl font-semibold tabular-nums text-stone-900">
+              €{whole(net)} {copy.perYearShort}
+            </p>
+            {month != null ? (
+              <p className="text-base text-stone-700">
+                €{whole(month)} {copy.perMonthShort}
+              </p>
+            ) : null}
+          </div>
           <p className="text-lg font-semibold leading-snug text-stone-900">{copy.moneyResultTitle}</p>
           {helperChain ? (
-            <p className="text-xl font-semibold leading-snug text-stone-900">
+            <p className="text-base leading-snug text-stone-800">
               {copy.helperProgressLead} €{whole(helperChain.revenueCents)} {copy.helperProgressMid} €
               {whole(net)} {copy.helperProgressEnd}
             </p>
           ) : (
-            <p className="text-xl font-semibold leading-snug text-stone-900">
+            <p className="text-base leading-snug text-stone-800">
               Met €{whole(extra)} extra resultaat houd je naar schatting €{whole(net)} extra over.
             </p>
           )}
-          {month != null ? (
-            <p className="text-base text-stone-700">
-              Dat is ongeveer €{whole(month)} per maand extra.
-            </p>
-          ) : null}
           <p className="text-sm leading-relaxed text-stone-600">
             {PERSONAL_ROUTE_COPY.taxAndAllowancesIncluded}
           </p>
@@ -430,6 +454,16 @@ export default function VerdienCheckFinancialImpact(props: {
         <p className="text-xs text-stone-500">{copy.monthlyFromYearNote}</p>
       ) : null}
       <p className="text-xs text-stone-400">{PERSONAL_ROUTE_COPY.estimateOnRules}</p>
+      <div data-verdiencheck-growth-note="" className="rounded-xl border border-stone-100 bg-stone-50 p-3">
+        <p className="text-sm leading-relaxed text-stone-700">{copy.growthSellingMessage}</p>
+        {props.growthTitles && props.growthTitles.length > 0 ? (
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-stone-600">
+            {props.growthTitles.map((title) => (
+              <li key={title}>{title}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
     </section>
   );
 }

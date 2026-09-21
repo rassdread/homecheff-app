@@ -3,8 +3,16 @@
  * Does not classify costs. Does not run tax. UNKNOWN costs are never 0.
  */
 
-import { parseEuroInputToCents, type Cents } from './money';
+import { commercialResultCents, parseEuroInputToCents, type Cents } from './money';
 import { UNKNOWN, isUnknown, type CentsOrUnknown } from './unknown';
+
+/** Presentation example only. Never a personal tax outcome. */
+export const EXAMPLE_REVENUE_CENTS = 1_000_000;
+export const EXAMPLE_COSTS_CENTS = 400_000;
+export const EXAMPLE_RESULT_CENTS = commercialResultCents(
+  EXAMPLE_REVENUE_CENTS,
+  EXAMPLE_COSTS_CENTS,
+);
 
 export const SCENARIO_INPUT_MODES = ['RESULT', 'REVENUE_COST'] as const;
 export type ScenarioInputMode = (typeof SCENARIO_INPUT_MODES)[number];

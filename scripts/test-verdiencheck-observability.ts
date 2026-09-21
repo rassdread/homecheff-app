@@ -283,7 +283,7 @@ assert.doesNotMatch(wizard, /benefitType/);
 assert.doesNotMatch(wizard, /console\.log/);
 
 const cta = read('components/verdiencheck/VerdienCheckResultCta.tsx');
-assert.match(cta, /Begin met verkopen|copy\.startSelling/);
+assert.match(cta, /copy\.sellViaHomecheff|copy\.startSelling/);
 assert.match(cta, /\/sell\/new/);
 assert.match(cta, /useGuestAuthGate/);
 assert.match(cta, /SIGN_UP/);

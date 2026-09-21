@@ -4,6 +4,8 @@ import {
   sanitizeVerdienCheckEntryPoint,
   type VerdienCheckEntryPoint,
 } from '@/lib/verdiencheck/privacy/analytics-guard';
+import { getVerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
+import VerdienCheckQuickInsight from '@/components/verdiencheck/VerdienCheckQuickInsight';
 
 type Variant = 'faq' | 'seller' | 'hub' | 'home';
 
@@ -52,6 +54,7 @@ export default function VerdienCheckPublicEntry({
 }) {
   if (!isVerdienCheckPublicCtaEnabled()) return null;
   const copy = COPY[variant];
+  const insight = getVerdienCheckCopy('nl');
   const from = sanitizeVerdienCheckEntryPoint(entryPoint ?? VARIANT_ENTRY[variant]);
   return (
     <aside
@@ -61,6 +64,7 @@ export default function VerdienCheckPublicEntry({
     >
       <p className="text-base font-semibold text-emerald-950">{copy.title}</p>
       <p className="mt-1 text-sm leading-relaxed text-emerald-900/80">{copy.body}</p>
+      <VerdienCheckQuickInsight copy={insight} startHref={`/verdiencheck?from=${from}`} />
       <Link
         href={`/verdiencheck?from=${from}`}
         className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900"

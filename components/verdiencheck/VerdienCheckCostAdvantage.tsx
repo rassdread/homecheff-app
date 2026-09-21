@@ -1,14 +1,46 @@
+'use client';
+
+import { useMemo, useState } from 'react';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import { formatCentsAsWholeEuroDisplay } from '@/lib/verdiencheck/domain/money';
+import {
+  COST_INPUT_CATEGORY_IDS,
+  categoryMayBeDurableAsset,
+  emptyCostLines,
+  mapCostBreakdown,
+  type CostInputCategoryId,
+  type CostLineInput,
+  type CostLineKind,
+} from '@/lib/verdiencheck/domain/cost-categories';
 import {
   helperFeedsCertifiedEngine,
   mapRevenueAndAllowableCosts,
   type ScenarioInputMode,
 } from '@/lib/verdiencheck/domain/revenue-cost-helper';
 import type { WizardState } from '@/lib/verdiencheck/wizard/schema';
+import VerdienCheckOmzetKostenResult from './VerdienCheckOmzetKostenResult';
 
 function whole(cents: number): string {
   return formatCentsAsWholeEuroDisplay(cents);
+}
+
+function categoryLabel(copy: VerdienCheckCopy, id: CostInputCategoryId): string {
+  switch (id) {
+    case 'MATERIALS':
+      return copy.costCatMaterials;
+    case 'PACKAGING':
+      return copy.costCatPackaging;
+    case 'PLATFORM':
+      return copy.costCatPlatform;
+    case 'DELIVERY':
+      return copy.costCatDelivery;
+    case 'EQUIPMENT':
+      return copy.costCatEquipment;
+    case 'MARKETING':
+      return copy.costCatMarketing;
+    case 'OTHER':
+      return copy.costCatOther;
+  }
 }
 
 export default function VerdienCheckCostAdvantage(props: {
@@ -25,54 +57,45 @@ export default function VerdienCheckCostAdvantage(props: {
   showExample?: boolean;
 }) {
   const { copy } = props;
+  const [splitOpen, setSplitOpen] = useState(false);
+  const [lines, setLines] = useState<CostLineInput[]>(emptyCostLines);
   const mapped = mapRevenueAndAllowableCosts({
     revenueEuro: props.helperRevenueEuro,
     costsEuro: props.helperCostsEuro,
     costsUnknown: props.helperCostsUnknown,
   });
+  const breakdown = useMemo(() => mapCostBreakdown(lines), [lines]);
   const helperActive = props.mode === 'REVENUE_COST';
+  const liveResult =
+    helperFeedsCertifiedEngine(mapped) || mapped.status === 'ZERO' || mapped.status === 'NEGATIVE'
+      ? mapped.resultCents
+      : null;
+  const liveRevenue = mapped.revenueCents;
+  const liveCosts = typeof mapped.costsCents === 'number' ? mapped.costsCents : null;
+
+  function applyLines(next: CostLineInput[]) {
+    setLines(next);
+    const nextMapped = mapCostBreakdown(next);
+    if (nextMapped.status === 'OK') {
+      props.onHelperCostsUnknown(false);
+      props.onHelperCostsChange(nextMapped.deductibleEuro);
+      return;
+    }
+    if (nextMapped.status === 'EMPTY') return;
+    props.onHelperCostsChange('');
+  }
+
+  function patchLine(id: CostInputCategoryId, patch: Partial<CostLineInput>) {
+    applyLines(lines.map((line) => (line.id === id ? { ...line, ...patch } : line)));
+  }
 
   return (
     <div className="space-y-3" data-verdiencheck-cost-advantage="">
       <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
         <p className="text-sm font-medium text-stone-900">{copy.costsCountTitle}</p>
         <p className="mt-1 text-sm leading-relaxed text-stone-700">{copy.costsCountBody}</p>
-        <p className="mt-1 text-sm leading-relaxed text-stone-600">{copy.costsCountEngine}</p>
+        <p className="mt-1 text-sm leading-relaxed text-stone-600">{copy.keepRecordsEarn}</p>
       </div>
-
-      <details className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-        <summary className="cursor-pointer min-h-11 text-sm font-medium text-stone-800">
-          {copy.moreExplanation}
-        </summary>
-        <div className="mt-3 space-y-2 text-sm leading-relaxed text-stone-600">
-          <p className="font-medium text-stone-800">{copy.whatIsResultTitle}</p>
-          <p>{copy.whatIsResultBody}</p>
-          {props.showExample !== false ? (
-            <>
-              <p className="text-stone-500">{copy.resultExampleCaption}</p>
-              <ul className="space-y-1">
-                <li className="flex justify-between gap-4">
-                  <span>{copy.exampleRevenueLabel}</span>
-                  <span>{copy.exampleRevenueAmount}</span>
-                </li>
-                <li className="flex justify-between gap-4">
-                  <span>{copy.exampleCostsLabel}</span>
-                  <span>{copy.exampleCostsAmount}</span>
-                </li>
-                <li className="flex justify-between gap-4 font-medium text-stone-800">
-                  <span>{copy.exampleResultLabel}</span>
-                  <span>{copy.exampleResultAmount}</span>
-                </li>
-              </ul>
-            </>
-          ) : null}
-          <p>{copy.helperCostExamples}</p>
-          <p>{copy.helperPartialCostsNote}</p>
-          <p>{copy.helperInvestmentNote}</p>
-          <p>{copy.costsAreRealExpenses}</p>
-          <p>{copy.receiptsNote}</p>
-        </div>
-      </details>
 
       <div className="flex flex-wrap gap-2">
         <button
@@ -102,28 +125,45 @@ export default function VerdienCheckCostAdvantage(props: {
       </div>
 
       {helperActive ? (
-        <div className="space-y-3 rounded-xl border border-emerald-100 bg-white p-3" data-verdiencheck-revenue-cost-helper="">
-          <label className="block">
-            <span className="text-sm text-stone-700">{copy.helperRevenueLabel}</span>
-            <input
-              inputMode="decimal"
-              value={props.helperRevenueEuro}
-              onChange={(e) => props.onHelperRevenueChange(e.target.value)}
-              className="mt-1 min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg"
-              placeholder="€"
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm text-stone-700">{copy.helperCostsLabel}</span>
-            <input
-              inputMode="decimal"
-              value={props.helperCostsEuro}
-              onChange={(e) => props.onHelperCostsChange(e.target.value)}
-              disabled={props.helperCostsUnknown}
-              className="mt-1 min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg disabled:bg-stone-100"
-              placeholder="€"
-            />
-          </label>
+        <div
+          className="space-y-3 rounded-xl border border-emerald-100 bg-white p-3"
+          data-verdiencheck-revenue-cost-helper=""
+        >
+          <VerdienCheckOmzetKostenResult
+            copy={copy}
+            variant="live"
+            revenueCents={liveRevenue}
+            costsCents={liveCosts}
+            resultCents={typeof liveResult === 'number' ? liveResult : null}
+            revenueSlot={
+              <label className="block w-44 max-w-full">
+                <span className="sr-only">{copy.helperRevenueLabel}</span>
+                <input
+                  inputMode="decimal"
+                  value={props.helperRevenueEuro}
+                  onChange={(e) => props.onHelperRevenueChange(e.target.value)}
+                  className="min-h-12 w-full rounded-xl border border-gray-200 px-3 py-2 text-lg tabular-nums"
+                  placeholder="€"
+                  aria-label={copy.helperRevenueLabel}
+                />
+              </label>
+            }
+            costsSlot={
+              <label className="block w-44 max-w-full">
+                <span className="sr-only">{copy.helperCostsLabel}</span>
+                <input
+                  inputMode="decimal"
+                  value={props.helperCostsEuro}
+                  onChange={(e) => props.onHelperCostsChange(e.target.value)}
+                  disabled={props.helperCostsUnknown || splitOpen}
+                  className="min-h-12 w-full rounded-xl border border-gray-200 px-3 py-2 text-lg tabular-nums disabled:bg-stone-100"
+                  placeholder="€"
+                  aria-label={copy.helperCostsLabel}
+                />
+              </label>
+            }
+          />
+          <p className="text-sm leading-relaxed text-stone-600">{copy.helperCostsHint}</p>
           <button
             type="button"
             aria-pressed={props.helperCostsUnknown}
@@ -136,6 +176,78 @@ export default function VerdienCheckCostAdvantage(props: {
           >
             {copy.helperCostsUnknown}
           </button>
+          <button
+            type="button"
+            aria-expanded={splitOpen}
+            onClick={() => setSplitOpen((open) => !open)}
+            className="min-h-11 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800"
+          >
+            {splitOpen ? copy.hideSplitCostsCta : copy.splitCostsCta}
+          </button>
+          {splitOpen ? (
+            <div className="space-y-3" data-verdiencheck-cost-split="">
+              {COST_INPUT_CATEGORY_IDS.map((id) => {
+                const line = lines.find((item) => item.id === id);
+                if (!line) return null;
+                const showInvestment = categoryMayBeDurableAsset(id) && line.spendEuro.trim() !== '';
+                return (
+                  <fieldset key={id} className="space-y-2 rounded-xl border border-stone-100 p-3">
+                    <legend className="px-1 text-sm font-medium text-stone-800">
+                      {categoryLabel(copy, id)}
+                    </legend>
+                    <label className="block">
+                      <span className="text-sm text-stone-600">{copy.userSpendLabel}</span>
+                      <input
+                        inputMode="decimal"
+                        value={line.spendEuro}
+                        onChange={(e) => patchLine(id, { spendEuro: e.target.value })}
+                        className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 px-3 py-2"
+                        placeholder="€"
+                      />
+                    </label>
+                    {showInvestment ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-stone-700">{copy.investmentQuestion}</p>
+                        <p className="text-sm leading-relaxed text-stone-600">{copy.investmentExplain}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(['ORDINARY', 'INVESTMENT'] as const).map((kind: CostLineKind) => (
+                            <button
+                              key={kind}
+                              type="button"
+                              aria-pressed={line.kind === kind}
+                              onClick={() => patchLine(id, { kind })}
+                              className={`min-h-11 rounded-xl border px-3 py-2 text-sm ${
+                                line.kind === kind
+                                  ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950'
+                                  : 'border-gray-200 bg-white text-gray-800'
+                              }`}
+                            >
+                              {kind === 'ORDINARY' ? copy.ordinaryCostLabel : copy.investmentCostLabel}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    <label className="block">
+                      <span className="text-sm text-stone-600">
+                        {line.kind === 'INVESTMENT' ? copy.investmentYearAsk : copy.deductibleAmountLabel}
+                      </span>
+                      <input
+                        inputMode="decimal"
+                        value={line.deductibleEuro}
+                        onChange={(e) => patchLine(id, { deductibleEuro: e.target.value })}
+                        className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 px-3 py-2"
+                        placeholder="€"
+                      />
+                    </label>
+                  </fieldset>
+                );
+              })}
+            </div>
+          ) : null}
+          {breakdown.status === 'INVESTMENT_UNKNOWN' ? (
+            <p className="text-sm text-stone-700">{copy.investmentUnknownNote}</p>
+          ) : null}
           {mapped.status === 'UNKNOWN_COSTS' ? (
             <p className="text-sm text-stone-700">{copy.helperUnknownCostsNote}</p>
           ) : null}
@@ -152,8 +264,29 @@ export default function VerdienCheckCostAdvantage(props: {
           ) : mapped.status === 'INCOMPLETE' ? (
             <p className="text-sm text-stone-600">{copy.helperAwaiting}</p>
           ) : null}
+          <div className="rounded-xl border border-stone-100 bg-stone-50 p-3">
+            <p className="text-sm font-medium text-stone-800">{copy.receiptsCalloutTitle}</p>
+            <p className="mt-1 text-sm leading-relaxed text-stone-600">{copy.receiptsCalloutBody}</p>
+          </div>
+          <p className="text-xs leading-relaxed text-stone-500">{copy.vatSeparationNote}</p>
         </div>
+      ) : props.showExample !== false ? (
+        <VerdienCheckOmzetKostenResult copy={copy} variant="example" />
       ) : null}
+
+      <details className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+        <summary className="cursor-pointer min-h-11 text-sm font-medium text-stone-800">
+          {copy.moreExplanation}
+        </summary>
+        <div className="mt-3 space-y-2 text-sm leading-relaxed text-stone-600">
+          <p className="font-medium text-stone-800">{copy.whatIsResultTitle}</p>
+          <p>{copy.whatIsResultBody}</p>
+          <p>{copy.helperCostExamples}</p>
+          <p>{copy.helperPartialCostsNote}</p>
+          <p>{copy.helperInvestmentNote}</p>
+          <p>{copy.costsAreRealExpenses}</p>
+        </div>
+      </details>
     </div>
   );
 }
