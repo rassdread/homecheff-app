@@ -14,7 +14,9 @@ import {
   calculatePersonalTax2026,
   isUnknownMaterialPersonalTax,
 } from '../nl2026/personal-tax';
+import { netIncomeTaxAfterCredits } from '../nl2026/net-income-tax';
 import { resolveTaxableRowResult } from '../nl2026/row';
+import { calculateTariefsaanpassingEigenWoning2026 } from '../rulesets/nl/2026/owner-occupied-home';
 import { CALCULATION_PERIOD } from '../domain/household';
 import { fromCents, toCentsRoundHalfUp } from '../math/scaled';
 import type {
@@ -196,18 +198,57 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
       singleOlderPersonsCreditEligibility:
         input.singleOlderPersonsCreditEligibility ?? null,
     };
+    const ownerInterest =
+      input.ownerHomeDeductibleInterestCents != null &&
+      Number.isFinite(input.ownerHomeDeductibleInterestCents)
+        ? Math.max(0, input.ownerHomeDeductibleInterestCents)
+        : null;
+    const extraTaxA =
+      ownerInterest == null
+        ? 0
+        : calculateTariefsaanpassingEigenWoning2026({
+            box1TaxableCents: box1A as number,
+            deductibleOwnHomeCostsCents: ownerInterest,
+          }).extraTaxCents;
+    const extraTaxB =
+      ownerInterest == null
+        ? 0
+        : calculateTariefsaanpassingEigenWoning2026({
+            box1TaxableCents: (box1A as number) + taxableRow,
+            deductibleOwnHomeCostsCents: ownerInterest,
+          }).extraTaxCents;
     const sliceA = calculatePersonalTax2026({
       ...taxInputA,
-      box1Cents: box1A,
-      aggregateCents: aggA,
-      arbeidsinkomenCents: arbA,
+      box1Cents: box1A as number,
+      aggregateCents: aggA as number,
+      arbeidsinkomenCents: arbA as number,
     });
     const sliceB = calculatePersonalTax2026({
       ...taxInputA,
-      box1Cents: box1A + taxableRow,
-      aggregateCents: aggA + taxableRow,
-      arbeidsinkomenCents: arbA + taxableRow,
+      box1Cents: (box1A as number) + taxableRow,
+      aggregateCents: (aggA as number) + taxableRow,
+      arbeidsinkomenCents: (arbA as number) + taxableRow,
     });
+    function taxAfterOwnHomeLimit(slice: typeof sliceA, extra: number) {
+      if (
+        extra === 0 ||
+        typeof slice.taxBeforeCredits !== 'number' ||
+        typeof slice.generalTaxCredit !== 'number' ||
+        typeof slice.employmentTaxCredit !== 'number' ||
+        typeof slice.iack !== 'number' ||
+        typeof slice.olderPersonsTaxCredit !== 'number' ||
+        typeof slice.singleOlderPersonsTaxCredit !== 'number'
+      ) {
+        return slice.incomeTaxAfterCredits;
+      }
+      return netIncomeTaxAfterCredits({
+        taxBeforeCreditsCents: slice.taxBeforeCredits + extra,
+        generalTaxCreditCents: slice.generalTaxCredit,
+        employmentTaxCreditCents: slice.employmentTaxCredit,
+        additionalCreditsCents:
+          slice.iack + slice.olderPersonsTaxCredit + slice.singleOlderPersonsTaxCredit,
+      });
+    }
     creditGenA = sliceA.generalTaxCredit;
     creditGenB = sliceB.generalTaxCredit;
     creditEmpA = sliceA.employmentTaxCredit;
@@ -218,13 +259,10 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
     olderB = sliceB.olderPersonsTaxCredit;
     singleOlderA = sliceA.singleOlderPersonsTaxCredit;
     singleOlderB = sliceB.singleOlderPersonsTaxCredit;
-    incomeTaxA = sliceA.incomeTaxAfterCredits;
-    incomeTaxB = sliceB.incomeTaxAfterCredits;
-    if (
-      typeof sliceA.incomeTaxAfterCredits === 'number' &&
-      typeof sliceB.incomeTaxAfterCredits === 'number'
-    ) {
-      incomeTaxDelta = sliceB.incomeTaxAfterCredits - sliceA.incomeTaxAfterCredits;
+    incomeTaxA = taxAfterOwnHomeLimit(sliceA, extraTaxA);
+    incomeTaxB = taxAfterOwnHomeLimit(sliceB, extraTaxB);
+    if (typeof incomeTaxA === 'number' && typeof incomeTaxB === 'number') {
+      incomeTaxDelta = incomeTaxB - incomeTaxA;
     }
     missingInputs.push(...sliceA.missingInputs, ...sliceB.missingInputs);
     assumptions.push(...sliceA.assumptions);

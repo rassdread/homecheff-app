@@ -195,7 +195,13 @@ function classifyUnselectedBaselineLine(
   if (facts == null) return null;
   if (facts.allowancesNone) return notApplicableLine(meta.id);
   if (meta.id === 'RENT') {
-    if (facts.housingTenure === 'DOES_NOT_RENT') return notApplicableLine(meta.id);
+    if (
+      facts.housingTenure === 'DOES_NOT_RENT' ||
+      facts.housingTenure === 'OWNER_OCCUPIED' ||
+      facts.housingTenure === 'OTHER'
+    ) {
+      return notApplicableLine(meta.id);
+    }
     if (facts.housingTenure === 'UNKNOWN' || facts.housingTenure == null) {
       return unknownRelevantLine(meta.id, meta.excludedMissing);
     }
@@ -375,6 +381,8 @@ export function buildCurrentBaselineView(
     payrollUsed: facts?.payrollUsed === true,
     payrollTaxCredit: facts?.payrollTaxCredit ?? null,
     payrollTaxCreditAssumed: facts?.payrollTaxCreditAssumed === true,
+    ownerHome: facts?.ownerHome ?? null,
+    housingTenure: facts?.housingTenure ?? null,
     incomeUnknown: facts?.incomeUnknown === true,
     incomeUnknownReason: facts?.incomeUnknownReason ?? null,
     incomeIsNetEstimate: facts?.incomeIsNetEstimate === true,

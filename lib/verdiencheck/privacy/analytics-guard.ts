@@ -153,6 +153,14 @@ export const FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS = [
   'withholding',
   'loon',
   'net',
+  'woz',
+  'mortgage',
+  'hypotheek',
+  'interest',
+  'rente',
+  'eigenwoning',
+  'eigenwoningforfait',
+  'housing_value',
 ] as const;
 
 const FORBIDDEN_VALUE_TOKENS = [

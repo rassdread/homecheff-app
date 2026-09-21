@@ -639,7 +639,7 @@ function employeeCore(
   assert.equal(NL_2026_MODULE_STATUS.aowTransitionYearCredits, 'DRAFT');
   assert.equal(NL_2026_MODULE_STATUS.jonggehandicaptenkorting, 'DRAFT');
   assert.equal(NL_2026_PACK.status, 'DRAFT');
-  assert.equal(NL_2026_PACK.version, '2026.6-official-payroll-white-monthly');
+  assert.equal(NL_2026_PACK.version, '2026.7-owner-occupied-home');
   results.MODULE_STATUS = 'PASS';
 }
 

@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import {
   formatCentsAsWholeEuroDisplay,
 } from '@/lib/verdiencheck/domain/money';
@@ -7,6 +10,7 @@ import { PERSONAL_ROUTE_COPY } from '@/lib/verdiencheck/personal-route/copy';
 import type { SimulatorAllowanceId } from '@/lib/verdiencheck/personal-route/types';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import { VERDIENCHECK_STEP_HEADING_ID } from '@/lib/verdiencheck/wizard/active-step-focus';
+import VerdienCheckInfoDialog from '@/components/verdiencheck/VerdienCheckInfoDialog';
 
 function whole(cents: number): string {
   return formatCentsAsWholeEuroDisplay(cents);
@@ -66,6 +70,11 @@ export default function VerdienCheckBaselineCard(props: {
   const showHolidayAmount = (baseline?.holidayPayCents ?? 0) > 0;
   const showHolidayIncluded =
     !showHolidayAmount && baseline?.holidayPayIncluded === true && incomeAnnual != null;
+  const ownerHome = baseline?.ownerHome ?? null;
+  const ownerActive =
+    ownerHome != null &&
+    (ownerHome.status === 'COMPLETE' || ownerHome.status === 'PARTIAL');
+  const [housingInfoOpen, setHousingInfoOpen] = useState(false);
 
   return (
     <section
@@ -245,6 +254,84 @@ export default function VerdienCheckBaselineCard(props: {
           <p className="text-sm leading-relaxed text-stone-600">{props.copy.netToGrossPayslipNote}</p>
         ) : null}
       </div>
+
+      {ownerActive ||
+      baseline?.housingTenure === 'OWNER_OCCUPIED' ||
+      baseline?.housingTenure === 'RENT' ||
+      baseline?.housingTenure === 'OTHER' ? (
+        <div data-verdiencheck-housing="" className="space-y-2">
+          <p className="text-sm font-medium uppercase tracking-wide text-stone-500">
+            {props.copy.housingHeading}
+          </p>
+          <div className="flex justify-between gap-4 text-base text-stone-800">
+            <span>
+              {baseline?.housingTenure === 'RENT'
+                ? props.copy.housingRentLabel
+                : baseline?.housingTenure === 'OTHER'
+                  ? props.copy.housingOtherLabel
+                  : props.copy.housingOwnerLabel}
+            </span>
+            {ownerHome?.netOwnHomeBox1AdjustmentCents != null ? (
+              <span className="text-right font-medium tabular-nums">
+                {props.copy.housingNetEffectLabel}{' '}
+                {ownerHome.netOwnHomeBox1AdjustmentCents < 0 ? '−' : '+'}€
+                {whole(Math.abs(ownerHome.netOwnHomeBox1AdjustmentCents))}
+              </span>
+            ) : null}
+          </div>
+          {ownerHome?.status === 'PARTIAL' ? (
+            <p className="text-sm leading-relaxed text-stone-600">{props.copy.housingPartialInterestNote}</p>
+          ) : null}
+          {ownerActive ? (
+            <details className="rounded-xl border border-stone-100 bg-stone-50 px-3 py-2 text-sm text-stone-700">
+              <summary className="min-h-11 cursor-pointer font-medium">
+                {props.copy.housingViewCalculation}
+              </summary>
+              <div className="mt-2 space-y-1">
+                {ownerHome.wozCents != null ? (
+                  <div className="flex justify-between gap-3">
+                    <span>{props.copy.housingWozLabel}</span>
+                    <span className="tabular-nums">€{whole(ownerHome.wozCents)}</span>
+                  </div>
+                ) : null}
+                {ownerHome.eigenwoningforfaitCents != null ? (
+                  <div className="flex justify-between gap-3">
+                    <span>{props.copy.housingEwfLabel}</span>
+                    <span className="tabular-nums">+ €{whole(ownerHome.eigenwoningforfaitCents)}</span>
+                  </div>
+                ) : null}
+                {ownerHome.interestKnown && ownerHome.deductibleInterestCents != null ? (
+                  <div className="flex justify-between gap-3">
+                    <span>{props.copy.housingInterestLabel}</span>
+                    <span className="tabular-nums">− €{whole(ownerHome.deductibleInterestCents)}</span>
+                  </div>
+                ) : null}
+                <p className="pt-1 leading-relaxed">{props.copy.housingOwnerIntro}</p>
+                <p className="leading-relaxed">{props.copy.housingOwnerExplain}</p>
+              </div>
+            </details>
+          ) : null}
+          {ownerActive ? (
+            <button
+              type="button"
+              className="min-h-11 text-left text-sm font-medium text-emerald-800 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+              aria-label={props.copy.housingHowCalculatedTitle}
+              aria-haspopup="dialog"
+              aria-expanded={housingInfoOpen}
+              onClick={() => setHousingInfoOpen(true)}
+            >
+              {props.copy.housingHowCalculatedTitle}
+            </button>
+          ) : null}
+          <VerdienCheckInfoDialog
+            open={housingInfoOpen}
+            title={props.copy.housingHowCalculatedTitle}
+            body={props.copy.housingHowCalculatedBody}
+            closeLabel="Sluiten"
+            onClose={() => setHousingInfoOpen(false)}
+          />
+        </div>
+      ) : null}
 
       <div className="space-y-2">
         <p className="text-sm font-medium uppercase tracking-wide text-stone-500">

@@ -35,6 +35,8 @@ import type {
 } from '../domain/iack';
 import type { AssetsEligibility, PartnerHealthcareInsuranceStatus } from '../calculator/types';
 import type { ChildcareCareType, ChildcareProviderEligibility, ParentWorkStudyStatus } from '../domain/childcare';
+import type { HousingTenure, MortgageInterestStatus, OwnerHomeShare } from '../domain/housing';
+import { resolveHousingTenure } from '../domain/housing';
 
 export const WIZARD_STEP_IDS = [
   'jurisdiction',
@@ -72,6 +74,9 @@ export const WIZARD_STEP_IDS = [
   'housingRent',
   'housingHousehold',
   'housingAssets',
+  'housingWoz',
+  'housingInterest',
+  'housingOwnerShare',
   'hasChildren',
   'children',
   'youngChild',
@@ -132,7 +137,13 @@ export type WizardState = {
   holidayPayCustomPercent: string;
   payrollTaxCredit: 'YES' | 'NO' | 'UNKNOWN' | null;
   dutchHealthInsurance: boolean | 'UNKNOWN' | null;
+  housingTenure: HousingTenure | null;
   rentsHome: boolean | 'UNKNOWN' | null;
+  wozValueEuro: string;
+  mortgageInterestStatus: MortgageInterestStatus | null;
+  deductibleMortgageInterestEuro: string;
+  ownerHomeShare: OwnerHomeShare | null;
+  ownerHomeSharePercent: string;
   hasChildren: boolean | 'UNKNOWN' | null;
   usesChildcare: boolean | 'UNKNOWN' | null;
   scenarioLayerRequested: boolean;
@@ -238,7 +249,13 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   holidayPayCustomPercent: '',
   payrollTaxCredit: null,
   dutchHealthInsurance: null,
+  housingTenure: null,
   rentsHome: null,
+  wozValueEuro: '',
+  mortgageInterestStatus: null,
+  deductibleMortgageInterestEuro: '',
+  ownerHomeShare: null,
+  ownerHomeSharePercent: '',
   hasChildren: null,
   usesChildcare: null,
   scenarioLayerRequested: false,
@@ -432,7 +449,13 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.holidayPayCustomPercent = '';
   next.payrollTaxCredit = null;
   next.dutchHealthInsurance = null;
+  next.housingTenure = null;
   next.rentsHome = null;
+  next.wozValueEuro = '';
+  next.mortgageInterestStatus = null;
+  next.deductibleMortgageInterestEuro = '';
+  next.ownerHomeShare = null;
+  next.ownerHomeSharePercent = '';
   next.hasChildren = null;
   next.usesChildcare = null;
   next.scenarioLayerRequested = false;
@@ -832,21 +855,43 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
     visible: (s) =>
       moneyLayerVisible(s) &&
       shouldAskPartnerQuestions(s) &&
-      s.rentsHome === true,
+      resolveHousingTenure(s) === 'RENT',
   },
   {
     id: 'housingHousehold',
     visible: (s) =>
       moneyLayerVisible(s) &&
       shouldAskPartnerQuestions(s) &&
-      s.rentsHome === true,
+      resolveHousingTenure(s) === 'RENT',
   },
   {
     id: 'housingAssets',
     visible: (s) =>
       moneyLayerVisible(s) &&
       shouldAskPartnerQuestions(s) &&
-      s.rentsHome === true,
+      resolveHousingTenure(s) === 'RENT',
+  },
+  {
+    id: 'housingWoz',
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
+      resolveHousingTenure(s) === 'OWNER_OCCUPIED',
+  },
+  {
+    id: 'housingInterest',
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
+      resolveHousingTenure(s) === 'OWNER_OCCUPIED',
+  },
+  {
+    id: 'housingOwnerShare',
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      shouldAskPartnerQuestions(s) &&
+      resolveHousingTenure(s) === 'OWNER_OCCUPIED' &&
+      s.hasPartner === true,
   },
   {
     id: 'hasChildren',
@@ -940,7 +985,7 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
     visible: (s) =>
       moneyLayerVisible(s) &&
       shouldAskPartnerQuestions(s) &&
-      (s.rentsHome === true || s.hasChildren === true),
+      (resolveHousingTenure(s) === 'RENT' || s.hasChildren === true),
   },
   {
     id: 'frequency',
@@ -1076,7 +1121,7 @@ export function shouldAskPartnerQuestions(state: WizardState): boolean {
 }
 
 export function shouldAskRentFields(state: WizardState): boolean {
-  return state.rentsHome === true || needsRentFieldsFallback(state);
+  return resolveHousingTenure(state) === 'RENT' || needsRentFieldsFallback(state);
 }
 
 function needsRentFieldsFallback(state: WizardState): boolean {

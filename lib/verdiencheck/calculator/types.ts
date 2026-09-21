@@ -78,6 +78,8 @@ export type CalculatorInput = {
   /** Omitted in older tests: treated as insured. UNKNOWN never maps to €0. */
   userHealthcareInsuranceStatus?: PartnerHealthcareInsuranceStatus | null;
   housingTenure?: 'RENTS' | 'DOES_NOT_RENT' | 'UNKNOWN' | null;
+  /** Known deductible own-home interest (0 = none). Omit/null = unknown or not an owner. */
+  ownerHomeDeductibleInterestCents?: Cents | null;
   hasChildren?: boolean | 'UNKNOWN' | null;
   usesChildcare?: boolean | 'UNKNOWN' | null;
   allowances: AllowanceSelection;

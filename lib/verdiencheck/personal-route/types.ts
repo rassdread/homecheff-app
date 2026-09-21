@@ -11,6 +11,8 @@ import type {
 } from '../domain/growth-intent';
 import type { CentsOrUnknown } from '../domain/unknown';
 import type { Cents } from '../domain/money';
+import type { OwnerOccupiedHomeResult } from '../rulesets/nl/2026/owner-occupied-home';
+import type { HousingTenure } from '../domain/housing';
 
 export const ACTION_SEMANTICS = [
   'PRE_START_REQUIRED',
@@ -92,7 +94,8 @@ export type BaselinePresentationFacts = {
   incomeUnknown: boolean;
   incomeUnknownReason: string | null;
   incomeIsNetEstimate: boolean;
-  housingTenure?: 'RENTS' | 'DOES_NOT_RENT' | 'UNKNOWN' | null;
+  housingTenure?: HousingTenure | 'RENTS' | 'DOES_NOT_RENT' | 'UNKNOWN' | null;
+  ownerHome?: OwnerOccupiedHomeResult | null;
   hasChildren?: boolean | 'UNKNOWN' | null;
   usesChildcare?: boolean | 'UNKNOWN' | null;
   allowancesNone?: boolean;
@@ -114,6 +117,8 @@ export type CurrentBaselineView = {
   payrollUsed: boolean;
   payrollTaxCredit: 'YES' | 'NO' | 'UNKNOWN' | null;
   payrollTaxCreditAssumed: boolean;
+  ownerHome: OwnerOccupiedHomeResult | null;
+  housingTenure: HousingTenure | 'RENTS' | 'DOES_NOT_RENT' | 'UNKNOWN' | null;
   incomeUnknown: boolean;
   incomeUnknownReason: string | null;
   incomeIsNetEstimate: boolean;

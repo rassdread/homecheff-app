@@ -49,6 +49,7 @@ import {
   type FoodActivityContext,
 } from '../domain/food-activity';
 import { annualizeWizardEuro, deriveIncomeBasesFromUserFacts } from './derive-income-bases';
+import { calculatorHousingTenure, resolveHousingTenure } from '../domain/housing';
 
 function annualizeEuro(raw: string, period: WizardState['amountEntryPeriod']): number | null {
   return annualizeWizardEuro(raw, period);
@@ -96,7 +97,7 @@ function effectiveAllowances(state: WizardState) {
 }
 
 function buildHousingHousehold(state: WizardState, userAssess: number | null): HousingHousehold | null {
-  if (state.rentsHome !== true && !effectiveAllowances(state).includes('RENT')) return null;
+  if (resolveHousingTenure(state) !== 'RENT' && !effectiveAllowances(state).includes('RENT')) return null;
   const oldestRaw = state.oldestHouseholdResidentAge.trim();
   const oldest = oldestRaw === '' ? null : Number.parseInt(oldestRaw, 10);
   const applicantAge = Number.isInteger(oldest) ? oldest : null;
@@ -273,14 +274,10 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
           : state.dutchHealthInsurance === 'UNKNOWN'
             ? 'UNKNOWN'
             : null,
-    housingTenure:
-      state.rentsHome === true
-        ? 'RENTS'
-        : state.rentsHome === false
-          ? 'DOES_NOT_RENT'
-          : state.rentsHome === 'UNKNOWN'
-            ? 'UNKNOWN'
-            : null,
+    housingTenure: calculatorHousingTenure(resolveHousingTenure(state)),
+    ownerHomeDeductibleInterestCents: bases.ownerHome.interestKnown
+      ? bases.ownerHome.deductibleInterestCents
+      : null,
     hasChildren: state.hasChildren,
     usesChildcare: state.usesChildcare,
     allowances: allowances.length > 0 ? allowances : ['HEALTHCARE'],

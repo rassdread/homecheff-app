@@ -27,6 +27,11 @@ import type {
 } from '@/lib/verdiencheck/domain/iack';
 import { V1_COST_SOURCE } from '@/lib/verdiencheck/domain/costs';
 import {
+  rentsHomeFromTenure,
+  resolveHousingTenure,
+} from '@/lib/verdiencheck/domain/housing';
+import VerdienCheckInfoDialog from '@/components/verdiencheck/VerdienCheckInfoDialog';
+import {
   commercialResultCents,
   formatCentsAsEuroDisplay,
   parseEuroInputToCents,
@@ -208,6 +213,7 @@ export default function VerdienCheckWizard(props: {
   const [hydrated, setHydrated] = useState(false);
   const [step, setStep] = useState<WizardStepId>('jurisdiction');
   const [state, setState] = useState<WizardState>(EMPTY_WIZARD_STATE);
+  const [infoDialog, setInfoDialog] = useState<'interest' | 'woz' | 'ownerCalc' | null>(null);
   const [entryPoint, setEntryPoint] = useState<VerdienCheckEntryPoint>('direct');
   const [restartOpen, setRestartOpen] = useState(false);
   const [showResumeHint, setShowResumeHint] = useState(false);
@@ -380,14 +386,8 @@ export default function VerdienCheckWizard(props: {
       incomeIsNetEstimate:
         state.currentIncomeBasis === 'NET' &&
         derivedIncomeBases.netToGrossConfidence === 'ESTIMATE',
-      housingTenure:
-        state.rentsHome === true
-          ? 'RENTS'
-          : state.rentsHome === false
-            ? 'DOES_NOT_RENT'
-            : state.rentsHome === 'UNKNOWN'
-              ? 'UNKNOWN'
-              : null,
+      housingTenure: resolveHousingTenure(state),
+      ownerHome: derivedIncomeBases.ownerHome,
       hasChildren: state.hasChildren,
       usesChildcare: state.usesChildcare,
       allowancesNone: derivedWizardAllowances(state).includes('NONE'),
@@ -606,6 +606,20 @@ export default function VerdienCheckWizard(props: {
         open={restartOpen}
         onCancel={() => setRestartOpen(false)}
         onConfirm={restartCheck}
+      />
+      <VerdienCheckInfoDialog
+        open={infoDialog === 'interest'}
+        title={copy.housingInterestWhereTitle}
+        body={copy.housingInterestWhereBody}
+        closeLabel={language === 'en' ? 'Close' : 'Sluiten'}
+        onClose={() => setInfoDialog(null)}
+      />
+      <VerdienCheckInfoDialog
+        open={infoDialog === 'ownerCalc'}
+        title={copy.housingHowCalculatedTitle}
+        body={copy.housingHowCalculatedBody}
+        closeLabel={language === 'en' ? 'Close' : 'Sluiten'}
+        onClose={() => setInfoDialog(null)}
       />
       <div
         ref={activeStepRef}
@@ -1131,23 +1145,26 @@ export default function VerdienCheckWizard(props: {
           )}
 
           {step === 'rentsHome' && (
-            <TriChoices
-              value={state.rentsHome}
-              options={options}
-              onSelect={(value) => {
-                const next: WizardState = {
-                  ...state,
-                  rentsHome: value,
-                  bareRentEuro: value === true ? state.bareRentEuro : '',
-                  onlyTotalRentKnown: value === true ? state.onlyTotalRentKnown : null,
-                  housingHouseholdType: value === true ? state.housingHouseholdType : null,
-                  housingAssetsEligibility: value === true ? state.housingAssetsEligibility : null,
-                };
-                setState(next);
-                const n = nextStep(next, 'rentsHome');
-                if (n) setStep(n);
-              }}
-            />
+            <>
+              {(['RENT', 'OWNER_OCCUPIED', 'OTHER'] as const).map((value) => (
+                <ChoiceButton
+                  key={value}
+                  selected={resolveHousingTenure(state) === value}
+                  onClick={() => {
+                    const next: WizardState = {
+                      ...state,
+                      housingTenure: value,
+                      rentsHome: rentsHomeFromTenure(value),
+                    };
+                    setState(next);
+                    const n = nextStep(next, 'rentsHome');
+                    if (n) setStep(n);
+                  }}
+                >
+                  {options[value] ?? value}
+                </ChoiceButton>
+              ))}
+            </>
           )}
 
           {step === 'hasChildren' && (
@@ -1287,6 +1304,107 @@ export default function VerdienCheckWizard(props: {
                 {options[key] ?? key}
               </ChoiceButton>
             ))}
+
+          {step === 'housingWoz' && (
+            <div className="space-y-4">
+              <p className="text-base leading-relaxed text-stone-600">{copy.housingWozHelp}</p>
+              <input
+                inputMode="decimal"
+                value={state.wozValueEuro}
+                onChange={(e) => setState({ ...state, wozValueEuro: e.target.value })}
+                className={FIELD}
+                placeholder="€"
+                aria-label={title}
+              />
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'housingInterest' && (
+            <div className="space-y-4">
+              <p className="text-base leading-relaxed text-stone-600">{copy.housingInterestNotPaymentNote}</p>
+              <input
+                inputMode="decimal"
+                value={state.deductibleMortgageInterestEuro}
+                onChange={(e) =>
+                  setState({
+                    ...state,
+                    deductibleMortgageInterestEuro: e.target.value,
+                    mortgageInterestStatus: e.target.value.trim() ? 'KNOWN' : state.mortgageInterestStatus,
+                  })
+                }
+                className={FIELD}
+                placeholder="€"
+                aria-label={title}
+              />
+              <ChoiceButton
+                selected={state.mortgageInterestStatus === 'NONE'}
+                onClick={() =>
+                  setState({
+                    ...state,
+                    mortgageInterestStatus: 'NONE',
+                    deductibleMortgageInterestEuro: '',
+                  })
+                }
+              >
+                {copy.housingNoMortgage}
+              </ChoiceButton>
+              <ChoiceButton
+                selected={state.mortgageInterestStatus === 'UNKNOWN'}
+                onClick={() =>
+                  setState({
+                    ...state,
+                    mortgageInterestStatus: 'UNKNOWN',
+                    deductibleMortgageInterestEuro: '',
+                  })
+                }
+              >
+                {copy.housingInterestUnknown}
+              </ChoiceButton>
+              <button
+                type="button"
+                className="min-h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-left text-base text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+                aria-label={copy.housingInterestWhereTitle}
+                aria-haspopup="dialog"
+                aria-expanded={infoDialog === 'interest'}
+                onClick={() => setInfoDialog('interest')}
+              >
+                {copy.housingInterestWhereTitle}
+              </button>
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'housingOwnerShare' && (
+            <div className="space-y-4">
+              {(['ALL', 'HALF', 'CUSTOM'] as const).map((key) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.ownerHomeShare === key}
+                  onClick={() => setState({ ...state, ownerHomeShare: key })}
+                >
+                  {options[key] ?? key}
+                </ChoiceButton>
+              ))}
+              {state.ownerHomeShare === 'CUSTOM' ? (
+                <input
+                  inputMode="numeric"
+                  value={state.ownerHomeSharePercent}
+                  onChange={(e) => setState({ ...state, ownerHomeSharePercent: e.target.value })}
+                  className={FIELD}
+                  placeholder="%"
+                  aria-label={options.CUSTOM}
+                />
+              ) : null}
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
+                {copy.next}
+              </button>
+            </div>
+          )}
 
           {step === 'children' && (
             <div className="space-y-4">

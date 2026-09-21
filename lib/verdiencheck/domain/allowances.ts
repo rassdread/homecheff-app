@@ -43,6 +43,7 @@ export function needsChildBudgetFields(selection: AllowanceSelection): boolean {
 export type AllowanceFactState = {
   allowances: AllowanceSelection;
   rentsHome: boolean | 'UNKNOWN' | null;
+  housingTenure?: 'RENT' | 'OWNER_OCCUPIED' | 'OTHER' | 'UNKNOWN' | null;
   hasChildren: boolean | 'UNKNOWN' | null;
   usesChildcare: boolean | 'UNKNOWN' | null;
 };
@@ -56,7 +57,10 @@ export function deriveAllowancesFromFacts(state: AllowanceFactState): AllowanceI
   if (state.allowances.includes('NONE')) return ['NONE'];
   if (state.allowances.includes('UNKNOWN')) return ['UNKNOWN'];
   const ids: AllowanceId[] = ['HEALTHCARE'];
-  if (state.rentsHome === true || hasAllowance(state.allowances, 'RENT')) {
+  const rents =
+    state.housingTenure === 'RENT' ||
+    (state.housingTenure == null && (state.rentsHome === true || hasAllowance(state.allowances, 'RENT')));
+  if (rents) {
     ids.push('RENT');
   }
   if (state.hasChildren === true || hasAllowance(state.allowances, 'CHILD_BUDGET')) {

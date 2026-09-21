@@ -362,6 +362,62 @@ export const SRC_TOETSINGSINKOMEN_HOLIDAY_2026 = {
     'https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/content/maximaal-inkomen-voor-zorgtoeslag',
 } as const;
 
+export const SRC_EWF_2026 = {
+  officialSource: 'Belastingdienst — Tabel eigenwoningforfait 2026',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/nl/koopwoning/content/hoe-werkt-eigenwoningforfait',
+  publication: 'Tabel eigenwoningforfait 2026',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
+export const SRC_WOZ_IB_2026 = {
+  officialSource:
+    'Belastingdienst — WOZ-waarde voor inkomstenbelasting 2026 (waardepeildatum 1 januari 2025)',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/fisin/fisin2026/eigen_woning_en_restschuld_vroegere',
+  publication: 'Fiscale informatie 2026 — Eigen woning',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
+export const SRC_HILLEN_2026 = {
+  officialSource:
+    'Belastingdienst — Aftrek wegens geen of een kleine eigenwoningschuld (Wet Hillen) 2026: 71,867%',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/woning/eigenwoningforfait/geen_of_een_kleine_eigenwoningschuld/',
+  publication: 'Wet Hillen / art. 3.123a Wet IB 2001, afbouw 2026',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
+export const SRC_TARIEFSAANPASSING_EW_2026 = {
+  officialSource:
+    'Belastingdienst — Tariefsaanpassing aftrek kosten eigen woning 2026 (11,94%; max 37,56% vanaf €78.426)',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/nl/koopwoning/content/tariefsaanpassing-eigen-woning',
+  publication: 'Tariefsaanpassing eigen woning 2026',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
+export const SRC_AFTREKBARE_KOSTEN_EW = {
+  officialSource: 'Belastingdienst — Aftrekbare kosten eigen woning (rente, geen aflossing)',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/nl/koopwoning/content/eigen-woning-aftrekbare-kosten',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
+export const SRC_TOETSINGSINKOMEN_2026 = {
+  officialSource:
+    'Dienst Toeslagen — Toetsingsinkomen is verzamelinkomen (aangifte) of belastbaar loon (geen aangifte)',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/toeslagen/hoe_werken_toeslagen/kan_ik_toeslag_krijgen/inkomen/',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
 export const NL_2026_EFFECTIVE = {
   jurisdiction: 'NL' as const,
   year: 2026,

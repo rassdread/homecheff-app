@@ -279,6 +279,26 @@ export type VerdienCheckCopy = {
   payrollTaxCreditAssumedYes: string;
   payrollNetBeforeDeductionsNote: string;
   statutoryNetEstimateLabel: string;
+  housingHeading: string;
+  housingOwnerLabel: string;
+  housingRentLabel: string;
+  housingOtherLabel: string;
+  housingWozLabel: string;
+  housingEwfLabel: string;
+  housingInterestLabel: string;
+  housingNetEffectLabel: string;
+  housingViewCalculation: string;
+  housingOwnerIntro: string;
+  housingOwnerExplain: string;
+  housingPartialInterestNote: string;
+  housingInterestNotPaymentNote: string;
+  housingInterestWhereTitle: string;
+  housingInterestWhereBody: string;
+  housingNoMortgage: string;
+  housingInterestUnknown: string;
+  housingWozHelp: string;
+  housingHowCalculatedTitle: string;
+  housingHowCalculatedBody: string;
   shareAction: string;
   shareTitle: string;
   shareMessage: string;
@@ -623,6 +643,32 @@ const NL: VerdienCheckCopy = {
   payrollNetBeforeDeductionsNote:
     'Gebruik het nettoloon vóór eventuele persoonlijke inhoudingen zoals pensioen of een eigen bijdrage voor een auto, als je dat bedrag weet.',
   statutoryNetEstimateLabel: 'Geschat netto volgens standaard loonberekening',
+  housingHeading: 'Wonen',
+  housingOwnerLabel: 'Koopwoning',
+  housingRentLabel: 'Huur',
+  housingOtherLabel: 'Anders',
+  housingWozLabel: 'WOZ-waarde',
+  housingEwfLabel: 'Eigenwoningforfait',
+  housingInterestLabel: 'Aftrekbare hypotheekrente',
+  housingNetEffectLabel: 'Effect op belastbaar inkomen',
+  housingViewCalculation: 'Bekijk berekening',
+  housingOwnerIntro: 'Je koopwoning telt mee in je belastingberekening.',
+  housingOwnerExplain:
+    'Bij een koopwoning telt het eigenwoningforfait mee als inkomen. Aftrekbare hypotheekrente kan dit bedrag verlagen. Daardoor kan ook je toetsingsinkomen voor toeslagen veranderen.',
+  housingPartialInterestNote:
+    'We kunnen het eigenwoningforfait meenemen, maar zonder je aftrekbare hypotheekrente is het belastingeffect nog niet volledig.',
+  housingInterestNotPaymentNote:
+    'Vul alleen de rente in die voor je eigen woning aftrekbaar is, niet je totale hypotheekbetaling.',
+  housingInterestWhereTitle: 'Waar vind ik dit bedrag?',
+  housingInterestWhereBody:
+    'Op het jaaroverzicht van je geldverstrekker, je hypotheekoverzicht, of bij de eigen woning in je belastingaangifte. Aflossing is geen aftrekbare rente.',
+  housingNoMortgage: 'Ik heb geen of bijna geen hypotheekrente',
+  housingInterestUnknown: 'Weet ik niet',
+  housingWozHelp:
+    'Gebruik de WOZ-waarde van de beschikking die je begin 2026 van de gemeente kreeg, met waardepeildatum 1 januari 2025.',
+  housingHowCalculatedTitle: 'Hoe is dit berekend?',
+  housingHowCalculatedBody:
+    'We gebruiken de officiële tabel eigenwoningforfait 2026, de Wet Hillen (71,867% in 2026) en waar nodig de tariefsaanpassing in de hoogste belastingschijf. Dit is geen volledige belastingaangifte. Pensioen, auto van de zaak of andere posten zitten er niet in.',
   shareAction: 'Deel VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:
@@ -897,9 +943,9 @@ const NL: VerdienCheckCopy = {
       },
     },
     rentsHome: {
-      title: 'Huur je een woning?',
-      help: 'Alleen nodig voor huurtoeslag. Koop of inwonen telt hier niet als huur.',
-      options: { YES: 'Ja', NO: 'Nee', UNKNOWN: 'Ik weet het niet' },
+      title: 'Hoe woon je?',
+      help: 'Huur telt voor huurtoeslag. Een koopwoning telt mee in je belasting en toeslagen via het eigenwoningforfait.',
+      options: { RENT: 'Huur', OWNER_OCCUPIED: 'Koopwoning', OTHER: 'Anders' },
     },
     housingRent: {
       title: 'Wat is de kale huur per maand?',
@@ -919,6 +965,19 @@ const NL: VerdienCheckCopy = {
         NOT_ELIGIBLE: 'Nee, ik heb te veel spaargeld of vermogen',
         UNKNOWN: 'Ik weet het niet',
       },
+    },
+    housingWoz: {
+      title: 'Wat is de WOZ-waarde van je woning?',
+      help: 'Gebruik de WOZ-beschikking van begin 2026, met waardepeildatum 1 januari 2025.',
+    },
+    housingInterest: {
+      title: 'Hoeveel aftrekbare hypotheekrente betaal je ongeveer per jaar?',
+      help: 'Vul alleen de rente in die voor je eigen woning aftrekbaar is, niet je totale hypotheekbetaling.',
+    },
+    housingOwnerShare: {
+      title: 'Welk deel van de eigenwoningposten reken je aan jezelf toe?',
+      help: 'Toeslagpartner is niet hetzelfde als fiscale partner. Kies het deel dat jij in je aangifte aan jezelf toerekent.',
+      options: { ALL: 'Alles', HALF: 'De helft', CUSTOM: 'Ander percentage' },
     },
     hasChildren: {
       title: 'Heb je kinderen?',
@@ -1381,6 +1440,32 @@ const EN: VerdienCheckCopy = {
   payrollNetBeforeDeductionsNote:
     'Use net pay before personal deductions such as pension or a company-car contribution if you know that amount.',
   statutoryNetEstimateLabel: 'Estimated net according to standard payroll calculation',
+  housingHeading: 'Housing',
+  housingOwnerLabel: 'Owner-occupied home',
+  housingRentLabel: 'Rent',
+  housingOtherLabel: 'Other',
+  housingWozLabel: 'WOZ value',
+  housingEwfLabel: 'Imputed rental value',
+  housingInterestLabel: 'Deductible mortgage interest',
+  housingNetEffectLabel: 'Effect on taxable income',
+  housingViewCalculation: 'View calculation',
+  housingOwnerIntro: 'Your owner-occupied home is included in your tax calculation.',
+  housingOwnerExplain:
+    'For an owner-occupied home, the imputed rental value counts as income. Deductible mortgage interest can reduce that amount. That can also change your assessment income for allowances.',
+  housingPartialInterestNote:
+    'We can include the imputed rental value, but without your deductible mortgage interest the tax effect is not yet complete.',
+  housingInterestNotPaymentNote:
+    'Enter only deductible interest for your own home, not your total mortgage payment.',
+  housingInterestWhereTitle: 'Where can I find this amount?',
+  housingInterestWhereBody:
+    'On your lender’s annual statement, mortgage overview, or the owner-occupied home section of your tax return. Principal repayment is not deductible interest.',
+  housingNoMortgage: 'I have little or no mortgage interest',
+  housingInterestUnknown: 'I don’t know',
+  housingWozHelp:
+    'Use the WOZ value from the assessment you received at the start of 2026, with valuation date 1 January 2025.',
+  housingHowCalculatedTitle: 'How was this calculated?',
+  housingHowCalculatedBody:
+    'We use the official 2026 imputed rental-value table, the Hillen relief (71.867% in 2026) and, where needed, the top-bracket deduction-rate limitation. This is not a full tax return. Pension, a company car or other items are not included.',
   shareAction: 'Share VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:
@@ -1650,9 +1735,9 @@ const EN: VerdienCheckCopy = {
       },
     },
     rentsHome: {
-      title: 'Do you rent your home?',
-      help: 'Only needed for rent allowance. Buying or living with family does not count as rent here.',
-      options: { YES: 'Yes', NO: 'No', UNKNOWN: 'I don’t know' },
+      title: 'How do you live?',
+      help: 'Rent is used for rent allowance. An owner-occupied home affects tax and allowances through the imputed rental value.',
+      options: { RENT: 'Rent', OWNER_OCCUPIED: 'Owner-occupied', OTHER: 'Other' },
     },
     housingRent: { title: 'What is the bare monthly rent?' },
     housingHousehold: {
@@ -1669,6 +1754,19 @@ const EN: VerdienCheckCopy = {
         NOT_ELIGIBLE: 'No, my assets are too high',
         UNKNOWN: 'I don’t know',
       },
+    },
+    housingWoz: {
+      title: 'What is the WOZ value of your home?',
+      help: 'Use the WOZ assessment from early 2026, with valuation date 1 January 2025.',
+    },
+    housingInterest: {
+      title: 'About how much deductible mortgage interest do you pay per year?',
+      help: 'Enter only deductible interest for your own home, not your total mortgage payment.',
+    },
+    housingOwnerShare: {
+      title: 'Which share of the owner-occupied-home items do you allocate to yourself?',
+      help: 'A benefit partner is not the same as a fiscal partner. Choose the share you allocate to yourself in your tax return.',
+      options: { ALL: 'All', HALF: 'Half', CUSTOM: 'Another percentage' },
     },
     hasChildren: {
       title: 'Do you have children?',

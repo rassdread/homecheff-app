@@ -17,6 +17,14 @@
 import { parseEuroInputToCents } from '../domain/money';
 import { estimateGrossFromNetSalary2026 } from '../nl2026/net-to-gross';
 import {
+  ownerHomeShareBps,
+  resolveHousingTenure,
+} from '../domain/housing';
+import {
+  calculateOwnerOccupiedHome2026,
+  type OwnerOccupiedHomeResult,
+} from '../rulesets/nl/2026/owner-occupied-home';
+import {
   calculateEmployeePayroll2026,
   invertEmployeePayrollNet2026,
   PAYROLL_FORWARD_MODEL,
@@ -61,6 +69,7 @@ export type IncomeBasisSource =
   | 'EMPLOYMENT_ESTIMATE'
   | 'DERIVED_FROM_FISCAL_WAGE'
   | 'DERIVED_FROM_GROSS_EMPLOYMENT'
+  | 'OWNER_OCCUPIED_HOME_2026'
   | 'UNKNOWN';
 
 export type NetToGrossMethod =
@@ -128,6 +137,7 @@ export type DerivedIncomeBases = {
   incomeSourcePrecedence: IncomeSourcePrecedence;
   basisProvenance: IncomeBasesProvenance;
   payroll: PayrollSnapshot;
+  ownerHome: OwnerOccupiedHomeResult;
 };
 
 const UNKNOWN_PROV: IncomeBasisProvenance = { kind: 'UNKNOWN', source: 'UNKNOWN' };
@@ -166,6 +176,84 @@ function unusedPayroll(reason: string | null, eligible = false): PayrollSnapshot
     iterations: null,
     method: null,
     provenance: 'NONE',
+  };
+}
+
+function unusedOwnerHome(): OwnerOccupiedHomeResult {
+  return calculateOwnerOccupiedHome2026({
+    tenure: null,
+    wozCents: null,
+    interestStatus: null,
+    deductibleInterestCents: null,
+    shareBps: 10_000,
+    shareAssumed: false,
+    knownBox1: false,
+    knownAssessment: false,
+  });
+}
+
+export function ownerHomeFromWizard(
+  state: WizardState,
+  known: { box1: boolean; assessment: boolean },
+): OwnerOccupiedHomeResult {
+  const tenure = resolveHousingTenure(state);
+  const share = ownerHomeShareBps({
+    share: state.ownerHomeShare,
+    customPercent: state.ownerHomeSharePercent,
+    hasPartner: state.hasPartner,
+  });
+  return calculateOwnerOccupiedHome2026({
+    tenure,
+    wozCents: parseEuroInputToCents(state.wozValueEuro),
+    interestStatus: state.mortgageInterestStatus,
+    deductibleInterestCents: parseEuroInputToCents(state.deductibleMortgageInterestEuro),
+    shareBps: share.bps,
+    shareAssumed: share.assumed,
+    knownBox1: known.box1,
+    knownAssessment: known.assessment,
+  });
+}
+
+function applyOwnerHome(bases: DerivedIncomeBases, state: WizardState): DerivedIncomeBases {
+  const ownerHome = ownerHomeFromWizard(state, {
+    box1: bases.basisProvenance.box1.kind === 'USER_PROVIDED',
+    assessment: bases.basisProvenance.assessment.kind === 'USER_PROVIDED',
+  });
+  const adj = ownerHome.netOwnHomeBox1AdjustmentCents;
+  if (adj == null || !ownerHome.applyToBox1) {
+    return { ...bases, ownerHome };
+  }
+
+  const fiscal = bases.fiscalWageCents;
+  let box1 = bases.baselineBox1TaxableIncomeCents;
+  if (box1 == null && fiscal != null) box1 = fiscal;
+  if (box1 == null) return { ...bases, ownerHome };
+  box1 += adj;
+
+  const aggregateUser = bases.basisProvenance.aggregate.kind === 'USER_PROVIDED';
+  const assessmentUser = bases.basisProvenance.assessment.kind === 'USER_PROVIDED';
+  const aggregate = aggregateUser ? bases.baselineAggregateIncomeCents : box1;
+  const assessment = assessmentUser
+    ? bases.baselineAssessmentIncomeCents
+    : ownerHome.applyToAssessment
+      ? box1
+      : bases.baselineAssessmentIncomeCents;
+  const ownerKind: IncomeAmountProvenanceKind =
+    ownerHome.provenance === 'EXACT_RULE' ? 'DERIVED' : 'ESTIMATE';
+  const box1Prov = prov(ownerKind, 'OWNER_OCCUPIED_HOME_2026');
+  return {
+    ...bases,
+    baselineBox1TaxableIncomeCents: box1,
+    baselineAggregateIncomeCents: aggregate,
+    baselineAssessmentIncomeCents: assessment,
+    householdAssessmentIncomeCents: householdAssessment(assessment, state),
+    basisProvenance: {
+      ...bases.basisProvenance,
+      box1: box1Prov,
+      aggregate: aggregateUser ? bases.basisProvenance.aggregate : box1Prov,
+      assessment: assessmentUser ? bases.basisProvenance.assessment : box1Prov,
+    },
+    ownerHome,
   };
 }
 
@@ -300,6 +388,7 @@ function emptyBases(derivation: IncomeBaseDerivation, payroll?: PayrollSnapshot)
     incomeSourcePrecedence: 'UNKNOWN',
     basisProvenance: unknownProvenance(),
     payroll: payroll ?? unusedPayroll(derivation === 'UNKNOWN' ? 'UNKNOWN' : derivation),
+    ownerHome: unusedOwnerHome(),
   };
 }
 
@@ -409,6 +498,7 @@ function deriveEmployeeEstimate(input: {
       zvwUsed: prov('DERIVED', 'DERIVED_FROM_FISCAL_WAGE'),
     },
     payroll: input.payroll,
+    ownerHome: unusedOwnerHome(),
   };
 }
 
@@ -452,6 +542,10 @@ function payrollFromCurrentIncome(state: WizardState): PayrollSnapshot {
  * stronger annual fiscal/assessment facts.
  */
 export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncomeBases {
+  return applyOwnerHome(deriveIncomeBasesCore(state), state);
+}
+
+function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
   const period = state.amountEntryPeriod;
   const advancedGross = annualizeWizardEuro(state.baselineGrossEmploymentEuro, period);
   const advancedBox1 = annualizeWizardEuro(state.baselineBox1Euro, period);
@@ -524,6 +618,7 @@ export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncom
           advancedZvw != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
       },
       payroll,
+      ownerHome: unusedOwnerHome(),
     };
   }
 

@@ -348,7 +348,7 @@ const results: Record<string, 'PASS' | 'FAIL'> = {
   assert.equal(NL_2026_MODULE_STATUS.zwGuidance, 'CERTIFIED');
   assert.equal(NL_2026_MODULE_STATUS.waoGuidance, 'CERTIFIED');
   assert.equal(NL_2026_MODULE_STATUS.wazGuidance, 'CERTIFIED');
-  assert.equal(NL_2026_PACK.version, '2026.6-official-payroll-white-monthly');
+  assert.equal(NL_2026_PACK.version, '2026.7-owner-occupied-home');
   assert.equal(NL_2026_PACK.status, 'DRAFT');
   results.NO_PLATFORM_BLOCKERS = 'PASS';
 }
