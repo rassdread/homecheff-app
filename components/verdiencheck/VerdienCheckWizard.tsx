@@ -107,6 +107,7 @@ import VerdienCheckLaterSection from './VerdienCheckLaterSection';
 import VerdienCheckNowSection from './VerdienCheckNowSection';
 import VerdienCheckRestartConfirm from './VerdienCheckRestartConfirm';
 import VerdienCheckResultCta from './VerdienCheckResultCta';
+import VerdienCheckShareAction from './VerdienCheckShareAction';
 import VerdienCheckResultSummary from './VerdienCheckResultSummary';
 import VerdienCheckSoonSection from './VerdienCheckSoonSection';
 
@@ -505,15 +506,23 @@ export default function VerdienCheckWizard(props: {
         id={VERDIENCHECK_ACTIVE_STEP_ID}
         className="mx-auto w-full min-w-0 max-w-md px-4 pb-10 pt-2 break-words scroll-mt-[calc(var(--hc-top-nav-height,4rem)+0.75rem)]"
       >
-        <p className="mt-2 text-sm font-medium text-gray-600">
-          {progressPhrase({
-            copy,
-            step,
-            stepIndex,
-            total: progress.length,
-            moneyLayer,
-          })}
-        </p>
+        <div className="mt-2 flex min-w-0 items-start justify-between gap-3">
+          <p className="min-w-0 flex-1 text-sm font-medium text-gray-600">
+            {progressPhrase({
+              copy,
+              step,
+              stepIndex,
+              total: progress.length,
+              moneyLayer,
+            })}
+          </p>
+          <VerdienCheckShareAction
+            copy={copy}
+            variant="text"
+            className="shrink-0 whitespace-nowrap"
+            surface="verdiencheck_chrome"
+          />
+        </div>
         {showResumeHint && wizardHasInProgressAnswers(state) ? (
           <div className="mt-3 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700">
             <p>{copy.resumeHint}</p>

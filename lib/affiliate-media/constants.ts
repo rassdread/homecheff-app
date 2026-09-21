@@ -18,6 +18,7 @@ export const AFFILIATE_MEDIA_DESTINATION_PATHS = [
   '/affiliate',
   '/onboarding/seller',
   '/delivery/signup',
+  '/verdiencheck',
 ] as const;
 
 export type AffiliateMediaDestinationPath =

@@ -10,6 +10,7 @@ import {
 } from '@/lib/analytics/verdiencheck-funnel';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import type { ResultCtaMode } from '@/lib/verdiencheck/presentation/earning-context';
+import VerdienCheckShareAction from '@/components/verdiencheck/VerdienCheckShareAction';
 
 const SELL_HREF = '/sell/new';
 const DISCOVER_HREF = '/wat-is-homecheff';
@@ -118,6 +119,17 @@ export default function VerdienCheckResultCta(props: {
       ) : null}
       {showListingSell && isGuest ? (
         <p className="text-base leading-relaxed text-gray-600">{props.copy.startSellingNeedsAccount}</p>
+      ) : null}
+      {showNav && props.completed ? (
+        <div className="space-y-2" data-verdiencheck-result-share="">
+          <p className="text-base leading-relaxed text-gray-700">{props.copy.shareAfterResult}</p>
+          <VerdienCheckShareAction
+            copy={props.copy}
+            variant="button"
+            className="w-full justify-center"
+            surface="verdiencheck_result"
+          />
+        </div>
       ) : null}
       {showNav ? (
         <>

@@ -11,7 +11,8 @@ export type OpportunityId =
   | 'studio'
   | 'growth'
   | 'jobs'
-  | 'hub';
+  | 'hub'
+  | 'verdiencheck';
 
 export type OpportunityDestination = {
   id: OpportunityId;
@@ -66,6 +67,11 @@ export const OPPORTUNITY_DESTINATIONS: Record<OpportunityId, OpportunityDestinat
     id: 'jobs',
     href: '/werken-bij/vacatures',
     product: 'careers',
+  },
+  verdiencheck: {
+    id: 'verdiencheck',
+    href: '/verdiencheck',
+    product: 'verdiencheck',
   },
 };
 

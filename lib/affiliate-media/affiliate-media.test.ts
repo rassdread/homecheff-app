@@ -62,6 +62,7 @@ describe('affiliate media destination allowlist', () => {
     assert.equal(sanitizeDestinationPath('//evil.com'), null);
     assert.equal(sanitizeDestinationPath('/product/abc'), null);
     assert.equal(sanitizeDestinationPath('/affiliate?x=1'), '/affiliate');
+    assert.equal(sanitizeDestinationPath('/verdiencheck'), '/verdiencheck');
   });
 });
 

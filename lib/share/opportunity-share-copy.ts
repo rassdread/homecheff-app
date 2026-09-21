@@ -248,6 +248,30 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     ecosystem: 'ecosystem',
     imageAlt: 'HomeCheff vacatures',
   },
+  verdiencheck: {
+    title: 'VerdienCheck | HomeCheff',
+    shortText: 'Benieuwd wat bijverdienen voor jou ongeveer oplevert?',
+    longText:
+      'Wat houd je echt extra over als je bijverdient? Bereken het met de HomeCheff VerdienCheck. Geen inkomensgarantie — een persoonlijke schatting na kosten, belasting en toeslagen.',
+    professionalText:
+      'De HomeCheff VerdienCheck helpt je inschatten wat extra verdienen na relevante kosten, belasting en toeslagen ongeveer betekent.\n\nGeen garantie en geen belastingadvies.',
+    communityText:
+      'Ken je iemand die wil bijverdienen? Deel de HomeCheff VerdienCheck — ontdek wat extra verdienen ongeveer oplevert, zonder inkomensgarantie.',
+    shortPost: 'Benieuwd wat bijverdienen ongeveer oplevert? Doe de HomeCheff VerdienCheck.',
+    emailSubject: 'VerdienCheck | HomeCheff',
+    emailBody:
+      'Wat houd je echt extra over als je bijverdient? Bereken het met de HomeCheff VerdienCheck. Geen inkomensgarantie:',
+    socialCaption:
+      'Benieuwd wat bijverdienen voor jou ongeveer oplevert? Doe de HomeCheff VerdienCheck. Geen inkomensgarantie.',
+    hashtags: ['HomeCheff', 'VerdienCheck', 'Bijverdienen'],
+    ogTitle: 'VerdienCheck | HomeCheff',
+    ogDescription:
+      'Ontdek wat extra verdienen na kosten, belasting en toeslagen ongeveer voor jou betekent.',
+    ogHeadline: 'VerdienCheck',
+    ogSubline: 'Wat houd je extra over als je bijverdient?',
+    ecosystem: 'marketplace',
+    imageAlt: 'HomeCheff VerdienCheck',
+  },
 };
 
 const EN: Record<OpportunityId, OpportunityShareCopy> = {
@@ -457,6 +481,30 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     ogSubline: 'Real jobs · help build',
     ecosystem: 'ecosystem',
     imageAlt: 'HomeCheff careers',
+  },
+  verdiencheck: {
+    title: 'VerdienCheck | HomeCheff',
+    shortText: 'Curious what extra earning would roughly mean for you?',
+    longText:
+      'What do you actually keep extra if you earn on the side? Work it out with the HomeCheff VerdienCheck. No income guarantee — a personal estimate after costs, tax and allowances.',
+    professionalText:
+      'The HomeCheff VerdienCheck helps estimate what extra earning after relevant costs, tax and allowances would roughly mean.\n\nNo guarantee and no tax advice.',
+    communityText:
+      'Know someone who wants to earn extra? Share the HomeCheff VerdienCheck — see what extra earning would roughly mean, with no income guarantee.',
+    shortPost: 'Curious what extra earning roughly means? Try the HomeCheff VerdienCheck.',
+    emailSubject: 'VerdienCheck | HomeCheff',
+    emailBody:
+      'What do you actually keep extra if you earn on the side? Work it out with the HomeCheff VerdienCheck. No income guarantee:',
+    socialCaption:
+      'Curious what extra earning would roughly mean for you? Try the HomeCheff VerdienCheck. No income guarantee.',
+    hashtags: ['HomeCheff', 'VerdienCheck', 'SideIncome'],
+    ogTitle: 'VerdienCheck | HomeCheff',
+    ogDescription:
+      'See what extra earning after costs, tax and allowances would roughly mean for you.',
+    ogHeadline: 'VerdienCheck',
+    ogSubline: 'What would you keep extra if you earn on the side?',
+    ecosystem: 'marketplace',
+    imageAlt: 'HomeCheff VerdienCheck',
   },
 };
 

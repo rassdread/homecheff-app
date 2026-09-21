@@ -22,6 +22,7 @@ type Asset = {
   shareCount: number;
   isOwner: boolean;
   creatorCredit: string;
+  builtin?: boolean;
 };
 
 type Tab = 'official' | 'community' | 'mine' | 'review';
@@ -141,7 +142,8 @@ export default function AffiliatePromoLibraryClient() {
     if (inFlight.current || sheetOpen) return;
     inFlight.current = true;
     try {
-      const absolute = toAbsolutePublicUrl(canonicalPromoPath(asset.shareSlug));
+      const path = asset.builtin ? asset.destinationPath : canonicalPromoPath(asset.shareSlug);
+      const absolute = toAbsolutePublicUrl(path);
       const resolved = await resolveShareUrl({
         listingAbsoluteUrl: absolute,
         surface: 'affiliate_promo',
@@ -151,25 +153,28 @@ export default function AffiliatePromoLibraryClient() {
       setSheetText(asset.caption || asset.title || 'HomeCheff');
       setSheetImage(asset.posterUrl || (asset.kind === 'IMAGE' ? asset.mediaUrl : null));
       setSheetOpen(true);
-      recordShare(asset.id, 'panel');
+      if (!asset.builtin) recordShare(asset.id, 'panel');
     } catch {
       inFlight.current = false;
     }
   };
 
   const onCopy = async (asset: Asset) => {
-    const absolute = toAbsolutePublicUrl(canonicalPromoPath(asset.shareSlug));
+    const path = asset.builtin ? asset.destinationPath : canonicalPromoPath(asset.shareSlug);
+    const absolute = toAbsolutePublicUrl(path);
     const resolved = await resolveShareUrl({
       listingAbsoluteUrl: absolute,
       surface: 'affiliate_promo_copy',
     });
     await navigator.clipboard.writeText(resolved.url);
-    void fetch(`/api/affiliate/media/${asset.id}/share-event`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ channel: 'copy' }),
-    });
+    if (!asset.builtin) {
+      void fetch(`/api/affiliate/media/${asset.id}/share-event`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ channel: 'copy' }),
+      });
+    }
   };
 
   const onUpload = async (e: React.FormEvent) => {
@@ -349,7 +354,7 @@ export default function AffiliatePromoLibraryClient() {
 
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {assets.map((asset) => (
-          <li key={asset.id} className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2">
+            <li key={asset.id} className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2" data-official-verdiencheck={asset.builtin ? 'true' : undefined}>
             <div className="overflow-hidden rounded-xl bg-slate-100">
               {asset.kind === 'VIDEO' ? (
                 <video
@@ -365,8 +370,12 @@ export default function AffiliatePromoLibraryClient() {
               )}
             </div>
             <div className="flex items-center justify-between gap-2">
-              <p className="truncate text-sm font-semibold text-slate-900">{asset.title || 'Zonder titel'}</p>
+            <p className="truncate text-sm font-semibold text-slate-900">{asset.title || 'Zonder titel'}</p>
+            {asset.builtin ? (
+              <span className="text-[11px] font-semibold uppercase text-emerald-700">VerdienCheck</span>
+            ) : (
               <span className="text-[11px] font-semibold uppercase text-slate-500">{asset.kind === 'VIDEO' ? 'Video' : 'Foto'}</span>
+            )}
             </div>
             <p className="text-xs text-slate-600">Gemaakt door {asset.creatorCredit}</p>
             {asset.moderationStatus !== 'ACTIVE' ? (
@@ -379,7 +388,7 @@ export default function AffiliatePromoLibraryClient() {
                 onClick={() => void onShare(asset)}
                 className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white"
               >
-                Delen
+                {asset.ctaText || 'Delen'}
               </button>
               <button
                 type="button"

@@ -29,6 +29,7 @@ describe('affiliate dashboard share center', () => {
         'hub',
         'seller',
         'studio',
+        'verdiencheck',
       ].sort(),
     );
     assert.equal(

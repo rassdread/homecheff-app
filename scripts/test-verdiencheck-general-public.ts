@@ -274,7 +274,7 @@ assert.ok(nl.steps.activity.options?.AFFILIATE);
 assert.doesNotMatch(nl.steps.activity.title, /via HomeCheff/);
 
 const seo = verdiencheckPageMetadata();
-assert.match(String(seo.description), /bijverdienen/);
+assert.match(String(seo.description), /extra verdienen|bijverdienen/);
 assert.doesNotMatch(String(seo.description), /belastingvrij €|tax.free €/i);
 
 assert.equal(isVerdienWijzerEnabled(), false);

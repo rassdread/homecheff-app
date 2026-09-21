@@ -10828,7 +10828,8 @@
       "studio": "Check out HomeCheff Studio for creating content.",
       "growth": "Check out HomeCheff Growth for business lead generation.",
       "jobs": "See real vacancies at HomeCheff.",
-      "hub": "Discover all ways to participate and earn with HomeCheff."
+      "hub": "Discover all ways to participate and earn with HomeCheff.",
+      "verdiencheck": "Curious what extra earning would roughly mean for you? Try the HomeCheff VerdienCheck."
     },
     "deliveryHighlight": {
       "title": "Deliver with HomeCheff",
@@ -10902,6 +10903,10 @@
       "growth": {
         "title": "HomeCheff Growth",
         "description": "Promote Growth to businesses looking for B2B leads."
+      },
+      "verdiencheck": {
+        "title": "VerdienCheck",
+        "description": "Let people discover what extra earning after costs, tax and allowances would roughly mean."
       }
     },
     "earnings": {

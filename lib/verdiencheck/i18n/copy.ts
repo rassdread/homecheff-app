@@ -148,6 +148,10 @@ export type VerdienCheckCopy = {
   comparisonNet: string;
   comparisonMonth: string;
   currentIncomeInvalid: string;
+  shareAction: string;
+  shareTitle: string;
+  shareMessage: string;
+  shareAfterResult: string;
   steps: Record<string, { title: string; options?: Record<string, string>; help?: string }>;
 };
 
@@ -335,6 +339,12 @@ const NL: VerdienCheckCopy = {
   comparisonNet: 'Naar schatting extra over',
   comparisonMonth: 'Gemiddeld per maand',
   currentIncomeInvalid: 'Vul een bedrag in, of kies dat je het niet weet.',
+  shareAction: 'Deel de VerdienCheck',
+  shareTitle: 'VerdienCheck | HomeCheff',
+  shareMessage:
+    'Wat houd je echt extra over als je bijverdient? Bereken het met de HomeCheff VerdienCheck.',
+  shareAfterResult:
+    'Ken je iemand die ook wil weten wat extra verdienen ongeveer oplevert?',
   steps: {
     jurisdiction: {
       title: 'Woon je in Nederland?',
@@ -917,6 +927,12 @@ const EN: VerdienCheckCopy = {
   comparisonNet: 'Estimated extra kept',
   comparisonMonth: 'Average per month',
   currentIncomeInvalid: 'Enter an amount, or choose that you do not know.',
+  shareAction: 'Share VerdienCheck',
+  shareTitle: 'VerdienCheck | HomeCheff',
+  shareMessage:
+    'What do you actually keep extra if you earn on the side? Work it out with the HomeCheff VerdienCheck.',
+  shareAfterResult:
+    'Know someone who also wants to see what extra earning would roughly mean?',
   steps: {
     jurisdiction: {
       title: 'Do you live in the Netherlands?',

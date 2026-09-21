@@ -3,6 +3,7 @@
 import {
   Bike,
   Building2,
+  Calculator,
   Clapperboard,
   Share2,
   Store,
@@ -90,6 +91,14 @@ const SHARE_CARDS: ShareCardDef[] = [
     titleKey: 'affiliateDashboard.share.growth.title',
     descriptionKey: 'affiliateDashboard.share.growth.description',
     shareCopyKey: 'growth',
+  },
+  {
+    id: 'verdiencheck',
+    icon: Calculator,
+    accent: 'bg-emerald-100 text-emerald-800',
+    titleKey: 'affiliateDashboard.share.verdiencheck.title',
+    descriptionKey: 'affiliateDashboard.share.verdiencheck.description',
+    shareCopyKey: 'verdiencheck',
   },
 ];
 
@@ -198,6 +207,8 @@ function fallbackTitle(id: OpportunityId): string {
       return 'HomeCheff Studio';
     case 'growth':
       return 'HomeCheff Growth';
+    case 'verdiencheck':
+      return 'VerdienCheck';
     default:
       return 'HomeCheff';
   }
@@ -221,6 +232,8 @@ function fallbackDescription(id: OpportunityId): string {
       return 'Promoot Studio bij makers, bedrijven en creators.';
     case 'growth':
       return 'Promoot Growth bij bedrijven die zakelijke leads zoeken.';
+    case 'verdiencheck':
+      return 'Laat mensen zelf ontdekken wat extra verdienen na kosten, belasting en toeslagen ongeveer oplevert.';
     default:
       return 'Deel deze HomeCheff-mogelijkheid.';
   }

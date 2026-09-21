@@ -37,6 +37,7 @@ type EcosystemShareActionProps = {
   variant?: 'icon' | 'button' | 'text';
   labelKey?: string;
   label?: string;
+  onAnalytics?: (event: string, extra?: Record<string, unknown>) => void;
 };
 
 const OPPORTUNITY_IDS = new Set<OpportunityId>([
@@ -49,6 +50,7 @@ const OPPORTUNITY_IDS = new Set<OpportunityId>([
   'studio',
   'growth',
   'jobs',
+  'verdiencheck',
 ]);
 
 function asOpportunityId(id?: string): OpportunityId | null {
@@ -71,6 +73,7 @@ export default function EcosystemShareAction({
   variant = 'button',
   labelKey = 'share.shareItem',
   label,
+  onAnalytics,
 }: EcosystemShareActionProps) {
   const { t, isReady, language } = useTranslation();
   const resolvedLabel =
@@ -105,8 +108,9 @@ export default function EcosystemShareAction({
         opportunityId,
         ...extra,
       });
+      onAnalytics?.(event, extra);
     },
-    [opportunityId, product, surface],
+    [onAnalytics, opportunityId, product, surface],
   );
 
   const absolute = toAbsolutePublicUrl(absoluteOpportunityUrl(destinationHref));

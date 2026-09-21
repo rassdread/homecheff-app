@@ -10828,7 +10828,8 @@
       "studio": "Bekijk HomeCheff Studio voor het maken van content.",
       "growth": "Bekijk HomeCheff Growth voor zakelijke leadgeneratie.",
       "jobs": "Bekijk echte vacatures bij HomeCheff.",
-      "hub": "Ontdek alle manieren om mee te doen en te verdienen met HomeCheff."
+      "hub": "Ontdek alle manieren om mee te doen en te verdienen met HomeCheff.",
+      "verdiencheck": "Benieuwd wat bijverdienen voor jou ongeveer oplevert? Doe de HomeCheff VerdienCheck."
     },
     "deliveryHighlight": {
       "title": "Bezorgen via HomeCheff",
@@ -10902,6 +10903,10 @@
       "growth": {
         "title": "HomeCheff Growth",
         "description": "Promoot Growth bij bedrijven die zakelijke leads zoeken."
+      },
+      "verdiencheck": {
+        "title": "VerdienCheck",
+        "description": "Laat mensen zelf ontdekken wat extra verdienen na kosten, belasting en toeslagen ongeveer oplevert."
       }
     },
     "earnings": {

@@ -16,6 +16,7 @@ const VALID: OpportunityId[] = [
   'studio',
   'growth',
   'jobs',
+  'verdiencheck',
 ];
 
 export async function GET(req: NextRequest) {

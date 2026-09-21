@@ -16,6 +16,7 @@ import {
 import { sanitizeDestinationPath } from '@/lib/affiliate-media/destination';
 import { checkAffiliateMediaUploadRateLimit } from '@/lib/affiliate-media/rate-limit';
 import { serializePromoAsset } from '@/lib/affiliate-media/serialize';
+import { mergeOfficialVerdienCheckPromo } from '@/lib/affiliate-media/official-verdiencheck';
 import { newAffiliateMediaShareSlug } from '@/lib/affiliate-media/share-url';
 import { affiliateMediaObjectKey, deleteAffiliateMediaBlob, putAffiliateMediaBlob } from '@/lib/affiliate-media/storage';
 import { fetchTrustedAffiliateMediaBlob, isTrustedAffiliateMediaBlobUrl } from '@/lib/affiliate-media/trusted-blob';
@@ -52,11 +53,12 @@ export async function GET(req: Request) {
       take: 80,
       include: { creator: { select: CREATOR_SELECT }, _count: { select: { shareEvents: true } } },
     });
+    const listed = rows.filter(isListedOfficial).map((r) =>
+      serializePromoAsset({ ...r, shareCount: r._count.shareEvents }, r.creator, actor.userId),
+    );
     return NextResponse.json({
       actor: { isAdmin: actor.isAdmin, isAffiliate: actor.isAffiliate, referralCode: actor.referralCode },
-      assets: rows.filter(isListedOfficial).map((r) =>
-        serializePromoAsset({ ...r, shareCount: r._count.shareEvents }, r.creator, actor.userId),
-      ),
+      assets: mergeOfficialVerdienCheckPromo(listed),
     });
   }
 
