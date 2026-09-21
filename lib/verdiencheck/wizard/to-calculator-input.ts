@@ -121,7 +121,7 @@ function buildHousingHousehold(state: WizardState, userAssess: number | null): H
         localKey: 'medebewoner',
         role: 'MEDEBEWONER',
         ageYears: applicantAge,
-        assessmentIncomeCents: annualizeEuro(state.partnerAssessmentEuro, state.amountEntryPeriod) ?? 0,
+        assessmentIncomeCents: null,
       });
     }
   }

@@ -211,10 +211,12 @@ assert.match(focusSrc, /preventScroll:\s*true/);
 assert.match(focusSrc, /const scrollTarget = input\.heading \?\? input\.container/);
 assert.match(wizardSrc, /markMoneyDepthCompleted\(next, 'scenario'/);
 {
-  const fromScenario = employeeBaseline({ moneyDepthCompleted: false, scenarioPreset: 5000 });
-  const to = nextStep(fromScenario, 'scenario');
+  const fromIncome = employeeBaseline({ moneyDepthCompleted: false, scenarioPreset: null });
+  const to = nextStep(fromIncome, 'currentIncome');
   assert.equal(to, 'result');
-  assert.equal(markMoneyDepthCompleted(fromScenario, 'scenario', to).moneyDepthCompleted, true);
+  assert.equal(markMoneyDepthCompleted(fromIncome, 'currentIncome', to).moneyDepthCompleted, true);
+  assert.equal(visibleSteps(fromIncome).includes('scenario'), false);
+  assert.equal(visibleSteps(fromIncome).includes('amounts'), false);
 }
 assert.match(nl.restartConfirmBody, /gewist/);
 assert.doesNotMatch(nl.restartConfirmBody, /permanent|voorgoed|definitief/);

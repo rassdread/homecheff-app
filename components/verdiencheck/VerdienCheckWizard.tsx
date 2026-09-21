@@ -364,6 +364,12 @@ export default function VerdienCheckWizard(props: {
     }
   }
 
+  function advanceFrom(nextState: WizardState, from: WizardStepId) {
+    const n = nextStep(nextState, from);
+    setState(n ? markMoneyDepthCompleted(nextState, from, n) : nextState);
+    if (n) setStep(n);
+  }
+
   function goBack() {
     const p = previousStep(state, step);
     if (p) setStep(p);
@@ -378,9 +384,23 @@ export default function VerdienCheckWizard(props: {
 
   const progress = progressSteps(state, step);
   const stepIndex = Math.max(0, progress.indexOf(step));
+  const extraResultChosen =
+    state.scenarioInputMode === 'REVENUE_COST'
+      ? helperFeedsCertifiedEngine(
+          mapRevenueAndAllowableCosts({
+            revenueEuro: state.helperRevenueEuro,
+            costsEuro: state.helperCostsEuro,
+            costsUnknown: state.helperCostsUnknown,
+          }),
+        )
+      : state.scenarioPreset === 'custom'
+        ? parseEuroInputToCents(state.customScenarioEuro) != null
+        : state.scenarioPreset != null;
   const title =
-    step === 'result' && state.moneyDepthCompleted
+    step === 'result' && state.moneyDepthCompleted && extraResultChosen
       ? copy.moneyResultTitle
+      : step === 'result' && state.moneyDepthCompleted
+        ? copy.baselineCompleteTitle
       : step === 'result'
         ? personalRoute.headline
         : (copy.steps[step]?.title ?? copy.pageTitle);
@@ -521,6 +541,14 @@ export default function VerdienCheckWizard(props: {
         >
           {title}
         </h1>
+        {moneyLayer ? (
+          <p className="mt-2 text-base leading-relaxed text-gray-700">
+            {copy.moneyPhaseNowTitle}. {copy.moneyPhaseNowBody}
+          </p>
+        ) : null}
+        {step === 'result' && state.moneyDepthCompleted && !extraResultChosen ? (
+          <p className="mt-2 text-base leading-relaxed text-gray-700">{copy.whatIf}</p>
+        ) : null}
 
         <div className="mt-6 flex flex-col space-y-3">
           {step === 'jurisdiction' &&
@@ -913,6 +941,8 @@ export default function VerdienCheckWizard(props: {
                         : null,
                     partnerAssessmentEuro:
                       hasPartner === true ? state.partnerAssessmentEuro : '',
+                    partnerArbeidsinkomenEuro:
+                      hasPartner === true ? state.partnerArbeidsinkomenEuro : '',
                   };
                   setState(next);
                   const n = nextStep(next, 'partner');
@@ -1060,9 +1090,7 @@ export default function VerdienCheckWizard(props: {
                 selected={state.housingAssetsEligibility === key}
                 onClick={() => {
                   const next = { ...state, housingAssetsEligibility: key };
-                  setState(next);
-                  const n = nextStep(next, 'housingAssets');
-                  if (n) setStep(n);
+                  advanceFrom(next, 'housingAssets');
                 }}
               >
                 {options[key] ?? key}
@@ -1221,9 +1249,7 @@ export default function VerdienCheckWizard(props: {
                 selected={state.childBudgetAssetsEligibility === key}
                 onClick={() => {
                   const next = { ...state, childBudgetAssetsEligibility: key };
-                  setState(next);
-                  const n = nextStep(next, 'childBudgetAssets');
-                  if (n) setStep(n);
+                  advanceFrom(next, 'childBudgetAssets');
                 }}
               >
                 {options[key] ?? key}
@@ -1320,9 +1346,7 @@ export default function VerdienCheckWizard(props: {
                     ...state,
                     midYearHouseholdChange: key === 'NO',
                   };
-                  setState(next);
-                  const n = nextStep(next, 'midYear');
-                  if (n) setStep(n);
+                  advanceFrom(next, 'midYear');
                 }}
               >
                 {options[key] ?? key}
@@ -1930,9 +1954,7 @@ export default function VerdienCheckWizard(props: {
                 selected={state.assetsEligibility === key}
                 onClick={() => {
                   const next = { ...state, assetsEligibility: key };
-                  setState(next);
-                  const n = nextStep(next, 'assets');
-                  if (n) setStep(n);
+                  advanceFrom(next, 'assets');
                 }}
               >
                 {options[key] ?? key}

@@ -128,6 +128,9 @@ export type VerdienCheckCopy = {
   officialSellingThought: string;
   moneyResultTitle: string;
   monthlyFromYearNote: string;
+  moneyPhaseNowTitle: string;
+  moneyPhaseNowBody: string;
+  baselineCompleteTitle: string;
   baselineEstablished: string;
   scenarioSwitchHint: string;
   moneyDone: string;
@@ -311,6 +314,10 @@ const NL: VerdienCheckCopy = {
   moneyResultTitle: 'Je gaat erop vooruit',
   monthlyFromYearNote:
     'Gemiddeld is dat het jaarbedrag gedeeld door 12. Dat is niet het moment waarop belasting wordt verrekend.',
+  moneyPhaseNowTitle: 'Eerst je situatie nu',
+  moneyPhaseNowBody:
+    'Daarna kun je zelf bedragen proberen en direct zien hoeveel je ongeveer extra overhoudt.',
+  baselineCompleteTitle: 'Je uitgangssituatie is compleet',
   baselineEstablished: 'Dit is je huidige situatie. Hierna toetsen we extra verdienen.',
   scenarioSwitchHint: 'Je huidige situatie blijft staan. Kies een ander bedrag om te vergelijken.',
   moneyDone: 'Dat was je VerdienCheck.',
@@ -492,8 +499,8 @@ const NL: VerdienCheckCopy = {
       options: { INSURED: 'Ja', NOT_INSURED: 'Nee', UNKNOWN: 'Weet ik niet' },
     },
     partnerIncome: {
-      title: 'Wat is het jaarinkomen van je partner voor toeslagen?',
-      help: 'Toeslagen noemen dit toetsingsinkomen. Een schatting is goed. Weet je alleen per maand? Tel twaalf maanden bij elkaar.',
+      title: 'Wat is ongeveer het inkomen van je toeslagpartner?',
+      help: 'Toeslagen noemen dit toetsingsinkomen. Een schatting is goed. Weet je alleen per maand? Tel twaalf maanden bij elkaar. Jouw extra verdienste telt hier niet bij op.',
     },
     frequency: {
       title: 'Hoe vaak denk je te verkopen?',
@@ -889,6 +896,10 @@ const EN: VerdienCheckCopy = {
   moneyResultTitle: 'You come out ahead',
   monthlyFromYearNote:
     'On average that is the yearly amount divided by 12. That is not when tax is actually settled.',
+  moneyPhaseNowTitle: 'Your situation now comes first',
+  moneyPhaseNowBody:
+    'After that you can try amounts yourself and immediately see how much extra you would roughly keep.',
+  baselineCompleteTitle: 'Your current situation is complete',
   baselineEstablished: 'This is your current situation. Next we test extra earnings.',
   scenarioSwitchHint: 'Your current situation stays. Pick another amount to compare.',
   moneyDone: 'That was your VerdienCheck.',
@@ -1069,8 +1080,8 @@ const EN: VerdienCheckCopy = {
       options: { INSURED: 'Yes', NOT_INSURED: 'No', UNKNOWN: 'I don’t know' },
     },
     partnerIncome: {
-      title: 'What is your partner’s yearly income for allowances?',
-      help: 'Allowances call this assessment income. An estimate is fine. If you only know a monthly amount, add twelve months.',
+      title: 'About how much does your allowance partner earn?',
+      help: 'Allowances call this assessment income. An estimate is fine. If you only know a monthly amount, add twelve months. Your extra earnings are not added here.',
     },
     frequency: {
       title: 'How often do you think you will sell?',

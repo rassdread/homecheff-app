@@ -68,6 +68,8 @@ export const WIZARD_STEP_IDS = [
   'allowances',
   'partner',
   'partnerInsurance',
+  'currentIncome',
+  'incomeBases',
   'partnerIncome',
   'housingRent',
   'housingHousehold',
@@ -93,8 +95,6 @@ export const WIZARD_STEP_IDS = [
   'existingRegistrations',
   'costAssumption',
   'rowAssumption',
-  'currentIncome',
-  'incomeBases',
   'assets',
   'scenario',
   'result',
@@ -774,6 +774,14 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
       hasAllowance(s.allowances, 'HEALTHCARE'),
   },
   {
+    id: 'currentIncome',
+    visible: (s) => moneyLayerVisible(s),
+  },
+  {
+    id: 'incomeBases',
+    visible: (s) => moneyLayerVisible(s) && s.advancedAccuracyRequested,
+  },
+  {
     id: 'partnerIncome',
     visible: (s) =>
       moneyLayerVisible(s) &&
@@ -847,6 +855,8 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
     visible: (s) =>
       moneyLayerVisible(s) &&
       allowanceFollowUpsVisible(s) &&
+      s.hasPartner === true &&
+      s.advancedAccuracyRequested &&
       wizardIackQuestionsNeeded(s) &&
       s.fiscalPartnerDuration === 'MORE_THAN_6_MONTHS',
   },
@@ -894,15 +904,24 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
   },
   {
     id: 'customers',
-    visible: (s) => moneyLayerVisible(s) && needsSeriousAdminQuestions(s),
+    visible: (s) =>
+      detailsLayerVisible(s) &&
+      (s.moneyDepthCompleted || !s.moneyDepthRequested) &&
+      needsSeriousAdminQuestions(s),
   },
   {
     id: 'independentlyDeterminesWork',
-    visible: (s) => moneyLayerVisible(s) && needsSeriousAdminQuestions(s),
+    visible: (s) =>
+      detailsLayerVisible(s) &&
+      (s.moneyDepthCompleted || !s.moneyDepthRequested) &&
+      needsSeriousAdminQuestions(s),
   },
   {
     id: 'customerAcquisition',
-    visible: (s) => moneyLayerVisible(s) && needsSeriousAdminQuestions(s),
+    visible: (s) =>
+      detailsLayerVisible(s) &&
+      (s.moneyDepthCompleted || !s.moneyDepthRequested) &&
+      needsSeriousAdminQuestions(s),
   },
   {
     id: 'intent',
@@ -911,39 +930,40 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
   {
     id: 'amounts',
     visible: (s) =>
-      moneyLayerVisible(s) &&
+      detailsLayerVisible(s) &&
+      (s.moneyDepthCompleted || !s.moneyDepthRequested) &&
       (needsSeriousAdminQuestions(s) || s.advancedAccuracyRequested),
   },
   {
     id: 'otherVatTurnover',
-    visible: (s) => moneyLayerVisible(s) && needsSeriousAdminQuestions(s),
+    visible: (s) =>
+      detailsLayerVisible(s) &&
+      (s.moneyDepthCompleted || !s.moneyDepthRequested) &&
+      needsSeriousAdminQuestions(s),
   },
   {
     id: 'existingRegistrations',
     visible: (s) =>
-      moneyLayerVisible(s) &&
+      detailsLayerVisible(s) &&
+      (s.moneyDepthCompleted || !s.moneyDepthRequested) &&
       needsSeriousAdminQuestions(s) &&
       s.situationGroup !== 'EXISTING_ENTREPRENEUR',
   },
   {
     id: 'costAssumption',
     visible: (s) =>
-      moneyLayerVisible(s) &&
+      detailsLayerVisible(s) &&
+      (s.moneyDepthCompleted || !s.moneyDepthRequested) &&
       wantsFinancialDetailQuestions(s) &&
       hasEnteredEstimatedCosts(s),
   },
   {
     id: 'rowAssumption',
     visible: (s) =>
-      moneyLayerVisible(s) && wantsFinancialDetailQuestions(s) && s.growthStart == null,
-  },
-  {
-    id: 'currentIncome',
-    visible: (s) => moneyLayerVisible(s),
-  },
-  {
-    id: 'incomeBases',
-    visible: (s) => moneyLayerVisible(s) && s.advancedAccuracyRequested,
+      detailsLayerVisible(s) &&
+      (s.moneyDepthCompleted || !s.moneyDepthRequested) &&
+      wantsFinancialDetailQuestions(s) &&
+      s.growthStart == null,
   },
   {
     id: 'assets',
@@ -954,7 +974,7 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
   },
   {
     id: 'scenario',
-    visible: (s) => moneyLayerVisible(s),
+    visible: () => false,
   },
   {
     id: 'result',
@@ -970,6 +990,17 @@ export function questionSteps(state: WizardState): WizardStepId[] {
   return visibleSteps(state).filter((id) => id !== 'jurisdiction' && id !== 'result');
 }
 
+export function moneyQuestionIds(state: WizardState): WizardStepId[] {
+  const quick = questionsBeforeFirstResult(state);
+  return visibleSteps(state).filter(
+    (id) => id !== 'jurisdiction' && id !== 'result' && !quick.includes(id),
+  );
+}
+
+export function isFinancialScenarioQuestion(id: WizardStepId): boolean {
+  return id === 'scenario' || id === 'amounts';
+}
+
 /** User-facing questions before the first useful result, including jurisdiction. */
 export function questionsBeforeFirstResult(state: WizardState): WizardStepId[] {
   return visibleSteps({
@@ -981,9 +1012,7 @@ export function questionsBeforeFirstResult(state: WizardState): WizardStepId[] {
 
 export function firstMoneyStep(state: WizardState): WizardStepId | null {
   const withMoney: WizardState = { ...state, moneyDepthRequested: true, moneyDeclined: false };
-  const steps = visibleSteps(withMoney);
-  const moneyIds = steps.filter((id) => id !== 'jurisdiction' && id !== 'result' && !questionsBeforeFirstResult(state).includes(id));
-  return moneyIds[0] ?? null;
+  return moneyQuestionIds(withMoney)[0] ?? null;
 }
 
 export function progressSteps(state: WizardState, current: WizardStepId): WizardStepId[] {
@@ -1032,16 +1061,7 @@ export function markMoneyDepthCompleted(
   to: WizardStepId | null,
 ): WizardState {
   if (to === 'result' && state.moneyDepthRequested && from !== 'result') {
-    const first = firstMoneyStep(state);
-    if (first && from !== first) {
-      return { ...state, moneyDepthCompleted: true };
-    }
-    const moneyOnly = visibleSteps({ ...state, moneyDepthRequested: true }).filter(
-      (id) => id !== 'jurisdiction' && id !== 'result' && !questionsBeforeFirstResult(state).includes(id),
-    );
-    if (moneyOnly.length <= 1) {
-      return { ...state, moneyDepthCompleted: true };
-    }
+    return { ...state, moneyDepthCompleted: true };
   }
   return state;
 }

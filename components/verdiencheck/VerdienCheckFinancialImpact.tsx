@@ -92,6 +92,7 @@ export default function VerdienCheckFinancialImpact(props: {
       aria-labelledby={VERDIENCHECK_STEP_HEADING_ID}
       className="space-y-4 rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
     >
+      <p className="text-lg font-semibold text-gray-900">{copy.whatIf}</p>
       <p className="text-sm leading-relaxed text-stone-600">{copy.scenarioSwitchHint}</p>
       <VerdienCheckCostAdvantage
         copy={copy}
