@@ -6,6 +6,7 @@ import {
 } from '@/lib/verdiencheck/privacy/analytics-guard';
 import { getVerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import VerdienCheckQuickInsight from '@/components/verdiencheck/VerdienCheckQuickInsight';
+import VerdienCheckHubCompactEntry from '@/components/verdiencheck/VerdienCheckHubCompactEntry';
 
 type Variant = 'faq' | 'seller' | 'hub' | 'home';
 
@@ -56,6 +57,9 @@ export default function VerdienCheckPublicEntry({
   const copy = COPY[variant];
   const insight = getVerdienCheckCopy('nl');
   const from = sanitizeVerdienCheckEntryPoint(entryPoint ?? VARIANT_ENTRY[variant]);
+  if (variant === 'hub') {
+    return <VerdienCheckHubCompactEntry from={from} cta={copy.cta} />;
+  }
   return (
     <aside
       data-verdiencheck-public-entry={variant}
