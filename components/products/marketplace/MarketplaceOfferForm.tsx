@@ -51,6 +51,13 @@ import {
   priceRequiredForModel,
 } from '@/lib/marketplace/form-config';
 import {
+  constrainSpecializationsToOneCategory,
+  marketplaceCategoryFromSpecializations,
+  preferredPriceModelForSpecializations,
+  selectionIncludesStudioSession,
+  selectionRequiresCustomLabel,
+} from '@/lib/marketplace/taxonomy-accordion';
+import {
   validateProductLocationForPublish,
 } from '@/lib/geo/product-location-requirements';
 import { fulfillmentIsDigitalOnly } from '@/lib/marketplace/listing-taxonomy';
@@ -113,6 +120,7 @@ type Props = {
   initialListingIntent?: ListingIntentValue;
   initialMarketplaceCategory?: MarketplaceCategory;
   initialSpecializations?: string[];
+  initialTitle?: string;
   onRestartEntry?: () => void;
 };
 
@@ -126,6 +134,7 @@ export default function MarketplaceOfferForm({
   initialListingIntent,
   initialMarketplaceCategory,
   initialSpecializations = [],
+  initialTitle,
   onRestartEntry,
 }: Props) {
   const { data: session } = useSession();
@@ -148,10 +157,12 @@ export default function MarketplaceOfferForm({
     [],
   );
   const [barterOpenness, setBarterOpenness] = useState<BarterOpennessValue>('MONEY');
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(initialTitle ?? '');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [priceModel, setPriceModel] = useState<PriceModel>('FIXED');
+  const [priceModel, setPriceModel] = useState<PriceModel>(
+    preferredPriceModelForSpecializations(initialSpecializations) ?? 'FIXED',
+  );
   const [acceptHomeCheffPayment, setAcceptHomeCheffPayment] = useState(true);
   const [acceptDirectContact, setAcceptDirectContact] = useState(false);
   const [fulfillment, setFulfillment] = useState<FulfillmentOptions>(() =>
@@ -230,6 +241,8 @@ export default function MarketplaceOfferForm({
     [marketplaceCategory, specializations, priceModel, listingIntent, fulfillment, existingProduct?.category, initialLegacyCategory],
   );
 
+  const showStudioSessionHint = selectionIncludesStudioSession(specializations);
+  const showOtherTitleLabel = selectionRequiresCustomLabel(specializations);
   const digitalOnly = fulfillmentIsDigitalOnly(fulfillment);
   const locationRequired =
     isActive && !digitalOnly && (listingIntent === 'OFFER');
@@ -1029,7 +1042,13 @@ export default function MarketplaceOfferForm({
           marketplaceCategory={marketplaceCategory}
           role={listingIntent === 'REQUEST' ? 'request' : 'offer'}
           value={specializations}
-          onChange={setSpecializations}
+          onChange={(ids) => {
+            const next = constrainSpecializationsToOneCategory(ids);
+            setSpecializations(next);
+            setMarketplaceCategory(
+              marketplaceCategoryFromSpecializations(next, marketplaceCategory),
+            );
+          }}
         />
       ) : null}
 
@@ -1171,12 +1190,19 @@ export default function MarketplaceOfferForm({
             </label>
           ))}
         </div>
+        {showStudioSessionHint ? (
+          <p className="mt-2 text-xs text-gray-600">
+            {t('marketplace.form.studioSessionPriceHint')}
+          </p>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('marketplace.form.titleLabel')}
+            {showOtherTitleLabel
+              ? t('marketplace.form.titleLabelOther')
+              : t('marketplace.form.titleLabel')}
           </label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2"
@@ -1212,7 +1238,17 @@ export default function MarketplaceOfferForm({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           required
+          placeholder={
+            showStudioSessionHint
+              ? t('marketplace.form.studioSessionHint')
+              : undefined
+          }
         />
+        {showStudioSessionHint ? (
+          <p className="mt-1 text-xs text-gray-500">
+            {t('marketplace.form.studioSessionHint')}
+          </p>
+        ) : null}
       </div>
 
       <FulfillmentCheckboxes value={fulfillment} onChange={setFulfillment} />

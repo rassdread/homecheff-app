@@ -13,7 +13,7 @@ const TASK_PATTERNS =
   /\b(klus(je|jes)?|task|handyman|klusjesman|tuinman|oppas|verhuiz|schoonmaak|schoonmaker|huishoudelijk|opruimen|strijken)\b/i;
 
 const SERVICE_PATTERNS =
-  /\b(dienst(en)?|service|webdesign|website|fotograaf|photographer|tattoo)\b/i;
+  /\b(dienst(en)?|service|webdesign|website|fotograaf|photographer|tattoo|studio(sessie)?|dj|podcast|voice-?over|mixing|mastering|beats)\b/i;
 
 /**
  * Infer ListingKind hints from free-text query — filtering assist only, not ranking.

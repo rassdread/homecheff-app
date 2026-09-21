@@ -8638,7 +8638,7 @@
     "entry": {
       "intentHeading": "Wat wil je doen?",
       "categoryHeading": "Wat past het beste?",
-      "categoryHint": "Kies de hoofdactiviteit — daarna kies je een groep en specifieke items.",
+      "categoryHint": "Kies de hoofdactiviteit — daarna open je alleen de groepen die daarbij horen.",
       "groupHeading": "Kies een groep",
       "groupHint": "Selecteer waar je aanbod het beste past. Je kunt daarna meerdere items kiezen.",
       "itemsHeading": "Wat past hier het beste?",
@@ -8651,7 +8651,14 @@
       "summaryCategoryLabel": "Categorie",
       "summarySpecializationsLabel": "Specialisaties",
       "editChoices": "Wijzig keuzes",
-      "continueToForm": "Verder"
+      "continueToForm": "Verder",
+      "accordionHeading": "Kies wat het beste past",
+      "accordionHint": "Tik een groep open om gerichte keuzes te zien. Alles blijft dicht tot je erop tikt.",
+      "otherServiceLabel": "Welke dienst bied je aan?",
+      "otherServicePlaceholder": "Bijvoorbeeld: gospelzang, podcastedit, thuisstudio",
+      "otherOfferLabel": "Wat bied je aan?",
+      "otherOfferPlaceholder": "Korte omschrijving van je aanbod",
+      "groupSearchPlaceholder": "Zoek je keuze"
     },
     "specializations": {
       "create": {
@@ -9382,6 +9389,9 @@
       "videoExportAttachError": "De video kon niet aan je item worden toegevoegd. Je huidige video is bewaard.",
       "photosLabel": "Foto's",
       "titleLabel": "Titel",
+      "titleLabelOther": "Wat bied je aan?",
+      "studioSessionHint": "Vermeld eventueel de duur, of apparatuur of een engineer is inbegrepen, en het max. aantal personen.",
+      "studioSessionPriceHint": "Voor een studiosessie past uurtarief of een vaste prijs per sessie het best.",
       "priceLabel": "Prijs (€)",
       "pricePlaceholderOptional": "Optioneel",
       "pricePlaceholderExample": "Bijv. 12,50",
@@ -9430,11 +9440,14 @@
           "meals": {
             "label": "Eten & homemade"
           },
+          "international": {
+            "label": "Wereldkeuken"
+          },
+          "pantry": {
+            "label": "Dranken & voorraad"
+          },
           "craft": {
             "label": "Ambacht & handmade"
-          },
-          "international": {
-            "label": "Internationaal & ambachtelijk"
           }
         },
         "grow": {
@@ -9459,12 +9472,18 @@
             "label": "Branding & marketing"
           },
           "media": {
-            "label": "Media & design"
+            "label": "Creatief & media"
           }
         },
         "artistic": {
-          "all": {
-            "label": "Artistieke diensten"
+          "music": {
+            "label": "Muziek & audio"
+          },
+          "body": {
+            "label": "Uiterlijk & body"
+          },
+          "visual": {
+            "label": "Beeld & schilderen"
           }
         },
         "practical": {
@@ -9477,7 +9496,7 @@
         },
         "knowledge": {
           "all": {
-            "label": "Kennis & workshops"
+            "label": "Leren & ontwikkelen"
           }
         }
       },
@@ -9515,6 +9534,9 @@
         "bbq": {
           "label": "BBQ"
         },
+        "meals_other": {
+          "label": "Anders"
+        },
         "cuisine_surinamese": {
           "label": "Surinaams"
         },
@@ -9536,6 +9558,9 @@
         "art": {
           "label": "Kunst"
         },
+        "craft_other": {
+          "label": "Anders"
+        },
         "coffee": {
           "label": "Koffie"
         },
@@ -9556,6 +9581,12 @@
         },
         "preserves": {
           "label": "Conserven & jam"
+        },
+        "international_other": {
+          "label": "Anders"
+        },
+        "pantry_other": {
+          "label": "Anders"
         },
         "wine_vineyard": {
           "label": "Wijn & wijngaard"
@@ -9660,6 +9691,9 @@
         },
         "honey": {
           "label": "Honing"
+        },
+        "misc_other": {
+          "label": "Anders"
         }
       },
       "design": {
@@ -9698,9 +9732,57 @@
         },
         "seo": {
           "label": "SEO"
+        },
+        "content": {
+          "label": "Contentcreatie"
+        },
+        "creative_session": {
+          "label": "Creatieve sessie"
+        },
+        "other": {
+          "label": "Anders"
+        },
+        "web_other": {
+          "label": "Anders"
+        },
+        "brand_other": {
+          "label": "Anders"
         }
       },
       "artistic": {
+        "studio_session": {
+          "label": "Studiosessie"
+        },
+        "music_production": {
+          "label": "Muziekproductie / beats"
+        },
+        "mixing_mastering": {
+          "label": "Mixing & mastering"
+        },
+        "songwriting": {
+          "label": "Songwriting"
+        },
+        "dj": {
+          "label": "DJ / optreden"
+        },
+        "music": {
+          "label": "Muzikant"
+        },
+        "voice": {
+          "label": "Zanger(es)"
+        },
+        "podcast": {
+          "label": "Podcastopname"
+        },
+        "voiceover": {
+          "label": "Voice-over / audio-opname"
+        },
+        "rehearsal_space": {
+          "label": "Repetitieruimte"
+        },
+        "music_other": {
+          "label": "Anders binnen Muziek & audio"
+        },
         "tattoo": {
           "label": "Tattoo"
         },
@@ -9709,6 +9791,9 @@
         },
         "makeup": {
           "label": "Make-up"
+        },
+        "other": {
+          "label": "Anders"
         },
         "bodypaint": {
           "label": "Bodypaint"
@@ -9725,11 +9810,8 @@
         "portrait": {
           "label": "Portret"
         },
-        "music": {
-          "label": "Muziek"
-        },
-        "voice": {
-          "label": "Zang"
+        "visual_other": {
+          "label": "Anders"
         }
       },
       "practical": {
@@ -9771,11 +9853,20 @@
         },
         "bike_repair": {
           "label": "Fietsreparatie"
+        },
+        "other": {
+          "label": "Anders"
         }
       },
       "knowledge": {
         "workshop": {
           "label": "Workshop"
+        },
+        "course": {
+          "label": "Cursus"
+        },
+        "training": {
+          "label": "Training / bijscholing"
         },
         "cookingclass": {
           "label": "Kookles"
@@ -9784,19 +9875,22 @@
           "label": "Muziekles"
         },
         "tutoring": {
-          "label": "Bijles"
+          "label": "Bijles / privéles"
         },
         "language": {
           "label": "Taalles"
         },
         "coaching": {
-          "label": "Coaching"
+          "label": "Coaching / begeleiding"
         },
         "coaching_lifestyle": {
           "label": "Lifestyle-coaching"
         },
         "coaching_sport": {
           "label": "Sportcoaching"
+        },
+        "other": {
+          "label": "Anders"
         }
       }
     },

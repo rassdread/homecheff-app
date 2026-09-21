@@ -116,6 +116,7 @@ export default function CategoryFormSelector({
             ? existingProduct.specializations
             : [])
         }
+        initialTitle={entryResult?.otherServiceLabel}
         onRestartEntry={editMode ? undefined : () => setEntryResult(null)}
       />
     );

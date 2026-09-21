@@ -52,6 +52,8 @@ export type MarketplaceTaxonomyItem = {
   /** Moderation blocklist — never in pickers */
   blocked?: boolean;
   blockReasonKey?: string;
+  /** Accordion "Anders" — show a short custom-service label field */
+  requiresCustomLabel?: boolean;
 };
 
 export type TaxonomyResolveOptions = {

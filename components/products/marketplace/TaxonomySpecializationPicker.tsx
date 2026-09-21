@@ -3,29 +3,31 @@
 import { useMemo, useState } from 'react';
 import type { MarketplaceCategory } from '@prisma/client';
 import { useTranslation } from '@/hooks/useTranslation';
+import TaxonomyGroupAccordion from '@/components/products/marketplace/TaxonomyGroupAccordion';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import {
-  getEntryFlowItemsForGroup,
-  getMarketplaceTaxonomyGroupsByCategory,
   getMarketplaceTaxonomyItem,
   type TaxonomyEntryRole,
 } from '@/lib/marketplace/taxonomy-resolve';
 import {
-  compiledTaxonomyGroupLabel,
   compiledTaxonomyItemLabel,
-  taxonomyGroupLabelKey,
   taxonomyLabelKey,
   taxonomyLabelWithFallback,
 } from '@/lib/marketplace/taxonomy-i18n';
 import { taxonomyToneChipClass } from '@/lib/marketplace/taxonomy-tone';
-import type { TaxonomyTone } from '@/lib/marketplace/taxonomy-types';
 import { MARKETPLACE_ERROR_KEYS } from '@/lib/marketplace/i18n-keys';
+import {
+  constrainSpecializationsToOneCategory,
+  getOfferAccordionGroups,
+} from '@/lib/marketplace/taxonomy-accordion';
 
 type Props = {
   marketplaceCategory: MarketplaceCategory;
   role?: TaxonomyEntryRole;
   value: string[];
   onChange: (ids: string[]) => void;
+  otherLabel?: string;
+  onOtherLabelChange?: (label: string) => void;
   className?: string;
 };
 
@@ -34,21 +36,23 @@ export default function TaxonomySpecializationPicker({
   role = 'offer',
   value,
   onChange,
+  otherLabel,
+  onOtherLabelChange,
   className,
 }: Props) {
   const { t, language } = useTranslation();
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-
-  const groups = useMemo(
-    () => getMarketplaceTaxonomyGroupsByCategory(marketplaceCategory),
+  const accordionGroups = useMemo(
+    () => getOfferAccordionGroups(marketplaceCategory),
     [marketplaceCategory],
   );
 
-  const itemsForGroup = useMemo(() => {
-    if (!selectedGroupId) return [];
-    return getEntryFlowItemsForGroup(selectedGroupId, role);
-  }, [selectedGroupId, role]);
+  const itemLabel = (taxonomyId: string) =>
+    taxonomyLabelWithFallback(
+      t(taxonomyLabelKey(taxonomyId)),
+      compiledTaxonomyItemLabel(taxonomyId),
+      language,
+    );
 
   const toggle = (taxonomyId: string) => {
     onChange(
@@ -59,31 +63,14 @@ export default function TaxonomySpecializationPicker({
     setMessage(null);
   };
 
-  const chipClass = (active: boolean, tone: TaxonomyTone = 'service') =>
-    `inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${taxonomyToneChipClass(active, tone)}`;
-
-  const groupLabel = (groupId: string) =>
-    taxonomyLabelWithFallback(
-      t(taxonomyGroupLabelKey(groupId)),
-      compiledTaxonomyGroupLabel(groupId),
-      language,
-    );
-
-  const itemLabel = (taxonomyId: string) =>
-    taxonomyLabelWithFallback(
-      t(taxonomyLabelKey(taxonomyId)),
-      compiledTaxonomyItemLabel(taxonomyId),
-      language,
-    );
-
   return (
-    <div className={className ?? 'rounded-xl border border-gray-200 bg-gray-50/60 p-4 space-y-4'}>
+    <div className={className ?? 'min-w-0 space-y-4 overflow-x-hidden rounded-xl border border-gray-200 bg-gray-50/60 p-4'}>
       <div>
         <h3 className="text-sm font-semibold text-gray-900">
           {t('marketplace.entry.summarySpecializationsLabel')}
         </h3>
         <p className="mt-1 text-xs text-gray-600">
-          {t('marketplace.entry.specializationsHint')}
+          {t('marketplace.entry.accordionHint')}
         </p>
       </div>
 
@@ -93,67 +80,38 @@ export default function TaxonomySpecializationPicker({
             const item = getMarketplaceTaxonomyItem(taxonomyId);
             const tone = item?.tone ?? 'service';
             return (
-            <button
-              key={taxonomyId}
-              type="button"
-              onClick={() => toggle(taxonomyId)}
-              className={chipClass(true, tone)}
-            >
-              <TaxonomyLucideIcon
-                name={item?.icon ?? 'Tag'}
-                className="h-3.5 w-3.5"
-                tone={tone}
-              />
-              {itemLabel(taxonomyId)}
-              <span aria-hidden>×</span>
-            </button>
-          );
+              <button
+                key={taxonomyId}
+                type="button"
+                onClick={() => toggle(taxonomyId)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${taxonomyToneChipClass(true, tone)}`}
+              >
+                <TaxonomyLucideIcon
+                  name={item?.icon ?? 'Tag'}
+                  className="h-3.5 w-3.5"
+                  tone={item.tone}
+                />
+                {itemLabel(taxonomyId)}
+                <span aria-hidden>×</span>
+              </button>
+            );
           })}
         </div>
       ) : null}
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        {groups.map((group) => (
-          <button
-            key={group.id}
-            type="button"
-            onClick={() =>
-              setSelectedGroupId(selectedGroupId === group.id ? null : group.id)
-            }
-            className={`flex items-center gap-2 rounded-xl border p-3 text-left text-sm font-medium transition-colors ${
-              selectedGroupId === group.id
-                ? `border ${taxonomyToneChipClass(true, group.tone)}`
-                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-900'
-            }`}
-          >
-            <TaxonomyLucideIcon name={group.icon} className="h-4 w-4 shrink-0" tone={group.tone} />
-            {groupLabel(group.id)}
-          </button>
-        ))}
-      </div>
-
-      {selectedGroupId ? (
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-gray-700">
-            {groupLabel(selectedGroupId)}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {itemsForGroup.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => toggle(item.id)}
-                className={chipClass(value.includes(item.id), item.tone)}
-                aria-pressed={value.includes(item.id)}
-              >
-                <TaxonomyLucideIcon name={item.icon} className="h-3.5 w-3.5" tone={item.tone} />
-                {value.includes(item.id) ? <span aria-hidden>✓ </span> : null}
-                {itemLabel(item.id)}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <TaxonomyGroupAccordion
+        marketplaceCategory={marketplaceCategory}
+        role={role}
+        value={value}
+        onChange={(ids) => {
+          onChange(constrainSpecializationsToOneCategory(ids));
+          setMessage(null);
+        }}
+        otherLabel={otherLabel}
+        onOtherLabelChange={onOtherLabelChange}
+        defaultCollapsed={value.length === 0}
+        groups={accordionGroups}
+      />
 
       {value.length === 0 && message ? (
         <p className="text-sm text-red-600" role="alert">

@@ -113,6 +113,11 @@ const LEGACY_DUTCH_SUBCATEGORY_MAP: Record<string, string> = {
   // Knowledge / coaching
   kookles: 'knowledge.cookingclass',
   workshop: 'knowledge.workshop',
+  cursus: 'knowledge.course',
+  training: 'knowledge.training',
+  bijscholing: 'knowledge.training',
+  studiosessie: 'artistic.studio_session',
+  'studio sessie': 'artistic.studio_session',
   coaching: 'knowledge.coaching',
   lifestyle: 'knowledge.coaching_lifestyle',
   'lifestyle-coaching': 'knowledge.coaching_lifestyle',

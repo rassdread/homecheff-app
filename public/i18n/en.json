@@ -8638,7 +8638,7 @@
     "entry": {
       "intentHeading": "What would you like to do?",
       "categoryHeading": "What fits best?",
-      "categoryHint": "Choose your main activity — then pick a group and specific items.",
+      "categoryHint": "Choose your main activity — then open only the groups that belong with it.",
       "groupHeading": "Choose a group",
       "groupHint": "Select where your offering fits best. You can pick multiple items next.",
       "itemsHeading": "What fits here best?",
@@ -8651,7 +8651,14 @@
       "summaryCategoryLabel": "Category",
       "summarySpecializationsLabel": "Specializations",
       "editChoices": "Edit choices",
-      "continueToForm": "Continue"
+      "continueToForm": "Continue",
+      "accordionHeading": "Choose what fits best",
+      "accordionHint": "Open a group to see focused choices. Everything stays closed until you tap it.",
+      "otherServiceLabel": "What service do you offer?",
+      "otherServicePlaceholder": "For example: gospel vocals, podcast edit, home studio",
+      "otherOfferLabel": "What are you offering?",
+      "otherOfferPlaceholder": "Short description of your offer",
+      "groupSearchPlaceholder": "Find your choice"
     },
     "specializations": {
       "create": {
@@ -9382,6 +9389,9 @@
       "videoExportAttachError": "The video could not be added to your item. Your current video is kept.",
       "photosLabel": "Photos",
       "titleLabel": "Title",
+      "titleLabelOther": "What are you offering?",
+      "studioSessionHint": "You can mention duration, whether equipment or an engineer is included, and the max. number of people.",
+      "studioSessionPriceHint": "For a studio session, an hourly rate or a fixed price per session usually fits best.",
       "priceLabel": "Price (€)",
       "pricePlaceholderOptional": "Optional",
       "pricePlaceholderExample": "E.g. 12.50",
@@ -9430,11 +9440,14 @@
           "meals": {
             "label": "Food & homemade"
           },
+          "international": {
+            "label": "World cuisine"
+          },
+          "pantry": {
+            "label": "Drinks & pantry"
+          },
           "craft": {
             "label": "Craft & handmade"
-          },
-          "international": {
-            "label": "International & artisan"
           }
         },
         "grow": {
@@ -9459,12 +9472,18 @@
             "label": "Branding & marketing"
           },
           "media": {
-            "label": "Media & design"
+            "label": "Creative & media"
           }
         },
         "artistic": {
-          "all": {
-            "label": "Artistic services"
+          "music": {
+            "label": "Music & audio"
+          },
+          "body": {
+            "label": "Looks & body"
+          },
+          "visual": {
+            "label": "Visual art"
           }
         },
         "practical": {
@@ -9477,7 +9496,7 @@
         },
         "knowledge": {
           "all": {
-            "label": "Knowledge & workshops"
+            "label": "Learning & development"
           }
         }
       },
@@ -9515,6 +9534,9 @@
         "bbq": {
           "label": "BBQ"
         },
+        "meals_other": {
+          "label": "Other"
+        },
         "cuisine_surinamese": {
           "label": "Surinamese"
         },
@@ -9536,6 +9558,9 @@
         "art": {
           "label": "Art"
         },
+        "craft_other": {
+          "label": "Other"
+        },
         "coffee": {
           "label": "Coffee"
         },
@@ -9556,6 +9581,12 @@
         },
         "preserves": {
           "label": "Preserves & jam"
+        },
+        "international_other": {
+          "label": "Other"
+        },
+        "pantry_other": {
+          "label": "Other"
         },
         "wine_vineyard": {
           "label": "Wine & vineyard"
@@ -9660,6 +9691,9 @@
         },
         "honey": {
           "label": "Honey"
+        },
+        "misc_other": {
+          "label": "Other"
         }
       },
       "design": {
@@ -9698,9 +9732,57 @@
         },
         "seo": {
           "label": "SEO"
+        },
+        "content": {
+          "label": "Content creation"
+        },
+        "creative_session": {
+          "label": "Creative session"
+        },
+        "other": {
+          "label": "Other"
+        },
+        "web_other": {
+          "label": "Other"
+        },
+        "brand_other": {
+          "label": "Other"
         }
       },
       "artistic": {
+        "studio_session": {
+          "label": "Studio session"
+        },
+        "music_production": {
+          "label": "Music production / beats"
+        },
+        "mixing_mastering": {
+          "label": "Mixing & mastering"
+        },
+        "songwriting": {
+          "label": "Songwriting"
+        },
+        "dj": {
+          "label": "DJ / performance"
+        },
+        "music": {
+          "label": "Musician"
+        },
+        "voice": {
+          "label": "Singer"
+        },
+        "podcast": {
+          "label": "Podcast recording"
+        },
+        "voiceover": {
+          "label": "Voice-over / audio recording"
+        },
+        "rehearsal_space": {
+          "label": "Rehearsal space"
+        },
+        "music_other": {
+          "label": "Other in Music & audio"
+        },
         "tattoo": {
           "label": "Tattoo"
         },
@@ -9709,6 +9791,9 @@
         },
         "makeup": {
           "label": "Makeup"
+        },
+        "other": {
+          "label": "Other"
         },
         "bodypaint": {
           "label": "Bodypaint"
@@ -9725,11 +9810,8 @@
         "portrait": {
           "label": "Portrait"
         },
-        "music": {
-          "label": "Music"
-        },
-        "voice": {
-          "label": "Voice"
+        "visual_other": {
+          "label": "Other"
         }
       },
       "practical": {
@@ -9771,11 +9853,20 @@
         },
         "bike_repair": {
           "label": "Bike repair"
+        },
+        "other": {
+          "label": "Other"
         }
       },
       "knowledge": {
         "workshop": {
           "label": "Workshop"
+        },
+        "course": {
+          "label": "Course"
+        },
+        "training": {
+          "label": "Training"
         },
         "cookingclass": {
           "label": "Cooking class"
@@ -9784,7 +9875,7 @@
           "label": "Music lesson"
         },
         "tutoring": {
-          "label": "Tutoring"
+          "label": "Tutoring / private lesson"
         },
         "language": {
           "label": "Language lessons"
@@ -9797,6 +9888,9 @@
         },
         "coaching_sport": {
           "label": "Sport coaching"
+        },
+        "other": {
+          "label": "Other"
         }
       }
     },

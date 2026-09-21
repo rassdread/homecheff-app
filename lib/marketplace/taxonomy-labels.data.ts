@@ -13,19 +13,22 @@ export type BlocklistLabelPair = TaxonomyLabelPair & {
 
 export const TAXONOMY_GROUP_LABELS: Record<string, TaxonomyLabelPair> = {
   'create.meals': { nl: 'Eten & homemade', en: 'Food & homemade' },
+  'create.international': { nl: 'Wereldkeuken', en: 'World cuisine' },
+  'create.pantry': { nl: 'Dranken & voorraad', en: 'Drinks & pantry' },
   'create.craft': { nl: 'Ambacht & handmade', en: 'Craft & handmade' },
-  'create.international': { nl: 'Internationaal & ambachtelijk', en: 'International & artisan' },
   'grow.vegetables': { nl: 'Groente', en: 'Vegetables' },
   'grow.fruit': { nl: 'Fruit', en: 'Fruit' },
   'grow.herbs': { nl: 'Kruiden', en: 'Herbs' },
   'grow.other': { nl: 'Planten & overig', en: 'Plants & other' },
   'design.web': { nl: 'Websites & apps', en: 'Websites & apps' },
   'design.brand': { nl: 'Branding & marketing', en: 'Branding & marketing' },
-  'design.media': { nl: 'Media & design', en: 'Media & design' },
-  'artistic.all': { nl: 'Artistieke diensten', en: 'Artistic services' },
+  'design.media': { nl: 'Creatief & media', en: 'Creative & media' },
+  'artistic.music': { nl: 'Muziek & audio', en: 'Music & audio' },
+  'artistic.body': { nl: 'Uiterlijk & body', en: 'Looks & body' },
+  'artistic.visual': { nl: 'Beeld & schilderen', en: 'Visual art' },
   'practical.household': { nl: 'Huishoudelijke hulp', en: 'Household help' },
   'practical.all': { nl: 'Praktische diensten', en: 'Practical services' },
-  'knowledge.all': { nl: 'Kennis & workshops', en: 'Knowledge & workshops' },
+  'knowledge.all': { nl: 'Leren & ontwikkelen', en: 'Learning & development' },
 };
 
 export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
@@ -41,6 +44,7 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'create.rice': { nl: 'Rijst', en: 'Rice' },
   'create.catering': { nl: 'Catering', en: 'Catering' },
   'create.bbq': { nl: 'BBQ', en: 'BBQ' },
+  'create.meals_other': { nl: 'Anders', en: 'Other' },
   'create.cuisine_surinamese': { nl: 'Surinaams', en: 'Surinamese' },
   'create.cuisine_indonesian': { nl: 'Indonesisch', en: 'Indonesian' },
   'create.cuisine_caribbean': { nl: 'Antilliaans / Caribisch', en: 'Caribbean' },
@@ -49,6 +53,7 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'create.jewelry': { nl: 'Sieraden', en: 'Jewelry' },
   'create.decoration': { nl: 'Decoratie', en: 'Decoration' },
   'create.art': { nl: 'Kunst', en: 'Art' },
+  'create.craft_other': { nl: 'Anders', en: 'Other' },
   // CREATE — international
   'create.coffee': { nl: 'Koffie', en: 'Coffee' },
   'create.tea': { nl: 'Thee', en: 'Tea' },
@@ -57,6 +62,8 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'create.spices': { nl: 'Kruiden & specerijen', en: 'Spices' },
   'create.sauces': { nl: 'Sauzen', en: 'Sauces' },
   'create.preserves': { nl: 'Conserven & jam', en: 'Preserves & jam' },
+  'create.international_other': { nl: 'Anders', en: 'Other' },
+  'create.pantry_other': { nl: 'Anders', en: 'Other' },
   'create.wine_vineyard': { nl: 'Wijn & wijngaard', en: 'Wine & vineyard' },
   'create.craft_beer': { nl: 'Craftbier', en: 'Craft beer' },
 
@@ -95,6 +102,7 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'grow.houseplants': { nl: 'Kamerplanten', en: 'Houseplants' },
   'grow.cuttings': { nl: 'Stekjes', en: 'Cuttings' },
   'grow.honey': { nl: 'Honing', en: 'Honey' },
+  'grow.misc_other': { nl: 'Anders', en: 'Other' },
 
   // DESIGN
   'design.logo': { nl: 'Logo', en: 'Logo' },
@@ -109,18 +117,34 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'design.animation': { nl: 'Animatie', en: 'Animation' },
   'design.marketing': { nl: 'Marketing', en: 'Marketing' },
   'design.seo': { nl: 'SEO', en: 'SEO' },
+  'design.content': { nl: 'Contentcreatie', en: 'Content creation' },
+  'design.creative_session': { nl: 'Creatieve sessie', en: 'Creative session' },
+  'design.other': { nl: 'Anders', en: 'Other' },
+  'design.web_other': { nl: 'Anders', en: 'Other' },
+  'design.brand_other': { nl: 'Anders', en: 'Other' },
 
   // ARTISTIC_SERVICE
+  'artistic.studio_session': { nl: 'Studiosessie', en: 'Studio session' },
+  'artistic.music_production': { nl: 'Muziekproductie / beats', en: 'Music production / beats' },
+  'artistic.mixing_mastering': { nl: 'Mixing & mastering', en: 'Mixing & mastering' },
+  'artistic.songwriting': { nl: 'Songwriting', en: 'Songwriting' },
+  'artistic.dj': { nl: 'DJ / optreden', en: 'DJ / performance' },
+  'artistic.music': { nl: 'Muzikant', en: 'Musician' },
+  'artistic.voice': { nl: 'Zanger(es)', en: 'Singer' },
+  'artistic.podcast': { nl: 'Podcastopname', en: 'Podcast recording' },
+  'artistic.voiceover': { nl: 'Voice-over / audio-opname', en: 'Voice-over / audio recording' },
+  'artistic.rehearsal_space': { nl: 'Repetitieruimte', en: 'Rehearsal space' },
+  'artistic.music_other': { nl: 'Anders binnen Muziek & audio', en: 'Other in Music & audio' },
   'artistic.tattoo': { nl: 'Tattoo', en: 'Tattoo' },
   'artistic.nails': { nl: 'Nagels', en: 'Nails' },
   'artistic.makeup': { nl: 'Make-up', en: 'Makeup' },
+  'artistic.other': { nl: 'Anders', en: 'Other' },
   'artistic.bodypaint': { nl: 'Bodypaint', en: 'Bodypaint' },
   'artistic.airbrush': { nl: 'Airbrush', en: 'Airbrush' },
   'artistic.mural': { nl: 'Muurschildering', en: 'Mural painting' },
   'artistic.painting': { nl: 'Schilderen', en: 'Painting' },
   'artistic.portrait': { nl: 'Portret', en: 'Portrait' },
-  'artistic.music': { nl: 'Muziek', en: 'Music' },
-  'artistic.voice': { nl: 'Zang', en: 'Voice' },
+  'artistic.visual_other': { nl: 'Anders', en: 'Other' },
 
   // PRACTICAL_SERVICE
   'practical.household': { nl: 'Huishoudelijke hulp', en: 'Household help' },
@@ -136,16 +160,20 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'practical.assembly': { nl: 'Montage', en: 'Assembly' },
   'practical.childcare': { nl: 'Oppas', en: 'Childcare' },
   'practical.bike_repair': { nl: 'Fietsreparatie', en: 'Bike repair' },
+  'practical.other': { nl: 'Anders', en: 'Other' },
 
   // KNOWLEDGE
   'knowledge.workshop': { nl: 'Workshop', en: 'Workshop' },
+  'knowledge.course': { nl: 'Cursus', en: 'Course' },
+  'knowledge.training': { nl: 'Training / bijscholing', en: 'Training' },
   'knowledge.cookingclass': { nl: 'Kookles', en: 'Cooking class' },
   'knowledge.musicclass': { nl: 'Muziekles', en: 'Music lesson' },
-  'knowledge.tutoring': { nl: 'Bijles', en: 'Tutoring' },
+  'knowledge.tutoring': { nl: 'Bijles / privéles', en: 'Tutoring / private lesson' },
   'knowledge.language': { nl: 'Taalles', en: 'Language lessons' },
-  'knowledge.coaching': { nl: 'Coaching', en: 'Coaching' },
+  'knowledge.coaching': { nl: 'Coaching / begeleiding', en: 'Coaching' },
   'knowledge.coaching_lifestyle': { nl: 'Lifestyle-coaching', en: 'Lifestyle coaching' },
   'knowledge.coaching_sport': { nl: 'Sportcoaching', en: 'Sport coaching' },
+  'knowledge.other': { nl: 'Anders', en: 'Other' },
 };
 
 export const BLOCKLIST_LABELS: Record<string, BlocklistLabelPair> = {

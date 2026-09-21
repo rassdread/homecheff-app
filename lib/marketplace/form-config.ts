@@ -15,6 +15,8 @@ const WORKSHOP_TAXONOMY_IDS = new Set([
   'knowledge.workshop',
   'knowledge.cookingclass',
   'knowledge.musicclass',
+  'knowledge.course',
+  'knowledge.training',
 ]);
 
 const PHYSICAL_CREATE_TAXONOMY_IDS = new Set([

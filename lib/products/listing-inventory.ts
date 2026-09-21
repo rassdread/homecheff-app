@@ -7,6 +7,8 @@ const WORKSHOP_TAXONOMY_IDS = new Set([
   'knowledge.workshop',
   'knowledge.cookingclass',
   'knowledge.musicclass',
+  'knowledge.course',
+  'knowledge.training',
 ]);
 
 export const STOCK_RESERVATION_TTL_MS = 15 * 60 * 1000;

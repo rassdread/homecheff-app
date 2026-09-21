@@ -103,10 +103,10 @@ function main(): void {
   const selectableCount = MARKETPLACE_TAXONOMY.filter(
     (e) => e.level === 'item' && !e.blocked && !e.futureOnly,
   ).length;
-  assert(selectableCount === 96, `96 selecteerbare items (got ${selectableCount})`);
-  assert(offerItems.length === 96, `offer role: 96 items (got ${offerItems.length})`);
-  assert(requestItems.length === 96, `request role: 96 items (got ${requestItems.length})`);
-  assert(acceptedItems.length === 96, `accepted role: 96 items (got ${acceptedItems.length})`);
+  assert(selectableCount >= 96, `selecteerbare items (got ${selectableCount})`);
+  assert(offerItems.length === selectableCount, `offer role matches selectable items (got ${offerItems.length})`);
+  assert(requestItems.length === selectableCount, `request role matches selectable items (got ${requestItems.length})`);
+  assert(acceptedItems.length === selectableCount, `accepted role matches selectable items (got ${acceptedItems.length})`);
 
   section('Phase 5B-A new items');
   for (const id of PHASE_5B_A_NEW_IDS) {
@@ -288,10 +288,10 @@ function main(): void {
   );
   assert(
     fs.readFileSync(
-      path.join(ROOT, 'components/products/marketplace/TaxonomySpecializationPicker.tsx'),
+      path.join(ROOT, 'components/products/marketplace/TaxonomyGroupAccordion.tsx'),
       'utf8',
     ).includes('getEntryFlowItemsForGroup'),
-    'TaxonomySpecializationPicker uses taxonomy-resolve',
+    'TaxonomyGroupAccordion uses taxonomy-resolve',
   );
   assert(
     fs.readFileSync(

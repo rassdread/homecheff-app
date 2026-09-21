@@ -8,15 +8,11 @@ import {
   type ListingIntentValue,
 } from '@/lib/marketplace/listing-taxonomy';
 import {
-  getEntryFlowItemsForGroup,
-  getMarketplaceTaxonomyGroupsByCategory,
   getMarketplaceTaxonomyItem,
   type TaxonomyEntryRole,
 } from '@/lib/marketplace/taxonomy-resolve';
 import {
-  compiledTaxonomyGroupLabel,
   compiledTaxonomyItemLabel,
-  taxonomyGroupLabelKey,
   taxonomyLabelKey,
   taxonomyLabelWithFallback,
 } from '@/lib/marketplace/taxonomy-i18n';
@@ -25,17 +21,23 @@ import {
   MARKETPLACE_ENTRY_CATEGORY_KEY,
   MARKETPLACE_ERROR_KEYS,
 } from '@/lib/marketplace/i18n-keys';
+import {
+  constrainSpecializationsToOneCategory,
+  getOfferAccordionGroups,
+  marketplaceCategoryFromSpecializations,
+} from '@/lib/marketplace/taxonomy-accordion';
+import TaxonomyGroupAccordion from '@/components/products/marketplace/TaxonomyGroupAccordion';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
-import { TAXONOMY_TONE_CLASSES, taxonomyToneChipClass } from '@/lib/marketplace/taxonomy-tone';
-import type { TaxonomyTone } from '@/lib/marketplace/taxonomy-types';
+import { TAXONOMY_TONE_CLASSES } from '@/lib/marketplace/taxonomy-tone';
 
 export type MarketplaceEntryResult = {
   listingIntent: ListingIntentValue;
   marketplaceCategory: MarketplaceCategory;
   specializations: string[];
+  otherServiceLabel?: string;
 };
 
-type EntryStep = 'intent' | 'category' | 'group' | 'items' | 'summary';
+type EntryStep = 'intent' | 'category' | 'accordion' | 'summary';
 
 type Props = {
   onComplete: (result: MarketplaceEntryResult) => void;
@@ -69,7 +71,7 @@ export default function MarketplaceEntryFlow({
     if (initialIntent && initialCategory && normalizedInitialSpecs.length > 0) {
       return 'summary';
     }
-    if (initialIntent && initialCategory) return 'group';
+    if (initialIntent && initialCategory) return 'accordion';
     if (initialIntent) return 'category';
     return 'intent';
   };
@@ -80,36 +82,22 @@ export default function MarketplaceEntryFlow({
   );
   const [marketplaceCategory, setMarketplaceCategory] =
     useState<MarketplaceCategory>(initialCategory ?? 'CREATE');
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [selectedSpecs, setSelectedSpecs] = useState<string[]>(normalizedInitialSpecs);
+  const [otherServiceLabel, setOtherServiceLabel] = useState('');
   const [message, setMessage] = useState<string | null>(null);
 
   const role = intentToRole(listingIntent);
+
+  const accordionGroups = useMemo(
+    () => getOfferAccordionGroups(marketplaceCategory),
+    [marketplaceCategory],
+  );
 
   const categories = useMemo(() => {
     const all = MARKETPLACE_CATEGORIES;
     if (!allowedCategories?.length) return all;
     return all.filter((c) => allowedCategories.includes(c));
   }, [allowedCategories]);
-
-  const groupsForCategory = useMemo(
-    () => getMarketplaceTaxonomyGroupsByCategory(marketplaceCategory),
-    [marketplaceCategory],
-  );
-
-  const itemsForGroup = useMemo(() => {
-    if (!selectedGroupId) return [];
-    return getEntryFlowItemsForGroup(selectedGroupId, role);
-  }, [selectedGroupId, role]);
-
-  const toggleSpec = (taxonomyId: string) => {
-    setSelectedSpecs((prev) =>
-      prev.includes(taxonomyId)
-        ? prev.filter((id) => id !== taxonomyId)
-        : [...prev, taxonomyId],
-    );
-    setMessage(null);
-  };
 
   const goToSummary = () => {
     if (selectedSpecs.length === 0) {
@@ -120,41 +108,12 @@ export default function MarketplaceEntryFlow({
     setStep('summary');
   };
 
-  const groupLabel = (groupId: string) =>
-    taxonomyLabelWithFallback(
-      t(taxonomyGroupLabelKey(groupId)),
-      compiledTaxonomyGroupLabel(groupId),
-      language,
-    );
-
   const itemLabel = (taxonomyId: string) =>
     taxonomyLabelWithFallback(
       t(taxonomyLabelKey(taxonomyId)),
       compiledTaxonomyItemLabel(taxonomyId),
       language,
     );
-
-  const chipClass = (active: boolean, tone: TaxonomyTone = 'service') =>
-    `inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${taxonomyToneChipClass(active, tone)} shadow-sm`;
-
-  const renderTaxonomyChip = (
-    taxonomyId: string,
-    icon: string,
-    tone: TaxonomyTone,
-    active: boolean,
-  ) => (
-    <button
-      key={taxonomyId}
-      type="button"
-      onClick={() => toggleSpec(taxonomyId)}
-      className={chipClass(active, tone)}
-      aria-pressed={active}
-    >
-      <TaxonomyLucideIcon name={icon} className="h-4 w-4" tone={tone} />
-      {active ? <span aria-hidden>✓ </span> : null}
-      {itemLabel(taxonomyId)}
-    </button>
-  );
 
   const cardClass = (active: boolean) =>
     `rounded-xl border-2 p-4 text-left font-medium transition-colors ${
@@ -218,9 +177,9 @@ export default function MarketplaceEntryFlow({
                 type="button"
                 onClick={() => {
                   setMarketplaceCategory(cat);
-                  setSelectedGroupId(null);
                   setSelectedSpecs([]);
-                  setStep('group');
+                  setOtherServiceLabel('');
+                  setStep('accordion');
                 }}
                 className="rounded-xl border border-gray-200 p-3 text-left hover:border-emerald-400 hover:bg-emerald-50/50 font-medium text-gray-900"
               >
@@ -231,8 +190,8 @@ export default function MarketplaceEntryFlow({
         </section>
       )}
 
-      {step === 'group' && (
-        <section>
+      {step === 'accordion' ? (
+        <section className="min-w-0 overflow-x-hidden">
           <button
             type="button"
             className="text-sm text-emerald-700 mb-3"
@@ -244,92 +203,40 @@ export default function MarketplaceEntryFlow({
             {t(MARKETPLACE_ENTRY_CATEGORY_KEY[marketplaceCategory])}
           </h2>
           <p className="text-sm text-gray-600 mb-1">
-            {t('marketplace.entry.groupHeading')}
+            {t('marketplace.entry.accordionHeading')}
           </p>
           <p className="text-xs text-gray-500 mb-4">
-            {t('marketplace.entry.groupHint')}
+            {t('marketplace.entry.accordionHint')}
           </p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {groupsForCategory.map((group) => (
-              <button
-                key={group.id}
-                type="button"
-                onClick={() => {
-                  setSelectedGroupId(group.id);
-                  setStep('items');
-                }}
-                className={`flex items-center gap-2 rounded-xl border p-3 text-left font-medium transition-colors ${
-                  selectedGroupId === group.id
-                    ? `border ${taxonomyToneChipClass(true, group.tone)}`
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-900'
-                }`}
-              >
-                <TaxonomyLucideIcon name={group.icon} tone={group.tone} />
-                {groupLabel(group.id)}
-              </button>
-            ))}
-          </div>
-          {selectedSpecs.length > 0 ? (
-            <button
-              type="button"
-              onClick={goToSummary}
-              className="mt-6 w-full rounded-xl border border-emerald-300 bg-white py-3 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
-            >
-              {t('marketplace.entry.continueToSummary')}
-            </button>
-          ) : null}
-        </section>
-      )}
-
-      {step === 'items' && selectedGroupId ? (
-        <section>
-          <button
-            type="button"
-            className="text-sm text-emerald-700 mb-3"
-            onClick={() => setStep('group')}
-          >
-            {t('marketplace.back')}
-          </button>
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">
-            {groupLabel(selectedGroupId)}
-          </h2>
-          <p className="text-sm text-gray-600 mb-1">
-            {t('marketplace.entry.itemsHeading')}
-          </p>
-          <p className="text-xs text-gray-500 mb-3">
-            {t('marketplace.entry.specializationsHint')}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {itemsForGroup.map((item) =>
-              renderTaxonomyChip(
-                item.id,
-                item.icon,
-                item.tone,
-                selectedSpecs.includes(item.id),
-              ),
-            )}
-          </div>
+          <TaxonomyGroupAccordion
+            marketplaceCategory={marketplaceCategory}
+            role={role}
+            value={selectedSpecs}
+            onChange={(ids) => {
+              const next = constrainSpecializationsToOneCategory(ids);
+              setSelectedSpecs(next);
+              setMarketplaceCategory(
+                marketplaceCategoryFromSpecializations(next, marketplaceCategory),
+              );
+              setMessage(null);
+            }}
+            otherLabel={otherServiceLabel}
+            onOtherLabelChange={setOtherServiceLabel}
+            defaultCollapsed
+            groups={accordionGroups}
+          />
           {message ? (
             <p className="mt-3 text-sm text-red-600" role="alert">
               {message}
             </p>
           ) : null}
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => setStep('group')}
-              className="flex-1 rounded-xl border border-gray-300 py-3 text-sm font-medium text-gray-700"
-            >
-              {t('marketplace.entry.pickAnotherGroup')}
-            </button>
-            <button
-              type="button"
-              onClick={goToSummary}
-              className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              {t('marketplace.entry.continueToSummary')}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={goToSummary}
+            className="mt-6 w-full rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            {t('marketplace.entry.continueToSummary')}
+          </button>
         </section>
       ) : null}
 
@@ -380,12 +287,17 @@ export default function MarketplaceEntryFlow({
                   );
                 })}
               </div>
+              {otherServiceLabel.trim() ? (
+                <p className="mt-2 text-sm text-emerald-950">
+                  {otherServiceLabel.trim()}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => setStep('group')}
+              onClick={() => setStep('accordion')}
               className="flex-1 rounded-xl border border-gray-300 py-3 text-sm font-medium"
             >
               {t('marketplace.entry.editChoices')}
@@ -397,6 +309,7 @@ export default function MarketplaceEntryFlow({
                   listingIntent,
                   marketplaceCategory,
                   specializations: selectedSpecs,
+                  otherServiceLabel: otherServiceLabel.trim() || undefined,
                 })
               }
               className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"

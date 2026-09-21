@@ -42,6 +42,8 @@ const WORKSHOP_TAXONOMY_IDS = new Set([
   'knowledge.musicclass',
   'knowledge.tutoring',
   'knowledge.language',
+  'knowledge.course',
+  'knowledge.training',
 ]);
 
 export function marketplaceCategoryToMainCategory(
