@@ -93,6 +93,7 @@ import {
   VERDIENCHECK_ACTIVE_STEP_ID,
   VERDIENCHECK_STEP_HEADING_ID,
 } from '@/lib/verdiencheck/wizard/active-step-focus';
+import { HC_PAGE_BOTTOM_NAV_PAD } from '@/lib/layout/bottomNavInset';
 import {
   earningIntentFromEntry,
   isAffiliateActivity,
@@ -549,7 +550,7 @@ export default function VerdienCheckWizard(props: {
       <div
         ref={activeStepRef}
         id={VERDIENCHECK_ACTIVE_STEP_ID}
-        className="mx-auto w-full min-w-0 max-w-md px-4 pb-10 pt-2 break-words scroll-mt-[calc(var(--hc-top-nav-height,4rem)+0.75rem)]"
+        className={`mx-auto w-full min-w-0 max-w-md px-4 pt-2 break-words scroll-mt-[calc(var(--hc-top-nav-height,4rem)+0.75rem)] ${HC_PAGE_BOTTOM_NAV_PAD} xl:pb-10`}
       >
         <div className="mt-2 flex min-w-0 items-start justify-between gap-3">
           <p className="min-w-0 flex-1 text-sm font-medium text-gray-600">

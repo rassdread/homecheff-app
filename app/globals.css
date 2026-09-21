@@ -479,7 +479,16 @@ html.hc-pwa-standalone #navbar-dropdown-portal-root {
  * Hogere ondermarge voor native / PWA bottom nav + touch targets + safe-area.
  * Alleen als bottom-nav zichtbaar (data attribuut gezet door AppPageChrome).
  * Uses --hc-bottom-nav-offset SSOT (native/PWA bump --hc-bottom-nav-height).
+ *
+ * scroll-padding-bottom: scrollIntoView / last-control alignment must clear the
+ * same offset as AppPageChrome padding (fixed nav is outside the document flow).
  */
+html:has([data-verdiencheck-shell]):has(
+    [data-homecheff-app-chrome][data-bottom-nav-visible='true']
+  ) {
+  scroll-padding-bottom: var(--hc-bottom-nav-offset);
+}
+
 html.hc-native-capacitor
   [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
     [data-messages-route="true"]
