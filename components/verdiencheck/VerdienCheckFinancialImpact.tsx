@@ -230,6 +230,13 @@ export default function VerdienCheckFinancialImpact(props: {
                   </td>
                   <td className="px-3 py-2 tabular-nums">{deltaDisplay(copy, known(sim.zvwDeltaCents))}</td>
                 </tr>
+                {sim.showZvwEmployerNote ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 pb-2 text-xs leading-relaxed text-stone-600">
+                      {copy.zvwEmployerNote}
+                    </td>
+                  </tr>
+                ) : null}
                 {includedAllowances.map((line) => (
                   <tr key={line.id} className="border-b border-stone-50">
                     <td className="px-3 py-2">{ALLOWANCE_NAME[line.id]}</td>

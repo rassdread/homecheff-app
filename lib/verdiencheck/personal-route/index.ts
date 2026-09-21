@@ -13,5 +13,7 @@ export type {
   ProceedSemantics,
   FinancialImpactPresentation,
   MoneySimulatorView,
+  CurrentBaselineView,
+  BaselinePresentationFacts,
   ActionSemantics,
 } from './types';

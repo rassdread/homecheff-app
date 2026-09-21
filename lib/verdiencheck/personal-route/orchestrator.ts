@@ -30,7 +30,12 @@ import {
   hitTiming,
   sortHitsForPresentation,
 } from './prioritize';
-import type { PersonalRouteCard, PersonalVerdienRoute, ProceedSemantics } from './types';
+import type {
+  BaselinePresentationFacts,
+  PersonalRouteCard,
+  PersonalVerdienRoute,
+  ProceedSemantics,
+} from './types';
 import { MAX_PRIMARY_NOW_CARDS } from './types';
 
 void HOMECHEFF_GUIDANCE_PRINCIPLE;
@@ -208,6 +213,7 @@ export function buildPersonalVerdienRoute(input: {
   hits?: readonly GuidanceHit[];
   forceCheckFirstReason?: 'UWV_SCHEME_UNKNOWN' | null;
   holidayPayUnresolved?: boolean;
+  baselineFacts?: BaselinePresentationFacts;
 }): PersonalVerdienRoute {
   const ctx = input.ctx;
   const observed: ObservedActivity = ctx
@@ -351,6 +357,7 @@ export function buildPersonalVerdienRoute(input: {
     financialImpact: presentFinancialImpact(input.calculator, {
       allowances: ctx?.allowances ?? null,
       holidayPayUnresolved: input.holidayPayUnresolved === true,
+      baselineFacts: input.baselineFacts,
     }),
     trackingMessage: PERSONAL_ROUTE_COPY.tracking,
     officialActions: officialActionsFrom([...now, ...soon, ...later, ...restDetails]),

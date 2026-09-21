@@ -251,6 +251,26 @@ export type VerdienCheckCopy = {
   netInputEstimateNote: string;
   netInputAowNote: string;
   extraTaxReserveTitle: string;
+  estimateLabel: string;
+  fiscalIncomeLabel: string;
+  assessmentIncomeLabel: string;
+  holidayPayAmountLabel: string;
+  holidayPayIncludedShort: string;
+  netEnteredLabel: string;
+  estimatedGrossMonthlyLabel: string;
+  estimatedFiscalYearLabel: string;
+  currentIncomeTaxLabel: string;
+  currentIncomeTaxHint: string;
+  notApplicableShort: string;
+  allowanceTotalIncomplete: string;
+  taxAndAllowancesHeading: string;
+  currentBasisSummary: string;
+  estimatedAnnualIncomeShort: string;
+  zvwEmployerNote: string;
+  incomeBasesDetailsTitle: string;
+  incomeBasesDetailsBody: string;
+  estimateProvenanceTitle: string;
+  estimateProvenanceBody: string;
   shareAction: string;
   shareTitle: string;
   shareMessage: string;
@@ -561,6 +581,31 @@ const NL: VerdienCheckCopy = {
   netInputAowNote:
     'In het jaar dat je AOW krijgt, kunnen we netto niet betrouwbaar terugrekenen. Vul bruto in.',
   extraTaxReserveTitle: 'Extra belasting en bijdragen',
+  estimateLabel: 'schatting',
+  fiscalIncomeLabel: 'Geschat fiscaal inkomen',
+  assessmentIncomeLabel: 'Geschat toetsingsinkomen',
+  holidayPayAmountLabel: 'Vakantiegeld',
+  holidayPayIncludedShort: 'meegeteld',
+  netEnteredLabel: 'Netto opgegeven',
+  estimatedGrossMonthlyLabel: 'Geschat bruto',
+  estimatedFiscalYearLabel: 'Geschat fiscaal jaarinkomen',
+  currentIncomeTaxLabel: 'Geschatte inkomstenbelasting',
+  currentIncomeTaxHint:
+    'Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook.',
+  notApplicableShort: 'Niet van toepassing',
+  allowanceTotalIncomplete:
+    'Totaal niet exact, omdat een toeslag nog niet te berekenen is.',
+  taxAndAllowancesHeading: 'Belasting & toeslagen',
+  currentBasisSummary: 'Je huidige financiële basis',
+  estimatedAnnualIncomeShort: 'geschat jaarinkomen',
+  zvwEmployerNote:
+    'Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage.',
+  incomeBasesDetailsTitle: 'Bruto, fiscaal en toetsingsinkomen',
+  incomeBasesDetailsBody:
+    'Bruto is je contractuele loon. Fiscaal inkomen is het bedrag waarover inkomstenbelasting wordt berekend. Toetsingsinkomen gebruiken we voor toeslagen. Die bedragen kunnen later uit elkaar lopen, bijvoorbeeld door pensioen of een eigen woning.',
+  estimateProvenanceTitle: 'Hoe is dit geschat?',
+  estimateProvenanceBody:
+    'Met netto maken we een schatting van je bruto-inkomen. Dat is geen exacte loonstrookreconstructie. Je loonstrook of jaaropgaaf is nauwkeuriger.',
   shareAction: 'Deel VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:
@@ -1285,6 +1330,31 @@ const EN: VerdienCheckCopy = {
   netInputAowNote:
     'In the year you reach state pension age we cannot reliably reverse net pay. Enter gross instead.',
   extraTaxReserveTitle: 'Extra tax and contributions',
+  estimateLabel: 'estimate',
+  fiscalIncomeLabel: 'Estimated fiscal income',
+  assessmentIncomeLabel: 'Estimated assessment income',
+  holidayPayAmountLabel: 'Holiday pay',
+  holidayPayIncludedShort: 'included',
+  netEnteredLabel: 'Net entered',
+  estimatedGrossMonthlyLabel: 'Estimated gross',
+  estimatedFiscalYearLabel: 'Estimated fiscal annual income',
+  currentIncomeTaxLabel: 'Estimated income tax',
+  currentIncomeTaxHint:
+    'This is estimated annual income tax, not payroll withholding from your payslip.',
+  notApplicableShort: 'Not applicable',
+  allowanceTotalIncomplete:
+    'Total is not exact because an allowance cannot be calculated yet.',
+  taxAndAllowancesHeading: 'Tax & allowances',
+  currentBasisSummary: 'Your current financial basis',
+  estimatedAnnualIncomeShort: 'estimated annual income',
+  zvwEmployerNote:
+    'For most employees the employer pays the Zvw employer levy. That is why no separate employee contribution is shown here.',
+  incomeBasesDetailsTitle: 'Gross, fiscal and assessment income',
+  incomeBasesDetailsBody:
+    'Gross is your contractual wage. Fiscal income is the amount used for income tax. Assessment income is used for allowances. Those amounts can later diverge, for example through pension or an owner-occupied home.',
+  estimateProvenanceTitle: 'How is this estimated?',
+  estimateProvenanceBody:
+    'From net pay we estimate your gross income. This is not an exact payslip reconstruction. Your payslip or annual statement is more accurate.',
   shareAction: 'Share VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:

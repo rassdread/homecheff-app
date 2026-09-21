@@ -10,6 +10,13 @@ import {
   ZVW_RATE,
 } from '../rulesets/nl/2026/core-constants';
 
+/**
+ * Extra-ROW Zvw charges only remaining room under the 2026 contribution-income cap.
+ * `baselineZvwContributionIncomeAlreadyUsedCents` is contribution income already
+ * consumed (typically derived fiscal/employment wage on the employee path).
+ * It is not a generic annualIncome copy and not the Zvw euro amount itself.
+ * Certified 2026 rates/formulas are unchanged.
+ */
 export function calculateAdditionalZvw2026(input: {
   positiveTaxableRowCents: number;
   baselineZvwContributionIncomeAlreadyUsedCents: number;

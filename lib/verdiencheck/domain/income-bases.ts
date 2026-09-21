@@ -1,5 +1,12 @@
 /**
  * Distinct income bases — never collapse into one “annualIncome”.
+ *
+ * A. contractual / gross employment income
+ * B. fiscal / taxable income (loon voor LH, box 1 components)
+ * C. assessment income / toetsingsinkomen
+ *
+ * These MAY currently be numerically equal in a simple employee estimate.
+ * They must still be independently derived values with their own provenance.
  */
 
 export const AGE_TAX_REGIMES_2026 = [

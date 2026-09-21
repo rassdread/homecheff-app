@@ -9,6 +9,7 @@ import { hasAllowance } from '../domain/allowances';
 import { isUnknown, UNKNOWN, type CentsOrUnknown } from '../domain/unknown';
 import { PERSONAL_ROUTE_COPY } from './copy';
 import type {
+  BaselinePresentationFacts,
   FinancialImpactPresentation,
   MoneySimulatorView,
   CurrentBaselineView,
@@ -93,6 +94,21 @@ function missingHits(missing: readonly string[], keys: readonly string[]): boole
   );
 }
 
+function emptyAllowanceLine(id: SimulatorAllowanceId): SimulatorAllowanceLine {
+  return {
+    id,
+    included: false,
+    currentCents: null,
+    scenarioCents: null,
+    deltaCents: null,
+    rightLost: false,
+    unchanged: false,
+    unknown: false,
+    notApplicable: false,
+    excludedReason: null,
+  };
+}
+
 function buildAllowanceLine(
   result: CalculatorReadyResult,
   meta: (typeof ALLOWANCE_META)[number],
@@ -119,17 +135,7 @@ function buildAllowanceLine(
     (prefix != null && missing.some((item) => item.startsWith(prefix)));
 
   if (!selected) {
-    return {
-      id: meta.id,
-      included: false,
-      currentCents: null,
-      scenarioCents: null,
-      deltaCents: null,
-      rightLost: false,
-      unchanged: false,
-      unknown: false,
-      excludedReason: null,
-    };
+    return emptyAllowanceLine(meta.id);
   }
 
   if (unknown || missingForThis) {
@@ -142,6 +148,7 @@ function buildAllowanceLine(
       rightLost: false,
       unchanged: false,
       unknown: true,
+      notApplicable: false,
       excludedReason: meta.excludedMissing,
     };
   }
@@ -155,8 +162,67 @@ function buildAllowanceLine(
     rightLost: currentN != null && currentN > 0 && scenarioN === 0,
     unchanged: currentN != null && scenarioN != null && currentN === scenarioN,
     unknown: false,
+    notApplicable: false,
     excludedReason: null,
   };
+}
+
+function notApplicableLine(id: SimulatorAllowanceId): SimulatorAllowanceLine {
+  return {
+    ...emptyAllowanceLine(id),
+    notApplicable: true,
+  };
+}
+
+function unknownRelevantLine(
+  id: SimulatorAllowanceId,
+  reason: string,
+): SimulatorAllowanceLine {
+  return {
+    ...emptyAllowanceLine(id),
+    unknown: true,
+    currentCents: UNKNOWN,
+    scenarioCents: UNKNOWN,
+    deltaCents: UNKNOWN,
+    excludedReason: reason,
+  };
+}
+
+function classifyUnselectedBaselineLine(
+  meta: (typeof ALLOWANCE_META)[number],
+  facts: BaselinePresentationFacts | undefined,
+): SimulatorAllowanceLine | null {
+  if (facts == null) return null;
+  if (facts.allowancesNone) return notApplicableLine(meta.id);
+  if (meta.id === 'RENT') {
+    if (facts.housingTenure === 'DOES_NOT_RENT') return notApplicableLine(meta.id);
+    if (facts.housingTenure === 'UNKNOWN' || facts.housingTenure == null) {
+      return unknownRelevantLine(meta.id, meta.excludedMissing);
+    }
+  }
+  if (meta.id === 'CHILD_BUDGET') {
+    if (facts.hasChildren === false) return notApplicableLine(meta.id);
+    if (facts.hasChildren === 'UNKNOWN' || facts.hasChildren == null) {
+      return unknownRelevantLine(meta.id, meta.excludedMissing);
+    }
+  }
+  if (meta.id === 'CHILDCARE') {
+    if (facts.usesChildcare === false || facts.hasChildren === false) {
+      return notApplicableLine(meta.id);
+    }
+    if (
+      facts.usesChildcare === 'UNKNOWN' ||
+      facts.usesChildcare == null ||
+      facts.hasChildren === 'UNKNOWN' ||
+      facts.hasChildren == null
+    ) {
+      return unknownRelevantLine(meta.id, meta.excludedMissing);
+    }
+  }
+  if (meta.id === 'HEALTHCARE') {
+    return notApplicableLine(meta.id);
+  }
+  return notApplicableLine(meta.id);
 }
 
 function uncertaintyFromMissing(missing: readonly string[], allowances: AllowanceSelection | null): string | null {
@@ -202,29 +268,21 @@ function emptySimulator(extra: number | null, why: string | null): MoneySimulato
     scenarioIncomeTaxCents: UNKNOWN,
     currentZvwCents: UNKNOWN,
     scenarioZvwCents: UNKNOWN,
-    allowances: ALLOWANCE_META.map((meta) => ({
-      id: meta.id,
-      included: false,
-      currentCents: null,
-      scenarioCents: null,
-      deltaCents: null,
-      rightLost: false,
-      unchanged: false,
-      unknown: false,
-      excludedReason: null,
-    })),
+    allowances: ALLOWANCE_META.map((meta) => emptyAllowanceLine(meta.id)),
     netExtraCents: UNKNOWN,
     monthlyApproxCents: UNKNOWN,
     netFromEngine: true,
     includedNotes: [],
     excludedNotes: uniqueNotes([why]),
     uncertaintyWhy: why,
+    showZvwEmployerNote: false,
   };
 }
 
 export function buildMoneySimulatorView(
   result: CalculatorReadyResult,
   allowances: AllowanceSelection | null,
+  facts?: BaselinePresentationFacts,
 ): MoneySimulatorView {
   const missing = result.missingInputs;
   const lines = ALLOWANCE_META.map((meta) => buildAllowanceLine(result, meta, allowances, missing));
@@ -247,6 +305,7 @@ export function buildMoneySimulatorView(
   if (result.netExtraIsDefinitive && !isUnknown(net)) {
     includedNotes.push('Berekening compleet.');
   }
+  const currentZvw = knownNumber(result.baseline.zvwContribution);
   return {
     extraResultCents: extra,
     taxDeltaCents: tax,
@@ -263,6 +322,7 @@ export function buildMoneySimulatorView(
     includedNotes,
     excludedNotes: uniqueNotes(excluded.map((line) => line.excludedReason)),
     uncertaintyWhy: why,
+    showZvwEmployerNote: facts?.employeeLikeZvw === true && currentZvw === 0,
   };
 }
 
@@ -273,32 +333,72 @@ function monthlyFromAnnual(cents: number): number {
 export function buildCurrentBaselineView(
   result: CalculatorReadyResult,
   allowances: AllowanceSelection | null,
+  facts?: BaselinePresentationFacts,
 ): CurrentBaselineView {
-  const lines = ALLOWANCE_META.map((meta) =>
-    buildAllowanceLine(result, meta, allowances, result.missingInputs),
-  ).filter((line) => line.included || line.unknown);
-  const annuals = lines.map((line) =>
-    line.unknown ? UNKNOWN : (knownNumber(line.currentCents) ?? UNKNOWN),
-  );
-  const totalAnnual = sumKnown(annuals);
+  const missing = result.missingInputs;
+  const lines = ALLOWANCE_META.map((meta) => {
+    const computed = buildAllowanceLine(result, meta, allowances, missing);
+    if (computed.included || computed.unknown) return computed;
+    const classified = classifyUnselectedBaselineLine(meta, facts);
+    if (classified) return classified;
+    return null;
+  }).filter((line): line is SimulatorAllowanceLine => line != null);
+
+  const relevantUnknown = lines.some((line) => line.unknown && !line.notApplicable);
+  const includedKnown = lines
+    .filter((line) => line.included && !line.unknown && !line.notApplicable)
+    .map((line) => knownNumber(line.currentCents) ?? UNKNOWN);
+  const totalAnnual = relevantUnknown ? UNKNOWN : sumKnown(includedKnown);
   const totalMonthly =
     typeof totalAnnual === 'number' ? monthlyFromAnnual(totalAnnual) : totalAnnual;
+  const incomeAnnual =
+    facts?.incomeAnnualCents ??
+    facts?.fiscalWageCents ??
+    facts?.assessmentIncomeCents ??
+    null;
+  const fiscal = facts?.fiscalWageCents ?? null;
+  const assessment = facts?.assessmentIncomeCents ?? null;
+  const currentZvw = knownNumber(result.baseline.zvwContribution);
   return {
-    incomeAnnualCents: null,
-    incomeMonthlyCents: null,
-    incomeUnknown: false,
-    incomeUnknownReason: null,
-    incomeIsNetEstimate: false,
+    incomeAnnualCents: incomeAnnual,
+    incomeMonthlyCents:
+      facts?.incomeMonthlyCents ?? (incomeAnnual != null ? monthlyFromAnnual(incomeAnnual) : null),
+    contractualGrossCents: facts?.contractualGrossCents ?? null,
+    holidayPayCents: facts?.holidayPayCents ?? null,
+    holidayPayIncluded: facts?.holidayPayIncluded ?? null,
+    fiscalWageCents: fiscal,
+    assessmentIncomeCents: assessment,
+    enteredNetMonthlyCents: facts?.enteredNetMonthlyCents ?? null,
+    incomeUnknown: facts?.incomeUnknown === true,
+    incomeUnknownReason: facts?.incomeUnknownReason ?? null,
+    incomeIsNetEstimate: facts?.incomeIsNetEstimate === true,
+    showDistinctFiscal: fiscal != null && incomeAnnual != null && fiscal !== incomeAnnual,
+    showDistinctAssessment:
+      assessment != null &&
+      assessment !== fiscal &&
+      assessment !== incomeAnnual,
+    incomeTaxAnnualCents: result.baseline.incomeTax,
+    showZvwEmployerNote: facts?.employeeLikeZvw === true && currentZvw === 0,
     allowances: lines,
+    totalAllowancesAnnualCents: totalAnnual,
+    totalAllowancesMonthlyCents: totalMonthly,
+    allowanceTotalExact: typeof totalAnnual === 'number',
   };
 }
 
+export type PresentFinancialImpactOptions = {
+  allowances?: AllowanceSelection | null;
+  holidayPayUnresolved?: boolean;
+  baselineFacts?: BaselinePresentationFacts;
+};
+
 export function presentFinancialImpact(
   result: CalculatorResult | null,
-  options?: { allowances?: AllowanceSelection | null; holidayPayUnresolved?: boolean },
+  options?: PresentFinancialImpactOptions,
 ): FinancialImpactPresentation {
   const turnoverVsResultNote = PERSONAL_ROUTE_COPY.turnoverVsResult;
   const allowances = options?.allowances ?? null;
+  const facts = options?.baselineFacts;
   if (result == null || result.status !== 'READY') {
     const extra = result?.commercialAdditionalResultCents ?? null;
     const why =
@@ -328,7 +428,7 @@ export function presentFinancialImpact(
     result.deltas.childBudget,
     result.deltas.childcareAllowance,
   ]);
-  const simulator = buildMoneySimulatorView(result, allowances);
+  const simulator = buildMoneySimulatorView(result, allowances, facts);
   const holidayUnresolved = options?.holidayPayUnresolved === true;
   const net = holidayUnresolved ? UNKNOWN : simulator.netExtraCents;
   const month = holidayUnresolved ? UNKNOWN : simulator.monthlyApproxCents;
@@ -360,7 +460,7 @@ export function presentFinancialImpact(
       explanation: PERSONAL_ROUTE_COPY.estimateOnRules,
       turnoverVsResultNote,
       simulator: holidaySimulator,
-      baseline: buildCurrentBaselineView(result, allowances),
+      baseline: buildCurrentBaselineView(result, allowances, facts),
     };
   }
 
@@ -375,6 +475,6 @@ export function presentFinancialImpact(
     explanation: PERSONAL_ROUTE_COPY.estimateOnRules,
     turnoverVsResultNote,
     simulator,
-    baseline: buildCurrentBaselineView(result, allowances),
+    baseline: buildCurrentBaselineView(result, allowances, facts),
   };
 }

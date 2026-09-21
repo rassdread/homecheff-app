@@ -70,18 +70,49 @@ export type SimulatorAllowanceLine = {
   rightLost: boolean;
   unchanged: boolean;
   unknown: boolean;
+  notApplicable: boolean;
   excludedReason: string | null;
+};
+
+export type BaselinePresentationFacts = {
+  incomeAnnualCents: number | null;
+  incomeMonthlyCents: number | null;
+  contractualGrossCents: number | null;
+  holidayPayCents: number | null;
+  holidayPayIncluded: boolean | null;
+  fiscalWageCents: number | null;
+  assessmentIncomeCents: number | null;
+  enteredNetMonthlyCents: number | null;
+  incomeUnknown: boolean;
+  incomeUnknownReason: string | null;
+  incomeIsNetEstimate: boolean;
+  housingTenure?: 'RENTS' | 'DOES_NOT_RENT' | 'UNKNOWN' | null;
+  hasChildren?: boolean | 'UNKNOWN' | null;
+  usesChildcare?: boolean | 'UNKNOWN' | null;
+  allowancesNone?: boolean;
+  employeeLikeZvw?: boolean;
 };
 
 export type CurrentBaselineView = {
   incomeAnnualCents: number | null;
   incomeMonthlyCents: number | null;
+  contractualGrossCents: number | null;
+  holidayPayCents: number | null;
+  holidayPayIncluded: boolean | null;
+  fiscalWageCents: number | null;
+  assessmentIncomeCents: number | null;
+  enteredNetMonthlyCents: number | null;
   incomeUnknown: boolean;
   incomeUnknownReason: string | null;
   incomeIsNetEstimate: boolean;
+  showDistinctFiscal: boolean;
+  showDistinctAssessment: boolean;
+  incomeTaxAnnualCents: CentsOrUnknown | null;
+  showZvwEmployerNote: boolean;
   allowances: SimulatorAllowanceLine[];
   totalAllowancesAnnualCents: CentsOrUnknown | null;
   totalAllowancesMonthlyCents: CentsOrUnknown | null;
+  allowanceTotalExact: boolean;
 };
 
 export type MoneySimulatorView = {
@@ -100,6 +131,7 @@ export type MoneySimulatorView = {
   includedNotes: string[];
   excludedNotes: string[];
   uncertaintyWhy: string | null;
+  showZvwEmployerNote: boolean;
 };
 
 export type FinancialImpactPresentation = {

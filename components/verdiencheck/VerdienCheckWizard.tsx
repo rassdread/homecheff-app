@@ -330,12 +330,60 @@ export default function VerdienCheckWizard(props: {
       : null;
 
   const derivedIncomeBases = deriveIncomeBasesFromUserFacts(state);
+  const enteredNetMonthlyCents =
+    state.currentIncomeBasis === 'NET' && !state.currentIncomeUnknown
+      ? state.currentIncomePeriod === 'MONTH'
+        ? parseEuroInputToCents(state.currentIncomeEuro)
+        : parseEuroInputToCents(state.currentIncomeEuro) != null
+          ? Math.round((parseEuroInputToCents(state.currentIncomeEuro) as number) / 12)
+          : null
+      : null;
   const personalRoute = buildPersonalVerdienRoute({
     ctx: guidanceContext,
     calculator: calcResult,
     declaredGrowth: state.growthStart,
     forceCheckFirstReason: state.uwvBenefitUnknown ? 'UWV_SCHEME_UNKNOWN' : null,
     holidayPayUnresolved: derivedIncomeBases.holidayPayUnresolved,
+    baselineFacts: {
+      incomeAnnualCents:
+        derivedIncomeBases.baselineGrossEmploymentIncomeCents ??
+        derivedIncomeBases.fiscalWageCents ??
+        derivedIncomeBases.baselineAssessmentIncomeCents,
+      incomeMonthlyCents:
+        derivedIncomeBases.baselineGrossEmploymentIncomeCents != null
+          ? Math.round(derivedIncomeBases.baselineGrossEmploymentIncomeCents / 12)
+          : null,
+      contractualGrossCents: derivedIncomeBases.contractualGrossEmploymentIncomeCents,
+      holidayPayCents: derivedIncomeBases.holidayPayCents,
+      holidayPayIncluded: state.holidayPayIncluded === 'YES',
+      fiscalWageCents: derivedIncomeBases.fiscalWageCents,
+      assessmentIncomeCents: derivedIncomeBases.baselineAssessmentIncomeCents,
+      enteredNetMonthlyCents,
+      incomeUnknown: state.currentIncomeUnknown || derivedIncomeBases.holidayPayUnresolved,
+      incomeUnknownReason: state.currentIncomeUnknown
+        ? copy.currentIncomeUnknown
+        : derivedIncomeBases.holidayPayUnresolved
+          ? copy.holidayPayUnresolvedNote
+          : null,
+      incomeIsNetEstimate:
+        state.currentIncomeBasis === 'NET' &&
+        derivedIncomeBases.netToGrossConfidence === 'ESTIMATE',
+      housingTenure:
+        state.rentsHome === true
+          ? 'RENTS'
+          : state.rentsHome === false
+            ? 'DOES_NOT_RENT'
+            : state.rentsHome === 'UNKNOWN'
+              ? 'UNKNOWN'
+              : null,
+      hasChildren: state.hasChildren,
+      usesChildcare: state.usesChildcare,
+      allowancesNone: derivedWizardAllowances(state).includes('NONE'),
+      employeeLikeZvw:
+        state.situationGroup === 'EMPLOYEE' ||
+        derivedIncomeBases.derivation === 'EMPLOYMENT_PROXY' ||
+        derivedIncomeBases.derivation === 'NET_EMPLOYMENT_ESTIMATE',
+    },
   });
   const resultCtaMode = resolveResultCtaMode({
     intent: earningIntentFromEntry(entryPoint),

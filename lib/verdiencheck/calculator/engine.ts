@@ -151,8 +151,10 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
   const box1A = input.baselineBox1TaxableIncomeCents;
   const aggA = input.baselineAggregateIncomeCents;
   const arbA = input.baselineArbeidsinkomenCents;
+  // Extra-ROW Zvw uses remaining room under the 2026 cap. This is contribution
+  // income already consumed — derived per basis, not a generic annualIncome copy.
   const zvwUsed = input.baselineZvwContributionIncomeAlreadyUsedCents;
-  if (box1A == null) missingInputs.push('baselineBox1TaxableIncomeCents');
+  /** Remaining 2026 Zvw cap room for extra ROW. Not a copy of generic annualIncome. */
   if (aggA == null) missingInputs.push('baselineAggregateIncomeCents');
   if (arbA == null) missingInputs.push('baselineArbeidsinkomenCents');
   if (zvwUsed == null) missingInputs.push('baselineZvwContributionIncomeAlreadyUsedCents');
